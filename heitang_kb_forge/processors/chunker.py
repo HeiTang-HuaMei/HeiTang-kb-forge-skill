@@ -2,7 +2,7 @@ import hashlib
 import re
 from pathlib import Path
 
-from kb_forge.schemas.chunk_schema import Chunk
+from heitang_kb_forge.schemas.chunk_schema import Chunk
 
 
 def stable_chunk_id(source_path: str, order: int, text: str) -> str:

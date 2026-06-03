@@ -1,4 +1,4 @@
-from kb_forge.processors.chunker import chunk_text
+from heitang_kb_forge.processors.chunker import chunk_text
 
 
 def test_chunk_ids_are_stable():

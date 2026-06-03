@@ -33,7 +33,7 @@ After editing:
 
 ## Project Constraints
 
-This project is kb-forge-skill.
+This project is HeiTang KB Forge Skill.
 
 MVP scope:
 
@@ -63,4 +63,4 @@ pytest tests/test_validator.py
 
 For CLI changes, verify:
 
-kb-forge build --input ./examples/input --output ./examples/output --domain education --mode teaching
+heitang-kb-forge build --input ./examples/input --output ./examples/output --domain education --mode teaching

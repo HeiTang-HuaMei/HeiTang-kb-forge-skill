@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from kb_forge.schemas.manifest_schema import Manifest
+from heitang_kb_forge.schemas.manifest_schema import Manifest
 
 
 def write_report(path: Path, manifest: Manifest) -> None:

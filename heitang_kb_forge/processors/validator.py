@@ -2,7 +2,7 @@ from collections import Counter
 
 from pydantic import ValidationError
 
-from kb_forge.schemas.chunk_schema import Chunk
+from heitang_kb_forge.schemas.chunk_schema import Chunk
 
 
 REQUIRED_CHUNK_FIELDS = {"chunk_id", "source_path", "source_type", "domain", "mode", "text", "order", "char_count"}

@@ -1,4 +1,4 @@
-from kb_forge.processors.validator import validate_chunks
+from heitang_kb_forge.processors.validator import validate_chunks
 
 
 def test_validator_detects_empty_chunk():

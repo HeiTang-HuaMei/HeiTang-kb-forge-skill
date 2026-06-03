@@ -2,18 +2,18 @@ from pathlib import Path
 
 import typer
 
-from kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
-from kb_forge.exporters.report_exporter import write_report
-from kb_forge.parsers.docx_parser import parse_docx
-from kb_forge.parsers.markdown_parser import parse_markdown
-from kb_forge.parsers.pdf_parser import parse_pdf
-from kb_forge.parsers.text_parser import parse_text
-from kb_forge.processors.chunker import chunk_text
-from kb_forge.processors.cleaner import clean_text
-from kb_forge.processors.extractor import make_cards, make_glossary, make_qa_pairs
-from kb_forge.processors.validator import validate_chunks
-from kb_forge.schemas.chunk_schema import Chunk
-from kb_forge.schemas.manifest_schema import Manifest
+from heitang_kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
+from heitang_kb_forge.exporters.report_exporter import write_report
+from heitang_kb_forge.parsers.docx_parser import parse_docx
+from heitang_kb_forge.parsers.markdown_parser import parse_markdown
+from heitang_kb_forge.parsers.pdf_parser import parse_pdf
+from heitang_kb_forge.parsers.text_parser import parse_text
+from heitang_kb_forge.processors.chunker import chunk_text
+from heitang_kb_forge.processors.cleaner import clean_text
+from heitang_kb_forge.processors.extractor import make_cards, make_glossary, make_qa_pairs
+from heitang_kb_forge.processors.validator import validate_chunks
+from heitang_kb_forge.schemas.chunk_schema import Chunk
+from heitang_kb_forge.schemas.manifest_schema import Manifest
 
 app = typer.Typer(help="Build local standardized knowledge base packages.")
 

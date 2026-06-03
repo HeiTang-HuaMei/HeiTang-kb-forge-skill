@@ -3,7 +3,7 @@ import json
 from docx import Document
 from typer.testing import CliRunner
 
-from kb_forge.cli import app
+from heitang_kb_forge.cli import app
 
 
 def test_build_processes_markdown_txt_pdf_and_docx(tmp_path):

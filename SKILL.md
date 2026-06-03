@@ -1,4 +1,9 @@
-# KB Forge Skill
+---
+name: heitang-kb-forge-skill
+description: Use to build standardized local knowledge-base packages from Markdown, TXT, text-based PDF, and text-based DOCX files.
+---
+
+# HeiTang KB Forge Skill
 
 Use this skill to generate a local, standardized knowledge base package from source documents.
 
@@ -14,7 +19,7 @@ Use this skill to generate a local, standardized knowledge base package from sou
 ## Command
 
 ```bash
-kb-forge build --input ./examples/input --output ./examples/output --domain education --mode teaching
+heitang-kb-forge build --input ./examples/input --output ./examples/output --domain education --mode teaching
 ```
 
 PDF and DOCX parser interfaces are present but intentionally not implemented in V0.

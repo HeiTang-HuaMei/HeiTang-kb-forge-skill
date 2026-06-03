@@ -2,8 +2,8 @@ import json
 
 from typer.testing import CliRunner
 
-from kb_forge.cli import app
-from kb_forge.parsers.pdf_parser import parse_pdf
+from heitang_kb_forge.cli import app
+from heitang_kb_forge.parsers.pdf_parser import parse_pdf
 
 
 def test_pdf_parser_extracts_text_from_text_based_pdf(tmp_path):

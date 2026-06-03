@@ -1,4 +1,4 @@
-# kb-forge-skill V0 Baseline
+# HeiTang KB Forge Skill V0 Baseline
 
 ## Status
 
@@ -29,7 +29,7 @@ The build command generates:
 Executed:
 
 * python -m pytest
-* kb-forge build --input ./examples/input --output ./examples/output --domain education --mode teaching
+* heitang-kb-forge build --input ./examples/input --output ./examples/output --domain education --mode teaching
 
 Latest result:
 

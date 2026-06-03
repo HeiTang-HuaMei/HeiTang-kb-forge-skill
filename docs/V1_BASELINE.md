@@ -1,4 +1,4 @@
-# kb-forge-skill V1 Baseline
+# HeiTang KB Forge Skill V1 Baseline
 
 ## Status
 

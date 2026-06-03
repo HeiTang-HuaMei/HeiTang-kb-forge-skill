@@ -3,8 +3,8 @@ import json
 from docx import Document
 from typer.testing import CliRunner
 
-from kb_forge.cli import app
-from kb_forge.parsers.docx_parser import parse_docx
+from heitang_kb_forge.cli import app
+from heitang_kb_forge.parsers.docx_parser import parse_docx
 
 
 def test_docx_parser_extracts_text_from_text_based_docx(tmp_path):

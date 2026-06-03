@@ -1,9 +1,9 @@
 import hashlib
 import re
 
-from kb_forge.schemas.card_schema import KnowledgeCard
-from kb_forge.schemas.chunk_schema import Chunk
-from kb_forge.schemas.qa_schema import QAPair
+from heitang_kb_forge.schemas.card_schema import KnowledgeCard
+from heitang_kb_forge.schemas.chunk_schema import Chunk
+from heitang_kb_forge.schemas.qa_schema import QAPair
 
 
 def make_cards(chunks: list[Chunk]) -> list[KnowledgeCard]:

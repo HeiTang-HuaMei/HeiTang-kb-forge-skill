@@ -1,6 +1,6 @@
-# kb-forge-skill
+# HeiTang KB Forge Skill
 
-`kb-forge-skill` is a local command-line tool for building a standardized knowledge base package from source documents.
+`heitang-kb-forge-skill` is a local command-line tool for building a standardized knowledge base package from source documents.
 
 The project is intentionally offline: no Web UI, no vector database, and no external LLM.
 
@@ -18,7 +18,7 @@ The project is intentionally offline: no Web UI, no vector database, and no exte
 ## Install
 
 ```bash
-cd kb-forge-skill
+cd HeiTang-kb-forge-skill
 python -m venv .venv
 .venv\Scripts\activate
 pip install -e ".[dev]"
@@ -35,13 +35,13 @@ source .venv/bin/activate
 Add `.md`, `.txt`, text-based `.pdf`, or text-based `.docx` files under `examples/input`, then run:
 
 ```bash
-kb-forge build --input ./examples/input --output ./examples/output --domain education --mode teaching
+heitang-kb-forge build --input ./examples/input --output ./examples/output --domain education --mode teaching
 ```
 
 You can also run the module directly:
 
 ```bash
-python -m kb_forge.cli build --input ./examples/input --output ./examples/output --domain education --mode teaching
+python -m heitang_kb_forge.cli build --input ./examples/input --output ./examples/output --domain education --mode teaching
 ```
 
 ## Output

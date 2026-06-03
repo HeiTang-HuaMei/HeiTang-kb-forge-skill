@@ -2,7 +2,7 @@ import json
 
 from typer.testing import CliRunner
 
-from kb_forge.cli import app
+from heitang_kb_forge.cli import app
 
 
 def test_build_writes_standard_knowledge_package(tmp_path):

@@ -1,4 +1,4 @@
-# kb-forge-skill V1 Parser Plan
+# HeiTang KB Forge Skill V1 Parser Plan
 
 ## V1 Goal
 
