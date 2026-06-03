@@ -1,0 +1,202 @@
+{
+  "by_embedding_id": {
+    "chunk_0": {
+      "citation": "examples/demo_education_tutor_agent/input/001_knowledge_points.md#chunk=08e7911ab19cc8dafe651842",
+      "source_path": "examples/demo_education_tutor_agent/input/001_knowledge_points.md",
+      "chunk_id": "08e7911ab19cc8dafe651842"
+    },
+    "chunk_1": {
+      "citation": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md#chunk=ffd4e24448d0259f08b1e9a8",
+      "source_path": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md",
+      "chunk_id": "ffd4e24448d0259f08b1e9a8"
+    },
+    "chunk_2": {
+      "citation": "examples/demo_education_tutor_agent/input/003_learning_path.md#chunk=abfaaf155270d0f8759fcfa7",
+      "source_path": "examples/demo_education_tutor_agent/input/003_learning_path.md",
+      "chunk_id": "abfaaf155270d0f8759fcfa7"
+    },
+    "card_3": {
+      "citation": "examples/demo_education_tutor_agent/input/001_knowledge_points.md#chunk=08e7911ab19cc8dafe651842",
+      "source_path": "examples/demo_education_tutor_agent/input/001_knowledge_points.md",
+      "chunk_id": "08e7911ab19cc8dafe651842"
+    },
+    "card_4": {
+      "citation": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md#chunk=ffd4e24448d0259f08b1e9a8",
+      "source_path": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md",
+      "chunk_id": "ffd4e24448d0259f08b1e9a8"
+    },
+    "card_5": {
+      "citation": "examples/demo_education_tutor_agent/input/003_learning_path.md#chunk=abfaaf155270d0f8759fcfa7",
+      "source_path": "examples/demo_education_tutor_agent/input/003_learning_path.md",
+      "chunk_id": "abfaaf155270d0f8759fcfa7"
+    },
+    "qa_pair_6": {
+      "citation": "examples/demo_education_tutor_agent/input/001_knowledge_points.md#chunk=08e7911ab19cc8dafe651842",
+      "source_path": "examples/demo_education_tutor_agent/input/001_knowledge_points.md",
+      "chunk_id": "08e7911ab19cc8dafe651842"
+    },
+    "qa_pair_7": {
+      "citation": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md#chunk=ffd4e24448d0259f08b1e9a8",
+      "source_path": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md",
+      "chunk_id": "ffd4e24448d0259f08b1e9a8"
+    },
+    "qa_pair_8": {
+      "citation": "examples/demo_education_tutor_agent/input/003_learning_path.md#chunk=abfaaf155270d0f8759fcfa7",
+      "source_path": "examples/demo_education_tutor_agent/input/003_learning_path.md",
+      "chunk_id": "abfaaf155270d0f8759fcfa7"
+    },
+    "glossary_9": {
+      "citation": "examples/demo_education_tutor_agent/input/001_knowledge_points.md#chunk=08e7911ab19cc8dafe651842",
+      "source_path": "examples/demo_education_tutor_agent/input/001_knowledge_points.md",
+      "chunk_id": "08e7911ab19cc8dafe651842"
+    },
+    "glossary_10": {
+      "citation": "examples/demo_education_tutor_agent/input/001_knowledge_points.md#chunk=08e7911ab19cc8dafe651842",
+      "source_path": "examples/demo_education_tutor_agent/input/001_knowledge_points.md",
+      "chunk_id": "08e7911ab19cc8dafe651842"
+    },
+    "glossary_11": {
+      "citation": "examples/demo_education_tutor_agent/input/003_learning_path.md#chunk=abfaaf155270d0f8759fcfa7",
+      "source_path": "examples/demo_education_tutor_agent/input/003_learning_path.md",
+      "chunk_id": "abfaaf155270d0f8759fcfa7"
+    },
+    "glossary_12": {
+      "citation": "examples/demo_education_tutor_agent/input/003_learning_path.md#chunk=abfaaf155270d0f8759fcfa7",
+      "source_path": "examples/demo_education_tutor_agent/input/003_learning_path.md",
+      "chunk_id": "abfaaf155270d0f8759fcfa7"
+    },
+    "glossary_13": {
+      "citation": "examples/demo_education_tutor_agent/input/003_learning_path.md#chunk=abfaaf155270d0f8759fcfa7",
+      "source_path": "examples/demo_education_tutor_agent/input/003_learning_path.md",
+      "chunk_id": "abfaaf155270d0f8759fcfa7"
+    },
+    "glossary_14": {
+      "citation": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md#chunk=ffd4e24448d0259f08b1e9a8",
+      "source_path": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md",
+      "chunk_id": "ffd4e24448d0259f08b1e9a8"
+    },
+    "glossary_15": {
+      "citation": "examples/demo_education_tutor_agent/input/001_knowledge_points.md#chunk=08e7911ab19cc8dafe651842",
+      "source_path": "examples/demo_education_tutor_agent/input/001_knowledge_points.md",
+      "chunk_id": "08e7911ab19cc8dafe651842"
+    },
+    "glossary_16": {
+      "citation": "examples/demo_education_tutor_agent/input/001_knowledge_points.md#chunk=08e7911ab19cc8dafe651842",
+      "source_path": "examples/demo_education_tutor_agent/input/001_knowledge_points.md",
+      "chunk_id": "08e7911ab19cc8dafe651842"
+    },
+    "glossary_17": {
+      "citation": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md#chunk=ffd4e24448d0259f08b1e9a8",
+      "source_path": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md",
+      "chunk_id": "ffd4e24448d0259f08b1e9a8"
+    },
+    "glossary_18": {
+      "citation": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md#chunk=ffd4e24448d0259f08b1e9a8",
+      "source_path": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md",
+      "chunk_id": "ffd4e24448d0259f08b1e9a8"
+    },
+    "glossary_19": {
+      "citation": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md#chunk=ffd4e24448d0259f08b1e9a8",
+      "source_path": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md",
+      "chunk_id": "ffd4e24448d0259f08b1e9a8"
+    },
+    "glossary_20": {
+      "citation": "examples/demo_education_tutor_agent/input/001_knowledge_points.md#chunk=08e7911ab19cc8dafe651842",
+      "source_path": "examples/demo_education_tutor_agent/input/001_knowledge_points.md",
+      "chunk_id": "08e7911ab19cc8dafe651842"
+    },
+    "glossary_21": {
+      "citation": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md#chunk=ffd4e24448d0259f08b1e9a8",
+      "source_path": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md",
+      "chunk_id": "ffd4e24448d0259f08b1e9a8"
+    },
+    "glossary_22": {
+      "citation": "examples/demo_education_tutor_agent/input/003_learning_path.md#chunk=abfaaf155270d0f8759fcfa7",
+      "source_path": "examples/demo_education_tutor_agent/input/003_learning_path.md",
+      "chunk_id": "abfaaf155270d0f8759fcfa7"
+    },
+    "glossary_23": {
+      "citation": "examples/demo_education_tutor_agent/input/003_learning_path.md#chunk=abfaaf155270d0f8759fcfa7",
+      "source_path": "examples/demo_education_tutor_agent/input/003_learning_path.md",
+      "chunk_id": "abfaaf155270d0f8759fcfa7"
+    },
+    "glossary_24": {
+      "citation": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md#chunk=ffd4e24448d0259f08b1e9a8",
+      "source_path": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md",
+      "chunk_id": "ffd4e24448d0259f08b1e9a8"
+    },
+    "glossary_25": {
+      "citation": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md#chunk=ffd4e24448d0259f08b1e9a8",
+      "source_path": "examples/demo_education_tutor_agent/input/002_mistake_explanation.md",
+      "chunk_id": "ffd4e24448d0259f08b1e9a8"
+    }
+  },
+  "by_chunk_id": {
+    "08e7911ab19cc8dafe651842": [
+      "chunk_0",
+      "card_3",
+      "qa_pair_6",
+      "glossary_9",
+      "glossary_10",
+      "glossary_15",
+      "glossary_16",
+      "glossary_20"
+    ],
+    "ffd4e24448d0259f08b1e9a8": [
+      "chunk_1",
+      "card_4",
+      "qa_pair_7",
+      "glossary_14",
+      "glossary_17",
+      "glossary_18",
+      "glossary_19",
+      "glossary_21",
+      "glossary_24",
+      "glossary_25"
+    ],
+    "abfaaf155270d0f8759fcfa7": [
+      "chunk_2",
+      "card_5",
+      "qa_pair_8",
+      "glossary_11",
+      "glossary_12",
+      "glossary_13",
+      "glossary_22",
+      "glossary_23"
+    ]
+  },
+  "by_source_path": {
+    "examples/demo_education_tutor_agent/input/001_knowledge_points.md": [
+      "chunk_0",
+      "card_3",
+      "qa_pair_6",
+      "glossary_9",
+      "glossary_10",
+      "glossary_15",
+      "glossary_16",
+      "glossary_20"
+    ],
+    "examples/demo_education_tutor_agent/input/002_mistake_explanation.md": [
+      "chunk_1",
+      "card_4",
+      "qa_pair_7",
+      "glossary_14",
+      "glossary_17",
+      "glossary_18",
+      "glossary_19",
+      "glossary_21",
+      "glossary_24",
+      "glossary_25"
+    ],
+    "examples/demo_education_tutor_agent/input/003_learning_path.md": [
+      "chunk_2",
+      "card_5",
+      "qa_pair_8",
+      "glossary_11",
+      "glossary_12",
+      "glossary_13",
+      "glossary_22",
+      "glossary_23"
+    ]
+  }
+}

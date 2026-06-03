@@ -1,0 +1,15 @@
+retrieval_mode: basic
+embedding_input_file: embedding_input.jsonl
+retrieval_metadata_file: retrieval_metadata.jsonl
+citation_map_file: citation_map.json
+fallback_asset_files: []
+top_k: 5
+asset_types:
+  - chunk
+  - card
+  - qa_pair
+  - glossary
+require_citation: true
+fallback_when_no_context: say_insufficient_context
+rerank_enabled: false
+hybrid_search_enabled: false

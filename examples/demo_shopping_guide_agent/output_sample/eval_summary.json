@@ -1,0 +1,11 @@
+{
+  "eval_version": "0.8.0",
+  "generated_at": "2026-06-03T12:16:43.773745+00:00",
+  "eval_cases_file": "eval_cases.jsonl",
+  "eval_cases_count": 3,
+  "required_citation_count": 3,
+  "source_path_coverage": 1.0,
+  "chunk_id_coverage": 1.0,
+  "status": "pass",
+  "warnings": []
+}

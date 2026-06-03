@@ -1,0 +1,14 @@
+agent_name: Shopping Guide Knowledge Agent
+agent_type: shopping_guide_agent
+language: zh-CN
+domain: commerce
+mode: agent_demo
+description: 商品知识、卖点、适用人群、推荐理由、对比建议
+knowledge_package_version: 0.7.0
+source_count: 3
+chunk_count: 3
+quality_score: 100
+quality_level: excellent
+rag_enabled: true
+llm_assets_enabled: false
+created_at: 2026-06-03T12:16:43.773745+00:00

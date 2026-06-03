@@ -1,0 +1,57 @@
+{
+  "package_version": "0.1.0",
+  "generated_at": "2026-06-03T12:16:43.773745+00:00",
+  "domain": "commerce",
+  "mode": "agent_demo",
+  "source_count": 3,
+  "chunk_count": 3,
+  "card_count": 3,
+  "qa_pair_count": 3,
+  "glossary_count": 9,
+  "files": [
+    "chunks.jsonl",
+    "cards.jsonl",
+    "qa_pairs.jsonl",
+    "glossary.jsonl",
+    "manifest.json",
+    "ingest_report.md",
+    "quality_report.json",
+    "embedding_input.jsonl",
+    "retrieval_metadata.jsonl",
+    "citation_map.json",
+    "rag_manifest.json",
+    "agent_profile.yaml",
+    "system_prompt.md",
+    "retrieval_config.yaml",
+    "tools.yaml",
+    "eval_cases.jsonl",
+    "demo_report.md",
+    "demo_manifest.json",
+    "eval_summary.json"
+  ],
+  "quality_report_file": "quality_report.json",
+  "warnings": [],
+  "rag_export_enabled": true,
+  "rag_profile": "basic",
+  "rag_export_files": [
+    "embedding_input.jsonl",
+    "retrieval_metadata.jsonl",
+    "citation_map.json",
+    "rag_manifest.json"
+  ],
+  "agent_template_enabled": true,
+  "agent_type": "shopping_guide_agent",
+  "agent_template_files": [
+    "agent_profile.yaml",
+    "system_prompt.md",
+    "retrieval_config.yaml",
+    "tools.yaml",
+    "eval_cases.jsonl"
+  ],
+  "demo_report_enabled": true,
+  "demo_report_files": [
+    "demo_report.md",
+    "demo_manifest.json",
+    "eval_summary.json"
+  ]
+}

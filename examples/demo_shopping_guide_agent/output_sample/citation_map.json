@@ -1,0 +1,146 @@
+{
+  "by_embedding_id": {
+    "chunk_0": {
+      "citation": "examples/demo_shopping_guide_agent/input/001_products.csv#chunk=390942a085854f23b25b7ce4",
+      "source_path": "examples/demo_shopping_guide_agent/input/001_products.csv",
+      "chunk_id": "390942a085854f23b25b7ce4"
+    },
+    "chunk_1": {
+      "citation": "examples/demo_shopping_guide_agent/input/002_selling_points.md#chunk=a59b5d2c2c759c5d9a54761e",
+      "source_path": "examples/demo_shopping_guide_agent/input/002_selling_points.md",
+      "chunk_id": "a59b5d2c2c759c5d9a54761e"
+    },
+    "chunk_2": {
+      "citation": "examples/demo_shopping_guide_agent/input/003_faq.md#chunk=342d02c59f885af9b64dfa73",
+      "source_path": "examples/demo_shopping_guide_agent/input/003_faq.md",
+      "chunk_id": "342d02c59f885af9b64dfa73"
+    },
+    "card_3": {
+      "citation": "examples/demo_shopping_guide_agent/input/001_products.csv#chunk=390942a085854f23b25b7ce4",
+      "source_path": "examples/demo_shopping_guide_agent/input/001_products.csv",
+      "chunk_id": "390942a085854f23b25b7ce4"
+    },
+    "card_4": {
+      "citation": "examples/demo_shopping_guide_agent/input/002_selling_points.md#chunk=a59b5d2c2c759c5d9a54761e",
+      "source_path": "examples/demo_shopping_guide_agent/input/002_selling_points.md",
+      "chunk_id": "a59b5d2c2c759c5d9a54761e"
+    },
+    "card_5": {
+      "citation": "examples/demo_shopping_guide_agent/input/003_faq.md#chunk=342d02c59f885af9b64dfa73",
+      "source_path": "examples/demo_shopping_guide_agent/input/003_faq.md",
+      "chunk_id": "342d02c59f885af9b64dfa73"
+    },
+    "qa_pair_6": {
+      "citation": "examples/demo_shopping_guide_agent/input/001_products.csv#chunk=390942a085854f23b25b7ce4",
+      "source_path": "examples/demo_shopping_guide_agent/input/001_products.csv",
+      "chunk_id": "390942a085854f23b25b7ce4"
+    },
+    "qa_pair_7": {
+      "citation": "examples/demo_shopping_guide_agent/input/002_selling_points.md#chunk=a59b5d2c2c759c5d9a54761e",
+      "source_path": "examples/demo_shopping_guide_agent/input/002_selling_points.md",
+      "chunk_id": "a59b5d2c2c759c5d9a54761e"
+    },
+    "qa_pair_8": {
+      "citation": "examples/demo_shopping_guide_agent/input/003_faq.md#chunk=342d02c59f885af9b64dfa73",
+      "source_path": "examples/demo_shopping_guide_agent/input/003_faq.md",
+      "chunk_id": "342d02c59f885af9b64dfa73"
+    },
+    "glossary_9": {
+      "citation": "examples/demo_shopping_guide_agent/input/001_products.csv#chunk=390942a085854f23b25b7ce4",
+      "source_path": "examples/demo_shopping_guide_agent/input/001_products.csv",
+      "chunk_id": "390942a085854f23b25b7ce4"
+    },
+    "glossary_10": {
+      "citation": "examples/demo_shopping_guide_agent/input/003_faq.md#chunk=342d02c59f885af9b64dfa73",
+      "source_path": "examples/demo_shopping_guide_agent/input/003_faq.md",
+      "chunk_id": "342d02c59f885af9b64dfa73"
+    },
+    "glossary_11": {
+      "citation": "examples/demo_shopping_guide_agent/input/001_products.csv#chunk=390942a085854f23b25b7ce4",
+      "source_path": "examples/demo_shopping_guide_agent/input/001_products.csv",
+      "chunk_id": "390942a085854f23b25b7ce4"
+    },
+    "glossary_12": {
+      "citation": "examples/demo_shopping_guide_agent/input/003_faq.md#chunk=342d02c59f885af9b64dfa73",
+      "source_path": "examples/demo_shopping_guide_agent/input/003_faq.md",
+      "chunk_id": "342d02c59f885af9b64dfa73"
+    },
+    "glossary_13": {
+      "citation": "examples/demo_shopping_guide_agent/input/002_selling_points.md#chunk=a59b5d2c2c759c5d9a54761e",
+      "source_path": "examples/demo_shopping_guide_agent/input/002_selling_points.md",
+      "chunk_id": "a59b5d2c2c759c5d9a54761e"
+    },
+    "glossary_14": {
+      "citation": "examples/demo_shopping_guide_agent/input/002_selling_points.md#chunk=a59b5d2c2c759c5d9a54761e",
+      "source_path": "examples/demo_shopping_guide_agent/input/002_selling_points.md",
+      "chunk_id": "a59b5d2c2c759c5d9a54761e"
+    },
+    "glossary_15": {
+      "citation": "examples/demo_shopping_guide_agent/input/002_selling_points.md#chunk=a59b5d2c2c759c5d9a54761e",
+      "source_path": "examples/demo_shopping_guide_agent/input/002_selling_points.md",
+      "chunk_id": "a59b5d2c2c759c5d9a54761e"
+    },
+    "glossary_16": {
+      "citation": "examples/demo_shopping_guide_agent/input/002_selling_points.md#chunk=a59b5d2c2c759c5d9a54761e",
+      "source_path": "examples/demo_shopping_guide_agent/input/002_selling_points.md",
+      "chunk_id": "a59b5d2c2c759c5d9a54761e"
+    },
+    "glossary_17": {
+      "citation": "examples/demo_shopping_guide_agent/input/003_faq.md#chunk=342d02c59f885af9b64dfa73",
+      "source_path": "examples/demo_shopping_guide_agent/input/003_faq.md",
+      "chunk_id": "342d02c59f885af9b64dfa73"
+    }
+  },
+  "by_chunk_id": {
+    "390942a085854f23b25b7ce4": [
+      "chunk_0",
+      "card_3",
+      "qa_pair_6",
+      "glossary_9",
+      "glossary_11"
+    ],
+    "a59b5d2c2c759c5d9a54761e": [
+      "chunk_1",
+      "card_4",
+      "qa_pair_7",
+      "glossary_13",
+      "glossary_14",
+      "glossary_15",
+      "glossary_16"
+    ],
+    "342d02c59f885af9b64dfa73": [
+      "chunk_2",
+      "card_5",
+      "qa_pair_8",
+      "glossary_10",
+      "glossary_12",
+      "glossary_17"
+    ]
+  },
+  "by_source_path": {
+    "examples/demo_shopping_guide_agent/input/001_products.csv": [
+      "chunk_0",
+      "card_3",
+      "qa_pair_6",
+      "glossary_9",
+      "glossary_11"
+    ],
+    "examples/demo_shopping_guide_agent/input/002_selling_points.md": [
+      "chunk_1",
+      "card_4",
+      "qa_pair_7",
+      "glossary_13",
+      "glossary_14",
+      "glossary_15",
+      "glossary_16"
+    ],
+    "examples/demo_shopping_guide_agent/input/003_faq.md": [
+      "chunk_2",
+      "card_5",
+      "qa_pair_8",
+      "glossary_10",
+      "glossary_12",
+      "glossary_17"
+    ]
+  }
+}

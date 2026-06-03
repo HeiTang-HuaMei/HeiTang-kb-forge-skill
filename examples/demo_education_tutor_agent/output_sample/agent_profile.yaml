@@ -1,0 +1,14 @@
+agent_name: Education Tutor Knowledge Agent
+agent_type: education_tutor_agent
+language: zh-CN
+domain: education
+mode: agent_demo
+description: 知识讲解、学习路径、复习、错题、练习建议
+knowledge_package_version: 0.7.0
+source_count: 3
+chunk_count: 3
+quality_score: 100
+quality_level: excellent
+rag_enabled: true
+llm_assets_enabled: false
+created_at: 2026-06-03T12:16:44.120622+00:00
