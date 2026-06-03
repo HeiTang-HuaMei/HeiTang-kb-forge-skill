@@ -9,11 +9,13 @@ def write_report(
     quality_report: dict | None = None,
     llm_summary: dict | None = None,
     rag_summary: dict | None = None,
+    agent_summary: dict | None = None,
 ) -> None:
     warning_lines = "\n".join(f"- {item}" for item in manifest.warnings) or "- None"
     quality_summary = _quality_summary(quality_report)
     llm_section = f"\n## LLM Summary\n\n{_llm_summary(llm_summary)}\n" if llm_summary else ""
     rag_section = f"\n## RAG Summary\n\n{_rag_summary(rag_summary)}\n" if rag_summary else ""
+    agent_section = f"\n## Agent Template Summary\n\n{_agent_summary(agent_summary)}\n" if agent_summary else ""
     content = f"""# KB Forge Ingest Report
 
 ## Summary
@@ -31,6 +33,7 @@ def write_report(
 {quality_summary}
 {llm_section}
 {rag_section}
+{agent_section}
 
 ## Output Files
 
@@ -83,3 +86,15 @@ def _rag_summary(rag_summary: dict | None) -> str:
 - Total records: {rag_summary['total_records']}
 - Asset type counts:
 {counts}"""
+
+
+def _agent_summary(agent_summary: dict | None) -> str:
+    if not agent_summary:
+        return "- Enabled: False"
+    output_files = "\n".join(f"  - {name}" for name in agent_summary["output_files"]) or "  - None"
+    return f"""- Enabled: {agent_summary['enabled']}
+- Agent type: {agent_summary['agent_type']}
+- Agent name: {agent_summary['agent_name']}
+- Language: {agent_summary['language']}
+- Output files:
+{output_files}"""

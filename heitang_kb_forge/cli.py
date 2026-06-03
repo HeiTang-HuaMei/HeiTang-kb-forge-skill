@@ -4,6 +4,8 @@ import re
 
 import typer
 
+from heitang_kb_forge.agent.generator import make_agent_template
+from heitang_kb_forge.agent.templates import AGENT_OUTPUT_FILES
 from heitang_kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
 from heitang_kb_forge.exporters.report_exporter import write_report
 from heitang_kb_forge.llm.extractor import LLMOptions, OUTPUT_FILES, extract_llm_assets
@@ -20,6 +22,7 @@ from heitang_kb_forge.processors.quality import make_quality_report
 from heitang_kb_forge.processors.validator import validate_chunks
 from heitang_kb_forge.rag.exporter import RAGOptions, RAG_OUTPUT_FILES, make_rag_export
 from heitang_kb_forge.schemas.chunk_schema import Chunk
+from heitang_kb_forge.schemas.agent_schema import AgentOptions
 from heitang_kb_forge.schemas.manifest_schema import Manifest
 
 app = typer.Typer(help="Build local standardized knowledge base packages.")
@@ -60,6 +63,10 @@ def build(
     rag_export: bool = typer.Option(False, "--rag-export"),
     rag_profile: str = typer.Option("basic", "--rag-profile"),
     rag_include_llm: bool = typer.Option(False, "--rag-include-llm"),
+    agent_template: bool = typer.Option(False, "--agent-template"),
+    agent_type: str = typer.Option("generic_agent", "--agent-type"),
+    agent_name: str | None = typer.Option(None, "--agent-name"),
+    agent_language: str = typer.Option("zh-CN", "--agent-language"),
 ) -> None:
     """Parse source files and write a V0 knowledge base package."""
     manifest = _build_package(
@@ -71,6 +78,12 @@ def build(
         overlap_chars,
         llm_options=LLMOptions(llm, llm_provider, llm_model, llm_cache, llm_strict),
         rag_options=RAGOptions(rag_export, rag_profile, rag_include_llm),
+        agent_options=AgentOptions(
+            enabled=agent_template,
+            agent_type=agent_type,
+            agent_name=agent_name,
+            language=agent_language,
+        ),
     )
 
     typer.echo(f"Built knowledge package at {output}")
@@ -94,16 +107,46 @@ def batch(
     rag_export: bool = typer.Option(False, "--rag-export"),
     rag_profile: str = typer.Option("basic", "--rag-profile"),
     rag_include_llm: bool = typer.Option(False, "--rag-include-llm"),
+    agent_template: bool = typer.Option(False, "--agent-template"),
+    agent_type: str = typer.Option("generic_agent", "--agent-type"),
+    agent_name: str | None = typer.Option(None, "--agent-name"),
+    agent_language: str = typer.Option("zh-CN", "--agent-language"),
 ) -> None:
     """Build one knowledge package per numbered source file."""
     output.mkdir(parents=True, exist_ok=True)
     numbered_sources = [path for path in sorted(input.iterdir()) if path.is_file() and _parse_numbered_stem(path)]
     llm_options = LLMOptions(llm, llm_provider, llm_model, llm_cache, llm_strict)
     rag_options = RAGOptions(rag_export, rag_profile, rag_include_llm)
+    agent_options = AgentOptions(
+        enabled=agent_template,
+        agent_type=agent_type,
+        agent_name=agent_name,
+        language=agent_language,
+    )
     items = (
-        _build_batch_groups(numbered_sources, output, domain, mode, max_chars, overlap_chars, llm_options, rag_options)
+        _build_batch_groups(
+            numbered_sources,
+            output,
+            domain,
+            mode,
+            max_chars,
+            overlap_chars,
+            llm_options,
+            rag_options,
+            agent_options,
+        )
         if merge_same_sequence
-        else _build_batch_items(numbered_sources, output, domain, mode, max_chars, overlap_chars, llm_options, rag_options)
+        else _build_batch_items(
+            numbered_sources,
+            output,
+            domain,
+            mode,
+            max_chars,
+            overlap_chars,
+            llm_options,
+            rag_options,
+            agent_options,
+        )
     )
     succeeded = sum(1 for item in items if item["status"] == "success")
     failed = sum(1 for item in items if item["status"] == "failed")
@@ -137,6 +180,7 @@ def _build_batch_items(
     overlap_chars: int,
     llm_options: LLMOptions | None = None,
     rag_options: RAGOptions | None = None,
+    agent_options: AgentOptions | None = None,
 ) -> list[dict]:
     items: list[dict] = []
 
@@ -169,6 +213,7 @@ def _build_batch_items(
                 overlap_chars,
                 llm_options=llm_options,
                 rag_options=rag_options,
+                agent_options=agent_options,
             )
             item["status"] = "success"
             item["chunk_count"] = manifest.chunk_count
@@ -190,6 +235,7 @@ def _build_batch_groups(
     overlap_chars: int,
     llm_options: LLMOptions | None = None,
     rag_options: RAGOptions | None = None,
+    agent_options: AgentOptions | None = None,
 ) -> list[dict]:
     groups: dict[str, list[Path]] = {}
     for source in numbered_sources:
@@ -231,6 +277,7 @@ def _build_batch_groups(
                 source_files=sources,
                 llm_options=llm_options,
                 rag_options=rag_options,
+                agent_options=agent_options,
             )
             item["status"] = "success"
             item["chunk_count"] = manifest.chunk_count
@@ -254,6 +301,7 @@ def _build_package(
     source_files: list[Path] | None = None,
     llm_options: LLMOptions | None = None,
     rag_options: RAGOptions | None = None,
+    agent_options: AgentOptions | None = None,
 ) -> Manifest:
     output.mkdir(parents=True, exist_ok=True)
     source_files = source_files if source_files is not None else _collect_sources(input)
@@ -311,6 +359,25 @@ def _build_package(
     )
     if rag_result:
         rag_result.warnings.extend(rag_warnings)
+    agent_options = agent_options or AgentOptions()
+    agent_result = (
+        make_agent_template(
+            output=output,
+            domain=domain,
+            mode=mode,
+            source_count=len(source_files),
+            chunk_count=len(all_chunks),
+            quality_report=quality_report,
+            cards=cards,
+            qa_pairs=qa_pairs,
+            glossary=glossary,
+            rag_enabled=rag_options.enabled,
+            llm_assets_enabled=llm_options.enabled,
+            options=agent_options,
+        )
+        if agent_options.enabled
+        else None
+    )
 
     files = [
         "chunks.jsonl",
@@ -325,6 +392,8 @@ def _build_package(
         files.extend(OUTPUT_FILES.values())
     if rag_options.enabled:
         files.extend(RAG_OUTPUT_FILES)
+    if agent_options.enabled:
+        files.extend(AGENT_OUTPUT_FILES)
     manifest = Manifest(
         domain=domain,
         mode=mode,
@@ -350,6 +419,12 @@ def _build_package(
         write_jsonl(output / "retrieval_metadata.jsonl", rag_result.retrieval_metadata)
         write_json(output / "citation_map.json", rag_result.citation_map)
         write_json(output / "rag_manifest.json", rag_result.rag_manifest)
+    if agent_options.enabled and agent_result:
+        (output / "agent_profile.yaml").write_text(agent_result.agent_profile, encoding="utf-8")
+        (output / "system_prompt.md").write_text(agent_result.system_prompt, encoding="utf-8")
+        (output / "retrieval_config.yaml").write_text(agent_result.retrieval_config, encoding="utf-8")
+        (output / "tools.yaml").write_text(agent_result.tools, encoding="utf-8")
+        write_jsonl(output / "eval_cases.jsonl", agent_result.eval_cases)
     write_json(output / "quality_report.json", quality_report)
     manifest_payload = manifest.model_dump(mode="json")
     llm_summary = None
@@ -386,8 +461,25 @@ def _build_package(
                 "rag_export_files": rag_result.output_files,
             }
         )
+    agent_summary = None
+    if agent_options.enabled and agent_result:
+        agent_name = agent_options.agent_name or f"{output.name or 'knowledge'}_agent"
+        agent_summary = {
+            "enabled": True,
+            "agent_type": agent_options.agent_type,
+            "agent_name": agent_name,
+            "language": agent_options.language,
+            "output_files": agent_result.output_files,
+        }
+        manifest_payload.update(
+            {
+                "agent_template_enabled": True,
+                "agent_type": agent_options.agent_type,
+                "agent_template_files": agent_result.output_files,
+            }
+        )
     write_json(output / "manifest.json", manifest_payload)
-    write_report(output / "ingest_report.md", manifest, quality_report, llm_summary, rag_summary)
+    write_report(output / "ingest_report.md", manifest, quality_report, llm_summary, rag_summary, agent_summary)
 
     return manifest
 
