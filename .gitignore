@@ -10,3 +10,4 @@ examples/output/
 .DS_Store
 Thumbs.db
 .env
+.heitang_cache/

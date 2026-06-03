@@ -6,6 +6,7 @@ import typer
 
 from heitang_kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
 from heitang_kb_forge.exporters.report_exporter import write_report
+from heitang_kb_forge.llm.extractor import LLMOptions, OUTPUT_FILES, extract_llm_assets
 from heitang_kb_forge.parsers.docx_parser import parse_docx
 from heitang_kb_forge.parsers.image_parser import parse_image
 from heitang_kb_forge.parsers.markdown_parser import parse_markdown
@@ -50,9 +51,22 @@ def build(
     mode: str = typer.Option("reference", "--mode"),
     max_chars: int = typer.Option(1200, "--max-chars"),
     overlap_chars: int = typer.Option(120, "--overlap-chars"),
+    llm: bool = typer.Option(False, "--llm"),
+    llm_provider: str = typer.Option("fake", "--llm-provider"),
+    llm_model: str = typer.Option("fake-model", "--llm-model"),
+    llm_cache: bool = typer.Option(True, "--llm-cache/--no-llm-cache"),
+    llm_strict: bool = typer.Option(False, "--llm-strict"),
 ) -> None:
     """Parse source files and write a V0 knowledge base package."""
-    manifest = _build_package(input, output, domain, mode, max_chars, overlap_chars)
+    manifest = _build_package(
+        input,
+        output,
+        domain,
+        mode,
+        max_chars,
+        overlap_chars,
+        llm_options=LLMOptions(llm, llm_provider, llm_model, llm_cache, llm_strict),
+    )
 
     typer.echo(f"Built knowledge package at {output}")
     typer.echo(f"Sources: {manifest.source_count} | Chunks: {manifest.chunk_count} | Warnings: {len(manifest.warnings)}")
@@ -67,14 +81,20 @@ def batch(
     max_chars: int = typer.Option(1200, "--max-chars"),
     overlap_chars: int = typer.Option(120, "--overlap-chars"),
     merge_same_sequence: bool = typer.Option(False, "--merge-same-sequence"),
+    llm: bool = typer.Option(False, "--llm"),
+    llm_provider: str = typer.Option("fake", "--llm-provider"),
+    llm_model: str = typer.Option("fake-model", "--llm-model"),
+    llm_cache: bool = typer.Option(True, "--llm-cache/--no-llm-cache"),
+    llm_strict: bool = typer.Option(False, "--llm-strict"),
 ) -> None:
     """Build one knowledge package per numbered source file."""
     output.mkdir(parents=True, exist_ok=True)
     numbered_sources = [path for path in sorted(input.iterdir()) if path.is_file() and _parse_numbered_stem(path)]
+    llm_options = LLMOptions(llm, llm_provider, llm_model, llm_cache, llm_strict)
     items = (
-        _build_batch_groups(numbered_sources, output, domain, mode, max_chars, overlap_chars)
+        _build_batch_groups(numbered_sources, output, domain, mode, max_chars, overlap_chars, llm_options)
         if merge_same_sequence
-        else _build_batch_items(numbered_sources, output, domain, mode, max_chars, overlap_chars)
+        else _build_batch_items(numbered_sources, output, domain, mode, max_chars, overlap_chars, llm_options)
     )
     succeeded = sum(1 for item in items if item["status"] == "success")
     failed = sum(1 for item in items if item["status"] == "failed")
@@ -106,6 +126,7 @@ def _build_batch_items(
     mode: str,
     max_chars: int,
     overlap_chars: int,
+    llm_options: LLMOptions | None = None,
 ) -> list[dict]:
     items: list[dict] = []
 
@@ -129,7 +150,7 @@ def _build_batch_items(
             if item_output.exists():
                 raise FileExistsError(f"Output directory already exists: {item_output}")
 
-            manifest = _build_package(source, item_output, domain, mode, max_chars, overlap_chars)
+            manifest = _build_package(source, item_output, domain, mode, max_chars, overlap_chars, llm_options=llm_options)
             item["status"] = "success"
             item["chunk_count"] = manifest.chunk_count
             item["files"] = manifest.files
@@ -148,6 +169,7 @@ def _build_batch_groups(
     mode: str,
     max_chars: int,
     overlap_chars: int,
+    llm_options: LLMOptions | None = None,
 ) -> list[dict]:
     groups: dict[str, list[Path]] = {}
     for source in numbered_sources:
@@ -187,6 +209,7 @@ def _build_batch_groups(
                 max_chars,
                 overlap_chars,
                 source_files=sources,
+                llm_options=llm_options,
             )
             item["status"] = "success"
             item["chunk_count"] = manifest.chunk_count
@@ -208,6 +231,7 @@ def _build_package(
     max_chars: int,
     overlap_chars: int,
     source_files: list[Path] | None = None,
+    llm_options: LLMOptions | None = None,
 ) -> Manifest:
     output.mkdir(parents=True, exist_ok=True)
     source_files = source_files if source_files is not None else _collect_sources(input)
@@ -244,6 +268,8 @@ def _build_package(
     qa_pairs = make_qa_pairs(all_chunks)
     glossary = make_glossary(all_chunks)
     quality_report = make_quality_report(len(source_files), all_chunks, cards, qa_pairs, glossary)
+    llm_options = llm_options or LLMOptions()
+    llm_result = extract_llm_assets(all_chunks, llm_options) if llm_options.enabled else None
 
     files = [
         "chunks.jsonl",
@@ -254,6 +280,8 @@ def _build_package(
         "ingest_report.md",
         "quality_report.json",
     ]
+    if llm_options.enabled:
+        files.extend(OUTPUT_FILES.values())
     manifest = Manifest(
         domain=domain,
         mode=mode,
@@ -264,16 +292,37 @@ def _build_package(
         glossary_count=len(glossary),
         files=files,
         quality_report_file="quality_report.json",
-        warnings=warnings,
+        warnings=warnings + (llm_result.warnings if llm_result else []),
     )
 
     write_jsonl(output / "chunks.jsonl", all_chunks)
     write_jsonl(output / "cards.jsonl", cards)
     write_jsonl(output / "qa_pairs.jsonl", qa_pairs)
     write_jsonl(output / "glossary.jsonl", glossary)
+    if llm_options.enabled and llm_result:
+        for extraction_type, file_name in OUTPUT_FILES.items():
+            write_jsonl(output / file_name, llm_result.outputs[extraction_type])
     write_json(output / "quality_report.json", quality_report)
-    write_json(output / "manifest.json", manifest)
-    write_report(output / "ingest_report.md", manifest, quality_report)
+    manifest_payload = manifest.model_dump(mode="json")
+    llm_summary = None
+    if llm_options.enabled and llm_result:
+        llm_summary = {
+            "enabled": True,
+            "provider": llm_options.provider,
+            "model": llm_options.model,
+            "output_files": llm_result.output_files,
+            "warnings_count": len(llm_result.warnings),
+        }
+        manifest_payload.update(
+            {
+                "llm_enabled": True,
+                "llm_provider": llm_options.provider,
+                "llm_model": llm_options.model,
+                "llm_output_files": llm_result.output_files,
+            }
+        )
+    write_json(output / "manifest.json", manifest_payload)
+    write_report(output / "ingest_report.md", manifest, quality_report, llm_summary)
 
     return manifest
 

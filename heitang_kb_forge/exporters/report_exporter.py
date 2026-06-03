@@ -3,9 +3,15 @@ from pathlib import Path
 from heitang_kb_forge.schemas.manifest_schema import Manifest
 
 
-def write_report(path: Path, manifest: Manifest, quality_report: dict | None = None) -> None:
+def write_report(
+    path: Path,
+    manifest: Manifest,
+    quality_report: dict | None = None,
+    llm_summary: dict | None = None,
+) -> None:
     warning_lines = "\n".join(f"- {item}" for item in manifest.warnings) or "- None"
     quality_summary = _quality_summary(quality_report)
+    llm_section = f"\n## LLM Summary\n\n{_llm_summary(llm_summary)}\n" if llm_summary else ""
     content = f"""# KB Forge Ingest Report
 
 ## Summary
@@ -21,6 +27,7 @@ def write_report(path: Path, manifest: Manifest, quality_report: dict | None = N
 ## Quality Summary
 
 {quality_summary}
+{llm_section}
 
 ## Output Files
 
@@ -46,3 +53,15 @@ def _quality_summary(quality_report: dict | None) -> str:
 - Quality level: {quality_report['quality_level']}
 - Warnings:
 {warning_lines}"""
+
+
+def _llm_summary(llm_summary: dict | None) -> str:
+    if not llm_summary:
+        return "- Enabled: False"
+    output_files = "\n".join(f"  - {name}" for name in llm_summary["output_files"]) or "  - None"
+    return f"""- Enabled: {llm_summary['enabled']}
+- Provider: {llm_summary['provider']}
+- Model: {llm_summary['model']}
+- Output files:
+{output_files}
+- Warnings count: {llm_summary['warnings_count']}"""
