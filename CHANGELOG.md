@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.8.3
+
+- Added `pipeline --config`.
+- Added `pipeline_report.md`.
+- Added `pipeline_manifest.json`.
+- Added stage status reporting.
+- Preserved `run --config`.
+- Preserved build / batch behavior.
+
+## v0.8.2
+
+- Added `run --config`.
+- Added YAML / YML config-driven execution.
+- Added config mapping for build / batch / merge / LLM / RAG / Agent / Demo.
+- Added `examples/configs`.
+
+## v0.8.1
+
+- Added portfolio demo packages.
+- Added product manager agent demo.
+- Added shopping guide agent demo.
+- Added education tutor agent demo.
+- Added `output_sample` demo outputs.
+
+## v0.8.0
+
+- Added `--demo-report`.
+- Added `demo_report.md`.
+- Added `demo_manifest.json`.
+- Added `eval_summary.json`.
+- Added pass / warning / fail demo readiness status.
+
 ## v0.7.0
 
 - Added opt-in `--agent-template`.

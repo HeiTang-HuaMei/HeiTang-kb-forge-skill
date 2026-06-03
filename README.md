@@ -23,6 +23,10 @@ The project is intentionally offline: no Web UI, no vector database, and no exte
 - Opt-in LLM structured extraction
 - Opt-in RAG export layer
 - Opt-in Agent Template generation
+- Demo / Eval Report
+- Portfolio demo packages
+- Config-driven execution
+- Pipeline workflow
 - Single-file `build`
 - Numbered-file batch production with `batch`
 - Offline knowledge asset quality enhancement for cards, QA pairs, and glossary terms
@@ -281,6 +285,96 @@ Agent Template boundaries:
 - No external API calls for template generation.
 - No tool execution.
 - No Web UI.
+
+## Demo / Eval Report
+
+v0.8.0 adds an opt-in Demo / Eval Report for checking whether a generated knowledge package is ready for demonstration, RAG integration, or Agent Template integration.
+
+Enable it with `--demo-report`:
+
+```powershell
+heitang-kb-forge build --input .\examples\demo_product_manager_agent\input --output .\examples\demo_product_manager_agent\output --rag-export --agent-template --demo-report
+```
+
+With `--demo-report`, these extra files are generated:
+
+- `demo_report.md`
+- `demo_manifest.json`
+- `eval_summary.json`
+
+Demo readiness status uses:
+
+- `pass`
+- `warning`
+- `fail`
+
+## Portfolio Demo Packages
+
+v0.8.1 adds portfolio demo packages under `examples/`:
+
+- `examples/demo_product_manager_agent`
+- `examples/demo_shopping_guide_agent`
+- `examples/demo_education_tutor_agent`
+
+Each demo includes an `output_sample` directory. These demos show knowledge asset package output for different Agent scenarios. They are examples of generated assets and templates, not real deployed Agents.
+
+## Config-driven Execution
+
+v0.8.2 adds config-driven execution with `run --config`.
+
+Supported config files use YAML or YML. Example configs:
+
+- `examples/configs/kb_forge.build.yaml`
+- `examples/configs/kb_forge.batch.yaml`
+
+Config files can drive build, batch, same-sequence merge, LLM, RAG export, Agent Template, and Demo Report options.
+
+PowerShell examples:
+
+```powershell
+heitang-kb-forge run --config .\examples\configs\kb_forge.build.yaml
+```
+
+```powershell
+python -m heitang_kb_forge.cli run --config .\examples\configs\kb_forge.build.yaml
+```
+
+`examples/prompt_profiles` contains future preparation samples. Prompt Profile integration is not implemented yet.
+
+## Pipeline Workflow
+
+v0.8.3 adds a pipeline workflow entry point with `pipeline --config`.
+
+It reuses config-driven execution and adds pipeline-level reporting for the full workflow:
+
+source materials -> knowledge package -> quality report -> RAG export -> Agent Template -> Demo Report -> Pipeline Report
+
+PowerShell examples:
+
+```powershell
+heitang-kb-forge pipeline --config .\examples\configs\kb_forge.build.yaml
+```
+
+```powershell
+python -m heitang_kb_forge.cli pipeline --config .\examples\configs\kb_forge.build.yaml
+```
+
+With `pipeline --config`, these extra files are generated:
+
+- `pipeline_report.md`
+- `pipeline_manifest.json`
+
+The pipeline report includes stage status for source ingestion, knowledge package output, quality report, LLM extraction, RAG export, Agent Template, and Demo Report.
+
+Pipeline boundaries:
+
+- No Web UI.
+- No scheduler.
+- No complex DAG.
+- No real Agent deployment.
+- No real vector database write.
+- No remote execution.
+- No background queue.
 
 ## Batch
 

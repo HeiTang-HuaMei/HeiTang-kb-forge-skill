@@ -24,6 +24,10 @@
 - 可选 LLM 结构化抽取
 - 可选 RAG 导出层
 - 可选 Agent Template 生成
+- Demo / Eval 报告
+- 作品集 Demo 包
+- 配置文件驱动执行
+- Pipeline 一键工作流
 - 知识资产质量报告 `quality_report.json`
 - `ingest_report.md` 中的 Quality Summary
 - 文本型 PDF 优先直接解析；扫描版 PDF / 图片型 PDF 在文本抽取为空或过短时进入 OCR fallback
@@ -283,6 +287,92 @@ Agent Template 边界：
 - 不做 Web UI。
 - Agent 类型后续可继续扩展。
 
+## Demo / Eval 报告
+
+v0.8.0 新增 Demo / Eval 报告，用于帮助判断知识包是否具备展示、RAG 接入、Agent Template 接入准备度。
+
+通过 `--demo-report` 开启：
+
+```powershell
+heitang-kb-forge build --input .\examples\demo_product_manager_agent\input --output .\examples\demo_product_manager_agent\output --rag-export --agent-template --demo-report
+```
+
+启用后会额外生成：
+
+- `demo_report.md`
+- `demo_manifest.json`
+- `eval_summary.json`
+
+状态分级：
+
+- `pass`
+- `warning`
+- `fail`
+
+## 作品集 Demo 包
+
+v0.8.1 新增作品集 Demo 包：
+
+- `examples/demo_product_manager_agent`
+- `examples/demo_shopping_guide_agent`
+- `examples/demo_education_tutor_agent`
+
+每个 demo 都包含 `output_sample`。这些 demo 用于展示产品经理、购物导购、教育陪练等 Agent 知识资产生产场景。它们是知识资产和模板示例，不是真实部署的在线 Agent。
+
+## 配置文件驱动执行
+
+v0.8.2 新增配置文件驱动执行能力，通过 `run --config` 使用。
+
+支持 `.yaml` / `.yml` 配置文件。示例配置：
+
+- `examples/configs/kb_forge.build.yaml`
+- `examples/configs/kb_forge.batch.yaml`
+
+配置文件可以减少长 CLI 参数输入，并驱动 build、batch、同序号合并、LLM、RAG、Agent Template、Demo Report。
+
+PowerShell 示例：
+
+```powershell
+heitang-kb-forge run --config .\examples\configs\kb_forge.build.yaml
+```
+
+```powershell
+python -m heitang_kb_forge.cli run --config .\examples\configs\kb_forge.build.yaml
+```
+
+`examples/prompt_profiles` 是后续 Prompt Profile 接入的准备样例，目前尚未接入 LLM extractor。
+
+## Pipeline 一键工作流
+
+v0.8.3 新增 Pipeline 一键工作流，通过 `pipeline --config` 使用。
+
+它在 `run --config` 基础上增加 pipeline 级报告，用于展示完整链路：
+
+原始资料 -> 知识库生产 -> 质量报告 -> RAG 导出 -> Agent Template -> Demo Report -> Pipeline Report
+
+PowerShell 示例：
+
+```powershell
+heitang-kb-forge pipeline --config .\examples\configs\kb_forge.build.yaml
+```
+
+启用后会额外生成：
+
+- `pipeline_report.md`
+- `pipeline_manifest.json`
+
+Pipeline 报告会展示 source ingestion、knowledge package、quality report、LLM extraction、RAG export、Agent Template、Demo Report 等阶段状态。
+
+Pipeline 边界：
+
+- 不做 Web UI。
+- 不做复杂 DAG。
+- 不做调度器。
+- 不做后台队列。
+- 不做真实 Agent 部署。
+- 不写入真实向量库。
+- 不做远程执行。
+
 ## 输出文件说明
 
 输出目录会生成：
@@ -357,6 +447,12 @@ pytest
 - 表格文件仅支持 CSV、TSV、XLSX
 - 不支持图片内容解析
 - 不支持复杂表格结构还原
+- 不做复杂 DAG
+- 不做调度器
+- 不做后台队列
+- 不做真实 Agent 部署
+- 不写入真实向量库
+- 不做远程执行
 
 ## License
 
