@@ -94,6 +94,74 @@ Batch rules:
 - A single file failure does not interrupt the whole batch.
 - Unsupported extensions are recorded as `failed`.
 
+### Same-Sequence Merge
+
+v0.2.1 adds optional same-sequence merging for batch production.
+
+The default batch behavior is unchanged. This command still creates one independent output directory per numbered file, for example `output/001_会员系统/`:
+
+```bash
+heitang-kb-forge batch --input ./input --output ./output --domain education --mode teaching
+```
+
+To merge multiple files with the same numeric prefix into one package, pass `--merge-same-sequence`:
+
+```bash
+heitang-kb-forge batch --input ./input --output ./output --domain education --mode teaching --merge-same-sequence
+```
+
+Merge input example:
+
+```text
+input/
+  001_教材.pdf
+  001_目录.docx
+  001_作者简介.txt
+  001_营销卖点.md
+  002_AI伴学方案.docx
+  002_AI伴学FAQ.md
+```
+
+Merge output example:
+
+```text
+output/
+  001/
+    chunks.jsonl
+    cards.jsonl
+    qa_pairs.jsonl
+    glossary.jsonl
+    manifest.json
+    ingest_report.md
+  002/
+    chunks.jsonl
+    cards.jsonl
+    qa_pairs.jsonl
+    glossary.jsonl
+    manifest.json
+    ingest_report.md
+  batch_manifest.json
+  batch_report.md
+```
+
+Merge rules:
+
+- Files are merged only when `--merge-same-sequence` is provided.
+- Files are grouped by the leading number in the filename.
+- `001_教材.pdf` and `001_目录.docx` are built into the same `output/001/` package.
+- Files inside each group are processed in filename order.
+- If a group contains an unsupported extension, that group is recorded as `failed`.
+- One failed group does not affect other groups.
+- Non-numbered files are not included in the batch.
+
+Common use cases:
+
+- Multiple source files for one book.
+- Course material packages.
+- Product material packages.
+- Project material packages.
+- Multi-document knowledge-base preparation before Agent construction.
+
 ## Output
 
 The output directory contains:
