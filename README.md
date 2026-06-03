@@ -1,422 +1,344 @@
-# HeiTang KB Forge Skill
+﻿# HeiTang KB Forge Skill
 
-[中文说明](README.zh-CN.md) | English
+[简体中文](README.zh-CN.md) | English
 
-`heitang-kb-forge-skill` is a local command-line tool for building a standardized knowledge base package from source documents.
+## Overview
 
-HeiTang KB Forge Skill is a knowledge-base production foundation for Agent systems. It turns multi-format source materials into searchable, traceable, auditable, and reusable knowledge asset packages.
+`heitang-kb-forge-skill` is an Agent knowledge supply-chain foundation.
 
-The project is intentionally offline: no Web UI, no vector database, and no external LLM.
+It turns multi-format materials into standardized, traceable, searchable, auditable, evaluable, and reusable knowledge asset packages. These packages can be used as the upstream knowledge foundation for downstream RAG systems, Q&A Agents, shopping-guide Agents, education-tutor Agents, product-manager Agents, enterprise knowledge-base Agents, and similar Agent workflows.
 
-## Features
+The project is offline-first by default. Optional capabilities such as LLM extraction, OCR, RAG export, embedding/vector export, local Agent Runtime MVP, Web UI, live provider validation, and knowledge operations are opt-in.
 
-- Python 3.11+
-- Typer CLI
-- Pydantic schemas
-- UTF-8 output
-- Stable reproducible `chunk_id`
-- Markdown, TXT, text-based PDF, and text-based DOCX parsing
-- Optional image OCR support for PNG, JPG, and JPEG
-- Optional scanned PDF OCR fallback
-- Structured table file ingestion for CSV, TSV, and XLSX
+## What This Project Is
+
+HeiTang KB Forge is responsible for:
+
+- parsing multi-format source materials
+- converting them into a standard knowledge package
+- preserving source path, chunk id, and citation traces
+- producing deterministic local knowledge assets
+- generating quality, readiness, risk, and evaluation files
+- exporting RAG / Agent-compatible intermediate formats
+- generating Agent Templates
+- supporting local knowledge package operations and governance
+
+## What This Project Is Not
+
+This project does not provide:
+
+- Tool Runtime
+- real business system integration
+- CRM / product / order system calls
+- permission system
+- SaaS multi-tenancy
+- production Web deployment
+- real publishing API calls
+- full Agent Planning execution
+
+## Installation
+
+PowerShell:
+
+    cd HeiTang-kb-forge-skill
+    python -m venv .venv
+    .venv\Scripts\activate
+    pip install -e ".[dev]"
+
+Optional OCR support:
+
+    pip install -e ".[ocr]"
+
+Optional text-based PDF table extraction:
+
+    pip install -e ".[pdf-table]"
+
+Optional Web UI:
+
+    pip install -e ".[web]"
+
+## Quick Start
+
+Build a knowledge package:
+
+    heitang-kb-forge build --input .\examples\input --output .\examples\output --domain education --mode teaching
+
+Run through Python module:
+
+    python -m heitang_kb_forge.cli build --input .\examples\input --output .\examples\output --domain education --mode teaching
+
+## Standard Output Files
+
+A standard build generates the core knowledge package:
+
+- `chunks.jsonl`
+- `cards.jsonl`
+- `qa_pairs.jsonl`
+- `glossary.jsonl`
+- `manifest.json`
+- `ingest_report.md`
+- `quality_report.json`
+
+## Supported Input Coverage
+
+Supported source formats include:
+
+- Markdown
+- TXT
+- text-based PDF
+- text-based DOCX
+- PNG / JPG / JPEG with optional OCR
+- scanned PDF OCR fallback
+- CSV / TSV / XLSX structured table files
+- DOCX embedded tables
+- text-based PDF tables
+- scanned PDF / image table OCR best-effort
+
+## Core CLI Examples
+
+RAG export:
+
+    heitang-kb-forge build --input .\input --output .\output --rag-export
+
+Agent Template generation:
+
+    heitang-kb-forge build --input .\input --output .\output --agent-template --agent-type product_manager_agent
+
+Demo report:
+
+    heitang-kb-forge build --input .\input --output .\output --rag-export --agent-template --demo-report
+
+Config-driven run:
+
+    heitang-kb-forge run --config .\examples\configs\kb_forge.build.yaml
+
+Pipeline workflow:
+
+    heitang-kb-forge pipeline --config .\examples\configs\kb_forge.build.yaml
+
+Minimal ask runtime:
+
+    heitang-kb-forge ask --package .\examples\demo_product_manager_agent\output_sample --query "What is this knowledge package for?"
+
+Workspace registry:
+
+    heitang-kb-forge workspace init --workspace .\workspace
+    heitang-kb-forge workspace register --workspace .\workspace --package .\output_sample
+    heitang-kb-forge workspace status --workspace .\workspace
+
+Refresh check:
+
+    heitang-kb-forge refresh-check --workspace .\workspace
+
+Review and curation:
+
+    heitang-kb-forge review-create --package .\output_sample --output .\review
+    heitang-kb-forge review-apply --package .\output_sample --decisions .\review\review_decisions.jsonl --output .\curated_output
+
+Publish profile:
+
+    heitang-kb-forge publish --package .\output_sample --profile generic_rag --output .\publish_output
+
+Planning readiness:
+
+    heitang-kb-forge planning-readiness --package .\output_sample --output .\planning_output
+
+## Logical Version Capability Index
+
+This section documents the expected unmerged logical version sequence. Some capabilities were implemented in compressed commits during development, but they are listed here as separate logical capability versions for clarity.
+
+### v0.1.0 Core CLI Foundation
+
+- Typer CLI foundation
+- local build command
+- basic input/output structure
+- UTF-8 output contract
+
+### v0.2.0 Deterministic Knowledge Package
+
+- deterministic chunk generation
+- stable `chunk_id`
+- basic cards / QA / glossary outputs
+- manifest and ingest report
+
+### v0.3.0 Batch / Merge Workflow
+
+- batch processing
+- same-sequence merge workflow
+- stable per-item package outputs
+- default offline package generation
+
+### v0.3.1 Quality Report
+
+- `quality_report.json`
+- Quality Summary in `ingest_report.md`
+- empty / duplicate / coverage checks
+- quality score and quality level
+
+### v0.4.0 Image OCR
+
+- optional OCR support for PNG / JPG / JPEG
+- OCR text enters the standard clean / chunk / asset pipeline
+- no image semantic understanding
+
+### v0.4.1 Scanned PDF OCR Fallback
+
+- scanned PDF OCR fallback
+- text-based PDF remains the priority path
+- OCR triggers when PDF text extraction is empty or too short
+
+### v0.4.2 CSV / TSV / XLSX Table Ingestion
+
+- structured table file parsing
+- multi-sheet XLSX support
+- header normalization
+- row-to-text conversion
+
+### v0.4.3 DOCX Embedded Table Extraction
+
+- DOCX paragraph extraction
 - DOCX embedded table extraction
-- Opt-in LLM structured extraction
-- Opt-in RAG export layer
-- Opt-in Agent Template generation
-- Demo / Eval Report
-- Portfolio demo packages
-- Config-driven execution
-- Pipeline workflow
-- Runtime Connector Pack for LLM / embedding / vector export configuration
-- Text-based PDF table extraction
-- Best-effort scanned PDF and image OCR table extraction
-- Opt-in package validation and readiness reports
-- Opt-in downstream export formats
-- Optional live provider validation entry point
-- Single-file `build`
-- Numbered-file batch production with `batch`
-- Offline knowledge asset quality enhancement for cards, QA pairs, and glossary terms
-- Text-based PDF is parsed directly; scanned or image-based PDF can fall back to OCR when text extraction is empty or too short
-- DOCX supports paragraph text extraction and embedded table extraction; merged cell semantic reconstruction is not supported
-- Chunk validation for empty chunks, duplicate chunks, and missing fields
+- table rows converted into readable text
 
-## Install
+### v0.4.3B PDF / OCR Table Extraction
 
-```bash
-cd HeiTang-kb-forge-skill
-python -m venv .venv
-.venv\Scripts\activate
-pip install -e ".[dev]"
-```
+- text-based PDF table extraction
+- scanned PDF / image OCR table best-effort
+- fallback-safe table extraction
+- no perfect layout reconstruction
 
-Install optional OCR support for image inputs and scanned PDF fallback:
+### v0.5.0 LLM Structured Extraction
 
-```bash
-pip install -e ".[ocr]"
-```
+- opt-in `--llm`
+- fake provider for local tests
+- LLM cards / QA / glossary / frameworks / cases / metrics
+- fallback / strict modes
 
-The OCR extra includes `pytesseract`, `Pillow`, and `pypdfium2`. A local Tesseract binary may still be required by your operating system.
+### v0.5.1 LLM Provider Readiness
 
-XLSX support uses `openpyxl`, which is installed as a default dependency.
+- provider metadata
+- token usage metadata
+- cache key handling
+- OpenAI-compatible provider readiness skeleton
 
-Install optional text-based PDF table extraction support:
+### v0.5.2 LLM Prompt Profile
 
-```bash
-pip install -e ".[pdf-table]"
-```
+- `--prompt-profile`
+- prompt profile metadata
+- prompt profile hash in cache key
+- config-driven prompt profile support
 
-On macOS or Linux, activate with:
+### v0.5.3 LLM Extraction Quality Evaluation
 
-```bash
-source .venv/bin/activate
-```
+- `--llm-quality-report`
+- `llm_quality_report.json`
+- `llm_quality_summary.md`
+- citation / metadata / duplicate / empty-output checks
 
-## Run
+### v0.6.0 RAG Export
 
-Add `.md`, `.txt`, `.pdf`, text-based `.docx`, `.png`, `.jpg`, `.jpeg`, `.csv`, `.tsv`, or `.xlsx` files under `examples/input`, then run:
-
-```bash
-heitang-kb-forge build --input ./examples/input --output ./examples/output --domain education --mode teaching
-```
-
-You can also run the module directly:
-
-```bash
-python -m heitang_kb_forge.cli build --input ./examples/input --output ./examples/output --domain education --mode teaching
-```
-
-## Image OCR
-
-v0.4.0 adds optional OCR input support for `.png`, `.jpg`, and `.jpeg` files.
-
-OCR only extracts text from images. The extracted text continues through the existing clean, chunk, extractor, and quality pipeline. OCR dependencies are optional, so users without OCR support can continue using Markdown, TXT, text-based PDF, and text-based DOCX workflows.
-
-## Scanned PDF OCR
-
-v0.4.1 adds optional scanned PDF OCR fallback.
-
-Text-based PDF extraction remains the first priority. OCR fallback only runs when extracted PDF text is empty or too short. OCR text continues through the existing clean, chunk, extractor, and quality pipeline. Page OCR text is joined with markers such as `[Page 1]` and `[Page 2]`.
-
-PDF OCR uses the optional OCR dependency group:
-
-- `pytesseract`
-- `Pillow`
-- `pypdfium2`
-
-A local Tesseract binary may still be required.
-
-OCR boundaries:
-
-- No LLM integration.
-- No vector database integration.
-- No image semantic understanding.
-- No layout reconstruction.
-- No table reconstruction.
-- No table structure recognition.
-- No OCR correction.
-- No PDF table extraction in v0.4.3.
-
-## Table File Ingestion
-
-v0.4.2 adds structured table file ingestion for `.csv`, `.tsv`, and `.xlsx` files.
-
-The parser converts structured rows and columns into readable text. Converted text continues through the existing clean, chunk, extractor, and quality pipeline.
-
-Table parsing behavior:
-
-- CSV and TSV use UTF-8-SIG compatible reading.
-- XLSX supports multiple sheets.
-- Empty rows are skipped.
-- The first row is treated as the header.
-- Empty headers become `Column A`, `Column B`, and so on.
-- Duplicate headers get suffixes, such as `Name 2`.
-
-CSV row:
-
-```text
-书名,作者,ISBN,定价
-产品经理入门,张三,123456,59
-```
-
-Converted text:
-
-```text
-Row 2. 书名: 产品经理入门. 作者: 张三. ISBN: 123456. 定价: 59.
-```
-
-XLSX converted text:
-
-```text
-Sheet: 商品列表. Row 2. 书名: 产品经理入门. 作者: 张三.
-```
-
-Table ingestion boundaries:
-
-- No `.xls` support.
-- No PDF embedded table extraction.
-- No image table OCR.
-- No scanned table structure recognition.
-- No formula engine.
-- No complex data analysis.
-- No LLM integration.
-- No vector database integration.
-
-## DOCX Embedded Tables
-
-v0.4.3 adds DOCX embedded table extraction while preserving paragraph text extraction.
-
-DOCX tables are converted into readable text and continue through the existing clean, chunk, extractor, and quality pipeline.
-
-Example converted row:
-
-```text
-Table 1. Row 2. Field A: Value A. Field B: Value B.
-```
-
-Boundaries:
-
-- No semantic reconstruction for merged cells.
-- No PDF table extraction in v0.4.3.
-- No image table OCR.
-- No scanned table structure recognition.
-
-## LLM Structured Extraction
-
-v0.5.0 adds opt-in LLM structured extraction. LLM extraction is disabled by default and only runs when `--llm` is provided.
-
-LLM is an enhancement layer, not the only production path. Without `--llm`, the offline 7-file output remains unchanged. When enabled, LLM output is extra and does not overwrite offline `cards.jsonl`, `qa_pairs.jsonl`, or `glossary.jsonl`.
-
-Example:
-
-```bash
-heitang-kb-forge build --input ./input.md --output ./output --llm --llm-provider fake --llm-model fake-model
-```
-
-The fake provider is available for local testing and does not access the network.
-
-With `--llm`, these extra files are generated:
-
-- `llm_cards.jsonl`
-- `llm_qa_pairs.jsonl`
-- `llm_glossary.jsonl`
-- `frameworks.jsonl`
-- `case_cards.jsonl`
-- `metrics.jsonl`
-
-LLM records include:
-
-- `source_path`
-- `chunk_id`
-- `citation`
-- `confidence`
-- `llm_provider`
-- `llm_model`
-- `token_usage`
-- `cache_key`
-
-LLM failure behavior:
-
-- By default, LLM failure falls back to the offline path and keeps the build successful.
-- With `--llm-strict`, LLM failure fails the current build, batch item, or merge group.
-
-Security boundaries:
-
-- API keys are not written to output files, cache, or reports.
-- Tests use the fake provider and do not access the network.
-
-Not included yet:
-
-- No vector database integration.
-- No Web UI.
-
-## RAG Export
-
-v0.6.0 adds an opt-in RAG export layer. Enable it with `--rag-export`.
-
-RAG export generates provider-neutral intermediate files for embedding pipelines, vector database import scripts, retrieval systems, and RAG Agents. It does not call embedding APIs, does not generate real vectors, and does not write to FAISS, Qdrant, Chroma, or Milvus.
-
-Example:
-
-```bash
-heitang-kb-forge build --input ./input.md --output ./output --rag-export
-```
-
-With `--rag-export`, these extra files are generated:
-
+- `--rag-export`
 - `embedding_input.jsonl`
 - `retrieval_metadata.jsonl`
 - `citation_map.json`
 - `rag_manifest.json`
 
-LLM assets are included in RAG export only when all three flags are used together:
+### v0.6.1 Embedding Provider Adaptation
 
-```bash
-heitang-kb-forge build --input ./input.md --output ./output --llm --rag-export --rag-include-llm
-```
+- `--embedding`
+- fake embedding provider
+- OpenAI-compatible embedding provider skeleton
+- `embeddings.jsonl`
+- `embedding_manifest.json`
 
-RAG boundaries:
+### v0.6.2 Vector Export Adapter
 
-- No real vector database writes.
-- No embedding API calls.
-- No real vector generation.
-- No RAG Agent runtime.
+- `--vector-export`
+- `--vector-store`
+- local JSON vector export
+- `vector_store_records.jsonl`
+- `vector_store_manifest.json`
 
-## Agent Template Generation
+### v0.7.0 Agent Template Generation
 
-v0.7.0 adds opt-in Agent Template generation. Enable it with `--agent-template`.
-
-Agent Template generation only writes template files. It does not create or deploy a real Agent, does not call external Agent platforms, and does not execute tools.
-
-Example:
-
-```bash
-heitang-kb-forge build --input ./input.md --output ./output --agent-template --agent-type product_manager_agent
-```
-
-With `--agent-template`, these extra files are generated:
-
+- `--agent-template`
 - `agent_profile.yaml`
 - `system_prompt.md`
 - `retrieval_config.yaml`
 - `tools.yaml`
 - `eval_cases.jsonl`
 
-Supported `agent_type` values:
+### v0.7.1 More Agent Templates
 
-- `generic_agent`
-- `product_manager_agent`
-- `shopping_guide_agent`
-- `education_tutor_agent`
-- `customer_service_agent`
-- `interview_coach_agent`
-- `operations_agent`
 - `book_marketing_agent`
 - `publisher_sales_agent`
 - `enterprise_kb_agent`
+- expanded business-facing template coverage
 
-Agent Template boundaries:
+### v0.7.2 Agent Tool Config Standardization
 
-- No real Agent deployment.
-- No external API calls for template generation.
-- No tool execution.
-- No Web UI.
+- enhanced `tools.yaml`
+- runtime_required / input_schema / output_schema
+- placeholder tools
+- no tool execution
 
-## Demo / Eval Report
+### v0.8.0 Demo / Eval Report
 
-v0.8.0 adds an opt-in Demo / Eval Report for checking whether a generated knowledge package is ready for demonstration, RAG integration, or Agent Template integration.
-
-Enable it with `--demo-report`:
-
-```powershell
-heitang-kb-forge build --input .\examples\demo_product_manager_agent\input --output .\examples\demo_product_manager_agent\output --rag-export --agent-template --demo-report
-```
-
-With `--demo-report`, these extra files are generated:
-
+- `--demo-report`
 - `demo_report.md`
 - `demo_manifest.json`
 - `eval_summary.json`
+- pass / warning / fail readiness status
 
-Demo readiness status uses:
+### v0.8.1 Portfolio Demo Packages
 
-- `pass`
-- `warning`
-- `fail`
+- product manager demo package
+- shopping guide demo package
+- education tutor demo package
+- output samples for portfolio display
 
-## Portfolio Demo Packages
+### v0.8.2 Config-driven Execution
 
-v0.8.1 adds portfolio demo packages under `examples/`:
+- `run --config`
+- YAML / YML config support
+- build / batch / merge / LLM / RAG / Agent / Demo mapping
 
-- `examples/demo_product_manager_agent`
-- `examples/demo_shopping_guide_agent`
-- `examples/demo_education_tutor_agent`
+### v0.8.3 Pipeline Workflow
 
-Each demo includes an `output_sample` directory. These demos show knowledge asset package output for different Agent scenarios. They are examples of generated assets and templates, not real deployed Agents.
-
-## Config-driven Execution
-
-v0.8.2 adds config-driven execution with `run --config`.
-
-Supported config files use YAML or YML. Example configs:
-
-- `examples/configs/kb_forge.build.yaml`
-- `examples/configs/kb_forge.batch.yaml`
-
-Config files can drive build, batch, same-sequence merge, LLM, RAG export, Agent Template, and Demo Report options.
-
-PowerShell examples:
-
-```powershell
-heitang-kb-forge run --config .\examples\configs\kb_forge.build.yaml
-```
-
-```powershell
-python -m heitang_kb_forge.cli run --config .\examples\configs\kb_forge.build.yaml
-```
-
-`examples/prompt_profiles` contains future preparation samples. Prompt Profile integration is not implemented yet.
-
-## Pipeline Workflow
-
-v0.8.3 adds a pipeline workflow entry point with `pipeline --config`.
-
-It reuses config-driven execution and adds pipeline-level reporting for the full workflow:
-
-source materials -> knowledge package -> quality report -> RAG export -> Agent Template -> Demo Report -> Pipeline Report
-
-PowerShell examples:
-
-```powershell
-heitang-kb-forge pipeline --config .\examples\configs\kb_forge.build.yaml
-```
-
-```powershell
-python -m heitang_kb_forge.cli pipeline --config .\examples\configs\kb_forge.build.yaml
-```
-
-With `pipeline --config`, these extra files are generated:
-
+- `pipeline --config`
 - `pipeline_report.md`
 - `pipeline_manifest.json`
+- stage status reporting
 
-The pipeline report includes stage status for source ingestion, knowledge package output, quality report, LLM extraction, RAG export, Agent Template, and Demo Report.
+### v0.9.0 Runtime Connector Pack
 
-Pipeline boundaries:
+- LLM provider readiness
+- embedding provider adaptation
+- vector export adapter
+- Agent tool config standardization
+- no real runtime execution by default
 
-- No Web UI.
-- No scheduler.
-- No complex DAG.
-- No real Agent deployment.
-- No real vector database write.
-- No remote execution.
-- No background queue.
+### v1.0.0 Stable Agent Knowledge Supply Chain
 
-## Runtime Connector Pack
+- complete input coverage expansion
+- PDF / OCR table extraction
+- package validation / readiness report
+- downstream export formats
+- optional live provider validation
+- stable docs and smoke tests
 
-v0.9.0 adds runtime connector configuration outputs for downstream systems.
+### v1.1.0 Knowledge Runtime & Web MVP
 
-It includes:
+- package versioning / diff
+- incremental build / safe reuse
+- chunk strategy profiles
+- knowledge graph export
+- retrieval eval dataset export
+- risk labels
+- minimal ask runtime
+- optional Streamlit Web UI MVP
 
-- OpenAI-compatible LLM provider readiness skeleton.
-- Fake and OpenAI-compatible embedding provider interfaces.
-- Local JSON vector export.
-- Enhanced `tools.yaml` configuration in Agent Template output.
-
-These connectors prepare output for external runtimes but do not turn this project into an Agent Runtime or Tool Runtime. Default tests use fake/local providers and do not call external services.
-
-## Version Highlights
-
-<!-- VERSION_HISTORY_NORMALIZED_START -->
-
-## Version Highlights
-
-<!-- VERSION_HISTORY_NORMALIZED_START -->
-
-## v1.2.0 Knowledge Ops & Governance Platform
-
-v1.2.0 adds a local knowledge package operations and governance layer.
-
-Capabilities:
+### v1.2.0 Knowledge Ops & Governance Platform
 
 - Workspace / Package Registry
 - Refresh / Staleness Detection
@@ -426,20 +348,11 @@ Capabilities:
 - Publish / Export Profiles
 - Agent Planning Readiness Pack
 
-PowerShell examples:
+## Current Boundaries
 
-    heitang-kb-forge workspace init --workspace .\workspace
-    heitang-kb-forge workspace register --workspace .\workspace --package .\output_sample
-    heitang-kb-forge workspace status --workspace .\workspace
-    heitang-kb-forge refresh-check --workspace .\workspace
-    heitang-kb-forge review-create --package .\output_sample --output .\review
-    heitang-kb-forge review-apply --package .\output_sample --decisions .\review\review_decisions.jsonl --output .\curated_output
-    heitang-kb-forge eval-record --package .\output_sample --eval-results .\eval_results.json --output .\eval_dashboard
-    heitang-kb-forge publish --package .\output_sample --profile generic_rag --output .\publish_output
-    heitang-kb-forge planning-readiness --package .\output_sample --output .\planning_output
-
-Boundaries:
-
+- Offline-first by default
+- Optional Web UI is local-only
+- Optional live provider validation is explicit and not part of default tests
 - no Tool Runtime
 - no real business integration
 - no CRM / product / order system calls
@@ -447,263 +360,7 @@ Boundaries:
 - no SaaS multi-tenancy
 - no real publishing API calls
 
-## v1.0.0 Stable Release Capabilities
-
-v1.0.0 completes the Agent knowledge supply chain foundation while preserving the default offline 7-file output.
-
-New stable-release capabilities:
-
-- Text-based PDF table extraction with optional `pdfplumber`.
-- Best-effort OCR table extraction for scanned PDF pages and images.
-- Opt-in package validation with readiness and hallucination-risk signals.
-- Opt-in downstream export formats for LangChain, LlamaIndex, and generic RAG packages.
-- Additional Agent Templates for book marketing, publisher sales, and enterprise KB scenarios.
-- Optional live provider validation structure that is explicit opt-in and must not leak API keys.
-
-### PDF and OCR Table Extraction
-
-Text-based PDF tables are converted into readable text such as:
-
-```text
-Page 1. Table 1. Row 2. Field A: Value A. Field B: Value B.
-```
-
-Scanned PDF and image OCR table extraction is best-effort. It uses OCR word boxes when available, groups words into rows and columns, and falls back to plain OCR text when structured extraction is not reliable.
-
-Boundaries:
-
-- No perfect PDF layout reconstruction.
-- No cross-page table merge.
-- No deep learning table recognition model.
-- No formula engine.
-- No OCR correction.
-
-### Package Validation
-
-Enable package validation with:
-
-```bash
-heitang-kb-forge build --input ./input.md --output ./output --validate-package
-```
-
-Extra output files:
-
-- `package_validation_report.json`
-- `package_readiness_report.md`
-
-The validation report checks standard package files, coverage signals, warnings, readiness levels, and hallucination-risk fields.
-
-### Downstream Export
-
-Enable downstream export with:
-
-```bash
-heitang-kb-forge build --input ./input.md --output ./output --downstream-export
-```
-
-Extra output files:
-
-- `langchain_documents.jsonl`
-- `llamaindex_documents.jsonl`
-- `generic_rag_package.json`
-- `openai_files_manifest.json`
-
-These files are provider-neutral import formats. KB Forge does not call LangChain, LlamaIndex, OpenAI upload APIs, Dify, FastGPT, or Coze.
-
-### Optional Live Provider Validation
-
-Live provider validation is opt-in. Default tests remain offline.
-
-Environment variables:
-
-- `HEITANG_RUN_LIVE_TESTS=1`
-- `HEITANG_LLM_API_KEY`
-- `HEITANG_LLM_BASE_URL`
-- `HEITANG_LLM_MODEL`
-- `HEITANG_EMBEDDING_API_KEY`
-- `HEITANG_EMBEDDING_BASE_URL`
-- `HEITANG_EMBEDDING_MODEL`
-
-Live reports must not write API keys to output files, cache, or reports.
-
-## Batch
-
-v0.2.0 adds batch production for numbered source files:
-
-```bash
-heitang-kb-forge batch --input ./input --output ./output --domain education --mode teaching
-```
-
-Example input:
-
-```text
-input/
-  001_会员系统.pdf
-  002_AI伴学.docx
-  003_产品经理面试.md
-```
-
-Example output:
-
-```text
-output/
-  001_会员系统/
-  002_AI伴学/
-  003_产品经理面试/
-  batch_manifest.json
-  batch_report.md
-```
-
-Each successful knowledge-base package contains:
-
-- `chunks.jsonl`
-- `cards.jsonl`
-- `qa_pairs.jsonl`
-- `glossary.jsonl`
-- `manifest.json`
-- `ingest_report.md`
-
-Batch rules:
-
-- Only files whose names start with `number_` are processed, for example `001_会员系统.md`.
-- Files that do not match the numbering rule are not included in the batch.
-- A single file failure does not interrupt the whole batch.
-- Unsupported extensions are recorded as `failed`.
-
-### Same-Sequence Merge
-
-v0.2.1 adds optional same-sequence merging for batch production.
-
-The default batch behavior is unchanged. This command still creates one independent output directory per numbered file, for example `output/001_会员系统/`:
-
-```bash
-heitang-kb-forge batch --input ./input --output ./output --domain education --mode teaching
-```
-
-To merge multiple files with the same numeric prefix into one package, pass `--merge-same-sequence`:
-
-```bash
-heitang-kb-forge batch --input ./input --output ./output --domain education --mode teaching --merge-same-sequence
-```
-
-Merge input example:
-
-```text
-input/
-  001_教材.pdf
-  001_目录.docx
-  001_作者简介.txt
-  001_营销卖点.md
-  002_AI伴学方案.docx
-  002_AI伴学FAQ.md
-```
-
-Merge output example:
-
-```text
-output/
-  001/
-    chunks.jsonl
-    cards.jsonl
-    qa_pairs.jsonl
-    glossary.jsonl
-    manifest.json
-    ingest_report.md
-    quality_report.json
-  002/
-    chunks.jsonl
-    cards.jsonl
-    qa_pairs.jsonl
-    glossary.jsonl
-    manifest.json
-    ingest_report.md
-    quality_report.json
-  batch_manifest.json
-  batch_report.md
-```
-
-Merge rules:
-
-- Files are merged only when `--merge-same-sequence` is provided.
-- Files are grouped by the leading number in the filename.
-- `001_教材.pdf` and `001_目录.docx` are built into the same `output/001/` package.
-- Files inside each group are processed in filename order.
-- If a group contains an unsupported extension, that group is recorded as `failed`.
-- One failed group does not affect other groups.
-- Non-numbered files are not included in the batch.
-
-Common use cases:
-
-- Multiple source files for one book.
-- Course material packages.
-- Product material packages.
-- Project material packages.
-- Multi-document knowledge-base preparation before Agent construction.
-
-## Output
-
-The output directory contains:
-
-- `chunks.jsonl`: normalized text chunks with stable IDs and source metadata
-- `cards.jsonl`: knowledge cards derived from chunks
-- `qa_pairs.jsonl`: basic QA pairs derived from chunks
-- `glossary.jsonl`: English and Chinese glossary term candidates
-- `manifest.json`: package metadata and counts
-- `ingest_report.md`: human-readable ingest summary and warnings
-- `quality_report.json`: machine-readable quality summary
-
-## Knowledge Asset Quality
-
-v0.3.0 upgrades the standard knowledge-base package into a higher-quality Agent knowledge asset package while remaining fully offline and rule-based.
-
-`cards.jsonl` quality improvements:
-
-- Filters empty `title` and empty `summary` records.
-- Deduplicates cards.
-- Adds `card_type`.
-- Adds `tags`.
-- Adds `citation`.
-
-`qa_pairs.jsonl` quality improvements:
-
-- Filters empty `question` and empty `answer` records.
-- Deduplicates QA pairs.
-- Generates questions that are closer to real user questions.
-- Keeps answers derived from chunk text.
-- Adds `qa_type`.
-- Adds `citation`.
-
-`glossary.jsonl` quality improvements:
-
-- Supports English term candidates.
-- Supports Chinese term candidates.
-- Deduplicates terms.
-- Filters overly short content, punctuation-only content, numeric-only content, and generic stop words.
-- Adds `source_path`.
-- Adds `chunk_id`.
-- Adds `citation`.
-
-v0.3.0 does not add LLM extraction, OCR, vector database integration, or new default output files.
-
-## Validation
-
-The validator checks:
-
-- empty chunk text
-- duplicate chunk text
-- missing required chunk fields
-- Pydantic schema validity
-
-## Test
-
-```bash
-pytest
-```
-
 ## License
 
 MIT License. See LICENSE for details.
 
-<!-- VERSION_HISTORY_NORMALIZED_END -->
-
-<!-- VERSION_HISTORY_NORMALIZED_END -->

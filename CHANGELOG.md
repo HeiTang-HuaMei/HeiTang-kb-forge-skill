@@ -1,211 +1,264 @@
 # Changelog
 
+This changelog is normalized by logical capability versions. Some capabilities were implemented in compressed commits during development, but each logical version is listed separately here.
+
 ## v1.2.0
 
-Added Knowledge Ops & Governance Platform capabilities:
+Added Knowledge Ops & Governance Platform:
 
-- Added workspace registry commands: workspace init, workspace register, workspace status.
-- Added refresh / staleness detection via refresh-check.
-- Added review / curation loop via review-create and review-apply.
-- Added evaluation dashboard data export via eval-record.
+- Added workspace registry commands: `workspace init`, `workspace register`, `workspace status`.
+- Added refresh / staleness detection via `refresh-check`.
+- Added review / curation loop via `review-create` and `review-apply`.
+- Added evaluation dashboard data export via `eval-record`.
 - Upgraded optional Web UI operations views.
-- Added publish / export profiles via publish.
-- Added Agent Planning Readiness outputs via planning-readiness.
-- Added v1.2 supplementary docs:
-  - docs/KNOWLEDGE_OPS_GUIDE.md
-  - docs/WEB_UI_OPS_GUIDE.md
-  - docs/AGENT_PLANNING_READINESS_GUIDE.md
+- Added publish / export profiles via `publish`.
+- Added Agent Planning Readiness outputs via `planning-readiness`.
+- Added v1.2 supplementary docs.
 - Preserved offline / default behavior.
 - No Tool Runtime, no real business integration, no permissions, no SaaS multi-tenancy, and no real external platform API calls.
 
+## v1.1.0
+
+Added Knowledge Runtime & Web MVP:
+
+- Added package versioning and diff.
+- Added incremental build / safe reuse.
+- Added chunk strategy profiles.
+- Added knowledge graph export.
+- Added retrieval eval dataset export.
+- Added risk labels and source reliability report.
+- Added minimal ask runtime with answer report and retrieval trace.
+- Added optional Streamlit Web UI MVP.
+- Preserved offline default tests.
+
 ## v1.0.0
 
-- Added text-based PDF table extraction with optional `pdfplumber`.
-- Added best-effort scanned PDF and image OCR table extraction.
-- Added optional `--validate-package`.
-- Added `package_validation_report.json`.
-- Added `package_readiness_report.md`.
+Added Stable Agent Knowledge Supply Chain release:
+
+- Added text-based PDF table extraction.
+- Added scanned PDF / image OCR table best-effort.
+- Added package validation and readiness reports.
 - Added hallucination risk fields.
-- Added optional `--downstream-export`.
-- Added `langchain_documents.jsonl`.
-- Added `llamaindex_documents.jsonl`.
-- Added `generic_rag_package.json`.
-- Added `openai_files_manifest.json`.
+- Added downstream export formats.
 - Added `book_marketing_agent`, `publisher_sales_agent`, and `enterprise_kb_agent`.
-- Added optional live provider validation report structure.
-- Preserved default offline 7-file output.
-- Preserved build / batch / run / pipeline default behavior.
+- Added optional live provider validation.
+- Added v1 stable smoke tests and project documentation.
 
 ## v0.9.0
 
-- Added Runtime Connector Pack.
+Added Runtime Connector Pack:
+
 - Added OpenAI-compatible LLM provider readiness skeleton.
-- Added fake and OpenAI-compatible embedding provider interfaces.
-- Added `embeddings.jsonl`.
-- Added `embedding_manifest.json`.
+- Added fake / OpenAI-compatible embedding provider interface.
+- Added embedding output files.
 - Added local JSON vector export.
-- Added `vector_store_records.jsonl`.
-- Added `vector_store_manifest.json`.
-- Enhanced Agent Template `tools.yaml` schema.
-- Added config and pipeline support for embedding and vector stages.
-- Preserved default offline output.
+- Added enhanced Agent tools config.
+- Added runtime connector config and pipeline stages.
+- No real API or real vector database writes by default.
 
 ## v0.8.3
+
+Added Pipeline workflow:
 
 - Added `pipeline --config`.
 - Added `pipeline_report.md`.
 - Added `pipeline_manifest.json`.
 - Added stage status reporting.
-- Preserved `run --config`.
-- Preserved build / batch behavior.
+- Preserved `run --config` behavior.
 
 ## v0.8.2
 
+Added config-driven execution:
+
 - Added `run --config`.
-- Added YAML / YML config-driven execution.
-- Added config mapping for build / batch / merge / LLM / RAG / Agent / Demo.
-- Added `examples/configs`.
+- Added YAML / YML config support.
+- Added config mapping for build, batch, merge, LLM, RAG, Agent Template, and Demo Report.
+- Added example config files.
 
 ## v0.8.1
 
-- Added portfolio demo packages.
+Added portfolio demo packages:
+
 - Added product manager agent demo.
 - Added shopping guide agent demo.
 - Added education tutor agent demo.
-- Added `output_sample` demo outputs.
+- Added output samples for portfolio display.
 
 ## v0.8.0
+
+Added Demo / Eval report:
 
 - Added `--demo-report`.
 - Added `demo_report.md`.
 - Added `demo_manifest.json`.
 - Added `eval_summary.json`.
-- Added pass / warning / fail demo readiness status.
+- Added pass / warning / fail readiness status.
+
+## v0.7.2
+
+Added Agent Tool Config standardization:
+
+- Enhanced `tools.yaml`.
+- Added runtime_required, input_schema, output_schema, safety_notes, and config fields.
+- Added placeholder tools.
+- Did not execute tools.
+
+## v0.7.1
+
+Added more Agent Templates:
+
+- Added `book_marketing_agent`.
+- Added `publisher_sales_agent`.
+- Added `enterprise_kb_agent`.
 
 ## v0.7.0
 
-- Added opt-in `--agent-template`.
-- Added `--agent-type`.
-- Added `--agent-name`.
-- Added `--agent-language`.
-- Added `agent_profile.yaml`.
-- Added `system_prompt.md`.
-- Added `retrieval_config.yaml`.
-- Added `tools.yaml`.
-- Added `eval_cases.jsonl`.
-- Added minimal agent type templates.
-- Preserved default offline output.
-- No real Agent creation or deployment.
+Added Agent Template generation:
+
+- Added `--agent-template`.
+- Added `--agent-type`, `--agent-name`, and `--agent-language`.
+- Added `agent_profile.yaml`, `system_prompt.md`, `retrieval_config.yaml`, `tools.yaml`, and `eval_cases.jsonl`.
+
+## v0.6.2
+
+Added Vector Export Adapter:
+
+- Added `--vector-export`.
+- Added `--vector-store`.
+- Added `vector_store_records.jsonl`.
+- Added `vector_store_manifest.json`.
+- Supported local JSON / fake vector export.
+- Did not write to real vector databases by default.
+
+## v0.6.1
+
+Added Embedding Provider adaptation:
+
+- Added `--embedding`.
+- Added `--embedding-provider`.
+- Added `--embedding-model`.
+- Added fake embedding provider.
+- Added OpenAI-compatible embedding provider skeleton.
+- Added `embeddings.jsonl` and `embedding_manifest.json`.
 
 ## v0.6.0
 
-- Added opt-in `--rag-export`.
-- Added provider-neutral RAG export files.
+Added RAG export:
+
+- Added `--rag-export`.
 - Added `embedding_input.jsonl`.
 - Added `retrieval_metadata.jsonl`.
 - Added `citation_map.json`.
 - Added `rag_manifest.json`.
-- Added `--rag-profile basic`.
-- Added `--rag-include-llm`.
-- Preserved default offline output.
-- No embedding API calls.
-- No vector database writes.
+- Did not call embedding APIs or write real vectors.
+
+## v0.5.3
+
+Added LLM extraction quality evaluation:
+
+- Added `--llm-quality-report`.
+- Added `llm_quality_report.json`.
+- Added `llm_quality_summary.md`.
+- Added citation / metadata / duplicate / empty-output checks.
+
+## v0.5.2
+
+Added LLM Prompt Profile:
+
+- Added `--prompt-profile`.
+- Added prompt profile metadata.
+- Added prompt profile hash to cache key.
+- Added config support for prompt profile.
+
+## v0.5.1
+
+Added LLM Provider Readiness:
+
+- Added provider metadata.
+- Added token usage metadata.
+- Added cache key handling.
+- Added OpenAI-compatible provider readiness skeleton.
 
 ## v0.5.0
 
-- Added opt-in `--llm` structured extraction.
-- Added fake LLM provider.
-- Added LLM cache.
-- Added LLM output files.
-- Added LLM Summary in `ingest_report.md`.
-- Added fallback and strict behavior.
-- Preserved default offline 7-file output.
-- Preserved offline cards / QA / glossary files.
-- Added API key leakage tests.
-- Tests passed: 65 passed.
+Added LLM structured extraction:
+
+- Added opt-in `--llm`.
+- Added fake provider support.
+- Added LLM cards, QA pairs, glossary, frameworks, cases, and metrics.
+- Preserved offline default outputs.
+
+## v0.4.3B
+
+Added PDF / OCR table extraction:
+
+- Added text-based PDF table extraction.
+- Added scanned PDF / image OCR table best-effort.
+- Added fallback-safe table extraction.
+- Did not guarantee perfect layout reconstruction.
 
 ## v0.4.3
 
+Added DOCX embedded table extraction:
+
+- Added paragraph extraction.
 - Added DOCX embedded table extraction.
-- Preserved DOCX paragraph extraction.
 - Converted DOCX table rows into readable text.
-- No new dependencies.
-- No PDF table extraction.
-- Preserved build / batch / merge behavior.
-- Tests passed: 53 passed.
 
 ## v0.4.2
 
-- Added CSV parser.
-- Added TSV parser.
-- Added XLSX parser.
-- Added `openpyxl` dependency.
-- Added structured table row-to-text conversion.
+Added CSV / TSV / XLSX table ingestion:
+
+- Added structured table parsing.
 - Added multi-sheet XLSX support.
-- Added empty row filtering.
-- Added empty and duplicate header handling.
-- Preserved build / batch / merge CLI behavior.
-- Preserved standard 7-file output.
-- Tests passed: 45 passed.
+- Added header normalization.
+- Converted rows into readable text.
 
 ## v0.4.1
 
-- Added scanned PDF OCR fallback.
-- Kept text-based PDF extraction as first priority.
-- Added OCR fallback for empty or too-short PDF text.
-- Added `pypdfium2` to optional `[ocr]` dependencies.
-- Added page markers for OCR text.
-- Preserved build / batch / merge CLI behavior.
-- Preserved standard output filenames.
-- Tests passed: 33 passed.
+Added scanned PDF OCR fallback:
+
+- Added fallback when text-based PDF extraction is empty or too short.
+- Preserved text-based PDF as the priority path.
 
 ## v0.4.0
 
-- Added optional image OCR parser.
-- Added support for `.png`, `.jpg`, and `.jpeg`.
-- Added optional OCR dependency group.
-- Added lazy OCR dependency loading.
-- Added clear error when OCR dependencies are missing.
-- Preserved Markdown / TXT / text-based PDF / text-based DOCX behavior.
-- Preserved build / batch / merge CLI behavior.
-- Tests passed: 25 passed.
+Added image OCR:
+
+- Added optional OCR support for PNG, JPG, and JPEG.
+- OCR text enters the standard pipeline.
+- Did not implement image semantic understanding.
+
+## v0.3.1
+
+Added quality report:
+
+- Added `quality_report.json`.
+- Added Quality Summary in `ingest_report.md`.
+- Added empty / duplicate / coverage checks.
+- Added quality score and quality level.
 
 ## v0.3.0
 
-- Enhanced `cards.jsonl` quality.
-- Added empty card filtering.
-- Added card deduplication.
-- Added `card_type`, `tags`, and `citation`.
-- Enhanced `qa_pairs.jsonl` quality.
-- Added empty QA filtering.
-- Added QA deduplication.
-- Added `qa_type` and `citation`.
-- Enhanced `glossary.jsonl` extraction.
-- Added English and Chinese term candidates.
-- Added glossary `source_path`, `chunk_id`, and `citation`.
-- Preserved output filenames.
-- Preserved build / batch / merge behavior.
-- Tests passed: 18 passed.
+Added batch / merge workflow:
 
-## v0.2.1
-
-- Added `--merge-same-sequence` for batch.
-- Added same-sequence multi-file merge.
-- Added group-level output directories like `output/001/`.
-- Added `merge_same_sequence` and `total_groups` in `batch_manifest.json`.
-- Added `source_paths` and `source_count` for merge items.
-- Added `Group Source Files` section in `batch_report.md`.
-- Preserved default batch behavior.
-- Preserved `build` behavior.
-- Tests passed: 14 passed.
+- Added batch processing.
+- Added same-sequence merge workflow.
+- Preserved deterministic package outputs.
 
 ## v0.2.0
 
-- Added `batch` command.
-- Added numbered file batch processing.
-- Added independent package output per source file.
-- Added `batch_manifest.json`.
-- Added `batch_report.md`.
-- Added per-file failure isolation.
-- Preserved existing `build` behavior.
-- Tests passed: 12 passed.
+Added deterministic knowledge package:
+
+- Added stable chunk IDs.
+- Added base cards / QA / glossary outputs.
+- Added manifest and ingest report.
+
+## v0.1.0
+
+Initial CLI foundation:
+
+- Added Typer CLI foundation.
+- Added local build command.
+- Added base input/output structure.
+- Added UTF-8 output contract.
