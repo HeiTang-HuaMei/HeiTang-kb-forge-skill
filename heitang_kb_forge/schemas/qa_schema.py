@@ -9,3 +9,5 @@ class QAPair(BaseModel):
     source_path: str
     domain: str
     mode: str
+    qa_type: str | None = None
+    citation: str | None = None

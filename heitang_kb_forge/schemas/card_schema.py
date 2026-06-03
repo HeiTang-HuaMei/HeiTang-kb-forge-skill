@@ -9,3 +9,6 @@ class KnowledgeCard(BaseModel):
     source_path: str
     domain: str
     mode: str
+    card_type: str | None = None
+    tags: list[str] = Field(default_factory=list)
+    citation: str | None = None
