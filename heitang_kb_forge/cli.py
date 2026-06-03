@@ -10,6 +10,7 @@ from heitang_kb_forge.parsers.docx_parser import parse_docx
 from heitang_kb_forge.parsers.image_parser import parse_image
 from heitang_kb_forge.parsers.markdown_parser import parse_markdown
 from heitang_kb_forge.parsers.pdf_parser import parse_pdf
+from heitang_kb_forge.parsers.table_parser import parse_csv, parse_tsv, parse_xlsx
 from heitang_kb_forge.parsers.text_parser import parse_text
 from heitang_kb_forge.processors.chunker import chunk_text
 from heitang_kb_forge.processors.cleaner import clean_text
@@ -27,6 +28,9 @@ PARSERS = {
     ".txt": parse_text,
     ".pdf": parse_pdf,
     ".docx": parse_docx,
+    ".csv": parse_csv,
+    ".tsv": parse_tsv,
+    ".xlsx": parse_xlsx,
     ".png": parse_image,
     ".jpg": parse_image,
     ".jpeg": parse_image,
