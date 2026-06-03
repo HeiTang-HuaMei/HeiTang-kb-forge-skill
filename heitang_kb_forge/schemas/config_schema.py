@@ -57,6 +57,42 @@ class LiveValidationConfig(BaseModel):
     enabled: bool = False
 
 
+class VersioningConfig(BaseModel):
+    enabled: bool = False
+
+
+class IncrementalConfig(BaseModel):
+    enabled: bool = False
+    previous_package: Path | None = None
+
+
+class ChunkConfig(BaseModel):
+    profile: str = "default"
+
+
+class KnowledgeGraphConfig(BaseModel):
+    enabled: bool = False
+
+
+class RetrievalEvalConfig(BaseModel):
+    enabled: bool = False
+
+
+class RiskLabelsConfig(BaseModel):
+    enabled: bool = False
+
+
+class RuntimeConfig(BaseModel):
+    enabled: bool = False
+    top_k: int = 5
+    provider: str = "fake"
+    model: str = "fake-model"
+
+
+class WebConfig(BaseModel):
+    enabled: bool = False
+
+
 class ForgeConfig(BaseModel):
     task: str
     input: Path
@@ -75,3 +111,11 @@ class ForgeConfig(BaseModel):
     validation: ValidationConfig = Field(default_factory=ValidationConfig)
     downstream: DownstreamConfig = Field(default_factory=DownstreamConfig)
     live_validation: LiveValidationConfig = Field(default_factory=LiveValidationConfig)
+    versioning: VersioningConfig = Field(default_factory=VersioningConfig)
+    incremental: IncrementalConfig = Field(default_factory=IncrementalConfig)
+    chunk: ChunkConfig = Field(default_factory=ChunkConfig)
+    knowledge_graph: KnowledgeGraphConfig = Field(default_factory=KnowledgeGraphConfig)
+    retrieval_eval: RetrievalEvalConfig = Field(default_factory=RetrievalEvalConfig)
+    risk_labels: RiskLabelsConfig = Field(default_factory=RiskLabelsConfig)
+    runtime: RuntimeConfig = Field(default_factory=RuntimeConfig)
+    web: WebConfig = Field(default_factory=WebConfig)

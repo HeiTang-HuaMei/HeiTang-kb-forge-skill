@@ -8,6 +8,11 @@ from heitang_kb_forge.embedding.exporter import EMBEDDING_OUTPUT_FILES
 from heitang_kb_forge.rag.exporter import RAG_OUTPUT_FILES
 from heitang_kb_forge.downstream.exporter import DOWNSTREAM_OUTPUT_FILES
 from heitang_kb_forge.validation.package_validator import VALIDATION_OUTPUT_FILES
+from heitang_kb_forge.incremental.reuse import INCREMENTAL_OUTPUT_FILES
+from heitang_kb_forge.knowledge_graph.exporter import KNOWLEDGE_GRAPH_OUTPUT_FILES
+from heitang_kb_forge.evalset.exporter import RETRIEVAL_EVAL_OUTPUT_FILES
+from heitang_kb_forge.risk.labeler import RISK_OUTPUT_FILES
+from heitang_kb_forge.runtime.agent_runtime import RUNTIME_OUTPUT_FILES
 from heitang_kb_forge.vector.exporter import VECTOR_OUTPUT_FILES
 from heitang_kb_forge.schemas.config_schema import ForgeConfig
 from heitang_kb_forge.schemas.pipeline_schema import PipelineManifest, PipelineStage
@@ -38,6 +43,12 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("package_validation", config.validation.enabled, output, VALIDATION_OUTPUT_FILES, config.task),
         _stage("downstream_export", config.downstream.enabled, output, DOWNSTREAM_OUTPUT_FILES, config.task),
         _stage("live_validation", config.live_validation.enabled, output, ["live_provider_smoke_report.json"], config.task),
+        _stage("package_versioning", config.versioning.enabled, output, ["package_version.json"], config.task),
+        _stage("incremental_reuse", config.incremental.enabled, output, INCREMENTAL_OUTPUT_FILES, config.task),
+        _stage("knowledge_graph_export", config.knowledge_graph.enabled, output, KNOWLEDGE_GRAPH_OUTPUT_FILES, config.task),
+        _stage("retrieval_eval_export", config.retrieval_eval.enabled, output, RETRIEVAL_EVAL_OUTPUT_FILES, config.task),
+        _stage("risk_labeling", config.risk_labels.enabled, output, RISK_OUTPUT_FILES, config.task),
+        _stage("agent_runtime_smoke", config.runtime.enabled, output, RUNTIME_OUTPUT_FILES, config.task),
     ]
     warnings = [f"Stage failed: {stage.name}" for stage in stages if stage.status == "failed"]
     final_status = "fail" if warnings else "pass"

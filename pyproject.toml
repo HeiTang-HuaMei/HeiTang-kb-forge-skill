@@ -44,6 +44,9 @@ ocr = [
 pdf-table = [
   "pdfplumber>=0.11,<1",
 ]
+web = [
+  "streamlit>=1.35,<2",
+]
 
 [project.scripts]
 heitang-kb-forge = "heitang_kb_forge.cli:app"

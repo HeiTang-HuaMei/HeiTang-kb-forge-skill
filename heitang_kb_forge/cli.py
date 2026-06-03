@@ -11,7 +11,10 @@ from heitang_kb_forge.config.loader import load_config
 from heitang_kb_forge.downstream.exporter import DOWNSTREAM_OUTPUT_FILES, make_downstream_exports
 from heitang_kb_forge.embedding.exporter import EMBEDDING_OUTPUT_FILES, make_embeddings
 from heitang_kb_forge.eval.demo import DEMO_OUTPUT_FILES, make_demo_report
+from heitang_kb_forge.evalset.exporter import RETRIEVAL_EVAL_OUTPUT_FILES, make_retrieval_eval_set
 from heitang_kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
+from heitang_kb_forge.incremental.reuse import INCREMENTAL_OUTPUT_FILES, make_incremental_report
+from heitang_kb_forge.knowledge_graph.exporter import KNOWLEDGE_GRAPH_OUTPUT_FILES, make_knowledge_graph
 from heitang_kb_forge.exporters.report_exporter import write_report
 from heitang_kb_forge.llm.extractor import LLMOptions, OUTPUT_FILES, extract_llm_assets
 from heitang_kb_forge.llm.prompt_profile import load_prompt_profile
@@ -23,14 +26,19 @@ from heitang_kb_forge.parsers.pdf_parser import parse_pdf
 from heitang_kb_forge.parsers.table_parser import parse_csv, parse_tsv, parse_xlsx
 from heitang_kb_forge.parsers.text_parser import parse_text
 from heitang_kb_forge.processors.chunker import chunk_text
+from heitang_kb_forge.processors.chunk_profiles import get_chunk_profile
 from heitang_kb_forge.processors.cleaner import clean_text
 from heitang_kb_forge.processors.extractor import make_cards, make_glossary, make_qa_pairs
 from heitang_kb_forge.processors.quality import make_quality_report
 from heitang_kb_forge.processors.validator import validate_chunks
 from heitang_kb_forge.pipeline.reporter import make_pipeline_report
 from heitang_kb_forge.rag.exporter import RAGOptions, RAG_OUTPUT_FILES, make_rag_export
+from heitang_kb_forge.risk.labeler import RISK_OUTPUT_FILES, make_risk_labels
+from heitang_kb_forge.runtime.agent_runtime import RUNTIME_OUTPUT_FILES, ask_package
 from heitang_kb_forge.validation.package_validator import VALIDATION_OUTPUT_FILES, validate_package
 from heitang_kb_forge.vector.exporter import VECTOR_OUTPUT_FILES, make_vector_export
+from heitang_kb_forge.versioning.diff import DIFF_OUTPUT_FILES, diff_packages
+from heitang_kb_forge.versioning.package_version import make_package_version
 from heitang_kb_forge.schemas.config_schema import ForgeConfig
 from heitang_kb_forge.schemas.chunk_schema import Chunk
 from heitang_kb_forge.schemas.agent_schema import AgentOptions
@@ -83,6 +91,21 @@ class DownstreamOptions:
     enabled: bool = False
 
 
+@dataclass
+class V11Options:
+    versioning: bool = False
+    incremental: bool = False
+    previous_package: Path | None = None
+    chunk_profile: str = "default"
+    knowledge_graph: bool = False
+    retrieval_eval: bool = False
+    risk_labels: bool = False
+    runtime: bool = False
+    runtime_top_k: int = 5
+    runtime_provider: str = "fake"
+    runtime_model: str = "fake-model"
+
+
 @app.callback()
 def main() -> None:
     """KB Forge command group."""
@@ -113,6 +136,12 @@ def build(
     vector_store: str = typer.Option("local_json", "--vector-store"),
     validate_package: bool = typer.Option(False, "--validate-package"),
     downstream_export: bool = typer.Option(False, "--downstream-export"),
+    incremental: bool = typer.Option(False, "--incremental"),
+    previous_package: Path | None = typer.Option(None, "--previous-package", exists=True, file_okay=False, dir_okay=True),
+    chunk_profile: str = typer.Option("default", "--chunk-profile"),
+    knowledge_graph_export: bool = typer.Option(False, "--knowledge-graph-export"),
+    retrieval_eval_export: bool = typer.Option(False, "--retrieval-eval-export"),
+    risk_labels: bool = typer.Option(False, "--risk-labels"),
     agent_template: bool = typer.Option(False, "--agent-template"),
     agent_type: str = typer.Option("generic_agent", "--agent-type"),
     agent_name: str | None = typer.Option(None, "--agent-name"),
@@ -147,6 +176,15 @@ def build(
         vector_options=_make_vector_options(vector_export, vector_store, embedding),
         validation_options=ValidationOptions(validate_package),
         downstream_options=DownstreamOptions(downstream_export),
+        v11_options=V11Options(
+            versioning=incremental,
+            incremental=incremental,
+            previous_package=previous_package,
+            chunk_profile=chunk_profile,
+            knowledge_graph=knowledge_graph_export,
+            retrieval_eval=retrieval_eval_export,
+            risk_labels=risk_labels,
+        ),
         demo_report=demo_report,
     )
 
@@ -180,6 +218,12 @@ def batch(
     vector_store: str = typer.Option("local_json", "--vector-store"),
     validate_package: bool = typer.Option(False, "--validate-package"),
     downstream_export: bool = typer.Option(False, "--downstream-export"),
+    incremental: bool = typer.Option(False, "--incremental"),
+    previous_package: Path | None = typer.Option(None, "--previous-package", exists=True, file_okay=False, dir_okay=True),
+    chunk_profile: str = typer.Option("default", "--chunk-profile"),
+    knowledge_graph_export: bool = typer.Option(False, "--knowledge-graph-export"),
+    retrieval_eval_export: bool = typer.Option(False, "--retrieval-eval-export"),
+    risk_labels: bool = typer.Option(False, "--risk-labels"),
     agent_template: bool = typer.Option(False, "--agent-template"),
     agent_type: str = typer.Option("generic_agent", "--agent-type"),
     agent_name: str | None = typer.Option(None, "--agent-name"),
@@ -209,6 +253,15 @@ def batch(
     vector_options = _make_vector_options(vector_export, vector_store, embedding)
     validation_options = ValidationOptions(validate_package)
     downstream_options = DownstreamOptions(downstream_export)
+    v11_options = V11Options(
+        versioning=incremental,
+        incremental=incremental,
+        previous_package=previous_package,
+        chunk_profile=chunk_profile,
+        knowledge_graph=knowledge_graph_export,
+        retrieval_eval=retrieval_eval_export,
+        risk_labels=risk_labels,
+    )
     items = (
         _build_batch_groups(
             numbered_sources,
@@ -223,6 +276,7 @@ def batch(
             vector_options,
             validation_options,
             downstream_options,
+            v11_options,
             agent_options,
             demo_report,
         )
@@ -240,6 +294,7 @@ def batch(
             vector_options,
             validation_options,
             downstream_options,
+            v11_options,
             agent_options,
             demo_report,
         )
@@ -291,6 +346,50 @@ def pipeline(
     typer.echo(f"Built pipeline report at {result.output}")
 
 
+@app.command()
+def diff(
+    old: Path = typer.Option(..., "--old", exists=True, file_okay=False, dir_okay=True, readable=True),
+    new: Path = typer.Option(..., "--new", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Compare two local knowledge packages."""
+    output.mkdir(parents=True, exist_ok=True)
+    version, report, changed, removed, new_chunks = diff_packages(old, new)
+    write_json(output / "package_version.json", version)
+    (output / "package_diff_report.md").write_text(report, encoding="utf-8")
+    write_jsonl(output / "changed_chunks.jsonl", changed)
+    write_jsonl(output / "removed_chunks.jsonl", removed)
+    write_jsonl(output / "new_chunks.jsonl", new_chunks)
+    typer.echo(f"Built package diff at {output}")
+
+
+@app.command()
+def ask(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    query: str = typer.Option(..., "--query"),
+    top_k: int = typer.Option(5, "--top-k"),
+    provider: str = typer.Option("fake", "--provider"),
+    model: str = typer.Option("fake-model", "--model"),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+) -> None:
+    """Ask a local knowledge package with a minimal RAG runtime."""
+    output = output or package
+    output.mkdir(parents=True, exist_ok=True)
+    answer, report, trace = ask_package(package, query, top_k, provider, model)
+    (output / "answer.md").write_text(answer, encoding="utf-8")
+    write_json(output / "answer_report.json", report.model_dump(mode="json"))
+    write_json(output / "retrieval_trace.json", trace)
+    typer.echo(f"Built answer at {output / 'answer.md'}")
+
+
+@app.command()
+def web() -> None:
+    """Run the optional Streamlit Web UI."""
+    from heitang_kb_forge.web.app import render_app
+
+    render_app()
+
+
 def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
     llm_options = _make_llm_options(
         config_data.llm.enabled,
@@ -319,6 +418,19 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
     )
     validation_options = ValidationOptions(config_data.validation.enabled)
     downstream_options = DownstreamOptions(config_data.downstream.enabled)
+    v11_options = V11Options(
+        versioning=config_data.versioning.enabled,
+        incremental=config_data.incremental.enabled,
+        previous_package=config_data.incremental.previous_package,
+        chunk_profile=config_data.chunk.profile,
+        knowledge_graph=config_data.knowledge_graph.enabled,
+        retrieval_eval=config_data.retrieval_eval.enabled,
+        risk_labels=config_data.risk_labels.enabled,
+        runtime=config_data.runtime.enabled,
+        runtime_top_k=config_data.runtime.top_k,
+        runtime_provider=config_data.runtime.provider,
+        runtime_model=config_data.runtime.model,
+    )
     agent_options = AgentOptions(
         enabled=config_data.agent.enabled,
         agent_type=config_data.agent.type,
@@ -340,6 +452,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             vector_options=vector_options,
             validation_options=validation_options,
             downstream_options=downstream_options,
+            v11_options=v11_options,
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
         )
@@ -371,6 +484,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             vector_options,
             validation_options,
             downstream_options,
+            v11_options,
             agent_options,
             config_data.demo.enabled,
         )
@@ -388,6 +502,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             vector_options,
             validation_options,
             downstream_options,
+            v11_options,
             agent_options,
             config_data.demo.enabled,
         )
@@ -473,6 +588,7 @@ def _build_batch_items(
     vector_options: VectorOptions | None = None,
     validation_options: ValidationOptions | None = None,
     downstream_options: DownstreamOptions | None = None,
+    v11_options: V11Options | None = None,
     agent_options: AgentOptions | None = None,
     demo_report: bool = False,
 ) -> list[dict]:
@@ -511,6 +627,7 @@ def _build_batch_items(
                 vector_options=vector_options,
                 validation_options=validation_options,
                 downstream_options=downstream_options,
+                v11_options=v11_options,
                 agent_options=agent_options,
                 demo_report=demo_report,
             )
@@ -538,6 +655,7 @@ def _build_batch_groups(
     vector_options: VectorOptions | None = None,
     validation_options: ValidationOptions | None = None,
     downstream_options: DownstreamOptions | None = None,
+    v11_options: V11Options | None = None,
     agent_options: AgentOptions | None = None,
     demo_report: bool = False,
 ) -> list[dict]:
@@ -585,6 +703,7 @@ def _build_batch_groups(
                 vector_options=vector_options,
                 validation_options=validation_options,
                 downstream_options=downstream_options,
+                v11_options=v11_options,
                 agent_options=agent_options,
                 demo_report=demo_report,
             )
@@ -614,11 +733,17 @@ def _build_package(
     vector_options: VectorOptions | None = None,
     validation_options: ValidationOptions | None = None,
     downstream_options: DownstreamOptions | None = None,
+    v11_options: V11Options | None = None,
     agent_options: AgentOptions | None = None,
     demo_report: bool = False,
 ) -> Manifest:
     output.mkdir(parents=True, exist_ok=True)
     source_files = source_files if source_files is not None else _collect_sources(input)
+    v11_options = v11_options or V11Options()
+    profile = get_chunk_profile(v11_options.chunk_profile)
+    if v11_options.chunk_profile != "default":
+        max_chars = profile.max_chars
+        overlap_chars = profile.overlap_chars
     all_chunks: list[Chunk] = []
     warnings: list[str] = []
 
@@ -698,6 +823,12 @@ def _build_package(
         if downstream_options.enabled
         else None
     )
+    kg_result = make_knowledge_graph(cards, glossary, llm_result.outputs if llm_result else None) if v11_options.knowledge_graph else None
+    eval_result = (
+        make_retrieval_eval_set(qa_pairs, cards, glossary, llm_result.outputs if llm_result else None)
+        if v11_options.retrieval_eval
+        else None
+    )
     agent_options = agent_options or AgentOptions()
     agent_result = (
         make_agent_template(
@@ -764,6 +895,18 @@ def _build_package(
     validation_options = validation_options or ValidationOptions()
     if validation_options.enabled:
         files.extend(VALIDATION_OUTPUT_FILES)
+    if v11_options.versioning or v11_options.incremental:
+        files.append("package_version.json")
+    if v11_options.incremental:
+        files.extend(INCREMENTAL_OUTPUT_FILES)
+    if v11_options.knowledge_graph:
+        files.extend(KNOWLEDGE_GRAPH_OUTPUT_FILES)
+    if v11_options.retrieval_eval:
+        files.extend(RETRIEVAL_EVAL_OUTPUT_FILES)
+    if v11_options.risk_labels:
+        files.extend(RISK_OUTPUT_FILES)
+    if v11_options.runtime:
+        files.extend(RUNTIME_OUTPUT_FILES)
     manifest = Manifest(
         domain=domain,
         mode=mode,
@@ -803,6 +946,16 @@ def _build_package(
         write_jsonl(output / "llamaindex_documents.jsonl", downstream_result["llamaindex_documents"])
         write_json(output / "generic_rag_package.json", downstream_result["generic_rag_package"])
         write_json(output / "openai_files_manifest.json", downstream_result["openai_files_manifest"])
+    if kg_result:
+        entities, relations, kg_manifest = kg_result
+        write_jsonl(output / "entities.jsonl", entities)
+        write_jsonl(output / "relations.jsonl", relations)
+        write_json(output / "knowledge_graph_manifest.json", kg_manifest)
+    if eval_result:
+        retrieval_records, golden_qa, citation_eval = eval_result
+        write_jsonl(output / "retrieval_eval_set.jsonl", retrieval_records)
+        write_jsonl(output / "golden_qa.jsonl", golden_qa)
+        write_jsonl(output / "citation_eval_set.jsonl", citation_eval)
     if agent_options.enabled and agent_result:
         (output / "agent_profile.yaml").write_text(agent_result.agent_profile, encoding="utf-8")
         (output / "system_prompt.md").write_text(agent_result.system_prompt, encoding="utf-8")
@@ -815,6 +968,7 @@ def _build_package(
         write_json(output / "eval_summary.json", demo_result.eval_summary.model_dump(mode="json"))
     write_json(output / "quality_report.json", quality_report)
     manifest_payload = manifest.model_dump(mode="json")
+    manifest_payload["chunk_profile"] = v11_options.chunk_profile
     llm_summary = None
     llm_quality_summary = None
     if llm_options.enabled and llm_result:
@@ -914,6 +1068,10 @@ def _build_package(
             "downstream_export_files": DOWNSTREAM_OUTPUT_FILES,
         }
         manifest_payload.update(downstream_summary)
+    if kg_result:
+        manifest_payload.update({"knowledge_graph_export_enabled": True, "knowledge_graph_files": KNOWLEDGE_GRAPH_OUTPUT_FILES})
+    if eval_result:
+        manifest_payload.update({"retrieval_eval_export_enabled": True, "retrieval_eval_files": RETRIEVAL_EVAL_OUTPUT_FILES})
     agent_summary = None
     if agent_options.enabled and agent_result:
         agent_name = agent_options.agent_name or f"{output.name or 'knowledge'}_agent"
@@ -964,6 +1122,32 @@ def _build_package(
         validation_report, readiness_report = validate_package(output)
         write_json(output / "package_validation_report.json", validation_report.model_dump(mode="json"))
         (output / "package_readiness_report.md").write_text(readiness_report, encoding="utf-8")
+    validation_payload = None
+    if (output / "package_validation_report.json").exists():
+        import json
+
+        validation_payload = json.loads((output / "package_validation_report.json").read_text(encoding="utf-8"))
+    if v11_options.risk_labels:
+        risk_labels, risk_report = make_risk_labels(all_chunks, cards, qa_pairs, glossary, llm_result.outputs if llm_result else None, validation_payload)
+        write_jsonl(output / "risk_labels.jsonl", risk_labels)
+        (output / "source_reliability_report.md").write_text(risk_report, encoding="utf-8")
+    if v11_options.versioning or v11_options.incremental:
+        write_json(output / "package_version.json", make_package_version(output).model_dump(mode="json"))
+    if v11_options.incremental:
+        incremental_manifest, incremental_report = make_incremental_report(output, v11_options.previous_package)
+        write_json(output / "incremental_manifest.json", incremental_manifest)
+        (output / "incremental_report.md").write_text(incremental_report, encoding="utf-8")
+    if v11_options.runtime:
+        answer, answer_report, retrieval_trace = ask_package(
+            output,
+            "Summarize this knowledge package.",
+            v11_options.runtime_top_k,
+            v11_options.runtime_provider,
+            v11_options.runtime_model,
+        )
+        (output / "answer.md").write_text(answer, encoding="utf-8")
+        write_json(output / "answer_report.json", answer_report.model_dump(mode="json"))
+        write_json(output / "retrieval_trace.json", retrieval_trace)
 
     return manifest
 

@@ -1,0 +1,1 @@
+"""Knowledge risk label helpers."""
