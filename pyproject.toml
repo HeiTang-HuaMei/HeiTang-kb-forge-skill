@@ -11,6 +11,7 @@ requires-python = ">=3.11"
 dependencies = [
   "pydantic>=2.7,<3",
   "pypdf>=4,<7",
+  "python-docx>=1,<2",
   "typer>=0.12,<1",
 ]
 
