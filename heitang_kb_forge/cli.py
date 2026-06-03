@@ -6,6 +6,7 @@ import typer
 
 from heitang_kb_forge.agent.generator import make_agent_template
 from heitang_kb_forge.agent.templates import AGENT_OUTPUT_FILES
+from heitang_kb_forge.config.loader import load_config
 from heitang_kb_forge.eval.demo import DEMO_OUTPUT_FILES, make_demo_report
 from heitang_kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
 from heitang_kb_forge.exporters.report_exporter import write_report
@@ -168,6 +169,103 @@ def batch(
         "items": items,
     }
     if merge_same_sequence:
+        batch_manifest["total_groups"] = len(items)
+
+    write_json(output / "batch_manifest.json", batch_manifest)
+    _write_batch_report(output / "batch_report.md", batch_manifest)
+
+    typer.echo(f"Built batch knowledge packages at {output}")
+    typer.echo(f"Total: {len(items)} | Succeeded: {succeeded} | Failed: {failed}")
+
+
+@app.command()
+def run(
+    config: Path = typer.Option(..., "--config", "-c", exists=True, file_okay=True, dir_okay=False, readable=True),
+) -> None:
+    """Run build or batch from a YAML config file."""
+    config_data = load_config(config)
+    llm_options = LLMOptions(
+        config_data.llm.enabled,
+        config_data.llm.provider,
+        config_data.llm.model,
+        config_data.llm.cache,
+        config_data.llm.strict,
+    )
+    rag_options = RAGOptions(
+        config_data.rag.enabled,
+        config_data.rag.profile,
+        config_data.rag.include_llm,
+    )
+    agent_options = AgentOptions(
+        enabled=config_data.agent.enabled,
+        agent_type=config_data.agent.type,
+        agent_name=config_data.agent.name,
+        language=config_data.agent.language,
+    )
+
+    if config_data.task == "build":
+        manifest = _build_package(
+            config_data.input,
+            config_data.output,
+            config_data.domain,
+            config_data.mode,
+            config_data.max_chars,
+            config_data.overlap_chars,
+            llm_options=llm_options,
+            rag_options=rag_options,
+            agent_options=agent_options,
+            demo_report=config_data.demo.enabled,
+        )
+        typer.echo(f"Built knowledge package at {config_data.output}")
+        typer.echo(f"Sources: {manifest.source_count} | Chunks: {manifest.chunk_count} | Warnings: {len(manifest.warnings)}")
+        return
+
+    output = config_data.output
+    output.mkdir(parents=True, exist_ok=True)
+    numbered_sources = [
+        path for path in sorted(config_data.input.iterdir()) if path.is_file() and _parse_numbered_stem(path)
+    ]
+    items = (
+        _build_batch_groups(
+            numbered_sources,
+            output,
+            config_data.domain,
+            config_data.mode,
+            config_data.max_chars,
+            config_data.overlap_chars,
+            llm_options,
+            rag_options,
+            agent_options,
+            config_data.demo.enabled,
+        )
+        if config_data.batch.merge_same_sequence
+        else _build_batch_items(
+            numbered_sources,
+            output,
+            config_data.domain,
+            config_data.mode,
+            config_data.max_chars,
+            config_data.overlap_chars,
+            llm_options,
+            rag_options,
+            agent_options,
+            config_data.demo.enabled,
+        )
+    )
+    succeeded = sum(1 for item in items if item["status"] == "success")
+    failed = sum(1 for item in items if item["status"] == "failed")
+    batch_manifest = {
+        "batch_version": "0.2.1",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "input_dir": str(config_data.input).replace("\\", "/"),
+        "output_dir": str(output).replace("\\", "/"),
+        "merge_same_sequence": config_data.batch.merge_same_sequence,
+        "total_files": len(numbered_sources),
+        "succeeded": succeeded,
+        "failed": failed,
+        "items": items,
+    }
+    if config_data.batch.merge_same_sequence:
         batch_manifest["total_groups"] = len(items)
 
     write_json(output / "batch_manifest.json", batch_manifest)
