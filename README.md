@@ -2,7 +2,7 @@
 
 `kb-forge-skill` is a local command-line tool for building a standardized knowledge base package from source documents.
 
-V0 is intentionally offline: no Web UI, no vector database, and no external LLM.
+The project is intentionally offline: no Web UI, no vector database, and no external LLM.
 
 ## Features
 
@@ -11,8 +11,8 @@ V0 is intentionally offline: no Web UI, no vector database, and no external LLM.
 - Pydantic schemas
 - UTF-8 output
 - Stable reproducible `chunk_id`
-- Markdown and TXT parsing
-- PDF and DOCX parser interfaces reserved for future versions
+- Markdown, TXT, text-based PDF, and text-based DOCX parsing
+- PDF/DOCX support is limited to text extraction; OCR, images, and complex table reconstruction are not supported
 - Chunk validation for empty chunks, duplicate chunks, and missing fields
 
 ## Install
@@ -32,7 +32,7 @@ source .venv/bin/activate
 
 ## Run
 
-Add `.md` or `.txt` files under `examples/input`, then run:
+Add `.md`, `.txt`, text-based `.pdf`, or text-based `.docx` files under `examples/input`, then run:
 
 ```bash
 kb-forge build --input ./examples/input --output ./examples/output --domain education --mode teaching
