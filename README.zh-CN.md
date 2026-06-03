@@ -16,6 +16,8 @@
 - UTF-8 输出
 - 稳定、可复现的 `chunk_id`
 - 支持 Markdown、TXT、文本型 PDF、文本型 DOCX
+- 知识资产质量报告 `quality_report.json`
+- `ingest_report.md` 中的 Quality Summary
 - PDF/DOCX 仅支持文本抽取
 - 不支持 OCR、图片内容解析、复杂表格结构还原
 - 检查空 chunk、重复 chunk、缺失字段
@@ -59,6 +61,43 @@ python -m heitang_kb_forge.cli build --input ./examples/input --output ./example
 - `glossary.jsonl`：从文本中识别出的简单术语候选
 - `manifest.json`：知识库包元数据与统计信息
 - `ingest_report.md`：可读的导入报告与告警信息
+- `quality_report.json`：机器可读的知识资产质量报告
+
+## 知识资产质量报告
+
+v0.3.1 新增 `quality_report.json`，用于对每个知识库包进行机器可读的质量评估；同时 `ingest_report.md` 增加 Quality Summary，方便人工快速查看质量摘要。
+
+`quality_report.json` 包含：
+
+- `source_count`
+- `chunk_count`
+- `card_count`
+- `qa_count`
+- `glossary_count`
+- empty counts
+- duplicate counts
+- `citation_coverage`
+- `source_path_coverage`
+- `quality_score`
+- `quality_level`
+
+`quality_level` 包括：
+
+- `excellent`
+- `good`
+- `fair`
+- `poor`
+
+v0.3.1 的定位是让知识库包从“能生成”进一步升级为“可评估”，为后续 RAG 导出、Agent Template、LLM 结构化抽取打基础。
+
+v0.3.1 仍然是离线规则版本：
+
+- 不接 OCR
+- 不接 LLM
+- 不接向量库
+- 不做 Agent Template
+- 不做 Web UI
+- 不改变 `build` / `batch` / `--merge-same-sequence` CLI 行为
 
 ## 验证与测试
 
