@@ -1,0 +1,22 @@
+﻿profile_name: education_tutor
+language: zh-CN
+
+focus:
+  - concepts
+  - explanations
+  - mistakes
+  - learning_path
+  - practice_questions
+
+preferred_outputs:
+  cards: true
+  qa_pairs: true
+  glossary: true
+  frameworks: true
+  case_cards: false
+  metrics: false
+
+extraction_rules:
+  - Extract teachable concepts, common misunderstandings, and step-by-step explanations.
+  - Prefer learner-friendly wording.
+  - Do not invent exercises if source evidence is insufficient.

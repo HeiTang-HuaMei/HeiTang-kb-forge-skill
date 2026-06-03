@@ -1,0 +1,21 @@
+﻿profile_name: shopping_guide
+language: zh-CN
+
+focus:
+  - product_attributes
+  - selling_points
+  - target_users
+  - comparison
+  - recommendation_reason
+
+preferred_outputs:
+  cards: true
+  qa_pairs: true
+  glossary: true
+  frameworks: false
+  case_cards: true
+  metrics: false
+
+extraction_rules:
+  - Extract product facts, selling points, suitable users, and recommendation logic.
+  - Do not invent prices, stock, discounts, or claims not found in the source.

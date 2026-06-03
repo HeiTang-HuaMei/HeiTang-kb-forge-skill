@@ -1,0 +1,22 @@
+﻿profile_name: product_manager
+language: zh-CN
+
+focus:
+  - demand_analysis
+  - user_scenario
+  - prd_structure
+  - metrics
+  - competitor_analysis
+
+preferred_outputs:
+  cards: true
+  qa_pairs: true
+  glossary: true
+  frameworks: true
+  case_cards: true
+  metrics: true
+
+extraction_rules:
+  - Keep all outputs grounded in source chunks.
+  - Prefer product concepts, user needs, metrics, process, and decision logic.
+  - Do not invent business context that is not present in the source.

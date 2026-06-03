@@ -1,0 +1,31 @@
+﻿task: batch
+
+input: ./examples/demo_product_manager_agent/input
+output: ./examples/config_batch_output
+
+domain: product
+mode: batch_agent_demo
+
+batch:
+  merge_same_sequence: false
+
+llm:
+  enabled: false
+  provider: fake
+  model: fake-model
+  cache: true
+  strict: false
+
+rag:
+  enabled: true
+  profile: basic
+  include_llm: false
+
+agent:
+  enabled: true
+  type: product_manager_agent
+  name: Product Manager Batch Agent
+  language: zh-CN
+
+demo:
+  enabled: true

@@ -1,0 +1,28 @@
+﻿task: build
+
+input: ./examples/demo_product_manager_agent/input
+output: ./examples/demo_product_manager_agent/output_from_config
+
+domain: product
+mode: agent_demo
+
+llm:
+  enabled: false
+  provider: fake
+  model: fake-model
+  cache: true
+  strict: false
+
+rag:
+  enabled: true
+  profile: basic
+  include_llm: false
+
+agent:
+  enabled: true
+  type: product_manager_agent
+  name: Product Manager Knowledge Agent
+  language: zh-CN
+
+demo:
+  enabled: true
