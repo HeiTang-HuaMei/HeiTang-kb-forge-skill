@@ -1,5 +1,6 @@
 from pathlib import Path
 from datetime import datetime, timezone
+from dataclasses import dataclass
 import re
 
 import typer
@@ -22,7 +23,9 @@ from heitang_kb_forge.processors.cleaner import clean_text
 from heitang_kb_forge.processors.extractor import make_cards, make_glossary, make_qa_pairs
 from heitang_kb_forge.processors.quality import make_quality_report
 from heitang_kb_forge.processors.validator import validate_chunks
+from heitang_kb_forge.pipeline.reporter import make_pipeline_report
 from heitang_kb_forge.rag.exporter import RAGOptions, RAG_OUTPUT_FILES, make_rag_export
+from heitang_kb_forge.schemas.config_schema import ForgeConfig
 from heitang_kb_forge.schemas.chunk_schema import Chunk
 from heitang_kb_forge.schemas.agent_schema import AgentOptions
 from heitang_kb_forge.schemas.manifest_schema import Manifest
@@ -42,6 +45,13 @@ PARSERS = {
     ".jpg": parse_image,
     ".jpeg": parse_image,
 }
+
+
+@dataclass
+class ConfigRunResult:
+    config: ForgeConfig
+    output: Path
+    message: str
 
 
 @app.callback()
@@ -184,6 +194,25 @@ def run(
 ) -> None:
     """Run build or batch from a YAML config file."""
     config_data = load_config(config)
+    result = _run_config(config_data)
+    typer.echo(result.message)
+
+
+@app.command()
+def pipeline(
+    config: Path = typer.Option(..., "--config", "-c", exists=True, file_okay=True, dir_okay=False, readable=True),
+) -> None:
+    """Run a config-driven pipeline and write pipeline reports."""
+    config_data = load_config(config)
+    result = _run_config(config_data)
+    pipeline_manifest, pipeline_report = make_pipeline_report(config_file=config, config=result.config, output=result.output)
+    write_json(result.output / "pipeline_manifest.json", pipeline_manifest.model_dump(mode="json"))
+    (result.output / "pipeline_report.md").write_text(pipeline_report, encoding="utf-8")
+    typer.echo(result.message)
+    typer.echo(f"Built pipeline report at {result.output}")
+
+
+def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
     llm_options = LLMOptions(
         config_data.llm.enabled,
         config_data.llm.provider,
@@ -216,9 +245,14 @@ def run(
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
         )
-        typer.echo(f"Built knowledge package at {config_data.output}")
-        typer.echo(f"Sources: {manifest.source_count} | Chunks: {manifest.chunk_count} | Warnings: {len(manifest.warnings)}")
-        return
+        return ConfigRunResult(
+            config=config_data,
+            output=config_data.output,
+            message=(
+                f"Built knowledge package at {config_data.output}\n"
+                f"Sources: {manifest.source_count} | Chunks: {manifest.chunk_count} | Warnings: {len(manifest.warnings)}"
+            ),
+        )
 
     output = config_data.output
     output.mkdir(parents=True, exist_ok=True)
@@ -271,8 +305,11 @@ def run(
     write_json(output / "batch_manifest.json", batch_manifest)
     _write_batch_report(output / "batch_report.md", batch_manifest)
 
-    typer.echo(f"Built batch knowledge packages at {output}")
-    typer.echo(f"Total: {len(items)} | Succeeded: {succeeded} | Failed: {failed}")
+    return ConfigRunResult(
+        config=config_data,
+        output=output,
+        message=f"Built batch knowledge packages at {output}\nTotal: {len(items)} | Succeeded: {succeeded} | Failed: {failed}",
+    )
 
 
 def _build_batch_items(
