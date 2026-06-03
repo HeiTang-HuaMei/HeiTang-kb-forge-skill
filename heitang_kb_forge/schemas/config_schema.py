@@ -45,6 +45,18 @@ class DemoConfig(BaseModel):
     enabled: bool = False
 
 
+class ValidationConfig(BaseModel):
+    enabled: bool = False
+
+
+class DownstreamConfig(BaseModel):
+    enabled: bool = False
+
+
+class LiveValidationConfig(BaseModel):
+    enabled: bool = False
+
+
 class ForgeConfig(BaseModel):
     task: str
     input: Path
@@ -60,3 +72,6 @@ class ForgeConfig(BaseModel):
     vector: VectorConfig = Field(default_factory=VectorConfig)
     agent: AgentConfig = Field(default_factory=AgentConfig)
     demo: DemoConfig = Field(default_factory=DemoConfig)
+    validation: ValidationConfig = Field(default_factory=ValidationConfig)
+    downstream: DownstreamConfig = Field(default_factory=DownstreamConfig)
+    live_validation: LiveValidationConfig = Field(default_factory=LiveValidationConfig)

@@ -6,6 +6,8 @@ from heitang_kb_forge.llm.extractor import OUTPUT_FILES
 from heitang_kb_forge.llm.quality import LLM_QUALITY_OUTPUT_FILES
 from heitang_kb_forge.embedding.exporter import EMBEDDING_OUTPUT_FILES
 from heitang_kb_forge.rag.exporter import RAG_OUTPUT_FILES
+from heitang_kb_forge.downstream.exporter import DOWNSTREAM_OUTPUT_FILES
+from heitang_kb_forge.validation.package_validator import VALIDATION_OUTPUT_FILES
 from heitang_kb_forge.vector.exporter import VECTOR_OUTPUT_FILES
 from heitang_kb_forge.schemas.config_schema import ForgeConfig
 from heitang_kb_forge.schemas.pipeline_schema import PipelineManifest, PipelineStage
@@ -33,6 +35,9 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("vector_export", config.vector.enabled, output, VECTOR_OUTPUT_FILES, config.task),
         _stage("agent_template", config.agent.enabled, output, AGENT_OUTPUT_FILES, config.task),
         _stage("demo_report", config.demo.enabled, output, DEMO_OUTPUT_FILES, config.task),
+        _stage("package_validation", config.validation.enabled, output, VALIDATION_OUTPUT_FILES, config.task),
+        _stage("downstream_export", config.downstream.enabled, output, DOWNSTREAM_OUTPUT_FILES, config.task),
+        _stage("live_validation", config.live_validation.enabled, output, ["live_provider_smoke_report.json"], config.task),
     ]
     warnings = [f"Stage failed: {stage.name}" for stage in stages if stage.status == "failed"]
     final_status = "fail" if warnings else "pass"

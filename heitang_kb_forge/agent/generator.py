@@ -110,6 +110,9 @@ def _role_focus(agent_type: str) -> str:
         "customer_service_agent": "Focus on FAQ, policies, processes, after-sales guidance, and clear boundaries.",
         "interview_coach_agent": "Focus on mock interviews, follow-up questions, scoring, and answer improvement.",
         "operations_agent": "Focus on user tags, outreach strategy, campaign operations, and conversion paths.",
+        "book_marketing_agent": "Focus on book positioning, selling points, reader profiles, launch copy, and campaign materials.",
+        "publisher_sales_agent": "Focus on publisher sales, channel pitches, title selection, comparisons, and B2B buyer objections.",
+        "enterprise_kb_agent": "Focus on internal policies, operating procedures, knowledge reuse, and grounded employee Q&A.",
     }
     return focuses[agent_type]
 

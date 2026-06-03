@@ -6,6 +6,9 @@ AGENT_DESCRIPTIONS = {
     "customer_service_agent": "FAQ、政策、流程、售后、边界说明",
     "interview_coach_agent": "模拟面试、追问、评分、答案优化",
     "operations_agent": "用户标签、触达策略、活动运营、转化路径",
+    "book_marketing_agent": "图书营销、卖点提炼、传播素材、读者画像",
+    "publisher_sales_agent": "出版社和书商 B 端销售、渠道话术、选品对比",
+    "enterprise_kb_agent": "企业知识库、制度流程、内部问答、知识沉淀",
 }
 
 AGENT_OUTPUT_FILES = [

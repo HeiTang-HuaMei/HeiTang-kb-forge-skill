@@ -1,5 +1,37 @@
 # Changelog
 
+## v1.0.0
+
+- Added text-based PDF table extraction with optional `pdfplumber`.
+- Added best-effort scanned PDF and image OCR table extraction.
+- Added optional `--validate-package`.
+- Added `package_validation_report.json`.
+- Added `package_readiness_report.md`.
+- Added hallucination risk fields.
+- Added optional `--downstream-export`.
+- Added `langchain_documents.jsonl`.
+- Added `llamaindex_documents.jsonl`.
+- Added `generic_rag_package.json`.
+- Added `openai_files_manifest.json`.
+- Added `book_marketing_agent`, `publisher_sales_agent`, and `enterprise_kb_agent`.
+- Added optional live provider validation report structure.
+- Preserved default offline 7-file output.
+- Preserved build / batch / run / pipeline default behavior.
+
+## v0.9.0
+
+- Added Runtime Connector Pack.
+- Added OpenAI-compatible LLM provider readiness skeleton.
+- Added fake and OpenAI-compatible embedding provider interfaces.
+- Added `embeddings.jsonl`.
+- Added `embedding_manifest.json`.
+- Added local JSON vector export.
+- Added `vector_store_records.jsonl`.
+- Added `vector_store_manifest.json`.
+- Enhanced Agent Template `tools.yaml` schema.
+- Added config and pipeline support for embedding and vector stages.
+- Preserved default offline output.
+
 ## v0.8.3
 
 - Added `pipeline --config`.

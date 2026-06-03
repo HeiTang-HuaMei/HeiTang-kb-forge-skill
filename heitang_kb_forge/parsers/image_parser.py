@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from heitang_kb_forge.parsers.ocr_table import extract_image_table_text
+
 
 OCR_DEPENDENCY_ERROR = 'OCR dependencies are not installed. Install with: pip install -e ".[ocr]"'
 
@@ -13,6 +15,13 @@ def parse_image(path: Path) -> str:
 
     try:
         with Image.open(path) as image:
-            return (pytesseract.image_to_string(image) or "").strip()
+            table_text, table_warnings = extract_image_table_text(image)
+            text = (pytesseract.image_to_string(image) or "").strip()
+            parts = []
+            if table_text:
+                parts.append(table_text)
+            if text:
+                parts.append(text)
+            return "\n\n".join(parts)
     except Exception as exc:
         raise RuntimeError(f"OCR failed for {path}: {exc}") from exc

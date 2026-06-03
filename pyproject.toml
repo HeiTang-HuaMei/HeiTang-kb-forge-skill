@@ -41,6 +41,9 @@ ocr = [
   "Pillow>=10,<12",
   "pypdfium2>=4,<5",
 ]
+pdf-table = [
+  "pdfplumber>=0.11,<1",
+]
 
 [project.scripts]
 heitang-kb-forge = "heitang_kb_forge.cli:app"

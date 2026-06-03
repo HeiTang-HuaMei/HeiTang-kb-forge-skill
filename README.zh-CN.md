@@ -28,6 +28,12 @@
 - 作品集 Demo 包
 - 配置文件驱动执行
 - Pipeline 一键工作流
+- Runtime Connector Pack，用于 LLM / embedding / vector export 配置输出
+- 文本型 PDF 表格抽取
+- 扫描 PDF / 图片 OCR 表格 best-effort 抽取
+- 可选 package validation / readiness report
+- 可选下游导出格式
+- 可选真实 provider validation 入口
 - 知识资产质量报告 `quality_report.json`
 - `ingest_report.md` 中的 Quality Summary
 - 文本型 PDF 优先直接解析；扫描版 PDF / 图片型 PDF 在文本抽取为空或过短时进入 OCR fallback
@@ -53,6 +59,12 @@ pip install -e ".[ocr]"
 OCR extra 包含 `pytesseract`、`Pillow`、`pypdfium2`。本机可能仍需安装 Tesseract binary。
 
 XLSX 支持使用 `openpyxl`，它是默认依赖。
+
+安装可选文本型 PDF 表格抽取支持：
+
+```bash
+pip install -e ".[pdf-table]"
+```
 
 macOS 或 Linux 使用：
 
@@ -278,6 +290,9 @@ heitang-kb-forge build --input ./input.md --output ./output --agent-template --a
 - `customer_service_agent`
 - `interview_coach_agent`
 - `operations_agent`
+- `book_marketing_agent`
+- `publisher_sales_agent`
+- `enterprise_kb_agent`
 
 Agent Template 边界：
 
@@ -372,6 +387,98 @@ Pipeline 边界：
 - 不做真实 Agent 部署。
 - 不写入真实向量库。
 - 不做远程执行。
+
+## Runtime Connector Pack
+
+v0.9.0 新增 Runtime Connector Pack，用于为下游运行时准备连接器配置和标准输出。
+
+它包括：
+
+- OpenAI-compatible LLM provider readiness skeleton。
+- fake / OpenAI-compatible embedding provider 接口。
+- local JSON vector export。
+- Agent Template 中增强版 `tools.yaml` 配置。
+
+这些能力只生成配置和中间文件，不把本项目变成 Agent Runtime 或 Tool Runtime。默认测试仍使用 fake/local provider，不访问外部服务。
+
+## v1.0.0 稳定版能力
+
+v1.0.0 将项目收口为 Agent 知识供应链底座，同时保持默认离线 7 文件输出不变。
+
+新增稳定版能力：
+
+- 文本型 PDF 表格抽取，可选依赖 `pdfplumber`。
+- 扫描 PDF 页面和图片中的 OCR 表格 best-effort 抽取。
+- 可选 package validation，输出 readiness 和 hallucination risk 信号。
+- 可选下游导出格式，支持 LangChain / LlamaIndex / generic RAG package 中间文件。
+- 新增图书营销、出版社销售、企业知识库 Agent Template。
+- 可选真实 provider validation 入口，默认关闭，且不得泄露 API key。
+
+### PDF / OCR 表格抽取
+
+文本型 PDF 表格会转换成可读文本，例如：
+
+```text
+Page 1. Table 1. Row 2. 字段A: 值A. 字段B: 值B.
+```
+
+扫描 PDF 和图片 OCR 表格抽取是 best-effort：优先使用 OCR word boxes 聚合行列；如果结构化失败，则 fallback 到普通 OCR 文本。
+
+边界：
+
+- 不做 PDF 复杂版面完美还原。
+- 不做跨页表格合并。
+- 不引入深度学习表格识别模型。
+- 不做公式计算。
+- 不做 OCR 纠错。
+
+### Package Validation
+
+通过以下参数开启：
+
+```bash
+heitang-kb-forge build --input ./input.md --output ./output --validate-package
+```
+
+额外输出：
+
+- `package_validation_report.json`
+- `package_readiness_report.md`
+
+报告会检查标准输出文件、coverage 信号、warning、readiness level 和 hallucination risk 字段。
+
+### 下游导出
+
+通过以下参数开启：
+
+```bash
+heitang-kb-forge build --input ./input.md --output ./output --downstream-export
+```
+
+额外输出：
+
+- `langchain_documents.jsonl`
+- `llamaindex_documents.jsonl`
+- `generic_rag_package.json`
+- `openai_files_manifest.json`
+
+这些文件是 provider-neutral 的中间格式。本项目不调用 LangChain、LlamaIndex、OpenAI 上传 API、Dify、FastGPT 或 Coze。
+
+### 可选真实 Provider Validation
+
+真实 provider validation 默认关闭，默认测试不联网。
+
+环境变量：
+
+- `HEITANG_RUN_LIVE_TESTS=1`
+- `HEITANG_LLM_API_KEY`
+- `HEITANG_LLM_BASE_URL`
+- `HEITANG_LLM_MODEL`
+- `HEITANG_EMBEDDING_API_KEY`
+- `HEITANG_EMBEDDING_BASE_URL`
+- `HEITANG_EMBEDDING_MODEL`
+
+输出报告不得写入 API key。
 
 ## 输出文件说明
 

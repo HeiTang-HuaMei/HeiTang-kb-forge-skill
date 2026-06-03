@@ -8,6 +8,7 @@ import typer
 from heitang_kb_forge.agent.generator import make_agent_template
 from heitang_kb_forge.agent.templates import AGENT_OUTPUT_FILES
 from heitang_kb_forge.config.loader import load_config
+from heitang_kb_forge.downstream.exporter import DOWNSTREAM_OUTPUT_FILES, make_downstream_exports
 from heitang_kb_forge.embedding.exporter import EMBEDDING_OUTPUT_FILES, make_embeddings
 from heitang_kb_forge.eval.demo import DEMO_OUTPUT_FILES, make_demo_report
 from heitang_kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
@@ -28,6 +29,7 @@ from heitang_kb_forge.processors.quality import make_quality_report
 from heitang_kb_forge.processors.validator import validate_chunks
 from heitang_kb_forge.pipeline.reporter import make_pipeline_report
 from heitang_kb_forge.rag.exporter import RAGOptions, RAG_OUTPUT_FILES, make_rag_export
+from heitang_kb_forge.validation.package_validator import VALIDATION_OUTPUT_FILES, validate_package
 from heitang_kb_forge.vector.exporter import VECTOR_OUTPUT_FILES, make_vector_export
 from heitang_kb_forge.schemas.config_schema import ForgeConfig
 from heitang_kb_forge.schemas.chunk_schema import Chunk
@@ -71,6 +73,16 @@ class VectorOptions:
     store: str = "local_json"
 
 
+@dataclass
+class ValidationOptions:
+    enabled: bool = False
+
+
+@dataclass
+class DownstreamOptions:
+    enabled: bool = False
+
+
 @app.callback()
 def main() -> None:
     """KB Forge command group."""
@@ -99,6 +111,8 @@ def build(
     embedding_model: str = typer.Option("fake-embedding-model", "--embedding-model"),
     vector_export: bool = typer.Option(False, "--vector-export"),
     vector_store: str = typer.Option("local_json", "--vector-store"),
+    validate_package: bool = typer.Option(False, "--validate-package"),
+    downstream_export: bool = typer.Option(False, "--downstream-export"),
     agent_template: bool = typer.Option(False, "--agent-template"),
     agent_type: str = typer.Option("generic_agent", "--agent-type"),
     agent_name: str | None = typer.Option(None, "--agent-name"),
@@ -131,6 +145,8 @@ def build(
         ),
         embedding_options=_make_embedding_options(embedding, embedding_provider, embedding_model, rag_export),
         vector_options=_make_vector_options(vector_export, vector_store, embedding),
+        validation_options=ValidationOptions(validate_package),
+        downstream_options=DownstreamOptions(downstream_export),
         demo_report=demo_report,
     )
 
@@ -162,6 +178,8 @@ def batch(
     embedding_model: str = typer.Option("fake-embedding-model", "--embedding-model"),
     vector_export: bool = typer.Option(False, "--vector-export"),
     vector_store: str = typer.Option("local_json", "--vector-store"),
+    validate_package: bool = typer.Option(False, "--validate-package"),
+    downstream_export: bool = typer.Option(False, "--downstream-export"),
     agent_template: bool = typer.Option(False, "--agent-template"),
     agent_type: str = typer.Option("generic_agent", "--agent-type"),
     agent_name: str | None = typer.Option(None, "--agent-name"),
@@ -189,6 +207,8 @@ def batch(
     )
     embedding_options = _make_embedding_options(embedding, embedding_provider, embedding_model, rag_export)
     vector_options = _make_vector_options(vector_export, vector_store, embedding)
+    validation_options = ValidationOptions(validate_package)
+    downstream_options = DownstreamOptions(downstream_export)
     items = (
         _build_batch_groups(
             numbered_sources,
@@ -201,6 +221,8 @@ def batch(
             rag_options,
             embedding_options,
             vector_options,
+            validation_options,
+            downstream_options,
             agent_options,
             demo_report,
         )
@@ -216,6 +238,8 @@ def batch(
             rag_options,
             embedding_options,
             vector_options,
+            validation_options,
+            downstream_options,
             agent_options,
             demo_report,
         )
@@ -293,6 +317,8 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         config_data.vector.store,
         config_data.embedding.enabled,
     )
+    validation_options = ValidationOptions(config_data.validation.enabled)
+    downstream_options = DownstreamOptions(config_data.downstream.enabled)
     agent_options = AgentOptions(
         enabled=config_data.agent.enabled,
         agent_type=config_data.agent.type,
@@ -312,6 +338,8 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             rag_options=rag_options,
             embedding_options=embedding_options,
             vector_options=vector_options,
+            validation_options=validation_options,
+            downstream_options=downstream_options,
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
         )
@@ -341,6 +369,8 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             rag_options,
             embedding_options,
             vector_options,
+            validation_options,
+            downstream_options,
             agent_options,
             config_data.demo.enabled,
         )
@@ -356,6 +386,8 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             rag_options,
             embedding_options,
             vector_options,
+            validation_options,
+            downstream_options,
             agent_options,
             config_data.demo.enabled,
         )
@@ -439,6 +471,8 @@ def _build_batch_items(
     rag_options: RAGOptions | None = None,
     embedding_options: EmbeddingOptions | None = None,
     vector_options: VectorOptions | None = None,
+    validation_options: ValidationOptions | None = None,
+    downstream_options: DownstreamOptions | None = None,
     agent_options: AgentOptions | None = None,
     demo_report: bool = False,
 ) -> list[dict]:
@@ -475,6 +509,8 @@ def _build_batch_items(
                 rag_options=rag_options,
                 embedding_options=embedding_options,
                 vector_options=vector_options,
+                validation_options=validation_options,
+                downstream_options=downstream_options,
                 agent_options=agent_options,
                 demo_report=demo_report,
             )
@@ -500,6 +536,8 @@ def _build_batch_groups(
     rag_options: RAGOptions | None = None,
     embedding_options: EmbeddingOptions | None = None,
     vector_options: VectorOptions | None = None,
+    validation_options: ValidationOptions | None = None,
+    downstream_options: DownstreamOptions | None = None,
     agent_options: AgentOptions | None = None,
     demo_report: bool = False,
 ) -> list[dict]:
@@ -545,6 +583,8 @@ def _build_batch_groups(
                 rag_options=rag_options,
                 embedding_options=embedding_options,
                 vector_options=vector_options,
+                validation_options=validation_options,
+                downstream_options=downstream_options,
                 agent_options=agent_options,
                 demo_report=demo_report,
             )
@@ -572,6 +612,8 @@ def _build_package(
     rag_options: RAGOptions | None = None,
     embedding_options: EmbeddingOptions | None = None,
     vector_options: VectorOptions | None = None,
+    validation_options: ValidationOptions | None = None,
+    downstream_options: DownstreamOptions | None = None,
     agent_options: AgentOptions | None = None,
     demo_report: bool = False,
 ) -> Manifest:
@@ -650,6 +692,12 @@ def _build_package(
     vector_manifest = None
     if vector_options.enabled:
         vector_records, vector_manifest = make_vector_export(embedding_records, vector_options.store)
+    downstream_options = downstream_options or DownstreamOptions()
+    downstream_result = (
+        make_downstream_exports(all_chunks, cards, qa_pairs, glossary, quality_report)
+        if downstream_options.enabled
+        else None
+    )
     agent_options = agent_options or AgentOptions()
     agent_result = (
         make_agent_template(
@@ -707,10 +755,15 @@ def _build_package(
         files.extend(EMBEDDING_OUTPUT_FILES)
     if vector_options.enabled:
         files.extend(VECTOR_OUTPUT_FILES)
+    if downstream_options.enabled:
+        files.extend(DOWNSTREAM_OUTPUT_FILES)
     if agent_options.enabled:
         files.extend(AGENT_OUTPUT_FILES)
     if demo_report:
         files.extend(DEMO_OUTPUT_FILES)
+    validation_options = validation_options or ValidationOptions()
+    if validation_options.enabled:
+        files.extend(VALIDATION_OUTPUT_FILES)
     manifest = Manifest(
         domain=domain,
         mode=mode,
@@ -745,6 +798,11 @@ def _build_package(
     if vector_options.enabled:
         write_jsonl(output / "vector_store_records.jsonl", vector_records)
         write_json(output / "vector_store_manifest.json", vector_manifest)
+    if downstream_options.enabled and downstream_result:
+        write_jsonl(output / "langchain_documents.jsonl", downstream_result["langchain_documents"])
+        write_jsonl(output / "llamaindex_documents.jsonl", downstream_result["llamaindex_documents"])
+        write_json(output / "generic_rag_package.json", downstream_result["generic_rag_package"])
+        write_json(output / "openai_files_manifest.json", downstream_result["openai_files_manifest"])
     if agent_options.enabled and agent_result:
         (output / "agent_profile.yaml").write_text(agent_result.agent_profile, encoding="utf-8")
         (output / "system_prompt.md").write_text(agent_result.system_prompt, encoding="utf-8")
@@ -849,6 +907,13 @@ def _build_package(
                 "vector_export_files": VECTOR_OUTPUT_FILES,
             }
         )
+    downstream_summary = None
+    if downstream_options.enabled and downstream_result:
+        downstream_summary = {
+            "downstream_export_enabled": True,
+            "downstream_export_files": DOWNSTREAM_OUTPUT_FILES,
+        }
+        manifest_payload.update(downstream_summary)
     agent_summary = None
     if agent_options.enabled and agent_result:
         agent_name = agent_options.agent_name or f"{output.name or 'knowledge'}_agent"
@@ -895,6 +960,10 @@ def _build_package(
         embedding_summary,
         vector_summary,
     )
+    if validation_options.enabled:
+        validation_report, readiness_report = validate_package(output)
+        write_json(output / "package_validation_report.json", validation_report.model_dump(mode="json"))
+        (output / "package_readiness_report.md").write_text(readiness_report, encoding="utf-8")
 
     return manifest
 

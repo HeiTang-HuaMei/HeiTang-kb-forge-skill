@@ -27,6 +27,12 @@ The project is intentionally offline: no Web UI, no vector database, and no exte
 - Portfolio demo packages
 - Config-driven execution
 - Pipeline workflow
+- Runtime Connector Pack for LLM / embedding / vector export configuration
+- Text-based PDF table extraction
+- Best-effort scanned PDF and image OCR table extraction
+- Opt-in package validation and readiness reports
+- Opt-in downstream export formats
+- Optional live provider validation entry point
 - Single-file `build`
 - Numbered-file batch production with `batch`
 - Offline knowledge asset quality enhancement for cards, QA pairs, and glossary terms
@@ -52,6 +58,12 @@ pip install -e ".[ocr]"
 The OCR extra includes `pytesseract`, `Pillow`, and `pypdfium2`. A local Tesseract binary may still be required by your operating system.
 
 XLSX support uses `openpyxl`, which is installed as a default dependency.
+
+Install optional text-based PDF table extraction support:
+
+```bash
+pip install -e ".[pdf-table]"
+```
 
 On macOS or Linux, activate with:
 
@@ -278,6 +290,9 @@ Supported `agent_type` values:
 - `customer_service_agent`
 - `interview_coach_agent`
 - `operations_agent`
+- `book_marketing_agent`
+- `publisher_sales_agent`
+- `enterprise_kb_agent`
 
 Agent Template boundaries:
 
@@ -376,6 +391,98 @@ Pipeline boundaries:
 - No remote execution.
 - No background queue.
 
+## Runtime Connector Pack
+
+v0.9.0 adds runtime connector configuration outputs for downstream systems.
+
+It includes:
+
+- OpenAI-compatible LLM provider readiness skeleton.
+- Fake and OpenAI-compatible embedding provider interfaces.
+- Local JSON vector export.
+- Enhanced `tools.yaml` configuration in Agent Template output.
+
+These connectors prepare output for external runtimes but do not turn this project into an Agent Runtime or Tool Runtime. Default tests use fake/local providers and do not call external services.
+
+## v1.0.0 Stable Release Capabilities
+
+v1.0.0 completes the Agent knowledge supply chain foundation while preserving the default offline 7-file output.
+
+New stable-release capabilities:
+
+- Text-based PDF table extraction with optional `pdfplumber`.
+- Best-effort OCR table extraction for scanned PDF pages and images.
+- Opt-in package validation with readiness and hallucination-risk signals.
+- Opt-in downstream export formats for LangChain, LlamaIndex, and generic RAG packages.
+- Additional Agent Templates for book marketing, publisher sales, and enterprise KB scenarios.
+- Optional live provider validation structure that is explicit opt-in and must not leak API keys.
+
+### PDF and OCR Table Extraction
+
+Text-based PDF tables are converted into readable text such as:
+
+```text
+Page 1. Table 1. Row 2. Field A: Value A. Field B: Value B.
+```
+
+Scanned PDF and image OCR table extraction is best-effort. It uses OCR word boxes when available, groups words into rows and columns, and falls back to plain OCR text when structured extraction is not reliable.
+
+Boundaries:
+
+- No perfect PDF layout reconstruction.
+- No cross-page table merge.
+- No deep learning table recognition model.
+- No formula engine.
+- No OCR correction.
+
+### Package Validation
+
+Enable package validation with:
+
+```bash
+heitang-kb-forge build --input ./input.md --output ./output --validate-package
+```
+
+Extra output files:
+
+- `package_validation_report.json`
+- `package_readiness_report.md`
+
+The validation report checks standard package files, coverage signals, warnings, readiness levels, and hallucination-risk fields.
+
+### Downstream Export
+
+Enable downstream export with:
+
+```bash
+heitang-kb-forge build --input ./input.md --output ./output --downstream-export
+```
+
+Extra output files:
+
+- `langchain_documents.jsonl`
+- `llamaindex_documents.jsonl`
+- `generic_rag_package.json`
+- `openai_files_manifest.json`
+
+These files are provider-neutral import formats. KB Forge does not call LangChain, LlamaIndex, OpenAI upload APIs, Dify, FastGPT, or Coze.
+
+### Optional Live Provider Validation
+
+Live provider validation is opt-in. Default tests remain offline.
+
+Environment variables:
+
+- `HEITANG_RUN_LIVE_TESTS=1`
+- `HEITANG_LLM_API_KEY`
+- `HEITANG_LLM_BASE_URL`
+- `HEITANG_LLM_MODEL`
+- `HEITANG_EMBEDDING_API_KEY`
+- `HEITANG_EMBEDDING_BASE_URL`
+- `HEITANG_EMBEDDING_MODEL`
+
+Live reports must not write API keys to output files, cache, or reports.
+
 ## Batch
 
 v0.2.0 adds batch production for numbered source files:
@@ -459,6 +566,7 @@ output/
     glossary.jsonl
     manifest.json
     ingest_report.md
+    quality_report.json
   002/
     chunks.jsonl
     cards.jsonl
@@ -466,6 +574,7 @@ output/
     glossary.jsonl
     manifest.json
     ingest_report.md
+    quality_report.json
   batch_manifest.json
   batch_report.md
 ```
