@@ -74,11 +74,137 @@ def test_batch_build_processes_numbered_files_and_records_failures(tmp_path):
     assert "KB Forge DOCX Fixture" in chunk_text
     assert "not_numbered" not in json.dumps(manifest)
 
+    report = (output_dir / "batch_report.md").read_text(encoding="utf-8")
+    _assert_single_report_sections(report)
+    assert "| Sequence | Name | Output Path | Chunks |" in report
+    assert "| Sequence | Name | Source Path | Error |" in report
+    assert "- Not using same-sequence merge mode." in report
+
+
+def test_batch_build_merges_same_sequence_when_enabled(tmp_path):
+    input_dir = tmp_path / "input"
+    output_dir = tmp_path / "output"
+    input_dir.mkdir()
+    (input_dir / "001_author.txt").write_text("KB Forge Author Fixture", encoding="utf-8")
+    (input_dir / "001_outline.md").write_text("KB Forge Outline Fixture", encoding="utf-8")
+    _write_minimal_text_docx(input_dir / "001_catalog.docx")
+    (input_dir / "002_success.md").write_text("KB Forge Success Fixture", encoding="utf-8")
+    (input_dir / "003_unsupported.xyz").write_text("Unsupported fixture", encoding="utf-8")
+    (input_dir / "not_numbered.md").write_text("Ignored fixture", encoding="utf-8")
+
+    result = CliRunner().invoke(
+        app,
+        [
+            "batch",
+            "--input",
+            str(input_dir),
+            "--output",
+            str(output_dir),
+            "--domain",
+            "education",
+            "--mode",
+            "teaching",
+            "--merge-same-sequence",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert {path.name for path in (output_dir / "001").iterdir()} == STANDARD_PACKAGE_FILES
+    assert {path.name for path in (output_dir / "002").iterdir()} == STANDARD_PACKAGE_FILES
+    assert not (output_dir / "001_author").exists()
+
+    manifest = json.loads((output_dir / "batch_manifest.json").read_text(encoding="utf-8"))
+    assert manifest["merge_same_sequence"] is True
+    assert manifest["total_files"] == 5
+    assert manifest["total_groups"] == 3
+    assert manifest["succeeded"] == 2
+    assert manifest["failed"] == 1
+
+    items = {item["sequence_id"]: item for item in manifest["items"]}
+    assert items["001"]["status"] == "success"
+    assert items["001"]["group_name"] == "author"
+    assert items["001"]["source_count"] == 3
+    assert len(items["001"]["source_paths"]) == 3
+    assert items["001"]["output_path"].endswith("/001")
+    assert items["001"]["error"] is None
+    assert items["001"]["chunk_count"] >= 3
+    assert items["001"]["files"] == [
+        "chunks.jsonl",
+        "cards.jsonl",
+        "qa_pairs.jsonl",
+        "glossary.jsonl",
+        "manifest.json",
+        "ingest_report.md",
+    ]
+    assert items["003"]["status"] == "failed"
+    assert "Unsupported file extension in group" in items["003"]["error"]
+    assert "not_numbered" not in json.dumps(manifest)
+
+    item_manifest = json.loads((output_dir / "001" / "manifest.json").read_text(encoding="utf-8"))
+    assert item_manifest["source_count"] == 3
+
+    chunks = [
+        json.loads(line)
+        for line in (output_dir / "001" / "chunks.jsonl").read_text(encoding="utf-8").splitlines()
+    ]
+    source_paths = {chunk["source_path"] for chunk in chunks}
+    chunk_text = "\n".join(chunk["text"] for chunk in chunks)
+    assert len(source_paths) == 3
+    assert "KB Forge Author Fixture" in chunk_text
+    assert "KB Forge Outline Fixture" in chunk_text
+    assert "KB Forge DOCX Fixture" in chunk_text
+
+    report = (output_dir / "batch_report.md").read_text(encoding="utf-8")
+    _assert_single_report_sections(report)
+    assert "Merge same sequence: True" in report
+    assert "| Sequence | Group Name | Output Path | Sources | Chunks |" in report
+    assert "| Sequence | Group Name | Source Paths | Error |" in report
+    assert "Group Source Files" in report
+    assert "001_author.txt" in report
+
+
+def test_batch_build_merge_mode_fails_existing_group_directory(tmp_path):
+    input_dir = tmp_path / "input"
+    output_dir = tmp_path / "output"
+    input_dir.mkdir()
+    output_dir.mkdir()
+    (input_dir / "001_exists.md").write_text("Existing group fixture", encoding="utf-8")
+    (output_dir / "001").mkdir()
+
+    result = CliRunner().invoke(
+        app,
+        [
+            "batch",
+            "--input",
+            str(input_dir),
+            "--output",
+            str(output_dir),
+            "--merge-same-sequence",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    manifest = json.loads((output_dir / "batch_manifest.json").read_text(encoding="utf-8"))
+    assert manifest["total_files"] == 1
+    assert manifest["total_groups"] == 1
+    assert manifest["succeeded"] == 0
+    assert manifest["failed"] == 1
+    assert manifest["items"][0]["status"] == "failed"
+    assert "Output directory already exists" in manifest["items"][0]["error"]
+
 
 def _write_minimal_text_docx(path):
     document = Document()
     document.add_paragraph("KB Forge DOCX Fixture")
     document.save(path)
+
+
+def _assert_single_report_sections(report):
+    assert report.count("## Batch Summary") == 1
+    assert report.count("## Successful Items") == 1
+    assert report.count("## Group Source Files") == 1
+    assert report.count("## Failed Items") == 1
+    assert report.count("## Standard Package Output") == 1
 
 
 def _write_minimal_text_pdf(path):

@@ -57,10 +57,47 @@ def batch(
     mode: str = typer.Option("reference", "--mode"),
     max_chars: int = typer.Option(1200, "--max-chars"),
     overlap_chars: int = typer.Option(120, "--overlap-chars"),
+    merge_same_sequence: bool = typer.Option(False, "--merge-same-sequence"),
 ) -> None:
     """Build one knowledge package per numbered source file."""
     output.mkdir(parents=True, exist_ok=True)
     numbered_sources = [path for path in sorted(input.iterdir()) if path.is_file() and _parse_numbered_stem(path)]
+    items = (
+        _build_batch_groups(numbered_sources, output, domain, mode, max_chars, overlap_chars)
+        if merge_same_sequence
+        else _build_batch_items(numbered_sources, output, domain, mode, max_chars, overlap_chars)
+    )
+    succeeded = sum(1 for item in items if item["status"] == "success")
+    failed = sum(1 for item in items if item["status"] == "failed")
+    batch_manifest = {
+        "batch_version": "0.2.1",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "input_dir": str(input).replace("\\", "/"),
+        "output_dir": str(output).replace("\\", "/"),
+        "merge_same_sequence": merge_same_sequence,
+        "total_files": len(numbered_sources),
+        "succeeded": succeeded,
+        "failed": failed,
+        "items": items,
+    }
+    if merge_same_sequence:
+        batch_manifest["total_groups"] = len(items)
+
+    write_json(output / "batch_manifest.json", batch_manifest)
+    _write_batch_report(output / "batch_report.md", batch_manifest)
+
+    typer.echo(f"Built batch knowledge packages at {output}")
+    typer.echo(f"Total: {len(items)} | Succeeded: {succeeded} | Failed: {failed}")
+
+
+def _build_batch_items(
+    numbered_sources: list[Path],
+    output: Path,
+    domain: str,
+    mode: str,
+    max_chars: int,
+    overlap_chars: int,
+) -> list[dict]:
     items: list[dict] = []
 
     for source in numbered_sources:
@@ -92,24 +129,66 @@ def batch(
 
         items.append(item)
 
-    succeeded = sum(1 for item in items if item["status"] == "success")
-    failed = sum(1 for item in items if item["status"] == "failed")
-    batch_manifest = {
-        "batch_version": "0.2.0",
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "input_dir": str(input).replace("\\", "/"),
-        "output_dir": str(output).replace("\\", "/"),
-        "total_files": len(items),
-        "succeeded": succeeded,
-        "failed": failed,
-        "items": items,
-    }
+    return items
 
-    write_json(output / "batch_manifest.json", batch_manifest)
-    _write_batch_report(output / "batch_report.md", batch_manifest)
 
-    typer.echo(f"Built batch knowledge packages at {output}")
-    typer.echo(f"Total: {len(items)} | Succeeded: {succeeded} | Failed: {failed}")
+def _build_batch_groups(
+    numbered_sources: list[Path],
+    output: Path,
+    domain: str,
+    mode: str,
+    max_chars: int,
+    overlap_chars: int,
+) -> list[dict]:
+    groups: dict[str, list[Path]] = {}
+    for source in numbered_sources:
+        sequence_id, _ = _parse_numbered_stem(source) or ("", "")
+        groups.setdefault(sequence_id, []).append(source)
+
+    items: list[dict] = []
+    for sequence_id, sources in sorted(groups.items()):
+        sources = sorted(sources, key=lambda path: path.name)
+        _, group_name = _parse_numbered_stem(sources[0]) or (sequence_id, "")
+        item_output = output / sequence_id
+        item = {
+            "sequence_id": sequence_id,
+            "group_name": group_name,
+            "source_paths": [str(source).replace("\\", "/") for source in sources],
+            "output_path": str(item_output).replace("\\", "/"),
+            "status": "failed",
+            "error": None,
+            "chunk_count": 0,
+            "source_count": len(sources),
+            "files": [],
+        }
+
+        try:
+            unsupported = [source for source in sources if source.suffix.lower() not in PARSERS]
+            if unsupported:
+                extensions = ", ".join(sorted({source.suffix for source in unsupported}))
+                raise ValueError(f"Unsupported file extension in group: {extensions}")
+            if item_output.exists():
+                raise FileExistsError(f"Output directory already exists: {item_output}")
+
+            manifest = _build_package(
+                sources[0].parent,
+                item_output,
+                domain,
+                mode,
+                max_chars,
+                overlap_chars,
+                source_files=sources,
+            )
+            item["status"] = "success"
+            item["chunk_count"] = manifest.chunk_count
+            item["source_count"] = manifest.source_count
+            item["files"] = manifest.files
+        except Exception as exc:
+            item["error"] = str(exc)
+
+        items.append(item)
+
+    return items
 
 
 def _build_package(
@@ -119,9 +198,10 @@ def _build_package(
     mode: str,
     max_chars: int,
     overlap_chars: int,
+    source_files: list[Path] | None = None,
 ) -> Manifest:
     output.mkdir(parents=True, exist_ok=True)
-    source_files = _collect_sources(input)
+    source_files = source_files if source_files is not None else _collect_sources(input)
     all_chunks: list[Chunk] = []
     warnings: list[str] = []
 
@@ -197,36 +277,72 @@ def _safe_output_name(name: str) -> str:
 
 
 def _write_batch_report(path: Path, batch_manifest: dict) -> None:
-    successful_rows = [
-        f"| {item['sequence_id']} | {item['name']} | {item['output_path']} | {item['chunk_count']} |"
-        for item in batch_manifest["items"]
-        if item["status"] == "success"
-    ]
-    failed_rows = [
-        f"| {item['sequence_id']} | {item['name']} | {item['source_path']} | {item['error']} |"
-        for item in batch_manifest["items"]
-        if item["status"] == "failed"
-    ]
+    merge_same_sequence = batch_manifest.get("merge_same_sequence", False)
+    if merge_same_sequence:
+        successful_rows = [
+            f"| {item['sequence_id']} | {item['group_name']} | {item['output_path']} | {item['source_count']} | {item['chunk_count']} |"
+            for item in batch_manifest["items"]
+            if item["status"] == "success"
+        ]
+        failed_rows = [
+            f"| {item['sequence_id']} | {item['group_name']} | {', '.join(item['source_paths'])} | {item['error']} |"
+            for item in batch_manifest["items"]
+            if item["status"] == "failed"
+        ]
+        source_sections = [
+            f"### {item['sequence_id']} {item['group_name']}\n\n"
+            + "\n".join(f"- {source_path}" for source_path in item["source_paths"])
+            for item in batch_manifest["items"]
+        ]
+        successful_header = "| Sequence | Group Name | Output Path | Sources | Chunks |"
+        successful_separator = "| --- | --- | --- | --- | --- |"
+        failed_header = "| Sequence | Group Name | Source Paths | Error |"
+        failed_separator = "| --- | --- | --- | --- |"
+        empty_successful = "| - | - | - | - | - |"
+    else:
+        successful_rows = [
+            f"| {item['sequence_id']} | {item['name']} | {item['output_path']} | {item['chunk_count']} |"
+            for item in batch_manifest["items"]
+            if item["status"] == "success"
+        ]
+        failed_rows = [
+            f"| {item['sequence_id']} | {item['name']} | {item['source_path']} | {item['error']} |"
+            for item in batch_manifest["items"]
+            if item["status"] == "failed"
+        ]
+        source_sections = []
+        successful_header = "| Sequence | Name | Output Path | Chunks |"
+        successful_separator = "| --- | --- | --- | --- |"
+        failed_header = "| Sequence | Name | Source Path | Error |"
+        failed_separator = "| --- | --- | --- | --- |"
+        empty_successful = "| - | - | - | - |"
+
     content = f"""# HeiTang KB Forge Batch Report
 
 ## Batch Summary
 
 - Input directory: {batch_manifest['input_dir']}
 - Output directory: {batch_manifest['output_dir']}
+- Merge same sequence: {batch_manifest.get('merge_same_sequence', False)}
 - Total files: {batch_manifest['total_files']}
+{f"- Total groups: {batch_manifest['total_groups']}" if 'total_groups' in batch_manifest else ""}
 - Succeeded: {batch_manifest['succeeded']}
 - Failed: {batch_manifest['failed']}
 
 ## Successful Items
 
-| Sequence | Name | Output Path | Chunks |
-| --- | --- | --- | --- |
-{chr(10).join(successful_rows) if successful_rows else "| - | - | - | - |"}
+{successful_header}
+{successful_separator}
+{chr(10).join(successful_rows) if successful_rows else empty_successful}
+
+## Group Source Files
+
+{chr(10).join(source_sections) if source_sections else "- Not using same-sequence merge mode."}
 
 ## Failed Items
 
-| Sequence | Name | Source Path | Error |
-| --- | --- | --- | --- |
+{failed_header}
+{failed_separator}
 {chr(10).join(failed_rows) if failed_rows else "| - | - | - | - |"}
 
 ## Standard Package Output
