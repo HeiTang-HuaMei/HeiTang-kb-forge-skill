@@ -21,6 +21,8 @@ The project is intentionally offline: no Web UI, no vector database, and no exte
 - Structured table file ingestion for CSV, TSV, and XLSX
 - DOCX embedded table extraction
 - Opt-in LLM structured extraction
+- Opt-in RAG export layer
+- Opt-in Agent Template generation
 - Single-file `build`
 - Numbered-file batch production with `batch`
 - Offline knowledge asset quality enhancement for cards, QA pairs, and glossary terms
@@ -208,9 +210,76 @@ Security boundaries:
 
 Not included yet:
 
-- No RAG export.
 - No vector database integration.
-- No Agent Template.
+- No Web UI.
+
+## RAG Export
+
+v0.6.0 adds an opt-in RAG export layer. Enable it with `--rag-export`.
+
+RAG export generates provider-neutral intermediate files for embedding pipelines, vector database import scripts, retrieval systems, and RAG Agents. It does not call embedding APIs, does not generate real vectors, and does not write to FAISS, Qdrant, Chroma, or Milvus.
+
+Example:
+
+```bash
+heitang-kb-forge build --input ./input.md --output ./output --rag-export
+```
+
+With `--rag-export`, these extra files are generated:
+
+- `embedding_input.jsonl`
+- `retrieval_metadata.jsonl`
+- `citation_map.json`
+- `rag_manifest.json`
+
+LLM assets are included in RAG export only when all three flags are used together:
+
+```bash
+heitang-kb-forge build --input ./input.md --output ./output --llm --rag-export --rag-include-llm
+```
+
+RAG boundaries:
+
+- No real vector database writes.
+- No embedding API calls.
+- No real vector generation.
+- No RAG Agent runtime.
+
+## Agent Template Generation
+
+v0.7.0 adds opt-in Agent Template generation. Enable it with `--agent-template`.
+
+Agent Template generation only writes template files. It does not create or deploy a real Agent, does not call external Agent platforms, and does not execute tools.
+
+Example:
+
+```bash
+heitang-kb-forge build --input ./input.md --output ./output --agent-template --agent-type product_manager_agent
+```
+
+With `--agent-template`, these extra files are generated:
+
+- `agent_profile.yaml`
+- `system_prompt.md`
+- `retrieval_config.yaml`
+- `tools.yaml`
+- `eval_cases.jsonl`
+
+Supported `agent_type` values:
+
+- `generic_agent`
+- `product_manager_agent`
+- `shopping_guide_agent`
+- `education_tutor_agent`
+- `customer_service_agent`
+- `interview_coach_agent`
+- `operations_agent`
+
+Agent Template boundaries:
+
+- No real Agent deployment.
+- No external API calls for template generation.
+- No tool execution.
 - No Web UI.
 
 ## Batch

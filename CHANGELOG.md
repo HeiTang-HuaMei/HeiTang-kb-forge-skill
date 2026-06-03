@@ -1,5 +1,34 @@
 # Changelog
 
+## v0.7.0
+
+- Added opt-in `--agent-template`.
+- Added `--agent-type`.
+- Added `--agent-name`.
+- Added `--agent-language`.
+- Added `agent_profile.yaml`.
+- Added `system_prompt.md`.
+- Added `retrieval_config.yaml`.
+- Added `tools.yaml`.
+- Added `eval_cases.jsonl`.
+- Added minimal agent type templates.
+- Preserved default offline output.
+- No real Agent creation or deployment.
+
+## v0.6.0
+
+- Added opt-in `--rag-export`.
+- Added provider-neutral RAG export files.
+- Added `embedding_input.jsonl`.
+- Added `retrieval_metadata.jsonl`.
+- Added `citation_map.json`.
+- Added `rag_manifest.json`.
+- Added `--rag-profile basic`.
+- Added `--rag-include-llm`.
+- Preserved default offline output.
+- No embedding API calls.
+- No vector database writes.
+
 ## v0.5.0
 
 - Added opt-in `--llm` structured extraction.

@@ -22,6 +22,8 @@
 - CSV / TSV / XLSX 结构化表格文件接入
 - DOCX 内嵌表格抽取
 - 可选 LLM 结构化抽取
+- 可选 RAG 导出层
+- 可选 Agent Template 生成
 - 知识资产质量报告 `quality_report.json`
 - `ingest_report.md` 中的 Quality Summary
 - 文本型 PDF 优先直接解析；扫描版 PDF / 图片型 PDF 在文本抽取为空或过短时进入 OCR fallback
@@ -95,7 +97,7 @@ OCR 边界：
 - 不做 OCR 纠错。
 - 不接 LLM。
 - 不接向量库。
-- 不做 Agent Template。
+- OCR 能力本身不生成 Agent Template。
 - v0.4.3 不做 PDF 表格抽取。
 
 ## 表格文件接入
@@ -208,10 +210,78 @@ LLM 失败策略：
 
 当前不做：
 
-- RAG 导出。
 - 向量库。
-- Agent Template。
 - Web UI。
+
+## RAG 导出
+
+v0.6.0 新增可选 RAG 导出层，通过 `--rag-export` 开启。
+
+RAG 导出只生成供后续 embedding pipeline、向量库导入脚本、检索系统、RAG Agent 使用的 provider-neutral 中间文件。它不调用 embedding API，不生成真实向量，也不写入 FAISS / Qdrant / Chroma / Milvus。
+
+命令示例：
+
+```bash
+heitang-kb-forge build --input ./input.md --output ./output --rag-export
+```
+
+启用 `--rag-export` 后会额外生成：
+
+- `embedding_input.jsonl`
+- `retrieval_metadata.jsonl`
+- `citation_map.json`
+- `rag_manifest.json`
+
+只有同时启用以下三个参数时，RAG 导出才会包含 LLM 增强资产：
+
+```bash
+heitang-kb-forge build --input ./input.md --output ./output --llm --rag-export --rag-include-llm
+```
+
+RAG 边界：
+
+- 不接真实向量库。
+- 不调用 embedding API。
+- 不生成真实向量。
+- 不做 RAG Agent 运行时。
+
+## Agent Template 生成
+
+v0.7.0 新增可选 Agent Template 生成，通过 `--agent-template` 开启。
+
+Agent Template 生成只写出模板文件，不创建真实在线 Agent，不部署服务，不调用外部 Agent 平台，也不执行工具。
+
+命令示例：
+
+```bash
+heitang-kb-forge build --input ./input.md --output ./output --agent-template --agent-type product_manager_agent
+```
+
+启用 `--agent-template` 后会额外生成：
+
+- `agent_profile.yaml`
+- `system_prompt.md`
+- `retrieval_config.yaml`
+- `tools.yaml`
+- `eval_cases.jsonl`
+
+支持的 `agent_type`：
+
+- `generic_agent`
+- `product_manager_agent`
+- `shopping_guide_agent`
+- `education_tutor_agent`
+- `customer_service_agent`
+- `interview_coach_agent`
+- `operations_agent`
+
+Agent Template 边界：
+
+- 不部署真实 Agent。
+- 不调用外部 Agent 平台。
+- 不做工具执行。
+- 不做 Web UI。
+- Agent 类型后续可继续扩展。
 
 ## 输出文件说明
 
@@ -252,12 +322,12 @@ v0.3.1 新增 `quality_report.json`，用于对每个知识库包进行机器可
 
 v0.3.1 的定位是让知识库包从“能生成”进一步升级为“可评估”，为后续 RAG 导出、Agent Template、LLM 结构化抽取打基础。
 
-v0.3.1 仍然是离线规则版本：
+v0.3.1 当时仍然是离线规则版本：
 
 - 不接 OCR
 - 不接 LLM
 - 不接向量库
-- 不做 Agent Template
+- 不做 Agent Template 生成
 - 不做 Web UI
 - 不改变 `build` / `batch` / `--merge-same-sequence` CLI 行为
 
