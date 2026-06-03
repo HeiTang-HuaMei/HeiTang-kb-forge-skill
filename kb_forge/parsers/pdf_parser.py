@@ -2,4 +2,12 @@ from pathlib import Path
 
 
 def parse_pdf(path: Path) -> str:
-    raise NotImplementedError(f"PDF parsing is reserved for a later version: {path}")
+    try:
+        from pypdf import PdfReader
+
+        reader = PdfReader(path)
+        pages = [page.extract_text() or "" for page in reader.pages]
+    except Exception:
+        return ""
+
+    return "\n\n".join(page.strip() for page in pages if page.strip())
