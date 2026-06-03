@@ -12,6 +12,7 @@ from heitang_kb_forge.eval.demo import DEMO_OUTPUT_FILES, make_demo_report
 from heitang_kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
 from heitang_kb_forge.exporters.report_exporter import write_report
 from heitang_kb_forge.llm.extractor import LLMOptions, OUTPUT_FILES, extract_llm_assets
+from heitang_kb_forge.llm.prompt_profile import load_prompt_profile
 from heitang_kb_forge.parsers.docx_parser import parse_docx
 from heitang_kb_forge.parsers.image_parser import parse_image
 from heitang_kb_forge.parsers.markdown_parser import parse_markdown
@@ -72,6 +73,7 @@ def build(
     llm_model: str = typer.Option("fake-model", "--llm-model"),
     llm_cache: bool = typer.Option(True, "--llm-cache/--no-llm-cache"),
     llm_strict: bool = typer.Option(False, "--llm-strict"),
+    prompt_profile: Path | None = typer.Option(None, "--prompt-profile"),
     rag_export: bool = typer.Option(False, "--rag-export"),
     rag_profile: str = typer.Option("basic", "--rag-profile"),
     rag_include_llm: bool = typer.Option(False, "--rag-include-llm"),
@@ -89,7 +91,7 @@ def build(
         mode,
         max_chars,
         overlap_chars,
-        llm_options=LLMOptions(llm, llm_provider, llm_model, llm_cache, llm_strict),
+        llm_options=_make_llm_options(llm, llm_provider, llm_model, llm_cache, llm_strict, prompt_profile),
         rag_options=RAGOptions(rag_export, rag_profile, rag_include_llm),
         agent_options=AgentOptions(
             enabled=agent_template,
@@ -118,6 +120,7 @@ def batch(
     llm_model: str = typer.Option("fake-model", "--llm-model"),
     llm_cache: bool = typer.Option(True, "--llm-cache/--no-llm-cache"),
     llm_strict: bool = typer.Option(False, "--llm-strict"),
+    prompt_profile: Path | None = typer.Option(None, "--prompt-profile"),
     rag_export: bool = typer.Option(False, "--rag-export"),
     rag_profile: str = typer.Option("basic", "--rag-profile"),
     rag_include_llm: bool = typer.Option(False, "--rag-include-llm"),
@@ -130,7 +133,7 @@ def batch(
     """Build one knowledge package per numbered source file."""
     output.mkdir(parents=True, exist_ok=True)
     numbered_sources = [path for path in sorted(input.iterdir()) if path.is_file() and _parse_numbered_stem(path)]
-    llm_options = LLMOptions(llm, llm_provider, llm_model, llm_cache, llm_strict)
+    llm_options = _make_llm_options(llm, llm_provider, llm_model, llm_cache, llm_strict, prompt_profile)
     rag_options = RAGOptions(rag_export, rag_profile, rag_include_llm)
     agent_options = AgentOptions(
         enabled=agent_template,
@@ -213,12 +216,13 @@ def pipeline(
 
 
 def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
-    llm_options = LLMOptions(
+    llm_options = _make_llm_options(
         config_data.llm.enabled,
         config_data.llm.provider,
         config_data.llm.model,
         config_data.llm.cache,
         config_data.llm.strict,
+        config_data.llm.prompt_profile,
     )
     rag_options = RAGOptions(
         config_data.rag.enabled,
@@ -309,6 +313,32 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         config=config_data,
         output=output,
         message=f"Built batch knowledge packages at {output}\nTotal: {len(items)} | Succeeded: {succeeded} | Failed: {failed}",
+    )
+
+
+def _make_llm_options(
+    enabled: bool,
+    provider: str,
+    model: str,
+    cache: bool,
+    strict: bool,
+    prompt_profile_path: Path | None,
+) -> LLMOptions:
+    if prompt_profile_path and not enabled:
+        raise ValueError("--prompt-profile requires --llm")
+    prompt_profile = None
+    prompt_profile_hash = None
+    if prompt_profile_path:
+        prompt_profile, prompt_profile_hash = load_prompt_profile(prompt_profile_path)
+    return LLMOptions(
+        enabled=enabled,
+        provider=provider,
+        model=model,
+        cache=cache,
+        strict=strict,
+        prompt_profile_path=prompt_profile_path,
+        prompt_profile=prompt_profile,
+        prompt_profile_hash=prompt_profile_hash,
     )
 
 
@@ -603,6 +633,7 @@ def _build_package(
             "enabled": True,
             "provider": llm_options.provider,
             "model": llm_options.model,
+            "prompt_profile": llm_options.prompt_profile.profile_name if llm_options.prompt_profile else None,
             "output_files": llm_result.output_files,
             "warnings_count": len(llm_result.warnings),
         }
@@ -614,6 +645,13 @@ def _build_package(
                 "llm_output_files": llm_result.output_files,
             }
         )
+        if llm_options.prompt_profile:
+            manifest_payload.update(
+                {
+                    "llm_prompt_profile": llm_options.prompt_profile.profile_name,
+                    "llm_prompt_profile_file": str(llm_options.prompt_profile_path).replace("\\", "/"),
+                }
+            )
     rag_summary = None
     if rag_options.enabled and rag_result:
         rag_summary = {

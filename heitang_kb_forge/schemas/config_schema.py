@@ -13,6 +13,7 @@ class LLMConfig(BaseModel):
     model: str = "fake-model"
     cache: bool = True
     strict: bool = False
+    prompt_profile: Path | None = None
 
 
 class RAGConfig(BaseModel):

@@ -10,17 +10,26 @@ class LLMCache:
     def __init__(self, root: Path = Path(".heitang_cache") / "llm") -> None:
         self.root = root
 
-    def make_key(self, provider: str, model: str, extraction_type: str, chunk_id: str, text: str) -> str:
-        payload = "|".join(
-            [
-                provider,
-                model,
-                PROMPT_VERSION,
-                extraction_type,
-                chunk_id,
-                hashlib.sha256(text.encode("utf-8")).hexdigest(),
-            ]
-        )
+    def make_key(
+        self,
+        provider: str,
+        model: str,
+        extraction_type: str,
+        chunk_id: str,
+        text: str,
+        prompt_profile_hash: str | None = None,
+    ) -> str:
+        parts = [
+            provider,
+            model,
+            PROMPT_VERSION,
+            extraction_type,
+            chunk_id,
+            hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        ]
+        if prompt_profile_hash:
+            parts.append(prompt_profile_hash)
+        payload = "|".join(parts)
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
     def get(self, cache_key: str) -> dict | None:

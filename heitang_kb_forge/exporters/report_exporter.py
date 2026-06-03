@@ -71,6 +71,7 @@ def _llm_summary(llm_summary: dict | None) -> str:
     return f"""- Enabled: {llm_summary['enabled']}
 - Provider: {llm_summary['provider']}
 - Model: {llm_summary['model']}
+- Prompt profile: {llm_summary.get('prompt_profile') or 'None'}
 - Output files:
 {output_files}
 - Warnings count: {llm_summary['warnings_count']}"""
