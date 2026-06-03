@@ -18,6 +18,7 @@ The project is intentionally offline: no Web UI, no vector database, and no exte
 - Markdown, TXT, text-based PDF, and text-based DOCX parsing
 - Optional image OCR support for PNG, JPG, and JPEG
 - Optional scanned PDF OCR fallback
+- Structured table file ingestion for CSV, TSV, and XLSX
 - Single-file `build`
 - Numbered-file batch production with `batch`
 - Offline knowledge asset quality enhancement for cards, QA pairs, and glossary terms
@@ -42,6 +43,8 @@ pip install -e ".[ocr]"
 
 The OCR extra includes `pytesseract`, `Pillow`, and `pypdfium2`. A local Tesseract binary may still be required by your operating system.
 
+XLSX support uses `openpyxl`, which is installed as a default dependency.
+
 On macOS or Linux, activate with:
 
 ```bash
@@ -50,7 +53,7 @@ source .venv/bin/activate
 
 ## Run
 
-Add `.md`, `.txt`, `.pdf`, text-based `.docx`, `.png`, `.jpg`, or `.jpeg` files under `examples/input`, then run:
+Add `.md`, `.txt`, `.pdf`, text-based `.docx`, `.png`, `.jpg`, `.jpeg`, `.csv`, `.tsv`, or `.xlsx` files under `examples/input`, then run:
 
 ```bash
 heitang-kb-forge build --input ./examples/input --output ./examples/output --domain education --mode teaching
@@ -91,8 +94,54 @@ OCR boundaries:
 - No table reconstruction.
 - No table structure recognition.
 - No OCR correction.
-- CSV / XLSX table ingestion is planned for v0.4.2.
 - PDF / DOCX embedded table extraction is planned for v0.4.3.
+
+## Table File Ingestion
+
+v0.4.2 adds structured table file ingestion for `.csv`, `.tsv`, and `.xlsx` files.
+
+The parser converts structured rows and columns into readable text. Converted text continues through the existing clean, chunk, extractor, and quality pipeline.
+
+Table parsing behavior:
+
+- CSV and TSV use UTF-8-SIG compatible reading.
+- XLSX supports multiple sheets.
+- Empty rows are skipped.
+- The first row is treated as the header.
+- Empty headers become `Column A`, `Column B`, and so on.
+- Duplicate headers get suffixes, such as `Name 2`.
+
+CSV row:
+
+```text
+书名,作者,ISBN,定价
+产品经理入门,张三,123456,59
+```
+
+Converted text:
+
+```text
+Row 2. 书名: 产品经理入门. 作者: 张三. ISBN: 123456. 定价: 59.
+```
+
+XLSX converted text:
+
+```text
+Sheet: 商品列表. Row 2. 书名: 产品经理入门. 作者: 张三.
+```
+
+Table ingestion boundaries:
+
+- No `.xls` support.
+- No PDF / DOCX embedded table extraction.
+- No image table OCR.
+- No scanned table structure recognition.
+- No formula engine.
+- No complex data analysis.
+- No LLM integration.
+- No vector database integration.
+- PDF / DOCX embedded table extraction is planned for v0.4.3.
+- LLM structured extraction is planned for v0.5.0.
 
 ## Batch
 

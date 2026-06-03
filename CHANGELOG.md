@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.4.2
+
+- Added CSV parser.
+- Added TSV parser.
+- Added XLSX parser.
+- Added `openpyxl` dependency.
+- Added structured table row-to-text conversion.
+- Added multi-sheet XLSX support.
+- Added empty row filtering.
+- Added empty and duplicate header handling.
+- Preserved build / batch / merge CLI behavior.
+- Preserved standard 7-file output.
+- Tests passed: 45 passed.
+
 ## v0.4.1
 
 - Added scanned PDF OCR fallback.

@@ -19,6 +19,7 @@
 - 可选图片 OCR 支持
 - 支持 PNG、JPG、JPEG
 - 可选扫描 PDF OCR fallback
+- CSV / TSV / XLSX 结构化表格文件接入
 - 知识资产质量报告 `quality_report.json`
 - `ingest_report.md` 中的 Quality Summary
 - 文本型 PDF 优先直接解析；扫描版 PDF / 图片型 PDF 在文本抽取为空或过短时进入 OCR fallback
@@ -43,6 +44,8 @@ pip install -e ".[ocr]"
 
 OCR extra 包含 `pytesseract`、`Pillow`、`pypdfium2`。本机可能仍需安装 Tesseract binary。
 
+XLSX 支持使用 `openpyxl`，它是默认依赖。
+
 macOS 或 Linux 使用：
 
 ```bash
@@ -51,7 +54,7 @@ source .venv/bin/activate
 
 ## 使用方式
 
-将 `.md`、`.txt`、`.pdf`、文本型 `.docx`、`.png`、`.jpg` 或 `.jpeg` 文件放入 `examples/input`，然后运行：
+将 `.md`、`.txt`、`.pdf`、文本型 `.docx`、`.png`、`.jpg`、`.jpeg`、`.csv`、`.tsv` 或 `.xlsx` 文件放入 `examples/input`，然后运行：
 
 ```bash
 heitang-kb-forge build --input ./examples/input --output ./examples/output --domain education --mode teaching
@@ -91,8 +94,54 @@ OCR 边界：
 - 不接 LLM。
 - 不接向量库。
 - 不做 Agent Template。
-- CSV / XLSX 表格文件接入放到 v0.4.2。
 - PDF / DOCX 内嵌表格抽取放到 v0.4.3。
+
+## 表格文件接入
+
+v0.4.2 新增 CSV / TSV / XLSX 结构化表格文件接入。
+
+表格 parser 会把结构化表格的行列数据转换成可读文本。转换后的文本继续进入清洗、切块、知识资产抽取、质量评估流程。
+
+表格解析行为：
+
+- CSV / TSV 使用 `utf-8-sig` 读取。
+- XLSX 支持多 sheet。
+- 空行会跳过。
+- 默认第一行作为表头。
+- 空表头会转换为 `Column A`、`Column B`。
+- 重复表头会自动加后缀，例如 `Name 2`。
+
+CSV 行：
+
+```text
+书名,作者,ISBN,定价
+产品经理入门,张三,123456,59
+```
+
+转换文本：
+
+```text
+Row 2. 书名: 产品经理入门. 作者: 张三. ISBN: 123456. 定价: 59.
+```
+
+XLSX 转换文本：
+
+```text
+Sheet: 商品列表. Row 2. 书名: 产品经理入门. 作者: 张三.
+```
+
+表格接入边界：
+
+- 不支持 `.xls`。
+- 不做 PDF / DOCX 内嵌表格抽取。
+- 不做图片表格 OCR。
+- 不做扫描表格结构识别。
+- 不做公式计算。
+- 不做复杂数据分析。
+- 不接 LLM。
+- 不接向量库。
+- PDF / DOCX 内嵌表格抽取放到 v0.4.3。
+- LLM 结构化抽取放到 v0.5.0。
 
 ## 输出文件说明
 
@@ -165,6 +214,7 @@ pytest
 - 文本型 PDF 优先直接解析，扫描版 PDF / 图片型 PDF 可在 OCR extra 可用时 fallback 到 OCR
 - DOCX 仅支持文本抽取
 - 图片 OCR 仅支持 PNG、JPG、JPEG
+- 表格文件仅支持 CSV、TSV、XLSX
 - 不支持图片内容解析
 - 不支持复杂表格结构还原
 
