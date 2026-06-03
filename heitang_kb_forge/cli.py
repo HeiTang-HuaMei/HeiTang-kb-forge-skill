@@ -7,6 +7,7 @@ import typer
 from heitang_kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
 from heitang_kb_forge.exporters.report_exporter import write_report
 from heitang_kb_forge.parsers.docx_parser import parse_docx
+from heitang_kb_forge.parsers.image_parser import parse_image
 from heitang_kb_forge.parsers.markdown_parser import parse_markdown
 from heitang_kb_forge.parsers.pdf_parser import parse_pdf
 from heitang_kb_forge.parsers.text_parser import parse_text
@@ -26,6 +27,9 @@ PARSERS = {
     ".txt": parse_text,
     ".pdf": parse_pdf,
     ".docx": parse_docx,
+    ".png": parse_image,
+    ".jpg": parse_image,
+    ".jpeg": parse_image,
 }
 
 

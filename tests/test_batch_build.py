@@ -195,6 +195,54 @@ def test_batch_build_merge_mode_fails_existing_group_directory(tmp_path):
     assert "Output directory already exists" in manifest["items"][0]["error"]
 
 
+def test_batch_image_ocr_failure_does_not_block_text_file(monkeypatch, tmp_path):
+    import heitang_kb_forge.cli as cli
+
+    input_dir = tmp_path / "input"
+    output_dir = tmp_path / "output"
+    input_dir.mkdir()
+    (input_dir / "001_text.md").write_text("Text fixture", encoding="utf-8")
+    (input_dir / "002_image.png").write_bytes(b"mock image")
+    monkeypatch.setitem(cli.PARSERS, ".png", lambda path: (_ for _ in ()).throw(RuntimeError("OCR failed")))
+
+    result = CliRunner().invoke(app, ["batch", "--input", str(input_dir), "--output", str(output_dir)])
+
+    assert result.exit_code == 0, result.output
+    manifest = json.loads((output_dir / "batch_manifest.json").read_text(encoding="utf-8"))
+    assert manifest["succeeded"] == 1
+    assert manifest["failed"] == 1
+    items = {item["sequence_id"]: item for item in manifest["items"]}
+    assert items["001"]["status"] == "success"
+    assert items["002"]["status"] == "failed"
+    assert "OCR failed" in items["002"]["error"]
+
+
+def test_batch_merge_image_ocr_failure_fails_group_only(monkeypatch, tmp_path):
+    import heitang_kb_forge.cli as cli
+
+    input_dir = tmp_path / "input"
+    output_dir = tmp_path / "output"
+    input_dir.mkdir()
+    (input_dir / "001_text.md").write_text("Text fixture", encoding="utf-8")
+    (input_dir / "001_image.png").write_bytes(b"mock image")
+    (input_dir / "002_success.md").write_text("Success fixture", encoding="utf-8")
+    monkeypatch.setitem(cli.PARSERS, ".png", lambda path: (_ for _ in ()).throw(RuntimeError("OCR failed")))
+
+    result = CliRunner().invoke(
+        app,
+        ["batch", "--input", str(input_dir), "--output", str(output_dir), "--merge-same-sequence"],
+    )
+
+    assert result.exit_code == 0, result.output
+    manifest = json.loads((output_dir / "batch_manifest.json").read_text(encoding="utf-8"))
+    assert manifest["succeeded"] == 1
+    assert manifest["failed"] == 1
+    items = {item["sequence_id"]: item for item in manifest["items"]}
+    assert items["001"]["status"] == "failed"
+    assert items["002"]["status"] == "success"
+    assert "OCR failed" in items["001"]["error"]
+
+
 def _write_minimal_text_docx(path):
     document = Document()
     document.add_paragraph("KB Forge DOCX Fixture")
