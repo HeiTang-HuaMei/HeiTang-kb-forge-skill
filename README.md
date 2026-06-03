@@ -18,6 +18,7 @@ The project is intentionally offline: no Web UI, no vector database, and no exte
 - Markdown, TXT, text-based PDF, and text-based DOCX parsing
 - Single-file `build`
 - Numbered-file batch production with `batch`
+- Offline knowledge asset quality enhancement for cards, QA pairs, and glossary terms
 - PDF/DOCX support is limited to text extraction; OCR, images, and complex table reconstruction are not supported
 - Chunk validation for empty chunks, duplicate chunks, and missing fields
 
@@ -167,11 +168,44 @@ Common use cases:
 The output directory contains:
 
 - `chunks.jsonl`: normalized text chunks with stable IDs and source metadata
-- `cards.jsonl`: simple knowledge cards derived from chunks
-- `qa_pairs.jsonl`: deterministic QA pairs derived from chunks
-- `glossary.jsonl`: simple glossary candidates detected from capitalized terms
+- `cards.jsonl`: knowledge cards derived from chunks
+- `qa_pairs.jsonl`: basic QA pairs derived from chunks
+- `glossary.jsonl`: English and Chinese glossary term candidates
 - `manifest.json`: package metadata and counts
 - `ingest_report.md`: human-readable ingest summary and warnings
+
+## Knowledge Asset Quality
+
+v0.3.0 upgrades the standard knowledge-base package into a higher-quality Agent knowledge asset package while remaining fully offline and rule-based.
+
+`cards.jsonl` quality improvements:
+
+- Filters empty `title` and empty `summary` records.
+- Deduplicates cards.
+- Adds `card_type`.
+- Adds `tags`.
+- Adds `citation`.
+
+`qa_pairs.jsonl` quality improvements:
+
+- Filters empty `question` and empty `answer` records.
+- Deduplicates QA pairs.
+- Generates questions that are closer to real user questions.
+- Keeps answers derived from chunk text.
+- Adds `qa_type`.
+- Adds `citation`.
+
+`glossary.jsonl` quality improvements:
+
+- Supports English term candidates.
+- Supports Chinese term candidates.
+- Deduplicates terms.
+- Filters overly short content, punctuation-only content, numeric-only content, and generic stop words.
+- Adds `source_path`.
+- Adds `chunk_id`.
+- Adds `citation`.
+
+v0.3.0 does not add LLM extraction, OCR, vector database integration, or new default output files.
 
 ## Validation
 

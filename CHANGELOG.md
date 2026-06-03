@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.3.0
+
+- Enhanced `cards.jsonl` quality.
+- Added empty card filtering.
+- Added card deduplication.
+- Added `card_type`, `tags`, and `citation`.
+- Enhanced `qa_pairs.jsonl` quality.
+- Added empty QA filtering.
+- Added QA deduplication.
+- Added `qa_type` and `citation`.
+- Enhanced `glossary.jsonl` extraction.
+- Added English and Chinese term candidates.
+- Added glossary `source_path`, `chunk_id`, and `citation`.
+- Preserved output filenames.
+- Preserved build / batch / merge behavior.
+- Tests passed: 18 passed.
+
 ## v0.2.1
 
 - Added `--merge-same-sequence` for batch.
