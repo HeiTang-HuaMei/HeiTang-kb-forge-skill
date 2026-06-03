@@ -660,3 +660,38 @@ pytest
 ## License
 
 MIT License. See LICENSE for details.
+
+## v1.2.0 Knowledge Ops & Governance Platform
+
+v1.2.0 adds a local knowledge package operations and governance layer.
+
+Capabilities:
+
+- Workspace / Package Registry
+- Refresh / Staleness Detection
+- Human Review / Curation Loop
+- Evaluation Dashboard Data
+- Web UI Upgrade
+- Publish / Export Profiles
+- Agent Planning Readiness Pack
+
+PowerShell examples:
+
+    heitang-kb-forge workspace init --workspace .\workspace
+    heitang-kb-forge workspace register --workspace .\workspace --package .\output_sample
+    heitang-kb-forge workspace status --workspace .\workspace
+    heitang-kb-forge refresh-check --workspace .\workspace
+    heitang-kb-forge review-create --package .\output_sample --output .\review
+    heitang-kb-forge review-apply --package .\output_sample --decisions .\review\review_decisions.jsonl --output .\curated_output
+    heitang-kb-forge eval-record --package .\output_sample --eval-results .\eval_results.json --output .\eval_dashboard
+    heitang-kb-forge publish --package .\output_sample --profile generic_rag --output .\publish_output
+    heitang-kb-forge planning-readiness --package .\output_sample --output .\planning_output
+
+Boundaries:
+
+- no Tool Runtime
+- no real business integration
+- no CRM / product / order system calls
+- no permissions
+- no SaaS multi-tenancy
+- no real publishing API calls

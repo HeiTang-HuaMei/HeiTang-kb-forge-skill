@@ -564,3 +564,40 @@ pytest
 ## License
 
 MIT License. See LICENSE for details.
+
+## v1.2.0 Knowledge Ops & Governance Platform
+
+v1.2.0 新增知识包运营治理层，用于让知识包可以长期注册、审核、刷新、评估、发布，并为后续 Agent Planning 准备规划资产。
+
+核心能力：
+
+- 知识包工作区 / 注册表
+- 刷新检测 / 过期检测
+- 人工审核 / 知识校正
+- 评估看板数据
+- Web UI 管理台增强
+- 发布 / 导出 Profiles
+- Agent Planning Readiness Pack
+
+PowerShell 示例：
+
+    heitang-kb-forge workspace init --workspace .\workspace
+    heitang-kb-forge workspace register --workspace .\workspace --package .\output_sample
+    heitang-kb-forge workspace status --workspace .\workspace
+    heitang-kb-forge refresh-check --workspace .\workspace
+    heitang-kb-forge review-create --package .\output_sample --output .\review
+    heitang-kb-forge review-apply --package .\output_sample --decisions .\review\review_decisions.jsonl --output .\curated_output
+    heitang-kb-forge eval-record --package .\output_sample --eval-results .\eval_results.json --output .\eval_dashboard
+    heitang-kb-forge publish --package .\output_sample --profile generic_rag --output .\publish_output
+    heitang-kb-forge planning-readiness --package .\output_sample --output .\planning_output
+
+边界：
+
+- v1.2 是知识包运营治理层
+- 不是 Tool Runtime
+- 不是业务系统集成
+- 不是权限系统
+- 不是 SaaS 平台
+- 不调用 CRM / 商品 / 订单系统
+- 不调用外部平台 API
+- 只生成本地文件和发布包

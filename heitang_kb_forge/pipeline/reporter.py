@@ -13,6 +13,12 @@ from heitang_kb_forge.knowledge_graph.exporter import KNOWLEDGE_GRAPH_OUTPUT_FIL
 from heitang_kb_forge.evalset.exporter import RETRIEVAL_EVAL_OUTPUT_FILES
 from heitang_kb_forge.risk.labeler import RISK_OUTPUT_FILES
 from heitang_kb_forge.runtime.agent_runtime import RUNTIME_OUTPUT_FILES
+from heitang_kb_forge.workspace.registry import WORKSPACE_FILES
+from heitang_kb_forge.refresh.checker import REFRESH_OUTPUT_FILES
+from heitang_kb_forge.review.curation import REVIEW_OUTPUT_FILES
+from heitang_kb_forge.eval_dashboard.recorder import EVAL_DASHBOARD_OUTPUT_FILES
+from heitang_kb_forge.publish.profiles import PUBLISH_OUTPUT_FILES
+from heitang_kb_forge.planning.readiness import PLANNING_OUTPUT_FILES
 from heitang_kb_forge.vector.exporter import VECTOR_OUTPUT_FILES
 from heitang_kb_forge.schemas.config_schema import ForgeConfig
 from heitang_kb_forge.schemas.pipeline_schema import PipelineManifest, PipelineStage
@@ -49,6 +55,12 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("retrieval_eval_export", config.retrieval_eval.enabled, output, RETRIEVAL_EVAL_OUTPUT_FILES, config.task),
         _stage("risk_labeling", config.risk_labels.enabled, output, RISK_OUTPUT_FILES, config.task),
         _stage("agent_runtime_smoke", config.runtime.enabled, output, RUNTIME_OUTPUT_FILES, config.task),
+        _stage("workspace_registry", config.workspace.enabled, config.workspace.path or output, WORKSPACE_FILES, config.task),
+        _stage("refresh_check", config.refresh.enabled, output, REFRESH_OUTPUT_FILES, config.task),
+        _stage("review_queue", config.review.enabled, output, REVIEW_OUTPUT_FILES, config.task),
+        _stage("evaluation_dashboard", config.evaluation_dashboard.enabled, output, EVAL_DASHBOARD_OUTPUT_FILES, config.task),
+        _stage("publish_profile", config.publish.enabled, output, PUBLISH_OUTPUT_FILES, config.task),
+        _stage("planning_readiness", config.planning_readiness.enabled, output, PLANNING_OUTPUT_FILES, config.task),
     ]
     warnings = [f"Stage failed: {stage.name}" for stage in stages if stage.status == "failed"]
     final_status = "fail" if warnings else "pass"

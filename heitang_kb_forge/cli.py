@@ -15,6 +15,7 @@ from heitang_kb_forge.evalset.exporter import RETRIEVAL_EVAL_OUTPUT_FILES, make_
 from heitang_kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
 from heitang_kb_forge.incremental.reuse import INCREMENTAL_OUTPUT_FILES, make_incremental_report
 from heitang_kb_forge.knowledge_graph.exporter import KNOWLEDGE_GRAPH_OUTPUT_FILES, make_knowledge_graph
+from heitang_kb_forge.eval_dashboard.recorder import make_eval_dashboard
 from heitang_kb_forge.exporters.report_exporter import write_report
 from heitang_kb_forge.llm.extractor import LLMOptions, OUTPUT_FILES, extract_llm_assets
 from heitang_kb_forge.llm.prompt_profile import load_prompt_profile
@@ -33,18 +34,25 @@ from heitang_kb_forge.processors.quality import make_quality_report
 from heitang_kb_forge.processors.validator import validate_chunks
 from heitang_kb_forge.pipeline.reporter import make_pipeline_report
 from heitang_kb_forge.rag.exporter import RAGOptions, RAG_OUTPUT_FILES, make_rag_export
+from heitang_kb_forge.refresh.checker import make_refresh_plan
 from heitang_kb_forge.risk.labeler import RISK_OUTPUT_FILES, make_risk_labels
 from heitang_kb_forge.runtime.agent_runtime import RUNTIME_OUTPUT_FILES, ask_package
+from heitang_kb_forge.review.curation import apply_review_decisions, create_review_queue, empty_decision_template
+from heitang_kb_forge.publish.profiles import make_publish_package
+from heitang_kb_forge.planning.readiness import make_planning_readiness
 from heitang_kb_forge.validation.package_validator import VALIDATION_OUTPUT_FILES, validate_package
 from heitang_kb_forge.vector.exporter import VECTOR_OUTPUT_FILES, make_vector_export
 from heitang_kb_forge.versioning.diff import DIFF_OUTPUT_FILES, diff_packages
 from heitang_kb_forge.versioning.package_version import make_package_version
+from heitang_kb_forge.workspace.registry import init_workspace, register_package, workspace_status
 from heitang_kb_forge.schemas.config_schema import ForgeConfig
 from heitang_kb_forge.schemas.chunk_schema import Chunk
 from heitang_kb_forge.schemas.agent_schema import AgentOptions
 from heitang_kb_forge.schemas.manifest_schema import Manifest
 
 app = typer.Typer(help="Build local standardized knowledge base packages.")
+workspace_app = typer.Typer(help="Manage local knowledge package workspaces.")
+app.add_typer(workspace_app, name="workspace")
 
 PARSERS = {
     ".md": parse_markdown,
@@ -390,6 +398,119 @@ def web() -> None:
     render_app()
 
 
+@workspace_app.command("init")
+def workspace_init(workspace: Path = typer.Option(..., "--workspace")) -> None:
+    index, registry, report = init_workspace(workspace)
+    write_json(workspace / "workspace_index.json", index)
+    write_json(workspace / "package_registry.json", registry)
+    (workspace / "package_status_report.md").write_text(report, encoding="utf-8")
+    typer.echo(f"Initialized workspace at {workspace}")
+
+
+@workspace_app.command("register")
+def workspace_register(
+    workspace: Path = typer.Option(..., "--workspace"),
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+) -> None:
+    registry, report = register_package(workspace, package)
+    index = {"workspace_version": "1.2.0", "package_count": len(registry["packages"])}
+    write_json(workspace / "workspace_index.json", index)
+    write_json(workspace / "package_registry.json", registry)
+    (workspace / "package_status_report.md").write_text(report, encoding="utf-8")
+    typer.echo(f"Registered package {package}")
+
+
+@workspace_app.command("status")
+def workspace_status_command(workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True)) -> None:
+    registry, report = workspace_status(workspace)
+    write_json(workspace / "package_registry.json", registry)
+    (workspace / "package_status_report.md").write_text(report, encoding="utf-8")
+    typer.echo(f"Workspace packages: {len(registry['packages'])}")
+
+
+@app.command("refresh-check")
+def refresh_check(
+    workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    stale_days: int = typer.Option(30, "--stale-days"),
+) -> None:
+    output = output or workspace
+    output.mkdir(parents=True, exist_ok=True)
+    stale, plan, report = make_refresh_plan(workspace, stale_days)
+    write_jsonl(output / "stale_sources.jsonl", stale)
+    write_json(output / "refresh_plan.json", plan)
+    (output / "source_freshness_report.md").write_text(report, encoding="utf-8")
+    typer.echo(f"Built refresh plan at {output}")
+
+
+@app.command("review-create")
+def review_create(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    output.mkdir(parents=True, exist_ok=True)
+    queue, report = create_review_queue(package)
+    write_jsonl(output / "review_queue.jsonl", queue)
+    write_jsonl(output / "review_decisions.jsonl", empty_decision_template(queue))
+    (output / "curation_report.md").write_text(report, encoding="utf-8")
+    typer.echo(f"Built review queue at {output}")
+
+
+@app.command("review-apply")
+def review_apply(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True),
+    decisions: Path = typer.Option(..., "--decisions", exists=True, file_okay=True, dir_okay=False),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    output.mkdir(parents=True, exist_ok=True)
+    curated, report = apply_review_decisions(package, decisions)
+    write_jsonl(output / "curated_chunks.jsonl", curated)
+    (output / "curation_report.md").write_text(report, encoding="utf-8")
+    typer.echo(f"Applied review decisions at {output}")
+
+
+@app.command("eval-record")
+def eval_record(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True),
+    eval_results: Path | None = typer.Option(None, "--eval-results", file_okay=True, dir_okay=False),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    output.mkdir(parents=True, exist_ok=True)
+    retrieval_results, answer_results, citation_report, trend_report = make_eval_dashboard(package, eval_results)
+    write_json(output / "retrieval_eval_results.json", retrieval_results)
+    write_json(output / "answer_eval_results.json", answer_results)
+    (output / "citation_hit_report.md").write_text(citation_report, encoding="utf-8")
+    (output / "quality_trend_report.md").write_text(trend_report, encoding="utf-8")
+    typer.echo(f"Built eval dashboard data at {output}")
+
+
+@app.command("publish")
+def publish(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True),
+    profile: str = typer.Option("generic_rag", "--profile"),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    output.mkdir(parents=True, exist_ok=True)
+    profile_yaml, manifest = make_publish_package(package, profile, output)
+    (output / "export_profile.yaml").write_text(profile_yaml, encoding="utf-8")
+    write_json(output / "publish_manifest.json", manifest)
+    typer.echo(f"Built publish package at {output}")
+
+
+@app.command("planning-readiness")
+def planning_readiness(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    output.mkdir(parents=True, exist_ok=True)
+    blueprint, tool_map, eval_cases, report = make_planning_readiness(package)
+    (output / "agent_planning_blueprint.yaml").write_text(blueprint, encoding="utf-8")
+    write_json(output / "tool_requirement_map.json", tool_map)
+    write_jsonl(output / "planning_eval_cases.jsonl", eval_cases)
+    (output / "planning_risk_report.md").write_text(report, encoding="utf-8")
+    typer.echo(f"Built planning readiness pack at {output}")
+
+
 def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
     llm_options = _make_llm_options(
         config_data.llm.enabled,
@@ -456,6 +577,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
         )
+        _run_v12_config_outputs(config_data, config_data.output)
         return ConfigRunResult(
             config=config_data,
             output=config_data.output,
@@ -525,12 +647,50 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
 
     write_json(output / "batch_manifest.json", batch_manifest)
     _write_batch_report(output / "batch_report.md", batch_manifest)
+    _run_v12_config_outputs(config_data, output)
 
     return ConfigRunResult(
         config=config_data,
         output=output,
         message=f"Built batch knowledge packages at {output}\nTotal: {len(items)} | Succeeded: {succeeded} | Failed: {failed}",
     )
+
+
+def _run_v12_config_outputs(config_data: ForgeConfig, output: Path) -> None:
+    if config_data.workspace.enabled:
+        workspace = config_data.workspace.path or (output / "workspace")
+        index, registry, report = init_workspace(workspace)
+        write_json(workspace / "workspace_index.json", index)
+        registry, report = register_package(workspace, output)
+        write_json(workspace / "package_registry.json", registry)
+        (workspace / "package_status_report.md").write_text(report, encoding="utf-8")
+    if config_data.refresh.enabled:
+        workspace = config_data.workspace.path or output
+        stale, plan, report = make_refresh_plan(workspace, config_data.refresh.stale_days)
+        write_jsonl(output / "stale_sources.jsonl", stale)
+        write_json(output / "refresh_plan.json", plan)
+        (output / "source_freshness_report.md").write_text(report, encoding="utf-8")
+    if config_data.review.enabled:
+        queue, report = create_review_queue(output)
+        write_jsonl(output / "review_queue.jsonl", queue)
+        write_jsonl(output / "review_decisions.jsonl", empty_decision_template(queue))
+        (output / "curation_report.md").write_text(report, encoding="utf-8")
+    if config_data.evaluation_dashboard.enabled:
+        retrieval_results, answer_results, citation_report, trend_report = make_eval_dashboard(output)
+        write_json(output / "retrieval_eval_results.json", retrieval_results)
+        write_json(output / "answer_eval_results.json", answer_results)
+        (output / "citation_hit_report.md").write_text(citation_report, encoding="utf-8")
+        (output / "quality_trend_report.md").write_text(trend_report, encoding="utf-8")
+    if config_data.publish.enabled:
+        profile_yaml, manifest = make_publish_package(output, config_data.publish.profile, output)
+        (output / "export_profile.yaml").write_text(profile_yaml, encoding="utf-8")
+        write_json(output / "publish_manifest.json", manifest)
+    if config_data.planning_readiness.enabled:
+        blueprint, tool_map, eval_cases, report = make_planning_readiness(output)
+        (output / "agent_planning_blueprint.yaml").write_text(blueprint, encoding="utf-8")
+        write_json(output / "tool_requirement_map.json", tool_map)
+        write_jsonl(output / "planning_eval_cases.jsonl", eval_cases)
+        (output / "planning_risk_report.md").write_text(report, encoding="utf-8")
 
 
 def _make_llm_options(

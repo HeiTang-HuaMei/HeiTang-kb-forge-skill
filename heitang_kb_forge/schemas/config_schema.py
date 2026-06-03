@@ -93,6 +93,33 @@ class WebConfig(BaseModel):
     enabled: bool = False
 
 
+class WorkspaceConfig(BaseModel):
+    enabled: bool = False
+    path: Path | None = None
+
+
+class RefreshConfig(BaseModel):
+    enabled: bool = False
+    stale_days: int = 30
+
+
+class ReviewConfig(BaseModel):
+    enabled: bool = False
+
+
+class EvaluationDashboardConfig(BaseModel):
+    enabled: bool = False
+
+
+class PublishConfig(BaseModel):
+    enabled: bool = False
+    profile: str = "generic_rag"
+
+
+class PlanningReadinessConfig(BaseModel):
+    enabled: bool = False
+
+
 class ForgeConfig(BaseModel):
     task: str
     input: Path
@@ -119,3 +146,9 @@ class ForgeConfig(BaseModel):
     risk_labels: RiskLabelsConfig = Field(default_factory=RiskLabelsConfig)
     runtime: RuntimeConfig = Field(default_factory=RuntimeConfig)
     web: WebConfig = Field(default_factory=WebConfig)
+    workspace: WorkspaceConfig = Field(default_factory=WorkspaceConfig)
+    refresh: RefreshConfig = Field(default_factory=RefreshConfig)
+    review: ReviewConfig = Field(default_factory=ReviewConfig)
+    evaluation_dashboard: EvaluationDashboardConfig = Field(default_factory=EvaluationDashboardConfig)
+    publish: PublishConfig = Field(default_factory=PublishConfig)
+    planning_readiness: PlanningReadinessConfig = Field(default_factory=PlanningReadinessConfig)

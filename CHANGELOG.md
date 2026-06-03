@@ -191,3 +191,21 @@
 - Added per-file failure isolation.
 - Preserved existing `build` behavior.
 - Tests passed: 12 passed.
+
+## v1.2.0
+
+Added Knowledge Ops & Governance Platform capabilities:
+
+- Added workspace registry commands: workspace init, workspace register, workspace status.
+- Added refresh / staleness detection via refresh-check.
+- Added review / curation loop via review-create and review-apply.
+- Added evaluation dashboard data export via eval-record.
+- Upgraded optional Web UI operations views.
+- Added publish / export profiles via publish.
+- Added Agent Planning Readiness outputs via planning-readiness.
+- Added v1.2 supplementary docs:
+  - docs/KNOWLEDGE_OPS_GUIDE.md
+  - docs/WEB_UI_OPS_GUIDE.md
+  - docs/AGENT_PLANNING_READINESS_GUIDE.md
+- Preserved offline / default behavior.
+- No Tool Runtime, no real business integration, no permissions, no SaaS multi-tenancy, and no real external platform API calls.
