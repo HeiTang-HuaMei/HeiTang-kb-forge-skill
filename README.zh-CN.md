@@ -16,10 +16,12 @@
 - UTF-8 输出
 - 稳定、可复现的 `chunk_id`
 - 支持 Markdown、TXT、文本型 PDF、文本型 DOCX
+- 可选图片 OCR 支持
+- 支持 PNG、JPG、JPEG
 - 知识资产质量报告 `quality_report.json`
 - `ingest_report.md` 中的 Quality Summary
 - PDF/DOCX 仅支持文本抽取
-- 不支持 OCR、图片内容解析、复杂表格结构还原
+- 不支持扫描 PDF OCR、图片语义理解、版面还原、复杂表格结构还原
 - 检查空 chunk、重复 chunk、缺失字段
 
 ## 安装方式
@@ -31,6 +33,12 @@ python -m venv .venv
 pip install -e ".[dev]"
 ```
 
+安装可选图片 OCR 支持：
+
+```bash
+pip install -e ".[ocr]"
+```
+
 macOS 或 Linux 使用：
 
 ```bash
@@ -39,7 +47,7 @@ source .venv/bin/activate
 
 ## 使用方式
 
-将 `.md`、`.txt`、文本型 `.pdf` 或文本型 `.docx` 文件放入 `examples/input`，然后运行：
+将 `.md`、`.txt`、文本型 `.pdf`、文本型 `.docx`、`.png`、`.jpg` 或 `.jpeg` 文件放入 `examples/input`，然后运行：
 
 ```bash
 heitang-kb-forge build --input ./examples/input --output ./examples/output --domain education --mode teaching
@@ -50,6 +58,21 @@ heitang-kb-forge build --input ./examples/input --output ./examples/output --dom
 ```bash
 python -m heitang_kb_forge.cli build --input ./examples/input --output ./examples/output --domain education --mode teaching
 ```
+
+## 图片 OCR
+
+v0.4.0 新增图片 OCR 接入能力，支持 `.png`、`.jpg`、`.jpeg` 文件。
+
+OCR 只负责从图片中提取文字，提取出的文本继续进入现有清洗、切块、知识资产抽取和质量评估流程。OCR 依赖是可选安装；未安装 OCR 依赖时，已有 Markdown、TXT、文本型 PDF、文本型 DOCX 工作流不受影响。
+
+v0.4.0 边界：
+
+- 不支持扫描 PDF OCR，扫描 PDF OCR 放到 v0.4.1。
+- 不接 LLM。
+- 不接向量库。
+- 不做图片语义理解。
+- 不做版面还原。
+- 不做表格结构识别。
 
 ## 输出文件说明
 
@@ -120,7 +143,8 @@ pytest
 - 不连接向量数据库
 - 不调用外部 LLM
 - PDF/DOCX 仅支持文本抽取
-- 不支持 OCR
+- 图片 OCR 仅支持 PNG、JPG、JPEG
+- 不支持扫描 PDF OCR
 - 不支持图片内容解析
 - 不支持复杂表格结构还原
 

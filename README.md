@@ -16,10 +16,11 @@ The project is intentionally offline: no Web UI, no vector database, and no exte
 - UTF-8 output
 - Stable reproducible `chunk_id`
 - Markdown, TXT, text-based PDF, and text-based DOCX parsing
+- Optional image OCR support for PNG, JPG, and JPEG
 - Single-file `build`
 - Numbered-file batch production with `batch`
 - Offline knowledge asset quality enhancement for cards, QA pairs, and glossary terms
-- PDF/DOCX support is limited to text extraction; OCR, images, and complex table reconstruction are not supported
+- PDF/DOCX support is limited to text extraction; scanned PDF OCR, image semantic understanding, and complex table reconstruction are not supported
 - Chunk validation for empty chunks, duplicate chunks, and missing fields
 
 ## Install
@@ -31,6 +32,12 @@ python -m venv .venv
 pip install -e ".[dev]"
 ```
 
+Install optional OCR support for image inputs:
+
+```bash
+pip install -e ".[ocr]"
+```
+
 On macOS or Linux, activate with:
 
 ```bash
@@ -39,7 +46,7 @@ source .venv/bin/activate
 
 ## Run
 
-Add `.md`, `.txt`, text-based `.pdf`, or text-based `.docx` files under `examples/input`, then run:
+Add `.md`, `.txt`, text-based `.pdf`, text-based `.docx`, `.png`, `.jpg`, or `.jpeg` files under `examples/input`, then run:
 
 ```bash
 heitang-kb-forge build --input ./examples/input --output ./examples/output --domain education --mode teaching
@@ -50,6 +57,21 @@ You can also run the module directly:
 ```bash
 python -m heitang_kb_forge.cli build --input ./examples/input --output ./examples/output --domain education --mode teaching
 ```
+
+## Image OCR
+
+v0.4.0 adds optional OCR input support for `.png`, `.jpg`, and `.jpeg` files.
+
+OCR only extracts text from images. The extracted text continues through the existing clean, chunk, extractor, and quality pipeline. OCR dependencies are optional, so users without OCR support can continue using Markdown, TXT, text-based PDF, and text-based DOCX workflows.
+
+OCR boundaries:
+
+- Scanned PDF OCR is not supported in v0.4.0.
+- Scanned PDF OCR is planned for v0.4.1.
+- No LLM integration.
+- No vector database integration.
+- No image semantic understanding.
+- No table reconstruction.
 
 ## Batch
 

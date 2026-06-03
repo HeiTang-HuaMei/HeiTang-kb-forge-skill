@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.4.0
+
+- Added optional image OCR parser.
+- Added support for `.png`, `.jpg`, and `.jpeg`.
+- Added optional OCR dependency group.
+- Added lazy OCR dependency loading.
+- Added clear error when OCR dependencies are missing.
+- Preserved Markdown / TXT / text-based PDF / text-based DOCX behavior.
+- Preserved build / batch / merge CLI behavior.
+- Tests passed: 25 passed.
+
 ## v0.3.0
 
 - Enhanced `cards.jsonl` quality.
