@@ -69,3 +69,7 @@ The validator checks:
 ```bash
 pytest
 ```
+
+## License
+
+MIT License. See LICENSE for details.
