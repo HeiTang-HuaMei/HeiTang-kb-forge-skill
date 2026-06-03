@@ -408,10 +408,6 @@ These connectors prepare output for external runtimes but do not turn this proje
 
 <!-- VERSION_HISTORY_NORMALIZED_START -->
 
-## Version Highlights
-
-<!-- VERSION_HISTORY_NORMALIZED_START -->
-
 ## v1.2.0 Knowledge Ops & Governance Platform
 
 v1.2.0 adds a local knowledge package operations and governance layer.
@@ -703,7 +699,5 @@ pytest
 ## License
 
 MIT License. See LICENSE for details.
-
-<!-- VERSION_HISTORY_NORMALIZED_END -->
 
 <!-- VERSION_HISTORY_NORMALIZED_END -->

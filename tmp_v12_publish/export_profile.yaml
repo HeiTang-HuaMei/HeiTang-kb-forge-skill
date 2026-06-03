@@ -1,0 +1,6 @@
+profile: generic_rag
+target: generic_rag
+remote_publish_performed: false
+notes:
+  - This package is generated for import/adaptation only.
+  - No platform API was called.
