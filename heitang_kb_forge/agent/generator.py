@@ -147,21 +147,32 @@ hybrid_search_enabled: false
 
 def _tools_yaml() -> str:
     tools = [
-        ("knowledge_retrieval", "retrieval", "Retrieve relevant knowledge package records."),
-        ("citation_lookup", "lookup", "Look up citations and source references."),
-        ("quality_check", "validation", "Check quality level and package warnings."),
-        ("escalation_or_handoff", "handoff", "Escalate when knowledge is insufficient or out of scope."),
+        ("knowledge_retrieval", "knowledge_retrieval", "Retrieve relevant knowledge package records.", True),
+        ("citation_lookup", "citation_lookup", "Look up citations and source references.", True),
+        ("quality_check", "quality_check", "Check quality level and package warnings.", True),
+        ("human_handoff", "human_handoff", "Escalate when knowledge is insufficient or out of scope.", False),
+        ("product_lookup_placeholder", "product_lookup_placeholder", "Placeholder for product catalog lookup.", True),
+        ("crm_lookup_placeholder", "crm_lookup_placeholder", "Placeholder for CRM lookup.", True),
+        ("order_lookup_placeholder", "order_lookup_placeholder", "Placeholder for order lookup.", True),
     ]
     lines = ["tools:"]
-    for name, tool_type, description in tools:
+    for name, tool_type, description, runtime_required in tools:
         lines.extend(
             [
                 f"  - name: {name}",
                 f"    type: {tool_type}",
                 f"    description: {description}",
                 "    enabled: true",
+                f"    runtime_required: {_yaml_bool(runtime_required)}",
                 "    input_schema:",
                 "      type: object",
+                "      properties: {}",
+                "    output_schema:",
+                "      type: object",
+                "      properties: {}",
+                "    safety_notes:",
+                "      - Tool configuration only; no runtime execution is performed by KB Forge.",
+                "    config: {}",
             ]
         )
     return "\n".join(lines) + "\n"

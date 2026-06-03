@@ -12,6 +12,8 @@ def write_report(
     agent_summary: dict | None = None,
     demo_summary: dict | None = None,
     llm_quality_summary: dict | None = None,
+    embedding_summary: dict | None = None,
+    vector_summary: dict | None = None,
 ) -> None:
     warning_lines = "\n".join(f"- {item}" for item in manifest.warnings) or "- None"
     quality_summary = _quality_summary(quality_report)
@@ -24,6 +26,8 @@ def write_report(
         if llm_quality_summary
         else ""
     )
+    embedding_section = f"\n## Embedding Summary\n\n{_embedding_summary(embedding_summary)}\n" if embedding_summary else ""
+    vector_section = f"\n## Vector Export Summary\n\n{_vector_summary(vector_summary)}\n" if vector_summary else ""
     content = f"""# KB Forge Ingest Report
 
 ## Summary
@@ -44,6 +48,8 @@ def write_report(
 {agent_section}
 {demo_section}
 {llm_quality_section}
+{embedding_section}
+{vector_section}
 
 ## Output Files
 
@@ -132,5 +138,30 @@ def _llm_quality_summary(llm_quality_summary: dict | None) -> str:
 - LLM quality score: {llm_quality_summary['llm_quality_score']}
 - LLM quality level: {llm_quality_summary['llm_quality_level']}
 - Warnings count: {llm_quality_summary['warnings_count']}
+- Output files:
+{output_files}"""
+
+
+def _embedding_summary(embedding_summary: dict | None) -> str:
+    if not embedding_summary:
+        return "- Enabled: False"
+    output_files = "\n".join(f"  - {name}" for name in embedding_summary["output_files"]) or "  - None"
+    return f"""- Enabled: {embedding_summary['enabled']}
+- Provider: {embedding_summary['provider']}
+- Model: {embedding_summary['model']}
+- Total records: {embedding_summary['total_records']}
+- Warnings count: {embedding_summary['warnings_count']}
+- Output files:
+{output_files}"""
+
+
+def _vector_summary(vector_summary: dict | None) -> str:
+    if not vector_summary:
+        return "- Enabled: False"
+    output_files = "\n".join(f"  - {name}" for name in vector_summary["output_files"]) or "  - None"
+    return f"""- Enabled: {vector_summary['enabled']}
+- Store: {vector_summary['store']}
+- Total records: {vector_summary['total_records']}
+- Warnings count: {vector_summary['warnings_count']}
 - Output files:
 {output_files}"""

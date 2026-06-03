@@ -8,6 +8,7 @@ import typer
 from heitang_kb_forge.agent.generator import make_agent_template
 from heitang_kb_forge.agent.templates import AGENT_OUTPUT_FILES
 from heitang_kb_forge.config.loader import load_config
+from heitang_kb_forge.embedding.exporter import EMBEDDING_OUTPUT_FILES, make_embeddings
 from heitang_kb_forge.eval.demo import DEMO_OUTPUT_FILES, make_demo_report
 from heitang_kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
 from heitang_kb_forge.exporters.report_exporter import write_report
@@ -27,6 +28,7 @@ from heitang_kb_forge.processors.quality import make_quality_report
 from heitang_kb_forge.processors.validator import validate_chunks
 from heitang_kb_forge.pipeline.reporter import make_pipeline_report
 from heitang_kb_forge.rag.exporter import RAGOptions, RAG_OUTPUT_FILES, make_rag_export
+from heitang_kb_forge.vector.exporter import VECTOR_OUTPUT_FILES, make_vector_export
 from heitang_kb_forge.schemas.config_schema import ForgeConfig
 from heitang_kb_forge.schemas.chunk_schema import Chunk
 from heitang_kb_forge.schemas.agent_schema import AgentOptions
@@ -56,6 +58,19 @@ class ConfigRunResult:
     message: str
 
 
+@dataclass
+class EmbeddingOptions:
+    enabled: bool = False
+    provider: str = "fake"
+    model: str = "fake-embedding-model"
+
+
+@dataclass
+class VectorOptions:
+    enabled: bool = False
+    store: str = "local_json"
+
+
 @app.callback()
 def main() -> None:
     """KB Forge command group."""
@@ -79,6 +94,11 @@ def build(
     rag_export: bool = typer.Option(False, "--rag-export"),
     rag_profile: str = typer.Option("basic", "--rag-profile"),
     rag_include_llm: bool = typer.Option(False, "--rag-include-llm"),
+    embedding: bool = typer.Option(False, "--embedding"),
+    embedding_provider: str = typer.Option("fake", "--embedding-provider"),
+    embedding_model: str = typer.Option("fake-embedding-model", "--embedding-model"),
+    vector_export: bool = typer.Option(False, "--vector-export"),
+    vector_store: str = typer.Option("local_json", "--vector-store"),
     agent_template: bool = typer.Option(False, "--agent-template"),
     agent_type: str = typer.Option("generic_agent", "--agent-type"),
     agent_name: str | None = typer.Option(None, "--agent-name"),
@@ -109,6 +129,8 @@ def build(
             agent_name=agent_name,
             language=agent_language,
         ),
+        embedding_options=_make_embedding_options(embedding, embedding_provider, embedding_model, rag_export),
+        vector_options=_make_vector_options(vector_export, vector_store, embedding),
         demo_report=demo_report,
     )
 
@@ -135,6 +157,11 @@ def batch(
     rag_export: bool = typer.Option(False, "--rag-export"),
     rag_profile: str = typer.Option("basic", "--rag-profile"),
     rag_include_llm: bool = typer.Option(False, "--rag-include-llm"),
+    embedding: bool = typer.Option(False, "--embedding"),
+    embedding_provider: str = typer.Option("fake", "--embedding-provider"),
+    embedding_model: str = typer.Option("fake-embedding-model", "--embedding-model"),
+    vector_export: bool = typer.Option(False, "--vector-export"),
+    vector_store: str = typer.Option("local_json", "--vector-store"),
     agent_template: bool = typer.Option(False, "--agent-template"),
     agent_type: str = typer.Option("generic_agent", "--agent-type"),
     agent_name: str | None = typer.Option(None, "--agent-name"),
@@ -160,6 +187,8 @@ def batch(
         agent_name=agent_name,
         language=agent_language,
     )
+    embedding_options = _make_embedding_options(embedding, embedding_provider, embedding_model, rag_export)
+    vector_options = _make_vector_options(vector_export, vector_store, embedding)
     items = (
         _build_batch_groups(
             numbered_sources,
@@ -170,6 +199,8 @@ def batch(
             overlap_chars,
             llm_options,
             rag_options,
+            embedding_options,
+            vector_options,
             agent_options,
             demo_report,
         )
@@ -183,6 +214,8 @@ def batch(
             overlap_chars,
             llm_options,
             rag_options,
+            embedding_options,
+            vector_options,
             agent_options,
             demo_report,
         )
@@ -249,6 +282,17 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         config_data.rag.profile,
         config_data.rag.include_llm,
     )
+    embedding_options = _make_embedding_options(
+        config_data.embedding.enabled,
+        config_data.embedding.provider,
+        config_data.embedding.model,
+        config_data.rag.enabled,
+    )
+    vector_options = _make_vector_options(
+        config_data.vector.enabled,
+        config_data.vector.store,
+        config_data.embedding.enabled,
+    )
     agent_options = AgentOptions(
         enabled=config_data.agent.enabled,
         agent_type=config_data.agent.type,
@@ -266,6 +310,8 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             config_data.overlap_chars,
             llm_options=llm_options,
             rag_options=rag_options,
+            embedding_options=embedding_options,
+            vector_options=vector_options,
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
         )
@@ -293,6 +339,8 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             config_data.overlap_chars,
             llm_options,
             rag_options,
+            embedding_options,
+            vector_options,
             agent_options,
             config_data.demo.enabled,
         )
@@ -306,6 +354,8 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             config_data.overlap_chars,
             llm_options,
             rag_options,
+            embedding_options,
+            vector_options,
             agent_options,
             config_data.demo.enabled,
         )
@@ -366,6 +416,18 @@ def _make_llm_options(
     )
 
 
+def _make_embedding_options(enabled: bool, provider: str, model: str, rag_export_enabled: bool) -> EmbeddingOptions:
+    if enabled and not rag_export_enabled:
+        raise ValueError("--embedding requires --rag-export")
+    return EmbeddingOptions(enabled=enabled, provider=provider, model=model)
+
+
+def _make_vector_options(enabled: bool, store: str, embedding_enabled: bool) -> VectorOptions:
+    if enabled and not embedding_enabled:
+        raise ValueError("--vector-export requires --embedding")
+    return VectorOptions(enabled=enabled, store=store)
+
+
 def _build_batch_items(
     numbered_sources: list[Path],
     output: Path,
@@ -375,6 +437,8 @@ def _build_batch_items(
     overlap_chars: int,
     llm_options: LLMOptions | None = None,
     rag_options: RAGOptions | None = None,
+    embedding_options: EmbeddingOptions | None = None,
+    vector_options: VectorOptions | None = None,
     agent_options: AgentOptions | None = None,
     demo_report: bool = False,
 ) -> list[dict]:
@@ -409,6 +473,8 @@ def _build_batch_items(
                 overlap_chars,
                 llm_options=llm_options,
                 rag_options=rag_options,
+                embedding_options=embedding_options,
+                vector_options=vector_options,
                 agent_options=agent_options,
                 demo_report=demo_report,
             )
@@ -432,6 +498,8 @@ def _build_batch_groups(
     overlap_chars: int,
     llm_options: LLMOptions | None = None,
     rag_options: RAGOptions | None = None,
+    embedding_options: EmbeddingOptions | None = None,
+    vector_options: VectorOptions | None = None,
     agent_options: AgentOptions | None = None,
     demo_report: bool = False,
 ) -> list[dict]:
@@ -475,6 +543,8 @@ def _build_batch_groups(
                 source_files=sources,
                 llm_options=llm_options,
                 rag_options=rag_options,
+                embedding_options=embedding_options,
+                vector_options=vector_options,
                 agent_options=agent_options,
                 demo_report=demo_report,
             )
@@ -500,6 +570,8 @@ def _build_package(
     source_files: list[Path] | None = None,
     llm_options: LLMOptions | None = None,
     rag_options: RAGOptions | None = None,
+    embedding_options: EmbeddingOptions | None = None,
+    vector_options: VectorOptions | None = None,
     agent_options: AgentOptions | None = None,
     demo_report: bool = False,
 ) -> Manifest:
@@ -564,6 +636,20 @@ def _build_package(
     )
     if rag_result:
         rag_result.warnings.extend(rag_warnings)
+    embedding_options = embedding_options or EmbeddingOptions()
+    embedding_records = []
+    embedding_manifest = None
+    if embedding_options.enabled and rag_result:
+        embedding_records, embedding_manifest = make_embeddings(
+            rag_result.embedding_inputs,
+            embedding_options.provider,
+            embedding_options.model,
+        )
+    vector_options = vector_options or VectorOptions()
+    vector_records = []
+    vector_manifest = None
+    if vector_options.enabled:
+        vector_records, vector_manifest = make_vector_export(embedding_records, vector_options.store)
     agent_options = agent_options or AgentOptions()
     agent_result = (
         make_agent_template(
@@ -617,6 +703,10 @@ def _build_package(
         files.extend(LLM_QUALITY_OUTPUT_FILES)
     if rag_options.enabled:
         files.extend(RAG_OUTPUT_FILES)
+    if embedding_options.enabled:
+        files.extend(EMBEDDING_OUTPUT_FILES)
+    if vector_options.enabled:
+        files.extend(VECTOR_OUTPUT_FILES)
     if agent_options.enabled:
         files.extend(AGENT_OUTPUT_FILES)
     if demo_report:
@@ -649,6 +739,12 @@ def _build_package(
         write_jsonl(output / "retrieval_metadata.jsonl", rag_result.retrieval_metadata)
         write_json(output / "citation_map.json", rag_result.citation_map)
         write_json(output / "rag_manifest.json", rag_result.rag_manifest)
+    if embedding_options.enabled:
+        write_jsonl(output / "embeddings.jsonl", embedding_records)
+        write_json(output / "embedding_manifest.json", embedding_manifest)
+    if vector_options.enabled:
+        write_jsonl(output / "vector_store_records.jsonl", vector_records)
+        write_json(output / "vector_store_manifest.json", vector_manifest)
     if agent_options.enabled and agent_result:
         (output / "agent_profile.yaml").write_text(agent_result.agent_profile, encoding="utf-8")
         (output / "system_prompt.md").write_text(agent_result.system_prompt, encoding="utf-8")
@@ -703,6 +799,8 @@ def _build_package(
                 }
             )
     rag_summary = None
+    embedding_summary = None
+    vector_summary = None
     if rag_options.enabled and rag_result:
         rag_summary = {
             "enabled": True,
@@ -717,6 +815,38 @@ def _build_package(
                 "rag_export_enabled": True,
                 "rag_profile": rag_options.profile,
                 "rag_export_files": rag_result.output_files,
+            }
+        )
+    if embedding_options.enabled and embedding_manifest:
+        embedding_summary = {
+            "enabled": True,
+            "provider": embedding_options.provider,
+            "model": embedding_options.model,
+            "output_files": EMBEDDING_OUTPUT_FILES,
+            "total_records": embedding_manifest["total_records"],
+            "warnings_count": len(embedding_manifest["warnings"]),
+        }
+        manifest_payload.update(
+            {
+                "embedding_enabled": True,
+                "embedding_provider": embedding_options.provider,
+                "embedding_model": embedding_options.model,
+                "embedding_files": EMBEDDING_OUTPUT_FILES,
+            }
+        )
+    if vector_options.enabled and vector_manifest:
+        vector_summary = {
+            "enabled": True,
+            "store": vector_options.store,
+            "output_files": VECTOR_OUTPUT_FILES,
+            "total_records": vector_manifest["total_records"],
+            "warnings_count": len(vector_manifest["warnings"]),
+        }
+        manifest_payload.update(
+            {
+                "vector_export_enabled": True,
+                "vector_store": vector_options.store,
+                "vector_export_files": VECTOR_OUTPUT_FILES,
             }
         )
     agent_summary = None
@@ -762,6 +892,8 @@ def _build_package(
         agent_summary,
         demo_summary,
         llm_quality_summary,
+        embedding_summary,
+        vector_summary,
     )
 
     return manifest

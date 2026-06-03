@@ -23,6 +23,17 @@ class RAGConfig(BaseModel):
     include_llm: bool = False
 
 
+class EmbeddingConfig(BaseModel):
+    enabled: bool = False
+    provider: str = "fake"
+    model: str = "fake-embedding-model"
+
+
+class VectorConfig(BaseModel):
+    enabled: bool = False
+    store: str = "local_json"
+
+
 class AgentConfig(BaseModel):
     enabled: bool = False
     type: str = "generic_agent"
@@ -45,5 +56,7 @@ class ForgeConfig(BaseModel):
     batch: BatchConfig = Field(default_factory=BatchConfig)
     llm: LLMConfig = Field(default_factory=LLMConfig)
     rag: RAGConfig = Field(default_factory=RAGConfig)
+    embedding: EmbeddingConfig = Field(default_factory=EmbeddingConfig)
+    vector: VectorConfig = Field(default_factory=VectorConfig)
     agent: AgentConfig = Field(default_factory=AgentConfig)
     demo: DemoConfig = Field(default_factory=DemoConfig)

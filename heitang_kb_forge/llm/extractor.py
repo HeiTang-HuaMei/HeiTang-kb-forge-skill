@@ -4,6 +4,7 @@ from pathlib import Path
 
 from heitang_kb_forge.llm.cache import LLMCache
 from heitang_kb_forge.llm.fake_provider import FakeProvider
+from heitang_kb_forge.llm.openai_compatible_provider import OpenAICompatibleProvider
 from heitang_kb_forge.llm.prompt_profile import render_prompt_profile_context
 from heitang_kb_forge.llm.provider import LLMProvider, ProviderResponse
 from heitang_kb_forge.schemas.chunk_schema import Chunk
@@ -45,6 +46,8 @@ def create_provider(provider_name: str, model_name: str) -> LLMProvider:
         return FakeProvider(model_name=model_name)
     if provider_name == "fake-fail":
         return FakeProvider(model_name=model_name, fail=True)
+    if provider_name == "openai-compatible":
+        return OpenAICompatibleProvider(model_name=model_name)
     raise ValueError(f"Unsupported LLM provider: {provider_name}")
 
 
