@@ -1,0 +1,25 @@
+tools:
+  - name: knowledge_retrieval
+    type: retrieval
+    description: Retrieve relevant knowledge package records.
+    enabled: true
+    input_schema:
+      type: object
+  - name: citation_lookup
+    type: lookup
+    description: Look up citations and source references.
+    enabled: true
+    input_schema:
+      type: object
+  - name: quality_check
+    type: validation
+    description: Check quality level and package warnings.
+    enabled: true
+    input_schema:
+      type: object
+  - name: escalation_or_handoff
+    type: handoff
+    description: Escalate when knowledge is insufficient or out of scope.
+    enabled: true
+    input_schema:
+      type: object

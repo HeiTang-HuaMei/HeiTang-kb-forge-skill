@@ -1,0 +1,26 @@
+{
+  "rag_export_version": "0.6.0",
+  "generated_at": "2026-06-03T10:58:38.613612+00:00",
+  "rag_profile": "basic",
+  "include_llm": false,
+  "embedding_input_file": "embedding_input.jsonl",
+  "retrieval_metadata_file": "retrieval_metadata.jsonl",
+  "citation_map_file": "citation_map.json",
+  "total_records": 39,
+  "asset_type_counts": {
+    "chunk": 3,
+    "card": 3,
+    "qa_pair": 3,
+    "glossary": 30
+  },
+  "source_count": 3,
+  "chunk_count": 3,
+  "quality_score": 100,
+  "quality_level": "excellent",
+  "compatible_targets": [
+    "faiss",
+    "qdrant",
+    "chroma",
+    "milvus"
+  ]
+}

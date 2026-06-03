@@ -1,0 +1,14 @@
+agent_name: Product Manager Knowledge Agent
+agent_type: product_manager_agent
+language: zh-CN
+domain: product
+mode: agent_demo
+description: 需求分析、PRD、竞品、指标、用户场景
+knowledge_package_version: 0.7.0
+source_count: 3
+chunk_count: 3
+quality_score: 100
+quality_level: excellent
+rag_enabled: true
+llm_assets_enabled: false
+created_at: 2026-06-03T10:58:38.614150+00:00

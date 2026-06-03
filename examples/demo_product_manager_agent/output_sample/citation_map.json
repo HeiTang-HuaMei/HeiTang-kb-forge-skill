@@ -1,0 +1,293 @@
+{
+  "by_embedding_id": {
+    "chunk_0": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "chunk_1": {
+      "citation": "examples/demo_product_manager_agent/input/002_user_feedback.md#chunk=6e0236137e481d7ea6f73c7f",
+      "source_path": "examples/demo_product_manager_agent/input/002_user_feedback.md",
+      "chunk_id": "6e0236137e481d7ea6f73c7f"
+    },
+    "chunk_2": {
+      "citation": "examples/demo_product_manager_agent/input/003_metrics.csv#chunk=5b9db98b45b6b78b639d2950",
+      "source_path": "examples/demo_product_manager_agent/input/003_metrics.csv",
+      "chunk_id": "5b9db98b45b6b78b639d2950"
+    },
+    "card_3": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "card_4": {
+      "citation": "examples/demo_product_manager_agent/input/002_user_feedback.md#chunk=6e0236137e481d7ea6f73c7f",
+      "source_path": "examples/demo_product_manager_agent/input/002_user_feedback.md",
+      "chunk_id": "6e0236137e481d7ea6f73c7f"
+    },
+    "card_5": {
+      "citation": "examples/demo_product_manager_agent/input/003_metrics.csv#chunk=5b9db98b45b6b78b639d2950",
+      "source_path": "examples/demo_product_manager_agent/input/003_metrics.csv",
+      "chunk_id": "5b9db98b45b6b78b639d2950"
+    },
+    "qa_pair_6": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "qa_pair_7": {
+      "citation": "examples/demo_product_manager_agent/input/002_user_feedback.md#chunk=6e0236137e481d7ea6f73c7f",
+      "source_path": "examples/demo_product_manager_agent/input/002_user_feedback.md",
+      "chunk_id": "6e0236137e481d7ea6f73c7f"
+    },
+    "qa_pair_8": {
+      "citation": "examples/demo_product_manager_agent/input/003_metrics.csv#chunk=5b9db98b45b6b78b639d2950",
+      "source_path": "examples/demo_product_manager_agent/input/003_metrics.csv",
+      "chunk_id": "5b9db98b45b6b78b639d2950"
+    },
+    "glossary_9": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_10": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_11": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_12": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_13": {
+      "citation": "examples/demo_product_manager_agent/input/003_metrics.csv#chunk=5b9db98b45b6b78b639d2950",
+      "source_path": "examples/demo_product_manager_agent/input/003_metrics.csv",
+      "chunk_id": "5b9db98b45b6b78b639d2950"
+    },
+    "glossary_14": {
+      "citation": "examples/demo_product_manager_agent/input/003_metrics.csv#chunk=5b9db98b45b6b78b639d2950",
+      "source_path": "examples/demo_product_manager_agent/input/003_metrics.csv",
+      "chunk_id": "5b9db98b45b6b78b639d2950"
+    },
+    "glossary_15": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_16": {
+      "citation": "examples/demo_product_manager_agent/input/003_metrics.csv#chunk=5b9db98b45b6b78b639d2950",
+      "source_path": "examples/demo_product_manager_agent/input/003_metrics.csv",
+      "chunk_id": "5b9db98b45b6b78b639d2950"
+    },
+    "glossary_17": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_18": {
+      "citation": "examples/demo_product_manager_agent/input/003_metrics.csv#chunk=5b9db98b45b6b78b639d2950",
+      "source_path": "examples/demo_product_manager_agent/input/003_metrics.csv",
+      "chunk_id": "5b9db98b45b6b78b639d2950"
+    },
+    "glossary_19": {
+      "citation": "examples/demo_product_manager_agent/input/003_metrics.csv#chunk=5b9db98b45b6b78b639d2950",
+      "source_path": "examples/demo_product_manager_agent/input/003_metrics.csv",
+      "chunk_id": "5b9db98b45b6b78b639d2950"
+    },
+    "glossary_20": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_21": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_22": {
+      "citation": "examples/demo_product_manager_agent/input/003_metrics.csv#chunk=5b9db98b45b6b78b639d2950",
+      "source_path": "examples/demo_product_manager_agent/input/003_metrics.csv",
+      "chunk_id": "5b9db98b45b6b78b639d2950"
+    },
+    "glossary_23": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_24": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_25": {
+      "citation": "examples/demo_product_manager_agent/input/002_user_feedback.md#chunk=6e0236137e481d7ea6f73c7f",
+      "source_path": "examples/demo_product_manager_agent/input/002_user_feedback.md",
+      "chunk_id": "6e0236137e481d7ea6f73c7f"
+    },
+    "glossary_26": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_27": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_28": {
+      "citation": "examples/demo_product_manager_agent/input/002_user_feedback.md#chunk=6e0236137e481d7ea6f73c7f",
+      "source_path": "examples/demo_product_manager_agent/input/002_user_feedback.md",
+      "chunk_id": "6e0236137e481d7ea6f73c7f"
+    },
+    "glossary_29": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_30": {
+      "citation": "examples/demo_product_manager_agent/input/002_user_feedback.md#chunk=6e0236137e481d7ea6f73c7f",
+      "source_path": "examples/demo_product_manager_agent/input/002_user_feedback.md",
+      "chunk_id": "6e0236137e481d7ea6f73c7f"
+    },
+    "glossary_31": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_32": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_33": {
+      "citation": "examples/demo_product_manager_agent/input/002_user_feedback.md#chunk=6e0236137e481d7ea6f73c7f",
+      "source_path": "examples/demo_product_manager_agent/input/002_user_feedback.md",
+      "chunk_id": "6e0236137e481d7ea6f73c7f"
+    },
+    "glossary_34": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_35": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_36": {
+      "citation": "examples/demo_product_manager_agent/input/001_product_requirements.md#chunk=db289795292e7fe6fa39b2c9",
+      "source_path": "examples/demo_product_manager_agent/input/001_product_requirements.md",
+      "chunk_id": "db289795292e7fe6fa39b2c9"
+    },
+    "glossary_37": {
+      "citation": "examples/demo_product_manager_agent/input/002_user_feedback.md#chunk=6e0236137e481d7ea6f73c7f",
+      "source_path": "examples/demo_product_manager_agent/input/002_user_feedback.md",
+      "chunk_id": "6e0236137e481d7ea6f73c7f"
+    },
+    "glossary_38": {
+      "citation": "examples/demo_product_manager_agent/input/002_user_feedback.md#chunk=6e0236137e481d7ea6f73c7f",
+      "source_path": "examples/demo_product_manager_agent/input/002_user_feedback.md",
+      "chunk_id": "6e0236137e481d7ea6f73c7f"
+    }
+  },
+  "by_chunk_id": {
+    "db289795292e7fe6fa39b2c9": [
+      "chunk_0",
+      "card_3",
+      "qa_pair_6",
+      "glossary_9",
+      "glossary_10",
+      "glossary_11",
+      "glossary_12",
+      "glossary_15",
+      "glossary_17",
+      "glossary_20",
+      "glossary_21",
+      "glossary_23",
+      "glossary_24",
+      "glossary_26",
+      "glossary_27",
+      "glossary_29",
+      "glossary_31",
+      "glossary_32",
+      "glossary_34",
+      "glossary_35",
+      "glossary_36"
+    ],
+    "6e0236137e481d7ea6f73c7f": [
+      "chunk_1",
+      "card_4",
+      "qa_pair_7",
+      "glossary_25",
+      "glossary_28",
+      "glossary_30",
+      "glossary_33",
+      "glossary_37",
+      "glossary_38"
+    ],
+    "5b9db98b45b6b78b639d2950": [
+      "chunk_2",
+      "card_5",
+      "qa_pair_8",
+      "glossary_13",
+      "glossary_14",
+      "glossary_16",
+      "glossary_18",
+      "glossary_19",
+      "glossary_22"
+    ]
+  },
+  "by_source_path": {
+    "examples/demo_product_manager_agent/input/001_product_requirements.md": [
+      "chunk_0",
+      "card_3",
+      "qa_pair_6",
+      "glossary_9",
+      "glossary_10",
+      "glossary_11",
+      "glossary_12",
+      "glossary_15",
+      "glossary_17",
+      "glossary_20",
+      "glossary_21",
+      "glossary_23",
+      "glossary_24",
+      "glossary_26",
+      "glossary_27",
+      "glossary_29",
+      "glossary_31",
+      "glossary_32",
+      "glossary_34",
+      "glossary_35",
+      "glossary_36"
+    ],
+    "examples/demo_product_manager_agent/input/002_user_feedback.md": [
+      "chunk_1",
+      "card_4",
+      "qa_pair_7",
+      "glossary_25",
+      "glossary_28",
+      "glossary_30",
+      "glossary_33",
+      "glossary_37",
+      "glossary_38"
+    ],
+    "examples/demo_product_manager_agent/input/003_metrics.csv": [
+      "chunk_2",
+      "card_5",
+      "qa_pair_8",
+      "glossary_13",
+      "glossary_14",
+      "glossary_16",
+      "glossary_18",
+      "glossary_19",
+      "glossary_22"
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+﻿metric,definition,owner
+chunk_count,知识包中切分出的文本块数量,Knowledge Pipeline
+quality_score,知识资产质量评分,Quality Module
+citation_coverage,带来源引用的资产比例,Quality Module
+rag_records,RAG 导出记录数量,RAG Export
+eval_cases_count,Agent Template 生成的基础评估用例数量,Agent Template

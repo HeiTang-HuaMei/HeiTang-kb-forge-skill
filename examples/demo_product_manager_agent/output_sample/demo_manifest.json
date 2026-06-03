@@ -1,0 +1,16 @@
+{
+  "demo_version": "0.8.0",
+  "generated_at": "2026-06-03T10:58:38.614150+00:00",
+  "package_path": "examples/demo_product_manager_agent/output_sample",
+  "domain": "product",
+  "mode": "agent_demo",
+  "source_count": 3,
+  "chunk_count": 3,
+  "quality_score": 100,
+  "quality_level": "excellent",
+  "rag_export_enabled": true,
+  "agent_template_enabled": true,
+  "eval_cases_count": 3,
+  "final_status": "pass",
+  "warnings": []
+}
