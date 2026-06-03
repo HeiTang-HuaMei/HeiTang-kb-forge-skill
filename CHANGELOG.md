@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.5.0
+
+- Added opt-in `--llm` structured extraction.
+- Added fake LLM provider.
+- Added LLM cache.
+- Added LLM output files.
+- Added LLM Summary in `ingest_report.md`.
+- Added fallback and strict behavior.
+- Preserved default offline 7-file output.
+- Preserved offline cards / QA / glossary files.
+- Added API key leakage tests.
+- Tests passed: 65 passed.
+
+## v0.4.3
+
+- Added DOCX embedded table extraction.
+- Preserved DOCX paragraph extraction.
+- Converted DOCX table rows into readable text.
+- No new dependencies.
+- No PDF table extraction.
+- Preserved build / batch / merge behavior.
+- Tests passed: 53 passed.
+
 ## v0.4.2
 
 - Added CSV parser.

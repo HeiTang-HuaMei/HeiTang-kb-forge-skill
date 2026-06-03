@@ -20,10 +20,12 @@
 - 支持 PNG、JPG、JPEG
 - 可选扫描 PDF OCR fallback
 - CSV / TSV / XLSX 结构化表格文件接入
+- DOCX 内嵌表格抽取
+- 可选 LLM 结构化抽取
 - 知识资产质量报告 `quality_report.json`
 - `ingest_report.md` 中的 Quality Summary
 - 文本型 PDF 优先直接解析；扫描版 PDF / 图片型 PDF 在文本抽取为空或过短时进入 OCR fallback
-- DOCX 仅支持文本抽取
+- DOCX 支持段落文本抽取和内嵌表格抽取
 - 不支持图片语义理解、版面还原、复杂表格结构还原
 - 检查空 chunk、重复 chunk、缺失字段
 
@@ -94,7 +96,7 @@ OCR 边界：
 - 不接 LLM。
 - 不接向量库。
 - 不做 Agent Template。
-- PDF / DOCX 内嵌表格抽取放到 v0.4.3。
+- v0.4.3 不做 PDF 表格抽取。
 
 ## 表格文件接入
 
@@ -133,15 +135,83 @@ Sheet: 商品列表. Row 2. 书名: 产品经理入门. 作者: 张三.
 表格接入边界：
 
 - 不支持 `.xls`。
-- 不做 PDF / DOCX 内嵌表格抽取。
+- 不做 PDF 内嵌表格抽取。
 - 不做图片表格 OCR。
 - 不做扫描表格结构识别。
 - 不做公式计算。
 - 不做复杂数据分析。
 - 不接 LLM。
 - 不接向量库。
-- PDF / DOCX 内嵌表格抽取放到 v0.4.3。
-- LLM 结构化抽取放到 v0.5.0。
+
+## DOCX 内嵌表格抽取
+
+v0.4.3 新增 DOCX 内嵌表格抽取，同时保留原有段落文本抽取。
+
+DOCX 表格行会转换成可读文本，并继续进入清洗、切块、知识资产抽取、质量评估流程。
+
+转换示例：
+
+```text
+Table 1. Row 2. 字段A: 值A. 字段B: 值B.
+```
+
+边界：
+
+- 不做合并单元格结构语义还原。
+- v0.4.3 不做 PDF 表格抽取。
+- 不做图片表格 OCR。
+- 不做扫描表格结构识别。
+
+## LLM 结构化抽取
+
+v0.5.0 新增可选 LLM 结构化抽取。LLM 默认关闭，只有显式传入 `--llm` 才会启用。
+
+LLM 是增强层，不是唯一生产路径。不启用 `--llm` 时，离线 7 文件输出保持不变。启用后，LLM 输出是额外文件，不覆盖离线 `cards.jsonl`、`qa_pairs.jsonl`、`glossary.jsonl`。
+
+命令示例：
+
+```bash
+heitang-kb-forge build --input ./input.md --output ./output --llm --llm-provider fake --llm-model fake-model
+```
+
+fake provider 可用于本地测试，不真实联网。
+
+启用 `--llm` 后会额外生成：
+
+- `llm_cards.jsonl`
+- `llm_qa_pairs.jsonl`
+- `llm_glossary.jsonl`
+- `frameworks.jsonl`
+- `case_cards.jsonl`
+- `metrics.jsonl`
+
+LLM 记录包含：
+
+- `source_path`
+- `chunk_id`
+- `citation`
+- `confidence`
+- `llm_provider`
+- `llm_model`
+- `token_usage`
+- `cache_key`
+
+LLM 失败策略：
+
+- 默认 fallback，不影响离线构建成功。
+- `--llm-strict` 下，当前 build / batch item / merge group 失败。
+
+安全边界：
+
+- 不把 API key 写入输出文件、cache、report。
+- 测试只使用 fake provider，不真实联网。
+
+当前不做：
+
+- RAG 导出。
+- 向量库。
+- Agent Template。
+- Web UI。
 
 ## 输出文件说明
 
@@ -212,7 +282,7 @@ pytest
 - 不连接向量数据库
 - 不调用外部 LLM
 - 文本型 PDF 优先直接解析，扫描版 PDF / 图片型 PDF 可在 OCR extra 可用时 fallback 到 OCR
-- DOCX 仅支持文本抽取
+- DOCX 支持段落文本抽取和内嵌表格抽取
 - 图片 OCR 仅支持 PNG、JPG、JPEG
 - 表格文件仅支持 CSV、TSV、XLSX
 - 不支持图片内容解析

@@ -19,11 +19,13 @@ The project is intentionally offline: no Web UI, no vector database, and no exte
 - Optional image OCR support for PNG, JPG, and JPEG
 - Optional scanned PDF OCR fallback
 - Structured table file ingestion for CSV, TSV, and XLSX
+- DOCX embedded table extraction
+- Opt-in LLM structured extraction
 - Single-file `build`
 - Numbered-file batch production with `batch`
 - Offline knowledge asset quality enhancement for cards, QA pairs, and glossary terms
 - Text-based PDF is parsed directly; scanned or image-based PDF can fall back to OCR when text extraction is empty or too short
-- DOCX support is limited to text extraction; image semantic understanding and complex table reconstruction are not supported
+- DOCX supports paragraph text extraction and embedded table extraction; merged cell semantic reconstruction is not supported
 - Chunk validation for empty chunks, duplicate chunks, and missing fields
 
 ## Install
@@ -94,7 +96,7 @@ OCR boundaries:
 - No table reconstruction.
 - No table structure recognition.
 - No OCR correction.
-- PDF / DOCX embedded table extraction is planned for v0.4.3.
+- No PDF table extraction in v0.4.3.
 
 ## Table File Ingestion
 
@@ -133,15 +135,83 @@ Sheet: 商品列表. Row 2. 书名: 产品经理入门. 作者: 张三.
 Table ingestion boundaries:
 
 - No `.xls` support.
-- No PDF / DOCX embedded table extraction.
+- No PDF embedded table extraction.
 - No image table OCR.
 - No scanned table structure recognition.
 - No formula engine.
 - No complex data analysis.
 - No LLM integration.
 - No vector database integration.
-- PDF / DOCX embedded table extraction is planned for v0.4.3.
-- LLM structured extraction is planned for v0.5.0.
+
+## DOCX Embedded Tables
+
+v0.4.3 adds DOCX embedded table extraction while preserving paragraph text extraction.
+
+DOCX tables are converted into readable text and continue through the existing clean, chunk, extractor, and quality pipeline.
+
+Example converted row:
+
+```text
+Table 1. Row 2. Field A: Value A. Field B: Value B.
+```
+
+Boundaries:
+
+- No semantic reconstruction for merged cells.
+- No PDF table extraction in v0.4.3.
+- No image table OCR.
+- No scanned table structure recognition.
+
+## LLM Structured Extraction
+
+v0.5.0 adds opt-in LLM structured extraction. LLM extraction is disabled by default and only runs when `--llm` is provided.
+
+LLM is an enhancement layer, not the only production path. Without `--llm`, the offline 7-file output remains unchanged. When enabled, LLM output is extra and does not overwrite offline `cards.jsonl`, `qa_pairs.jsonl`, or `glossary.jsonl`.
+
+Example:
+
+```bash
+heitang-kb-forge build --input ./input.md --output ./output --llm --llm-provider fake --llm-model fake-model
+```
+
+The fake provider is available for local testing and does not access the network.
+
+With `--llm`, these extra files are generated:
+
+- `llm_cards.jsonl`
+- `llm_qa_pairs.jsonl`
+- `llm_glossary.jsonl`
+- `frameworks.jsonl`
+- `case_cards.jsonl`
+- `metrics.jsonl`
+
+LLM records include:
+
+- `source_path`
+- `chunk_id`
+- `citation`
+- `confidence`
+- `llm_provider`
+- `llm_model`
+- `token_usage`
+- `cache_key`
+
+LLM failure behavior:
+
+- By default, LLM failure falls back to the offline path and keeps the build successful.
+- With `--llm-strict`, LLM failure fails the current build, batch item, or merge group.
+
+Security boundaries:
+
+- API keys are not written to output files, cache, or reports.
+- Tests use the fake provider and do not access the network.
+
+Not included yet:
+
+- No RAG export.
+- No vector database integration.
+- No Agent Template.
+- No Web UI.
 
 ## Batch
 
@@ -265,6 +335,7 @@ The output directory contains:
 - `glossary.jsonl`: English and Chinese glossary term candidates
 - `manifest.json`: package metadata and counts
 - `ingest_report.md`: human-readable ingest summary and warnings
+- `quality_report.json`: machine-readable quality summary
 
 ## Knowledge Asset Quality
 
