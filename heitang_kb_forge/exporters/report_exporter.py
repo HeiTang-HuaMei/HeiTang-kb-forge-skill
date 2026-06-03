@@ -8,10 +8,12 @@ def write_report(
     manifest: Manifest,
     quality_report: dict | None = None,
     llm_summary: dict | None = None,
+    rag_summary: dict | None = None,
 ) -> None:
     warning_lines = "\n".join(f"- {item}" for item in manifest.warnings) or "- None"
     quality_summary = _quality_summary(quality_report)
     llm_section = f"\n## LLM Summary\n\n{_llm_summary(llm_summary)}\n" if llm_summary else ""
+    rag_section = f"\n## RAG Summary\n\n{_rag_summary(rag_summary)}\n" if rag_summary else ""
     content = f"""# KB Forge Ingest Report
 
 ## Summary
@@ -28,6 +30,7 @@ def write_report(
 
 {quality_summary}
 {llm_section}
+{rag_section}
 
 ## Output Files
 
@@ -65,3 +68,18 @@ def _llm_summary(llm_summary: dict | None) -> str:
 - Output files:
 {output_files}
 - Warnings count: {llm_summary['warnings_count']}"""
+
+
+def _rag_summary(rag_summary: dict | None) -> str:
+    if not rag_summary:
+        return "- Enabled: False"
+    output_files = "\n".join(f"  - {name}" for name in rag_summary["output_files"]) or "  - None"
+    counts = "\n".join(f"  - {key}: {value}" for key, value in rag_summary["asset_type_counts"].items()) or "  - None"
+    return f"""- Enabled: {rag_summary['enabled']}
+- Profile: {rag_summary['profile']}
+- Include LLM: {rag_summary['include_llm']}
+- Output files:
+{output_files}
+- Total records: {rag_summary['total_records']}
+- Asset type counts:
+{counts}"""

@@ -18,6 +18,7 @@ from heitang_kb_forge.processors.cleaner import clean_text
 from heitang_kb_forge.processors.extractor import make_cards, make_glossary, make_qa_pairs
 from heitang_kb_forge.processors.quality import make_quality_report
 from heitang_kb_forge.processors.validator import validate_chunks
+from heitang_kb_forge.rag.exporter import RAGOptions, RAG_OUTPUT_FILES, make_rag_export
 from heitang_kb_forge.schemas.chunk_schema import Chunk
 from heitang_kb_forge.schemas.manifest_schema import Manifest
 
@@ -56,6 +57,9 @@ def build(
     llm_model: str = typer.Option("fake-model", "--llm-model"),
     llm_cache: bool = typer.Option(True, "--llm-cache/--no-llm-cache"),
     llm_strict: bool = typer.Option(False, "--llm-strict"),
+    rag_export: bool = typer.Option(False, "--rag-export"),
+    rag_profile: str = typer.Option("basic", "--rag-profile"),
+    rag_include_llm: bool = typer.Option(False, "--rag-include-llm"),
 ) -> None:
     """Parse source files and write a V0 knowledge base package."""
     manifest = _build_package(
@@ -66,6 +70,7 @@ def build(
         max_chars,
         overlap_chars,
         llm_options=LLMOptions(llm, llm_provider, llm_model, llm_cache, llm_strict),
+        rag_options=RAGOptions(rag_export, rag_profile, rag_include_llm),
     )
 
     typer.echo(f"Built knowledge package at {output}")
@@ -86,15 +91,19 @@ def batch(
     llm_model: str = typer.Option("fake-model", "--llm-model"),
     llm_cache: bool = typer.Option(True, "--llm-cache/--no-llm-cache"),
     llm_strict: bool = typer.Option(False, "--llm-strict"),
+    rag_export: bool = typer.Option(False, "--rag-export"),
+    rag_profile: str = typer.Option("basic", "--rag-profile"),
+    rag_include_llm: bool = typer.Option(False, "--rag-include-llm"),
 ) -> None:
     """Build one knowledge package per numbered source file."""
     output.mkdir(parents=True, exist_ok=True)
     numbered_sources = [path for path in sorted(input.iterdir()) if path.is_file() and _parse_numbered_stem(path)]
     llm_options = LLMOptions(llm, llm_provider, llm_model, llm_cache, llm_strict)
+    rag_options = RAGOptions(rag_export, rag_profile, rag_include_llm)
     items = (
-        _build_batch_groups(numbered_sources, output, domain, mode, max_chars, overlap_chars, llm_options)
+        _build_batch_groups(numbered_sources, output, domain, mode, max_chars, overlap_chars, llm_options, rag_options)
         if merge_same_sequence
-        else _build_batch_items(numbered_sources, output, domain, mode, max_chars, overlap_chars, llm_options)
+        else _build_batch_items(numbered_sources, output, domain, mode, max_chars, overlap_chars, llm_options, rag_options)
     )
     succeeded = sum(1 for item in items if item["status"] == "success")
     failed = sum(1 for item in items if item["status"] == "failed")
@@ -127,6 +136,7 @@ def _build_batch_items(
     max_chars: int,
     overlap_chars: int,
     llm_options: LLMOptions | None = None,
+    rag_options: RAGOptions | None = None,
 ) -> list[dict]:
     items: list[dict] = []
 
@@ -150,7 +160,16 @@ def _build_batch_items(
             if item_output.exists():
                 raise FileExistsError(f"Output directory already exists: {item_output}")
 
-            manifest = _build_package(source, item_output, domain, mode, max_chars, overlap_chars, llm_options=llm_options)
+            manifest = _build_package(
+                source,
+                item_output,
+                domain,
+                mode,
+                max_chars,
+                overlap_chars,
+                llm_options=llm_options,
+                rag_options=rag_options,
+            )
             item["status"] = "success"
             item["chunk_count"] = manifest.chunk_count
             item["files"] = manifest.files
@@ -170,6 +189,7 @@ def _build_batch_groups(
     max_chars: int,
     overlap_chars: int,
     llm_options: LLMOptions | None = None,
+    rag_options: RAGOptions | None = None,
 ) -> list[dict]:
     groups: dict[str, list[Path]] = {}
     for source in numbered_sources:
@@ -210,6 +230,7 @@ def _build_batch_groups(
                 overlap_chars,
                 source_files=sources,
                 llm_options=llm_options,
+                rag_options=rag_options,
             )
             item["status"] = "success"
             item["chunk_count"] = manifest.chunk_count
@@ -232,6 +253,7 @@ def _build_package(
     overlap_chars: int,
     source_files: list[Path] | None = None,
     llm_options: LLMOptions | None = None,
+    rag_options: RAGOptions | None = None,
 ) -> Manifest:
     output.mkdir(parents=True, exist_ok=True)
     source_files = source_files if source_files is not None else _collect_sources(input)
@@ -270,6 +292,25 @@ def _build_package(
     quality_report = make_quality_report(len(source_files), all_chunks, cards, qa_pairs, glossary)
     llm_options = llm_options or LLMOptions()
     llm_result = extract_llm_assets(all_chunks, llm_options) if llm_options.enabled else None
+    rag_options = rag_options or RAGOptions()
+    rag_warnings: list[str] = []
+    if rag_options.enabled and rag_options.include_llm and not llm_options.enabled:
+        rag_warnings.append("RAG include LLM requested but LLM is not enabled")
+    rag_result = (
+        make_rag_export(
+            chunks=all_chunks,
+            cards=cards,
+            qa_pairs=qa_pairs,
+            glossary=glossary,
+            quality_report=quality_report,
+            options=rag_options,
+            llm_outputs=llm_result.outputs if llm_result and rag_options.include_llm else None,
+        )
+        if rag_options.enabled
+        else None
+    )
+    if rag_result:
+        rag_result.warnings.extend(rag_warnings)
 
     files = [
         "chunks.jsonl",
@@ -282,6 +323,8 @@ def _build_package(
     ]
     if llm_options.enabled:
         files.extend(OUTPUT_FILES.values())
+    if rag_options.enabled:
+        files.extend(RAG_OUTPUT_FILES)
     manifest = Manifest(
         domain=domain,
         mode=mode,
@@ -292,7 +335,7 @@ def _build_package(
         glossary_count=len(glossary),
         files=files,
         quality_report_file="quality_report.json",
-        warnings=warnings + (llm_result.warnings if llm_result else []),
+        warnings=warnings + (llm_result.warnings if llm_result else []) + (rag_result.warnings if rag_result else rag_warnings),
     )
 
     write_jsonl(output / "chunks.jsonl", all_chunks)
@@ -302,6 +345,11 @@ def _build_package(
     if llm_options.enabled and llm_result:
         for extraction_type, file_name in OUTPUT_FILES.items():
             write_jsonl(output / file_name, llm_result.outputs[extraction_type])
+    if rag_options.enabled and rag_result:
+        write_jsonl(output / "embedding_input.jsonl", rag_result.embedding_inputs)
+        write_jsonl(output / "retrieval_metadata.jsonl", rag_result.retrieval_metadata)
+        write_json(output / "citation_map.json", rag_result.citation_map)
+        write_json(output / "rag_manifest.json", rag_result.rag_manifest)
     write_json(output / "quality_report.json", quality_report)
     manifest_payload = manifest.model_dump(mode="json")
     llm_summary = None
@@ -321,8 +369,25 @@ def _build_package(
                 "llm_output_files": llm_result.output_files,
             }
         )
+    rag_summary = None
+    if rag_options.enabled and rag_result:
+        rag_summary = {
+            "enabled": True,
+            "profile": rag_options.profile,
+            "include_llm": rag_options.include_llm,
+            "output_files": rag_result.output_files,
+            "total_records": rag_result.rag_manifest["total_records"],
+            "asset_type_counts": rag_result.rag_manifest["asset_type_counts"],
+        }
+        manifest_payload.update(
+            {
+                "rag_export_enabled": True,
+                "rag_profile": rag_options.profile,
+                "rag_export_files": rag_result.output_files,
+            }
+        )
     write_json(output / "manifest.json", manifest_payload)
-    write_report(output / "ingest_report.md", manifest, quality_report, llm_summary)
+    write_report(output / "ingest_report.md", manifest, quality_report, llm_summary, rag_summary)
 
     return manifest
 
