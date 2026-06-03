@@ -13,6 +13,7 @@ STANDARD_PACKAGE_FILES = {
     "glossary.jsonl",
     "manifest.json",
     "ingest_report.md",
+    "quality_report.json",
 }
 
 
@@ -135,6 +136,7 @@ def test_batch_build_merges_same_sequence_when_enabled(tmp_path):
         "glossary.jsonl",
         "manifest.json",
         "ingest_report.md",
+        "quality_report.json",
     ]
     assert items["003"]["status"] == "failed"
     assert "Unsupported file extension in group" in items["003"]["error"]

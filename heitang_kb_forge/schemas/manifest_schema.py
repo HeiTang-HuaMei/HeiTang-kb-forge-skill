@@ -14,4 +14,5 @@ class Manifest(BaseModel):
     qa_pair_count: int
     glossary_count: int
     files: list[str]
+    quality_report_file: str | None = None
     warnings: list[str] = Field(default_factory=list)

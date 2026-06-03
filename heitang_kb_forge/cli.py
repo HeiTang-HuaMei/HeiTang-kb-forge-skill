@@ -13,6 +13,7 @@ from heitang_kb_forge.parsers.text_parser import parse_text
 from heitang_kb_forge.processors.chunker import chunk_text
 from heitang_kb_forge.processors.cleaner import clean_text
 from heitang_kb_forge.processors.extractor import make_cards, make_glossary, make_qa_pairs
+from heitang_kb_forge.processors.quality import make_quality_report
 from heitang_kb_forge.processors.validator import validate_chunks
 from heitang_kb_forge.schemas.chunk_schema import Chunk
 from heitang_kb_forge.schemas.manifest_schema import Manifest
@@ -234,8 +235,17 @@ def _build_package(
     cards = make_cards(all_chunks)
     qa_pairs = make_qa_pairs(all_chunks)
     glossary = make_glossary(all_chunks)
+    quality_report = make_quality_report(len(source_files), all_chunks, cards, qa_pairs, glossary)
 
-    files = ["chunks.jsonl", "cards.jsonl", "qa_pairs.jsonl", "glossary.jsonl", "manifest.json", "ingest_report.md"]
+    files = [
+        "chunks.jsonl",
+        "cards.jsonl",
+        "qa_pairs.jsonl",
+        "glossary.jsonl",
+        "manifest.json",
+        "ingest_report.md",
+        "quality_report.json",
+    ]
     manifest = Manifest(
         domain=domain,
         mode=mode,
@@ -245,6 +255,7 @@ def _build_package(
         qa_pair_count=len(qa_pairs),
         glossary_count=len(glossary),
         files=files,
+        quality_report_file="quality_report.json",
         warnings=warnings,
     )
 
@@ -252,8 +263,9 @@ def _build_package(
     write_jsonl(output / "cards.jsonl", cards)
     write_jsonl(output / "qa_pairs.jsonl", qa_pairs)
     write_jsonl(output / "glossary.jsonl", glossary)
+    write_json(output / "quality_report.json", quality_report)
     write_json(output / "manifest.json", manifest)
-    write_report(output / "ingest_report.md", manifest)
+    write_report(output / "ingest_report.md", manifest, quality_report)
 
     return manifest
 
@@ -355,6 +367,7 @@ Each successful item directory contains:
 - glossary.jsonl
 - manifest.json
 - ingest_report.md
+- quality_report.json
 """
     path.write_text(content, encoding="utf-8")
 

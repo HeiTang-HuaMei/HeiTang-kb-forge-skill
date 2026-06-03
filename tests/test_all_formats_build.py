@@ -38,6 +38,7 @@ def test_build_processes_markdown_txt_pdf_and_docx(tmp_path):
         "glossary.jsonl",
         "manifest.json",
         "ingest_report.md",
+        "quality_report.json",
     }
 
     chunk_lines = (output_dir / "chunks.jsonl").read_text(encoding="utf-8").splitlines()

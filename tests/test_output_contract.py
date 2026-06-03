@@ -38,6 +38,7 @@ def test_build_writes_standard_knowledge_package(tmp_path):
         "glossary.jsonl",
         "manifest.json",
         "ingest_report.md",
+        "quality_report.json",
     }
     assert {path.name for path in output_dir.iterdir()} == expected_files
 
@@ -65,4 +66,6 @@ def test_build_writes_standard_knowledge_package(tmp_path):
         "glossary.jsonl",
         "manifest.json",
         "ingest_report.md",
+        "quality_report.json",
     ]
+    assert manifest["quality_report_file"] == "quality_report.json"
