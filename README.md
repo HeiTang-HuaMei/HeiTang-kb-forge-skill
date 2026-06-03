@@ -1,5 +1,7 @@
 # HeiTang KB Forge Skill
 
+[中文说明](README.zh-CN.md) | English
+
 `heitang-kb-forge-skill` is a local command-line tool for building a standardized knowledge base package from source documents.
 
 The project is intentionally offline: no Web UI, no vector database, and no external LLM.
