@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.4.1
+
+- Added scanned PDF OCR fallback.
+- Kept text-based PDF extraction as first priority.
+- Added OCR fallback for empty or too-short PDF text.
+- Added `pypdfium2` to optional `[ocr]` dependencies.
+- Added page markers for OCR text.
+- Preserved build / batch / merge CLI behavior.
+- Preserved standard output filenames.
+- Tests passed: 33 passed.
+
 ## v0.4.0
 
 - Added optional image OCR parser.

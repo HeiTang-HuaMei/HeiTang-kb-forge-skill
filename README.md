@@ -17,10 +17,12 @@ The project is intentionally offline: no Web UI, no vector database, and no exte
 - Stable reproducible `chunk_id`
 - Markdown, TXT, text-based PDF, and text-based DOCX parsing
 - Optional image OCR support for PNG, JPG, and JPEG
+- Optional scanned PDF OCR fallback
 - Single-file `build`
 - Numbered-file batch production with `batch`
 - Offline knowledge asset quality enhancement for cards, QA pairs, and glossary terms
-- PDF/DOCX support is limited to text extraction; scanned PDF OCR, image semantic understanding, and complex table reconstruction are not supported
+- Text-based PDF is parsed directly; scanned or image-based PDF can fall back to OCR when text extraction is empty or too short
+- DOCX support is limited to text extraction; image semantic understanding and complex table reconstruction are not supported
 - Chunk validation for empty chunks, duplicate chunks, and missing fields
 
 ## Install
@@ -32,11 +34,13 @@ python -m venv .venv
 pip install -e ".[dev]"
 ```
 
-Install optional OCR support for image inputs:
+Install optional OCR support for image inputs and scanned PDF fallback:
 
 ```bash
 pip install -e ".[ocr]"
 ```
+
+The OCR extra includes `pytesseract`, `Pillow`, and `pypdfium2`. A local Tesseract binary may still be required by your operating system.
 
 On macOS or Linux, activate with:
 
@@ -46,7 +50,7 @@ source .venv/bin/activate
 
 ## Run
 
-Add `.md`, `.txt`, text-based `.pdf`, text-based `.docx`, `.png`, `.jpg`, or `.jpeg` files under `examples/input`, then run:
+Add `.md`, `.txt`, `.pdf`, text-based `.docx`, `.png`, `.jpg`, or `.jpeg` files under `examples/input`, then run:
 
 ```bash
 heitang-kb-forge build --input ./examples/input --output ./examples/output --domain education --mode teaching
@@ -64,14 +68,31 @@ v0.4.0 adds optional OCR input support for `.png`, `.jpg`, and `.jpeg` files.
 
 OCR only extracts text from images. The extracted text continues through the existing clean, chunk, extractor, and quality pipeline. OCR dependencies are optional, so users without OCR support can continue using Markdown, TXT, text-based PDF, and text-based DOCX workflows.
 
+## Scanned PDF OCR
+
+v0.4.1 adds optional scanned PDF OCR fallback.
+
+Text-based PDF extraction remains the first priority. OCR fallback only runs when extracted PDF text is empty or too short. OCR text continues through the existing clean, chunk, extractor, and quality pipeline. Page OCR text is joined with markers such as `[Page 1]` and `[Page 2]`.
+
+PDF OCR uses the optional OCR dependency group:
+
+- `pytesseract`
+- `Pillow`
+- `pypdfium2`
+
+A local Tesseract binary may still be required.
+
 OCR boundaries:
 
-- Scanned PDF OCR is not supported in v0.4.0.
-- Scanned PDF OCR is planned for v0.4.1.
 - No LLM integration.
 - No vector database integration.
 - No image semantic understanding.
+- No layout reconstruction.
 - No table reconstruction.
+- No table structure recognition.
+- No OCR correction.
+- CSV / XLSX table ingestion is planned for v0.4.2.
+- PDF / DOCX embedded table extraction is planned for v0.4.3.
 
 ## Batch
 
