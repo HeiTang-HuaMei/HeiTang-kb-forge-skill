@@ -13,6 +13,7 @@ from heitang_kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
 from heitang_kb_forge.exporters.report_exporter import write_report
 from heitang_kb_forge.llm.extractor import LLMOptions, OUTPUT_FILES, extract_llm_assets
 from heitang_kb_forge.llm.prompt_profile import load_prompt_profile
+from heitang_kb_forge.llm.quality import LLM_QUALITY_OUTPUT_FILES, make_llm_quality_report
 from heitang_kb_forge.parsers.docx_parser import parse_docx
 from heitang_kb_forge.parsers.image_parser import parse_image
 from heitang_kb_forge.parsers.markdown_parser import parse_markdown
@@ -74,6 +75,7 @@ def build(
     llm_cache: bool = typer.Option(True, "--llm-cache/--no-llm-cache"),
     llm_strict: bool = typer.Option(False, "--llm-strict"),
     prompt_profile: Path | None = typer.Option(None, "--prompt-profile"),
+    llm_quality_report: bool = typer.Option(False, "--llm-quality-report"),
     rag_export: bool = typer.Option(False, "--rag-export"),
     rag_profile: str = typer.Option("basic", "--rag-profile"),
     rag_include_llm: bool = typer.Option(False, "--rag-include-llm"),
@@ -91,7 +93,15 @@ def build(
         mode,
         max_chars,
         overlap_chars,
-        llm_options=_make_llm_options(llm, llm_provider, llm_model, llm_cache, llm_strict, prompt_profile),
+        llm_options=_make_llm_options(
+            llm,
+            llm_provider,
+            llm_model,
+            llm_cache,
+            llm_strict,
+            prompt_profile,
+            llm_quality_report,
+        ),
         rag_options=RAGOptions(rag_export, rag_profile, rag_include_llm),
         agent_options=AgentOptions(
             enabled=agent_template,
@@ -121,6 +131,7 @@ def batch(
     llm_cache: bool = typer.Option(True, "--llm-cache/--no-llm-cache"),
     llm_strict: bool = typer.Option(False, "--llm-strict"),
     prompt_profile: Path | None = typer.Option(None, "--prompt-profile"),
+    llm_quality_report: bool = typer.Option(False, "--llm-quality-report"),
     rag_export: bool = typer.Option(False, "--rag-export"),
     rag_profile: str = typer.Option("basic", "--rag-profile"),
     rag_include_llm: bool = typer.Option(False, "--rag-include-llm"),
@@ -133,7 +144,15 @@ def batch(
     """Build one knowledge package per numbered source file."""
     output.mkdir(parents=True, exist_ok=True)
     numbered_sources = [path for path in sorted(input.iterdir()) if path.is_file() and _parse_numbered_stem(path)]
-    llm_options = _make_llm_options(llm, llm_provider, llm_model, llm_cache, llm_strict, prompt_profile)
+    llm_options = _make_llm_options(
+        llm,
+        llm_provider,
+        llm_model,
+        llm_cache,
+        llm_strict,
+        prompt_profile,
+        llm_quality_report,
+    )
     rag_options = RAGOptions(rag_export, rag_profile, rag_include_llm)
     agent_options = AgentOptions(
         enabled=agent_template,
@@ -223,6 +242,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         config_data.llm.cache,
         config_data.llm.strict,
         config_data.llm.prompt_profile,
+        config_data.llm.quality_report,
     )
     rag_options = RAGOptions(
         config_data.rag.enabled,
@@ -323,9 +343,12 @@ def _make_llm_options(
     cache: bool,
     strict: bool,
     prompt_profile_path: Path | None,
+    llm_quality_report: bool,
 ) -> LLMOptions:
     if prompt_profile_path and not enabled:
         raise ValueError("--prompt-profile requires --llm")
+    if llm_quality_report and not enabled:
+        raise ValueError("--llm-quality-report requires --llm")
     prompt_profile = None
     prompt_profile_hash = None
     if prompt_profile_path:
@@ -339,6 +362,7 @@ def _make_llm_options(
         prompt_profile_path=prompt_profile_path,
         prompt_profile=prompt_profile,
         prompt_profile_hash=prompt_profile_hash,
+        quality_report=llm_quality_report,
     )
 
 
@@ -516,6 +540,11 @@ def _build_package(
     quality_report = make_quality_report(len(source_files), all_chunks, cards, qa_pairs, glossary)
     llm_options = llm_options or LLMOptions()
     llm_result = extract_llm_assets(all_chunks, llm_options) if llm_options.enabled else None
+    llm_quality_result = (
+        make_llm_quality_report(llm_result.outputs, llm_options)
+        if llm_options.enabled and llm_options.quality_report and llm_result
+        else None
+    )
     rag_options = rag_options or RAGOptions()
     rag_warnings: list[str] = []
     if rag_options.enabled and rag_options.include_llm and not llm_options.enabled:
@@ -584,6 +613,8 @@ def _build_package(
     ]
     if llm_options.enabled:
         files.extend(OUTPUT_FILES.values())
+    if llm_options.enabled and llm_options.quality_report:
+        files.extend(LLM_QUALITY_OUTPUT_FILES)
     if rag_options.enabled:
         files.extend(RAG_OUTPUT_FILES)
     if agent_options.enabled:
@@ -610,6 +641,9 @@ def _build_package(
     if llm_options.enabled and llm_result:
         for extraction_type, file_name in OUTPUT_FILES.items():
             write_jsonl(output / file_name, llm_result.outputs[extraction_type])
+    if llm_quality_result:
+        write_json(output / "llm_quality_report.json", llm_quality_result.report.model_dump(mode="json"))
+        (output / "llm_quality_summary.md").write_text(llm_quality_result.summary, encoding="utf-8")
     if rag_options.enabled and rag_result:
         write_jsonl(output / "embedding_input.jsonl", rag_result.embedding_inputs)
         write_jsonl(output / "retrieval_metadata.jsonl", rag_result.retrieval_metadata)
@@ -628,6 +662,7 @@ def _build_package(
     write_json(output / "quality_report.json", quality_report)
     manifest_payload = manifest.model_dump(mode="json")
     llm_summary = None
+    llm_quality_summary = None
     if llm_options.enabled and llm_result:
         llm_summary = {
             "enabled": True,
@@ -650,6 +685,21 @@ def _build_package(
                 {
                     "llm_prompt_profile": llm_options.prompt_profile.profile_name,
                     "llm_prompt_profile_file": str(llm_options.prompt_profile_path).replace("\\", "/"),
+                }
+            )
+        if llm_quality_result:
+            llm_quality_summary = {
+                "enabled": True,
+                "llm_quality_score": llm_quality_result.report.llm_quality_score,
+                "llm_quality_level": llm_quality_result.report.llm_quality_level,
+                "warnings_count": len(llm_quality_result.report.warnings),
+                "output_files": llm_quality_result.output_files,
+            }
+            manifest_payload.update(
+                {
+                    "llm_quality_report_enabled": True,
+                    "llm_quality_report_file": "llm_quality_report.json",
+                    "llm_quality_summary_file": "llm_quality_summary.md",
                 }
             )
     rag_summary = None
@@ -703,7 +753,16 @@ def _build_package(
             }
         )
     write_json(output / "manifest.json", manifest_payload)
-    write_report(output / "ingest_report.md", manifest, quality_report, llm_summary, rag_summary, agent_summary, demo_summary)
+    write_report(
+        output / "ingest_report.md",
+        manifest,
+        quality_report,
+        llm_summary,
+        rag_summary,
+        agent_summary,
+        demo_summary,
+        llm_quality_summary,
+    )
 
     return manifest
 

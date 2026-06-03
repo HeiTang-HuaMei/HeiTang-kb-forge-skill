@@ -11,6 +11,7 @@ def write_report(
     rag_summary: dict | None = None,
     agent_summary: dict | None = None,
     demo_summary: dict | None = None,
+    llm_quality_summary: dict | None = None,
 ) -> None:
     warning_lines = "\n".join(f"- {item}" for item in manifest.warnings) or "- None"
     quality_summary = _quality_summary(quality_report)
@@ -18,6 +19,11 @@ def write_report(
     rag_section = f"\n## RAG Summary\n\n{_rag_summary(rag_summary)}\n" if rag_summary else ""
     agent_section = f"\n## Agent Template Summary\n\n{_agent_summary(agent_summary)}\n" if agent_summary else ""
     demo_section = f"\n## Demo Summary\n\n{_demo_summary(demo_summary)}\n" if demo_summary else ""
+    llm_quality_section = (
+        f"\n## LLM Quality Summary\n\n{_llm_quality_summary(llm_quality_summary)}\n"
+        if llm_quality_summary
+        else ""
+    )
     content = f"""# KB Forge Ingest Report
 
 ## Summary
@@ -37,6 +43,7 @@ def write_report(
 {rag_section}
 {agent_section}
 {demo_section}
+{llm_quality_section}
 
 ## Output Files
 
@@ -113,5 +120,17 @@ def _demo_summary(demo_summary: dict | None) -> str:
 - Quality score: {demo_summary['quality_score']}
 - Quality level: {demo_summary['quality_level']}
 - Warnings count: {demo_summary['warnings_count']}
+- Output files:
+{output_files}"""
+
+
+def _llm_quality_summary(llm_quality_summary: dict | None) -> str:
+    if not llm_quality_summary:
+        return "- Enabled: False"
+    output_files = "\n".join(f"  - {name}" for name in llm_quality_summary["output_files"]) or "  - None"
+    return f"""- Enabled: {llm_quality_summary['enabled']}
+- LLM quality score: {llm_quality_summary['llm_quality_score']}
+- LLM quality level: {llm_quality_summary['llm_quality_level']}
+- Warnings count: {llm_quality_summary['warnings_count']}
 - Output files:
 {output_files}"""

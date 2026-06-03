@@ -30,6 +30,7 @@ class LLMOptions:
     prompt_profile_path: Path | None = None
     prompt_profile: PromptProfile | None = None
     prompt_profile_hash: str | None = None
+    quality_report: bool = False
 
 
 @dataclass

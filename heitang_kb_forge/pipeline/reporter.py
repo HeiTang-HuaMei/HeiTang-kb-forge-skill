@@ -3,6 +3,7 @@ from pathlib import Path
 from heitang_kb_forge.agent.templates import AGENT_OUTPUT_FILES
 from heitang_kb_forge.eval.demo import DEMO_OUTPUT_FILES
 from heitang_kb_forge.llm.extractor import OUTPUT_FILES
+from heitang_kb_forge.llm.quality import LLM_QUALITY_OUTPUT_FILES
 from heitang_kb_forge.rag.exporter import RAG_OUTPUT_FILES
 from heitang_kb_forge.schemas.config_schema import ForgeConfig
 from heitang_kb_forge.schemas.pipeline_schema import PipelineManifest, PipelineStage
@@ -24,7 +25,7 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("source_ingestion", True, output, ["chunks.jsonl"], config.task),
         _stage("knowledge_package", True, output, STANDARD_PACKAGE_FILES, config.task),
         _stage("quality_report", True, output, ["quality_report.json"], config.task),
-        _stage("llm_extraction", config.llm.enabled, output, list(OUTPUT_FILES.values()), config.task),
+        _stage("llm_extraction", config.llm.enabled, output, _llm_output_files(config), config.task),
         _stage("rag_export", config.rag.enabled, output, RAG_OUTPUT_FILES, config.task),
         _stage("agent_template", config.agent.enabled, output, AGENT_OUTPUT_FILES, config.task),
         _stage("demo_report", config.demo.enabled, output, DEMO_OUTPUT_FILES, config.task),
@@ -50,6 +51,13 @@ def _stage(name: str, enabled: bool, output: Path, expected_files: list[str], ta
         return PipelineStage(name=name, enabled=False, status="skipped", output_files=[])
     status = "success" if _files_exist(output, expected_files, task) else "failed"
     return PipelineStage(name=name, enabled=True, status=status, output_files=expected_files)
+
+
+def _llm_output_files(config: ForgeConfig) -> list[str]:
+    files = list(OUTPUT_FILES.values())
+    if config.llm.quality_report:
+        files.extend(LLM_QUALITY_OUTPUT_FILES)
+    return files
 
 
 def _files_exist(output: Path, expected_files: list[str], task: str) -> bool:

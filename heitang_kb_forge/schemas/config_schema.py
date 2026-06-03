@@ -14,6 +14,7 @@ class LLMConfig(BaseModel):
     cache: bool = True
     strict: bool = False
     prompt_profile: Path | None = None
+    quality_report: bool = False
 
 
 class RAGConfig(BaseModel):
