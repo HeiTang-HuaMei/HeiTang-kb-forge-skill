@@ -2,6 +2,22 @@
 
 This changelog is normalized by logical capability versions. Some capabilities were implemented in compressed commits during development, but each logical version is listed separately here.
 
+## v1.6.1
+
+Added Skill Installability & Agent Integration Pack:
+
+- Added standard SKILL.md content for Agent-callable usage.
+- Added skill.json metadata.
+- Added doctor command.
+- Added doctor_report.json and doctor_report.md.
+- Added installation, quickstart, OCR setup, and Agent integration docs.
+- Added quickstart example package input and PowerShell runner.
+- Added smoke scripts for quickstart and Agent flow.
+- Added pyproject `all` optional extra.
+- Documented Tesseract and chi_sim as system OCR requirements.
+- Preserved Skill-first and CLI-first boundaries.
+- No EXE, sidecar, installer, auto-update, or UI feature work.
+
 ## v1.6.0
 
 Added Agent Tool / MCP Interface Core:

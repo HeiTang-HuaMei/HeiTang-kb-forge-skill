@@ -47,6 +47,12 @@ pdf-table = [
 web = [
   "streamlit>=1.35,<2",
 ]
+all = [
+  "pytesseract>=0.3,<1",
+  "Pillow>=10,<12",
+  "pypdfium2>=4,<5",
+  "pdfplumber>=0.11,<1",
+]
 
 [project.scripts]
 heitang-kb-forge = "heitang_kb_forge.cli:app"

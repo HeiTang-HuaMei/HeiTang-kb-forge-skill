@@ -42,6 +42,8 @@ Agent receives documents
 -> uses package for RAG / Q&A / planning / downstream export
 ```
 
+See `docs/AGENT_INTEGRATION.md` for OpenClaw, Claude Code, Codex, Generic Agent, and MCP-ready integration guidance.
+
 Future Skill interface structure is reserved:
 
 ```text
@@ -110,7 +112,25 @@ Optional Web UI:
 
     pip install -e ".[web]"
 
+Full optional local capabilities:
+
+    pip install -e ".[all]"
+
+OCR note: the `ocr` extra installs Python packages only. Tesseract OCR is a system dependency, and Simplified Chinese OCR requires `chi_sim.traineddata`.
+
+## Doctor
+
+Check installation and optional environment readiness:
+
+    python -m heitang_kb_forge.cli doctor --output .\doctor_out
+
+`doctor` reports required base checks as pass/fail and optional OCR / PDF table checks as warnings when missing.
+
 ## Quick Start
+
+Run the full quickstart:
+
+    .\examples\quickstart\run_quickstart.ps1
 
 Build a knowledge package:
 

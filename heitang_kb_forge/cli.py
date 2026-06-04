@@ -14,6 +14,7 @@ from heitang_kb_forge.agent_tools.exporter import make_tool_exports
 from heitang_kb_forge.agent_tools.invoker import invoke_tool
 from heitang_kb_forge.agent_tools.registry import get_agent_tool, list_agent_tools
 from heitang_kb_forge.config.loader import load_config
+from heitang_kb_forge.doctor import run_doctor
 from heitang_kb_forge.downstream.exporter import DOWNSTREAM_OUTPUT_FILES, make_downstream_exports
 from heitang_kb_forge.embedding.exporter import EMBEDDING_OUTPUT_FILES, make_embeddings
 from heitang_kb_forge.eval.demo import DEMO_OUTPUT_FILES, make_demo_report
@@ -464,6 +465,15 @@ def pipeline(
     (result.output / "pipeline_report.md").write_text(pipeline_report, encoding="utf-8")
     typer.echo(result.message)
     typer.echo(f"Built pipeline report at {result.output}")
+
+
+@app.command("doctor")
+def doctor(output: Path = typer.Option(..., "--output", "-o")) -> None:
+    """Check local installability and optional environment readiness."""
+    report, markdown = run_doctor(output)
+    write_json(output / "doctor_report.json", report)
+    (output / "doctor_report.md").write_text(markdown, encoding="utf-8")
+    typer.echo(f"Doctor status: {report['status']}")
 
 
 @app.command("lifecycle-check")

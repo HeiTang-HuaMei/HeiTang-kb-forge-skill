@@ -1,0 +1,22 @@
+import json
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_skill_metadata_files_exist_and_are_agent_readable():
+    skill_md = ROOT / "SKILL.md"
+    skill_json = ROOT / "skill.json"
+
+    assert skill_md.exists()
+    assert skill_json.exists()
+    text = skill_md.read_text(encoding="utf-8")
+    metadata = json.loads(skill_json.read_text(encoding="utf-8"))
+    assert "HeiTang KB Forge Skill" in text
+    assert "Agent knowledge supply-chain" in text
+    assert metadata["name"] == "heitang-kb-forge-skill"
+    assert metadata["version"] == "1.6.1"
+    assert metadata["entrypoints"]["cli"] == "heitang-kb-forge"
+    assert "build_knowledge_package" in metadata["capabilities"]
+    assert "chunks.jsonl" in metadata["output_contract"]

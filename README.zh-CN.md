@@ -42,6 +42,8 @@ Agent receives documents
 -> uses package for RAG / Q&A / planning / downstream export
 ```
 
+OpenClaw、Claude Code、Codex、Generic Agent 和 MCP-ready 接入说明见 `docs/AGENT_INTEGRATION.md`。
+
 后续 Skill 接口预留：
 
 ```text
@@ -110,7 +112,25 @@ PowerShell：
 
     pip install -e ".[web]"
 
+安装完整本地 optional 能力：
+
+    pip install -e ".[all]"
+
+OCR 说明：`ocr` extra 只安装 Python 包。Tesseract OCR 本体是系统依赖，中文 OCR 需要 `chi_sim.traineddata`。
+
+## Doctor 环境检查
+
+检查安装和 optional 环境：
+
+    python -m heitang_kb_forge.cli doctor --output .\doctor_out
+
+`doctor` 会把基础 Skill 能力缺失标记为 fail，把 OCR / PDF table 等 optional 缺失标记为 warning。
+
 ## 快速使用
+
+运行完整 quickstart：
+
+    .\examples\quickstart\run_quickstart.ps1
 
 生成知识包：
 

@@ -44,3 +44,34 @@ pip install -e ".[ocr]"
 ```
 
 Default Markdown, TXT, text-based PDF, DOCX, CSV, TSV, and XLSX behavior does not require OCR extras.
+
+Run doctor for environment diagnostics:
+
+```powershell
+python -m heitang_kb_forge.cli doctor --output .\doctor_out
+```
+
+## Tesseract Not In PATH
+
+If doctor reports `tesseract is not installed or not in PATH`, install Tesseract OCR for Windows and add its install directory to PATH.
+
+Verify:
+
+```powershell
+tesseract --version
+tesseract --list-langs
+```
+
+## chi_sim Missing
+
+If `tesseract --list-langs` does not show `chi_sim`, Simplified Chinese OCR will be limited. Install `chi_sim.traineddata` into the Tesseract `tessdata` directory.
+
+## PDF Table Optional Dependency
+
+If `pdfplumber` is missing, install:
+
+```powershell
+python -m pip install -e ".[pdf-table]"
+```
+
+PDF table extraction is optional and does not affect the base Skill flow.

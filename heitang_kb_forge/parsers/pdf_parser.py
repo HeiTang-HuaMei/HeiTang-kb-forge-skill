@@ -14,7 +14,11 @@ def parse_pdf(path: Path) -> str:
         parts = [text]
         if table_text:
             parts.append(table_text)
-        parts.extend(f"[Warning] {warning}" for warning in warnings if warning != PDF_TABLE_DEPENDENCY_WARNING)
+        parts.extend(
+            f"[Warning] {warning}"
+            for warning in warnings
+            if warning != PDF_TABLE_DEPENDENCY_WARNING and not warning.startswith("PDF table extraction failed for ")
+        )
         return "\n\n".join(part for part in parts if part)
     return _ocr_pdf_pages(path)
 
