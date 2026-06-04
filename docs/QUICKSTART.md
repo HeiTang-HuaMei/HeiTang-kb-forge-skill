@@ -19,3 +19,14 @@ Expected result:
 - A local SQLite store at `.\tmp_quickstart\kb_forge_workspace.db`.
 - Retrieval and answer artifacts under `.\tmp_quickstart\retrieve` and `.\tmp_quickstart\ask`.
 - Tool and MCP readiness exports under `.\tmp_quickstart\tools` and `.\tmp_quickstart\mcp`.
+
+Optional progress and large-file performance smoke:
+
+```powershell
+python -m heitang_kb_forge.cli build --input .\examples\quickstart\input --output .\tmp_quickstart\package_progress --domain demo --mode quickstart --progress-jsonl --profile fast
+```
+
+Expected additional files:
+
+- `progress_events.jsonl`
+- `large_file_performance_report.md`

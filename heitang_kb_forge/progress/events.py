@@ -11,12 +11,16 @@ STAGES = {
     "parse_source",
     "extract_pdf_text",
     "extract_pdf_table",
+    "pdf_preflight",
     "ocr_pdf",
     "ocr_page",
+    "ocr_cache_hit",
+    "ocr_cache_write",
     "clean_text",
     "chunk_text",
     "build_assets",
     "quality_report",
+    "performance_report",
     "rag_export",
     "agent_template",
     "validation",
@@ -51,3 +55,4 @@ class ProgressEvent(BaseModel):
     warning: str | None = None
     error: str | None = None
     output_path: str | None = None
+    metadata: dict | None = None

@@ -75,3 +75,22 @@ python -m pip install -e ".[pdf-table]"
 ```
 
 PDF table extraction is optional and does not affect the base Skill flow.
+
+## Large PDF or OCR Run Is Slow
+
+Use the combined progress and performance controls:
+
+```powershell
+heitang-kb-forge build --input .\input --output .\output --progress-jsonl --profile fast --ocr-mode first-pages --max-ocr-pages 10 --ocr-cache --resume
+```
+
+Inspect:
+
+- `progress_events.jsonl`
+- `pdf_preflight_report.json`
+- `pdf_page_classification.jsonl`
+- `ocr_failed_pages.jsonl`
+- `ocr_resume_report.md`
+- `large_file_performance_report.md`
+
+If OCR still takes too long, reduce `--max-ocr-pages`, use `--ocr-mode selected-pages --ocr-pages 1,3-5`, lower `--ocr-scale`, or increase `--ocr-workers` cautiously.

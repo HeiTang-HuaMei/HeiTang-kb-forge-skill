@@ -146,6 +146,25 @@ class AgentRAGConfig(BaseModel):
     scope: dict[str, str] = Field(default_factory=dict)
 
 
+class PerformanceConfig(BaseModel):
+    profile: str = "production"
+    progress: bool = False
+    progress_jsonl: bool = False
+    progress_log: Path | None = None
+    ocr_mode: str = "auto"
+    max_ocr_pages: int | None = None
+    ocr_pages: str | None = None
+    ocr_lang: str = "chi_sim+eng"
+    ocr_timeout_per_page: int = 120
+    ocr_workers: int = 1
+    ocr_cache: bool = False
+    ocr_cache_dir: Path | None = None
+    resume: bool = False
+    ocr_scale: float = 1.5
+    skip_empty_pages: bool = True
+    skip_low_text_pages: bool = False
+
+
 class ForgeConfig(BaseModel):
     task: str
     input: Path
@@ -181,3 +200,4 @@ class ForgeConfig(BaseModel):
     planning_readiness: PlanningReadinessConfig = Field(default_factory=PlanningReadinessConfig)
     store: StoreConfig = Field(default_factory=StoreConfig)
     agent_rag: AgentRAGConfig = Field(default_factory=AgentRAGConfig)
+    performance: PerformanceConfig = Field(default_factory=PerformanceConfig)

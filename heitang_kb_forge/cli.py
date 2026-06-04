@@ -38,10 +38,11 @@ from heitang_kb_forge.exporters.report_exporter import write_report
 from heitang_kb_forge.llm.extractor import LLMOptions, OUTPUT_FILES, extract_llm_assets
 from heitang_kb_forge.llm.prompt_profile import load_prompt_profile
 from heitang_kb_forge.llm.quality import LLM_QUALITY_OUTPUT_FILES, make_llm_quality_report
+from heitang_kb_forge.ocr.report import make_performance_report, make_resume_report
 from heitang_kb_forge.parsers.docx_parser import parse_docx
 from heitang_kb_forge.parsers.image_parser import parse_image
 from heitang_kb_forge.parsers.markdown_parser import parse_markdown
-from heitang_kb_forge.parsers.pdf_parser import parse_pdf
+from heitang_kb_forge.parsers.pdf_parser import PDFParseOptions, parse_pdf
 from heitang_kb_forge.parsers.table_parser import parse_csv, parse_tsv, parse_xlsx
 from heitang_kb_forge.parsers.text_parser import parse_text
 from heitang_kb_forge.processors.chunker import chunk_text
@@ -51,6 +52,7 @@ from heitang_kb_forge.processors.extractor import make_cards, make_glossary, mak
 from heitang_kb_forge.processors.quality import make_quality_report
 from heitang_kb_forge.processors.validator import validate_chunks
 from heitang_kb_forge.pipeline.reporter import make_pipeline_report
+from heitang_kb_forge.progress.reporter import ProgressReporter, make_progress_reporter
 from heitang_kb_forge.quality_gate.gate import QUALITY_GATE_OUTPUT_FILES, evaluate_quality_gate
 from heitang_kb_forge.rag.exporter import RAGOptions, RAG_OUTPUT_FILES, make_rag_export
 from heitang_kb_forge.refresh.checker import make_refresh_plan
@@ -169,6 +171,28 @@ class StoreOptions:
     export_index: bool = False
 
 
+@dataclass
+class PerformanceOptions:
+    enabled: bool = False
+    progress: bool = False
+    progress_jsonl: bool = False
+    progress_log: Path | None = None
+    verbose: bool = False
+    profile: str = "production"
+    ocr_mode: str = "auto"
+    ocr_lang: str = "chi_sim+eng"
+    ocr_timeout_per_page: int = 120
+    max_ocr_pages: int | None = None
+    ocr_pages: str | None = None
+    ocr_workers: int = 1
+    ocr_scale: float = 1.5
+    ocr_cache: bool = False
+    ocr_cache_dir: Path | None = None
+    resume: bool = False
+    skip_empty_pages: bool = True
+    skip_low_text_pages: bool = False
+
+
 HARDENING_TRACE_FILES = ["run_manifest.json", "stage_trace.jsonl", "error_report.json"]
 
 
@@ -220,6 +244,23 @@ def build(
     agent_name: str | None = typer.Option(None, "--agent-name"),
     agent_language: str = typer.Option("zh-CN", "--agent-language"),
     demo_report: bool = typer.Option(False, "--demo-report"),
+    progress: bool = typer.Option(False, "--progress"),
+    progress_jsonl: bool = typer.Option(False, "--progress-jsonl"),
+    progress_log: Path | None = typer.Option(None, "--progress-log"),
+    verbose: bool = typer.Option(False, "--verbose"),
+    profile: str = typer.Option("production", "--profile"),
+    ocr_mode: str = typer.Option("auto", "--ocr-mode"),
+    ocr_lang: str = typer.Option("chi_sim+eng", "--ocr-lang"),
+    ocr_timeout_per_page: int = typer.Option(120, "--ocr-timeout-per-page"),
+    max_ocr_pages: int | None = typer.Option(None, "--max-ocr-pages"),
+    ocr_pages: str | None = typer.Option(None, "--ocr-pages"),
+    ocr_workers: int = typer.Option(1, "--ocr-workers"),
+    ocr_scale: float = typer.Option(1.5, "--ocr-scale"),
+    ocr_cache: bool = typer.Option(False, "--ocr-cache"),
+    ocr_cache_dir: Path | None = typer.Option(None, "--ocr-cache-dir"),
+    resume: bool = typer.Option(False, "--resume"),
+    skip_empty_pages: bool = typer.Option(True, "--skip-empty-pages/--no-skip-empty-pages"),
+    skip_low_text_pages: bool = typer.Option(False, "--skip-low-text-pages"),
 ) -> None:
     """Parse source files and write a V0 knowledge base package."""
     manifest = _build_package(
@@ -267,6 +308,25 @@ def build(
             retry_manifest=retry_manifest,
         ),
         hardening_options=HardeningOptions(quality_gate or quality_gate_strict, quality_gate_strict, run_manifest),
+        performance_options=_make_performance_options(
+            progress,
+            progress_jsonl,
+            progress_log,
+            verbose,
+            profile,
+            ocr_mode,
+            ocr_lang,
+            ocr_timeout_per_page,
+            max_ocr_pages,
+            ocr_pages,
+            ocr_workers,
+            ocr_scale,
+            ocr_cache,
+            ocr_cache_dir,
+            resume,
+            skip_empty_pages,
+            skip_low_text_pages,
+        ),
         demo_report=demo_report,
     )
 
@@ -322,6 +382,16 @@ def batch(
     agent_name: str | None = typer.Option(None, "--agent-name"),
     agent_language: str = typer.Option("zh-CN", "--agent-language"),
     demo_report: bool = typer.Option(False, "--demo-report"),
+    progress: bool = typer.Option(False, "--progress"),
+    progress_jsonl: bool = typer.Option(False, "--progress-jsonl"),
+    progress_log: Path | None = typer.Option(None, "--progress-log"),
+    verbose: bool = typer.Option(False, "--verbose"),
+    profile: str = typer.Option("production", "--profile"),
+    ocr_mode: str = typer.Option("auto", "--ocr-mode"),
+    max_ocr_pages: int | None = typer.Option(None, "--max-ocr-pages"),
+    ocr_workers: int = typer.Option(1, "--ocr-workers"),
+    ocr_cache: bool = typer.Option(False, "--ocr-cache"),
+    resume: bool = typer.Option(False, "--resume"),
 ) -> None:
     """Build one knowledge package per numbered source file."""
     output.mkdir(parents=True, exist_ok=True)
@@ -366,6 +436,34 @@ def batch(
         quality_gate=quality_gate or quality_gate_strict,
         retry_manifest=retry_manifest,
     )
+    performance_options = _make_performance_options(
+        progress,
+        progress_jsonl,
+        progress_log,
+        verbose,
+        profile,
+        ocr_mode,
+        "chi_sim+eng",
+        120,
+        max_ocr_pages,
+        None,
+        ocr_workers,
+        1.5,
+        ocr_cache,
+        None,
+        resume,
+        True,
+        False,
+    )
+    batch_reporter = make_progress_reporter(
+        progress=performance_options.progress,
+        progress_jsonl=performance_options.progress_jsonl,
+        progress_log=performance_options.progress_log,
+        verbose=performance_options.verbose,
+    )
+    if batch_reporter:
+        batch_reporter.configure_default_log(output)
+        batch_reporter.emit("batch_started", "started", f"Batch started with {len(numbered_sources)} items", total_files=len(numbered_sources), output_path=str(output))
     items = (
         _build_batch_groups(
             numbered_sources,
@@ -383,6 +481,8 @@ def batch(
             v11_options,
             lifecycle_options,
             hardening_options,
+            performance_options,
+            batch_reporter,
             max_chunks,
             continue_on_error,
             fail_fast,
@@ -406,6 +506,8 @@ def batch(
             v11_options,
             lifecycle_options,
             hardening_options,
+            performance_options,
+            batch_reporter,
             max_chunks,
             continue_on_error,
             fail_fast,
@@ -430,6 +532,8 @@ def batch(
     }
     if merge_same_sequence:
         batch_manifest["total_groups"] = len(items)
+    if batch_reporter:
+        batch_reporter.emit("batch_done", "success", f"Batch done: {succeeded} succeeded, {failed} failed", total_files=len(numbered_sources), output_path=str(output))
 
     write_json(output / "batch_manifest.json", batch_manifest)
     _write_batch_report(output / "batch_report.md", batch_manifest)
@@ -456,9 +560,30 @@ def run(
 @app.command()
 def pipeline(
     config: Path = typer.Option(..., "--config", "-c", exists=True, file_okay=True, dir_okay=False, readable=True),
+    progress: bool = typer.Option(False, "--progress"),
+    progress_jsonl: bool = typer.Option(False, "--progress-jsonl"),
+    progress_log: Path | None = typer.Option(None, "--progress-log"),
+    profile: str = typer.Option("production", "--profile"),
+    ocr_mode: str = typer.Option("auto", "--ocr-mode"),
+    max_ocr_pages: int | None = typer.Option(None, "--max-ocr-pages"),
+    ocr_workers: int = typer.Option(1, "--ocr-workers"),
+    ocr_cache: bool = typer.Option(False, "--ocr-cache"),
+    resume: bool = typer.Option(False, "--resume"),
 ) -> None:
     """Run a config-driven pipeline and write pipeline reports."""
     config_data = load_config(config)
+    _apply_performance_overrides(
+        config_data,
+        progress=progress,
+        progress_jsonl=progress_jsonl,
+        progress_log=progress_log,
+        profile=profile,
+        ocr_mode=ocr_mode,
+        max_ocr_pages=max_ocr_pages,
+        ocr_workers=ocr_workers,
+        ocr_cache=ocr_cache,
+        resume=resume,
+    )
     result = _run_config(config_data)
     pipeline_manifest, pipeline_report = make_pipeline_report(config_file=config, config=result.config, output=result.output)
     write_json(result.output / "pipeline_manifest.json", pipeline_manifest.model_dump(mode="json"))
@@ -875,6 +1000,25 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         quality_gate=config_data.lifecycle.quality_gate,
         retry_manifest=config_data.lifecycle.retry_manifest,
     )
+    performance_options = _make_performance_options(
+        config_data.performance.progress,
+        config_data.performance.progress_jsonl,
+        config_data.performance.progress_log,
+        False,
+        config_data.performance.profile,
+        config_data.performance.ocr_mode,
+        config_data.performance.ocr_lang,
+        config_data.performance.ocr_timeout_per_page,
+        config_data.performance.max_ocr_pages,
+        config_data.performance.ocr_pages,
+        config_data.performance.ocr_workers,
+        config_data.performance.ocr_scale,
+        config_data.performance.ocr_cache,
+        config_data.performance.ocr_cache_dir,
+        config_data.performance.resume,
+        config_data.performance.skip_empty_pages,
+        config_data.performance.skip_low_text_pages,
+    )
     agent_options = AgentOptions(
         enabled=config_data.agent.enabled,
         agent_type=config_data.agent.type,
@@ -898,6 +1042,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             downstream_options=downstream_options,
             v11_options=v11_options,
             lifecycle_options=lifecycle_options,
+            performance_options=performance_options,
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
         )
@@ -932,6 +1077,8 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             downstream_options,
             v11_options,
             lifecycle_options,
+            None,
+            performance_options,
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
         )
@@ -951,6 +1098,8 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             downstream_options,
             v11_options,
             lifecycle_options,
+            None,
+            performance_options,
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
         )
@@ -980,6 +1129,39 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         output=output,
         message=f"Built batch knowledge packages at {output}\nTotal: {len(items)} | Succeeded: {succeeded} | Failed: {failed}",
     )
+
+
+def _apply_performance_overrides(
+    config_data: ForgeConfig,
+    *,
+    progress: bool,
+    progress_jsonl: bool,
+    progress_log: Path | None,
+    profile: str,
+    ocr_mode: str,
+    max_ocr_pages: int | None,
+    ocr_workers: int,
+    ocr_cache: bool,
+    resume: bool,
+) -> None:
+    if progress:
+        config_data.performance.progress = True
+    if progress_jsonl:
+        config_data.performance.progress_jsonl = True
+    if progress_log is not None:
+        config_data.performance.progress_log = progress_log
+    if profile != "production":
+        config_data.performance.profile = profile
+    if ocr_mode != "auto":
+        config_data.performance.ocr_mode = ocr_mode
+    if max_ocr_pages is not None:
+        config_data.performance.max_ocr_pages = max_ocr_pages
+    if ocr_workers != 1:
+        config_data.performance.ocr_workers = ocr_workers
+    if ocr_cache:
+        config_data.performance.ocr_cache = True
+    if resume:
+        config_data.performance.resume = True
 
 
 def _run_v12_config_outputs(config_data: ForgeConfig, output: Path) -> None:
@@ -1099,6 +1281,70 @@ def _make_vector_options(enabled: bool, store: str, embedding_enabled: bool) -> 
     return VectorOptions(enabled=enabled, store=store)
 
 
+def _make_performance_options(
+    progress: bool,
+    progress_jsonl: bool,
+    progress_log: Path | None,
+    verbose: bool,
+    profile: str,
+    ocr_mode: str,
+    ocr_lang: str,
+    ocr_timeout_per_page: int,
+    max_ocr_pages: int | None,
+    ocr_pages: str | None,
+    ocr_workers: int,
+    ocr_scale: float,
+    ocr_cache: bool,
+    ocr_cache_dir: Path | None,
+    resume: bool,
+    skip_empty_pages: bool,
+    skip_low_text_pages: bool,
+) -> PerformanceOptions:
+    if profile == "fast" and max_ocr_pages is None:
+        max_ocr_pages = 10
+    enabled = any(
+        [
+            progress,
+            progress_jsonl,
+            progress_log is not None,
+            verbose,
+            profile != "production",
+            ocr_mode != "auto",
+            ocr_lang != "chi_sim+eng",
+            ocr_timeout_per_page != 120,
+            max_ocr_pages is not None,
+            ocr_pages is not None,
+            ocr_workers != 1,
+            ocr_scale != 1.5,
+            ocr_cache,
+            ocr_cache_dir is not None,
+            resume,
+            not skip_empty_pages,
+            skip_low_text_pages,
+        ]
+    )
+    return PerformanceOptions(
+        enabled=enabled,
+        progress=progress,
+        progress_jsonl=progress_jsonl,
+        progress_log=progress_log,
+        verbose=verbose,
+        profile=profile,
+        ocr_mode=ocr_mode,
+        ocr_lang=ocr_lang,
+        ocr_timeout_per_page=ocr_timeout_per_page,
+        max_ocr_pages=max_ocr_pages,
+        ocr_pages=ocr_pages,
+        ocr_workers=max(1, ocr_workers),
+        ocr_scale=ocr_scale,
+        ocr_cache=ocr_cache,
+        ocr_cache_dir=ocr_cache_dir,
+        resume=resume,
+        skip_empty_pages=skip_empty_pages,
+        skip_low_text_pages=skip_low_text_pages,
+    )
+
+
 def _build_batch_items(
     numbered_sources: list[Path],
     output: Path,
@@ -1115,6 +1361,8 @@ def _build_batch_items(
     v11_options: V11Options | None = None,
     lifecycle_options: LifecycleOptions | None = None,
     hardening_options: HardeningOptions | None = None,
+    performance_options: PerformanceOptions | None = None,
+    batch_reporter: ProgressReporter | None = None,
     max_chunks: int | None = None,
     continue_on_error: bool = True,
     fail_fast: bool = False,
@@ -1125,8 +1373,11 @@ def _build_batch_items(
     total_chunks = 0
 
     for source in numbered_sources:
+        item_index = len(items) + 1
         sequence_id, name = _parse_numbered_stem(source) or ("", "")
         item_output = output / f"{sequence_id}_{_safe_output_name(name)}"
+        if batch_reporter:
+            batch_reporter.emit("batch_item_started", "running", f"Batch item {item_index}/{len(numbered_sources)} started", current_file=str(source), current_file_index=item_index, total_files=len(numbered_sources), output_path=str(item_output))
         item = {
             "sequence_id": sequence_id,
             "name": name,
@@ -1160,6 +1411,7 @@ def _build_batch_items(
                 v11_options=v11_options,
                 lifecycle_options=lifecycle_options,
                 hardening_options=hardening_options,
+                performance_options=performance_options,
                 agent_options=agent_options,
                 demo_report=demo_report,
             )
@@ -1167,8 +1419,12 @@ def _build_batch_items(
             item["chunk_count"] = manifest.chunk_count
             item["files"] = manifest.files
             total_chunks += manifest.chunk_count
+            if batch_reporter:
+                batch_reporter.emit("batch_item_success", "success", f"Batch item {item_index}/{len(numbered_sources)} succeeded", current_file=str(source), current_file_index=item_index, total_files=len(numbered_sources), output_path=str(item_output))
         except Exception as exc:
             item["error"] = str(exc)
+            if batch_reporter:
+                batch_reporter.emit("batch_item_failed", "failed", f"Batch item {item_index}/{len(numbered_sources)} failed", current_file=str(source), current_file_index=item_index, total_files=len(numbered_sources), output_path=str(item_output), error=str(exc))
 
         items.append(item)
         if item["status"] == "failed" and (fail_fast or not continue_on_error):
@@ -1195,6 +1451,8 @@ def _build_batch_groups(
     v11_options: V11Options | None = None,
     lifecycle_options: LifecycleOptions | None = None,
     hardening_options: HardeningOptions | None = None,
+    performance_options: PerformanceOptions | None = None,
+    batch_reporter: ProgressReporter | None = None,
     max_chunks: int | None = None,
     continue_on_error: bool = True,
     fail_fast: bool = False,
@@ -1209,6 +1467,7 @@ def _build_batch_groups(
     items: list[dict] = []
     total_chunks = 0
     for sequence_id, sources in sorted(groups.items()):
+        item_index = len(items) + 1
         sources = sorted(sources, key=lambda path: path.name)
         _, group_name = _parse_numbered_stem(sources[0]) or (sequence_id, "")
         item_output = output / sequence_id
@@ -1223,6 +1482,8 @@ def _build_batch_groups(
             "source_count": len(sources),
             "files": [],
         }
+        if batch_reporter:
+            batch_reporter.emit("batch_item_started", "running", f"Batch group {item_index}/{len(groups)} started", current_file=", ".join(str(source) for source in sources), current_file_index=item_index, total_files=len(groups), output_path=str(item_output))
 
         try:
             unsupported = [source for source in sources if source.suffix.lower() not in PARSERS]
@@ -1249,6 +1510,7 @@ def _build_batch_groups(
                 v11_options=v11_options,
                 lifecycle_options=lifecycle_options,
                 hardening_options=hardening_options,
+                performance_options=performance_options,
                 agent_options=agent_options,
                 demo_report=demo_report,
             )
@@ -1257,8 +1519,12 @@ def _build_batch_groups(
             item["source_count"] = manifest.source_count
             item["files"] = manifest.files
             total_chunks += manifest.chunk_count
+            if batch_reporter:
+                batch_reporter.emit("batch_item_success", "success", f"Batch group {item_index}/{len(groups)} succeeded", current_file=", ".join(str(source) for source in sources), current_file_index=item_index, total_files=len(groups), output_path=str(item_output))
         except Exception as exc:
             item["error"] = str(exc)
+            if batch_reporter:
+                batch_reporter.emit("batch_item_failed", "failed", f"Batch group {item_index}/{len(groups)} failed", current_file=", ".join(str(source) for source in sources), current_file_index=item_index, total_files=len(groups), output_path=str(item_output), error=str(exc))
 
         items.append(item)
         if item["status"] == "failed" and (fail_fast or not continue_on_error):
@@ -1286,6 +1552,7 @@ def _build_package(
     v11_options: V11Options | None = None,
     lifecycle_options: LifecycleOptions | None = None,
     hardening_options: HardeningOptions | None = None,
+    performance_options: PerformanceOptions | None = None,
     agent_options: AgentOptions | None = None,
     demo_report: bool = False,
 ) -> Manifest:
@@ -1294,6 +1561,37 @@ def _build_package(
     v11_options = v11_options or V11Options()
     lifecycle_options = lifecycle_options or LifecycleOptions()
     hardening_options = hardening_options or HardeningOptions()
+    performance_options = performance_options or PerformanceOptions()
+    progress_reporter = make_progress_reporter(
+        progress=performance_options.progress,
+        progress_jsonl=performance_options.progress_jsonl,
+        progress_log=performance_options.progress_log,
+        verbose=performance_options.verbose,
+    )
+    if progress_reporter:
+        progress_reporter.configure_default_log(output)
+    if progress_reporter:
+        progress_reporter.emit("scan_sources", "success", f"Found {len(source_files)} source files", total_files=len(source_files), output_path=str(output))
+    pdf_options = (
+        PDFParseOptions(
+            profile=performance_options.profile,
+            ocr_mode=performance_options.ocr_mode,
+            ocr_lang=performance_options.ocr_lang,
+            timeout_per_page=performance_options.ocr_timeout_per_page,
+            max_pages=performance_options.max_ocr_pages,
+            selected_pages=performance_options.ocr_pages,
+            workers=performance_options.ocr_workers,
+            scale=performance_options.ocr_scale,
+            cache_enabled=performance_options.ocr_cache,
+            cache_dir=performance_options.ocr_cache_dir,
+            resume=performance_options.resume,
+            skip_empty_pages=performance_options.skip_empty_pages,
+            skip_low_text_pages=performance_options.skip_low_text_pages,
+            output_dir=output,
+        )
+        if performance_options.enabled
+        else None
+    )
     run_id = new_run_id() if hardening_options.run_manifest else None
     build_started_at = now_iso()
     profile = get_chunk_profile(v11_options.chunk_profile)
@@ -1303,36 +1601,55 @@ def _build_package(
     all_chunks: list[Chunk] = []
     warnings: list[str] = []
 
-    for source in source_files:
+    for source_index, source in enumerate(source_files, start=1):
         parser = PARSERS.get(source.suffix.lower())
         if parser is None:
             continue
+        if progress_reporter:
+            progress_reporter.emit("parse_source", "running", f"Parsing source: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files), metadata={"parser_type": source.suffix.lower().lstrip(".")})
         try:
-            raw = parser(source)
+            raw = (
+                parse_pdf(source, progress_callback=progress_reporter.callback() if progress_reporter else None, options=pdf_options)
+                if source.suffix.lower() == ".pdf"
+                else parser(source)
+            )
         except NotImplementedError as exc:
             warnings.append(str(exc))
             continue
+        except Exception as exc:
+            if progress_reporter:
+                progress_reporter.emit("failed", "failed", f"Source parsing failed: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files), error=str(exc))
+            raise
+        if progress_reporter:
+            progress_reporter.emit("clean_text", "running", f"Cleaning text: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files))
         cleaned = clean_text(raw)
         if not cleaned:
             warnings.append(f"Source produced no text: {source}")
+            if progress_reporter:
+                progress_reporter.emit("parse_source", "warning", f"Source produced no text: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files), warning="empty_text")
             continue
-        all_chunks.extend(
-            chunk_text(
-                cleaned,
-                source_path=source,
-                source_type=source.suffix.lower().lstrip("."),
-                domain=domain,
-                mode=mode,
-                max_chars=max_chars,
-                overlap_chars=overlap_chars,
-            )
+        source_chunks = chunk_text(
+            cleaned,
+            source_path=source,
+            source_type=source.suffix.lower().lstrip("."),
+            domain=domain,
+            mode=mode,
+            max_chars=max_chars,
+            overlap_chars=overlap_chars,
         )
+        all_chunks.extend(source_chunks)
+        if progress_reporter:
+            progress_reporter.emit("chunk_text", "success", f"Chunked source: {len(source_chunks)} chunks", current_file=str(source), current_file_index=source_index, total_files=len(source_files), metadata={"chunk_count": len(source_chunks)})
 
     warnings.extend(validate_chunks(all_chunks))
     cards = make_cards(all_chunks)
     qa_pairs = make_qa_pairs(all_chunks)
     glossary = make_glossary(all_chunks)
+    if progress_reporter:
+        progress_reporter.emit("build_assets", "success", "Built offline knowledge assets", metadata={"card_count": len(cards), "qa_count": len(qa_pairs), "glossary_count": len(glossary)})
     quality_report = make_quality_report(len(source_files), all_chunks, cards, qa_pairs, glossary)
+    if progress_reporter:
+        progress_reporter.emit("quality_report", "success", "Built quality report", metadata={"quality_score": quality_report.get("quality_score"), "quality_level": quality_report.get("quality_level")})
     llm_options = llm_options or LLMOptions()
     llm_result = extract_llm_assets(all_chunks, llm_options) if llm_options.enabled else None
     llm_quality_result = (
@@ -1359,6 +1676,8 @@ def _build_package(
     )
     if rag_result:
         rag_result.warnings.extend(rag_warnings)
+        if progress_reporter:
+            progress_reporter.emit("rag_export", "success", "Built RAG export", output_path=str(output / "rag_manifest.json"))
     embedding_options = embedding_options or EmbeddingOptions()
     embedding_records = []
     embedding_manifest = None
@@ -1465,6 +1784,19 @@ def _build_package(
         files.extend(RUNTIME_OUTPUT_FILES)
     if lifecycle_options.enabled:
         files.extend(LIFECYCLE_OUTPUT_FILES)
+    if performance_options.enabled:
+        files.extend(
+            [
+                "pdf_preflight_report.json",
+                "pdf_page_classification.jsonl",
+                "ocr_cache_manifest.json",
+                "ocr_failed_pages.jsonl",
+                "ocr_resume_report.md",
+                "large_file_performance_report.md",
+            ]
+        )
+    if progress_reporter and progress_reporter.log_path and progress_reporter.log_path.parent == output:
+        files.append(progress_reporter.log_path.name)
     if hardening_options.quality_gate:
         files.extend(VALIDATION_OUTPUT_FILES)
         files.extend(QUALITY_GATE_OUTPUT_FILES)
@@ -1520,17 +1852,31 @@ def _build_package(
         write_jsonl(output / "retrieval_eval_set.jsonl", retrieval_records)
         write_jsonl(output / "golden_qa.jsonl", golden_qa)
         write_jsonl(output / "citation_eval_set.jsonl", citation_eval)
+        if progress_reporter:
+            progress_reporter.emit("retrieval_eval", "success", "Built retrieval eval export", output_path=str(output))
     if agent_options.enabled and agent_result:
         (output / "agent_profile.yaml").write_text(agent_result.agent_profile, encoding="utf-8")
         (output / "system_prompt.md").write_text(agent_result.system_prompt, encoding="utf-8")
         (output / "retrieval_config.yaml").write_text(agent_result.retrieval_config, encoding="utf-8")
         (output / "tools.yaml").write_text(agent_result.tools, encoding="utf-8")
         write_jsonl(output / "eval_cases.jsonl", agent_result.eval_cases)
+        if progress_reporter:
+            progress_reporter.emit("agent_template", "success", "Built Agent Template", output_path=str(output / "agent_profile.yaml"))
     if demo_report and demo_result:
         (output / "demo_report.md").write_text(demo_result.demo_report, encoding="utf-8")
         write_json(output / "demo_manifest.json", demo_result.demo_manifest.model_dump(mode="json"))
         write_json(output / "eval_summary.json", demo_result.eval_summary.model_dump(mode="json"))
     write_json(output / "quality_report.json", quality_report)
+    if performance_options.enabled:
+        active_pdf_options = pdf_options or PDFParseOptions()
+        write_json(output / "pdf_preflight_report.json", {"pdf_preflight_version": "1.6.2", "reports": active_pdf_options.preflight_reports})
+        write_jsonl(output / "pdf_page_classification.jsonl", active_pdf_options.page_classifications)
+        write_jsonl(output / "ocr_failed_pages.jsonl", active_pdf_options.failed_pages)
+        write_json(output / "ocr_cache_manifest.json", {"ocr_cache_manifest_version": "1.6.2", "cache_hits": active_pdf_options.cache_hits, "cache_writes": active_pdf_options.cache_writes})
+        (output / "ocr_resume_report.md").write_text(make_resume_report(active_pdf_options.failed_pages, active_pdf_options.cache_hits), encoding="utf-8")
+        (output / "large_file_performance_report.md").write_text(make_performance_report(active_pdf_options.performance_records), encoding="utf-8")
+        if progress_reporter:
+            progress_reporter.emit("performance_report", "success", "Built large file performance report", output_path=str(output / "large_file_performance_report.md"))
     manifest_payload = manifest.model_dump(mode="json")
     manifest_payload["chunk_profile"] = v11_options.chunk_profile
     llm_summary = None
@@ -1755,11 +2101,26 @@ def _build_package(
             warnings=manifest.warnings,
             error="quality_gate_failed" if status == "failed" else None,
         )
+        if progress_reporter:
+            stage["progress_summary"] = {
+                "event_count": len(progress_reporter.events),
+                "progress_log": str(progress_reporter.log_path).replace("\\", "/") if progress_reporter.log_path else None,
+            }
         write_json(output / "run_manifest.json", make_run_manifest(run_id, "build", str(input).replace("\\", "/"), str(output).replace("\\", "/"), status, manifest.warnings))
         write_jsonl(output / "stage_trace.jsonl", [stage])
         write_json(output / "error_report.json", {"error_report_version": "1.2.1", "run_id": run_id, "errors": []})
     if hardening_options.quality_gate_strict and quality_gate_report and quality_gate_report["status"] == "fail":
         raise RuntimeError("Quality gate failed")
+
+    if progress_reporter:
+        progress_reporter.emit(
+            "done",
+            "success",
+            "Build complete",
+            total_files=len(source_files),
+            output_path=str(output),
+            metadata={"source_count": len(source_files), "chunk_count": len(all_chunks), "warning_count": len(manifest.warnings)},
+        )
 
     return manifest
 

@@ -52,3 +52,23 @@ install the Simplified Chinese traineddata file into the Tesseract `tessdata` di
 - OCR quality is not guaranteed.
 - OCR does not perform layout reconstruction, table recognition, semantic image understanding, or correction.
 - OCR output enters the same clean / chunk / extractor / quality pipeline as other text.
+
+## v1.6.2 OCR Performance Options
+
+For large scanned PDFs, use progress and OCR controls together:
+
+```powershell
+heitang-kb-forge build --input .\input --output .\output --progress-jsonl --profile fast --ocr-mode first-pages --max-ocr-pages 10 --ocr-cache --resume
+```
+
+Useful options:
+
+- `--ocr-mode off|auto|first-pages|selected-pages|full`
+- `--ocr-pages 1,3-5`
+- `--ocr-workers 4`
+- `--ocr-timeout-per-page 120`
+- `--ocr-scale 1.5`
+- `--ocr-cache`
+- `--resume`
+
+Performance outputs include `pdf_preflight_report.json`, `pdf_page_classification.jsonl`, `ocr_failed_pages.jsonl`, `ocr_resume_report.md`, and `large_file_performance_report.md`.

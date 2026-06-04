@@ -2,6 +2,26 @@
 
 This changelog is normalized by logical capability versions. Some capabilities were implemented in compressed commits during development, but each logical version is listed separately here.
 
+## v1.6.2
+
+Added Large File Progress & OCR Acceleration:
+
+- Added progress visualization for build, batch, and pipeline workflows.
+- Added `--progress`, `--progress-jsonl`, `--progress-log`, and `--verbose`.
+- Added `progress_events.jsonl`.
+- Added large-file profiles with `--profile fast|production`.
+- Added OCR page control options including `--ocr-mode`, `--max-ocr-pages`, and `--ocr-pages`.
+- Added OCR worker, scale, timeout, language, cache, and resume controls.
+- Added `pdf_preflight_report.json`.
+- Added `pdf_page_classification.jsonl`.
+- Added `ocr_cache_manifest.json`.
+- Added `ocr_failed_pages.jsonl`.
+- Added `ocr_resume_report.md`.
+- Added `large_file_performance_report.md`.
+- Added performance config support for `run --config` and `pipeline --config`.
+- Added performance stages in pipeline reports.
+- Preserved default build / batch / pipeline behavior when progress and performance options are not enabled.
+
 ## v1.6.1
 
 Added Skill Installability & Agent Integration Pack:

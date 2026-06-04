@@ -58,6 +58,22 @@ Desktop UI Freeze & Future-Ready Layout:
 - Tool safety policy output.
 - MCP readiness config export.
 
+## v1.6.1 Completed
+
+- Skill installability metadata.
+- Doctor command.
+- Installation, quickstart, OCR setup, and Agent integration docs.
+- Quickstart and smoke scripts.
+
+## v1.6.2 Completed
+
+- Progress visualization for build / batch / pipeline.
+- JSONL progress event output.
+- Fast / production performance profile.
+- OCR page selection, worker, timeout, scale, cache, and resume controls.
+- PDF preflight and page classification reports.
+- Large file performance report.
+
 ## Explicit Non-Scope
 
 - Tool Runtime.

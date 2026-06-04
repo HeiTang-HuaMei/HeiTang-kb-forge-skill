@@ -77,6 +77,7 @@ HeiTang KB Forge is responsible for:
 - exporting RAG / Agent-compatible intermediate formats
 - generating Agent Templates
 - supporting local knowledge package operations and governance
+- reporting progress and large-file/OCR performance for industrial local runs
 
 ## What This Project Is Not
 
@@ -228,6 +229,55 @@ Run manifest:
 Batch hardening:
 
     heitang-kb-forge batch --input .\input --output .\output --continue-on-error --fail-fast
+
+Progress and large-file performance:
+
+    heitang-kb-forge build --input .\input --output .\output --progress --progress-jsonl --profile fast --ocr-mode first-pages --max-ocr-pages 10 --ocr-cache --resume
+
+Pipeline with progress:
+
+    heitang-kb-forge pipeline --config .\examples\configs\kb_forge.build.yaml --progress-jsonl --profile fast
+
+## Progress and Large File Performance
+
+v1.6.2 combines progress visualization with large-file acceleration controls. It is not only a progress bar layer.
+
+Progress options:
+
+- `--progress` prints human-readable progress.
+- `--progress-jsonl` writes `progress_events.jsonl`.
+- `--progress-log PATH` writes progress events to a custom JSONL path.
+- `--verbose` includes more file details in terminal progress.
+
+Large-file and OCR options:
+
+- `--profile fast|production`
+- `--ocr-mode auto|off|first-pages|selected-pages|full`
+- `--ocr-lang TEXT`
+- `--ocr-timeout-per-page INTEGER`
+- `--max-ocr-pages INTEGER`
+- `--ocr-pages TEXT`
+- `--ocr-workers INTEGER`
+- `--ocr-scale FLOAT`
+- `--ocr-cache`
+- `--ocr-cache-dir PATH`
+- `--resume`
+- `--skip-empty-pages`
+- `--skip-low-text-pages`
+
+When enabled, the package can include:
+
+- `progress_events.jsonl`
+- `pdf_preflight_report.json`
+- `pdf_page_classification.jsonl`
+- `ocr_cache_manifest.json`
+- `ocr_failed_pages.jsonl`
+- `ocr_resume_report.md`
+- `large_file_performance_report.md`
+
+The `fast` profile limits OCR work by default when no explicit page limit is provided. OCR cache and resume are intended for repeated large scanned PDF runs.
+
+See `docs/PROGRESS_AND_OBSERVABILITY.md` and `docs/LARGE_FILE_PERFORMANCE.md`.
 
 Desktop utility:
 

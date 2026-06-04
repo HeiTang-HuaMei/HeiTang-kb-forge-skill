@@ -41,6 +41,11 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("source_ingestion", True, output, ["chunks.jsonl"], config.task),
         _stage("knowledge_package", True, output, STANDARD_PACKAGE_FILES, config.task),
         _stage("quality_report", True, output, ["quality_report.json"], config.task),
+        _stage("pdf_preflight", _performance_enabled(config), output, ["pdf_preflight_report.json"], config.task),
+        _stage("ocr_cache", config.performance.ocr_cache, output, ["ocr_cache_manifest.json"], config.task),
+        _stage("ocr_processing", _performance_enabled(config) and config.performance.ocr_mode != "off", output, ["ocr_failed_pages.jsonl", "ocr_resume_report.md"], config.task),
+        _stage("performance_report", _performance_enabled(config), output, ["large_file_performance_report.md"], config.task),
+        _stage("progress_events", _progress_events_enabled(config), output, _progress_output_files(config), config.task),
         _stage("llm_extraction", config.llm.enabled, output, _llm_output_files(config), config.task),
         _stage("rag_export", config.rag.enabled, output, RAG_OUTPUT_FILES, config.task),
         _stage("embedding_generation", config.embedding.enabled, output, EMBEDDING_OUTPUT_FILES, config.task),
@@ -105,9 +110,46 @@ def _llm_output_files(config: ForgeConfig) -> list[str]:
     return files
 
 
+def _performance_enabled(config: ForgeConfig) -> bool:
+    return any(
+        [
+            config.performance.progress,
+            config.performance.progress_jsonl,
+            config.performance.progress_log is not None,
+            config.performance.profile != "production",
+            config.performance.ocr_mode != "auto",
+            config.performance.max_ocr_pages is not None,
+            config.performance.ocr_pages is not None,
+            config.performance.ocr_lang != "chi_sim+eng",
+            config.performance.ocr_timeout_per_page != 120,
+            config.performance.ocr_workers != 1,
+            config.performance.ocr_cache,
+            config.performance.ocr_cache_dir is not None,
+            config.performance.resume,
+            config.performance.ocr_scale != 1.5,
+            not config.performance.skip_empty_pages,
+            config.performance.skip_low_text_pages,
+        ]
+    )
+
+
+def _progress_events_enabled(config: ForgeConfig) -> bool:
+    return config.performance.progress or config.performance.progress_jsonl or config.performance.progress_log is not None
+
+
+def _progress_output_files(config: ForgeConfig) -> list[str]:
+    if config.performance.progress_log:
+        return [str(config.performance.progress_log).replace("\\", "/")]
+    if config.performance.progress_jsonl:
+        return ["progress_events.jsonl"]
+    return []
+
+
 def _files_exist(output: Path, expected_files: list[str], task: str) -> bool:
+    if not expected_files:
+        return True
     if task == "build":
-        return all((output / name).exists() for name in expected_files)
+        return all((output / name).exists() if not Path(name).is_absolute() else Path(name).exists() for name in expected_files)
     manifest_path = output / "batch_manifest.json"
     if not manifest_path.exists():
         return False

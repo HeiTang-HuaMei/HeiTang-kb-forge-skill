@@ -22,6 +22,7 @@ class ProgressReporter:
         self.log_path = log_path
         self.verbose = verbose
         self._started = time.monotonic()
+        self.events: list[ProgressEvent] = []
 
     def configure_default_log(self, output: Path) -> None:
         if self.jsonl and self.log_path is None:
@@ -37,6 +38,7 @@ class ProgressReporter:
         )
         if self.terminal:
             self._print(event)
+        self.events.append(event)
         if self.jsonl and self.log_path:
             self.log_path.parent.mkdir(parents=True, exist_ok=True)
             with self.log_path.open("a", encoding="utf-8", newline="\n") as handle:

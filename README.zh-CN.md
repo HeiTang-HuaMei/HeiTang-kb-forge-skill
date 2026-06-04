@@ -77,6 +77,7 @@ HeiTang KB Forge 负责：
 - 导出 RAG / Agent 可消费的中间格式
 - 生成 Agent Template
 - 支持本地知识包运营治理
+- 为工业化本地任务提供进度事件和大文件 / OCR 性能报告
 
 ## 这个项目不做什么
 
@@ -228,6 +229,55 @@ Agent Planning Readiness：
 Batch hardening：
 
     heitang-kb-forge batch --input .\input --output .\output --continue-on-error --fail-fast
+
+进度与大文件性能：
+
+    heitang-kb-forge build --input .\input --output .\output --progress --progress-jsonl --profile fast --ocr-mode first-pages --max-ocr-pages 10 --ocr-cache --resume
+
+Pipeline 进度：
+
+    heitang-kb-forge pipeline --config .\examples\configs\kb_forge.build.yaml --progress-jsonl --profile fast
+
+## 进度可视化与大文件提速
+
+v1.6.2 把进度可视化和大文件 / OCR 提速合并为同一版能力。它不是只加进度条，而是让长时间本地任务可观察、可恢复、可调优。
+
+进度参数：
+
+- `--progress` 输出终端进度。
+- `--progress-jsonl` 写出 `progress_events.jsonl`。
+- `--progress-log PATH` 写出自定义进度 JSONL 文件。
+- `--verbose` 在终端进度中显示更多文件细节。
+
+大文件和 OCR 参数：
+
+- `--profile fast|production`
+- `--ocr-mode auto|off|first-pages|selected-pages|full`
+- `--ocr-lang TEXT`
+- `--ocr-timeout-per-page INTEGER`
+- `--max-ocr-pages INTEGER`
+- `--ocr-pages TEXT`
+- `--ocr-workers INTEGER`
+- `--ocr-scale FLOAT`
+- `--ocr-cache`
+- `--ocr-cache-dir PATH`
+- `--resume`
+- `--skip-empty-pages`
+- `--skip-low-text-pages`
+
+启用后，知识包可额外生成：
+
+- `progress_events.jsonl`
+- `pdf_preflight_report.json`
+- `pdf_page_classification.jsonl`
+- `ocr_cache_manifest.json`
+- `ocr_failed_pages.jsonl`
+- `ocr_resume_report.md`
+- `large_file_performance_report.md`
+
+`fast` profile 在未显式指定页数时会限制 OCR 页数。OCR cache 和 resume 主要用于重复处理大型扫描 PDF。
+
+详见 `docs/PROGRESS_AND_OBSERVABILITY.md` 和 `docs/LARGE_FILE_PERFORMANCE.md`。
 
 桌面工具：
 

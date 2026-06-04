@@ -46,6 +46,21 @@ source files
 -> optional validation / downstream export
 ```
 
+## Progress and Large-file Performance Layer
+
+v1.6.2 adds an opt-in observability and performance layer around the same parser / cleaner / chunker / extractor pipeline.
+
+```text
+source files
+-> progress events
+-> PDF preflight
+-> OCR page selection / cache / resume
+-> existing package pipeline
+-> performance reports
+```
+
+This layer writes standard files such as `progress_events.jsonl`, `pdf_preflight_report.json`, `pdf_page_classification.jsonl`, `ocr_resume_report.md`, and `large_file_performance_report.md`. It does not move core logic into UI, does not create UI-only formats, and does not change default build / batch / pipeline behavior.
+
 ## Parser Layer
 
 Parsers return plain text. PDF, OCR, DOCX, and table-specific extraction converts structured or visual content into readable text before it enters the existing clean / chunk / extractor pipeline.
