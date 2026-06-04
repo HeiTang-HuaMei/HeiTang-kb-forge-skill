@@ -1,5 +1,6 @@
 import json
 from datetime import datetime, timezone
+import hashlib
 from pathlib import Path
 
 from heitang_kb_forge.versioning.package_version import make_package_version
@@ -41,6 +42,8 @@ def _package_record(package: Path) -> dict:
         "registered_at": _now(),
         "source_count": version.source_count,
         "chunk_count": version.chunk_count,
+        "source_hashes": version.source_hashes,
+        "source_file_hashes": _source_file_hashes(version.source_hashes),
         "domain": manifest.get("domain"),
         "mode": manifest.get("mode"),
         "agent_type": manifest.get("agent_type"),
@@ -62,6 +65,18 @@ def _read_json(path: Path) -> dict:
     if not path.exists():
         return {}
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _source_file_hashes(source_hashes: dict[str, str]) -> dict[str, str | None]:
+    result: dict[str, str | None] = {}
+    for source_path in source_hashes:
+        path = Path(source_path)
+        result[source_path] = _hash_file(path) if path.exists() else None
+    return result
+
+
+def _hash_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _status_report(registry: dict) -> str:

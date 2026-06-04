@@ -10,6 +10,59 @@ It turns multi-format materials into standardized, traceable, searchable, audita
 
 The project is offline-first by default. Optional capabilities such as LLM extraction, OCR, RAG export, embedding/vector export, local Agent Runtime MVP, Web UI, live provider validation, and knowledge operations are opt-in.
 
+## Skill-first Architecture
+
+The desktop UI is a presentation layer. The core remains a headless, agent-callable knowledge supply-chain Skill.
+
+Architecture priority:
+
+```text
+Core Skill / Python package
+> CLI
+> Config / Pipeline
+> Agent-callable skill interface
+> Desktop UI
+```
+
+HeiTang KB Forge can be called by OpenClaw, Claude Code, Codex, other Agent frameworks, the local CLI, future Agent Runtime / RAG Runtime, and the desktop UI. All entry points share the same standard knowledge package output contract.
+
+### Headless CLI Usage
+
+```powershell
+heitang-kb-forge build --input .\input --output .\output
+python -m heitang_kb_forge.cli pipeline --config .\examples\configs\kb_forge.build.yaml
+```
+
+### Agent-callable Skill Usage
+
+```text
+Agent receives documents
+-> calls heitang-kb-forge
+-> gets standardized knowledge package
+-> uses package for RAG / Q&A / planning / downstream export
+```
+
+Future Skill interface structure is reserved:
+
+```text
+skills/
+  heitang-kb-forge-skill/
+    SKILL.md
+    skill.json
+    examples/
+    prompts/
+```
+
+### Desktop UI as Presentation Layer
+
+```text
+Desktop UI
+-> calls Python CLI
+-> produces the same standard package
+```
+
+The desktop app does not move core logic into React or Tauri and does not introduce UI-only package formats.
+
 ## What This Project Is
 
 HeiTang KB Forge is responsible for:
@@ -142,6 +195,24 @@ Publish profile:
 Planning readiness:
 
     heitang-kb-forge planning-readiness --package .\output_sample --output .\planning_output
+
+Quality gate:
+
+    heitang-kb-forge build --input .\input --output .\output --quality-gate
+    heitang-kb-forge build --input .\input --output .\output --quality-gate-strict
+
+Run manifest:
+
+    heitang-kb-forge build --input .\input --output .\output --run-manifest
+
+Batch hardening:
+
+    heitang-kb-forge batch --input .\input --output .\output --continue-on-error --fail-fast
+
+Desktop utility:
+
+    .\packaging\desktop\dev_tauri.ps1
+    .\packaging\desktop\build_tauri.ps1
 
 ## Logical Version Capability Index
 
@@ -347,6 +418,34 @@ This section documents the expected unmerged logical version sequence. Some capa
 - Web UI Upgrade
 - Publish / Export Profiles
 - Agent Planning Readiness Pack
+
+### v1.2.1 Industrial Hardening & Batch Quality
+
+- `--quality-gate` and `--quality-gate-strict`
+- package acceptance reports
+- optional run manifest and stage trace
+- batch run summary, failed item list, and retry manifest
+- source hash refresh detection
+- batch fail-fast and resource guard options
+
+### v1.2.2 Tauri Desktop Utility
+
+- optional Tauri / React / TypeScript desktop scaffold
+- local UI wrapper for build, batch, and pipeline workflows
+- Windows EXE packaging scripts
+- bilingual UI labels
+- no Electron dependency
+- no cloud service, vector database, or external Agent platform calls
+
+### v1.2.3 Desktop UI Freeze & Future-Ready Layout
+
+- Skill-first architecture preserved
+- desktop UI frozen as a presentation layer
+- default zh-CN UI with en-US switching
+- dark black/white/gray industrial tool style
+- fixed 11-page navigation
+- Knowledge Lifecycle, SQLite / Vector Store, Agent Connector, and Retrieval Runtime placeholders
+- tiger/cat icon asset split documented
 
 ## Current Boundaries
 

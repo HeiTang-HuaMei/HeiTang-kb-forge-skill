@@ -2,6 +2,48 @@
 
 This changelog is normalized by logical capability versions. Some capabilities were implemented in compressed commits during development, but each logical version is listed separately here.
 
+## v1.2.3
+
+Added Desktop UI Freeze & Future-Ready Layout:
+
+- Preserved Skill-first architecture.
+- Kept Desktop UI as presentation layer.
+- Added fixed 11-page desktop information architecture.
+- Added default zh-CN UI with en-US switching.
+- Added dark black/white/gray industrial desktop styling.
+- Added Knowledge Lifecycle placeholders.
+- Added SQLite / Vector Store / Agent Connector placeholders.
+- Added tiger app icon and cat small icon asset split.
+- Added UI architecture, i18n, and icon guideline docs.
+- Did not move Python core logic into React or Tauri.
+
+## v1.2.2
+
+Added Tauri Desktop Utility scaffold:
+
+- Added optional Tauri / React / TypeScript desktop app under `desktop/tauri`.
+- Added local UI wrapper for build, batch, and pipeline workflows.
+- Added bilingual English / Chinese UI labels.
+- Added Windows development and build scripts under `packaging/desktop`.
+- Added Desktop App Guide.
+- Did not add Electron.
+- Did not change Python CLI behavior.
+- Did not call cloud services, vector databases, or external Agent platforms.
+
+## v1.2.1
+
+Added Industrial Hardening & Batch Quality:
+
+- Added package quality gate via `--quality-gate`.
+- Added strict package blocking via `--quality-gate-strict`.
+- Added package acceptance reports.
+- Added optional run manifest and stage trace via `--run-manifest`.
+- Added batch run summary, failed item JSONL, and retry manifest.
+- Added batch fail-fast and resource guard options.
+- Added source file hash tracking for workspace registry.
+- Added refresh detection for changed source hashes and stale packages.
+- Preserved default build / batch behavior.
+
 ## v1.2.0
 
 Added Knowledge Ops & Governance Platform:

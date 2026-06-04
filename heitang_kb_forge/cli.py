@@ -13,6 +13,8 @@ from heitang_kb_forge.embedding.exporter import EMBEDDING_OUTPUT_FILES, make_emb
 from heitang_kb_forge.eval.demo import DEMO_OUTPUT_FILES, make_demo_report
 from heitang_kb_forge.evalset.exporter import RETRIEVAL_EVAL_OUTPUT_FILES, make_retrieval_eval_set
 from heitang_kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
+from heitang_kb_forge.hardening.batch import make_batch_hardening_outputs
+from heitang_kb_forge.hardening.run_trace import make_run_manifest, new_run_id, now_iso, stage_record
 from heitang_kb_forge.incremental.reuse import INCREMENTAL_OUTPUT_FILES, make_incremental_report
 from heitang_kb_forge.knowledge_graph.exporter import KNOWLEDGE_GRAPH_OUTPUT_FILES, make_knowledge_graph
 from heitang_kb_forge.eval_dashboard.recorder import make_eval_dashboard
@@ -33,6 +35,7 @@ from heitang_kb_forge.processors.extractor import make_cards, make_glossary, mak
 from heitang_kb_forge.processors.quality import make_quality_report
 from heitang_kb_forge.processors.validator import validate_chunks
 from heitang_kb_forge.pipeline.reporter import make_pipeline_report
+from heitang_kb_forge.quality_gate.gate import QUALITY_GATE_OUTPUT_FILES, evaluate_quality_gate
 from heitang_kb_forge.rag.exporter import RAGOptions, RAG_OUTPUT_FILES, make_rag_export
 from heitang_kb_forge.refresh.checker import make_refresh_plan
 from heitang_kb_forge.risk.labeler import RISK_OUTPUT_FILES, make_risk_labels
@@ -114,6 +117,16 @@ class V11Options:
     runtime_model: str = "fake-model"
 
 
+@dataclass
+class HardeningOptions:
+    quality_gate: bool = False
+    quality_gate_strict: bool = False
+    run_manifest: bool = False
+
+
+HARDENING_TRACE_FILES = ["run_manifest.json", "stage_trace.jsonl", "error_report.json"]
+
+
 @app.callback()
 def main() -> None:
     """KB Forge command group."""
@@ -150,6 +163,9 @@ def build(
     knowledge_graph_export: bool = typer.Option(False, "--knowledge-graph-export"),
     retrieval_eval_export: bool = typer.Option(False, "--retrieval-eval-export"),
     risk_labels: bool = typer.Option(False, "--risk-labels"),
+    quality_gate: bool = typer.Option(False, "--quality-gate"),
+    quality_gate_strict: bool = typer.Option(False, "--quality-gate-strict"),
+    run_manifest: bool = typer.Option(False, "--run-manifest"),
     agent_template: bool = typer.Option(False, "--agent-template"),
     agent_type: str = typer.Option("generic_agent", "--agent-type"),
     agent_name: str | None = typer.Option(None, "--agent-name"),
@@ -193,6 +209,7 @@ def build(
             retrieval_eval=retrieval_eval_export,
             risk_labels=risk_labels,
         ),
+        hardening_options=HardeningOptions(quality_gate or quality_gate_strict, quality_gate_strict, run_manifest),
         demo_report=demo_report,
     )
 
@@ -232,6 +249,13 @@ def batch(
     knowledge_graph_export: bool = typer.Option(False, "--knowledge-graph-export"),
     retrieval_eval_export: bool = typer.Option(False, "--retrieval-eval-export"),
     risk_labels: bool = typer.Option(False, "--risk-labels"),
+    quality_gate: bool = typer.Option(False, "--quality-gate"),
+    quality_gate_strict: bool = typer.Option(False, "--quality-gate-strict"),
+    run_manifest: bool = typer.Option(False, "--run-manifest"),
+    continue_on_error: bool = typer.Option(True, "--continue-on-error/--no-continue-on-error"),
+    fail_fast: bool = typer.Option(False, "--fail-fast"),
+    max_files: int | None = typer.Option(None, "--max-files"),
+    max_chunks: int | None = typer.Option(None, "--max-chunks"),
     agent_template: bool = typer.Option(False, "--agent-template"),
     agent_type: str = typer.Option("generic_agent", "--agent-type"),
     agent_name: str | None = typer.Option(None, "--agent-name"),
@@ -241,6 +265,8 @@ def batch(
     """Build one knowledge package per numbered source file."""
     output.mkdir(parents=True, exist_ok=True)
     numbered_sources = [path for path in sorted(input.iterdir()) if path.is_file() and _parse_numbered_stem(path)]
+    if max_files is not None:
+        numbered_sources = numbered_sources[:max_files]
     llm_options = _make_llm_options(
         llm,
         llm_provider,
@@ -270,6 +296,7 @@ def batch(
         retrieval_eval=retrieval_eval_export,
         risk_labels=risk_labels,
     )
+    hardening_options = HardeningOptions(quality_gate or quality_gate_strict, quality_gate_strict, run_manifest)
     items = (
         _build_batch_groups(
             numbered_sources,
@@ -285,6 +312,10 @@ def batch(
             validation_options,
             downstream_options,
             v11_options,
+            hardening_options,
+            max_chunks,
+            continue_on_error,
+            fail_fast,
             agent_options,
             demo_report,
         )
@@ -303,6 +334,10 @@ def batch(
             validation_options,
             downstream_options,
             v11_options,
+            hardening_options,
+            max_chunks,
+            continue_on_error,
+            fail_fast,
             agent_options,
             demo_report,
         )
@@ -319,12 +354,19 @@ def batch(
         "succeeded": succeeded,
         "failed": failed,
         "items": items,
+        "continue_on_error": continue_on_error,
+        "fail_fast": fail_fast,
     }
     if merge_same_sequence:
         batch_manifest["total_groups"] = len(items)
 
     write_json(output / "batch_manifest.json", batch_manifest)
     _write_batch_report(output / "batch_report.md", batch_manifest)
+    batch_summary, batch_run_report, failed_items, retry_manifest = make_batch_hardening_outputs(batch_manifest)
+    write_json(output / "batch_run_summary.json", batch_summary)
+    (output / "batch_run_report.md").write_text(batch_run_report, encoding="utf-8")
+    write_jsonl(output / "failed_items.jsonl", failed_items)
+    write_json(output / "retry_manifest.json", retry_manifest)
 
     typer.echo(f"Built batch knowledge packages at {output}")
     typer.echo(f"Total: {len(items)} | Succeeded: {succeeded} | Failed: {failed}")
@@ -607,8 +649,8 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             validation_options,
             downstream_options,
             v11_options,
-            agent_options,
-            config_data.demo.enabled,
+            agent_options=agent_options,
+            demo_report=config_data.demo.enabled,
         )
         if config_data.batch.merge_same_sequence
         else _build_batch_items(
@@ -625,8 +667,8 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             validation_options,
             downstream_options,
             v11_options,
-            agent_options,
-            config_data.demo.enabled,
+            agent_options=agent_options,
+            demo_report=config_data.demo.enabled,
         )
     )
     succeeded = sum(1 for item in items if item["status"] == "success")
@@ -749,10 +791,15 @@ def _build_batch_items(
     validation_options: ValidationOptions | None = None,
     downstream_options: DownstreamOptions | None = None,
     v11_options: V11Options | None = None,
+    hardening_options: HardeningOptions | None = None,
+    max_chunks: int | None = None,
+    continue_on_error: bool = True,
+    fail_fast: bool = False,
     agent_options: AgentOptions | None = None,
     demo_report: bool = False,
 ) -> list[dict]:
     items: list[dict] = []
+    total_chunks = 0
 
     for source in numbered_sources:
         sequence_id, name = _parse_numbered_stem(source) or ("", "")
@@ -788,16 +835,22 @@ def _build_batch_items(
                 validation_options=validation_options,
                 downstream_options=downstream_options,
                 v11_options=v11_options,
+                hardening_options=hardening_options,
                 agent_options=agent_options,
                 demo_report=demo_report,
             )
             item["status"] = "success"
             item["chunk_count"] = manifest.chunk_count
             item["files"] = manifest.files
+            total_chunks += manifest.chunk_count
         except Exception as exc:
             item["error"] = str(exc)
 
         items.append(item)
+        if item["status"] == "failed" and (fail_fast or not continue_on_error):
+            break
+        if max_chunks is not None and total_chunks >= max_chunks:
+            break
 
     return items
 
@@ -816,6 +869,10 @@ def _build_batch_groups(
     validation_options: ValidationOptions | None = None,
     downstream_options: DownstreamOptions | None = None,
     v11_options: V11Options | None = None,
+    hardening_options: HardeningOptions | None = None,
+    max_chunks: int | None = None,
+    continue_on_error: bool = True,
+    fail_fast: bool = False,
     agent_options: AgentOptions | None = None,
     demo_report: bool = False,
 ) -> list[dict]:
@@ -825,6 +882,7 @@ def _build_batch_groups(
         groups.setdefault(sequence_id, []).append(source)
 
     items: list[dict] = []
+    total_chunks = 0
     for sequence_id, sources in sorted(groups.items()):
         sources = sorted(sources, key=lambda path: path.name)
         _, group_name = _parse_numbered_stem(sources[0]) or (sequence_id, "")
@@ -864,6 +922,7 @@ def _build_batch_groups(
                 validation_options=validation_options,
                 downstream_options=downstream_options,
                 v11_options=v11_options,
+                hardening_options=hardening_options,
                 agent_options=agent_options,
                 demo_report=demo_report,
             )
@@ -871,10 +930,15 @@ def _build_batch_groups(
             item["chunk_count"] = manifest.chunk_count
             item["source_count"] = manifest.source_count
             item["files"] = manifest.files
+            total_chunks += manifest.chunk_count
         except Exception as exc:
             item["error"] = str(exc)
 
         items.append(item)
+        if item["status"] == "failed" and (fail_fast or not continue_on_error):
+            break
+        if max_chunks is not None and total_chunks >= max_chunks:
+            break
 
     return items
 
@@ -894,12 +958,16 @@ def _build_package(
     validation_options: ValidationOptions | None = None,
     downstream_options: DownstreamOptions | None = None,
     v11_options: V11Options | None = None,
+    hardening_options: HardeningOptions | None = None,
     agent_options: AgentOptions | None = None,
     demo_report: bool = False,
 ) -> Manifest:
     output.mkdir(parents=True, exist_ok=True)
     source_files = source_files if source_files is not None else _collect_sources(input)
     v11_options = v11_options or V11Options()
+    hardening_options = hardening_options or HardeningOptions()
+    run_id = new_run_id() if hardening_options.run_manifest else None
+    build_started_at = now_iso()
     profile = get_chunk_profile(v11_options.chunk_profile)
     if v11_options.chunk_profile != "default":
         max_chars = profile.max_chars
@@ -1067,6 +1135,12 @@ def _build_package(
         files.extend(RISK_OUTPUT_FILES)
     if v11_options.runtime:
         files.extend(RUNTIME_OUTPUT_FILES)
+    if hardening_options.quality_gate:
+        files.extend(VALIDATION_OUTPUT_FILES)
+        files.extend(QUALITY_GATE_OUTPUT_FILES)
+    if hardening_options.run_manifest:
+        files.extend(HARDENING_TRACE_FILES)
+    files = _dedupe_files(files)
     manifest = Manifest(
         domain=domain,
         mode=mode,
@@ -1278,7 +1352,8 @@ def _build_package(
         embedding_summary,
         vector_summary,
     )
-    if validation_options.enabled:
+    validation_required = validation_options.enabled or hardening_options.quality_gate
+    if validation_required:
         validation_report, readiness_report = validate_package(output)
         write_json(output / "package_validation_report.json", validation_report.model_dump(mode="json"))
         (output / "package_readiness_report.md").write_text(readiness_report, encoding="utf-8")
@@ -1308,6 +1383,39 @@ def _build_package(
         (output / "answer.md").write_text(answer, encoding="utf-8")
         write_json(output / "answer_report.json", answer_report.model_dump(mode="json"))
         write_json(output / "retrieval_trace.json", retrieval_trace)
+    quality_gate_report = None
+    if hardening_options.quality_gate:
+        quality_gate_report, quality_gate_summary, package_acceptance_report = evaluate_quality_gate(output)
+        write_json(output / "quality_gate_report.json", quality_gate_report)
+        (output / "quality_gate_summary.md").write_text(quality_gate_summary, encoding="utf-8")
+        (output / "package_acceptance_report.md").write_text(package_acceptance_report, encoding="utf-8")
+        manifest_payload.update(
+            {
+                "quality_gate_enabled": True,
+                "quality_gate_status": quality_gate_report["status"],
+                "quality_gate_files": QUALITY_GATE_OUTPUT_FILES,
+            }
+        )
+        write_json(output / "manifest.json", manifest_payload)
+    if hardening_options.run_manifest and run_id:
+        status = "failed" if quality_gate_report and quality_gate_report["status"] == "fail" else "success"
+        finished_at = now_iso()
+        stage = stage_record(
+            run_id,
+            "package_build",
+            status,
+            build_started_at,
+            finished_at,
+            input_files=[str(path).replace("\\", "/") for path in source_files],
+            output_files=files,
+            warnings=manifest.warnings,
+            error="quality_gate_failed" if status == "failed" else None,
+        )
+        write_json(output / "run_manifest.json", make_run_manifest(run_id, "build", str(input).replace("\\", "/"), str(output).replace("\\", "/"), status, manifest.warnings))
+        write_jsonl(output / "stage_trace.jsonl", [stage])
+        write_json(output / "error_report.json", {"error_report_version": "1.2.1", "run_id": run_id, "errors": []})
+    if hardening_options.quality_gate_strict and quality_gate_report and quality_gate_report["status"] == "fail":
+        raise RuntimeError("Quality gate failed")
 
     return manifest
 
@@ -1316,6 +1424,10 @@ def _collect_sources(input_path: Path) -> list[Path]:
     if input_path.is_file():
         return [input_path] if input_path.suffix.lower() in PARSERS else []
     return sorted(path for path in input_path.rglob("*") if path.is_file() and path.suffix.lower() in PARSERS)
+
+
+def _dedupe_files(files: list[str]) -> list[str]:
+    return list(dict.fromkeys(files))
 
 
 def _parse_numbered_stem(path: Path) -> tuple[str, str] | None:

@@ -11,3 +11,7 @@ examples/output/
 Thumbs.db
 .env
 .heitang_cache/
+node_modules/
+desktop/tauri/.npm-cache/
+desktop/tauri/dist/
+desktop/tauri/src-tauri/target/

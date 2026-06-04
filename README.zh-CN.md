@@ -10,6 +10,59 @@
 
 项目默认离线运行。OCR、LLM 抽取、RAG 导出、Embedding / Vector Export、Agent Runtime MVP、Web UI、真实 provider validation、知识包运营治理等能力均为显式可选能力。
 
+## Skill-first 架构
+
+桌面 UI 不是项目核心，只是本地可视化入口。HeiTang KB Forge 的核心仍然是 Agent 知识供应链前置 Skill，可被 OpenClaw、Claude Code、Codex 或其他 Agent 框架调用。
+
+架构优先级：
+
+```text
+Core Skill / Python package
+> CLI
+> Config / Pipeline
+> Agent-callable skill interface
+> Desktop UI
+```
+
+所有入口共享同一套标准知识包输出契约，不会为了 UI 改成桌面私有格式。
+
+### Headless CLI 使用
+
+```powershell
+heitang-kb-forge build --input .\input --output .\output
+python -m heitang_kb_forge.cli pipeline --config .\examples\configs\kb_forge.build.yaml
+```
+
+### Agent / Skill 调用
+
+```text
+Agent receives documents
+-> calls heitang-kb-forge
+-> gets standardized knowledge package
+-> uses package for RAG / Q&A / planning / downstream export
+```
+
+后续 Skill 接口预留：
+
+```text
+skills/
+  heitang-kb-forge-skill/
+    SKILL.md
+    skill.json
+    examples/
+    prompts/
+```
+
+### Desktop 表现层
+
+```text
+Desktop UI
+-> calls Python CLI
+-> produces the same standard package
+```
+
+桌面 UI 不承载核心业务逻辑，不替代 Python CLI，不生成只有 UI 能消费的私有数据格式。
+
 ## 这个项目做什么
 
 HeiTang KB Forge 负责：
@@ -142,6 +195,24 @@ Pipeline 工作流：
 Agent Planning Readiness：
 
     heitang-kb-forge planning-readiness --package .\output_sample --output .\planning_output
+
+质量门：
+
+    heitang-kb-forge build --input .\input --output .\output --quality-gate
+    heitang-kb-forge build --input .\input --output .\output --quality-gate-strict
+
+运行追踪：
+
+    heitang-kb-forge build --input .\input --output .\output --run-manifest
+
+Batch hardening：
+
+    heitang-kb-forge batch --input .\input --output .\output --continue-on-error --fail-fast
+
+桌面工具：
+
+    .\packaging\desktop\dev_tauri.ps1
+    .\packaging\desktop\build_tauri.ps1
 
 ## 逻辑版本能力索引
 
@@ -348,6 +419,34 @@ emo
 - Web UI Upgrade
 - Publish / Export Profiles
 - Agent Planning Readiness Pack
+
+### v1.2.1 Industrial Hardening & Batch Quality
+
+- `--quality-gate` 与 `--quality-gate-strict`
+- package acceptance report
+- 可选 run manifest 与 stage trace
+- batch run summary、failed items、retry manifest
+- source hash refresh detection
+- batch fail-fast 与资源保护参数
+
+### v1.2.2 Tauri Desktop Utility
+
+- 可选 Tauri / React / TypeScript 桌面脚手架
+- build、batch、pipeline 的本地 UI 封装
+- Windows EXE 打包脚本
+- 中英文 UI 文案
+- 不使用 Electron
+- 不调用云服务、向量数据库或外部 Agent 平台
+
+### v1.2.3 Desktop UI Freeze & Future-Ready Layout
+
+- 保持 Skill-first 架构
+- 桌面 UI 冻结为 presentation layer
+- 默认 zh-CN，支持 en-US 切换
+- 默认暗夜黑白灰工业级工具风格
+- 固定 11 个页面导航
+- 预留 Knowledge Lifecycle、SQLite / Vector Store、Agent Connector、Retrieval Runtime
+- 文档说明 tiger/cat 图标资产拆分
 
 ## 当前边界
 
