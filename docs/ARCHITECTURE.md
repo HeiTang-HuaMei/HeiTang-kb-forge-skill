@@ -61,6 +61,21 @@ source files
 
 This layer writes standard files such as `progress_events.jsonl`, `pdf_preflight_report.json`, `pdf_page_classification.jsonl`, `ocr_resume_report.md`, and `large_file_performance_report.md`. It does not move core logic into UI, does not create UI-only formats, and does not change default build / batch / pipeline behavior.
 
+## v1.6 Multimodal and Contract Layer
+
+v1.6 adds an opt-in multimodal asset and package contract layer:
+
+```text
+source files
+-> text package
+-> multimodal_assets.jsonl
+-> multimodal_evidence_map.json
+-> Contract v2 files
+-> contract checker
+```
+
+This layer exists to preserve evidence, mark review-required assets, and make output structure checkable by downstream Skills and Agents. It is not a visual understanding model and does not claim low-confidence fallback assets as extracted facts.
+
 ## Parser Layer
 
 Parsers return plain text. PDF, OCR, DOCX, and table-specific extraction converts structured or visual content into readable text before it enters the existing clean / chunk / extractor pipeline.

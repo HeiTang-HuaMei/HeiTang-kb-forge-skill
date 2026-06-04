@@ -14,6 +14,8 @@ from heitang_kb_forge.agent_tools.exporter import make_tool_exports
 from heitang_kb_forge.agent_tools.invoker import invoke_tool
 from heitang_kb_forge.agent_tools.registry import get_agent_tool, list_agent_tools
 from heitang_kb_forge.config.loader import load_config
+from heitang_kb_forge.contracts.checker import check_package_contract
+from heitang_kb_forge.contracts.report import make_contract_report
 from heitang_kb_forge.doctor import run_doctor
 from heitang_kb_forge.downstream.exporter import DOWNSTREAM_OUTPUT_FILES, make_downstream_exports
 from heitang_kb_forge.embedding.exporter import EMBEDDING_OUTPUT_FILES, make_embeddings
@@ -39,10 +41,13 @@ from heitang_kb_forge.llm.extractor import LLMOptions, OUTPUT_FILES, extract_llm
 from heitang_kb_forge.llm.prompt_profile import load_prompt_profile
 from heitang_kb_forge.llm.quality import LLM_QUALITY_OUTPUT_FILES, make_llm_quality_report
 from heitang_kb_forge.ocr.report import make_performance_report, make_resume_report
+from heitang_kb_forge.multimodal.classifier import IMAGE_SUFFIXES
+from heitang_kb_forge.multimodal.builder import MultimodalOptions, build_multimodal_assets
 from heitang_kb_forge.parsers.docx_parser import parse_docx
 from heitang_kb_forge.parsers.image_parser import parse_image
 from heitang_kb_forge.parsers.markdown_parser import parse_markdown
 from heitang_kb_forge.parsers.pdf_parser import PDFParseOptions, parse_pdf
+from heitang_kb_forge.parsers.slide_parser import parse_slide
 from heitang_kb_forge.parsers.table_parser import parse_csv, parse_tsv, parse_xlsx
 from heitang_kb_forge.parsers.text_parser import parse_text
 from heitang_kb_forge.processors.chunker import chunk_text
@@ -98,6 +103,8 @@ PARSERS = {
     ".png": parse_image,
     ".jpg": parse_image,
     ".jpeg": parse_image,
+    ".ppt": parse_slide,
+    ".pptx": parse_slide,
 }
 
 
@@ -193,6 +200,13 @@ class PerformanceOptions:
     skip_low_text_pages: bool = False
 
 
+@dataclass
+class ContractOptions:
+    version: str | None = None
+    check: bool = False
+    strict: bool = False
+
+
 HARDENING_TRACE_FILES = ["run_manifest.json", "stage_trace.jsonl", "error_report.json"]
 
 
@@ -261,6 +275,15 @@ def build(
     resume: bool = typer.Option(False, "--resume"),
     skip_empty_pages: bool = typer.Option(True, "--skip-empty-pages/--no-skip-empty-pages"),
     skip_low_text_pages: bool = typer.Option(False, "--skip-low-text-pages"),
+    multimodal: bool = typer.Option(False, "--multimodal"),
+    multimodal_images: bool = typer.Option(True, "--multimodal-images/--no-multimodal-images"),
+    multimodal_charts: bool = typer.Option(True, "--multimodal-charts/--no-multimodal-charts"),
+    multimodal_slides: bool = typer.Option(True, "--multimodal-slides/--no-multimodal-slides"),
+    multimodal_formulas: bool = typer.Option(True, "--multimodal-formulas/--no-multimodal-formulas"),
+    multimodal_mindmaps: bool = typer.Option(True, "--multimodal-mindmaps/--no-multimodal-mindmaps"),
+    multimodal_report: bool = typer.Option(True, "--multimodal-report/--no-multimodal-report"),
+    contract_version: str | None = typer.Option(None, "--contract-version"),
+    check_contract: bool = typer.Option(False, "--check-contract"),
 ) -> None:
     """Parse source files and write a V0 knowledge base package."""
     manifest = _build_package(
@@ -327,6 +350,16 @@ def build(
             skip_empty_pages,
             skip_low_text_pages,
         ),
+        multimodal_options=MultimodalOptions(
+            enabled=multimodal,
+            images=multimodal_images,
+            charts=multimodal_charts,
+            slides=multimodal_slides,
+            formulas=multimodal_formulas,
+            mindmaps=multimodal_mindmaps,
+            report=multimodal_report,
+        ),
+        contract_options=ContractOptions(contract_version, check_contract, False),
         demo_report=demo_report,
     )
 
@@ -392,6 +425,15 @@ def batch(
     ocr_workers: int = typer.Option(1, "--ocr-workers"),
     ocr_cache: bool = typer.Option(False, "--ocr-cache"),
     resume: bool = typer.Option(False, "--resume"),
+    multimodal: bool = typer.Option(False, "--multimodal"),
+    multimodal_images: bool = typer.Option(True, "--multimodal-images/--no-multimodal-images"),
+    multimodal_charts: bool = typer.Option(True, "--multimodal-charts/--no-multimodal-charts"),
+    multimodal_slides: bool = typer.Option(True, "--multimodal-slides/--no-multimodal-slides"),
+    multimodal_formulas: bool = typer.Option(True, "--multimodal-formulas/--no-multimodal-formulas"),
+    multimodal_mindmaps: bool = typer.Option(True, "--multimodal-mindmaps/--no-multimodal-mindmaps"),
+    multimodal_report: bool = typer.Option(True, "--multimodal-report/--no-multimodal-report"),
+    contract_version: str | None = typer.Option(None, "--contract-version"),
+    check_contract: bool = typer.Option(False, "--check-contract"),
 ) -> None:
     """Build one knowledge package per numbered source file."""
     output.mkdir(parents=True, exist_ok=True)
@@ -455,6 +497,16 @@ def batch(
         True,
         False,
     )
+    multimodal_options = MultimodalOptions(
+        enabled=multimodal,
+        images=multimodal_images,
+        charts=multimodal_charts,
+        slides=multimodal_slides,
+        formulas=multimodal_formulas,
+        mindmaps=multimodal_mindmaps,
+        report=multimodal_report,
+    )
+    contract_options = ContractOptions(contract_version, check_contract, False)
     batch_reporter = make_progress_reporter(
         progress=performance_options.progress,
         progress_jsonl=performance_options.progress_jsonl,
@@ -483,6 +535,8 @@ def batch(
             hardening_options,
             performance_options,
             batch_reporter,
+            multimodal_options,
+            contract_options,
             max_chunks,
             continue_on_error,
             fail_fast,
@@ -508,6 +562,8 @@ def batch(
             hardening_options,
             performance_options,
             batch_reporter,
+            multimodal_options,
+            contract_options,
             max_chunks,
             continue_on_error,
             fail_fast,
@@ -569,6 +625,9 @@ def pipeline(
     ocr_workers: int = typer.Option(1, "--ocr-workers"),
     ocr_cache: bool = typer.Option(False, "--ocr-cache"),
     resume: bool = typer.Option(False, "--resume"),
+    multimodal: bool = typer.Option(False, "--multimodal"),
+    contract_version: str | None = typer.Option(None, "--contract-version"),
+    check_contract: bool = typer.Option(False, "--check-contract"),
 ) -> None:
     """Run a config-driven pipeline and write pipeline reports."""
     config_data = load_config(config)
@@ -584,6 +643,12 @@ def pipeline(
         ocr_cache=ocr_cache,
         resume=resume,
     )
+    if multimodal:
+        config_data.multimodal.enabled = True
+    if contract_version is not None:
+        config_data.contract.version = contract_version
+    if check_contract:
+        config_data.contract.check = True
     result = _run_config(config_data)
     pipeline_manifest, pipeline_report = make_pipeline_report(config_file=config, config=result.config, output=result.output)
     write_json(result.output / "pipeline_manifest.json", pipeline_manifest.model_dump(mode="json"))
@@ -599,6 +664,24 @@ def doctor(output: Path = typer.Option(..., "--output", "-o")) -> None:
     write_json(output / "doctor_report.json", report)
     (output / "doctor_report.md").write_text(markdown, encoding="utf-8")
     typer.echo(f"Doctor status: {report['status']}")
+
+
+@app.command("check-contract")
+def check_contract(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    contract_version: str = typer.Option("v2", "--contract-version"),
+    strict: bool = typer.Option(False, "--strict"),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+) -> None:
+    """Check a local knowledge package against the package contract."""
+    if contract_version != "v2":
+        raise ValueError(f"Unsupported contract version: {contract_version}")
+    target = output or package
+    target.mkdir(parents=True, exist_ok=True)
+    result = check_package_contract(package, strict=strict)
+    write_json(target / "contract_check_result.json", result.model_dump(mode="json"))
+    (target / "contract_check_report.md").write_text(make_contract_report(result), encoding="utf-8")
+    typer.echo(f"Contract check status: {result.status}")
 
 
 @app.command("lifecycle-check")
@@ -1025,6 +1108,19 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         agent_name=config_data.agent.name,
         language=config_data.agent.language,
     )
+    multimodal_options = MultimodalOptions(
+        enabled=config_data.multimodal.enabled,
+        images=config_data.multimodal.images,
+        charts=config_data.multimodal.charts,
+        slides=config_data.multimodal.slides,
+        formulas=config_data.multimodal.formulas,
+        mindmaps=config_data.multimodal.mindmaps,
+        diagrams=config_data.multimodal.diagrams,
+        report=config_data.multimodal.report,
+        require_evidence_refs=config_data.multimodal.require_evidence_refs,
+        review_low_confidence=config_data.multimodal.review_low_confidence,
+    )
+    contract_options = ContractOptions(config_data.contract.version, config_data.contract.check, config_data.contract.strict)
 
     if config_data.task == "build":
         manifest = _build_package(
@@ -1043,6 +1139,8 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             v11_options=v11_options,
             lifecycle_options=lifecycle_options,
             performance_options=performance_options,
+            multimodal_options=multimodal_options,
+            contract_options=contract_options,
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
         )
@@ -1079,6 +1177,9 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             lifecycle_options,
             None,
             performance_options,
+            None,
+            multimodal_options,
+            contract_options,
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
         )
@@ -1100,6 +1201,9 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             lifecycle_options,
             None,
             performance_options,
+            None,
+            multimodal_options,
+            contract_options,
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
         )
@@ -1363,6 +1467,8 @@ def _build_batch_items(
     hardening_options: HardeningOptions | None = None,
     performance_options: PerformanceOptions | None = None,
     batch_reporter: ProgressReporter | None = None,
+    multimodal_options: MultimodalOptions | None = None,
+    contract_options: ContractOptions | None = None,
     max_chunks: int | None = None,
     continue_on_error: bool = True,
     fail_fast: bool = False,
@@ -1412,6 +1518,8 @@ def _build_batch_items(
                 lifecycle_options=lifecycle_options,
                 hardening_options=hardening_options,
                 performance_options=performance_options,
+                multimodal_options=multimodal_options,
+                contract_options=contract_options,
                 agent_options=agent_options,
                 demo_report=demo_report,
             )
@@ -1453,6 +1561,8 @@ def _build_batch_groups(
     hardening_options: HardeningOptions | None = None,
     performance_options: PerformanceOptions | None = None,
     batch_reporter: ProgressReporter | None = None,
+    multimodal_options: MultimodalOptions | None = None,
+    contract_options: ContractOptions | None = None,
     max_chunks: int | None = None,
     continue_on_error: bool = True,
     fail_fast: bool = False,
@@ -1511,6 +1621,8 @@ def _build_batch_groups(
                 lifecycle_options=lifecycle_options,
                 hardening_options=hardening_options,
                 performance_options=performance_options,
+                multimodal_options=multimodal_options,
+                contract_options=contract_options,
                 agent_options=agent_options,
                 demo_report=demo_report,
             )
@@ -1553,6 +1665,8 @@ def _build_package(
     lifecycle_options: LifecycleOptions | None = None,
     hardening_options: HardeningOptions | None = None,
     performance_options: PerformanceOptions | None = None,
+    multimodal_options: MultimodalOptions | None = None,
+    contract_options: ContractOptions | None = None,
     agent_options: AgentOptions | None = None,
     demo_report: bool = False,
 ) -> Manifest:
@@ -1617,6 +1731,11 @@ def _build_package(
             warnings.append(str(exc))
             continue
         except Exception as exc:
+            if multimodal_options and multimodal_options.enabled and source.suffix.lower() in IMAGE_SUFFIXES:
+                warnings.append(f"Image OCR failed; preserved as multimodal asset: {source}")
+                if progress_reporter:
+                    progress_reporter.emit("parse_source", "warning", f"Image preserved as multimodal asset: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files), warning=str(exc))
+                continue
             if progress_reporter:
                 progress_reporter.emit("failed", "failed", f"Source parsing failed: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files), error=str(exc))
             raise
@@ -1741,6 +1860,9 @@ def _build_package(
         if demo_report
         else None
     )
+    multimodal_options = multimodal_options or MultimodalOptions()
+    multimodal_result = build_multimodal_assets(input, source_files, multimodal_options)
+    contract_options = contract_options or ContractOptions()
 
     files = [
         "chunks.jsonl",
@@ -1767,6 +1889,8 @@ def _build_package(
         files.extend(AGENT_OUTPUT_FILES)
     if demo_report:
         files.extend(DEMO_OUTPUT_FILES)
+    if multimodal_options.enabled:
+        files.extend(multimodal_result.output_files)
     validation_options = validation_options or ValidationOptions()
     if validation_options.enabled:
         files.extend(VALIDATION_OUTPUT_FILES)
@@ -1802,6 +1926,10 @@ def _build_package(
         files.extend(QUALITY_GATE_OUTPUT_FILES)
     if hardening_options.run_manifest:
         files.extend(HARDENING_TRACE_FILES)
+    if contract_options.version == "v2" or contract_options.check:
+        files.extend(["evidence_map.json", "source_inventory.json", "quality_report.md"])
+    if contract_options.check:
+        files.extend(["contract_check_result.json", "contract_check_report.md"])
     files = _dedupe_files(files)
     manifest = Manifest(
         domain=domain,
@@ -1866,6 +1994,12 @@ def _build_package(
         (output / "demo_report.md").write_text(demo_result.demo_report, encoding="utf-8")
         write_json(output / "demo_manifest.json", demo_result.demo_manifest.model_dump(mode="json"))
         write_json(output / "eval_summary.json", demo_result.eval_summary.model_dump(mode="json"))
+    if multimodal_options.enabled:
+        write_jsonl(output / "multimodal_assets.jsonl", multimodal_result.assets)
+        write_json(output / "multimodal_evidence_map.json", multimodal_result.evidence_map)
+        (output / "multimodal_report.md").write_text(multimodal_result.report, encoding="utf-8")
+        if multimodal_result.slide_chunks:
+            write_jsonl(output / "slide_chunks.jsonl", multimodal_result.slide_chunks)
     write_json(output / "quality_report.json", quality_report)
     if performance_options.enabled:
         active_pdf_options = pdf_options or PDFParseOptions()
@@ -1879,6 +2013,26 @@ def _build_package(
             progress_reporter.emit("performance_report", "success", "Built large file performance report", output_path=str(output / "large_file_performance_report.md"))
     manifest_payload = manifest.model_dump(mode="json")
     manifest_payload["chunk_profile"] = v11_options.chunk_profile
+    contract_enabled = contract_options.version == "v2" or contract_options.check
+    if contract_enabled:
+        manifest_payload.update(
+            {
+                "contract_version": "2.0",
+                "package_id": f"pkg_{output.name or 'knowledge_package'}",
+                "created_at": manifest_payload.get("generated_at"),
+                "table_count": 0,
+                "asset_count": len(multimodal_result.assets),
+                "multimodal_asset_count": len(multimodal_result.assets),
+                "parser_versions": {"contract": "v2", "multimodal": "v1.6"},
+                "quality_status": quality_report.get("quality_level", "warning"),
+                "review_status": "required" if multimodal_result.review_required_count else "none",
+                "progress_status": "completed" if progress_reporter and progress_reporter.log_path else "not_enabled",
+                "ocr_status": "completed" if performance_options.enabled else "not_enabled",
+                "multimodal_status": "completed" if multimodal_options.enabled else "not_enabled",
+                "rag_status": "completed" if rag_result else "not_enabled",
+                "agent_template_status": "completed" if agent_result else "not_enabled",
+            }
+        )
     llm_summary = None
     llm_quality_summary = None
     if llm_options.enabled and llm_result:
@@ -2015,6 +2169,10 @@ def _build_package(
                 "demo_report_files": demo_result.output_files,
             }
         )
+    if contract_enabled:
+        write_json(output / "evidence_map.json", _make_evidence_map(all_chunks))
+        write_json(output / "source_inventory.json", _make_source_inventory(source_files))
+        (output / "quality_report.md").write_text(_render_quality_report_md(quality_report), encoding="utf-8")
     write_json(output / "manifest.json", manifest_payload)
     write_report(
         output / "ingest_report.md",
@@ -2028,6 +2186,10 @@ def _build_package(
         embedding_summary,
         vector_summary,
     )
+    if contract_options.check:
+        contract_result = check_package_contract(output, strict=contract_options.strict)
+        write_json(output / "contract_check_result.json", contract_result.model_dump(mode="json"))
+        (output / "contract_check_report.md").write_text(make_contract_report(contract_result), encoding="utf-8")
     lifecycle_summary = None
     if lifecycle_options.enabled:
         lifecycle_summary = _write_lifecycle_outputs(output, input, source_files, lifecycle_options)
@@ -2129,6 +2291,48 @@ def _collect_sources(input_path: Path) -> list[Path]:
     if input_path.is_file():
         return [input_path] if input_path.suffix.lower() in PARSERS else []
     return sorted(path for path in input_path.rglob("*") if path.is_file() and path.suffix.lower() in PARSERS)
+
+
+def _make_evidence_map(chunks: list[Chunk]) -> dict:
+    return {
+        "evidence_version": "2.0",
+        "chunks": {
+            chunk.chunk_id: {
+                "evidence_id": f"ev_{chunk.chunk_id}",
+                "source_file": chunk.source_path,
+                "source_id": chunk.source_path,
+                "page_number": None,
+                "slide_number": chunk.metadata.get("slide_number") if chunk.metadata else None,
+                "paragraph_index": None,
+                "table_id": None,
+                "asset_id": None,
+                "bbox": None,
+                "evidence_type": chunk.source_type if chunk.source_type in {"table", "image", "chart", "slide", "formula", "mindmap"} else "text",
+                "extraction_method": "parser",
+            }
+            for chunk in chunks
+        },
+    }
+
+
+def _make_source_inventory(source_files: list[Path]) -> dict:
+    return {
+        "source_inventory_version": "2.0",
+        "source_count": len(source_files),
+        "sources": [
+            {
+                "source_id": str(path).replace("\\", "/"),
+                "source_file": str(path).replace("\\", "/"),
+                "source_type": path.suffix.lower().lstrip("."),
+            }
+            for path in source_files
+        ],
+    }
+
+
+def _render_quality_report_md(quality_report: dict) -> str:
+    rows = "\n".join(f"- {key}: {value}" for key, value in quality_report.items())
+    return f"# Quality Report\n\n{rows}\n"
 
 
 def _write_lifecycle_outputs(

@@ -74,6 +74,16 @@ Desktop UI Freeze & Future-Ready Layout:
 - PDF preflight and page classification reports.
 - Large file performance report.
 
+## v1.6 Closure Completed
+
+- Multimodal knowledge assets.
+- Multimodal evidence map.
+- Multimodal report.
+- Knowledge Package Contract v2.
+- Contract checker.
+- Knowledge Package Builder UI v1 result viewer.
+- Bilingual v1.6 documentation and traceability.
+
 ## Explicit Non-Scope
 
 - Tool Runtime.

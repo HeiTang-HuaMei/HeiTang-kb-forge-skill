@@ -2,6 +2,26 @@
 
 This changelog is normalized by logical capability versions. Some capabilities were implemented in compressed commits during development, but each logical version is listed separately here.
 
+## v1.6
+
+Completed Real-world Ingestion & Knowledge Package Closure:
+
+- Added opt-in multimodal knowledge asset package.
+- Added `multimodal_assets.jsonl`.
+- Added `multimodal_evidence_map.json`.
+- Added `multimodal_report.md`.
+- Added PPT/PPTX slide asset fallback and optional slide text chunks.
+- Added image / chart / diagram / mindmap / formula best-effort asset preservation.
+- Added Knowledge Package Contract v2 support.
+- Added `evidence_map.json`, `source_inventory.json`, and `quality_report.md` for Contract v2 packages.
+- Added `check-contract` CLI.
+- Added `contract_check_result.json` and `contract_check_report.md`.
+- Added multimodal and contract config blocks.
+- Added multimodal and contract stages in pipeline reports.
+- Added minimal Knowledge Package Builder UI v1 result viewer.
+- Added bilingual v1.6 documentation and traceability docs.
+- Preserved default build / batch / run / pipeline behavior.
+
 ## v1.6.2
 
 Added Large File Progress & OCR Acceleration:

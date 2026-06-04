@@ -153,6 +153,35 @@ A standard build generates the core knowledge package:
 - `ingest_report.md`
 - `quality_report.json`
 
+## v1.6 Real-world Ingestion Closure
+
+v1.6 closes the real-world ingestion layer: progress and large-file/OCR performance, multimodal knowledge assets, Contract v2, contract checking, and a minimal Knowledge Package Builder UI v1.
+
+Opt-in multimodal and Contract v2 build:
+
+    heitang-kb-forge build --input .\examples\quickstart\input --output .\tmp_v16_verify --profile fast --progress-jsonl --multimodal --contract-version v2 --check-contract
+
+Contract check:
+
+    heitang-kb-forge check-contract --package .\tmp_v16_verify --contract-version v2
+
+Multimodal outputs:
+
+- `multimodal_assets.jsonl`
+- `multimodal_evidence_map.json`
+- `multimodal_report.md`
+- `slide_chunks.jsonl` when slide text is extracted
+
+Contract v2 outputs:
+
+- `evidence_map.json`
+- `source_inventory.json`
+- `quality_report.md`
+- `contract_check_result.json`
+- `contract_check_report.md`
+
+Multimodal extraction is bounded best-effort. Images, charts, diagrams, mindmaps, slides, and formula-like sources are preserved as reviewable assets when reliable extraction is not available. Low-confidence and fallback assets are marked `review_required: true`.
+
 ## Supported Input Coverage
 
 Supported source formats include:

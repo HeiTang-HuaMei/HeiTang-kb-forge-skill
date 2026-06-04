@@ -1,0 +1,30 @@
+task: build
+input: ./examples/quickstart/input
+output: ./tmp_v16_config
+domain: demo
+mode: v16
+performance:
+  profile: fast
+  progress_jsonl: true
+  ocr_mode: first-pages
+  max_ocr_pages: 10
+  ocr_lang: chi_sim+eng
+  ocr_workers: 2
+  ocr_cache: true
+  resume: true
+  ocr_scale: 1.5
+multimodal:
+  enabled: true
+  images: true
+  charts: true
+  slides: true
+  formulas: true
+  mindmaps: true
+  diagrams: true
+  report: true
+  require_evidence_refs: true
+  review_low_confidence: true
+contract:
+  version: v2
+  check: true
+  strict: false

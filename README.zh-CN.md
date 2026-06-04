@@ -153,6 +153,35 @@ OCR 说明：`ocr` extra 只安装 Python 包。Tesseract OCR 本体是系统依
 - `ingest_report.md`
 - `quality_report.json`
 
+## v1.6 真实资料接入收口
+
+v1.6 收口真实资料接入层：进度与大文件 / OCR 性能、多模态知识资产、Contract v2、contract checker，以及最小 Knowledge Package Builder UI v1。
+
+启用多模态与 Contract v2：
+
+    heitang-kb-forge build --input .\examples\quickstart\input --output .\tmp_v16_verify --profile fast --progress-jsonl --multimodal --contract-version v2 --check-contract
+
+检查知识包契约：
+
+    heitang-kb-forge check-contract --package .\tmp_v16_verify --contract-version v2
+
+多模态输出：
+
+- `multimodal_assets.jsonl`
+- `multimodal_evidence_map.json`
+- `multimodal_report.md`
+- 成功抽取 slide 文本时生成 `slide_chunks.jsonl`
+
+Contract v2 输出：
+
+- `evidence_map.json`
+- `source_inventory.json`
+- `quality_report.md`
+- `contract_check_result.json`
+- `contract_check_report.md`
+
+多模态抽取是 bounded best-effort。图片、图表、流程图、思维导图、slide、公式类资料在无法可靠抽取时也会被保留为可复核资产。低置信或 fallback asset 会标记 `review_required: true`。
+
 ## 支持的输入格式
 
 支持：

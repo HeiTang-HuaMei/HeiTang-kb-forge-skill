@@ -165,6 +165,25 @@ class PerformanceConfig(BaseModel):
     skip_low_text_pages: bool = False
 
 
+class MultimodalConfig(BaseModel):
+    enabled: bool = False
+    images: bool = True
+    charts: bool = True
+    slides: bool = True
+    formulas: bool = True
+    mindmaps: bool = True
+    diagrams: bool = True
+    report: bool = True
+    require_evidence_refs: bool = True
+    review_low_confidence: bool = True
+
+
+class ContractConfig(BaseModel):
+    version: str | None = None
+    check: bool = False
+    strict: bool = False
+
+
 class ForgeConfig(BaseModel):
     task: str
     input: Path
@@ -201,3 +220,5 @@ class ForgeConfig(BaseModel):
     store: StoreConfig = Field(default_factory=StoreConfig)
     agent_rag: AgentRAGConfig = Field(default_factory=AgentRAGConfig)
     performance: PerformanceConfig = Field(default_factory=PerformanceConfig)
+    multimodal: MultimodalConfig = Field(default_factory=MultimodalConfig)
+    contract: ContractConfig = Field(default_factory=ContractConfig)
