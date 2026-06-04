@@ -1,1 +1,0 @@
-{"task": "answer_grounded_questions", "user_goal": "Ask a question grounded in the package.", "expected_plan_steps": ["retrieve_context", "answer_with_citation"], "required_citations": true, "requires_tool": false, "requires_human_review": false}
