@@ -18,6 +18,7 @@ The file exports:
 - `defaultLocale = "zh-CN"`
 - zh-CN messages
 - en-US messages
+- `translate(locale, key)`
 
 ## Rules
 
@@ -26,3 +27,5 @@ The file exports:
 - Form labels use i18n where practical.
 - Empty, success, and error states use i18n.
 - Do not hardcode large blocks of UI copy in JSX.
+- Settings must use the same global locale as TopBar.
+- Pages should receive `t(key)` from App instead of importing a separate locale state.

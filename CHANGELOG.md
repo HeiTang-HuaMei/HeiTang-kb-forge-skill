@@ -2,6 +2,87 @@
 
 This changelog is normalized by logical capability versions. Some capabilities were implemented in compressed commits during development, but each logical version is listed separately here.
 
+## v1.6.0
+
+Added Agent Tool / MCP Interface Core:
+
+- Added tools export command.
+- Added tools list and describe commands.
+- Added local tools invoke command.
+- Added retrieve_knowledge invocation support.
+- Added tool_registry.yaml.
+- Added tool_manifest.json.
+- Added agent_tool_schema.json.
+- Added tool_safety_policy.md.
+- Added MCP config export.
+- Added mcp_server_config.yaml.
+- Added mcp_tools_manifest.json.
+- No real Agent deployment.
+- No external Agent platform calls.
+
+## v1.5.0
+
+Added Agent RAG Layer:
+
+- Added retrieve command.
+- Added package-based local retrieval.
+- Added store-based local retrieval.
+- Added ask support for citation-required local answers.
+- Added retrieval_result.json.
+- Added retrieval_trace.json.
+- Added citation_trace.json.
+- Added answer.md and answer_report.json for Agent RAG runs.
+- Added agent_rag config block support.
+- Added Agent RAG stages in pipeline reports.
+- No embedding API calls.
+- No vector database writes.
+
+## v1.4.0
+
+Added Local Knowledge Store & Package Index:
+
+- Added local SQLite store commands.
+- Added package import into store index.
+- Added workspace sync for package directories.
+- Added package listing and query commands.
+- Added package status command.
+- Added store index export files.
+- Added store config block support.
+- Added local store stages in pipeline reports.
+- Preserved standard knowledge package files.
+- Did not add external database or vector database writes.
+
+## v1.3.0
+
+Added Knowledge Lifecycle Core:
+
+- Added source registry generation.
+- Added lifecycle-check command.
+- Added source change detection reports.
+- Added changed / missing / new source JSONL outputs.
+- Added incremental update reports.
+- Added reused / rebuilt / removed / stale chunk reports.
+- Added removed source impact report.
+- Added update quality gate report.
+- Added quality regression report.
+- Added failed sources and retry manifest outputs.
+- Added lifecycle config block support.
+- Added lifecycle stages in pipeline reports.
+- Preserved default build / batch / pipeline behavior when lifecycle is not enabled.
+
+## v1.2.4
+
+Added Desktop UI Polish:
+
+- Fixed global locale linkage across TopBar, Sidebar, pages, and Settings.
+- Replaced mixed Settings labels with i18n-driven labels.
+- Added unified status badge variants.
+- Added structured empty states and run logs.
+- Distinguished editable, readonly, disabled, and future-reserved fields.
+- Improved Dashboard, Build, Batch, Workspace, Lifecycle, Quality, Package Detail, Ask, Publish, Planning, and Settings hierarchy.
+- Preserved fixed 11-page information architecture.
+- Preserved Skill-first and headless CLI boundaries.
+
 ## v1.2.3
 
 Added Desktop UI Freeze & Future-Ready Layout:

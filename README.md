@@ -447,6 +447,76 @@ This section documents the expected unmerged logical version sequence. Some capa
 - Knowledge Lifecycle, SQLite / Vector Store, Agent Connector, and Retrieval Runtime placeholders
 - tiger/cat icon asset split documented
 
+### v1.2.4 Desktop UI Polish
+
+- fixed global locale linkage across TopBar, Sidebar, pages, and Settings
+- removed mixed Chinese / English labels from Settings
+- separated readonly fields from editable and future-reserved fields
+- improved Dashboard, Build, Batch, Lifecycle, Ask, Publish, Planning, and Settings information hierarchy
+- kept the 11-page IA unchanged
+- preserved Skill-first boundaries and headless CLI usage
+
+### v1.3.0 Knowledge Lifecycle Core
+
+- optional source registry and source change detection
+- lifecycle-check command for comparing current sources with an existing package
+- incremental update reports for reused, rebuilt, removed, and stale chunks
+- update quality gate and quality regression report
+- retry manifest and failed source outputs
+- lifecycle config block for `run --config` and `pipeline --config`
+
+```powershell
+heitang-kb-forge lifecycle-check --input .\sources --package .\output --output .\lifecycle_check
+```
+
+```powershell
+heitang-kb-forge build --input .\sources --output .\output --lifecycle --update-mode incremental --missing-source-policy mark_stale
+```
+
+### v1.4.0 Local Knowledge Store
+
+- optional local SQLite index for generated knowledge packages
+- package import and workspace sync
+- package list, query, and status commands
+- store index export for Agent / ops workflows
+- standard knowledge package files remain the source of truth
+
+```powershell
+heitang-kb-forge store init --db .\kb_forge_workspace.db
+heitang-kb-forge store import-package --db .\kb_forge_workspace.db --package .\output_sample
+heitang-kb-forge store export-index --db .\kb_forge_workspace.db --output .\store_export
+```
+
+### v1.5.0 Agent RAG Layer
+
+- local retrieve command for packages or the SQLite store
+- local ask command with citation-required mode
+- retrieval result, trace, citation trace, and answer outputs
+- config and pipeline support via `agent_rag`
+- no embedding API calls and no vector database writes
+
+```powershell
+heitang-kb-forge retrieve --package .\output --query "What is this package about?" --top-k 5 --output .\rag_run
+```
+
+```powershell
+heitang-kb-forge ask --package .\output --query "What is this package about?" --citation-required --output .\ask_run
+```
+
+### v1.6.0 Agent Tool / MCP Interface
+
+- local Agent-callable tool registry
+- tool export, list, describe, and invoke commands
+- retrieve_knowledge local tool invocation
+- MCP readiness config export
+- no real Agent deployment and no external Agent platform calls
+
+```powershell
+heitang-kb-forge tools export --output .\tool_exports
+heitang-kb-forge tools invoke --name retrieve_knowledge --input .\input.json --output .\tool_run
+heitang-kb-forge mcp export-config --output .\mcp_config
+```
+
 ## Current Boundaries
 
 - Offline-first by default

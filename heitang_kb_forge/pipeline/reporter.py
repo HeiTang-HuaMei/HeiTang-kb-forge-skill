@@ -20,6 +20,7 @@ from heitang_kb_forge.eval_dashboard.recorder import EVAL_DASHBOARD_OUTPUT_FILES
 from heitang_kb_forge.publish.profiles import PUBLISH_OUTPUT_FILES
 from heitang_kb_forge.planning.readiness import PLANNING_OUTPUT_FILES
 from heitang_kb_forge.vector.exporter import VECTOR_OUTPUT_FILES
+from heitang_kb_forge.store.exporter import STORE_OUTPUT_FILES
 from heitang_kb_forge.schemas.config_schema import ForgeConfig
 from heitang_kb_forge.schemas.pipeline_schema import PipelineManifest, PipelineStage
 
@@ -51,6 +52,12 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("live_validation", config.live_validation.enabled, output, ["live_provider_smoke_report.json"], config.task),
         _stage("package_versioning", config.versioning.enabled, output, ["package_version.json"], config.task),
         _stage("incremental_reuse", config.incremental.enabled, output, INCREMENTAL_OUTPUT_FILES, config.task),
+        _stage("source_registry", config.lifecycle.enabled, output, ["source_registry.json"], config.task),
+        _stage("change_detection", config.lifecycle.enabled, output, ["source_change_report.md", "changed_sources.jsonl", "missing_sources.jsonl", "new_sources.jsonl"], config.task),
+        _stage("incremental_update", config.lifecycle.enabled, output, ["incremental_update_report.md", "reused_chunks.jsonl", "rebuilt_chunks.jsonl"], config.task),
+        _stage("missing_source_policy", config.lifecycle.enabled, output, ["stale_chunks.jsonl", "removed_source_impact_report.md"], config.task),
+        _stage("update_quality_gate", config.lifecycle.enabled, output, ["update_quality_gate_report.json", "quality_regression_report.md"], config.task),
+        _stage("retry_manifest", config.lifecycle.enabled, output, ["retry_manifest.json", "retry_report.md"], config.task),
         _stage("knowledge_graph_export", config.knowledge_graph.enabled, output, KNOWLEDGE_GRAPH_OUTPUT_FILES, config.task),
         _stage("retrieval_eval_export", config.retrieval_eval.enabled, output, RETRIEVAL_EVAL_OUTPUT_FILES, config.task),
         _stage("risk_labeling", config.risk_labels.enabled, output, RISK_OUTPUT_FILES, config.task),
@@ -61,6 +68,12 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("evaluation_dashboard", config.evaluation_dashboard.enabled, output, EVAL_DASHBOARD_OUTPUT_FILES, config.task),
         _stage("publish_profile", config.publish.enabled, output, PUBLISH_OUTPUT_FILES, config.task),
         _stage("planning_readiness", config.planning_readiness.enabled, output, PLANNING_OUTPUT_FILES, config.task),
+        _stage("local_store_init", config.store.enabled, output, [], config.task),
+        _stage("local_store_import", config.store.enabled and config.store.import_package, output, [], config.task),
+        _stage("local_store_export_index", config.store.enabled and config.store.export_index, output, STORE_OUTPUT_FILES, config.task),
+        _stage("agent_rag_retrieve", config.agent_rag.enabled, output, ["retrieval_result.json", "retrieval_trace.json"], config.task),
+        _stage("agent_rag_answer", config.agent_rag.enabled, output, ["answer.md", "answer_report.json"], config.task),
+        _stage("citation_trace", config.agent_rag.enabled, output, ["citation_trace.json"], config.task),
     ]
     warnings = [f"Stage failed: {stage.name}" for stage in stages if stage.status == "failed"]
     final_status = "fail" if warnings else "pass"

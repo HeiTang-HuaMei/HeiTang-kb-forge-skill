@@ -1,4 +1,10 @@
 :root {
+  --bg-app: #0f1115;
+  --bg-sidebar: #151821;
+  --bg-panel: #11141b;
+  --bg-card: #1a1f2b;
+  --bg-input: #080b11;
+  --border-subtle: #2a3140;
   --app-bg: #0f1115;
   --sidebar-bg: #151821;
   --main-panel: #11141b;
@@ -11,6 +17,7 @@
   --success: #3fbf7f;
   --warning: #d6a84f;
   --error: #e06c75;
+  --danger: #e06c75;
   --code-bg: #090c12;
   font-family: Inter, "Segoe UI", system-ui, sans-serif;
   color: var(--text-primary);
@@ -77,6 +84,10 @@ td {
   border-bottom: 1px solid var(--border);
   text-align: left;
   color: var(--text-secondary);
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 th {
@@ -210,6 +221,51 @@ th {
   font-size: 13px;
 }
 
+.form-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-control {
+  min-width: 0;
+}
+
+.form-row-readonly .form-control,
+.readonly-field {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 0 10px;
+  color: var(--text-secondary);
+  background: #111723;
+}
+
+.form-row-disabled {
+  opacity: 0.6;
+}
+
+.form-row-future .form-control,
+.future-field {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  border: 1px dashed var(--border-subtle);
+  border-radius: 6px;
+  padding: 0 10px;
+  color: var(--text-muted);
+  background: #10141d;
+}
+
+.path-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  gap: 8px;
+}
+
 .toggle-grid,
 .module-grid,
 .status-grid,
@@ -284,15 +340,22 @@ th {
   color: var(--text-secondary);
 }
 
+.badge-ready,
 .badge-success {
   color: var(--success);
 }
 
-.badge-warning {
+.badge-warning,
+.badge-pending,
+.badge-future,
+.badge-reserved,
+.badge-notChecked,
+.badge-notLoaded,
+.badge-notAvailable {
   color: var(--warning);
 }
 
-.badge-error {
+.badge-failed {
   color: var(--error);
 }
 
@@ -309,6 +372,34 @@ th {
 .file-list h3 {
   margin: 0 0 8px;
   font-size: 14px;
+}
+
+.command-preview summary {
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.command-preview-failed code {
+  border-color: rgba(224, 108, 117, 0.65);
+}
+
+.button-row.compact {
+  grid-template-columns: repeat(2, max-content);
+}
+
+.flow-line {
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  background: #111723;
+}
+
+.run-log-meta {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-secondary);
 }
 
 code,
@@ -348,6 +439,6 @@ pre {
   border-color: rgba(63, 191, 127, 0.45);
 }
 
-.run-log-error pre {
+.run-log-failed pre {
   border-color: rgba(224, 108, 117, 0.55);
 }

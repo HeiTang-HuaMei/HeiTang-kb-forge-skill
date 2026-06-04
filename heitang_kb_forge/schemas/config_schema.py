@@ -66,6 +66,15 @@ class IncrementalConfig(BaseModel):
     previous_package: Path | None = None
 
 
+class LifecycleConfig(BaseModel):
+    enabled: bool = False
+    update_mode: str = "full"
+    previous_package: Path | None = None
+    missing_source_policy: str = "mark_stale"
+    quality_gate: bool = False
+    retry_manifest: Path | None = None
+
+
 class ChunkConfig(BaseModel):
     profile: str = "default"
 
@@ -120,6 +129,23 @@ class PlanningReadinessConfig(BaseModel):
     enabled: bool = False
 
 
+class StoreConfig(BaseModel):
+    enabled: bool = False
+    db_path: Path = Path("kb_forge_workspace.db")
+    import_package: bool = False
+    export_index: bool = False
+
+
+class AgentRAGConfig(BaseModel):
+    enabled: bool = False
+    query: str = "Summarize this knowledge package."
+    top_k: int = 5
+    citation_required: bool = True
+    package: Path | None = None
+    store: Path | None = None
+    scope: dict[str, str] = Field(default_factory=dict)
+
+
 class ForgeConfig(BaseModel):
     task: str
     input: Path
@@ -140,6 +166,7 @@ class ForgeConfig(BaseModel):
     live_validation: LiveValidationConfig = Field(default_factory=LiveValidationConfig)
     versioning: VersioningConfig = Field(default_factory=VersioningConfig)
     incremental: IncrementalConfig = Field(default_factory=IncrementalConfig)
+    lifecycle: LifecycleConfig = Field(default_factory=LifecycleConfig)
     chunk: ChunkConfig = Field(default_factory=ChunkConfig)
     knowledge_graph: KnowledgeGraphConfig = Field(default_factory=KnowledgeGraphConfig)
     retrieval_eval: RetrievalEvalConfig = Field(default_factory=RetrievalEvalConfig)
@@ -152,3 +179,5 @@ class ForgeConfig(BaseModel):
     evaluation_dashboard: EvaluationDashboardConfig = Field(default_factory=EvaluationDashboardConfig)
     publish: PublishConfig = Field(default_factory=PublishConfig)
     planning_readiness: PlanningReadinessConfig = Field(default_factory=PlanningReadinessConfig)
+    store: StoreConfig = Field(default_factory=StoreConfig)
+    agent_rag: AgentRAGConfig = Field(default_factory=AgentRAGConfig)

@@ -7,6 +7,12 @@ import typer
 
 from heitang_kb_forge.agent.generator import make_agent_template
 from heitang_kb_forge.agent.templates import AGENT_OUTPUT_FILES
+from heitang_kb_forge.agent_rag.answerer import answer_from_records
+from heitang_kb_forge.agent_rag.retriever import retrieve_from_package, retrieve_from_store
+from heitang_kb_forge.agent_rag.scope import parse_scope
+from heitang_kb_forge.agent_tools.exporter import make_tool_exports
+from heitang_kb_forge.agent_tools.invoker import invoke_tool
+from heitang_kb_forge.agent_tools.registry import get_agent_tool, list_agent_tools
 from heitang_kb_forge.config.loader import load_config
 from heitang_kb_forge.downstream.exporter import DOWNSTREAM_OUTPUT_FILES, make_downstream_exports
 from heitang_kb_forge.embedding.exporter import EMBEDDING_OUTPUT_FILES, make_embeddings
@@ -17,6 +23,15 @@ from heitang_kb_forge.hardening.batch import make_batch_hardening_outputs
 from heitang_kb_forge.hardening.run_trace import make_run_manifest, new_run_id, now_iso, stage_record
 from heitang_kb_forge.incremental.reuse import INCREMENTAL_OUTPUT_FILES, make_incremental_report
 from heitang_kb_forge.knowledge_graph.exporter import KNOWLEDGE_GRAPH_OUTPUT_FILES, make_knowledge_graph
+from heitang_kb_forge.lifecycle.change_detector import (
+    LIFECYCLE_OUTPUT_FILES,
+    detect_source_changes,
+    load_source_registry,
+    make_incremental_outputs,
+    make_update_quality_gate,
+    render_source_change_report,
+)
+from heitang_kb_forge.lifecycle.source_registry import make_source_registry
 from heitang_kb_forge.eval_dashboard.recorder import make_eval_dashboard
 from heitang_kb_forge.exporters.report_exporter import write_report
 from heitang_kb_forge.llm.extractor import LLMOptions, OUTPUT_FILES, extract_llm_assets
@@ -52,10 +67,21 @@ from heitang_kb_forge.schemas.config_schema import ForgeConfig
 from heitang_kb_forge.schemas.chunk_schema import Chunk
 from heitang_kb_forge.schemas.agent_schema import AgentOptions
 from heitang_kb_forge.schemas.manifest_schema import Manifest
+from heitang_kb_forge.mcp.config import make_mcp_config
+from heitang_kb_forge.store.db import init_store
+from heitang_kb_forge.store.exporter import STORE_OUTPUT_FILES, export_store_index
+from heitang_kb_forge.store.importer import import_package, sync_workspace
+from heitang_kb_forge.store.query import list_packages, package_status, query_packages
 
 app = typer.Typer(help="Build local standardized knowledge base packages.")
 workspace_app = typer.Typer(help="Manage local knowledge package workspaces.")
+store_app = typer.Typer(help="Manage local SQLite knowledge store indexes.")
+tools_app = typer.Typer(help="Export and invoke local Agent-callable tool declarations.")
+mcp_app = typer.Typer(help="Export MCP readiness configuration.")
 app.add_typer(workspace_app, name="workspace")
+app.add_typer(store_app, name="store")
+app.add_typer(tools_app, name="tools")
+app.add_typer(mcp_app, name="mcp")
 
 PARSERS = {
     ".md": parse_markdown,
@@ -124,6 +150,24 @@ class HardeningOptions:
     run_manifest: bool = False
 
 
+@dataclass
+class LifecycleOptions:
+    enabled: bool = False
+    update_mode: str = "full"
+    previous_package: Path | None = None
+    missing_source_policy: str = "mark_stale"
+    quality_gate: bool = False
+    retry_manifest: Path | None = None
+
+
+@dataclass
+class StoreOptions:
+    enabled: bool = False
+    db_path: Path | None = None
+    import_package: bool = False
+    export_index: bool = False
+
+
 HARDENING_TRACE_FILES = ["run_manifest.json", "stage_trace.jsonl", "error_report.json"]
 
 
@@ -159,6 +203,10 @@ def build(
     downstream_export: bool = typer.Option(False, "--downstream-export"),
     incremental: bool = typer.Option(False, "--incremental"),
     previous_package: Path | None = typer.Option(None, "--previous-package", exists=True, file_okay=False, dir_okay=True),
+    lifecycle: bool = typer.Option(False, "--lifecycle"),
+    update_mode: str = typer.Option("full", "--update-mode"),
+    missing_source_policy: str = typer.Option("mark_stale", "--missing-source-policy"),
+    retry_manifest: Path | None = typer.Option(None, "--retry-manifest", exists=True, file_okay=True, dir_okay=False),
     chunk_profile: str = typer.Option("default", "--chunk-profile"),
     knowledge_graph_export: bool = typer.Option(False, "--knowledge-graph-export"),
     retrieval_eval_export: bool = typer.Option(False, "--retrieval-eval-export"),
@@ -209,6 +257,14 @@ def build(
             retrieval_eval=retrieval_eval_export,
             risk_labels=risk_labels,
         ),
+        lifecycle_options=LifecycleOptions(
+            enabled=lifecycle or update_mode != "full" or retry_manifest is not None,
+            update_mode=update_mode,
+            previous_package=previous_package,
+            missing_source_policy=missing_source_policy,
+            quality_gate=quality_gate or quality_gate_strict,
+            retry_manifest=retry_manifest,
+        ),
         hardening_options=HardeningOptions(quality_gate or quality_gate_strict, quality_gate_strict, run_manifest),
         demo_report=demo_report,
     )
@@ -245,6 +301,10 @@ def batch(
     downstream_export: bool = typer.Option(False, "--downstream-export"),
     incremental: bool = typer.Option(False, "--incremental"),
     previous_package: Path | None = typer.Option(None, "--previous-package", exists=True, file_okay=False, dir_okay=True),
+    lifecycle: bool = typer.Option(False, "--lifecycle"),
+    update_mode: str = typer.Option("full", "--update-mode"),
+    missing_source_policy: str = typer.Option("mark_stale", "--missing-source-policy"),
+    retry_manifest: Path | None = typer.Option(None, "--retry-manifest", exists=True, file_okay=True, dir_okay=False),
     chunk_profile: str = typer.Option("default", "--chunk-profile"),
     knowledge_graph_export: bool = typer.Option(False, "--knowledge-graph-export"),
     retrieval_eval_export: bool = typer.Option(False, "--retrieval-eval-export"),
@@ -297,6 +357,14 @@ def batch(
         risk_labels=risk_labels,
     )
     hardening_options = HardeningOptions(quality_gate or quality_gate_strict, quality_gate_strict, run_manifest)
+    lifecycle_options = LifecycleOptions(
+        enabled=lifecycle or update_mode != "full" or retry_manifest is not None,
+        update_mode=update_mode,
+        previous_package=previous_package,
+        missing_source_policy=missing_source_policy,
+        quality_gate=quality_gate or quality_gate_strict,
+        retry_manifest=retry_manifest,
+    )
     items = (
         _build_batch_groups(
             numbered_sources,
@@ -312,6 +380,7 @@ def batch(
             validation_options,
             downstream_options,
             v11_options,
+            lifecycle_options,
             hardening_options,
             max_chunks,
             continue_on_error,
@@ -334,6 +403,7 @@ def batch(
             validation_options,
             downstream_options,
             v11_options,
+            lifecycle_options,
             hardening_options,
             max_chunks,
             continue_on_error,
@@ -396,6 +466,26 @@ def pipeline(
     typer.echo(f"Built pipeline report at {result.output}")
 
 
+@app.command("lifecycle-check")
+def lifecycle_check(
+    input: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Compare current sources with a package source registry."""
+    output.mkdir(parents=True, exist_ok=True)
+    source_files = _collect_sources(input)
+    current_registry = make_source_registry(input, source_files)
+    previous_registry = load_source_registry(package)
+    report, changed, missing, new, _unchanged = detect_source_changes(previous_registry, current_registry)
+    write_json(output / "source_registry.json", current_registry.model_dump(mode="json"))
+    (output / "source_change_report.md").write_text(render_source_change_report(report), encoding="utf-8")
+    write_jsonl(output / "changed_sources.jsonl", changed)
+    write_jsonl(output / "missing_sources.jsonl", missing)
+    write_jsonl(output / "new_sources.jsonl", new)
+    typer.echo(f"Built lifecycle check at {output}")
+
+
 @app.command()
 def diff(
     old: Path = typer.Option(..., "--old", exists=True, file_okay=False, dir_okay=True, readable=True),
@@ -414,17 +504,68 @@ def diff(
 
 
 @app.command()
+def retrieve(
+    package: Path | None = typer.Option(None, "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    store: Path | None = typer.Option(None, "--store", exists=True, file_okay=True, dir_okay=False, readable=True),
+    query: str = typer.Option(..., "--query"),
+    top_k: int = typer.Option(5, "--top-k"),
+    book_id: str | None = typer.Option(None, "--book-id"),
+    publisher_id: str | None = typer.Option(None, "--publisher-id"),
+    agent_type: str | None = typer.Option(None, "--agent-type"),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+) -> None:
+    """Retrieve local package or store records with citation traces."""
+    if not package and not store:
+        raise ValueError("--package or --store is required")
+    output = output or (package if package else Path("."))
+    output.mkdir(parents=True, exist_ok=True)
+    scope = parse_scope(book_id=book_id, publisher_id=publisher_id, agent_type=agent_type)
+    records, trace, citation_trace = (
+        retrieve_from_store(store, query, top_k, scope)
+        if store
+        else retrieve_from_package(package, query, top_k, scope)
+    )
+    write_json(output / "retrieval_result.json", {"query": query, "records": [record.model_dump(mode="json") for record in records]})
+    write_json(output / "retrieval_trace.json", trace)
+    write_json(output / "citation_trace.json", citation_trace)
+    typer.echo(f"Built retrieval result at {output}")
+
+
+@app.command()
 def ask(
-    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    package: Path | None = typer.Option(None, "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    store: Path | None = typer.Option(None, "--store", exists=True, file_okay=True, dir_okay=False, readable=True),
     query: str = typer.Option(..., "--query"),
     top_k: int = typer.Option(5, "--top-k"),
     provider: str = typer.Option("fake", "--provider"),
     model: str = typer.Option("fake-model", "--model"),
+    citation_required: bool = typer.Option(False, "--citation-required"),
+    scope: str | None = typer.Option(None, "--scope"),
     output: Path | None = typer.Option(None, "--output", "-o"),
 ) -> None:
-    """Ask a local knowledge package with a minimal RAG runtime."""
-    output = output or package
+    """Ask a local knowledge package or store with a minimal RAG runtime."""
+    if not package and not store:
+        raise ValueError("--package or --store is required")
+    output = output or (package if package else Path("."))
     output.mkdir(parents=True, exist_ok=True)
+    if store:
+        records, trace, citation_trace = retrieve_from_store(store, query, top_k, parse_scope(scope))
+        answer, report = answer_from_records(query, records, top_k, citation_required)
+        (output / "answer.md").write_text(answer, encoding="utf-8")
+        write_json(output / "answer_report.json", report.model_dump(mode="json"))
+        write_json(output / "retrieval_trace.json", trace)
+        write_json(output / "citation_trace.json", citation_trace)
+        typer.echo(f"Built answer at {output / 'answer.md'}")
+        return
+    if citation_required:
+        records, trace, citation_trace = retrieve_from_package(package, query, top_k, parse_scope(scope))
+        answer, report = answer_from_records(query, records, top_k, citation_required)
+        (output / "answer.md").write_text(answer, encoding="utf-8")
+        write_json(output / "answer_report.json", report.model_dump(mode="json"))
+        write_json(output / "retrieval_trace.json", trace)
+        write_json(output / "citation_trace.json", citation_trace)
+        typer.echo(f"Built answer at {output / 'answer.md'}")
+        return
     answer, report, trace = ask_package(package, query, top_k, provider, model)
     (output / "answer.md").write_text(answer, encoding="utf-8")
     write_json(output / "answer_report.json", report.model_dump(mode="json"))
@@ -468,6 +609,128 @@ def workspace_status_command(workspace: Path = typer.Option(..., "--workspace", 
     write_json(workspace / "package_registry.json", registry)
     (workspace / "package_status_report.md").write_text(report, encoding="utf-8")
     typer.echo(f"Workspace packages: {len(registry['packages'])}")
+
+
+@store_app.command("init")
+def store_init(db: Path = typer.Option(Path("kb_forge_workspace.db"), "--db")) -> None:
+    manifest = init_store(db)
+    typer.echo(f"Initialized store at {manifest['db_path']}")
+
+
+@store_app.command("import-package")
+def store_import_package(
+    db: Path = typer.Option(Path("kb_forge_workspace.db"), "--db"),
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True),
+) -> None:
+    result = import_package(db, package)
+    typer.echo(f"Imported package {result['package_id']}")
+
+
+@store_app.command("sync-workspace")
+def store_sync_workspace(
+    db: Path = typer.Option(Path("kb_forge_workspace.db"), "--db"),
+    workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True),
+) -> None:
+    imported = sync_workspace(db, workspace)
+    typer.echo(f"Imported packages: {len(imported)}")
+
+
+@store_app.command("list-packages")
+def store_list_packages(db: Path = typer.Option(Path("kb_forge_workspace.db"), "--db")) -> None:
+    packages = list_packages(db)
+    for package in packages:
+        typer.echo(f"{package.package_id}\t{package.package_name}\t{package.domain or '-'}\t{package.quality_score}")
+
+
+@store_app.command("query-packages")
+def store_query_packages(
+    db: Path = typer.Option(Path("kb_forge_workspace.db"), "--db"),
+    domain: str | None = typer.Option(None, "--domain"),
+    agent_type: str | None = typer.Option(None, "--agent-type"),
+    min_quality_score: int | None = typer.Option(None, "--min-quality-score"),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+) -> None:
+    result = query_packages(db, domain=domain, agent_type=agent_type, min_quality_score=min_quality_score)
+    if output:
+        write_json(output / "store_query_result.json", result.model_dump(mode="json"))
+    typer.echo(f"Matched packages: {result.total}")
+
+
+@store_app.command("package-status")
+def store_package_status(
+    db: Path = typer.Option(Path("kb_forge_workspace.db"), "--db"),
+    package_id: str = typer.Option(..., "--package-id"),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+) -> None:
+    status = package_status(db, package_id)
+    if output:
+        write_json(output / "store_query_result.json", status)
+    typer.echo(f"Package {package_id}: {status['indexed_chunk_count']} chunks")
+
+
+@store_app.command("export-index")
+def store_export_index(
+    db: Path = typer.Option(Path("kb_forge_workspace.db"), "--db"),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    output.mkdir(parents=True, exist_ok=True)
+    manifest, packages, sources, chunks, report = export_store_index(db)
+    write_json(output / "store_manifest.json", manifest)
+    write_jsonl(output / "store_package_index.jsonl", packages)
+    write_jsonl(output / "store_source_index.jsonl", sources)
+    write_jsonl(output / "store_chunk_index.jsonl", chunks)
+    (output / "store_status_report.md").write_text(report, encoding="utf-8")
+    typer.echo(f"Exported store index at {output}")
+
+
+@tools_app.command("export")
+def tools_export(output: Path = typer.Option(..., "--output", "-o")) -> None:
+    output.mkdir(parents=True, exist_ok=True)
+    registry_yaml, manifest, schema, policy = make_tool_exports()
+    (output / "tool_registry.yaml").write_text(registry_yaml, encoding="utf-8")
+    write_json(output / "tool_manifest.json", manifest)
+    write_json(output / "agent_tool_schema.json", schema)
+    (output / "tool_safety_policy.md").write_text(policy, encoding="utf-8")
+    typer.echo(f"Exported tool registry at {output}")
+
+
+@tools_app.command("list")
+def tools_list() -> None:
+    for tool in list_agent_tools():
+        typer.echo(tool.name)
+
+
+@tools_app.command("describe")
+def tools_describe(name: str = typer.Option(..., "--name")) -> None:
+    tool = get_agent_tool(name)
+    typer.echo(tool.model_dump_json(indent=2))
+
+
+@tools_app.command("invoke")
+def tools_invoke(
+    name: str = typer.Option(..., "--name"),
+    input: Path = typer.Option(..., "--input", exists=True, file_okay=True, dir_okay=False),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    output.mkdir(parents=True, exist_ok=True)
+    try:
+        result, trace = invoke_tool(name, input)
+        write_json(output / "tool_result.json", result)
+        write_json(output / "tool_execution_trace.json", trace)
+    except Exception as exc:
+        error = {"tool": name, "status": "failed", "error": str(exc)}
+        write_json(output / "tool_error_report.json", error)
+        raise
+    typer.echo(f"Invoked tool {name} at {output}")
+
+
+@mcp_app.command("export-config")
+def mcp_export_config(output: Path = typer.Option(..., "--output", "-o")) -> None:
+    output.mkdir(parents=True, exist_ok=True)
+    config_yaml, tools_manifest = make_mcp_config()
+    (output / "mcp_server_config.yaml").write_text(config_yaml, encoding="utf-8")
+    write_json(output / "mcp_tools_manifest.json", tools_manifest)
+    typer.echo(f"Exported MCP config at {output}")
 
 
 @app.command("refresh-check")
@@ -594,6 +857,14 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         runtime_provider=config_data.runtime.provider,
         runtime_model=config_data.runtime.model,
     )
+    lifecycle_options = LifecycleOptions(
+        enabled=config_data.lifecycle.enabled,
+        update_mode=config_data.lifecycle.update_mode,
+        previous_package=config_data.lifecycle.previous_package or config_data.incremental.previous_package,
+        missing_source_policy=config_data.lifecycle.missing_source_policy,
+        quality_gate=config_data.lifecycle.quality_gate,
+        retry_manifest=config_data.lifecycle.retry_manifest,
+    )
     agent_options = AgentOptions(
         enabled=config_data.agent.enabled,
         agent_type=config_data.agent.type,
@@ -616,6 +887,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             validation_options=validation_options,
             downstream_options=downstream_options,
             v11_options=v11_options,
+            lifecycle_options=lifecycle_options,
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
         )
@@ -649,6 +921,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             validation_options,
             downstream_options,
             v11_options,
+            lifecycle_options,
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
         )
@@ -667,6 +940,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             validation_options,
             downstream_options,
             v11_options,
+            lifecycle_options,
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
         )
@@ -733,6 +1007,44 @@ def _run_v12_config_outputs(config_data: ForgeConfig, output: Path) -> None:
         write_json(output / "tool_requirement_map.json", tool_map)
         write_jsonl(output / "planning_eval_cases.jsonl", eval_cases)
         (output / "planning_risk_report.md").write_text(report, encoding="utf-8")
+    if config_data.store.enabled:
+        init_store(config_data.store.db_path)
+        if config_data.store.import_package:
+            if (output / "manifest.json").exists():
+                import_package(config_data.store.db_path, output)
+            else:
+                sync_workspace(config_data.store.db_path, output)
+        if config_data.store.export_index:
+            manifest, packages, sources, chunks, report = export_store_index(config_data.store.db_path)
+            write_json(output / "store_manifest.json", manifest)
+            write_jsonl(output / "store_package_index.jsonl", packages)
+            write_jsonl(output / "store_source_index.jsonl", sources)
+            write_jsonl(output / "store_chunk_index.jsonl", chunks)
+            (output / "store_status_report.md").write_text(report, encoding="utf-8")
+    if config_data.agent_rag.enabled:
+        rag_package = config_data.agent_rag.package or output
+        rag_store = config_data.agent_rag.store or (config_data.store.db_path if config_data.store.enabled else None)
+        scope = config_data.agent_rag.scope
+        records, trace, citation_trace = (
+            retrieve_from_store(rag_store, config_data.agent_rag.query, config_data.agent_rag.top_k, scope)
+            if rag_store and rag_store.exists()
+            else retrieve_from_package(rag_package, config_data.agent_rag.query, config_data.agent_rag.top_k, scope)
+        )
+        answer, report = answer_from_records(
+            config_data.agent_rag.query,
+            records,
+            config_data.agent_rag.top_k,
+            config_data.agent_rag.citation_required,
+        )
+        write_json(output / "retrieval_result.json", {"query": config_data.agent_rag.query, "records": [record.model_dump(mode="json") for record in records]})
+        write_json(output / "retrieval_trace.json", trace)
+        write_json(output / "citation_trace.json", citation_trace)
+        (output / "answer.md").write_text(answer, encoding="utf-8")
+        write_json(output / "answer_report.json", report.model_dump(mode="json"))
+        (output / "agent_rag_config.yaml").write_text(
+            f"query: {config_data.agent_rag.query}\ntop_k: {config_data.agent_rag.top_k}\ncitation_required: {str(config_data.agent_rag.citation_required).lower()}\n",
+            encoding="utf-8",
+        )
 
 
 def _make_llm_options(
@@ -791,6 +1103,7 @@ def _build_batch_items(
     validation_options: ValidationOptions | None = None,
     downstream_options: DownstreamOptions | None = None,
     v11_options: V11Options | None = None,
+    lifecycle_options: LifecycleOptions | None = None,
     hardening_options: HardeningOptions | None = None,
     max_chunks: int | None = None,
     continue_on_error: bool = True,
@@ -835,6 +1148,7 @@ def _build_batch_items(
                 validation_options=validation_options,
                 downstream_options=downstream_options,
                 v11_options=v11_options,
+                lifecycle_options=lifecycle_options,
                 hardening_options=hardening_options,
                 agent_options=agent_options,
                 demo_report=demo_report,
@@ -869,6 +1183,7 @@ def _build_batch_groups(
     validation_options: ValidationOptions | None = None,
     downstream_options: DownstreamOptions | None = None,
     v11_options: V11Options | None = None,
+    lifecycle_options: LifecycleOptions | None = None,
     hardening_options: HardeningOptions | None = None,
     max_chunks: int | None = None,
     continue_on_error: bool = True,
@@ -922,6 +1237,7 @@ def _build_batch_groups(
                 validation_options=validation_options,
                 downstream_options=downstream_options,
                 v11_options=v11_options,
+                lifecycle_options=lifecycle_options,
                 hardening_options=hardening_options,
                 agent_options=agent_options,
                 demo_report=demo_report,
@@ -958,6 +1274,7 @@ def _build_package(
     validation_options: ValidationOptions | None = None,
     downstream_options: DownstreamOptions | None = None,
     v11_options: V11Options | None = None,
+    lifecycle_options: LifecycleOptions | None = None,
     hardening_options: HardeningOptions | None = None,
     agent_options: AgentOptions | None = None,
     demo_report: bool = False,
@@ -965,6 +1282,7 @@ def _build_package(
     output.mkdir(parents=True, exist_ok=True)
     source_files = source_files if source_files is not None else _collect_sources(input)
     v11_options = v11_options or V11Options()
+    lifecycle_options = lifecycle_options or LifecycleOptions()
     hardening_options = hardening_options or HardeningOptions()
     run_id = new_run_id() if hardening_options.run_manifest else None
     build_started_at = now_iso()
@@ -1135,6 +1453,8 @@ def _build_package(
         files.extend(RISK_OUTPUT_FILES)
     if v11_options.runtime:
         files.extend(RUNTIME_OUTPUT_FILES)
+    if lifecycle_options.enabled:
+        files.extend(LIFECYCLE_OUTPUT_FILES)
     if hardening_options.quality_gate:
         files.extend(VALIDATION_OUTPUT_FILES)
         files.extend(QUALITY_GATE_OUTPUT_FILES)
@@ -1352,6 +1672,20 @@ def _build_package(
         embedding_summary,
         vector_summary,
     )
+    lifecycle_summary = None
+    if lifecycle_options.enabled:
+        lifecycle_summary = _write_lifecycle_outputs(output, input, source_files, lifecycle_options)
+        manifest_payload.update(
+            {
+                "lifecycle_enabled": True,
+                "lifecycle_files": LIFECYCLE_OUTPUT_FILES,
+                "update_mode": lifecycle_options.update_mode,
+                "missing_source_policy": lifecycle_options.missing_source_policy,
+                "source_registry_file": "source_registry.json",
+                "update_quality_gate_status": lifecycle_summary["update_quality_gate_status"],
+            }
+        )
+        write_json(output / "manifest.json", manifest_payload)
     validation_required = validation_options.enabled or hardening_options.quality_gate
     if validation_required:
         validation_report, readiness_report = validate_package(output)
@@ -1424,6 +1758,49 @@ def _collect_sources(input_path: Path) -> list[Path]:
     if input_path.is_file():
         return [input_path] if input_path.suffix.lower() in PARSERS else []
     return sorted(path for path in input_path.rglob("*") if path.is_file() and path.suffix.lower() in PARSERS)
+
+
+def _write_lifecycle_outputs(
+    output: Path,
+    input_path: Path,
+    source_files: list[Path],
+    options: LifecycleOptions,
+) -> dict[str, str]:
+    current_registry = make_source_registry(input_path, source_files)
+    previous_registry = load_source_registry(options.previous_package)
+    change_report, changed, missing, new, unchanged = detect_source_changes(previous_registry, current_registry)
+    incremental = make_incremental_outputs(
+        output=output,
+        previous_package=options.previous_package,
+        changed_sources=changed,
+        missing_sources=missing,
+        new_sources=new,
+        unchanged_sources=unchanged,
+        update_mode=options.update_mode,
+        missing_source_policy=options.missing_source_policy,
+    )
+    update_gate, regression_report = make_update_quality_gate(output, options.previous_package)
+    retry_manifest_payload = dict(incremental["retry_manifest"])
+    if options.retry_manifest:
+        retry_manifest_payload["retry_source_manifest"] = str(options.retry_manifest).replace("\\", "/")
+
+    write_json(output / "source_registry.json", current_registry.model_dump(mode="json"))
+    (output / "source_change_report.md").write_text(render_source_change_report(change_report), encoding="utf-8")
+    write_jsonl(output / "changed_sources.jsonl", changed)
+    write_jsonl(output / "missing_sources.jsonl", missing)
+    write_jsonl(output / "new_sources.jsonl", new)
+    (output / "incremental_update_report.md").write_text(incremental["incremental_report"], encoding="utf-8")
+    write_jsonl(output / "reused_chunks.jsonl", incremental["reused_chunks"])
+    write_jsonl(output / "rebuilt_chunks.jsonl", incremental["rebuilt_chunks"])
+    write_jsonl(output / "removed_chunks.jsonl", incremental["removed_chunks"])
+    write_jsonl(output / "stale_chunks.jsonl", incremental["stale_chunks"])
+    (output / "removed_source_impact_report.md").write_text(incremental["removed_source_impact_report"], encoding="utf-8")
+    write_json(output / "update_quality_gate_report.json", update_gate)
+    (output / "quality_regression_report.md").write_text(regression_report, encoding="utf-8")
+    write_jsonl(output / "failed_sources.jsonl", incremental["failed_sources"])
+    write_json(output / "retry_manifest.json", retry_manifest_payload)
+    (output / "retry_report.md").write_text(incremental["retry_report"], encoding="utf-8")
+    return {"update_quality_gate_status": update_gate["status"]}
 
 
 def _dedupe_files(files: list[str]) -> list[str]:

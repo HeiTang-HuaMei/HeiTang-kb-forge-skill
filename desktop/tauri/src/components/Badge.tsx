@@ -1,10 +1,33 @@
-import type { ReactNode } from "react";
+export type BadgeVariant =
+  | "ready"
+  | "success"
+  | "warning"
+  | "failed"
+  | "pending"
+  | "future"
+  | "notChecked"
+  | "notLoaded"
+  | "notAvailable"
+  | "reserved";
 
 type BadgeProps = {
-  tone?: "neutral" | "success" | "warning" | "error";
-  children: ReactNode;
+  variant?: BadgeVariant;
+  t: (key: string) => string;
 };
 
-export function Badge({ tone = "neutral", children }: BadgeProps) {
-  return <span className={`badge badge-${tone}`}>{children}</span>;
+const statusKeys: Record<BadgeVariant, string> = {
+  ready: "status.ready",
+  success: "status.success",
+  warning: "status.warning",
+  failed: "status.failed",
+  pending: "status.pending",
+  future: "status.future",
+  notChecked: "status.notChecked",
+  notLoaded: "status.notLoaded",
+  notAvailable: "status.notAvailable",
+  reserved: "status.reserved"
+};
+
+export function Badge({ variant = "pending", t }: BadgeProps) {
+  return <span className={`badge badge-${variant}`}>{t(statusKeys[variant])}</span>;
 }

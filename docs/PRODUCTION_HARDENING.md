@@ -41,3 +41,15 @@ Workspace-level:
 ## Non-Scope
 
 This hardening layer does not add external orchestration, remote scheduling, permission systems, SaaS multi-tenancy, real business integration, or external publishing API calls.
+
+## v1.3.0 Lifecycle Hardening
+
+Lifecycle mode adds source registry, change detection, incremental update, missing source policy, update quality gate, and retry manifest artifacts. These reports make package updates auditable while preserving the default build and batch behavior.
+
+Review these optional lifecycle files when enabled:
+
+- `source_registry.json`
+- `source_change_report.md`
+- `incremental_update_report.md`
+- `update_quality_gate_report.json`
+- `retry_manifest.json`

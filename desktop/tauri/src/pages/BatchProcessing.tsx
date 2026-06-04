@@ -7,15 +7,17 @@ import { JsonViewer } from "../components/JsonViewer";
 import { PathInput } from "../components/PathInput";
 import { RunLog } from "../components/RunLog";
 import { SectionCard } from "../components/SectionCard";
+import { StatusCard } from "../components/StatusCard";
 import { ToggleOption } from "../components/ToggleOption";
 import type { PageProps } from "./types";
 
-export function BatchProcessing({ t, runState, setRunState }: PageProps) {
+export function BatchProcessing({ t, runState, setRunState, setAppState }: PageProps) {
   const [input, setInput] = useState(".\\input");
   const [output, setOutput] = useState(".\\output");
   const [domain, setDomain] = useState("education");
   const [mode, setMode] = useState("teaching");
   const [merge, setMerge] = useState(false);
+  const [continueOnError, setContinueOnError] = useState(true);
   const [failFast, setFailFast] = useState(false);
   const [qualityGate, setQualityGate] = useState(false);
   const [runManifest, setRunManifest] = useState(false);
@@ -23,6 +25,7 @@ export function BatchProcessing({ t, runState, setRunState }: PageProps) {
   const [maxChunks, setMaxChunks] = useState("");
   const command = useMemo(() => {
     const flags = [
+      continueOnError ? "--continue-on-error" : "--no-continue-on-error",
       merge ? "--merge-same-sequence" : "",
       failFast ? "--fail-fast" : "",
       qualityGate ? "--quality-gate" : "",
@@ -30,42 +33,56 @@ export function BatchProcessing({ t, runState, setRunState }: PageProps) {
       maxFiles ? `--max-files ${maxFiles}` : "",
       maxChunks ? `--max-chunks ${maxChunks}` : ""
     ].filter(Boolean);
-    return `heitang-kb-forge batch --input ${input} --output ${output} --domain ${domain} --mode ${mode} --continue-on-error${flags.length ? " " + flags.join(" ") : ""}`;
-  }, [domain, failFast, input, maxChunks, maxFiles, merge, mode, output, qualityGate, runManifest]);
+    return `heitang-kb-forge batch --input ${input} --output ${output} --domain ${domain} --mode ${mode} ${flags.join(" ")}`;
+  }, [continueOnError, domain, failFast, input, maxChunks, maxFiles, merge, mode, output, qualityGate, runManifest]);
 
   async function run() {
-    setRunState({ status: "empty", log: "Running batch...", files: [] });
+    const started = performance.now();
+    setRunState({ status: "running", stdout: "", stderr: "", files: [] });
     try {
-      const log = await runKbForge({ workflow: "batch", inputPath: input, outputPath: output, domain, mode });
-      setRunState({ status: "success", log, files: ["batch_run_summary.json", "failed_items.jsonl", "retry_manifest.json"] });
+      const stdout = await runKbForge({ workflow: "batch", inputPath: input, outputPath: output, domain, mode });
+      setAppState((state) => ({ ...state, lastRunStatus: "success" }));
+      setRunState({ status: "success", stdout, stderr: "", durationMs: Math.round(performance.now() - started), files: ["batch_run_summary.json", "failed_items.jsonl", "retry_manifest.json", "batch_run_report.md"] });
     } catch (error) {
-      setRunState({ status: "error", log: String(error), files: [] });
+      setAppState((state) => ({ ...state, lastRunStatus: "failed" }));
+      setRunState({ status: "failed", stdout: "", stderr: String(error), durationMs: Math.round(performance.now() - started), files: [] });
     }
   }
 
   return (
     <div className="page">
-      <SectionCard title={t.batchProcessing} description="Run numbered source files with isolated item failure handling.">
+      <SectionCard title={t("page.batch.title")} description={t("page.batch.description")}>
+        <h3>{t("section.basicInput")}</h3>
         <div className="form-grid">
-          <PathInput label={t.inputPath} value={input} onChange={setInput} />
-          <PathInput label={t.outputPath} value={output} onChange={setOutput} />
-          <FormRow label={t.domain}><input value={domain} onChange={(event) => setDomain(event.target.value)} /></FormRow>
-          <FormRow label={t.mode}><input value={mode} onChange={(event) => setMode(event.target.value)} /></FormRow>
-          <FormRow label={t.maxFiles}><input value={maxFiles} onChange={(event) => setMaxFiles(event.target.value)} /></FormRow>
-          <FormRow label={t.maxChunks}><input value={maxChunks} onChange={(event) => setMaxChunks(event.target.value)} /></FormRow>
+          <PathInput label={t("field.inputPath")} value={input} onChange={setInput} t={t} />
+          <PathInput label={t("field.outputPath")} value={output} onChange={setOutput} t={t} />
+          <FormRow label={t("field.domain")}><input value={domain} onChange={(event) => setDomain(event.target.value)} /></FormRow>
+          <FormRow label={t("field.mode")}><input value={mode} onChange={(event) => setMode(event.target.value)} /></FormRow>
+        </div>
+        <h3>Batch Control</h3>
+        <div className="form-grid">
+          <FormRow label="max-files"><input value={maxFiles} onChange={(event) => setMaxFiles(event.target.value)} /></FormRow>
+          <FormRow label="max-chunks"><input value={maxChunks} onChange={(event) => setMaxChunks(event.target.value)} /></FormRow>
         </div>
         <div className="toggle-grid">
-          <ToggleOption label={t.mergeSameSequence} checked={merge} onChange={setMerge} />
-          <ToggleOption label={t.failFast} checked={failFast} onChange={setFailFast} />
-          <ToggleOption label={t.qualityGateOption} checked={qualityGate} onChange={setQualityGate} />
-          <ToggleOption label={t.runManifest} checked={runManifest} onChange={setRunManifest} />
+          <ToggleOption label="merge-same-sequence" checked={merge} onChange={setMerge} />
+          <ToggleOption label="continue-on-error" checked={continueOnError} onChange={setContinueOnError} />
+          <ToggleOption label="fail-fast" checked={failFast} onChange={setFailFast} />
+          <ToggleOption label="Quality Gate" checked={qualityGate} onChange={setQualityGate} />
+          <ToggleOption label="Run Manifest" checked={runManifest} onChange={setRunManifest} />
         </div>
-        <CommandPreview title={t.commandPreview} command={command} buttonLabel={t.run} onRun={run} />
+        <CommandPreview command={command} t={t} buttonLabel={t("action.batchRun")} onRun={run} failed={runState.status === "failed"} />
       </SectionCard>
-      <SectionCard title={t.result}>
-        <RunLog title={t.runLog} runState={runState} />
-        <FileList title={t.generatedFiles} files={runState.files} />
-        <JsonViewer title={t.rawJson} value={{ batch_run_summary: true, failed_items: true, retry_manifest: true }} />
+      <SectionCard title={t("section.resultSummary")}>
+        <div className="status-grid">
+          <StatusCard label="total_files" value="-" />
+          <StatusCard label="succeeded" value="-" />
+          <StatusCard label="failed" value="-" />
+          <StatusCard label="warnings" value="-" />
+        </div>
+        <RunLog runState={runState} t={t} />
+        <FileList title={t("section.generatedFiles")} files={["batch_run_summary.json", "failed_items.jsonl", "retry_manifest.json", "batch_run_report.md"]} />
+        <JsonViewer title={t("section.rawJson")} value={{ retry_manifest: "pending" }} />
       </SectionCard>
     </div>
   );

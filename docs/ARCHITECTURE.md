@@ -102,3 +102,27 @@ The external Skill capability surface should include:
 ## Runtime Boundary
 
 Generated Agent Template, RAG, embedding, vector, and downstream files are handoff artifacts. They do not execute tools, deploy agents, write to external vector databases, or call external services by default.
+
+## v1.3.0 Knowledge Lifecycle Layer
+
+The lifecycle layer sits after source ingestion and before downstream review. It tracks source files with `source_registry.json`, detects changed / missing / new sources, writes incremental update reports, and generates retry and quality regression artifacts.
+
+Lifecycle outputs remain standard files. They do not move core logic into the desktop UI, do not require external LLM calls, and do not write to vector databases.
+
+## v1.4.0 Local Knowledge Store
+
+The local knowledge store is a SQLite index over existing packages. It imports package metadata, source registry records, chunks, quality records, risks, runs, publish records, and agent targets.
+
+The store is an optional local index. Standard package files remain the durable source of truth, and the store does not connect to external vector databases or services.
+
+## v1.5.0 Agent RAG Layer
+
+The Agent RAG layer reads package files or the local SQLite store, retrieves relevant local records, writes retrieval and citation traces, and generates an offline answer artifact.
+
+It is a local bridge for Agent consumption. It does not call embedding APIs, does not write to vector databases, and does not deploy real Agents.
+
+## v1.6.0 Agent Tool / MCP Interface
+
+The Agent Tool interface exposes KB Forge capabilities as a local registry, schema, safety policy, and limited local invocation path. MCP readiness exports describe future server integration without starting a server.
+
+This layer keeps the Skill-first boundary intact: core Python package and CLI remain the standard execution layer, while external Agent frameworks consume exported tool metadata or call local commands.

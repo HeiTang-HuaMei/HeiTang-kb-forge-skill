@@ -16,7 +16,7 @@ def test_lifecycle_page_reserves_required_files_and_actions():
         "update_quality_gate_report.json",
         "quality_regression_report.md",
         "retry_manifest.json",
-        "Knowledge Lifecycle 后端完成后启用",
+        "notice.futureLifecycle",
     ]:
         assert text in page
 
@@ -26,14 +26,13 @@ def test_settings_reserves_storage_vector_and_agent_connector():
     i18n = (DESKTOP / "src" / "i18n.ts").read_text(encoding="utf-8")
     for text in [
         "knowledgeStoreBackend",
-        "sqliteFuture",
         "vectorStoreBackend",
-        "qdrantFuture",
-        "milvusFuture",
+        "qdrant_future",
+        "milvus_future",
         "agentTarget",
         "connectorMode",
-        "mcpServerFuture",
-        "customAgentApiFuture",
+        "mcp_server_future",
+        "custom_agent_api_future",
         "知识库存储后端",
         "向量库后端",
         "Agent 对接目标",

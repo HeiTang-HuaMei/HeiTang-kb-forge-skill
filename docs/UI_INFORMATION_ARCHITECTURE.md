@@ -9,6 +9,14 @@ v1.2.3 is the short-term final UI skeleton.
 - The left navigation structure should not be rebuilt.
 - The desktop UI remains a presentation layer over the Python CLI.
 
+## v1.2.4 Polish Rules
+
+- All page labels must use the shared i18n source.
+- TopBar and Settings must read and update the same locale state.
+- Readonly values must not look like editable inputs.
+- Future-reserved backend options must be visually marked as reserved.
+- Long paths should be truncated in tables but kept available through title / copy affordances.
+
 ## Fixed Pages
 
 1. Dashboard

@@ -448,6 +448,76 @@ emo
 - 预留 Knowledge Lifecycle、SQLite / Vector Store、Agent Connector、Retrieval Runtime
 - 文档说明 tiger/cat 图标资产拆分
 
+### v1.2.4 Desktop UI Polish
+
+- 修复 TopBar、Sidebar、页面和 Settings 的全局语言联动
+- 修复 Settings 中英文混杂
+- 区分只读字段、可编辑字段和后续预留字段
+- 优化 Dashboard、Build、Batch、Lifecycle、Ask、Publish、Planning、Settings 信息层级
+- 保持 11 页 IA 不变
+- 保持 Skill-first 边界和 headless CLI 使用方式
+
+### v1.3.0 Knowledge Lifecycle Core
+
+- 可选 source registry 和源文件变化检测
+- lifecycle-check 命令用于比较当前资料和已有知识包
+- incremental update report 记录 reused / rebuilt / removed / stale chunks
+- update quality gate 和 quality regression report
+- failed sources 与 retry manifest 输出
+- lifecycle 配置块支持 `run --config` 和 `pipeline --config`
+
+```powershell
+heitang-kb-forge lifecycle-check --input .\sources --package .\output --output .\lifecycle_check
+```
+
+```powershell
+heitang-kb-forge build --input .\sources --output .\output --lifecycle --update-mode incremental --missing-source-policy mark_stale
+```
+
+### v1.4.0 Local Knowledge Store
+
+- 可选本地 SQLite 知识包索引
+- 支持 package import 和 workspace sync
+- 支持 package list、query、status 命令
+- 支持导出 store index 供 Agent / 运维流程使用
+- 标准知识包文件仍然是主输出契约
+
+```powershell
+heitang-kb-forge store init --db .\kb_forge_workspace.db
+heitang-kb-forge store import-package --db .\kb_forge_workspace.db --package .\output_sample
+heitang-kb-forge store export-index --db .\kb_forge_workspace.db --output .\store_export
+```
+
+### v1.5.0 Agent RAG Layer
+
+- 支持基于知识包或 SQLite store 的本地 retrieve
+- 支持带 citation-required 的本地 ask
+- 输出 retrieval result、retrieval trace、citation trace 和 answer
+- 支持 `agent_rag` 配置块和 pipeline stage
+- 不调用 embedding API，不写入真实向量库
+
+```powershell
+heitang-kb-forge retrieve --package .\output --query "What is this package about?" --top-k 5 --output .\rag_run
+```
+
+```powershell
+heitang-kb-forge ask --package .\output --query "What is this package about?" --citation-required --output .\ask_run
+```
+
+### v1.6.0 Agent Tool / MCP Interface
+
+- 本地 Agent-callable tool registry
+- 支持 tool export、list、describe、invoke 命令
+- 支持 retrieve_knowledge 本地工具调用
+- 支持 MCP readiness config 导出
+- 不部署真实 Agent，不调用外部 Agent 平台
+
+```powershell
+heitang-kb-forge tools export --output .\tool_exports
+heitang-kb-forge tools invoke --name retrieve_knowledge --input .\input.json --output .\tool_run
+heitang-kb-forge mcp export-config --output .\mcp_config
+```
+
 ## 当前边界
 
 - 默认离线优先

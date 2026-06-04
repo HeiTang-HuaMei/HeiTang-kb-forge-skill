@@ -1,63 +1,48 @@
 import { Badge } from "../components/Badge";
-import { EmptyState } from "../components/EmptyState";
 import { FileList } from "../components/FileList";
 import { JsonViewer } from "../components/JsonViewer";
 import { SectionCard } from "../components/SectionCard";
 import { StatusCard } from "../components/StatusCard";
 import type { PageProps } from "./types";
 
-const lifecycleFiles = [
-  "source_registry.json",
-  "source_change_report.md",
-  "changed_sources.jsonl",
-  "missing_sources.jsonl",
-  "new_sources.jsonl",
-  "stale_chunks.jsonl",
-  "removed_source_impact_report.md",
-  "incremental_update_report.md",
-  "reused_chunks.jsonl",
-  "rebuilt_chunks.jsonl",
-  "removed_chunks.jsonl",
-  "update_quality_gate_report.json",
-  "quality_regression_report.md",
-  "failed_sources.jsonl",
-  "retry_manifest.json",
-  "retry_report.md"
-];
+const lifecycleModules = [
+  ["section.sourceRegistry", ["source_registry.json"]],
+  ["section.changeDetection", ["source_change_report.md", "changed_sources.jsonl", "missing_sources.jsonl", "new_sources.jsonl", "stale_chunks.jsonl"]],
+  ["section.incrementalUpdate", ["incremental_update_report.md", "reused_chunks.jsonl", "rebuilt_chunks.jsonl", "removed_chunks.jsonl"]],
+  ["section.missingSourcePolicy", ["removed_source_impact_report.md"]],
+  ["section.updateQualityGate", ["update_quality_gate_report.json"]],
+  ["section.qualityRegression", ["quality_regression_report.md"]],
+  ["section.retryRecovery", ["failed_sources.jsonl", "retry_manifest.json", "retry_report.md"]]
+] as const;
 
 export function LifecycleUpdate({ t }: PageProps) {
-  const modules = [t.sourceRegistry, t.changeDetection, t.incrementalUpdate, t.missingSourcePolicy, t.updateQualityGate, t.qualityRegression, t.retryRecovery];
+  const files = lifecycleModules.flatMap(([, names]) => names);
   return (
     <div className="page">
-      <SectionCard title={t.lifecycleUpdate} description="Knowledge Lifecycle backend placeholder.">
+      <SectionCard title={t("page.lifecycle.title")} description={t("page.lifecycle.description")}>
+        <h3>{t("section.lifecycleOverview")}</h3>
         <div className="status-grid">
-          <StatusCard label={t.sourceCount} value={0} />
-          <StatusCard label={t.changedSources} value={0} />
-          <StatusCard label={t.newSources} value={0} />
-          <StatusCard label={t.missingSources} value={0} />
-          <StatusCard label={t.staleChunks} value={0} />
-          <StatusCard label={t.updateAcceptanceStatus} value="pending" />
+          <StatusCard label="source_count" value={0} />
+          <StatusCard label="changed_sources" value={0} />
+          <StatusCard label="new_sources" value={0} />
+          <StatusCard label="missing_sources" value={0} />
+          <StatusCard label="stale_chunks" value={0} />
+          <StatusCard label="update_gate" value={t("status.pending")} />
         </div>
+        <h3>{t("section.futureReserved")}</h3>
         <div className="module-grid">
-          {modules.map((module) => (
-            <div className="module-card" key={module}>
-              <h3>{module}</h3>
-              <Badge tone="warning">future</Badge>
-              <p>该能力将在 Knowledge Lifecycle 后端完成后启用。</p>
+          {lifecycleModules.map(([title, names]) => (
+            <div className="module-card" key={title}>
+              <h3>{t(title)}</h3>
+              <Badge variant="reserved" t={t} />
+              <p>{t("notice.futureLifecycle")}</p>
+              <ul>{names.map((name) => <li key={name}>{name}</li>)}</ul>
             </div>
           ))}
         </div>
-        <div className="button-row">
-          <button disabled>{t.fullRebuild}</button>
-          <button disabled>{t.changedOnly}</button>
-          <button disabled>{t.validateOnly}</button>
-          <button disabled>{t.keepOldKnowledge}</button>
-          <button disabled>{t.markStale}</button>
-          <button disabled>{t.removeMissingKnowledge}</button>
-        </div>
-        <FileList title={t.generatedFiles} files={lifecycleFiles} />
-        <EmptyState message={t.emptyState} />
-        <JsonViewer title={t.rawJson} value={{ lifecycleFiles }} />
+        <p className="notice">{t("notice.lifecycleBoundary")}</p>
+        <FileList title={t("section.generatedFiles")} files={files} />
+        <JsonViewer title={t("section.rawJson")} value={{ lifecycleModules }} />
       </SectionCard>
     </div>
   );

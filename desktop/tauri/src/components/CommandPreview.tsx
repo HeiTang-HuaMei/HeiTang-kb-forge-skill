@@ -1,16 +1,20 @@
 type CommandPreviewProps = {
-  title: string;
   command: string;
+  t: (key: string) => string;
   buttonLabel?: string;
   onRun?: () => void;
+  failed?: boolean;
 };
 
-export function CommandPreview({ title, command, buttonLabel, onRun }: CommandPreviewProps) {
+export function CommandPreview({ command, t, buttonLabel, onRun, failed = false }: CommandPreviewProps) {
   return (
-    <div className="command-preview">
-      <h3>{title}</h3>
+    <details className={`command-preview ${failed ? "command-preview-failed" : ""}`} open>
+      <summary>{t("section.rawLog")} · {t("action.copyCommand")}</summary>
       <code>{command}</code>
-      {onRun && buttonLabel ? <button onClick={onRun}>{buttonLabel}</button> : null}
-    </div>
+      <div className="button-row compact">
+        <button type="button" onClick={() => navigator.clipboard?.writeText(command)}>{t("action.copyCommand")}</button>
+        {onRun && buttonLabel ? <button onClick={onRun}>{buttonLabel}</button> : null}
+      </div>
+    </details>
   );
 }

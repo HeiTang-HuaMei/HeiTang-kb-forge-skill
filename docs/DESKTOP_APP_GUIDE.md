@@ -41,6 +41,16 @@ The desktop navigation is frozen around 11 pages:
 
 Future work should fill these pages rather than restructure navigation.
 
+## v1.2.4 Polish Notes
+
+v1.2.4 fixes UI linkage and hierarchy without changing the frozen page structure:
+
+- TopBar, Sidebar, pages, and Settings share one locale source.
+- Settings uses the current global locale and no longer shows a stale `zh-CN` value when English is selected.
+- Readonly runtime information is visually distinct from editable configuration.
+- Future-reserved storage, vector store, and Agent connector fields are marked as reserved.
+- Desktop UI remains a presentation layer over the Skill / CLI / Pipeline.
+
 ## Run In Development
 
 ```powershell

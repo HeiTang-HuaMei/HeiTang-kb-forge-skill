@@ -1,0 +1,2 @@
+"""MCP readiness config export."""
+

@@ -1,41 +1,40 @@
-import type { Messages } from "../i18n";
 import type { PageId } from "../pages";
 import catHead from "../assets/icons/cat-head.png";
 
 type SidebarProps = {
-  t: Messages;
+  t: (key: string) => string;
   currentPage: PageId;
   onSelect: (page: PageId) => void;
 };
 
 export const navItems = [
-  ["dashboard", "dashboard"],
-  ["buildPackage", "buildPackage"],
-  ["batchProcessing", "batchProcessing"],
-  ["workspace", "workspace"],
-  ["lifecycleUpdate", "lifecycleUpdate"],
-  ["qualityGate", "qualityGate"],
-  ["packageDetail", "packageDetail"],
-  ["askRuntime", "askRuntime"],
-  ["publishExport", "publishExport"],
-  ["planningReadiness", "planningReadiness"],
-  ["settings", "settings"]
+  ["dashboard", "nav.dashboard"],
+  ["buildPackage", "nav.build"],
+  ["batchProcessing", "nav.batch"],
+  ["workspace", "nav.workspace"],
+  ["lifecycleUpdate", "nav.lifecycle"],
+  ["qualityGate", "nav.quality"],
+  ["packageDetail", "nav.packageDetail"],
+  ["askRuntime", "nav.ask"],
+  ["publishExport", "nav.publish"],
+  ["planningReadiness", "nav.planning"],
+  ["settings", "nav.settings"]
 ] as const;
 
 export function Sidebar({ t, currentPage, onSelect }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="brand">
-        <img src={catHead} alt="cat icon" />
+        <img src={catHead} alt="cat small icon" />
         <div>
           <strong>HeiTang</strong>
-          <span>KB Forge</span>
+          <span>{t("brand.shell")}</span>
         </div>
       </div>
       <nav>
-        {navItems.map(([id, label]) => (
+        {navItems.map(([id, labelKey]) => (
           <button key={id} className={currentPage === id ? "active" : ""} onClick={() => onSelect(id)}>
-            {t[label]}
+            {t(labelKey)}
           </button>
         ))}
       </nav>

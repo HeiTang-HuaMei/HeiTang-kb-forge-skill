@@ -1,19 +1,19 @@
-import type { Locale, Messages } from "../i18n";
+import type { Locale } from "../i18n";
 
 type TopBarProps = {
-  t: Messages;
+  t: (key: string) => string;
   locale: Locale;
-  onLocaleChange: (locale: Locale) => void;
+  setLocale: (locale: Locale) => void;
 };
 
-export function TopBar({ t, locale, onLocaleChange }: TopBarProps) {
+export function TopBar({ t, locale, setLocale }: TopBarProps) {
   return (
     <header className="topbar">
       <div>
-        <h1>{t.appTitle}</h1>
-        <p>{t.appSubtitle}</p>
+        <h1>{t("app.title")}</h1>
+        <p>{t("app.subtitle")}</p>
       </div>
-      <select value={locale} onChange={(event) => onLocaleChange(event.target.value as Locale)}>
+      <select value={locale} onChange={(event) => setLocale(event.target.value as Locale)}>
         <option value="zh-CN">中文</option>
         <option value="en-US">English</option>
       </select>

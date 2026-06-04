@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Badge } from "../components/Badge";
 import { CommandPreview } from "../components/CommandPreview";
 import { EmptyState } from "../components/EmptyState";
 import { FormRow } from "../components/FormRow";
@@ -6,21 +8,24 @@ import { PathInput } from "../components/PathInput";
 import { SectionCard } from "../components/SectionCard";
 import type { PageProps } from "./types";
 
-export function AskRuntime({ t }: PageProps) {
-  const command = "heitang-kb-forge ask --package .\\output_sample --query \"...\" --top-k 5 --output .\\ask_output";
+export function AskRuntime({ t, appState }: PageProps) {
+  const [query, setQuery] = useState("");
+  const command = `heitang-kb-forge ask --package ${appState.currentPackage} --query "${query || "..."}" --top-k 5 --output .\\ask_output`;
   return (
     <div className="page">
-      <SectionCard title={t.askRuntime} description="Local ask runtime preview with citation and retrieval trace placeholders.">
+      <SectionCard title={t("page.ask.title")} description={t("page.ask.description")}>
         <div className="form-grid">
-          <PathInput label="package path" value=".\\output_sample" onChange={() => undefined} />
-          <PathInput label="output path" value=".\\ask_output" onChange={() => undefined} />
-          <FormRow label="query"><textarea value="请先选择知识包" readOnly /></FormRow>
-          <FormRow label="top_k"><input value="5" readOnly /></FormRow>
-          <FormRow label={t.agentTarget}><select><option>generic_rag</option><option>mcp_server_future</option></select></FormRow>
-          <FormRow label={t.connectorMode}><select><option>{t.exportOnly}</option><option>{t.localRuntimeFuture}</option><option>{t.remoteApiFuture}</option></select></FormRow>
+          <PathInput label={t("field.packagePath")} value={appState.currentPackage} readonly t={t} />
+          <PathInput label={t("field.outputPath")} value=".\\ask_output" readonly t={t} />
+          <FormRow label={t("field.query")}><textarea value={query} placeholder={t("placeholder.query")} onChange={(event) => setQuery(event.target.value)} /></FormRow>
+          <FormRow label={t("field.topK")}><input value="5" readOnly /></FormRow>
+          <FormRow label={t("field.agentTarget")} variant="future" t={t}><select><option>generic_rag</option><option>mcp_server_future</option></select></FormRow>
+          <FormRow label={t("field.connectorMode")} variant="future" t={t}><select><option>export_only</option><option>local_runtime_future</option><option>remote_api_future</option></select></FormRow>
         </div>
-        <CommandPreview title={t.commandPreview} command={command} />
-        <EmptyState message="没有选择知识包时显示：请先选择知识包。没有证据时显示：证据不足，无法可靠回答。" />
+        {!appState.currentPackage ? <Badge variant="warning" t={t} /> : null}
+        <CommandPreview command={command} t={t} buttonLabel={t("action.ask")} />
+        <EmptyState title={t("empty.ask.title")} description={t("empty.ask.description")} />
+        <p className="notice">{t("notice.noEvidence")}</p>
         <JsonViewer title="retrieval_trace.json" value={{ retrieved_chunks: [], citations: [] }} />
       </SectionCard>
     </div>
