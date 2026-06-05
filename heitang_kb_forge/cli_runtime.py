@@ -151,6 +151,22 @@ app.add_typer(store_app, name="store")
 app.add_typer(tools_app, name="tools")
 app.add_typer(mcp_app, name="mcp")
 
+def _active_parsers() -> dict[str, object]:
+    """Return the public parser registry for CLI compatibility.
+
+    Downstream tests and users may patch heitang_kb_forge.cli.PARSERS.
+    Runtime code must observe that public compatibility registry after
+    the CLI entrypoint split.
+    """
+    import sys
+
+    public_cli = sys.modules.get("heitang_kb_forge.cli")
+    public_parsers = getattr(public_cli, "PARSERS", None)
+    if isinstance(public_parsers, dict):
+        return public_parsers
+    return PARSERS
+
+
 PARSERS = {
     ".md": parse_markdown,
     ".markdown": parse_markdown,
@@ -2563,7 +2579,7 @@ def _build_batch_items(
         }
 
         try:
-            if source.suffix.lower() not in PARSERS:
+            if source.suffix.lower() not in _active_parsers():
                 raise ValueError(f"Unsupported file extension: {source.suffix}")
             if item_output.exists():
                 raise FileExistsError(f"Output directory already exists: {item_output}")
@@ -2665,7 +2681,7 @@ def _build_batch_groups(
             batch_reporter.emit("batch_item_started", "running", f"Batch group {item_index}/{len(groups)} started", current_file=", ".join(str(source) for source in sources), current_file_index=item_index, total_files=len(groups), output_path=str(item_output))
 
         try:
-            unsupported = [source for source in sources if source.suffix.lower() not in PARSERS]
+            unsupported = [source for source in sources if source.suffix.lower() not in _active_parsers()]
             if unsupported:
                 extensions = ", ".join(sorted({source.suffix for source in unsupported}))
                 raise ValueError(f"Unsupported file extension in group: {extensions}")
@@ -2791,7 +2807,7 @@ def _build_package(
     warnings: list[str] = []
 
     for source_index, source in enumerate(source_files, start=1):
-        parser = PARSERS.get(source.suffix.lower())
+        parser = _active_parsers().get(source.suffix.lower())
         if parser is None:
             continue
         if progress_reporter:
@@ -3409,8 +3425,8 @@ def _build_package(
 
 def _collect_sources(input_path: Path) -> list[Path]:
     if input_path.is_file():
-        return [input_path] if input_path.suffix.lower() in PARSERS else []
-    return sorted(path for path in input_path.rglob("*") if path.is_file() and path.suffix.lower() in PARSERS)
+        return [input_path] if input_path.suffix.lower() in _active_parsers() else []
+    return sorted(path for path in input_path.rglob("*") if path.is_file() and path.suffix.lower() in _active_parsers())
 
 
 def _make_evidence_map(chunks: list[Chunk]) -> dict:
