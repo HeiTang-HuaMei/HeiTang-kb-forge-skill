@@ -1,7 +1,7 @@
 {
   "name": "heitang-kb-forge-skill",
   "display_name": "HeiTang KB Forge Skill",
-  "version": "1.6.1",
+  "version": "2.5.0-alpha.1",
   "description": "Agent knowledge supply-chain Skill for producing standardized, auditable, retrievable knowledge packages.",
   "entrypoints": {
     "cli": "heitang-kb-forge",

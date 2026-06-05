@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "heitang-kb-forge-skill"
-version = "0.1.0"
+version = "2.5.0-alpha.1"
 description = "Local CLI skill for generating standardized knowledge base packages."
 readme = "README.md"
 requires-python = ">=3.11"
