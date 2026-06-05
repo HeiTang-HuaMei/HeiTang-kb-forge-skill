@@ -1,4 +1,5 @@
 from heitang_kb_forge.platform_distribution import SUPPORTED_PLATFORMS, export_platform_package
+from heitang_kb_forge.platform_distribution.platforms import required_files
 
 
 def test_platform_distribution_exports_all_supported_platforms(tmp_path):
@@ -10,6 +11,6 @@ def test_platform_distribution_exports_all_supported_platforms(tmp_path):
     export_platform_package(skill, None, output, "all")
 
     for platform in SUPPORTED_PLATFORMS:
-        assert (output / platform / "platform_manifest.json").exists()
-        assert (output / platform / "mock_publish_result.json").exists()
-
+        platform_output = output / platform
+        for file_name in required_files(platform):
+            assert (platform_output / file_name).exists()

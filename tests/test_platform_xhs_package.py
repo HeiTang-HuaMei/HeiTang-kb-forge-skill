@@ -16,8 +16,8 @@ def test_xhs_platform_export_is_mock_only(tmp_path):
     assert result.exit_code == 0, result.output
     assert (output / "xhs_skill_package" / "SKILL.md").exists()
     xhs_manifest = json.loads((output / "xhs_skill_manifest.json").read_text(encoding="utf-8"))
+    assert xhs_manifest["official_xhs_upload_api"] is False
     assert xhs_manifest["real_account_used"] is False
     assert xhs_manifest["automatic_note_publish"] is False
     assert (output / "platform_policy.md").exists()
     assert (output / "violation_risk_checklist.md").exists()
-

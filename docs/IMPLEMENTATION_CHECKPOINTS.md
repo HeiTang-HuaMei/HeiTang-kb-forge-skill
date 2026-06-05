@@ -188,6 +188,7 @@ Implemented:
 
 - Local platform distribution exports
 - Upload readiness check outputs
+- Static upload checks for missing files, suspicious API keys, and dangerous command snippets
 - Mock publish outputs
 - OpenClaw / XHS / Codex / Claude Code / MCP / generic / local registry file adapters
 - XHS local Skill package preparation
@@ -207,8 +208,10 @@ Known gaps:
 
 - No real platform account calls.
 - No automatic XHS note publishing.
+- XHS packaging is not an official XHS upload API.
 - No real OpenClaw / Codex / Claude Code / MCP runtime execution.
 - No MCP server startup.
+- Upload checks are local static readiness checks, not provider security audits.
 
 ## Planned After v2.4
 

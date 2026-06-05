@@ -11,4 +11,4 @@ Additional XHS outputs:
 - `violation_risk_checklist.md`
 - `mock_publish_result.json`
 
-This package does not log in to XHS, does not use a real XHS account, and does not publish notes automatically.
+This package is not an official XHS upload API. It does not log in to XHS, does not use a real XHS account, and does not publish notes automatically.

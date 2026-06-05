@@ -794,7 +794,7 @@ python -m heitang_kb_forge.cli prompt-profile-versioning --workspace .\workspace
 
 Master Skill Learning is not copying third-party Skills. It decomposes structure, task patterns, style features, and boundary rules, then combines those patterns with user-owned knowledge packages or uploaded materials to generate new user-owned Skills.
 
-v2.4 platform distribution, OpenClaw export, XHS packaging/upload, MCP platform export, and mock publish remain planned only.
+Platform distribution, OpenClaw export stubs, XHS local packaging, MCP platform export stubs, and mock publish are implemented in v2.4 as local file outputs only.
 
 ## v2.4 Skill Distribution And Platform Publishing
 
@@ -820,5 +820,7 @@ python -m heitang_kb_forge.cli mock-publish --export .\platform_export --platfor
 
 v2.4 writes local files only: `platform_manifest.json`, `platform_upload_check_result.json`, `platform_upload_check_report.md`, `mock_publish_result.json`, `install_guide.md`, and `upload_guide.md`.
 
-For XHS, v2.4 only prepares `xhs_skill_package/`, `xhs_skill_manifest.json`, `xhs_skill_link_manifest.json`, `platform_policy.md`, `violation_risk_checklist.md`, and mock publish output. It does not call a real XHS account and does not automatically publish notes.
+`platform_manifest.json` records the target platform, source Skill / Agent paths, exported files, install and upload guides, mock publish output, warnings, and explicit local-only limits. `platform-upload-check` validates required files and performs static checks for suspicious API keys and dangerous command snippets. It never allows real upload.
+
+For XHS, v2.4 only prepares `xhs_skill_package/`, `xhs_skill_manifest.json`, `xhs_skill_link_manifest.json`, `platform_policy.md`, `violation_risk_checklist.md`, and mock publish output. It is not an official XHS upload API, does not call a real XHS account, and does not automatically publish notes. OpenClaw, Codex, Claude Code, and MCP outputs are export packages or stubs only; they do not run real platform runtimes or start an MCP server.
 

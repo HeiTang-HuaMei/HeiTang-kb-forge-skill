@@ -9,6 +9,8 @@
 * Added platform outputs for openclaw, xhs, codex, claude_code, mcp, generic, and local_registry
 * Added XHS Skill package preparation files
 * Added upload check and mock publish outputs
+* Added platform-specific required file checks
+* Added static upload checks for suspicious API keys and dangerous command snippets
 * Preserved default build / batch / run / pipeline behavior
 * No real XHS account calls
 * No automatic XHS note publishing

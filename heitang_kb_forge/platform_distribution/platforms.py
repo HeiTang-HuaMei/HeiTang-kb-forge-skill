@@ -21,10 +21,23 @@ def required_files(platform: str) -> list[str]:
     if platform == "xhs":
         base.extend(
             [
+                "xhs_skill_package/SKILL.md",
                 "xhs_skill_manifest.json",
                 "xhs_skill_link_manifest.json",
                 "platform_policy.md",
                 "violation_risk_checklist.md",
             ]
         )
+    elif platform == "openclaw":
+        base.append("openclaw_agent.yaml")
+    elif platform == "codex":
+        base.append("codex_instructions.md")
+    elif platform == "claude_code":
+        base.append("claude_code_instructions.md")
+    elif platform == "mcp":
+        base.append("mcp_manifest.json")
+    elif platform == "local_registry":
+        base.append("local_registry_manifest.json")
+    elif platform == "generic":
+        base.append("generic_platform_profile.json")
     return base

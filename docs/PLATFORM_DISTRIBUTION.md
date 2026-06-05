@@ -27,9 +27,18 @@ Standard outputs:
 - `install_guide.md`
 - `upload_guide.md`
 
+Upload check scope:
+
+- Required platform files.
+- Suspicious API key patterns in exported text files.
+- Dangerous command snippets in exported text files.
+- Real upload remains disabled.
+
 Boundary:
 
 - No real platform account is used.
 - No real upload is performed.
 - No real OpenClaw, Codex, Claude Code, or MCP runtime is started.
 - No MCP server is started.
+- OpenClaw, Codex, Claude Code, and MCP outputs are local export packages or stubs only.
+- XHS output is not an official XHS upload API.

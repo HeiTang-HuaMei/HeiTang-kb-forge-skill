@@ -126,11 +126,11 @@ v2.2 implementation outputs include `master_skill_inventory.json`, `skill_decomp
 
 # v2.4 Skill Distribution and Platform Publishing
 
-v2.4 is planned to implement platform export and upload-adapter preparation for OpenClaw, XHS, Codex, Claude Code, MCP, generic packages, and local registry packages.
+v2.4 implements platform export and upload-adapter preparation for OpenClaw, XHS, Codex, Claude Code, MCP, generic packages, and local registry packages.
 
-v2.4 should generate platform manifests, install guides, upload checks, and mock publish results only. It must not call real platform accounts, run real Agent platforms, start a real MCP server, or upload to XHS automatically.
+v2.4 generates platform manifests, install guides, upload checks, and mock publish results only. It does not call real platform accounts, run real Agent platforms, start a real MCP server, or upload to XHS automatically.
 
-v2.4 implementation scope is local platform distribution output generation, upload readiness checks, and mock publish records. v2.5 / v2.6 / v2.9 remain planned.
+v2.4 implementation scope is local platform distribution output generation, upload readiness checks, static upload risk checks, and mock publish records. v2.5 / v2.6 / v2.9 remain planned.
 
 # v2.3 Industrial Batch And Knowledge Governance
 

@@ -20,11 +20,15 @@ def export_platform_package(skill: Path, agent: Path | None, output: Path, platf
             platform=platform_name,
             source_skill=str(skill).replace("\\", "/"),
             source_agent=str(agent).replace("\\", "/") if agent else None,
+            supported_platforms=SUPPORTED_PLATFORMS,
             exported_files=exported_files,
+            policy_files=_policy_files(platform_name),
+            warnings=_platform_warnings(platform_name),
+            limits=_platform_limits(platform_name),
         )
         write_json(platform_output / "platform_manifest.json", manifest)
-        check_platform_upload(platform_output, platform_output, platform_name)
         mock_publish_package(platform_output, platform_name, platform_output)
+        check_platform_upload(platform_output, platform_output, platform_name)
         manifests.append(manifest)
     return manifests
 
@@ -60,11 +64,50 @@ def _write_platform_files(skill: Path, agent: Path | None, output: Path, platfor
     return files
 
 
+def _policy_files(platform: str) -> list[str]:
+    if platform == "xhs":
+        return ["platform_policy.md", "violation_risk_checklist.md"]
+    return []
+
+
+def _platform_warnings(platform: str) -> list[str]:
+    warnings = [
+        "Local export package only.",
+        "No real platform account or external platform API is used.",
+    ]
+    if platform in {"openclaw", "codex", "claude_code", "mcp"}:
+        warnings.append(f"{platform} output is an adapter package or stub only; no runtime is executed.")
+    if platform == "xhs":
+        warnings.append("XHS output is not an official XHS upload API and does not publish notes automatically.")
+    return warnings
+
+
+def _platform_limits(platform: str) -> list[str]:
+    limits = [
+        "No real upload.",
+        "No external platform runtime execution.",
+    ]
+    if platform == "mcp":
+        limits.append("No MCP server startup.")
+    if platform == "xhs":
+        limits.extend(["No real XHS account login.", "No automatic XHS note publishing."])
+    return limits
+
+
 def _write_xhs_files(skill: Path, output: Path, files: list[str]) -> None:
     xhs_dir = output / "xhs_skill_package"
     xhs_dir.mkdir(parents=True, exist_ok=True)
     _copy_if_exists(skill / "SKILL.md", xhs_dir / "SKILL.md", files, prefix="xhs_skill_package/")
-    write_json(output / "xhs_skill_manifest.json", {"platform": "xhs", "real_account_used": False, "automatic_note_publish": False})
+    write_json(
+        output / "xhs_skill_manifest.json",
+        {
+            "platform": "xhs",
+            "package_type": "local_xhs_skill_package",
+            "official_xhs_upload_api": False,
+            "real_account_used": False,
+            "automatic_note_publish": False,
+        },
+    )
     write_json(output / "xhs_skill_link_manifest.json", {"links": [], "manual_review_required": True})
     (output / "platform_policy.md").write_text(xhs_policy(), encoding="utf-8")
     (output / "violation_risk_checklist.md").write_text(xhs_violation_checklist(), encoding="utf-8")

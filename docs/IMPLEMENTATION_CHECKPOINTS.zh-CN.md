@@ -188,6 +188,7 @@
 
 - 本地平台分发导出
 - 上传准备检查输出
+- 缺文件、疑似 API key、危险命令片段的静态上传检查
 - Mock publish 输出
 - OpenClaw / XHS / Codex / Claude Code / MCP / generic / local registry 文件适配
 - 小红书本地 Skill package 准备
@@ -207,8 +208,10 @@
 
 - 不调用真实平台账号。
 - 不自动发布小红书笔记。
+- 小红书 package 不是小红书官方上传 API。
 - 不真实运行 OpenClaw / Codex / Claude Code / MCP Runtime。
 - 不启动 MCP Server。
+- 上传检查只是本地静态准备检查，不是 provider 安全审计。
 
 ## Planned After v2.4
 

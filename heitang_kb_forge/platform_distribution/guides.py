@@ -5,6 +5,7 @@ def install_guide(platform: str) -> str:
         "- Inspect `platform_manifest.json`.\n"
         "- Validate with `platform_upload_check_result.json`.\n"
         "- No real platform runtime is started by this guide.\n"
+        "- OpenClaw, Codex, Claude Code, and MCP outputs are local export packages or stubs only.\n"
     )
 
 
@@ -14,6 +15,7 @@ def upload_guide(platform: str) -> str:
         "This guide describes manual upload preparation only.\n\n"
         "- No real account is used.\n"
         "- No automatic publishing is performed.\n"
+        "- This guide is not an official platform upload API.\n"
         "- Use mock publish results for local validation.\n"
     )
 
@@ -21,7 +23,7 @@ def upload_guide(platform: str) -> str:
 def xhs_policy() -> str:
     return (
         "# XHS Platform Policy\n\n"
-        "This is a local XHS Skill package preparation artifact. It does not log in to XHS and does not publish notes automatically.\n"
+        "This is a local XHS Skill package preparation artifact. It is not an official XHS upload API, does not log in to XHS, and does not publish notes automatically.\n"
     )
 
 

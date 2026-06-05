@@ -11,4 +11,4 @@ v2.4 只支持本地小红书 Skill package 准备。
 - `violation_risk_checklist.md`
 - `mock_publish_result.json`
 
-该 package 不登录小红书，不使用真实小红书账号，也不会自动发布笔记。
+该 package 不是小红书官方上传 API，不登录小红书，不使用真实小红书账号，也不会自动发布笔记。

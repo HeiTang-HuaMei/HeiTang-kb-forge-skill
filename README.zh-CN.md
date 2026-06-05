@@ -795,7 +795,7 @@ python -m heitang_kb_forge.cli prompt-profile-versioning --workspace .\workspace
 
 Master Skill Learning 不是复制第三方 Skill，而是拆解结构、任务模式、风格特征和边界规则，再结合用户自己的知识库或上传资料，生成用户自有的新 Skill。
 
-v2.4 平台分发、OpenClaw export、小红书 packaging/upload、MCP platform export 和 mock publish 仍然只是 planned。
+平台分发、OpenClaw export stub、小红书本地 packaging、MCP platform export stub 和 mock publish 已在 v2.4 作为本地文件输出实现。
 
 ## v2.4 Skill Distribution And Platform Publishing
 
@@ -821,7 +821,9 @@ python -m heitang_kb_forge.cli mock-publish --export .\platform_export --platfor
 
 v2.4 只写本地文件：`platform_manifest.json`、`platform_upload_check_result.json`、`platform_upload_check_report.md`、`mock_publish_result.json`、`install_guide.md` 和 `upload_guide.md`。
 
-小红书方向只准备 `xhs_skill_package/`、`xhs_skill_manifest.json`、`xhs_skill_link_manifest.json`、`platform_policy.md`、`violation_risk_checklist.md` 和 mock publish 输出。不调用真实小红书账号，也不自动发布笔记。
+`platform_manifest.json` 记录目标平台、来源 Skill / Agent 路径、导出文件、安装与上传说明、mock publish 输出、warnings 和本地-only 限制。`platform-upload-check` 会检查必要文件，并静态检测疑似 API key 和危险命令片段。它不会允许真实上传。
+
+小红书方向只准备 `xhs_skill_package/`、`xhs_skill_manifest.json`、`xhs_skill_link_manifest.json`、`platform_policy.md`、`violation_risk_checklist.md` 和 mock publish 输出。它不是小红书官方上传 API，不调用真实小红书账号，也不自动发布笔记。OpenClaw、Codex、Claude Code 和 MCP 输出只是导出包或 stub，不真实运行平台 runtime，也不启动 MCP Server。
 
 
 ## v1.2 边界补充
