@@ -2,9 +2,9 @@
 
 [English](README.md) | 中文说明
 
-当前版本：`2.5.1-alpha.1`
+当前版本：`2.6.0-alpha.1`
 
-发布状态：alpha 发布工程 checkpoint。当前不是 stable release。
+发布状态：alpha provider governance checkpoint。当前不是 stable release。
 
 HeiTang KB Forge 是一个 offline-first、可被 Agent 调用的知识供应链前置 Skill。它把多格式原始资料加工成标准化、可审计、可复核、可检索的知识资产包，用于 Agent 和 RAG 工作流。
 
@@ -36,6 +36,8 @@ Preview 能力：
 - curated package
 - update impact
 - platform distribution 与 mock publishing package
+- Provider registry、配置校验、redaction、fallback、cost guard
+- Provider live smoke，默认关闭，必须显式 opt-in
 
 Experimental 能力：
 
@@ -43,12 +45,30 @@ Experimental 能力：
 - derived Skill generator
 - mock-first LLM quality assist
 - provider readiness
+- provider security governance
+- opt-in LLM live smoke
 - prompt profile versioning
 - golden samples
 - compatibility matrix
 - desktop / web UI
 
 完整矩阵见 [Capability Status](docs/CAPABILITY_STATUS.zh-CN.md)。
+
+## v2.6 Provider Governance
+
+v2.6 新增 Preview 级 Provider 治理能力，覆盖 OpenAI、Anthropic、Gemini、OpenRouter、通用 OpenAI-compatible provider，以及 Qwen DashScope、DeepSeek、Kimi Moonshot、Zhipu GLM、Baidu Qianfan、Tencent Hunyuan、MiniMax、Volcengine Doubao 等国内 Provider。
+
+```powershell
+python -m heitang_kb_forge.cli provider-list
+python -m heitang_kb_forge.cli provider-config-validate --output .\tmp_v26\validate
+python -m heitang_kb_forge.cli provider-health --output .\tmp_v26\health
+python -m heitang_kb_forge.cli provider-live-smoke --output .\tmp_v26\live
+python -m heitang_kb_forge.cli provider-fallback-test --output .\tmp_v26\fallback --scenario timeout
+python -m heitang_kb_forge.cli audit-redaction-check --output .\tmp_v26\redaction
+python -m heitang_kb_forge.cli llm-cost-guard --output .\tmp_v26\cost --prompt-chars 13000 --output-tokens 5000
+```
+
+默认行为仍然是 mock/offline。真实 provider 调用必须显式开启 live flags，并由本地环境变量提供配置。详见 [v2.6 Provider Governance](docs/V26_PROVIDER_GOVERNANCE.zh-CN.md)。
 
 ## 安装
 
@@ -135,3 +155,4 @@ v2.5.0-dev 仍然是 release quality gate 功能 checkpoint。
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+

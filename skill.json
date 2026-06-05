@@ -1,7 +1,7 @@
 {
   "name": "heitang-kb-forge-skill",
   "display_name": "HeiTang KB Forge Skill",
-  "version": "2.5.1-alpha.1",
+  "version": "2.6.0-alpha.1",
   "description": "Agent knowledge supply-chain Skill for producing standardized, auditable, retrievable knowledge packages.",
   "entrypoints": {
     "cli": "heitang-kb-forge",
@@ -36,11 +36,15 @@
     "prompt_profile_versioning",
     "golden_samples",
     "compatibility_matrix",
+    "llm_live_smoke",
+    "provider_security_governance",
+    "provider_registry_governance",
+    "provider_fallback_test",
+    "llm_cost_guard",
+    "audit_redaction_check",
     "desktop_web_ui"
   ],
   "roadmap_capabilities": [
-    "real_llm_live_smoke_v26",
-    "provider_security_governance_v26",
     "runtime_compatibility_smoke_v27",
     "domain_skill_factory_v28",
     "feishu_personal_kb_mobile_installer_ios_v29",
@@ -62,3 +66,4 @@
   "real_platform_publish_by_default": false,
   "stores_real_api_keys": false
 }
+

@@ -41,8 +41,7 @@ def render_release_readiness_checklist(result: ReleaseReadinessResult) -> str:
 - [x] Golden samples checked: {result.inputs.get('golden_samples')}
 - [x] Export certification checked: {result.inputs.get('export_certification')}
 - [x] Compatibility matrix checked: {result.inputs.get('compatibility_matrix')}
-- [ ] Real LLM live smoke is reserved for v2.6.
+- [ ] v2.6 opt-in LLM live smoke evidence checked when available.
 - [ ] Runtime compatibility smoke is reserved for v2.7.
 - [ ] Feishu / mobile / installer / iOS are reserved for v2.9.
 """
-

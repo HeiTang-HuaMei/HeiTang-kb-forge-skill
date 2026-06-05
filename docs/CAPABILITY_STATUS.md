@@ -1,8 +1,8 @@
 # Capability Status
 
-Current project version: `2.5.1-alpha.1`
+Current project version: `2.6.0-alpha.1`
 
-v2.5.1 is a release engineering / CLI architecture convergence checkpoint. v2.5.0-dev is the release quality gate feature checkpoint.
+v2.6.0-alpha.1 is a provider registry, security governance, fallback, redaction, cost guard, and opt-in live smoke checkpoint. v2.5.1 is the release engineering / CLI architecture convergence checkpoint.
 
 ## Stable
 
@@ -32,6 +32,12 @@ v2.5.1 is a release engineering / CLI architecture convergence checkpoint. v2.5.
 - XHS skill package mock
 - OpenClaw / Codex / Claude Code export package
 - MCP stub package
+- provider registry governance
+- provider config validation
+- provider fallback simulation
+- LLM cost guard
+- audit redaction check
+- opt-in provider live smoke
 
 ## Experimental
 
@@ -39,6 +45,8 @@ v2.5.1 is a release engineering / CLI architecture convergence checkpoint. v2.5.
 - derived skill generator
 - LLM quality assist
 - provider readiness
+- provider security governance
+- opt-in LLM live smoke
 - prompt profile versioning
 - golden samples
 - compatibility matrix
@@ -46,8 +54,6 @@ v2.5.1 is a release engineering / CLI architecture convergence checkpoint. v2.5.
 
 ## Roadmap
 
-- v2.6 real LLM live smoke
-- v2.6 provider security governance
 - v2.7 runtime compatibility smoke
 - v2.8 domain Skill factory
 - v2.9 Feishu / personal KB / mobile / installer / iOS
@@ -73,3 +79,4 @@ No deprecated capabilities yet.
 - default network access
 - SaaS multi-tenancy
 - permission system
+

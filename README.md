@@ -2,9 +2,9 @@
 
 [中文说明](README.zh-CN.md) | English
 
-Current version: `2.5.1-alpha.1`
+Current version: `2.6.0-alpha.1`
 
-Release status: alpha release-engineering checkpoint. This is not a stable release.
+Release status: alpha provider governance checkpoint. This is not a stable release.
 
 HeiTang KB Forge is an offline-first, agent-callable knowledge supply-chain Skill. It turns multi-format source material into standardized, auditable, reviewable, and retrievable knowledge asset packages for Agent and RAG workflows.
 
@@ -36,6 +36,8 @@ Preview capabilities:
 - Curated package
 - Update impact
 - Platform distribution and mock publishing packages
+- Provider registry, config validation, redaction, fallback, and cost guard
+- Provider live smoke, disabled unless explicitly opted in
 
 Experimental capabilities:
 
@@ -43,12 +45,30 @@ Experimental capabilities:
 - Derived Skill generator
 - Mock-first LLM quality assist
 - Provider readiness
+- Provider security governance
+- Opt-in LLM live smoke
 - Prompt profile versioning
 - Golden samples
 - Compatibility matrix
 - Desktop / web UI
 
 See [Capability Status](docs/CAPABILITY_STATUS.md) for the full Stable / Preview / Experimental / Roadmap / Reserved / Deprecated / Out of Scope matrix.
+
+## v2.6 Provider Governance
+
+v2.6 adds Preview provider governance for OpenAI, Anthropic, Gemini, OpenRouter, generic OpenAI-compatible providers, and domestic providers including Qwen DashScope, DeepSeek, Kimi Moonshot, Zhipu GLM, Baidu Qianfan, Tencent Hunyuan, MiniMax, and Volcengine Doubao.
+
+```powershell
+python -m heitang_kb_forge.cli provider-list
+python -m heitang_kb_forge.cli provider-config-validate --output .\tmp_v26\validate
+python -m heitang_kb_forge.cli provider-health --output .\tmp_v26\health
+python -m heitang_kb_forge.cli provider-live-smoke --output .\tmp_v26\live
+python -m heitang_kb_forge.cli provider-fallback-test --output .\tmp_v26\fallback --scenario timeout
+python -m heitang_kb_forge.cli audit-redaction-check --output .\tmp_v26\redaction
+python -m heitang_kb_forge.cli llm-cost-guard --output .\tmp_v26\cost --prompt-chars 13000 --output-tokens 5000
+```
+
+Default behavior remains mock/offline. Real provider calls require explicit live flags and local environment variables. See [v2.6 Provider Governance](docs/V26_PROVIDER_GOVERNANCE.md).
 
 ## Install
 
@@ -135,3 +155,4 @@ Future boundaries:
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+

@@ -50,7 +50,7 @@ def evaluate_release_readiness(workspace: Path, output: Path) -> ReleaseReadines
         warnings=warnings,
         next_actions=[
             "Resolve critical blockers before release.",
-            "Use v2.6 for real LLM live smoke.",
+            "Use v2.6 opt-in LLM live smoke for provider evidence.",
             "Use v2.7 for runtime compatibility smoke.",
         ],
     )
@@ -72,7 +72,7 @@ def _status(path: Path) -> str:
 
 def _repo_gate_failures(workspace: Path) -> list[str]:
     failures: list[str] = []
-    expected = "2.5.1-alpha.1"
+    expected = "2.6.0-alpha.1"
     if not _versions_aligned(workspace, expected):
         failures.append("version_mismatch")
     for name, path in {
@@ -138,3 +138,4 @@ def _suspected_secret(workspace: Path) -> bool:
         if any(pattern in text for pattern in patterns):
             return True
     return False
+

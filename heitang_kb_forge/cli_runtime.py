@@ -115,6 +115,18 @@ from heitang_kb_forge.publish.profiles import make_publish_package
 from heitang_kb_forge.planning.readiness import make_planning_readiness
 from heitang_kb_forge.providers import add_provider, list_providers
 from heitang_kb_forge.providers.readiness import make_provider_readiness
+from heitang_kb_forge.provider_security import (
+    audit_redaction_check,
+    default_provider_registry,
+    export_provider_registry,
+    llm_cost_guard,
+    provider_fallback_test,
+    provider_health as run_provider_health_v26,
+    provider_live_smoke,
+    run_provider_security_audit,
+    validate_provider_config,
+)
+from heitang_kb_forge.live.provider_smoke import run_live_provider_smoke
 from heitang_kb_forge.prompt_profiles import add_prompt_profile, list_prompt_profiles
 from heitang_kb_forge.prompt_profiles.versioning import make_prompt_profile_versions
 from heitang_kb_forge.validation.package_validator import VALIDATION_OUTPUT_FILES, validate_package
@@ -767,6 +779,104 @@ def provider_readiness_command(
     """Write offline provider readiness results without network calls."""
     make_provider_readiness(workspace, output)
     typer.echo(f"Wrote provider readiness outputs to {output}")
+
+
+@app.command("provider-security-audit")
+def provider_security_audit_command(
+    workspace: Path = typer.Option(..., "--workspace"),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Run v2.6 local provider security governance checks without provider API calls."""
+    result = run_provider_security_audit(workspace, output)
+    typer.echo(f"Provider security audit: {result['status']}")
+
+
+@app.command("provider-list")
+def provider_list_command() -> None:
+    """List built-in v2.6 provider registry entries without reading secrets."""
+    registry = default_provider_registry()
+    typer.echo(registry)
+
+
+@app.command("provider-config-validate")
+def provider_config_validate_command(
+    output: Path = typer.Option(..., "--output"),
+    config: Path | None = typer.Option(None, "--config"),
+) -> None:
+    """Validate provider config metadata and env-only credential policy."""
+    result = validate_provider_config(config, output)
+    typer.echo(f"Provider config validation: {result['status']}")
+
+
+@app.command("provider-registry-export")
+def provider_registry_export_command(
+    output: Path = typer.Option(..., "--output"),
+    config: Path | None = typer.Option(None, "--config"),
+) -> None:
+    """Export provider-neutral v2.6 registry metadata."""
+    registry = export_provider_registry(output, config)
+    typer.echo(f"Exported providers: {len(registry.get('providers', []))}")
+
+
+@app.command("provider-live-smoke")
+def provider_live_smoke_command(
+    output: Path = typer.Option(..., "--output"),
+    provider_id: str = typer.Option("openai_compatible_generic", "--provider-id"),
+    config: Path | None = typer.Option(None, "--config"),
+    live: bool = typer.Option(False, "--live"),
+    allow_network: bool = typer.Option(False, "--allow-network"),
+) -> None:
+    """Run opt-in provider live smoke. Network remains disabled unless both flags are set."""
+    result = provider_live_smoke(output, provider_id, live, allow_network, config)
+    typer.echo(f"Provider live smoke: {result['status']}")
+
+
+@app.command("provider-fallback-test")
+def provider_fallback_test_command(
+    output: Path = typer.Option(..., "--output"),
+    scenario: str = typer.Option("timeout", "--scenario"),
+) -> None:
+    """Simulate provider failure scenarios and fallback behavior without network calls."""
+    result = provider_fallback_test(output, scenario)
+    typer.echo(f"Provider fallback test: {result['status']}")
+
+
+@app.command("llm-cost-guard")
+def llm_cost_guard_command(
+    output: Path = typer.Option(..., "--output"),
+    prompt_chars: int = typer.Option(0, "--prompt-chars"),
+    output_tokens: int = typer.Option(0, "--output-tokens"),
+    max_prompt_chars: int = typer.Option(12000, "--max-prompt-chars"),
+    max_output_tokens: int = typer.Option(4000, "--max-output-tokens"),
+    known_pricing: bool = typer.Option(False, "--known-pricing"),
+) -> None:
+    """Evaluate local LLM prompt/output cost guardrails without provider calls."""
+    result = llm_cost_guard(output, prompt_chars, output_tokens, max_prompt_chars, max_output_tokens, known_pricing)
+    typer.echo(f"LLM cost guard: {result['status']}")
+
+
+@app.command("audit-redaction-check")
+def audit_redaction_check_command(
+    output: Path = typer.Option(..., "--output"),
+    sample: str = typer.Option("sk-test-secret", "--sample"),
+) -> None:
+    """Verify provider audit redaction behavior without writing secrets."""
+    result = audit_redaction_check(output, sample)
+    typer.echo(f"Audit redaction check: {result['status']}")
+
+
+@app.command("llm-live-smoke")
+def llm_live_smoke_command(
+    output: Path = typer.Option(..., "--output"),
+    provider: str = typer.Option("mock", "--provider"),
+    model: str = typer.Option("mock-model", "--model"),
+    base_url_env: str | None = typer.Option(None, "--base-url-env"),
+    api_key_env: str | None = typer.Option(None, "--api-key-env"),
+    allow_network: bool = typer.Option(False, "--allow-network"),
+) -> None:
+    """Run v2.6 opt-in LLM live smoke checks without network by default."""
+    result = run_live_provider_smoke(output, provider, model, base_url_env, api_key_env, allow_network)
+    typer.echo(f"LLM live smoke: {result['status']}")
 
 
 @prompt_profile_app.command("add")
@@ -1730,10 +1840,18 @@ def stable_check(workspace: Path = typer.Option(..., "--workspace", exists=True,
 
 @app.command("provider-health")
 def provider_health(
-    workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True),
+    workspace: Path | None = typer.Option(None, "--workspace", exists=True, file_okay=False, dir_okay=True),
+    output: Path | None = typer.Option(None, "--output"),
+    config: Path | None = typer.Option(None, "--config"),
     allow_network: bool = typer.Option(False, "--allow-network"),
 ) -> None:
     """Check configured provider registry without network by default."""
+    if output is not None:
+        result = run_provider_health_v26(output, config)
+        typer.echo(f"Provider health: {result['status']}")
+        return
+    if workspace is None:
+        raise typer.BadParameter("Provide --workspace for legacy health or --output for v2.6 health.")
     result, _ = check_provider_health(workspace, allow_network)
     typer.echo(f"Provider health status: {result['status']}")
 

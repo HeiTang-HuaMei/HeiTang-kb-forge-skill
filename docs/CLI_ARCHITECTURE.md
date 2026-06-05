@@ -1,6 +1,6 @@
 # CLI Architecture
 
-Current version: `2.5.1-alpha.1`
+Current version: `2.6.0-alpha.1`
 
 ## Purpose
 
@@ -75,3 +75,4 @@ The CLI must not:
 - start a real MCP Server
 - write to a real vector database
 - depend on the desktop UI
+

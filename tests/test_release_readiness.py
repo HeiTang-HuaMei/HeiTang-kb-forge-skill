@@ -10,12 +10,12 @@ def _write_release_workspace_contract(workspace):
     docs.mkdir()
     workflows = workspace / ".github" / "workflows"
     workflows.mkdir(parents=True)
-    (workspace / "pyproject.toml").write_text('version = "2.5.1-alpha.1"\n', encoding="utf-8")
-    (workspace / "skill.json").write_text('{"version":"2.5.1-alpha.1"}', encoding="utf-8")
-    (workspace / "README.md").write_text("HeiTang KB Forge Skill\n2.5.1-alpha.1\n", encoding="utf-8")
-    (docs / "CAPABILITY_STATUS.md").write_text("2.5.1-alpha.1\nStable\nPreview\nExperimental\n", encoding="utf-8")
-    (docs / "VERSION_MATRIX.md").write_text("v2.5.1-alpha.1\n2.5.1-alpha.1\n", encoding="utf-8")
-    (docs / "RELEASE_CHECKLIST.md").write_text("2.5.1-alpha.1\nRelease checklist\n", encoding="utf-8")
+    (workspace / "pyproject.toml").write_text('version = "2.6.0-alpha.1"\n', encoding="utf-8")
+    (workspace / "skill.json").write_text('{"version":"2.6.0-alpha.1"}', encoding="utf-8")
+    (workspace / "README.md").write_text("HeiTang KB Forge Skill\n2.6.0-alpha.1\n", encoding="utf-8")
+    (docs / "CAPABILITY_STATUS.md").write_text("2.6.0-alpha.1\nStable\nPreview\nExperimental\n", encoding="utf-8")
+    (docs / "VERSION_MATRIX.md").write_text("v2.6.0-alpha.1\n2.6.0-alpha.1\n", encoding="utf-8")
+    (docs / "RELEASE_CHECKLIST.md").write_text("2.6.0-alpha.1\nRelease checklist\n", encoding="utf-8")
     (workflows / "ci.yml").write_text("name: CI\n", encoding="utf-8")
     (workflows / "release-check.yml").write_text("name: Release Check\n", encoding="utf-8")
 
@@ -42,3 +42,4 @@ def test_release_readiness_summarizes_v25_outputs(tmp_path):
     payload = json.loads((output / "release_readiness_result.json").read_text(encoding="utf-8"))
     assert payload["release_ready"] is True
     assert (output / "release_readiness_checklist.md").exists()
+

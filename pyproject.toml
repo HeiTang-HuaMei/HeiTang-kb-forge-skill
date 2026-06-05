@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "heitang-kb-forge-skill"
-version = "2.5.1-alpha.1"
+version = "2.6.0-alpha.1"
 description = "Local CLI skill for generating standardized knowledge base packages."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -67,3 +67,4 @@ packages = ["heitang_kb_forge"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+

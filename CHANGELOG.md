@@ -1,5 +1,30 @@
 # Changelog
 
+## v2.6.0-alpha.1
+
+* Added domestic and international provider registry coverage.
+* Added `provider-list`.
+* Added `provider-config-validate`.
+* Added `provider-registry-export`.
+* Added v2.6 `provider-health` output mode.
+* Added Preview `provider-live-smoke`.
+* Added opt-in `llm-live-smoke` command.
+* Added local `provider-security-audit` command.
+* Added `provider-fallback-test`.
+* Added `llm-cost-guard`.
+* Added `audit-redaction-check`.
+* Added env-only credential policy checks.
+* Added provider config redaction checks.
+* Added fallback simulations for timeout, provider error, rate limit, invalid key, and unsupported model.
+* Added prompt length, output token, and unknown pricing guardrails.
+* Added provider security audit JSON and Markdown reports.
+* Added LLM live smoke JSON and Markdown reports.
+* Added v2.6 provider governance docs and example config.
+* Preserved default no-network behavior.
+* Preserved API key non-leakage by reporting presence only.
+* Preserved mock/offline `llm-quality-gate-assist` workflow integration.
+* Preserved v2.7+ as planned, not completed.
+
 ## v2.5.1-alpha.1
 
 * Added version alignment to `2.5.1-alpha.1`

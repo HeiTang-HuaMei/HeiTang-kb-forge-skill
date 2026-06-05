@@ -10,4 +10,5 @@ REGRESSION_BASELINE = [
     ("v2.4", "platform_distribution_upload_mock_publish", "tests/test_v24_config.py"),
     ("v2.5.0-dev", "release_quality_gate_regression_certification", "tests/test_v25_config.py"),
     ("v2.5.1-alpha.1", "release_engineering_cli_architecture_convergence", "tests/test_version_alignment.py"),
+    ("v2.6.0-alpha.1", "provider_security_governance_and_live_smoke", "tests/test_v26_provider_security.py"),
 ]

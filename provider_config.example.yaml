@@ -1,0 +1,21 @@
+# v2.6 provider registry example.
+# Store environment variable names only. Never store real API key values here.
+providers:
+  - provider_id: openai_compatible_generic
+    display_name: OpenAI Compatible Generic
+    region: generic
+    adapter_type: openai_compatible
+    base_url_env: OPENAI_COMPATIBLE_BASE_URL
+    api_key_env: OPENAI_COMPATIBLE_API_KEY
+    default_model_env: OPENAI_COMPATIBLE_MODEL
+    default_base_url: ""
+    timeout_seconds: 30
+    max_retries: 2
+    supports_streaming: false
+    supports_json_mode: true
+    supports_vision: false
+    supports_embedding: true
+    live_smoke_supported: true
+    status: preview
+    docs_url: https://platform.openai.com/docs/api-reference
+    risk_notes: Env-only credentials. Live calls require explicit --live and --allow-network.

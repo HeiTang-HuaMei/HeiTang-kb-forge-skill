@@ -96,7 +96,7 @@ def _quickstart_input_check() -> dict[str, Any]:
 
 
 def _version_alignment_check() -> dict[str, Any]:
-    expected = "2.5.1-alpha.1"
+    expected = "2.6.0-alpha.1"
     versions = []
     pyproject = Path("pyproject.toml")
     skill_json = Path("skill.json")
@@ -219,3 +219,4 @@ def _render_markdown(report: dict[str, Any]) -> str:
 - OCR / PDF table: `{report['install_hints']['ocr_pdf_table']}`
 - All local extras: `{report['install_hints']['all']}`
 """
+

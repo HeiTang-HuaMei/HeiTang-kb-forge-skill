@@ -1,0 +1,20 @@
+task: build
+input: examples/input
+output: examples/output_v26
+domain: general
+mode: reference
+
+llm_quality_gate_assist:
+  enabled: true
+  provider: mock
+  allow_network: false
+
+provider_governance:
+  enabled: true
+  registry: provider_config.example.yaml
+  live_smoke: preview
+  allow_network: false
+  security_audit: true
+  fallback_test: true
+  cost_guard: true
+  audit_redaction_check: true

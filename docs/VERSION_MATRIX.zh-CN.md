@@ -1,6 +1,6 @@
 # Version Matrix
 
-当前项目版本：`2.5.1-alpha.1`
+当前项目版本：`2.6.0-alpha.1`
 
 | Version | Status | Main Capability | Test Coverage | Known Limits | Checkpoint / Tag |
 | --- | --- | --- | --- | --- | --- |
@@ -16,8 +16,8 @@
 | v2.4 | Implemented | offline platform export and mock publish | pytest | no real platform runtime | v2.4.0-dev |
 | v2.4.1-dev | Implemented | post-v2.4 platform hardening | pytest | static checks only | v2.4.1-dev |
 | v2.5.0-dev | Implemented | local release quality gate | pytest | not external certification | v2.5.0-dev |
-| v2.5.1-alpha.1 | Implemented | release engineering / CLI architecture convergence | pytest | alpha checkpoint | current |
-| v2.6 planned | Planned | real LLM live smoke and provider security governance | planned | not implemented | planned |
+| v2.5.1-alpha.1 | Implemented | release engineering / CLI architecture convergence | pytest | alpha checkpoint | historical |
+| v2.6.0-alpha.1 | Implemented | provider registry governance、security、fallback、redaction、cost guard、opt-in live smoke | pytest | alpha checkpoint, no default network, live smoke is Preview | current |
 | v2.7 planned | Planned | runtime compatibility smoke | planned | not implemented | planned |
 | v2.8 planned | Planned | domain Skill factory | planned | not implemented | planned |
 | v2.9 planned | Planned | Feishu / personal KB / mobile / installer / iOS | planned | not implemented | planned |
@@ -27,4 +27,6 @@
 
 - v2.4 是 offline export / mock publish，不是真实平台运行。
 - v2.5 是 local release quality gate，不是外部平台认证。
-- v2.6+ 都是 Planned，不能写成 completed。
+- v2.6 是 opt-in，默认不发起网络调用，不声明所有 Provider 都已 live-tested。
+- v2.7+ 都是 Planned，不能写成 completed。
+

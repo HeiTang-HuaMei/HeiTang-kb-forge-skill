@@ -1,6 +1,6 @@
 # Release Checklist
 
-Current project version: `2.5.1-alpha.1`
+Current project version: `2.6.0-alpha.1`
 
 ## Required Checks
 
@@ -21,10 +21,15 @@ Current project version: `2.5.1-alpha.1`
 - [ ] No default external network or platform call
 - [ ] README claims reviewed
 - [ ] CHANGELOG updated with real completed work only
+- [ ] Provider security audit generated when preparing v2.6 release evidence
+- [ ] Provider registry exported and validated
+- [ ] Provider fallback, audit redaction, and cost guard generated
+- [ ] LLM live smoke generated with explicit opt-in and no API key leakage
 
 ## Boundaries
 
-- Do not claim real LLM API support until v2.6 live smoke passes.
+- Do not claim default real LLM API calls; v2.6 live smoke is opt-in.
+- Do not claim all providers were live-tested; v2.6 registry coverage is config governance plus Preview live smoke.
 - Do not claim official Xiaohongshu upload API support.
 - Do not claim real OpenClaw / Codex / Claude Code / MCP runtime execution.
 - Do not claim Feishu / mobile / installer / iOS support before v2.9.
@@ -33,3 +38,4 @@ Current project version: `2.5.1-alpha.1`
 ## Release Readiness Gate
 
 `release-readiness` must return `release_ready=false` when version mismatch, critical blockers, missing Capability Status, missing Version Matrix, missing Release Checklist, README planned-as-completed claims, suspected secrets, missing mock boundaries, missing quickstart outputs, or doctor failures are detected.
+
