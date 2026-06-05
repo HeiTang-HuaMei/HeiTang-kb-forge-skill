@@ -23,3 +23,9 @@ python -m heitang_kb_forge.cli run --config .\examples\configs\kb_forge.v16.yaml
 - `multimodal_report.md`
 - `contract_check_result.json`
 - `contract_check_report.md`
+# v1.7 快速开始
+
+```powershell
+python -m heitang_kb_forge.cli build --input .\examples\quickstart\input --output .\tmp_v17_verify --contract-version v2 --check-contract --governance --retrieval-index
+python -m heitang_kb_forge.cli evidence-gate --package .\tmp_v17_verify --query "这个知识包主要讲什么？" --output .\tmp_v17_gate
+```

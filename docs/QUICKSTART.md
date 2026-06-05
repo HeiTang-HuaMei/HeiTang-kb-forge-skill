@@ -30,3 +30,9 @@ Expected additional files:
 
 - `progress_events.jsonl`
 - `large_file_performance_report.md`
+# v1.7 Quickstart
+
+```powershell
+python -m heitang_kb_forge.cli build --input .\examples\quickstart\input --output .\tmp_v17_verify --contract-version v2 --check-contract --governance --retrieval-index
+python -m heitang_kb_forge.cli evidence-gate --package .\tmp_v17_verify --query "What is this package about?" --output .\tmp_v17_gate
+```

@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.7.0
+
+* Added knowledge governance command and reports
+* Added package diff, lifecycle, conflict, staleness, and review queue outputs
+* Added local high-precision retrieval index command
+* Added context pack and retrieval trace outputs
+* Added Evidence Gate command with allow / refuse / needs_review decisions
+* Added mock LLM provider adapter for evidence validation
+* Added LLM boundary and hallucination check outputs
+* Added v1.7 config example
+* Preserved default build / batch / run / pipeline behavior
+* No embedding API calls and no vector database writes
+
 This changelog is normalized by logical capability versions. Some capabilities were implemented in compressed commits during development, but each logical version is listed separately here.
 
 ## v1.6

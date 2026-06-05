@@ -94,3 +94,8 @@ Inspect:
 - `large_file_performance_report.md`
 
 If OCR still takes too long, reduce `--max-ocr-pages`, use `--ocr-mode selected-pages --ocr-pages 1,3-5`, lower `--ocr-scale`, or increase `--ocr-workers` cautiously.
+# v1.7 Troubleshooting
+
+If Evidence Gate refuses a query, inspect `context_pack.md`, `retrieval_trace.json`, and `evidence_gate_report.md`.
+
+If mock LLM validation is enabled, inspect `llm_call_log.jsonl`. API keys are redacted from call logs.

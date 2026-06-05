@@ -1,6 +1,7 @@
 from pathlib import Path
 from datetime import datetime, timezone
 from dataclasses import dataclass
+import os
 import re
 
 import typer
@@ -20,8 +21,10 @@ from heitang_kb_forge.doctor import run_doctor
 from heitang_kb_forge.downstream.exporter import DOWNSTREAM_OUTPUT_FILES, make_downstream_exports
 from heitang_kb_forge.embedding.exporter import EMBEDDING_OUTPUT_FILES, make_embeddings
 from heitang_kb_forge.eval.demo import DEMO_OUTPUT_FILES, make_demo_report
+from heitang_kb_forge.evidence_gate import EVIDENCE_GATE_OUTPUT_FILES, run_evidence_gate
 from heitang_kb_forge.evalset.exporter import RETRIEVAL_EVAL_OUTPUT_FILES, make_retrieval_eval_set
 from heitang_kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
+from heitang_kb_forge.governance import GOVERNANCE_OUTPUT_FILES, run_governance
 from heitang_kb_forge.hardening.batch import make_batch_hardening_outputs
 from heitang_kb_forge.hardening.run_trace import make_run_manifest, new_run_id, now_iso, stage_record
 from heitang_kb_forge.incremental.reuse import INCREMENTAL_OUTPUT_FILES, make_incremental_report
@@ -38,6 +41,12 @@ from heitang_kb_forge.lifecycle.source_registry import make_source_registry
 from heitang_kb_forge.eval_dashboard.recorder import make_eval_dashboard
 from heitang_kb_forge.exporters.report_exporter import write_report
 from heitang_kb_forge.llm.extractor import LLMOptions, OUTPUT_FILES, extract_llm_assets
+from heitang_kb_forge.llm.boundary_judge import judge_boundary_with_llm
+from heitang_kb_forge.llm.call_log import write_call_log
+from heitang_kb_forge.llm.evidence_validator import validate_evidence_with_llm
+from heitang_kb_forge.llm.hallucination_checker import check_hallucination_with_llm
+from heitang_kb_forge.llm.provider import ProviderSettings
+from heitang_kb_forge.llm.validation_report import render_llm_evidence_report
 from heitang_kb_forge.llm.prompt_profile import load_prompt_profile
 from heitang_kb_forge.llm.quality import LLM_QUALITY_OUTPUT_FILES, make_llm_quality_report
 from heitang_kb_forge.ocr.report import make_performance_report, make_resume_report
@@ -60,6 +69,8 @@ from heitang_kb_forge.pipeline.reporter import make_pipeline_report
 from heitang_kb_forge.progress.reporter import ProgressReporter, make_progress_reporter
 from heitang_kb_forge.quality_gate.gate import QUALITY_GATE_OUTPUT_FILES, evaluate_quality_gate
 from heitang_kb_forge.rag.exporter import RAGOptions, RAG_OUTPUT_FILES, make_rag_export
+from heitang_kb_forge.retrieval import RETRIEVAL_OUTPUT_FILES, build_retrieval_outputs
+from heitang_kb_forge.retrieval.index_builder import build_retrieval_index
 from heitang_kb_forge.refresh.checker import make_refresh_plan
 from heitang_kb_forge.risk.labeler import RISK_OUTPUT_FILES, make_risk_labels
 from heitang_kb_forge.runtime.agent_runtime import RUNTIME_OUTPUT_FILES, ask_package
@@ -207,6 +218,24 @@ class ContractOptions:
     strict: bool = False
 
 
+@dataclass
+class GovernanceOptions:
+    enabled: bool = False
+    previous_package: Path | None = None
+
+
+@dataclass
+class RetrievalIndexOptions:
+    enabled: bool = False
+    query: str = "Summarize this knowledge package."
+
+
+@dataclass
+class EvidenceGateOptions:
+    enabled: bool = False
+    query: str = "Summarize this knowledge package."
+
+
 HARDENING_TRACE_FILES = ["run_manifest.json", "stage_trace.jsonl", "error_report.json"]
 
 
@@ -284,6 +313,10 @@ def build(
     multimodal_report: bool = typer.Option(True, "--multimodal-report/--no-multimodal-report"),
     contract_version: str | None = typer.Option(None, "--contract-version"),
     check_contract: bool = typer.Option(False, "--check-contract"),
+    governance: bool = typer.Option(False, "--governance"),
+    retrieval_index: bool = typer.Option(False, "--retrieval-index"),
+    evidence_gate: bool = typer.Option(False, "--evidence-gate"),
+    evidence_query: str = typer.Option("Summarize this knowledge package.", "--evidence-query"),
 ) -> None:
     """Parse source files and write a V0 knowledge base package."""
     manifest = _build_package(
@@ -360,11 +393,73 @@ def build(
             report=multimodal_report,
         ),
         contract_options=ContractOptions(contract_version, check_contract, False),
+        governance_options=GovernanceOptions(governance, previous_package),
+        retrieval_index_options=RetrievalIndexOptions(retrieval_index, evidence_query),
+        evidence_gate_options=EvidenceGateOptions(evidence_gate, evidence_query),
         demo_report=demo_report,
     )
 
     typer.echo(f"Built knowledge package at {output}")
     typer.echo(f"Sources: {manifest.source_count} | Chunks: {manifest.chunk_count} | Warnings: {len(manifest.warnings)}")
+
+
+@app.command()
+def govern(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    old_package: Path | None = typer.Option(None, "--old-package", exists=True, file_okay=False, dir_okay=True),
+) -> None:
+    """Generate knowledge governance reports for an existing package."""
+    report = run_governance(package, output, old_package)
+    typer.echo(f"Built governance reports at {output}")
+    typer.echo(f"Status: {report['status']} | Warnings: {len(report['warnings'])}")
+
+
+@app.command("build-retrieval-index")
+def build_retrieval_index_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    query: str = typer.Option("Summarize this knowledge package.", "--query"),
+) -> None:
+    """Build a local high-precision retrieval index for an existing package."""
+    manifest = build_retrieval_outputs(package, output, query)
+    typer.echo(f"Built retrieval index at {output}")
+    typer.echo(f"Records: {manifest['total_records']}")
+
+
+@app.command("evidence-gate")
+def evidence_gate_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    query: str = typer.Option(..., "--query"),
+    output: Path = typer.Option(..., "--output", "-o"),
+    llm: bool = typer.Option(False, "--llm"),
+    llm_provider: str = typer.Option("mock", "--llm-provider"),
+    llm_model: str = typer.Option("mock-model", "--llm-model"),
+    llm_base_url: str | None = typer.Option(None, "--llm-base-url"),
+    llm_api_key_env: str | None = typer.Option(None, "--llm-api-key-env"),
+    llm_evidence_validation: bool = typer.Option(False, "--llm-evidence-validation"),
+    llm_boundary_check: bool = typer.Option(False, "--llm-boundary-check"),
+    llm_hallucination_check: bool = typer.Option(False, "--llm-hallucination-check"),
+    llm_call_log: bool = typer.Option(True, "--llm-call-log/--no-llm-call-log"),
+) -> None:
+    """Run the local evidence gate against an existing package."""
+    result = run_evidence_gate(package, output, query)
+    if llm:
+        _write_llm_evidence_outputs(
+            package,
+            output,
+            query,
+            llm_provider,
+            llm_model,
+            llm_base_url,
+            llm_api_key_env,
+            llm_evidence_validation,
+            llm_boundary_check,
+            llm_hallucination_check,
+            llm_call_log,
+        )
+    typer.echo(f"Built evidence gate report at {output}")
+    typer.echo(f"Decision: {result.decision}")
 
 
 @app.command()
@@ -1121,6 +1216,9 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         review_low_confidence=config_data.multimodal.review_low_confidence,
     )
     contract_options = ContractOptions(config_data.contract.version, config_data.contract.check, config_data.contract.strict)
+    governance_options = GovernanceOptions(config_data.governance.enabled, config_data.governance.previous_package)
+    retrieval_index_options = RetrievalIndexOptions(config_data.retrieval.enabled, config_data.retrieval.query)
+    evidence_gate_options = EvidenceGateOptions(config_data.evidence_gate.enabled, config_data.evidence_gate.query)
 
     if config_data.task == "build":
         manifest = _build_package(
@@ -1142,9 +1240,26 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             multimodal_options=multimodal_options,
             contract_options=contract_options,
             agent_options=agent_options,
+            governance_options=governance_options,
+            retrieval_index_options=retrieval_index_options,
+            evidence_gate_options=evidence_gate_options,
             demo_report=config_data.demo.enabled,
         )
         _run_v12_config_outputs(config_data, config_data.output)
+        if config_data.evidence_gate.enabled and config_data.llm.enabled:
+            _write_llm_evidence_outputs(
+                config_data.output,
+                config_data.output,
+                config_data.evidence_gate.query,
+                config_data.llm.provider,
+                config_data.llm.model,
+                config_data.llm.base_url,
+                config_data.llm.api_key_env,
+                config_data.llm.evidence_validation,
+                config_data.llm.boundary_check,
+                config_data.llm.hallucination_check,
+                config_data.llm.call_log,
+            )
         return ConfigRunResult(
             config=config_data,
             output=config_data.output,
@@ -1233,6 +1348,42 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         output=output,
         message=f"Built batch knowledge packages at {output}\nTotal: {len(items)} | Succeeded: {succeeded} | Failed: {failed}",
     )
+
+
+def _write_llm_evidence_outputs(
+    package: Path,
+    output: Path,
+    query: str,
+    provider_name: str,
+    model: str,
+    base_url: str | None,
+    api_key_env: str | None,
+    evidence_validation: bool,
+    boundary_check: bool,
+    hallucination_check: bool,
+    call_log: bool,
+) -> None:
+    api_key = os.environ.get(api_key_env) if api_key_env else None
+    settings = ProviderSettings(provider_name, model, base_url, api_key)
+    records = build_retrieval_index(package)
+    evidence_text = "\n\n".join(record.text for record in records[:5])
+    log_path = output / "llm_call_log.jsonl"
+    if evidence_validation:
+        result = validate_evidence_with_llm(query, evidence_text, settings)
+        write_json(output / "llm_evidence_validation.json", result.model_dump(mode="json"))
+        (output / "llm_evidence_validation_report.md").write_text(render_llm_evidence_report(result), encoding="utf-8")
+        if call_log:
+            write_call_log(log_path, {"task": "evidence_validation", "provider": provider_name, "model": model, "api_key": api_key, "status": result.status})
+    if boundary_check:
+        result = judge_boundary_with_llm(query, evidence_text, settings)
+        write_json(output / "llm_boundary_judgment.json", result.model_dump(mode="json"))
+        if call_log:
+            write_call_log(log_path, {"task": "boundary_check", "provider": provider_name, "model": model, "api_key": api_key, "status": result.status})
+    if hallucination_check:
+        result = check_hallucination_with_llm(query, evidence_text, settings)
+        write_json(output / "llm_hallucination_check.json", result.model_dump(mode="json"))
+        if call_log:
+            write_call_log(log_path, {"task": "hallucination_check", "provider": provider_name, "model": model, "api_key": api_key, "status": result.status})
 
 
 def _apply_performance_overrides(
@@ -1668,6 +1819,9 @@ def _build_package(
     multimodal_options: MultimodalOptions | None = None,
     contract_options: ContractOptions | None = None,
     agent_options: AgentOptions | None = None,
+    governance_options: GovernanceOptions | None = None,
+    retrieval_index_options: RetrievalIndexOptions | None = None,
+    evidence_gate_options: EvidenceGateOptions | None = None,
     demo_report: bool = False,
 ) -> Manifest:
     output.mkdir(parents=True, exist_ok=True)
@@ -1863,6 +2017,9 @@ def _build_package(
     multimodal_options = multimodal_options or MultimodalOptions()
     multimodal_result = build_multimodal_assets(input, source_files, multimodal_options)
     contract_options = contract_options or ContractOptions()
+    governance_options = governance_options or GovernanceOptions()
+    retrieval_index_options = retrieval_index_options or RetrievalIndexOptions()
+    evidence_gate_options = evidence_gate_options or EvidenceGateOptions()
 
     files = [
         "chunks.jsonl",
@@ -1930,6 +2087,12 @@ def _build_package(
         files.extend(["evidence_map.json", "source_inventory.json", "quality_report.md"])
     if contract_options.check:
         files.extend(["contract_check_result.json", "contract_check_report.md"])
+    if governance_options.enabled:
+        files.extend(GOVERNANCE_OUTPUT_FILES)
+    if retrieval_index_options.enabled:
+        files.extend(RETRIEVAL_OUTPUT_FILES)
+    if evidence_gate_options.enabled:
+        files.extend(EVIDENCE_GATE_OUTPUT_FILES)
     files = _dedupe_files(files)
     manifest = Manifest(
         domain=domain,
@@ -2186,6 +2349,18 @@ def _build_package(
         embedding_summary,
         vector_summary,
     )
+    if governance_options.enabled:
+        run_governance(output, output, governance_options.previous_package)
+        manifest_payload.update({"governance_enabled": True, "governance_files": GOVERNANCE_OUTPUT_FILES})
+        write_json(output / "manifest.json", manifest_payload)
+    if retrieval_index_options.enabled:
+        build_retrieval_outputs(output, output, retrieval_index_options.query)
+        manifest_payload.update({"retrieval_index_enabled": True, "retrieval_index_files": RETRIEVAL_OUTPUT_FILES})
+        write_json(output / "manifest.json", manifest_payload)
+    if evidence_gate_options.enabled:
+        run_evidence_gate(output, output, evidence_gate_options.query)
+        manifest_payload.update({"evidence_gate_enabled": True, "evidence_gate_files": EVIDENCE_GATE_OUTPUT_FILES})
+        write_json(output / "manifest.json", manifest_payload)
     if contract_options.check:
         contract_result = check_package_contract(output, strict=contract_options.strict)
         write_json(output / "contract_check_result.json", contract_result.model_dump(mode="json"))

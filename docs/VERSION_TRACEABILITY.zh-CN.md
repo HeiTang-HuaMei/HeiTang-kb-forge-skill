@@ -28,3 +28,6 @@ v1.6 负责：
 ## 边界
 
 v1.6 不做 Evidence Gate、高精度检索索引、Skill 生成、Agent Runtime、Tool Runtime 或外部 connector。
+# v1.7 可追溯性
+
+v1.7 新增治理、检索、Evidence Gate 和 LLM 证据校验输出。这些文件都是 opt-in，不改变默认离线知识包契约。

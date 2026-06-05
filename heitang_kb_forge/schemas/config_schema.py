@@ -11,8 +11,14 @@ class LLMConfig(BaseModel):
     enabled: bool = False
     provider: str = "fake"
     model: str = "fake-model"
+    base_url: str | None = None
+    api_key_env: str | None = None
     cache: bool = True
     strict: bool = False
+    call_log: bool = True
+    evidence_validation: bool = False
+    boundary_check: bool = False
+    hallucination_check: bool = False
     prompt_profile: Path | None = None
     quality_report: bool = False
 
@@ -184,6 +190,21 @@ class ContractConfig(BaseModel):
     strict: bool = False
 
 
+class GovernanceConfig(BaseModel):
+    enabled: bool = False
+    previous_package: Path | None = None
+
+
+class RetrievalIndexConfig(BaseModel):
+    enabled: bool = False
+    query: str = "Summarize this knowledge package."
+
+
+class EvidenceGateConfig(BaseModel):
+    enabled: bool = False
+    query: str = "Summarize this knowledge package."
+
+
 class ForgeConfig(BaseModel):
     task: str
     input: Path
@@ -222,3 +243,6 @@ class ForgeConfig(BaseModel):
     performance: PerformanceConfig = Field(default_factory=PerformanceConfig)
     multimodal: MultimodalConfig = Field(default_factory=MultimodalConfig)
     contract: ContractConfig = Field(default_factory=ContractConfig)
+    governance: GovernanceConfig = Field(default_factory=GovernanceConfig)
+    retrieval: RetrievalIndexConfig = Field(default_factory=RetrievalIndexConfig)
+    evidence_gate: EvidenceGateConfig = Field(default_factory=EvidenceGateConfig)

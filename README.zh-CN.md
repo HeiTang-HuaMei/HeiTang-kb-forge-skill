@@ -633,6 +633,26 @@ heitang-kb-forge mcp export-config --output .\mcp_config
 
 MIT License. See LICENSE for details.
 
+## v1.7 可靠知识治理与 Evidence Gate
+
+v1.7 新增可选知识治理、检索索引和 Evidence Gate 层，同时保持默认 headless 知识包构建行为不变。
+
+新增命令：
+
+```powershell
+python -m heitang_kb_forge.cli govern --package .\output --output .\governance_output
+python -m heitang_kb_forge.cli build-retrieval-index --package .\output --output .\retrieval_output
+python -m heitang_kb_forge.cli evidence-gate --package .\output --query "这个知识包主要讲什么？" --output .\gate_output
+```
+
+可选 mock LLM 证据校验：
+
+```powershell
+python -m heitang_kb_forge.cli evidence-gate --package .\output --query "这个知识包主要讲什么？" --output .\gate_llm --llm --llm-provider mock --llm-evidence-validation --llm-boundary-check --llm-hallucination-check
+```
+
+mock provider 是本地确定性实现。v1.7 不调用 embedding API，不写入向量数据库，也不把桌面 UI 变成核心引擎。
+
 
 ## v1.2 边界补充
 

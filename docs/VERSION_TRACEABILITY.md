@@ -28,3 +28,6 @@ Start with v1.6 when investigating:
 ## Boundary
 
 v1.6 does not add Evidence Gate, high-precision retrieval index, Skill generation, Agent Runtime, Tool Runtime, or external connectors.
+# v1.7 Traceability
+
+v1.7 introduces governance, retrieval, evidence gate, and LLM evidence validation outputs. These files are opt-in and do not change the default offline package contract.

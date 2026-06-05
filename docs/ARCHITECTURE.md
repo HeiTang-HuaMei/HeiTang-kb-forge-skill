@@ -156,3 +156,10 @@ It is a local bridge for Agent consumption. It does not call embedding APIs, doe
 The Agent Tool interface exposes KB Forge capabilities as a local registry, schema, safety policy, and limited local invocation path. MCP readiness exports describe future server integration without starting a server.
 
 This layer keeps the Skill-first boundary intact: core Python package and CLI remain the standard execution layer, while external Agent frameworks consume exported tool metadata or call local commands.
+# v1.7 Governance and Evidence Layer
+
+The v1.7 layer sits after package generation:
+
+Documents -> Core Skill / CLI -> Standard Knowledge Package -> Governance -> Retrieval Index -> Evidence Gate -> Agent/RAG/Desktop consumption.
+
+The desktop UI remains a presentation layer. Governance, retrieval, and evidence checks are callable from the CLI and config pipeline.

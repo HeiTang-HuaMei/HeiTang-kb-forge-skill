@@ -18,6 +18,16 @@ def load_package_summary(package: Path) -> dict:
         "quality_report.json",
         "contract_check_result.json",
         "multimodal_evidence_map.json",
+        "package_diff.json",
+        "lifecycle_manifest.json",
+        "conflict_report.json",
+        "staleness_report.json",
+        "retrieval_manifest.json",
+        "retrieval_trace.json",
+        "evidence_gate_result.json",
+        "llm_evidence_validation.json",
+        "llm_boundary_judgment.json",
+        "llm_hallucination_check.json",
     ]:
         path = package / file_name
         if path.exists():
@@ -36,6 +46,16 @@ def load_package_summary(package: Path) -> dict:
     contract_report = package / "contract_check_report.md"
     if contract_report.exists():
         summary["contract_check_report"] = contract_report.read_text(encoding="utf-8")
+    for report_name in [
+        "governance_report.md",
+        "review_queue_report.md",
+        "context_pack.md",
+        "evidence_gate_report.md",
+        "llm_evidence_validation_report.md",
+    ]:
+        report = package / report_name
+        if report.exists():
+            summary[report_name] = report.read_text(encoding="utf-8")
     return summary
 
 
@@ -66,6 +86,10 @@ def render_app() -> None:
             "Refresh plan",
             "Publish profile",
             "Ask runtime",
+            "Knowledge governance",
+            "Retrieval trace",
+            "Evidence gate",
+            "LLM evidence validation",
         ]
     )
     st.write("Build, review, publish, refresh, and ask actions use local CLI/Python logic only.")
@@ -79,6 +103,16 @@ def render_app() -> None:
     if package_summary.get("contract_check_report"):
         st.subheader("Contract Check Report")
         st.markdown(package_summary["contract_check_report"])
+    for title, key in [
+        ("Knowledge Governance", "governance_report.md"),
+        ("Review Queue", "review_queue_report.md"),
+        ("Context Pack", "context_pack.md"),
+        ("Evidence Gate", "evidence_gate_report.md"),
+        ("LLM Evidence Validation", "llm_evidence_validation_report.md"),
+    ]:
+        if package_summary.get(key):
+            st.subheader(title)
+            st.markdown(package_summary[key])
 
 
 if __name__ == "__main__":

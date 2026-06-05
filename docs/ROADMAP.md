@@ -92,3 +92,6 @@ Desktop UI Freeze & Future-Ready Layout:
 - CRM / order / product catalog production integrations.
 - UI-only private knowledge package format.
 - Moving core logic into React or Tauri.
+# v1.7 Reliable Knowledge Governance
+
+v1.7 adds opt-in knowledge governance, high-precision local retrieval, Evidence Gate, and a minimal LLM provider adapter for evidence validation. These layers are designed to keep HeiTang KB Forge skill-first and headless while supporting later Agent/RAG runtimes.

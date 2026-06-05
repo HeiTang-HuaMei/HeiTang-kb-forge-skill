@@ -632,3 +632,23 @@ heitang-kb-forge mcp export-config --output .\mcp_config
 
 MIT License. See LICENSE for details.
 
+## v1.7 Reliable Knowledge Governance and Evidence Gate
+
+v1.7 adds opt-in governance, retrieval, and evidence-gate layers while preserving the default headless package build behavior.
+
+New commands:
+
+```powershell
+python -m heitang_kb_forge.cli govern --package .\output --output .\governance_output
+python -m heitang_kb_forge.cli build-retrieval-index --package .\output --output .\retrieval_output
+python -m heitang_kb_forge.cli evidence-gate --package .\output --query "What is this package about?" --output .\gate_output
+```
+
+Optional mock LLM evidence checks:
+
+```powershell
+python -m heitang_kb_forge.cli evidence-gate --package .\output --query "What is this package about?" --output .\gate_llm --llm --llm-provider mock --llm-evidence-validation --llm-boundary-check --llm-hallucination-check
+```
+
+The mock provider is local and deterministic. v1.7 does not call embedding APIs, does not write to vector databases, and does not make the desktop UI the core engine.
+

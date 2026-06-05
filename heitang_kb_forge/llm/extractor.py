@@ -42,7 +42,7 @@ class LLMExtractionResult:
 
 
 def create_provider(provider_name: str, model_name: str) -> LLMProvider:
-    if provider_name == "fake":
+    if provider_name in {"fake", "mock"}:
         return FakeProvider(model_name=model_name)
     if provider_name == "fake-fail":
         return FakeProvider(model_name=model_name, fail=True)

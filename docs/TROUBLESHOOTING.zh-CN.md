@@ -31,3 +31,8 @@ heitang-kb-forge build --input .\input --output .\output --progress-jsonl --prof
 - `progress_events.jsonl`
 - `large_file_performance_report.md`
 - `ocr_resume_report.md`
+# v1.7 排障
+
+如果 Evidence Gate 拒绝某个问题，请检查 `context_pack.md`、`retrieval_trace.json` 和 `evidence_gate_report.md`。
+
+如果启用了 mock LLM 校验，请检查 `llm_call_log.jsonl`。API key 会从调用日志中脱敏。

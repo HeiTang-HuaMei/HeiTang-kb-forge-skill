@@ -21,6 +21,7 @@ from heitang_kb_forge.publish.profiles import PUBLISH_OUTPUT_FILES
 from heitang_kb_forge.planning.readiness import PLANNING_OUTPUT_FILES
 from heitang_kb_forge.vector.exporter import VECTOR_OUTPUT_FILES
 from heitang_kb_forge.store.exporter import STORE_OUTPUT_FILES
+from heitang_kb_forge.evidence_gate import EVIDENCE_GATE_OUTPUT_FILES
 from heitang_kb_forge.schemas.config_schema import ForgeConfig
 from heitang_kb_forge.schemas.pipeline_schema import PipelineManifest, PipelineStage
 
@@ -49,6 +50,19 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("multimodal_asset_extraction", config.multimodal.enabled, output, ["multimodal_assets.jsonl", "multimodal_report.md"], config.task),
         _stage("multimodal_evidence_mapping", config.multimodal.enabled, output, ["multimodal_evidence_map.json"], config.task),
         _stage("package_contract_check", config.contract.check, output, ["contract_check_result.json", "contract_check_report.md"], config.task),
+        _stage("governance_analysis", config.governance.enabled, output, ["governance_report.md"], config.task),
+        _stage("package_diff", config.governance.enabled, output, ["package_diff.json", "package_diff_report.md"], config.task),
+        _stage("lifecycle_status", config.governance.enabled, output, ["lifecycle_manifest.json", "lifecycle_report.md"], config.task),
+        _stage("conflict_detection", config.governance.enabled, output, ["conflict_report.json", "conflict_report.md"], config.task),
+        _stage("staleness_detection", config.governance.enabled, output, ["staleness_report.json", "staleness_report.md"], config.task),
+        _stage("review_queue", config.governance.enabled, output, ["review_queue.jsonl", "review_queue_report.md"], config.task),
+        _stage("retrieval_index", config.retrieval.enabled, output, ["retrieval_index.jsonl", "retrieval_manifest.json"], config.task),
+        _stage("context_pack", config.retrieval.enabled, output, ["context_pack.json", "context_pack.md"], config.task),
+        _stage("evidence_gate", config.evidence_gate.enabled, output, EVIDENCE_GATE_OUTPUT_FILES, config.task),
+        _stage("llm_provider_check", config.llm.enabled, output, [], config.task),
+        _stage("llm_evidence_validation", config.llm.evidence_validation, output, ["llm_evidence_validation.json"], config.task),
+        _stage("llm_boundary_judgment", config.llm.boundary_check, output, ["llm_boundary_judgment.json"], config.task),
+        _stage("llm_hallucination_check", config.llm.hallucination_check, output, ["llm_hallucination_check.json"], config.task),
         _stage("llm_extraction", config.llm.enabled, output, _llm_output_files(config), config.task),
         _stage("rag_export", config.rag.enabled, output, RAG_OUTPUT_FILES, config.task),
         _stage("embedding_generation", config.embedding.enabled, output, EMBEDDING_OUTPUT_FILES, config.task),
