@@ -107,6 +107,13 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("curated_package_generation_v23", config.curation.enabled or config.curation.build_curated_package, config.curation.output or (output / "curated_package"), ["curated_manifest.json", "curated_chunks.jsonl", "curated_evidence_map.json"], config.task),
         _stage("governance_decision_audit", config.curation.enabled or config.curation.build_curated_package, config.curation.output or (output / "curated_package"), ["governance_decisions.jsonl", "decision_audit_report.md"], config.task),
         _stage("update_impact_analysis", config.update_impact.enabled, config.update_impact.output or output, ["impacted_skills.json", "impacted_agents.json"], config.task),
+        _stage(
+            "platform_distribution",
+            config.platform_distribution.enabled,
+            config.platform_distribution.output or (output / "platform_distribution"),
+            ["platform_manifest.json", "platform_upload_check_result.json", "mock_publish_result.json", "install_guide.md", "upload_guide.md"],
+            config.task,
+        ),
         _stage("workspace_export", False, output, ["export_manifest.json"], config.task),
         _stage("llm_extraction", config.llm.enabled, output, _llm_output_files(config), config.task),
         _stage("rag_export", config.rag.enabled, output, RAG_OUTPUT_FILES, config.task),

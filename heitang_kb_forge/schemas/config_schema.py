@@ -360,6 +360,16 @@ class PromptProfileVersioningConfig(BaseModel):
     output: Path | None = None
 
 
+class PlatformDistributionConfig(BaseModel):
+    enabled: bool = False
+    platform: str = "generic"
+    skill: Path | None = None
+    agent: Path | None = None
+    output: Path | None = None
+    upload_check: bool = True
+    mock_publish: bool = True
+
+
 class ForgeConfig(BaseModel):
     task: str
     input: Path
@@ -421,3 +431,4 @@ class ForgeConfig(BaseModel):
     workspace_refresh: WorkspaceRefreshConfig = Field(default_factory=WorkspaceRefreshConfig)
     provider_readiness: ProviderReadinessConfig = Field(default_factory=ProviderReadinessConfig)
     prompt_profile_versioning: PromptProfileVersioningConfig = Field(default_factory=PromptProfileVersioningConfig)
+    platform_distribution: PlatformDistributionConfig = Field(default_factory=PlatformDistributionConfig)

@@ -85,6 +85,7 @@ from heitang_kb_forge.processors.quality import make_quality_report
 from heitang_kb_forge.processors.validator import validate_chunks
 from heitang_kb_forge.pipeline.reporter import make_pipeline_report
 from heitang_kb_forge.package_lineage import make_package_lineage
+from heitang_kb_forge.platform_distribution import check_platform_upload, export_platform_package, mock_publish_package
 from heitang_kb_forge.progress.reporter import ProgressReporter, make_progress_reporter
 from heitang_kb_forge.quality_gate.gate import QUALITY_GATE_OUTPUT_FILES, evaluate_quality_gate
 from heitang_kb_forge.quality import V21_OUTPUT_FILES, make_v21_quality_outputs
@@ -1114,6 +1115,40 @@ def update_impact(
     typer.echo(f"Wrote update impact outputs to {output}")
 
 
+@app.command("export-platform")
+def export_platform(
+    skill: Path = typer.Option(..., "--skill", exists=True, file_okay=False, dir_okay=True, readable=True),
+    agent: Path | None = typer.Option(None, "--agent", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output"),
+    platform: str = typer.Option("generic", "--platform"),
+) -> None:
+    """Export local platform distribution files without uploading or running platforms."""
+    manifests = export_platform_package(skill, agent, output, platform)
+    typer.echo(f"Wrote platform distribution for {len(manifests)} platform(s) to {output}")
+
+
+@app.command("platform-upload-check")
+def platform_upload_check(
+    export: Path = typer.Option(..., "--export", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output"),
+    platform: str | None = typer.Option(None, "--platform"),
+) -> None:
+    """Check local platform export files without uploading."""
+    result = check_platform_upload(export, output, platform)
+    typer.echo(f"Platform upload check: {result.status}")
+
+
+@app.command("mock-publish")
+def mock_publish(
+    export: Path = typer.Option(..., "--export", exists=True, file_okay=False, dir_okay=True, readable=True),
+    platform: str = typer.Option(..., "--platform"),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Write a mock publish result without calling external platform APIs."""
+    result = mock_publish_package(export, platform, output)
+    typer.echo(f"Mock publish: {result.status}")
+
+
 @app.command()
 def run(
     config: Path = typer.Option(..., "--config", "-c", exists=True, file_okay=True, dir_okay=False, readable=True),
@@ -1838,6 +1873,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         _run_v20_config_outputs(config_data, config_data.output)
         _run_v22_config_outputs(config_data, config_data.output)
         _run_v23_config_outputs(config_data, config_data.output)
+        _run_v24_config_outputs(config_data, config_data.output)
         return ConfigRunResult(
             config=config_data,
             output=config_data.output,
@@ -1935,6 +1971,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
     _run_v20_config_outputs(config_data, output)
     _run_v22_config_outputs(config_data, output)
     _run_v23_config_outputs(config_data, output)
+    _run_v24_config_outputs(config_data, output)
 
     return ConfigRunResult(
         config=config_data,
@@ -2244,6 +2281,16 @@ def _run_v23_config_outputs(config_data: ForgeConfig, output: Path) -> None:
         package = config_data.update_impact.package or (output / "curated_package" if (output / "curated_package").exists() else output)
         impact_output = config_data.update_impact.output or output
         analyze_update_impact(workspace, package, impact_output)
+
+
+def _run_v24_config_outputs(config_data: ForgeConfig, output: Path) -> None:
+    if not config_data.platform_distribution.enabled:
+        return
+    skill = config_data.platform_distribution.skill or (output / "skill_package")
+    agent = config_data.platform_distribution.agent or (output / "agent_package")
+    agent_path = agent if agent.exists() else None
+    platform_output = config_data.platform_distribution.output or (output / "platform_distribution")
+    export_platform_package(skill, agent_path, platform_output, config_data.platform_distribution.platform)
 
 
 def _make_llm_options(

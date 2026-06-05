@@ -58,6 +58,8 @@ v2.2 实现输出包括 `master_skill_inventory.json`、`skill_decomposition.jso
 v2.4 计划实现 OpenClaw、XHS、Codex、Claude Code、MCP、Generic package 和 Local Registry package 的平台导出与上传适配准备。
 
 v2.4 只生成 platform manifest、安装说明、上传检查和 mock publish 结果；不得调用真实平台账号、不得真实运行 Agent 平台、不得启动真实 MCP Server、不得自动上传小红书。
+
+v2.4 实现范围是本地平台分发输出、上传准备检查和 mock publish 记录。v2.5 / v2.6 / v2.9 仍然是 planned。
 # v2.3 工业级批量处理与知识治理
 
 v2.3 实现工业级 batch job manifest、item status 追踪、retry 记录、批量汇总、package lineage、curated package、governance decision log、update impact report，以及只读 Batch & Governance Center 方向。

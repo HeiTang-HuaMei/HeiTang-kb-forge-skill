@@ -1,5 +1,19 @@
 # Changelog
 
+## v2.4.0
+
+* Added opt-in local platform distribution exports
+* Added `export-platform`
+* Added `platform-upload-check`
+* Added `mock-publish`
+* Added platform outputs for openclaw, xhs, codex, claude_code, mcp, generic, and local_registry
+* Added XHS Skill package preparation files
+* Added upload check and mock publish outputs
+* Preserved default build / batch / run / pipeline behavior
+* No real XHS account calls
+* No automatic XHS note publishing
+* No real OpenClaw / Codex / Claude Code / MCP runtime execution
+
 ## v2.3 Checkpoint Fill
 
 * Added enhanced local Skill template files

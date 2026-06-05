@@ -174,7 +174,44 @@ Known gaps:
 
 ## Planned
 
-- v2.4 Platform Distribution and Publishing
+- v2.5 Quality Gate and Export Certification
+- v2.6 Provider Security and Studio Industrial Console
+- v2.7 Release Candidate
+- v2.8 Domain Skill Factory
+- v2.9 Feishu / Personal KB / Mobile / Installer / iOS
+
+## v2.4
+
+Status: Completed.
+
+Implemented:
+
+- Local platform distribution exports
+- Upload readiness check outputs
+- Mock publish outputs
+- OpenClaw / XHS / Codex / Claude Code / MCP / generic / local registry file adapters
+- XHS local Skill package preparation
+
+Verified by:
+
+- `tests/test_platform_distribution.py`
+- `tests/test_platform_distribution_all.py`
+- `tests/test_platform_xhs_package.py`
+- `tests/test_platform_upload_check.py`
+- `tests/test_mock_publish.py`
+- `tests/test_v24_config.py`
+- `tests/test_v24_pipeline.py`
+- `tests/test_v24_ui_smoke.py`
+
+Known gaps:
+
+- No real platform account calls.
+- No automatic XHS note publishing.
+- No real OpenClaw / Codex / Claude Code / MCP runtime execution.
+- No MCP server startup.
+
+## Planned After v2.4
+
 - v2.5 Quality Gate and Export Certification
 - v2.6 Provider Security and Studio Industrial Console
 - v2.7 Release Candidate

@@ -65,3 +65,9 @@ Investigate v2.3 first when batch item status, retry records, curation inclusion
 The checkpoint fill owns enhanced Skill template files, Agent compatibility stubs, workspace refresh reports, provider readiness reports, prompt profile versioning reports, `action_center.json`, `run_history.jsonl`, and `studio_v22_summary.json`.
 
 v2.4 platform distribution remains planned and is not part of this checkpoint.
+
+# v2.4 Traceability
+
+v2.4 owns `platform_manifest.json`, `platform_upload_check_result.json`, `platform_upload_check_report.md`, `mock_publish_result.json`, `install_guide.md`, `upload_guide.md`, XHS local package preparation files, and local platform distribution docs.
+
+Investigate v2.4 first when local platform export files, upload check results, or mock publish records are wrong.

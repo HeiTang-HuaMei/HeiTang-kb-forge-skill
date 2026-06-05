@@ -1,0 +1,23 @@
+task: build
+input: ./examples/quickstart/input
+output: ./examples/output_v24
+domain: education
+mode: teaching
+
+skill:
+  enabled: true
+  name: Demo Platform Skill
+  type: qa_skill
+  enhanced_template: true
+
+agent_package:
+  enabled: true
+  name: Demo Platform Agent
+  type: generic
+  compat: true
+
+platform_distribution:
+  enabled: true
+  platform: generic
+  upload_check: true
+  mock_publish: true

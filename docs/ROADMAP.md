@@ -130,6 +130,8 @@ v2.4 is planned to implement platform export and upload-adapter preparation for 
 
 v2.4 should generate platform manifests, install guides, upload checks, and mock publish results only. It must not call real platform accounts, run real Agent platforms, start a real MCP server, or upload to XHS automatically.
 
+v2.4 implementation scope is local platform distribution output generation, upload readiness checks, and mock publish records. v2.5 / v2.6 / v2.9 remain planned.
+
 # v2.3 Industrial Batch And Knowledge Governance
 
 v2.3 implements industrial batch job manifests, item status tracking, retry records, batch summaries, package lineage, curated package generation, governance decision logs, update impact reports, and a read-only Batch & Governance Center direction.

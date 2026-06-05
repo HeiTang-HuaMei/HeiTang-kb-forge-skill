@@ -174,7 +174,44 @@
 
 ## Planned
 
-- v2.4 Platform Distribution and Publishing
+- v2.5 Quality Gate and Export Certification
+- v2.6 Provider Security and Studio Industrial Console
+- v2.7 Release Candidate
+- v2.8 Domain Skill Factory
+- v2.9 飞书 / 个人知识库 / 手机端 / 安装端 / iOS
+
+## v2.4
+
+状态：已完成。
+
+已实现：
+
+- 本地平台分发导出
+- 上传准备检查输出
+- Mock publish 输出
+- OpenClaw / XHS / Codex / Claude Code / MCP / generic / local registry 文件适配
+- 小红书本地 Skill package 准备
+
+验证：
+
+- `tests/test_platform_distribution.py`
+- `tests/test_platform_distribution_all.py`
+- `tests/test_platform_xhs_package.py`
+- `tests/test_platform_upload_check.py`
+- `tests/test_mock_publish.py`
+- `tests/test_v24_config.py`
+- `tests/test_v24_pipeline.py`
+- `tests/test_v24_ui_smoke.py`
+
+已知缺口：
+
+- 不调用真实平台账号。
+- 不自动发布小红书笔记。
+- 不真实运行 OpenClaw / Codex / Claude Code / MCP Runtime。
+- 不启动 MCP Server。
+
+## Planned After v2.4
+
 - v2.5 Quality Gate and Export Certification
 - v2.6 Provider Security and Studio Industrial Console
 - v2.7 Release Candidate

@@ -64,3 +64,9 @@ v2.3 负责 `batch_job_manifest.json`、`batch_item_status.jsonl`、batch retry 
 本轮后补负责 enhanced Skill template files、Agent compatibility stubs、workspace refresh reports、provider readiness reports、prompt profile versioning reports、`action_center.json`、`run_history.jsonl` 和 `studio_v22_summary.json`。
 
 v2.4 平台分发仍是 planned，不属于本 checkpoint。
+
+# v2.4 Traceability
+
+v2.4 负责 `platform_manifest.json`、`platform_upload_check_result.json`、`platform_upload_check_report.md`、`mock_publish_result.json`、`install_guide.md`、`upload_guide.md`、小红书本地 package 准备文件，以及本地平台分发文档。
+
+如果本地平台导出文件、上传检查结果或 mock publish 记录错误，优先追溯 v2.4。

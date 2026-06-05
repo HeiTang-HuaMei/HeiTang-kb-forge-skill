@@ -796,3 +796,29 @@ Master Skill Learning is not copying third-party Skills. It decomposes structure
 
 v2.4 platform distribution, OpenClaw export, XHS packaging/upload, MCP platform export, and mock publish remain planned only.
 
+## v2.4 Skill Distribution And Platform Publishing
+
+v2.4 adds opt-in local platform distribution and mock publishing preparation.
+
+Supported platform targets:
+
+- `openclaw`
+- `xhs`
+- `codex`
+- `claude_code`
+- `mcp`
+- `generic`
+- `local_registry`
+
+Commands:
+
+```powershell
+python -m heitang_kb_forge.cli export-platform --skill .\skill_package --agent .\agent_package --output .\platform_export --platform generic
+python -m heitang_kb_forge.cli platform-upload-check --export .\platform_export --output .\platform_check --platform generic
+python -m heitang_kb_forge.cli mock-publish --export .\platform_export --platform generic --output .\mock_publish
+```
+
+v2.4 writes local files only: `platform_manifest.json`, `platform_upload_check_result.json`, `platform_upload_check_report.md`, `mock_publish_result.json`, `install_guide.md`, and `upload_guide.md`.
+
+For XHS, v2.4 only prepares `xhs_skill_package/`, `xhs_skill_manifest.json`, `xhs_skill_link_manifest.json`, `platform_policy.md`, `violation_risk_checklist.md`, and mock publish output. It does not call a real XHS account and does not automatically publish notes.
+
