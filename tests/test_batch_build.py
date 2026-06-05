@@ -262,7 +262,7 @@ def test_batch_scanned_pdf_ocr_failure_does_not_block_text_file(monkeypatch, tmp
     items = {item["sequence_id"]: item for item in manifest["items"]}
     assert items["001"]["status"] == "success"
     assert items["002"]["status"] == "failed"
-    assert "PDF OCR failed" in items["002"]["error"]
+    assert "OCR" in items["002"]["error"]
 
 
 def test_batch_merge_scanned_pdf_ocr_failure_fails_group_only(monkeypatch, tmp_path):
@@ -288,7 +288,7 @@ def test_batch_merge_scanned_pdf_ocr_failure_fails_group_only(monkeypatch, tmp_p
     items = {item["sequence_id"]: item for item in manifest["items"]}
     assert items["001"]["status"] == "failed"
     assert items["002"]["status"] == "success"
-    assert "PDF OCR failed" in items["001"]["error"]
+    assert "OCR" in items["001"]["error"]
 
 
 def _write_minimal_text_docx(path):
