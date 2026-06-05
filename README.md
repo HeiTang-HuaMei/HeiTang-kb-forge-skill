@@ -78,6 +78,7 @@ HeiTang KB Forge is responsible for:
 - generating Agent Templates
 - supporting local knowledge package operations and governance
 - reporting progress and large-file/OCR performance for industrial local runs
+- running stable Studio workflows, stable checks, provider health checks, reliability scoring, and release package snapshots
 
 ## What This Project Is Not
 
@@ -118,6 +119,68 @@ Full optional local capabilities:
     pip install -e ".[all]"
 
 OCR note: the `ocr` extra installs Python packages only. Tesseract OCR is a system dependency, and Simplified Chinese OCR requires `chi_sim.traineddata`.
+
+## Stable Foundation v2.0
+
+v2.0 adds the stable Agent knowledge supply-chain foundation:
+
+- `studio-run` for local end-to-end Studio workflows
+- `stable-check` for stable workspace contract checks
+- `provider-health` for offline provider registry health checks
+- `reliability-score` for release readiness scoring
+- `release-package` for local release snapshots
+- `extension_readiness` fields that reserve future capabilities
+
+PowerShell:
+
+    python -m heitang_kb_forge.cli studio-run --input .\examples\quickstart\input --workspace .\tmp_v20_workspace --project-name demo_project --profile stable
+    python -m heitang_kb_forge.cli stable-check --workspace .\tmp_v20_workspace
+    python -m heitang_kb_forge.cli provider-health --workspace .\tmp_v20_workspace
+    python -m heitang_kb_forge.cli reliability-score --workspace .\tmp_v20_workspace
+    python -m heitang_kb_forge.cli release-package --workspace .\tmp_v20_workspace --output .\tmp_v20_release
+
+v2.0 does not implement master Skill decomposition learning or platform upload. Those are reserved for v2.2 and v2.4.
+
+## Knowledge Reliability v2.1
+
+v2.1 adds opt-in knowledge foundation hardening:
+
+- input coverage and enhanced source inventory
+- lightweight HTML / EPUB / ZIP text ingestion
+- parser hardening reports
+- rule-based knowledge quality scoring
+- review workflow and curated chunks
+- retrieval evaluation cases and results
+- evidence benchmark reports
+- optional mock/fallback LLM quality assist
+
+PowerShell:
+
+    python -m heitang_kb_forge.cli build --input .\examples\quickstart\input --output .\tmp_v21_package --contract-version v2 --check-contract --quality-score --retrieval-eval --evidence-benchmark
+    python -m heitang_kb_forge.cli quality-score --package .\tmp_v21_package --output .\tmp_v21_quality
+    python -m heitang_kb_forge.cli review-workflow --package .\tmp_v21_package --output .\tmp_v21_review
+    python -m heitang_kb_forge.cli retrieval-eval --package .\tmp_v21_package --output .\tmp_v21_retrieval_eval
+    python -m heitang_kb_forge.cli evidence-benchmark --package .\tmp_v21_package --output .\tmp_v21_evidence_benchmark
+
+LLM quality assist is optional. It does not replace evidence chains or human review.
+
+## Master Skill Learning v2.2
+
+v2.2 adds opt-in master Skill decomposition learning:
+
+- `import-skill` creates `master_skill_inventory.json`
+- `analyze-skill` creates decomposition, capability, workflow, style, strategy, task pattern, boundary, and prompt pattern profiles
+- `generate-derived-skill` creates a new Skill package from learned structure and the user's own knowledge package
+- `skill-safety-check` checks dangerous local patterns
+- `skill-similarity-check` writes a derivation similarity report
+
+PowerShell:
+
+    python -m heitang_kb_forge.cli import-skill --input .\master_skills\sample --output .\tmp_v22_master_import
+    python -m heitang_kb_forge.cli analyze-skill --skill .\master_skills\sample --output .\tmp_v22_skill_analysis
+    python -m heitang_kb_forge.cli generate-derived-skill --master-skill .\tmp_v22_skill_analysis --knowledge-package .\tmp_v21_package --output .\tmp_v22_derived_skill
+
+Master Skill learning learns structure, workflow, style, and boundaries. It must not copy third-party Skill content as a substitute for the user's own knowledge scope.
 
 ## Doctor
 
@@ -651,4 +714,67 @@ python -m heitang_kb_forge.cli evidence-gate --package .\output --query "What is
 ```
 
 The mock provider is local and deterministic. v1.7 does not call embedding APIs, does not write to vector databases, and does not make the desktop UI the core engine.
+
+## v1.8 Skill and Agent Package Generator
+
+v1.8 adds opt-in Skill Package and Agent Package generation.
+
+```powershell
+python -m heitang_kb_forge.cli generate-skill --package .\tmp_v18_package --output .\tmp_v18_skill --skill-name "Demo Knowledge Skill" --skill-type generic
+python -m heitang_kb_forge.cli validate-skill --skill .\tmp_v18_skill --package .\tmp_v18_package --output .\tmp_v18_skill_validation
+python -m heitang_kb_forge.cli generate-agent --package .\tmp_v18_package --skill .\tmp_v18_skill --output .\tmp_v18_agent --agent-name "Demo Knowledge Agent" --agent-type generic
+```
+
+Skill Package outputs include `SKILL.md`, `skill_manifest.yaml`, rule files, `examples.md`, and `eval_cases.jsonl`.
+
+Agent Package outputs include `soul.md`, `role.md`, `system_prompt.md`, `agent_profile.yaml`, `tool_config.yaml`, `retrieval_config.yaml`, `memory_policy.md`, `safety_boundary.md`, and `launch_checklist.md`.
+
+Optional LLM-assisted generation is available with `--llm --llm-provider mock --llm-skill-generation` or `--llm-agent-generation`. LLM output is constrained by package scope and falls back to rule templates when provider setup fails.
+
+## v1.9 Portable Local Workspace
+
+v1.9 adds a portable workspace for registering knowledge packages, Skill packages, Agent packages, provider metadata, prompt profiles, and LLM call audit records.
+
+```powershell
+python -m heitang_kb_forge.cli workspace-init --workspace .\workspace
+python -m heitang_kb_forge.cli workspace-register --workspace .\workspace --path .\tmp_v19_package --type knowledge
+python -m heitang_kb_forge.cli workspace-health --workspace .\workspace
+python -m heitang_kb_forge.cli workspace-export --workspace .\workspace --output .\workspace_export
+```
+
+Provider registries store `api_key_env` only. Real API keys are not written to registries or audit logs.
+
+## v2.3 Industrial Batch And Knowledge Governance
+
+v2.3 adds local industrial batch and governance collaboration outputs for large knowledge production runs. It does not change the default build package contract and does not implement v2.4 platform distribution.
+
+New commands:
+
+```powershell
+python -m heitang_kb_forge.cli batch-run --input .\sources --output .\batch_output --profile production --worker-pool --max-workers 4
+python -m heitang_kb_forge.cli batch-retry --batch-job .\batch_output\batch_job_manifest.json --retry-only-failed
+python -m heitang_kb_forge.cli package-lineage --workspace .\workspace --output .\lineage_output
+python -m heitang_kb_forge.cli curate-package --package .\package --review-decisions .\review_decisions.jsonl --output .\curated_package
+python -m heitang_kb_forge.cli update-impact --workspace .\workspace --package .\curated_package --output .\impact_output
+```
+
+Key v2.3 outputs:
+
+- `batch_job_manifest.json`
+- `batch_item_status.jsonl`
+- `batch_failure_report.md`
+- `batch_performance_report.md`
+- `batch_quality_summary.json`
+- `batch_contract_summary.json`
+- `batch_governance_summary.json`
+- `package_version_graph.json`
+- `package_lineage_report.md`
+- `curated_package/`
+- `governance_decisions.jsonl`
+- `impacted_skills.json`
+- `impacted_agents.json`
+- `update_required_report.md`
+- `dependency_impact_report.md`
+
+Batch & Governance Center is a read-only presentation layer over these files. Core logic remains in the Python package and CLI.
 

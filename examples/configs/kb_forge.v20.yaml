@@ -1,0 +1,45 @@
+task: build
+input: examples/quickstart/input
+output: tmp_v20_config_output
+domain: education
+mode: teaching
+contract:
+  version: v2
+  check: true
+skill:
+  enabled: true
+  name: "Stable Demo Skill"
+  type: generic
+  validate: true
+agent_package:
+  enabled: true
+  name: "Stable Demo Agent"
+  type: generic
+workspace:
+  enabled: true
+  path: tmp_v20_workspace_config
+  register_outputs: true
+  health_check: true
+provider_registry:
+  enabled: true
+  default_provider: mock_default
+  providers:
+    - provider_id: mock_default
+      provider_type: mock
+      default_model: mock-model
+      enabled: true
+studio:
+  enabled: true
+  project_name: stable_demo
+  profile: stable
+stable_check:
+  enabled: true
+reliability:
+  enabled: true
+  release_threshold: 80
+provider_health:
+  enabled: true
+  allow_network: false
+release_package:
+  enabled: true
+  include_demo_outputs: true

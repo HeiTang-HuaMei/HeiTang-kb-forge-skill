@@ -1,0 +1,28 @@
+task: batch
+input: ./examples/quickstart/input
+output: ./examples/output_v23
+domain: education
+mode: teaching
+
+batch:
+  profile: production
+  worker_pool: true
+  max_workers: 2
+  memory_guard: true
+  max_file_size_mb: 500
+  timeout_seconds: 600
+  retry_failed: true
+  resume_batch: true
+
+package_lineage:
+  enabled: true
+
+curation:
+  enabled: true
+  build_curated_package: true
+
+update_impact:
+  enabled: true
+
+studio:
+  batch_governance_center: true

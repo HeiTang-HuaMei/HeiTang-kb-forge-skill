@@ -1,0 +1,44 @@
+task: build
+input: examples/quickstart/input
+output: tmp_v19_config_output
+domain: education
+mode: teaching
+contract:
+  version: v2
+  check: true
+governance:
+  enabled: true
+retrieval:
+  enabled: true
+skill:
+  enabled: true
+  name: "Demo Knowledge Skill"
+  type: generic
+  validate: true
+agent_package:
+  enabled: true
+  name: "Demo Knowledge Agent"
+  type: generic
+workspace:
+  enabled: true
+  path: tmp_v19_workspace_config
+  register_outputs: true
+  copy_packages: false
+  health_check: true
+provider_registry:
+  enabled: true
+  default_provider: mock_default
+  providers:
+    - provider_id: mock_default
+      provider_type: mock
+      default_model: mock-model
+      enabled: true
+prompt_profiles:
+  enabled: true
+  profiles:
+    - profile_id: skill_default
+      profile_type: skill_generation
+      rules_path: examples/prompt_profiles/skill_default.yaml
+llm_audit:
+  enabled: true
+  import_call_logs: true

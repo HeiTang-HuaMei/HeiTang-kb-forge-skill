@@ -95,3 +95,43 @@ Desktop UI Freeze & Future-Ready Layout:
 # v1.7 Reliable Knowledge Governance
 
 v1.7 adds opt-in knowledge governance, high-precision local retrieval, Evidence Gate, and a minimal LLM provider adapter for evidence validation. These layers are designed to keep HeiTang KB Forge skill-first and headless while supporting later Agent/RAG runtimes.
+
+# v1.8 Skill and Agent Package Generation
+
+v1.8 closes the delivery loop from knowledge package to Skill Package to Agent Package. It adds local generation, validation, benchmark cases, optional mock LLM assistance, and UI previews without adding a real Agent Runtime.
+
+# v1.9 Portable Local Workspace
+
+v1.9 upgrades the project into a local Agent knowledge asset workspace with registries, relationship graph, provider registry, prompt profile registry, LLM call audit, import/export, and health check.
+
+# v2.0 Stable Knowledge Supply Chain Foundation
+
+v2.0 closes the v1.6-v1.9 capabilities into a stable Agent knowledge supply-chain foundation. It focuses on studio-run, stable-check, provider-health, reliability-score, release-package, extension readiness, and stable bilingual documentation.
+
+v2.0 reserves future extension points only. Master Skill decomposition learning, derived Skill generation, and platform distribution are documented as planned capabilities, not implemented v2.0 features.
+
+# v2.1 Knowledge Reliability and Input Hardening
+
+v2.1 strengthens the knowledge foundation with opt-in input coverage, parser hardening, enhanced source inventory, knowledge quality scoring, review workflow, retrieval evaluation, evidence benchmark, and mock/fallback LLM quality assist.
+
+v2.1 remains offline-first and does not make a real LLM mandatory.
+
+# v2.2 Industrial Master Skill Learning
+
+v2.2 is planned to formally implement master Skill and excellent Skill decomposition learning. The target is to analyze Skill structure, task patterns, workflow, style profile, boundary rules, safety constraints, similarity risk, and license status, then combine those learned patterns with the user's own knowledge package to generate derived Skills.
+
+This is not Skill copying. v2.2 should learn reusable structure and workflow patterns while preserving safety, attribution, and user-owned knowledge scope.
+
+v2.2 implementation outputs include `master_skill_inventory.json`, `skill_decomposition.json`, `skill_capability_map.json`, `skill_workflow_graph.json`, profile YAML files, `derived_skill_package`, safety reports, similarity reports, and license reports.
+
+# v2.4 Skill Distribution and Platform Publishing
+
+v2.4 is planned to implement platform export and upload-adapter preparation for OpenClaw, XHS, Codex, Claude Code, MCP, generic packages, and local registry packages.
+
+v2.4 should generate platform manifests, install guides, upload checks, and mock publish results only. It must not call real platform accounts, run real Agent platforms, start a real MCP server, or upload to XHS automatically.
+
+# v2.3 Industrial Batch And Knowledge Governance
+
+v2.3 implements industrial batch job manifests, item status tracking, retry records, batch summaries, package lineage, curated package generation, governance decision logs, update impact reports, and a read-only Batch & Governance Center direction.
+
+v2.3 does not implement platform export, platform upload, real Agent runtime, real MCP server, SaaS collaboration, or external publishing APIs. Those remain outside v2.3; platform export and upload adapters are reserved for v2.4.

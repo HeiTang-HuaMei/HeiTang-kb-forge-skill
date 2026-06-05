@@ -9,6 +9,42 @@ def load_workspace_packages(workspace: Path) -> list[dict]:
     return json.loads(registry.read_text(encoding="utf-8")).get("packages", [])
 
 
+def load_workspace_summary(workspace: Path) -> dict:
+    summary: dict = {"workspace": str(workspace), "exists": workspace.exists()}
+    if not workspace.exists():
+        return summary
+    for name in [
+        "workspace_manifest.json",
+        "registries/relationship_graph.json",
+        "registries/provider_registry.json",
+        "registries/prompt_profile_registry.json",
+        "reports/workspace_health_result.json",
+        "stable_check_result.json",
+        "provider_health_result.json",
+        "reliability_score.json",
+        "studio_run_manifest.json",
+    ]:
+        path = workspace / name
+        if path.exists():
+            summary[name] = json.loads(path.read_text(encoding="utf-8"))
+    for name in ["package_registry.jsonl", "skill_registry.jsonl", "agent_registry.jsonl", "llm_call_audit.jsonl"]:
+        path = workspace / "registries" / name
+        if path.exists():
+            summary[name] = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    for report_name in [
+        "reports/workspace_health_report.md",
+        "stable_check_report.md",
+        "provider_health_report.md",
+        "reliability_report.md",
+        "studio_run_report.md",
+        "release_checklist.md",
+    ]:
+        report = workspace / report_name
+        if report.exists():
+            summary[report_name] = report.read_text(encoding="utf-8")
+    return summary
+
+
 def load_package_summary(package: Path) -> dict:
     summary: dict = {"package": str(package), "exists": package.exists()}
     if not package.exists():
@@ -28,10 +64,23 @@ def load_package_summary(package: Path) -> dict:
         "llm_evidence_validation.json",
         "llm_boundary_judgment.json",
         "llm_hallucination_check.json",
+        "skill_package/skill_manifest.yaml",
+        "skill_validation/skill_validation_result.json",
+        "agent_package/agent_profile.yaml",
+        "batch_job_manifest.json",
+        "batch_quality_summary.json",
+        "batch_contract_summary.json",
+        "batch_governance_summary.json",
+        "package_version_graph.json",
+        "impacted_skills.json",
+        "impacted_agents.json",
     ]:
         path = package / file_name
         if path.exists():
-            summary[file_name] = json.loads(path.read_text(encoding="utf-8"))
+            if path.suffix == ".json":
+                summary[file_name] = json.loads(path.read_text(encoding="utf-8"))
+            else:
+                summary[file_name] = path.read_text(encoding="utf-8")
     progress_path = package / "progress_events.jsonl"
     if progress_path.exists():
         summary["progress_event_count"] = len(progress_path.read_text(encoding="utf-8").splitlines())
@@ -40,6 +89,12 @@ def load_package_summary(package: Path) -> dict:
         assets = [json.loads(line) for line in assets_path.read_text(encoding="utf-8").splitlines() if line.strip()]
         summary["multimodal_asset_count"] = len(assets)
         summary["review_required_assets"] = [asset for asset in assets if asset.get("review_required")]
+    status_path = package / "batch_item_status.jsonl"
+    if status_path.exists():
+        summary["batch_item_status.jsonl"] = [json.loads(line) for line in status_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    decisions_path = package / "governance_decisions.jsonl"
+    if decisions_path.exists():
+        summary["governance_decisions.jsonl"] = [json.loads(line) for line in decisions_path.read_text(encoding="utf-8").splitlines() if line.strip()]
     report_path = package / "multimodal_report.md"
     if report_path.exists():
         summary["multimodal_report"] = report_path.read_text(encoding="utf-8")
@@ -52,6 +107,21 @@ def load_package_summary(package: Path) -> dict:
         "context_pack.md",
         "evidence_gate_report.md",
         "llm_evidence_validation_report.md",
+        "skill_package/SKILL.md",
+        "skill_package/skill_generation_report.md",
+        "skill_validation/skill_validation_report.md",
+        "agent_package/soul.md",
+        "agent_package/system_prompt.md",
+        "agent_package/launch_checklist.md",
+        "agent_package/agent_package_report.md",
+        "skill_package/llm_skill_generation_report.md",
+        "agent_package/llm_agent_generation_report.md",
+        "batch_failure_report.md",
+        "batch_performance_report.md",
+        "package_lineage_report.md",
+        "decision_audit_report.md",
+        "update_required_report.md",
+        "dependency_impact_report.md",
     ]:
         report = package / report_name
         if report.exists():
@@ -71,6 +141,9 @@ def render_app() -> None:
     packages = load_workspace_packages(workspace_path)
     st.subheader("Knowledge Packages")
     st.write(packages)
+    st.subheader("Local Workspace UI v1")
+    workspace_summary = load_workspace_summary(workspace_path)
+    st.write(workspace_summary)
     input_path = st.text_input("Input path", "./examples/input")
     output_path = st.text_input("Output path", "./examples/output")
     package_path = Path(st.text_input("Package result path", "./examples/output"))
@@ -90,6 +163,17 @@ def render_app() -> None:
             "Retrieval trace",
             "Evidence gate",
             "LLM evidence validation",
+            "Skill generation",
+            "Skill validation",
+            "Agent package generation",
+            "Agent prompt preview",
+            "Batch & Governance Center v2.3",
+            "Batch jobs",
+            "Batch item status",
+            "Package version graph",
+            "Curated package",
+            "Governance decision log",
+            "Update impact",
         ]
     )
     st.write("Build, review, publish, refresh, and ask actions use local CLI/Python logic only.")
@@ -109,6 +193,20 @@ def render_app() -> None:
         ("Context Pack", "context_pack.md"),
         ("Evidence Gate", "evidence_gate_report.md"),
         ("LLM Evidence Validation", "llm_evidence_validation_report.md"),
+        ("Skill Preview", "skill_package/SKILL.md"),
+        ("Skill Generation Report", "skill_package/skill_generation_report.md"),
+        ("Skill Validation Report", "skill_validation/skill_validation_report.md"),
+        ("Agent Soul", "agent_package/soul.md"),
+        ("Agent System Prompt", "agent_package/system_prompt.md"),
+        ("Agent Launch Checklist", "agent_package/launch_checklist.md"),
+        ("LLM Skill Generation", "skill_package/llm_skill_generation_report.md"),
+        ("LLM Agent Generation", "agent_package/llm_agent_generation_report.md"),
+        ("Batch Failure Report", "batch_failure_report.md"),
+        ("Batch Performance Report", "batch_performance_report.md"),
+        ("Package Lineage Report", "package_lineage_report.md"),
+        ("Decision Audit Report", "decision_audit_report.md"),
+        ("Update Required Report", "update_required_report.md"),
+        ("Dependency Impact Report", "dependency_impact_report.md"),
     ]:
         if package_summary.get(key):
             st.subheader(title)

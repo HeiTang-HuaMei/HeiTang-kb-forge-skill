@@ -99,3 +99,31 @@ If OCR still takes too long, reduce `--max-ocr-pages`, use `--ocr-mode selected-
 If Evidence Gate refuses a query, inspect `context_pack.md`, `retrieval_trace.json`, and `evidence_gate_report.md`.
 
 If mock LLM validation is enabled, inspect `llm_call_log.jsonl`. API keys are redacted from call logs.
+
+# v1.8 Troubleshooting
+
+If Skill validation is not release ready, inspect `skill_validation_result.json` and the rule files in the Skill Package.
+
+If LLM-assisted generation falls back, inspect `llm_skill_generation_report.md`, `llm_agent_generation_report.md`, and `llm_call_log.jsonl`.
+
+# v1.9 Troubleshooting
+
+If workspace health is warning, inspect `reports/workspace_health_report.md` and missing registered paths. Provider registry issues should be checked in `registries/provider_registry.json`.
+
+# v2.0 Stable Checks
+
+If `stable-check` reports warnings, inspect `stable_check_report.md`. Missing future extensions such as master Skill learning or platform distribution should remain `not_enabled` in v2.0 and are not failures.
+
+If `provider-health` warns about a non-mock provider while network access is disabled, use a mock provider for local validation.
+
+# v2.1 Quality Troubleshooting
+
+If quality scoring is warning, inspect `knowledge_quality_report.md`, `chunk_quality_scores.jsonl`, and `source_inventory_enhanced.json`.
+
+LLM quality assist should remain optional and mock/fallback-safe. It should not be treated as human review.
+# v2.3 Batch Governance Troubleshooting
+
+- Missing `batch_job_manifest.json`: run `batch-run` or a batch config with v2.3 enabled outputs.
+- Missing `batch_item_status.jsonl`: check whether numbered input files were found.
+- Curated package includes rejected content: inspect `governance_decisions.jsonl` and decision values.
+- Update impact is too broad: check workspace Skill and Agent registrations.

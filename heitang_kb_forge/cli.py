@@ -7,6 +7,7 @@ import re
 import typer
 
 from heitang_kb_forge.agent.generator import make_agent_template
+from heitang_kb_forge.agent_package import AGENT_PACKAGE_FILES, generate_agent_package
 from heitang_kb_forge.agent.templates import AGENT_OUTPUT_FILES
 from heitang_kb_forge.agent_rag.answerer import answer_from_records
 from heitang_kb_forge.agent_rag.retriever import retrieve_from_package, retrieve_from_store
@@ -14,9 +15,12 @@ from heitang_kb_forge.agent_rag.scope import parse_scope
 from heitang_kb_forge.agent_tools.exporter import make_tool_exports
 from heitang_kb_forge.agent_tools.invoker import invoke_tool
 from heitang_kb_forge.agent_tools.registry import get_agent_tool, list_agent_tools
+from heitang_kb_forge.batch_jobs import build_job_outputs, retry_failed_items, write_job_outputs
+from heitang_kb_forge.batch_jobs.report import write_batch_summaries
 from heitang_kb_forge.config.loader import load_config
 from heitang_kb_forge.contracts.checker import check_package_contract
 from heitang_kb_forge.contracts.report import make_contract_report
+from heitang_kb_forge.contracts.stable_checker import run_stable_check
 from heitang_kb_forge.doctor import run_doctor
 from heitang_kb_forge.downstream.exporter import DOWNSTREAM_OUTPUT_FILES, make_downstream_exports
 from heitang_kb_forge.embedding.exporter import EMBEDDING_OUTPUT_FILES, make_embeddings
@@ -41,18 +45,31 @@ from heitang_kb_forge.lifecycle.source_registry import make_source_registry
 from heitang_kb_forge.eval_dashboard.recorder import make_eval_dashboard
 from heitang_kb_forge.exporters.report_exporter import write_report
 from heitang_kb_forge.llm.extractor import LLMOptions, OUTPUT_FILES, extract_llm_assets
+from heitang_kb_forge.llm.agent_package_generator import generate_llm_agent_package
 from heitang_kb_forge.llm.boundary_judge import judge_boundary_with_llm
 from heitang_kb_forge.llm.call_log import write_call_log
+from heitang_kb_forge.llm.audit import import_llm_call_logs
+from heitang_kb_forge.llm.audit_report import render_llm_audit_report
 from heitang_kb_forge.llm.evidence_validator import validate_evidence_with_llm
 from heitang_kb_forge.llm.hallucination_checker import check_hallucination_with_llm
 from heitang_kb_forge.llm.provider import ProviderSettings
 from heitang_kb_forge.llm.validation_report import render_llm_evidence_report
 from heitang_kb_forge.llm.prompt_profile import load_prompt_profile
+from heitang_kb_forge.llm.provider_health import check_provider_health
+from heitang_kb_forge.llm.skill_generator import generate_llm_skill_package
+from heitang_kb_forge.master_skill import (
+    analyze_master_skill,
+    generate_derived_skill,
+    import_master_skill,
+    run_skill_safety_check,
+    run_skill_similarity_check,
+)
 from heitang_kb_forge.llm.quality import LLM_QUALITY_OUTPUT_FILES, make_llm_quality_report
 from heitang_kb_forge.ocr.report import make_performance_report, make_resume_report
 from heitang_kb_forge.multimodal.classifier import IMAGE_SUFFIXES
 from heitang_kb_forge.multimodal.builder import MultimodalOptions, build_multimodal_assets
 from heitang_kb_forge.parsers.docx_parser import parse_docx
+from heitang_kb_forge.parsers.hardening import parse_epub, parse_html, parse_zip
 from heitang_kb_forge.parsers.image_parser import parse_image
 from heitang_kb_forge.parsers.markdown_parser import parse_markdown
 from heitang_kb_forge.parsers.pdf_parser import PDFParseOptions, parse_pdf
@@ -66,22 +83,37 @@ from heitang_kb_forge.processors.extractor import make_cards, make_glossary, mak
 from heitang_kb_forge.processors.quality import make_quality_report
 from heitang_kb_forge.processors.validator import validate_chunks
 from heitang_kb_forge.pipeline.reporter import make_pipeline_report
+from heitang_kb_forge.package_lineage import make_package_lineage
 from heitang_kb_forge.progress.reporter import ProgressReporter, make_progress_reporter
 from heitang_kb_forge.quality_gate.gate import QUALITY_GATE_OUTPUT_FILES, evaluate_quality_gate
+from heitang_kb_forge.quality import V21_OUTPUT_FILES, make_v21_quality_outputs
 from heitang_kb_forge.rag.exporter import RAGOptions, RAG_OUTPUT_FILES, make_rag_export
+from heitang_kb_forge.release import make_release_package
+from heitang_kb_forge.reliability import make_reliability_score
 from heitang_kb_forge.retrieval import RETRIEVAL_OUTPUT_FILES, build_retrieval_outputs
 from heitang_kb_forge.retrieval.index_builder import build_retrieval_index
 from heitang_kb_forge.refresh.checker import make_refresh_plan
 from heitang_kb_forge.risk.labeler import RISK_OUTPUT_FILES, make_risk_labels
 from heitang_kb_forge.runtime.agent_runtime import RUNTIME_OUTPUT_FILES, ask_package
+from heitang_kb_forge.skill import SKILL_PACKAGE_FILES, generate_skill_package
+from heitang_kb_forge.skill_validation import SKILL_VALIDATION_FILES, validate_skill_package
+from heitang_kb_forge.studio import finalize_studio_workspace
 from heitang_kb_forge.review.curation import apply_review_decisions, create_review_queue, empty_decision_template
 from heitang_kb_forge.publish.profiles import make_publish_package
 from heitang_kb_forge.planning.readiness import make_planning_readiness
+from heitang_kb_forge.providers import add_provider, list_providers
+from heitang_kb_forge.prompt_profiles import add_prompt_profile, list_prompt_profiles
 from heitang_kb_forge.validation.package_validator import VALIDATION_OUTPUT_FILES, validate_package
 from heitang_kb_forge.vector.exporter import VECTOR_OUTPUT_FILES, make_vector_export
 from heitang_kb_forge.versioning.diff import DIFF_OUTPUT_FILES, diff_packages
 from heitang_kb_forge.versioning.package_version import make_package_version
 from heitang_kb_forge.workspace.registry import init_workspace, register_package, workspace_status
+from heitang_kb_forge.workspace.exporter import export_workspace
+from heitang_kb_forge.workspace.health import check_workspace_health
+from heitang_kb_forge.workspace.importer import import_workspace_asset
+from heitang_kb_forge.workspace.initializer import init_portable_workspace
+from heitang_kb_forge.workspace.search import search_workspace
+from heitang_kb_forge.workspace.v19_registry import list_workspace_assets, register_workspace_asset
 from heitang_kb_forge.schemas.config_schema import ForgeConfig
 from heitang_kb_forge.schemas.chunk_schema import Chunk
 from heitang_kb_forge.schemas.agent_schema import AgentOptions
@@ -91,6 +123,8 @@ from heitang_kb_forge.store.db import init_store
 from heitang_kb_forge.store.exporter import STORE_OUTPUT_FILES, export_store_index
 from heitang_kb_forge.store.importer import import_package, sync_workspace
 from heitang_kb_forge.store.query import list_packages, package_status, query_packages
+from heitang_kb_forge.curation import build_curated_package
+from heitang_kb_forge.update_impact import analyze_update_impact
 
 app = typer.Typer(help="Build local standardized knowledge base packages.")
 workspace_app = typer.Typer(help="Manage local knowledge package workspaces.")
@@ -106,11 +140,15 @@ PARSERS = {
     ".md": parse_markdown,
     ".markdown": parse_markdown,
     ".txt": parse_text,
+    ".html": parse_html,
+    ".htm": parse_html,
     ".pdf": parse_pdf,
     ".docx": parse_docx,
     ".csv": parse_csv,
     ".tsv": parse_tsv,
     ".xlsx": parse_xlsx,
+    ".epub": parse_epub,
+    ".zip": parse_zip,
     ".png": parse_image,
     ".jpg": parse_image,
     ".jpeg": parse_image,
@@ -169,6 +207,24 @@ class HardeningOptions:
     quality_gate: bool = False
     quality_gate_strict: bool = False
     run_manifest: bool = False
+
+
+@dataclass
+class V21Options:
+    input_coverage: bool = False
+    parser_hardening: bool = False
+    quality_score: bool = False
+    review_workflow: bool = False
+    retrieval_eval: bool = False
+    evidence_benchmark: bool = False
+    llm_quality_assist: bool = False
+
+
+@dataclass
+class BatchJobOptions:
+    profile: str = "production"
+    retry_enabled: bool = True
+    resume_enabled: bool = True
 
 
 @dataclass
@@ -282,6 +338,13 @@ def build(
     quality_gate: bool = typer.Option(False, "--quality-gate"),
     quality_gate_strict: bool = typer.Option(False, "--quality-gate-strict"),
     run_manifest: bool = typer.Option(False, "--run-manifest"),
+    input_coverage_report: bool = typer.Option(False, "--input-coverage-report"),
+    parser_hardening_report: bool = typer.Option(False, "--parser-hardening-report"),
+    quality_score: bool = typer.Option(False, "--quality-score"),
+    review_workflow: bool = typer.Option(False, "--review-workflow"),
+    retrieval_eval: bool = typer.Option(False, "--retrieval-eval"),
+    evidence_benchmark: bool = typer.Option(False, "--evidence-benchmark"),
+    llm_quality_assist: bool = typer.Option(False, "--llm-quality-assist"),
     agent_template: bool = typer.Option(False, "--agent-template"),
     agent_type: str = typer.Option("generic_agent", "--agent-type"),
     agent_name: str | None = typer.Option(None, "--agent-name"),
@@ -364,6 +427,15 @@ def build(
             retry_manifest=retry_manifest,
         ),
         hardening_options=HardeningOptions(quality_gate or quality_gate_strict, quality_gate_strict, run_manifest),
+        v21_options=V21Options(
+            input_coverage_report,
+            parser_hardening_report,
+            quality_score,
+            review_workflow,
+            retrieval_eval,
+            evidence_benchmark,
+            llm_quality_assist,
+        ),
         performance_options=_make_performance_options(
             progress,
             progress_jsonl,
@@ -462,6 +534,182 @@ def evidence_gate_command(
     typer.echo(f"Decision: {result.decision}")
 
 
+@app.command("generate-skill")
+def generate_skill_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    skill_name: str = typer.Option("Demo Knowledge Skill", "--skill-name"),
+    skill_type: str = typer.Option("generic", "--skill-type"),
+    skill_template: str = typer.Option("default", "--skill-template"),
+    llm: bool = typer.Option(False, "--llm"),
+    llm_provider: str = typer.Option("mock", "--llm-provider"),
+    llm_model: str = typer.Option("mock-model", "--llm-model"),
+    llm_base_url: str | None = typer.Option(None, "--llm-base-url"),
+    llm_api_key_env: str | None = typer.Option(None, "--llm-api-key-env"),
+    llm_skill_generation: bool = typer.Option(False, "--llm-skill-generation"),
+) -> None:
+    """Generate a Skill Package from a knowledge package."""
+    _ = skill_template
+    settings = _provider_settings(llm_provider, llm_model, llm_base_url, llm_api_key_env)
+    if llm and llm_skill_generation:
+        _, report = generate_llm_skill_package(package, output, skill_name, skill_type, settings, True)
+        typer.echo(f"Built Skill Package at {output}")
+        typer.echo(f"Generated by: {report.generated_by}")
+        return
+    result = generate_skill_package(package, output, skill_name, skill_type)
+    typer.echo(f"Built Skill Package at {output}")
+    typer.echo(f"Skill: {result.skill_name}")
+
+
+@app.command("validate-skill")
+def validate_skill_command(
+    skill: Path = typer.Option(..., "--skill", exists=True, file_okay=False, dir_okay=True, readable=True),
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Validate a generated Skill Package."""
+    result = validate_skill_package(skill, package, output)
+    typer.echo(f"Built Skill Validation at {output}")
+    typer.echo(f"Status: {result.status} | Release ready: {result.release_ready}")
+
+
+@app.command("generate-agent")
+def generate_agent_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    skill: Path = typer.Option(..., "--skill", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    agent_name: str = typer.Option("Demo Knowledge Agent", "--agent-name"),
+    agent_type: str = typer.Option("generic", "--agent-type"),
+    llm: bool = typer.Option(False, "--llm"),
+    llm_provider: str = typer.Option("mock", "--llm-provider"),
+    llm_model: str = typer.Option("mock-model", "--llm-model"),
+    llm_base_url: str | None = typer.Option(None, "--llm-base-url"),
+    llm_api_key_env: str | None = typer.Option(None, "--llm-api-key-env"),
+    llm_agent_generation: bool = typer.Option(False, "--llm-agent-generation"),
+) -> None:
+    """Generate an Agent Package from a knowledge package and Skill Package."""
+    settings = _provider_settings(llm_provider, llm_model, llm_base_url, llm_api_key_env)
+    if llm and llm_agent_generation:
+        _, report = generate_llm_agent_package(package, skill, output, agent_name, agent_type, settings, True)
+        typer.echo(f"Built Agent Package at {output}")
+        typer.echo(f"Generated by: {report.generated_by}")
+        return
+    result = generate_agent_package(package, skill, output, agent_name, agent_type)
+    typer.echo(f"Built Agent Package at {output}")
+    typer.echo(f"Agent: {result['agent_name']}")
+
+
+@app.command("workspace-init")
+def workspace_init_command(workspace: Path = typer.Option(..., "--workspace")) -> None:
+    manifest = init_portable_workspace(workspace)
+    typer.echo(f"Initialized workspace at {workspace}")
+    typer.echo(f"Workspace ID: {manifest.workspace_id}")
+
+
+@app.command("workspace-register")
+def workspace_register_command(
+    workspace: Path = typer.Option(..., "--workspace"),
+    path: Path = typer.Option(..., "--path", exists=True, readable=True),
+    type: str = typer.Option(..., "--type"),
+    copy: bool = typer.Option(False, "--copy"),
+    tags: str = typer.Option("", "--tags"),
+) -> None:
+    record = import_workspace_asset(workspace, path, type, copy, _split_tags(tags))
+    typer.echo(f"Registered {type} asset in {workspace}")
+    typer.echo(str(record.get("package_id") or record.get("skill_id") or record.get("agent_id")))
+
+
+@app.command("workspace-list")
+def workspace_list_command(workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True)) -> None:
+    typer.echo(list_workspace_assets(workspace))
+
+
+@app.command("workspace-search")
+def workspace_search_command(
+    workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True),
+    query: str = typer.Option(..., "--query"),
+) -> None:
+    typer.echo(search_workspace(workspace, query))
+
+
+@app.command("workspace-health")
+def workspace_health_command(workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True)) -> None:
+    result, _ = check_workspace_health(workspace)
+    typer.echo(f"Workspace health: {result['status']}")
+
+
+@app.command("workspace-export")
+def workspace_export_command(
+    workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    manifest = export_workspace(workspace, output)
+    typer.echo(f"Exported workspace to {output}")
+    typer.echo(f"Files: {len(manifest['exported_files'])}")
+
+
+@app.command("workspace-import")
+def workspace_import_command(
+    workspace: Path = typer.Option(..., "--workspace"),
+    package: Path = typer.Option(..., "--package", exists=True, readable=True),
+    type: str = typer.Option("knowledge", "--type"),
+    copy: bool = typer.Option(False, "--copy"),
+    tags: str = typer.Option("", "--tags"),
+) -> None:
+    record = import_workspace_asset(workspace, package, type, copy, _split_tags(tags))
+    typer.echo(f"Imported {type} asset")
+    typer.echo(str(record.get("package_id") or record.get("skill_id") or record.get("agent_id")))
+
+
+provider_app = typer.Typer(help="Manage workspace provider registry.")
+prompt_profile_app = typer.Typer(help="Manage workspace prompt profile registry.")
+app.add_typer(provider_app, name="workspace-provider")
+app.add_typer(prompt_profile_app, name="prompt-profile")
+
+
+@provider_app.command("add")
+def workspace_provider_add(
+    workspace: Path = typer.Option(..., "--workspace"),
+    provider_id: str = typer.Option(..., "--provider-id"),
+    provider_type: str = typer.Option("mock", "--provider-type"),
+    model: str = typer.Option("mock-model", "--model"),
+    api_key_env: str | None = typer.Option(None, "--api-key-env"),
+) -> None:
+    record = add_provider(workspace, provider_id, provider_type, model, api_key_env)
+    typer.echo(f"Added provider: {record['provider_id']}")
+
+
+@provider_app.command("list")
+def workspace_provider_list(workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True)) -> None:
+    typer.echo(list_providers(workspace))
+
+
+@provider_app.command("check")
+def workspace_provider_check(
+    workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True),
+    provider_id: str = typer.Option(..., "--provider-id"),
+) -> None:
+    registry = list_providers(workspace)
+    record = next((item for item in registry.get("providers", []) if item.get("provider_id") == provider_id), None)
+    typer.echo(record or {"error": "provider_not_found"})
+
+
+@prompt_profile_app.command("add")
+def prompt_profile_add(
+    workspace: Path = typer.Option(..., "--workspace"),
+    profile_id: str = typer.Option(..., "--profile-id"),
+    profile_type: str = typer.Option(..., "--profile-type"),
+    rules: Path = typer.Option(..., "--rules"),
+) -> None:
+    record = add_prompt_profile(workspace, profile_id, profile_type, rules)
+    typer.echo(f"Added prompt profile: {record['profile_id']}")
+
+
+@prompt_profile_app.command("list")
+def prompt_profile_list(workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True)) -> None:
+    typer.echo(list_prompt_profiles(workspace))
+
+
 @app.command()
 def batch(
     input: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=False, dir_okay=True, readable=True),
@@ -501,6 +749,13 @@ def batch(
     quality_gate: bool = typer.Option(False, "--quality-gate"),
     quality_gate_strict: bool = typer.Option(False, "--quality-gate-strict"),
     run_manifest: bool = typer.Option(False, "--run-manifest"),
+    input_coverage_report: bool = typer.Option(False, "--input-coverage-report"),
+    parser_hardening_report: bool = typer.Option(False, "--parser-hardening-report"),
+    quality_score: bool = typer.Option(False, "--quality-score"),
+    review_workflow: bool = typer.Option(False, "--review-workflow"),
+    retrieval_eval: bool = typer.Option(False, "--retrieval-eval"),
+    evidence_benchmark: bool = typer.Option(False, "--evidence-benchmark"),
+    llm_quality_assist: bool = typer.Option(False, "--llm-quality-assist"),
     continue_on_error: bool = typer.Option(True, "--continue-on-error/--no-continue-on-error"),
     fail_fast: bool = typer.Option(False, "--fail-fast"),
     max_files: int | None = typer.Option(None, "--max-files"),
@@ -565,6 +820,15 @@ def batch(
         risk_labels=risk_labels,
     )
     hardening_options = HardeningOptions(quality_gate or quality_gate_strict, quality_gate_strict, run_manifest)
+    v21_options = V21Options(
+        input_coverage_report,
+        parser_hardening_report,
+        quality_score,
+        review_workflow,
+        retrieval_eval,
+        evidence_benchmark,
+        llm_quality_assist,
+    )
     lifecycle_options = LifecycleOptions(
         enabled=lifecycle or update_mode != "full" or retry_manifest is not None,
         update_mode=update_mode,
@@ -628,6 +892,7 @@ def batch(
             v11_options,
             lifecycle_options,
             hardening_options,
+            v21_options,
             performance_options,
             batch_reporter,
             multimodal_options,
@@ -655,6 +920,7 @@ def batch(
             v11_options,
             lifecycle_options,
             hardening_options,
+            v21_options,
             performance_options,
             batch_reporter,
             multimodal_options,
@@ -688,6 +954,14 @@ def batch(
 
     write_json(output / "batch_manifest.json", batch_manifest)
     _write_batch_report(output / "batch_report.md", batch_manifest)
+    _write_v23_batch_outputs(
+        items=items,
+        input_root=input,
+        output_root=output,
+        profile="production",
+        retry_enabled=True,
+        resume_enabled=False,
+    )
     batch_summary, batch_run_report, failed_items, retry_manifest = make_batch_hardening_outputs(batch_manifest)
     write_json(output / "batch_run_summary.json", batch_summary)
     (output / "batch_run_report.md").write_text(batch_run_report, encoding="utf-8")
@@ -696,6 +970,106 @@ def batch(
 
     typer.echo(f"Built batch knowledge packages at {output}")
     typer.echo(f"Total: {len(items)} | Succeeded: {succeeded} | Failed: {failed}")
+
+
+@app.command("batch-run")
+def batch_run(
+    input: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    domain: str = typer.Option("general", "--domain"),
+    mode: str = typer.Option("reference", "--mode"),
+    profile: str = typer.Option("production", "--profile"),
+    worker_pool: bool = typer.Option(False, "--worker-pool"),
+    max_workers: int = typer.Option(4, "--max-workers"),
+    memory_guard: bool = typer.Option(False, "--memory-guard"),
+    max_file_size_mb: int = typer.Option(500, "--max-file-size-mb"),
+    timeout_seconds: int = typer.Option(600, "--timeout-seconds"),
+    retry_failed: bool = typer.Option(False, "--retry-failed"),
+    resume_batch: bool = typer.Option(False, "--resume-batch"),
+    merge_same_sequence: bool = typer.Option(False, "--merge-same-sequence"),
+) -> None:
+    """Run an industrial batch job with v2.3 job manifests and governance summaries."""
+    output.mkdir(parents=True, exist_ok=True)
+    numbered_sources = [
+        path
+        for path in sorted(input.iterdir())
+        if path.is_file() and _parse_numbered_stem(path) and _within_file_size_guard(path, memory_guard, max_file_size_mb)
+    ]
+    items = (
+        _build_batch_groups(numbered_sources, output, domain, mode, 1200, 120)
+        if merge_same_sequence
+        else _build_batch_items(numbered_sources, output, domain, mode, 1200, 120)
+    )
+    batch_manifest = {
+        "batch_version": "2.3",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "input_dir": str(input).replace("\\", "/"),
+        "output_dir": str(output).replace("\\", "/"),
+        "merge_same_sequence": merge_same_sequence,
+        "worker_pool": worker_pool,
+        "max_workers": max_workers,
+        "memory_guard": memory_guard,
+        "timeout_seconds": timeout_seconds,
+        "total_files": len(numbered_sources),
+        "succeeded": sum(1 for item in items if item["status"] == "success"),
+        "failed": sum(1 for item in items if item["status"] == "failed"),
+        "items": items,
+    }
+    if merge_same_sequence:
+        batch_manifest["total_groups"] = len(items)
+    write_json(output / "batch_manifest.json", batch_manifest)
+    _write_batch_report(output / "batch_report.md", batch_manifest)
+    _write_v23_batch_outputs(
+        items=items,
+        input_root=input,
+        output_root=output,
+        profile=profile,
+        retry_enabled=retry_failed,
+        resume_enabled=resume_batch,
+    )
+    typer.echo(f"Batch job completed at {output}")
+
+
+@app.command("batch-retry")
+def batch_retry(
+    batch_job: Path = typer.Option(..., "--batch-job", exists=True, file_okay=True, dir_okay=False, readable=True),
+    retry_only_failed: bool = typer.Option(False, "--retry-only-failed"),
+) -> None:
+    """Record a retry pass for failed v2.3 batch job items."""
+    statuses, _ = retry_failed_items(batch_job, retry_only_failed)
+    typer.echo(f"Updated retry status for {len(statuses)} items")
+
+
+@app.command("package-lineage")
+def package_lineage(
+    workspace: Path = typer.Option(..., "--workspace"),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Generate package version graph and lineage reports."""
+    make_package_lineage(workspace, output)
+    typer.echo(f"Wrote package lineage outputs to {output}")
+
+
+@app.command("curate-package")
+def curate_package(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    review_decisions: Path = typer.Option(..., "--review-decisions"),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Build a curated package from review decisions."""
+    build_curated_package(package, review_decisions, output)
+    typer.echo(f"Wrote curated package to {output}")
+
+
+@app.command("update-impact")
+def update_impact(
+    workspace: Path = typer.Option(..., "--workspace"),
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Analyze package update impact across skills and agents."""
+    analyze_update_impact(workspace, package, output)
+    typer.echo(f"Wrote update impact outputs to {output}")
 
 
 @app.command()
@@ -1129,6 +1503,152 @@ def planning_readiness(
     typer.echo(f"Built planning readiness pack at {output}")
 
 
+@app.command("studio-run")
+def studio_run(
+    input: Path = typer.Option(..., "--input", exists=True, file_okay=True, dir_okay=True, readable=True),
+    workspace: Path = typer.Option(..., "--workspace"),
+    project_name: str = typer.Option("demo_project", "--project-name"),
+    profile: str = typer.Option("stable", "--profile"),
+) -> None:
+    """Run a stable local end-to-end Studio workflow."""
+    knowledge_package = workspace / "knowledge_packages" / project_name
+    _build_package(input, knowledge_package, "general", profile, 1200, 120)
+    finalize_studio_workspace(workspace, project_name, knowledge_package)
+    typer.echo(f"Studio run completed at {workspace}")
+
+
+@app.command("stable-check")
+def stable_check(workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True)) -> None:
+    """Check stable workspace contracts."""
+    result, _ = run_stable_check(workspace)
+    typer.echo(f"Stable check status: {result.status}")
+
+
+@app.command("provider-health")
+def provider_health(
+    workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True),
+    allow_network: bool = typer.Option(False, "--allow-network"),
+) -> None:
+    """Check configured provider registry without network by default."""
+    result, _ = check_provider_health(workspace, allow_network)
+    typer.echo(f"Provider health status: {result['status']}")
+
+
+@app.command("reliability-score")
+def reliability_score(
+    workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True),
+    release_threshold: int = typer.Option(80, "--release-threshold"),
+) -> None:
+    """Generate a release reliability score for a local workspace."""
+    result, _ = make_reliability_score(workspace, release_threshold)
+    typer.echo(f"Reliability score: {result.overall_score}")
+
+
+@app.command("release-package")
+def release_package(
+    workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    include_demo_outputs: bool = typer.Option(True, "--include-demo-outputs/--no-include-demo-outputs"),
+) -> None:
+    """Create a local release package snapshot from a workspace."""
+    manifest = make_release_package(workspace, output, include_demo_outputs)
+    typer.echo(f"Built release package at {output}")
+    typer.echo(f"Files: {len(manifest['files'])}")
+
+
+@app.command("quality-score")
+def quality_score_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Generate v2.1 knowledge quality score outputs."""
+    report = make_v21_quality_outputs(package, output)
+    typer.echo(f"Knowledge quality status: {report['status']}")
+
+
+@app.command("review-workflow")
+def review_workflow_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Generate v2.1 review workflow and curated chunk outputs."""
+    make_v21_quality_outputs(package, output)
+    typer.echo(f"Built review workflow outputs at {output}")
+
+
+@app.command("retrieval-eval")
+def retrieval_eval_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Generate v2.1 retrieval evaluation outputs."""
+    make_v21_quality_outputs(package, output)
+    typer.echo(f"Built retrieval evaluation outputs at {output}")
+
+
+@app.command("evidence-benchmark")
+def evidence_benchmark_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Generate v2.1 evidence benchmark outputs."""
+    make_v21_quality_outputs(package, output)
+    typer.echo(f"Built evidence benchmark outputs at {output}")
+
+
+@app.command("import-skill")
+def import_skill_command(
+    input: Path = typer.Option(..., "--input", exists=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Import a master Skill package for structural learning."""
+    inventory, _ = import_master_skill(input, output)
+    typer.echo(f"Imported master Skill: {inventory.skill_name}")
+
+
+@app.command("analyze-skill")
+def analyze_skill_command(
+    skill: Path = typer.Option(..., "--skill", exists=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Analyze a master Skill structure, workflow, style, and boundaries."""
+    decomposition, _ = analyze_master_skill(skill, output)
+    typer.echo(f"Analyzed Skill: {decomposition.skill_name}")
+
+
+@app.command("generate-derived-skill")
+def generate_derived_skill_command(
+    master_skill: Path = typer.Option(..., "--master-skill", exists=True, file_okay=False, dir_okay=True),
+    knowledge_package: Path = typer.Option(..., "--knowledge-package", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    style_profile: Path | None = typer.Option(None, "--style-profile", exists=True, file_okay=True, dir_okay=False),
+) -> None:
+    """Generate a derived Skill from learned structure and the user's own package."""
+    result = generate_derived_skill(master_skill, knowledge_package, output, style_profile)
+    typer.echo(f"Generated derived Skill at {result['output']}")
+
+
+@app.command("skill-safety-check")
+def skill_safety_check_command(
+    skill: Path = typer.Option(..., "--skill", exists=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Check a Skill package for high-risk local patterns."""
+    result, _ = run_skill_safety_check(skill, output)
+    typer.echo(f"Skill safety status: {result['status']}")
+
+
+@app.command("skill-similarity-check")
+def skill_similarity_check_command(
+    master_skill: Path = typer.Option(..., "--master-skill", exists=True, readable=True),
+    derived_skill: Path = typer.Option(..., "--derived-skill", exists=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Check derived Skill similarity against a master Skill analysis/package."""
+    result, _ = run_skill_similarity_check(master_skill, derived_skill, output)
+    typer.echo(f"Skill similarity status: {result['status']}")
+
+
 def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
     llm_options = _make_llm_options(
         config_data.llm.enabled,
@@ -1219,6 +1739,15 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
     governance_options = GovernanceOptions(config_data.governance.enabled, config_data.governance.previous_package)
     retrieval_index_options = RetrievalIndexOptions(config_data.retrieval.enabled, config_data.retrieval.query)
     evidence_gate_options = EvidenceGateOptions(config_data.evidence_gate.enabled, config_data.evidence_gate.query)
+    v21_options = V21Options(
+        input_coverage=config_data.input_hardening.enabled,
+        parser_hardening=config_data.input_hardening.enabled,
+        quality_score=config_data.quality.enabled,
+        review_workflow=config_data.review.workflow or config_data.review.enabled,
+        retrieval_eval=config_data.retrieval_eval.enabled,
+        evidence_benchmark=config_data.evidence_benchmark.enabled,
+        llm_quality_assist=config_data.llm_quality_assist.enabled,
+    )
 
     if config_data.task == "build":
         manifest = _build_package(
@@ -1243,6 +1772,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             governance_options=governance_options,
             retrieval_index_options=retrieval_index_options,
             evidence_gate_options=evidence_gate_options,
+            v21_options=v21_options,
             demo_report=config_data.demo.enabled,
         )
         _run_v12_config_outputs(config_data, config_data.output)
@@ -1260,6 +1790,10 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
                 config_data.llm.hallucination_check,
                 config_data.llm.call_log,
             )
+        _run_v18_config_outputs(config_data, config_data.output)
+        _run_v19_config_outputs(config_data, config_data.output)
+        _run_v20_config_outputs(config_data, config_data.output)
+        _run_v23_config_outputs(config_data, config_data.output)
         return ConfigRunResult(
             config=config_data,
             output=config_data.output,
@@ -1290,11 +1824,12 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             downstream_options,
             v11_options,
             lifecycle_options,
-            None,
-            performance_options,
-            None,
-            multimodal_options,
-            contract_options,
+            hardening_options=None,
+            v21_options=v21_options,
+            performance_options=performance_options,
+            batch_reporter=None,
+            multimodal_options=multimodal_options,
+            contract_options=contract_options,
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
         )
@@ -1314,11 +1849,12 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             downstream_options,
             v11_options,
             lifecycle_options,
-            None,
-            performance_options,
-            None,
-            multimodal_options,
-            contract_options,
+            hardening_options=None,
+            v21_options=v21_options,
+            performance_options=performance_options,
+            batch_reporter=None,
+            multimodal_options=multimodal_options,
+            contract_options=contract_options,
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
         )
@@ -1341,7 +1877,19 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
 
     write_json(output / "batch_manifest.json", batch_manifest)
     _write_batch_report(output / "batch_report.md", batch_manifest)
+    _write_v23_batch_outputs(
+        items=items,
+        input_root=config_data.input,
+        output_root=output,
+        profile=config_data.batch.profile,
+        retry_enabled=config_data.batch.retry_failed,
+        resume_enabled=config_data.batch.resume_batch,
+    )
     _run_v12_config_outputs(config_data, output)
+    _run_v18_config_outputs(config_data, output)
+    _run_v19_config_outputs(config_data, output)
+    _run_v20_config_outputs(config_data, output)
+    _run_v23_config_outputs(config_data, output)
 
     return ConfigRunResult(
         config=config_data,
@@ -1384,6 +1932,14 @@ def _write_llm_evidence_outputs(
         write_json(output / "llm_hallucination_check.json", result.model_dump(mode="json"))
         if call_log:
             write_call_log(log_path, {"task": "hallucination_check", "provider": provider_name, "model": model, "api_key": api_key, "status": result.status})
+
+
+def _provider_settings(provider: str, model: str, base_url: str | None, api_key_env: str | None) -> ProviderSettings:
+    return ProviderSettings(provider, model, base_url, os.environ.get(api_key_env) if api_key_env else None)
+
+
+def _split_tags(tags: str) -> list[str]:
+    return [tag.strip() for tag in tags.split(",") if tag.strip()]
 
 
 def _apply_performance_overrides(
@@ -1492,6 +2048,136 @@ def _run_v12_config_outputs(config_data: ForgeConfig, output: Path) -> None:
             f"query: {config_data.agent_rag.query}\ntop_k: {config_data.agent_rag.top_k}\ncitation_required: {str(config_data.agent_rag.citation_required).lower()}\n",
             encoding="utf-8",
         )
+
+
+def _run_v18_config_outputs(config_data: ForgeConfig, output: Path) -> None:
+    skill_output = output / "skill_package"
+    if config_data.skill.enabled:
+        settings = _provider_settings(
+            config_data.llm.provider,
+            config_data.llm.model or "mock-model",
+            config_data.llm.base_url,
+            config_data.llm.api_key_env,
+        )
+        if config_data.skill.llm_generation and config_data.llm.enabled:
+            generate_llm_skill_package(
+                output,
+                skill_output,
+                config_data.skill.name,
+                config_data.skill.type,
+                settings,
+                True,
+                config_data.llm.call_log,
+            )
+        else:
+            generate_skill_package(output, skill_output, config_data.skill.name, config_data.skill.type)
+        if config_data.skill.validate_skill:
+            validate_skill_package(skill_output, output, output / "skill_validation")
+    if config_data.agent_package.enabled:
+        if not skill_output.exists():
+            generate_skill_package(output, skill_output, config_data.skill.name, config_data.skill.type)
+        agent_output = output / "agent_package"
+        settings = _provider_settings(
+            config_data.llm.provider,
+            config_data.llm.model or "mock-model",
+            config_data.llm.base_url,
+            config_data.llm.api_key_env,
+        )
+        if config_data.agent_package.llm_generation and config_data.llm.enabled:
+            generate_llm_agent_package(
+                output,
+                skill_output,
+                agent_output,
+                config_data.agent_package.name,
+                config_data.agent_package.type,
+                settings,
+                True,
+                config_data.llm.call_log,
+            )
+        else:
+            generate_agent_package(output, skill_output, agent_output, config_data.agent_package.name, config_data.agent_package.type)
+
+
+def _run_v19_config_outputs(config_data: ForgeConfig, output: Path) -> None:
+    if not config_data.workspace.enabled:
+        return
+    workspace = config_data.workspace.path or (output / "workspace")
+    init_portable_workspace(workspace)
+    if config_data.workspace.register_outputs:
+        register_workspace_asset(workspace, output, "knowledge")
+        skill_output = output / "skill_package"
+        agent_output = output / "agent_package"
+        if skill_output.exists():
+            register_workspace_asset(workspace, skill_output, "skill")
+        if agent_output.exists():
+            register_workspace_asset(workspace, agent_output, "agent")
+    if config_data.provider_registry.enabled:
+        providers = config_data.provider_registry.providers or [
+            {"provider_id": config_data.provider_registry.default_provider, "provider_type": "mock", "default_model": "mock-model", "enabled": True}
+        ]
+        for provider in providers:
+            add_provider(
+                workspace,
+                provider.get("provider_id", "mock_default"),
+                provider.get("provider_type", "mock"),
+                provider.get("default_model") or provider.get("model", "mock-model"),
+                provider.get("api_key_env"),
+            )
+    if config_data.prompt_profiles.enabled:
+        for profile in config_data.prompt_profiles.profiles:
+            add_prompt_profile(
+                workspace,
+                profile.get("profile_id", "default_profile"),
+                profile.get("profile_type", "custom"),
+                Path(profile.get("rules_path", "")),
+            )
+    if config_data.llm_audit.enabled and config_data.llm_audit.import_call_logs:
+        records = []
+        for log_path in output.rglob("llm_call_log.jsonl"):
+            records.extend(import_llm_call_logs(workspace, log_path))
+        (workspace / "reports" / "llm_audit_report.md").write_text(render_llm_audit_report(records), encoding="utf-8")
+    if config_data.workspace.health_check:
+        check_workspace_health(workspace)
+
+
+def _run_v20_config_outputs(config_data: ForgeConfig, output: Path) -> None:
+    workspace = config_data.studio.workspace or config_data.workspace.path or (output / "workspace")
+    if config_data.studio.enabled:
+        finalize_studio_workspace(workspace, config_data.studio.project_name, output)
+    if any(
+        [
+            config_data.stable_check.enabled,
+            config_data.provider_health.enabled,
+            config_data.reliability.enabled,
+            config_data.release_package.enabled,
+        ]
+    ):
+        init_portable_workspace(workspace)
+    if config_data.stable_check.enabled:
+        run_stable_check(workspace)
+    if config_data.provider_health.enabled:
+        check_provider_health(workspace, config_data.provider_health.allow_network)
+    if config_data.reliability.enabled:
+        make_reliability_score(workspace, config_data.reliability.release_threshold)
+    if config_data.release_package.enabled:
+        make_release_package(workspace, output / "release_package", config_data.release_package.include_demo_outputs)
+
+
+def _run_v23_config_outputs(config_data: ForgeConfig, output: Path) -> None:
+    if config_data.package_lineage.enabled:
+        workspace = config_data.package_lineage.workspace or config_data.workspace.path or output
+        lineage_output = config_data.package_lineage.output or output
+        make_package_lineage(workspace, lineage_output)
+    if config_data.curation.enabled or config_data.curation.build_curated_package:
+        package = config_data.curation.package or output
+        decisions = config_data.curation.review_decisions or (package / "review_decisions.jsonl")
+        curated_output = config_data.curation.output or (output / "curated_package")
+        build_curated_package(package, decisions, curated_output)
+    if config_data.update_impact.enabled:
+        workspace = config_data.update_impact.workspace or config_data.workspace.path or output
+        package = config_data.update_impact.package or (output / "curated_package" if (output / "curated_package").exists() else output)
+        impact_output = config_data.update_impact.output or output
+        analyze_update_impact(workspace, package, impact_output)
 
 
 def _make_llm_options(
@@ -1616,6 +2302,7 @@ def _build_batch_items(
     v11_options: V11Options | None = None,
     lifecycle_options: LifecycleOptions | None = None,
     hardening_options: HardeningOptions | None = None,
+    v21_options: V21Options | None = None,
     performance_options: PerformanceOptions | None = None,
     batch_reporter: ProgressReporter | None = None,
     multimodal_options: MultimodalOptions | None = None,
@@ -1668,6 +2355,7 @@ def _build_batch_items(
                 v11_options=v11_options,
                 lifecycle_options=lifecycle_options,
                 hardening_options=hardening_options,
+                v21_options=v21_options,
                 performance_options=performance_options,
                 multimodal_options=multimodal_options,
                 contract_options=contract_options,
@@ -1710,6 +2398,7 @@ def _build_batch_groups(
     v11_options: V11Options | None = None,
     lifecycle_options: LifecycleOptions | None = None,
     hardening_options: HardeningOptions | None = None,
+    v21_options: V21Options | None = None,
     performance_options: PerformanceOptions | None = None,
     batch_reporter: ProgressReporter | None = None,
     multimodal_options: MultimodalOptions | None = None,
@@ -1771,6 +2460,7 @@ def _build_batch_groups(
                 v11_options=v11_options,
                 lifecycle_options=lifecycle_options,
                 hardening_options=hardening_options,
+                v21_options=v21_options,
                 performance_options=performance_options,
                 multimodal_options=multimodal_options,
                 contract_options=contract_options,
@@ -1815,6 +2505,7 @@ def _build_package(
     v11_options: V11Options | None = None,
     lifecycle_options: LifecycleOptions | None = None,
     hardening_options: HardeningOptions | None = None,
+    v21_options: V21Options | None = None,
     performance_options: PerformanceOptions | None = None,
     multimodal_options: MultimodalOptions | None = None,
     contract_options: ContractOptions | None = None,
@@ -1829,6 +2520,7 @@ def _build_package(
     v11_options = v11_options or V11Options()
     lifecycle_options = lifecycle_options or LifecycleOptions()
     hardening_options = hardening_options or HardeningOptions()
+    v21_options = v21_options or V21Options()
     performance_options = performance_options or PerformanceOptions()
     progress_reporter = make_progress_reporter(
         progress=performance_options.progress,
@@ -2083,6 +2775,18 @@ def _build_package(
         files.extend(QUALITY_GATE_OUTPUT_FILES)
     if hardening_options.run_manifest:
         files.extend(HARDENING_TRACE_FILES)
+    if any(
+        [
+            v21_options.input_coverage,
+            v21_options.parser_hardening,
+            v21_options.quality_score,
+            v21_options.review_workflow,
+            v21_options.retrieval_eval,
+            v21_options.evidence_benchmark,
+            v21_options.llm_quality_assist,
+        ]
+    ):
+        files.extend(V21_OUTPUT_FILES)
     if contract_options.version == "v2" or contract_options.check:
         files.extend(["evidence_map.json", "source_inventory.json", "quality_report.md"])
     if contract_options.check:
@@ -2336,6 +3040,18 @@ def _build_package(
         write_json(output / "evidence_map.json", _make_evidence_map(all_chunks))
         write_json(output / "source_inventory.json", _make_source_inventory(source_files))
         (output / "quality_report.md").write_text(_render_quality_report_md(quality_report), encoding="utf-8")
+    if any(
+        [
+            v21_options.input_coverage,
+            v21_options.parser_hardening,
+            v21_options.quality_score,
+            v21_options.review_workflow,
+            v21_options.retrieval_eval,
+            v21_options.evidence_benchmark,
+            v21_options.llm_quality_assist,
+        ]
+    ):
+        make_v21_quality_outputs(output, output, llm_quality_assist=v21_options.llm_quality_assist)
     write_json(output / "manifest.json", manifest_payload)
     write_report(
         output / "ingest_report.md",
@@ -2651,6 +3367,33 @@ Each successful item directory contains:
 - quality_report.json
 """
     path.write_text(content, encoding="utf-8")
+
+
+def _write_v23_batch_outputs(
+    *,
+    items: list[dict],
+    input_root: Path,
+    output_root: Path,
+    profile: str,
+    retry_enabled: bool,
+    resume_enabled: bool,
+) -> None:
+    manifest, statuses = build_job_outputs(
+        items=items,
+        input_root=input_root,
+        output_root=output_root,
+        profile=profile,
+        retry_enabled=retry_enabled,
+        resume_enabled=resume_enabled,
+    )
+    write_job_outputs(output_root, manifest, statuses)
+    write_batch_summaries(output_root, manifest, statuses)
+
+
+def _within_file_size_guard(path: Path, memory_guard: bool, max_file_size_mb: int) -> bool:
+    if not memory_guard:
+        return True
+    return path.stat().st_size <= max_file_size_mb * 1024 * 1024
 
 
 if __name__ == "__main__":

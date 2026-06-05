@@ -63,6 +63,45 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("llm_evidence_validation", config.llm.evidence_validation, output, ["llm_evidence_validation.json"], config.task),
         _stage("llm_boundary_judgment", config.llm.boundary_check, output, ["llm_boundary_judgment.json"], config.task),
         _stage("llm_hallucination_check", config.llm.hallucination_check, output, ["llm_hallucination_check.json"], config.task),
+        _stage("skill_package_generation", config.skill.enabled, output / "skill_package", ["SKILL.md", "skill_manifest.yaml"], "build"),
+        _stage("skill_validation", config.skill.enabled and config.skill.validate_skill, output / "skill_validation", ["skill_validation_result.json", "skill_validation_report.md"], "build"),
+        _stage("llm_skill_generation", config.skill.enabled and config.skill.llm_generation and config.llm.enabled, output / "skill_package", ["llm_skill_generation_report.md"], "build"),
+        _stage("agent_package_generation", config.agent_package.enabled, output / "agent_package", ["soul.md", "system_prompt.md", "agent_profile.yaml"], "build"),
+        _stage("llm_agent_generation", config.agent_package.enabled and config.agent_package.llm_generation and config.llm.enabled, output / "agent_package", ["llm_agent_generation_report.md"], "build"),
+        _stage("agent_package_validation", config.agent_package.enabled, output / "agent_package", ["launch_checklist.md"], "build"),
+        _stage("workspace_init", config.workspace.enabled, config.workspace.path or (output / "workspace"), ["workspace_manifest.json"], "build"),
+        _stage("workspace_register", config.workspace.enabled and config.workspace.register_outputs, config.workspace.path or (output / "workspace"), ["registries/package_registry.jsonl"], "build"),
+        _stage("relationship_graph_update", config.workspace.enabled and config.workspace.register_outputs, config.workspace.path or (output / "workspace"), ["registries/relationship_graph.json"], "build"),
+        _stage("provider_registry_update", config.provider_registry.enabled, config.workspace.path or (output / "workspace"), ["registries/provider_registry.json"], "build"),
+        _stage("prompt_profile_registry_update", config.prompt_profiles.enabled, config.workspace.path or (output / "workspace"), ["registries/prompt_profile_registry.json"], "build"),
+        _stage("llm_call_audit_import", config.llm_audit.enabled, config.workspace.path or (output / "workspace"), ["registries/llm_call_audit.jsonl"], "build"),
+        _stage("workspace_health_check", config.workspace.enabled and config.workspace.health_check, config.workspace.path or (output / "workspace"), ["reports/workspace_health_result.json", "reports/workspace_health_report.md"], "build"),
+        _stage("studio_run", config.studio.enabled, config.studio.workspace or config.workspace.path or (output / "workspace"), ["studio_run_manifest.json", "studio_run_report.md", "release_checklist.md"], "build"),
+        _stage("stable_contract_check", config.stable_check.enabled, config.studio.workspace or config.workspace.path or (output / "workspace"), ["stable_check_result.json", "stable_check_report.md"], "build"),
+        _stage("provider_health_check", config.provider_health.enabled, config.studio.workspace or config.workspace.path or (output / "workspace"), ["provider_health_result.json", "provider_health_report.md"], "build"),
+        _stage("reliability_scoring", config.reliability.enabled, config.studio.workspace or config.workspace.path or (output / "workspace"), ["reliability_score.json", "reliability_report.md"], "build"),
+        _stage("release_package", config.release_package.enabled, output / "release_package", ["release_manifest.json"], "build"),
+        _stage("portfolio_demo_validation", False, output, [], config.task),
+        _stage("extension_readiness", config.stable_check.enabled, config.studio.workspace or config.workspace.path or (output / "workspace"), ["stable_check_result.json"], "build"),
+        _stage("input_coverage", config.input_hardening.enabled, output, ["input_coverage_report.md", "source_inventory_enhanced.json"], config.task),
+        _stage("parser_hardening", config.input_hardening.enabled, output, ["parser_hardening_report.md"], config.task),
+        _stage("knowledge_quality_scoring", config.quality.enabled, output, ["knowledge_quality_report.json", "knowledge_quality_report.md"], config.task),
+        _stage("review_workflow", config.review.enabled or config.review.workflow, output, ["review_decisions.jsonl", "review_workflow_report.md"], config.task),
+        _stage("curated_package_generation", config.review.curation, output, ["curated_chunks.jsonl", "curated_evidence_map.json"], config.task),
+        _stage("retrieval_evaluation", config.retrieval_eval.enabled, output, ["retrieval_eval_cases.jsonl", "retrieval_eval_result.json", "retrieval_eval_report.md"], config.task),
+        _stage("evidence_benchmark", config.evidence_benchmark.enabled, output, ["evidence_benchmark_result.json", "evidence_benchmark_report.md"], config.task),
+        _stage("llm_quality_assist", config.llm_quality_assist.enabled, output, ["llm_quality_assist_report.md", "llm_review_suggestions.jsonl"], config.task),
+        _stage("batch_job_manifest", config.task == "batch", output, ["batch_job_manifest.json"], config.task),
+        _stage("batch_item_status", config.task == "batch", output, ["batch_item_status.jsonl"], config.task),
+        _stage("batch_retry_recovery", config.batch.retry_failed or config.batch.resume_batch, output, ["batch_retry_report.md"], config.task),
+        _stage("batch_quality_summary", config.task == "batch", output, ["batch_quality_summary.json"], config.task),
+        _stage("batch_contract_summary", config.task == "batch", output, ["batch_contract_summary.json"], config.task),
+        _stage("batch_governance_summary", config.task == "batch", output, ["batch_governance_summary.json"], config.task),
+        _stage("package_version_graph", config.package_lineage.enabled, config.package_lineage.output or output, ["package_version_graph.json"], config.task),
+        _stage("curated_package_generation_v23", config.curation.enabled or config.curation.build_curated_package, config.curation.output or (output / "curated_package"), ["curated_manifest.json", "curated_chunks.jsonl", "curated_evidence_map.json"], config.task),
+        _stage("governance_decision_audit", config.curation.enabled or config.curation.build_curated_package, config.curation.output or (output / "curated_package"), ["governance_decisions.jsonl", "decision_audit_report.md"], config.task),
+        _stage("update_impact_analysis", config.update_impact.enabled, config.update_impact.output or output, ["impacted_skills.json", "impacted_agents.json"], config.task),
+        _stage("workspace_export", False, output, ["export_manifest.json"], config.task),
         _stage("llm_extraction", config.llm.enabled, output, _llm_output_files(config), config.task),
         _stage("rag_export", config.rag.enabled, output, RAG_OUTPUT_FILES, config.task),
         _stage("embedding_generation", config.embedding.enabled, output, EMBEDDING_OUTPUT_FILES, config.task),
@@ -165,8 +204,10 @@ def _progress_output_files(config: ForgeConfig) -> list[str]:
 def _files_exist(output: Path, expected_files: list[str], task: str) -> bool:
     if not expected_files:
         return True
+    if all((output / name).exists() if not Path(name).is_absolute() else Path(name).exists() for name in expected_files):
+        return True
     if task == "build":
-        return all((output / name).exists() if not Path(name).is_absolute() else Path(name).exists() for name in expected_files)
+        return False
     manifest_path = output / "batch_manifest.json"
     if not manifest_path.exists():
         return False

@@ -1,0 +1,26 @@
+task: build
+input: examples/quickstart/input
+output: tmp_v21_config_output
+domain: education
+mode: teaching
+contract:
+  version: v2
+  check: true
+input_hardening:
+  enabled: true
+quality:
+  enabled: true
+review:
+  enabled: true
+  workflow: true
+  curation: true
+retrieval_eval:
+  enabled: true
+  generate_cases: true
+  top_k: 5
+evidence_benchmark:
+  enabled: true
+llm_quality_assist:
+  enabled: true
+  provider: mock
+  fail_safe: true

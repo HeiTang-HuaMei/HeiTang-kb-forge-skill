@@ -22,6 +22,7 @@ def make_rule_files(generated_by: str = "rule_template") -> dict[str, str]:
 {marker}
 
 - Stay within the knowledge_scope.md boundary.
+- Treat outside-scope requests as unsupported.
 - If evidence is missing, refuse or ask for review.
 - Conflicted or outdated content must not become a strong rule.
 """,

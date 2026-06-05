@@ -29,6 +29,16 @@ Documents
 
 The desktop app is a consumer / controller. It does not own the core engine and does not introduce UI-private package formats.
 
+## v2.0 Stable Foundation
+
+v2.0 adds a stable foundation layer above the existing headless package, CLI, config, and pipeline runners. The layer includes `studio-run`, `stable-check`, `provider-health`, `reliability-score`, `release-package`, and extension readiness metadata.
+
+Extension readiness is a reserved contract. v2.0 does not implement master Skill decomposition learning or platform uploading; those are planned for v2.2 and v2.4.
+
+## v2.1 Input and Quality Layer
+
+v2.1 adds an opt-in input and quality layer after parsing and package generation. It writes coverage, parser hardening, knowledge quality, review, retrieval evaluation, and evidence benchmark files without changing the default output contract.
+
 ## Pipeline
 
 ```text
@@ -163,3 +173,20 @@ The v1.7 layer sits after package generation:
 Documents -> Core Skill / CLI -> Standard Knowledge Package -> Governance -> Retrieval Index -> Evidence Gate -> Agent/RAG/Desktop consumption.
 
 The desktop UI remains a presentation layer. Governance, retrieval, and evidence checks are callable from the CLI and config pipeline.
+
+# v1.8 Skill and Agent Factory
+
+v1.8 adds a factory layer after governance and evidence checks:
+
+Knowledge Package -> Skill Package -> Skill Validation -> Agent Package.
+
+Generated files remain standard local files. The project does not deploy an Agent or run a Tool Runtime in v1.8.
+
+# v1.9 Workspace Architecture
+
+Workspace registries sit above generated packages and track knowledge_package, skill_package, agent_package, provider metadata, prompt profiles, and LLM call audit. Registries store paths and metadata, not secrets.
+# v2.3 Batch Governance Layer
+
+The v2.3 batch governance layer sits above the existing build pipeline. It reads standard package outputs and writes operational governance files such as `batch_job_manifest.json`, `batch_item_status.jsonl`, `package_version_graph.json`, `curated_package/`, and update impact reports.
+
+The layer is file-first and headless. UI views read the files; they do not own the core governance logic.

@@ -1,10 +1,18 @@
 from pathlib import Path
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class BatchConfig(BaseModel):
     merge_same_sequence: bool = False
+    worker_pool: bool = False
+    max_workers: int = 4
+    memory_guard: bool = False
+    max_file_size_mb: int = 500
+    timeout_seconds: int = 600
+    retry_failed: bool = False
+    resume_batch: bool = False
+    profile: str = "production"
 
 
 class LLMConfig(BaseModel):
@@ -92,6 +100,8 @@ class KnowledgeGraphConfig(BaseModel):
 
 class RetrievalEvalConfig(BaseModel):
     enabled: bool = False
+    generate_cases: bool = False
+    top_k: int = 5
 
 
 class RiskLabelsConfig(BaseModel):
@@ -112,6 +122,54 @@ class WebConfig(BaseModel):
 class WorkspaceConfig(BaseModel):
     enabled: bool = False
     path: Path | None = None
+    register_outputs: bool = False
+    copy_packages: bool = False
+    health_check: bool = False
+
+
+class ProviderRegistryConfig(BaseModel):
+    enabled: bool = False
+    default_provider: str = "mock_default"
+    providers: list[dict] = Field(default_factory=list)
+
+
+class PromptProfilesConfig(BaseModel):
+    enabled: bool = False
+    profiles: list[dict] = Field(default_factory=list)
+
+
+class LLMAuditConfig(BaseModel):
+    enabled: bool = False
+    import_call_logs: bool = False
+
+
+class StudioConfig(BaseModel):
+    enabled: bool = False
+    project_name: str = "demo_project"
+    profile: str = "stable"
+    workspace: Path | None = None
+    release_check: bool = False
+    batch_governance_center: bool = False
+
+
+class ReliabilityConfig(BaseModel):
+    enabled: bool = False
+    release_threshold: int = 80
+
+
+class StableCheckConfig(BaseModel):
+    enabled: bool = False
+    strict: bool = False
+
+
+class ProviderHealthConfig(BaseModel):
+    enabled: bool = False
+    allow_network: bool = False
+
+
+class ReleasePackageConfig(BaseModel):
+    enabled: bool = False
+    include_demo_outputs: bool = True
 
 
 class RefreshConfig(BaseModel):
@@ -121,6 +179,39 @@ class RefreshConfig(BaseModel):
 
 class ReviewConfig(BaseModel):
     enabled: bool = False
+    workflow: bool = False
+    curation: bool = False
+
+
+class InputHardeningConfig(BaseModel):
+    enabled: bool = False
+    html: bool = True
+    csv: bool = True
+    xlsx: bool = True
+    epub: bool = True
+    zip: bool = True
+    pdf_structure: bool = True
+    source_inventory_enhanced: bool = True
+
+
+class KnowledgeQualityConfig(BaseModel):
+    enabled: bool = False
+    chunk_quality: bool = True
+    evidence_quality: bool = True
+    source_quality: bool = True
+    multimodal_quality: bool = True
+
+
+class EvidenceBenchmarkConfig(BaseModel):
+    enabled: bool = False
+    hallucination_traps: bool = True
+    out_of_scope_cases: bool = True
+
+
+class LLMQualityAssistConfig(BaseModel):
+    enabled: bool = False
+    provider: str = "mock"
+    fail_safe: bool = True
 
 
 class EvaluationDashboardConfig(BaseModel):
@@ -154,10 +245,12 @@ class AgentRAGConfig(BaseModel):
 
 
 class SkillConfig(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     enabled: bool = False
     name: str = "Demo Knowledge Skill"
     type: str = "generic"
-    validate: bool = False
+    validate_skill: bool = Field(False, alias="validate")
     llm_generation: bool = False
 
 
@@ -221,6 +314,32 @@ class EvidenceGateConfig(BaseModel):
     query: str = "Summarize this knowledge package."
 
 
+class PackageLineageConfig(BaseModel):
+    enabled: bool = False
+    version_graph: bool = True
+    dependency_report: bool = True
+    workspace: Path | None = None
+    output: Path | None = None
+
+
+class CurationConfig(BaseModel):
+    enabled: bool = False
+    build_curated_package: bool = False
+    require_decision_log: bool = True
+    package: Path | None = None
+    review_decisions: Path | None = None
+    output: Path | None = None
+
+
+class UpdateImpactConfig(BaseModel):
+    enabled: bool = False
+    impacted_skills: bool = True
+    impacted_agents: bool = True
+    workspace: Path | None = None
+    package: Path | None = None
+    output: Path | None = None
+
+
 class ForgeConfig(BaseModel):
     task: str
     input: Path
@@ -249,8 +368,20 @@ class ForgeConfig(BaseModel):
     runtime: RuntimeConfig = Field(default_factory=RuntimeConfig)
     web: WebConfig = Field(default_factory=WebConfig)
     workspace: WorkspaceConfig = Field(default_factory=WorkspaceConfig)
+    provider_registry: ProviderRegistryConfig = Field(default_factory=ProviderRegistryConfig)
+    prompt_profiles: PromptProfilesConfig = Field(default_factory=PromptProfilesConfig)
+    llm_audit: LLMAuditConfig = Field(default_factory=LLMAuditConfig)
+    studio: StudioConfig = Field(default_factory=StudioConfig)
+    reliability: ReliabilityConfig = Field(default_factory=ReliabilityConfig)
+    stable_check: StableCheckConfig = Field(default_factory=StableCheckConfig)
+    provider_health: ProviderHealthConfig = Field(default_factory=ProviderHealthConfig)
+    release_package: ReleasePackageConfig = Field(default_factory=ReleasePackageConfig)
     refresh: RefreshConfig = Field(default_factory=RefreshConfig)
     review: ReviewConfig = Field(default_factory=ReviewConfig)
+    input_hardening: InputHardeningConfig = Field(default_factory=InputHardeningConfig)
+    quality: KnowledgeQualityConfig = Field(default_factory=KnowledgeQualityConfig)
+    evidence_benchmark: EvidenceBenchmarkConfig = Field(default_factory=EvidenceBenchmarkConfig)
+    llm_quality_assist: LLMQualityAssistConfig = Field(default_factory=LLMQualityAssistConfig)
     evaluation_dashboard: EvaluationDashboardConfig = Field(default_factory=EvaluationDashboardConfig)
     publish: PublishConfig = Field(default_factory=PublishConfig)
     planning_readiness: PlanningReadinessConfig = Field(default_factory=PlanningReadinessConfig)
@@ -264,3 +395,6 @@ class ForgeConfig(BaseModel):
     governance: GovernanceConfig = Field(default_factory=GovernanceConfig)
     retrieval: RetrievalIndexConfig = Field(default_factory=RetrievalIndexConfig)
     evidence_gate: EvidenceGateConfig = Field(default_factory=EvidenceGateConfig)
+    package_lineage: PackageLineageConfig = Field(default_factory=PackageLineageConfig)
+    curation: CurationConfig = Field(default_factory=CurationConfig)
+    update_impact: UpdateImpactConfig = Field(default_factory=UpdateImpactConfig)

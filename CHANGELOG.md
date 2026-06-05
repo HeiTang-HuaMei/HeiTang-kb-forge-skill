@@ -1,5 +1,59 @@
 # Changelog
 
+## v2.3.0
+
+* Added industrial `batch-run` command
+* Added `batch_job_manifest.json`
+* Added `batch_item_status.jsonl`
+* Added batch failure, performance, quality, contract, and governance summaries
+* Added `batch-retry` for failed item retry records
+* Added package lineage outputs
+* Added curated package generation
+* Added governance decision audit logs
+* Added update impact outputs for packages, Skills, and Agents
+* Added Batch & Governance Center read-only summaries
+* Preserved default build / batch / run / pipeline behavior
+* No platform distribution or upload adapters
+
+## v2.2.0
+
+* Added master Skill import
+* Added master Skill decomposition
+* Added capability map and workflow graph outputs
+* Added style, strategy, task pattern, boundary, and prompt pattern profiles
+* Added derived Skill generation from user-owned knowledge packages
+* Added Skill safety check
+* Added Skill similarity report
+* Added Skill license report
+* Preserved default build / batch / run / pipeline behavior
+
+## v2.1.0
+
+* Added opt-in input coverage reporting
+* Added enhanced source inventory
+* Added lightweight HTML / EPUB / ZIP text ingestion
+* Added parser hardening report
+* Added rule-based knowledge quality scoring
+* Added review workflow and curated chunks
+* Added retrieval evaluation cases and result report
+* Added evidence benchmark result report
+* Added optional mock/fallback LLM quality assist
+* Preserved default build / batch / run / pipeline behavior
+
+## v2.0.0
+
+* Added stable Agent knowledge supply-chain foundation
+* Added `studio-run`
+* Added `stable-check`
+* Added stable contract extension readiness
+* Added offline `provider-health`
+* Added `reliability-score`
+* Added `release-package`
+* Added v2.0 config and pipeline stages
+* Reserved master Skill decomposition learning for v2.2
+* Reserved platform export and upload adapters for v2.4
+* Preserved default build / batch / run / pipeline behavior
+
 ## v1.7.0
 
 * Added knowledge governance command and reports
@@ -12,6 +66,31 @@
 * Added v1.7 config example
 * Preserved default build / batch / run / pipeline behavior
 * No embedding API calls and no vector database writes
+
+## v1.8.0
+
+* Added Skill Package Generator
+* Added SKILL.md and skill_manifest.yaml generation
+* Added answer, citation, boundary, refusal, style, and evidence policy rule files
+* Added Skill Validation and benchmark outputs
+* Added Agent Package Generator
+* Added soul.md, role.md, system_prompt.md, agent_profile.yaml, tool_config.yaml, retrieval_config.yaml, memory_policy.md, safety_boundary.md, and launch_checklist.md
+* Added opt-in mock LLM-assisted Skill and Agent generation
+* Added v1.8 config and pipeline stages
+* Preserved default build / batch / run / pipeline behavior
+* No real Agent Runtime, Tool Runtime, vector database, or required LLM API
+
+## v1.9.0
+
+* Added Portable Local Workspace
+* Added package, skill, and agent registries
+* Added knowledge-skill-agent relationship graph
+* Added provider registry without API key storage
+* Added prompt profile registry
+* Added LLM call audit import
+* Added workspace import, export, search, and health check commands
+* Added Local Workspace UI v1 read-only summaries
+* Preserved default build / batch / run / pipeline behavior
 
 This changelog is normalized by logical capability versions. Some capabilities were implemented in compressed commits during development, but each logical version is listed separately here.
 
