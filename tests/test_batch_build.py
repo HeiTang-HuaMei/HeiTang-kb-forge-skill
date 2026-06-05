@@ -196,14 +196,14 @@ def test_batch_build_merge_mode_fails_existing_group_directory(tmp_path):
 
 
 def test_batch_image_ocr_failure_does_not_block_text_file(monkeypatch, tmp_path):
-    import heitang_kb_forge.cli as cli
+    import heitang_kb_forge.cli_runtime as cli_runtime
 
     input_dir = tmp_path / "input"
     output_dir = tmp_path / "output"
     input_dir.mkdir()
     (input_dir / "001_text.md").write_text("Text fixture", encoding="utf-8")
     (input_dir / "002_image.png").write_bytes(b"mock image")
-    monkeypatch.setitem(cli.PARSERS, ".png", lambda path: (_ for _ in ()).throw(RuntimeError("OCR failed")))
+    monkeypatch.setitem(cli_runtime.PARSERS, ".png", lambda path: (_ for _ in ()).throw(RuntimeError("OCR failed")))
 
     result = CliRunner().invoke(app, ["batch", "--input", str(input_dir), "--output", str(output_dir)])
 
@@ -218,7 +218,7 @@ def test_batch_image_ocr_failure_does_not_block_text_file(monkeypatch, tmp_path)
 
 
 def test_batch_merge_image_ocr_failure_fails_group_only(monkeypatch, tmp_path):
-    import heitang_kb_forge.cli as cli
+    import heitang_kb_forge.cli_runtime as cli_runtime
 
     input_dir = tmp_path / "input"
     output_dir = tmp_path / "output"
@@ -226,7 +226,7 @@ def test_batch_merge_image_ocr_failure_fails_group_only(monkeypatch, tmp_path):
     (input_dir / "001_text.md").write_text("Text fixture", encoding="utf-8")
     (input_dir / "001_image.png").write_bytes(b"mock image")
     (input_dir / "002_success.md").write_text("Success fixture", encoding="utf-8")
-    monkeypatch.setitem(cli.PARSERS, ".png", lambda path: (_ for _ in ()).throw(RuntimeError("OCR failed")))
+    monkeypatch.setitem(cli_runtime.PARSERS, ".png", lambda path: (_ for _ in ()).throw(RuntimeError("OCR failed")))
 
     result = CliRunner().invoke(
         app,
@@ -244,14 +244,14 @@ def test_batch_merge_image_ocr_failure_fails_group_only(monkeypatch, tmp_path):
 
 
 def test_batch_scanned_pdf_ocr_failure_does_not_block_text_file(monkeypatch, tmp_path):
-    import heitang_kb_forge.cli as cli
+    import heitang_kb_forge.cli_runtime as cli_runtime
 
     input_dir = tmp_path / "input"
     output_dir = tmp_path / "output"
     input_dir.mkdir()
     (input_dir / "001_text.md").write_text("Text fixture", encoding="utf-8")
     (input_dir / "002_scanned.pdf").write_bytes(b"%PDF-1.4")
-    monkeypatch.setitem(cli.PARSERS, ".pdf", lambda path: (_ for _ in ()).throw(RuntimeError("PDF OCR failed")))
+    monkeypatch.setitem(cli_runtime.PARSERS, ".pdf", lambda path: (_ for _ in ()).throw(RuntimeError("PDF OCR failed")))
 
     result = CliRunner().invoke(app, ["batch", "--input", str(input_dir), "--output", str(output_dir)])
 
@@ -266,7 +266,7 @@ def test_batch_scanned_pdf_ocr_failure_does_not_block_text_file(monkeypatch, tmp
 
 
 def test_batch_merge_scanned_pdf_ocr_failure_fails_group_only(monkeypatch, tmp_path):
-    import heitang_kb_forge.cli as cli
+    import heitang_kb_forge.cli_runtime as cli_runtime
 
     input_dir = tmp_path / "input"
     output_dir = tmp_path / "output"
@@ -274,7 +274,7 @@ def test_batch_merge_scanned_pdf_ocr_failure_fails_group_only(monkeypatch, tmp_p
     (input_dir / "001_text.md").write_text("Text fixture", encoding="utf-8")
     (input_dir / "001_scanned.pdf").write_bytes(b"%PDF-1.4")
     (input_dir / "002_success.md").write_text("Success fixture", encoding="utf-8")
-    monkeypatch.setitem(cli.PARSERS, ".pdf", lambda path: (_ for _ in ()).throw(RuntimeError("PDF OCR failed")))
+    monkeypatch.setitem(cli_runtime.PARSERS, ".pdf", lambda path: (_ for _ in ()).throw(RuntimeError("PDF OCR failed")))
 
     result = CliRunner().invoke(
         app,
