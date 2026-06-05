@@ -167,13 +167,31 @@ def _active_parsers() -> dict[str, object]:
     return PARSERS
 
 
+def _parse_pdf_via_public_registry(path: Path):
+    """Parse PDF while respecting public CLI parser monkeypatches.
+
+    This keeps heitang_kb_forge.cli.PARSERS backward-compatible after the
+    CLI entrypoint split, even when tests or downstream users patch the
+    public registry while invoking the runtime app.
+    """
+    import sys
+
+    public_cli = sys.modules.get("heitang_kb_forge.cli")
+    public_parsers = getattr(public_cli, "PARSERS", None)
+    if isinstance(public_parsers, dict):
+        public_pdf_parser = public_parsers.get(".pdf")
+        if public_pdf_parser is not None and public_pdf_parser is not _parse_pdf_via_public_registry:
+            return public_pdf_parser(path)
+    return parse_pdf(path)
+
+
 PARSERS = {
     ".md": parse_markdown,
     ".markdown": parse_markdown,
     ".txt": parse_text,
     ".html": parse_html,
     ".htm": parse_html,
-    ".pdf": parse_pdf,
+    ".pdf": _parse_pdf_via_public_registry,
     ".docx": parse_docx,
     ".csv": parse_csv,
     ".tsv": parse_tsv,
