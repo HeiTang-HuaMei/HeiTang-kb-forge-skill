@@ -825,6 +825,27 @@ v2.4 只写本地文件：`platform_manifest.json`、`platform_upload_check_resu
 
 小红书方向只准备 `xhs_skill_package/`、`xhs_skill_manifest.json`、`xhs_skill_link_manifest.json`、`platform_policy.md`、`violation_risk_checklist.md` 和 mock publish 输出。它不是小红书官方上传 API，不调用真实小红书账号，也不自动发布笔记。OpenClaw、Codex、Claude Code 和 MCP 输出只是导出包或 stub，不真实运行平台 runtime，也不启动 MCP Server。
 
+## v2.5 Release Quality Gate And Regression Certification
+
+v2.5 新增本地发布质量检查，用于判断知识包、Skill 包、Agent 包、workspace 和平台导出包是否具备进入下一阶段验证的条件。
+
+命令：
+
+```powershell
+python -m heitang_kb_forge.cli quality-gate --workspace .\workspace --output .\quality_gate_output
+python -m heitang_kb_forge.cli release-blockers --workspace .\workspace --output .\release_blockers_output
+python -m heitang_kb_forge.cli regression-check --workspace .\workspace --output .\regression_output
+python -m heitang_kb_forge.cli validate-golden-samples --workspace .\examples\golden_samples --output .\golden_samples_output
+python -m heitang_kb_forge.cli certify-export --export .\platform_exports --output .\export_certification_output
+python -m heitang_kb_forge.cli compatibility-matrix --workspace .\workspace --output .\compatibility_output
+python -m heitang_kb_forge.cli llm-quality-gate-assist --workspace .\workspace --output .\llm_quality_gate_output --provider mock
+python -m heitang_kb_forge.cli release-readiness --workspace .\workspace --output .\release_readiness_output
+```
+
+v2.5 输出本地报告，例如 `quality_gate_result.json`、`release_blockers.json`、`regression_result.json`、`golden_sample_validation.json`、`platform_export_certification.json`、`compatibility_matrix.json`、`llm_quality_gate_assist_result.json` 和 `release_readiness_result.json`。
+
+边界：v2.5 不调用真实 LLM API，不上传小红书，不真实运行 OpenClaw / Codex / Claude Code / MCP runtime，不启动 MCP Server，也不实现飞书、移动端、安装端、iOS、SaaS 或权限系统。真实 LLM 治理预留到 v2.6，runtime compatibility smoke 预留到 v2.7，飞书 / 移动端 / 安装端 / iOS 预留到 v2.9。
+
 
 ## v1.2 边界补充
 

@@ -1,0 +1,20 @@
+BLOCKER_TYPES = [
+    "missing_required_file",
+    "invalid_manifest",
+    "contract_failed",
+    "quality_gate_failed",
+    "missing_source_inventory",
+    "missing_evidence_policy",
+    "missing_refusal_policy",
+    "missing_boundary_rules",
+    "platform_export_failed",
+    "mock_publish_boundary_missing",
+    "secret_leak_risk",
+    "dangerous_command_risk",
+    "unsupported_real_runtime_claim",
+    "unverified_feature_claim",
+    "stale_package",
+    "failed_regression",
+    "golden_sample_failed",
+]
+

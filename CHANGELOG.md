@@ -1,5 +1,24 @@
 # Changelog
 
+## v2.5.0
+
+* Added `quality-gate`
+* Added `release-blockers`
+* Added `regression-check`
+* Added `validate-golden-samples`
+* Added `certify-export`
+* Added `compatibility-matrix`
+* Added `llm-quality-gate-assist`
+* Added `release-readiness`
+* Added local release quality reports and scorecards
+* Added v1.6-v2.4 regression evidence checks
+* Added platform export certification checks
+* Added mock-first LLM quality gate suggestions
+* Preserved default build / batch / run / pipeline behavior
+* No real LLM API calls
+* No real XHS upload
+* No real OpenClaw / Codex / Claude Code / MCP runtime execution
+
 ## v2.4.0
 
 * Added opt-in local platform distribution exports

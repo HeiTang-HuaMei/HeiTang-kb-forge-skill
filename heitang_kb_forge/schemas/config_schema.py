@@ -370,6 +370,56 @@ class PlatformDistributionConfig(BaseModel):
     mock_publish: bool = True
 
 
+class QualityGateConfig(BaseModel):
+    enabled: bool = False
+    strict: bool = False
+    release_threshold: int = 80
+    output: Path | None = None
+
+
+class ReleaseBlockersConfig(BaseModel):
+    enabled: bool = False
+    fail_on_critical: bool = True
+    output: Path | None = None
+
+
+class RegressionConfig(BaseModel):
+    enabled: bool = False
+    include_versions: list[str] = Field(default_factory=lambda: ["v1.6", "v1.7", "v1.8", "v1.9", "v2.0", "v2.1", "v2.2", "v2.3", "v2.4"])
+    output: Path | None = None
+
+
+class GoldenSamplesConfig(BaseModel):
+    enabled: bool = False
+    validate_samples: bool = Field(True, alias="validate")
+    samples_root: Path = Path("examples/golden_samples")
+    output: Path | None = None
+
+
+class ExportCertificationConfig(BaseModel):
+    enabled: bool = False
+    platforms: list[str] = Field(default_factory=lambda: ["openclaw", "xhs", "codex", "claude_code", "mcp", "generic", "local_registry"])
+    export: Path | None = None
+    output: Path | None = None
+
+
+class CompatibilityMatrixConfig(BaseModel):
+    enabled: bool = False
+    output: Path | None = None
+
+
+class LLMQualityGateAssistConfig(BaseModel):
+    enabled: bool = False
+    provider: str = "mock"
+    allow_network: bool = False
+    output: Path | None = None
+
+
+class ReleaseReadinessConfig(BaseModel):
+    enabled: bool = False
+    output: Path | None = None
+
+
 class ForgeConfig(BaseModel):
     task: str
     input: Path
@@ -432,3 +482,12 @@ class ForgeConfig(BaseModel):
     provider_readiness: ProviderReadinessConfig = Field(default_factory=ProviderReadinessConfig)
     prompt_profile_versioning: PromptProfileVersioningConfig = Field(default_factory=PromptProfileVersioningConfig)
     platform_distribution: PlatformDistributionConfig = Field(default_factory=PlatformDistributionConfig)
+    quality_gate_v25: QualityGateConfig = Field(default_factory=QualityGateConfig)
+    quality_gate: QualityGateConfig = Field(default_factory=QualityGateConfig)
+    release_blockers: ReleaseBlockersConfig = Field(default_factory=ReleaseBlockersConfig)
+    regression: RegressionConfig = Field(default_factory=RegressionConfig)
+    golden_samples: GoldenSamplesConfig = Field(default_factory=GoldenSamplesConfig)
+    export_certification: ExportCertificationConfig = Field(default_factory=ExportCertificationConfig)
+    compatibility_matrix: CompatibilityMatrixConfig = Field(default_factory=CompatibilityMatrixConfig)
+    llm_quality_gate_assist: LLMQualityGateAssistConfig = Field(default_factory=LLMQualityGateAssistConfig)
+    release_readiness: ReleaseReadinessConfig = Field(default_factory=ReleaseReadinessConfig)

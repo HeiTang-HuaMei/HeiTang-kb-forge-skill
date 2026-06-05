@@ -88,7 +88,15 @@ from heitang_kb_forge.package_lineage import make_package_lineage
 from heitang_kb_forge.platform_distribution import check_platform_upload, export_platform_package, mock_publish_package
 from heitang_kb_forge.progress.reporter import ProgressReporter, make_progress_reporter
 from heitang_kb_forge.quality_gate.gate import QUALITY_GATE_OUTPUT_FILES, evaluate_quality_gate
+from heitang_kb_forge.quality_gate import run_quality_gate
 from heitang_kb_forge.quality import V21_OUTPUT_FILES, make_v21_quality_outputs
+from heitang_kb_forge.release_blockers import detect_release_blockers
+from heitang_kb_forge.regression import run_regression_check
+from heitang_kb_forge.golden_samples import validate_golden_samples
+from heitang_kb_forge.export_certification import certify_platform_export
+from heitang_kb_forge.export_certification.compatibility import make_compatibility_matrix
+from heitang_kb_forge.release_readiness import evaluate_release_readiness
+from heitang_kb_forge.llm.quality_gate_assist import run_llm_quality_gate_assist
 from heitang_kb_forge.rag.exporter import RAGOptions, RAG_OUTPUT_FILES, make_rag_export
 from heitang_kb_forge.release import make_release_package
 from heitang_kb_forge.reliability import make_reliability_score
@@ -1149,6 +1157,89 @@ def mock_publish(
     typer.echo(f"Mock publish: {result.status}")
 
 
+@app.command("quality-gate")
+def quality_gate_command(
+    workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output"),
+    release_threshold: int = typer.Option(80, "--release-threshold"),
+) -> None:
+    """Run v2.5 release quality gate checks without external calls."""
+    result = run_quality_gate(workspace, output, release_threshold)
+    typer.echo(f"Quality gate: {result.status} | Release ready: {result.release_ready}")
+
+
+@app.command("release-blockers")
+def release_blockers_command(
+    workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Detect v2.5 release blockers from local files and boundary claims."""
+    result = detect_release_blockers(workspace, output)
+    typer.echo(f"Release blockers: {result.status} | Critical: {result.critical_count}")
+
+
+@app.command("regression-check")
+def regression_check_command(
+    workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Check v1.6-v2.4 regression coverage using local modules, schemas, commands, and tests."""
+    result = run_regression_check(workspace, output)
+    typer.echo(f"Regression check: {result.status} | Cases: {result.case_count}")
+
+
+@app.command("validate-golden-samples")
+def validate_golden_samples_command(
+    workspace: Path = typer.Option(Path("examples/golden_samples"), "--workspace", file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate local v2.5 golden sample placeholders."""
+    result = validate_golden_samples(workspace, output)
+    typer.echo(f"Golden samples: {result.status} | Samples: {result.sample_count}")
+
+
+@app.command("certify-export")
+def certify_export_command(
+    export: Path = typer.Option(..., "--export", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output"),
+    platform: str = typer.Option("all", "--platform"),
+) -> None:
+    """Certify local platform export packages without uploading or running platforms."""
+    result = certify_platform_export(export, output, platform)
+    typer.echo(f"Export certification: {result.status} | Certified: {result.certified}")
+
+
+@app.command("compatibility-matrix")
+def compatibility_matrix_command(
+    workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Write a v2.5 compatibility matrix for local packages and platform exports."""
+    result = make_compatibility_matrix(workspace, output)
+    typer.echo(f"Compatibility matrix: {result['status']}")
+
+
+@app.command("llm-quality-gate-assist")
+def llm_quality_gate_assist_command(
+    workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output"),
+    provider: str = typer.Option("mock", "--provider"),
+) -> None:
+    """Write mock-first LLM release gate suggestions without network calls."""
+    result = run_llm_quality_gate_assist(workspace, output, provider)
+    typer.echo(f"LLM quality gate assist: {result['status']} | Provider: {provider}")
+
+
+@app.command("release-readiness")
+def release_readiness_command(
+    workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Summarize v2.5 quality gate, blockers, regression, certification, and matrix results."""
+    result = evaluate_release_readiness(workspace, output)
+    typer.echo(f"Release readiness: {result.status} | Release ready: {result.release_ready}")
+
+
 @app.command()
 def run(
     config: Path = typer.Option(..., "--config", "-c", exists=True, file_okay=True, dir_okay=False, readable=True),
@@ -1874,6 +1965,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         _run_v22_config_outputs(config_data, config_data.output)
         _run_v23_config_outputs(config_data, config_data.output)
         _run_v24_config_outputs(config_data, config_data.output)
+        _run_v25_config_outputs(config_data, config_data.output)
         return ConfigRunResult(
             config=config_data,
             output=config_data.output,
@@ -1972,6 +2064,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
     _run_v22_config_outputs(config_data, output)
     _run_v23_config_outputs(config_data, output)
     _run_v24_config_outputs(config_data, output)
+    _run_v25_config_outputs(config_data, output)
 
     return ConfigRunResult(
         config=config_data,
@@ -2291,6 +2384,28 @@ def _run_v24_config_outputs(config_data: ForgeConfig, output: Path) -> None:
     agent_path = agent if agent.exists() else None
     platform_output = config_data.platform_distribution.output or (output / "platform_distribution")
     export_platform_package(skill, agent_path, platform_output, config_data.platform_distribution.platform)
+
+
+def _run_v25_config_outputs(config_data: ForgeConfig, output: Path) -> None:
+    workspace = config_data.workspace.path or output
+    if config_data.quality_gate.enabled:
+        run_quality_gate(workspace, config_data.quality_gate.output or output, config_data.quality_gate.release_threshold)
+    if config_data.release_blockers.enabled:
+        detect_release_blockers(workspace, config_data.release_blockers.output or output)
+    if config_data.regression.enabled:
+        run_regression_check(workspace, config_data.regression.output or output)
+    if config_data.golden_samples.enabled and config_data.golden_samples.validate_samples:
+        validate_golden_samples(config_data.golden_samples.samples_root, config_data.golden_samples.output or output)
+    if config_data.export_certification.enabled:
+        export_root = config_data.export_certification.export or config_data.platform_distribution.output or (output / "platform_distribution")
+        platform = "all" if len(config_data.export_certification.platforms) != 1 else config_data.export_certification.platforms[0]
+        certify_platform_export(export_root, config_data.export_certification.output or output, platform)
+    if config_data.compatibility_matrix.enabled:
+        make_compatibility_matrix(workspace, config_data.compatibility_matrix.output or output)
+    if config_data.llm_quality_gate_assist.enabled:
+        run_llm_quality_gate_assist(workspace, config_data.llm_quality_gate_assist.output or output, config_data.llm_quality_gate_assist.provider)
+    if config_data.release_readiness.enabled:
+        evaluate_release_readiness(workspace, config_data.release_readiness.output or output)
 
 
 def _make_llm_options(

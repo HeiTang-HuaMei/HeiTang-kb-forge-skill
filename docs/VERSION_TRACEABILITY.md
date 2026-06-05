@@ -71,3 +71,11 @@ v2.4 platform distribution remains planned and is not part of this checkpoint.
 v2.4 owns `platform_manifest.json`, `platform_upload_check_result.json`, `platform_upload_check_report.md`, `mock_publish_result.json`, `install_guide.md`, `upload_guide.md`, XHS local package preparation files, and local platform distribution docs.
 
 Investigate v2.4 first when local platform export files, upload check results, or mock publish records are wrong.
+
+# v2.5 Traceability
+
+v2.5 owns `quality_gate_result.json`, `quality_gate_scorecard.json`, `quality_gate_findings.jsonl`, `release_blockers.json`, `release_blocker_findings.jsonl`, `regression_result.json`, `regression_cases.jsonl`, `golden_sample_validation.json`, `platform_export_certification.json`, `compatibility_matrix.json`, `llm_quality_gate_assist_result.json`, and `release_readiness_result.json`.
+
+Investigate v2.5 first when release quality gate results, blocker severity, v1.6-v2.4 regression evidence, golden sample validation, platform export certification, compatibility matrix status, mock-first LLM suggestions, or release readiness summaries are wrong.
+
+v2.5 does not own real LLM live smoke, provider security audits, real platform runtime compatibility smoke, Feishu publishing, mobile, installer, iOS, SaaS, permissions, or multi-user collaboration.

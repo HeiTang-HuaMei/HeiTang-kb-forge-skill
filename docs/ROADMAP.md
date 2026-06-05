@@ -130,7 +130,15 @@ v2.4 implements platform export and upload-adapter preparation for OpenClaw, XHS
 
 v2.4 generates platform manifests, install guides, upload checks, and mock publish results only. It does not call real platform accounts, run real Agent platforms, start a real MCP server, or upload to XHS automatically.
 
-v2.4 implementation scope is local platform distribution output generation, upload readiness checks, static upload risk checks, and mock publish records. v2.5 / v2.6 / v2.9 remain planned.
+v2.4 implementation scope is local platform distribution output generation, upload readiness checks, static upload risk checks, and mock publish records. v2.6 / v2.9 remain planned.
+
+# v2.5 Release Quality Gate And Regression Certification
+
+v2.5 implements local release quality gates, release blocker detection, regression coverage checks, golden sample validation, platform export certification, compatibility matrix output, mock-first LLM quality gate assist, release readiness summaries, and Release Quality Center v2.5 read-only summaries.
+
+v2.5 does not call real LLM APIs, run real platform runtimes, start an MCP server, upload to XHS, implement v2.6 Provider security audit, implement v2.8 Domain Skill Factory, or implement v2.9 Feishu / mobile / installer / iOS.
+
+Next real validation boundaries: v2.6 for real LLM live smoke and provider governance, v2.7 for runtime compatibility smoke, v2.9 for Feishu / mobile / installer / iOS, and v3.x for SaaS / permissions / multi-user collaboration.
 
 # v2.3 Industrial Batch And Knowledge Governance
 

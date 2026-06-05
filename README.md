@@ -824,3 +824,24 @@ v2.4 writes local files only: `platform_manifest.json`, `platform_upload_check_r
 
 For XHS, v2.4 only prepares `xhs_skill_package/`, `xhs_skill_manifest.json`, `xhs_skill_link_manifest.json`, `platform_policy.md`, `violation_risk_checklist.md`, and mock publish output. It is not an official XHS upload API, does not call a real XHS account, and does not automatically publish notes. OpenClaw, Codex, Claude Code, and MCP outputs are export packages or stubs only; they do not run real platform runtimes or start an MCP server.
 
+## v2.5 Release Quality Gate And Regression Certification
+
+v2.5 adds local release quality checks for deciding whether knowledge packages, Skill packages, Agent packages, workspaces, and platform export packages are ready for the next validation stage.
+
+Commands:
+
+```powershell
+python -m heitang_kb_forge.cli quality-gate --workspace .\workspace --output .\quality_gate_output
+python -m heitang_kb_forge.cli release-blockers --workspace .\workspace --output .\release_blockers_output
+python -m heitang_kb_forge.cli regression-check --workspace .\workspace --output .\regression_output
+python -m heitang_kb_forge.cli validate-golden-samples --workspace .\examples\golden_samples --output .\golden_samples_output
+python -m heitang_kb_forge.cli certify-export --export .\platform_exports --output .\export_certification_output
+python -m heitang_kb_forge.cli compatibility-matrix --workspace .\workspace --output .\compatibility_output
+python -m heitang_kb_forge.cli llm-quality-gate-assist --workspace .\workspace --output .\llm_quality_gate_output --provider mock
+python -m heitang_kb_forge.cli release-readiness --workspace .\workspace --output .\release_readiness_output
+```
+
+v2.5 writes local reports such as `quality_gate_result.json`, `release_blockers.json`, `regression_result.json`, `golden_sample_validation.json`, `platform_export_certification.json`, `compatibility_matrix.json`, `llm_quality_gate_assist_result.json`, and `release_readiness_result.json`.
+
+Boundaries: v2.5 does not call real LLM APIs, does not upload to XHS, does not run OpenClaw / Codex / Claude Code / MCP runtimes, does not start an MCP server, and does not implement Feishu, mobile, installer, iOS, SaaS, or permissions. Real LLM governance is reserved for v2.6, runtime compatibility smoke for v2.7, and Feishu / mobile / installer / iOS work for v2.9.
+

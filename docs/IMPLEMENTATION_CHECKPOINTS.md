@@ -215,7 +215,53 @@ Known gaps:
 
 ## Planned After v2.4
 
-- v2.5 Quality Gate and Export Certification
+- v2.6 Provider Security and Studio Industrial Console
+- v2.7 Release Candidate
+- v2.8 Domain Skill Factory
+- v2.9 Feishu / Personal KB / Mobile / Installer / iOS
+
+## v2.5
+
+Status: Completed.
+
+Implemented:
+
+- Release Quality Gate
+- Release Blocker detection
+- v1.6-v2.4 regression evidence check
+- Golden sample registry and validation
+- Platform export certification
+- Compatibility matrix
+- Mock-first LLM quality gate assist
+- Release readiness summary
+- Release Quality Center v2.5 read-only summary
+
+Verified by:
+
+- `tests/test_quality_gate.py`
+- `tests/test_release_blockers.py`
+- `tests/test_regression_check.py`
+- `tests/test_golden_samples.py`
+- `tests/test_export_certification.py`
+- `tests/test_compatibility_matrix.py`
+- `tests/test_llm_quality_gate_assist.py`
+- `tests/test_release_readiness.py`
+- `tests/test_v25_config.py`
+- `tests/test_v25_pipeline.py`
+- `tests/test_v25_ui_smoke.py`
+
+Known gaps:
+
+- No real LLM API calls.
+- No real XHS upload.
+- No real OpenClaw / Codex / Claude Code / MCP runtime execution.
+- No MCP server startup.
+- Provider security audit is reserved for v2.6.
+- Runtime compatibility smoke is reserved for v2.7.
+- Feishu / Personal KB / Mobile / Installer / iOS remain planned for v2.9.
+
+## Planned After v2.5
+
 - v2.6 Provider Security and Studio Industrial Console
 - v2.7 Release Candidate
 - v2.8 Domain Skill Factory

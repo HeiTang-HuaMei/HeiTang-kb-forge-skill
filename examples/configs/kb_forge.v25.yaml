@@ -1,0 +1,51 @@
+task: build
+input: examples/input
+output: examples/output_v25
+domain: general
+mode: reference
+
+skill:
+  enabled: true
+  enhanced_template: true
+
+agent_package:
+  enabled: true
+  compat: true
+
+workspace:
+  enabled: true
+  register_outputs: true
+
+platform_distribution:
+  enabled: true
+  platform: all
+
+quality_gate:
+  enabled: true
+  strict: false
+  release_threshold: 80
+
+release_blockers:
+  enabled: true
+  fail_on_critical: true
+
+regression:
+  enabled: true
+
+golden_samples:
+  enabled: true
+  validate: true
+
+export_certification:
+  enabled: true
+
+compatibility_matrix:
+  enabled: true
+
+llm_quality_gate_assist:
+  enabled: true
+  provider: mock
+  allow_network: false
+
+release_readiness:
+  enabled: true

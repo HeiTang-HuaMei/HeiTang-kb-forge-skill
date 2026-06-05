@@ -70,3 +70,11 @@ v2.4 平台分发仍是 planned，不属于本 checkpoint。
 v2.4 负责 `platform_manifest.json`、`platform_upload_check_result.json`、`platform_upload_check_report.md`、`mock_publish_result.json`、`install_guide.md`、`upload_guide.md`、小红书本地 package 准备文件，以及本地平台分发文档。
 
 如果本地平台导出文件、上传检查结果或 mock publish 记录错误，优先追溯 v2.4。
+
+# v2.5 Traceability
+
+v2.5 负责 `quality_gate_result.json`、`quality_gate_scorecard.json`、`quality_gate_findings.jsonl`、`release_blockers.json`、`release_blocker_findings.jsonl`、`regression_result.json`、`regression_cases.jsonl`、`golden_sample_validation.json`、`platform_export_certification.json`、`compatibility_matrix.json`、`llm_quality_gate_assist_result.json` 和 `release_readiness_result.json`。
+
+如果发布质量门禁、blocker severity、v1.6-v2.4 回归证据、golden sample 验证、平台导出认证、兼容矩阵、mock-first LLM 建议或 release readiness 汇总错误，优先追溯 v2.5。
+
+v2.5 不负责真实 LLM live smoke、provider 安全审计、真实平台 runtime compatibility smoke、飞书发布、移动端、安装端、iOS、SaaS、权限系统或多用户协作。

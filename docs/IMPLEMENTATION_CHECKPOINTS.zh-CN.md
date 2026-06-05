@@ -215,7 +215,53 @@
 
 ## Planned After v2.4
 
-- v2.5 Quality Gate and Export Certification
+- v2.6 Provider Security and Studio Industrial Console
+- v2.7 Release Candidate
+- v2.8 Domain Skill Factory
+- v2.9 飞书 / 个人知识库 / 手机端 / 安装端 / iOS
+
+## v2.5
+
+状态：已完成。
+
+已实现：
+
+- Release Quality Gate
+- Release Blocker 检测
+- v1.6-v2.4 回归证据检查
+- Golden sample registry 与验证
+- 平台导出认证
+- 兼容矩阵
+- Mock-first LLM quality gate assist
+- Release readiness 汇总
+- Release Quality Center v2.5 只读摘要
+
+验证：
+
+- `tests/test_quality_gate.py`
+- `tests/test_release_blockers.py`
+- `tests/test_regression_check.py`
+- `tests/test_golden_samples.py`
+- `tests/test_export_certification.py`
+- `tests/test_compatibility_matrix.py`
+- `tests/test_llm_quality_gate_assist.py`
+- `tests/test_release_readiness.py`
+- `tests/test_v25_config.py`
+- `tests/test_v25_pipeline.py`
+- `tests/test_v25_ui_smoke.py`
+
+已知缺口：
+
+- 不调用真实 LLM API。
+- 不真实上传小红书。
+- 不真实运行 OpenClaw / Codex / Claude Code / MCP Runtime。
+- 不启动 MCP Server。
+- Provider 安全审计预留到 v2.6。
+- Runtime compatibility smoke 预留到 v2.7。
+- 飞书 / 个人知识库 / 移动端 / 安装端 / iOS 仍预留到 v2.9。
+
+## Planned After v2.5
+
 - v2.6 Provider Security and Studio Industrial Console
 - v2.7 Release Candidate
 - v2.8 Domain Skill Factory
