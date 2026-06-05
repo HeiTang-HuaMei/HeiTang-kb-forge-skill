@@ -16,6 +16,7 @@ class LLMConfig(BaseModel):
     cache: bool = True
     strict: bool = False
     call_log: bool = True
+    fail_safe: bool = True
     evidence_validation: bool = False
     boundary_check: bool = False
     hallucination_check: bool = False
@@ -152,6 +153,21 @@ class AgentRAGConfig(BaseModel):
     scope: dict[str, str] = Field(default_factory=dict)
 
 
+class SkillConfig(BaseModel):
+    enabled: bool = False
+    name: str = "Demo Knowledge Skill"
+    type: str = "generic"
+    validate: bool = False
+    llm_generation: bool = False
+
+
+class AgentPackageConfig(BaseModel):
+    enabled: bool = False
+    name: str = "Demo Knowledge Agent"
+    type: str = "generic"
+    llm_generation: bool = False
+
+
 class PerformanceConfig(BaseModel):
     profile: str = "production"
     progress: bool = False
@@ -240,6 +256,8 @@ class ForgeConfig(BaseModel):
     planning_readiness: PlanningReadinessConfig = Field(default_factory=PlanningReadinessConfig)
     store: StoreConfig = Field(default_factory=StoreConfig)
     agent_rag: AgentRAGConfig = Field(default_factory=AgentRAGConfig)
+    skill: SkillConfig = Field(default_factory=SkillConfig)
+    agent_package: AgentPackageConfig = Field(default_factory=AgentPackageConfig)
     performance: PerformanceConfig = Field(default_factory=PerformanceConfig)
     multimodal: MultimodalConfig = Field(default_factory=MultimodalConfig)
     contract: ContractConfig = Field(default_factory=ContractConfig)
