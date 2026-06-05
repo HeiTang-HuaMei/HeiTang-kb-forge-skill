@@ -67,6 +67,7 @@ def load_package_summary(package: Path) -> dict:
         "skill_package/skill_manifest.yaml",
         "skill_validation/skill_validation_result.json",
         "agent_package/agent_profile.yaml",
+        "agent_package/agent_compat_check_result.json",
         "batch_job_manifest.json",
         "batch_quality_summary.json",
         "batch_contract_summary.json",
@@ -74,6 +75,12 @@ def load_package_summary(package: Path) -> dict:
         "package_version_graph.json",
         "impacted_skills.json",
         "impacted_agents.json",
+        "workspace_refresh/source_change_report.json",
+        "workspace_refresh/refresh_plan.json",
+        "provider_readiness/provider_readiness_result.json",
+        "prompt_profile_versions/prompt_profile_versions.json",
+        "workspace/action_center.json",
+        "workspace/studio_v22_summary.json",
     ]:
         path = package / file_name
         if path.exists():
@@ -95,6 +102,10 @@ def load_package_summary(package: Path) -> dict:
     decisions_path = package / "governance_decisions.jsonl"
     if decisions_path.exists():
         summary["governance_decisions.jsonl"] = [json.loads(line) for line in decisions_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    for jsonl_name in ["workspace/run_history.jsonl"]:
+        path = package / jsonl_name
+        if path.exists():
+            summary[jsonl_name] = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
     report_path = package / "multimodal_report.md"
     if report_path.exists():
         summary["multimodal_report"] = report_path.read_text(encoding="utf-8")
@@ -167,6 +178,12 @@ def render_app() -> None:
             "Skill validation",
             "Agent package generation",
             "Agent prompt preview",
+            "Agent compatibility",
+            "Workspace refresh",
+            "Provider readiness",
+            "Prompt profile versioning",
+            "Action center",
+            "Run history",
             "Batch & Governance Center v2.3",
             "Batch jobs",
             "Batch item status",
@@ -201,6 +218,10 @@ def render_app() -> None:
         ("Agent Launch Checklist", "agent_package/launch_checklist.md"),
         ("LLM Skill Generation", "skill_package/llm_skill_generation_report.md"),
         ("LLM Agent Generation", "agent_package/llm_agent_generation_report.md"),
+        ("Agent Compatibility", "agent_package/agent_compat_check_report.md"),
+        ("Workspace Refresh Impact", "workspace_refresh/refresh_impact_report.md"),
+        ("Provider Readiness", "provider_readiness/provider_readiness_report.md"),
+        ("Prompt Profile Usage", "prompt_profile_versions/prompt_profile_usage_report.md"),
         ("Batch Failure Report", "batch_failure_report.md"),
         ("Batch Performance Report", "batch_performance_report.md"),
         ("Package Lineage Report", "package_lineage_report.md"),

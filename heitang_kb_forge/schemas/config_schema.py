@@ -252,6 +252,7 @@ class SkillConfig(BaseModel):
     type: str = "generic"
     validate_skill: bool = Field(False, alias="validate")
     llm_generation: bool = False
+    enhanced_template: bool = False
 
 
 class AgentPackageConfig(BaseModel):
@@ -259,6 +260,7 @@ class AgentPackageConfig(BaseModel):
     name: str = "Demo Knowledge Agent"
     type: str = "generic"
     llm_generation: bool = False
+    compat: bool = False
 
 
 class PerformanceConfig(BaseModel):
@@ -340,6 +342,24 @@ class UpdateImpactConfig(BaseModel):
     output: Path | None = None
 
 
+class WorkspaceRefreshConfig(BaseModel):
+    enabled: bool = False
+    workspace: Path | None = None
+    output: Path | None = None
+
+
+class ProviderReadinessConfig(BaseModel):
+    enabled: bool = False
+    workspace: Path | None = None
+    output: Path | None = None
+
+
+class PromptProfileVersioningConfig(BaseModel):
+    enabled: bool = False
+    workspace: Path | None = None
+    output: Path | None = None
+
+
 class ForgeConfig(BaseModel):
     task: str
     input: Path
@@ -398,3 +418,6 @@ class ForgeConfig(BaseModel):
     package_lineage: PackageLineageConfig = Field(default_factory=PackageLineageConfig)
     curation: CurationConfig = Field(default_factory=CurationConfig)
     update_impact: UpdateImpactConfig = Field(default_factory=UpdateImpactConfig)
+    workspace_refresh: WorkspaceRefreshConfig = Field(default_factory=WorkspaceRefreshConfig)
+    provider_readiness: ProviderReadinessConfig = Field(default_factory=ProviderReadinessConfig)
+    prompt_profile_versioning: PromptProfileVersioningConfig = Field(default_factory=PromptProfileVersioningConfig)

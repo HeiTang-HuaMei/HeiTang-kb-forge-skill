@@ -779,6 +779,24 @@ python -m heitang_kb_forge.cli update-impact --workspace .\workspace --package .
 
 Batch & Governance Center 只是这些文件的只读展示层。核心逻辑仍然保留在 Python package 和 CLI 中。
 
+## v2.3 checkpoint 后补：v2.2 工业级缺口
+
+v2.3 checkpoint 后，本轮对 v2.2 的工业级 Skill / Agent / Workspace 缺口做本地补强，但不进入 v2.4 平台分发。
+
+新增可选命令和参数：
+
+```powershell
+python -m heitang_kb_forge.cli generate-skill --package .\package --output .\skill --skill-type qa_skill --enhanced-skill-template
+python -m heitang_kb_forge.cli generate-agent --package .\package --skill .\skill --output .\agent --agent-compat
+python -m heitang_kb_forge.cli workspace-refresh --workspace .\workspace --output .\refresh_output
+python -m heitang_kb_forge.cli provider-readiness --workspace .\workspace --output .\provider_readiness
+python -m heitang_kb_forge.cli prompt-profile-versioning --workspace .\workspace --output .\prompt_versions
+```
+
+Master Skill Learning 不是复制第三方 Skill，而是拆解结构、任务模式、风格特征和边界规则，再结合用户自己的知识库或上传资料，生成用户自有的新 Skill。
+
+v2.4 平台分发、OpenClaw export、小红书 packaging/upload、MCP platform export 和 mock publish 仍然只是 planned。
+
 
 ## v1.2 边界补充
 

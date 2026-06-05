@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.3 Checkpoint Fill
+
+* Added enhanced local Skill template files
+* Added Agent compatibility stubs for OpenClaw, Claude Code, Codex, MCP, and generic local profiles
+* Added static workspace refresh analysis
+* Added offline provider readiness report
+* Added prompt profile version and hash report
+* Added Studio v2.2 action center, run history, and summary files
+* Added implementation checkpoint documentation
+* Preserved default build / batch / run / pipeline behavior
+* Did not implement v2.4 platform distribution or upload adapters
+
 ## v2.3.0
 
 * Added industrial `batch-run` command

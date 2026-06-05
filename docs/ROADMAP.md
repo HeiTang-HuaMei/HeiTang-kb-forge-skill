@@ -135,3 +135,9 @@ v2.4 should generate platform manifests, install guides, upload checks, and mock
 v2.3 implements industrial batch job manifests, item status tracking, retry records, batch summaries, package lineage, curated package generation, governance decision logs, update impact reports, and a read-only Batch & Governance Center direction.
 
 v2.3 does not implement platform export, platform upload, real Agent runtime, real MCP server, SaaS collaboration, or external publishing APIs. Those remain outside v2.3; platform export and upload adapters are reserved for v2.4.
+
+# v2.3 Checkpoint Fill
+
+The checkpoint fill closes partial v2.2 industrial gaps with enhanced Skill template files, Agent compatibility stubs, static workspace refresh, offline provider readiness, prompt profile versioning, and Studio v2.2 local summaries.
+
+These additions are local file outputs. They do not implement v2.4 platform distribution, XHS packaging/upload, OpenClaw export, MCP export, or mock publish.

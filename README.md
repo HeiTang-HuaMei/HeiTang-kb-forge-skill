@@ -778,3 +778,21 @@ Key v2.3 outputs:
 
 Batch & Governance Center is a read-only presentation layer over these files. Core logic remains in the Python package and CLI.
 
+## v2.3 Checkpoint Fill For v2.2 Industrial Gaps
+
+After the v2.3 checkpoint, the v2.2 gap-fill adds local industrial Skill / Agent / Workspace support without entering v2.4 platform distribution.
+
+New opt-in commands and flags:
+
+```powershell
+python -m heitang_kb_forge.cli generate-skill --package .\package --output .\skill --skill-type qa_skill --enhanced-skill-template
+python -m heitang_kb_forge.cli generate-agent --package .\package --skill .\skill --output .\agent --agent-compat
+python -m heitang_kb_forge.cli workspace-refresh --workspace .\workspace --output .\refresh_output
+python -m heitang_kb_forge.cli provider-readiness --workspace .\workspace --output .\provider_readiness
+python -m heitang_kb_forge.cli prompt-profile-versioning --workspace .\workspace --output .\prompt_versions
+```
+
+Master Skill Learning is not copying third-party Skills. It decomposes structure, task patterns, style features, and boundary rules, then combines those patterns with user-owned knowledge packages or uploaded materials to generate new user-owned Skills.
+
+v2.4 platform distribution, OpenClaw export, XHS packaging/upload, MCP platform export, and mock publish remain planned only.
+

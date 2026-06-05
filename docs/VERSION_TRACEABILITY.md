@@ -59,3 +59,9 @@ v2.2 owns master Skill import, Skill decomposition, profile extraction, derived 
 v2.3 owns `batch_job_manifest.json`, `batch_item_status.jsonl`, batch retry records, batch summary reports, `package_version_graph.json`, `curated_package/`, `governance_decisions.jsonl`, `impacted_skills.json`, `impacted_agents.json`, and Batch & Governance Center summaries.
 
 Investigate v2.3 first when batch item status, retry records, curation inclusion/exclusion, package lineage, or update impact outputs are wrong.
+
+# v2.3 Checkpoint Fill Traceability
+
+The checkpoint fill owns enhanced Skill template files, Agent compatibility stubs, workspace refresh reports, provider readiness reports, prompt profile versioning reports, `action_center.json`, `run_history.jsonl`, and `studio_v22_summary.json`.
+
+v2.4 platform distribution remains planned and is not part of this checkpoint.
