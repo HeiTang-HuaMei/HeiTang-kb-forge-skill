@@ -20,11 +20,11 @@ def test_v16_bilingual_docs_exist_and_cover_contract_and_multimodal():
     for doc in docs:
         assert Path(doc).exists(), doc
 
-    readme = Path("README.md").read_text(encoding="utf-8")
-    zh_readme = Path("README.zh-CN.md").read_text(encoding="utf-8")
-    assert "v1.6 Real-world Ingestion Closure" in readme
-    assert "multimodal_assets.jsonl" in readme
-    assert "check-contract" in readme
-    assert "v1.6 真实资料接入收口" in zh_readme
-    assert "multimodal_assets.jsonl" in zh_readme
-    assert "check-contract" in zh_readme
+    changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
+    quickstart_zh = Path("docs/QUICKSTART.zh-CN.md").read_text(encoding="utf-8")
+    assert "## v1.6" in changelog
+    assert "multimodal_assets.jsonl" in changelog
+    assert "check-contract" in changelog
+    assert "v1.6" in quickstart_zh
+    assert "multimodal_assets.jsonl" in quickstart_zh
+    assert "check-contract" in quickstart_zh

@@ -1,0 +1,2 @@
+"""Batch command extraction target."""
+

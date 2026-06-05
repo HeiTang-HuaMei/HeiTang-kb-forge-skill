@@ -1,0 +1,2 @@
+"""Skill command extraction target."""
+

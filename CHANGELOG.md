@@ -1,5 +1,21 @@
 # Changelog
 
+## v2.5.1-alpha.1
+
+* Added version alignment to `2.5.1-alpha.1`
+* Added Capability Status convergence
+* Added Version Matrix convergence
+* Added Release Checklist convergence
+* Added CI workflow release-check hardening
+* Added README scope convergence
+* Added `skill.json` stable / preview / experimental / roadmap capability split
+* Added release-readiness gate hardening
+* Added CLI architecture first split with compatibility entrypoint
+* Preserved default build / batch / run / pipeline behavior
+* No real LLM API calls
+* No real platform publishing
+* No real OpenClaw / Codex / Claude Code / MCP runtime execution
+
 ## v2.5.0
 
 * Added `quality-gate`

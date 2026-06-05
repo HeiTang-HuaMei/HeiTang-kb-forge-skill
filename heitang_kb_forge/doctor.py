@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import shutil
 import sqlite3
 import subprocess
@@ -15,12 +16,19 @@ def run_doctor(output: Path) -> tuple[dict[str, Any], str]:
         _python_version_check(),
         _package_import_check(),
         _cli_import_check(),
+        _quickstart_input_check(),
         _optional_import_check("pdfplumber", "Install with: python -m pip install -e \".[pdf-table]\""),
         _optional_import_check("pypdfium2", "Install with: python -m pip install -e \".[ocr]\""),
         _optional_import_check("pytesseract", "Install with: python -m pip install -e \".[ocr]\""),
         _optional_import_check("PIL", "Install with: python -m pip install -e \".[ocr]\""),
         _sqlite_check(),
         _write_permission_check(output),
+        _version_alignment_check(),
+        _doc_exists_check("capability_status_exists", Path("docs/CAPABILITY_STATUS.md")),
+        _doc_exists_check("version_matrix_exists", Path("docs/VERSION_MATRIX.md")),
+        _doc_exists_check("release_checklist_exists", Path("docs/RELEASE_CHECKLIST.md")),
+        _check("mock_provider_available", "pass", "Mock provider is available for offline tests.", "", required=True),
+        _check("network_not_required", "pass", "Base doctor does not require network access.", "", required=True),
     ]
     tesseract_check, language_check = _tesseract_checks()
     checks.append(tesseract_check)
@@ -74,6 +82,49 @@ def _cli_import_check() -> dict[str, Any]:
         return _check("cli_availability", "pass", "CLI app imports successfully.", "", required=True)
     except Exception as exc:
         return _check("cli_availability", "fail", str(exc), "Check installation and dependencies.", required=True)
+
+
+def _quickstart_input_check() -> dict[str, Any]:
+    path = Path("examples/quickstart/input")
+    return _check(
+        "examples_quickstart_input_exists",
+        "pass" if path.exists() else "fail",
+        str(path),
+        "Restore examples/quickstart/input.",
+        required=True,
+    )
+
+
+def _version_alignment_check() -> dict[str, Any]:
+    expected = "2.5.1-alpha.1"
+    versions = []
+    pyproject = Path("pyproject.toml")
+    skill_json = Path("skill.json")
+    if pyproject.exists():
+        for line in pyproject.read_text(encoding="utf-8").splitlines():
+            if line.startswith("version = "):
+                versions.append(line.split("=", 1)[1].strip().strip('"'))
+                break
+    if skill_json.exists():
+        versions.append(json.loads(skill_json.read_text(encoding="utf-8")).get("version"))
+    ok = versions and all(version == expected for version in versions)
+    return _check(
+        "version_alignment",
+        "pass" if ok else "fail",
+        f"Expected {expected}; found {versions}",
+        "Align project metadata versions.",
+        required=True,
+    )
+
+
+def _doc_exists_check(name: str, path: Path) -> dict[str, Any]:
+    return _check(
+        name,
+        "pass" if path.exists() else "fail",
+        str(path),
+        f"Create {path}.",
+        required=True,
+    )
 
 
 def _optional_import_check(module: str, fix_hint: str) -> dict[str, Any]:

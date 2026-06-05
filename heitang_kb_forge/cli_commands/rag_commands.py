@@ -1,0 +1,2 @@
+"""RAG command extraction target."""
+

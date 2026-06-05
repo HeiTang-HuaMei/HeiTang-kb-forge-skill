@@ -22,11 +22,11 @@ def make_registry(samples_root: Path) -> list[dict]:
 
 def _path_for(sample_type: str) -> str:
     if "platform" in sample_type or "xhs" in sample_type or "mcp" in sample_type:
-        return "platform_exports"
+        return "platform_export_mock" if sample_type == "platform_export_all" else "platform_exports"
     if "skill" in sample_type and "agent" not in sample_type:
         return "skill_package" if sample_type == "skill_package" else "derived_skill_package"
     if "agent" in sample_type:
         return "agent_package"
     if "workspace" in sample_type:
         return "workspace"
-    return "knowledge_package"
+    return "minimal_knowledge_package" if sample_type == "minimal_knowledge_package" else "knowledge_package"

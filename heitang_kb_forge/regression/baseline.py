@@ -8,5 +8,6 @@ REGRESSION_BASELINE = [
     ("v2.2", "master_skill_derived_skill_agent_compat", "tests/test_v22_config.py"),
     ("v2.3", "batch_lineage_curation_update_impact", "tests/test_v23_config.py"),
     ("v2.4", "platform_distribution_upload_mock_publish", "tests/test_v24_config.py"),
+    ("v2.5.0-dev", "release_quality_gate_regression_certification", "tests/test_v25_config.py"),
+    ("v2.5.1-alpha.1", "release_engineering_cli_architecture_convergence", "tests/test_version_alignment.py"),
 ]
-

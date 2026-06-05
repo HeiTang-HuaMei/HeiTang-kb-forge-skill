@@ -24,8 +24,7 @@ def test_desktop_docs_describe_tauri_exe_and_boundaries():
     assert "Tauri" in guide
     assert "Build Windows EXE" in guide
     assert "does not call external APIs" in guide
-    assert "v1.2.2 Tauri Desktop Utility" in readme
-    assert "v1.2.3 Desktop UI Freeze" in readme
-    assert "v1.2.2 Tauri Desktop Utility" in chinese
-    assert "v1.2.3 Desktop UI Freeze" in chinese
+    assert "Desktop App Guide" in readme
+    assert "桌面" in chinese
+    assert "## v1.2.2" in changelog
     assert "## v1.2.3" in changelog

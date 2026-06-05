@@ -8,7 +8,16 @@ from heitang_kb_forge.cli import app
 def test_validate_golden_samples_generates_validation(tmp_path):
     root = tmp_path / "golden"
     output = tmp_path / "golden_output"
-    for name in ["knowledge_package", "skill_package", "derived_skill_package", "agent_package", "workspace", "platform_exports"]:
+    for name in [
+        "minimal_knowledge_package",
+        "knowledge_package",
+        "skill_package",
+        "derived_skill_package",
+        "agent_package",
+        "workspace",
+        "platform_export_mock",
+        "platform_exports",
+    ]:
         (root / name).mkdir(parents=True)
 
     result = CliRunner().invoke(app, ["validate-golden-samples", "--workspace", str(root), "--output", str(output)])
@@ -18,4 +27,3 @@ def test_validate_golden_samples_generates_validation(tmp_path):
     assert payload["status"] == "pass"
     assert payload["sample_count"] >= 9
     assert (output / "golden_sample_diff.json").exists()
-

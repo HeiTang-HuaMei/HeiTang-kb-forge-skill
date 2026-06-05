@@ -1,7 +1,7 @@
 {
   "name": "heitang-kb-forge-skill",
   "display_name": "HeiTang KB Forge Skill",
-  "version": "2.5.0-alpha.1",
+  "version": "2.5.1-alpha.1",
   "description": "Agent knowledge supply-chain Skill for producing standardized, auditable, retrievable knowledge packages.",
   "entrypoints": {
     "cli": "heitang-kb-forge",
@@ -11,13 +11,42 @@
     "build_knowledge_package",
     "batch_build_packages",
     "knowledge_lifecycle_check",
-    "local_knowledge_store",
+    "evidence_gate",
+    "quality_report",
+    "release_quality_gate",
+    "regression_check",
+    "release_blockers"
+  ],
+  "preview_capabilities": [
+    "rag_export",
     "agent_rag_retrieve",
     "agent_ask",
+    "local_workspace_registry",
+    "knowledge_governance",
+    "platform_distribution",
+    "xhs_skill_package_mock",
     "agent_tool_export",
-    "mcp_readiness_export"
+    "mcp_stub_export"
   ],
-  "input_types": ["md", "txt", "pdf", "docx", "png", "jpg", "jpeg", "csv", "tsv", "xlsx"],
+  "experimental_capabilities": [
+    "master_skill_learning",
+    "derived_skill_generator",
+    "llm_quality_assist",
+    "provider_readiness",
+    "prompt_profile_versioning",
+    "golden_samples",
+    "compatibility_matrix",
+    "desktop_web_ui"
+  ],
+  "roadmap_capabilities": [
+    "real_llm_live_smoke_v26",
+    "provider_security_governance_v26",
+    "runtime_compatibility_smoke_v27",
+    "domain_skill_factory_v28",
+    "feishu_personal_kb_mobile_installer_ios_v29",
+    "saas_permissions_team_collaboration_v3x"
+  ],
+  "input_types": ["md", "txt", "pdf", "docx", "png", "jpg", "jpeg", "csv", "tsv", "xlsx", "html", "epub", "zip"],
   "output_contract": [
     "chunks.jsonl",
     "cards.jsonl",
@@ -29,5 +58,7 @@
   ],
   "optional_extras": ["ocr", "pdf-table", "web", "dev"],
   "agent_targets": ["OpenClaw", "Claude Code", "Codex", "Generic Agent", "MCP-ready"],
-  "network_required_by_default": false
+  "network_required_by_default": false,
+  "real_platform_publish_by_default": false,
+  "stores_real_api_keys": false
 }

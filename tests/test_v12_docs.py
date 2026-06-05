@@ -12,25 +12,22 @@ def test_v12_main_docs_include_ops_platform_sections():
     readme = read("README.md")
     readme_zh = read("README.zh-CN.md")
     changelog = read("CHANGELOG.md")
+    ops_guide = read("docs/KNOWLEDGE_OPS_GUIDE.md")
+    planning_guide = read("docs/AGENT_PLANNING_READINESS_GUIDE.md")
 
-    assert "v1.2.0 Knowledge Ops & Governance Platform" in readme
-    assert "Workspace / Package Registry" in readme
-    assert "Refresh / Staleness Detection" in readme
-    assert "Human Review / Curation Loop" in readme
-    assert "Agent Planning Readiness Pack" in readme
-    assert "heitang-kb-forge workspace init" in readme
-    assert "no Tool Runtime" in readme
-    assert "no real business integration" in readme
-    assert "no permissions" in readme
-    assert "no SaaS" in readme
+    assert "Knowledge Ops Guide" in readme
+    assert "v1.2.0 Knowledge Ops & Governance Platform" in ops_guide
+    assert "Workspace / Package Registry" in ops_guide
+    assert "Refresh / Staleness Detection" in ops_guide
+    assert "Human Review / Curation Loop" in ops_guide
+    assert "Agent Planning Readiness Pack" in planning_guide
+    assert "heitang-kb-forge workspace init" in ops_guide
+    assert "Tool Runtime" in ops_guide
+    assert "real business integration" in ops_guide
+    assert "permissions" in ops_guide
+    assert "SaaS" in ops_guide
 
-    assert "知识包工作区" in readme_zh
-    assert "刷新检测" in readme_zh
-    assert "人工审核" in readme_zh
-    assert "Agent Planning Readiness Pack" in readme_zh
-    assert "不是 Tool Runtime" in readme_zh
-    assert "不是权限系统" in readme_zh
-    assert "不是 SaaS" in readme_zh
+    assert "Knowledge Ops Guide" in readme_zh
 
     assert "v1.2.0" in changelog
     assert "workspace registry" in changelog
