@@ -1,4 +1,4 @@
-# HeiTang KB Forge Skill
+﻿# HeiTang KB Forge Skill
 
 [English](README.md) | 中文说明
 
@@ -166,4 +166,20 @@ v2.5.0-dev 仍然是 release quality gate 功能 checkpoint。
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+
+## 作品集 / Demo
+
+面试和作品集展示文档：
+
+- [项目一页纸](docs/PROJECT_ONE_PAGER.zh-CN.md)
+- [面试讲法](docs/INTERVIEW_TALK_TRACK.zh-CN.md)
+- [演示脚本](docs/DEMO_SCRIPT.zh-CN.md)
+- [作品集介绍](docs/PORTFOLIO_PRESENTATION.zh-CN.md)
+- [项目架构概览](docs/PROJECT_ARCHITECTURE_OVERVIEW.zh-CN.md)
+
+运行本地端到端 Demo：
+
+```powershell
+python -m heitang_kb_forge.cli demo-e2e --output ./tmp_demo_e2e
+```
 

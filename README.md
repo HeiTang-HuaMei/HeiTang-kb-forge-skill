@@ -1,4 +1,4 @@
-# HeiTang KB Forge Skill
+﻿# HeiTang KB Forge Skill
 
 [中文说明](README.zh-CN.md) | English
 
@@ -166,4 +166,20 @@ Future boundaries:
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+
+## Portfolio / Demo
+
+For interview and portfolio presentation, see:
+
+- [Project One-Pager](docs/PROJECT_ONE_PAGER.md)
+- [Interview Talk Track](docs/INTERVIEW_TALK_TRACK.md)
+- [Demo Script](docs/DEMO_SCRIPT.md)
+- [Portfolio Presentation](docs/PORTFOLIO_PRESENTATION.md)
+- [Project Architecture Overview](docs/PROJECT_ARCHITECTURE_OVERVIEW.md)
+
+Run the local end-to-end demo:
+
+```powershell
+python -m heitang_kb_forge.cli demo-e2e --output ./tmp_demo_e2e
+```
 
