@@ -183,3 +183,14 @@ MIT License. See [LICENSE](LICENSE) for details.
 python -m heitang_kb_forge.cli demo-e2e --output ./tmp_demo_e2e
 ```
 
+## Knowledge Workbench 终极目标
+
+HeiTang KB Forge Core 现在定义为 HeiTang Knowledge Workbench 里的知识供应链核心 Skill。
+
+战略文档：
+
+- [终极目标](docs/WORKBENCH_FINAL_TARGET.zh-CN.md)
+- [多知识库 / 多 Agent / 记忆隔离架构](docs/MULTI_KB_MULTI_AGENT_MEMORY_ARCHITECTURE.zh-CN.md)
+- [版本计划](docs/WORKBENCH_VERSION_PLAN.zh-CN.md)
+- [外部项目接入清单](docs/EXTERNAL_PROJECT_ADOPTION.zh-CN.md)
+

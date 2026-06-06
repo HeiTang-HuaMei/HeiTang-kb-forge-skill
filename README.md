@@ -183,3 +183,14 @@ Run the local end-to-end demo:
 python -m heitang_kb_forge.cli demo-e2e --output ./tmp_demo_e2e
 ```
 
+## Knowledge Workbench Target
+
+HeiTang KB Forge Core is now defined as the knowledge supply-chain core Skill inside the larger HeiTang Knowledge Workbench direction.
+
+Strategic docs:
+
+- [Final Target](docs/WORKBENCH_FINAL_TARGET.md)
+- [Multi-KB / Multi-Agent Memory Architecture](docs/MULTI_KB_MULTI_AGENT_MEMORY_ARCHITECTURE.md)
+- [Workbench Version Plan](docs/WORKBENCH_VERSION_PLAN.md)
+- [External Project Adoption](docs/EXTERNAL_PROJECT_ADOPTION.zh-CN.md)
+
