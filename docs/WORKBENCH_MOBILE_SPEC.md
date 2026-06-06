@@ -1,14 +1,15 @@
 # HeiTang Knowledge Workbench Mobile Spec
 
-Status: responsive web and PWA-ready prototype. Native iOS and Android apps are out of scope.
+Status: responsive web and PWA-ready prototype with Flutter platform scaffolds for Windows, Web, Android, and iOS.
 
 ## Mobile Strategy
 
-- Use the same static workbench surface as desktop.
+- Use the same workbench information architecture as desktop.
 - Collapse the desktop sidebar into a mobile page selector.
 - Keep cards single-column on narrow screens.
 - Keep tables horizontally scrollable when compact card conversion would hide contract details.
 - Preserve theme and language controls in the topbar.
+- Keep Flutter phone layout adaptive by switching from desktop rail navigation to a page selector, not by scaling the desktop layout.
 
 ## Breakpoints
 
@@ -24,11 +25,16 @@ Status: responsive web and PWA-ready prototype. Native iOS and Android apps are 
 - Navigation must remain reachable without horizontal scrolling.
 - Text must wrap inside cards and buttons.
 
-## PWA Readiness
+## PWA And Platform Readiness
 
 - `index.html` includes viewport and theme-color metadata.
+- Static Web includes `web/workbench/manifest.webmanifest`.
+- Flutter Web includes `web/workbench/flutter_app/web/manifest.json`.
+- Windows desktop scaffold exists under `web/workbench/flutter_app/windows/`.
+- Android target scaffold exists under `web/workbench/flutter_app/android/`.
+- iOS target scaffold exists under `web/workbench/flutter_app/ios/`.
 - The prototype avoids backend coupling, so a future service worker can cache shell files and mock/API responses.
-- This phase does not add a service worker because offline behavior and install prompts are not part of the requested prototype.
+- This phase does not add a service worker because offline behavior and install prompts are reserved for later integration.
 
 ## Mobile Page Coverage
 
@@ -58,3 +64,5 @@ Mobile smoke tests should verify:
 - Sidebar is hidden at the mobile breakpoint.
 - Content grids collapse to one column.
 - Required breakpoints exist in CSS.
+- Flutter scaffold declares phone, tablet, and desktop layout branches.
+- Web/PWA and Windows/Android/iOS target scaffold files exist.

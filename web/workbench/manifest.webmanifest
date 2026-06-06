@@ -1,0 +1,24 @@
+{
+  "name": "HeiTang Knowledge Workbench",
+  "short_name": "HeiTang KB",
+  "description": "Mock-only HeiTang Knowledge Workbench prototype with reserved PWA support.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f4f2",
+  "theme_color": "#111111",
+  "icons": [
+    {
+      "src": "./flutter_app/assets/brand/black_cat_head.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./flutter_app/assets/brand/black_tiger_head.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

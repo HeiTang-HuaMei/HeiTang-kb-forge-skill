@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="HeiTang black cat head">
+  <rect width="96" height="96" rx="24" fill="#111111"/>
+  <path d="M25 35 18 16l21 10c5-2 15-2 20 0l21-10-7 19c5 6 8 14 8 23 0 21-16 31-33 31S15 79 15 58c0-9 3-17 10-23Z" fill="#f7f7f5"/>
+  <circle cx="36" cy="55" r="5" fill="#111111"/>
+  <circle cx="60" cy="55" r="5" fill="#111111"/>
+  <path d="M46 66h8l-4 5Z" fill="#111111"/>
+  <path d="M32 72c6 5 30 5 36 0" fill="none" stroke="#111111" stroke-width="4" stroke-linecap="round"/>
+</svg>

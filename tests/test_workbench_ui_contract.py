@@ -26,6 +26,28 @@ def test_workbench_contract_uses_mock_only_scope_and_future_service_boundary():
         "answerPolicies",
         "memoryPolicies",
     }
+    assert contracts["flutter"]["project_root"] == "web/workbench/flutter_app"
+    assert contracts["flutter"]["desktop"] == "windows"
+    assert set(contracts["flutter"]["targets"]) == {"windows", "web", "android", "ios"}
+    assert contracts["flutter"]["scaffold_only_when_flutter_cli_missing"] is True
+    assert contracts["brand"]["name"] == "黑糖 HeiTang"
+    assert contracts["pwa"]["static_web_manifest"] == "web/workbench/manifest.webmanifest"
+    assert contracts["pwa"]["flutter_web_manifest"] == "web/workbench/flutter_app/web/manifest.json"
+
+
+def test_flutter_project_scaffold_has_standard_entry_files():
+    flutter_root = WORKBENCH / "flutter_app"
+    pubspec = (flutter_root / "pubspec.yaml").read_text(encoding="utf-8")
+    readme = (flutter_root / "README.md").read_text(encoding="utf-8")
+
+    assert (flutter_root / ".metadata").exists()
+    assert (flutter_root / "analysis_options.yaml").exists()
+    assert (flutter_root / "lib" / "main.dart").exists()
+    assert (flutter_root / "test" / "widget_test.dart").exists()
+    assert "name: heitang_workbench" in pubspec
+    assert "flutter_lints" in pubspec
+    assert "flutter run -d windows" in readme
+    assert "flutter run -d chrome" in readme
 
 
 def test_workbench_pages_reference_existing_mock_sources():
@@ -65,6 +87,28 @@ def test_mock_service_is_the_only_data_loading_boundary():
     ]
     for forbidden in forbidden_core_imports:
         assert all(forbidden not in line for line in import_lines)
+
+
+def test_flutter_scaffold_does_not_import_core_modules():
+    flutter_files = list((WORKBENCH / "flutter_app").rglob("*"))
+    text_files = [
+        path
+        for path in flutter_files
+        if path.is_file() and path.suffix in {".dart", ".yaml", ".gradle", ".kt", ".swift", ".cpp", ".txt", ".md", ".plist"}
+    ]
+    combined = "\n".join(path.read_text(encoding="utf-8", errors="ignore") for path in text_files)
+
+    for forbidden in [
+        "cli_runtime",
+        "parser_backends",
+        "knowledge_runtime",
+        "document_generation",
+        "agent_factory",
+        "orchestration",
+        "memory_runtime",
+        "heitang_kb_forge",
+    ]:
+        assert forbidden not in combined
 
 
 def test_workbench_changed_surface_is_limited_to_allowed_paths():

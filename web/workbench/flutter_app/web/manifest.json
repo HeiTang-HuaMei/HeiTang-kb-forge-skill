@@ -1,0 +1,10 @@
+{
+  "name": "HeiTang Knowledge Workbench",
+  "short_name": "HeiTang KB",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f4f4f2",
+  "theme_color": "#111111",
+  "description": "Reserved PWA target for the HeiTang Workbench Flutter scaffold.",
+  "icons": []
+}

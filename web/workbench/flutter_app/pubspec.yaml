@@ -1,0 +1,22 @@
+name: heitang_workbench
+description: Mock-only HeiTang Knowledge Workbench Flutter scaffold.
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/brand/black_cat_head.svg
+    - assets/brand/black_tiger_head.svg

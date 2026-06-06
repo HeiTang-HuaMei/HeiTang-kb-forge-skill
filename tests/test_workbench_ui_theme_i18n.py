@@ -34,6 +34,7 @@ def test_workbench_supports_chinese_and_english_i18n_switching():
     index = (WORKBENCH / "index.html").read_text(encoding="utf-8")
     i18n = (WORKBENCH / "src" / "i18n.js").read_text(encoding="utf-8")
     app = (WORKBENCH / "src" / "app.js").read_text(encoding="utf-8")
+    flutter_main = (WORKBENCH / "flutter_app" / "lib" / "main.dart").read_text(encoding="utf-8")
 
     assert 'lang="zh-CN"' in index
     assert 'data-locale="zh-CN"' in index
@@ -43,3 +44,35 @@ def test_workbench_supports_chinese_and_english_i18n_switching():
     assert '"en-US"' in i18n
     assert "document.documentElement.lang = state.locale" in app
     assert "label_zh" in app
+    assert "supportedLocaleCodes" in flutter_main
+    assert "const Locale('zh', 'CN')" in flutter_main
+    assert "const Locale('en', 'US')" in flutter_main
+    assert "SegmentedButton<String>" in flutter_main
+    assert "localeCode == 'zh-CN' ? '打开' : 'Open'" in flutter_main
+
+
+def test_workbench_brand_and_mascot_assets_exist():
+    index = (WORKBENCH / "index.html").read_text(encoding="utf-8")
+    flutter_main = (WORKBENCH / "flutter_app" / "lib" / "main.dart").read_text(encoding="utf-8")
+    pubspec = (WORKBENCH / "flutter_app" / "pubspec.yaml").read_text(encoding="utf-8")
+
+    assert "黑糖 HeiTang" in index
+    assert "black_cat_head.svg" in index
+    assert "black_tiger_head.svg" in index
+    assert "black_cat_head.svg" in pubspec
+    assert "black_tiger_head.svg" in pubspec
+    assert "black_cat_head.svg" in flutter_main
+    assert "black_tiger_head.svg" in flutter_main
+    assert (WORKBENCH / "flutter_app" / "assets" / "brand" / "black_cat_head.svg").exists()
+    assert (WORKBENCH / "flutter_app" / "assets" / "brand" / "black_tiger_head.svg").exists()
+
+
+def test_flutter_scaffold_supports_light_and_dark_modes():
+    flutter_main = (WORKBENCH / "flutter_app" / "lib" / "main.dart").read_text(encoding="utf-8")
+
+    assert "ThemeMode.light" in flutter_main
+    assert "ThemeMode.dark" in flutter_main
+    assert "theme: _theme(Brightness.light)" in flutter_main
+    assert "darkTheme: _theme(Brightness.dark)" in flutter_main
+    assert "Icons.light_mode_outlined" in flutter_main
+    assert "Icons.dark_mode_outlined" in flutter_main

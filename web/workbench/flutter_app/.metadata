@@ -1,0 +1,27 @@
+version:
+  revision: scaffold
+  channel: stable
+
+project_type: app
+
+migration:
+  platforms:
+    - platform: root
+      create_revision: scaffold
+      base_revision: scaffold
+    - platform: windows
+      create_revision: scaffold
+      base_revision: scaffold
+    - platform: web
+      create_revision: scaffold
+      base_revision: scaffold
+    - platform: android
+      create_revision: scaffold
+      base_revision: scaffold
+    - platform: ios
+      create_revision: scaffold
+      base_revision: scaffold
+
+unmanaged_files:
+  - "lib/main.dart"
+  - "pubspec.yaml"

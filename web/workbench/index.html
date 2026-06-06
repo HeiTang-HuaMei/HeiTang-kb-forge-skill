@@ -6,14 +6,22 @@
     <meta name="theme-color" content="#111111" />
     <title>HeiTang Knowledge Workbench</title>
     <link rel="icon" href="data:," />
+    <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body data-theme="light">
     <div class="workbench-shell">
       <header class="topbar">
-        <div>
-          <p class="eyebrow" data-i18n="product.kicker">Mock-only UI Prototype</p>
-          <h1 data-i18n="product.title">HeiTang Knowledge Workbench</h1>
+        <div class="brand-lockup">
+          <div class="brand-mascots" aria-label="HeiTang black cat and black tiger brand marks">
+            <img src="./flutter_app/assets/brand/black_cat_head.svg" alt="黑猫头" />
+            <img src="./flutter_app/assets/brand/black_tiger_head.svg" alt="黑虎头" />
+          </div>
+          <div>
+            <p class="brand-name">黑糖 HeiTang</p>
+            <p class="eyebrow" data-i18n="product.kicker">Mock-only UI Prototype</p>
+            <h1 data-i18n="product.title">HeiTang Knowledge Workbench</h1>
+          </div>
         </div>
         <div class="toolbar" aria-label="Workbench controls">
           <button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle theme">◐</button>

@@ -5,13 +5,17 @@ Status: UI-v0.1 through UI-v0.5 prototype. This spec defines a mock-only product
 ## Scope
 
 - Build a web-first Knowledge Workbench prototype with static HTML, CSS, and JavaScript.
+- Provide a Flutter scaffold under `web/workbench/flutter_app/` for Windows desktop, Web/PWA, Android, and iOS targets.
 - Use only `examples/ui_mock_data/*.json` as data sources.
 - Keep parser, RAG, document generation, agent orchestration, and memory runtime logic out of scope.
 - Reserve future API replacement at `web/workbench/src/mockService.js`.
+- Do not import Core pipeline modules from Flutter UI scaffold files.
 
 ## Design System
 
 - Visual style: minimal black, white, and gray.
+- Brand: `黑糖 HeiTang` must be visible in the shell.
+- Brand assets: black cat head and black tiger head SVG assets must exist under `web/workbench/flutter_app/assets/brand/`.
 - Layout: fixed desktop sidebar, sticky topbar, card grids, compact tables, and soft bordered panels.
 - Controls: rounded buttons, segmented language switcher, icon theme toggle, form fields, status pills, and progress bars.
 - Typography: system sans-serif, neutral hierarchy, no decorative display treatment.

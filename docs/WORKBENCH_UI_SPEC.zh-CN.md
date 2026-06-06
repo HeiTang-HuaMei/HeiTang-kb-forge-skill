@@ -5,13 +5,17 @@
 ## 范围
 
 - 构建 Web 优先的 Knowledge Workbench 原型，使用静态 HTML、CSS、JavaScript。
+- 在 `web/workbench/flutter_app/` 下提供 Flutter scaffold，覆盖 Windows 桌面、Web/PWA、Android、iOS target。
 - 数据源只允许使用 `examples/ui_mock_data/*.json`。
 - 不实现解析、RAG、文档生成、Agent 编排或记忆运行时逻辑。
 - 未来 API 替换边界保留在 `web/workbench/src/mockService.js`。
+- Flutter UI scaffold 不得导入 Core pipeline 模块。
 
 ## 设计系统
 
 - 视觉风格：极简黑、白、灰。
+- 品牌：界面必须明显展示 `黑糖 HeiTang`。
+- 品牌资产：黑猫头与黑虎头 SVG 资产必须位于 `web/workbench/flutter_app/assets/brand/`。
 - 布局：桌面固定侧边栏、顶部栏、卡片网格、紧凑表格、柔和边框面板。
 - 控件：圆角按钮、分段语言切换、主题图标按钮、表单字段、状态标签、进度条。
 - 字体：系统无衬线字体，层级清晰，不使用装饰性字体。

@@ -83,6 +83,36 @@ button {
   font-weight: 720;
 }
 
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.brand-mascots {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.brand-mascots img {
+  width: 34px;
+  height: 34px;
+  padding: 4px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.brand-name {
+  margin: 0 0 var(--space-1);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 760;
+}
+
 .eyebrow {
   margin: 0 0 var(--space-1);
   color: var(--muted);
@@ -468,6 +498,10 @@ textarea {
     padding: var(--space-4);
   }
 
+  .brand-lockup {
+    align-items: flex-start;
+  }
+
   .toolbar {
     flex-shrink: 0;
   }
@@ -515,6 +549,11 @@ textarea {
 @media (max-width: 480px) {
   .topbar {
     gap: var(--space-3);
+  }
+
+  .brand-mascots img {
+    width: 30px;
+    height: 30px;
   }
 
   .topbar h1 {

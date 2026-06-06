@@ -56,6 +56,24 @@
     "breakpoints_px": [980, 760, 480],
     "navigation": "select-on-mobile-sidebar-on-desktop"
   },
+  "brand": {
+    "name": "黑糖 HeiTang",
+    "assets": {
+      "black_cat_head": "web/workbench/flutter_app/assets/brand/black_cat_head.svg",
+      "black_tiger_head": "web/workbench/flutter_app/assets/brand/black_tiger_head.svg"
+    }
+  },
+  "flutter": {
+    "project_root": "web/workbench/flutter_app",
+    "desktop": "windows",
+    "targets": ["windows", "web", "android", "ios"],
+    "scaffold_only_when_flutter_cli_missing": true,
+    "entrypoint": "web/workbench/flutter_app/lib/main.dart"
+  },
+  "pwa": {
+    "static_web_manifest": "web/workbench/manifest.webmanifest",
+    "flutter_web_manifest": "web/workbench/flutter_app/web/manifest.json"
+  },
   "future_api": {
     "boundary": "Replace web/workbench/src/mockService.js fetch functions with Core API calls later.",
     "reserved_resources": ["knowledgeBases", "agents", "workflows", "memoryScopes", "jobs", "reviewItems", "generatedDocs", "exportItems", "providers", "parserBackends", "answerPolicies", "memoryPolicies"],

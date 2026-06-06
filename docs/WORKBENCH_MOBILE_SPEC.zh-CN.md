@@ -1,14 +1,15 @@
 # HeiTang Knowledge Workbench 移动端规格
 
-状态：响应式 Web 与 PWA-ready 原型。不实现原生 iOS 或 Android 应用。
+状态：响应式 Web 与 PWA-ready 原型，并为 Windows、Web、Android、iOS 提供 Flutter 平台 scaffold。
 
 ## 移动端策略
 
-- 移动端与桌面端使用同一套静态工作台界面。
+- 移动端与桌面端使用同一套工作台信息架构。
 - 桌面侧边栏在移动端折叠为页面选择器。
 - 窄屏下卡片使用单列布局。
 - 表格在移动端允许横向滚动，避免隐藏契约字段。
 - 顶部保留主题和语言切换控件。
+- Flutter 手机布局通过桌面导航栏切换为页面选择器实现自适应，而不是简单缩放桌面布局。
 
 ## 断点
 
@@ -24,11 +25,16 @@
 - 导航无需横向滚动即可访问。
 - 卡片和按钮内文字必须正常换行。
 
-## PWA 就绪性
+## PWA 与平台就绪性
 
 - `index.html` 包含 viewport 和 theme-color 元数据。
+- 静态 Web 包含 `web/workbench/manifest.webmanifest`。
+- Flutter Web 包含 `web/workbench/flutter_app/web/manifest.json`。
+- Windows 桌面 scaffold 位于 `web/workbench/flutter_app/windows/`。
+- Android target scaffold 位于 `web/workbench/flutter_app/android/`。
+- iOS target scaffold 位于 `web/workbench/flutter_app/ios/`。
 - 原型不耦合后端，因此未来 service worker 可缓存 shell 文件和 mock/API 响应。
-- 本阶段不添加 service worker，因为离线行为和安装提示不属于当前原型范围。
+- 本阶段不添加 service worker，因为离线行为和安装提示保留到后续集成。
 
 ## 移动端页面覆盖
 
@@ -58,3 +64,5 @@
 - 移动断点下隐藏侧边栏。
 - 内容网格折叠为单列。
 - CSS 包含必要断点。
+- Flutter scaffold 声明手机、平板和桌面布局分支。
+- Web/PWA 与 Windows/Android/iOS target scaffold 文件存在。
