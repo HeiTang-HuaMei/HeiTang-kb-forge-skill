@@ -24,6 +24,7 @@ from heitang_kb_forge.contracts.report import make_contract_report
 from heitang_kb_forge.contracts.stable_checker import run_stable_check
 from heitang_kb_forge.doctor import run_doctor
 from heitang_kb_forge.downstream.exporter import DOWNSTREAM_OUTPUT_FILES, make_downstream_exports
+from heitang_kb_forge.demo_e2e import run_demo_e2e
 from heitang_kb_forge.embedding.exporter import EMBEDDING_OUTPUT_FILES, make_embeddings
 from heitang_kb_forge.eval.demo import DEMO_OUTPUT_FILES, make_demo_report
 from heitang_kb_forge.evidence_gate import EVIDENCE_GATE_OUTPUT_FILES, run_evidence_gate
@@ -1829,6 +1830,18 @@ def studio_run(
     finalize_studio_workspace(workspace, project_name, knowledge_package)
     write_studio_v22_outputs(workspace)
     typer.echo(f"Studio run completed at {workspace}")
+
+
+@app.command("demo-e2e")
+def demo_e2e_command(
+    output: Path = typer.Option(..., "--output"),
+    input: Path | None = typer.Option(None, "--input", exists=True, file_okay=True, dir_okay=True, readable=True),
+    domain: str = typer.Option("portfolio", "--domain"),
+    mode: str = typer.Option("demo", "--mode"),
+) -> None:
+    """Run a local offline v2.7 portfolio demo workflow without platform runtimes."""
+    result = run_demo_e2e(output, input, domain, mode)
+    typer.echo(f"Demo E2E: {result['status']}")
 
 
 @app.command("stable-check")

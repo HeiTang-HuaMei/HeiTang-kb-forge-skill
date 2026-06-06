@@ -1,6 +1,6 @@
 # CLI Architecture
 
-Current version: `2.6.0-alpha.1`
+Current version: `2.7.0-alpha.1`
 
 ## Purpose
 

@@ -1,6 +1,6 @@
 # Release Checklist
 
-Current project version: `2.6.0-alpha.1`
+Current project version: `2.7.0-alpha.1`
 
 ## Required Checks
 
@@ -25,11 +25,13 @@ Current project version: `2.6.0-alpha.1`
 - [ ] Provider registry exported and validated
 - [ ] Provider fallback, audit redaction, and cost guard generated
 - [ ] LLM live smoke generated with explicit opt-in and no API key leakage
+- [ ] Demo E2E generated `demo_e2e_result.json`, `portfolio_demo_report.md`, `demo_evidence_pack/`, and `runtime_limitations.md`
 
 ## Boundaries
 
 - Do not claim default real LLM API calls; v2.6 live smoke is opt-in.
 - Do not claim all providers were live-tested; v2.6 registry coverage is config governance plus Preview live smoke.
+- Do not claim full runtime compatibility; v2.7 is a local offline demo / portfolio release.
 - Do not claim official Xiaohongshu upload API support.
 - Do not claim real OpenClaw / Codex / Claude Code / MCP runtime execution.
 - Do not claim Feishu / mobile / installer / iOS support before v2.9.

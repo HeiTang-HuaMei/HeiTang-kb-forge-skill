@@ -2,9 +2,9 @@
 
 [中文说明](README.zh-CN.md) | English
 
-Current version: `2.6.0-alpha.1`
+Current version: `2.7.0-alpha.1`
 
-Release status: alpha provider governance checkpoint. This is not a stable release.
+Release status: alpha minimal end-to-end demo / portfolio checkpoint. This is not a stable release.
 
 HeiTang KB Forge is an offline-first, agent-callable knowledge supply-chain Skill. It turns multi-format source material into standardized, auditable, reviewable, and retrievable knowledge asset packages for Agent and RAG workflows.
 
@@ -38,6 +38,7 @@ Preview capabilities:
 - Platform distribution and mock publishing packages
 - Provider registry, config validation, redaction, fallback, and cost guard
 - Provider live smoke, disabled unless explicitly opted in
+- Minimal end-to-end portfolio demo workflow
 
 Experimental capabilities:
 
@@ -69,6 +70,16 @@ python -m heitang_kb_forge.cli llm-cost-guard --output .\tmp_v26\cost --prompt-c
 ```
 
 Default behavior remains mock/offline. Real provider calls require explicit live flags and local environment variables. See [v2.6 Provider Governance](docs/V26_PROVIDER_GOVERNANCE.md).
+
+## v2.7 Demo E2E
+
+v2.7 adds a local offline portfolio demo workflow. It builds a knowledge package, runs quality gate, provider security audit, mock LLM quality gate assist, generic/Codex/OpenClaw platform exports, release readiness, a portfolio report, and an evidence pack.
+
+```powershell
+python -m heitang_kb_forge.cli demo-e2e --output .\tmp_demo_e2e
+```
+
+The demo does not run real platform runtimes, start an MCP server, publish to Xiaohongshu, or call live providers by default.
 
 ## Install
 
@@ -133,7 +144,7 @@ By default, HeiTang KB Forge does not:
 Future boundaries:
 
 - v2.6: real LLM live smoke and provider security governance
-- v2.7: runtime compatibility smoke
+- v2.7: minimal end-to-end demo / portfolio release
 - v2.8: domain Skill factory
 - v2.9: Feishu / personal KB / mobile / installer / iOS
 - v3.x: SaaS / permissions / team collaboration

@@ -1,6 +1,6 @@
 # Release Checklist
 
-当前项目版本：`2.6.0-alpha.1`
+当前项目版本：`2.7.0-alpha.1`
 
 ## Required Checks
 
@@ -25,11 +25,13 @@
 - [ ] Provider registry 已导出并校验
 - [ ] Provider fallback、audit redaction、cost guard 已生成
 - [ ] LLM live smoke 必须显式 opt-in 且不泄漏 API key
+- [ ] Demo E2E 已生成 `demo_e2e_result.json`、`portfolio_demo_report.md`、`demo_evidence_pack/` 和 `runtime_limitations.md`
 
 ## Boundaries
 
 - 不声明默认真实 LLM API 调用；v2.6 live smoke 是 opt-in。
 - 不声明所有 Provider 都已 live-tested；v2.6 registry coverage 是 config governance + Preview live smoke。
+- 不声明完整 runtime compatibility；v2.7 是本地离线 demo / portfolio release。
 - 不声明小红书官方上传 API 支持。
 - 不声明真实 OpenClaw / Codex / Claude Code / MCP runtime 执行。
 - v2.9 前不声明飞书 / 移动端 / 安装端 / iOS 支持。

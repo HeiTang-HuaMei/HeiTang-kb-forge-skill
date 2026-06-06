@@ -2,9 +2,9 @@
 
 [English](README.md) | 中文说明
 
-当前版本：`2.6.0-alpha.1`
+当前版本：`2.7.0-alpha.1`
 
-发布状态：alpha provider governance checkpoint。当前不是 stable release。
+发布状态：alpha minimal end-to-end demo / portfolio checkpoint。当前不是 stable release。
 
 HeiTang KB Forge 是一个 offline-first、可被 Agent 调用的知识供应链前置 Skill。它把多格式原始资料加工成标准化、可审计、可复核、可检索的知识资产包，用于 Agent 和 RAG 工作流。
 
@@ -38,6 +38,7 @@ Preview 能力：
 - platform distribution 与 mock publishing package
 - Provider registry、配置校验、redaction、fallback、cost guard
 - Provider live smoke，默认关闭，必须显式 opt-in
+- Minimal end-to-end portfolio demo workflow
 
 Experimental 能力：
 
@@ -69,6 +70,16 @@ python -m heitang_kb_forge.cli llm-cost-guard --output .\tmp_v26\cost --prompt-c
 ```
 
 默认行为仍然是 mock/offline。真实 provider 调用必须显式开启 live flags，并由本地环境变量提供配置。详见 [v2.6 Provider Governance](docs/V26_PROVIDER_GOVERNANCE.zh-CN.md)。
+
+## v2.7 Demo E2E
+
+v2.7 新增本地离线作品集 demo 工作流。它会构建知识包，运行 quality gate、provider security audit、mock LLM quality gate assist、generic / Codex / OpenClaw 平台导出、release readiness、portfolio report 和 evidence pack。
+
+```powershell
+python -m heitang_kb_forge.cli demo-e2e --output .\tmp_demo_e2e
+```
+
+该 demo 不运行真实平台 runtime，不启动 MCP server，不自动发布小红书笔记，默认不调用 live provider。
 
 ## 安装
 
@@ -133,7 +144,7 @@ v2.5.0-dev 仍然是 release quality gate 功能 checkpoint。
 后续边界：
 
 - v2.6：真实 LLM live smoke 与 provider security governance
-- v2.7：runtime compatibility smoke
+- v2.7：minimal end-to-end demo / portfolio release
 - v2.8：domain Skill factory
 - v2.9：飞书 / 个人知识库 / 移动端 / 安装端 / iOS
 - v3.x：SaaS / 权限 / 团队协作

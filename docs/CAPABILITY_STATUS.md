@@ -1,8 +1,8 @@
 # Capability Status
 
-Current project version: `2.6.0-alpha.1`
+Current project version: `2.7.0-alpha.1`
 
-v2.6.0-alpha.1 is a provider registry, security governance, fallback, redaction, cost guard, and opt-in live smoke checkpoint. v2.5.1 is the release engineering / CLI architecture convergence checkpoint.
+v2.7.0-alpha.1 is a minimal end-to-end demo / portfolio release checkpoint. It does not implement full runtime compatibility.
 
 ## Stable
 
@@ -38,6 +38,8 @@ v2.6.0-alpha.1 is a provider registry, security governance, fallback, redaction,
 - LLM cost guard
 - audit redaction check
 - opt-in provider live smoke
+- minimal end-to-end portfolio demo
+- demo evidence pack
 
 ## Experimental
 
@@ -54,7 +56,7 @@ v2.6.0-alpha.1 is a provider registry, security governance, fallback, redaction,
 
 ## Roadmap
 
-- v2.7 runtime compatibility smoke
+- runtime compatibility smoke
 - v2.8 domain Skill factory
 - v2.9 Feishu / personal KB / mobile / installer / iOS
 - v3.x SaaS / permissions / team collaboration

@@ -1,0 +1,17 @@
+task: demo_e2e
+output: examples/output_v27_demo_e2e
+domain: portfolio
+mode: demo
+
+demo_e2e:
+  enabled: true
+  offline: true
+  mock_provider: true
+  live_provider: skipped
+  export_platforms:
+    - generic
+    - codex
+    - openclaw
+  no_real_platform_runtime: true
+  no_mcp_server_startup: true
+  no_xhs_auto_publish: true

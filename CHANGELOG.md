@@ -1,5 +1,22 @@
 # Changelog
 
+## v2.7.0-alpha.1
+
+* Added local offline `demo-e2e` command.
+* Added minimal end-to-end portfolio demo runner.
+* Added `demo_e2e_result.json`.
+* Added `portfolio_demo_report.md`.
+* Added `demo_evidence_pack/`.
+* Added `runtime_limitations.md`.
+* Added generic / Codex / OpenClaw export evidence in the demo workflow.
+* Added demo evidence for quality gate, provider security audit, mock LLM quality gate assist, and release readiness.
+* Preserved default mock/offline behavior.
+* No real platform runtime execution.
+* No MCP server startup.
+* No Xiaohongshu auto publish.
+* No live provider calls by default.
+* Runtime compatibility smoke remains not implemented in v2.7.
+
 ## v2.6.0-alpha.1
 
 * Added domestic and international provider registry coverage.

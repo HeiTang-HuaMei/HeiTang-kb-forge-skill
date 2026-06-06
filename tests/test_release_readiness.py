@@ -1,4 +1,4 @@
-import json
+﻿import json
 
 from typer.testing import CliRunner
 
@@ -10,12 +10,12 @@ def _write_release_workspace_contract(workspace):
     docs.mkdir()
     workflows = workspace / ".github" / "workflows"
     workflows.mkdir(parents=True)
-    (workspace / "pyproject.toml").write_text('version = "2.6.0-alpha.1"\n', encoding="utf-8")
-    (workspace / "skill.json").write_text('{"version":"2.6.0-alpha.1"}', encoding="utf-8")
-    (workspace / "README.md").write_text("HeiTang KB Forge Skill\n2.6.0-alpha.1\n", encoding="utf-8")
-    (docs / "CAPABILITY_STATUS.md").write_text("2.6.0-alpha.1\nStable\nPreview\nExperimental\n", encoding="utf-8")
-    (docs / "VERSION_MATRIX.md").write_text("v2.6.0-alpha.1\n2.6.0-alpha.1\n", encoding="utf-8")
-    (docs / "RELEASE_CHECKLIST.md").write_text("2.6.0-alpha.1\nRelease checklist\n", encoding="utf-8")
+    (workspace / "pyproject.toml").write_text('version = "2.7.0-alpha.1"\n', encoding="utf-8")
+    (workspace / "skill.json").write_text('{"version":"2.7.0-alpha.1"}', encoding="utf-8")
+    (workspace / "README.md").write_text("HeiTang KB Forge Skill\n2.7.0-alpha.1\n", encoding="utf-8")
+    (docs / "CAPABILITY_STATUS.md").write_text("2.7.0-alpha.1\nStable\nPreview\nExperimental\n", encoding="utf-8")
+    (docs / "VERSION_MATRIX.md").write_text("v2.7.0-alpha.1\n2.7.0-alpha.1\n", encoding="utf-8")
+    (docs / "RELEASE_CHECKLIST.md").write_text("2.7.0-alpha.1\nRelease checklist\n", encoding="utf-8")
     (workflows / "ci.yml").write_text("name: CI\n", encoding="utf-8")
     (workflows / "release-check.yml").write_text("name: Release Check\n", encoding="utf-8")
 
