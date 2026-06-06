@@ -1,0 +1,37 @@
+{
+  "review_items": [
+    {
+      "id": "rev-1001",
+      "kb_id": "kb-draft-support",
+      "source": "support_case_1842.docx",
+      "risk": "high",
+      "reason": "Contradictory refund policy statement needs evidence confirmation.",
+      "reason_zh": "退款策略表述冲突，需要确认证据。",
+      "status": "needs_correction",
+      "assignee": "Risk Review",
+      "corrected_text": "Refund exception guidance must cite the active governance policy before use."
+    },
+    {
+      "id": "rev-1002",
+      "kb_id": "kb-draft-support",
+      "source": "support_case_1850.pdf",
+      "risk": "medium",
+      "reason": "OCR confidence is low for a billing table.",
+      "reason_zh": "账单表格 OCR 置信度较低。",
+      "status": "queued",
+      "assignee": "Knowledge Ops",
+      "corrected_text": "Billing escalation table requires manual comparison with the original PDF."
+    },
+    {
+      "id": "rev-1003",
+      "kb_id": "kb-trusted-product",
+      "source": "launch_notes_q2.md",
+      "risk": "low",
+      "reason": "Terminology normalization suggested before publishing.",
+      "reason_zh": "发布前建议统一术语。",
+      "status": "in_review",
+      "assignee": "Product Ops",
+      "corrected_text": "Use 'workspace package' consistently across launch notes."
+    }
+  ]
+}

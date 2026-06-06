@@ -1,0 +1,8 @@
+{
+  "parser_backends": [
+    {"id": "docling_local", "name": "Docling Local", "status": "available", "supports": ["pdf", "docx", "html"]},
+    {"id": "marker_remote", "name": "Marker Remote", "status": "degraded", "supports": ["pdf", "image"]},
+    {"id": "unstructured_local", "name": "Unstructured Local", "status": "available", "supports": ["pdf", "docx", "pptx", "html"]},
+    {"id": "plain_text", "name": "Plain Text", "status": "available", "supports": ["md", "txt", "json"]}
+  ]
+}

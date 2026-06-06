@@ -1,0 +1,52 @@
+{
+  "agents": [
+    {
+      "id": "agent-researcher",
+      "name": "Research Analyst",
+      "name_zh": "研究分析 Agent",
+      "status": "ready",
+      "provider": "OpenAI",
+      "model": "gpt-4.1-mini",
+      "bound_kbs": ["kb-trusted-product"],
+      "private_memory_scope": "mem-agent-researcher",
+      "tools": ["kb_query", "citation_trace", "handoff"],
+      "answer_policy": "grounded_only"
+    },
+    {
+      "id": "agent-writer",
+      "name": "Document Writer",
+      "name_zh": "文档写作 Agent",
+      "status": "ready",
+      "provider": "Azure OpenAI",
+      "model": "gpt-4.1",
+      "bound_kbs": ["kb-trusted-product", "kb-trusted-policy"],
+      "private_memory_scope": "mem-agent-writer",
+      "tools": ["doc_generate", "kb_query", "export_pack"],
+      "answer_policy": "cite_or_abstain"
+    },
+    {
+      "id": "agent-support",
+      "name": "Support Triage",
+      "name_zh": "支持分流 Agent",
+      "status": "review_required",
+      "provider": "Anthropic",
+      "model": "claude-3-5-sonnet",
+      "bound_kbs": ["kb-draft-support"],
+      "private_memory_scope": "mem-agent-support",
+      "tools": ["risk_label", "review_queue"],
+      "answer_policy": "needs_review"
+    },
+    {
+      "id": "agent-reviewer",
+      "name": "Evidence Reviewer",
+      "name_zh": "证据复核 Agent",
+      "status": "ready",
+      "provider": "Local",
+      "model": "qwen2.5-14b",
+      "bound_kbs": ["kb-trusted-policy"],
+      "private_memory_scope": "mem-agent-reviewer",
+      "tools": ["citation_trace", "policy_check"],
+      "answer_policy": "grounded_only"
+    }
+  ]
+}

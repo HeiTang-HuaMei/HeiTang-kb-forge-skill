@@ -1,0 +1,50 @@
+{
+  "jobs": [
+    {
+      "id": "job-upload-2041",
+      "type": "file_upload",
+      "label": "Upload Q2 policy PDF set",
+      "label_zh": "上传 Q2 策略 PDF 集",
+      "status": "running",
+      "progress": 68,
+      "kb_id": "kb-trusted-policy",
+      "started_at": "2026-06-05T12:00:00+08:00",
+      "stages": [
+        {"name": "Upload", "name_zh": "上传", "status": "done"},
+        {"name": "Parse", "name_zh": "解析", "status": "running"},
+        {"name": "Review", "name_zh": "复核", "status": "queued"},
+        {"name": "Publish", "name_zh": "发布", "status": "queued"}
+      ]
+    },
+    {
+      "id": "job-review-1998",
+      "type": "review",
+      "label": "Support case risk review",
+      "label_zh": "支持案例风险复核",
+      "status": "blocked",
+      "progress": 35,
+      "kb_id": "kb-draft-support",
+      "started_at": "2026-06-04T15:20:00+08:00",
+      "stages": [
+        {"name": "Queue", "name_zh": "入队", "status": "done"},
+        {"name": "Correct text", "name_zh": "校正文稿", "status": "running"},
+        {"name": "Trust gate", "name_zh": "可信门禁", "status": "blocked"}
+      ]
+    },
+    {
+      "id": "job-export-2017",
+      "type": "export",
+      "label": "Workbench export package",
+      "label_zh": "工作台导出包",
+      "status": "done",
+      "progress": 100,
+      "kb_id": "kb-trusted-product",
+      "started_at": "2026-06-03T20:00:00+08:00",
+      "stages": [
+        {"name": "Collect", "name_zh": "收集", "status": "done"},
+        {"name": "Package", "name_zh": "打包", "status": "done"},
+        {"name": "Verify", "name_zh": "验证", "status": "done"}
+      ]
+    }
+  ]
+}

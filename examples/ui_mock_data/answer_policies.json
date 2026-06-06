@@ -1,0 +1,46 @@
+{
+  "answer_policies": [
+    {
+      "id": "grounded_only",
+      "label": "Grounded only",
+      "label_zh": "仅基于证据",
+      "mode": "strict",
+      "description": "Answer only when grounded citations exist; otherwise abstain."
+    },
+    {
+      "id": "cite_or_abstain",
+      "label": "Cite or abstain",
+      "label_zh": "引用或拒答",
+      "mode": "strict",
+      "description": "Require citations for final answers and refuse unsupported claims."
+    },
+    {
+      "id": "needs_review",
+      "label": "Needs review",
+      "label_zh": "需要复核",
+      "mode": "review",
+      "description": "Allow draft answers only when routed to review queue."
+    },
+    {
+      "id": "exploratory",
+      "label": "Exploratory",
+      "label_zh": "探索模式",
+      "mode": "draft",
+      "description": "Permit clearly marked draft synthesis for internal exploration."
+    }
+  ],
+  "memory_policies": [
+    {
+      "id": "private_by_default",
+      "label": "Private by default",
+      "label_zh": "默认私有",
+      "description": "Agent memory remains private unless a workflow creates explicit shared memory."
+    },
+    {
+      "id": "workflow_shared_only",
+      "label": "Workflow shared only",
+      "label_zh": "仅工作流共享",
+      "description": "Shared memory is visible only to agents assigned to the workflow."
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "knowledge_bases": [
+    {
+      "id": "kb-trusted-product",
+      "name": "Product Operations Handbook",
+      "name_zh": "产品运营手册",
+      "status": "trusted",
+      "owner": "Knowledge Ops",
+      "domain": "operations",
+      "documents": 42,
+      "chunks": 1836,
+      "trusted_chunks": 1710,
+      "draft_chunks": 126,
+      "risk_count": 3,
+      "last_updated": "2026-06-05T10:30:00+08:00",
+      "bound_agents": ["agent-researcher", "agent-writer"],
+      "answer_policy": "grounded_only",
+      "parser_backend": "docling_local",
+      "description": "Reviewed operating procedures, launch notes, and customer-facing FAQs.",
+      "description_zh": "已复核的运营流程、发布说明与客户常见问题。"
+    },
+    {
+      "id": "kb-draft-support",
+      "name": "Support Case Intake",
+      "name_zh": "支持工单收集库",
+      "status": "draft",
+      "owner": "Support Enablement",
+      "domain": "support",
+      "documents": 18,
+      "chunks": 640,
+      "trusted_chunks": 412,
+      "draft_chunks": 228,
+      "risk_count": 14,
+      "last_updated": "2026-06-04T16:10:00+08:00",
+      "bound_agents": ["agent-support"],
+      "answer_policy": "needs_review",
+      "parser_backend": "marker_remote",
+      "description": "Imported support cases waiting for evidence and text correction review.",
+      "description_zh": "待证据与文本校对复核的支持案例导入库。"
+    },
+    {
+      "id": "kb-trusted-policy",
+      "name": "Governance Policy Library",
+      "name_zh": "治理策略库",
+      "status": "trusted",
+      "owner": "Risk Review",
+      "domain": "governance",
+      "documents": 27,
+      "chunks": 920,
+      "trusted_chunks": 908,
+      "draft_chunks": 12,
+      "risk_count": 1,
+      "last_updated": "2026-06-03T09:00:00+08:00",
+      "bound_agents": ["agent-reviewer"],
+      "answer_policy": "cite_or_abstain",
+      "parser_backend": "unstructured_local",
+      "description": "Trusted policies, approval rules, and answer governance references.",
+      "description_zh": "可信治理策略、审批规则与回答治理参考。"
+    }
+  ]
+}

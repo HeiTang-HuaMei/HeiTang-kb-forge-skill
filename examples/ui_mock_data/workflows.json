@@ -1,0 +1,36 @@
+{
+  "workflows": [
+    {
+      "id": "wf-launch-brief",
+      "name": "Launch Brief Workflow",
+      "name_zh": "发布简报工作流",
+      "status": "running",
+      "shared_memory_scope": "mem-workflow-launch",
+      "agents": ["agent-researcher", "agent-writer", "agent-reviewer"],
+      "steps": [
+        {"id": "step-1", "agent": "agent-researcher", "label": "Collect evidence", "label_zh": "收集证据", "status": "done"},
+        {"id": "step-2", "agent": "agent-writer", "label": "Draft brief", "label_zh": "起草简报", "status": "running"},
+        {"id": "step-3", "agent": "agent-reviewer", "label": "Policy review", "label_zh": "策略复核", "status": "queued"}
+      ],
+      "handoff_trace": [
+        {"from": "agent-researcher", "to": "agent-writer", "artifact": "evidence_pack.md", "status": "accepted"},
+        {"from": "agent-writer", "to": "agent-reviewer", "artifact": "launch_brief_draft.md", "status": "pending"}
+      ]
+    },
+    {
+      "id": "wf-support-risk",
+      "name": "Support Risk Cleanup",
+      "name_zh": "支持风险清理",
+      "status": "paused",
+      "shared_memory_scope": "mem-workflow-support",
+      "agents": ["agent-support", "agent-reviewer"],
+      "steps": [
+        {"id": "step-1", "agent": "agent-support", "label": "Cluster cases", "label_zh": "聚类工单", "status": "done"},
+        {"id": "step-2", "agent": "agent-reviewer", "label": "Review high risk items", "label_zh": "复核高风险项", "status": "blocked"}
+      ],
+      "handoff_trace": [
+        {"from": "agent-support", "to": "agent-reviewer", "artifact": "risk_queue.json", "status": "needs_review"}
+      ]
+    }
+  ]
+}

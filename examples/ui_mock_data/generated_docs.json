@@ -1,0 +1,46 @@
+{
+  "generated_docs": [
+    {
+      "id": "doc-launch-brief",
+      "title": "Launch Brief",
+      "title_zh": "发布简报",
+      "type": "brief",
+      "status": "draft",
+      "kb_id": "kb-trusted-product",
+      "agent_id": "agent-writer",
+      "created_at": "2026-06-05T12:20:00+08:00",
+      "citations": 18
+    },
+    {
+      "id": "doc-policy-pack",
+      "title": "Policy Review Pack",
+      "title_zh": "策略复核包",
+      "type": "review_pack",
+      "status": "ready",
+      "kb_id": "kb-trusted-policy",
+      "agent_id": "agent-reviewer",
+      "created_at": "2026-06-04T10:00:00+08:00",
+      "citations": 31
+    }
+  ],
+  "export_items": [
+    {
+      "id": "export-workbench-demo",
+      "name": "Workbench Demo Package",
+      "name_zh": "工作台演示包",
+      "format": "zip",
+      "status": "ready",
+      "includes": ["mock_data", "generated_docs", "handoff_trace"],
+      "created_at": "2026-06-05T13:00:00+08:00"
+    },
+    {
+      "id": "export-review-csv",
+      "name": "Review Queue CSV",
+      "name_zh": "复核队列 CSV",
+      "format": "csv",
+      "status": "queued",
+      "includes": ["review_items", "risk_labels"],
+      "created_at": "2026-06-05T13:10:00+08:00"
+    }
+  ]
+}

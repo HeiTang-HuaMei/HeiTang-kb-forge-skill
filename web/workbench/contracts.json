@@ -1,0 +1,64 @@
+{
+  "version": "UI-v0.5-prototype",
+  "scope": "mock-only",
+  "allowed_paths": [
+    "web/workbench/",
+    "examples/ui_mock_data/",
+    "docs/WORKBENCH_UI_SPEC.zh-CN.md",
+    "docs/WORKBENCH_UI_SPEC.md",
+    "docs/WORKBENCH_MOBILE_SPEC.zh-CN.md",
+    "docs/WORKBENCH_MOBILE_SPEC.md",
+    "tests/test_workbench_ui_routes.py",
+    "tests/test_workbench_ui_contract.py",
+    "tests/test_workbench_ui_mock_data.py",
+    "tests/test_workbench_ui_theme_i18n.py",
+    "tests/test_workbench_ui_mobile.py"
+  ],
+  "pages": [
+    {"id": "dashboard", "mock_sources": ["knowledge_bases", "agents", "jobs", "review_queue", "provider_status"]},
+    {"id": "file-upload", "mock_sources": ["parser_backend_status", "jobs"]},
+    {"id": "job-progress", "mock_sources": ["jobs"]},
+    {"id": "knowledge-base-list", "mock_sources": ["knowledge_bases", "agents"]},
+    {"id": "knowledge-base-detail", "mock_sources": ["knowledge_bases", "agents"]},
+    {"id": "review-queue", "mock_sources": ["review_queue", "knowledge_bases"]},
+    {"id": "corrected-text-editor", "mock_sources": ["review_queue"]},
+    {"id": "kb-query", "mock_sources": ["knowledge_bases", "answer_policies"]},
+    {"id": "document-generation", "mock_sources": ["generated_docs", "agents", "knowledge_bases"]},
+    {"id": "agent-skill-management", "mock_sources": ["agents", "knowledge_bases", "provider_status"]},
+    {"id": "multi-agent-workflow", "mock_sources": ["workflows", "agents", "memory_scopes"]},
+    {"id": "memory-scope-viewer", "mock_sources": ["memory_scopes", "agents", "workflows"]},
+    {"id": "settings", "mock_sources": ["provider_status", "parser_backend_status", "answer_policies"]},
+    {"id": "export-center", "mock_sources": ["generated_docs"]}
+  ],
+  "mock_data_files": {
+    "knowledge_bases": "examples/ui_mock_data/knowledge_bases.json",
+    "agents": "examples/ui_mock_data/agents.json",
+    "workflows": "examples/ui_mock_data/workflows.json",
+    "memory_scopes": "examples/ui_mock_data/memory_scopes.json",
+    "jobs": "examples/ui_mock_data/jobs.json",
+    "review_queue": "examples/ui_mock_data/review_queue.json",
+    "generated_docs": "examples/ui_mock_data/generated_docs.json",
+    "provider_status": "examples/ui_mock_data/provider_status.json",
+    "parser_backend_status": "examples/ui_mock_data/parser_backend_status.json",
+    "answer_policies": "examples/ui_mock_data/answer_policies.json"
+  },
+  "theme": {
+    "modes": ["light", "dark"],
+    "palette": ["black", "white", "gray"],
+    "tokens": ["--bg", "--panel", "--text", "--muted", "--line", "--accent", "--radius"]
+  },
+  "i18n": {
+    "locales": ["zh-CN", "en-US"],
+    "switcher": "segmented-control"
+  },
+  "mobile": {
+    "strategy": "responsive-web-pwa-ready",
+    "breakpoints_px": [980, 760, 480],
+    "navigation": "select-on-mobile-sidebar-on-desktop"
+  },
+  "future_api": {
+    "boundary": "Replace web/workbench/src/mockService.js fetch functions with Core API calls later.",
+    "reserved_resources": ["knowledgeBases", "agents", "workflows", "memoryScopes", "jobs", "reviewItems", "generatedDocs", "exportItems", "providers", "parserBackends", "answerPolicies", "memoryPolicies"],
+    "no_backend_logic": true
+  }
+}

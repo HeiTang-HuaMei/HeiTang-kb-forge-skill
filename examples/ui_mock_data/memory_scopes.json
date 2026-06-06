@@ -1,0 +1,49 @@
+{
+  "memory_scopes": [
+    {
+      "id": "mem-agent-researcher",
+      "type": "agent_private",
+      "owner": "agent-researcher",
+      "isolation": "private",
+      "records": 128,
+      "last_write": "2026-06-05T11:20:00+08:00",
+      "summary": "Research notes and accepted evidence only visible to Research Analyst."
+    },
+    {
+      "id": "mem-agent-writer",
+      "type": "agent_private",
+      "owner": "agent-writer",
+      "isolation": "private",
+      "records": 83,
+      "last_write": "2026-06-05T11:42:00+08:00",
+      "summary": "Drafting preferences and document outline memory isolated from other agents."
+    },
+    {
+      "id": "mem-agent-support",
+      "type": "agent_private",
+      "owner": "agent-support",
+      "isolation": "private",
+      "records": 56,
+      "last_write": "2026-06-04T17:00:00+08:00",
+      "summary": "Support triage labels and unresolved case notes."
+    },
+    {
+      "id": "mem-workflow-launch",
+      "type": "workflow_shared",
+      "owner": "wf-launch-brief",
+      "isolation": "shared_with_workflow_agents",
+      "records": 34,
+      "last_write": "2026-06-05T12:08:00+08:00",
+      "summary": "Shared evidence pack, handoff state, and draft acceptance notes."
+    },
+    {
+      "id": "mem-workflow-support",
+      "type": "workflow_shared",
+      "owner": "wf-support-risk",
+      "isolation": "shared_with_workflow_agents",
+      "records": 19,
+      "last_write": "2026-06-04T18:11:00+08:00",
+      "summary": "Shared queue status for support risk cleanup."
+    }
+  ]
+}

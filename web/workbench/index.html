@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#111111" />
+    <title>HeiTang Knowledge Workbench</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-theme="light">
+    <div class="workbench-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" data-i18n="product.kicker">Mock-only UI Prototype</p>
+          <h1 data-i18n="product.title">HeiTang Knowledge Workbench</h1>
+        </div>
+        <div class="toolbar" aria-label="Workbench controls">
+          <button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle theme">◐</button>
+          <div class="segmented" aria-label="Language">
+            <button class="segment is-active" type="button" data-locale="zh-CN">中</button>
+            <button class="segment" type="button" data-locale="en-US">EN</button>
+          </div>
+        </div>
+      </header>
+
+      <nav class="mobile-nav" aria-label="Mobile page navigation">
+        <select id="mobile-page-select" aria-label="Page"></select>
+      </nav>
+
+      <div class="layout">
+        <aside class="sidebar" aria-label="Workbench navigation">
+          <div class="sidebar-brand">KB Forge</div>
+          <div class="nav-list" id="nav-list"></div>
+        </aside>
+
+        <main class="content" id="app-root" data-testid="workbench-app" tabindex="-1"></main>
+      </div>
+    </div>
+
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
