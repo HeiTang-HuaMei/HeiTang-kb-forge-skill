@@ -35,6 +35,12 @@ from heitang_kb_forge.hardening.batch import make_batch_hardening_outputs
 from heitang_kb_forge.hardening.run_trace import make_run_manifest, new_run_id, now_iso, stage_record
 from heitang_kb_forge.incremental.reuse import INCREMENTAL_OUTPUT_FILES, make_incremental_report
 from heitang_kb_forge.knowledge_graph.exporter import KNOWLEDGE_GRAPH_OUTPUT_FILES, make_knowledge_graph
+from heitang_kb_forge.knowledge_runtime import (
+    KB_RUNTIME_OUTPUT_FILES,
+    answer_kb_outputs,
+    build_kb_index_outputs,
+    query_kb_outputs,
+)
 from heitang_kb_forge.lifecycle.change_detector import (
     LIFECYCLE_OUTPUT_FILES,
     detect_source_changes,
@@ -86,6 +92,24 @@ from heitang_kb_forge.processors.quality import make_quality_report
 from heitang_kb_forge.processors.validator import validate_chunks
 from heitang_kb_forge.pipeline.reporter import make_pipeline_report
 from heitang_kb_forge.package_lineage import make_package_lineage
+from heitang_kb_forge.parser_backends import (
+    assess_parse_quality,
+    assert_trusted_for_export,
+    compare_backends,
+    list_backends,
+    load_chunks,
+    load_parse_run,
+    make_ocr_risk_report,
+    parse_sources_with_backend,
+    read_kb_trust_status,
+    reimport_corrected_text,
+    trust_gate_result,
+)
+from heitang_kb_forge.parser_backends.reports import (
+    render_backend_output_md,
+    render_parse_compare_report,
+    render_parse_quality_report,
+)
 from heitang_kb_forge.platform_distribution import check_platform_upload, export_platform_package, mock_publish_package
 from heitang_kb_forge.progress.reporter import ProgressReporter, make_progress_reporter
 from heitang_kb_forge.quality_gate.gate import QUALITY_GATE_OUTPUT_FILES, evaluate_quality_gate
@@ -349,17 +373,126 @@ class RetrievalIndexOptions:
 
 
 @dataclass
+class KnowledgeRuntimeOptions:
+    enabled: bool = False
+    query: str = "Summarize this knowledge package."
+    top_k: int = 5
+    min_score: int = 2
+    citation_required: bool = True
+
+
+@dataclass
 class EvidenceGateOptions:
     enabled: bool = False
     query: str = "Summarize this knowledge package."
 
 
+@dataclass
+class ParserBackendOptions:
+    enabled: bool = False
+    backend: str = "builtin"
+    default_status: str = "draft_knowledge_package"
+    require_review_for_scanned_pdf: bool = True
+    require_review_for_high_risk_chunks: bool = True
+    allow_untrusted: bool = False
+
+
 HARDENING_TRACE_FILES = ["run_manifest.json", "stage_trace.jsonl", "error_report.json"]
+PARSER_BACKEND_OUTPUT_FILES = [
+    "parser_backend_result.json",
+    "parser_backend_output.md",
+    "parser_backend_output.json",
+    "parse_quality_report.json",
+    "parse_quality_report.md",
+    "ocr_risk_report.json",
+    "high_risk_pages.jsonl",
+    "high_risk_parse_pages.jsonl",
+    "high_risk_chunks.jsonl",
+    "manual_review_queue.jsonl",
+    "kb_trust_status.json",
+    "trusted_kb_gate.json",
+    "knowledge_reliability_report.json",
+]
 
 
 @app.callback()
 def main() -> None:
     """KB Forge command group."""
+
+
+@app.command("parser-backend-list")
+def parser_backend_list() -> None:
+    """List parser backends and local availability without importing heavy dependencies."""
+    for backend in list_backends():
+        reason = f" | {backend['reason']}" if backend.get("reason") else ""
+        typer.echo(f"{backend['name']}: {backend['status']}{reason}")
+
+
+@app.command("parse-with-backend")
+def parse_with_backend_command(
+    input: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    backend: str = typer.Option("builtin", "--backend"),
+) -> None:
+    """Parse sources with a selected backend and write normalized parser outputs."""
+    run = parse_sources_with_backend(input, backend, f"parse-with-backend --backend {backend}")
+    _write_parser_backend_run(output, run)
+    typer.echo(f"Parser backend: {run.backend_name} | Status: {run.status} | Sources: {run.source_count}")
+
+
+@app.command("parse-compare")
+def parse_compare_command(
+    input: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    backends: str = typer.Option("builtin,docling,marker", "--backends"),
+) -> None:
+    """Compare normalized outputs across parser backends."""
+    backend_names = [name.strip() for name in backends.split(",") if name.strip()]
+    result = compare_backends(input, backend_names, f"parse-compare --backends {','.join(backend_names)}")
+    output.mkdir(parents=True, exist_ok=True)
+    write_json(output / "parse_compare_result.json", result)
+    (output / "parse_compare_report.md").write_text(render_parse_compare_report(result), encoding="utf-8")
+    typer.echo(f"Parse compare: {result['status']} | Backends: {', '.join(result['backends'])}")
+
+
+@app.command("parse-quality-gate")
+def parse_quality_gate_command(
+    input: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    default_status: str = typer.Option("draft_knowledge_package", "--default-status"),
+) -> None:
+    """Write parser quality, OCR risk, review queue, and trust gate outputs."""
+    quality = _write_parse_quality_outputs(input, output, default_status)
+    typer.echo(f"Parse quality gate: {quality['status']} | Trust: {quality['kb_trust_status']}")
+
+
+@app.command("parse-reimport-corrected-text")
+def parse_reimport_corrected_text_command(
+    corrected_text: Path = typer.Option(..., "--corrected-text", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Re-import manually corrected text as reviewed parser output."""
+    run, diff = reimport_corrected_text(corrected_text, "parse-reimport-corrected-text")
+    _write_parser_backend_run(output, run)
+    write_json(output / "before_after_quality_diff.json", diff)
+    _write_parse_quality_outputs(output, output, run.kb_trust_status)
+    typer.echo(f"Corrected text re-import: {run.status} | Trust: {run.kb_trust_status}")
+
+
+@app.command("trusted-kb-gate")
+def trusted_kb_gate_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    allow_untrusted: bool = typer.Option(False, "--allow-untrusted"),
+) -> None:
+    """Check whether a package can be bound/exported as an Agent KB."""
+    status = read_kb_trust_status(package)
+    result = trust_gate_result(status, allow_untrusted)
+    output.mkdir(parents=True, exist_ok=True)
+    write_json(output / "trusted_kb_gate.json", result)
+    typer.echo(f"Trusted KB gate: {result['status']} | Trust: {result['kb_trust_status']}")
+    if result["blocked"]:
+        raise typer.Exit(1)
 
 
 @app.command()
@@ -440,8 +573,15 @@ def build(
     check_contract: bool = typer.Option(False, "--check-contract"),
     governance: bool = typer.Option(False, "--governance"),
     retrieval_index: bool = typer.Option(False, "--retrieval-index"),
+    knowledge_runtime: bool = typer.Option(False, "--knowledge-runtime"),
+    kb_query: str = typer.Option("Summarize this knowledge package.", "--kb-query"),
+    kb_top_k: int = typer.Option(5, "--kb-top-k"),
+    kb_min_score: int = typer.Option(2, "--kb-min-score"),
+    kb_citation_required: bool = typer.Option(True, "--kb-citation-required/--no-kb-citation-required"),
     evidence_gate: bool = typer.Option(False, "--evidence-gate"),
     evidence_query: str = typer.Option("Summarize this knowledge package.", "--evidence-query"),
+    parser_backend: str | None = typer.Option(None, "--parser-backend"),
+    allow_untrusted: bool = typer.Option(False, "--allow-untrusted"),
 ) -> None:
     """Parse source files and write a V0 knowledge base package."""
     manifest = _build_package(
@@ -529,7 +669,19 @@ def build(
         contract_options=ContractOptions(contract_version, check_contract, False),
         governance_options=GovernanceOptions(governance, previous_package),
         retrieval_index_options=RetrievalIndexOptions(retrieval_index, evidence_query),
+        knowledge_runtime_options=KnowledgeRuntimeOptions(
+            enabled=knowledge_runtime,
+            query=kb_query,
+            top_k=kb_top_k,
+            min_score=kb_min_score,
+            citation_required=kb_citation_required,
+        ),
         evidence_gate_options=EvidenceGateOptions(evidence_gate, evidence_query),
+        parser_backend_options=ParserBackendOptions(
+            enabled=parser_backend is not None,
+            backend=parser_backend or "builtin",
+            allow_untrusted=allow_untrusted,
+        ),
         demo_report=demo_report,
     )
 
@@ -559,6 +711,46 @@ def build_retrieval_index_command(
     manifest = build_retrieval_outputs(package, output, query)
     typer.echo(f"Built retrieval index at {output}")
     typer.echo(f"Records: {manifest['total_records']}")
+
+
+@app.command("kb-index")
+def kb_index_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Build v2.9 local KB runtime index and evaluation baseline files."""
+    manifest = build_kb_index_outputs(package, output)
+    typer.echo(f"Built KB runtime index at {output}")
+    typer.echo(f"Records: {manifest['total_records']}")
+
+
+@app.command("kb-query")
+def kb_query_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    query: str = typer.Option(..., "--query"),
+    output: Path = typer.Option(..., "--output", "-o"),
+    top_k: int = typer.Option(5, "--top-k"),
+    min_score: int = typer.Option(2, "--min-score"),
+) -> None:
+    """Run v2.9 local KB retrieval with query and citation trace files."""
+    result = query_kb_outputs(package, output, query, top_k, min_score)
+    typer.echo(f"Built KB query result at {output}")
+    typer.echo(f"Status: {result['status']} | Selected: {result['selected_count']}")
+
+
+@app.command("kb-answer")
+def kb_answer_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    query: str = typer.Option(..., "--query"),
+    output: Path = typer.Option(..., "--output", "-o"),
+    top_k: int = typer.Option(5, "--top-k"),
+    min_score: int = typer.Option(2, "--min-score"),
+    citation_required: bool = typer.Option(True, "--citation-required/--no-citation-required"),
+) -> None:
+    """Write a local cited KB answer or a low-confidence refusal."""
+    report = answer_kb_outputs(package, output, query, top_k, min_score, citation_required)
+    typer.echo(f"Built KB answer at {output / 'kb_answer.md'}")
+    typer.echo(f"Status: {report['status']} | Top score: {report['top_score']}")
 
 
 @app.command("evidence-gate")
@@ -610,9 +802,11 @@ def generate_skill_command(
     llm_base_url: str | None = typer.Option(None, "--llm-base-url"),
     llm_api_key_env: str | None = typer.Option(None, "--llm-api-key-env"),
     llm_skill_generation: bool = typer.Option(False, "--llm-skill-generation"),
+    allow_untrusted: bool = typer.Option(False, "--allow-untrusted"),
 ) -> None:
     """Generate a Skill Package from a knowledge package."""
     _ = skill_template
+    assert_trusted_for_export(package, allow_untrusted=allow_untrusted)
     settings = _provider_settings(llm_provider, llm_model, llm_base_url, llm_api_key_env)
     if llm and llm_skill_generation:
         _, report = generate_llm_skill_package(package, output, skill_name, skill_type, settings, True)
@@ -652,8 +846,10 @@ def generate_agent_command(
     llm_api_key_env: str | None = typer.Option(None, "--llm-api-key-env"),
     llm_agent_generation: bool = typer.Option(False, "--llm-agent-generation"),
     agent_compat: bool = typer.Option(False, "--agent-compat"),
+    allow_untrusted: bool = typer.Option(False, "--allow-untrusted"),
 ) -> None:
     """Generate an Agent Package from a knowledge package and Skill Package."""
+    assert_trusted_for_export(package, allow_untrusted=allow_untrusted)
     settings = _provider_settings(llm_provider, llm_model, llm_base_url, llm_api_key_env)
     if llm and llm_agent_generation:
         _, report = generate_llm_agent_package(package, skill, output, agent_name, agent_type, settings, True)
@@ -980,6 +1176,8 @@ def batch(
     multimodal_report: bool = typer.Option(True, "--multimodal-report/--no-multimodal-report"),
     contract_version: str | None = typer.Option(None, "--contract-version"),
     check_contract: bool = typer.Option(False, "--check-contract"),
+    parser_backend: str | None = typer.Option(None, "--parser-backend"),
+    allow_untrusted: bool = typer.Option(False, "--allow-untrusted"),
 ) -> None:
     """Build one knowledge package per numbered source file."""
     output.mkdir(parents=True, exist_ok=True)
@@ -1062,6 +1260,11 @@ def batch(
         report=multimodal_report,
     )
     contract_options = ContractOptions(contract_version, check_contract, False)
+    parser_backend_options = ParserBackendOptions(
+        enabled=parser_backend is not None,
+        backend=parser_backend or "builtin",
+        allow_untrusted=allow_untrusted,
+    )
     batch_reporter = make_progress_reporter(
         progress=performance_options.progress,
         progress_jsonl=performance_options.progress_jsonl,
@@ -1098,6 +1301,7 @@ def batch(
             fail_fast,
             agent_options,
             demo_report,
+            parser_backend_options,
         )
         if merge_same_sequence
         else _build_batch_items(
@@ -1126,6 +1330,7 @@ def batch(
             fail_fast,
             agent_options,
             demo_report,
+            parser_backend_options,
         )
     )
     succeeded = sum(1 for item in items if item["status"] == "success")
@@ -1274,8 +1479,10 @@ def export_platform(
     agent: Path | None = typer.Option(None, "--agent", exists=True, file_okay=False, dir_okay=True, readable=True),
     output: Path = typer.Option(..., "--output"),
     platform: str = typer.Option("generic", "--platform"),
+    allow_untrusted: bool = typer.Option(False, "--allow-untrusted"),
 ) -> None:
     """Export local platform distribution files without uploading or running platforms."""
+    assert_trusted_for_export(skill, allow_untrusted=allow_untrusted, from_skill=True)
     manifests = export_platform_package(skill, agent, output, platform)
     typer.echo(f"Wrote platform distribution for {len(manifests)} platform(s) to {output}")
 
@@ -2073,7 +2280,15 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
     contract_options = ContractOptions(config_data.contract.version, config_data.contract.check, config_data.contract.strict)
     governance_options = GovernanceOptions(config_data.governance.enabled, config_data.governance.previous_package)
     retrieval_index_options = RetrievalIndexOptions(config_data.retrieval.enabled, config_data.retrieval.query)
+    knowledge_runtime_options = KnowledgeRuntimeOptions(
+        enabled=config_data.knowledge_runtime.enabled,
+        query=config_data.knowledge_runtime.query,
+        top_k=config_data.knowledge_runtime.top_k,
+        min_score=config_data.knowledge_runtime.min_score,
+        citation_required=config_data.knowledge_runtime.citation_required,
+    )
     evidence_gate_options = EvidenceGateOptions(config_data.evidence_gate.enabled, config_data.evidence_gate.query)
+    parser_backend_options = _make_parser_backend_options(config_data)
     v21_options = V21Options(
         input_coverage=config_data.input_hardening.enabled,
         parser_hardening=config_data.input_hardening.enabled,
@@ -2106,7 +2321,9 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             agent_options=agent_options,
             governance_options=governance_options,
             retrieval_index_options=retrieval_index_options,
+            knowledge_runtime_options=knowledge_runtime_options,
             evidence_gate_options=evidence_gate_options,
+            parser_backend_options=parser_backend_options,
             v21_options=v21_options,
             demo_report=config_data.demo.enabled,
         )
@@ -2170,6 +2387,8 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             contract_options=contract_options,
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
+            parser_backend_options=parser_backend_options,
+            knowledge_runtime_options=knowledge_runtime_options,
         )
         if config_data.batch.merge_same_sequence
         else _build_batch_items(
@@ -2195,6 +2414,8 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             contract_options=contract_options,
             agent_options=agent_options,
             demo_report=config_data.demo.enabled,
+            parser_backend_options=parser_backend_options,
+            knowledge_runtime_options=knowledge_runtime_options,
         )
     )
     succeeded = sum(1 for item in items if item["status"] == "success")
@@ -2281,6 +2502,18 @@ def _provider_settings(provider: str, model: str, base_url: str | None, api_key_
 
 def _split_tags(tags: str) -> list[str]:
     return [tag.strip() for tag in tags.split(",") if tag.strip()]
+
+
+def _make_parser_backend_options(config_data: ForgeConfig) -> ParserBackendOptions:
+    policy = config_data.parser_backend.trust_policy
+    return ParserBackendOptions(
+        enabled=config_data.parser_backend.use_for_build,
+        backend=config_data.parser_backend.default,
+        default_status=policy.default_status,
+        require_review_for_scanned_pdf=policy.require_review_for_scanned_pdf,
+        require_review_for_high_risk_chunks=policy.require_review_for_high_risk_chunks,
+        allow_untrusted=config_data.parser_backend.allow_untrusted,
+    )
 
 
 def _apply_performance_overrides(
@@ -2394,6 +2627,7 @@ def _run_v12_config_outputs(config_data: ForgeConfig, output: Path) -> None:
 def _run_v18_config_outputs(config_data: ForgeConfig, output: Path) -> None:
     skill_output = output / "skill_package"
     if config_data.skill.enabled:
+        assert_trusted_for_export(output, allow_untrusted=config_data.parser_backend.allow_untrusted)
         settings = _provider_settings(
             config_data.llm.provider,
             config_data.llm.model or "mock-model",
@@ -2417,6 +2651,7 @@ def _run_v18_config_outputs(config_data: ForgeConfig, output: Path) -> None:
         if config_data.skill.validate_skill:
             validate_skill_package(skill_output, output, output / "skill_validation")
     if config_data.agent_package.enabled:
+        assert_trusted_for_export(output, allow_untrusted=config_data.parser_backend.allow_untrusted)
         if not skill_output.exists():
             generate_skill_package(output, skill_output, config_data.skill.name, config_data.skill.type)
         agent_output = output / "agent_package"
@@ -2549,6 +2784,7 @@ def _run_v24_config_outputs(config_data: ForgeConfig, output: Path) -> None:
     agent = config_data.platform_distribution.agent or (output / "agent_package")
     agent_path = agent if agent.exists() else None
     platform_output = config_data.platform_distribution.output or (output / "platform_distribution")
+    assert_trusted_for_export(skill, allow_untrusted=config_data.parser_backend.allow_untrusted, from_skill=True)
     export_platform_package(skill, agent_path, platform_output, config_data.platform_distribution.platform)
 
 
@@ -2706,6 +2942,8 @@ def _build_batch_items(
     fail_fast: bool = False,
     agent_options: AgentOptions | None = None,
     demo_report: bool = False,
+    parser_backend_options: ParserBackendOptions | None = None,
+    knowledge_runtime_options: KnowledgeRuntimeOptions | None = None,
 ) -> list[dict]:
     items: list[dict] = []
     total_chunks = 0
@@ -2755,6 +2993,8 @@ def _build_batch_items(
                 contract_options=contract_options,
                 agent_options=agent_options,
                 demo_report=demo_report,
+                parser_backend_options=parser_backend_options,
+                knowledge_runtime_options=knowledge_runtime_options,
             )
             item["status"] = "success"
             item["chunk_count"] = manifest.chunk_count
@@ -2802,6 +3042,8 @@ def _build_batch_groups(
     fail_fast: bool = False,
     agent_options: AgentOptions | None = None,
     demo_report: bool = False,
+    parser_backend_options: ParserBackendOptions | None = None,
+    knowledge_runtime_options: KnowledgeRuntimeOptions | None = None,
 ) -> list[dict]:
     groups: dict[str, list[Path]] = {}
     for source in numbered_sources:
@@ -2860,6 +3102,8 @@ def _build_batch_groups(
                 contract_options=contract_options,
                 agent_options=agent_options,
                 demo_report=demo_report,
+                parser_backend_options=parser_backend_options,
+                knowledge_runtime_options=knowledge_runtime_options,
             )
             item["status"] = "success"
             item["chunk_count"] = manifest.chunk_count
@@ -2906,7 +3150,9 @@ def _build_package(
     agent_options: AgentOptions | None = None,
     governance_options: GovernanceOptions | None = None,
     retrieval_index_options: RetrievalIndexOptions | None = None,
+    knowledge_runtime_options: KnowledgeRuntimeOptions | None = None,
     evidence_gate_options: EvidenceGateOptions | None = None,
+    parser_backend_options: ParserBackendOptions | None = None,
     demo_report: bool = False,
 ) -> Manifest:
     output.mkdir(parents=True, exist_ok=True)
@@ -2916,6 +3162,7 @@ def _build_package(
     hardening_options = hardening_options or HardeningOptions()
     v21_options = v21_options or V21Options()
     performance_options = performance_options or PerformanceOptions()
+    parser_backend_options = parser_backend_options or ParserBackendOptions()
     progress_reporter = make_progress_reporter(
         progress=performance_options.progress,
         progress_jsonl=performance_options.progress_jsonl,
@@ -2954,51 +3201,120 @@ def _build_package(
         overlap_chars = profile.overlap_chars
     all_chunks: list[Chunk] = []
     warnings: list[str] = []
+    parser_backend_run = None
+    parser_quality_report = None
 
-    for source_index, source in enumerate(source_files, start=1):
-        parser = _active_parsers().get(source.suffix.lower())
-        if parser is None:
-            continue
-        if progress_reporter:
-            progress_reporter.emit("parse_source", "running", f"Parsing source: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files), metadata={"parser_type": source.suffix.lower().lstrip(".")})
-        try:
-            raw = (
-                parse_pdf(source, progress_callback=progress_reporter.callback() if progress_reporter else None, options=pdf_options)
-                if source.suffix.lower() == ".pdf"
-                else parser(source)
+    if parser_backend_options.enabled:
+        command = f"build --parser-backend {parser_backend_options.backend}"
+        parser_backend_run = parse_sources_with_backend(input, parser_backend_options.backend, command, sources=source_files)
+        parser_backend_run.kb_trust_status = parser_backend_options.default_status
+        _write_parser_backend_run(output, parser_backend_run)
+        warnings.extend(parser_backend_run.warnings)
+        if parser_backend_run.status == "unavailable":
+            parser_quality_report = _write_parse_quality_payload(
+                output,
+                assess_parse_quality(
+                    parser_backend_run,
+                    [],
+                    parser_backend_options.default_status,
+                    require_review_for_scanned_pdf=parser_backend_options.require_review_for_scanned_pdf,
+                    require_review_for_high_risk_chunks=parser_backend_options.require_review_for_high_risk_chunks,
+                ),
+                allow_untrusted=parser_backend_options.allow_untrusted,
             )
-        except NotImplementedError as exc:
-            warnings.append(str(exc))
-            continue
-        except Exception as exc:
-            if multimodal_options and multimodal_options.enabled and source.suffix.lower() in IMAGE_SUFFIXES:
-                warnings.append(f"Image OCR failed; preserved as multimodal asset: {source}")
-                if progress_reporter:
-                    progress_reporter.emit("parse_source", "warning", f"Image preserved as multimodal asset: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files), warning=str(exc))
+            raise RuntimeError(
+                f"Parser backend unavailable: {parser_backend_run.backend_name}. "
+                + "; ".join(parser_backend_run.warnings)
+            )
+        for source_index, record in enumerate(parser_backend_run.records, start=1):
+            warnings.extend(record.warnings)
+            if record.status != "success":
+                warnings.append(f"Parser backend record not used: {record.source_path} ({record.status})")
                 continue
             if progress_reporter:
-                progress_reporter.emit("failed", "failed", f"Source parsing failed: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files), error=str(exc))
-            raise
-        if progress_reporter:
-            progress_reporter.emit("clean_text", "running", f"Cleaning text: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files))
-        cleaned = clean_text(raw)
-        if not cleaned:
-            warnings.append(f"Source produced no text: {source}")
+                progress_reporter.emit("clean_text", "running", f"Cleaning backend text: {record.source_path}", current_file=record.source_path, current_file_index=source_index, total_files=len(parser_backend_run.records))
+            cleaned = clean_text(record.text)
+            if not cleaned:
+                warnings.append(f"Source produced no text: {record.source_path}")
+                continue
+            source_chunks = chunk_text(
+                cleaned,
+                source_path=record.source_path,
+                source_type=record.source_type,
+                domain=domain,
+                mode=mode,
+                max_chars=max_chars,
+                overlap_chars=overlap_chars,
+            )
+            for chunk in source_chunks:
+                chunk.metadata.update(
+                    {
+                        "parser_backend": parser_backend_run.backend_name,
+                        "parser_backend_version": parser_backend_run.backend_version,
+                        "parse_confidence": record.confidence,
+                        "kb_trust_status": parser_backend_run.kb_trust_status,
+                    }
+                )
+            all_chunks.extend(source_chunks)
             if progress_reporter:
-                progress_reporter.emit("parse_source", "warning", f"Source produced no text: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files), warning="empty_text")
-            continue
-        source_chunks = chunk_text(
-            cleaned,
-            source_path=source,
-            source_type=source.suffix.lower().lstrip("."),
-            domain=domain,
-            mode=mode,
-            max_chars=max_chars,
-            overlap_chars=overlap_chars,
+                progress_reporter.emit("chunk_text", "success", f"Chunked backend source: {len(source_chunks)} chunks", current_file=record.source_path, current_file_index=source_index, total_files=len(parser_backend_run.records), metadata={"chunk_count": len(source_chunks), "parser_backend": parser_backend_run.backend_name})
+        parser_quality_report = _write_parse_quality_payload(
+            output,
+            assess_parse_quality(
+                parser_backend_run,
+                [chunk.model_dump(mode="json") for chunk in all_chunks],
+                parser_backend_options.default_status,
+                require_review_for_scanned_pdf=parser_backend_options.require_review_for_scanned_pdf,
+                require_review_for_high_risk_chunks=parser_backend_options.require_review_for_high_risk_chunks,
+            ),
+            allow_untrusted=parser_backend_options.allow_untrusted,
         )
-        all_chunks.extend(source_chunks)
-        if progress_reporter:
-            progress_reporter.emit("chunk_text", "success", f"Chunked source: {len(source_chunks)} chunks", current_file=str(source), current_file_index=source_index, total_files=len(source_files), metadata={"chunk_count": len(source_chunks)})
+        warnings.extend(parser_quality_report.get("warnings", []))
+    else:
+        for source_index, source in enumerate(source_files, start=1):
+            parser = _active_parsers().get(source.suffix.lower())
+            if parser is None:
+                continue
+            if progress_reporter:
+                progress_reporter.emit("parse_source", "running", f"Parsing source: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files), metadata={"parser_type": source.suffix.lower().lstrip(".")})
+            try:
+                raw = (
+                    parse_pdf(source, progress_callback=progress_reporter.callback() if progress_reporter else None, options=pdf_options)
+                    if source.suffix.lower() == ".pdf"
+                    else parser(source)
+                )
+            except NotImplementedError as exc:
+                warnings.append(str(exc))
+                continue
+            except Exception as exc:
+                if multimodal_options and multimodal_options.enabled and source.suffix.lower() in IMAGE_SUFFIXES:
+                    warnings.append(f"Image OCR failed; preserved as multimodal asset: {source}")
+                    if progress_reporter:
+                        progress_reporter.emit("parse_source", "warning", f"Image preserved as multimodal asset: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files), warning=str(exc))
+                    continue
+                if progress_reporter:
+                    progress_reporter.emit("failed", "failed", f"Source parsing failed: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files), error=str(exc))
+                raise
+            if progress_reporter:
+                progress_reporter.emit("clean_text", "running", f"Cleaning text: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files))
+            cleaned = clean_text(raw)
+            if not cleaned:
+                warnings.append(f"Source produced no text: {source}")
+                if progress_reporter:
+                    progress_reporter.emit("parse_source", "warning", f"Source produced no text: {source.name}", current_file=str(source), current_file_index=source_index, total_files=len(source_files), warning="empty_text")
+                continue
+            source_chunks = chunk_text(
+                cleaned,
+                source_path=source,
+                source_type=source.suffix.lower().lstrip("."),
+                domain=domain,
+                mode=mode,
+                max_chars=max_chars,
+                overlap_chars=overlap_chars,
+            )
+            all_chunks.extend(source_chunks)
+            if progress_reporter:
+                progress_reporter.emit("chunk_text", "success", f"Chunked source: {len(source_chunks)} chunks", current_file=str(source), current_file_index=source_index, total_files=len(source_files), metadata={"chunk_count": len(source_chunks)})
 
     warnings.extend(validate_chunks(all_chunks))
     cards = make_cards(all_chunks)
@@ -3105,6 +3421,7 @@ def _build_package(
     contract_options = contract_options or ContractOptions()
     governance_options = governance_options or GovernanceOptions()
     retrieval_index_options = retrieval_index_options or RetrievalIndexOptions()
+    knowledge_runtime_options = knowledge_runtime_options or KnowledgeRuntimeOptions()
     evidence_gate_options = evidence_gate_options or EvidenceGateOptions()
 
     files = [
@@ -3189,8 +3506,12 @@ def _build_package(
         files.extend(GOVERNANCE_OUTPUT_FILES)
     if retrieval_index_options.enabled:
         files.extend(RETRIEVAL_OUTPUT_FILES)
+    if knowledge_runtime_options.enabled:
+        files.extend(KB_RUNTIME_OUTPUT_FILES)
     if evidence_gate_options.enabled:
         files.extend(EVIDENCE_GATE_OUTPUT_FILES)
+    if parser_backend_options.enabled:
+        files.extend(PARSER_BACKEND_OUTPUT_FILES)
     files = _dedupe_files(files)
     manifest = Manifest(
         domain=domain,
@@ -3274,6 +3595,22 @@ def _build_package(
             progress_reporter.emit("performance_report", "success", "Built large file performance report", output_path=str(output / "large_file_performance_report.md"))
     manifest_payload = manifest.model_dump(mode="json")
     manifest_payload["chunk_profile"] = v11_options.chunk_profile
+    if parser_backend_run and parser_quality_report:
+        manifest_payload.update(
+            {
+                "parser_backend_enabled": True,
+                "parser_backend": parser_backend_run.backend_name,
+                "parser_backend_version": parser_backend_run.backend_version,
+                "parser_backend_status": parser_backend_run.status,
+                "parser_backend_files": PARSER_BACKEND_OUTPUT_FILES,
+                "parse_quality_status": parser_quality_report["status"],
+                "manual_review_required": parser_quality_report["manual_review_required"],
+                "kb_trust_status": parser_quality_report["kb_trust_status"],
+                "trusted_kb_gate_file": "trusted_kb_gate.json",
+                "trusted_kb_gate_status": parser_quality_report.get("trusted_kb_gate_status"),
+                "knowledge_reliability_report_file": "knowledge_reliability_report.json",
+            }
+        )
     contract_enabled = contract_options.version == "v2" or contract_options.check
     if contract_enabled:
         manifest_payload.update(
@@ -3467,6 +3804,24 @@ def _build_package(
         build_retrieval_outputs(output, output, retrieval_index_options.query)
         manifest_payload.update({"retrieval_index_enabled": True, "retrieval_index_files": RETRIEVAL_OUTPUT_FILES})
         write_json(output / "manifest.json", manifest_payload)
+    if knowledge_runtime_options.enabled:
+        kb_answer_report = answer_kb_outputs(
+            output,
+            output,
+            knowledge_runtime_options.query,
+            knowledge_runtime_options.top_k,
+            knowledge_runtime_options.min_score,
+            knowledge_runtime_options.citation_required,
+        )
+        manifest_payload.update(
+            {
+                "knowledge_runtime_enabled": True,
+                "knowledge_runtime_version": kb_answer_report["kb_answer_version"],
+                "knowledge_runtime_status": kb_answer_report["status"],
+                "knowledge_runtime_files": KB_RUNTIME_OUTPUT_FILES,
+            }
+        )
+        write_json(output / "manifest.json", manifest_payload)
     if evidence_gate_options.enabled:
         run_evidence_gate(output, output, evidence_gate_options.query)
         manifest_payload.update({"evidence_gate_enabled": True, "evidence_gate_files": EVIDENCE_GATE_OUTPUT_FILES})
@@ -3618,6 +3973,61 @@ def _make_source_inventory(source_files: list[Path]) -> dict:
 def _render_quality_report_md(quality_report: dict) -> str:
     rows = "\n".join(f"- {key}: {value}" for key, value in quality_report.items())
     return f"# Quality Report\n\n{rows}\n"
+
+
+def _write_parser_backend_run(output: Path, run) -> None:
+    output.mkdir(parents=True, exist_ok=True)
+    write_json(output / "parser_backend_result.json", run.to_dict())
+    (output / "parser_backend_output.md").write_text(render_backend_output_md(run), encoding="utf-8")
+    write_json(
+        output / "parser_backend_output.json",
+        {
+            "parser_backend_output_version": "2.8.0-alpha.1",
+            "backend_name": run.backend_name,
+            "backend_version": run.backend_version,
+            "status": run.status,
+            "kb_trust_status": run.kb_trust_status,
+            "records": [record.to_dict() for record in run.records],
+        },
+    )
+
+
+def _write_parse_quality_outputs(input_path: Path, output: Path, default_status: str) -> dict:
+    run = load_parse_run(input_path)
+    chunks = load_chunks(input_path)
+    quality = assess_parse_quality(run, chunks, default_status)
+    return _write_parse_quality_payload(output, quality, allow_untrusted=False)
+
+
+def _write_parse_quality_payload(output: Path, quality: dict, allow_untrusted: bool) -> dict:
+    output.mkdir(parents=True, exist_ok=True)
+    ocr_risk = make_ocr_risk_report(quality)
+    trust_result = trust_gate_result(quality["kb_trust_status"], allow_untrusted)
+    quality["trusted_kb_gate_status"] = trust_result["status"]
+    quality["trusted_kb_gate_blocked"] = trust_result["blocked"]
+    reliability = {
+        "knowledge_reliability_report_version": "2.8.0-alpha.1",
+        "status": "fail" if trust_result["blocked"] else quality["status"],
+        "parse_quality_status": quality["status"],
+        "ocr_risk_status": ocr_risk["status"],
+        "kb_trust_status": quality["kb_trust_status"],
+        "trusted_kb_gate_status": trust_result["status"],
+        "manual_review_required": quality["manual_review_required"],
+        "high_risk_page_count": quality["high_risk_page_count"],
+        "high_risk_chunk_count": quality["high_risk_chunk_count"],
+        "warnings": quality["warnings"] + trust_result["warnings"],
+    }
+    write_json(output / "parse_quality_report.json", quality)
+    (output / "parse_quality_report.md").write_text(render_parse_quality_report(quality), encoding="utf-8")
+    write_json(output / "ocr_risk_report.json", ocr_risk)
+    write_jsonl(output / "high_risk_pages.jsonl", quality["high_risk_pages"])
+    write_jsonl(output / "high_risk_parse_pages.jsonl", quality["high_risk_pages"])
+    write_jsonl(output / "high_risk_chunks.jsonl", quality["high_risk_chunks"])
+    write_jsonl(output / "manual_review_queue.jsonl", quality["manual_review_queue"])
+    write_json(output / "kb_trust_status.json", {"kb_trust_status": quality["kb_trust_status"]})
+    write_json(output / "trusted_kb_gate.json", trust_result)
+    write_json(output / "knowledge_reliability_report.json", reliability)
+    return quality
 
 
 def _write_lifecycle_outputs(

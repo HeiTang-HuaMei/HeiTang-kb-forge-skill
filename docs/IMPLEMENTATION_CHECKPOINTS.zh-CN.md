@@ -174,10 +174,6 @@
 
 ## Planned
 
-- v2.5 Quality Gate and Export Certification
-- v2.6 Provider Security and Studio Industrial Console
-- v2.7 Release Candidate
-- v2.8 Domain Skill Factory
 - v2.9 飞书 / 个人知识库 / 手机端 / 安装端 / iOS
 
 ## v2.4
@@ -217,7 +213,7 @@
 
 - v2.6 Provider Security and Studio Industrial Console
 - v2.7 Release Candidate
-- v2.8 Domain Skill Factory
+- v2.8 Parser Backend and Knowledge Reliability
 - v2.9 飞书 / 个人知识库 / 手机端 / 安装端 / iOS
 
 ## v2.5
@@ -258,11 +254,89 @@
 - 不启动 MCP Server。
 - Provider 安全审计预留到 v2.6。
 - Runtime compatibility smoke 预留到 v2.7。
-- 飞书 / 个人知识库 / 移动端 / 安装端 / iOS 仍预留到 v2.9。
+- Knowledge Runtime Loop 仍预留到 v2.9。
 
 ## Planned After v2.5
 
 - v2.6 Provider Security and Studio Industrial Console
 - v2.7 Release Candidate
-- v2.8 Domain Skill Factory
-- v2.9 飞书 / 个人知识库 / 手机端 / 安装端 / iOS
+- v2.8 Parser Backend and Knowledge Reliability
+- v2.9 Knowledge Runtime Loop
+
+## v2.8
+
+状态：Parser backend and knowledge reliability checkpoint 已完成。
+
+已实现：
+
+- Parser backend registry
+- 内置 parser backend contract 标准化
+- 可选 Docling adapter 边界
+- 可选 Marker adapter 边界
+- `parser-backend-list`
+- `parse-with-backend`
+- `parse-compare`
+- `parse-quality-gate`
+- `parse-reimport-corrected-text`
+- `trusted-kb-gate`
+- `build --parser-backend`
+- `batch --parser-backend`
+- Parser backend result 与 normalized output 文件
+- Parse quality report
+- OCR risk report
+- High-risk page / chunk 输出
+- Manual review queue
+- Corrected text re-import 和 before/after quality diff
+- Draft / reviewed / trusted KB status metadata
+- Skill、Agent、platform export 默认阻断 untrusted KB
+- Config parser backend build 与 trust policy 支持
+- Pipeline 和 web parser backend reliability 可见性
+
+验证：
+
+- `tests/test_v28_parser_backends.py`
+- `tests/test_version_alignment.py`
+- `tests/test_version_matrix_docs.py`
+- `tests/test_release_readiness.py`
+- `tests/test_release_readiness_gate.py`
+
+已知缺口：
+
+- Docling 和 Marker adapter 是可选本地集成边界，默认不是 live parser integration。
+- Parser backend mode 是 opt-in，不改变默认 build、batch、run 或 pipeline 行为。
+- Draft parser-backed KB 需要人工 review 或显式 `--allow-untrusted` 才能导出。
+- v2.9 Knowledge Runtime Loop 不属于 v2.8。
+
+## v2.9
+
+状态：本地 Knowledge Runtime Loop checkpoint 已完成。
+
+已实现：
+
+- `kb-index`
+- `kb-query`
+- `kb-answer`
+- 本地 KB index 输出
+- Query result 与 query trace 输出
+- Citation trace 输出
+- 带引用本地答案输出
+- 低置信拒答行为
+- Retrieval quality report
+- RAG eval baseline JSONL 和 Markdown report
+- `build --knowledge-runtime`
+- `knowledge_runtime` 配置支持
+- Pipeline 和 web knowledge runtime 输出可见性
+
+验证：
+
+- `tests/test_v29_knowledge_runtime.py`
+- `tests/test_version_alignment.py`
+- `tests/test_version_matrix_docs.py`
+- `tests/test_release_readiness.py`
+- `tests/test_release_readiness_gate.py`
+
+已知缺口：
+
+- Knowledge runtime mode 是 opt-in，不改变默认 build、batch、run 或 pipeline 行为。
+- Retrieval 是确定性本地检索，不是 embedding 或向量数据库实现。
+- v2.9 不调用 LLM API、embedding API、向量库、外部 Agent runtime、飞书、移动端、安装端或 iOS surface。

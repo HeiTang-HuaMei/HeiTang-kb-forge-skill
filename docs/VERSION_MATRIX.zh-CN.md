@@ -1,6 +1,6 @@
 # Version Matrix
 
-当前项目版本：`2.7.0-alpha.1`
+当前项目版本：`2.9.0-alpha.1`
 
 | Version | Status | Main Capability | Test Coverage | Known Limits | Checkpoint / Tag |
 | --- | --- | --- | --- | --- | --- |
@@ -18,10 +18,11 @@
 | v2.5.0-dev | Implemented | local release quality gate | pytest | not external certification | v2.5.0-dev |
 | v2.5.1-alpha.1 | Implemented | release engineering / CLI architecture convergence | pytest | alpha checkpoint | historical |
 | v2.6.0-alpha.1 | Implemented | provider registry governance、security、fallback、redaction、cost guard、opt-in live smoke | pytest | alpha checkpoint, no default network, live smoke is Preview | v2.6.0-alpha.1 |
-| v2.7.0-alpha.1 | Implemented | minimal end-to-end demo / portfolio release | pytest | no real runtime compatibility, no live platform runtime | current |
+| v2.7.0-alpha.1 | Implemented | minimal end-to-end demo / portfolio release | pytest | no real runtime compatibility, no live platform runtime | historical |
+| v2.8.0-alpha.1 | Implemented | parser backend and knowledge reliability | pytest | opt-in only, optional external parser stubs, no default network | historical |
+| v2.9.0-alpha.1 | Implemented | local Knowledge Runtime Loop | pytest | opt-in only, deterministic local retrieval, no LLM / embedding / vector DB calls | current |
 | runtime compatibility planned | Planned | runtime compatibility smoke | planned | not implemented | planned |
-| v2.8 planned | Planned | domain Skill factory | planned | not implemented | planned |
-| v2.9 planned | Planned | Feishu / personal KB / mobile / installer / iOS | planned | not implemented | planned |
+| future client platform integrations | Planned | Feishu / personal KB / mobile / installer / iOS | planned | not implemented | planned |
 | v3.x planned | Planned | SaaS / permissions / team collaboration | planned | not implemented | planned |
 
 说明：
@@ -29,5 +30,7 @@
 - v2.4 是 offline export / mock publish，不是真实平台运行。
 - v2.5 是 local release quality gate，不是外部平台认证。
 - v2.6 是 opt-in，默认不发起网络调用，不声明所有 Provider 都已 live-tested。
+- v2.8 parser backend mode 是 opt-in，默认不强制安装 Docling 或 Marker。
+- v2.9 Knowledge Runtime Loop 是 opt-in、本地、确定性能力，不调用 LLM API、embedding API、向量库或外部 Agent runtime。
 - Runtime compatibility 仍是 Planned，不能写成 completed。
 

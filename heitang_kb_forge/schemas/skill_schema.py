@@ -9,6 +9,7 @@ class SkillManifest(BaseModel):
     skill_version: str = "1.8.0"
     source_package_id: str
     source_contract_version: str | None = None
+    kb_trust_status: str = "legacy_untracked"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     supported_tasks: list[str] = Field(default_factory=list)
     required_assets: list[str] = Field(default_factory=list)

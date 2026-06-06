@@ -7,6 +7,8 @@ Current repository status:
 - v2.5.1: release engineering and CLI convergence
 - v2.6.0-alpha.1: provider governance and mock/live boundary
 - v2.7.0-alpha.1: minimal end-to-end demo
+- v2.8.0-alpha.1: parser backend and knowledge reliability checkpoint
+- v2.9.0-alpha.1: local Knowledge Runtime Loop checkpoint
 - portfolio documentation
 - Agent / KB answer policy documentation
 

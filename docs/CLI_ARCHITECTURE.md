@@ -1,6 +1,6 @@
 # CLI Architecture
 
-Current version: `2.7.0-alpha.1`
+Current version: `2.9.0-alpha.1`
 
 ## Purpose
 
@@ -33,10 +33,12 @@ Each module should stay below 30 KB:
 - `agent_commands.py`
 - `rag_commands.py`
 - `doctor_commands.py`
+- parser backend reliability commands may stay in the compatibility runtime during v2.8, but future CLI convergence should move them into a dedicated parser command module.
+- knowledge runtime commands may stay in the compatibility runtime during v2.9, but future CLI convergence should move them into a dedicated runtime or retrieval command module.
 
 ## Compatibility Runtime
 
-`heitang_kb_forge/cli_runtime.py` preserves existing command behavior during the v2.5.1 convergence checkpoint. It is not a place for new commands.
+`heitang_kb_forge/cli_runtime.py` preserves existing command behavior during the v2.5.1+ convergence checkpoints. It is not the long-term home for new commands.
 
 Future command work must migrate behavior out of the compatibility runtime into the matching `cli_commands/*.py` module.
 
@@ -75,4 +77,6 @@ The CLI must not:
 - start a real MCP Server
 - write to a real vector database
 - depend on the desktop UI
+- enable parser backend mode by default
+- bypass trusted KB export gates for parser-backed draft packages
 

@@ -1,5 +1,44 @@
 # Changelog
 
+## v2.9.0-alpha.1
+
+* Added opt-in Knowledge Runtime Loop.
+* Added `kb-index`.
+* Added `kb-query`.
+* Added `kb-answer`.
+* Added local KB index output.
+* Added query result, query trace, and citation trace outputs.
+* Added cited local answer output.
+* Added low-confidence refusal behavior.
+* Added retrieval quality report.
+* Added RAG eval baseline JSONL and Markdown report.
+* Added `build --knowledge-runtime`.
+* Added config and pipeline visibility for knowledge runtime outputs.
+* Preserved default build / batch / run / pipeline behavior.
+* Preserved default offline behavior.
+* No LLM API calls.
+* No embedding API calls.
+* No vector database writes.
+* No external Agent runtime execution.
+
+## v2.8.0-alpha.1
+
+* Added opt-in parser backend abstraction.
+* Added `parser-backend-list`.
+* Added `parse-with-backend`.
+* Added `parse-compare`.
+* Added `parse-quality-gate`.
+* Added `parse-reimport-corrected-text`.
+* Added `trusted-kb-gate`.
+* Added built-in parser backend adapter.
+* Added optional Docling and Marker backend stubs.
+* Added optional `parser-docling` and `parser-marker` extras.
+* Added parser backend output, parse quality, OCR risk, manual review queue, trusted KB gate, and knowledge reliability reports.
+* Added parser backend trust metadata to package, Skill, and Agent package outputs.
+* Added config / pipeline support for opt-in parser backend builds.
+* Preserved default build / batch / run / pipeline behavior.
+* Preserved default offline behavior and did not require external parser dependencies.
+
 ## v2.7.0-alpha.1
 
 * Added local offline `demo-e2e` command.

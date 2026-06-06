@@ -65,9 +65,21 @@ v2.4 实现范围是本地平台分发输出、上传准备检查、静态上传
 
 v2.5 已实现本地发布质量门禁、发布阻塞项检测、回归覆盖检查、golden sample 验证、平台导出认证、兼容矩阵、mock-first LLM quality gate assist、release readiness 汇总，以及 Release Quality Center v2.5 只读摘要。
 
-v2.5 不调用真实 LLM API，不真实运行平台 runtime，不启动 MCP Server，不上传小红书，不实现 v2.6 Provider 安全审计完整版本，不实现 v2.8 Domain Skill Factory，也不实现 v2.9 飞书 / 移动端 / 安装端 / iOS。
+v2.5 不调用真实 LLM API，不真实运行平台 runtime，不启动 MCP Server，不上传小红书，不实现 v2.6 Provider 安全审计完整版本，不实现 v2.8 parser backend reliability，也不实现 v2.9 Knowledge Runtime Loop。
 
-后续真实验证边界：v2.6 做真实 LLM live smoke 与 provider governance，v2.7 做 runtime compatibility smoke，v2.9 做飞书 / 移动端 / 安装端 / iOS，v3.x 做 SaaS / 权限系统 / 多用户协作。
+后续真实验证边界：v2.6 做真实 LLM live smoke 与 provider governance，v2.7 做 runtime compatibility smoke，v2.9 做本地 Knowledge Runtime Loop，后续客户端平台集成再做飞书 / 移动端 / 安装端 / iOS，v3.x 做 SaaS / 权限系统 / 多用户协作。
+
+# v2.8 Parser Backend and Knowledge Reliability
+
+v2.8 实现 opt-in parser backend reliability。它新增 backend registry、内置 parser backend 标准化、可选 Docling 与 Marker adapter stub、parse compare、parse quality gate 输出、OCR risk report、manual review queue、corrected text re-import、trust status metadata 和 trusted KB export gate。
+
+v2.8 保持默认 build、batch、run、pipeline 行为不变，只有显式启用 parser backend mode 时才生成新增输出。它不强制安装外部 parser 依赖，也不进入 v2.9 的平台、移动端、安装端或 iOS 范围。
+
+# v2.9 Knowledge Runtime Loop
+
+v2.9 实现 opt-in 本地 Knowledge Runtime Loop。它新增 `kb-index`、`kb-query`、`kb-answer`、本地 KB index 输出、query trace、citation trace、带引用本地答案、低置信拒答、retrieval quality report 和 RAG eval baseline 输出。
+
+v2.9 保持默认 build、batch、run、pipeline 行为不变，只有显式启用 knowledge runtime mode 时才生成新增输出。它不调用 LLM API、embedding API、向量库、外部 Agent runtime、飞书、移动端、安装端或 iOS surface。
 # v2.3 工业级批量处理与知识治理
 
 v2.3 实现工业级 batch job manifest、item status 追踪、retry 记录、批量汇总、package lineage、curated package、governance decision log、update impact report，以及只读 Batch & Governance Center 方向。

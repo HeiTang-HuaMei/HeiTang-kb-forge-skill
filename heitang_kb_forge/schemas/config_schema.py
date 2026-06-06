@@ -311,9 +311,31 @@ class RetrievalIndexConfig(BaseModel):
     query: str = "Summarize this knowledge package."
 
 
+class KnowledgeRuntimeConfig(BaseModel):
+    enabled: bool = False
+    query: str = "Summarize this knowledge package."
+    top_k: int = 5
+    min_score: int = 2
+    citation_required: bool = True
+
+
 class EvidenceGateConfig(BaseModel):
     enabled: bool = False
     query: str = "Summarize this knowledge package."
+
+
+class ParserBackendTrustPolicyConfig(BaseModel):
+    default_status: str = "draft_knowledge_package"
+    require_review_for_scanned_pdf: bool = True
+    require_review_for_high_risk_chunks: bool = True
+
+
+class ParserBackendConfig(BaseModel):
+    use_for_build: bool = False
+    default: str = "builtin"
+    enabled: list[str] = Field(default_factory=lambda: ["builtin", "docling", "marker"])
+    allow_untrusted: bool = False
+    trust_policy: ParserBackendTrustPolicyConfig = Field(default_factory=ParserBackendTrustPolicyConfig)
 
 
 class PackageLineageConfig(BaseModel):
@@ -474,7 +496,9 @@ class ForgeConfig(BaseModel):
     contract: ContractConfig = Field(default_factory=ContractConfig)
     governance: GovernanceConfig = Field(default_factory=GovernanceConfig)
     retrieval: RetrievalIndexConfig = Field(default_factory=RetrievalIndexConfig)
+    knowledge_runtime: KnowledgeRuntimeConfig = Field(default_factory=KnowledgeRuntimeConfig)
     evidence_gate: EvidenceGateConfig = Field(default_factory=EvidenceGateConfig)
+    parser_backend: ParserBackendConfig = Field(default_factory=ParserBackendConfig)
     package_lineage: PackageLineageConfig = Field(default_factory=PackageLineageConfig)
     curation: CurationConfig = Field(default_factory=CurationConfig)
     update_impact: UpdateImpactConfig = Field(default_factory=UpdateImpactConfig)

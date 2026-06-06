@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 from heitang_kb_forge.schemas.agent_package_schema import AgentPackageProfile
 
@@ -10,6 +11,7 @@ def make_agent_profile(package: Path, skill: Path, agent_name: str, agent_type: 
         agent_type=agent_type,
         source_skill_id=_read_skill_id(skill),
         source_package_id=package.name or "knowledge_package",
+        kb_trust_status=_read_package_trust_status(package),
     )
 
 
@@ -25,6 +27,16 @@ def _read_skill_id(skill: Path) -> str:
         if line.startswith("skill_id:"):
             return line.split(":", 1)[1].strip()
     return skill.name
+
+
+def _read_package_trust_status(package: Path) -> str:
+    manifest = package / "manifest.json"
+    if not manifest.exists():
+        return "legacy_untracked"
+    try:
+        return str(json.loads(manifest.read_text(encoding="utf-8")).get("kb_trust_status", "legacy_untracked"))
+    except json.JSONDecodeError:
+        return "raw_parse_output"
 
 
 def _slug(value: str) -> str:

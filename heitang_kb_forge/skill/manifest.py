@@ -12,6 +12,7 @@ def make_skill_manifest(package: Path, skill_name: str, skill_type: str) -> Skil
         skill_name=skill_name,
         source_package_id=source_package_id,
         source_contract_version=manifest.get("contract_version"),
+        kb_trust_status=manifest.get("kb_trust_status", "legacy_untracked"),
         supported_tasks=[skill_type, "answer_with_citations", "boundary_aware_refusal"],
         required_assets=["chunks.jsonl", "cards.jsonl", "qa_pairs.jsonl", "glossary.jsonl", "manifest.json"],
     )

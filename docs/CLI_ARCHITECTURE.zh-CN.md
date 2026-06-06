@@ -1,6 +1,6 @@
 # CLI 架构
 
-当前版本：`2.7.0-alpha.1`
+当前版本：`2.9.0-alpha.1`
 
 ## 目的
 
@@ -33,10 +33,12 @@ CLI 是 HeiTang KB Forge 的标准 headless 入口。它必须继续服务于本
 - `agent_commands.py`
 - `rag_commands.py`
 - `doctor_commands.py`
+- v2.8 parser backend reliability 命令可以暂留兼容 runtime；后续 CLI 收敛应迁移到独立 parser command module。
+- v2.9 knowledge runtime 命令可以暂留兼容 runtime；后续 CLI 收敛应迁移到独立 runtime 或 retrieval command module。
 
 ## 兼容 Runtime
 
-`heitang_kb_forge/cli_runtime.py` 在 v2.5.1 收敛 checkpoint 中保留既有命令行为。它不是新增命令的位置。
+`heitang_kb_forge/cli_runtime.py` 在 v2.5.1+ 收敛 checkpoint 中保留既有命令行为。它不是新增命令的长期位置。
 
 后续命令工作必须继续把行为从兼容 runtime 迁移到对应的 `cli_commands/*.py` 模块。
 
@@ -75,4 +77,6 @@ CLI 不得：
 - 启动真实 MCP Server
 - 写入真实向量数据库
 - 依赖桌面 UI
+- 默认开启 parser backend mode
+- 绕过 parser-backed draft package 的 trusted KB export gate
 

@@ -96,7 +96,7 @@ def _quickstart_input_check() -> dict[str, Any]:
 
 
 def _version_alignment_check() -> dict[str, Any]:
-    expected = "2.7.0-alpha.1"
+    expected = "2.9.0-alpha.1"
     versions = []
     pyproject = Path("pyproject.toml")
     skill_json = Path("skill.json")

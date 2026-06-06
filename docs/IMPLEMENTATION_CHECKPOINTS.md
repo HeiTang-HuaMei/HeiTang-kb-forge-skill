@@ -174,11 +174,7 @@ Known gaps:
 
 ## Planned
 
-- v2.5 Quality Gate and Export Certification
-- v2.6 Provider Security and Studio Industrial Console
-- v2.7 Release Candidate
-- v2.8 Domain Skill Factory
-- v2.9 Feishu / Personal KB / Mobile / Installer / iOS
+- v2.9 Knowledge Runtime Loop
 
 ## v2.4
 
@@ -217,8 +213,8 @@ Known gaps:
 
 - v2.6 Provider Security and Studio Industrial Console
 - v2.7 Release Candidate
-- v2.8 Domain Skill Factory
-- v2.9 Feishu / Personal KB / Mobile / Installer / iOS
+- v2.8 Parser Backend and Knowledge Reliability
+- v2.9 Knowledge Runtime Loop
 
 ## v2.5
 
@@ -258,11 +254,89 @@ Known gaps:
 - No MCP server startup.
 - Provider security audit is reserved for v2.6.
 - Runtime compatibility smoke is reserved for v2.7.
-- Feishu / Personal KB / Mobile / Installer / iOS remain planned for v2.9.
+- Knowledge Runtime Loop remains planned for v2.9.
 
 ## Planned After v2.5
 
 - v2.6 Provider Security and Studio Industrial Console
 - v2.7 Release Candidate
-- v2.8 Domain Skill Factory
-- v2.9 Feishu / Personal KB / Mobile / Installer / iOS
+- v2.8 Parser Backend and Knowledge Reliability
+- v2.9 Knowledge Runtime Loop
+
+## v2.8
+
+Status: Completed for the parser backend and knowledge reliability checkpoint.
+
+Implemented:
+
+- Parser backend registry
+- Built-in parser backend contract normalization
+- Optional Docling adapter boundary
+- Optional Marker adapter boundary
+- `parser-backend-list`
+- `parse-with-backend`
+- `parse-compare`
+- `parse-quality-gate`
+- `parse-reimport-corrected-text`
+- `trusted-kb-gate`
+- `build --parser-backend`
+- `batch --parser-backend`
+- Parser backend result and normalized output files
+- Parse quality report
+- OCR risk report
+- High-risk page and chunk outputs
+- Manual review queue
+- Corrected text re-import and before/after quality diff
+- Draft / reviewed / trusted KB status metadata
+- Trusted KB gate blocking for Skill, Agent, and platform exports by default
+- Config support for parser backend builds and trust policy
+- Pipeline and web visibility for parser backend reliability outputs
+
+Verified by:
+
+- `tests/test_v28_parser_backends.py`
+- `tests/test_version_alignment.py`
+- `tests/test_version_matrix_docs.py`
+- `tests/test_release_readiness.py`
+- `tests/test_release_readiness_gate.py`
+
+Known gaps:
+
+- Docling and Marker adapters are optional local integration boundaries, not live parser integrations by default.
+- Parser backend mode is opt-in and does not change default build, batch, run, or pipeline behavior.
+- Draft parser-backed KBs require manual review or explicit `--allow-untrusted` before export.
+- v2.9 Knowledge Runtime Loop remains outside v2.8.
+
+## v2.9
+
+Status: Completed for the local Knowledge Runtime Loop checkpoint.
+
+Implemented:
+
+- `kb-index`
+- `kb-query`
+- `kb-answer`
+- Local KB index output
+- Query result and query trace outputs
+- Citation trace output
+- Cited local answer output
+- Low-confidence refusal behavior
+- Retrieval quality report
+- RAG eval baseline JSONL and Markdown report
+- `build --knowledge-runtime`
+- Config support for `knowledge_runtime`
+- Pipeline and web visibility for knowledge runtime outputs
+
+Verified by:
+
+- `tests/test_v29_knowledge_runtime.py`
+- `tests/test_version_alignment.py`
+- `tests/test_version_matrix_docs.py`
+- `tests/test_release_readiness.py`
+- `tests/test_release_readiness_gate.py`
+
+Known gaps:
+
+- Knowledge runtime mode is opt-in and does not change default build, batch, run, or pipeline behavior.
+- Retrieval is deterministic and local, not an embedding or vector database implementation.
+- v2.9 does not call LLM APIs, embedding APIs, vector databases, external Agent runtimes, Feishu, mobile clients, installers, or iOS surfaces.

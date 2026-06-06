@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from heitang_kb_forge.agent.templates import AGENT_OUTPUT_FILES
@@ -10,6 +11,7 @@ from heitang_kb_forge.downstream.exporter import DOWNSTREAM_OUTPUT_FILES
 from heitang_kb_forge.validation.package_validator import VALIDATION_OUTPUT_FILES
 from heitang_kb_forge.incremental.reuse import INCREMENTAL_OUTPUT_FILES
 from heitang_kb_forge.knowledge_graph.exporter import KNOWLEDGE_GRAPH_OUTPUT_FILES
+from heitang_kb_forge.knowledge_runtime import KB_RUNTIME_OUTPUT_FILES
 from heitang_kb_forge.evalset.exporter import RETRIEVAL_EVAL_OUTPUT_FILES
 from heitang_kb_forge.risk.labeler import RISK_OUTPUT_FILES
 from heitang_kb_forge.runtime.agent_runtime import RUNTIME_OUTPUT_FILES
@@ -35,6 +37,28 @@ STANDARD_PACKAGE_FILES = [
     "ingest_report.md",
     "quality_report.json",
 ]
+PARSER_BACKEND_OUTPUT_FILES = [
+    "parser_backend_result.json",
+    "parser_backend_output.md",
+    "parser_backend_output.json",
+    "parse_quality_report.json",
+    "parse_quality_report.md",
+    "ocr_risk_report.json",
+    "high_risk_pages.jsonl",
+    "high_risk_parse_pages.jsonl",
+    "high_risk_chunks.jsonl",
+    "manual_review_queue.jsonl",
+    "kb_trust_status.json",
+    "trusted_kb_gate.json",
+    "knowledge_reliability_report.json",
+]
+PARSER_BACKEND_STAGE_NAMES = {
+    "parser_backend_parse",
+    "parse_quality_gate",
+    "manual_parse_review_queue",
+    "trusted_kb_gate",
+    "knowledge_reliability_report",
+}
 
 
 def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path) -> tuple[PipelineManifest, str]:
@@ -42,6 +66,11 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("source_ingestion", True, output, ["chunks.jsonl"], config.task),
         _stage("knowledge_package", True, output, STANDARD_PACKAGE_FILES, config.task),
         _stage("quality_report", True, output, ["quality_report.json"], config.task),
+        _stage("parser_backend_parse", config.parser_backend.use_for_build, output, ["parser_backend_result.json", "parser_backend_output.md", "parser_backend_output.json"], config.task),
+        _stage("parse_quality_gate", config.parser_backend.use_for_build, output, ["parse_quality_report.json", "parse_quality_report.md", "ocr_risk_report.json"], config.task),
+        _stage("manual_parse_review_queue", config.parser_backend.use_for_build, output, ["manual_review_queue.jsonl", "high_risk_chunks.jsonl", "high_risk_parse_pages.jsonl"], config.task),
+        _stage("trusted_kb_gate", config.parser_backend.use_for_build, output, ["kb_trust_status.json", "trusted_kb_gate.json"], config.task),
+        _stage("knowledge_reliability_report", config.parser_backend.use_for_build, output, ["knowledge_reliability_report.json"], config.task),
         _stage("pdf_preflight", _performance_enabled(config), output, ["pdf_preflight_report.json"], config.task),
         _stage("ocr_cache", config.performance.ocr_cache, output, ["ocr_cache_manifest.json"], config.task),
         _stage("ocr_processing", _performance_enabled(config) and config.performance.ocr_mode != "off", output, ["ocr_failed_pages.jsonl", "ocr_resume_report.md"], config.task),
@@ -58,6 +87,11 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("review_queue", config.governance.enabled, output, ["review_queue.jsonl", "review_queue_report.md"], config.task),
         _stage("retrieval_index", config.retrieval.enabled, output, ["retrieval_index.jsonl", "retrieval_manifest.json"], config.task),
         _stage("context_pack", config.retrieval.enabled, output, ["context_pack.json", "context_pack.md"], config.task),
+        _stage("kb_index", config.knowledge_runtime.enabled, output, ["kb_index.jsonl", "kb_index_manifest.json"], config.task),
+        _stage("kb_query", config.knowledge_runtime.enabled, output, ["kb_query_result.json", "kb_query_trace.json", "kb_citation_trace.json"], config.task),
+        _stage("kb_answer", config.knowledge_runtime.enabled, output, ["kb_answer.md", "kb_answer_report.json"], config.task),
+        _stage("retrieval_quality_report", config.knowledge_runtime.enabled, output, ["retrieval_quality_report.json"], config.task),
+        _stage("rag_eval_baseline", config.knowledge_runtime.enabled, output, ["rag_eval_baseline.jsonl", "rag_eval_baseline_report.md"], config.task),
         _stage("evidence_gate", config.evidence_gate.enabled, output, EVIDENCE_GATE_OUTPUT_FILES, config.task),
         _stage("llm_provider_check", config.llm.enabled, output, [], config.task),
         _stage("llm_evidence_validation", config.llm.evidence_validation, output, ["llm_evidence_validation.json"], config.task),
@@ -176,7 +210,10 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
 def _stage(name: str, enabled: bool, output: Path, expected_files: list[str], task: str) -> PipelineStage:
     if not enabled:
         return PipelineStage(name=name, enabled=False, status="skipped", output_files=[])
-    status = "success" if _files_exist(output, expected_files, task) else "failed"
+    if name in PARSER_BACKEND_STAGE_NAMES:
+        status = "success" if _parser_backend_stage_passes(name, output, expected_files, task) else "failed"
+    else:
+        status = "success" if _files_exist(output, expected_files, task) else "failed"
     return PipelineStage(name=name, enabled=True, status=status, output_files=expected_files)
 
 
@@ -235,6 +272,55 @@ def _files_exist(output: Path, expected_files: list[str], task: str) -> bool:
     if expected_files == ["chunks.jsonl"]:
         return True
     return True
+
+
+def _parser_backend_stage_passes(name: str, output: Path, expected_files: list[str], task: str) -> bool:
+    package_outputs = _stage_package_outputs(output, task)
+    if not package_outputs:
+        return False
+    return all(_parser_stage_package_passes(name, package, expected_files) for package in package_outputs)
+
+
+def _stage_package_outputs(output: Path, task: str) -> list[Path]:
+    if task == "build":
+        return [output]
+    manifest_path = output / "batch_manifest.json"
+    if not manifest_path.exists():
+        return []
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return []
+    packages = []
+    for item in manifest.get("items", []):
+        if item.get("status") == "success" and item.get("output_path"):
+            packages.append(Path(item["output_path"]))
+    return packages
+
+
+def _parser_stage_package_passes(name: str, package: Path, expected_files: list[str]) -> bool:
+    if not all((package / file_name).exists() for file_name in expected_files):
+        return False
+    if name == "parser_backend_parse":
+        payload = _read_json(package / "parser_backend_result.json")
+        return payload.get("status") not in {"failed", "unavailable"}
+    if name == "parse_quality_gate":
+        payload = _read_json(package / "parse_quality_report.json")
+        return payload.get("status") != "fail"
+    if name == "trusted_kb_gate":
+        payload = _read_json(package / "trusted_kb_gate.json")
+        return payload.get("status") == "pass" and payload.get("blocked") is not True
+    if name == "knowledge_reliability_report":
+        payload = _read_json(package / "knowledge_reliability_report.json")
+        return payload.get("status") != "fail"
+    return True
+
+
+def _read_json(path: Path) -> dict:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
 
 
 def _render_report(manifest: PipelineManifest) -> str:

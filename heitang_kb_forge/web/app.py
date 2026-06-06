@@ -60,10 +60,23 @@ def load_package_summary(package: Path) -> dict:
         "staleness_report.json",
         "retrieval_manifest.json",
         "retrieval_trace.json",
+        "kb_index_manifest.json",
+        "kb_query_result.json",
+        "kb_query_trace.json",
+        "kb_citation_trace.json",
+        "kb_answer_report.json",
+        "retrieval_quality_report.json",
         "evidence_gate_result.json",
         "llm_evidence_validation.json",
         "llm_boundary_judgment.json",
         "llm_hallucination_check.json",
+        "parser_backend_result.json",
+        "parser_backend_output.json",
+        "parse_quality_report.json",
+        "ocr_risk_report.json",
+        "kb_trust_status.json",
+        "trusted_kb_gate.json",
+        "knowledge_reliability_report.json",
         "skill_package/skill_manifest.yaml",
         "skill_validation/skill_validation_result.json",
         "agent_package/agent_profile.yaml",
@@ -115,7 +128,7 @@ def load_package_summary(package: Path) -> dict:
     decisions_path = package / "governance_decisions.jsonl"
     if decisions_path.exists():
         summary["governance_decisions.jsonl"] = [json.loads(line) for line in decisions_path.read_text(encoding="utf-8").splitlines() if line.strip()]
-    for jsonl_name in ["workspace/run_history.jsonl"]:
+    for jsonl_name in ["workspace/run_history.jsonl", "kb_index.jsonl", "rag_eval_baseline.jsonl"]:
         path = package / jsonl_name
         if path.exists():
             summary[jsonl_name] = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
@@ -129,8 +142,12 @@ def load_package_summary(package: Path) -> dict:
         "governance_report.md",
         "review_queue_report.md",
         "context_pack.md",
+        "kb_answer.md",
+        "rag_eval_baseline_report.md",
         "evidence_gate_report.md",
         "llm_evidence_validation_report.md",
+        "parser_backend_output.md",
+        "parse_quality_report.md",
         "skill_package/SKILL.md",
         "skill_package/skill_generation_report.md",
         "skill_validation/skill_validation_report.md",
@@ -224,6 +241,15 @@ def render_app() -> None:
             "Curated package",
             "Governance decision log",
             "Update impact",
+            "Parser Backend Reliability",
+            "Parse Quality Gate",
+            "Trusted KB Gate",
+            "Knowledge Runtime Loop v2.9",
+            "KB index",
+            "KB query",
+            "KB answer",
+            "Retrieval quality report",
+            "RAG eval baseline",
         ]
     )
     st.write("Build, review, publish, refresh, and ask actions use local CLI/Python logic only.")
@@ -241,8 +267,12 @@ def render_app() -> None:
         ("Knowledge Governance", "governance_report.md"),
         ("Review Queue", "review_queue_report.md"),
         ("Context Pack", "context_pack.md"),
+        ("KB Answer", "kb_answer.md"),
+        ("RAG Eval Baseline", "rag_eval_baseline_report.md"),
         ("Evidence Gate", "evidence_gate_report.md"),
         ("LLM Evidence Validation", "llm_evidence_validation_report.md"),
+        ("Parser Backend Output", "parser_backend_output.md"),
+        ("Parse Quality Gate", "parse_quality_report.md"),
         ("Skill Preview", "skill_package/SKILL.md"),
         ("Skill Generation Report", "skill_package/skill_generation_report.md"),
         ("Skill Validation Report", "skill_validation/skill_validation_report.md"),

@@ -7,6 +7,8 @@
 - v2.5.1：工程收敛 / CI / CLI / Release Gate。
 - v2.6.0-alpha.1：Provider Governance / mock-live 边界。
 - v2.7.0-alpha.1：Minimal End-to-End Demo。
+- v2.8.0-alpha.1：Parser Backend and Knowledge Reliability checkpoint。
+- v2.9.0-alpha.1：Local Knowledge Runtime Loop checkpoint。
 - 作品集展示包。
 - Agent 与知识库回答策略文档。
 

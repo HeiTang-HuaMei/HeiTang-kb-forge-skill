@@ -136,9 +136,21 @@ v2.4 implementation scope is local platform distribution output generation, uplo
 
 v2.5 implements local release quality gates, release blocker detection, regression coverage checks, golden sample validation, platform export certification, compatibility matrix output, mock-first LLM quality gate assist, release readiness summaries, and Release Quality Center v2.5 read-only summaries.
 
-v2.5 does not call real LLM APIs, run real platform runtimes, start an MCP server, upload to XHS, implement v2.6 Provider security audit, implement v2.8 Domain Skill Factory, or implement v2.9 Feishu / mobile / installer / iOS.
+v2.5 does not call real LLM APIs, run real platform runtimes, start an MCP server, upload to XHS, implement v2.6 Provider security audit, implement v2.8 parser backend reliability, or implement v2.9 Knowledge Runtime Loop.
 
-Next real validation boundaries: v2.6 for real LLM live smoke and provider governance, v2.7 for runtime compatibility smoke, v2.9 for Feishu / mobile / installer / iOS, and v3.x for SaaS / permissions / multi-user collaboration.
+Next real validation boundaries: v2.6 for real LLM live smoke and provider governance, v2.7 for runtime compatibility smoke, v2.9 for local Knowledge Runtime Loop, future client platform integrations for Feishu / mobile / installer / iOS, and v3.x for SaaS / permissions / multi-user collaboration.
+
+# v2.8 Parser Backend and Knowledge Reliability
+
+v2.8 implements opt-in parser backend reliability. It adds a backend registry, built-in parser backend normalization, optional Docling and Marker adapter stubs, parse comparison, parse quality gate outputs, OCR risk reporting, manual review queues, corrected text re-import, trust status metadata, and trusted KB export gates.
+
+v2.8 keeps default build, batch, run, and pipeline behavior unchanged unless parser backend mode is explicitly enabled. It does not make external parser dependencies mandatory and does not enter v2.9 platform, mobile, installer, or iOS scope.
+
+# v2.9 Knowledge Runtime Loop
+
+v2.9 implements an opt-in local Knowledge Runtime Loop. It adds `kb-index`, `kb-query`, `kb-answer`, local KB index outputs, query trace, citation trace, cited local answer output, low-confidence refusal, retrieval quality reporting, and RAG eval baseline outputs.
+
+v2.9 keeps default build, batch, run, and pipeline behavior unchanged unless knowledge runtime mode is explicitly enabled. It does not call LLM APIs, embedding APIs, vector databases, external Agent runtimes, Feishu, mobile clients, installers, or iOS surfaces.
 
 # v2.3 Industrial Batch And Knowledge Governance
 

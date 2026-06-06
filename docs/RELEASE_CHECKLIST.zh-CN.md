@@ -1,6 +1,6 @@
 # Release Checklist
 
-当前项目版本：`2.7.0-alpha.1`
+当前项目版本：`2.9.0-alpha.1`
 
 ## Required Checks
 
@@ -26,15 +26,22 @@
 - [ ] Provider fallback、audit redaction、cost guard 已生成
 - [ ] LLM live smoke 必须显式 opt-in 且不泄漏 API key
 - [ ] Demo E2E 已生成 `demo_e2e_result.json`、`portfolio_demo_report.md`、`demo_evidence_pack/` 和 `runtime_limitations.md`
+- [ ] 启用 parser backend 时已生成 `parser_backend_result.json`、`parse_quality_report.json`、`ocr_risk_report.json`、`manual_review_queue.jsonl`、`trusted_kb_gate.json` 和 `knowledge_reliability_report.json`
+- [ ] 启用 knowledge runtime 时已生成 `kb_index.jsonl`、`kb_query_result.json`、`kb_citation_trace.json`、`kb_answer.md`、`retrieval_quality_report.json` 和 `rag_eval_baseline.jsonl`
 
 ## Boundaries
 
 - 不声明默认真实 LLM API 调用；v2.6 live smoke 是 opt-in。
 - 不声明所有 Provider 都已 live-tested；v2.6 registry coverage 是 config governance + Preview live smoke。
 - 不声明完整 runtime compatibility；v2.7 是本地离线 demo / portfolio release。
+- 不声明 parser backend 默认开启；v2.8 parser backend reliability 是 opt-in。
+- 不声明 Docling 或 Marker 是必装依赖；v2.8 adapter 是可选本地集成。
+- 未显式 `--allow-untrusted` 时，不把 draft parser-backed KB 导出为 Skill、Agent 或平台包。
+- 不声明 Knowledge Runtime Loop 默认开启；v2.9 runtime 输出是 opt-in 且本地运行。
+- 不声明 v2.9 会调用 LLM API、embedding API、向量库或外部 Agent runtime。
 - 不声明小红书官方上传 API 支持。
 - 不声明真实 OpenClaw / Codex / Claude Code / MCP runtime 执行。
-- v2.9 前不声明飞书 / 移动端 / 安装端 / iOS 支持。
+- 不在后续客户端平台集成完成前声明飞书 / 移动端 / 安装端 / iOS 支持。
 - v3.x 前不声明 SaaS / 权限系统。
 
 ## Release Readiness Gate

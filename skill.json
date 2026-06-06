@@ -1,7 +1,7 @@
 {
   "name": "heitang-kb-forge-skill",
   "display_name": "HeiTang KB Forge Skill",
-  "version": "2.7.0-alpha.1",
+  "version": "2.9.0-alpha.1",
   "description": "Agent knowledge supply-chain Skill for producing standardized, auditable, retrievable knowledge packages.",
   "entrypoints": {
     "cli": "heitang-kb-forge",
@@ -26,7 +26,13 @@
     "platform_distribution",
     "xhs_skill_package_mock",
     "agent_tool_export",
-    "mcp_stub_export"
+    "mcp_stub_export",
+    "parser_backend_abstraction",
+    "parser_backend_compare",
+    "parse_quality_gate",
+    "knowledge_reliability_gate",
+    "knowledge_runtime_loop",
+    "kb_index_query_answer"
   ],
   "experimental_capabilities": [
     "master_skill_learning",
@@ -47,9 +53,9 @@
     "desktop_web_ui"
   ],
   "roadmap_capabilities": [
-    "runtime_compatibility_smoke_v27",
-    "domain_skill_factory_v28",
-    "feishu_personal_kb_mobile_installer_ios_v29",
+    "runtime_compatibility_hardening",
+    "domain_skill_factory_future",
+    "future_client_platform_integrations",
     "saas_permissions_team_collaboration_v3x"
   ],
   "input_types": ["md", "txt", "pdf", "docx", "png", "jpg", "jpeg", "csv", "tsv", "xlsx", "html", "epub", "zip"],
@@ -62,7 +68,7 @@
     "quality_report.json",
     "ingest_report.md"
   ],
-  "optional_extras": ["ocr", "pdf-table", "web", "dev"],
+  "optional_extras": ["ocr", "pdf-table", "parser-docling", "parser-marker", "web", "dev"],
   "agent_targets": ["OpenClaw", "Claude Code", "Codex", "Generic Agent", "MCP-ready"],
   "network_required_by_default": false,
   "real_platform_publish_by_default": false,

@@ -1,8 +1,8 @@
 # Capability Status
 
-Current project version: `2.7.0-alpha.1`
+Current project version: `2.9.0-alpha.1`
 
-v2.7.0-alpha.1 is a minimal end-to-end demo / portfolio release checkpoint. It does not implement full runtime compatibility.
+v2.9.0-alpha.1 is an opt-in Knowledge Runtime Loop checkpoint. It keeps default package generation unchanged unless knowledge runtime mode is enabled.
 
 ## Stable
 
@@ -40,6 +40,18 @@ v2.7.0-alpha.1 is a minimal end-to-end demo / portfolio release checkpoint. It d
 - opt-in provider live smoke
 - minimal end-to-end portfolio demo
 - demo evidence pack
+- parser backend abstraction
+- parser backend compare
+- parse quality gate
+- manual parser review queue
+- trusted KB gate
+- knowledge reliability report
+- knowledge runtime loop
+- local KB index / query / answer
+- low-confidence refusal
+- query trace and citation trace
+- retrieval quality report
+- RAG eval baseline
 
 ## Experimental
 
@@ -57,8 +69,8 @@ v2.7.0-alpha.1 is a minimal end-to-end demo / portfolio release checkpoint. It d
 ## Roadmap
 
 - runtime compatibility smoke
-- v2.8 domain Skill factory
-- v2.9 Feishu / personal KB / mobile / installer / iOS
+- future domain Skill factory
+- future client platform integrations
 - v3.x SaaS / permissions / team collaboration
 
 ## Reserved

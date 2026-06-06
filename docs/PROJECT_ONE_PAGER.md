@@ -32,13 +32,15 @@ source files → knowledge package → quality gate → evidence / governance �
 
 ## Current version
 
-Current checkpoint: v2.7.0-alpha.1.
+Current checkpoint: v2.9.0-alpha.1.
 
 Recent milestones:
 
 - v2.5.1: release engineering, CI, CLI convergence.
 - v2.6: real LLM provider governance with domestic / international provider registry.
 - v2.7: minimal end-to-end portfolio demo.
+- v2.8: opt-in parser backend reliability with parse quality, OCR risk, review queue, and trusted KB gate outputs.
+- v2.9: opt-in Knowledge Runtime Loop with KB index, query trace, citation trace, cited local answers, low-confidence refusal, retrieval quality, and RAG eval baseline.
 
 ## Boundaries
 
@@ -48,6 +50,9 @@ Recent milestones:
 - No real platform publishing.
 - No SaaS / permissions / multi-tenant system.
 - No claim that all providers or runtimes have been live-tested.
+- Parser backend mode is opt-in and does not require Docling or Marker by default.
+- Draft parser-backed KBs are blocked from Skill, Agent, and platform exports unless explicitly allowed.
+- Knowledge runtime mode is opt-in, local, deterministic, and does not call LLM APIs, embedding APIs, vector databases, or external Agent runtimes.
 
 ## Value
 

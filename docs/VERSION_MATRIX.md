@@ -1,6 +1,6 @@
 # Version Matrix
 
-Current project version: `2.7.0-alpha.1`
+Current project version: `2.9.0-alpha.1`
 
 | Version | Status | Main Capability | Test Coverage | Known Limits | Checkpoint / Tag |
 | --- | --- | --- | --- | --- | --- |
@@ -18,10 +18,11 @@ Current project version: `2.7.0-alpha.1`
 | v2.5.0-dev | Implemented | local release quality gate | pytest | not external certification | v2.5.0-dev |
 | v2.5.1-alpha.1 | Implemented | release engineering / CLI architecture convergence | pytest | alpha checkpoint | historical |
 | v2.6.0-alpha.1 | Implemented | provider registry governance, security, fallback, redaction, cost guard, opt-in live smoke | pytest | alpha checkpoint, no default network, live smoke is Preview | v2.6.0-alpha.1 |
-| v2.7.0-alpha.1 | Implemented | minimal end-to-end demo / portfolio release | pytest | no real runtime compatibility, no live platform runtime | current |
+| v2.7.0-alpha.1 | Implemented | minimal end-to-end demo / portfolio release | pytest | no real runtime compatibility, no live platform runtime | historical |
+| v2.8.0-alpha.1 | Implemented | parser backend and knowledge reliability | pytest | opt-in only, optional external parser stubs, no default network | historical |
+| v2.9.0-alpha.1 | Implemented | local Knowledge Runtime Loop | pytest | opt-in only, deterministic local retrieval, no LLM / embedding / vector DB calls | current |
 | runtime compatibility planned | Planned | runtime compatibility smoke | planned | not implemented | planned |
-| v2.8 planned | Planned | domain Skill factory | planned | not implemented | planned |
-| v2.9 planned | Planned | Feishu / personal KB / mobile / installer / iOS | planned | not implemented | planned |
+| future client platform integrations | Planned | Feishu / personal KB / mobile / installer / iOS | planned | not implemented | planned |
 | v3.x planned | Planned | SaaS / permissions / team collaboration | planned | not implemented | planned |
 
 Notes:
@@ -29,5 +30,7 @@ Notes:
 - v2.4 is offline export / mock publish, not real platform execution.
 - v2.5 is local release quality gate, not external platform certification.
 - v2.6 is opt-in and does not make network calls by default. It does not claim every provider was live-tested.
+- v2.8 parser backend mode is opt-in and does not require Docling or Marker by default.
+- v2.9 Knowledge Runtime Loop is opt-in, local, deterministic, and does not call LLM APIs, embedding APIs, vector databases, or external Agent runtimes.
 - Runtime compatibility remains Planned and must not be described as completed.
 

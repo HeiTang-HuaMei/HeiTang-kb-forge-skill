@@ -40,7 +40,7 @@ HeiTang Knowledge Workbench 是一个本地优先、可被 Agent 调度的知识
 
 ## 4. 当前状态
 
-当前已完成到 v2.7.0-alpha.1，并补充了作品集展示包。
+当前已完成到 v2.9.0-alpha.1，并补充了本地 Knowledge Runtime Loop checkpoint。
 
 已具备：
 
@@ -53,6 +53,8 @@ HeiTang Knowledge Workbench 是一个本地优先、可被 Agent 调度的知识
 - mock / live 边界。
 - Skill / Agent 静态导出。
 - demo-e2e 最小闭环。
+- parser backend registry / parse compare / quality gate / trusted KB gate。
+- kb-index / kb-query / kb-answer / citation trace / low-confidence refusal / RAG eval baseline。
 - CI / Release Check / tag。
 - 作品集与面试展示文档。
 

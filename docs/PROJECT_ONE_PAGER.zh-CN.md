@@ -32,13 +32,15 @@ HeiTang KB Forge 提供一条本地闭环：
 
 ## 当前版本
 
-当前 checkpoint：v2.7.0-alpha.1。
+当前 checkpoint：v2.9.0-alpha.1。
 
 近期能力：
 
 - v2.5.1：工程收敛、CI、CLI 收敛。
 - v2.6：国内外 LLM Provider 治理。
 - v2.7：最小端到端作品集 Demo。
+- v2.8：opt-in parser backend reliability，生成 parse quality、OCR risk、review queue 和 trusted KB gate 输出。
+- v2.9：opt-in Knowledge Runtime Loop，生成 KB index、query trace、citation trace、带引用本地答案、低置信拒答、retrieval quality 和 RAG eval baseline。
 
 ## 当前边界
 
@@ -48,6 +50,9 @@ HeiTang KB Forge 提供一条本地闭环：
 - 不真实发布平台内容。
 - 不做 SaaS / 权限 / 多租户。
 - 不声称所有 Provider 或 Runtime 都已实测。
+- Parser backend mode 是 opt-in，默认不要求安装 Docling 或 Marker。
+- Draft parser-backed KB 默认不能导出为 Skill、Agent 或平台包，除非显式允许。
+- Knowledge runtime mode 是 opt-in、本地、确定性能力，不调用 LLM API、embedding API、向量库或外部 Agent runtime。
 
 ## 项目价值
 

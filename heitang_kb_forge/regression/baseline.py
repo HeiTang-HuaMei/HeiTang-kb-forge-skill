@@ -12,4 +12,6 @@ REGRESSION_BASELINE = [
     ("v2.5.1-alpha.1", "release_engineering_cli_architecture_convergence", "tests/test_version_alignment.py"),
     ("v2.6.0-alpha.1", "provider_security_governance_and_live_smoke", "tests/test_v26_provider_security.py"),
     ("v2.7.0-alpha.1", "minimal_demo_e2e_portfolio_release", "tests/test_v27_demo_e2e.py"),
+    ("v2.8.0-alpha.1", "parser_backend_knowledge_reliability", "tests/test_v28_parser_backends.py"),
+    ("v2.9.0-alpha.1", "knowledge_runtime_loop", "tests/test_v29_knowledge_runtime.py"),
 ]

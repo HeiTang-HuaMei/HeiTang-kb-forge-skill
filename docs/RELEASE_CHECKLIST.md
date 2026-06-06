@@ -1,6 +1,6 @@
 # Release Checklist
 
-Current project version: `2.7.0-alpha.1`
+Current project version: `2.9.0-alpha.1`
 
 ## Required Checks
 
@@ -26,15 +26,22 @@ Current project version: `2.7.0-alpha.1`
 - [ ] Provider fallback, audit redaction, and cost guard generated
 - [ ] LLM live smoke generated with explicit opt-in and no API key leakage
 - [ ] Demo E2E generated `demo_e2e_result.json`, `portfolio_demo_report.md`, `demo_evidence_pack/`, and `runtime_limitations.md`
+- [ ] Parser backend reliability generated `parser_backend_result.json`, `parse_quality_report.json`, `ocr_risk_report.json`, `manual_review_queue.jsonl`, `trusted_kb_gate.json`, and `knowledge_reliability_report.json` when parser backend mode is enabled
+- [ ] Knowledge Runtime Loop generated `kb_index.jsonl`, `kb_query_result.json`, `kb_citation_trace.json`, `kb_answer.md`, `retrieval_quality_report.json`, and `rag_eval_baseline.jsonl` when knowledge runtime mode is enabled
 
 ## Boundaries
 
 - Do not claim default real LLM API calls; v2.6 live smoke is opt-in.
 - Do not claim all providers were live-tested; v2.6 registry coverage is config governance plus Preview live smoke.
 - Do not claim full runtime compatibility; v2.7 is a local offline demo / portfolio release.
+- Do not claim parser backend mode is enabled by default; v2.8 parser backend reliability is opt-in.
+- Do not claim Docling or Marker are mandatory dependencies; v2.8 adapters are optional local integrations.
+- Do not export draft parser-backed KBs to Skill, Agent, or platform packages unless `--allow-untrusted` is explicit.
+- Do not claim Knowledge Runtime Loop is enabled by default; v2.9 runtime outputs are opt-in and local.
+- Do not claim v2.9 calls LLM APIs, embedding APIs, vector databases, or external Agent runtimes.
 - Do not claim official Xiaohongshu upload API support.
 - Do not claim real OpenClaw / Codex / Claude Code / MCP runtime execution.
-- Do not claim Feishu / mobile / installer / iOS support before v2.9.
+- Do not claim Feishu / mobile / installer / iOS support before future client platform integrations are implemented.
 - Do not claim SaaS / permissions before v3.x.
 
 ## Release Readiness Gate

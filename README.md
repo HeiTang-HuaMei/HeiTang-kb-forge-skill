@@ -2,9 +2,9 @@
 
 [中文说明](README.zh-CN.md) | English
 
-Current version: `2.7.0-alpha.1`
+Current version: `2.9.0-alpha.1`
 
-Release status: alpha minimal end-to-end demo / portfolio checkpoint. This is not a stable release.
+Release status: alpha Knowledge Runtime Loop checkpoint. This is not a stable release.
 
 HeiTang KB Forge is an offline-first, agent-callable knowledge supply-chain Skill. It turns multi-format source material into standardized, auditable, reviewable, and retrievable knowledge asset packages for Agent and RAG workflows.
 
@@ -39,6 +39,8 @@ Preview capabilities:
 - Provider registry, config validation, redaction, fallback, and cost guard
 - Provider live smoke, disabled unless explicitly opted in
 - Minimal end-to-end portfolio demo workflow
+- Parser backend abstraction, parse quality gate, manual review queue, and trusted KB gate
+- Knowledge Runtime Loop: `kb-index`, `kb-query`, `kb-answer`, cited local answers, low-confidence refusal, query trace, retrieval quality report, and RAG eval baseline
 
 Experimental capabilities:
 
@@ -81,6 +83,31 @@ python -m heitang_kb_forge.cli demo-e2e --output .\tmp_demo_e2e
 
 The demo does not run real platform runtimes, start an MCP server, publish to Xiaohongshu, or call live providers by default.
 
+## v2.8 Parser Backend Reliability
+
+v2.8 adds opt-in parser backend and knowledge reliability outputs. Default `build`, `batch`, `run`, and `pipeline` behavior remains unchanged unless parser backend mode is enabled.
+
+```powershell
+python -m heitang_kb_forge.cli parser-backend-list
+python -m heitang_kb_forge.cli parse-with-backend --backend builtin --input .\examples\quickstart\input --output .\tmp_parse
+python -m heitang_kb_forge.cli build --input .\examples\quickstart\input --output .\tmp_build --parser-backend builtin
+```
+
+The built-in backend is local. Docling and Marker adapters are optional stubs unless their extras are installed and a local integration is explicitly enabled. v2.8 writes parser backend output, parse quality, OCR risk, manual review queue, trust gate, and knowledge reliability reports. It does not call network services or make external parser dependencies mandatory.
+
+## v2.9 Knowledge Runtime Loop
+
+v2.9 adds an opt-in local runtime loop over an existing knowledge package. It builds a local KB index, runs deterministic query ranking, writes citation traces, produces a cited answer, refuses low-confidence answers, and generates retrieval quality plus RAG eval baseline files.
+
+```powershell
+python -m heitang_kb_forge.cli kb-index --package .\tmp_quickstart_output --output .\tmp_kb_runtime
+python -m heitang_kb_forge.cli kb-query --package .\tmp_quickstart_output --query "pricing evidence" --output .\tmp_kb_runtime
+python -m heitang_kb_forge.cli kb-answer --package .\tmp_quickstart_output --query "pricing evidence" --output .\tmp_kb_runtime
+python -m heitang_kb_forge.cli build --input .\examples\quickstart\input --output .\tmp_build --knowledge-runtime --kb-query "summarize evidence"
+```
+
+v2.9 writes `kb_index.jsonl`, `kb_index_manifest.json`, `kb_query_result.json`, `kb_query_trace.json`, `kb_citation_trace.json`, `kb_answer.md`, `kb_answer_report.json`, `retrieval_quality_report.json`, `rag_eval_baseline.jsonl`, and `rag_eval_baseline_report.md`. It does not call LLM APIs, embedding APIs, vector databases, or external Agent runtimes.
+
 ## Install
 
 ```powershell
@@ -90,7 +117,7 @@ python -m pip install -e ".[dev]"
 Optional extras:
 
 ```powershell
-python -m pip install -e ".[ocr,pdf-table,web]"
+python -m pip install -e ".[ocr,pdf-table,parser-docling,parser-marker,web]"
 ```
 
 ## Five-Minute Quickstart
@@ -122,11 +149,9 @@ python -m heitang_kb_forge.cli quality-gate --workspace .\output --output .\qual
 python -m heitang_kb_forge.cli regression-check --workspace . --output .\regression
 ```
 
-## v2.5.1 Focus
+## v2.9 Focus
 
-v2.5.1 is a release engineering and CLI architecture convergence checkpoint. It aligns versions, trims README scope, separates capability status, strengthens CI and release-readiness checks, and starts CLI command-module convergence.
-
-v2.5.0-dev remains the release quality gate feature checkpoint.
+v2.9 is a local Knowledge Runtime Loop checkpoint. It keeps runtime outputs opt-in, preserves offline default outputs, and proves local index / query / answer behavior with citations, refusal, query trace, retrieval quality, and RAG eval baseline files.
 
 ## Boundaries
 
@@ -141,12 +166,13 @@ By default, HeiTang KB Forge does not:
 - save real user API keys
 - provide SaaS multi-tenancy or permissions
 
-Future boundaries:
+Current and future boundaries:
 
 - v2.6: real LLM live smoke and provider security governance
 - v2.7: minimal end-to-end demo / portfolio release
-- v2.8: domain Skill factory
-- v2.9: Feishu / personal KB / mobile / installer / iOS
+- v2.8: parser backend and knowledge reliability
+- v2.9: Knowledge Runtime Loop
+- future client platform integrations: Feishu / personal KB / mobile / installer / iOS
 - v3.x: SaaS / permissions / team collaboration
 
 ## Documentation
@@ -159,6 +185,8 @@ Future boundaries:
 - [Implementation Checkpoints](docs/IMPLEMENTATION_CHECKPOINTS.md)
 - [Version Traceability](docs/VERSION_TRACEABILITY.md)
 - [Release Readiness](docs/RELEASE_READINESS.md)
+- [v2.8 Parser Backend Reliability](docs/V28_PARSER_BACKEND_RELIABILITY.md)
+- [v2.9 Knowledge Runtime Loop](docs/V29_KNOWLEDGE_RUNTIME_LOOP.md)
 - [Platform Distribution](docs/PLATFORM_DISTRIBUTION.md)
 - [Knowledge Ops Guide](docs/KNOWLEDGE_OPS_GUIDE.md)
 - [Desktop App Guide](docs/DESKTOP_APP_GUIDE.md)
@@ -176,12 +204,6 @@ For interview and portfolio presentation, see:
 - [Demo Script](docs/DEMO_SCRIPT.md)
 - [Portfolio Presentation](docs/PORTFOLIO_PRESENTATION.md)
 - [Project Architecture Overview](docs/PROJECT_ARCHITECTURE_OVERVIEW.md)
-
-Run the local end-to-end demo:
-
-```powershell
-python -m heitang_kb_forge.cli demo-e2e --output ./tmp_demo_e2e
-```
 
 ## Knowledge Workbench Target
 

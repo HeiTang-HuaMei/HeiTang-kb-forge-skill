@@ -2,9 +2,9 @@
 
 [English](README.md) | 中文说明
 
-当前版本：`2.7.0-alpha.1`
+当前版本：`2.9.0-alpha.1`
 
-发布状态：alpha minimal end-to-end demo / portfolio checkpoint。当前不是 stable release。
+发布状态：alpha Knowledge Runtime Loop checkpoint。当前不是 stable release。
 
 HeiTang KB Forge 是一个 offline-first、可被 Agent 调用的知识供应链前置 Skill。它把多格式原始资料加工成标准化、可审计、可复核、可检索的知识资产包，用于 Agent 和 RAG 工作流。
 
@@ -39,6 +39,8 @@ Preview 能力：
 - Provider registry、配置校验、redaction、fallback、cost guard
 - Provider live smoke，默认关闭，必须显式 opt-in
 - Minimal end-to-end portfolio demo workflow
+- Parser backend 抽象、parse quality gate、manual review queue 和 trusted KB gate
+- Knowledge Runtime Loop：`kb-index`、`kb-query`、`kb-answer`、本地引用答案、低置信拒答、query trace、retrieval quality report 和 RAG eval baseline
 
 Experimental 能力：
 
@@ -81,6 +83,31 @@ python -m heitang_kb_forge.cli demo-e2e --output .\tmp_demo_e2e
 
 该 demo 不运行真实平台 runtime，不启动 MCP server，不自动发布小红书笔记，默认不调用 live provider。
 
+## v2.8 Parser Backend Reliability
+
+v2.8 新增可选 parser backend 与知识可靠性输出。默认 `build`、`batch`、`run`、`pipeline` 行为不变，只有显式启用 parser backend 时才生成新增输出。
+
+```powershell
+python -m heitang_kb_forge.cli parser-backend-list
+python -m heitang_kb_forge.cli parse-with-backend --backend builtin --input .\examples\quickstart\input --output .\tmp_parse
+python -m heitang_kb_forge.cli build --input .\examples\quickstart\input --output .\tmp_build --parser-backend builtin
+```
+
+内置 backend 完全本地运行。Docling 和 Marker 是可选 stub，只有安装 extra 并显式接入本地集成后才会作为外部 parser 使用。v2.8 会写出 parser backend output、parse quality、OCR risk、manual review queue、trust gate 和 knowledge reliability report，不调用网络，也不强制安装外部 parser 依赖。
+
+## v2.9 Knowledge Runtime Loop
+
+v2.9 新增可选本地知识运行闭环。它基于已有知识包构建本地 KB index，执行确定性 query ranking，写出 citation trace，生成带引用的本地答案，在低置信时拒答，并生成 retrieval quality 与 RAG eval baseline 文件。
+
+```powershell
+python -m heitang_kb_forge.cli kb-index --package .\tmp_quickstart_output --output .\tmp_kb_runtime
+python -m heitang_kb_forge.cli kb-query --package .\tmp_quickstart_output --query "pricing evidence" --output .\tmp_kb_runtime
+python -m heitang_kb_forge.cli kb-answer --package .\tmp_quickstart_output --query "pricing evidence" --output .\tmp_kb_runtime
+python -m heitang_kb_forge.cli build --input .\examples\quickstart\input --output .\tmp_build --knowledge-runtime --kb-query "summarize evidence"
+```
+
+v2.9 会写出 `kb_index.jsonl`、`kb_index_manifest.json`、`kb_query_result.json`、`kb_query_trace.json`、`kb_citation_trace.json`、`kb_answer.md`、`kb_answer_report.json`、`retrieval_quality_report.json`、`rag_eval_baseline.jsonl` 和 `rag_eval_baseline_report.md`。它不调用 LLM API，不调用 embedding API，不写入向量库，也不真实运行外部 Agent runtime。
+
 ## 安装
 
 ```powershell
@@ -90,7 +117,7 @@ python -m pip install -e ".[dev]"
 可选组件：
 
 ```powershell
-python -m pip install -e ".[ocr,pdf-table,web]"
+python -m pip install -e ".[ocr,pdf-table,parser-docling,parser-marker,web]"
 ```
 
 ## 五分钟 Quickstart
@@ -122,11 +149,9 @@ python -m heitang_kb_forge.cli quality-gate --workspace .\output --output .\qual
 python -m heitang_kb_forge.cli regression-check --workspace . --output .\regression
 ```
 
-## v2.5.1 定位
+## v2.9 定位
 
-v2.5.1 是 release engineering 和 CLI architecture convergence checkpoint。它统一版本、收敛 README、拆分能力状态、增强 CI 与 release-readiness，并开始 CLI 命令模块化收敛。
-
-v2.5.0-dev 仍然是 release quality gate 功能 checkpoint。
+v2.9 是本地 Knowledge Runtime Loop checkpoint。Runtime 输出默认关闭，离线默认输出不变；本轮验证本地 index / query / answer、引用、拒答、query trace、retrieval quality 和 RAG eval baseline。
 
 ## 当前边界
 
@@ -141,12 +166,13 @@ v2.5.0-dev 仍然是 release quality gate 功能 checkpoint。
 - 保存真实用户 API key
 - SaaS 多租户或权限系统
 
-后续边界：
+当前与后续边界：
 
 - v2.6：真实 LLM live smoke 与 provider security governance
 - v2.7：minimal end-to-end demo / portfolio release
-- v2.8：domain Skill factory
-- v2.9：飞书 / 个人知识库 / 移动端 / 安装端 / iOS
+- v2.8：parser backend 与 knowledge reliability
+- v2.9：Knowledge Runtime Loop
+- 后续客户端平台集成：飞书 / 个人知识库 / 移动端 / 安装端 / iOS
 - v3.x：SaaS / 权限 / 团队协作
 
 ## 文档导航
@@ -159,6 +185,8 @@ v2.5.0-dev 仍然是 release quality gate 功能 checkpoint。
 - [Implementation Checkpoints](docs/IMPLEMENTATION_CHECKPOINTS.zh-CN.md)
 - [Version Traceability](docs/VERSION_TRACEABILITY.zh-CN.md)
 - [Release Readiness](docs/RELEASE_READINESS.zh-CN.md)
+- [v2.8 Parser Backend Reliability](docs/V28_PARSER_BACKEND_RELIABILITY.zh-CN.md)
+- [v2.9 Knowledge Runtime Loop](docs/V29_KNOWLEDGE_RUNTIME_LOOP.zh-CN.md)
 - [Platform Distribution](docs/PLATFORM_DISTRIBUTION.zh-CN.md)
 - [Knowledge Ops Guide](docs/KNOWLEDGE_OPS_GUIDE.md)
 - [桌面应用指南](docs/DESKTOP_APP_GUIDE.md)
