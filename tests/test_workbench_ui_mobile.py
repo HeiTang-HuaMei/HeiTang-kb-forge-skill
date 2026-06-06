@@ -48,7 +48,9 @@ def test_flutter_scaffold_contains_adaptive_mobile_layout_not_simple_scaling():
     assert "_PhoneWorkbench" in flutter_main
     assert "_DesktopWorkbench" in flutter_main
     assert "DropdownButtonFormField<int>" in flutter_main
-    assert "NavigationRail" in flutter_main
+    assert "_WorkbenchSidebar" in flutter_main
+    assert "ListView.separated" in flutter_main
+    assert "NavigationRail" not in flutter_main
     assert "columns: 1" in flutter_main
 
 

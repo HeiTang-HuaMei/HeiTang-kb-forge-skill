@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
   runApp(const HeiTangWorkbenchApp());
@@ -11,7 +12,7 @@ const brandAssets = <String>[
 
 const supportedLocaleCodes = <String>['zh-CN', 'en-US'];
 
-final pages = <WorkbenchPage>[
+const pages = <WorkbenchPage>[
   WorkbenchPage('dashboard', 'Dashboard', '仪表盘', 'Operating snapshot across knowledge, review, jobs, agents, and exports.', '知识、复核、任务、Agent 与导出的运营总览。'),
   WorkbenchPage('file-upload', 'File upload', '文件上传', 'Mock upload intake with parser readiness and reserved ingestion controls.', '模拟上传入口，展示解析器状态与预留导入控制。'),
   WorkbenchPage('job-progress', 'Job progress', '任务进度', 'Track mock ingestion, review, and export jobs with stage-level status.', '跟踪模拟导入、复核和导出任务的阶段状态。'),
@@ -61,6 +62,11 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
       title: 'HeiTang Knowledge Workbench',
       debugShowCheckedModeBanner: false,
       locale: localeCode == 'zh-CN' ? const Locale('zh', 'CN') : const Locale('en', 'US'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
       supportedLocales: const [Locale('zh', 'CN'), Locale('en', 'US')],
       themeMode: themeMode,
       theme: _theme(Brightness.light),
@@ -80,7 +86,8 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
                   onPressed: () => setState(() => themeMode = isDark ? ThemeMode.light : ThemeMode.dark),
                   icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
                 ),
-                Padding(
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.only(right: 12),
                   child: SegmentedButton<String>(
                     showSelectedIcon: false,
@@ -123,13 +130,12 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
       colorScheme: colors.copyWith(
         primary: isDarkTheme ? const Color(0xfff7f7f5) : const Color(0xff111111),
         surface: isDarkTheme ? const Color(0xff181818) : const Color(0xffffffff),
-        background: isDarkTheme ? const Color(0xff0f0f0f) : const Color(0xfff4f4f2),
       ),
       scaffoldBackgroundColor: isDarkTheme ? const Color(0xff0f0f0f) : const Color(0xfff4f4f2),
-      cardTheme: CardThemeData(
+      cardTheme: const CardThemeData(
         elevation: 0,
         margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(shape: const StadiumBorder()),
@@ -153,9 +159,9 @@ class _BrandHeader extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (!compact) ...[
-          _MascotBadge(label: '猫'),
+          const _MascotBadge(label: '猫'),
           const SizedBox(width: 4),
-          _MascotBadge(label: '虎'),
+          const _MascotBadge(label: '虎'),
           const SizedBox(width: 12),
         ],
         Flexible(
@@ -205,21 +211,72 @@ class _DesktopWorkbench extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sidebarWidth = isTablet ? 220.0 : 280.0;
+
     return Row(
       children: [
-        NavigationRail(
-          extended: !isTablet,
-          selectedIndex: selectedIndex,
-          onDestinationSelected: onPageChanged,
-          destinations: pages.map((page) => NavigationRailDestination(
-            icon: const Icon(Icons.radio_button_unchecked),
-            selectedIcon: const Icon(Icons.circle),
-            label: Text(page.title(localeCode)),
-          )).toList(),
+        SizedBox(
+          width: sidebarWidth,
+          child: _WorkbenchSidebar(
+            localeCode: localeCode,
+            selectedIndex: selectedIndex,
+            onPageChanged: onPageChanged,
+          ),
         ),
         const VerticalDivider(width: 1),
-        Expanded(child: _PageSurface(page: pages[selectedIndex], localeCode: localeCode, columns: isTablet ? 2 : 3)),
+        Expanded(
+          child: _PageSurface(
+            page: pages[selectedIndex],
+            localeCode: localeCode,
+            columns: isTablet ? 2 : 3,
+          ),
+        ),
       ],
+    );
+  }
+}
+
+class _WorkbenchSidebar extends StatelessWidget {
+  const _WorkbenchSidebar({
+    required this.localeCode,
+    required this.selectedIndex,
+    required this.onPageChanged,
+  });
+
+  final String localeCode;
+  final int selectedIndex;
+  final ValueChanged<int> onPageChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Material(
+      color: colors.surface,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        itemCount: pages.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 4),
+        itemBuilder: (context, index) {
+          final page = pages[index];
+          final selected = index == selectedIndex;
+
+          return InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () => onPageChanged(index),
+            child: ListTile(
+              dense: true,
+              selected: selected,
+              selectedColor: colors.onPrimary,
+              selectedTileColor: colors.primary,
+              leading: Icon(selected ? Icons.circle : Icons.radio_button_unchecked, size: 16),
+              title: Text(page.title(localeCode), maxLines: 1, overflow: TextOverflow.ellipsis),
+              subtitle: Text(page.id, maxLines: 1, overflow: TextOverflow.ellipsis),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -242,14 +299,18 @@ class _PhoneWorkbench extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(12),
           child: DropdownButtonFormField<int>(
-            value: selectedIndex,
+            initialValue: selectedIndex,
+            isExpanded: true,
             decoration: InputDecoration(
               labelText: localeCode == 'zh-CN' ? '页面' : 'Page',
               border: const OutlineInputBorder(),
             ),
             items: [
               for (var index = 0; index < pages.length; index++)
-                DropdownMenuItem(value: index, child: Text(pages[index].title(localeCode))),
+                DropdownMenuItem(
+                  value: index,
+                  child: Text(pages[index].title(localeCode), overflow: TextOverflow.ellipsis),
+                ),
             ],
             onChanged: (value) {
               if (value != null) {
@@ -291,7 +352,7 @@ class _PageSurface extends StatelessWidget {
               crossAxisCount: columns,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              childAspectRatio: columns == 1 ? 2.6 : 1.55,
+              mainAxisExtent: columns == 1 ? 156 : 168,
             ),
             itemCount: cards.length,
             itemBuilder: (context, index) => _WorkbenchCard(
@@ -318,7 +379,7 @@ class _PageSurface extends StatelessWidget {
       'corrected-text-editor': [_CardCopy(zh ? '校正文稿' : 'Corrected text', zh ? '只写入模拟状态' : 'Mock state only'), _CardCopy(zh ? '复核动作' : 'Review actions', common)],
       'kb-query': [_CardCopy(zh ? '证据回答' : 'Grounded answer', zh ? '引用优先' : 'Citation first'), _CardCopy(zh ? '拒答策略' : 'Abstain policy', common)],
       'document-generation': [_CardCopy(zh ? '发布简报' : 'Launch brief', '18 citations'), _CardCopy(zh ? '策略复核包' : 'Policy pack', '31 citations')],
-      'agent-skill-management': [_CardCopy('Research Analyst', 'OpenAI'), _CardCopy('Document Writer', 'Azure OpenAI'), _CardCopy('Evidence Reviewer', 'Local')],
+      'agent-skill-management': [const _CardCopy('Research Analyst', 'OpenAI'), const _CardCopy('Document Writer', 'Azure OpenAI'), const _CardCopy('Evidence Reviewer', 'Local')],
       'multi-agent-workflow': [_CardCopy(zh ? '工作流共享记忆' : 'Workflow shared memory', 'mem-workflow-launch'), _CardCopy(zh ? '交接链路' : 'Handoff trace', 'Research -> Writer -> Reviewer')],
       'memory-scope-viewer': [_CardCopy(zh ? 'Agent 私有记忆' : 'Agent private memory', 'isolated'), _CardCopy(zh ? '工作流共享' : 'Workflow shared', 'scoped')],
       'settings': [_CardCopy(zh ? '供应商' : 'Providers', 'OpenAI · Azure · Local'), _CardCopy(zh ? '回答策略' : 'Answer policy', 'grounded_only'), _CardCopy(zh ? '记忆策略' : 'Memory policy', 'private_by_default')],
@@ -351,8 +412,8 @@ class _WorkbenchCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-            Text(body, style: Theme.of(context).textTheme.bodyMedium),
+            Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+            Text(body, maxLines: 3, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodyMedium),
             FilledButton(onPressed: () {}, child: Text(localeCode == 'zh-CN' ? '打开' : 'Open')),
           ],
         ),
