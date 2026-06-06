@@ -38,14 +38,20 @@ def test_workbench_contract_uses_mock_only_scope_and_future_service_boundary():
 def test_flutter_project_scaffold_has_standard_entry_files():
     flutter_root = WORKBENCH / "flutter_app"
     pubspec = (flutter_root / "pubspec.yaml").read_text(encoding="utf-8")
+    gitignore = (flutter_root / ".gitignore").read_text(encoding="utf-8")
     readme = (flutter_root / "README.md").read_text(encoding="utf-8")
 
     assert (flutter_root / ".metadata").exists()
+    assert (flutter_root / ".gitignore").exists()
     assert (flutter_root / "analysis_options.yaml").exists()
     assert (flutter_root / "lib" / "main.dart").exists()
+    assert (flutter_root / "pubspec.lock").exists()
     assert (flutter_root / "test" / "widget_test.dart").exists()
     assert "name: heitang_workbench" in pubspec
     assert "flutter_lints" in pubspec
+    assert ".dart_tool/" in gitignore
+    assert "build/" in gitignore
+    assert "android/local.properties" in gitignore
     assert "flutter run -d windows" in readme
     assert "flutter run -d chrome" in readme
 
