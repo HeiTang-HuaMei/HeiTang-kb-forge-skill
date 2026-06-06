@@ -145,3 +145,16 @@
 10. demo mode 稳定。
 11. release candidate checklist 通过。
 12. full pytest 通过。
+
+## Answer Policy DoD
+
+从 v2.9 开始，涉及知识库问答、Agent 生成、Skill 融合的版本必须检查：
+
+1. 是否声明 answer_policy。
+2. 是否要求领域事实 citation。
+3. 是否存在低置信拒答策略。
+4. 是否区分知识库依据和模型补充。
+5. strict_grounded 是否禁止 external knowledge。
+6. Agent / Skill 包是否写入 answer_policy。
+7. 是否存在 answer_policy smoke test。
+

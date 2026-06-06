@@ -371,3 +371,31 @@
 
 本地产品：95%+。
 团队平台：70%+。
+
+## Agent 与知识库回答策略补充
+
+后续版本必须把 Agent 与知识库的关系设计成可配置策略，而不是写死成一种行为。
+
+策略包括：
+
+- strict_grounded：严格基于知识库证据回答，无证据拒答。
+- knowledge_first：优先知识库，允许模型补充，但必须标注非知识库来源。
+- creative_grounded：以知识库为素材进行创作，事实点必须可追溯。
+- open：知识库作为参考，适合开放式创作和头脑风暴。
+
+默认策略：
+
+```yaml
+answer_policy: knowledge_first
+```
+
+高风险场景必须使用：
+
+```yaml
+answer_policy: strict_grounded
+```
+
+v2.9 负责在知识库问答中实现 answer_policy。
+v3.1 负责在 Knowledge-Bound Agent / Skill 中写入 answer_policy。
+v3.2 负责在 Skill Reverse & Fusion 中识别和重写 answer_policy。
+

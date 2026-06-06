@@ -219,3 +219,23 @@ HeiTang Knowledge Workbench = 多 Skill + 多 Agent 调度的知识工具台。
 - 不允许把所有能力继续塞进一个巨型 Skill。
 - KB Forge Core 保持为知识供应链核心。
 - Workbench 负责产品化调度与体验。
+
+## Agent 与知识库关系
+
+知识库不是 Agent 的全部大脑，而是 Agent 的可信资料层。
+
+Agent 负责理解问题、调度检索、筛选证据、组织回答、引用来源、拒答不确定内容和调用工具。
+
+知识库负责提供可信事实、来源证据、业务边界和可追踪材料。
+
+大模型负责理解、归纳、生成和格式化；在允许时可以补充通用知识，但必须与知识库依据区分。
+
+系统必须支持多种回答策略：
+
+- strict_grounded
+- knowledge_first
+- creative_grounded
+- open
+
+默认采用 knowledge_first；高风险场景采用 strict_grounded。
+
