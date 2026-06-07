@@ -23,6 +23,7 @@ from heitang_kb_forge.contracts.checker import check_package_contract
 from heitang_kb_forge.contracts.report import make_contract_report
 from heitang_kb_forge.contracts.stable_checker import run_stable_check
 from heitang_kb_forge.document_generation import DOCUMENT_GENERATION_OUTPUT_FILES, generate_document_outputs
+from heitang_kb_forge.document_parsing import V39_DOCUMENT_PARSING_OUTPUT_FILES, write_document_parsing_outputs
 from heitang_kb_forge.doctor import run_doctor
 from heitang_kb_forge.downstream.exporter import DOWNSTREAM_OUTPUT_FILES, make_downstream_exports
 from heitang_kb_forge.demo_e2e import run_demo_e2e
@@ -44,6 +45,7 @@ from heitang_kb_forge.knowledge_runtime import (
 )
 from heitang_kb_forge.knowledge_bound_factory import generate_knowledge_bound_agent, generate_standalone_agent
 from heitang_kb_forge.multi_kb_orchestration import orchestrate_multi_kb_agents
+from heitang_kb_forge.memory_lifecycle import V39_MEMORY_LIFECYCLE_OUTPUT_FILES, write_memory_lifecycle_outputs
 from heitang_kb_forge.skill_reverse_fusion import reverse_and_fuse_skills
 from heitang_kb_forge.workbench_contracts import generate_workbench_contracts
 from heitang_kb_forge.lifecycle.change_detector import (
@@ -179,6 +181,8 @@ from heitang_kb_forge.vector.exporter import VECTOR_OUTPUT_FILES, make_vector_ex
 from heitang_kb_forge.versioning.diff import DIFF_OUTPUT_FILES, diff_packages
 from heitang_kb_forge.versioning.package_version import make_package_version
 from heitang_kb_forge.workspace.registry import init_workspace, register_package, workspace_status
+from heitang_kb_forge.workspace_storage import V39_WORKSPACE_STORAGE_OUTPUT_FILES, write_workspace_storage_outputs
+from heitang_kb_forge.workspace_storage.external_absorption import write_v39_external_absorption_map
 from heitang_kb_forge.workspace.exporter import export_workspace
 from heitang_kb_forge.workspace.health import check_workspace_health
 from heitang_kb_forge.workspace.importer import import_workspace_asset
@@ -2005,6 +2009,124 @@ def check_knowledge_accuracy_command(
     typer.echo(f"Knowledge accuracy: {result['status']} | Score: {score}")
 
 
+@app.command("init-workspace")
+def init_workspace_storage_command(
+    workspace: Path = typer.Option(..., "--workspace"),
+    output: Path | None = typer.Option(None, "--output"),
+) -> None:
+    """Initialize local workspace storage registries."""
+    target = output or workspace
+    write_workspace_storage_outputs(workspace, target)
+    write_v39_external_absorption_map(target)
+    typer.echo(f"Initialized local workspace storage reports at {target}")
+
+
+@app.command("scan-workspace")
+def scan_workspace_storage_command(
+    workspace: Path = typer.Option(..., "--workspace"),
+    output: Path | None = typer.Option(None, "--output"),
+    track_content_hash: bool = typer.Option(True, "--track-content-hash/--no-track-content-hash"),
+) -> None:
+    """Scan a local workspace and write typed registries."""
+    target = output or workspace
+    write_workspace_storage_outputs(workspace, target, track_content_hash=track_content_hash)
+    write_v39_external_absorption_map(target)
+    typer.echo(f"Scanned local workspace at {workspace}")
+
+
+@app.command("report-storage")
+def report_storage_command(
+    workspace: Path = typer.Option(..., "--workspace"),
+    output: Path | None = typer.Option(None, "--output"),
+) -> None:
+    """Write local storage usage and dedup reports."""
+    target = output or workspace
+    write_workspace_storage_outputs(workspace, target)
+    write_v39_external_absorption_map(target)
+    typer.echo(f"Built storage report at {target}")
+
+
+@app.command("plan-cleanup")
+def plan_cleanup_command(
+    workspace: Path = typer.Option(..., "--workspace"),
+    output: Path | None = typer.Option(None, "--output"),
+) -> None:
+    """Write a non-destructive cleanup and archive plan."""
+    target = output or workspace
+    write_workspace_storage_outputs(workspace, target, destructive_cleanup=False)
+    typer.echo(f"Built cleanup plan at {target}")
+
+
+@app.command("plan-memory-lifecycle")
+def plan_memory_lifecycle_command(
+    output: Path = typer.Option(..., "--output"),
+    max_context_memory_items: int = typer.Option(20, "--max-context-memory-items"),
+    max_estimated_context_tokens: int = typer.Option(4000, "--max-estimated-context-tokens"),
+) -> None:
+    """Write local memory lifecycle, compaction, and token budget contracts."""
+    write_memory_lifecycle_outputs(
+        output,
+        max_context_memory_items=max_context_memory_items,
+        max_estimated_context_tokens=max_estimated_context_tokens,
+    )
+    write_v39_external_absorption_map(output)
+    typer.echo(f"Built memory lifecycle plan at {output}")
+
+
+@app.command("estimate-token-budget")
+def estimate_token_budget_command(
+    output: Path = typer.Option(..., "--output"),
+    max_context_memory_items: int = typer.Option(20, "--max-context-memory-items"),
+    max_estimated_context_tokens: int = typer.Option(4000, "--max-estimated-context-tokens"),
+) -> None:
+    """Write the v3.9 memory token budget policy."""
+    write_memory_lifecycle_outputs(
+        output,
+        max_context_memory_items=max_context_memory_items,
+        max_estimated_context_tokens=max_estimated_context_tokens,
+    )
+    typer.echo(f"Built token budget policy at {output}")
+
+
+@app.command("preprocess-pdf-markdown")
+def preprocess_pdf_markdown_command(
+    source: Path = typer.Option(..., "--source"),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Run local-first PDF-to-Markdown preprocessing reports."""
+    if not source.exists():
+        raise typer.BadParameter("--source must exist")
+    write_document_parsing_outputs(source, output)
+    write_v39_external_absorption_map(output)
+    typer.echo(f"Built local PDF Markdown report at {output}")
+
+
+@app.command("benchmark-parser-backends")
+def benchmark_parser_backends_command(
+    source: Path = typer.Option(..., "--source"),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Write deterministic parser backend selection and benchmark reports."""
+    if not source.exists():
+        raise typer.BadParameter("--source must exist")
+    write_document_parsing_outputs(source, output)
+    write_v39_external_absorption_map(output)
+    typer.echo(f"Built parser backend benchmark at {output}")
+
+
+@app.command("report-pdf-token-reduction")
+def report_pdf_token_reduction_command(
+    source: Path = typer.Option(..., "--source"),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Estimate raw PDF versus Markdown token usage."""
+    if not source.exists():
+        raise typer.BadParameter("--source must exist")
+    write_document_parsing_outputs(source, output)
+    write_v39_external_absorption_map(output)
+    typer.echo(f"Built PDF token reduction report at {output}")
+
+
 @app.command()
 def run(
     config: Path = typer.Option(..., "--config", "-c", exists=True, file_okay=True, dir_okay=False, readable=True),
@@ -2801,6 +2923,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         _run_v23_config_outputs(config_data, config_data.output)
         _run_v24_config_outputs(config_data, config_data.output)
         _run_v25_config_outputs(config_data, config_data.output)
+        _run_v39_config_outputs(config_data, config_data.output)
         return ConfigRunResult(
             config=config_data,
             output=config_data.output,
@@ -2904,6 +3027,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
     _run_v23_config_outputs(config_data, output)
     _run_v24_config_outputs(config_data, output)
     _run_v25_config_outputs(config_data, output)
+    _run_v39_config_outputs(config_data, output)
 
     return ConfigRunResult(
         config=config_data,
@@ -3310,6 +3434,99 @@ def _run_v25_config_outputs(config_data: ForgeConfig, output: Path) -> None:
         run_llm_quality_gate_assist(workspace, config_data.llm_quality_gate_assist.output or output, config_data.llm_quality_gate_assist.provider)
     if config_data.release_readiness.enabled:
         evaluate_release_readiness(workspace, config_data.release_readiness.output or output)
+
+
+def _run_v39_config_outputs(config_data: ForgeConfig, output: Path) -> None:
+    enabled = any(
+        [
+            config_data.workspace_storage.enabled,
+            config_data.memory_lifecycle.enabled,
+            config_data.document_parsing.local_pdf_markdown,
+            config_data.document_parsing.parser_backend_benchmark,
+            config_data.document_parsing.pdf_token_reduction_report,
+        ]
+    )
+    if not enabled:
+        return
+    if config_data.workspace_storage.destructive_cleanup:
+        raise typer.BadParameter("workspace_storage.destructive_cleanup must remain false in v3.9")
+    workspace_root = config_data.workspace_storage.workspace_root or output
+    manifest_path = output / "manifest.json"
+    manifest_payload = _read_json_dict(manifest_path)
+    v39_files = []
+    if config_data.workspace_storage.enabled:
+        storage = write_workspace_storage_outputs(
+            workspace_root,
+            output,
+            track_content_hash=config_data.workspace_storage.track_content_hash,
+            destructive_cleanup=config_data.workspace_storage.destructive_cleanup,
+        )
+        v39_files.extend(storage["output_files"])
+        manifest_payload.update(
+            {
+                "workspace_storage_enabled": True,
+                "workspace_storage_backend": "local_workspace",
+                "workspace_storage_files": storage["output_files"],
+                "workspace_storage_no_destructive_cleanup": True,
+            }
+        )
+    if config_data.memory_lifecycle.enabled:
+        memory = write_memory_lifecycle_outputs(
+            output,
+            max_context_memory_items=config_data.memory_lifecycle.max_context_memory_items,
+            max_estimated_context_tokens=config_data.memory_lifecycle.max_estimated_context_tokens,
+            compaction_strategy=config_data.memory_lifecycle.compaction_strategy,
+            promote_candidates=config_data.memory_lifecycle.promote_candidates,
+        )
+        v39_files.extend(memory["output_files"])
+        manifest_payload.update(
+            {
+                "memory_lifecycle_enabled": True,
+                "memory_lifecycle_files": memory["output_files"],
+                "token_budget_policy_file": "token_budget_policy.json",
+                "memory_all_history_injection_prevented": True,
+            }
+        )
+    if any(
+        [
+            config_data.document_parsing.local_pdf_markdown,
+            config_data.document_parsing.parser_backend_benchmark,
+            config_data.document_parsing.pdf_token_reduction_report,
+        ]
+    ):
+        parsing = write_document_parsing_outputs(config_data.input, output)
+        v39_files.extend(parsing["output_files"])
+        manifest_payload.update(
+            {
+                "document_parsing_enabled": True,
+                "document_parsing_files": parsing["output_files"],
+                "no_cloud_upload_required": config_data.document_parsing.no_cloud_upload_required,
+                "raw_pdf_sent_to_llm": False,
+            }
+        )
+    absorption = write_v39_external_absorption_map(output)
+    v39_files.append("v39_external_absorption_map.json")
+    manifest_payload.update(
+        {
+            "v39_enabled": True,
+            "v39_files": _dedupe_files(v39_files),
+            "v39_external_absorption_map": "v39_external_absorption_map.json",
+            "v39_absorption_capability_count": len(absorption["capabilities"]),
+            "v39_tests_require_real_llm_api_network": False,
+        }
+    )
+    write_json(manifest_path, manifest_payload)
+
+
+def _read_json_dict(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    import json
+
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
 
 
 def _make_llm_options(

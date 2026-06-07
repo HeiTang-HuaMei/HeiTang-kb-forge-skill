@@ -375,6 +375,29 @@ class RetrievalQualityConfig(BaseModel):
     allow_llm_judge: bool = False
 
 
+class WorkspaceStorageConfig(BaseModel):
+    enabled: bool = False
+    workspace_root: Path | None = None
+    registry_format: str = "json"
+    destructive_cleanup: bool = False
+    track_content_hash: bool = True
+
+
+class MemoryLifecycleConfig(BaseModel):
+    enabled: bool = False
+    max_context_memory_items: int = 20
+    max_estimated_context_tokens: int = 4000
+    compaction_strategy: str = "deterministic_summary_placeholder"
+    promote_candidates: bool = False
+
+
+class DocumentParsingConfig(BaseModel):
+    local_pdf_markdown: bool = False
+    parser_backend_benchmark: bool = False
+    pdf_token_reduction_report: bool = False
+    no_cloud_upload_required: bool = True
+
+
 class DocumentGenerationConfig(BaseModel):
     enabled: bool = False
     formats: list[str] = Field(default_factory=lambda: ["md"])
@@ -567,6 +590,9 @@ class ForgeConfig(BaseModel):
     query_rewrite: QueryRewriteConfig = Field(default_factory=QueryRewriteConfig)
     knowledge_runtime: KnowledgeRuntimeConfig = Field(default_factory=KnowledgeRuntimeConfig)
     retrieval_quality: RetrievalQualityConfig = Field(default_factory=RetrievalQualityConfig)
+    workspace_storage: WorkspaceStorageConfig = Field(default_factory=WorkspaceStorageConfig)
+    memory_lifecycle: MemoryLifecycleConfig = Field(default_factory=MemoryLifecycleConfig)
+    document_parsing: DocumentParsingConfig = Field(default_factory=DocumentParsingConfig)
     document_generation: DocumentGenerationConfig = Field(default_factory=DocumentGenerationConfig)
     evidence_gate: EvidenceGateConfig = Field(default_factory=EvidenceGateConfig)
     parser_backend: ParserBackendConfig = Field(default_factory=ParserBackendConfig)

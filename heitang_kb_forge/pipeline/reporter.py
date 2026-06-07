@@ -24,7 +24,11 @@ from heitang_kb_forge.planning.readiness import PLANNING_OUTPUT_FILES
 from heitang_kb_forge.vector.exporter import VECTOR_OUTPUT_FILES
 from heitang_kb_forge.store.exporter import STORE_OUTPUT_FILES
 from heitang_kb_forge.evidence_gate import EVIDENCE_GATE_OUTPUT_FILES
+from heitang_kb_forge.document_parsing import V39_DOCUMENT_PARSING_OUTPUT_FILES
+from heitang_kb_forge.memory_lifecycle import V39_MEMORY_LIFECYCLE_OUTPUT_FILES
 from heitang_kb_forge.multi_kb_orchestration import MULTI_KB_ORCHESTRATION_OUTPUT_FILES
+from heitang_kb_forge.workspace_storage import V39_WORKSPACE_STORAGE_OUTPUT_FILES
+from heitang_kb_forge.workspace_storage.external_absorption import V39_EXTERNAL_ABSORPTION_OUTPUT_FILES
 from heitang_kb_forge.workbench_contracts import WORKBENCH_CONTRACT_OUTPUT_FILES
 from heitang_kb_forge.schemas.config_schema import ForgeConfig
 from heitang_kb_forge.schemas.pipeline_schema import PipelineManifest, PipelineStage
@@ -97,6 +101,10 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("retrieval_quality_eval", config.retrieval_quality.enabled, output, ["retrieval_quality_report.json", "retrieval_quality_report.md", "golden_query_eval_report.json"], config.task),
         _stage("claim_verification", config.retrieval_quality.enabled, output, ["claim_verification_report.json", "source_cross_check_report.json", "contradiction_map.json", "freshness_check_report.json", "verification_retrieval_trace.json"], config.task),
         _stage("knowledge_accuracy", config.retrieval_quality.enabled, output, ["knowledge_accuracy_report.json", "v38_external_absorption_map.json"], config.task),
+        _stage("workspace_storage_registry", config.workspace_storage.enabled, output, V39_WORKSPACE_STORAGE_OUTPUT_FILES, config.task),
+        _stage("memory_lifecycle", config.memory_lifecycle.enabled, output, V39_MEMORY_LIFECYCLE_OUTPUT_FILES, config.task),
+        _stage("local_document_parsing_token_reduction", _document_parsing_enabled(config), output, V39_DOCUMENT_PARSING_OUTPUT_FILES, config.task),
+        _stage("v39_external_absorption_map", _v39_enabled(config), output, V39_EXTERNAL_ABSORPTION_OUTPUT_FILES, config.task),
         _stage("kb_index", config.knowledge_runtime.enabled, output, ["kb_index.jsonl", "kb_index_manifest.json"], config.task),
         _stage("kb_query", config.knowledge_runtime.enabled, output, ["kb_query_result.json", "kb_query_trace.json", "kb_citation_trace.json"], config.task),
         _stage("kb_answer", config.knowledge_runtime.enabled, output, ["kb_answer.md", "kb_answer_report.json"], config.task),
@@ -253,6 +261,20 @@ def _document_generation_output_files(config: ForgeConfig) -> list[str]:
         if normalized in {"md", "docx", "pdf", "pptx"}:
             files.insert(0, f"generated.{normalized}")
     return files
+
+
+def _document_parsing_enabled(config: ForgeConfig) -> bool:
+    return any(
+        [
+            config.document_parsing.local_pdf_markdown,
+            config.document_parsing.parser_backend_benchmark,
+            config.document_parsing.pdf_token_reduction_report,
+        ]
+    )
+
+
+def _v39_enabled(config: ForgeConfig) -> bool:
+    return config.workspace_storage.enabled or config.memory_lifecycle.enabled or _document_parsing_enabled(config)
 
 
 def _performance_enabled(config: ForgeConfig) -> bool:

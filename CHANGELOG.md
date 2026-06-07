@@ -1,5 +1,17 @@
 # Changelog
 
+## v3.9.0-alpha.1
+
+* Added opt-in Local Workspace Storage & Memory Lifecycle.
+* Added workspace/package/skill/agent/memory/document/index registries.
+* Added storage usage, dedup, cleanup, retention, and archive reports.
+* Added memory lifecycle, compaction, memory index, retention, and token budget contracts.
+* Added local PDF-to-Markdown preprocessing report, parser backend selection/benchmark, PDF token reduction, and no-cloud-upload reports.
+* Added `v39_external_absorption_map.json` and bilingual v3.9 docs.
+* Preserved default build / run / pipeline behavior.
+* No destructive cleanup by default.
+* No real LLM/API/network dependency.
+
 ## v3.0.0-alpha.1
 
 * Added opt-in Document Generation Loop.
