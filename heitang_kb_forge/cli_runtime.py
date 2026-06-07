@@ -121,6 +121,7 @@ from heitang_kb_forge.parser_backends.reports import (
 )
 from heitang_kb_forge.platform_distribution import check_platform_upload, export_platform_package, mock_publish_package
 from heitang_kb_forge.progress.reporter import ProgressReporter, make_progress_reporter
+from heitang_kb_forge.product_hardening import V312_PRODUCT_HARDENING_OUTPUT_FILES, run_product_hardening
 from heitang_kb_forge.quality_gate.gate import QUALITY_GATE_OUTPUT_FILES, evaluate_quality_gate
 from heitang_kb_forge.quality_gate import run_quality_gate
 from heitang_kb_forge.quality import V21_OUTPUT_FILES, make_v21_quality_outputs
@@ -2191,6 +2192,30 @@ def run_golden_demo_acceptance_command(
     typer.echo(f"Golden demo acceptance: {result['status']}")
 
 
+@app.command("product-hardening")
+def product_hardening_command(
+    workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True, readable=True),
+    package: Path | None = typer.Option(None, "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    require_v37: bool = typer.Option(True, "--require-v37/--no-require-v37"),
+    require_v38: bool = typer.Option(True, "--require-v38/--no-require-v38"),
+    require_v39: bool = typer.Option(True, "--require-v39/--no-require-v39"),
+    require_v310: bool = typer.Option(True, "--require-v310/--no-require-v310"),
+    require_v311: bool = typer.Option(True, "--require-v311/--no-require-v311"),
+    allow_llm: bool = typer.Option(False, "--allow-llm"),
+    allow_network: bool = typer.Option(False, "--allow-network"),
+) -> None:
+    """Run v3.12 local product hardening and release readiness gates."""
+    if allow_llm:
+        typer.echo("--allow-llm is reserved and must remain false in v3.12")
+        raise typer.Exit(2)
+    if allow_network:
+        typer.echo("--allow-network is reserved and must remain false in v3.12")
+        raise typer.Exit(2)
+    result = run_product_hardening(workspace, output, package, require_v37, require_v38, require_v39, require_v310, require_v311)
+    typer.echo(f"Product hardening: {result['status']} | Release ready: {result['release_ready']}")
+
+
 @app.command()
 def run(
     config: Path = typer.Option(..., "--config", "-c", exists=True, file_okay=True, dir_okay=False, readable=True),
@@ -2990,7 +3015,10 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         _run_v39_config_outputs(config_data, config_data.output)
         _run_v310_config_outputs(config_data, config_data.output)
         _run_v311_config_outputs(config_data, config_data.output)
+        _run_v312_config_outputs(config_data, config_data.output)
         if config_data.golden_demo_acceptance.enabled and config_data.workbench_contracts.enabled:
+            generate_workbench_contracts(config_data.output, config_data.workbench_contracts.output or config_data.output, config_data.workbench_contracts.project_name)
+        if config_data.product_hardening.enabled and config_data.workbench_contracts.enabled:
             generate_workbench_contracts(config_data.output, config_data.workbench_contracts.output or config_data.output, config_data.workbench_contracts.project_name)
         return ConfigRunResult(
             config=config_data,
@@ -3656,6 +3684,41 @@ def _run_v311_config_outputs(config_data: ForgeConfig, output: Path) -> None:
             "golden_demo_acceptance_files": V311_GOLDEN_DEMO_OUTPUT_FILES,
             "golden_demo_acceptance_llm_required": False,
             "golden_demo_acceptance_network_required": False,
+        }
+    )
+    write_json(manifest_path, manifest_payload)
+
+
+def _run_v312_config_outputs(config_data: ForgeConfig, output: Path) -> None:
+    if not config_data.product_hardening.enabled:
+        return
+    if config_data.product_hardening.allow_llm:
+        raise typer.BadParameter("product_hardening.allow_llm must remain false in v3.12")
+    if config_data.product_hardening.allow_network:
+        raise typer.BadParameter("product_hardening.allow_network must remain false in v3.12")
+    target = config_data.product_hardening.output or output
+    workspace = config_data.product_hardening.workspace or Path.cwd()
+    package = config_data.product_hardening.package or output
+    result = run_product_hardening(
+        workspace,
+        target,
+        package,
+        config_data.product_hardening.require_v37,
+        config_data.product_hardening.require_v38,
+        config_data.product_hardening.require_v39,
+        config_data.product_hardening.require_v310,
+        config_data.product_hardening.require_v311,
+    )
+    manifest_path = output / "manifest.json"
+    manifest_payload = _read_json_dict(manifest_path)
+    manifest_payload.update(
+        {
+            "product_hardening_enabled": True,
+            "product_hardening_status": result["status"],
+            "product_hardening_release_ready": result["release_ready"],
+            "product_hardening_files": V312_PRODUCT_HARDENING_OUTPUT_FILES,
+            "product_hardening_llm_required": False,
+            "product_hardening_network_required": False,
         }
     )
     write_json(manifest_path, manifest_payload)

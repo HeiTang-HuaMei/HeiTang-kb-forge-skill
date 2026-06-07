@@ -554,6 +554,20 @@ class GoldenDemoAcceptanceConfig(BaseModel):
     output: Path | None = None
 
 
+class ProductHardeningConfig(BaseModel):
+    enabled: bool = False
+    workspace: Path | None = None
+    package: Path | None = None
+    require_v37: bool = True
+    require_v38: bool = True
+    require_v39: bool = True
+    require_v310: bool = True
+    require_v311: bool = True
+    allow_llm: bool = False
+    allow_network: bool = False
+    output: Path | None = None
+
+
 class ForgeConfig(BaseModel):
     task: str
     input: Path
@@ -639,3 +653,4 @@ class ForgeConfig(BaseModel):
     llm_quality_gate_assist: LLMQualityGateAssistConfig = Field(default_factory=LLMQualityGateAssistConfig)
     release_readiness: ReleaseReadinessConfig = Field(default_factory=ReleaseReadinessConfig)
     golden_demo_acceptance: GoldenDemoAcceptanceConfig = Field(default_factory=GoldenDemoAcceptanceConfig)
+    product_hardening: ProductHardeningConfig = Field(default_factory=ProductHardeningConfig)
