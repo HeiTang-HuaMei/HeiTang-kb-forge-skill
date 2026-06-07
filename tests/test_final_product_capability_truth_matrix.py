@@ -22,4 +22,5 @@ def test_final_gate_contains_corrected_severity_policy(tmp_path):
     gate = load_json(output, "final_v4_rc_gate_report.json")
     assert "All issues must be classified by severity and scope" in gate["severity_policy"]
     assert "only low-risk issues will be fixed" not in gate["severity_policy"]
-    assert gate["p0_blockers"]
+    assert gate["ready_for_v4_rc"] is False
+    assert "p0_blockers" in gate

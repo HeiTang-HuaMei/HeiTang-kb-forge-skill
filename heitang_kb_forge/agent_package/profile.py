@@ -10,7 +10,7 @@ def make_agent_profile(package: Path, skill: Path, agent_name: str, agent_type: 
         agent_name=agent_name,
         agent_type=agent_type,
         source_skill_id=_read_skill_id(skill),
-        source_package_id=package.name or "knowledge_package",
+        source_package_id=_read_package_id(package),
         kb_trust_status=_read_package_trust_status(package),
     )
 
@@ -37,6 +37,17 @@ def _read_package_trust_status(package: Path) -> str:
         return str(json.loads(manifest.read_text(encoding="utf-8")).get("kb_trust_status", "legacy_untracked"))
     except json.JSONDecodeError:
         return "raw_parse_output"
+
+
+def _read_package_id(package: Path) -> str:
+    manifest = package / "manifest.json"
+    if not manifest.exists():
+        return package.name or "knowledge_package"
+    try:
+        payload = json.loads(manifest.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return package.name or "knowledge_package"
+    return str(payload.get("package_id") or package.name or "knowledge_package")
 
 
 def _slug(value: str) -> str:

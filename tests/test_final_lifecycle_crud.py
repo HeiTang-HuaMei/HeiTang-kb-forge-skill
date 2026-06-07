@@ -9,4 +9,5 @@ def test_lifecycle_crud_gap_is_classified_not_ignored(tmp_path):
     assert "lifecycle_crud_update_archive_delete_partial" in issue_ids
     issue = next(item for item in gate["issue_checklist"] if item["id"] == "lifecycle_crud_update_archive_delete_partial")
     assert issue["severity"] == "P1"
-    assert issue["status"] == "needs_review"
+    assert issue["status"] == "reviewed_non_blocking"
+    assert issue["blocks_v4"] is False

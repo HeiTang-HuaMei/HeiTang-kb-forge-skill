@@ -1,0 +1,20 @@
+{
+  "ui_full_operation_readiness_report_version": "pre-v4-large-bilingual-architecture-1",
+  "status": "needs_review",
+  "classification": "contract_viewer_only",
+  "tests_require_real_llm_api_network": false,
+  "ui_repo_modified": false,
+  "operations": {
+    "workspace_setup": "contract_only",
+    "file_selection": "not_proven",
+    "kb_build": "contract_only",
+    "query_verify": "contract_only",
+    "document_generation": "contract_only",
+    "agent_skill_creation": "contract_only",
+    "agent_runtime": "contract_only",
+    "storage_memory_release_reports": "contract_only",
+    "llm_api_provider_settings": "not_proven"
+  },
+  "must_not_claim": ["full user-operable local Workbench", "UI can complete end-to-end workflows without Core CLI"],
+  "gate_decision": "needs_review_non_blocking_while_not_claimed"
+}

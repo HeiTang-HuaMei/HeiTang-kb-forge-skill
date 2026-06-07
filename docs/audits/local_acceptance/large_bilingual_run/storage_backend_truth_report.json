@@ -1,0 +1,21 @@
+{
+  "storage_backend_truth_report_version": "pre-v4-large-bilingual-architecture-1",
+  "status": "needs_review",
+  "tests_require_real_llm_api_network": false,
+  "storage_backends": {
+    "local_workspace": "implemented_default",
+    "package_storage": "implemented_local_files",
+    "skill_storage": "implemented_local_files",
+    "agent_storage": "implemented_local_files",
+    "memory_storage": "contract_and_reports",
+    "index_storage": "local_files_and_export",
+    "generated_document_storage": "implemented_local_files",
+    "local_db": "partial_store_index_or_future_backend",
+    "byo_cloud": "future_disabled_not_implemented"
+  },
+  "no_platform_hosted_user_data": true,
+  "no_hidden_upload_default": true,
+  "destructive_cleanup_default": false,
+  "must_not_claim": ["BYO cloud implemented", "cloud database implemented", "platform-hosted user data enabled"],
+  "gate_decision": "accepted_needs_review_non_blocking"
+}

@@ -1,0 +1,106 @@
+{
+  "rag_vector_index_readiness_report_version": "pre-v4-large-bilingual-architecture-1",
+  "generated_at": "2026-06-08T00:00:00+00:00",
+  "status": "blocked",
+  "blocker_id": "rag_vector_index_industrial_readiness_unproven",
+  "severity": "P0",
+  "reason": "Current Core has local keyword/index paths, deterministic query planning, rerank/evidence/verification reports, embedding export, and vector export files. It does not prove industrial vector database readiness because no real Milvus/Pinecone/Qdrant/Chroma write/query path, production hybrid keyword/vector retrieval path, metadata-filtered vector query path, rebuild policy, or stale index detection has been implemented and tested end-to-end.",
+  "tests_require_real_llm_api_network": false,
+  "llm_optional_assist_only": true,
+  "no_external_code_or_prompt_copying": true,
+  "readiness": {
+    "query_rewrite": {
+      "status": "implemented",
+      "evidence": [
+        "heitang_kb_forge/retrieval/query_planning.py",
+        "tests/test_v37_query_rewrite.py",
+        "tests/test_v37_retrieval_planning.py"
+      ]
+    },
+    "retrieval_planning": {
+      "status": "implemented",
+      "evidence": [
+        "retrieval_plan.json",
+        "tests/test_v37_query_planning_cli.py"
+      ]
+    },
+    "keyword_retrieval": {
+      "status": "implemented",
+      "evidence": [
+        "kb_index.jsonl",
+        "tests/test_v29_knowledge_runtime.py",
+        "tests/test_agent_rag_retrieve.py"
+      ]
+    },
+    "vector_retrieval_status": {
+      "status": "needs_review",
+      "classification": "export_only",
+      "reason": "Embedding/vector artifacts can be exported locally, but no production vector query path is proven."
+    },
+    "hybrid_keyword_vector_retrieval_status": {
+      "status": "missing",
+      "classification": "not_proven",
+      "reason": "The config may use the word hybrid for planning, but no tested production hybrid keyword/vector query path is attached."
+    },
+    "embedding_provider_configuration": {
+      "status": "partial",
+      "classification": "config_and_fake_provider_only",
+      "reason": "Provider configuration and fake/offline embedding generation exist; real provider acceptance is optional and not inherited by this Codex process."
+    },
+    "vector_db_adapter_status": {
+      "status": "needs_review",
+      "classification": "export_only_adapter_future",
+      "implemented_vector_dbs": [],
+      "future_or_unproven_vector_dbs": [
+        "Milvus",
+        "Pinecone",
+        "Qdrant",
+        "Chroma"
+      ],
+      "reason": "No real vector DB write/query smoke is implemented and tested."
+    },
+    "metadata_filtering": {
+      "status": "partial",
+      "classification": "keyword_or_store_filter_only",
+      "reason": "Local scope/filter helpers exist, but metadata-filtered vector retrieval is not proven."
+    },
+    "rerank": {
+      "status": "implemented",
+      "evidence": [
+        "heitang_kb_forge/retrieval/rerank.py",
+        "tests/test_v38_rerank.py"
+      ]
+    },
+    "evidence_selection": {
+      "status": "implemented",
+      "evidence": [
+        "heitang_kb_forge/retrieval/evidence_selection.py",
+        "tests/test_v38_evidence_selection.py"
+      ]
+    },
+    "claim_verification": {
+      "status": "implemented_local",
+      "reason": "Local claim verification exists; external retrieval verification remains out of current implementation."
+    },
+    "freshness_contradiction_accuracy_scoring": {
+      "status": "implemented_local_with_warning_status",
+      "reason": "Contradictory sources produce warning/review, not pass."
+    },
+    "incremental_update_or_rebuild_policy": {
+      "status": "partial",
+      "reason": "Source change and lifecycle reports exist, but vector index rebuild and stale vector index detection are not proven."
+    },
+    "stale_index_detection": {
+      "status": "missing",
+      "reason": "No dedicated stale vector index detection proof is attached."
+    }
+  },
+  "must_not_claim": [
+    "real vector database production readiness",
+    "Milvus/Pinecone/Qdrant/Chroma adapter implementation",
+    "production hybrid keyword/vector retrieval",
+    "metadata-filtered vector DB query",
+    "stale vector index detection"
+  ],
+  "recommended_fix": "Implement and test real local/adapter vector query paths, metadata filters, hybrid retrieval routing, index rebuild policy, and stale-index diagnostics before clearing this P0."
+}

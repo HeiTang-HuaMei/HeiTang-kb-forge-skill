@@ -1,0 +1,21 @@
+{
+  "security_threat_model_gap_report_version": "pre-v4-large-bilingual-architecture-1",
+  "status": "needs_review",
+  "tests_require_real_llm_api_network": false,
+  "covered_boundaries": {
+    "local_workspace_default": true,
+    "no_platform_hosted_user_data": true,
+    "no_hidden_upload": "static_and_reported",
+    "api_key_redaction": "tested",
+    "no_destructive_cleanup_by_default": true,
+    "agent_kb_boundary": "fixed_and_tested",
+    "child_memory_isolation": "contract_and_smoke"
+  },
+  "gaps": [
+    {"id": "runtime_network_behavior_not_dynamic_proven", "severity": "P1", "status": "needs_review"},
+    {"id": "byo_cloud_security_future_only", "severity": "P1", "status": "accepted_future_disabled"},
+    {"id": "full_ui_security_acceptance_not_rerun", "severity": "P1", "status": "needs_review"}
+  ],
+  "must_not_claim": ["dynamic runtime network proof for every path", "BYO cloud security ready", "full UI security acceptance in this Core-only pass"],
+  "gate_decision": "accepted_needs_review_non_blocking"
+}

@@ -1,0 +1,16 @@
+{
+  "llm_provider_and_per_agent_api_readiness_report_version": "pre-v4-large-bilingual-architecture-1",
+  "status": "needs_review",
+  "tests_require_real_llm_api_network": false,
+  "core_usable_without_llm_provider": true,
+  "optional_live_llm_status": "skipped_process_environment_isolation",
+  "api_keys_committed": false,
+  "api_keys_printed": false,
+  "provider_registry": "config_and_mock_provider_governance",
+  "per_agent_api_mapping": {
+    "status": "partial",
+    "reason": "Provider/profile governance exists, but per-Agent live provider mapping is not fully proven through real API acceptance."
+  },
+  "must_not_claim": ["real live provider acceptance completed in this Codex process", "per-Agent API mapping fully production-ready"],
+  "gate_decision": "accepted_non_blocking_needs_review"
+}

@@ -9,4 +9,6 @@ def test_external_absorption_maps_are_audited_honestly(tmp_path):
 
     gate = load_json(output, "final_v4_rc_gate_report.json")
     issue_ids = {item["id"] for item in gate["issue_checklist"]}
-    assert "v310_external_absorption_map_absent" in issue_ids
+    assert "v310_external_absorption_map_absent" not in issue_ids
+    absorption = load_json(output, "final_external_absorption_audit.json")
+    assert all(record["status"] == "pass" for record in absorption["records"])

@@ -8,5 +8,7 @@ def test_final_user_workflows_are_explicit_and_not_auto_passed(tmp_path):
     workflow_ids = {item["workflow_id"] for item in report["workflows"]}
     assert "workflow_a_raw_material_to_package" in workflow_ids
     assert "workflow_h_golden_demo" in workflow_ids
-    assert any(item["status"] == "needs_review" for item in report["workflows"])
+    golden_demo = next(item for item in report["workflows"] if item["workflow_id"] == "workflow_h_golden_demo")
+    assert golden_demo["status"] == "pass"
+    assert golden_demo["proof_level"] == "real_acceptance_proof"
     assert all(item["proof_level"] != "file_exists_only" for item in report["workflows"])

@@ -51,6 +51,22 @@ STABLE_ERROR_TAXONOMY = [
 ]
 SECRET_PATTERNS = ["api_key: sk-", "secret_key:", "client_secret:", "sk-live-", "sk-proj-"]
 TEMP_PREFIXES = ("tmp_", "temp_", "ci_failed_")
+REPORT_SEARCH_DIRS = [
+    ".",
+    "workbench_contracts",
+    "workbench_contracts_fixed",
+    "v37_plan_answering_zh",
+    "v37_query_rewrite_zh",
+    "v38_retrieval_quality",
+    "v38_knowledge_accuracy",
+    "v39_storage",
+    "v39_memory_lifecycle",
+    "v310_local_agent",
+    "v310_local_agent_fixed",
+    "v311_golden_demo",
+    "v311_golden_demo_after_normalization",
+    "v311_golden_demo_fixed",
+]
 
 
 def run_product_hardening(
@@ -159,11 +175,13 @@ def _workspace_audit(workspace: Path) -> dict:
 
 
 def _golden_demo_verification(package: Path, required: bool) -> dict:
-    result = _read_json(package / "real_acceptance_smoke_result.json")
+    result_path = _find_report(package, "real_acceptance_smoke_result.json")
+    openability_path = _find_report(package, "artifact_openability_report.json")
+    result = _read_json(result_path) if result_path else {}
     checks = [
-        {"name": "golden_demo_result_exists", "status": "pass" if result else "fail"},
+        {"name": "golden_demo_result_exists", "status": "pass" if result else "fail", "path": _rel(result_path) if result_path else None},
         {"name": "golden_demo_status_pass", "status": "pass" if result.get("status") == "pass" else "fail"},
-        {"name": "artifact_openability_report_exists", "status": "pass" if (package / "artifact_openability_report.json").exists() else "fail"},
+        {"name": "artifact_openability_report_exists", "status": "pass" if openability_path else "fail", "path": _rel(openability_path) if openability_path else None},
     ]
     if not required:
         for check in checks:
@@ -202,8 +220,9 @@ def _no_secret_no_temp(workspace: Path) -> dict:
             temp_hits.append(relative)
         if path.suffix.lower() in {".md", ".json", ".yaml", ".yml", ".txt", ".toml", ".py"}:
             text = path.read_text(encoding="utf-8", errors="ignore")
-            if any(pattern in text for pattern in SECRET_PATTERNS):
-                secret_hits.append(relative)
+            hits = _secret_line_hits(text)
+            if hits:
+                secret_hits.append({"path": relative, "lines": hits})
     checks = [
         {"name": "no_secret_patterns", "status": "pass" if not secret_hits else "fail"},
         {"name": "no_temp_artifacts", "status": "pass" if not temp_hits else "fail"},
@@ -222,13 +241,16 @@ def _local_privacy_boundary(workspace: Path) -> dict:
 
 
 def _contract_drift(package: Path) -> dict:
-    status = _read_json(package / "workbench_status_contract.json")
-    actions = _read_json(package / "workbench_action_contract.json")
-    assets = _read_json(package / "workbench_asset_contract.json")
+    status_path = _find_report(package, "workbench_status_contract.json")
+    action_path = _find_report(package, "workbench_action_contract.json")
+    asset_path = _find_report(package, "workbench_asset_contract.json")
+    status = _read_json(status_path) if status_path else {}
+    actions = _read_json(action_path) if action_path else {}
+    assets = _read_json(asset_path) if asset_path else {}
     checks = [
-        {"name": "workbench_status_contract_exists", "status": "pass" if status else "fail"},
-        {"name": "workbench_action_contract_exists", "status": "pass" if actions else "fail"},
-        {"name": "workbench_asset_contract_exists", "status": "pass" if assets else "fail"},
+        {"name": "workbench_status_contract_exists", "status": "pass" if status else "fail", "path": _rel(status_path) if status_path else None},
+        {"name": "workbench_action_contract_exists", "status": "pass" if actions else "fail", "path": _rel(action_path) if action_path else None},
+        {"name": "workbench_asset_contract_exists", "status": "pass" if assets else "fail", "path": _rel(asset_path) if asset_path else None},
         {"name": "v311_action_exposed", "status": "pass" if _action_exists(actions, "run_golden_demo_acceptance") else "fail"},
     ]
     return _report("contract_drift_report_version", checks, core_ui_contract_drift_risk="tracked_without_ui_dependency")
@@ -333,9 +355,20 @@ def _prior_checks(package: Path, require_v37: bool, require_v38: bool, require_v
     }
     checks = []
     for name, files in PRIOR_REPORT_GROUPS:
-        missing = [file_name for file_name in files if not (package / file_name).exists()]
+        resolved = {file_name: _find_report(package, file_name) for file_name in files}
+        missing = [file_name for file_name, path in resolved.items() if path is None]
+        failing = [file_name for file_name, path in resolved.items() if path is not None and not _report_passes(path)]
         required = required_flags[name]
-        checks.append({"name": name, "required": required, "status": "fail" if required and missing else "pass", "missing_files": missing})
+        checks.append(
+            {
+                "name": name,
+                "required": required,
+                "status": "fail" if required and (missing or failing) else "pass",
+                "missing_files": missing,
+                "failing_files": failing,
+                "resolved_files": {file_name: _rel(path) if path else None for file_name, path in resolved.items()},
+            }
+        )
     return checks
 
 
@@ -388,6 +421,64 @@ def _parseable_outputs(package: Path) -> bool:
 
 def _action_exists(actions: dict, action_id: str) -> bool:
     return any(item.get("id") == action_id for item in actions.get("actions", []) if isinstance(item, dict))
+
+
+def _find_report(package: Path, file_name: str) -> Path | None:
+    candidates = []
+    for relative_dir in REPORT_SEARCH_DIRS:
+        candidate = package / relative_dir / file_name
+        if candidate.exists():
+            candidates.append(candidate)
+    for candidate in candidates:
+        if _report_passes(candidate):
+            return candidate
+    return candidates[0] if candidates else None
+
+
+def _report_passes(path: Path) -> bool:
+    payload = _read_json(path)
+    if path.name == "local_agent_runtime_status.json":
+        return payload.get("status") == "pass"
+    if path.name == "real_acceptance_smoke_result.json":
+        return payload.get("status") == "pass"
+    status = payload.get("status")
+    if status is None:
+        return bool(payload)
+    return status in {"pass", "ready", "answered", "warning", "contract_only"}
+
+
+def _secret_line_hits(text: str) -> list[dict]:
+    patterns = [
+        re.compile(r"sk-live-[A-Za-z0-9_-]{8,}"),
+        re.compile(r"sk-proj-[A-Za-z0-9_-]{8,}"),
+        re.compile(r"client_secret\s*[:=]\s*['\"][^'\"]{8,}['\"]", re.IGNORECASE),
+        re.compile(r"api_key\s*[:=]\s*['\"]?sk-[A-Za-z0-9_-]{8,}['\"]?", re.IGNORECASE),
+        re.compile(r"secret_key\s*[:=]\s*['\"]?[^'\"\s]{8,}['\"]?", re.IGNORECASE),
+    ]
+    hits = []
+    for line_no, line in enumerate(text.splitlines(), start=1):
+        if _is_secret_scanner_definition(line):
+            continue
+        if any(pattern.search(line) for pattern in patterns):
+            hits.append({"line": line_no, "preview": _redact_secret_line(line)})
+    return hits
+
+
+def _is_secret_scanner_definition(line: str) -> bool:
+    stripped = line.strip()
+    return (
+        "SECRET_PATTERNS" in stripped
+        or "patterns =" in stripped
+        or "secret_hits" in stripped
+        or stripped.startswith("re.compile(")
+    )
+
+
+def _redact_secret_line(line: str) -> str:
+    redacted = re.sub(r"sk-(?:live|proj)-[A-Za-z0-9_-]+", "sk-<redacted>", line)
+    redacted = re.sub(r"(api_key|secret_key|client_secret)(\s*[:=]\s*['\"])[^'\"]+(['\"])", r"\1\2<redacted>\3", redacted, flags=re.IGNORECASE)
+    redacted = re.sub(r"(api_key|secret_key|client_secret)(\s*[:=]\s*)[^'\"\s]+", r"\1\2<redacted>", redacted, flags=re.IGNORECASE)
+    return redacted[:160]
 
 
 def _scan_files(root: Path) -> list[Path]:

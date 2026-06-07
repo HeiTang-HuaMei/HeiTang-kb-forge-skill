@@ -1,0 +1,18 @@
+{
+  "scale_1500_readiness_report_version": "pre-v4-large-bilingual-architecture-1",
+  "status": "needs_review",
+  "tests_require_real_llm_api_network": false,
+  "readiness": {
+    "simulate_1500_books": "synthetic_only",
+    "simulate_1500_kbs": "synthetic_only",
+    "simulate_1500_agents": "not_proven",
+    "registry_growth": "synthetic_only",
+    "storage_growth": "estimated",
+    "report_growth": "estimated",
+    "query_routing_across_many_kbs": "needs_review",
+    "agent_routing_across_many_agents": "needs_review",
+    "batch_parallel_collision_risk": "needs_review"
+  },
+  "must_not_claim": ["real 1500-book production workload proven", "real 1500-KB/1500-Agent orchestration proven"],
+  "gate_decision": "needs_review_non_blocking_while_not_claimed"
+}
