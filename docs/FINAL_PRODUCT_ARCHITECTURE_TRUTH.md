@@ -4,12 +4,13 @@ This document is the short, human-readable truth surface for the current pre-v4.
 
 ## Current Gate
 
-- Overall status: blocked
-- Ready for v4 RC: false
-- Remaining P0: `rag_vector_index_industrial_readiness_unproven`
-- Blocking P1: `ui_validation_needs_review`
-- CI: green for pushed Core commit `766fe79`
+- Overall status: ready_for_v4_rc
+- Ready for v4 RC: true
+- Remaining P0: none
+- Blocking P1: none
+- CI: green for pushed Core commit `97a6bf9`
 - Full local pytest: passed
+- UI validation: Flutter analyze/test/build-web passed for frozen UI commit `24dfa2b`
 
 ## Architecture Truth Matrix
 
@@ -18,7 +19,7 @@ This document is the short, human-readable truth surface for the current pre-v4.
 | Input and parsing | Large PDF, DOCX, Markdown/TXT, structured files, and mixed Chinese/English paths are proven. Full scanned PDF OCR is limited and must not be overclaimed. | partial |
 | Knowledge package | Local package build, source inventory, metadata, quality gate, and evidence files exist. Universal structure-aware parsing is not fully proven. | partial |
 | RAG query planning | Deterministic query rewrite, expansion, decomposition, multi-query generation, and answering/validation planning exist. | implemented |
-| RAG vector/hybrid/index | Keyword/local index paths and vector export artifacts exist. Real vector DB write/query, production hybrid keyword/vector retrieval, metadata-filtered vector query, rebuild policy, and stale index detection are not proven. | P0 blocked |
+| RAG vector/hybrid/index | Local keyword/index paths, local JSON vector query, hybrid keyword/vector retrieval, metadata filtering, and stale index diagnostics are implemented and tested. Milvus, Pinecone, Qdrant, Chroma, and cloud vector DB adapters remain future/disabled. | implemented locally with external DB future boundary |
 | Retrieval quality and knowledge accuracy | Local rerank, evidence selection, diagnostics, claim/freshness/contradiction/accuracy reports exist. Contradictory sources must produce warning/review, not a false pass. | implemented with review boundary |
 | Document generation | Grounded MD/DOCX/PDF/PPTX generation and validation reports exist. | implemented |
 | Agent and Skill | Skill package, standalone Agent, KB-bound Agent, local deterministic runtime smoke, KB boundary, mother/child contracts, and memory policy reports exist. Full autonomous tool-calling Agent Runtime is not implemented. | partial |
@@ -26,13 +27,13 @@ This document is the short, human-readable truth surface for the current pre-v4.
 | Storage | `local_workspace` is the implemented default. `local_db` is partial/store-index oriented. BYO cloud/database is future/disabled, not implemented. | partial |
 | Security/privacy | Local-first, no hidden upload by default, API key redaction, and no platform-hosted user data are documented and tested. Dynamic runtime network proof and full UI security acceptance remain needs-review. | partial |
 | Scale | Synthetic 1500-scale checks exist. Real 1500 books, 1500 KBs, and 1500 Agents are not production-proven. | needs_review |
-| UI | Core emits Workbench contracts. Current UI status is `contract_viewer_only`; full user-operable local Workbench is not proven. | blocking P1 |
+| UI | Core emits Workbench contracts. Frozen UI commit `24dfa2b` passes Flutter analyze/test/build-web for the contract-viewer scope. Full user-operable local Workbench is still not claimed. | validated contract-viewer scope |
 
 ## Must Not Claim Yet
 
 - v4.0 released or ready
-- production vector database readiness
-- production hybrid keyword/vector retrieval
+- external vector database production readiness
+- Milvus/Pinecone/Qdrant/Chroma implemented
 - full user-operable local Workbench
 - full autonomous tool-calling Agent Runtime
 - full scanned PDF OCR proof

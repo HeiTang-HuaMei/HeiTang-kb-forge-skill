@@ -11,7 +11,7 @@
     },
     {
       "file": ".gitignore",
-      "size_bytes": 226,
+      "size_bytes": 306,
       "classification": "essential_root_file",
       "status": "pass",
       "reason": "Standard project surface file."
@@ -39,14 +39,14 @@
     },
     {
       "file": "README.md",
-      "size_bytes": 7091,
+      "size_bytes": 7709,
       "classification": "essential_root_file",
       "status": "pass",
       "reason": "Standard project surface file."
     },
     {
       "file": "README.zh-CN.md",
-      "size_bytes": 6917,
+      "size_bytes": 7498,
       "classification": "essential_root_file",
       "status": "pass",
       "reason": "Standard project surface file."
@@ -67,7 +67,7 @@
     },
     {
       "file": "artifact_openability_report.json",
-      "size_bytes": 1181,
+      "size_bytes": 1471,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
@@ -248,64 +248,71 @@
       "reason": "Root file is not in the essential allowlist."
     },
     {
+      "file": "final_external_absorption_audit.json",
+      "size_bytes": 2285,
+      "classification": "root_file_needs_review",
+      "status": "needs_review",
+      "reason": "Root file is not in the essential allowlist."
+    },
+    {
       "file": "final_fix_log.json",
-      "size_bytes": 1314,
+      "size_bytes": 613,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "final_functionality_truth_matrix.json",
-      "size_bytes": 12139,
+      "size_bytes": 14028,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "final_functionality_truth_matrix.md",
-      "size_bytes": 797,
+      "size_bytes": 773,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "final_industrial_red_team_report.json",
-      "size_bytes": 10813,
+      "size_bytes": 4813,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "final_industrial_red_team_report.md",
-      "size_bytes": 6233,
+      "size_bytes": 4936,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "final_product_capability_proof_report.json",
-      "size_bytes": 2473,
+      "size_bytes": 2463,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "final_product_capability_proof_report.md",
-      "size_bytes": 1680,
+      "size_bytes": 978,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "final_product_capability_proof_report.zh-CN.md",
-      "size_bytes": 558,
+      "size_bytes": 563,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "final_regression_matrix.json",
-      "size_bytes": 1459,
+      "size_bytes": 1494,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
@@ -340,56 +347,56 @@
     },
     {
       "file": "final_user_workflow_acceptance_report.json",
-      "size_bytes": 5205,
+      "size_bytes": 5360,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "final_user_workflow_acceptance_report.md",
-      "size_bytes": 742,
+      "size_bytes": 674,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "final_v4_rc_gate_report.json",
-      "size_bytes": 21600,
+      "size_bytes": 28995,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "final_v4_rc_gate_report.md",
-      "size_bytes": 1776,
+      "size_bytes": 1017,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "final_v4_rc_gate_report.zh-CN.md",
-      "size_bytes": 551,
+      "size_bytes": 499,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "final_version_history_audit.json",
-      "size_bytes": 2076,
+      "size_bytes": 2077,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "final_version_history_audit.md",
-      "size_bytes": 2186,
+      "size_bytes": 2187,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "network_dependency_audit_report.json",
-      "size_bytes": 19197,
+      "size_bytes": 19186,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
@@ -431,21 +438,21 @@
     },
     {
       "file": "registry_scale_report.json",
-      "size_bytes": 401,
+      "size_bytes": 402,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "report_non_empty_validation_report.json",
-      "size_bytes": 3023,
+      "size_bytes": 3068,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "repository_surface_audit_report.json",
-      "size_bytes": 20144,
+      "size_bytes": 20869,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
@@ -459,7 +466,7 @@
     },
     {
       "file": "runtime_speed_report.json",
-      "size_bytes": 269,
+      "size_bytes": 270,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
@@ -515,28 +522,42 @@
     },
     {
       "file": "ui_product_acceptance_report.json",
-      "size_bytes": 585,
+      "size_bytes": 504,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "ui_product_acceptance_report.md",
-      "size_bytes": 696,
+      "size_bytes": 615,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "ui_security_privacy_acceptance_report.json",
-      "size_bytes": 598,
+      "size_bytes": 517,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "ui_security_privacy_acceptance_report.md",
-      "size_bytes": 718,
+      "size_bytes": 637,
+      "classification": "root_file_needs_review",
+      "status": "needs_review",
+      "reason": "Root file is not in the essential allowlist."
+    },
+    {
+      "file": "v310_external_absorption_map.json",
+      "size_bytes": 5373,
+      "classification": "root_file_needs_review",
+      "status": "needs_review",
+      "reason": "Root file is not in the essential allowlist."
+    },
+    {
+      "file": "v312_external_absorption_map.json",
+      "size_bytes": 5324,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
@@ -557,14 +578,14 @@
     },
     {
       "file": "v4_rc_final_gate_report.json",
-      "size_bytes": 21600,
+      "size_bytes": 28995,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "v4_rc_final_gate_report.md",
-      "size_bytes": 176,
+      "size_bytes": 124,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."

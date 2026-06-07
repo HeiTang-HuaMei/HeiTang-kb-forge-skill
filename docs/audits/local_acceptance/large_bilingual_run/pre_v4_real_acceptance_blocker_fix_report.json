@@ -1,7 +1,7 @@
 {
   "pre_v4_real_acceptance_blocker_fix_report_version": "pre-v4-large-bilingual-fix-1",
   "generated_at": "2026-06-07T18:09:32.978041+00:00",
-  "overall_status": "blocked",
+  "overall_status": "needs_review",
   "ready_for_v4_rc": false,
   "product_hardening_status": "pass",
   "product_hardening_release_ready": true,
@@ -12,12 +12,13 @@
     {
       "id": "rag_vector_index_industrial_readiness_unproven",
       "severity": "P0",
-      "status": "blocked",
+      "status": "fixed",
       "evidence": [
-        "docs/audits/local_acceptance/large_bilingual_run/rag_vector_index_readiness_report.json",
-        "docs/audits/local_acceptance/large_bilingual_run/product_architecture_completeness_report.json"
+        "heitang_kb_forge/vector/query.py",
+        "tests/test_local_vector_query.py",
+        "docs/audits/local_acceptance/large_bilingual_run/rag_vector_index_readiness_report.json"
       ],
-      "reason": "Current Core proves local keyword/index and vector export artifacts, but not real vector DB write/query, production hybrid keyword/vector retrieval, metadata-filtered vector query, rebuild policy, or stale index detection."
+      "reason": "Local JSON vector query, hybrid keyword/vector retrieval, metadata-filtered vector query, and stale vector index detection are now implemented and tested. External vector DB adapters remain future/disabled and are not claimed."
     },
     {
       "id": "product_hardening_release_readiness_failed",
@@ -96,7 +97,7 @@
       "reason": "Current Codex process did not inherit HEITANG_LLM_* variables; local core still passes without LLM and API key was not printed or committed."
     }
   ],
-  "p0_remaining_count": 1,
+  "p0_remaining_count": 0,
   "p1_needs_review_count": 3,
   "raw_inputs_committed": false,
   "full_extracted_chunks_committed": false,

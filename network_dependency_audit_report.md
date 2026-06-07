@@ -7,7 +7,7 @@
 {
   "audit_version": "final-pre-v4.0",
   "status": "needs_review",
-  "network_reference_count": 446,
+  "network_reference_count": 835,
   "network_references": [
     {
       "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/CHANGELOG.md",
@@ -74,6 +74,14 @@
       "line": "- v3.9 Local Workspace Storage & Memory Lifecycle：本地 registry、storage usage、dedup/cleanup/retention plans、memory lifecycle、token budget policy、本地 PDF token reduction、parser backend benchmark 和 no-clou"
     },
     {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/v312_external_absorption_map.json",
+      "line": "\"what_not_to_copy\": \"Telemetry, hidden uploads, platform-hosted diagnostics, or external prompts.\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/v312_external_absorption_map.json",
+      "line": "\"reason\": \"The safe pattern is local-only verification with redacted output and no hidden upload behavior.\","
+    },
+    {
       "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
       "line": "\"resolved\": \"https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.29.7.tgz\","
     },
@@ -110,13 +118,5 @@
       "line": "\"resolved\": \"https://registry.npmjs.org/@babel/helper-module-transforms/-/helper-module-transforms-7.29.7.tgz\","
     },
     {
-      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
-      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/helper-plugin-utils/-/helper-plugin-utils-7.29.7.tgz\","
-    },
-    {
-      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
-      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/helper-string-parser/-/helper-string-parser-7.29.7.tgz\","
-    },
-    {
-      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/packag
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri
 ```

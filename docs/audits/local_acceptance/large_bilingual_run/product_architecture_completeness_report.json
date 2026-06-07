@@ -1,8 +1,8 @@
 {
-  "product_architecture_completeness_report_version": "pre-v4-large-bilingual-architecture-1",
+  "product_architecture_completeness_report_version": "pre-v4-local-vector-readiness-2",
   "generated_at": "2026-06-08T00:00:00+00:00",
-  "status": "blocked",
-  "reason": "The large bilingual acceptance pass proves many local Core paths, but final product architecture is not complete enough for v4.0 because RAG vector/index industrial readiness and full UI operation are not proven.",
+  "status": "needs_review",
+  "reason": "The local Core architecture now proves local vector/hybrid/index readiness. v4.0 remains gated by UI full-operation review and other accepted needs-review boundaries, not by a RAG vector/index P0.",
   "tests_require_real_llm_api_network": false,
   "raw_inputs_committed": false,
   "full_extracted_chunks_committed": false,
@@ -49,31 +49,33 @@
     },
     {
       "layer": "rag_vector_index",
-      "status": "blocked",
-      "blocker_id": "rag_vector_index_industrial_readiness_unproven",
+      "status": "pass",
       "items": {
         "query_rewrite": "implemented",
         "retrieval_planning": "implemented",
         "keyword_retrieval": "implemented",
-        "vector_retrieval_status": "export_only_needs_review",
-        "hybrid_keyword_vector_retrieval_status": "missing_or_unproven",
-        "embedding_provider_configuration": "partial",
-        "vector_db_adapter_status": "adapter_future_export_only",
-        "metadata_filtering": "partial_not_vector_db_proven",
+        "vector_retrieval_status": "implemented_local_json_query",
+        "hybrid_keyword_vector_retrieval_status": "implemented_local_keyword_plus_vector",
+        "embedding_provider_configuration": "implemented_offline_fake_optional_live",
+        "vector_db_adapter_status": "external_adapters_future_disabled",
+        "metadata_filtering": "implemented_local_json_filter",
         "rerank": "implemented",
         "evidence_selection": "implemented",
         "claim_verification": "implemented_local",
         "freshness_contradiction_accuracy_scoring": "implemented_local_warning_capable",
-        "incremental_update_or_rebuild_policy": "partial",
-        "stale_index_detection": "missing"
+        "incremental_update_or_rebuild_policy": "implemented_local_stale_detection",
+        "stale_index_detection": "implemented_local"
       },
       "evidence": [
+        "docs/audits/local_acceptance/large_bilingual_run/rag_vector_index_readiness_report.json",
+        "heitang_kb_forge/vector/query.py",
         "rag_vector_index_readiness_report.json",
+        "tests/test_local_vector_query.py",
         "tests/test_v37_query_rewrite.py",
         "tests/test_v38_rerank.py",
         "tests/test_vector_export.py"
       ],
-      "reason": "Export-only vector artifacts are not production vector DB readiness."
+      "reason": "Local vector query, hybrid retrieval, metadata filtering, and stale index detection are implemented and tested. External vector DB adapters remain future/disabled and are not claimed."
     },
     {
       "layer": "lifecycle",
@@ -174,14 +176,14 @@
   ],
   "gate_summary": {
     "product_architecture_completeness": {
-      "status": "blocked",
-      "blocks_v4": true,
-      "reason": "Architecture has at least one P0 blocker in RAG vector/index industrial readiness."
+      "status": "needs_review",
+      "blocks_v4": false,
+      "reason": "No architecture P0 remains after local vector/hybrid/index proof; UI and other needs-review boundaries remain visible."
     },
     "rag_vector_index_readiness": {
-      "status": "blocked",
-      "blocks_v4": true,
-      "blocker_id": "rag_vector_index_industrial_readiness_unproven"
+      "status": "pass",
+      "blocks_v4": false,
+      "reason": "Local JSON vector/hybrid/index readiness is implemented and tested; external vector DB adapters remain future/disabled."
     },
     "ui_full_operation_readiness": {
       "status": "needs_review",
@@ -202,10 +204,10 @@
   },
   "must_not_claim": [
     "full user-operable Workbench",
-    "production vector DB readiness",
-    "production hybrid keyword/vector retrieval",
     "real 1500 books/KBs/Agents scale readiness",
     "automatic destructive cleanup",
-    "BYO cloud/database implemented by default"
+    "BYO cloud/database implemented by default",
+    "external vector database production readiness",
+    "Milvus/Pinecone/Qdrant/Chroma implemented"
   ]
 }

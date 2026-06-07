@@ -7,16 +7,16 @@
 {
   "audit_version": "final-pre-v4.0",
   "status": "pass",
-  "core_commit": "c95e6c0",
+  "core_commit": "01a2c84",
   "recent_commits": [
+    "01a2c84 fix: clear final architecture gate blockers",
+    "97a6bf9 docs: add final product architecture truth surface",
+    "766fe79 test: attach final gate ci proof",
+    "5306f49 fix: resolve pre-v4 real acceptance blockers",
+    "348a155 test: add large bilingual local acceptance proof",
+    "757648a test: update final pre-v4 gate with verified audit results",
     "c95e6c0 test: add final pre-v4 product capability proof audit",
-    "e6ba666 feat: add product hardening release readiness",
-    "7d09b72 feat: add golden demo acceptance smoke",
-    "2c343b3 feat: add local agent runtime mother child operations",
-    "1b61428 fix: stabilize v39 parser cli errors",
-    "6b08568 feat: add local workspace storage and memory lifecycle",
-    "12dc574 docs: add v38 external absorption map artifact",
-    "e658395 feat: harden rag retrieval quality and evaluation"
+    "e6ba666 feat: add product hardening release readiness"
   ],
   "version_docs": [
     "V30_DOCUMENT_GENERATION.md",

@@ -1,10 +1,9 @@
 {
-  "rag_vector_index_readiness_report_version": "pre-v4-large-bilingual-architecture-1",
+  "rag_vector_index_readiness_report_version": "pre-v4-local-vector-readiness-2",
   "generated_at": "2026-06-08T00:00:00+00:00",
-  "status": "blocked",
-  "blocker_id": "rag_vector_index_industrial_readiness_unproven",
-  "severity": "P0",
-  "reason": "Current Core has local keyword/index paths, deterministic query planning, rerank/evidence/verification reports, embedding export, and vector export files. It does not prove industrial vector database readiness because no real Milvus/Pinecone/Qdrant/Chroma write/query path, production hybrid keyword/vector retrieval path, metadata-filtered vector query path, rebuild policy, or stale index detection has been implemented and tested end-to-end.",
+  "status": "pass",
+  "severity": "resolved",
+  "reason": "Core now proves local JSON vector query, hybrid keyword/vector retrieval, metadata-filtered vector query, and stale vector index detection without real LLM/API/network. External vector database adapters remain future/disabled and must not be claimed as implemented.",
   "tests_require_real_llm_api_network": false,
   "llm_optional_assist_only": true,
   "no_external_code_or_prompt_copying": true,
@@ -32,24 +31,31 @@
         "tests/test_agent_rag_retrieve.py"
       ]
     },
-    "vector_retrieval_status": {
-      "status": "needs_review",
-      "classification": "export_only",
-      "reason": "Embedding/vector artifacts can be exported locally, but no production vector query path is proven."
+    "local_vector_retrieval_status": {
+      "status": "implemented",
+      "classification": "local_json_query",
+      "evidence": [
+        "heitang_kb_forge/vector/query.py",
+        "tests/test_local_vector_query.py"
+      ]
     },
     "hybrid_keyword_vector_retrieval_status": {
-      "status": "missing",
-      "classification": "not_proven",
-      "reason": "The config may use the word hybrid for planning, but no tested production hybrid keyword/vector query path is attached."
+      "status": "implemented",
+      "classification": "local_keyword_plus_vector",
+      "evidence": [
+        "heitang_kb_forge/vector/query.py",
+        "tests/test_local_vector_query.py"
+      ],
+      "reason": "Hybrid retrieval combines deterministic local vector similarity and keyword scores over local JSON vector records."
     },
     "embedding_provider_configuration": {
-      "status": "partial",
-      "classification": "config_and_fake_provider_only",
-      "reason": "Provider configuration and fake/offline embedding generation exist; real provider acceptance is optional and not inherited by this Codex process."
+      "status": "implemented_local_fake_optional_live",
+      "classification": "offline_fake_provider_default",
+      "reason": "Core can generate deterministic local fake embeddings for tests; live providers remain optional."
     },
     "vector_db_adapter_status": {
-      "status": "needs_review",
-      "classification": "export_only_adapter_future",
+      "status": "future_disabled",
+      "classification": "external_adapters_not_implemented",
       "implemented_vector_dbs": [],
       "future_or_unproven_vector_dbs": [
         "Milvus",
@@ -57,12 +63,14 @@
         "Qdrant",
         "Chroma"
       ],
-      "reason": "No real vector DB write/query smoke is implemented and tested."
+      "reason": "External vector DB write/query adapters are not part of the local v4 gate and must not be claimed."
     },
     "metadata_filtering": {
-      "status": "partial",
-      "classification": "keyword_or_store_filter_only",
-      "reason": "Local scope/filter helpers exist, but metadata-filtered vector retrieval is not proven."
+      "status": "implemented_local",
+      "classification": "local_json_metadata_filter",
+      "evidence": [
+        "tests/test_local_vector_query.py::test_local_vector_query_supports_hybrid_mode_and_metadata_filters"
+      ]
     },
     "rerank": {
       "status": "implemented",
@@ -87,20 +95,22 @@
       "reason": "Contradictory sources produce warning/review, not pass."
     },
     "incremental_update_or_rebuild_policy": {
-      "status": "partial",
-      "reason": "Source change and lifecycle reports exist, but vector index rebuild and stale vector index detection are not proven."
+      "status": "implemented_local",
+      "reason": "Local vector staleness report marks missing/orphan/count mismatch records and recommends rebuild."
     },
     "stale_index_detection": {
-      "status": "missing",
-      "reason": "No dedicated stale vector index detection proof is attached."
+      "status": "implemented_local",
+      "evidence": [
+        "heitang_kb_forge/vector/query.py::detect_vector_index_staleness",
+        "tests/test_local_vector_query.py::test_local_vector_query_detects_stale_vector_index"
+      ]
     }
   },
   "must_not_claim": [
-    "real vector database production readiness",
     "Milvus/Pinecone/Qdrant/Chroma adapter implementation",
-    "production hybrid keyword/vector retrieval",
-    "metadata-filtered vector DB query",
-    "stale vector index detection"
+    "external vector database production readiness",
+    "cloud vector database readiness",
+    "real live embedding provider acceptance completed in this Codex process"
   ],
-  "recommended_fix": "Implement and test real local/adapter vector query paths, metadata filters, hybrid retrieval routing, index rebuild policy, and stale-index diagnostics before clearing this P0."
+  "recommended_fix": "No P0 remains for local vector/hybrid/index readiness. Keep external vector DB adapters marked future/disabled until real write/query/filter tests exist."
 }

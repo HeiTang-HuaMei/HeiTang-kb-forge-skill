@@ -182,6 +182,7 @@ from heitang_kb_forge.prompt_profiles import add_prompt_profile, list_prompt_pro
 from heitang_kb_forge.prompt_profiles.versioning import make_prompt_profile_versions
 from heitang_kb_forge.validation.package_validator import VALIDATION_OUTPUT_FILES, validate_package
 from heitang_kb_forge.vector.exporter import VECTOR_OUTPUT_FILES, make_vector_export
+from heitang_kb_forge.vector.query import query_local_vector_index, write_vector_query_outputs
 from heitang_kb_forge.versioning.diff import DIFF_OUTPUT_FILES, diff_packages
 from heitang_kb_forge.versioning.package_version import make_package_version
 from heitang_kb_forge.workspace.registry import init_workspace, register_package, workspace_status
@@ -2373,6 +2374,24 @@ def retrieve(
     write_json(output / "retrieval_trace.json", trace)
     write_json(output / "citation_trace.json", citation_trace)
     typer.echo(f"Built retrieval result at {output}")
+
+
+@app.command("query-vector-index")
+def query_vector_index_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    query: str = typer.Option(..., "--query"),
+    output: Path = typer.Option(..., "--output", "-o"),
+    top_k: int = typer.Option(5, "--top-k"),
+    mode: str = typer.Option("hybrid", "--mode"),
+    source_path: str | None = typer.Option(None, "--source-path"),
+    chunk_id: str | None = typer.Option(None, "--chunk-id"),
+    asset_type: str | None = typer.Option(None, "--asset-type"),
+) -> None:
+    """Query the local JSON vector index with optional metadata filters."""
+    filters = {"source_path": source_path, "chunk_id": chunk_id, "source_asset_type": asset_type}
+    records, trace = query_local_vector_index(package, query, top_k=top_k, mode=mode, filters=filters)
+    write_vector_query_outputs(output, records, trace)
+    typer.echo(f"Built local vector query result at {output}")
 
 
 @app.command()
@@ -4657,6 +4676,11 @@ def _build_package(
                 "vector_export_enabled": True,
                 "vector_store": vector_options.store,
                 "vector_export_files": VECTOR_OUTPUT_FILES,
+                "local_vector_query_enabled": vector_options.store in {"local_json", "fake"},
+                "local_hybrid_retrieval_enabled": vector_options.store in {"local_json", "fake"},
+                "metadata_filtered_vector_query_enabled": vector_options.store in {"local_json", "fake"},
+                "stale_vector_index_detection_enabled": vector_options.store in {"local_json", "fake"},
+                "external_vector_db_adapter_status": "future_disabled",
             }
         )
     downstream_summary = None

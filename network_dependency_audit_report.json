@@ -1,7 +1,7 @@
 {
   "audit_version": "final-pre-v4.0",
   "status": "needs_review",
-  "network_reference_count": 446,
+  "network_reference_count": 835,
   "network_references": [
     {
       "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/CHANGELOG.md",
@@ -66,6 +66,14 @@
     {
       "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/README.zh-CN.md",
       "line": "- v3.9 Local Workspace Storage & Memory Lifecycle：本地 registry、storage usage、dedup/cleanup/retention plans、memory lifecycle、token budget policy、本地 PDF token reduction、parser backend benchmark 和 no-clou"
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/v312_external_absorption_map.json",
+      "line": "\"what_not_to_copy\": \"Telemetry, hidden uploads, platform-hosted diagnostics, or external prompts.\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/v312_external_absorption_map.json",
+      "line": "\"reason\": \"The safe pattern is local-only verification with redacted output and no hidden upload behavior.\","
     },
     {
       "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
@@ -314,14 +322,6 @@
     {
       "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
       "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-linux-ppc64-gnu/-/rollup-linux-ppc64-gnu-4.61.0.tgz\","
-    },
-    {
-      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
-      "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-linux-ppc64-musl/-/rollup-linux-ppc64-musl-4.61.0.tgz\","
-    },
-    {
-      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
-      "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-linux-riscv64-gnu/-/rollup-linux-riscv64-gnu-4.61.0.tgz\","
     }
   ],
   "core_tests_require_network": false,

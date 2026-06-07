@@ -21,7 +21,7 @@
   "golden_demo_status_after_path_normalization": "pass",
   "product_hardening_status_after_path_normalization": "fail",
   "final_pre_v4_gate_status": "blocked",
-  "final_pre_v4_gate_block_reason": "rag_vector_index_industrial_readiness_unproven",
+  "final_pre_v4_gate_block_reason": "ui_validation_needs_review",
   "ci_status_after_fix": "pass",
   "ci_run_id_after_fix": "27101976814",
   "ready_for_v4_rc": false,
@@ -34,5 +34,6 @@
   "local_agent_runtime_status_after_fix": "pass",
   "product_architecture_completeness_status": "blocked",
   "rag_vector_index_readiness_status": "blocked",
-  "new_p0_blocker": "rag_vector_index_industrial_readiness_unproven"
+  "new_p0_blocker": null,
+  "rag_vector_index_status_after_local_vector_fix": "pass"
 }

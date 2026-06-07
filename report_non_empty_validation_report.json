@@ -63,6 +63,7 @@
     "report_non_empty_validation_report.json",
     "final_regression_matrix.json",
     "final_fix_log.json",
+    "final_external_absorption_audit.json",
     "final_v4_rc_gate_report.json",
     "final_v4_rc_gate_report.md",
     "final_v4_rc_gate_report.zh-CN.md",

@@ -1,6 +1,6 @@
 {
   "audit_version": "final-pre-v4.0",
-  "status": "needs_review",
+  "status": "pass",
   "artifacts": [
     {
       "artifact": "manifest.json",
@@ -19,13 +19,13 @@
     },
     {
       "artifact": "generated_file_report.json",
-      "status": "needs_review",
-      "path": null
+      "status": "pass",
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_outputs/large_bilingual_run/core_package/generated_file_report.json"
     },
     {
       "artifact": "real_acceptance_smoke_result.json",
-      "status": "needs_review",
-      "path": null
+      "status": "pass",
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_outputs/large_bilingual_run/core_package/v311_golden_demo/real_acceptance_smoke_result.json"
     }
   ],
   "reason": "Openability checks parse known local artifacts when present; missing real workflow artifacts remain needs_review.",

@@ -35,6 +35,6 @@
     "workbench-contracts"
   ],
   "missing_commands": [],
-  "command_count": 113,
+  "command_count": 114,
   "tests_require_real_llm_api_network": false
 }

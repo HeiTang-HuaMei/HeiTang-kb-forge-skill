@@ -1,0 +1,64 @@
+{
+  "audit_version": "final-pre-v4.0",
+  "status": "pass",
+  "records": [
+    {
+      "version": "v3.8",
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/v38_external_absorption_map.json",
+      "status": "pass",
+      "capability_count": 14,
+      "no_copy_policy": {
+        "external_code_copied": false,
+        "external_prompts_copied": false,
+        "external_datasets_copied": false,
+        "network_required_for_tests": false,
+        "real_llm_api_required_for_tests": false
+      },
+      "reason": "Auditable absorption map present."
+    },
+    {
+      "version": "v3.9",
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/v39_external_absorption_map.json",
+      "status": "pass",
+      "capability_count": 20,
+      "no_copy_policy": {
+        "external_code_copied": false,
+        "external_prompts_copied": false,
+        "heavy_dependencies_required": false,
+        "network_required_for_tests": false,
+        "real_llm_api_required_for_tests": false
+      },
+      "reason": "Auditable absorption map present."
+    },
+    {
+      "version": "v3.10",
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/v310_external_absorption_map.json",
+      "status": "pass",
+      "capability_count": 3,
+      "no_copy_policy": {
+        "external_code_copied": false,
+        "external_prompts_copied": false,
+        "external_datasets_copied": false,
+        "network_required_for_tests": false,
+        "real_llm_api_required_for_tests": false
+      },
+      "reason": "Auditable absorption map present."
+    },
+    {
+      "version": "v3.12",
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/v312_external_absorption_map.json",
+      "status": "pass",
+      "capability_count": 3,
+      "no_copy_policy": {
+        "external_code_copied": false,
+        "external_prompts_copied": false,
+        "external_datasets_copied": false,
+        "network_required_for_tests": false,
+        "real_llm_api_required_for_tests": false
+      },
+      "reason": "Auditable absorption map present."
+    }
+  ],
+  "no_external_code_or_prompt_copying_claimed": true,
+  "tests_require_real_llm_api_network": false
+}

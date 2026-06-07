@@ -1,10 +1,10 @@
 # 最终产品能力证明报告
 
-- 状态: blocked
-- Core 提交: c95e6c0
+- 状态: needs_review
+- Core 提交: 01a2c84
 - UI 提交: None
-- P0: 5
-- P1: 8
+- P0: 0
+- P1: 4
 - P2: 1
 
 ## 严重级别策略

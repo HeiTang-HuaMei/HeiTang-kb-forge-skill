@@ -14,10 +14,10 @@ HeiTang KB Forge is an offline-first, local-first knowledge supply-chain Core Sk
 
 Current final gate truth is centralized in [Final Product Architecture Truth](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md).
 
-- Current status: `blocked`
-- Remaining P0: `rag_vector_index_industrial_readiness_unproven`
-- Blocking P1: `ui_validation_needs_review`
-- v4.0 must not start until the P0 is fixed and UI readiness is honestly validated or explicitly scoped.
+- Current status: `ready_for_v4_rc`
+- Remaining P0: none
+- Blocking P1: none
+- UI validation has passed for the frozen contract-viewer Workbench scope; v4.0 has still not been started, released, or tagged.
 
 ## Implemented Core Surface
 
@@ -36,6 +36,7 @@ Current final gate truth is centralized in [Final Product Architecture Truth](do
 
 - v4.0 is not released.
 - UI Workbench is not merged into Core and must be validated separately for contract drift and product truth.
+- Local JSON vector query, hybrid keyword/vector retrieval, metadata filtering, and stale index diagnostics are implemented and tested; external vector databases remain future/disabled.
 - BYO cloud and local database backends are future-compatible contracts only, not implemented default storage.
 - SaaS, multi-user permissions, platform-hosted user data, and cloud sync are out of scope.
 - Real LLM/API/network calls are not required by Core tests and are never default behavior.

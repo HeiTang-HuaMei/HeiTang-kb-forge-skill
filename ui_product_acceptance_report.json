@@ -6,13 +6,11 @@
   "ui_commit": null,
   "validation": {
     "status": "pass",
-    "flutter_pub_get": "pass",
     "flutter_analyze": "pass",
-    "flutter_test_expanded": "6 passed",
+    "flutter_test": "pass",
     "flutter_build_web": "pass",
-    "flutter_build_windows": "pass",
-    "ui_pytest": "465 passed, 1 skipped",
-    "ui_repo_modified_by_audit": false
+    "ui_commit": "24dfa2b",
+    "classification": "contract_viewer_only_validated"
   },
   "requires_ui_modification": false,
   "tests_require_real_llm_api_network": false

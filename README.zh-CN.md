@@ -14,10 +14,10 @@ HeiTang KB Forge 是一个 offline-first、local-first 知识供应链 Core Skil
 
 当前最终门禁真值集中在 [最终产品架构真值](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md)。
 
-- 当前状态：`blocked`
-- 剩余 P0：`rag_vector_index_industrial_readiness_unproven`
-- 阻断 P1：`ui_validation_needs_review`
-- 在 P0 修复并且 UI readiness 被诚实验证或明确收窄前，不允许开始 v4.0。
+- 当前状态：`ready_for_v4_rc`
+- 剩余 P0：无
+- 阻断 P1：无
+- 冻结的 contract-viewer Workbench 范围已通过 UI validation；v4.0 仍未开始、未发布、未打 tag。
 
 ## 已实现 Core 表面
 
@@ -36,6 +36,7 @@ HeiTang KB Forge 是一个 offline-first、local-first 知识供应链 Core Skil
 
 - v4.0 尚未发布。
 - UI Workbench 未合入 Core，必须单独验证 contract drift 和产品真实性。
+- 本地 JSON vector query、hybrid keyword/vector retrieval、metadata filtering 和 stale index diagnostics 已实现并测试；外部 vector database 仍是 future/disabled。
 - BYO cloud 与 local database backend 目前只是 future-compatible contracts，不是已实现默认 storage。
 - SaaS、多用户权限、platform-hosted user data、cloud sync 均不在当前范围内。
 - Core 测试不需要真实 LLM/API/network 调用，这些也不是默认行为。

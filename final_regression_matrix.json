@@ -31,8 +31,10 @@
   "missing_final_tests": [],
   "core_validation": {
     "status": "pass",
-    "focused_final_tests": "25 passed",
-    "full_pytest": "652 passed, 1 skipped"
+    "focused": "pass",
+    "full": "pass",
+    "command": "python -m pytest",
+    "result": "691 passed, 1 skipped"
   },
   "tests_require_real_llm_api_network": false
 }

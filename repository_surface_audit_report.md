@@ -17,7 +17,7 @@
     },
     {
       "file": ".gitignore",
-      "size_bytes": 226,
+      "size_bytes": 306,
       "classification": "essential_root_file",
       "status": "pass",
       "reason": "Standard project surface file."
@@ -45,14 +45,14 @@
     },
     {
       "file": "README.md",
-      "size_bytes": 7091,
+      "size_bytes": 7709,
       "classification": "essential_root_file",
       "status": "pass",
       "reason": "Standard project surface file."
     },
     {
       "file": "README.zh-CN.md",
-      "size_bytes": 6917,
+      "size_bytes": 7498,
       "classification": "essential_root_file",
       "status": "pass",
       "reason": "Standard project surface file."
@@ -73,7 +73,7 @@
     },
     {
       "file": "artifact_openability_report.json",
-      "size_bytes": 1181,
+      "size_bytes": 1471,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."

@@ -4,12 +4,13 @@
 
 ## 当前门禁
 
-- 总体状态：blocked
-- 是否可进入 v4 RC：false
-- 剩余 P0：`rag_vector_index_industrial_readiness_unproven`
-- 阻断 P1：`ui_validation_needs_review`
-- CI：已在推送后的 Core commit `766fe79` 上通过
+- 总体状态：ready_for_v4_rc
+- 是否可进入 v4 RC：true
+- 剩余 P0：无
+- 阻断 P1：无
+- CI：已在推送后的 Core commit `97a6bf9` 上通过
 - 本地 full pytest：已通过
+- UI validation：冻结 UI commit `24dfa2b` 的 Flutter analyze/test/build-web 已通过
 
 ## 架构真值矩阵
 
@@ -18,7 +19,7 @@
 | 输入与解析 | 大型 PDF、DOCX、Markdown/TXT、结构化文件、中英文混合路径已证明。扫描 PDF 全量 OCR 仍有限，不能过度声明。 | partial |
 | 知识包 | 本地 package build、source inventory、metadata、quality gate 和 evidence files 已存在。所有文档类型的通用结构化解析未完全证明。 | partial |
 | RAG 查询规划 | 确定性 query rewrite、expansion、decomposition、multi-query generation、answering/validation planning 已存在。 | implemented |
-| RAG vector/hybrid/index | keyword/local index 路径和 vector export artifact 已存在。真实 vector DB write/query、生产级 hybrid keyword/vector retrieval、metadata-filtered vector query、rebuild policy、stale index detection 未证明。 | P0 blocked |
+| RAG vector/hybrid/index | keyword/local index、本地 JSON vector query、hybrid keyword/vector retrieval、metadata filtering 和 stale index diagnostics 已实现并测试。Milvus、Pinecone、Qdrant、Chroma 与云端 vector DB adapter 仍是 future/disabled。 | implemented locally with external DB future boundary |
 | 检索质量与知识准确性 | 本地 rerank、evidence selection、diagnostics、claim/freshness/contradiction/accuracy reports 已存在。冲突来源必须产生 warning/review，而不是 false pass。 | implemented with review boundary |
 | 文档生成 | Grounded MD/DOCX/PDF/PPTX 生成与验证报告已存在。 | implemented |
 | Agent 与 Skill | Skill package、standalone Agent、KB-bound Agent、本地确定性 runtime smoke、KB boundary、mother/child contracts、memory policy reports 已存在。完整 autonomous tool-calling Agent Runtime 未实现。 | partial |
@@ -26,13 +27,13 @@
 | 存储 | `local_workspace` 是已实现默认。`local_db` 是 partial/store-index oriented。BYO cloud/database 是 future/disabled，不是已实现能力。 | partial |
 | 安全与隐私 | local-first、默认 no hidden upload、API key redaction、no platform-hosted user data 已文档化并测试。动态 runtime network proof 和完整 UI security acceptance 仍需 review。 | partial |
 | 规模 | 已有 synthetic 1500-scale checks。真实 1500 books、1500 KBs、1500 Agents 未生产级证明。 | needs_review |
-| UI | Core 输出 Workbench contracts。当前 UI 状态是 `contract_viewer_only`；完整用户可操作本地 Workbench 未证明。 | blocking P1 |
+| UI | Core 输出 Workbench contracts。冻结 UI commit `24dfa2b` 在 contract-viewer 范围内通过 Flutter analyze/test/build-web。完整用户可操作本地 Workbench 仍不声明。 | validated contract-viewer scope |
 
 ## 仍不能声明
 
 - v4.0 已发布或已就绪
-- 生产级 vector database readiness
-- 生产级 hybrid keyword/vector retrieval
+- 外部 vector database production readiness
+- Milvus/Pinecone/Qdrant/Chroma 已实现
 - 完整用户可操作 local Workbench
 - 完整 autonomous tool-calling Agent Runtime
 - 扫描 PDF 全量 OCR 已证明

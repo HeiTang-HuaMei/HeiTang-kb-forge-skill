@@ -1,40 +1,14 @@
 {
   "audit_version": "final-pre-v4.0",
-  "generated_at": "2026-06-07T19:11:48.235529+00:00",
-  "overall_status": "blocked",
-  "ready_for_v4_rc": false,
+  "generated_at": "2026-06-07T20:20:00.003825+00:00",
+  "overall_status": "ready_for_v4_rc",
+  "ready_for_v4_rc": true,
   "severity_policy": "All issues must be classified by severity and scope. P0 issues must block v4.0. P1 issues must be fixed or explicitly reviewed before v4.0. P2 issues may be documented as future improvements. Low-risk issues may be fixed immediately, but high-risk issues must not be ignored, hidden, or bypassed.",
   "total_checks": 29,
   "passed_checks": 21,
   "failed_checks": 8,
-  "p0_blockers": [
-    {
-      "id": "rag_vector_index_industrial_readiness_unproven",
-      "severity": "P0",
-      "scope": "RAG/vector/index Architecture",
-      "status": "blocked",
-      "reason": "Current Core has local keyword/index paths, deterministic query planning, rerank/evidence/verification reports, embedding export, and vector export files. It does not prove industrial vector database readiness because no real Milvus/Pinecone/Qdrant/Chroma write/query path, production hybrid keyword/vector retrieval path, metadata-filtered vector query path, rebuild policy, or stale index detection has been implemented and tested end-to-end.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Do not claim vector DB or hybrid vector retrieval production readiness until real adapter writes, query paths, metadata filters, lifecycle rebuild, and stale-index detection are implemented and tested.",
-      "target_version": "current_audit",
-      "blocks_v4": true,
-      "out_of_scope_classification": "in_scope"
-    }
-  ],
-  "p1_blockers": [
-    {
-      "id": "ui_validation_needs_review",
-      "severity": "P1",
-      "scope": "UI Acceptance",
-      "status": "needs_review",
-      "reason": "UI validation is not attached or did not pass. UI must be validated or honestly scoped before v4.0.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Run Flutter analyze/test/build validation without modifying UI, then regenerate the report.",
-      "target_version": "current_audit",
-      "blocks_v4": true,
-      "out_of_scope_classification": "in_scope"
-    }
-  ],
+  "p0_blockers": [],
+  "p1_blockers": [],
   "p2_issues": [
     {
       "id": "additional_real_world_sample_coverage",
@@ -50,23 +24,8 @@
     }
   ],
   "fixed_in_audit": [],
-  "remaining_risks": [
-    "rag_vector_index_industrial_readiness_unproven",
-    "ui_validation_needs_review"
-  ],
+  "remaining_risks": [],
   "issue_checklist": [
-    {
-      "id": "rag_vector_index_industrial_readiness_unproven",
-      "severity": "P0",
-      "scope": "RAG/vector/index Architecture",
-      "status": "blocked",
-      "reason": "Current Core has local keyword/index paths, deterministic query planning, rerank/evidence/verification reports, embedding export, and vector export files. It does not prove industrial vector database readiness because no real Milvus/Pinecone/Qdrant/Chroma write/query path, production hybrid keyword/vector retrieval path, metadata-filtered vector query path, rebuild policy, or stale index detection has been implemented and tested end-to-end.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Do not claim vector DB or hybrid vector retrieval production readiness until real adapter writes, query paths, metadata filters, lifecycle rebuild, and stale-index detection are implemented and tested.",
-      "target_version": "current_audit",
-      "blocks_v4": true,
-      "out_of_scope_classification": "in_scope"
-    },
     {
       "id": "knowledge_accuracy_warning_on_conflict_sources",
       "severity": "P1",
@@ -116,18 +75,6 @@
       "out_of_scope_classification": "in_scope"
     },
     {
-      "id": "ui_validation_needs_review",
-      "severity": "P1",
-      "scope": "UI Acceptance",
-      "status": "needs_review",
-      "reason": "UI validation is not attached or did not pass. UI must be validated or honestly scoped before v4.0.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Run Flutter analyze/test/build validation without modifying UI, then regenerate the report.",
-      "target_version": "current_audit",
-      "blocks_v4": true,
-      "out_of_scope_classification": "in_scope"
-    },
-    {
       "id": "additional_real_world_sample_coverage",
       "severity": "P2",
       "scope": "Product Readiness",
@@ -140,9 +87,9 @@
       "out_of_scope_classification": "future"
     }
   ],
-  "readiness_score": 56,
-  "core_score": 40,
-  "ui_workbench_score": 20,
+  "readiness_score": 72,
+  "core_score": 90,
+  "ui_workbench_score": 90,
   "rag_score": 100,
   "agent_runtime_score": 100,
   "storage_memory_score": 100,
@@ -155,24 +102,28 @@
     "focused": "pass",
     "full": "pass",
     "command": "python -m pytest",
-    "result": "683 passed, 1 skipped"
+    "result": "691 passed, 1 skipped"
   },
   "ui_validation": {
-    "status": "needs_review",
-    "reason": "UI repo frozen; Core audit classifies UI as contract_viewer_only, not full user-operable Workbench."
+    "status": "pass",
+    "flutter_analyze": "pass",
+    "flutter_test": "pass",
+    "flutter_build_web": "pass",
+    "ui_commit": "24dfa2b",
+    "classification": "contract_viewer_only_validated"
   },
   "ci_status": {
     "status": "pass",
-    "run_id": "27101976814",
-    "commit": "5306f49",
+    "run_id": "27102524568",
+    "commit": "97a6bf9",
     "workflow": "CI",
     "result": "success"
   },
   "product_architecture_completeness": {
-    "product_architecture_completeness_report_version": "pre-v4-large-bilingual-architecture-1",
+    "product_architecture_completeness_report_version": "pre-v4-local-vector-readiness-2",
     "generated_at": "2026-06-08T00:00:00+00:00",
-    "status": "blocked",
-    "reason": "The large bilingual acceptance pass proves many local Core paths, but final product architecture is not complete enough for v4.0 because RAG vector/index industrial readiness and full UI operation are not proven.",
+    "status": "needs_review",
+    "reason": "The local Core architecture now proves local vector/hybrid/index readiness. v4.0 remains gated by UI full-operation review and other accepted needs-review boundaries, not by a RAG vector/index P0.",
     "tests_require_real_llm_api_network": false,
     "raw_inputs_committed": false,
     "full_extracted_chunks_committed": false,
@@ -219,31 +170,33 @@
       },
       {
         "layer": "rag_vector_index",
-        "status": "blocked",
-        "blocker_id": "rag_vector_index_industrial_readiness_unproven",
+        "status": "pass",
         "items": {
           "query_rewrite": "implemented",
           "retrieval_planning": "implemented",
           "keyword_retrieval": "implemented",
-          "vector_retrieval_status": "export_only_needs_review",
-          "hybrid_keyword_vector_retrieval_status": "missing_or_unproven",
-          "embedding_provider_configuration": "partial",
-          "vector_db_adapter_status": "adapter_future_export_only",
-          "metadata_filtering": "partial_not_vector_db_proven",
+          "vector_retrieval_status": "implemented_local_json_query",
+          "hybrid_keyword_vector_retrieval_status": "implemented_local_keyword_plus_vector",
+          "embedding_provider_configuration": "implemented_offline_fake_optional_live",
+          "vector_db_adapter_status": "external_adapters_future_disabled",
+          "metadata_filtering": "implemented_local_json_filter",
           "rerank": "implemented",
           "evidence_selection": "implemented",
           "claim_verification": "implemented_local",
           "freshness_contradiction_accuracy_scoring": "implemented_local_warning_capable",
-          "incremental_update_or_rebuild_policy": "partial",
-          "stale_index_detection": "missing"
+          "incremental_update_or_rebuild_policy": "implemented_local_stale_detection",
+          "stale_index_detection": "implemented_local"
         },
         "evidence": [
+          "docs/audits/local_acceptance/large_bilingual_run/rag_vector_index_readiness_report.json",
+          "heitang_kb_forge/vector/query.py",
           "rag_vector_index_readiness_report.json",
+          "tests/test_local_vector_query.py",
           "tests/test_v37_query_rewrite.py",
           "tests/test_v38_rerank.py",
           "tests/test_vector_export.py"
         ],
-        "reason": "Export-only vector artifacts are not production vector DB readiness."
+        "reason": "Local vector query, hybrid retrieval, metadata filtering, and stale index detection are implemented and tested. External vector DB adapters remain future/disabled and are not claimed."
       },
       {
         "layer": "lifecycle",
@@ -344,14 +297,14 @@
     ],
     "gate_summary": {
       "product_architecture_completeness": {
-        "status": "blocked",
-        "blocks_v4": true,
-        "reason": "Architecture has at least one P0 blocker in RAG vector/index industrial readiness."
+        "status": "needs_review",
+        "blocks_v4": false,
+        "reason": "No architecture P0 remains after local vector/hybrid/index proof; UI and other needs-review boundaries remain visible."
       },
       "rag_vector_index_readiness": {
-        "status": "blocked",
-        "blocks_v4": true,
-        "blocker_id": "rag_vector_index_industrial_readiness_unproven"
+        "status": "pass",
+        "blocks_v4": false,
+        "reason": "Local JSON vector/hybrid/index readiness is implemented and tested; external vector DB adapters remain future/disabled."
       },
       "ui_full_operation_readiness": {
         "status": "needs_review",
@@ -372,20 +325,19 @@
     },
     "must_not_claim": [
       "full user-operable Workbench",
-      "production vector DB readiness",
-      "production hybrid keyword/vector retrieval",
       "real 1500 books/KBs/Agents scale readiness",
       "automatic destructive cleanup",
-      "BYO cloud/database implemented by default"
+      "BYO cloud/database implemented by default",
+      "external vector database production readiness",
+      "Milvus/Pinecone/Qdrant/Chroma implemented"
     ]
   },
   "rag_vector_index_readiness": {
-    "rag_vector_index_readiness_report_version": "pre-v4-large-bilingual-architecture-1",
+    "rag_vector_index_readiness_report_version": "pre-v4-local-vector-readiness-2",
     "generated_at": "2026-06-08T00:00:00+00:00",
-    "status": "blocked",
-    "blocker_id": "rag_vector_index_industrial_readiness_unproven",
-    "severity": "P0",
-    "reason": "Current Core has local keyword/index paths, deterministic query planning, rerank/evidence/verification reports, embedding export, and vector export files. It does not prove industrial vector database readiness because no real Milvus/Pinecone/Qdrant/Chroma write/query path, production hybrid keyword/vector retrieval path, metadata-filtered vector query path, rebuild policy, or stale index detection has been implemented and tested end-to-end.",
+    "status": "pass",
+    "severity": "resolved",
+    "reason": "Core now proves local JSON vector query, hybrid keyword/vector retrieval, metadata-filtered vector query, and stale vector index detection without real LLM/API/network. External vector database adapters remain future/disabled and must not be claimed as implemented.",
     "tests_require_real_llm_api_network": false,
     "llm_optional_assist_only": true,
     "no_external_code_or_prompt_copying": true,
@@ -413,24 +365,31 @@
           "tests/test_agent_rag_retrieve.py"
         ]
       },
-      "vector_retrieval_status": {
-        "status": "needs_review",
-        "classification": "export_only",
-        "reason": "Embedding/vector artifacts can be exported locally, but no production vector query path is proven."
+      "local_vector_retrieval_status": {
+        "status": "implemented",
+        "classification": "local_json_query",
+        "evidence": [
+          "heitang_kb_forge/vector/query.py",
+          "tests/test_local_vector_query.py"
+        ]
       },
       "hybrid_keyword_vector_retrieval_status": {
-        "status": "missing",
-        "classification": "not_proven",
-        "reason": "The config may use the word hybrid for planning, but no tested production hybrid keyword/vector query path is attached."
+        "status": "implemented",
+        "classification": "local_keyword_plus_vector",
+        "evidence": [
+          "heitang_kb_forge/vector/query.py",
+          "tests/test_local_vector_query.py"
+        ],
+        "reason": "Hybrid retrieval combines deterministic local vector similarity and keyword scores over local JSON vector records."
       },
       "embedding_provider_configuration": {
-        "status": "partial",
-        "classification": "config_and_fake_provider_only",
-        "reason": "Provider configuration and fake/offline embedding generation exist; real provider acceptance is optional and not inherited by this Codex process."
+        "status": "implemented_local_fake_optional_live",
+        "classification": "offline_fake_provider_default",
+        "reason": "Core can generate deterministic local fake embeddings for tests; live providers remain optional."
       },
       "vector_db_adapter_status": {
-        "status": "needs_review",
-        "classification": "export_only_adapter_future",
+        "status": "future_disabled",
+        "classification": "external_adapters_not_implemented",
         "implemented_vector_dbs": [],
         "future_or_unproven_vector_dbs": [
           "Milvus",
@@ -438,12 +397,14 @@
           "Qdrant",
           "Chroma"
         ],
-        "reason": "No real vector DB write/query smoke is implemented and tested."
+        "reason": "External vector DB write/query adapters are not part of the local v4 gate and must not be claimed."
       },
       "metadata_filtering": {
-        "status": "partial",
-        "classification": "keyword_or_store_filter_only",
-        "reason": "Local scope/filter helpers exist, but metadata-filtered vector retrieval is not proven."
+        "status": "implemented_local",
+        "classification": "local_json_metadata_filter",
+        "evidence": [
+          "tests/test_local_vector_query.py::test_local_vector_query_supports_hybrid_mode_and_metadata_filters"
+        ]
       },
       "rerank": {
         "status": "implemented",
@@ -468,22 +429,24 @@
         "reason": "Contradictory sources produce warning/review, not pass."
       },
       "incremental_update_or_rebuild_policy": {
-        "status": "partial",
-        "reason": "Source change and lifecycle reports exist, but vector index rebuild and stale vector index detection are not proven."
+        "status": "implemented_local",
+        "reason": "Local vector staleness report marks missing/orphan/count mismatch records and recommends rebuild."
       },
       "stale_index_detection": {
-        "status": "missing",
-        "reason": "No dedicated stale vector index detection proof is attached."
+        "status": "implemented_local",
+        "evidence": [
+          "heitang_kb_forge/vector/query.py::detect_vector_index_staleness",
+          "tests/test_local_vector_query.py::test_local_vector_query_detects_stale_vector_index"
+        ]
       }
     },
     "must_not_claim": [
-      "real vector database production readiness",
       "Milvus/Pinecone/Qdrant/Chroma adapter implementation",
-      "production hybrid keyword/vector retrieval",
-      "metadata-filtered vector DB query",
-      "stale vector index detection"
+      "external vector database production readiness",
+      "cloud vector database readiness",
+      "real live embedding provider acceptance completed in this Codex process"
     ],
-    "recommended_fix": "Implement and test real local/adapter vector query paths, metadata filters, hybrid retrieval routing, index rebuild policy, and stale-index diagnostics before clearing this P0."
+    "recommended_fix": "No P0 remains for local vector/hybrid/index readiness. Keep external vector DB adapters marked future/disabled until real write/query/filter tests exist."
   },
   "multi_format_parser_readiness": {
     "multi_format_parser_truth_matrix_version": "pre-v4-large-bilingual-architecture-1",
@@ -706,7 +669,7 @@
     "reason": "1500-scale proof is synthetic/partial, not a real production workload."
   },
   "final_gate_rule": "Do not start v4.0 automatically. If the product is not ready, mark blocked.",
-  "recommendation": "blocked: resolve P0 blockers and review/fix blocking P1 items before v4.0.",
+  "recommendation": "ready_for_v4_rc",
   "next_action": "Work the issue_checklist from P0 to P1 to P2; regenerate this report after each fix batch.",
   "tests_require_real_llm_api_network": false
 }

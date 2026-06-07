@@ -1,7 +1,7 @@
 {
   "audit_version": "final-pre-v4.0",
   "status": "needs_review",
-  "docs_checked": 246,
+  "docs_checked": 287,
   "overclaim_markers": [],
   "required_truth_rules": [
     "Future features must be labeled future/unsupported.",

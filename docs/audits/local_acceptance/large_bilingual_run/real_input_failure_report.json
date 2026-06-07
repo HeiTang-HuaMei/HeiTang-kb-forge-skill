@@ -4,16 +4,6 @@
   "status": "needs_review",
   "blockers": [
     {
-      "id": "rag_vector_index_industrial_readiness_unproven",
-      "severity": "P0",
-      "status": "blocked",
-      "evidence": [
-        "docs/audits/local_acceptance/large_bilingual_run/rag_vector_index_readiness_report.json",
-        "docs/audits/local_acceptance/large_bilingual_run/product_architecture_completeness_report.json"
-      ],
-      "reason": "Current Core has local keyword/index paths and vector export artifacts, but no real vector DB write/query, production hybrid keyword/vector retrieval, metadata-filtered vector query, rebuild policy, or stale index detection proof."
-    },
-    {
       "id": "knowledge_accuracy_warning_on_conflict_sources",
       "severity": "P1",
       "status": "accepted_needs_review",

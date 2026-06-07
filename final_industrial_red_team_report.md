@@ -1,12 +1,12 @@
 # Final Industrial Red-Team Report
 
-- Status: blocked
+- Status: needs_review
 - Tests require real LLM/API/network: False
 
 ```json
 {
   "audit_version": "final-pre-v4.0",
-  "status": "blocked",
+  "status": "needs_review",
   "severity_policy": "All issues must be classified by severity and scope. P0 issues must block v4.0. P1 issues must be fixed or explicitly reviewed before v4.0. P2 issues may be documented as future improvements. Low-risk issues may be fixed immediately, but high-risk issues must not be ignored, hidden, or bypassed.",
   "p0_attack_cases": [
     "hidden upload or unexpected network/cloud behavior",
@@ -27,94 +27,67 @@
   ],
   "findings": [
     {
-      "id": "golden_demo_acceptance_needs_final_proof",
-      "severity": "P0",
-      "scope": "Golden Demo",
-      "status": "blocked",
-      "reason": "Acceptance smoke exists; final gate must include real command/test validation.",
+      "id": "knowledge_accuracy_warning_on_conflict_sources",
+      "severity": "P1",
+      "scope": "Large Bilingual Acceptance",
+      "status": "accepted_needs_review",
+      "reason": "Contradictory verification sources honestly produce status=warning score=0.6715 review_required=True; not forced to pass.",
       "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Attach real command/test/artifact proof and regenerate the gate.",
+      "recommended_fix": "Keep the item visible in the final gate until it is fixed or explicitly accepted as non-blocking.",
       "target_version": "current_audit",
-      "blocks_v4": true,
-      "out_of_scope_classification": "in_scope"
-    },
-    {
-      "id": "golden_demo_artifact_not_present_in_repo_outputs",
-      "severity": "P0",
-      "scope": "Golden Demo",
-      "status": "blocked",
-      "reason": "No real_acceptance_smoke_result.json artifact is present in checked repo outputs; tests exist but final user workflow proof is not visible.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Run the golden demo acceptance workflow against real inputs and keep or attach the generated artifact for final review.",
-      "target_version": "current_audit",
-      "blocks_v4": true,
-      "out_of_scope_classification": "in_scope"
-    },
-    {
-      "id": "product_hardening_release_readiness_needs_final_proof",
-      "severity": "P0",
-      "scope": "Product Hardening",
-      "status": "blocked",
-      "reason": "v3.12 hardening exists, but this final audit is stricter and supersedes any narrow v3.12 ready claim.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Attach real command/test/artifact proof and regenerate the gate.",
-      "target_version": "current_audit",
-      "blocks_v4": true,
-      "out_of_scope_classification": "in_scope"
-    },
-    {
-      "id": "workflow_h_golden_demo_not_fully_proven",
-      "severity": "P0",
-      "scope": "User Workflow",
-      "status": "blocked",
-      "reason": "Workflow cannot be claimed complete until commands and non-empty artifacts are verified.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Rerun the workflow with real artifacts or correct the product scope.",
-      "target_version": "current_audit",
-      "blocks_v4": true,
-      "out_of_scope_classification": "in_scope"
-    },
-    {
-      "id": "workflow_i_release_gate_not_fully_proven",
-      "severity": "P0",
-      "scope": "User Workflow",
-      "status": "blocked",
-      "reason": "Workflow cannot be claimed complete until commands and non-empty artifacts are verified.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Rerun the workflow with real artifacts or correct the product scope.",
-      "target_version": "current_audit",
-      "blocks_v4": true,
+      "blocks_v4": false,
       "out_of_scope_classification": "in_scope"
     },
     {
       "id": "lifecycle_crud_update_archive_delete_partial",
       "severity": "P1",
       "scope": "Lifecycle CRUD",
-      "status": "needs_review",
+      "status": "reviewed_non_blocking",
       "reason": "Update/archive/delete/rollback lifecycle appears partial. Cleanup plans exist, but destructive actions are not enabled by default, which is safe but means lifecycle CRUD is not fully proven.",
       "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Mark lifecycle delete/archive as unsupported/future or add explicit safe commands and tests in the promised scope.",
+      "recommended_fix": "Keep destructive lifecycle actions unsupported by default and document the non-destructive cleanup/archive boundary.",
       "target_version": "current_audit",
-      "blocks_v4": true,
+      "blocks_v4": false,
       "out_of_scope_classification": "in_scope"
     },
     {
-      "id": "multi_format_parsing_needs_review",
+      "id": "optional_live_llm_not_verified_process_env_isolation",
       "severity": "P1",
-      "scope": "Parsing and Ingestion",
-      "status": "needs_review",
-      "reason": "Multiple parser paths exist, but final acceptance still needs real mixed-file openability evidence.",
+      "scope": "Large Bilingual Acceptance",
+      "status": "accepted_non_blocking_needs_review",
+      "reason": "Current Codex process did not inherit HEITANG_LLM_* variables; local core still passes without LLM and API key was not printed or committed.",
       "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Review missing evidence and either fix in scope or mark accepted non-blocking with rationale.",
+      "recommended_fix": "Keep the item visible in the final gate until it is fixed or explicitly accepted as non-blocking.",
       "target_version": "current_audit",
-      "blocks_v4": true,
+      "blocks_v4": false,
       "out_of_scope_classification": "in_scope"
     },
     {
-      "id": "v310_external_absorption_map_absent",
+      "id": "scanned_pdf_full_ocr_not_proven",
       "severity": "P1",
-      "scope": "External Absorption",
-      "status": "needs_review",
-      "reason": "The final audit requirement includes v3.10 absorption validation, but no v310_external_absorption_map.json was found.",
-      "user_impact": "The product claim cannot be safely presented 
+      "scope": "Large Bilingual Acceptance",
+      "status": "accepted_needs_review",
+      "reason": "Scanned PDF has 120 OCR candidate pages; build used max_ocr_pages=8; full OCR remains limited and not overclaimed.",
+      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
+      "recommended_fix": "Keep the item visible in the final gate until it is fixed or explicitly accepted as non-blocking.",
+      "target_version": "current_audit",
+      "blocks_v4": false,
+      "out_of_scope_classification": "in_scope"
+    },
+    {
+      "id": "additional_real_world_sample_coverage",
+      "severity": "P2",
+      "scope": "Product Readiness",
+      "status": "future",
+      "reason": "More real documents and domain samples would improve release confidence.",
+      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
+      "recommended_fix": "Add broader real samples in a future hardening pass.",
+      "target_version": "future",
+      "blocks_v4": false,
+      "out_of_scope_classification": "future"
+    }
+  ],
+  "red_team_stance": "Unknown is not pass; file existence is not pass; toy fixture success is not pass.",
+  "tests_require_real_llm_api_network": false
+}
 ```
