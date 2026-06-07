@@ -326,14 +326,14 @@
     },
     {
       "file": "final_security_privacy_report.json",
-      "size_bytes": 655,
+      "size_bytes": 660,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "final_security_privacy_report.md",
-      "size_bytes": 770,
+      "size_bytes": 780,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
@@ -403,14 +403,14 @@
     },
     {
       "file": "no_hidden_upload_report.json",
-      "size_bytes": 2024,
+      "size_bytes": 306,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
     },
     {
       "file": "no_hidden_upload_report.md",
-      "size_bytes": 2133,
+      "size_bytes": 420,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
@@ -431,7 +431,7 @@
     },
     {
       "file": "registry_scale_report.json",
-      "size_bytes": 402,
+      "size_bytes": 401,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."
@@ -459,7 +459,7 @@
     },
     {
       "file": "runtime_speed_report.json",
-      "size_bytes": 270,
+      "size_bytes": 269,
       "classification": "root_file_needs_review",
       "status": "needs_review",
       "reason": "Root file is not in the essential allowlist."

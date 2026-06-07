@@ -3,7 +3,7 @@
   "status": "needs_review",
   "simulated_registry_entries": 1500,
   "total_size_bytes": 2660250,
-  "elapsed_ms": 1.28,
+  "elapsed_ms": 0.553,
   "result": "simulation_completed",
   "reason": "1500-entry registry simulation completed locally, but synthetic simulation is not industrial production proof.",
   "risk_level": "P1",

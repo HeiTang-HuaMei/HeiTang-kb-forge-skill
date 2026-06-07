@@ -5,7 +5,6 @@
     "Created final pre-v4 audit reports, truth matrix, severity policy, and testable gate artifacts."
   ],
   "not_fixed_in_this_audit": [
-    "ci_green_not_attached",
     "golden_demo_acceptance_needs_final_proof",
     "golden_demo_artifact_not_present_in_repo_outputs",
     "product_hardening_release_readiness_needs_final_proof",

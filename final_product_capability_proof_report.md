@@ -1,9 +1,9 @@
 # Final Product Capability Proof Report
 
 - Status: blocked
-- Core commit: e6ba666
+- Core commit: c95e6c0
 - UI commit: None
-- P0: 6
+- P0: 5
 - P1: 8
 - P2: 1
 
@@ -15,7 +15,6 @@ All issues must be classified by severity and scope. P0 issues must block v4.0. 
 
 | Severity | ID | Scope | Blocks v4 |
 | --- | --- | --- | --- |
-| P0 | ci_green_not_attached | Validation | True |
 | P0 | golden_demo_acceptance_needs_final_proof | Golden Demo | True |
 | P0 | golden_demo_artifact_not_present_in_repo_outputs | Golden Demo | True |
 | P0 | product_hardening_release_readiness_needs_final_proof | Product Hardening | True |

@@ -1,9 +1,9 @@
 # 最终产品能力证明报告
 
 - 状态: blocked
-- Core 提交: e6ba666
+- Core 提交: c95e6c0
 - UI 提交: None
-- P0: 6
+- P0: 5
 - P1: 8
 - P2: 1
 

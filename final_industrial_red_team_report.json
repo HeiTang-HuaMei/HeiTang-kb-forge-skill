@@ -21,18 +21,6 @@
   ],
   "findings": [
     {
-      "id": "ci_green_not_attached",
-      "severity": "P0",
-      "scope": "Validation",
-      "status": "blocked",
-      "reason": "GitHub CI green status is not attached to the final gate report yet.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Push audited commit and verify CI green before any v4.0 start.",
-      "target_version": "current_audit",
-      "blocks_v4": true,
-      "out_of_scope_classification": "in_scope"
-    },
-    {
       "id": "golden_demo_acceptance_needs_final_proof",
       "severity": "P0",
       "scope": "Golden Demo",

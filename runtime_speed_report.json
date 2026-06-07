@@ -2,7 +2,7 @@
   "audit_version": "final-pre-v4.0",
   "status": "needs_review",
   "runtime_modules_present": true,
-  "measured_static_audit_ms": 1.28,
+  "measured_static_audit_ms": 0.553,
   "industrial_runtime_speed_proof": "needs_review",
   "risk_level": "P1",
   "tests_require_real_llm_api_network": false

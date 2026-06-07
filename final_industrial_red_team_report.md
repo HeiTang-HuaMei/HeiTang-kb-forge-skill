@@ -27,18 +27,6 @@
   ],
   "findings": [
     {
-      "id": "ci_green_not_attached",
-      "severity": "P0",
-      "scope": "Validation",
-      "status": "blocked",
-      "reason": "GitHub CI green status is not attached to the final gate report yet.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Push audited commit and verify CI green before any v4.0 start.",
-      "target_version": "current_audit",
-      "blocks_v4": true,
-      "out_of_scope_classification": "in_scope"
-    },
-    {
       "id": "golden_demo_acceptance_needs_final_proof",
       "severity": "P0",
       "scope": "Golden Demo",
@@ -117,5 +105,16 @@
       "status": "needs_review",
       "reason": "Multiple parser paths exist, but final acceptance still needs real mixed-file openability evidence.",
       "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Review missing eviden
+      "recommended_fix": "Review missing evidence and either fix in scope or mark accepted non-blocking with rationale.",
+      "target_version": "current_audit",
+      "blocks_v4": true,
+      "out_of_scope_classification": "in_scope"
+    },
+    {
+      "id": "v310_external_absorption_map_absent",
+      "severity": "P1",
+      "scope": "External Absorption",
+      "status": "needs_review",
+      "reason": "The final audit requirement includes v3.10 absorption validation, but no v310_external_absorption_map.json was found.",
+      "user_impact": "The product claim cannot be safely presented 
 ```

@@ -1,6 +1,6 @@
 {
   "audit_version": "final-pre-v4.0",
-  "generated_at": "2026-06-07T15:44:56.763773+00:00",
+  "generated_at": "2026-06-07T15:51:22.979708+00:00",
   "overall_status": "blocked",
   "ready_for_v4_rc": false,
   "severity_policy": "All issues must be classified by severity and scope. P0 issues must block v4.0. P1 issues must be fixed or explicitly reviewed before v4.0. P2 issues may be documented as future improvements. Low-risk issues may be fixed immediately, but high-risk issues must not be ignored, hidden, or bypassed.",
@@ -8,18 +8,6 @@
   "passed_checks": 11,
   "failed_checks": 18,
   "p0_blockers": [
-    {
-      "id": "ci_green_not_attached",
-      "severity": "P0",
-      "scope": "Validation",
-      "status": "blocked",
-      "reason": "GitHub CI green status is not attached to the final gate report yet.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Push audited commit and verify CI green before any v4.0 start.",
-      "target_version": "current_audit",
-      "blocks_v4": true,
-      "out_of_scope_classification": "in_scope"
-    },
     {
       "id": "golden_demo_acceptance_needs_final_proof",
       "severity": "P0",
@@ -195,7 +183,6 @@
   ],
   "fixed_in_audit": [],
   "remaining_risks": [
-    "ci_green_not_attached",
     "golden_demo_acceptance_needs_final_proof",
     "golden_demo_artifact_not_present_in_repo_outputs",
     "product_hardening_release_readiness_needs_final_proof",
@@ -211,18 +198,6 @@
     "workflow_g_generated_documents_not_fully_proven"
   ],
   "issue_checklist": [
-    {
-      "id": "ci_green_not_attached",
-      "severity": "P0",
-      "scope": "Validation",
-      "status": "blocked",
-      "reason": "GitHub CI green status is not attached to the final gate report yet.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Push audited commit and verify CI green before any v4.0 start.",
-      "target_version": "current_audit",
-      "blocks_v4": true,
-      "out_of_scope_classification": "in_scope"
-    },
     {
       "id": "golden_demo_acceptance_needs_final_proof",
       "severity": "P0",
@@ -418,8 +393,9 @@
     "ui_repo_modified_by_audit": false
   },
   "ci_status": {
-    "status": "needs_review",
-    "reason": "CI not run for current audit commit yet"
+    "status": "pass",
+    "verified_run": "27097287240",
+    "note": "CI passed for the pushed final audit commit; this follow-up report update must be rechecked by CI after push."
   },
   "final_gate_rule": "Do not start v4.0 automatically. If the product is not ready, mark blocked.",
   "recommendation": "blocked: resolve P0 blockers and review/fix blocking P1 items before v4.0.",
