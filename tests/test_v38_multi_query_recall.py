@@ -29,5 +29,6 @@ def test_run_retrieval_quality_writes_all_core_reports(tmp_path):
 
     assert report["v37_retrieval_plan_consumed"] is True
     assert report["external_absorption_map_file"] == "v38_external_absorption_map.json"
+    assert read_json(output / "knowledge_accuracy_report.json")["external_absorption_map_file"] == "v38_external_absorption_map.json"
     for name in report["output_files"]:
         assert (output / name).exists()
