@@ -33,6 +33,7 @@ from heitang_kb_forge.evidence_gate import EVIDENCE_GATE_OUTPUT_FILES, run_evide
 from heitang_kb_forge.evalset.exporter import RETRIEVAL_EVAL_OUTPUT_FILES, make_retrieval_eval_set
 from heitang_kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
 from heitang_kb_forge.governance import GOVERNANCE_OUTPUT_FILES, run_governance
+from heitang_kb_forge.golden_demo_acceptance import V311_GOLDEN_DEMO_OUTPUT_FILES, run_golden_demo_acceptance
 from heitang_kb_forge.hardening.batch import make_batch_hardening_outputs
 from heitang_kb_forge.hardening.run_trace import make_run_manifest, new_run_id, now_iso, stage_record
 from heitang_kb_forge.incremental.reuse import INCREMENTAL_OUTPUT_FILES, make_incremental_report
@@ -2167,6 +2168,29 @@ def run_local_agent_command(
     typer.echo(f"Local agent runtime: {result['status']}")
 
 
+@app.command("run-golden-demo-acceptance")
+def run_golden_demo_acceptance_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    sample_root: Path | None = typer.Option(None, "--sample-root", exists=True, file_okay=False, dir_okay=True, readable=True),
+    require_v37: bool = typer.Option(True, "--require-v37/--no-require-v37"),
+    require_v38: bool = typer.Option(True, "--require-v38/--no-require-v38"),
+    require_v39: bool = typer.Option(True, "--require-v39/--no-require-v39"),
+    require_v310: bool = typer.Option(True, "--require-v310/--no-require-v310"),
+    allow_llm: bool = typer.Option(False, "--allow-llm"),
+    allow_network: bool = typer.Option(False, "--allow-network"),
+) -> None:
+    """Run v3.11 local Golden Demo acceptance smoke without LLM or network."""
+    if allow_llm:
+        typer.echo("--allow-llm is reserved and must remain false in v3.11")
+        raise typer.Exit(2)
+    if allow_network:
+        typer.echo("--allow-network is reserved and must remain false in v3.11")
+        raise typer.Exit(2)
+    result = run_golden_demo_acceptance(package, output, sample_root, require_v37, require_v38, require_v39, require_v310)
+    typer.echo(f"Golden demo acceptance: {result['status']}")
+
+
 @app.command()
 def run(
     config: Path = typer.Option(..., "--config", "-c", exists=True, file_okay=True, dir_okay=False, readable=True),
@@ -2965,6 +2989,9 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         _run_v25_config_outputs(config_data, config_data.output)
         _run_v39_config_outputs(config_data, config_data.output)
         _run_v310_config_outputs(config_data, config_data.output)
+        _run_v311_config_outputs(config_data, config_data.output)
+        if config_data.golden_demo_acceptance.enabled and config_data.workbench_contracts.enabled:
+            generate_workbench_contracts(config_data.output, config_data.workbench_contracts.output or config_data.output, config_data.workbench_contracts.project_name)
         return ConfigRunResult(
             config=config_data,
             output=config_data.output,
@@ -3598,6 +3625,37 @@ def _run_v310_config_outputs(config_data: ForgeConfig, output: Path) -> None:
             "local_agent_runtime_files": result["output_files"],
             "local_agent_runtime_llm_required": False,
             "local_agent_runtime_network_required": False,
+        }
+    )
+    write_json(manifest_path, manifest_payload)
+
+
+def _run_v311_config_outputs(config_data: ForgeConfig, output: Path) -> None:
+    if not config_data.golden_demo_acceptance.enabled:
+        return
+    if config_data.golden_demo_acceptance.allow_llm:
+        raise typer.BadParameter("golden_demo_acceptance.allow_llm must remain false in v3.11")
+    if config_data.golden_demo_acceptance.allow_network:
+        raise typer.BadParameter("golden_demo_acceptance.allow_network must remain false in v3.11")
+    target = config_data.golden_demo_acceptance.output or output
+    result = run_golden_demo_acceptance(
+        output,
+        target,
+        config_data.golden_demo_acceptance.sample_root or config_data.input,
+        config_data.golden_demo_acceptance.require_v37,
+        config_data.golden_demo_acceptance.require_v38,
+        config_data.golden_demo_acceptance.require_v39,
+        config_data.golden_demo_acceptance.require_v310,
+    )
+    manifest_path = output / "manifest.json"
+    manifest_payload = _read_json_dict(manifest_path)
+    manifest_payload.update(
+        {
+            "golden_demo_acceptance_enabled": True,
+            "golden_demo_acceptance_status": result["status"],
+            "golden_demo_acceptance_files": V311_GOLDEN_DEMO_OUTPUT_FILES,
+            "golden_demo_acceptance_llm_required": False,
+            "golden_demo_acceptance_network_required": False,
         }
     )
     write_json(manifest_path, manifest_payload)

@@ -542,6 +542,18 @@ class ReleaseReadinessConfig(BaseModel):
     output: Path | None = None
 
 
+class GoldenDemoAcceptanceConfig(BaseModel):
+    enabled: bool = False
+    sample_root: Path | None = None
+    require_v37: bool = True
+    require_v38: bool = True
+    require_v39: bool = True
+    require_v310: bool = True
+    allow_llm: bool = False
+    allow_network: bool = False
+    output: Path | None = None
+
+
 class ForgeConfig(BaseModel):
     task: str
     input: Path
@@ -626,3 +638,4 @@ class ForgeConfig(BaseModel):
     compatibility_matrix: CompatibilityMatrixConfig = Field(default_factory=CompatibilityMatrixConfig)
     llm_quality_gate_assist: LLMQualityGateAssistConfig = Field(default_factory=LLMQualityGateAssistConfig)
     release_readiness: ReleaseReadinessConfig = Field(default_factory=ReleaseReadinessConfig)
+    golden_demo_acceptance: GoldenDemoAcceptanceConfig = Field(default_factory=GoldenDemoAcceptanceConfig)

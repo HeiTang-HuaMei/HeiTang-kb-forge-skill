@@ -16,6 +16,7 @@ from heitang_kb_forge.evalset.exporter import RETRIEVAL_EVAL_OUTPUT_FILES
 from heitang_kb_forge.risk.labeler import RISK_OUTPUT_FILES
 from heitang_kb_forge.runtime.agent_runtime import RUNTIME_OUTPUT_FILES
 from heitang_kb_forge.local_agent_runtime import V310_LOCAL_AGENT_RUNTIME_OUTPUT_FILES
+from heitang_kb_forge.golden_demo_acceptance import V311_GOLDEN_DEMO_OUTPUT_FILES
 from heitang_kb_forge.workspace.registry import WORKSPACE_FILES
 from heitang_kb_forge.refresh.checker import REFRESH_OUTPUT_FILES
 from heitang_kb_forge.review.curation import REVIEW_OUTPUT_FILES
@@ -107,6 +108,7 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("local_document_parsing_token_reduction", _document_parsing_enabled(config), output, V39_DOCUMENT_PARSING_OUTPUT_FILES, config.task),
         _stage("v39_external_absorption_map", _v39_enabled(config), output, V39_EXTERNAL_ABSORPTION_OUTPUT_FILES, config.task),
         _stage("local_agent_runtime", config.local_agent_runtime.enabled, output, V310_LOCAL_AGENT_RUNTIME_OUTPUT_FILES, config.task),
+        _stage("golden_demo_acceptance", config.golden_demo_acceptance.enabled, config.golden_demo_acceptance.output or output, V311_GOLDEN_DEMO_OUTPUT_FILES, config.task),
         _stage("kb_index", config.knowledge_runtime.enabled, output, ["kb_index.jsonl", "kb_index_manifest.json"], config.task),
         _stage("kb_query", config.knowledge_runtime.enabled, output, ["kb_query_result.json", "kb_query_trace.json", "kb_citation_trace.json"], config.task),
         _stage("kb_answer", config.knowledge_runtime.enabled, output, ["kb_answer.md", "kb_answer_report.json"], config.task),
