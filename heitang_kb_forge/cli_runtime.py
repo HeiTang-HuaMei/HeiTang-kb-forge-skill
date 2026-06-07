@@ -2095,7 +2095,8 @@ def preprocess_pdf_markdown_command(
 ) -> None:
     """Run local-first PDF-to-Markdown preprocessing reports."""
     if not source.exists():
-        raise typer.BadParameter("--source must exist")
+        typer.echo("--source must exist")
+        raise typer.Exit(2)
     write_document_parsing_outputs(source, output)
     write_v39_external_absorption_map(output)
     typer.echo(f"Built local PDF Markdown report at {output}")
@@ -2108,7 +2109,8 @@ def benchmark_parser_backends_command(
 ) -> None:
     """Write deterministic parser backend selection and benchmark reports."""
     if not source.exists():
-        raise typer.BadParameter("--source must exist")
+        typer.echo("--source must exist")
+        raise typer.Exit(2)
     write_document_parsing_outputs(source, output)
     write_v39_external_absorption_map(output)
     typer.echo(f"Built parser backend benchmark at {output}")
@@ -2121,7 +2123,8 @@ def report_pdf_token_reduction_command(
 ) -> None:
     """Estimate raw PDF versus Markdown token usage."""
     if not source.exists():
-        raise typer.BadParameter("--source must exist")
+        typer.echo("--source must exist")
+        raise typer.Exit(2)
     write_document_parsing_outputs(source, output)
     write_v39_external_absorption_map(output)
     typer.echo(f"Built PDF token reduction report at {output}")
