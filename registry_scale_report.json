@@ -1,0 +1,11 @@
+{
+  "audit_version": "final-pre-v4.0",
+  "status": "needs_review",
+  "simulated_registry_entries": 1500,
+  "total_size_bytes": 2660250,
+  "elapsed_ms": 1.28,
+  "result": "simulation_completed",
+  "reason": "1500-entry registry simulation completed locally, but synthetic simulation is not industrial production proof.",
+  "risk_level": "P1",
+  "tests_require_real_llm_api_network": false
+}

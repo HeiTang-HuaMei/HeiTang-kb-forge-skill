@@ -1,0 +1,330 @@
+{
+  "audit_version": "final-pre-v4.0",
+  "status": "needs_review",
+  "network_reference_count": 446,
+  "network_references": [
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/CHANGELOG.md",
+      "line": "* Added local PDF-to-Markdown preprocessing report, parser backend selection/benchmark, PDF token reduction, and no-cloud-upload reports."
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/CHANGELOG.md",
+      "line": "* No real XHS upload"
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/CHANGELOG.md",
+      "line": "* Added `platform-upload-check`"
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/CHANGELOG.md",
+      "line": "* Added upload check and mock publish outputs"
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/CHANGELOG.md",
+      "line": "* Added static upload checks for suspicious API keys and dangerous command snippets"
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/CHANGELOG.md",
+      "line": "* Did not implement v2.4 platform distribution or upload adapters"
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/CHANGELOG.md",
+      "line": "* No platform distribution or upload adapters"
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/CHANGELOG.md",
+      "line": "* Reserved platform export and upload adapters for v2.4"
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/provider_config.example.yaml",
+      "line": "docs_url: https://platform.openai.com/docs/api-reference"
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/pyproject.toml",
+      "line": "Homepage = \"https://github.com/HeiTang-HuaMei/HeiTang-kb-forge-skill\""
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/pyproject.toml",
+      "line": "Repository = \"https://github.com/HeiTang-HuaMei/HeiTang-kb-forge-skill\""
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/pyproject.toml",
+      "line": "Issues = \"https://github.com/HeiTang-HuaMei/HeiTang-kb-forge-skill/issues\""
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/README.md",
+      "line": "- v3.9 Local Workspace Storage & Memory Lifecycle: local registries, storage usage, dedup/cleanup/retention plans, memory lifecycle, token budget policy, local PDF token reduction, parser backend benc"
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/README.md",
+      "line": "- no hidden upload"
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/README.md",
+      "line": "- upload user documents or generated packages"
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/README.zh-CN.md",
+      "line": "- v3.9 Local Workspace Storage & Memory Lifecycle：本地 registry、storage usage、dedup/cleanup/retention plans、memory lifecycle、token budget policy、本地 PDF token reduction、parser backend benchmark 和 no-clou"
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/compat-data/-/compat-data-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/core/-/core-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"url\": \"https://opencollective.com/babel\""
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/generator/-/generator-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/helper-compilation-targets/-/helper-compilation-targets-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/helper-globals/-/helper-globals-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/helper-module-imports/-/helper-module-imports-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/helper-module-transforms/-/helper-module-transforms-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/helper-plugin-utils/-/helper-plugin-utils-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/helper-string-parser/-/helper-string-parser-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/helper-validator-identifier/-/helper-validator-identifier-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/helper-validator-option/-/helper-validator-option-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/helpers/-/helpers-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/parser/-/parser-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/plugin-transform-react-jsx-self/-/plugin-transform-react-jsx-self-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/plugin-transform-react-jsx-source/-/plugin-transform-react-jsx-source-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/template/-/template-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/traverse/-/traverse-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@babel/types/-/types-7.29.7.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/aix-ppc64/-/aix-ppc64-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/android-arm/-/android-arm-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/android-arm64/-/android-arm64-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/android-x64/-/android-x64-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/darwin-x64/-/darwin-x64-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/freebsd-arm64/-/freebsd-arm64-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/freebsd-x64/-/freebsd-x64-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/linux-arm/-/linux-arm-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/linux-arm64/-/linux-arm64-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/linux-ia32/-/linux-ia32-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/linux-loong64/-/linux-loong64-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/linux-mips64el/-/linux-mips64el-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/linux-ppc64/-/linux-ppc64-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/linux-riscv64/-/linux-riscv64-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/linux-s390x/-/linux-s390x-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/netbsd-x64/-/netbsd-x64-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/openbsd-x64/-/openbsd-x64-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/sunos-x64/-/sunos-x64-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/win32-arm64/-/win32-arm64-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/win32-ia32/-/win32-ia32-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.21.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@jridgewell/gen-mapping/-/gen-mapping-0.3.13.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@jridgewell/remapping/-/remapping-2.3.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@jridgewell/resolve-uri/-/resolve-uri-3.1.2.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.5.5.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@jridgewell/trace-mapping/-/trace-mapping-0.3.31.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@rolldown/pluginutils/-/pluginutils-1.0.0-beta.27.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-android-arm-eabi/-/rollup-android-arm-eabi-4.61.0.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-android-arm64/-/rollup-android-arm64-4.61.0.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-darwin-arm64/-/rollup-darwin-arm64-4.61.0.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-darwin-x64/-/rollup-darwin-x64-4.61.0.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-freebsd-arm64/-/rollup-freebsd-arm64-4.61.0.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-freebsd-x64/-/rollup-freebsd-x64-4.61.0.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-linux-arm-gnueabihf/-/rollup-linux-arm-gnueabihf-4.61.0.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-linux-arm-musleabihf/-/rollup-linux-arm-musleabihf-4.61.0.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-linux-arm64-gnu/-/rollup-linux-arm64-gnu-4.61.0.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-linux-arm64-musl/-/rollup-linux-arm64-musl-4.61.0.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-linux-loong64-gnu/-/rollup-linux-loong64-gnu-4.61.0.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-linux-loong64-musl/-/rollup-linux-loong64-musl-4.61.0.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-linux-ppc64-gnu/-/rollup-linux-ppc64-gnu-4.61.0.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-linux-ppc64-musl/-/rollup-linux-ppc64-musl-4.61.0.tgz\","
+    },
+    {
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/desktop/tauri/package-lock.json",
+      "line": "\"resolved\": \"https://registry.npmjs.org/@rollup/rollup-linux-riscv64-gnu/-/rollup-linux-riscv64-gnu-4.61.0.tgz\","
+    }
+  ],
+  "core_tests_require_network": false,
+  "reason": "Network references exist for optional provider/platform features. Final tests must not require real network/API calls.",
+  "tests_require_real_llm_api_network": false
+}

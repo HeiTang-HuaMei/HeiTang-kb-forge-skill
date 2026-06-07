@@ -1,6 +1,8 @@
 # Release Checklist
 
-Current project version: `2.9.0-alpha.1`
+Current Core version: `3.12.0-alpha.1`
+
+Current stage: pre-v4.0 industrial acceptance audit / local Workbench RC preparation. v4.0 is not released.
 
 ## Required Checks
 
@@ -28,6 +30,8 @@ Current project version: `2.9.0-alpha.1`
 - [ ] Demo E2E generated `demo_e2e_result.json`, `portfolio_demo_report.md`, `demo_evidence_pack/`, and `runtime_limitations.md`
 - [ ] Parser backend reliability generated `parser_backend_result.json`, `parse_quality_report.json`, `ocr_risk_report.json`, `manual_review_queue.jsonl`, `trusted_kb_gate.json`, and `knowledge_reliability_report.json` when parser backend mode is enabled
 - [ ] Knowledge Runtime Loop generated `kb_index.jsonl`, `kb_query_result.json`, `kb_citation_trace.json`, `kb_answer.md`, `retrieval_quality_report.json`, and `rag_eval_baseline.jsonl` when knowledge runtime mode is enabled
+- [ ] v3.12 product hardening generated diagnostics, command/package/workspace audits, privacy boundary, installer readiness, and v4 gate reports
+- [ ] Final pre-v4 audit generated non-empty product proof, truth matrix, security/privacy, scale, docs truth, repository surface, and final v4 RC gate reports
 
 ## Boundaries
 
@@ -39,6 +43,9 @@ Current project version: `2.9.0-alpha.1`
 - Do not export draft parser-backed KBs to Skill, Agent, or platform packages unless `--allow-untrusted` is explicit.
 - Do not claim Knowledge Runtime Loop is enabled by default; v2.9 runtime outputs are opt-in and local.
 - Do not claim v2.9 calls LLM APIs, embedding APIs, vector databases, or external Agent runtimes.
+- Do not claim v4.0 is released before a tag exists.
+- Do not claim BYO cloud/database is implemented while it remains future/optional.
+- Do not claim platform-hosted user data, SaaS, or multi-user permissions are implemented.
 - Do not claim official Xiaohongshu upload API support.
 - Do not claim real OpenClaw / Codex / Claude Code / MCP runtime execution.
 - Do not claim Feishu / mobile / installer / iOS support before future client platform integrations are implemented.

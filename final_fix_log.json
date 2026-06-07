@@ -1,0 +1,25 @@
+{
+  "audit_version": "final-pre-v4.0",
+  "status": "needs_review",
+  "fixed_in_this_audit": [
+    "Created final pre-v4 audit reports, truth matrix, severity policy, and testable gate artifacts."
+  ],
+  "not_fixed_in_this_audit": [
+    "ci_green_not_attached",
+    "golden_demo_acceptance_needs_final_proof",
+    "golden_demo_artifact_not_present_in_repo_outputs",
+    "product_hardening_release_readiness_needs_final_proof",
+    "workflow_h_golden_demo_not_fully_proven",
+    "workflow_i_release_gate_not_fully_proven",
+    "lifecycle_crud_update_archive_delete_partial",
+    "multi_format_parsing_needs_review",
+    "v310_external_absorption_map_absent",
+    "workflow_c_package_to_agent_not_fully_proven",
+    "workflow_d_agent_runtime_not_fully_proven",
+    "workflow_e_rag_query_quality_not_fully_proven",
+    "workflow_f_storage_memory_not_fully_proven",
+    "workflow_g_generated_documents_not_fully_proven"
+  ],
+  "severity_policy": "All issues must be classified by severity and scope. P0 issues must block v4.0. P1 issues must be fixed or explicitly reviewed before v4.0. P2 issues may be documented as future improvements. Low-risk issues may be fixed immediately, but high-risk issues must not be ignored, hidden, or bypassed.",
+  "tests_require_real_llm_api_network": false
+}

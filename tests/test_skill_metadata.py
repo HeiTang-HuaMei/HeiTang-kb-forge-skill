@@ -16,7 +16,7 @@ def test_skill_metadata_files_exist_and_are_agent_readable():
     assert "HeiTang KB Forge Skill" in text
     assert "Agent knowledge supply-chain" in text
     assert metadata["name"] == "heitang-kb-forge-skill"
-    assert metadata["version"] == "2.9.0-alpha.1"
+    assert metadata["version"] == "3.12.0-alpha.1"
     assert metadata["entrypoints"]["cli"] == "heitang-kb-forge"
     assert "build_knowledge_package" in metadata["capabilities"]
     assert "agent_ask" in metadata["preview_capabilities"]
@@ -29,6 +29,7 @@ def test_skill_metadata_files_exist_and_are_agent_readable():
     assert "knowledge_reliability_gate" in metadata["preview_capabilities"]
     assert "knowledge_runtime_loop" in metadata["preview_capabilities"]
     assert "kb_index_query_answer" in metadata["preview_capabilities"]
+    assert "product_hardening_release_readiness" in metadata["preview_capabilities"]
     assert "runtime_compatibility_hardening" in metadata["roadmap_capabilities"]
     assert metadata["network_required_by_default"] is False
     assert metadata["real_platform_publish_by_default"] is False

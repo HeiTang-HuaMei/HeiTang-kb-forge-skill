@@ -1,6 +1,8 @@
 # Release Checklist
 
-当前项目版本：`2.9.0-alpha.1`
+当前 Core 版本：`3.12.0-alpha.1`
+
+当前阶段：pre-v4.0 industrial acceptance audit / local Workbench RC preparation。v4.0 尚未发布。
 
 ## Required Checks
 

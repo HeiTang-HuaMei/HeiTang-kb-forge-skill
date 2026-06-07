@@ -1,0 +1,70 @@
+{
+  "audit_version": "final-pre-v4.0",
+  "status": "needs_review",
+  "pairs": [
+    {
+      "english": "README.md",
+      "chinese": "README.zh-CN.md",
+      "status": "pass",
+      "english_size": 7083,
+      "chinese_size": 5487
+    },
+    {
+      "english": "docs/DOCS_INDEX.md",
+      "chinese": "docs/DOCS_INDEX.zh-CN.md",
+      "status": "pass",
+      "english_size": 1691,
+      "chinese_size": 1626
+    },
+    {
+      "english": "docs/VERSION_MATRIX.md",
+      "chinese": "docs/VERSION_MATRIX.zh-CN.md",
+      "status": "pass",
+      "english_size": 7802,
+      "chinese_size": 7052
+    },
+    {
+      "english": "docs/USER_MANUAL.md",
+      "chinese": "docs/USER_MANUAL.zh-CN.md",
+      "status": "pass",
+      "english_size": 5966,
+      "chinese_size": 5304
+    },
+    {
+      "english": "docs/COMMAND_REFERENCE.md",
+      "chinese": "docs/COMMAND_REFERENCE.zh-CN.md",
+      "status": "pass",
+      "english_size": 5656,
+      "chinese_size": 5549
+    },
+    {
+      "english": "docs/OUTPUT_REPORT_GUIDE.md",
+      "chinese": "docs/OUTPUT_REPORT_GUIDE.zh-CN.md",
+      "status": "pass",
+      "english_size": 2183,
+      "chinese_size": 1880
+    },
+    {
+      "english": "docs/LOCAL_PRIVACY_SECURITY.md",
+      "chinese": "docs/LOCAL_PRIVACY_SECURITY.zh-CN.md",
+      "status": "needs_review",
+      "english_size": 2155,
+      "chinese_size": 1414
+    },
+    {
+      "english": "docs/TROUBLESHOOTING.md",
+      "chinese": "docs/TROUBLESHOOTING.zh-CN.md",
+      "status": "needs_review",
+      "english_size": 4297,
+      "chinese_size": 1806
+    },
+    {
+      "english": "docs/GOLDEN_DEMO_GUIDE.md",
+      "chinese": "docs/GOLDEN_DEMO_GUIDE.zh-CN.md",
+      "status": "needs_review",
+      "english_size": 1110,
+      "chinese_size": 948
+    }
+  ],
+  "tests_require_real_llm_api_network": false
+}

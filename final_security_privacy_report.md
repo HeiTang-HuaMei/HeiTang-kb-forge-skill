@@ -1,0 +1,27 @@
+# Final Security Privacy Report
+
+- Status: needs_review
+- Tests require real LLM/API/network: False
+
+```json
+{
+  "audit_version": "final-pre-v4.0",
+  "status": "needs_review",
+  "reports": [
+    "threat_model_report.json",
+    "data_classification_report.json",
+    "storage_backend_security_report.json",
+    "byo_storage_security_readiness_report.json",
+    "no_hidden_upload_report.json",
+    "network_dependency_audit_report.json",
+    "secrets_leakage_audit_report.json",
+    "config_secret_handling_report.json"
+  ],
+  "p0_findings": [],
+  "p1_findings": [
+    "BYO storage is future-only and must not be overclaimed.",
+    "Static scan is not a substitute for runtime privacy validation."
+  ],
+  "tests_require_real_llm_api_network": false
+}
+```

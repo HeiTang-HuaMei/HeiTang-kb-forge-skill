@@ -1,8 +1,8 @@
 {
   "name": "heitang-kb-forge-skill",
   "display_name": "HeiTang KB Forge Skill",
-  "version": "2.9.0-alpha.1",
-  "description": "Agent knowledge supply-chain Skill for producing standardized, auditable, retrievable knowledge packages.",
+  "version": "3.12.0-alpha.1",
+  "description": "Local-first knowledge workbench Core Skill for producing, auditing, retrieving, generating, and validating knowledge packages before v4.0 RC.",
   "entrypoints": {
     "cli": "heitang-kb-forge",
     "python_module": "python -m heitang_kb_forge.cli"
@@ -32,7 +32,15 @@
     "parse_quality_gate",
     "knowledge_reliability_gate",
     "knowledge_runtime_loop",
-    "kb_index_query_answer"
+    "kb_index_query_answer",
+    "document_generation_loop",
+    "query_rewrite_retrieval_planning",
+    "retrieval_quality_evaluation",
+    "knowledge_accuracy_verification",
+    "workspace_storage_memory_lifecycle",
+    "local_agent_runtime_mother_child",
+    "golden_demo_acceptance",
+    "product_hardening_release_readiness"
   ],
   "experimental_capabilities": [
     "master_skill_learning",
@@ -50,13 +58,17 @@
     "audit_redaction_check",
     "demo_e2e_portfolio_release",
     "minimal_e2e_demo",
-    "desktop_web_ui"
+    "desktop_web_ui",
+    "pre_v4_industrial_acceptance_audit"
   ],
   "roadmap_capabilities": [
     "runtime_compatibility_hardening",
     "domain_skill_factory_future",
     "future_client_platform_integrations",
-    "saas_permissions_team_collaboration_v3x"
+    "saas_permissions_team_collaboration_v3x",
+    "saas_permissions_team_collaboration_future",
+    "byo_cloud_storage_future",
+    "local_db_storage_future"
   ],
   "input_types": ["md", "txt", "pdf", "docx", "png", "jpg", "jpeg", "csv", "tsv", "xlsx", "html", "epub", "zip"],
   "output_contract": [

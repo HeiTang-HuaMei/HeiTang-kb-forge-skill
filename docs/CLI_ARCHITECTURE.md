@@ -1,6 +1,8 @@
 # CLI Architecture
 
-Current version: `2.9.0-alpha.1`
+Current Core version: `3.12.0-alpha.1`
+
+Current stage: pre-v4.0 industrial acceptance audit / local Workbench RC preparation.
 
 ## Purpose
 

@@ -1,36 +1,47 @@
 # Version Matrix
 
-Current project version: `2.9.0-alpha.1`
+Current Core version: `3.12.0-alpha.1`
 
-| Version | Status | Main Capability | Test Coverage | Known Limits | Checkpoint / Tag |
-| --- | --- | --- | --- | --- | --- |
-| v1.6 | Implemented | Contract v2, multimodal, OCR, complex ingestion | pytest | local only | historical |
-| v1.7 | Implemented | governance, retrieval, evidence gate | pytest | no SaaS | v1.7.0 |
-| v1.8 | Implemented | Skill / Agent package generation | pytest | local/mock LLM only | compressed checkpoint |
-| v1.9 | Implemented | workspace, registry, prompt profiles, LLM audit | pytest | local workspace only | compressed checkpoint |
-| v2.0 | Implemented | stable foundation, provider health, reliability | pytest | no master Skill learning | compressed checkpoint |
-| v2.1 | Implemented | input hardening, quality, review, eval | pytest | mock quality assist | compressed checkpoint |
-| v2.2 | Implemented | master Skill learning, derived Skill, templates | pytest | no platform runtime | compressed checkpoint |
-| v2.3 | Implemented | batch jobs, lineage, curation, update impact | pytest | no platform distribution | v2.3.0-dev |
-| v2.3.1-dev | Implemented | post-v2.3 industrial hardening | pytest | stubs only | v2.3.1-dev |
-| v2.4 | Implemented | offline platform export and mock publish | pytest | no real platform runtime | v2.4.0-dev |
-| v2.4.1-dev | Implemented | post-v2.4 platform hardening | pytest | static checks only | v2.4.1-dev |
-| v2.5.0-dev | Implemented | local release quality gate | pytest | not external certification | v2.5.0-dev |
-| v2.5.1-alpha.1 | Implemented | release engineering / CLI architecture convergence | pytest | alpha checkpoint | historical |
-| v2.6.0-alpha.1 | Implemented | provider registry governance, security, fallback, redaction, cost guard, opt-in live smoke | pytest | alpha checkpoint, no default network, live smoke is Preview | v2.6.0-alpha.1 |
-| v2.7.0-alpha.1 | Implemented | minimal end-to-end demo / portfolio release | pytest | no real runtime compatibility, no live platform runtime | historical |
-| v2.8.0-alpha.1 | Implemented | parser backend and knowledge reliability | pytest | opt-in only, optional external parser stubs, no default network | historical |
-| v2.9.0-alpha.1 | Implemented | local Knowledge Runtime Loop | pytest | opt-in only, deterministic local retrieval, no LLM / embedding / vector DB calls | current |
-| runtime compatibility planned | Planned | runtime compatibility smoke | planned | not implemented | planned |
-| future client platform integrations | Planned | Feishu / personal KB / mobile / installer / iOS | planned | not implemented | planned |
-| v3.x planned | Planned | SaaS / permissions / team collaboration | planned | not implemented | planned |
+Current stage: pre-v4.0 industrial acceptance audit / local Workbench RC preparation. v4.0 is not released.
 
-Notes:
+| Version | Goal | Key Capabilities | Key Commands | Key Outputs | Status | Supported by Current HEAD | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| v0.1 | Initial local package proof | Markdown/TXT parsing, chunking, JSONL package basics | `build` | `chunks.jsonl`, `manifest.json` | historical | yes | Early foundation. |
+| v1.6 | Contract and multimodal foundation | Contract v2, multimodal assets, OCR path, progress reports | `check-contract`, `build` | contract reports, OCR reports | historical | yes | Local only. |
+| v1.7 | Governance and retrieval basics | Governance workflow, retrieval, evidence gate | `evidence-gate` | evidence reports | historical | yes | No SaaS. |
+| v1.8 | Skill and Agent package generation | Skill packages, Agent package scaffolds | `generate-skill`, `generate-agent` | Skill and Agent package files | historical | yes | Mock/local LLM boundaries. |
+| v1.9 | Workspace and provider registry | Workspace registry, prompt profiles, LLM audit | `workspace-init`, `provider-list` | registries and audit reports | historical | yes | Local workspace only. |
+| v2.0 | Stable foundation | Studio runner, stable check, provider health, reliability | `studio-run`, `stable-check`, `provider-health` | stable check reports | historical | yes | Extension readiness is reserved. |
+| v2.1 | Input and quality layer | Input hardening, quality reports, review, eval | `quality-gate`, `retrieval-eval` | quality and eval reports | historical | yes | Mock quality assist only. |
+| v2.2 | Skill reverse and templates | Master Skill analysis, derived Skill generation | `analyze-skill`, `generate-derived-skill` | Skill analysis reports | historical | yes | No real platform runtime. |
+| v2.3 | Batch governance | Batch jobs, package lineage, curation, update impact | `batch-run`, `package-lineage`, `curate-package` | batch and lineage reports | historical | yes | No platform distribution. |
+| v2.3.1-dev | Post-v2.3 hardening | Batch and governance hardening | `batch-retry` | retry reports | historical | yes | Dev checkpoint. |
+| v2.4 | Offline platform export | Platform export and mock publish boundary | `export-platform`, `mock-publish` | platform export reports | historical | yes | No real platform publishing. |
+| v2.4.1-dev | Platform hardening | Export certification and compatibility checks | `certify-export`, `compatibility-matrix` | certification reports | historical | yes | Static/local checks. |
+| v2.5.0-dev | Release quality gate | Release blockers, regression, release readiness | `release-readiness`, `release-blockers`, `regression-check` | release readiness reports | historical | yes | Local release quality gate. |
+| v2.5.1-alpha.1 | CLI architecture convergence | CLI compatibility split, metadata convergence | `doctor` | doctor and readiness reports | historical | yes | Alpha checkpoint. |
+| v2.6.0-alpha.1 | Provider governance | Provider registry, redaction, fallback, cost guard | `provider-list`, `provider-config-validate`, `provider-security-audit` | provider reports | historical | yes | Live smoke remains explicit opt-in. |
+| v2.7.0-alpha.1 | Local portfolio demo | Offline demo evidence workflow | `demo-e2e` | demo evidence pack | historical | yes | No live platform runtime. |
+| v2.8.0-alpha.1 | Parser reliability | Parser backend abstraction, trust gate, OCR risk | `parser-backend-list`, `parse-with-backend`, `trusted-kb-gate` | parser quality reports | historical | yes | Optional external parser stubs only. |
+| v2.9.0-alpha.1 | Knowledge Runtime Loop | Local KB index/query/answer, citations, refusal | `kb-index`, `kb-query`, `kb-answer` | KB runtime reports | superseded | yes | Still supported as a historical feature version. |
+| v3.0.0-alpha.1 | Document Generation Loop | Grounded MD/DOCX/PDF/PPTX exports | `generate-documents`, `generate-md`, `generate-docx`, `generate-pdf`, `generate-pptx` | document generation reports | superseded | yes | Opt-in and local. |
+| v3.1.0-alpha.1 | Knowledge-bound factory | Standalone and KB-bound Agent generation | `generate-agent`, `generate-bound-agent` | Agent package reports | superseded | yes | Stable CLI validation required. |
+| v3.2.0-alpha.1 | Multi-KB / multi-Agent orchestration | Agent hierarchy, child KB boundaries, memory isolation contracts | `orchestrate-multi-kb` | hierarchy and memory reports | superseded | yes | Not a full long-term runtime database. |
+| v3.3.0-alpha.1 | Skill reverse and fusion | Skill reverse/fusion safety | `reverse-fuse-skills` | fusion reports | superseded | yes | No prompt/code copying from external projects. |
+| v3.4.0-alpha.1 | Workbench contracts | Navigation/action/status/asset/memory/storage contracts | `workbench-contracts` | workbench contract JSON | superseded | yes | Core contracts only; UI must validate separately. |
+| v3.6.0-alpha.1 | External benchmark and gap audit | Architecture gap audit, external project benchmark, fusion plan | audit utility | root audit JSON reports | superseded | yes | Mandatory machine-readable evidence kept at root. |
+| v3.7.0-alpha.1 | Query Rewrite & Retrieval Planning | Deterministic rewrite, expansion, decomposition, answering/validation plans | `rewrite-query`, `plan-retrieval`, `eval-query-rewrite` | query and retrieval plan reports | superseded | yes | No real LLM/API/network required. |
+| v3.8.0-alpha.1 | Retrieval Quality & Evaluation | Multi-query recall, rerank, evidence selection, claim/source/freshness/accuracy reports | `eval-retrieval`, `rerank-results`, `select-evidence`, `verify-claims` | retrieval and accuracy reports | superseded | yes | External retrieval remains local/user-provided in v3.8. |
+| v3.9.0-alpha.1 | Local Workspace Storage & Memory Lifecycle | Registries, retention, cleanup plans, local PDF token reduction | `init-workspace`, `scan-workspace`, `plan-memory-lifecycle`, `preprocess-pdf-markdown` | registry, memory, parser reports | superseded | yes | `local_workspace` is default; `local_db`/BYO cloud are future only. |
+| v3.10.0-alpha.1 | Local Agent Runtime & Mother/Child Operations | Local runtime smoke, hierarchy routing, KB access boundary, memory policy reports | `run-local-agent`, `orchestrate-multi-kb` | runtime and hierarchy reports | superseded | yes | Not a cloud service or full autonomous runtime. |
+| v3.11.0-alpha.1 | Golden Demo & Real Acceptance Smoke | Real sample smoke, artifact openability, compatibility, sample coverage | `run-golden-demo-acceptance` | acceptance reports | superseded | yes | Must be rerun for final release evidence. |
+| v3.12.0-alpha.1 | Product Hardening & Local Release Readiness | doctor, command/package/workspace audits, privacy boundary, installer readiness, v4 gate | `product-hardening`, `doctor` | hardening and v4 gate reports | current | yes | Latest completed Core version. |
+| final-pre-v4.0 | Full product truth gate | Capability proof, docs truth, security/privacy, scale, Core/UI drift, workflow acceptance | `final-pre-v4-audit` | final audit reports | active | yes | Blocks v4.0 if P0/P1 evidence is unresolved. |
+| v4.0 | Local Knowledge Workbench RC | Local Workbench release candidate | not released | not released | future | no | Do not claim released before tag. |
 
-- v2.4 is offline export / mock publish, not real platform execution.
-- v2.5 is local release quality gate, not external platform certification.
-- v2.6 is opt-in and does not make network calls by default. It does not claim every provider was live-tested.
-- v2.8 parser backend mode is opt-in and does not require Docling or Marker by default.
-- v2.9 Knowledge Runtime Loop is opt-in, local, deterministic, and does not call LLM APIs, embedding APIs, vector databases, or external Agent runtimes.
-- Runtime compatibility remains Planned and must not be described as completed.
+Unsupported or future:
 
+- SaaS, multi-user permissions, team collaboration, platform-hosted user data, cloud sync, and BYO cloud/database are not implemented as current product defaults.
+- LLM is optional assist only and no Core tests require real LLM/API/network calls.
+- Historical v2.4 remains offline export / mock publish, not real platform publishing.
+- Historical v2.5 remains the local release quality gate checkpoint.

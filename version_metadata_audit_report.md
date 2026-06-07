@@ -1,0 +1,72 @@
+# Version Metadata Audit Report
+
+- Status: pass
+- Tests require real LLM/API/network: False
+
+```json
+{
+  "audit_version": "final-pre-v4.0",
+  "status": "pass",
+  "expected_version": "3.12.0-alpha.1",
+  "expected_stage": "pre-v4.0 industrial acceptance audit / local workbench RC preparation",
+  "records": [
+    {
+      "file": "pyproject.toml",
+      "detected_version": "3.12.0-alpha.1",
+      "expected_stage": "pre-v4.0 industrial acceptance audit / local workbench RC preparation",
+      "status": "correct",
+      "fix_applied": true,
+      "risk": "none"
+    },
+    {
+      "file": "skill.json",
+      "detected_version": "3.12.0-alpha.1",
+      "expected_stage": "pre-v4.0 industrial acceptance audit / local workbench RC preparation",
+      "status": "correct",
+      "fix_applied": true,
+      "risk": "none"
+    },
+    {
+      "file": "README.md",
+      "detected_version": "3.12.0-alpha.1",
+      "expected_stage": "pre-v4.0 industrial acceptance audit / local workbench RC preparation",
+      "status": "correct",
+      "fix_applied": true,
+      "risk": "none"
+    },
+    {
+      "file": "README.zh-CN.md",
+      "detected_version": "3.12.0-alpha.1",
+      "expected_stage": "pre-v4.0 industrial acceptance audit / local workbench RC preparation",
+      "status": "correct",
+      "fix_applied": true,
+      "risk": "none"
+    },
+    {
+      "file": "CHANGELOG.md",
+      "detected_version": "3.12.0-alpha.1",
+      "expected_stage": "pre-v4.0 industrial acceptance audit / local workbench RC preparation",
+      "status": "correct",
+      "fix_applied": true,
+      "risk": "none"
+    },
+    {
+      "file": "docs/VERSION_MATRIX.md",
+      "detected_version": "3.12.0-alpha.1",
+      "expected_stage": "pre-v4.0 industrial acceptance audit / local workbench RC preparation",
+      "status": "correct",
+      "fix_applied": true,
+      "risk": "none"
+    },
+    {
+      "file": "docs/VERSION_MATRIX.zh-CN.md",
+      "detected_version": "3.12.0-alpha.1",
+      "expected_stage": "pre-v4.0 industrial acceptance audit / local workbench RC preparation",
+      "status": "correct",
+      "fix_applied": true,
+      "risk": "none"
+    }
+  ],
+  "tests_require_real_llm_api_network": false
+}
+```

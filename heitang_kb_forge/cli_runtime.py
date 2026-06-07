@@ -32,6 +32,7 @@ from heitang_kb_forge.eval.demo import DEMO_OUTPUT_FILES, make_demo_report
 from heitang_kb_forge.evidence_gate import EVIDENCE_GATE_OUTPUT_FILES, run_evidence_gate
 from heitang_kb_forge.evalset.exporter import RETRIEVAL_EVAL_OUTPUT_FILES, make_retrieval_eval_set
 from heitang_kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
+from heitang_kb_forge.final_audit import run_final_pre_v4_audit
 from heitang_kb_forge.governance import GOVERNANCE_OUTPUT_FILES, run_governance
 from heitang_kb_forge.golden_demo_acceptance import V311_GOLDEN_DEMO_OUTPUT_FILES, run_golden_demo_acceptance
 from heitang_kb_forge.hardening.batch import make_batch_hardening_outputs
@@ -2214,6 +2215,17 @@ def product_hardening_command(
         raise typer.Exit(2)
     result = run_product_hardening(workspace, output, package, require_v37, require_v38, require_v39, require_v310, require_v311)
     typer.echo(f"Product hardening: {result['status']} | Release ready: {result['release_ready']}")
+
+
+@app.command("final-pre-v4-audit")
+def final_pre_v4_audit_command(
+    core_repo: Path = typer.Option(..., "--core-repo", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    ui_repo: Path | None = typer.Option(None, "--ui-repo", exists=True, file_okay=False, dir_okay=True, readable=True),
+) -> None:
+    """Run the final pre-v4 product truth gate without starting v4.0."""
+    result = run_final_pre_v4_audit(core_repo, output, ui_repo)
+    typer.echo(f"Final pre-v4 audit: {result['overall_status']} | Ready for v4 RC: {result['ready_for_v4_rc']}")
 
 
 @app.command()

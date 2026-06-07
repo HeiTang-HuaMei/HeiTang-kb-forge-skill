@@ -1,0 +1,61 @@
+{
+  "audit_version": "final-pre-v4.0",
+  "generated_at": "2026-06-07T15:44:56.763773+00:00",
+  "severity_policy": "All issues must be classified by severity and scope. P0 issues must block v4.0. P1 issues must be fixed or explicitly reviewed before v4.0. P2 issues may be documented as future improvements. Low-risk issues may be fixed immediately, but high-risk issues must not be ignored, hidden, or bypassed.",
+  "p0_examples": [
+    "hidden upload or unexpected network/cloud behavior",
+    "real LLM/API/network required by core tests",
+    "secret leakage",
+    "platform-hosted data implied as default",
+    "destructive cleanup enabled by default",
+    "KB-bound Agent can access unauthorized KB",
+    "child Agent private memory leaks",
+    "all-history memory injection is possible by default",
+    "expected user errors show raw stack traces",
+    "Golden Demo cannot be verified",
+    "Core/UI contract drift causes false UI claims",
+    "report files are empty or placeholder-only",
+    "docs or UI falsely claim unsupported features",
+    "scale simulation collapses registry/runtime",
+    "v4 gate says ready while P0 exists"
+  ],
+  "core_repo": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill",
+  "ui_repo": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill-ui",
+  "core_commit": "e6ba666",
+  "core_branch": "main",
+  "ui_commit": null,
+  "ui_branch": null,
+  "core_validation": {
+    "status": "pass",
+    "focused_final_tests": "25 passed",
+    "full_pytest": "652 passed, 1 skipped"
+  },
+  "ui_validation": {
+    "status": "pass",
+    "flutter_pub_get": "pass",
+    "flutter_analyze": "pass",
+    "flutter_test_expanded": "6 passed",
+    "flutter_build_web": "pass",
+    "flutter_build_windows": "pass",
+    "ui_pytest": "465 passed, 1 skipped",
+    "ui_repo_modified_by_audit": false
+  },
+  "ci_status": {
+    "status": "needs_review",
+    "reason": "CI not run for current audit commit yet"
+  },
+  "tests_require_real_llm_api_network": false,
+  "llm_optional_assist_only": true,
+  "no_saas": true,
+  "no_platform_hosted_user_data": true,
+  "status": "blocked",
+  "truth_matrix": "final_functionality_truth_matrix.json",
+  "workflow_acceptance": "final_user_workflow_acceptance_report.json",
+  "issue_count": 15,
+  "p0_count": 6,
+  "p1_count": 8,
+  "p2_count": 1,
+  "passed_capabilities": 9,
+  "needs_review_capabilities": 3,
+  "workflow_status": "needs_review"
+}

@@ -1,0 +1,17 @@
+# Storage Backend Security Report
+
+- Status: needs_review
+- Tests require real LLM/API/network: False
+
+```json
+{
+  "audit_version": "final-pre-v4.0",
+  "status": "needs_review",
+  "default_storage_backend": "local_workspace",
+  "local_db": "future_placeholder",
+  "byo_cloud": "future_placeholder",
+  "destructive_cleanup_default": false,
+  "reason": "Local workspace is the only supported default. Future backends must not be presented as implemented.",
+  "tests_require_real_llm_api_network": false
+}
+```

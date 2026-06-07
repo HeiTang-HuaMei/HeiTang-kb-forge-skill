@@ -1,5 +1,27 @@
 # Changelog
 
+## Final pre-v4.0 audit gate
+
+* Added final pre-v4 product capability proof audit.
+* Added strict P0/P1/P2 severity policy for product truth, safety, privacy, Core/UI contract drift, scale, and workflow evidence.
+* Added documentation truth and repository surface cleanup gate.
+* Updated README, version metadata, docs index, version matrix, user manual, command reference, report guide, local privacy/security docs, and Golden Demo guide.
+* v4.0 is not released; final gate may block v4.0 until P0/P1 issues are resolved or explicitly reviewed.
+
+## v3.12.0-alpha.1
+
+* Added opt-in Product Hardening & Local Release Readiness.
+* Added doctor/diagnostics, command audit, package audit, workspace audit, Golden Demo verification, stable user-facing error taxonomy, troubleshooting report, optional dependency diagnostics, no-secret/no-temp checks, local privacy boundary report, contract drift check, installer readiness assessment, local release readiness report, v4 RC gate report, and v312 external absorption map.
+* Preserved local-first behavior.
+* No real LLM/API/network dependency.
+* No SaaS, multi-user permission system, cloud sync, or UI implementation.
+
+## v3.11.0-alpha.1
+
+* Added Golden Demo & Real Acceptance Smoke.
+* Added real acceptance smoke result, artifact openability, sample coverage, package compatibility, smoke realism, and acceptance trace reports.
+* Preserved deterministic local behavior and no real LLM/API/network dependency.
+
 ## v3.10.0-alpha.1
 
 * Added opt-in Local Agent Runtime & Mother/Child Operations.

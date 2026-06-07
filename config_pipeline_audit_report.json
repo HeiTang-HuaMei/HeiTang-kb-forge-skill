@@ -1,0 +1,14 @@
+{
+  "audit_version": "final-pre-v4.0",
+  "status": "pass",
+  "required_config_markers": [
+    "QueryRewriteConfig",
+    "RetrievalQualityConfig",
+    "WorkspaceStorageConfig",
+    "LocalAgentRuntimeConfig",
+    "ProductHardeningConfig"
+  ],
+  "missing_config_markers": [],
+  "reason": "Config audit checks public schema markers only; behavior is validated by version-specific tests.",
+  "tests_require_real_llm_api_network": false
+}

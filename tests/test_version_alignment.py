@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "2.9.0-alpha.1"
+VERSION = "3.12.0-alpha.1"
 
 
 def test_project_versions_are_aligned():

@@ -1,0 +1,80 @@
+{
+  "audit_version": "final-pre-v4.0",
+  "status": "pass",
+  "required_docs": [
+    {
+      "file": "docs/DOCS_INDEX.md",
+      "status": "pass"
+    },
+    {
+      "file": "docs/DOCS_INDEX.zh-CN.md",
+      "status": "pass"
+    },
+    {
+      "file": "docs/VERSION_MATRIX.md",
+      "status": "pass"
+    },
+    {
+      "file": "docs/VERSION_MATRIX.zh-CN.md",
+      "status": "pass"
+    },
+    {
+      "file": "docs/USER_MANUAL.md",
+      "status": "pass"
+    },
+    {
+      "file": "docs/USER_MANUAL.zh-CN.md",
+      "status": "pass"
+    },
+    {
+      "file": "docs/COMMAND_REFERENCE.md",
+      "status": "pass"
+    },
+    {
+      "file": "docs/COMMAND_REFERENCE.zh-CN.md",
+      "status": "pass"
+    },
+    {
+      "file": "docs/OUTPUT_REPORT_GUIDE.md",
+      "status": "pass"
+    },
+    {
+      "file": "docs/OUTPUT_REPORT_GUIDE.zh-CN.md",
+      "status": "pass"
+    },
+    {
+      "file": "docs/LOCAL_PRIVACY_SECURITY.md",
+      "status": "pass"
+    },
+    {
+      "file": "docs/LOCAL_PRIVACY_SECURITY.zh-CN.md",
+      "status": "pass"
+    },
+    {
+      "file": "docs/TROUBLESHOOTING.md",
+      "status": "pass"
+    },
+    {
+      "file": "docs/TROUBLESHOOTING.zh-CN.md",
+      "status": "pass"
+    },
+    {
+      "file": "docs/GOLDEN_DEMO_GUIDE.md",
+      "status": "pass"
+    },
+    {
+      "file": "docs/GOLDEN_DEMO_GUIDE.zh-CN.md",
+      "status": "pass"
+    },
+    {
+      "file": "docs/ARCHITECTURE.md",
+      "status": "pass"
+    },
+    {
+      "file": "docs/ARCHITECTURE.zh-CN.md",
+      "status": "pass"
+    }
+  ],
+  "missing_docs": [],
+  "tests_require_real_llm_api_network": false
+}

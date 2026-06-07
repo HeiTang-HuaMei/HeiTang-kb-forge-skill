@@ -1,6 +1,8 @@
 # CLI 架构
 
-当前版本：`2.9.0-alpha.1`
+当前 Core 版本：`3.12.0-alpha.1`
+
+当前阶段：pre-v4.0 industrial acceptance audit / local Workbench RC preparation。
 
 ## 目的
 

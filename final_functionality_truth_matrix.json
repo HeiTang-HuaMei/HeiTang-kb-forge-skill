@@ -1,0 +1,351 @@
+{
+  "audit_version": "final-pre-v4.0",
+  "status": "needs_review",
+  "capabilities": [
+    {
+      "capability": "multi_format_parsing",
+      "category": "Parsing and Ingestion",
+      "implementation_status": "partial",
+      "gate_status": "needs_review",
+      "risk_level": "P1",
+      "evidence_files": [
+        "heitang_kb_forge/parsers/pdf_parser.py",
+        "heitang_kb_forge/parsers/docx_parser.py",
+        "heitang_kb_forge/parsers/table_parser.py"
+      ],
+      "evidence_tests": [],
+      "evidence_commands": [
+        "parse-with-backend",
+        "parse-quality-gate"
+      ],
+      "missing_evidence": {
+        "files": [],
+        "tests": [
+          "tests/test_parser_backends.py"
+        ],
+        "commands": []
+      },
+      "reason": "Multiple parser paths exist, but final acceptance still needs real mixed-file openability evidence.",
+      "real_implementation_required": true,
+      "file_existence_alone_is_pass": false,
+      "tests_require_real_llm_api_network": false
+    },
+    {
+      "capability": "local_pdf_to_markdown_token_reduction",
+      "category": "Parsing and Ingestion",
+      "implementation_status": "exists",
+      "gate_status": "pass",
+      "risk_level": "P1",
+      "evidence_files": [
+        "heitang_kb_forge/document_parsing/local_pdf_markdown.py",
+        "heitang_kb_forge/document_parsing/token_reduction.py"
+      ],
+      "evidence_tests": [
+        "tests/test_v39_local_pdf_markdown.py",
+        "tests/test_v39_pdf_token_reduction.py"
+      ],
+      "evidence_commands": [
+        "preprocess-pdf-markdown",
+        "report-pdf-token-reduction"
+      ],
+      "missing_evidence": {
+        "files": [],
+        "tests": [],
+        "commands": []
+      },
+      "reason": "Local preprocessing is implemented; external LiteDoc/PaddleOCR/MinerU are not hard dependencies.",
+      "real_implementation_required": true,
+      "file_existence_alone_is_pass": false,
+      "tests_require_real_llm_api_network": false
+    },
+    {
+      "capability": "query_rewrite_and_retrieval_planning",
+      "category": "RAG Query Understanding",
+      "implementation_status": "exists",
+      "gate_status": "pass",
+      "risk_level": "P2",
+      "evidence_files": [
+        "heitang_kb_forge/retrieval/query_planning.py"
+      ],
+      "evidence_tests": [
+        "tests/test_v37_query_rewrite.py",
+        "tests/test_v37_retrieval_planning.py"
+      ],
+      "evidence_commands": [
+        "rewrite-query",
+        "plan-retrieval"
+      ],
+      "missing_evidence": {
+        "files": [],
+        "tests": [],
+        "commands": []
+      },
+      "reason": "Deterministic local planning exists; optional LLM path remains reserved.",
+      "real_implementation_required": true,
+      "file_existence_alone_is_pass": false,
+      "tests_require_real_llm_api_network": false
+    },
+    {
+      "capability": "retrieval_quality_and_evaluation",
+      "category": "RAG Retrieval Quality",
+      "implementation_status": "exists",
+      "gate_status": "pass",
+      "risk_level": "P1",
+      "evidence_files": [
+        "heitang_kb_forge/retrieval/quality.py",
+        "heitang_kb_forge/retrieval/rerank.py",
+        "heitang_kb_forge/retrieval/evidence_selection.py"
+      ],
+      "evidence_tests": [
+        "tests/test_v38_rerank.py",
+        "tests/test_v38_evidence_selection.py",
+        "tests/test_v38_golden_query_eval.py"
+      ],
+      "evidence_commands": [
+        "eval-retrieval",
+        "rerank-results",
+        "select-evidence"
+      ],
+      "missing_evidence": {
+        "files": [],
+        "tests": [],
+        "commands": []
+      },
+      "reason": "Deterministic quality tools exist; real-world quality still needs golden-query growth.",
+      "real_implementation_required": true,
+      "file_existence_alone_is_pass": false,
+      "tests_require_real_llm_api_network": false
+    },
+    {
+      "capability": "knowledge_accuracy_verification",
+      "category": "Knowledge Accuracy",
+      "implementation_status": "exists",
+      "gate_status": "pass",
+      "risk_level": "P1",
+      "evidence_files": [
+        "heitang_kb_forge/verification/__init__.py"
+      ],
+      "evidence_tests": [
+        "tests/test_v38_claim_verification.py",
+        "tests/test_v38_source_cross_check.py",
+        "tests/test_v38_contradiction_detection.py"
+      ],
+      "evidence_commands": [
+        "verify-claims",
+        "check-knowledge-accuracy"
+      ],
+      "missing_evidence": {
+        "files": [],
+        "tests": [],
+        "commands": []
+      },
+      "reason": "Local claim/source/freshness checks exist without external retrieval. External verification retrieval remains out of v3.8 scope.",
+      "real_implementation_required": true,
+      "file_existence_alone_is_pass": false,
+      "tests_require_real_llm_api_network": false
+    },
+    {
+      "capability": "document_generation",
+      "category": "Generated Artifacts",
+      "implementation_status": "exists",
+      "gate_status": "pass",
+      "risk_level": "P1",
+      "evidence_files": [
+        "heitang_kb_forge/document_generation/generators.py",
+        "heitang_kb_forge/document_generation/reporter.py"
+      ],
+      "evidence_tests": [
+        "tests/test_v30_document_generation.py",
+        "tests/test_v30_document_generation_cli.py"
+      ],
+      "evidence_commands": [
+        "generate-documents",
+        "generate-md",
+        "generate-docx",
+        "generate-pdf",
+        "generate-pptx"
+      ],
+      "missing_evidence": {
+        "files": [],
+        "tests": [],
+        "commands": []
+      },
+      "reason": "Generation paths exist; final openability must be proven from real package outputs.",
+      "real_implementation_required": true,
+      "file_existence_alone_is_pass": false,
+      "tests_require_real_llm_api_network": false
+    },
+    {
+      "capability": "skill_and_agent_package_factory",
+      "category": "Agent and Skill System",
+      "implementation_status": "exists",
+      "gate_status": "pass",
+      "risk_level": "P1",
+      "evidence_files": [
+        "heitang_kb_forge/agent_package/generator.py",
+        "heitang_kb_forge/knowledge_bound_factory/__init__.py"
+      ],
+      "evidence_tests": [
+        "tests/test_v31_knowledge_bound_factory_cli.py",
+        "tests/test_agent_package_generator.py"
+      ],
+      "evidence_commands": [
+        "generate-agent",
+        "generate-bound-agent",
+        "generate-skill",
+        "validate-skill"
+      ],
+      "missing_evidence": {
+        "files": [],
+        "tests": [],
+        "commands": []
+      },
+      "reason": "Standalone and KB-bound package generation exist; runtime behavior is separate.",
+      "real_implementation_required": true,
+      "file_existence_alone_is_pass": false,
+      "tests_require_real_llm_api_network": false
+    },
+    {
+      "capability": "mother_child_agent_runtime",
+      "category": "Agent Runtime",
+      "implementation_status": "exists",
+      "gate_status": "pass",
+      "risk_level": "P1",
+      "evidence_files": [
+        "heitang_kb_forge/local_agent_runtime/runtime.py"
+      ],
+      "evidence_tests": [
+        "tests/test_v310_local_agent_runtime.py",
+        "tests/test_v310_local_agent_runtime_cli.py"
+      ],
+      "evidence_commands": [
+        "run-local-agent",
+        "orchestrate-multi-kb"
+      ],
+      "missing_evidence": {
+        "files": [],
+        "tests": [],
+        "commands": []
+      },
+      "reason": "Local deterministic runtime exists. Long-term memory database and real autonomous runtime are not implemented and must not be implied.",
+      "real_implementation_required": true,
+      "file_existence_alone_is_pass": false,
+      "tests_require_real_llm_api_network": false
+    },
+    {
+      "capability": "storage_and_memory_lifecycle",
+      "category": "Storage and Memory",
+      "implementation_status": "exists",
+      "gate_status": "pass",
+      "risk_level": "P1",
+      "evidence_files": [
+        "heitang_kb_forge/workspace_storage/registry.py",
+        "heitang_kb_forge/memory_lifecycle/schema.py"
+      ],
+      "evidence_tests": [
+        "tests/test_v39_workspace_registry.py",
+        "tests/test_v39_memory_lifecycle.py"
+      ],
+      "evidence_commands": [
+        "init-workspace",
+        "scan-workspace",
+        "plan-memory-lifecycle",
+        "plan-cleanup"
+      ],
+      "missing_evidence": {
+        "files": [],
+        "tests": [],
+        "commands": []
+      },
+      "reason": "Local workspace registries and lifecycle reports exist; local_db/BYO cloud are future-compatible placeholders only.",
+      "real_implementation_required": true,
+      "file_existence_alone_is_pass": false,
+      "tests_require_real_llm_api_network": false
+    },
+    {
+      "capability": "workbench_contracts",
+      "category": "Workbench Contracts",
+      "implementation_status": "exists",
+      "gate_status": "pass",
+      "risk_level": "P1",
+      "evidence_files": [
+        "heitang_kb_forge/workbench_contracts/contracts.py"
+      ],
+      "evidence_tests": [
+        "tests/test_v34_workbench_contracts.py",
+        "tests/test_v34_workbench_contracts_cli.py"
+      ],
+      "evidence_commands": [
+        "workbench-contracts"
+      ],
+      "missing_evidence": {
+        "files": [],
+        "tests": [],
+        "commands": []
+      },
+      "reason": "Core emits contracts; UI conformance must be validated separately.",
+      "real_implementation_required": true,
+      "file_existence_alone_is_pass": false,
+      "tests_require_real_llm_api_network": false
+    },
+    {
+      "capability": "golden_demo_acceptance",
+      "category": "Golden Demo",
+      "implementation_status": "exists",
+      "gate_status": "needs_review",
+      "risk_level": "P0",
+      "evidence_files": [
+        "heitang_kb_forge/golden_demo_acceptance/acceptance.py"
+      ],
+      "evidence_tests": [
+        "tests/test_v311_golden_demo_acceptance.py",
+        "tests/test_v311_golden_demo_acceptance_cli.py"
+      ],
+      "evidence_commands": [
+        "run-golden-demo-acceptance"
+      ],
+      "missing_evidence": {
+        "files": [],
+        "tests": [],
+        "commands": []
+      },
+      "reason": "Acceptance smoke exists; final gate must include real command/test validation.",
+      "real_implementation_required": true,
+      "file_existence_alone_is_pass": false,
+      "tests_require_real_llm_api_network": false
+    },
+    {
+      "capability": "product_hardening_release_readiness",
+      "category": "Product Hardening",
+      "implementation_status": "exists",
+      "gate_status": "needs_review",
+      "risk_level": "P0",
+      "evidence_files": [
+        "heitang_kb_forge/product_hardening/hardening.py"
+      ],
+      "evidence_tests": [
+        "tests/test_v312_product_hardening.py",
+        "tests/test_v312_product_hardening_cli.py"
+      ],
+      "evidence_commands": [
+        "product-hardening",
+        "doctor"
+      ],
+      "missing_evidence": {
+        "files": [],
+        "tests": [],
+        "commands": []
+      },
+      "reason": "v3.12 hardening exists, but this final audit is stricter and supersedes any narrow v3.12 ready claim.",
+      "real_implementation_required": true,
+      "file_existence_alone_is_pass": false,
+      "tests_require_real_llm_api_network": false
+    }
+  ],
+  "total_capabilities": 12,
+  "passed_capabilities": 9,
+  "needs_review_capabilities": 3,
+  "file_existence_alone_is_pass": false,
+  "severity_policy": "All issues must be classified by severity and scope. P0 issues must block v4.0. P1 issues must be fixed or explicitly reviewed before v4.0. P2 issues may be documented as future improvements. Low-risk issues may be fixed immediately, but high-risk issues must not be ignored, hidden, or bypassed.",
+  "tests_require_real_llm_api_network": false
+}

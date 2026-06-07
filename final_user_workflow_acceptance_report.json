@@ -1,0 +1,149 @@
+{
+  "audit_version": "final-pre-v4.0",
+  "status": "needs_review",
+  "workflows": [
+    {
+      "workflow_id": "workflow_a_raw_material_to_package",
+      "description": "Raw source material can be built into a KB package.",
+      "status": "pass",
+      "commands": [
+        "build"
+      ],
+      "artifacts": [
+        "manifest.json",
+        "chunks.jsonl",
+        "quality_report.json"
+      ],
+      "missing_commands": [],
+      "missing_artifacts": [],
+      "proof_level": "real_artifact",
+      "user_impact": "Workflow cannot be claimed complete until commands and non-empty artifacts are verified."
+    },
+    {
+      "workflow_id": "workflow_b_package_to_skill",
+      "description": "KB package can be converted into skill/agent artifacts.",
+      "status": "pass",
+      "commands": [
+        "generate-skill",
+        "generate-agent"
+      ],
+      "artifacts": [
+        "skill.json"
+      ],
+      "missing_commands": [],
+      "missing_artifacts": [],
+      "proof_level": "real_artifact",
+      "user_impact": "Workflow cannot be claimed complete until commands and non-empty artifacts are verified."
+    },
+    {
+      "workflow_id": "workflow_c_package_to_agent",
+      "description": "Standalone and KB-bound agent generation paths are available.",
+      "status": "needs_review",
+      "commands": [
+        "generate-agent",
+        "generate-bound-agent"
+      ],
+      "artifacts": [],
+      "missing_commands": [],
+      "missing_artifacts": [
+        "agent_profile.json"
+      ],
+      "proof_level": "needs_real_workflow_rerun",
+      "user_impact": "Workflow cannot be claimed complete until commands and non-empty artifacts are verified."
+    },
+    {
+      "workflow_id": "workflow_d_agent_runtime",
+      "description": "Local agent runtime can answer routed tasks without network by default.",
+      "status": "needs_review",
+      "commands": [
+        "run-local-agent"
+      ],
+      "artifacts": [],
+      "missing_commands": [],
+      "missing_artifacts": [
+        "local_agent_runtime_status.json"
+      ],
+      "proof_level": "needs_real_workflow_rerun",
+      "user_impact": "Workflow cannot be claimed complete until commands and non-empty artifacts are verified."
+    },
+    {
+      "workflow_id": "workflow_e_rag_query_quality",
+      "description": "Query planning, rerank, evidence selection, and evaluation paths exist.",
+      "status": "needs_review",
+      "commands": [
+        "rewrite-query",
+        "plan-retrieval",
+        "eval-retrieval"
+      ],
+      "artifacts": [],
+      "missing_commands": [],
+      "missing_artifacts": [
+        "retrieval_plan.json",
+        "retrieval_quality_report.json"
+      ],
+      "proof_level": "needs_real_workflow_rerun",
+      "user_impact": "Workflow cannot be claimed complete until commands and non-empty artifacts are verified."
+    },
+    {
+      "workflow_id": "workflow_f_storage_memory",
+      "description": "Local workspace and memory lifecycle reports are available.",
+      "status": "needs_review",
+      "commands": [
+        "init-workspace",
+        "plan-memory-lifecycle"
+      ],
+      "artifacts": [],
+      "missing_commands": [],
+      "missing_artifacts": [
+        "memory_lifecycle_report.json",
+        "workspace_registry.json"
+      ],
+      "proof_level": "needs_real_workflow_rerun",
+      "user_impact": "Workflow cannot be claimed complete until commands and non-empty artifacts are verified."
+    },
+    {
+      "workflow_id": "workflow_g_generated_documents",
+      "description": "Generated MD/DOCX/PDF/PPTX document paths are available.",
+      "status": "needs_review",
+      "commands": [
+        "generate-documents"
+      ],
+      "artifacts": [],
+      "missing_commands": [],
+      "missing_artifacts": [
+        "generated_file_report.json"
+      ],
+      "proof_level": "needs_real_workflow_rerun",
+      "user_impact": "Workflow cannot be claimed complete until commands and non-empty artifacts are verified."
+    },
+    {
+      "workflow_id": "workflow_h_golden_demo",
+      "description": "Golden demo smoke can verify generated artifacts.",
+      "status": "needs_review",
+      "commands": [
+        "run-golden-demo-acceptance"
+      ],
+      "artifacts": [],
+      "missing_commands": [],
+      "missing_artifacts": [
+        "real_acceptance_smoke_result.json"
+      ],
+      "proof_level": "needs_real_workflow_rerun",
+      "user_impact": "Workflow cannot be claimed complete until commands and non-empty artifacts are verified."
+    },
+    {
+      "workflow_id": "workflow_i_release_gate",
+      "description": "Final gate combines Core, UI, security, scale, docs, and artifact evidence.",
+      "status": "needs_review",
+      "commands": [],
+      "artifacts": [
+        "final_v4_rc_gate_report.json"
+      ],
+      "missing_commands": [],
+      "missing_artifacts": [],
+      "proof_level": "needs_real_workflow_rerun",
+      "user_impact": "Workflow cannot be claimed complete until commands and non-empty artifacts are verified."
+    }
+  ],
+  "tests_require_real_llm_api_network": false
+}

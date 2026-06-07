@@ -1,8 +1,8 @@
 # Capability Status
 
-Current project version: `2.9.0-alpha.1`
+Current Core version: `3.12.0-alpha.1`
 
-v2.9.0-alpha.1 is an opt-in Knowledge Runtime Loop checkpoint. It keeps default package generation unchanged unless knowledge runtime mode is enabled.
+Latest completed Core version is v3.12 Product Hardening & Local Release Readiness. The project is now in final pre-v4.0 industrial acceptance audit / local Workbench RC preparation. v4.0 is not released.
 
 ## Stable
 
@@ -52,6 +52,13 @@ v2.9.0-alpha.1 is an opt-in Knowledge Runtime Loop checkpoint. It keeps default 
 - query trace and citation trace
 - retrieval quality report
 - RAG eval baseline
+- document generation loop
+- query rewrite and retrieval planning
+- retrieval quality and knowledge accuracy evaluation
+- local workspace storage and memory lifecycle
+- local Agent runtime mother/child smoke
+- Golden Demo acceptance smoke
+- product hardening and final pre-v4 audit
 
 ## Experimental
 
@@ -65,13 +72,15 @@ v2.9.0-alpha.1 is an opt-in Knowledge Runtime Loop checkpoint. It keeps default 
 - golden samples
 - compatibility matrix
 - desktop / web UI
+- UI Workbench prototype, pending final Core/UI validation
 
 ## Roadmap
 
 - runtime compatibility smoke
 - future domain Skill factory
 - future client platform integrations
-- v3.x SaaS / permissions / team collaboration
+- v4.0 Local Knowledge Workbench RC after final audit
+- SaaS / permissions / team collaboration remains future/out of scope
 
 ## Reserved
 

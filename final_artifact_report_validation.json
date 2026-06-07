@@ -1,0 +1,10 @@
+{
+  "audit_version": "final-pre-v4.0",
+  "status": "needs_review",
+  "json_report_count_at_scan_time": 47,
+  "md_report_count_at_scan_time": 31,
+  "final_report_count_at_scan_time": 29,
+  "artifact_openability_report": "artifact_openability_report.json",
+  "report_non_empty_validation_report": "report_non_empty_validation_report.json",
+  "tests_require_real_llm_api_network": false
+}

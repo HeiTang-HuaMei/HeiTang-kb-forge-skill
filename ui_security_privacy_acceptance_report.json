@@ -1,0 +1,17 @@
+{
+  "audit_version": "final-pre-v4.0",
+  "status": "pass",
+  "hidden_upload_claim": "not_detected_by_static_core_audit",
+  "validation": {
+    "status": "pass",
+    "flutter_pub_get": "pass",
+    "flutter_analyze": "pass",
+    "flutter_test_expanded": "6 passed",
+    "flutter_build_web": "pass",
+    "flutter_build_windows": "pass",
+    "ui_pytest": "465 passed, 1 skipped",
+    "ui_repo_modified_by_audit": false
+  },
+  "reason": "UI privacy acceptance depends on UI validation and manual review of any network-capable UI paths.",
+  "tests_require_real_llm_api_network": false
+}

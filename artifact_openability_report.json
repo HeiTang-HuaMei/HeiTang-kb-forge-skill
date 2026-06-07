@@ -1,0 +1,33 @@
+{
+  "audit_version": "final-pre-v4.0",
+  "status": "needs_review",
+  "artifacts": [
+    {
+      "artifact": "manifest.json",
+      "status": "pass",
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/examples/demo_education_tutor_agent/output_sample/manifest.json"
+    },
+    {
+      "artifact": "chunks.jsonl",
+      "status": "pass",
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/examples/demo_education_tutor_agent/output_sample/chunks.jsonl"
+    },
+    {
+      "artifact": "quality_report.json",
+      "status": "pass",
+      "path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/examples/demo_education_tutor_agent/output_sample/quality_report.json"
+    },
+    {
+      "artifact": "generated_file_report.json",
+      "status": "needs_review",
+      "path": null
+    },
+    {
+      "artifact": "real_acceptance_smoke_result.json",
+      "status": "needs_review",
+      "path": null
+    }
+  ],
+  "reason": "Openability checks parse known local artifacts when present; missing real workflow artifacts remain needs_review.",
+  "tests_require_real_llm_api_network": false
+}
