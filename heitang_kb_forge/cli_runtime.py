@@ -130,7 +130,15 @@ from heitang_kb_forge.llm.quality_gate_assist import run_llm_quality_gate_assist
 from heitang_kb_forge.rag.exporter import RAGOptions, RAG_OUTPUT_FILES, make_rag_export
 from heitang_kb_forge.release import make_release_package
 from heitang_kb_forge.reliability import make_reliability_score
-from heitang_kb_forge.retrieval import RETRIEVAL_OUTPUT_FILES, build_retrieval_outputs
+from heitang_kb_forge.retrieval import (
+    QUERY_PLANNING_OUTPUT_FILES,
+    RETRIEVAL_OUTPUT_FILES,
+    build_retrieval_outputs,
+    build_retrieval_plan,
+    evaluate_query_rewrite_cases,
+    load_eval_cases,
+    write_query_planning_outputs,
+)
 from heitang_kb_forge.retrieval.index_builder import build_retrieval_index
 from heitang_kb_forge.refresh.checker import make_refresh_plan
 from heitang_kb_forge.risk.labeler import RISK_OUTPUT_FILES, make_risk_labels
@@ -375,6 +383,18 @@ class GovernanceOptions:
 class RetrievalIndexOptions:
     enabled: bool = False
     query: str = "Summarize this knowledge package."
+
+
+@dataclass
+class QueryRewriteOptions:
+    enabled: bool = False
+    strategy: str = "hybrid"
+    use_conversation_context: bool = True
+    conversation_context: str | None = None
+    generate_multi_queries: bool = True
+    max_rewrites: int = 5
+    allow_llm_rewrite: bool = False
+    retrieval_purpose: str = "answering"
 
 
 @dataclass
@@ -1789,6 +1809,76 @@ def release_readiness_command(
     typer.echo(f"Release readiness: {result.status} | Release ready: {result.release_ready}")
 
 
+@app.command("rewrite-query")
+def rewrite_query_command(
+    query: str = typer.Option(..., "--query"),
+    output: Path = typer.Option(..., "--output", "-o"),
+    conversation_context: str | None = typer.Option(None, "--conversation-context"),
+    domain: str = typer.Option("general", "--domain"),
+    max_rewrites: int = typer.Option(5, "--max-rewrites"),
+    allow_llm_rewrite: bool = typer.Option(False, "--allow-llm-rewrite"),
+) -> None:
+    """Write deterministic v3.7 query rewrite reports without LLM or network calls."""
+    plan = build_retrieval_plan(
+        query,
+        domain=domain,
+        conversation_context=conversation_context,
+        max_rewrites=max_rewrites,
+        allow_llm_rewrite=allow_llm_rewrite,
+    )
+    result = write_query_planning_outputs(output, plan)
+    typer.echo(f"Built query rewrite report at {output}")
+    typer.echo(f"Rewrite reason: {plan['rewrite_reason']} | Variants: {result['query_variant_count']}")
+
+
+@app.command("plan-retrieval")
+def plan_retrieval_command(
+    query: str = typer.Option(..., "--query"),
+    output: Path = typer.Option(..., "--output", "-o"),
+    purpose: str = typer.Option("answering", "--purpose"),
+    package: Path | None = typer.Option(None, "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    top_k: int = typer.Option(5, "--top-k"),
+    citation_required: bool = typer.Option(True, "--citation-required/--no-citation-required"),
+    conversation_context: str | None = typer.Option(None, "--conversation-context"),
+    domain: str = typer.Option("general", "--domain"),
+    max_rewrites: int = typer.Option(5, "--max-rewrites"),
+    allow_llm_rewrite: bool = typer.Option(False, "--allow-llm-rewrite"),
+) -> None:
+    """Write a v3.7 retrieval plan for answering or validation purpose."""
+    try:
+        plan = build_retrieval_plan(
+            query,
+            package=package,
+            domain=domain,
+            conversation_context=conversation_context,
+            purpose=purpose,
+            top_k=top_k,
+            citation_required=citation_required,
+            max_rewrites=max_rewrites,
+            allow_llm_rewrite=allow_llm_rewrite,
+        )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc), param_hint="--purpose") from exc
+    result = write_query_planning_outputs(output, plan)
+    typer.echo(f"Built retrieval plan at {output / 'retrieval_plan.json'}")
+    typer.echo(f"Purpose: {plan['retrieval_purpose']} | Variants: {result['query_variant_count']}")
+
+
+@app.command("eval-query-rewrite")
+def eval_query_rewrite_command(
+    cases: Path = typer.Option(..., "--cases", exists=True, file_okay=True, dir_okay=False, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    domain: str = typer.Option("general", "--domain"),
+    max_rewrites: int = typer.Option(5, "--max-rewrites"),
+) -> None:
+    """Evaluate deterministic query rewrite fixtures without real LLM/API/network calls."""
+    eval_cases = load_eval_cases(cases)
+    report = evaluate_query_rewrite_cases(eval_cases, domain=domain, max_rewrites=max_rewrites)
+    output.mkdir(parents=True, exist_ok=True)
+    write_json(output / "query_rewrite_eval_report.json", report)
+    typer.echo(f"Query rewrite eval: {report['status']} | Cases: {report['case_count']}")
+
+
 @app.command()
 def run(
     config: Path = typer.Option(..., "--config", "-c", exists=True, file_okay=True, dir_okay=False, readable=True),
@@ -2477,6 +2567,18 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
     contract_options = ContractOptions(config_data.contract.version, config_data.contract.check, config_data.contract.strict)
     governance_options = GovernanceOptions(config_data.governance.enabled, config_data.governance.previous_package)
     retrieval_index_options = RetrievalIndexOptions(config_data.retrieval.enabled, config_data.retrieval.query)
+    query_rewrite_options = QueryRewriteOptions(
+        enabled=config_data.query_rewrite.enabled,
+        strategy=config_data.query_rewrite.strategy,
+        use_conversation_context=config_data.query_rewrite.use_conversation_context,
+        conversation_context=config_data.query_rewrite.conversation_context,
+        generate_multi_queries=config_data.query_rewrite.generate_multi_queries,
+        max_rewrites=config_data.query_rewrite.max_rewrites,
+        allow_llm_rewrite=config_data.query_rewrite.allow_llm_rewrite,
+        retrieval_purpose=config_data.query_rewrite.retrieval_purpose,
+    )
+    if query_rewrite_options.enabled and query_rewrite_options.retrieval_purpose not in {"answering", "validation"}:
+        raise typer.BadParameter("query_rewrite.retrieval_purpose must be one of: answering, validation")
     knowledge_runtime_options = KnowledgeRuntimeOptions(
         enabled=config_data.knowledge_runtime.enabled,
         query=config_data.knowledge_runtime.query,
@@ -2525,6 +2627,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             agent_options=agent_options,
             governance_options=governance_options,
             retrieval_index_options=retrieval_index_options,
+            query_rewrite_options=query_rewrite_options,
             knowledge_runtime_options=knowledge_runtime_options,
             document_generation_options=document_generation_options,
             evidence_gate_options=evidence_gate_options,
@@ -2730,6 +2833,18 @@ def _make_parser_backend_options(config_data: ForgeConfig) -> ParserBackendOptio
         require_review_for_high_risk_chunks=policy.require_review_for_high_risk_chunks,
         allow_untrusted=config_data.parser_backend.allow_untrusted,
     )
+
+
+def _query_rewrite_query(
+    query_rewrite_options: QueryRewriteOptions,
+    retrieval_index_options: RetrievalIndexOptions,
+    knowledge_runtime_options: KnowledgeRuntimeOptions,
+) -> str:
+    if knowledge_runtime_options.enabled:
+        return knowledge_runtime_options.query
+    if retrieval_index_options.enabled:
+        return retrieval_index_options.query
+    return "Summarize this knowledge package."
 
 
 def _apply_performance_overrides(
@@ -3393,6 +3508,7 @@ def _build_package(
     agent_options: AgentOptions | None = None,
     governance_options: GovernanceOptions | None = None,
     retrieval_index_options: RetrievalIndexOptions | None = None,
+    query_rewrite_options: QueryRewriteOptions | None = None,
     knowledge_runtime_options: KnowledgeRuntimeOptions | None = None,
     document_generation_options: DocumentGenerationOptions | None = None,
     evidence_gate_options: EvidenceGateOptions | None = None,
@@ -3665,6 +3781,7 @@ def _build_package(
     contract_options = contract_options or ContractOptions()
     governance_options = governance_options or GovernanceOptions()
     retrieval_index_options = retrieval_index_options or RetrievalIndexOptions()
+    query_rewrite_options = query_rewrite_options or QueryRewriteOptions()
     knowledge_runtime_options = knowledge_runtime_options or KnowledgeRuntimeOptions()
     document_generation_options = document_generation_options or DocumentGenerationOptions()
     evidence_gate_options = evidence_gate_options or EvidenceGateOptions()
@@ -3694,6 +3811,8 @@ def _build_package(
         files.extend(AGENT_OUTPUT_FILES)
     if demo_report:
         files.extend(DEMO_OUTPUT_FILES)
+    if query_rewrite_options.enabled:
+        files.extend(QUERY_PLANNING_OUTPUT_FILES)
     if multimodal_options.enabled:
         files.extend(multimodal_result.output_files)
     validation_options = validation_options or ValidationOptions()
@@ -4048,6 +4167,32 @@ def _build_package(
     if retrieval_index_options.enabled:
         build_retrieval_outputs(output, output, retrieval_index_options.query)
         manifest_payload.update({"retrieval_index_enabled": True, "retrieval_index_files": RETRIEVAL_OUTPUT_FILES})
+        write_json(output / "manifest.json", manifest_payload)
+    if query_rewrite_options.enabled:
+        query = _query_rewrite_query(query_rewrite_options, retrieval_index_options, knowledge_runtime_options)
+        plan = build_retrieval_plan(
+            query,
+            package=output,
+            domain=domain,
+            conversation_context=query_rewrite_options.conversation_context if query_rewrite_options.use_conversation_context else None,
+            purpose=query_rewrite_options.retrieval_purpose,
+            top_k=knowledge_runtime_options.top_k if knowledge_runtime_options.enabled else 5,
+            citation_required=knowledge_runtime_options.citation_required,
+            max_rewrites=query_rewrite_options.max_rewrites,
+            generate_multi_queries=query_rewrite_options.generate_multi_queries,
+            allow_llm_rewrite=query_rewrite_options.allow_llm_rewrite,
+        )
+        query_planning_result = write_query_planning_outputs(output, plan)
+        manifest_payload.update(
+            {
+                "query_rewrite_enabled": True,
+                "query_rewrite_strategy": query_rewrite_options.strategy,
+                "query_rewrite_files": query_planning_result["output_files"],
+                "retrieval_planning_enabled": True,
+                "retrieval_planning_purpose": plan["retrieval_purpose"],
+                "query_rewrite_llm_assist": plan["optional_llm_assist_path"],
+            }
+        )
         write_json(output / "manifest.json", manifest_payload)
     if knowledge_runtime_options.enabled:
         kb_answer_report = answer_kb_outputs(

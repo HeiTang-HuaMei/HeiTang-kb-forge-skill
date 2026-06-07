@@ -342,6 +342,17 @@ class RetrievalIndexConfig(BaseModel):
     query: str = "Summarize this knowledge package."
 
 
+class QueryRewriteConfig(BaseModel):
+    enabled: bool = False
+    strategy: str = "hybrid"
+    use_conversation_context: bool = True
+    conversation_context: str | None = None
+    generate_multi_queries: bool = True
+    max_rewrites: int = 5
+    allow_llm_rewrite: bool = False
+    retrieval_purpose: str = "answering"
+
+
 class KnowledgeRuntimeConfig(BaseModel):
     enabled: bool = False
     query: str = "Summarize this knowledge package."
@@ -539,6 +550,7 @@ class ForgeConfig(BaseModel):
     contract: ContractConfig = Field(default_factory=ContractConfig)
     governance: GovernanceConfig = Field(default_factory=GovernanceConfig)
     retrieval: RetrievalIndexConfig = Field(default_factory=RetrievalIndexConfig)
+    query_rewrite: QueryRewriteConfig = Field(default_factory=QueryRewriteConfig)
     knowledge_runtime: KnowledgeRuntimeConfig = Field(default_factory=KnowledgeRuntimeConfig)
     document_generation: DocumentGenerationConfig = Field(default_factory=DocumentGenerationConfig)
     evidence_gate: EvidenceGateConfig = Field(default_factory=EvidenceGateConfig)

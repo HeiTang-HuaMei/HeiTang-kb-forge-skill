@@ -89,6 +89,8 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("review_queue", config.governance.enabled, output, ["review_queue.jsonl", "review_queue_report.md"], config.task),
         _stage("retrieval_index", config.retrieval.enabled, output, ["retrieval_index.jsonl", "retrieval_manifest.json"], config.task),
         _stage("context_pack", config.retrieval.enabled, output, ["context_pack.json", "context_pack.md"], config.task),
+        _stage("query_rewrite", config.query_rewrite.enabled, output, ["query_rewrite_report.json", "query_rewrite_trace.json"], config.task),
+        _stage("retrieval_planning", config.query_rewrite.enabled, output, ["retrieval_plan.json", "retrieval_plan_report.md"], config.task),
         _stage("kb_index", config.knowledge_runtime.enabled, output, ["kb_index.jsonl", "kb_index_manifest.json"], config.task),
         _stage("kb_query", config.knowledge_runtime.enabled, output, ["kb_query_result.json", "kb_query_trace.json", "kb_citation_trace.json"], config.task),
         _stage("kb_answer", config.knowledge_runtime.enabled, output, ["kb_answer.md", "kb_answer_report.json"], config.task),
