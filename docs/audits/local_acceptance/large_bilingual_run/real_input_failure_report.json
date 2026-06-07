@@ -1,0 +1,80 @@
+{
+  "failure_report_version": "pre-v4-large-bilingual-1",
+  "generated_at": "2026-06-07T17:42:41.490803+00:00",
+  "status": "blocked",
+  "blockers": [
+    {
+      "severity": "P1",
+      "id": "scanned_pdf_full_ocr_not_proven",
+      "scope": "Parsing/OCR",
+      "status": "needs_review",
+      "reason": "120 scanned PDF pages required OCR; this acceptance run limited OCR during build and extracted 2910 chars in token report.",
+      "recommended_fix": "Run a full OCR acceptance or mark scanned-PDF full OCR as reviewed/limited before v4.",
+      "blocks_v4": true
+    },
+    {
+      "severity": "P1",
+      "id": "knowledge_accuracy_warning_on_conflict_sources",
+      "scope": "RAG Verification",
+      "status": "needs_review",
+      "reason": "Knowledge accuracy status is warning with score 0.6715 and review_required=True.",
+      "recommended_fix": "Review contradiction/freshness reports and decide whether this is expected for supplied contradictory sources.",
+      "blocks_v4": true
+    },
+    {
+      "severity": "P1",
+      "id": "local_agent_runtime_blocked_by_kb_access_binding",
+      "scope": "Agent Runtime",
+      "status": "needs_review",
+      "reason": "Local agent runtime status is blocked; child KB access report status blocked with allowed_kbs=[].",
+      "recommended_fix": "Fix generated Agent KB binding metadata or runtime authorization lookup so a KB-bound agent can access its own package while still blocking unauthorized KBs.",
+      "blocks_v4": true
+    },
+    {
+      "severity": "P0",
+      "id": "product_hardening_release_readiness_failed",
+      "scope": "Product Hardening",
+      "status": "blocked",
+      "reason": "Product hardening status fail critical blockers: ['golden_demo_verification', 'no_secret_no_temp', 'contract_drift', 'v4_rc_gate', 'v311_golden_demo_acceptance']",
+      "recommended_fix": "Resolve product hardening blockers before v4 RC.",
+      "blocks_v4": true
+    },
+    {
+      "severity": "P1",
+      "id": "product_hardening_contract_drift_false_negative",
+      "scope": "Workbench Contracts",
+      "status": "needs_review",
+      "reason": "Workbench contracts were generated in a subdirectory, but product hardening checks package root only and reports missing contract files.",
+      "recommended_fix": "Either normalize contract output into gate-visible location or teach product hardening to find generated contract directory.",
+      "blocks_v4": true
+    },
+    {
+      "severity": "P1",
+      "id": "secret_pattern_scanner_flags_literal_test_patterns",
+      "scope": "Privacy/Security",
+      "status": "needs_review",
+      "reason": "Secret scanner found literal pattern hits in source files: ['heitang_kb_forge/final_audit/audit.py', 'heitang_kb_forge/product_hardening/hardening.py', 'heitang_kb_forge/release_readiness/evaluator.py']",
+      "recommended_fix": "Distinguish literal scanner test patterns from real secrets, or move patterns to redacted fixtures that do not trip release gates.",
+      "blocks_v4": true
+    },
+    {
+      "severity": "P1",
+      "id": "optional_live_llm_not_verified_process_env_isolation",
+      "scope": "Optional LLM",
+      "status": "needs_review",
+      "reason": "required variables were not visible to the current Codex process after re-check; likely process environment isolation after user configured PowerShell environment",
+      "recommended_fix": "Restart Codex from a process that inherits HEITANG_LLM_* variables or run live LLM acceptance in the same process, without committing keys.",
+      "blocks_v4": false
+    },
+    {
+      "severity": "P0",
+      "id": "final_pre_v4_gate_still_blocked",
+      "scope": "Final Gate",
+      "status": "blocked",
+      "reason": "Final pre-v4 gate status is blocked ready=False.",
+      "recommended_fix": "Attach real proof, run tests/CI, resolve P0/P1 blockers, then regenerate final gate.",
+      "blocks_v4": true
+    }
+  ],
+  "tests_require_real_llm_api_network": false
+}

@@ -1,0 +1,33 @@
+{
+  "document_generation_report_version": "pre-v4-large-bilingual-1",
+  "status": "pass",
+  "generated_file_report": {
+    "generated_file_report_version": "3.0.0-alpha.1",
+    "files": [
+      {
+        "format": "docx",
+        "path": "C:\\Users\\Administrator\\Documents\\New project 2\\kb-forge-skill\\_local_acceptance_outputs\\large_bilingual_run\\core_package\\generated.docx",
+        "bytes": 39387
+      },
+      {
+        "format": "md",
+        "path": "C:\\Users\\Administrator\\Documents\\New project 2\\kb-forge-skill\\_local_acceptance_outputs\\large_bilingual_run\\core_package\\generated.md",
+        "bytes": 32404
+      },
+      {
+        "format": "pdf",
+        "path": "C:\\Users\\Administrator\\Documents\\New project 2\\kb-forge-skill\\_local_acceptance_outputs\\large_bilingual_run\\core_package\\generated.pdf",
+        "bytes": 3575
+      },
+      {
+        "format": "pptx",
+        "path": "C:\\Users\\Administrator\\Documents\\New project 2\\kb-forge-skill\\_local_acceptance_outputs\\large_bilingual_run\\core_package\\generated.pptx",
+        "bytes": 1934
+      }
+    ]
+  },
+  "export_validation_status": "pass",
+  "generated_documents_committed": false,
+  "generated_document_content_redacted": true,
+  "tests_require_real_llm_api_network": false
+}

@@ -1,0 +1,24 @@
+{
+  "pdf_parser_report_version": "pre-v4-large-bilingual-1",
+  "status": "needs_review",
+  "pdf_input_count": 4,
+  "pdf_preflight_summary": {
+    "pdf_preflight_version": "1.6.2",
+    "reports": [
+      {
+        "pdf_preflight_version": "1.6.2",
+        "source_path": "_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/02_scanned_image_pdf/扫描型_中英混合_OCR压力测试_120页.pdf",
+        "total_pages": 120,
+        "ocr_candidate_pages": 120,
+        "skipped_empty_pages": 0
+      }
+    ]
+  },
+  "classified_page_count": 120,
+  "needs_ocr_page_count": 120,
+  "ocr_limited_in_build": true,
+  "parser_backend_benchmark_status": "exists",
+  "token_reduction_status": "exists",
+  "raw_pdf_sent_to_llm": false,
+  "tests_require_real_llm_api_network": false
+}

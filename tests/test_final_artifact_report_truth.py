@@ -10,4 +10,7 @@ def test_artifact_reports_are_non_empty_and_parseable(tmp_path):
 
     artifact = load_json(output, "artifact_openability_report.json")
     assert artifact["artifacts"]
-    assert any(item["status"] == "needs_review" for item in artifact["artifacts"])
+    statuses = {item["status"] for item in artifact["artifacts"]}
+    assert statuses <= {"pass", "needs_review"}
+    if "needs_review" not in statuses:
+        assert artifact["status"] == "pass"

@@ -400,5 +400,40 @@
   "final_gate_rule": "Do not start v4.0 automatically. If the product is not ready, mark blocked.",
   "recommendation": "blocked: resolve P0 blockers and review/fix blocking P1 items before v4.0.",
   "next_action": "Work the issue_checklist from P0 to P1 to P2; regenerate this report after each fix batch.",
-  "tests_require_real_llm_api_network": false
+  "tests_require_real_llm_api_network": false,
+  "real_input_acceptance": {
+    "status": "blocked",
+    "proof_dir": "docs/audits/local_acceptance/large_bilingual_run",
+    "local_core_without_llm_status": "pass",
+    "large_bilingual_source_count": 66,
+    "large_bilingual_chunk_count": 9599,
+    "raw_inputs_committed": false,
+    "full_extracted_chunks_committed": false
+  },
+  "bilingual_behavior_acceptance": {
+    "status": "partial",
+    "report": "docs/audits/local_acceptance/large_bilingual_run/real_input_bilingual_behavior_report.json"
+  },
+  "large_pdf_scanned_pdf_docx_acceptance": {
+    "status": "needs_review",
+    "pdf_count": 4,
+    "docx_count": 1,
+    "scanned_pdf_ocr_candidate_pages": 120,
+    "full_scanned_pdf_ocr_verified": false
+  },
+  "optional_llm_provider_acceptance": {
+    "status": "needs_review",
+    "report": "docs/audits/local_acceptance/large_bilingual_run/optional_llm_provider_acceptance_report.json",
+    "process_env_visibility": {
+      "HEITANG_LLM_ACCEPTANCE_ENABLED": "not_visible",
+      "HEITANG_LLM_PROVIDER": "not_visible",
+      "HEITANG_LLM_BASE_URL": "not_visible",
+      "HEITANG_LLM_API_KEY": "not_visible",
+      "HEITANG_LLM_MODEL": "not_visible",
+      "HEITANG_LLM_TIMEOUT_SEC": "not_visible"
+    },
+    "api_key_written_or_committed": false,
+    "skip_reason": "required variables were not visible to the current Codex process after re-check; likely process environment isolation after user configured PowerShell environment"
+  },
+  "local_core_without_llm_required_for_tests": false
 }

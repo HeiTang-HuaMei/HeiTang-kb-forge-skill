@@ -1,0 +1,60 @@
+{
+  "update_lifecycle_report_version": "pre-v4-large-bilingual-1",
+  "status": "partial",
+  "lifecycle_probe_files": [
+    {
+      "relative_path": "_local_acceptance_outputs/large_bilingual_run/kb_update_lifecycle_probe/changed_sources.jsonl",
+      "file_name": "changed_sources.jsonl",
+      "suffix": ".jsonl",
+      "size_bytes": 0,
+      "content_committed": false,
+      "full_content_redacted": false,
+      "reason": "metadata_index_only",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "relative_path": "_local_acceptance_outputs/large_bilingual_run/kb_update_lifecycle_probe/missing_sources.jsonl",
+      "file_name": "missing_sources.jsonl",
+      "suffix": ".jsonl",
+      "size_bytes": 0,
+      "content_committed": false,
+      "full_content_redacted": false,
+      "reason": "metadata_index_only",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "relative_path": "_local_acceptance_outputs/large_bilingual_run/kb_update_lifecycle_probe/new_sources.jsonl",
+      "file_name": "new_sources.jsonl",
+      "suffix": ".jsonl",
+      "size_bytes": 460,
+      "content_committed": false,
+      "full_content_redacted": false,
+      "reason": "metadata_index_only",
+      "sha256": "aa68cf46e1f6a63457f12c32bfbae5e5e96062c132b50d233be22bbfb8baf9fc"
+    },
+    {
+      "relative_path": "_local_acceptance_outputs/large_bilingual_run/kb_update_lifecycle_probe/source_change_report.md",
+      "file_name": "source_change_report.md",
+      "suffix": ".md",
+      "size_bytes": 262,
+      "content_committed": false,
+      "full_content_redacted": false,
+      "reason": "metadata_index_only",
+      "sha256": "884c4f69cd4f3a3e52f853a4433e7d55f3867d497e38389b39e82b18f0d03f13"
+    },
+    {
+      "relative_path": "_local_acceptance_outputs/large_bilingual_run/kb_update_lifecycle_probe/source_registry.json",
+      "file_name": "source_registry.json",
+      "suffix": ".json",
+      "size_bytes": 863,
+      "content_committed": false,
+      "full_content_redacted": false,
+      "reason": "metadata_index_only",
+      "sha256": "6724e1aac6842c8ac7f9965266791f9a7881f8cbb4f7b407aa1d5aecefd31e35"
+    }
+  ],
+  "changed_sources_size_bytes": 0,
+  "new_sources_size_bytes": 460,
+  "destructive_cleanup_enabled": false,
+  "tests_require_real_llm_api_network": false
+}

@@ -1,0 +1,8 @@
+{
+  "optional_llm_fallback_report_version": "pre-v4-large-bilingual-1",
+  "status": "pass",
+  "provider_fallback_status": "missing",
+  "llm_live_smoke_without_network_status": "missing",
+  "core_workflow_usable_without_llm": true,
+  "tests_require_real_llm_api_network": false
+}

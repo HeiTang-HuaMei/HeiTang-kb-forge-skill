@@ -1,0 +1,49 @@
+{
+  "bilingual_behavior_report_version": "pre-v4-large-bilingual-1",
+  "status": "partial",
+  "source_suffix_counts": {
+    ".docx": 1,
+    ".json": 4,
+    ".jsonl": 1,
+    ".md": 50,
+    ".pdf": 4,
+    ".txt": 5,
+    ".yaml": 1
+  },
+  "package_preserves_chinese_and_english_sources": true,
+  "language_probes": {
+    "zh": {
+      "status": "answered",
+      "top_score": 2,
+      "answer_chars": 1564,
+      "answer_contains_cjk": true,
+      "latin_letter_count": 1159,
+      "cjk_char_count": 21,
+      "answer_content_redacted": true
+    },
+    "en": {
+      "status": "answered",
+      "top_score": 14,
+      "answer_chars": 2141,
+      "answer_contains_cjk": false,
+      "latin_letter_count": 1646,
+      "cjk_char_count": 0,
+      "answer_content_redacted": true
+    },
+    "mixed": {
+      "status": "answered",
+      "top_score": 14,
+      "answer_chars": 1168,
+      "answer_contains_cjk": true,
+      "latin_letter_count": 825,
+      "cjk_char_count": 42,
+      "answer_content_redacted": true
+    }
+  },
+  "explicit_user_language_priority": "partially_proven_by_zh_and_en_queries",
+  "ui_language_setting_priority": "not_exposed_in_core_cli_needs_review",
+  "conversation_language_priority": "not_proven_in_this_acceptance_run",
+  "fallback_default_language": "not_proven_for_ambiguous_mixed_query_without_ui_language_contract",
+  "evidence_citation_language_preservation": "metadata_only_verified_content_redacted",
+  "tests_require_real_llm_api_network": false
+}

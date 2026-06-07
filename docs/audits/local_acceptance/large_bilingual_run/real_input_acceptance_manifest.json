@@ -1,0 +1,28 @@
+{
+  "real_input_acceptance_manifest_version": "pre-v4-large-bilingual-1",
+  "generated_at": "2026-06-07T17:42:40.644608+00:00",
+  "input_root": "_local_acceptance_inputs/large_bilingual",
+  "full_output_root": "_local_acceptance_outputs/large_bilingual_run",
+  "proof_output_root": "docs/audits/local_acceptance/large_bilingual_run",
+  "raw_inputs_committed": false,
+  "full_extracted_chunks_committed": false,
+  "api_keys_committed": false,
+  "input_file_count": 66,
+  "input_total_size_bytes": 38520931,
+  "input_suffix_counts": {
+    ".docx": 1,
+    ".json": 4,
+    ".jsonl": 1,
+    ".md": 50,
+    ".pdf": 4,
+    ".txt": 5,
+    ".yaml": 1
+  },
+  "has_chinese_paths": true,
+  "has_space_paths": true,
+  "package_source_count": 60,
+  "package_chunk_count": 9599,
+  "package_quality_score": 100,
+  "package_quality_level": "excellent",
+  "tests_require_real_llm_api_network": false
+}

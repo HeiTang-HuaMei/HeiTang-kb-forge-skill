@@ -1,0 +1,30 @@
+{
+  "real_input_acceptance_report_version": "pre-v4-large-bilingual-1",
+  "generated_at": "2026-06-07T17:42:40.648873+00:00",
+  "overall_status": "blocked",
+  "local_core_without_llm_status": "pass",
+  "build": {
+    "status": "pass",
+    "source_count": 60,
+    "chunk_count": 9599,
+    "manifest_warning_count": 70,
+    "quality_score": 100
+  },
+  "query_planning_status": "exists",
+  "retrieval_quality_status": "pass",
+  "claim_verification_status": "warning",
+  "knowledge_accuracy_status": "warning",
+  "workspace_storage_status": "exists",
+  "memory_lifecycle_status": "contract_ready",
+  "local_agent_runtime_status": "blocked",
+  "golden_demo_status_before_path_normalization": "fail",
+  "golden_demo_status_after_path_normalization": "pass",
+  "product_hardening_status_after_path_normalization": "fail",
+  "final_pre_v4_gate_status": "blocked",
+  "ready_for_v4_rc": false,
+  "blocker_count": 8,
+  "p0_count": 2,
+  "p1_count": 6,
+  "p2_count": 0,
+  "tests_require_real_llm_api_network": false
+}

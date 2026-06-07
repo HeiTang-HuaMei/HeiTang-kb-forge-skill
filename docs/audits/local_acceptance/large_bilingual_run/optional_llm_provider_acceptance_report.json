@@ -1,0 +1,20 @@
+{
+  "optional_llm_provider_acceptance_report_version": "pre-v4-large-bilingual-1",
+  "generated_at": "2026-06-07T17:42:41.491809+00:00",
+  "status": "needs_review",
+  "required_env_visibility": {
+    "HEITANG_LLM_ACCEPTANCE_ENABLED": "not_visible",
+    "HEITANG_LLM_PROVIDER": "not_visible",
+    "HEITANG_LLM_BASE_URL": "not_visible",
+    "HEITANG_LLM_API_KEY": "not_visible",
+    "HEITANG_LLM_MODEL": "not_visible",
+    "HEITANG_LLM_TIMEOUT_SEC": "not_visible"
+  },
+  "api_key_value_written": false,
+  "api_key_value_committed": false,
+  "live_provider_smoke_run": false,
+  "skip_reason": "required variables were not visible to the current Codex process after re-check; likely process environment isolation after user configured PowerShell environment",
+  "offline_deterministic_fallback_status": "missing",
+  "core_workflow_requires_llm": false,
+  "tests_require_real_llm_api_network": false
+}

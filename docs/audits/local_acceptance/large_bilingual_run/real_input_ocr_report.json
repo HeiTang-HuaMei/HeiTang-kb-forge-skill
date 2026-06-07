@@ -1,0 +1,10 @@
+{
+  "ocr_report_version": "pre-v4-large-bilingual-1",
+  "status": "needs_review",
+  "scanned_candidate_pages": 120,
+  "ocr_failed_pages_count": 0,
+  "max_ocr_pages_used_in_build": 8,
+  "full_scanned_pdf_ocr_verified": false,
+  "reason": "Build intentionally limited OCR pages for first acceptance run; full scanned PDF OCR remains unproven.",
+  "tests_require_real_llm_api_network": false
+}

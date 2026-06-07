@@ -7,6 +7,8 @@ dist/
 build/
 *.egg-info/
 examples/output/
+_local_acceptance_inputs/
+_local_acceptance_outputs/
 .DS_Store
 Thumbs.db
 .env
@@ -15,3 +17,4 @@ node_modules/
 desktop/tauri/.npm-cache/
 desktop/tauri/dist/
 desktop/tauri/src-tauri/target/
+_local_acceptance_config/

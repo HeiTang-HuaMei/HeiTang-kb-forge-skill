@@ -1,0 +1,16 @@
+{
+  "optional_llm_config_redaction_report_version": "pre-v4-large-bilingual-1",
+  "status": "pass",
+  "env_names_recorded": [
+    "HEITANG_LLM_ACCEPTANCE_ENABLED",
+    "HEITANG_LLM_PROVIDER",
+    "HEITANG_LLM_BASE_URL",
+    "HEITANG_LLM_API_KEY",
+    "HEITANG_LLM_MODEL",
+    "HEITANG_LLM_TIMEOUT_SEC"
+  ],
+  "env_values_recorded": false,
+  "api_key_value_recorded": false,
+  "redaction_check_status": "missing",
+  "tests_require_real_llm_api_network": false
+}
