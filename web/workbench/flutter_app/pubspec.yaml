@@ -1,5 +1,5 @@
 name: heitang_workbench
-description: Mock-only HeiTang Knowledge Workbench Flutter scaffold.
+description: Contract-driven HeiTang Knowledge Workbench Flutter scaffold.
 publish_to: "none"
 version: 0.1.0
 

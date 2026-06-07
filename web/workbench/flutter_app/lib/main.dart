@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'contracts/workbench_contracts.dart';
+
 void main() {
-  runApp(const HeiTangWorkbenchApp());
+  runApp(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
 }
 
 const brandAssets = <String>[
@@ -38,12 +40,29 @@ class WorkbenchPage {
   final String enDescription;
   final String zhDescription;
 
-  String title(String localeCode) => localeCode == 'zh-CN' ? zhTitle : enTitle;
+  String title(String localeCode, WorkbenchContracts contracts) {
+    if (localeCode == 'zh-CN') {
+      return zhTitle;
+    }
+    return _contractView(contracts)?.label ?? enTitle;
+  }
+
   String description(String localeCode) => localeCode == 'zh-CN' ? zhDescription : enDescription;
+
+  ContractView? _contractView(WorkbenchContracts contracts) {
+    for (final view in contracts.navigation.views) {
+      if (view.id == id) {
+        return view;
+      }
+    }
+    return null;
+  }
 }
 
 class HeiTangWorkbenchApp extends StatefulWidget {
-  const HeiTangWorkbenchApp({super.key});
+  const HeiTangWorkbenchApp({super.key, this.contracts});
+
+  final WorkbenchContracts? contracts;
 
   @override
   State<HeiTangWorkbenchApp> createState() => _HeiTangWorkbenchAppState();
@@ -58,6 +77,8 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
 
   @override
   Widget build(BuildContext context) {
+    final contracts = widget.contracts ?? sampleWorkbenchContracts;
+
     return MaterialApp(
       title: 'HeiTang Knowledge Workbench',
       debugShowCheckedModeBanner: false,
@@ -103,10 +124,12 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
             ),
             body: isPhone ? _PhoneWorkbench(
               localeCode: localeCode,
+              contracts: contracts,
               selectedIndex: selectedIndex,
               onPageChanged: (index) => setState(() => selectedIndex = index),
             ) : _DesktopWorkbench(
               localeCode: localeCode,
+              contracts: contracts,
               selectedIndex: selectedIndex,
               isTablet: isTablet,
               onPageChanged: (index) => setState(() => selectedIndex = index),
@@ -199,12 +222,14 @@ class _MascotBadge extends StatelessWidget {
 class _DesktopWorkbench extends StatelessWidget {
   const _DesktopWorkbench({
     required this.localeCode,
+    required this.contracts,
     required this.selectedIndex,
     required this.isTablet,
     required this.onPageChanged,
   });
 
   final String localeCode;
+  final WorkbenchContracts contracts;
   final int selectedIndex;
   final bool isTablet;
   final ValueChanged<int> onPageChanged;
@@ -219,6 +244,7 @@ class _DesktopWorkbench extends StatelessWidget {
           width: sidebarWidth,
           child: _WorkbenchSidebar(
             localeCode: localeCode,
+            contracts: contracts,
             selectedIndex: selectedIndex,
             onPageChanged: onPageChanged,
           ),
@@ -228,6 +254,7 @@ class _DesktopWorkbench extends StatelessWidget {
           child: _PageSurface(
             page: pages[selectedIndex],
             localeCode: localeCode,
+            contracts: contracts,
             columns: isTablet ? 2 : 3,
           ),
         ),
@@ -239,11 +266,13 @@ class _DesktopWorkbench extends StatelessWidget {
 class _WorkbenchSidebar extends StatelessWidget {
   const _WorkbenchSidebar({
     required this.localeCode,
+    required this.contracts,
     required this.selectedIndex,
     required this.onPageChanged,
   });
 
   final String localeCode;
+  final WorkbenchContracts contracts;
   final int selectedIndex;
   final ValueChanged<int> onPageChanged;
 
@@ -259,6 +288,7 @@ class _WorkbenchSidebar extends StatelessWidget {
         separatorBuilder: (context, index) => const SizedBox(height: 4),
         itemBuilder: (context, index) {
           final page = pages[index];
+          final view = _contractViewFor(page, contracts);
           final selected = index == selectedIndex;
 
           return InkWell(
@@ -270,8 +300,8 @@ class _WorkbenchSidebar extends StatelessWidget {
               selectedColor: colors.onPrimary,
               selectedTileColor: colors.primary,
               leading: Icon(selected ? Icons.circle : Icons.radio_button_unchecked, size: 16),
-              title: Text(page.title(localeCode), maxLines: 1, overflow: TextOverflow.ellipsis),
-              subtitle: Text(page.id, maxLines: 1, overflow: TextOverflow.ellipsis),
+              title: Text(page.title(localeCode, contracts), maxLines: 1, overflow: TextOverflow.ellipsis),
+              subtitle: Text(view.assetTypes.isEmpty ? page.id : view.assetTypes.join(' · '), maxLines: 1, overflow: TextOverflow.ellipsis),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
           );
@@ -284,11 +314,13 @@ class _WorkbenchSidebar extends StatelessWidget {
 class _PhoneWorkbench extends StatelessWidget {
   const _PhoneWorkbench({
     required this.localeCode,
+    required this.contracts,
     required this.selectedIndex,
     required this.onPageChanged,
   });
 
   final String localeCode;
+  final WorkbenchContracts contracts;
   final int selectedIndex;
   final ValueChanged<int> onPageChanged;
 
@@ -309,7 +341,7 @@ class _PhoneWorkbench extends StatelessWidget {
               for (var index = 0; index < pages.length; index++)
                 DropdownMenuItem(
                   value: index,
-                  child: Text(pages[index].title(localeCode), overflow: TextOverflow.ellipsis),
+                  child: Text(pages[index].title(localeCode, contracts), overflow: TextOverflow.ellipsis),
                 ),
             ],
             onChanged: (value) {
@@ -319,29 +351,30 @@ class _PhoneWorkbench extends StatelessWidget {
             },
           ),
         ),
-        Expanded(child: _PageSurface(page: pages[selectedIndex], localeCode: localeCode, columns: 1)),
+        Expanded(child: _PageSurface(page: pages[selectedIndex], localeCode: localeCode, contracts: contracts, columns: 1)),
       ],
     );
   }
 }
 
 class _PageSurface extends StatelessWidget {
-  const _PageSurface({required this.page, required this.localeCode, required this.columns});
+  const _PageSurface({required this.page, required this.localeCode, required this.contracts, required this.columns});
 
   final WorkbenchPage page;
   final String localeCode;
+  final WorkbenchContracts contracts;
   final int columns;
 
   @override
   Widget build(BuildContext context) {
-    final cards = _cardsFor(page.id, localeCode);
+    final cards = _cardsFor(page.id, localeCode, contracts);
 
     return SingleChildScrollView(
       padding: EdgeInsets.all(columns == 1 ? 14 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(page.title(localeCode), style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700)),
+          Text(page.title(localeCode, contracts), style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           Text(page.description(localeCode), style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: 20),
@@ -366,26 +399,75 @@ class _PageSurface extends StatelessWidget {
     );
   }
 
-  List<_CardCopy> _cardsFor(String id, String localeCode) {
+  List<_CardCopy> _cardsFor(String id, String localeCode, WorkbenchContracts contracts) {
     final zh = localeCode == 'zh-CN';
-    final common = zh ? '模拟数据 · 预留 API' : 'Mock data · Reserved API';
+    final view = _contractViewFor(page, contracts);
+    final action = _actionFor(id, contracts);
+    final common = view.assetTypes.isEmpty ? (zh ? '合同样例' : 'Contract sample') : view.assetTypes.join(' · ');
     final map = <String, List<_CardCopy>>{
-      'dashboard': [_CardCopy(zh ? '知识库' : 'Knowledge bases', '3'), _CardCopy(zh ? '复核风险' : 'Review risks', '2'), _CardCopy(zh ? '供应商' : 'Providers', common)],
-      'file-upload': [_CardCopy(zh ? '拖放上传' : 'Dropzone', common), _CardCopy(zh ? '解析器状态' : 'Parser status', 'Docling · Marker · Plain Text')],
-      'job-progress': [_CardCopy(zh ? '运行中' : 'Running', '68%'), _CardCopy(zh ? '阶段' : 'Stages', zh ? '上传 / 解析 / 复核' : 'Upload / Parse / Review')],
-      'knowledge-base-list': [_CardCopy(zh ? '可信库' : 'Trusted KBs', '2'), _CardCopy(zh ? '草稿库' : 'Draft KBs', '1')],
-      'knowledge-base-detail': [_CardCopy(zh ? '分片' : 'Chunks', '1836'), _CardCopy(zh ? '绑定 Agent' : 'Bound agents', 'Research · Writer')],
-      'review-queue': [_CardCopy(zh ? '高风险' : 'High risk', '1'), _CardCopy(zh ? '待校正' : 'Needs correction', common)],
-      'corrected-text-editor': [_CardCopy(zh ? '校正文稿' : 'Corrected text', zh ? '只写入模拟状态' : 'Mock state only'), _CardCopy(zh ? '复核动作' : 'Review actions', common)],
-      'kb-query': [_CardCopy(zh ? '证据回答' : 'Grounded answer', zh ? '引用优先' : 'Citation first'), _CardCopy(zh ? '拒答策略' : 'Abstain policy', common)],
-      'document-generation': [_CardCopy(zh ? '发布简报' : 'Launch brief', '18 citations'), _CardCopy(zh ? '策略复核包' : 'Policy pack', '31 citations')],
-      'agent-skill-management': [const _CardCopy('Research Analyst', 'OpenAI'), const _CardCopy('Document Writer', 'Azure OpenAI'), const _CardCopy('Evidence Reviewer', 'Local')],
-      'multi-agent-workflow': [_CardCopy(zh ? '工作流共享记忆' : 'Workflow shared memory', 'mem-workflow-launch'), _CardCopy(zh ? '交接链路' : 'Handoff trace', 'Research -> Writer -> Reviewer')],
-      'memory-scope-viewer': [_CardCopy(zh ? 'Agent 私有记忆' : 'Agent private memory', 'isolated'), _CardCopy(zh ? '工作流共享' : 'Workflow shared', 'scoped')],
-      'settings': [_CardCopy(zh ? '供应商' : 'Providers', 'OpenAI · Azure · Local'), _CardCopy(zh ? '回答策略' : 'Answer policy', 'grounded_only'), _CardCopy(zh ? '记忆策略' : 'Memory policy', 'private_by_default')],
-      'export-center': [_CardCopy(zh ? '演示包' : 'Demo package', 'zip'), _CardCopy(zh ? '复核 CSV' : 'Review CSV', common)],
+      'dashboard': [
+        _CardCopy(zh ? '合同状态' : 'Contract status', contracts.status.status),
+        _CardCopy(zh ? '资产' : 'Assets', '${contracts.status.assetCount}'),
+        _CardCopy(zh ? '报告' : 'Reports', '${contracts.status.reportCount}'),
+      ],
+      'file-upload': [
+        _CardCopy(zh ? '资产类型' : 'Asset types', common),
+        _CardCopy(zh ? '构建动作' : 'Build action', _commandOrFallback(action, 'build')),
+      ],
+      'job-progress': [
+        _CardCopy(zh ? '状态徽标' : 'Status badges', contracts.errors.statusBadges.join(' · ')),
+        _CardCopy(zh ? '合同文件' : 'Contract files', '${contracts.manifest.outputFiles.length}'),
+      ],
+      'knowledge-base-list': [
+        _CardCopy(zh ? '知识包资产' : 'Knowledge package assets', _assetCount(contracts, 'knowledge_package')),
+        _CardCopy(zh ? '包存储' : 'Package storage', _storageArea(contracts, 'package_storage')),
+      ],
+      'knowledge-base-detail': [
+        _CardCopy(zh ? '包大小' : 'Package size', '${contracts.storage.sizes['package_size_bytes'] ?? 0} B'),
+        _CardCopy(zh ? '索引大小' : 'Index size', '${contracts.storage.sizes['index_size_bytes'] ?? 0} B'),
+      ],
+      'review-queue': [
+        _CardCopy(zh ? '空状态' : 'Empty states', contracts.errors.emptyStates.join(' · ')),
+        _CardCopy(zh ? '错误状态' : 'Error states', contracts.errors.errorStates.join(' · ')),
+      ],
+      'corrected-text-editor': [
+        _CardCopy(zh ? '校验状态' : 'Validation states', contracts.agent.validationStates.join(' · ')),
+        _CardCopy(zh ? '错误合同' : 'Error contract', contracts.errors.errorStates.join(' · ')),
+      ],
+      'kb-query': [
+        _CardCopy(zh ? '绑定模式' : 'Bound mode', contracts.agent.supportedModes.contains('kb_bound') ? 'kb_bound' : 'unavailable'),
+        _CardCopy(zh ? '检索字段' : 'Retrieval fields', contracts.agent.kbBoundRequired.join(' · ')),
+      ],
+      'document-generation': [
+        _CardCopy(zh ? '生成动作' : 'Generation action', _commandOrFallback(_actionById(contracts, 'generate_documents'), 'generate-documents')),
+        _CardCopy(zh ? '文档报告' : 'Document report', 'generated_file_report.json'),
+      ],
+      'agent-skill-management': [
+        _CardCopy(zh ? 'Agent 模式' : 'Agent modes', contracts.agent.supportedModes.join(' · ')),
+        _CardCopy(zh ? 'Standalone 必填' : 'Standalone required', contracts.agent.standaloneRequired.join(' · ')),
+        _CardCopy(zh ? 'KB-bound 必填' : 'KB-bound required', contracts.agent.kbBoundRequired.join(' · ')),
+      ],
+      'multi-agent-workflow': [
+        _CardCopy(zh ? '母子绑定' : 'Parent-child binding', contracts.hierarchy.bindingFields.join(' · ')),
+        _CardCopy(zh ? '子 Agent 模式' : 'Child agent modes', contracts.hierarchy.roles.join(' · ')),
+        _CardCopy(zh ? 'Trace' : 'Trace', contracts.hierarchy.traceFiles.join(' · ')),
+      ],
+      'memory-scope-viewer': [
+        _CardCopy(zh ? '私有记忆' : 'Private memory', '${contracts.memory.policy['child_private_memory_default']}'),
+        _CardCopy(zh ? '共享记忆' : 'Shared memory', '${contracts.memory.policy['workflow_shared_memory']}'),
+        _CardCopy(zh ? '写回' : 'Writeback', contracts.memory.writebackActions.join(' · ')),
+      ],
+      'settings': [
+        _CardCopy(zh ? '存储后端' : 'Storage backend', contracts.storage.backend),
+        _CardCopy(zh ? '存储区域' : 'Storage areas', contracts.storage.storageAreas.keys.join(' · ')),
+        _CardCopy(zh ? '备份导出' : 'Backup/export', contracts.storage.backupExportStatus),
+      ],
+      'export-center': [
+        _CardCopy(zh ? '导出状态' : 'Export status', contracts.status.backupExportStatus),
+        _CardCopy(zh ? '清理建议' : 'Cleanup suggestions', contracts.storage.cleanupSuggestions.isEmpty ? (zh ? '无' : 'None') : contracts.storage.cleanupSuggestions.join(' · ')),
+      ],
     };
-    return map[id] ?? [_CardCopy(page.title(localeCode), common)];
+    return map[id] ?? [_CardCopy(page.title(localeCode, contracts), common)];
   }
 }
 
@@ -394,6 +476,49 @@ class _CardCopy {
 
   final String title;
   final String body;
+}
+
+ContractView _contractViewFor(WorkbenchPage page, WorkbenchContracts contracts) {
+  for (final view in contracts.navigation.views) {
+    if (view.id == page.id) {
+      return view;
+    }
+  }
+  return ContractView(id: page.id, label: page.enTitle, assetTypes: const []);
+}
+
+ContractAction? _actionFor(String pageId, WorkbenchContracts contracts) {
+  final actionMap = <String, String>{
+    'file-upload': 'build_package',
+    'document-generation': 'generate_documents',
+    'agent-skill-management': 'create_standalone_agent',
+    'multi-agent-workflow': 'configure_agent_hierarchy',
+    'memory-scope-viewer': 'queue_memory_writeback',
+    'settings': 'inspect_storage_status',
+  };
+  final actionId = actionMap[pageId];
+  return actionId == null ? null : _actionById(contracts, actionId);
+}
+
+ContractAction? _actionById(WorkbenchContracts contracts, String id) {
+  for (final action in contracts.actions.actions) {
+    if (action.id == id) {
+      return action;
+    }
+  }
+  return null;
+}
+
+String _commandOrFallback(ContractAction? action, String fallback) => action?.command.isNotEmpty == true ? action!.command : fallback;
+
+String _assetCount(WorkbenchContracts contracts, String type) => '${contracts.assets.assets.where((asset) => asset.type == type).length}';
+
+String _storageArea(WorkbenchContracts contracts, String key) {
+  final area = contracts.storage.storageAreas[key];
+  if (area is Map<String, dynamic>) {
+    return '${area['backend'] ?? contracts.storage.backend}';
+  }
+  return contracts.storage.backend;
 }
 
 class _WorkbenchCard extends StatelessWidget {
