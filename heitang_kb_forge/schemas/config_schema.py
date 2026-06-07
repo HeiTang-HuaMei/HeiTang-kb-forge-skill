@@ -361,6 +361,20 @@ class KnowledgeRuntimeConfig(BaseModel):
     citation_required: bool = True
 
 
+class RetrievalQualityConfig(BaseModel):
+    enabled: bool = False
+    use_query_planning: bool = True
+    top_k: int = 5
+    max_candidates: int = 50
+    enable_rerank: bool = True
+    enable_evidence_selection: bool = True
+    enable_failure_diagnostics: bool = True
+    enable_claim_verification: bool = True
+    verification_sources: list[Path] = Field(default_factory=list)
+    allow_external_network: bool = False
+    allow_llm_judge: bool = False
+
+
 class DocumentGenerationConfig(BaseModel):
     enabled: bool = False
     formats: list[str] = Field(default_factory=lambda: ["md"])
@@ -552,6 +566,7 @@ class ForgeConfig(BaseModel):
     retrieval: RetrievalIndexConfig = Field(default_factory=RetrievalIndexConfig)
     query_rewrite: QueryRewriteConfig = Field(default_factory=QueryRewriteConfig)
     knowledge_runtime: KnowledgeRuntimeConfig = Field(default_factory=KnowledgeRuntimeConfig)
+    retrieval_quality: RetrievalQualityConfig = Field(default_factory=RetrievalQualityConfig)
     document_generation: DocumentGenerationConfig = Field(default_factory=DocumentGenerationConfig)
     evidence_gate: EvidenceGateConfig = Field(default_factory=EvidenceGateConfig)
     parser_backend: ParserBackendConfig = Field(default_factory=ParserBackendConfig)

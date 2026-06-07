@@ -1,0 +1,1 @@
+{"case_id":"follow_up","conversation_context":"pricing policy changed in Q4","query":"what about this","expected_rewrite_contains":"pricing policy changed"}

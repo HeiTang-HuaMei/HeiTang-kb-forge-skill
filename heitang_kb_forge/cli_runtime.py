@@ -133,13 +133,20 @@ from heitang_kb_forge.reliability import make_reliability_score
 from heitang_kb_forge.retrieval import (
     QUERY_PLANNING_OUTPUT_FILES,
     RETRIEVAL_OUTPUT_FILES,
+    RETRIEVAL_QUALITY_OUTPUT_FILES,
     build_retrieval_outputs,
     build_retrieval_plan,
     evaluate_query_rewrite_cases,
     load_eval_cases,
+    run_retrieval_quality,
     write_query_planning_outputs,
 )
+from heitang_kb_forge.retrieval.diagnostics import diagnose_retrieval_failure
+from heitang_kb_forge.retrieval.evidence_selection import select_evidence
+from heitang_kb_forge.retrieval.external_absorption import write_v38_external_absorption_map
+from heitang_kb_forge.retrieval.rerank import build_rerank_report, rerank_candidates
 from heitang_kb_forge.retrieval.index_builder import build_retrieval_index
+from heitang_kb_forge.verification import run_claim_verification
 from heitang_kb_forge.refresh.checker import make_refresh_plan
 from heitang_kb_forge.risk.labeler import RISK_OUTPUT_FILES, make_risk_labels
 from heitang_kb_forge.runtime.agent_runtime import RUNTIME_OUTPUT_FILES, ask_package
@@ -404,6 +411,21 @@ class KnowledgeRuntimeOptions:
     top_k: int = 5
     min_score: int = 2
     citation_required: bool = True
+
+
+@dataclass
+class RetrievalQualityOptions:
+    enabled: bool = False
+    use_query_planning: bool = True
+    top_k: int = 5
+    max_candidates: int = 50
+    enable_rerank: bool = True
+    enable_evidence_selection: bool = True
+    enable_failure_diagnostics: bool = True
+    enable_claim_verification: bool = True
+    verification_sources: list[Path] | None = None
+    allow_external_network: bool = False
+    allow_llm_judge: bool = False
 
 
 @dataclass
@@ -1879,6 +1901,110 @@ def eval_query_rewrite_command(
     typer.echo(f"Query rewrite eval: {report['status']} | Cases: {report['case_count']}")
 
 
+@app.command("eval-retrieval")
+def eval_retrieval_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    query: str = typer.Option("Summarize this knowledge package.", "--query"),
+    top_k: int = typer.Option(5, "--top-k"),
+    max_candidates: int = typer.Option(50, "--max-candidates"),
+    verification_source: list[Path] = typer.Option([], "--verification-source", exists=True, file_okay=True, dir_okay=False, readable=True),
+    allow_external_network: bool = typer.Option(False, "--allow-external-network"),
+    allow_llm_judge: bool = typer.Option(False, "--allow-llm-judge"),
+) -> None:
+    """Run deterministic v3.8 retrieval quality evaluation without network or real LLM calls."""
+    try:
+        report = run_retrieval_quality(
+            package,
+            output,
+            query=query,
+            top_k=top_k,
+            max_candidates=max_candidates,
+            verification_sources=verification_source,
+            allow_external_network=allow_external_network,
+            allow_llm_judge=allow_llm_judge,
+        )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(f"Retrieval quality: {report['status']} | Candidates: {report['candidate_count']}")
+
+
+@app.command("rerank-results")
+def rerank_results_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    query: str = typer.Option(..., "--query"),
+    purpose: str = typer.Option("answering", "--purpose"),
+    top_k: int = typer.Option(5, "--top-k"),
+) -> None:
+    """Write a deterministic rerank report over local package records."""
+    records = [record.model_dump(mode="json") for record in build_retrieval_index(package)]
+    ranked = rerank_candidates(records, query, purpose=purpose, top_k=top_k)
+    report = build_rerank_report(ranked, query=query, purpose=purpose)
+    output.mkdir(parents=True, exist_ok=True)
+    write_json(output / "rerank_report.json", report)
+    typer.echo(f"Rerank: {report['status']} | Candidates: {report['candidate_count']}")
+
+
+@app.command("select-evidence")
+def select_evidence_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    query: str = typer.Option(..., "--query"),
+    top_k: int = typer.Option(5, "--top-k"),
+) -> None:
+    """Select citation-ready local evidence and write selected/rejected reasons."""
+    records = [record.model_dump(mode="json") for record in build_retrieval_index(package)]
+    ranked = rerank_candidates(records, query)
+    report = select_evidence(ranked, query, top_k=top_k)
+    output.mkdir(parents=True, exist_ok=True)
+    write_json(output / "evidence_selection_trace.json", report)
+    typer.echo(f"Evidence selection: {report['status']} | Selected: {report['selected_count']}")
+
+
+@app.command("diagnose-retrieval-failure")
+def diagnose_retrieval_failure_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    query: str = typer.Option(..., "--query"),
+    purpose: str = typer.Option("answering", "--purpose"),
+    top_k: int = typer.Option(5, "--top-k"),
+) -> None:
+    """Classify local retrieval failure modes and refusal diagnostics."""
+    records = [record.model_dump(mode="json") for record in build_retrieval_index(package)]
+    ranked = rerank_candidates(records, query, purpose=purpose)
+    evidence = select_evidence(ranked, query, top_k=top_k)
+    report = diagnose_retrieval_failure(query=query, candidates=records, ranked=ranked, evidence_selection=evidence, purpose=purpose)
+    output.mkdir(parents=True, exist_ok=True)
+    write_json(output / "retrieval_failure_report.json", report)
+    typer.echo(f"Retrieval diagnostics: {report['status']} | Refuse: {report['should_refuse']}")
+
+
+@app.command("verify-claims")
+def verify_claims_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    verification_source: list[Path] = typer.Option([], "--verification-source", exists=True, file_okay=True, dir_okay=False, readable=True),
+) -> None:
+    """Verify package claims against local package/user-provided evidence only."""
+    result = run_claim_verification(package, output, verification_source)
+    write_v38_external_absorption_map(output)
+    typer.echo(f"Claim verification: {result['status']} | Claims: {result['claim_count']}")
+
+
+@app.command("check-knowledge-accuracy")
+def check_knowledge_accuracy_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    verification_source: list[Path] = typer.Option([], "--verification-source", exists=True, file_okay=True, dir_okay=False, readable=True),
+) -> None:
+    """Write v3.8 claim verification and knowledge accuracy reports."""
+    result = run_claim_verification(package, output, verification_source)
+    write_v38_external_absorption_map(output)
+    score = result["accuracy"]["overall_accuracy_score"]
+    typer.echo(f"Knowledge accuracy: {result['status']} | Score: {score}")
+
+
 @app.command()
 def run(
     config: Path = typer.Option(..., "--config", "-c", exists=True, file_okay=True, dir_okay=False, readable=True),
@@ -2586,6 +2712,23 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         min_score=config_data.knowledge_runtime.min_score,
         citation_required=config_data.knowledge_runtime.citation_required,
     )
+    retrieval_quality_options = RetrievalQualityOptions(
+        enabled=config_data.retrieval_quality.enabled,
+        use_query_planning=config_data.retrieval_quality.use_query_planning,
+        top_k=config_data.retrieval_quality.top_k,
+        max_candidates=config_data.retrieval_quality.max_candidates,
+        enable_rerank=config_data.retrieval_quality.enable_rerank,
+        enable_evidence_selection=config_data.retrieval_quality.enable_evidence_selection,
+        enable_failure_diagnostics=config_data.retrieval_quality.enable_failure_diagnostics,
+        enable_claim_verification=config_data.retrieval_quality.enable_claim_verification,
+        verification_sources=config_data.retrieval_quality.verification_sources,
+        allow_external_network=config_data.retrieval_quality.allow_external_network,
+        allow_llm_judge=config_data.retrieval_quality.allow_llm_judge,
+    )
+    if retrieval_quality_options.enabled and retrieval_quality_options.allow_external_network:
+        raise typer.BadParameter("retrieval_quality.allow_external_network must remain false in v3.8")
+    if retrieval_quality_options.enabled and retrieval_quality_options.allow_llm_judge:
+        raise typer.BadParameter("retrieval_quality.allow_llm_judge must remain false in v3.8")
     document_generation_options = DocumentGenerationOptions(
         enabled=config_data.document_generation.enabled,
         formats=config_data.document_generation.formats,
@@ -2629,6 +2772,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             retrieval_index_options=retrieval_index_options,
             query_rewrite_options=query_rewrite_options,
             knowledge_runtime_options=knowledge_runtime_options,
+            retrieval_quality_options=retrieval_quality_options,
             document_generation_options=document_generation_options,
             evidence_gate_options=evidence_gate_options,
             parser_backend_options=parser_backend_options,
@@ -3510,6 +3654,7 @@ def _build_package(
     retrieval_index_options: RetrievalIndexOptions | None = None,
     query_rewrite_options: QueryRewriteOptions | None = None,
     knowledge_runtime_options: KnowledgeRuntimeOptions | None = None,
+    retrieval_quality_options: RetrievalQualityOptions | None = None,
     document_generation_options: DocumentGenerationOptions | None = None,
     evidence_gate_options: EvidenceGateOptions | None = None,
     parser_backend_options: ParserBackendOptions | None = None,
@@ -3783,6 +3928,7 @@ def _build_package(
     retrieval_index_options = retrieval_index_options or RetrievalIndexOptions()
     query_rewrite_options = query_rewrite_options or QueryRewriteOptions()
     knowledge_runtime_options = knowledge_runtime_options or KnowledgeRuntimeOptions()
+    retrieval_quality_options = retrieval_quality_options or RetrievalQualityOptions()
     document_generation_options = document_generation_options or DocumentGenerationOptions()
     evidence_gate_options = evidence_gate_options or EvidenceGateOptions()
 
@@ -3813,6 +3959,8 @@ def _build_package(
         files.extend(DEMO_OUTPUT_FILES)
     if query_rewrite_options.enabled:
         files.extend(QUERY_PLANNING_OUTPUT_FILES)
+    if retrieval_quality_options.enabled:
+        files.extend(RETRIEVAL_QUALITY_OUTPUT_FILES)
     if multimodal_options.enabled:
         files.extend(multimodal_result.output_files)
     validation_options = validation_options or ValidationOptions()
@@ -4209,6 +4357,34 @@ def _build_package(
                 "knowledge_runtime_version": kb_answer_report["kb_answer_version"],
                 "knowledge_runtime_status": kb_answer_report["status"],
                 "knowledge_runtime_files": KB_RUNTIME_OUTPUT_FILES,
+            }
+        )
+        write_json(output / "manifest.json", manifest_payload)
+    if retrieval_quality_options.enabled:
+        query = _query_rewrite_query(query_rewrite_options, retrieval_index_options, knowledge_runtime_options)
+        quality_report = run_retrieval_quality(
+            output,
+            output,
+            query=query,
+            use_query_planning=retrieval_quality_options.use_query_planning,
+            top_k=retrieval_quality_options.top_k,
+            max_candidates=retrieval_quality_options.max_candidates,
+            enable_rerank=retrieval_quality_options.enable_rerank,
+            enable_evidence_selection=retrieval_quality_options.enable_evidence_selection,
+            enable_failure_diagnostics=retrieval_quality_options.enable_failure_diagnostics,
+            enable_claim_verification=retrieval_quality_options.enable_claim_verification,
+            verification_sources=retrieval_quality_options.verification_sources or [],
+            allow_external_network=retrieval_quality_options.allow_external_network,
+            allow_llm_judge=retrieval_quality_options.allow_llm_judge,
+        )
+        manifest_payload.update(
+            {
+                "retrieval_quality_enabled": True,
+                "retrieval_quality_status": quality_report["status"],
+                "retrieval_quality_files": RETRIEVAL_QUALITY_OUTPUT_FILES,
+                "retrieval_quality_no_network": True,
+                "retrieval_quality_llm_used": False,
+                "v38_external_absorption_map": "v38_external_absorption_map.json",
             }
         )
         write_json(output / "manifest.json", manifest_payload)
