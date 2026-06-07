@@ -40,6 +40,7 @@ document_generation:
     manifest = _json(output / "manifest.json")
     manifest["kb_trust_status"] = "reviewed_knowledge_base"
     (output / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    (output / "kb_trust_status.json").write_text(json.dumps({"kb_trust_status": "reviewed_knowledge_base"}), encoding="utf-8")
 
     bound = tmp_path / "bound"
     standalone = tmp_path / "standalone"
