@@ -1,5 +1,15 @@
 # Changelog
 
+## v3.10.0-alpha.1
+
+* Added opt-in Local Agent Runtime & Mother/Child Operations.
+* Added deterministic `run-local-agent` runtime smoke command.
+* Added mother/child task route trace, child KB access report, memory isolation report, workflow shared memory report, parent writeback actions, runtime status, and runtime report.
+* Added config and pipeline visibility for local agent runtime outputs.
+* Preserved default build / run / pipeline behavior.
+* No real LLM/API/network dependency.
+* No full Agent Runtime, SaaS, cloud sync, or UI implementation.
+
 ## v3.9.0-alpha.1
 
 * Added opt-in Local Workspace Storage & Memory Lifecycle.

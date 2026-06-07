@@ -41,7 +41,7 @@ Preview capabilities:
 - Minimal end-to-end portfolio demo workflow
 - Parser backend abstraction, parse quality gate, manual review queue, and trusted KB gate
 - Knowledge Runtime Loop: `kb-index`, `kb-query`, `kb-answer`, cited local answers, low-confidence refusal, query trace, retrieval quality report, and RAG eval baseline
-- Document Generation and Local Workspace Loops: grounded document exports, workspace registries, storage usage, dedup/cleanup plans, memory lifecycle/token budget contracts, local PDF Markdown preprocessing, parser benchmark, PDF token reduction, and no-cloud-upload reports
+- Document Generation, Local Workspace, and Local Agent Runtime Loops: grounded document exports, storage/memory lifecycle contracts, local PDF token reduction, no-cloud-upload reports, and mother/child Agent runtime smoke
 
 Experimental capabilities:
 

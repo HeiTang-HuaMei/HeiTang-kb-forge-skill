@@ -46,6 +46,7 @@ from heitang_kb_forge.knowledge_runtime import (
 from heitang_kb_forge.knowledge_bound_factory import generate_knowledge_bound_agent, generate_standalone_agent
 from heitang_kb_forge.multi_kb_orchestration import orchestrate_multi_kb_agents
 from heitang_kb_forge.memory_lifecycle import V39_MEMORY_LIFECYCLE_OUTPUT_FILES, write_memory_lifecycle_outputs
+from heitang_kb_forge.local_agent_runtime import run_local_agent_runtime
 from heitang_kb_forge.skill_reverse_fusion import reverse_and_fuse_skills
 from heitang_kb_forge.workbench_contracts import generate_workbench_contracts
 from heitang_kb_forge.lifecycle.change_detector import (
@@ -2130,6 +2131,42 @@ def report_pdf_token_reduction_command(
     typer.echo(f"Built PDF token reduction report at {output}")
 
 
+@app.command("run-local-agent")
+def run_local_agent_command(
+    package: list[Path] = typer.Option([], "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    agent: list[Path] = typer.Option([], "--agent", exists=True, file_okay=False, dir_okay=True, readable=True),
+    mother_agent: Path | None = typer.Option(None, "--mother-agent", exists=True, file_okay=False, dir_okay=True, readable=True),
+    task: str = typer.Option(..., "--task"),
+    output: Path = typer.Option(..., "--output", "-o"),
+    workflow_shared_memory: bool = typer.Option(False, "--workflow-shared-memory/--private-workflow-memory"),
+    parent_writeback: bool = typer.Option(False, "--parent-writeback/--no-parent-writeback"),
+    top_k: int = typer.Option(3, "--top-k"),
+    allow_llm: bool = typer.Option(False, "--allow-llm"),
+    allow_network: bool = typer.Option(False, "--allow-network"),
+) -> None:
+    """Run deterministic local mother/child Agent runtime smoke without LLM or network."""
+    if not package:
+        typer.echo("--package is required")
+        raise typer.Exit(2)
+    if allow_llm:
+        typer.echo("--allow-llm is reserved and must remain false in v3.10")
+        raise typer.Exit(2)
+    if allow_network:
+        typer.echo("--allow-network is reserved and must remain false in v3.10")
+        raise typer.Exit(2)
+    result = run_local_agent_runtime(
+        package,
+        output,
+        agent,
+        task,
+        mother_agent,
+        workflow_shared_memory,
+        parent_writeback,
+        top_k,
+    )
+    typer.echo(f"Local agent runtime: {result['status']}")
+
+
 @app.command()
 def run(
     config: Path = typer.Option(..., "--config", "-c", exists=True, file_okay=True, dir_okay=False, readable=True),
@@ -2927,6 +2964,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         _run_v24_config_outputs(config_data, config_data.output)
         _run_v25_config_outputs(config_data, config_data.output)
         _run_v39_config_outputs(config_data, config_data.output)
+        _run_v310_config_outputs(config_data, config_data.output)
         return ConfigRunResult(
             config=config_data,
             output=config_data.output,
@@ -3031,6 +3069,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
     _run_v24_config_outputs(config_data, output)
     _run_v25_config_outputs(config_data, output)
     _run_v39_config_outputs(config_data, output)
+    _run_v310_config_outputs(config_data, output)
 
     return ConfigRunResult(
         config=config_data,
@@ -3530,6 +3569,38 @@ def _read_json_dict(path: Path) -> dict:
         return json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return {}
+
+
+def _run_v310_config_outputs(config_data: ForgeConfig, output: Path) -> None:
+    if not config_data.local_agent_runtime.enabled:
+        return
+    if config_data.local_agent_runtime.allow_llm:
+        raise typer.BadParameter("local_agent_runtime.allow_llm must remain false in v3.10")
+    if config_data.local_agent_runtime.allow_network:
+        raise typer.BadParameter("local_agent_runtime.allow_network must remain false in v3.10")
+    packages = config_data.local_agent_runtime.packages or [output]
+    result = run_local_agent_runtime(
+        packages,
+        output,
+        config_data.local_agent_runtime.agents,
+        config_data.local_agent_runtime.task,
+        config_data.local_agent_runtime.mother_agent,
+        config_data.local_agent_runtime.workflow_shared_memory,
+        config_data.local_agent_runtime.parent_writeback,
+        config_data.local_agent_runtime.top_k,
+    )
+    manifest_path = output / "manifest.json"
+    manifest_payload = _read_json_dict(manifest_path)
+    manifest_payload.update(
+        {
+            "local_agent_runtime_enabled": True,
+            "local_agent_runtime_status": result["status"],
+            "local_agent_runtime_files": result["output_files"],
+            "local_agent_runtime_llm_required": False,
+            "local_agent_runtime_network_required": False,
+        }
+    )
+    write_json(manifest_path, manifest_payload)
 
 
 def _make_llm_options(

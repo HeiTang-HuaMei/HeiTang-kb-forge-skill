@@ -42,7 +42,7 @@ Preview 能力：
 - Parser backend 抽象、parse quality gate、manual review queue 和 trusted KB gate
 - Knowledge Runtime Loop：`kb-index`、`kb-query`、`kb-answer`、本地引用答案、低置信拒答、query trace、retrieval quality report 和 RAG eval baseline
 - Document Generation Loop：`generate-md`、`generate-docx`、`generate-pdf`、`generate-pptx`、`generate-documents`、grounded exports、generation trace、quality report 和 export validation report
-- Local Workspace Storage & Memory Lifecycle：workspace registries、storage usage、dedup/cleanup plans、memory lifecycle/token budget contracts、本地 PDF Markdown 预处理、parser benchmark、PDF token reduction 和 no-cloud-upload reports
+- Document Generation、Local Workspace 和 Local Agent Runtime Loops：grounded document exports、storage/memory lifecycle contracts、本地 PDF token reduction、no-cloud-upload reports 和 mother/child Agent runtime smoke
 
 Experimental 能力：
 

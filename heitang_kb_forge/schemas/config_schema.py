@@ -398,6 +398,19 @@ class DocumentParsingConfig(BaseModel):
     no_cloud_upload_required: bool = True
 
 
+class LocalAgentRuntimeConfig(BaseModel):
+    enabled: bool = False
+    packages: list[Path] = Field(default_factory=list)
+    agents: list[Path] = Field(default_factory=list)
+    mother_agent: Path | None = None
+    task: str = "Summarize this knowledge package."
+    workflow_shared_memory: bool = False
+    parent_writeback: bool = False
+    top_k: int = 3
+    allow_llm: bool = False
+    allow_network: bool = False
+
+
 class DocumentGenerationConfig(BaseModel):
     enabled: bool = False
     formats: list[str] = Field(default_factory=lambda: ["md"])
@@ -593,6 +606,7 @@ class ForgeConfig(BaseModel):
     workspace_storage: WorkspaceStorageConfig = Field(default_factory=WorkspaceStorageConfig)
     memory_lifecycle: MemoryLifecycleConfig = Field(default_factory=MemoryLifecycleConfig)
     document_parsing: DocumentParsingConfig = Field(default_factory=DocumentParsingConfig)
+    local_agent_runtime: LocalAgentRuntimeConfig = Field(default_factory=LocalAgentRuntimeConfig)
     document_generation: DocumentGenerationConfig = Field(default_factory=DocumentGenerationConfig)
     evidence_gate: EvidenceGateConfig = Field(default_factory=EvidenceGateConfig)
     parser_backend: ParserBackendConfig = Field(default_factory=ParserBackendConfig)
