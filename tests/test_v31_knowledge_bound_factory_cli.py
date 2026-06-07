@@ -31,6 +31,40 @@ def test_generate_bound_agent_command_writes_factory_outputs(tmp_path):
     assert _json(output / "knowledge_bound_factory_manifest.json")["agent_name"] == "Bound CLI Agent"
 
 
+def test_generate_agent_standalone_mode_does_not_require_kb(tmp_path):
+    output = tmp_path / "standalone_agent"
+
+    result = CliRunner().invoke(
+        app,
+        [
+            "generate-agent",
+            "--mode",
+            "standalone",
+            "--output",
+            str(output),
+            "--agent-name",
+            "Standalone CLI Agent",
+            "--agent-type",
+            "planning",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    manifest = _json(output / "agent_manifest.json")
+    assert manifest["mode"] == "standalone"
+    assert manifest["knowledge_binding"]["enabled"] is False
+    assert (output / "capabilities.yaml").exists()
+    assert (output / "memory_policy.yaml").exists()
+    assert not (output / "retrieval_config.yaml").exists()
+
+
+def test_generate_agent_kb_bound_mode_requires_package_and_skill(tmp_path):
+    result = CliRunner().invoke(app, ["generate-agent", "--mode", "kb_bound", "--output", str(tmp_path / "agent")])
+
+    assert result.exit_code != 0
+    assert "--package and --skill" in result.output
+
+
 def _build_package(tmp_path):
     input_dir = tmp_path / "input"
     output_dir = tmp_path / "package"

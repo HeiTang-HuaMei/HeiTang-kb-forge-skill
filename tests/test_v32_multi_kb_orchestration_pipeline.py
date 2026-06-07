@@ -14,6 +14,9 @@ def test_pipeline_reports_multi_kb_orchestration_only_when_enabled(tmp_path):
     assert default_stage["status"] == "skipped"
     assert enabled_stage["status"] == "success"
     assert "multi_kb_route_map.json" in enabled_stage["output_files"]
+    assert "hierarchy_trace.json" in enabled_stage["output_files"]
+    assert "memory_writeback_report.json" in enabled_stage["output_files"]
+    assert "memory_lifecycle_report.json" in enabled_stage["output_files"]
 
 
 def _run_pipeline(tmp_path, enabled):

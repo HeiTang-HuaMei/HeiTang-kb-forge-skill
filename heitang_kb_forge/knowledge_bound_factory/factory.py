@@ -33,6 +33,8 @@ def generate_knowledge_bound_agent(
     agent_type: str = "generic",
     allow_untrusted: bool = False,
 ) -> dict:
+    if not package.exists() or not package.is_dir():
+        raise FileNotFoundError(f"Package not found: {package}")
     gate = assert_trusted_for_export(package, allow_untrusted=allow_untrusted)
     skill_output = output / "skill_package"
     agent_output = output / "agent_package"
@@ -41,15 +43,17 @@ def generate_knowledge_bound_agent(
     validation_result = validate_skill_package(skill_output, package, validation_output)
     agent_result = generate_agent_package(package, skill_output, agent_output, agent_name, agent_type, generated_by="knowledge_bound_factory")
 
-    status = "pass" if validation_result.status in {"pass", "warning"} and not gate["blocked"] else "fail"
+    skill_warnings = list(skill_result.warnings)
+    status = "pass" if validation_result.status == "pass" and not skill_warnings and not gate["blocked"] else "fail"
     quality = {
         "knowledge_bound_factory_version": "3.1.0-alpha.1",
         "status": status,
         "release_ready": bool(validation_result.release_ready and status == "pass"),
         "kb_trust_status": read_kb_trust_status(package),
+        "skill_generation_warnings": skill_warnings,
         "skill_validation_status": validation_result.status,
         "skill_validation_scores": validation_result.scores,
-        "warnings": list(validation_result.warnings) + list(gate["warnings"]),
+        "warnings": skill_warnings + list(validation_result.warnings) + list(gate["warnings"]),
     }
     manifest = {
         "knowledge_bound_factory_version": "3.1.0-alpha.1",

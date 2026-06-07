@@ -42,7 +42,7 @@ from heitang_kb_forge.knowledge_runtime import (
     build_kb_index_outputs,
     query_kb_outputs,
 )
-from heitang_kb_forge.knowledge_bound_factory import generate_knowledge_bound_agent
+from heitang_kb_forge.knowledge_bound_factory import generate_knowledge_bound_agent, generate_standalone_agent
 from heitang_kb_forge.multi_kb_orchestration import orchestrate_multi_kb_agents
 from heitang_kb_forge.skill_reverse_fusion import reverse_and_fuse_skills
 from heitang_kb_forge.workbench_contracts import generate_workbench_contracts
@@ -945,11 +945,13 @@ def validate_skill_command(
 
 @app.command("generate-agent")
 def generate_agent_command(
-    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
-    skill: Path = typer.Option(..., "--skill", exists=True, file_okay=False, dir_okay=True, readable=True),
+    package: Path | None = typer.Option(None, "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    skill: Path | None = typer.Option(None, "--skill", exists=True, file_okay=False, dir_okay=True, readable=True),
     output: Path = typer.Option(..., "--output", "-o"),
+    mode: str = typer.Option("kb_bound", "--mode"),
     agent_name: str = typer.Option("Demo Knowledge Agent", "--agent-name"),
     agent_type: str = typer.Option("generic", "--agent-type"),
+    description: str = typer.Option("Standalone local Agent package.", "--description"),
     llm: bool = typer.Option(False, "--llm"),
     llm_provider: str = typer.Option("mock", "--llm-provider"),
     llm_model: str = typer.Option("mock-model", "--llm-model"),
@@ -959,7 +961,16 @@ def generate_agent_command(
     agent_compat: bool = typer.Option(False, "--agent-compat"),
     allow_untrusted: bool = typer.Option(False, "--allow-untrusted"),
 ) -> None:
-    """Generate an Agent Package from a knowledge package and Skill Package."""
+    """Generate an Agent Package in kb_bound or standalone mode."""
+    if mode not in {"kb_bound", "standalone"}:
+        raise typer.BadParameter("mode must be kb_bound or standalone")
+    if mode == "standalone":
+        result = generate_standalone_agent(output, agent_name, agent_type, description)
+        typer.echo(f"Built Standalone Agent Package at {output}")
+        typer.echo(f"Agent: {result['name']} | Mode: {result['mode']}")
+        return
+    if package is None or skill is None:
+        raise typer.BadParameter("--package and --skill are required when --mode kb_bound")
     assert_trusted_for_export(package, allow_untrusted=allow_untrusted)
     settings = _provider_settings(llm_provider, llm_model, llm_base_url, llm_api_key_env)
     if llm and llm_agent_generation:
@@ -1004,9 +1015,20 @@ def orchestrate_multi_kb_command(
     output: Path = typer.Option(..., "--output", "-o"),
     agents: str = typer.Option("", "--agents"),
     query: str = typer.Option("", "--query"),
+    mother_agent: Path | None = typer.Option(None, "--mother-agent", exists=True, file_okay=False, dir_okay=True, readable=True),
+    workflow_shared_memory: bool = typer.Option(False, "--workflow-shared-memory"),
+    parent_writeback: bool = typer.Option(False, "--parent-writeback"),
 ) -> None:
     """Build a deterministic multi-KB and multi-agent orchestration contract."""
-    result = orchestrate_multi_kb_agents(_split_paths(packages), output, _split_paths(agents), query)
+    result = orchestrate_multi_kb_agents(
+        _split_paths(packages),
+        output,
+        _split_paths(agents),
+        query,
+        mother_agent,
+        workflow_shared_memory,
+        parent_writeback,
+    )
     typer.echo(f"Built multi-KB orchestration at {output}")
     typer.echo(f"Packages: {result['package_count']} | Agents: {result['agent_count']} | Status: {result['status']}")
 
@@ -2881,6 +2903,9 @@ def _run_v19_config_outputs(config_data: ForgeConfig, output: Path) -> None:
             output,
             config_data.multi_kb_orchestration.agents,
             config_data.multi_kb_orchestration.query,
+            config_data.multi_kb_orchestration.mother_agent,
+            config_data.multi_kb_orchestration.workflow_shared_memory,
+            config_data.multi_kb_orchestration.parent_writeback,
         )
     if config_data.skill_reverse_fusion.enabled:
         skills = config_data.skill_reverse_fusion.skills or [output / "skill_package"]

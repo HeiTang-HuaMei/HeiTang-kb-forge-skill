@@ -20,6 +20,14 @@ SKILL_REVERSE_FUSION_OUTPUT_FILES = [
 
 
 def reverse_and_fuse_skills(skills: list[Path], output: Path, fused_name: str = "Fused Knowledge Skill") -> dict:
+    if not skills:
+        raise ValueError("Skill reverse fusion requires at least one Skill package")
+    missing = [str(skill) for skill in skills if not skill.exists() or not skill.is_dir()]
+    if missing:
+        raise FileNotFoundError(f"Skill package not found: {', '.join(missing)}")
+    missing_skill_md = [str(skill / "SKILL.md") for skill in skills if not (skill / "SKILL.md").exists()]
+    if missing_skill_md:
+        raise FileNotFoundError(f"Skill package missing SKILL.md: {', '.join(missing_skill_md)}")
     output.mkdir(parents=True, exist_ok=True)
     profiles = [_reverse_skill(skill) for skill in skills]
     plan = {
@@ -40,7 +48,7 @@ def reverse_and_fuse_skills(skills: list[Path], output: Path, fused_name: str = 
     (fused / "evidence_policy.md").write_text("# Evidence Policy\n\nUse only evidence available to the bound knowledge package or retrieved context.\n", encoding="utf-8")
     quality = {
         "skill_reverse_fusion_version": "3.3.0-alpha.1",
-        "status": "pass" if profiles else "fail",
+        "status": "pass",
         "source_skill_count": len(profiles),
         "capability_count": len(plan["capabilities"]),
         "boundary_rule_count": len(plan["boundary_rules"]),

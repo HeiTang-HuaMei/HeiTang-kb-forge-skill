@@ -29,6 +29,7 @@ multi_kb_orchestration:
     manifest = _json(output_dir / "multi_kb_orchestration_manifest.json")
     assert manifest["package_count"] == 1
     assert (output_dir / "multi_kb_route_map.json").exists()
+    assert (output_dir / "hierarchy_trace.json").exists()
 
 
 def _json(path):

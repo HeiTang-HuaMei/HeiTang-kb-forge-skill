@@ -77,28 +77,36 @@ Deliver:
 - citations
 - export validation
 
-### v3.1 Knowledge-Bound Agent / Skill Factory
+### v3.1 Agent / Skill Factory
 
-Solve knowledge-bound Agent generation.
+Solve two first-class Agent creation modes: KB-bound Agents and standalone Agents.
 
 Deliver:
 
+- `mode: kb_bound`
+- `mode: standalone`
 - Agent / Skill generation
-- KB binding
-- retrieval binding
+- KB binding for KB-bound Agents
+- retrieval binding for KB-bound Agents
+- standalone Agent package generation without requiring a KB
+- capabilities, tools, memory, output contract, answer policy, refusal policy, and eval cases for standalone Agents
 - provider binding
 - answer policy
+- smoke test report
 - validation report
 
 ### v3.2 Multi-KB & Multi-Agent Orchestration
 
-Solve multi-KB and multi-Agent workflows.
+Solve multi-KB and multi-Agent workflows across both KB-bound and standalone Agents.
 
 Deliver:
 
 - multi-KB registry
 - agent registry
+- `mode: kb_bound | standalone` in agent registry
 - model routing
+- route KB questions to trusted KB-bound Agents
+- route planning/process/coach tasks to standalone Agents
 - workflow definition
 - orchestrator agent
 - handoff protocol

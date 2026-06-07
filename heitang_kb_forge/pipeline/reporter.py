@@ -24,6 +24,8 @@ from heitang_kb_forge.planning.readiness import PLANNING_OUTPUT_FILES
 from heitang_kb_forge.vector.exporter import VECTOR_OUTPUT_FILES
 from heitang_kb_forge.store.exporter import STORE_OUTPUT_FILES
 from heitang_kb_forge.evidence_gate import EVIDENCE_GATE_OUTPUT_FILES
+from heitang_kb_forge.multi_kb_orchestration import MULTI_KB_ORCHESTRATION_OUTPUT_FILES
+from heitang_kb_forge.workbench_contracts import WORKBENCH_CONTRACT_OUTPUT_FILES
 from heitang_kb_forge.schemas.config_schema import ForgeConfig
 from heitang_kb_forge.schemas.pipeline_schema import PipelineManifest, PipelineStage
 
@@ -107,9 +109,9 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("agent_package_validation", config.agent_package.enabled, output / "agent_package", ["launch_checklist.md"], "build"),
         _stage("agent_compatibility", config.agent_package.enabled and config.agent_package.compat, output / "agent_package", ["compat/openclaw_agent.yaml", "agent_compat_check_result.json"], "build"),
         _stage("knowledge_bound_factory", config.knowledge_bound_factory.enabled, output, ["knowledge_bound_factory_manifest.json", "knowledge_bound_factory_trace.json", "knowledge_bound_factory_quality_report.json", "knowledge_bound_factory_report.md"], "build"),
-        _stage("multi_kb_orchestration", config.multi_kb_orchestration.enabled, output, ["multi_kb_orchestration_manifest.json", "multi_kb_route_map.json", "multi_agent_binding_graph.json", "multi_kb_conflict_report.json", "multi_kb_orchestration_trace.json", "multi_kb_orchestration_report.md"], "build"),
+        _stage("multi_kb_orchestration", config.multi_kb_orchestration.enabled, output, MULTI_KB_ORCHESTRATION_OUTPUT_FILES, "build"),
         _stage("skill_reverse_fusion", config.skill_reverse_fusion.enabled, output, ["skill_reverse_profiles.json", "skill_fusion_plan.json", "skill_reverse_fusion_trace.json", "skill_reverse_fusion_quality_report.json", "skill_reverse_fusion_report.md"], "build"),
-        _stage("workbench_contracts", config.workbench_contracts.enabled, config.workbench_contracts.output or output, ["workbench_contract_manifest.json", "workbench_navigation_contract.json", "workbench_action_contract.json", "workbench_asset_contract.json", "workbench_status_contract.json", "workbench_contract_trace.json", "workbench_contract_report.md"], "build"),
+        _stage("workbench_contracts", config.workbench_contracts.enabled, config.workbench_contracts.output or output, WORKBENCH_CONTRACT_OUTPUT_FILES, "build"),
         _stage("workspace_init", config.workspace.enabled, config.workspace.path or (output / "workspace"), ["workspace_manifest.json"], "build"),
         _stage("workspace_register", config.workspace.enabled and config.workspace.register_outputs, config.workspace.path or (output / "workspace"), ["registries/package_registry.jsonl"], "build"),
         _stage("relationship_graph_update", config.workspace.enabled and config.workspace.register_outputs, config.workspace.path or (output / "workspace"), ["registries/relationship_graph.json"], "build"),

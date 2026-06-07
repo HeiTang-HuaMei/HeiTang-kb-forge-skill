@@ -1,5 +1,7 @@
 import json
 
+import pytest
+
 from heitang_kb_forge.skill_reverse_fusion import reverse_and_fuse_skills
 
 
@@ -15,6 +17,14 @@ def test_reverse_and_fuse_skills_writes_profiles_plan_and_fused_skill(tmp_path):
     assert _json(output / "skill_fusion_plan.json")["source_skill_count"] == 2
     assert _json(output / "skill_reverse_fusion_quality_report.json")["review_required"] is True
     assert (output / "skill_reverse_fusion_report.md").exists()
+
+
+def test_reverse_and_fuse_skills_requires_skill_md(tmp_path):
+    skill = tmp_path / "broken"
+    skill.mkdir()
+
+    with pytest.raises(FileNotFoundError):
+        reverse_and_fuse_skills([skill], tmp_path / "fusion")
 
 
 def _skill(tmp_path, name, body):

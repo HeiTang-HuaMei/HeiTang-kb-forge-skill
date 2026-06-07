@@ -26,6 +26,8 @@ def test_orchestrate_multi_kb_command_writes_outputs(tmp_path):
 
     assert result.exit_code == 0, result.output
     assert _json(output / "multi_kb_orchestration_manifest.json")["package_count"] == 2
+    assert (output / "hierarchy_trace.json").exists()
+    assert (output / "memory_isolation_report.json").exists()
     assert (output / "multi_kb_orchestration_trace.json").exists()
 
 

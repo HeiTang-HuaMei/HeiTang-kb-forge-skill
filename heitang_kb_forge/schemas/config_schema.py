@@ -277,6 +277,9 @@ class MultiKBOrchestrationConfig(BaseModel):
     packages: list[Path] = Field(default_factory=list)
     agents: list[Path] = Field(default_factory=list)
     query: str = ""
+    mother_agent: Path | None = None
+    workflow_shared_memory: bool = False
+    parent_writeback: bool = False
 
 
 class SkillReverseFusionConfig(BaseModel):

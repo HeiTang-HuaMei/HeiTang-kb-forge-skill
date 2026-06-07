@@ -20,6 +20,7 @@ def test_workbench_contracts_command_writes_contract_files(tmp_path):
     assert result.exit_code == 0, result.output
     assert _json(output / "workbench_contract_manifest.json")["project_name"] == "CLI Workbench"
     assert (output / "workbench_navigation_contract.json").exists()
+    assert _json(output / "workbench_storage_contract.json")["storage_backend"] == "local_workspace"
 
 
 def _json(path):

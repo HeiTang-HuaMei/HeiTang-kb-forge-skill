@@ -36,7 +36,7 @@ def generate_document_outputs(
     package: Path,
     output: Path,
     formats: list[str],
-    template: str = "default",
+    template: str = "default_report",
     grounding_policy: str = "strict_grounded",
     title: str | None = None,
 ) -> dict:

@@ -29,6 +29,7 @@ workbench_contracts:
     manifest = _json(output_dir / "workbench_contract_manifest.json")
     assert manifest["project_name"] == "Config Workbench"
     assert _json(output_dir / "workbench_status_contract.json")["status"] == "ready"
+    assert _json(output_dir / "workbench_status_contract.json")["storage_backend"] == "local_workspace"
 
 
 def _json(path):

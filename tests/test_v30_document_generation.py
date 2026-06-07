@@ -60,6 +60,16 @@ def test_creative_grounded_allows_draft_with_review_required(tmp_path):
     assert "creative_grounded_generation_requires_human_review" in trace["warnings"]
 
 
+def test_document_generation_default_template_is_default_report(tmp_path):
+    package = _package(tmp_path, trusted=True)
+    output = tmp_path / "docs_default"
+
+    generate_document_outputs(package, output, ["md"])
+
+    trace = _json(output / "document_generation_trace.json")
+    assert trace["template"] == "default_report"
+
+
 def _package(tmp_path, trusted):
     package = tmp_path / ("trusted" if trusted else "draft")
     package.mkdir()
