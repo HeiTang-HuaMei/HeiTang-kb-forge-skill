@@ -92,6 +92,7 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("kb_answer", config.knowledge_runtime.enabled, output, ["kb_answer.md", "kb_answer_report.json"], config.task),
         _stage("retrieval_quality_report", config.knowledge_runtime.enabled, output, ["retrieval_quality_report.json"], config.task),
         _stage("rag_eval_baseline", config.knowledge_runtime.enabled, output, ["rag_eval_baseline.jsonl", "rag_eval_baseline_report.md"], config.task),
+        _stage("document_generation", config.document_generation.enabled, output, _document_generation_output_files(config), config.task),
         _stage("evidence_gate", config.evidence_gate.enabled, output, EVIDENCE_GATE_OUTPUT_FILES, config.task),
         _stage("llm_provider_check", config.llm.enabled, output, [], config.task),
         _stage("llm_evidence_validation", config.llm.evidence_validation, output, ["llm_evidence_validation.json"], config.task),
@@ -105,6 +106,10 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("llm_agent_generation", config.agent_package.enabled and config.agent_package.llm_generation and config.llm.enabled, output / "agent_package", ["llm_agent_generation_report.md"], "build"),
         _stage("agent_package_validation", config.agent_package.enabled, output / "agent_package", ["launch_checklist.md"], "build"),
         _stage("agent_compatibility", config.agent_package.enabled and config.agent_package.compat, output / "agent_package", ["compat/openclaw_agent.yaml", "agent_compat_check_result.json"], "build"),
+        _stage("knowledge_bound_factory", config.knowledge_bound_factory.enabled, output, ["knowledge_bound_factory_manifest.json", "knowledge_bound_factory_trace.json", "knowledge_bound_factory_quality_report.json", "knowledge_bound_factory_report.md"], "build"),
+        _stage("multi_kb_orchestration", config.multi_kb_orchestration.enabled, output, ["multi_kb_orchestration_manifest.json", "multi_kb_route_map.json", "multi_agent_binding_graph.json", "multi_kb_conflict_report.json", "multi_kb_orchestration_trace.json", "multi_kb_orchestration_report.md"], "build"),
+        _stage("skill_reverse_fusion", config.skill_reverse_fusion.enabled, output, ["skill_reverse_profiles.json", "skill_fusion_plan.json", "skill_reverse_fusion_trace.json", "skill_reverse_fusion_quality_report.json", "skill_reverse_fusion_report.md"], "build"),
+        _stage("workbench_contracts", config.workbench_contracts.enabled, config.workbench_contracts.output or output, ["workbench_contract_manifest.json", "workbench_navigation_contract.json", "workbench_action_contract.json", "workbench_asset_contract.json", "workbench_status_contract.json", "workbench_contract_trace.json", "workbench_contract_report.md"], "build"),
         _stage("workspace_init", config.workspace.enabled, config.workspace.path or (output / "workspace"), ["workspace_manifest.json"], "build"),
         _stage("workspace_register", config.workspace.enabled and config.workspace.register_outputs, config.workspace.path or (output / "workspace"), ["registries/package_registry.jsonl"], "build"),
         _stage("relationship_graph_update", config.workspace.enabled and config.workspace.register_outputs, config.workspace.path or (output / "workspace"), ["registries/relationship_graph.json"], "build"),
@@ -221,6 +226,22 @@ def _llm_output_files(config: ForgeConfig) -> list[str]:
     files = list(OUTPUT_FILES.values())
     if config.llm.quality_report:
         files.extend(LLM_QUALITY_OUTPUT_FILES)
+    return files
+
+
+def _document_generation_output_files(config: ForgeConfig) -> list[str]:
+    files = [
+        "generated_file_report.json",
+        "generated_file_report.md",
+        "document_generation_trace.json",
+        "document_quality_report.json",
+        "export_validation_report.json",
+        "export_validation_report.md",
+    ]
+    for fmt in config.document_generation.formats:
+        normalized = fmt.lower().lstrip(".")
+        if normalized in {"md", "docx", "pdf", "pptx"}:
+            files.insert(0, f"generated.{normalized}")
     return files
 
 

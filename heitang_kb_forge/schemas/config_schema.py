@@ -263,6 +263,34 @@ class AgentPackageConfig(BaseModel):
     compat: bool = False
 
 
+class KnowledgeBoundFactoryConfig(BaseModel):
+    enabled: bool = False
+    skill_name: str = "Demo Knowledge Skill"
+    agent_name: str = "Demo Knowledge Agent"
+    skill_type: str = "generic"
+    agent_type: str = "generic"
+    allow_untrusted: bool = False
+
+
+class MultiKBOrchestrationConfig(BaseModel):
+    enabled: bool = False
+    packages: list[Path] = Field(default_factory=list)
+    agents: list[Path] = Field(default_factory=list)
+    query: str = ""
+
+
+class SkillReverseFusionConfig(BaseModel):
+    enabled: bool = False
+    skills: list[Path] = Field(default_factory=list)
+    fused_name: str = "Fused Knowledge Skill"
+
+
+class WorkbenchContractsConfig(BaseModel):
+    enabled: bool = False
+    output: Path | None = None
+    project_name: str = "HeiTang Workbench"
+
+
 class PerformanceConfig(BaseModel):
     profile: str = "production"
     progress: bool = False
@@ -317,6 +345,14 @@ class KnowledgeRuntimeConfig(BaseModel):
     top_k: int = 5
     min_score: int = 2
     citation_required: bool = True
+
+
+class DocumentGenerationConfig(BaseModel):
+    enabled: bool = False
+    formats: list[str] = Field(default_factory=lambda: ["md"])
+    template: str = "default_report"
+    grounding_policy: str = "strict_grounded"
+    title: str | None = None
 
 
 class EvidenceGateConfig(BaseModel):
@@ -491,12 +527,17 @@ class ForgeConfig(BaseModel):
     agent_rag: AgentRAGConfig = Field(default_factory=AgentRAGConfig)
     skill: SkillConfig = Field(default_factory=SkillConfig)
     agent_package: AgentPackageConfig = Field(default_factory=AgentPackageConfig)
+    knowledge_bound_factory: KnowledgeBoundFactoryConfig = Field(default_factory=KnowledgeBoundFactoryConfig)
+    multi_kb_orchestration: MultiKBOrchestrationConfig = Field(default_factory=MultiKBOrchestrationConfig)
+    skill_reverse_fusion: SkillReverseFusionConfig = Field(default_factory=SkillReverseFusionConfig)
+    workbench_contracts: WorkbenchContractsConfig = Field(default_factory=WorkbenchContractsConfig)
     performance: PerformanceConfig = Field(default_factory=PerformanceConfig)
     multimodal: MultimodalConfig = Field(default_factory=MultimodalConfig)
     contract: ContractConfig = Field(default_factory=ContractConfig)
     governance: GovernanceConfig = Field(default_factory=GovernanceConfig)
     retrieval: RetrievalIndexConfig = Field(default_factory=RetrievalIndexConfig)
     knowledge_runtime: KnowledgeRuntimeConfig = Field(default_factory=KnowledgeRuntimeConfig)
+    document_generation: DocumentGenerationConfig = Field(default_factory=DocumentGenerationConfig)
     evidence_gate: EvidenceGateConfig = Field(default_factory=EvidenceGateConfig)
     parser_backend: ParserBackendConfig = Field(default_factory=ParserBackendConfig)
     package_lineage: PackageLineageConfig = Field(default_factory=PackageLineageConfig)

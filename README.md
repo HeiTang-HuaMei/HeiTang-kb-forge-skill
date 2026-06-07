@@ -41,6 +41,7 @@ Preview capabilities:
 - Minimal end-to-end portfolio demo workflow
 - Parser backend abstraction, parse quality gate, manual review queue, and trusted KB gate
 - Knowledge Runtime Loop: `kb-index`, `kb-query`, `kb-answer`, cited local answers, low-confidence refusal, query trace, retrieval quality report, and RAG eval baseline
+- Document Generation Loop: `generate-md`, `generate-docx`, `generate-pdf`, `generate-pptx`, `generate-documents`, grounded exports, generation trace, quality report, and export validation report
 
 Experimental capabilities:
 
@@ -99,14 +100,13 @@ The built-in backend is local. Docling and Marker adapters are optional stubs un
 
 v2.9 adds an opt-in local runtime loop over an existing knowledge package. It builds a local KB index, runs deterministic query ranking, writes citation traces, produces a cited answer, refuses low-confidence answers, and generates retrieval quality plus RAG eval baseline files.
 
-```powershell
-python -m heitang_kb_forge.cli kb-index --package .\tmp_quickstart_output --output .\tmp_kb_runtime
-python -m heitang_kb_forge.cli kb-query --package .\tmp_quickstart_output --query "pricing evidence" --output .\tmp_kb_runtime
-python -m heitang_kb_forge.cli kb-answer --package .\tmp_quickstart_output --query "pricing evidence" --output .\tmp_kb_runtime
-python -m heitang_kb_forge.cli build --input .\examples\quickstart\input --output .\tmp_build --knowledge-runtime --kb-query "summarize evidence"
-```
+Commands include `kb-index`, `kb-query`, `kb-answer`, and `build --knowledge-runtime`. See [v2.9 Knowledge Runtime Loop](docs/V29_KNOWLEDGE_RUNTIME_LOOP.md).
 
-v2.9 writes `kb_index.jsonl`, `kb_index_manifest.json`, `kb_query_result.json`, `kb_query_trace.json`, `kb_citation_trace.json`, `kb_answer.md`, `kb_answer_report.json`, `retrieval_quality_report.json`, `rag_eval_baseline.jsonl`, and `rag_eval_baseline_report.md`. It does not call LLM APIs, embedding APIs, vector databases, or external Agent runtimes.
+## v3.0 Document Generation Loop
+
+v3.0 adds an opt-in local document generation loop over an existing knowledge package. It generates grounded Markdown, DOCX, PDF, and PPTX exports, writes generation and validation reports, and blocks strict generation from draft or untrusted parser output.
+
+Commands include `generate-md`, `generate-documents`, and `build --document-generation`. Config-driven runs support `document_generation.enabled`, `formats`, `template`, and `grounding_policy`. See [v3.0 Document Generation Loop](docs/V30_DOCUMENT_GENERATION.md).
 
 ## Install
 
@@ -149,10 +149,6 @@ python -m heitang_kb_forge.cli quality-gate --workspace .\output --output .\qual
 python -m heitang_kb_forge.cli regression-check --workspace . --output .\regression
 ```
 
-## v2.9 Focus
-
-v2.9 is a local Knowledge Runtime Loop checkpoint. It keeps runtime outputs opt-in, preserves offline default outputs, and proves local index / query / answer behavior with citations, refusal, query trace, retrieval quality, and RAG eval baseline files.
-
 ## Boundaries
 
 By default, HeiTang KB Forge does not:
@@ -172,6 +168,7 @@ Current and future boundaries:
 - v2.7: minimal end-to-end demo / portfolio release
 - v2.8: parser backend and knowledge reliability
 - v2.9: Knowledge Runtime Loop
+- v3.0: Document Generation Loop
 - future client platform integrations: Feishu / personal KB / mobile / installer / iOS
 - v3.x: SaaS / permissions / team collaboration
 
@@ -187,6 +184,7 @@ Current and future boundaries:
 - [Release Readiness](docs/RELEASE_READINESS.md)
 - [v2.8 Parser Backend Reliability](docs/V28_PARSER_BACKEND_RELIABILITY.md)
 - [v2.9 Knowledge Runtime Loop](docs/V29_KNOWLEDGE_RUNTIME_LOOP.md)
+- [v3.0 Document Generation Loop](docs/V30_DOCUMENT_GENERATION.md)
 - [Platform Distribution](docs/PLATFORM_DISTRIBUTION.md)
 - [Knowledge Ops Guide](docs/KNOWLEDGE_OPS_GUIDE.md)
 - [Desktop App Guide](docs/DESKTOP_APP_GUIDE.md)

@@ -41,6 +41,7 @@ Preview 能力：
 - Minimal end-to-end portfolio demo workflow
 - Parser backend 抽象、parse quality gate、manual review queue 和 trusted KB gate
 - Knowledge Runtime Loop：`kb-index`、`kb-query`、`kb-answer`、本地引用答案、低置信拒答、query trace、retrieval quality report 和 RAG eval baseline
+- Document Generation Loop：`generate-md`、`generate-docx`、`generate-pdf`、`generate-pptx`、`generate-documents`、grounded exports、generation trace、quality report 和 export validation report
 
 Experimental 能力：
 
@@ -99,14 +100,13 @@ python -m heitang_kb_forge.cli build --input .\examples\quickstart\input --outpu
 
 v2.9 新增可选本地知识运行闭环。它基于已有知识包构建本地 KB index，执行确定性 query ranking，写出 citation trace，生成带引用的本地答案，在低置信时拒答，并生成 retrieval quality 与 RAG eval baseline 文件。
 
-```powershell
-python -m heitang_kb_forge.cli kb-index --package .\tmp_quickstart_output --output .\tmp_kb_runtime
-python -m heitang_kb_forge.cli kb-query --package .\tmp_quickstart_output --query "pricing evidence" --output .\tmp_kb_runtime
-python -m heitang_kb_forge.cli kb-answer --package .\tmp_quickstart_output --query "pricing evidence" --output .\tmp_kb_runtime
-python -m heitang_kb_forge.cli build --input .\examples\quickstart\input --output .\tmp_build --knowledge-runtime --kb-query "summarize evidence"
-```
+命令包括 `kb-index`、`kb-query`、`kb-answer` 和 `build --knowledge-runtime`。详见 [v2.9 Knowledge Runtime Loop](docs/V29_KNOWLEDGE_RUNTIME_LOOP.zh-CN.md)。
 
-v2.9 会写出 `kb_index.jsonl`、`kb_index_manifest.json`、`kb_query_result.json`、`kb_query_trace.json`、`kb_citation_trace.json`、`kb_answer.md`、`kb_answer_report.json`、`retrieval_quality_report.json`、`rag_eval_baseline.jsonl` 和 `rag_eval_baseline_report.md`。它不调用 LLM API，不调用 embedding API，不写入向量库，也不真实运行外部 Agent runtime。
+## v3.0 Document Generation Loop
+
+v3.0 新增可选本地文档生成闭环。它基于已有知识包生成有证据边界的 Markdown、DOCX、PDF 和 PPTX 导出，写出 generation 与 validation 报告，并在 strict 模式阻止 draft 或 untrusted parser 输出。
+
+命令包括 `generate-md`、`generate-documents` 和 `build --document-generation`。配置驱动运行支持 `document_generation.enabled`、`formats`、`template` 和 `grounding_policy`。详见 [v3.0 Document Generation Loop](docs/V30_DOCUMENT_GENERATION.zh-CN.md)。
 
 ## 安装
 
@@ -149,10 +149,6 @@ python -m heitang_kb_forge.cli quality-gate --workspace .\output --output .\qual
 python -m heitang_kb_forge.cli regression-check --workspace . --output .\regression
 ```
 
-## v2.9 定位
-
-v2.9 是本地 Knowledge Runtime Loop checkpoint。Runtime 输出默认关闭，离线默认输出不变；本轮验证本地 index / query / answer、引用、拒答、query trace、retrieval quality 和 RAG eval baseline。
-
 ## 当前边界
 
 默认不做：
@@ -172,6 +168,7 @@ v2.9 是本地 Knowledge Runtime Loop checkpoint。Runtime 输出默认关闭，
 - v2.7：minimal end-to-end demo / portfolio release
 - v2.8：parser backend 与 knowledge reliability
 - v2.9：Knowledge Runtime Loop
+- v3.0：Document Generation Loop
 - 后续客户端平台集成：飞书 / 个人知识库 / 移动端 / 安装端 / iOS
 - v3.x：SaaS / 权限 / 团队协作
 
@@ -187,6 +184,7 @@ v2.9 是本地 Knowledge Runtime Loop checkpoint。Runtime 输出默认关闭，
 - [Release Readiness](docs/RELEASE_READINESS.zh-CN.md)
 - [v2.8 Parser Backend Reliability](docs/V28_PARSER_BACKEND_RELIABILITY.zh-CN.md)
 - [v2.9 Knowledge Runtime Loop](docs/V29_KNOWLEDGE_RUNTIME_LOOP.zh-CN.md)
+- [v3.0 Document Generation Loop](docs/V30_DOCUMENT_GENERATION.zh-CN.md)
 - [Platform Distribution](docs/PLATFORM_DISTRIBUTION.zh-CN.md)
 - [Knowledge Ops Guide](docs/KNOWLEDGE_OPS_GUIDE.md)
 - [桌面应用指南](docs/DESKTOP_APP_GUIDE.md)

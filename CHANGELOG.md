@@ -1,5 +1,26 @@
 # Changelog
 
+## v3.0.0-alpha.1
+
+* Added opt-in Document Generation Loop.
+* Added `generate-md`.
+* Added `generate-docx`.
+* Added `generate-pdf`.
+* Added `generate-pptx`.
+* Added `generate-documents`.
+* Added grounded Markdown, DOCX, PDF, and PPTX exports.
+* Added generated file report JSON and Markdown outputs.
+* Added document generation trace.
+* Added document quality report.
+* Added export validation JSON and Markdown reports.
+* Added config and pipeline visibility for document generation outputs.
+* Preserved default build / run / pipeline behavior.
+* Preserved default offline behavior.
+* No LLM API calls.
+* No embedding API calls.
+* No vector database writes.
+* No external Agent runtime execution.
+
 ## v2.9.0-alpha.1
 
 * Added opt-in Knowledge Runtime Loop.

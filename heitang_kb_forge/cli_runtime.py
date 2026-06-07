@@ -22,6 +22,7 @@ from heitang_kb_forge.config.loader import load_config
 from heitang_kb_forge.contracts.checker import check_package_contract
 from heitang_kb_forge.contracts.report import make_contract_report
 from heitang_kb_forge.contracts.stable_checker import run_stable_check
+from heitang_kb_forge.document_generation import DOCUMENT_GENERATION_OUTPUT_FILES, generate_document_outputs
 from heitang_kb_forge.doctor import run_doctor
 from heitang_kb_forge.downstream.exporter import DOWNSTREAM_OUTPUT_FILES, make_downstream_exports
 from heitang_kb_forge.demo_e2e import run_demo_e2e
@@ -41,6 +42,10 @@ from heitang_kb_forge.knowledge_runtime import (
     build_kb_index_outputs,
     query_kb_outputs,
 )
+from heitang_kb_forge.knowledge_bound_factory import generate_knowledge_bound_agent
+from heitang_kb_forge.multi_kb_orchestration import orchestrate_multi_kb_agents
+from heitang_kb_forge.skill_reverse_fusion import reverse_and_fuse_skills
+from heitang_kb_forge.workbench_contracts import generate_workbench_contracts
 from heitang_kb_forge.lifecycle.change_detector import (
     LIFECYCLE_OUTPUT_FILES,
     detect_source_changes,
@@ -382,6 +387,15 @@ class KnowledgeRuntimeOptions:
 
 
 @dataclass
+class DocumentGenerationOptions:
+    enabled: bool = False
+    formats: list[str] | None = None
+    template: str = "default_report"
+    grounding_policy: str = "strict_grounded"
+    title: str | None = None
+
+
+@dataclass
 class EvidenceGateOptions:
     enabled: bool = False
     query: str = "Summarize this knowledge package."
@@ -495,6 +509,91 @@ def trusted_kb_gate_command(
         raise typer.Exit(1)
 
 
+def _generate_documents(
+    package: Path,
+    output: Path,
+    formats: list[str],
+    template: str,
+    grounding_policy: str,
+    title: str | None,
+) -> dict:
+    result = generate_document_outputs(
+        package=package,
+        output=output,
+        formats=formats,
+        template=template,
+        grounding_policy=grounding_policy,
+        title=title,
+    )
+    typer.echo(f"Generated documents at {output}")
+    typer.echo(f"Formats: {', '.join(result['formats'])} | Status: {result['status']}")
+    if result["review_required"]:
+        typer.echo("Review required: true")
+    return result
+
+
+@app.command("generate-documents")
+def generate_documents_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    formats: str = typer.Option("md,docx,pdf,pptx", "--formats"),
+    template: str = typer.Option("default_report", "--template"),
+    grounding_policy: str = typer.Option("strict_grounded", "--grounding-policy"),
+    title: str | None = typer.Option(None, "--title"),
+) -> None:
+    """Generate local grounded documents from a trusted knowledge package."""
+    requested = [item.strip() for item in formats.split(",") if item.strip()]
+    _generate_documents(package, output, requested, template, grounding_policy, title)
+
+
+@app.command("generate-md")
+def generate_md_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    template: str = typer.Option("default_report", "--template"),
+    grounding_policy: str = typer.Option("strict_grounded", "--grounding-policy"),
+    title: str | None = typer.Option(None, "--title"),
+) -> None:
+    """Generate a grounded Markdown document from a trusted knowledge package."""
+    _generate_documents(package, output, ["md"], template, grounding_policy, title)
+
+
+@app.command("generate-docx")
+def generate_docx_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    template: str = typer.Option("default_report", "--template"),
+    grounding_policy: str = typer.Option("strict_grounded", "--grounding-policy"),
+    title: str | None = typer.Option(None, "--title"),
+) -> None:
+    """Generate a grounded DOCX document from a trusted knowledge package."""
+    _generate_documents(package, output, ["docx"], template, grounding_policy, title)
+
+
+@app.command("generate-pdf")
+def generate_pdf_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    template: str = typer.Option("default_report", "--template"),
+    grounding_policy: str = typer.Option("strict_grounded", "--grounding-policy"),
+    title: str | None = typer.Option(None, "--title"),
+) -> None:
+    """Generate a grounded PDF document from a trusted knowledge package."""
+    _generate_documents(package, output, ["pdf"], template, grounding_policy, title)
+
+
+@app.command("generate-pptx")
+def generate_pptx_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    template: str = typer.Option("default_report", "--template"),
+    grounding_policy: str = typer.Option("strict_grounded", "--grounding-policy"),
+    title: str | None = typer.Option(None, "--title"),
+) -> None:
+    """Generate a grounded PPTX deck from a trusted knowledge package."""
+    _generate_documents(package, output, ["pptx"], template, grounding_policy, title)
+
+
 @app.command()
 def build(
     input: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
@@ -578,6 +677,11 @@ def build(
     kb_top_k: int = typer.Option(5, "--kb-top-k"),
     kb_min_score: int = typer.Option(2, "--kb-min-score"),
     kb_citation_required: bool = typer.Option(True, "--kb-citation-required/--no-kb-citation-required"),
+    document_generation: bool = typer.Option(False, "--document-generation"),
+    document_formats: str = typer.Option("md", "--document-formats"),
+    document_template: str = typer.Option("default_report", "--document-template"),
+    document_grounding_policy: str = typer.Option("strict_grounded", "--document-grounding-policy"),
+    document_title: str | None = typer.Option(None, "--document-title"),
     evidence_gate: bool = typer.Option(False, "--evidence-gate"),
     evidence_query: str = typer.Option("Summarize this knowledge package.", "--evidence-query"),
     parser_backend: str | None = typer.Option(None, "--parser-backend"),
@@ -675,6 +779,13 @@ def build(
             top_k=kb_top_k,
             min_score=kb_min_score,
             citation_required=kb_citation_required,
+        ),
+        document_generation_options=DocumentGenerationOptions(
+            enabled=document_generation,
+            formats=[item.strip() for item in document_formats.split(",") if item.strip()],
+            template=document_template,
+            grounding_policy=document_grounding_policy,
+            title=document_title,
         ),
         evidence_gate_options=EvidenceGateOptions(evidence_gate, evidence_query),
         parser_backend_options=ParserBackendOptions(
@@ -861,6 +972,67 @@ def generate_agent_command(
         export_agent_compat(output, agent_name)
     typer.echo(f"Built Agent Package at {output}")
     typer.echo(f"Agent: {result['agent_name']}")
+
+
+@app.command("generate-bound-agent")
+def generate_bound_agent_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    skill_name: str = typer.Option("Demo Knowledge Skill", "--skill-name"),
+    agent_name: str = typer.Option("Demo Knowledge Agent", "--agent-name"),
+    skill_type: str = typer.Option("generic", "--skill-type"),
+    agent_type: str = typer.Option("generic", "--agent-type"),
+    allow_untrusted: bool = typer.Option(False, "--allow-untrusted"),
+) -> None:
+    """Generate a trust-bound Skill and Agent pair from a knowledge package."""
+    result = generate_knowledge_bound_agent(
+        package,
+        output,
+        skill_name,
+        agent_name,
+        skill_type,
+        agent_type,
+        allow_untrusted=allow_untrusted,
+    )
+    typer.echo(f"Built knowledge-bound agent at {output}")
+    typer.echo(f"Status: {result['status']} | Agent: {result['agent_name']}")
+
+
+@app.command("orchestrate-multi-kb")
+def orchestrate_multi_kb_command(
+    packages: str = typer.Option(..., "--packages"),
+    output: Path = typer.Option(..., "--output", "-o"),
+    agents: str = typer.Option("", "--agents"),
+    query: str = typer.Option("", "--query"),
+) -> None:
+    """Build a deterministic multi-KB and multi-agent orchestration contract."""
+    result = orchestrate_multi_kb_agents(_split_paths(packages), output, _split_paths(agents), query)
+    typer.echo(f"Built multi-KB orchestration at {output}")
+    typer.echo(f"Packages: {result['package_count']} | Agents: {result['agent_count']} | Status: {result['status']}")
+
+
+@app.command("reverse-fuse-skills")
+def reverse_fuse_skills_command(
+    skills: str = typer.Option(..., "--skills"),
+    output: Path = typer.Option(..., "--output", "-o"),
+    fused_name: str = typer.Option("Fused Knowledge Skill", "--fused-name"),
+) -> None:
+    """Reverse existing Skill packages and generate a fused Skill contract."""
+    result = reverse_and_fuse_skills(_split_paths(skills), output, fused_name)
+    typer.echo(f"Built skill reverse fusion at {output}")
+    typer.echo(f"Status: {result['status']} | Fused Skill: {result['fused_skill']}")
+
+
+@app.command("workbench-contracts")
+def workbench_contracts_command(
+    core_output: Path = typer.Option(..., "--core-output", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    project_name: str = typer.Option("HeiTang Workbench", "--project-name"),
+) -> None:
+    """Generate local Workbench integration contracts from Core outputs."""
+    result = generate_workbench_contracts(core_output, output, project_name)
+    typer.echo(f"Built Workbench contracts at {output or core_output}")
+    typer.echo(f"Status: {result['status']} | Project: {result['project_name']}")
 
 
 @app.command("workspace-init")
@@ -2287,6 +2459,13 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         min_score=config_data.knowledge_runtime.min_score,
         citation_required=config_data.knowledge_runtime.citation_required,
     )
+    document_generation_options = DocumentGenerationOptions(
+        enabled=config_data.document_generation.enabled,
+        formats=config_data.document_generation.formats,
+        template=config_data.document_generation.template,
+        grounding_policy=config_data.document_generation.grounding_policy,
+        title=config_data.document_generation.title,
+    )
     evidence_gate_options = EvidenceGateOptions(config_data.evidence_gate.enabled, config_data.evidence_gate.query)
     parser_backend_options = _make_parser_backend_options(config_data)
     v21_options = V21Options(
@@ -2322,6 +2501,7 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
             governance_options=governance_options,
             retrieval_index_options=retrieval_index_options,
             knowledge_runtime_options=knowledge_runtime_options,
+            document_generation_options=document_generation_options,
             evidence_gate_options=evidence_gate_options,
             parser_backend_options=parser_backend_options,
             v21_options=v21_options,
@@ -2504,6 +2684,10 @@ def _split_tags(tags: str) -> list[str]:
     return [tag.strip() for tag in tags.split(",") if tag.strip()]
 
 
+def _split_paths(paths: str) -> list[Path]:
+    return [Path(path.strip()) for path in paths.split(",") if path.strip()]
+
+
 def _make_parser_backend_options(config_data: ForgeConfig) -> ParserBackendOptions:
     policy = config_data.parser_backend.trust_policy
     return ParserBackendOptions(
@@ -2625,6 +2809,17 @@ def _run_v12_config_outputs(config_data: ForgeConfig, output: Path) -> None:
 
 
 def _run_v18_config_outputs(config_data: ForgeConfig, output: Path) -> None:
+    if config_data.knowledge_bound_factory.enabled:
+        generate_knowledge_bound_agent(
+            output,
+            output,
+            config_data.knowledge_bound_factory.skill_name,
+            config_data.knowledge_bound_factory.agent_name,
+            config_data.knowledge_bound_factory.skill_type,
+            config_data.knowledge_bound_factory.agent_type,
+            allow_untrusted=config_data.knowledge_bound_factory.allow_untrusted,
+        )
+        return
     skill_output = output / "skill_package"
     if config_data.skill.enabled:
         assert_trusted_for_export(output, allow_untrusted=config_data.parser_backend.allow_untrusted)
@@ -2679,6 +2874,19 @@ def _run_v18_config_outputs(config_data: ForgeConfig, output: Path) -> None:
 
 
 def _run_v19_config_outputs(config_data: ForgeConfig, output: Path) -> None:
+    if config_data.multi_kb_orchestration.enabled:
+        packages = config_data.multi_kb_orchestration.packages or [output]
+        orchestrate_multi_kb_agents(
+            packages,
+            output,
+            config_data.multi_kb_orchestration.agents,
+            config_data.multi_kb_orchestration.query,
+        )
+    if config_data.skill_reverse_fusion.enabled:
+        skills = config_data.skill_reverse_fusion.skills or [output / "skill_package"]
+        reverse_and_fuse_skills(skills, output, config_data.skill_reverse_fusion.fused_name)
+    if config_data.workbench_contracts.enabled:
+        generate_workbench_contracts(output, config_data.workbench_contracts.output or output, config_data.workbench_contracts.project_name)
     if not config_data.workspace.enabled:
         return
     workspace = config_data.workspace.path or (output / "workspace")
@@ -3151,6 +3359,7 @@ def _build_package(
     governance_options: GovernanceOptions | None = None,
     retrieval_index_options: RetrievalIndexOptions | None = None,
     knowledge_runtime_options: KnowledgeRuntimeOptions | None = None,
+    document_generation_options: DocumentGenerationOptions | None = None,
     evidence_gate_options: EvidenceGateOptions | None = None,
     parser_backend_options: ParserBackendOptions | None = None,
     demo_report: bool = False,
@@ -3422,6 +3631,7 @@ def _build_package(
     governance_options = governance_options or GovernanceOptions()
     retrieval_index_options = retrieval_index_options or RetrievalIndexOptions()
     knowledge_runtime_options = knowledge_runtime_options or KnowledgeRuntimeOptions()
+    document_generation_options = document_generation_options or DocumentGenerationOptions()
     evidence_gate_options = evidence_gate_options or EvidenceGateOptions()
 
     files = [
@@ -3819,6 +4029,25 @@ def _build_package(
                 "knowledge_runtime_version": kb_answer_report["kb_answer_version"],
                 "knowledge_runtime_status": kb_answer_report["status"],
                 "knowledge_runtime_files": KB_RUNTIME_OUTPUT_FILES,
+            }
+        )
+        write_json(output / "manifest.json", manifest_payload)
+    if document_generation_options.enabled:
+        document_result = generate_document_outputs(
+            package=output,
+            output=output,
+            formats=document_generation_options.formats or ["md"],
+            template=document_generation_options.template,
+            grounding_policy=document_generation_options.grounding_policy,
+            title=document_generation_options.title,
+        )
+        manifest_payload.update(
+            {
+                "document_generation_enabled": True,
+                "document_generation_status": document_result["status"],
+                "document_generation_formats": document_result["formats"],
+                "document_generation_files": DOCUMENT_GENERATION_OUTPUT_FILES,
+                "document_generation_review_required": document_result["review_required"],
             }
         )
         write_json(output / "manifest.json", manifest_payload)
