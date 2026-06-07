@@ -1,0 +1,110 @@
+from __future__ import annotations
+
+
+def external_fusion_plan() -> dict:
+    return {
+        "external_fusion_plan_version": "3.6.0-alpha.1",
+        "generated_at": "2026-06-07T00:00:00Z",
+        "safe_patterns_to_absorb": [
+            {
+                "pattern": "verification_oriented_retrieval_planning",
+                "source_inspiration": ["LangChain", "LlamaIndex", "Haystack"],
+                "target_version": "v3.7",
+                "plan": "Distinguish retrieval for answering from retrieval for validation before any implementation.",
+            },
+            {
+                "pattern": "claim_level_verification_reports",
+                "source_inspiration": ["FActScore", "FEVER-style fact verification", "RAGAS", "TruLens"],
+                "target_version": "v3.8",
+                "plan": "Extract claims, map evidence, cross-check sources, detect contradictions, and report trust status.",
+            },
+            {
+                "pattern": "local_pdf_to_markdown_preprocessing",
+                "source_inspiration": ["LiteDoc", "Docling", "Marker", "MinerU"],
+                "target_version": "v3.9",
+                "plan": "Prefer local parsing to structured Markdown/JSON before chunking and retrieval; do not upload raw PDFs or send whole PDFs to LLM by default.",
+            },
+            {
+                "pattern": "ocr_and_complex_parser_backend_benchmark",
+                "source_inspiration": ["PaddleOCR", "MinerU", "Docling", "Marker"],
+                "target_version": "parser_hardening_track, v3.9",
+                "plan": "Benchmark parser backends with local fixtures for scanned PDFs, tables, formulas, layout, corrupted fonts, confidence, and token reduction.",
+            },
+            {
+                "pattern": "retrieval_quality_metrics",
+                "source_inspiration": ["RAGAS", "TruLens", "Haystack"],
+                "target_version": "v3.8",
+                "plan": "Add local no-network fixtures for context precision, coverage, and failure diagnostics.",
+            },
+            {
+                "pattern": "memory_lifecycle_contracts",
+                "source_inspiration": ["agentmemory", "rtk", "LangGraph"],
+                "target_version": "v3.9, v3.10",
+                "plan": "Keep memory lifecycle local-first with private child memory and explicit writeback.",
+            },
+            {
+                "pattern": "local_workbench_contract_drift_checks",
+                "source_inspiration": ["Continue", "AutoGen"],
+                "target_version": "v4.0",
+                "plan": "Expose contract status and drift warnings without importing UI runtime patterns into Core.",
+            },
+            {
+                "pattern": "knowledge_governance_from_accuracy_status",
+                "source_inspiration": ["FEVER-style fact verification", "RAGAS", "TruLens"],
+                "target_version": "v4.3",
+                "plan": "Extend verified, weak, outdated, and contradicted claim states into scheduled lifecycle governance.",
+            },
+        ],
+        "patterns_to_reject": [
+            "Direct external code, prompt, dataset, or skill text copying.",
+            "Blindly importing external web results into a KB package.",
+            "Treating external retrieval as unrestricted knowledge expansion.",
+            "Uploading user PDFs to cloud document APIs by default.",
+            "Sending raw PDFs wholesale to an LLM when local parsing can produce structured Markdown/JSON first.",
+            "Cloud-required defaults or platform-hosted user data.",
+            "Agent runtime implementation before Core contracts and diagnostics are stable.",
+        ],
+        "license_risks": [
+            {
+                "risk": "unverified_repository_license",
+                "mitigation": "Mark as needs_manual_review and use only high-level architecture patterns.",
+            },
+            {
+                "risk": "prompt_or_skill_text_copying",
+                "mitigation": "No external prompt or skill text may be copied into Core reports, tests, or generated packages.",
+            },
+            {
+                "risk": "benchmark_dataset_reuse",
+                "mitigation": "Do not copy datasets or evaluation labels without a separate license review.",
+            },
+        ],
+        "target_versions": {
+            "v3.7": "Query Rewrite & Retrieval Planning, including verification-oriented retrieval planning.",
+            "v3.8": "First real external retrieval for knowledge accuracy verification.",
+            "v3.9": "Local Workspace Storage, Memory Lifecycle, and PDF token reduction reports.",
+            "v3.10": "Local Agent Runtime & Mother/Child Operations.",
+            "v3.11": "Golden Demo & Real Acceptance Smoke.",
+            "v3.12": "Product Hardening & Local Release Readiness.",
+            "v4.0": "Local Knowledge Workbench RC.",
+            "v4.3": "Local Governance & Lifecycle Management based on accuracy status.",
+        },
+        "no_copy_policy": {
+            "external_code_copied": False,
+            "external_prompts_copied": False,
+            "external_datasets_copied": False,
+            "manual_license_review_required_before_reuse": True,
+            "external_retrieval_policy": "Use external sources to validate claims first; promote new information only after review and trust policy approval.",
+            "document_parsing_policy": "Prefer local parsing to structured Markdown/JSON before chunking and retrieval; never require cloud upload for user PDFs.",
+        },
+        "suggested_tests": [
+            "claim extraction produces stable claim IDs from package fixtures",
+            "verification retrieval planning separates answer retrieval from validation retrieval",
+            "source cross-check marks supported, weak, outdated, contradicted, and unknown claims",
+            "contradiction detection emits user-facing explanation without network in tests",
+            "knowledge accuracy score is deterministic for local fixtures",
+            "v4.3 lifecycle policy warns on outdated package status",
+            "local PDF-to-Markdown preprocessing emits an inspectable intermediate artifact",
+            "parser backend benchmark report compares builtin, Docling, Marker, OCR, and complex-layout parser paths without network",
+            "token reduction report shows raw PDF avoided payload versus parsed Markdown/chunk payload",
+        ],
+    }
