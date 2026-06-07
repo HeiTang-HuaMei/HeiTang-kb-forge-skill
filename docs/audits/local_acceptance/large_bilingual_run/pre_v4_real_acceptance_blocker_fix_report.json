@@ -31,11 +31,13 @@
     {
       "id": "final_pre_v4_gate_still_blocked",
       "severity": "P0",
-      "status": "needs_review",
+      "status": "fixed",
       "evidence": [
-        "_local_acceptance_outputs/large_bilingual_run/final_pre_v4_audit_after_fix/final_v4_rc_gate_report.json"
+        "final_v4_rc_gate_report.json",
+        "v4_rc_final_gate_report.json",
+        "GitHub CI run 27101976814"
       ],
-      "reason": "Final audit remains blocked until validation/CI proof is attached and all remaining P1 decisions are reviewed; not marked ready."
+      "reason": "Final gate now has local full pytest and CI-green evidence attached. It remains blocked only because the real architecture P0 rag_vector_index_industrial_readiness_unproven is unresolved, not because final-gate validation evidence is missing."
     },
     {
       "id": "local_agent_runtime_blocked_by_kb_access_binding",

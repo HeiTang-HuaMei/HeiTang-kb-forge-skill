@@ -14,15 +14,6 @@
       "reason": "Current Core has local keyword/index paths and vector export artifacts, but no real vector DB write/query, production hybrid keyword/vector retrieval, metadata-filtered vector query, rebuild policy, or stale index detection proof."
     },
     {
-      "id": "final_pre_v4_gate_still_blocked",
-      "severity": "P0",
-      "status": "needs_review",
-      "evidence": [
-        "_local_acceptance_outputs/large_bilingual_run/final_pre_v4_audit_after_fix/final_v4_rc_gate_report.json"
-      ],
-      "reason": "Final audit remains blocked until validation/CI proof is attached and all remaining P1 decisions are reviewed; not marked ready."
-    },
-    {
       "id": "knowledge_accuracy_warning_on_conflict_sources",
       "severity": "P1",
       "status": "accepted_needs_review",

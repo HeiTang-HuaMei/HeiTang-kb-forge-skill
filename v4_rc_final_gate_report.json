@@ -1,6 +1,6 @@
 {
   "audit_version": "final-pre-v4.0",
-  "generated_at": "2026-06-07T19:04:27.134422+00:00",
+  "generated_at": "2026-06-07T19:11:48.235529+00:00",
   "overall_status": "blocked",
   "ready_for_v4_rc": false,
   "severity_policy": "All issues must be classified by severity and scope. P0 issues must block v4.0. P1 issues must be fixed or explicitly reviewed before v4.0. P2 issues may be documented as future improvements. Low-risk issues may be fixed immediately, but high-risk issues must not be ignored, hidden, or bypassed.",
@@ -8,18 +8,6 @@
   "passed_checks": 21,
   "failed_checks": 8,
   "p0_blockers": [
-    {
-      "id": "ci_green_not_attached",
-      "severity": "P0",
-      "scope": "Validation",
-      "status": "blocked",
-      "reason": "GitHub CI green status is not attached to the final gate report yet.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Push audited commit and verify CI green before any v4.0 start.",
-      "target_version": "current_audit",
-      "blocks_v4": true,
-      "out_of_scope_classification": "in_scope"
-    },
     {
       "id": "rag_vector_index_industrial_readiness_unproven",
       "severity": "P0",
@@ -63,23 +51,10 @@
   ],
   "fixed_in_audit": [],
   "remaining_risks": [
-    "ci_green_not_attached",
     "rag_vector_index_industrial_readiness_unproven",
     "ui_validation_needs_review"
   ],
   "issue_checklist": [
-    {
-      "id": "ci_green_not_attached",
-      "severity": "P0",
-      "scope": "Validation",
-      "status": "blocked",
-      "reason": "GitHub CI green status is not attached to the final gate report yet.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Push audited commit and verify CI green before any v4.0 start.",
-      "target_version": "current_audit",
-      "blocks_v4": true,
-      "out_of_scope_classification": "in_scope"
-    },
     {
       "id": "rag_vector_index_industrial_readiness_unproven",
       "severity": "P0",
@@ -165,7 +140,7 @@
       "out_of_scope_classification": "future"
     }
   ],
-  "readiness_score": 44,
+  "readiness_score": 56,
   "core_score": 40,
   "ui_workbench_score": 20,
   "rag_score": 100,
@@ -187,8 +162,11 @@
     "reason": "UI repo frozen; Core audit classifies UI as contract_viewer_only, not full user-operable Workbench."
   },
   "ci_status": {
-    "status": "needs_review",
-    "reason": "CI will be verified after this commit is pushed; committed gate remains conservative."
+    "status": "pass",
+    "run_id": "27101976814",
+    "commit": "5306f49",
+    "workflow": "CI",
+    "result": "success"
   },
   "product_architecture_completeness": {
     "product_architecture_completeness_report_version": "pre-v4-large-bilingual-architecture-1",
