@@ -10,6 +10,15 @@ Release status: local-first Knowledge Workbench Core is nearing v4.0 RC, but v4.
 
 HeiTang KB Forge is an offline-first, local-first knowledge supply-chain Core Skill. It turns source material into standardized, auditable, retrievable knowledge packages, then supports deterministic local query planning, retrieval quality checks, knowledge accuracy reports, grounded document generation, Skill/Agent package generation, local mother/child Agent runtime smoke, workspace storage and memory lifecycle reports, Golden Demo acceptance, and product hardening gates.
 
+## Final Product Truth
+
+Current final gate truth is centralized in [Final Product Architecture Truth](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md).
+
+- Current status: `blocked`
+- Remaining P0: `rag_vector_index_industrial_readiness_unproven`
+- Blocking P1: `ui_validation_needs_review`
+- v4.0 must not start until the P0 is fixed and UI readiness is honestly validated or explicitly scoped.
+
 ## Implemented Core Surface
 
 - Multi-format local build for Markdown, TXT, DOCX, text PDF, images/OCR routes, CSV/TSV/XLSX, HTML, EPUB, and ZIP through local parser paths and optional extras.
@@ -95,6 +104,7 @@ Expected build output:
 - [Local Privacy and Security](docs/LOCAL_PRIVACY_SECURITY.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Golden Demo Guide](docs/GOLDEN_DEMO_GUIDE.md)
+- [Final Product Architecture Truth](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Knowledge Ops Guide](docs/KNOWLEDGE_OPS_GUIDE.md)
 - [Agent Planning Readiness Guide](docs/AGENT_PLANNING_READINESS_GUIDE.md)

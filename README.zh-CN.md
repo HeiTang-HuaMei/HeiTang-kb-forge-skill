@@ -10,6 +10,15 @@
 
 HeiTang KB Forge 是一个 offline-first、local-first 知识供应链 Core Skill。它把原始资料加工为标准化、可审计、可检索的知识包，并支持确定性本地 query planning、retrieval quality 检查、knowledge accuracy 报告、grounded document generation、Skill/Agent package generation、本地 mother/child Agent runtime smoke、workspace storage 与 memory lifecycle 报告、Golden Demo acceptance 和 product hardening gates。
 
+## 最终产品真值
+
+当前最终门禁真值集中在 [最终产品架构真值](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md)。
+
+- 当前状态：`blocked`
+- 剩余 P0：`rag_vector_index_industrial_readiness_unproven`
+- 阻断 P1：`ui_validation_needs_review`
+- 在 P0 修复并且 UI readiness 被诚实验证或明确收窄前，不允许开始 v4.0。
+
 ## 已实现 Core 表面
 
 - Markdown、TXT、DOCX、文本型 PDF、图片/OCR 路由、CSV/TSV/XLSX、HTML、EPUB、ZIP 的本地构建路径。
@@ -95,6 +104,7 @@ python -m heitang_kb_forge.cli final-pre-v4-audit --core-repo . --output .\tmp_f
 - [本地隐私与安全](docs/LOCAL_PRIVACY_SECURITY.zh-CN.md)
 - [故障排查](docs/TROUBLESHOOTING.zh-CN.md)
 - [Golden Demo 指南](docs/GOLDEN_DEMO_GUIDE.zh-CN.md)
+- [最终产品架构真值](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md)
 - [架构](docs/ARCHITECTURE.zh-CN.md)
 - [Knowledge Ops Guide](docs/KNOWLEDGE_OPS_GUIDE.md)
 - [Agent Planning Readiness Guide](docs/AGENT_PLANNING_READINESS_GUIDE.md)
