@@ -14,6 +14,7 @@ WORKBENCH_CONTRACT_OUTPUT_FILES = [
     "workbench_hierarchy_contract.json",
     "workbench_memory_contract.json",
     "workbench_storage_contract.json",
+    "workbench_error_contract.json",
     "workbench_asset_contract.json",
     "workbench_status_contract.json",
     "workbench_contract_trace.json",
@@ -71,6 +72,7 @@ def generate_workbench_contracts(core_output: Path, output: Path | None = None, 
     hierarchy_contract = _hierarchy_contract()
     memory_contract = _memory_contract()
     storage_contract = _storage_contract(core_output)
+    error_contract = _error_contract()
     asset_contract = {"workbench_asset_contract_version": "3.4.0-alpha.1", "assets": assets}
     status = {
         "workbench_status_contract_version": "3.4.0-alpha.1",
@@ -105,6 +107,7 @@ def generate_workbench_contracts(core_output: Path, output: Path | None = None, 
             {"name": "write_hierarchy_contract", "status": "pass"},
             {"name": "write_memory_contract", "status": "pass"},
             {"name": "write_storage_contract", "status": "pass"},
+            {"name": "write_error_contract", "status": "pass"},
             {"name": "write_status_contract", "status": status["status"]},
         ],
     }
@@ -115,6 +118,7 @@ def generate_workbench_contracts(core_output: Path, output: Path | None = None, 
     write_json(target / "workbench_hierarchy_contract.json", hierarchy_contract)
     write_json(target / "workbench_memory_contract.json", memory_contract)
     write_json(target / "workbench_storage_contract.json", storage_contract)
+    write_json(target / "workbench_error_contract.json", error_contract)
     write_json(target / "workbench_asset_contract.json", asset_contract)
     write_json(target / "workbench_status_contract.json", status)
     write_json(target / "workbench_contract_trace.json", trace)
@@ -139,6 +143,7 @@ def _assets(core_output: Path) -> list[dict]:
         ("workbench_hierarchy_contract.json", "report"),
         ("workbench_memory_contract.json", "report"),
         ("workbench_storage_contract.json", "storage"),
+        ("workbench_error_contract.json", "report"),
         ("skill_package/SKILL.md", "skill_package"),
         ("agent_package/agent_profile.yaml", "agent_package"),
         ("fused_skill/SKILL.md", "fused_skill"),
@@ -261,6 +266,24 @@ def _storage_contract(core_output: Path) -> dict:
         "compaction_status": "not_required" if sizes["memory_size_bytes"] < 1024 * 1024 else "recommended",
         "backup_export_status": "available_local_export",
         "status": "ready",
+    }
+
+
+def _error_contract() -> dict:
+    return {
+        "workbench_error_contract_version": "3.5.0-alpha.1",
+        "empty_states": [
+            {"id": "no_assets", "label": "No assets registered", "recommended_action": "build_package"},
+            {"id": "no_actions", "label": "No actions available", "recommended_action": "inspect_storage_status"},
+            {"id": "no_memory_trace", "label": "No memory trace available", "recommended_action": "orchestrate_multi_kb"},
+        ],
+        "error_states": [
+            {"id": "contract_file_missing", "severity": "warning"},
+            {"id": "contract_parse_error", "severity": "error"},
+            {"id": "unsupported_contract_version", "severity": "warning"},
+            {"id": "asset_path_missing", "severity": "warning"},
+        ],
+        "status_badges": ["ready", "empty", "warning", "error", "reserved"],
     }
 
 

@@ -15,6 +15,7 @@ def test_pipeline_reports_workbench_contracts_only_when_enabled(tmp_path):
     assert enabled_stage["status"] == "success"
     assert "workbench_action_contract.json" in enabled_stage["output_files"]
     assert "workbench_storage_contract.json" in enabled_stage["output_files"]
+    assert "workbench_error_contract.json" in enabled_stage["output_files"]
 
 
 def _run_pipeline(tmp_path, enabled):

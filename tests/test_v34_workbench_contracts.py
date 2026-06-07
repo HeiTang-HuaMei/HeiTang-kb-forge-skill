@@ -54,6 +54,9 @@ def test_workbench_contracts_describe_core_assets_and_actions(tmp_path):
     assert "cleanup_suggestions" in storage
     assert storage["compaction_status"] == "not_required"
     assert storage["backup_export_status"] == "available_local_export"
+    error_contract = _json(core / "workbench_error_contract.json")
+    assert "contract_file_missing" in {state["id"] for state in error_contract["error_states"]}
+    assert "no_assets" in {state["id"] for state in error_contract["empty_states"]}
     assert (core / "workbench_contract_report.md").exists()
 
 
