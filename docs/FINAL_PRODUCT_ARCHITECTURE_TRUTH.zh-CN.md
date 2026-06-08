@@ -10,7 +10,7 @@
 - 阻断 P1：无
 - CI：包含 after-live-LLM 证明的最新 Core commit 已 green。
 - 本地 full pytest：最新 Core provider-profile 与 P0 gate 工作已通过。
-- UI validation：当前 dirty UI bridge worktree 已通过 contract/analyze/test/build 检查，但 v4.0 前完整可操作 Workbench 仍然 blocked。
+- UI validation：Core 输出 Workbench contracts，但 v4.0 前 UI full-operation 仍然 blocked。
 - 历史说明：`docs/audits/local_acceptance/large_bilingual_run/` 保留 earlier large-file run，当时 live LLM 仍被阻断。它不能作为最新 live-LLM P0 结论。
 
 ## 架构真值矩阵
@@ -28,7 +28,7 @@
 | 存储 | `local_workspace` 是已实现默认。`local_db` 是 partial/store-index oriented。BYO cloud/database 是 future/disabled，不是已实现能力。 | partial |
 | 安全与隐私 | local-first、默认 no hidden upload、API key redaction、no platform-hosted user data 已文档化并测试。动态 runtime network proof 和完整 UI security acceptance 仍需 review。 | partial |
 | 规模 | 已有 synthetic 1500-scale checks。真实 1500 books、1500 KBs、1500 Agents 未生产级证明。 | needs_review |
-| UI | Core 输出 Workbench contracts。UI baseline `24dfa2b` 加已有未提交 desktop bridge worktree，在 contract-viewer 与 bridge-contract 范围内通过 Python contract tests 和 Flutter analyze/test/build-web/build-windows。完整用户可操作本地 Workbench 仍不声明。 | validated partial bridge scope, full operation blocked |
+| UI | Core 输出 Workbench contracts。完整用户可操作本地 Workbench 仍不声明，需要独立 UI full-operation acceptance gate。 | contracts present, full operation blocked |
 
 ## 仍不能声明
 

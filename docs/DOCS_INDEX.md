@@ -2,44 +2,40 @@
 
 Current Core version: `3.12.0-alpha.1`
 
-Current stage: pre-v4.0 industrial acceptance audit / local Workbench RC preparation. v4.0 is not released.
-
-LLM remains optional only; Core tests do not require real LLM/API/network calls.
+This is the canonical documentation entry for the current main branch. Historical version details live in git history and tags, not as accumulated process docs on main.
 
 ## Start Here
 
 - [README](../README.md)
+- [Current Truth](00_overview/CURRENT_TRUTH.md)
+- [Capability Matrix](00_overview/CAPABILITY_MATRIX.md)
+- [Final Product Architecture Truth](FINAL_PRODUCT_ARCHITECTURE_TRUTH.md)
+- [Documentation Governance](DOCUMENTATION_GOVERNANCE.md)
+
+## Use The Core
+
 - [User Manual](USER_MANUAL.md)
 - [Command Reference](COMMAND_REFERENCE.md)
-- [Output Report Guide](OUTPUT_REPORT_GUIDE.md)
 - [Troubleshooting](TROUBLESHOOTING.md)
-
-## Product Truth and Release State
-
 - [Version Matrix](VERSION_MATRIX.md)
-- [Local Privacy and Security](LOCAL_PRIVACY_SECURITY.md)
-- [Golden Demo Guide](GOLDEN_DEMO_GUIDE.md)
-- [v3.12 Product Hardening](V312_PRODUCT_HARDENING_LOCAL_RELEASE_READINESS.md)
 
-## Architecture and Contracts
+## Core Capabilities
 
-- [Architecture](ARCHITECTURE.md)
-- [Workbench Contracts](V34_WORKBENCH_CONTRACTS.md)
-- [Workbench Version Plan](WORKBENCH_VERSION_PLAN.md)
-- [Workbench Final Target](WORKBENCH_FINAL_TARGET.md)
+- [Parser Backend Strategy](03_core_capabilities/PARSER_BACKEND_STRATEGY.md)
 
-## Recent Core Tracks
+## Release State
 
-- [v3.7 Query Rewrite & Retrieval Planning](V37_QUERY_REWRITE_RETRIEVAL_PLANNING.md)
-- [v3.8 RAG Retrieval Quality & Evaluation](V38_RAG_RETRIEVAL_QUALITY_EVALUATION.md)
-- [v3.9 Local Workspace Storage & Memory Lifecycle](V39_LOCAL_WORKSPACE_STORAGE_MEMORY_LIFECYCLE.md)
-- [v3.10 Local Agent Runtime](V310_LOCAL_AGENT_RUNTIME_MOTHER_CHILD.md)
-- [v3.11 Golden Demo Acceptance](V311_GOLDEN_DEMO_ACCEPTANCE_SMOKE.md)
-- [v3.12 Product Hardening](V312_PRODUCT_HARDENING_LOCAL_RELEASE_READINESS.md)
+- [Roadmap](ROADMAP.md)
+- [Release Notes](RELEASE_NOTES.md)
+- Root gate: `../final_v4_rc_gate_report.json`
+- Root gate alias: `../v4_rc_final_gate_report.json`
+- Latest P0 proof: `audits/local_acceptance/pre_v4_p0_after_live_llm/`
 
-## External Benchmark Audits
+## Roadmap Gates
 
-- [Architecture Gap Audit](ARCHITECTURE_GAP_AUDIT.md)
-- [External Project Benchmark](EXTERNAL_PROJECT_BENCHMARK.md)
-- [Capability Gap Map](CAPABILITY_GAP_MAP.md)
-- [External Fusion Plan](EXTERNAL_FUSION_PLAN.md)
+- [P1 UI Core Parity](10_roadmap/P1_UI_CORE_PARITY.md)
+- [P2 Productization](10_roadmap/P2_PRODUCTIZATION.md)
+
+## Boundaries
+
+LLM remains optional only; Core tests do not require real LLM/API/network calls. v4.0 is not released, not tagged, and not started. UI full-operation remains blocked.

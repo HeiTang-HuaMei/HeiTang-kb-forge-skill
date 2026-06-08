@@ -11,9 +11,8 @@ def test_docs_describe_skill_first_architecture_and_agent_integrations():
             "README.md",
             "README.zh-CN.md",
             "docs/ARCHITECTURE.md",
-            "docs/DESKTOP_APP_GUIDE.md",
-            "docs/UI_INFORMATION_ARCHITECTURE.md",
             "docs/ROADMAP.md",
+            "docs/00_overview/CAPABILITY_MATRIX.md",
         ]
     )
     assert "Skill-first" in text

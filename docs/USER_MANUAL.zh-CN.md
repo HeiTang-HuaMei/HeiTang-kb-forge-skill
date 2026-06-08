@@ -131,7 +131,7 @@ python -m heitang_kb_forge.cli final-pre-v4-audit --core-repo . --output .\tmp_f
 
 ## 15. 阅读报告
 
-优先阅读：
+在 `.\tmp_final_audit` 输出目录中，优先阅读：
 
 - `final_v4_rc_gate_report.json`
 - `final_product_capability_proof_report.md`

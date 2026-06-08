@@ -4,18 +4,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_cli_architecture_docs_define_future_command_rules():
-    english = (ROOT / "docs" / "CLI_ARCHITECTURE.md").read_text(encoding="utf-8")
-    chinese = (ROOT / "docs" / "CLI_ARCHITECTURE.zh-CN.md").read_text(encoding="utf-8")
+def test_command_surface_is_documented_in_current_entry_docs():
+    command_reference = (ROOT / "docs" / "COMMAND_REFERENCE.md").read_text(encoding="utf-8")
+    user_manual = (ROOT / "docs" / "USER_MANUAL.md").read_text(encoding="utf-8")
+    governance = (ROOT / "docs" / "DOCUMENTATION_GOVERNANCE.md").read_text(encoding="utf-8")
 
-    for text in [english, chinese]:
-        assert "3.12.0-alpha.1" in text
-        assert "cli.py" in text
-        assert "cli_commands" in text
-        assert "30 KB" in text
-        assert "legacy.py" in text
-        assert "release-readiness" in text
-        assert "parser backend" in text.lower()
-        assert "knowledge runtime" in text.lower()
-
+    for phrase in ["build", "doctor", "final-pre-v4-audit"]:
+        assert phrase in command_reference
+    assert "3.12.0-alpha.1" in user_manual
+    assert "old implementation notes" in governance
+    assert "git history and tags" in governance
 

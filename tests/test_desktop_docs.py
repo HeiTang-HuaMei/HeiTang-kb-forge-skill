@@ -4,9 +4,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_desktop_docs_and_packaging_scripts_exist():
+def test_desktop_packaging_scripts_remain_available_without_legacy_docs():
     for path in [
-        ROOT / "docs" / "DESKTOP_APP_GUIDE.md",
         ROOT / "desktop" / "tauri" / "README.md",
         ROOT / "packaging" / "desktop" / "README.md",
         ROOT / "packaging" / "desktop" / "dev_tauri.ps1",
@@ -15,16 +14,14 @@ def test_desktop_docs_and_packaging_scripts_exist():
         assert path.exists(), path
 
 
-def test_desktop_docs_describe_tauri_exe_and_boundaries():
-    guide = (ROOT / "docs" / "DESKTOP_APP_GUIDE.md").read_text(encoding="utf-8")
+def test_current_docs_describe_ui_as_presentation_layer():
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     chinese = (ROOT / "README.zh-CN.md").read_text(encoding="utf-8")
-    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    roadmap = (ROOT / "docs" / "ROADMAP.md").read_text(encoding="utf-8")
+    p1 = (ROOT / "docs" / "10_roadmap" / "P1_UI_CORE_PARITY.md").read_text(encoding="utf-8")
 
-    assert "Tauri" in guide
-    assert "Build Windows EXE" in guide
-    assert "does not call external APIs" in guide
-    assert "Desktop App Guide" in readme
-    assert "桌面" in chinese
-    assert "## v1.2.2" in changelog
-    assert "## v1.2.3" in changelog
+    assert "presentation layer" in readme
+    assert "presentation layer" in chinese
+    assert "presentation layer" in roadmap
+    assert "UI full-operation remains blocked" in p1
+    assert "full Workbench" not in readme

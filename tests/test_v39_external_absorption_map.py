@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from heitang_kb_forge.workspace_storage.external_absorption import build_v39_external_absorption_map, write_v39_external_absorption_map
 from tests.v39_helpers import read_json
 
@@ -44,7 +42,8 @@ def test_v39_external_absorption_map_has_all_capabilities(tmp_path):
     assert payload["no_copy_policy"]["external_code_copied"] is False
 
 
-def test_checked_in_root_absorption_map_matches_contract():
-    payload = read_json(Path("v39_external_absorption_map.json"))
+def test_generated_absorption_map_matches_contract(tmp_path):
+    write_v39_external_absorption_map(tmp_path)
+    payload = read_json(tmp_path / "v39_external_absorption_map.json")
     expected = build_v39_external_absorption_map()
     assert {item["capability"] for item in payload["capabilities"]} == {item["capability"] for item in expected["capabilities"]}

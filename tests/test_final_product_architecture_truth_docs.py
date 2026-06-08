@@ -33,7 +33,7 @@ def test_final_product_architecture_truth_docs_are_bilingual_and_auditable():
         assert "rag_vector_index_readiness_report.json" in text
         assert "ui_full_operation_readiness_report.json" in text
         assert "ui_full_operation_acceptance_after_core_p0.json" in text
-        assert "dirty UI bridge worktree" in text or "dirty UI bridge worktree" in text
+        assert "UI full-operation remains blocked" in text or "UI full-operation 仍然 blocked" in text
 
 
 def test_final_product_truth_docs_do_not_overclaim_blocked_capabilities():
@@ -60,4 +60,6 @@ def test_readmes_link_to_final_product_truth_and_show_current_blockers():
         assert "Remaining Core P0:" in text or "剩余 Core P0：" in text
         assert "none" in text or "无剩余" in text
         assert "pre_v4_p0_after_live_llm" in text
-        assert "v4.0 has not been started" in text or "v4.0 仍未开始" in text
+        assert "v4.0 is not released" in text or "v4.0 仍未开始" in text
+        assert "CURRENT_TRUTH" in text or "CURRENT_TRUTH.zh-CN" in text
+        assert "CAPABILITY_MATRIX" in text or "CAPABILITY_MATRIX.zh-CN" in text

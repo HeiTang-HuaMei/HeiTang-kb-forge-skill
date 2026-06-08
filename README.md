@@ -4,62 +4,37 @@
 
 Current Core version: `3.12.0-alpha.1`
 
-Current project stage: pre-v4.0 industrial acceptance audit / local Workbench RC preparation.
+HeiTang KB Forge is an offline-first, local-first Core Skill for building Agent-ready knowledge packages. It turns local source material into standardized, traceable, searchable, auditable, and reusable knowledge assets for RAG, document generation, Skill packages, and local Agent workflows.
 
-Release status: local-first Knowledge Workbench Core is nearing v4.0 RC, but v4.0 has not been released or tagged. The final pre-v4 gate is still auditing product truth, Core/UI contract drift, security/privacy, scale readiness, user workflows, generated artifacts, and documentation operability.
+## Current Status
 
-HeiTang KB Forge is an offline-first, local-first knowledge supply-chain Core Skill. It turns source material into standardized, auditable, retrievable knowledge packages, then supports deterministic local query planning, retrieval quality checks, knowledge accuracy reports, grounded document generation, Skill/Agent package generation, local mother/child Agent runtime smoke, workspace storage and memory lifecycle reports, Golden Demo acceptance, and product hardening gates.
+Core pre-v4 RC readiness is complete for the latest Core P0 proof:
 
-## Final Product Truth
-
-Current final gate truth is centralized in [Final Product Architecture Truth](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md).
-
-- Current Core P0 status: latest `pre_v4_p0_after_live_llm` proof is `ready_for_v4_rc`.
+- Latest Core P0 proof: `docs/audits/local_acceptance/pre_v4_p0_after_live_llm`
+- `ready_for_v4_rc=true`
+- `P0 blockers=0`
 - Remaining Core P0: none in the latest pre-v4 P0 proof.
-- Blocking P1: none currently accepted as blocking Core main-chain work.
-- UI validation currently passes for the dirty desktop bridge worktree's contract/analyze/test/build scope, but full-operation Workbench remains blocked; v4.0 has not been started, released, or tagged.
+- Baseline evidence before this documentation governance pass: Core main `053a6a6`, GitHub CI run `27140288050` success.
 
-## Implemented Core Surface
+v4.0 is not released, not tagged, and not started. v4.0 has not been released. UI full-operation remains blocked, so this repository must not claim a full user-operable Workbench.
 
-- Multi-format local build for Markdown, TXT, DOCX, text PDF, images/OCR routes, CSV/TSV/XLSX, HTML, EPUB, and ZIP through local parser paths and optional extras.
-- Standard knowledge package outputs: `manifest.json`, `chunks.jsonl`, `cards.jsonl`, `qa_pairs.jsonl`, `glossary.jsonl`, `quality_report.json`, and `ingest_report.md`.
-- v3.0 Document Generation Loop: grounded Markdown, DOCX, PDF, and PPTX export commands and reports.
-- v3.7 Query Rewrite & Retrieval Planning: deterministic normalization, rewrite, expansion, decomposition, multi-query generation, and answering/validation planning.
-- v3.8 Retrieval Quality & Knowledge Accuracy: multi-query recall, deterministic rerank, evidence selection, retrieval diagnostics, golden query evaluation, claim/source/freshness/contradiction reports, and external absorption map.
-- v3.9 Local Workspace Storage & Memory Lifecycle: local registries, storage usage, dedup/cleanup/retention plans, memory lifecycle, token budget policy, local PDF token reduction, parser backend benchmark, and no-cloud-upload reports.
-- v3.10 Local Agent Runtime & Mother/Child Operations: deterministic local runtime smoke, task routing, child KB boundary reports, private/shared memory policy reports, and writeback action contracts.
-- v3.11 Golden Demo Acceptance Smoke: real acceptance smoke command, sample coverage, artifact openability, compatibility, and smoke realism reports.
-- v3.12 Product Hardening & Local Release Readiness: doctor/diagnostics, command/package/workspace audits, stable error taxonomy, troubleshooting, optional dependency diagnostics, privacy boundary, installer readiness, and v4 RC gate reports.
-- Pre-v4 P0-17 Book-to-Skill Structured Skill Package Completion: structured `SKILL.md` packages, on-demand loading manifests, source/evidence maps, token budget reports, installability reports for Claude Code/Codex/OpenClaw, and KB/RAG/Agent compatibility proof.
-- Final pre-v4 audit command: `final-pre-v4-audit`, which is intentionally strict and may mark the product blocked until all P0/P1 evidence is resolved.
+Current truth lives in [Current Truth](docs/00_overview/CURRENT_TRUTH.md) and [Final Product Architecture Truth](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md).
 
-## Still Under Final Audit
+## Core Capabilities
 
-- v4.0 is not released.
-- UI Workbench is not merged into Core and must be validated separately for contract drift and product truth.
-- Local JSON vector query, hybrid keyword/vector retrieval, metadata filtering, and stale index diagnostics are implemented and tested; external vector databases remain future/disabled.
-- BYO cloud and local database backends are future-compatible contracts only, not implemented default storage.
-- SaaS, multi-user permissions, platform-hosted user data, and cloud sync are out of scope.
-- Real LLM/API/network calls are not required by Core tests and are never default behavior; optional live LLM acceptance remains a P0 gate when explicitly configured.
-- Lifecycle destructive operations remain conservative; cleanup plans are generated, but destructive cleanup is not enabled by default.
-- Industrial-scale readiness is still being audited with explicit P0/P1/P2 findings.
+- Multi-format local ingestion for Markdown, TXT, DOCX, text PDF, images/OCR routes, CSV/TSV/XLSX, HTML, EPUB, ZIP, and mixed source sets.
+- Standard package outputs: `manifest.json`, `chunks.jsonl`, `cards.jsonl`, `qa_pairs.jsonl`, `glossary.jsonl`, `quality_report.json`, and `ingest_report.md`.
+- Deterministic query rewrite, retrieval planning, local indexing, local JSON vector query, hybrid retrieval, rerank, evidence selection, and knowledge accuracy reports.
+- Grounded Markdown, DOCX, PDF, and PPTX document generation.
+- Skill-first Agent package surface for Codex, Claude Code, OpenClaw, and generic local Agent integrations.
+- Local mother/child Agent runtime smoke, KB boundary checks, memory policy reports, workspace storage, lifecycle reports, and release hardening gates.
+- Local privacy and security reports for no hidden upload, secret redaction, no platform-hosted user data, and optional provider boundaries.
 
-## Local Privacy Boundary
+See the full [Capability Matrix](docs/00_overview/CAPABILITY_MATRIX.md). Parser backend positioning lives in [Parser Backend Strategy](docs/03_core_capabilities/PARSER_BACKEND_STRATEGY.md).
 
-Default behavior is local-first:
+## Quick Start
 
-- no platform-hosted user data
-- no hidden upload
-- no real LLM/API/network requirement in tests
-- LLM is optional assist only
-- provider secrets are referenced through environment variables, not stored in package outputs
-- BYO cloud/database is future/optional unless a later version implements and tests it
-
-## UI Status
-
-The UI prototype is tracked separately in `kb-forge-skill-ui` on `feature/workbench-ui-prototype`. The current UI worktree has existing uncommitted desktop bridge changes that pass contract/analyze/test/build validation, but page workflows are not wired end to end. This Core repo exposes Workbench contracts, but this README does not claim full UI operation is complete.
-
-## Install
+Install the local development package:
 
 ```powershell
 python -m pip install -e ".[dev]"
@@ -71,7 +46,7 @@ Optional local parser extras:
 python -m pip install -e ".[ocr,pdf-table,parser-docling,parser-marker,web]"
 ```
 
-## Quickstart
+Build and inspect a local knowledge package:
 
 ```powershell
 python -m heitang_kb_forge.cli doctor --output .\tmp_doctor
@@ -79,42 +54,46 @@ python -m heitang_kb_forge.cli build --input .\examples\quickstart\input --outpu
 python -m heitang_kb_forge.cli check-contract --package .\tmp_quickstart_output --output .\tmp_contract
 python -m heitang_kb_forge.cli kb-index --package .\tmp_quickstart_output --output .\tmp_kb_index
 python -m heitang_kb_forge.cli kb-query --package .\tmp_quickstart_output --query "Summarize the package" --output .\tmp_kb_query
-python -m heitang_kb_forge.cli rewrite-query --query "summarize it" --output .\tmp_query_plan
-python -m heitang_kb_forge.cli plan-retrieval --query "Summarize the package" --purpose answering --package .\tmp_quickstart_output --output .\tmp_retrieval_plan
 python -m heitang_kb_forge.cli generate-documents --package .\tmp_quickstart_output --output .\tmp_documents
-python -m heitang_kb_forge.cli product-hardening --workspace . --package .\tmp_quickstart_output --output .\tmp_hardening --no-require-v37 --no-require-v38 --no-require-v39 --no-require-v310 --no-require-v311
+```
+
+Run the strict final pre-v4 Core audit when evidence inputs are available:
+
+```powershell
 python -m heitang_kb_forge.cli final-pre-v4-audit --core-repo . --output .\tmp_final_audit
 ```
 
-Expected build output:
-
-- `chunks.jsonl`
-- `cards.jsonl`
-- `qa_pairs.jsonl`
-- `glossary.jsonl`
-- `manifest.json`
-- `quality_report.json`
-- `ingest_report.md`
-
 ## Documentation
 
-- [Docs Index](docs/DOCS_INDEX.md)
-- [Version Matrix](docs/VERSION_MATRIX.md)
-- [User Manual](docs/USER_MANUAL.md)
-- [Command Reference](docs/COMMAND_REFERENCE.md)
-- [Output Report Guide](docs/OUTPUT_REPORT_GUIDE.md)
-- [Local Privacy and Security](docs/LOCAL_PRIVACY_SECURITY.md)
-- [Troubleshooting](docs/TROUBLESHOOTING.md)
-- [Golden Demo Guide](docs/GOLDEN_DEMO_GUIDE.md)
-- [Final Product Architecture Truth](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Knowledge Ops Guide](docs/KNOWLEDGE_OPS_GUIDE.md)
-- [Agent Planning Readiness Guide](docs/AGENT_PLANNING_READINESS_GUIDE.md)
-- [Desktop App Guide](docs/DESKTOP_APP_GUIDE.md)
-- [Final Target](docs/WORKBENCH_FINAL_TARGET.md)
-- [Workbench Version Plan](docs/WORKBENCH_VERSION_PLAN.md)
+The canonical documentation entry is [Docs Index](docs/DOCS_INDEX.md). Start there for:
 
-Machine-readable historical audit reports currently kept at the repository root are intentional evidence files because existing tests and docs reference them directly. See `repository_surface_audit_report.json` after running the final audit.
+- current truth and release state
+- capability matrix
+- P1 UI Core Parity and P2 Productization roadmaps
+- command reference, user manual, troubleshooting, architecture, and privacy docs
+- root report/audit/gate evidence policy
+
+Useful entry points:
+
+- [Current Truth](docs/00_overview/CURRENT_TRUTH.md)
+- [Capability Matrix](docs/00_overview/CAPABILITY_MATRIX.md)
+- [Parser Backend Strategy](docs/03_core_capabilities/PARSER_BACKEND_STRATEGY.md)
+- [P1 UI Core Parity](docs/10_roadmap/P1_UI_CORE_PARITY.md)
+- [P2 Productization](docs/10_roadmap/P2_PRODUCTIZATION.md)
+- [Documentation Governance](docs/DOCUMENTATION_GOVERNANCE.md)
+
+## Roadmap State
+
+- Core pre-v4 RC readiness: complete for the latest Core P0 gate.
+- P1 UI Core Parity: not complete; UI full-operation remains blocked.
+- P2 Productization: future work after P1 UI Core Parity evidence exists.
+- v4.0: not started, not released, not tagged.
+
+UI information architecture is frozen as a planning contract, but the UI is a presentation layer. It is not the Core product engine, and this README does not claim complete Workbench operation.
+
+## Root Evidence Surface
+
+Only the current root gate JSON files are kept at the repository root. Historical process documents and old root reports belong in git history, tags, or scoped audit proof directories. Use [Documentation Governance](docs/DOCUMENTATION_GOVERNANCE.md) and [Docs Index](docs/DOCS_INDEX.md) first.
 
 ## Boundaries
 
@@ -122,12 +101,14 @@ HeiTang KB Forge does not by default:
 
 - call real LLM APIs
 - call embedding APIs
-- write to a vector database
 - upload user documents or generated packages
+- save real user API keys
 - run external Agent runtimes
 - start a real MCP server
-- save real user API keys
 - provide SaaS multi-tenancy, team permissions, cloud sync, or platform-hosted user data
+- claim complete Workbench operation or v4.0 release readiness before the separate UI full-operation gate passes
+
+LLM remains optional only; Core tests do not require real LLM/API/network calls.
 
 ## License
 

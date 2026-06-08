@@ -1,5 +1,14 @@
 # Changelog
 
+## P0.6 GitHub Documentation Governance
+
+* Slimmed the GitHub-facing documentation surface for current main.
+* Kept current product understanding, usage, command references, version matrix, final architecture truth, final gate JSON, and latest Core P0 proof as the primary documentation surface.
+* Moved old version process notes, legacy drafts, and repeated historical explanations back to git history and tags.
+* Added current truth, capability matrix, P1 UI Core Parity, P2 Productization, release notes, and documentation governance entries.
+* Added parser backend strategy for OpenDataLoader, PaddleOCR, and MinerU as external backend candidates / planned adapters only.
+* v4.0 is not released or tagged; UI full-operation remains blocked.
+
 ## Final pre-v4.0 audit gate
 
 * Added final pre-v4 product capability proof audit.

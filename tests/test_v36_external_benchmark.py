@@ -1,12 +1,9 @@
 import json
-from pathlib import Path
-
-
-ROOT = Path(__file__).resolve().parents[1]
+from heitang_kb_forge.audit.external_benchmark import external_project_benchmark_report
 
 
 def _report() -> dict:
-    return json.loads((ROOT / "external_project_benchmark_report.json").read_text(encoding="utf-8"))
+    return external_project_benchmark_report()
 
 
 def test_external_benchmark_report_parses_and_has_mandatory_targets():

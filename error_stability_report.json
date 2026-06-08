@@ -1,7 +1,0 @@
-{
-  "audit_version": "final-pre-v4.0",
-  "status": "pass",
-  "stable_business_errors_present": true,
-  "raw_traceback_literal_present": false,
-  "tests_require_real_llm_api_network": false
-}

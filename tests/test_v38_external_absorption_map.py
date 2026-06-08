@@ -68,8 +68,9 @@ def test_absorption_map_builder_claims_no_external_copying():
     assert payload["no_copy_policy"]["real_llm_api_required_for_tests"] is False
 
 
-def test_checked_in_root_absorption_map_matches_v38_contract():
-    payload = read_json(__import__("pathlib").Path("v38_external_absorption_map.json"))
+def test_generated_absorption_map_matches_v38_contract(tmp_path):
+    write_v38_external_absorption_map(tmp_path)
+    payload = read_json(tmp_path / "v38_external_absorption_map.json")
     records = {item["capability"]: item for item in payload["capabilities"]}
 
     assert MANDATORY == set(records)

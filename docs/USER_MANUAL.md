@@ -131,7 +131,7 @@ This audit may return `blocked`. That is correct when P0/P1 evidence is missing.
 
 ## 15. Read Reports
 
-Start with:
+Inside the `.\tmp_final_audit` output directory, start with:
 
 - `final_v4_rc_gate_report.json`
 - `final_product_capability_proof_report.md`

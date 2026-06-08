@@ -1,12 +1,8 @@
-import json
-from pathlib import Path
-
-
-ROOT = Path(__file__).resolve().parents[1]
+from heitang_kb_forge.audit.architecture_gap import architecture_gap_audit_report
 
 
 def _report() -> dict:
-    return json.loads((ROOT / "architecture_gap_audit_report.json").read_text(encoding="utf-8"))
+    return architecture_gap_audit_report()
 
 
 def test_architecture_gap_audit_report_parses_and_has_required_shape():

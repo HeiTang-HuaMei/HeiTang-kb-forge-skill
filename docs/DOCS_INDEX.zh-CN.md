@@ -2,44 +2,40 @@
 
 当前 Core 版本：`3.12.0-alpha.1`
 
-当前阶段：pre-v4.0 industrial acceptance audit / local Workbench RC preparation。v4.0 尚未发布。
-
-LLM 仍然只是 optional only；Core tests 不需要真实 LLM/API/network 调用。
+这是当前 main 分支的唯一主文档入口。历史版本细节通过 git history 和 tags 查看，不再作为过程文档堆放在 main。
 
 ## 从这里开始
 
 - [README](../README.zh-CN.md)
+- [当前真值](00_overview/CURRENT_TRUTH.zh-CN.md)
+- [能力矩阵](00_overview/CAPABILITY_MATRIX.zh-CN.md)
+- [最终产品架构真值](FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md)
+- [文档治理](DOCUMENTATION_GOVERNANCE.zh-CN.md)
+
+## 使用 Core
+
 - [用户手册](USER_MANUAL.zh-CN.md)
 - [命令参考](COMMAND_REFERENCE.zh-CN.md)
-- [输出报告指南](OUTPUT_REPORT_GUIDE.zh-CN.md)
 - [故障排查](TROUBLESHOOTING.zh-CN.md)
-
-## 产品真相与发布状态
-
 - [版本矩阵](VERSION_MATRIX.zh-CN.md)
-- [本地隐私与安全](LOCAL_PRIVACY_SECURITY.zh-CN.md)
-- [Golden Demo 指南](GOLDEN_DEMO_GUIDE.zh-CN.md)
-- [v3.12 Product Hardening](V312_PRODUCT_HARDENING_LOCAL_RELEASE_READINESS.zh-CN.md)
 
-## 架构与 contracts
+## Core 能力
 
-- [架构](ARCHITECTURE.zh-CN.md)
-- [Workbench Contracts](V34_WORKBENCH_CONTRACTS.zh-CN.md)
-- [Workbench Version Plan](WORKBENCH_VERSION_PLAN.zh-CN.md)
-- [Workbench Final Target](WORKBENCH_FINAL_TARGET.zh-CN.md)
+- [Parser Backend Strategy](03_core_capabilities/PARSER_BACKEND_STRATEGY.zh-CN.md)
 
-## 近期 Core 版本线
+## 发布状态
 
-- [v3.7 Query Rewrite & Retrieval Planning](V37_QUERY_REWRITE_RETRIEVAL_PLANNING.zh-CN.md)
-- [v3.8 RAG Retrieval Quality & Evaluation](V38_RAG_RETRIEVAL_QUALITY_EVALUATION.zh-CN.md)
-- [v3.9 Local Workspace Storage & Memory Lifecycle](V39_LOCAL_WORKSPACE_STORAGE_MEMORY_LIFECYCLE.zh-CN.md)
-- [v3.10 Local Agent Runtime](V310_LOCAL_AGENT_RUNTIME_MOTHER_CHILD.zh-CN.md)
-- [v3.11 Golden Demo Acceptance](V311_GOLDEN_DEMO_ACCEPTANCE_SMOKE.zh-CN.md)
-- [v3.12 Product Hardening](V312_PRODUCT_HARDENING_LOCAL_RELEASE_READINESS.zh-CN.md)
+- [路线图](ROADMAP.zh-CN.md)
+- [Release Notes](RELEASE_NOTES.zh-CN.md)
+- 根目录 gate：`../final_v4_rc_gate_report.json`
+- 根目录 gate alias：`../v4_rc_final_gate_report.json`
+- 最新 P0 证明：`audits/local_acceptance/pre_v4_p0_after_live_llm/`
 
-## 外部 benchmark 审计
+## 路线门禁
 
-- [Architecture Gap Audit](ARCHITECTURE_GAP_AUDIT.zh-CN.md)
-- [External Project Benchmark](EXTERNAL_PROJECT_BENCHMARK.zh-CN.md)
-- [Capability Gap Map](CAPABILITY_GAP_MAP.zh-CN.md)
-- [External Fusion Plan](EXTERNAL_FUSION_PLAN.zh-CN.md)
+- [P1 UI Core Parity](10_roadmap/P1_UI_CORE_PARITY.zh-CN.md)
+- [P2 Productization](10_roadmap/P2_PRODUCTIZATION.zh-CN.md)
+
+## 边界
+
+LLM 仍然只是 optional only；Core tests 不需要真实 LLM/API/network 调用。v4.0 尚未开始、未发布、未打 tag。UI full-operation 仍然 blocked。

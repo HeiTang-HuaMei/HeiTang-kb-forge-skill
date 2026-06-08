@@ -1,165 +1,42 @@
 # Roadmap
 
-## Current Direction
+This roadmap describes the current main branch direction only. Historical version plans and implementation notes are available through git history and tags.
 
-HeiTang KB Forge remains a Skill-first Agent knowledge supply-chain foundation. Desktop UI work is a local presentation layer, not a replacement for the Python package, CLI, config runner, or pipeline runner.
+## Current State
 
-## v1.2.3
+- Core pre-v4 RC readiness: complete for the latest Core P0 proof.
+- Latest Core P0 proof: `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/`
+- `ready_for_v4_rc=true`
+- `P0 blockers=0`
+- v4.0 is not released, not tagged, and not started.
+- UI full-operation remains blocked.
 
-Desktop UI Freeze & Future-Ready Layout:
+## Next Gate: P1 UI Core Parity
 
-- fixed 11-page desktop IA
-- default zh-CN with en-US switching
-- dark black/white/gray desktop tool style
-- Knowledge Lifecycle placeholder
-- SQLite / Vector Store placeholder
-- Agent Connector / Retrieval Runtime placeholder
-- Skill-first architecture docs
+The next product gate is [P1 UI Core Parity](10_roadmap/P1_UI_CORE_PARITY.md). It must prove real UI operation for the main Core workflows before any full Workbench claim.
 
-## Future Candidates
+## Later Gate: P2 Productization
 
-- OpenClaw / Claude Code / Codex Skill packaging.
-- `skills/heitang-kb-forge-skill/` interface files.
-- Local SQLite knowledge store index.
-- Real vector store runtime adapters.
-- Real Agent Connector examples.
-- More downstream format adapters.
+[P2 Productization](10_roadmap/P2_PRODUCTIZATION.md) starts only after P1 has evidence. It covers packaging, release notes, publication hygiene, diagnostics polish, and final product acceptance loops.
 
-## v1.3.0 Completed
+## Standing Architecture Direction
 
-- Source registry generation.
-- Source change detection.
-- Incremental update reporting.
-- Missing source stale marking.
-- Update quality gate report.
-- Retry manifest generation.
+HeiTang KB Forge remains Skill-first. The UI is a presentation layer, not the Core product engine. OpenClaw, Claude Code, and Codex compatibility remain Agent-facing package surfaces.
 
-## v1.4.0 Completed
+## Parser Backend Direction
 
-- Local SQLite store initialization.
-- Package import into a local index.
-- Workspace package sync.
-- Package list, query, and status commands.
-- Store index export.
+Current completed parser capability remains verified internal parser, bounded best-effort OCR, and PDF token reduction. external backend candidate and planned adapter status is tracked in [Parser Backend Strategy](03_core_capabilities/PARSER_BACKEND_STRATEGY.md): OpenDataLoader for end-to-end PDF -> Markdown/JSON/RAG-ready parsing, PaddleOCR for OCR foundation, MinerU for document structure understanding and complex layout parsing, and PaddleOCR + MinerU as a planned OCR + document understanding pipeline.
 
-## v1.5.0 Completed
+This roadmap adds no parser code, no dependency, no model download, and no external parser execution.
 
-- Local retrieve command.
-- Package and store retrieval sources.
-- Citation trace generation.
-- Citation-required ask mode.
-- Agent RAG config and pipeline stages.
+## Non-Scope Until Proven
 
-## v1.6.0 Completed
-
-- Local Agent tool registry.
-- Tool export, list, describe, and invoke commands.
-- retrieve_knowledge local invocation.
-- Tool safety policy output.
-- MCP readiness config export.
-
-## v1.6.1 Completed
-
-- Skill installability metadata.
-- Doctor command.
-- Installation, quickstart, OCR setup, and Agent integration docs.
-- Quickstart and smoke scripts.
-
-## v1.6.2 Completed
-
-- Progress visualization for build / batch / pipeline.
-- JSONL progress event output.
-- Fast / production performance profile.
-- OCR page selection, worker, timeout, scale, cache, and resume controls.
-- PDF preflight and page classification reports.
-- Large file performance report.
-
-## v1.6 Closure Completed
-
-- Multimodal knowledge assets.
-- Multimodal evidence map.
-- Multimodal report.
-- Knowledge Package Contract v2.
-- Contract checker.
-- Knowledge Package Builder UI v1 result viewer.
-- Bilingual v1.6 documentation and traceability.
-
-## Explicit Non-Scope
-
-- Tool Runtime.
-- SaaS multi-tenant platform.
-- Permission system.
-- CRM / order / product catalog production integrations.
-- UI-only private knowledge package format.
-- Moving core logic into React or Tauri.
-# v1.7 Reliable Knowledge Governance
-
-v1.7 adds opt-in knowledge governance, high-precision local retrieval, Evidence Gate, and a minimal LLM provider adapter for evidence validation. These layers are designed to keep HeiTang KB Forge skill-first and headless while supporting later Agent/RAG runtimes.
-
-# v1.8 Skill and Agent Package Generation
-
-v1.8 closes the delivery loop from knowledge package to Skill Package to Agent Package. It adds local generation, validation, benchmark cases, optional mock LLM assistance, and UI previews without adding a real Agent Runtime.
-
-# v1.9 Portable Local Workspace
-
-v1.9 upgrades the project into a local Agent knowledge asset workspace with registries, relationship graph, provider registry, prompt profile registry, LLM call audit, import/export, and health check.
-
-# v2.0 Stable Knowledge Supply Chain Foundation
-
-v2.0 closes the v1.6-v1.9 capabilities into a stable Agent knowledge supply-chain foundation. It focuses on studio-run, stable-check, provider-health, reliability-score, release-package, extension readiness, and stable bilingual documentation.
-
-v2.0 reserves future extension points only. Master Skill decomposition learning, derived Skill generation, and platform distribution are documented as planned capabilities, not implemented v2.0 features.
-
-# v2.1 Knowledge Reliability and Input Hardening
-
-v2.1 strengthens the knowledge foundation with opt-in input coverage, parser hardening, enhanced source inventory, knowledge quality scoring, review workflow, retrieval evaluation, evidence benchmark, and mock/fallback LLM quality assist.
-
-v2.1 remains offline-first and does not make a real LLM mandatory.
-
-# v2.2 Industrial Master Skill Learning
-
-v2.2 is planned to formally implement master Skill and excellent Skill decomposition learning. The target is to analyze Skill structure, task patterns, workflow, style profile, boundary rules, safety constraints, similarity risk, and license status, then combine those learned patterns with the user's own knowledge package to generate derived Skills.
-
-This is not Skill copying. v2.2 should learn reusable structure and workflow patterns while preserving safety, attribution, and user-owned knowledge scope.
-
-v2.2 implementation outputs include `master_skill_inventory.json`, `skill_decomposition.json`, `skill_capability_map.json`, `skill_workflow_graph.json`, profile YAML files, `derived_skill_package`, safety reports, similarity reports, and license reports.
-
-# v2.4 Skill Distribution and Platform Publishing
-
-v2.4 implements platform export and upload-adapter preparation for OpenClaw, XHS, Codex, Claude Code, MCP, generic packages, and local registry packages.
-
-v2.4 generates platform manifests, install guides, upload checks, and mock publish results only. It does not call real platform accounts, run real Agent platforms, start a real MCP server, or upload to XHS automatically.
-
-v2.4 implementation scope is local platform distribution output generation, upload readiness checks, static upload risk checks, and mock publish records. v2.6 / v2.9 remain planned.
-
-# v2.5 Release Quality Gate And Regression Certification
-
-v2.5 implements local release quality gates, release blocker detection, regression coverage checks, golden sample validation, platform export certification, compatibility matrix output, mock-first LLM quality gate assist, release readiness summaries, and Release Quality Center v2.5 read-only summaries.
-
-v2.5 does not call real LLM APIs, run real platform runtimes, start an MCP server, upload to XHS, implement v2.6 Provider security audit, implement v2.8 parser backend reliability, or implement v2.9 Knowledge Runtime Loop.
-
-Next real validation boundaries: v2.6 for real LLM live smoke and provider governance, v2.7 for runtime compatibility smoke, v2.9 for local Knowledge Runtime Loop, future client platform integrations for Feishu / mobile / installer / iOS, and v3.x for SaaS / permissions / multi-user collaboration.
-
-# v2.8 Parser Backend and Knowledge Reliability
-
-v2.8 implements opt-in parser backend reliability. It adds a backend registry, built-in parser backend normalization, optional Docling and Marker adapter stubs, parse comparison, parse quality gate outputs, OCR risk reporting, manual review queues, corrected text re-import, trust status metadata, and trusted KB export gates.
-
-v2.8 keeps default build, batch, run, and pipeline behavior unchanged unless parser backend mode is explicitly enabled. It does not make external parser dependencies mandatory and does not enter v2.9 platform, mobile, installer, or iOS scope.
-
-# v2.9 Knowledge Runtime Loop
-
-v2.9 implements an opt-in local Knowledge Runtime Loop. It adds `kb-index`, `kb-query`, `kb-answer`, local KB index outputs, query trace, citation trace, cited local answer output, low-confidence refusal, retrieval quality reporting, and RAG eval baseline outputs.
-
-v2.9 keeps default build, batch, run, and pipeline behavior unchanged unless knowledge runtime mode is explicitly enabled. It does not call LLM APIs, embedding APIs, vector databases, external Agent runtimes, Feishu, mobile clients, installers, or iOS surfaces.
-
-# v2.3 Industrial Batch And Knowledge Governance
-
-v2.3 implements industrial batch job manifests, item status tracking, retry records, batch summaries, package lineage, curated package generation, governance decision logs, update impact reports, and a read-only Batch & Governance Center direction.
-
-v2.3 does not implement platform export, platform upload, real Agent runtime, real MCP server, SaaS collaboration, or external publishing APIs. Those remain outside v2.3; platform export and upload adapters are reserved for v2.4.
-
-# v2.3 Checkpoint Fill
-
-The checkpoint fill closes partial v2.2 industrial gaps with enhanced Skill template files, Agent compatibility stubs, static workspace refresh, offline provider readiness, prompt profile versioning, and Studio v2.2 local summaries.
-
-These additions are local file outputs. They do not implement v2.4 platform distribution, XHS packaging/upload, OpenClaw export, MCP export, or mock publish.
+- v4.0 release or tag
+- full user-operable Workbench
+- SaaS multi-tenancy
+- team permissions
+- cloud sync
+- platform-hosted user data
+- full external vector database production readiness
+- external parser backend adapter completion
+- real LLM/API/network dependency in Core tests

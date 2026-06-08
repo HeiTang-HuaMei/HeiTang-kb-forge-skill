@@ -1,9 +1,0 @@
-{
-  "audit_version": "final-pre-v4.0",
-  "status": "needs_review",
-  "byo_storage_supported_now": false,
-  "security_readiness": "future_contract_only",
-  "blocking_if_overclaimed": true,
-  "recommended_action": "Keep docs/contracts/UI wording at future/unsupported until implementation and security tests exist.",
-  "tests_require_real_llm_api_network": false
-}

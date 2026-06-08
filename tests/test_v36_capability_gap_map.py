@@ -1,12 +1,9 @@
 import json
-from pathlib import Path
-
-
-ROOT = Path(__file__).resolve().parents[1]
+from heitang_kb_forge.audit.capability_gap import capability_gap_map
 
 
 def _report() -> dict:
-    return json.loads((ROOT / "capability_gap_map.json").read_text(encoding="utf-8"))
+    return capability_gap_map()
 
 
 def test_capability_gap_map_parses_and_has_required_fields():

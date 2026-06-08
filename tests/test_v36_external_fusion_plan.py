@@ -1,12 +1,9 @@
 import json
-from pathlib import Path
-
-
-ROOT = Path(__file__).resolve().parents[1]
+from heitang_kb_forge.audit.fusion_plan import external_fusion_plan
 
 
 def _report() -> dict:
-    return json.loads((ROOT / "external_fusion_plan.json").read_text(encoding="utf-8"))
+    return external_fusion_plan()
 
 
 def test_external_fusion_plan_parses_and_preserves_no_copy_policy():
