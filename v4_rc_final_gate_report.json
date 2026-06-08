@@ -1,35 +1,19 @@
 {
   "final_gate_version": "pre-v4-p0-1",
-  "generated_at": "2026-06-08T07:25:39.461708+00:00",
-  "overall_status": "blocked",
-  "ready_for_v4_rc": false,
-  "p0_blockers": [
-    {
-      "id": "live_llm_p0_blocker",
-      "severity": "P0",
-      "status": "blocked_with_reason",
-      "reason": "live_llm_acceptance_not_passed",
-      "blocks_v4": true
-    }
-  ],
+  "generated_at": "2026-06-08T09:50:35.233990+00:00",
+  "overall_status": "ready_for_v4_rc",
+  "ready_for_v4_rc": true,
+  "p0_blockers": [],
   "p1_blockers": [],
   "p1_needs_review": [],
   "p2_issues": [],
-  "issue_checklist": [
-    {
-      "id": "live_llm_p0_blocker",
-      "severity": "P0",
-      "status": "blocked_with_reason",
-      "reason": "live_llm_acceptance_not_passed",
-      "blocks_v4": true
-    }
-  ],
+  "issue_checklist": [],
   "product_architecture_completeness": {
-    "status": "blocked",
+    "status": "pass",
     "capability_status": {
       "vector_db": "pass",
       "rag_index": "pass",
-      "live_llm": "blocked_with_reason",
+      "live_llm": "pass",
       "agent_runtime": "pass",
       "lifecycle": "pass",
       "memory": "pass",
@@ -149,10 +133,16 @@
     "tests_require_real_llm_api_network": false
   },
   "llm_provider_readiness": {
-    "status": "blocked_with_reason",
+    "status": "pass",
     "report_file": "live_llm_acceptance_report.json",
-    "blocked_reason": "live_llm_acceptance_not_passed",
-    "tests_require_real_llm_api_network": false
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false,
+    "provider_profile_count": 1,
+    "passing_provider_profile_count": 1,
+    "live_gate_pass_requires_one_valid_profile": true,
+    "official_openai_only": false,
+    "openai_compatible_proxy_equivalent_to_official_openai": false,
+    "bundled_or_recommended_unofficial_proxy": false
   },
   "per_agent_api_mapping_readiness": {
     "status": "pass",
@@ -185,6 +175,6 @@
     "scope": "synthetic metadata routing scale proof, not production load benchmark",
     "tests_require_real_llm_api_network": false
   },
-  "recommendation": "blocked: resolve remaining P0 blockers before v4.0.",
+  "recommendation": "ready_for_v4_rc",
   "tests_require_real_llm_api_network": false
 }

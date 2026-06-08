@@ -1,7 +1,22 @@
 from pathlib import Path
+import json
 
 
 ROOT = Path.cwd()
+LATEST_PRE_V4_PROOF = ROOT / "docs" / "audits" / "local_acceptance" / "pre_v4_p0_after_live_llm"
+
+
+def test_root_final_gate_reports_match_latest_pre_v4_proof():
+    for name in ["final_v4_rc_gate_report.json", "v4_rc_final_gate_report.json"]:
+        root_gate = json.loads((ROOT / name).read_text(encoding="utf-8"))
+        proof_gate = json.loads((LATEST_PRE_V4_PROOF / name).read_text(encoding="utf-8"))
+
+        assert root_gate["ready_for_v4_rc"] == proof_gate["ready_for_v4_rc"]
+        assert root_gate["overall_status"] == proof_gate["overall_status"]
+        assert root_gate["p0_blockers"] == proof_gate["p0_blockers"]
+        assert root_gate["p1_blockers"] == proof_gate["p1_blockers"]
+        assert root_gate["llm_provider_readiness"]["status"] == proof_gate["llm_provider_readiness"]["status"]
+        assert root_gate["product_architecture_completeness"]["status"] == proof_gate["product_architecture_completeness"]["status"]
 
 
 def test_final_product_architecture_truth_docs_are_bilingual_and_auditable():
