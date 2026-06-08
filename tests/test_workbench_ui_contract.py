@@ -6,11 +6,22 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKBENCH = ROOT / "web" / "workbench"
 
 
-def test_workbench_contract_uses_mock_only_scope_and_future_service_boundary():
+def test_workbench_contract_exposes_desktop_core_bridge_without_full_operation_claim():
     contracts = json.loads((WORKBENCH / "contracts.json").read_text(encoding="utf-8"))
 
-    assert contracts["scope"] == "mock-only"
-    assert contracts["future_api"]["no_backend_logic"] is True
+    assert contracts["scope"] == "mock-plus-desktop-core-bridge-contract"
+    assert contracts["future_api"]["no_backend_logic"] is False
+    assert contracts["future_api"]["current_backend_logic"] == "desktop local Core CLI bridge contract only; page workflows are not wired end to end yet"
+    bridge = contracts["local_core_bridge"]
+    assert bridge["status"] == "bridge_contract_tested"
+    assert bridge["desktop_runtime"] == "allowlisted_core_cli_process_bridge"
+    assert bridge["web_runtime"] == "unsupported_for_local_cli_execution"
+    assert bridge["desktop_bridge_only"] is True
+    assert bridge["not_full_operation_yet"] is True
+    assert bridge["not_v4_0_workbench_rc"] is True
+    assert bridge["security"]["run_in_shell"] is False
+    assert bridge["security"]["allowlisted_actions_only"] is True
+    assert bridge["security"]["rejects_secret_environment"] is True
     assert "mockService.js" in contracts["future_api"]["boundary"]
     assert set(contracts["future_api"]["reserved_resources"]) >= {
         "knowledgeBases",
@@ -54,6 +65,9 @@ def test_flutter_project_scaffold_has_standard_entry_files():
     assert "android/local.properties" in gitignore
     assert "flutter run -d windows" in readme
     assert "flutter run -d chrome" in readme
+    assert "not_full_operation_yet: true" in readme
+    assert "not the v4.0 Workbench RC" in readme
+    assert "Web does not execute the local Core CLI" in readme
 
 
 def test_workbench_pages_reference_existing_mock_sources():
@@ -101,6 +115,7 @@ def test_flutter_scaffold_does_not_import_core_modules():
         path
         for path in flutter_files
         if path.is_file() and path.suffix in {".dart", ".yaml", ".gradle", ".kt", ".swift", ".cpp", ".txt", ".md", ".plist"}
+        and "core_bridge" not in path.parts
     ]
     combined = "\n".join(path.read_text(encoding="utf-8", errors="ignore") for path in text_files)
 

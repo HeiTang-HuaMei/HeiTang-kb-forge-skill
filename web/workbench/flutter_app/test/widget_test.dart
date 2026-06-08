@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heitang_workbench/core_bridge/local_core_bridge.dart';
 import 'package:heitang_workbench/contracts/workbench_contracts.dart';
 import 'package:heitang_workbench/main.dart';
 
@@ -94,6 +95,75 @@ void main() {
     expect(find.textContaining('standalone'), findsWidgets);
     expect(find.textContaining('kb_bound'), findsWidgets);
     expect(find.textContaining('retrieval_config.yaml'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('runs the desktop kb_query core action through an injected bridge', (tester) async {
+    final requests = <CoreBridgeRequest>[];
+    final bridge = LocalCoreBridge(
+      runner: (request) async {
+        requests.add(request);
+        return const CoreBridgeProcessResult(exitCode: 0, stdout: 'answer token=sk-test-secret', stderr: '');
+      },
+    );
+
+    await tester.binding.setSurfaceSize(const Size(1440, 900));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        coreBridge: bridge,
+        coreCli: 'heitang-kb-forge',
+        coreWorkspace: 'fixture_workspace',
+        isWebRuntime: false,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('知识库查询').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Query / Verify KB'), findsOneWidget);
+
+    await tester.tap(find.text('运行 Core 操作'));
+    await tester.pumpAndSettle();
+
+    expect(requests, hasLength(1));
+    expect(requests.single.actionId, 'kb_query');
+    expect(requests.single.arguments.first, 'kb-answer');
+    expect(find.textContaining('<redacted>'), findsWidgets);
+    expect(find.textContaining('sk-test-secret'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('blocks the run_agent action on web runtime without calling the runner', (tester) async {
+    var runnerCalled = false;
+    final bridge = LocalCoreBridge(
+      runner: (request) async {
+        runnerCalled = true;
+        return const CoreBridgeProcessResult(exitCode: 0, stdout: 'unexpected', stderr: '');
+      },
+    );
+
+    await tester.binding.setSurfaceSize(const Size(1440, 900));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        coreBridge: bridge,
+        coreCli: 'heitang-kb-forge',
+        isWebRuntime: true,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Agent / Skill 管理').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Run Local Agent'), findsOneWidget);
+
+    await tester.tap(find.text('运行 Core 操作'));
+    await tester.pumpAndSettle();
+
+    expect(runnerCalled, isFalse);
+    expect(find.text('blocked'), findsWidgets);
+    expect(find.text('core_bridge_web_unsupported'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
