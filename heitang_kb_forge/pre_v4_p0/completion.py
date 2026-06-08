@@ -5,14 +5,13 @@ import importlib.util
 import json
 import os
 import re
-import urllib.error
-import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from time import perf_counter
 from typing import Any
 
 from heitang_kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
+from heitang_kb_forge.llm.provider_profiles import load_provider_profiles, run_provider_profile_acceptance
 from heitang_kb_forge.multi_source_ingestion import run_multi_source_ingestion
 from heitang_kb_forge.parsers.pdf_parser import PDFParseOptions, parse_pdf
 from heitang_kb_forge.pre_v4_p0.vector_db import VECTOR_PROVIDERS, vector_db_completion
@@ -375,38 +374,57 @@ def run_full_ocr_acceptance(source: Path, output: Path, timeout_per_page: int = 
     return report
 
 
-def run_live_llm_acceptance(output: Path) -> dict:
+def run_live_llm_acceptance(output: Path, provider_profile_file: Path | None = None) -> dict:
     output.mkdir(parents=True, exist_ok=True)
     env_visible = {name: bool(os.environ.get(name)) for name in LLM_REQUIRED_ENV}
-    configured = all(env_visible.values()) and os.environ.get("HEITANG_LLM_ACCEPTANCE_ENABLED", "").lower() in {"1", "true", "yes"}
+    acceptance_enabled = os.environ.get("HEITANG_LLM_ACCEPTANCE_ENABLED", "").lower() in {"1", "true", "yes"}
     local_script = Path("._local_acceptance_config") / "set_llm_env.local.ps1"
-    smoke = _call_live_llm_provider() if configured else {
-        "status": "blocked_with_reason",
-        "live_smoke_succeeded": False,
-        "stable_error_id": "llm_env_missing_or_not_inherited",
-        "blocked_reason": "required_env_missing_or_process_environment_not_inherited",
-        "http_status": None,
-        "response_hash": "",
-    }
+    profiles, profile_metadata = load_provider_profiles(profile_file=provider_profile_file)
+    timeout = float(os.environ.get("HEITANG_LLM_TIMEOUT_SEC", "30") or 30)
+    smoke = run_provider_profile_acceptance(profiles, acceptance_enabled=acceptance_enabled, timeout_sec=timeout)
     status = smoke["status"]
     reason = smoke["blocked_reason"]
+    legacy_reason = reason
+    if not profiles and not acceptance_enabled:
+        legacy_reason = "required_env_missing_or_process_environment_not_inherited"
+    primary_profile = smoke["provider_profiles"][0] if smoke["provider_profiles"] else {}
+    primary_detection = primary_profile.get("capability_detection", {})
+    primary_live = next(
+        (
+            item
+            for item in [primary_detection.get("chat_completions"), primary_detection.get("responses")]
+            if isinstance(item, dict) and item.get("status") == "pass"
+        ),
+        {},
+    )
     report = {
         "live_llm_acceptance_report_version": "pre-v4-p0-1",
         "generated_at": _now(),
         "status": status,
         "env_visible": env_visible,
         "local_env_script_exists": local_script.exists(),
+        "provider_profile_source_method": profile_metadata["source_method"],
+        "allowed_provider_types": profile_metadata["allowed_provider_types"],
+        "official_openai_only": False,
+        "openai_compatible_proxy_equivalent_to_official_openai": False,
+        "bundled_or_recommended_unofficial_proxy": False,
+        "provider_profiles": smoke["provider_profiles"],
+        "provider_profile_count": smoke["provider_profile_count"],
+        "passing_provider_profile_count": smoke["passing_provider_profile_count"],
+        "live_gate_pass_requires_one_valid_profile": True,
+        "suggestions": smoke["suggestions"],
         "provider": os.environ.get("HEITANG_LLM_PROVIDER", ""),
         "model": os.environ.get("HEITANG_LLM_MODEL", ""),
         "base_url_configured": bool(os.environ.get("HEITANG_LLM_BASE_URL")),
         "api_key_configured": bool(os.environ.get("HEITANG_LLM_API_KEY")),
         "api_key_redacted": True,
-        "live_smoke_succeeded": smoke["live_smoke_succeeded"],
-        "stable_error_id": smoke["stable_error_id"],
-        "http_status": smoke["http_status"],
-        "response_hash": smoke["response_hash"],
+        "shared_keys_stored": False,
+        "live_smoke_succeeded": smoke["passing_provider_profile_count"] > 0,
+        "stable_error_id": "" if status == "pass" else primary_profile.get("last_error_class", "llm_provider_profile_not_configured"),
+        "http_status": primary_live.get("http_status"),
+        "response_hash": primary_live.get("response_hash", ""),
         "response_text_committed": False,
-        "blocked_reason": reason,
+        "blocked_reason": legacy_reason,
         "core_usable_without_llm": True,
         "tests_require_real_llm_api_network": False,
     }
@@ -415,6 +433,8 @@ def run_live_llm_acceptance(output: Path) -> dict:
         "status": "pass",
         "api_key_value_written": False,
         "redacted_preview": "<redacted>" if os.environ.get("HEITANG_LLM_API_KEY") else "",
+        "shared_keys_stored": False,
+        "provider_profile_reports_redact_keys": True,
         "tests_require_real_llm_api_network": False,
     }
     fallback = {
@@ -423,18 +443,20 @@ def run_live_llm_acceptance(output: Path) -> dict:
         "disabled_fallback_works": True,
         "missing_key_fallback_works": True,
         "core_without_llm": "pass",
+        "provider_http_502_blocks_live_gate_only": True,
+        "offline_core_fails_on_live_provider_error": False,
         "tests_require_real_llm_api_network": False,
     }
     rewrite = {
         "live_llm_query_rewrite_assist_report_version": "pre-v4-p0-1",
-        "status": "pass" if smoke["live_smoke_succeeded"] else "blocked_with_reason" if configured else "skipped",
-        "reason": reason,
+        "status": "pass" if report["live_smoke_succeeded"] else "blocked_with_reason" if acceptance_enabled else "skipped",
+        "reason": legacy_reason,
         "tests_require_real_llm_api_network": False,
     }
     summary = {
         "live_llm_summary_assist_report_version": "pre-v4-p0-1",
-        "status": "pass" if smoke["live_smoke_succeeded"] else "blocked_with_reason" if configured else "skipped",
-        "reason": reason,
+        "status": "pass" if report["live_smoke_succeeded"] else "blocked_with_reason" if acceptance_enabled else "skipped",
+        "reason": legacy_reason,
         "tests_require_real_llm_api_network": False,
     }
     _write_json_and_md(output, "live_llm_acceptance_report", report)
@@ -443,79 +465,6 @@ def run_live_llm_acceptance(output: Path) -> dict:
     write_json(output / "live_llm_query_rewrite_assist_report.json", rewrite)
     write_json(output / "live_llm_summary_assist_report.json", summary)
     return report
-
-
-def _call_live_llm_provider() -> dict:
-    base_url = os.environ["HEITANG_LLM_BASE_URL"].rstrip("/")
-    url = base_url if base_url.endswith(("/chat/completions", "/responses")) else f"{base_url}/chat/completions"
-    timeout = float(os.environ.get("HEITANG_LLM_TIMEOUT_SEC", "30") or 30)
-    payload = {
-        "model": os.environ["HEITANG_LLM_MODEL"],
-        "messages": [
-            {"role": "system", "content": "Return a short readiness phrase."},
-            {"role": "user", "content": "HeiTang live provider acceptance smoke."},
-        ],
-        "temperature": 0,
-        "max_tokens": 32,
-    }
-    request = urllib.request.Request(
-        url,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {os.environ['HEITANG_LLM_API_KEY']}",
-        },
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310 - explicit live acceptance only.
-            body = response.read(12000).decode("utf-8", errors="replace")
-            status_code = getattr(response, "status", 200)
-    except urllib.error.HTTPError as exc:
-        body = exc.read(12000).decode("utf-8", errors="replace")
-        return {
-            "status": "blocked_with_reason",
-            "live_smoke_succeeded": False,
-            "stable_error_id": "llm_provider_http_error",
-            "http_status": exc.code,
-            "response_hash": hashlib.sha256(body.encode("utf-8")).hexdigest() if body else "",
-            "blocked_reason": f"provider_http_error_{exc.code}",
-        }
-    except urllib.error.URLError as exc:
-        return {
-            "status": "blocked_with_reason",
-            "live_smoke_succeeded": False,
-            "stable_error_id": "llm_provider_network_error",
-            "http_status": None,
-            "response_hash": "",
-            "blocked_reason": str(exc.reason),
-        }
-    except TimeoutError:
-        return {
-            "status": "blocked_with_reason",
-            "live_smoke_succeeded": False,
-            "stable_error_id": "llm_provider_timeout",
-            "http_status": None,
-            "response_hash": "",
-            "blocked_reason": "provider_timeout",
-        }
-    except Exception as exc:  # noqa: BLE001 - live acceptance must report stable failure.
-        return {
-            "status": "blocked_with_reason",
-            "live_smoke_succeeded": False,
-            "stable_error_id": "llm_provider_unexpected_error",
-            "http_status": None,
-            "response_hash": "",
-            "blocked_reason": exc.__class__.__name__,
-        }
-    return {
-        "status": "pass" if 200 <= int(status_code) < 300 and body.strip() else "blocked_with_reason",
-        "live_smoke_succeeded": 200 <= int(status_code) < 300 and bool(body.strip()),
-        "stable_error_id": "" if 200 <= int(status_code) < 300 and body.strip() else "llm_provider_empty_response",
-        "http_status": status_code,
-        "response_hash": hashlib.sha256(body.encode("utf-8")).hexdigest() if body else "",
-        "blocked_reason": "" if 200 <= int(status_code) < 300 and body.strip() else "provider_empty_or_non_success_response",
-    }
 
 
 def run_agent_runtime_completion(package: Path, output: Path, agent: Path | None = None) -> dict:
@@ -1183,12 +1132,13 @@ def run_pre_v4_p0_completion(
     output: Path,
     source: Path | None = None,
     agent: Path | None = None,
+    provider_profile_file: Path | None = None,
 ) -> dict:
     output.mkdir(parents=True, exist_ok=True)
     reports = {
         "vector_db": run_vector_db_completion(output),
         "rag_index": run_rag_index_completion(package, output),
-        "live_llm": run_live_llm_acceptance(output),
+        "live_llm": run_live_llm_acceptance(output, provider_profile_file),
         "agent_runtime": run_agent_runtime_completion(package, output, agent),
         "lifecycle": run_lifecycle_completion(package, output),
         "memory": run_memory_completion(package, output),
@@ -1302,7 +1252,17 @@ def _write_final_gate_reports(output: Path, summary: dict, reports: dict[str, di
         "multi_format_parser_readiness": _gate_record(reports["full_ocr"], "full_ocr_acceptance_report.json"),
         "agent_runtime_truth": _gate_record(reports["agent_runtime"], "kb_bound_agent_runtime_proof_report.json"),
         "lifecycle_update_readiness": _gate_record(reports["lifecycle"], "lifecycle_crud_completion_report.json"),
-        "llm_provider_readiness": _gate_record(reports["live_llm"], "live_llm_acceptance_report.json"),
+        "llm_provider_readiness": {
+            **_gate_record(reports["live_llm"], "live_llm_acceptance_report.json"),
+            "provider_profile_count": reports["live_llm"].get("provider_profile_count", 0),
+            "passing_provider_profile_count": reports["live_llm"].get("passing_provider_profile_count", 0),
+            "live_gate_pass_requires_one_valid_profile": reports["live_llm"].get("live_gate_pass_requires_one_valid_profile", True),
+            "official_openai_only": reports["live_llm"].get("official_openai_only", False),
+            "openai_compatible_proxy_equivalent_to_official_openai": reports["live_llm"].get(
+                "openai_compatible_proxy_equivalent_to_official_openai", False
+            ),
+            "bundled_or_recommended_unofficial_proxy": reports["live_llm"].get("bundled_or_recommended_unofficial_proxy", False),
+        },
         "per_agent_api_mapping_readiness": {
             "status": "pass",
             "report_file": "agent_provider_mapping_readiness_report.json",

@@ -1388,7 +1388,7 @@ def provider_registry_export_command(
 @app.command("provider-live-smoke")
 def provider_live_smoke_command(
     output: Path = typer.Option(..., "--output"),
-    provider_id: str = typer.Option("openai_compatible_generic", "--provider-id"),
+    provider_id: str = typer.Option("custom_http", "--provider-id"),
     config: Path | None = typer.Option(None, "--config"),
     live: bool = typer.Option(False, "--live"),
     allow_network: bool = typer.Option(False, "--allow-network"),
@@ -2380,9 +2380,12 @@ def full_ocr_acceptance_command(
 
 
 @app.command("live-llm-acceptance")
-def live_llm_acceptance_command(output: Path = typer.Option(..., "--output", "-o")) -> None:
-    """Run optional pre-v4 P0 live LLM provider acceptance when env is visible."""
-    result = run_live_llm_acceptance(output)
+def live_llm_acceptance_command(
+    output: Path = typer.Option(..., "--output", "-o"),
+    provider_profile: Path | None = typer.Option(None, "--provider-profile", exists=True, file_okay=True, dir_okay=False, readable=True),
+) -> None:
+    """Run optional pre-v4 P0 live LLM provider acceptance for user-configured profiles."""
+    result = run_live_llm_acceptance(output, provider_profile)
     typer.echo(f"Live LLM acceptance: {result['status']}")
 
 
@@ -2441,9 +2444,10 @@ def pre_v4_p0_completion_command(
     output: Path = typer.Option(..., "--output", "-o"),
     source: Path | None = typer.Option(None, "--source", exists=True, file_okay=True, dir_okay=True, readable=True),
     agent: Path | None = typer.Option(None, "--agent", exists=True, file_okay=False, dir_okay=True, readable=True),
+    provider_profile: Path | None = typer.Option(None, "--provider-profile", exists=True, file_okay=True, dir_okay=False, readable=True),
 ) -> None:
     """Run the pre-v4 P0 Core capability completion gate."""
-    result = run_pre_v4_p0_completion(core_repo, package, output, source, agent)
+    result = run_pre_v4_p0_completion(core_repo, package, output, source, agent, provider_profile)
     typer.echo(f"Pre-v4 P0 completion: {result['status']} | Ready for v4 RC: {result['ready_for_v4_rc']}")
 
 

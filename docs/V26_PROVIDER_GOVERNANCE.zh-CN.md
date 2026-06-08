@@ -1,26 +1,18 @@
 # v2.6 Provider Governance
 
-v2.6 新增 Preview 级 LLM Provider 治理能力，覆盖国内外常见 Provider。
+v2.6 新增 Preview 级 LLM Provider 治理能力，用于用户自配置 provider profile。产品不要求 official OpenAI 是唯一 live provider，也不内置或推荐任何非官方代理。
 
 ## Provider 覆盖
 
-内置 registry 覆盖：
+内置 registry 只覆盖 provider profile 类型：
 
-* openai
-* anthropic
-* gemini
-* openrouter
-* openai_compatible_generic
-* qwen_dashscope
-* deepseek
-* kimi_moonshot
-* zhipu_glm
-* baidu_qianfan
-* tencent_hunyuan
-* minimax
-* volcengine_doubao
+* official_openai
+* official_vendor
+* openai_compatible_proxy
+* local_model
+* custom_http
 
-每个 Provider 记录包含 region、adapter type、环境变量名、默认 base URL、超时、重试、能力标记、文档 URL、状态和风险说明。
+每个 Provider 记录包含 adapter type、环境变量名、可选默认 base URL、超时、重试、能力标记、文档 URL、状态和风险说明。`openai_compatible_proxy` 是用户自配置边界，不等价于 `official_openai`。
 
 ## 命令
 
@@ -39,11 +31,11 @@ python -m heitang_kb_forge.cli llm-live-smoke --output .\tmp_v26\llm-live --prov
 
 ## 安全边界
 
-Provider 凭据只允许通过环境变量提供。API key 值不能写入配置、输出、审计报告、日志或测试 fixture。真实 live call 必须显式传入 `--live` 和 `--allow-network`；默认命令和常规测试保持离线。
+Provider 凭据只允许通过环境变量提供。API key 值不能写入配置、输出、审计报告、日志或测试 fixture。真实 live call 必须显式传入 `--live` 和 `--allow-network`；默认命令和常规测试保持离线。Core 不保存 shared keys。
 
 ## Adapter 策略
 
-OpenAI-compatible Provider 共享 OpenAI-compatible adapter contract。Anthropic 和 Gemini 在 v2.6 是 config adapter。尚未完整 live 实现的 Provider 仍作为 config-only registry entry 做治理校验。
+Provider profiles 共用 redaction 和 opt-in live-smoke 策略。Official vendor、local model、OpenAI-compatible proxy、custom HTTP profiles 都必须由用户自行提供。第三方代理行为属于 user-managed，不得声称等价于官方 API。
 
 ## Fallback 与 Cost Guard
 

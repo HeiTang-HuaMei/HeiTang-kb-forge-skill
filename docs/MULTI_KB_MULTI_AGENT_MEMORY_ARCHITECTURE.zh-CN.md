@@ -219,7 +219,7 @@ role: Agent 角色
 bound_knowledge_bases: 绑定知识库
 private_memory_path: 私有记忆路径
 allowed_shared_memory_scopes: 可访问共享记忆范围
-model_provider: 模型 Provider
+provider_profile: 用户自配置 Provider Profile
 answer_policy: 回答策略
 tools: 可调用工具
 handoff_policy: 交接策略
@@ -234,7 +234,7 @@ bound_knowledge_bases:
 private_memory_path: memory/agents/product_agent/private
 allowed_shared_memory_scopes:
   - workflow_shared
-model_provider: deepseek
+provider_profile: custom_http
 answer_policy: knowledge_first
 handoff_policy: explicit_only
 

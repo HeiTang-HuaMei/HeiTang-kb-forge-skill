@@ -1,26 +1,18 @@
 # v2.6 Provider Governance
 
-v2.6 adds Preview LLM provider governance for domestic and international providers.
+v2.6 adds Preview LLM provider governance for user-configured provider profiles. It does not require official OpenAI as the only live provider, and it does not bundle or recommend any unofficial proxy.
 
 ## Provider Coverage
 
-The built-in registry covers:
+The built-in registry covers provider profile types only:
 
-* openai
-* anthropic
-* gemini
-* openrouter
-* openai_compatible_generic
-* qwen_dashscope
-* deepseek
-* kimi_moonshot
-* zhipu_glm
-* baidu_qianfan
-* tencent_hunyuan
-* minimax
-* volcengine_doubao
+* official_openai
+* official_vendor
+* openai_compatible_proxy
+* local_model
+* custom_http
 
-Each provider record includes region, adapter type, env variable names, default base URL, timeout, retry, capability flags, docs URL, status, and risk notes.
+Each provider record includes adapter type, env variable names, optional default base URL, timeout, retry, capability flags, docs URL, status, and risk notes. `openai_compatible_proxy` is a user-configured boundary and is not equivalent to `official_openai`.
 
 ## Commands
 
@@ -39,11 +31,11 @@ python -m heitang_kb_forge.cli llm-live-smoke --output .\tmp_v26\llm-live --prov
 
 ## Security Boundary
 
-Provider credentials are env-only. API key values must not be written to config, output, audit reports, logs, or test fixtures. Live provider calls require explicit `--live` and `--allow-network`; normal tests and default commands remain offline.
+Provider credentials are env-only. API key values must not be written to config, output, audit reports, logs, or test fixtures. Live provider calls require explicit `--live` and `--allow-network`; normal tests and default commands remain offline. No shared keys are stored.
 
 ## Adapter Strategy
 
-OpenAI-compatible providers share the OpenAI-compatible adapter contract. Anthropic and Gemini are config adapters in v2.6. Providers that are not fully live implemented are still validated as config-only registry entries.
+Provider profiles share the same redaction and opt-in live-smoke policy. Official vendor, local model, OpenAI-compatible proxy, and custom HTTP profiles must be supplied by the user. Third-party proxy behavior is treated as user-managed and must not be claimed equivalent to official APIs.
 
 ## Fallback and Cost Guard
 

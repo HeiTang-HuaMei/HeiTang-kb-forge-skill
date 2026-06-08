@@ -16,5 +16,18 @@
   "skip_reason": "required variables were not visible to the current Codex process after re-check; likely process environment isolation after user configured PowerShell environment",
   "offline_deterministic_fallback_status": "missing",
   "core_workflow_requires_llm": false,
-  "tests_require_real_llm_api_network": false
+  "tests_require_real_llm_api_network": false,
+  "provider_profile_system": "user_configured_profiles",
+  "supported_provider_profile_types": [
+    "official_openai",
+    "official_vendor",
+    "openai_compatible_proxy",
+    "local_model",
+    "custom_http"
+  ],
+  "official_openai_only": false,
+  "openai_compatible_proxy_equivalent_to_official_openai": false,
+  "bundled_or_recommended_unofficial_proxy": false,
+  "shared_keys_stored": false,
+  "live_gate_pass_requires_one_valid_profile": true
 }

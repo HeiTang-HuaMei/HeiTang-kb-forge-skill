@@ -17,11 +17,30 @@
   "api_key_configured": false,
   "api_key_redacted": true,
   "live_smoke_succeeded": false,
-  "stable_error_id": "llm_env_missing_or_not_inherited",
+  "stable_error_id": "llm_provider_profile_not_configured",
   "http_status": null,
   "response_hash": "",
   "response_text_committed": false,
-  "blocked_reason": "required_env_missing_or_process_environment_not_inherited",
+  "blocked_reason": "no_configured_provider_profile",
   "core_usable_without_llm": true,
-  "tests_require_real_llm_api_network": false
+  "tests_require_real_llm_api_network": false,
+  "provider_profile_source_method": "none",
+  "allowed_provider_types": [
+    "custom_http",
+    "local_model",
+    "official_openai",
+    "official_vendor",
+    "openai_compatible_proxy"
+  ],
+  "official_openai_only": false,
+  "openai_compatible_proxy_equivalent_to_official_openai": false,
+  "bundled_or_recommended_unofficial_proxy": false,
+  "provider_profiles": [],
+  "provider_profile_count": 0,
+  "passing_provider_profile_count": 0,
+  "live_gate_pass_requires_one_valid_profile": true,
+  "shared_keys_stored": false,
+  "suggestions": [
+    "Configure at least one user-owned provider profile, then rerun live LLM acceptance."
+  ]
 }

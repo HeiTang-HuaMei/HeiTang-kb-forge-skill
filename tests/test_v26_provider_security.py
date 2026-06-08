@@ -128,30 +128,25 @@ def test_v26_provider_security_and_live_smoke_cli_outputs(tmp_path):
     assert (smoke_output / "llm_live_smoke_report.md").exists()
 
 
-def test_v26_builtin_registry_covers_domestic_and_international_providers():
+def test_v26_builtin_registry_covers_user_configured_provider_profile_types():
     registry = default_provider_registry()
     providers = {item["provider_id"]: item for item in registry["providers"]}
 
     assert set(providers) == {
-        "openai",
-        "anthropic",
-        "gemini",
-        "openrouter",
-        "openai_compatible_generic",
-        "qwen_dashscope",
-        "deepseek",
-        "kimi_moonshot",
-        "zhipu_glm",
-        "baidu_qianfan",
-        "tencent_hunyuan",
-        "minimax",
-        "volcengine_doubao",
+        "official_openai",
+        "official_vendor",
+        "openai_compatible_proxy",
+        "local_model",
+        "custom_http",
     }
-    assert {item["region"] for item in providers.values()} >= {"domestic", "international"}
     for provider in providers.values():
         assert REQUIRED_PROVIDER_FIELDS <= set(provider)
         assert provider["api_key_env"]
         assert "api_key" not in provider
+        assert provider["provider_profile_template"] is True
+        assert provider["recommendation_status"] == "not_a_recommendation"
+        assert provider["bundled_unofficial_proxy"] is False
+        assert provider["openai_compatible_proxy_equivalent_to_official_openai"] is False
 
 
 def test_v26_provider_governance_cli_outputs_are_offline_and_redacted(tmp_path):

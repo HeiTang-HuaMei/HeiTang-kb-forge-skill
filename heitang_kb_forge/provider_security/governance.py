@@ -34,19 +34,11 @@ PROVIDER_FIELDS = [
 
 
 DEFAULT_PROVIDERS = [
-    ("openai", "OpenAI", "international", "openai_compatible", "OPENAI_BASE_URL", "OPENAI_API_KEY", "OPENAI_MODEL", "https://api.openai.com/v1", True, True, True, True, "https://platform.openai.com/docs"),
-    ("anthropic", "Anthropic Claude", "international", "anthropic_config", "ANTHROPIC_BASE_URL", "ANTHROPIC_API_KEY", "ANTHROPIC_MODEL", "https://api.anthropic.com", True, False, True, False, "https://docs.anthropic.com"),
-    ("gemini", "Google Gemini", "international", "gemini_config", "GEMINI_BASE_URL", "GEMINI_API_KEY", "GEMINI_MODEL", "https://generativelanguage.googleapis.com", True, True, True, False, "https://ai.google.dev"),
-    ("openrouter", "OpenRouter", "international", "openai_compatible", "OPENROUTER_BASE_URL", "OPENROUTER_API_KEY", "OPENROUTER_MODEL", "https://openrouter.ai/api/v1", True, True, True, False, "https://openrouter.ai/docs"),
-    ("openai_compatible_generic", "OpenAI Compatible Generic", "generic", "openai_compatible", "OPENAI_COMPATIBLE_BASE_URL", "OPENAI_COMPATIBLE_API_KEY", "OPENAI_COMPATIBLE_MODEL", "", True, True, False, True, "https://platform.openai.com/docs/api-reference"),
-    ("qwen_dashscope", "Qwen DashScope", "domestic", "openai_compatible", "DASHSCOPE_BASE_URL", "DASHSCOPE_API_KEY", "DASHSCOPE_MODEL", "https://dashscope.aliyuncs.com/compatible-mode/v1", True, True, True, True, "https://help.aliyun.com/zh/dashscope"),
-    ("deepseek", "DeepSeek", "domestic", "openai_compatible", "DEEPSEEK_BASE_URL", "DEEPSEEK_API_KEY", "DEEPSEEK_MODEL", "https://api.deepseek.com/v1", True, True, False, False, "https://api-docs.deepseek.com"),
-    ("kimi_moonshot", "Kimi Moonshot", "domestic", "openai_compatible", "MOONSHOT_BASE_URL", "MOONSHOT_API_KEY", "MOONSHOT_MODEL", "https://api.moonshot.cn/v1", True, True, False, False, "https://platform.moonshot.cn/docs"),
-    ("zhipu_glm", "Zhipu GLM", "domestic", "openai_compatible", "ZHIPU_BASE_URL", "ZHIPU_API_KEY", "ZHIPU_MODEL", "https://open.bigmodel.cn/api/paas/v4", True, True, True, False, "https://open.bigmodel.cn/dev/api"),
-    ("baidu_qianfan", "Baidu Qianfan", "domestic", "openai_compatible", "QIANFAN_BASE_URL", "QIANFAN_API_KEY", "QIANFAN_MODEL", "https://qianfan.baidubce.com/v2", True, True, False, True, "https://cloud.baidu.com/doc/WENXINWORKSHOP/index.html"),
-    ("tencent_hunyuan", "Tencent Hunyuan", "domestic", "openai_compatible", "HUNYUAN_BASE_URL", "HUNYUAN_API_KEY", "HUNYUAN_MODEL", "https://api.hunyuan.cloud.tencent.com/v1", True, True, True, False, "https://cloud.tencent.com/document/product/1729"),
-    ("minimax", "MiniMax", "domestic", "openai_compatible", "MINIMAX_BASE_URL", "MINIMAX_API_KEY", "MINIMAX_MODEL", "https://api.minimax.chat/v1", True, True, False, False, "https://platform.minimaxi.com/document"),
-    ("volcengine_doubao", "Volcengine Doubao", "domestic", "openai_compatible", "ARK_BASE_URL", "ARK_API_KEY", "ARK_MODEL", "https://ark.cn-beijing.volces.com/api/v3", True, True, True, True, "https://www.volcengine.com/docs/82379"),
+    ("official_openai", "Official OpenAI profile", "user_configured", "official_openai", "OPENAI_BASE_URL", "OPENAI_API_KEY", "OPENAI_MODEL", "https://api.openai.com/v1", True, True, True, True, "https://platform.openai.com/docs"),
+    ("official_vendor", "Official vendor profile", "user_configured", "official_vendor", "HEITANG_VENDOR_BASE_URL", "HEITANG_VENDOR_API_KEY", "HEITANG_VENDOR_MODEL", "", True, True, True, True, ""),
+    ("openai_compatible_proxy", "User-configured OpenAI-compatible proxy profile", "user_configured", "openai_compatible_proxy", "HEITANG_PROXY_BASE_URL", "HEITANG_PROXY_API_KEY", "HEITANG_PROXY_MODEL", "", True, True, False, True, ""),
+    ("local_model", "Local model profile", "local", "local_model", "HEITANG_LOCAL_MODEL_BASE_URL", "HEITANG_LOCAL_MODEL_API_KEY", "HEITANG_LOCAL_MODEL", "", True, True, False, True, ""),
+    ("custom_http", "Custom HTTP profile", "user_configured", "custom_http", "HEITANG_CUSTOM_HTTP_BASE_URL", "HEITANG_CUSTOM_HTTP_API_KEY", "HEITANG_CUSTOM_HTTP_MODEL", "", True, False, False, False, ""),
 ]
 
 
@@ -71,9 +63,14 @@ def default_provider_registry() -> dict:
                 "supports_vision": vision,
                 "supports_embedding": embedding,
                 "live_smoke_supported": live_supported,
-                "status": "preview",
+                "status": "user_configured_template",
                 "docs_url": docs_url,
-                "risk_notes": "Use env-only credentials. Live calls require explicit --live and --allow-network.",
+                "provider_profile_template": True,
+                "recommendation_status": "not_a_recommendation",
+                "bundled_unofficial_proxy": False,
+                "shared_key_storage": False,
+                "openai_compatible_proxy_equivalent_to_official_openai": False,
+                "risk_notes": "User-configured profile template only. No shared keys, no bundled unofficial proxy, and live calls require explicit --live and --allow-network.",
             }
             for provider_id, display_name, region, adapter_type, base_url_env, api_key_env, model_env, base_url, live_supported, json_mode, vision, embedding, docs_url in DEFAULT_PROVIDERS
         ],
@@ -148,7 +145,7 @@ def provider_health(output: Path, registry_path: Path | None = None) -> dict:
     return result
 
 
-def provider_live_smoke(output: Path, provider_id: str = "openai_compatible_generic", live: bool = False, allow_network: bool = False, registry_path: Path | None = None) -> dict:
+def provider_live_smoke(output: Path, provider_id: str = "custom_http", live: bool = False, allow_network: bool = False, registry_path: Path | None = None) -> dict:
     output.mkdir(parents=True, exist_ok=True)
     provider = _find_provider(provider_id, load_provider_registry(registry_path))
     status = "warning"
