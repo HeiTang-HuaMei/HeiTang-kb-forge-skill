@@ -1,0 +1,112 @@
+{
+  "live_llm_acceptance_report_version": "pre-v4-p0-1",
+  "generated_at": "2026-06-08T09:32:26.652978+00:00",
+  "status": "pass",
+  "env_visible": {
+    "HEITANG_LLM_ACCEPTANCE_ENABLED": true,
+    "HEITANG_LLM_PROVIDER": false,
+    "HEITANG_LLM_BASE_URL": false,
+    "HEITANG_LLM_API_KEY": false,
+    "HEITANG_LLM_MODEL": false,
+    "HEITANG_LLM_TIMEOUT_SEC": true
+  },
+  "local_env_script_exists": false,
+  "provider_profile_source_method": "profile_file",
+  "allowed_provider_types": [
+    "custom_http",
+    "local_model",
+    "official_openai",
+    "official_vendor",
+    "openai_compatible_proxy"
+  ],
+  "official_openai_only": false,
+  "openai_compatible_proxy_equivalent_to_official_openai": false,
+  "bundled_or_recommended_unofficial_proxy": false,
+  "provider_profiles": [
+    {
+      "profile_id": "my_live_provider",
+      "provider_type": "openai_compatible_proxy",
+      "base_url": "https://ai-pixel.online/v1",
+      "model": "gpt-5.5",
+      "api_key": "<redacted>",
+      "api_key_configured": true,
+      "network_required": true,
+      "privacy_notice": "User-configured OpenAI-compatible proxy. It is not bundled, recommended, or equivalent to an official API.",
+      "official_openai_equivalent": false,
+      "third_party_proxy_not_equivalent_to_official_api": true,
+      "shared_key_stored": false,
+      "wire_api": {
+        "responses": true,
+        "chat_completions": true,
+        "embeddings": false
+      },
+      "capability_detection": {
+        "models": {
+          "endpoint": "/models",
+          "status": "pass",
+          "http_status": 200,
+          "last_error_class": "",
+          "response_hash": "74db32a1d3e2ef5cedf70ec4b3634ef76a9760d957ad86d0cd42b51f3676e25a",
+          "response_text_committed": false,
+          "request_headers_committed": {
+            "Authorization": "Bearer <redacted>"
+          },
+          "message": ""
+        },
+        "chat_completions": {
+          "endpoint": "/chat/completions",
+          "status": "pass",
+          "http_status": 200,
+          "last_error_class": "",
+          "response_hash": "e089d428e72f886377568b1d4e089df235eb11f0be4469d958ea2ea287359171",
+          "response_text_committed": false,
+          "request_headers_committed": {
+            "Authorization": "Bearer <redacted>"
+          },
+          "message": ""
+        },
+        "responses": {
+          "endpoint": "/responses",
+          "status": "pass",
+          "http_status": 200,
+          "last_error_class": "",
+          "response_hash": "cbcca781880df96e6006b02f829b0121c77fb609c76bbedd317cd2c74b8f279a",
+          "response_text_committed": false,
+          "request_headers_committed": {
+            "Authorization": "Bearer <redacted>"
+          },
+          "message": ""
+        },
+        "embeddings": {
+          "status": "not_run",
+          "http_status": null,
+          "last_error_class": "embeddings_not_enabled_for_profile",
+          "response_hash": "",
+          "response_text_committed": false
+        }
+      },
+      "live_acceptance_status": "pass",
+      "last_error_class": "",
+      "response_hash": "e089d428e72f886377568b1d4e089df235eb11f0be4469d958ea2ea287359171",
+      "tests_require_real_llm_api_network": false
+    }
+  ],
+  "provider_profile_count": 1,
+  "passing_provider_profile_count": 1,
+  "live_gate_pass_requires_one_valid_profile": true,
+  "suggestions": [],
+  "provider": "",
+  "model": "",
+  "base_url_configured": false,
+  "api_key_configured": false,
+  "api_key_redacted": true,
+  "shared_keys_stored": false,
+  "live_smoke_succeeded": true,
+  "stable_error_id": "",
+  "http_status": 200,
+  "response_hash": "e089d428e72f886377568b1d4e089df235eb11f0be4469d958ea2ea287359171",
+  "response_text_committed": false,
+  "blocked_reason": "",
+  "core_usable_without_llm": true,
+  "tests_require_real_llm_api_network": false
+}
