@@ -1,6 +1,7 @@
 from pathlib import Path
 from datetime import datetime, timezone
 from dataclasses import dataclass
+import json
 import os
 import re
 
@@ -2345,10 +2346,30 @@ def final_pre_v4_audit_command(
     core_repo: Path = typer.Option(..., "--core-repo", exists=True, file_okay=False, dir_okay=True, readable=True),
     output: Path = typer.Option(..., "--output", "-o"),
     ui_repo: Path | None = typer.Option(None, "--ui-repo", exists=True, file_okay=False, dir_okay=True, readable=True),
+    core_validation: Path | None = typer.Option(None, "--core-validation", exists=True, file_okay=True, dir_okay=False, readable=True),
+    ui_validation: Path | None = typer.Option(None, "--ui-validation", exists=True, file_okay=True, dir_okay=False, readable=True),
+    ci_status: Path | None = typer.Option(None, "--ci-status", exists=True, file_okay=True, dir_okay=False, readable=True),
 ) -> None:
     """Run the final pre-v4 product truth gate without starting v4.0."""
-    result = run_final_pre_v4_audit(core_repo, output, ui_repo)
+    result = run_final_pre_v4_audit(
+        core_repo,
+        output,
+        ui_repo,
+        core_validation=_load_final_audit_evidence(core_validation, "core validation") if core_validation else None,
+        ui_validation=_load_final_audit_evidence(ui_validation, "UI validation") if ui_validation else None,
+        ci_status=_load_final_audit_evidence(ci_status, "CI status") if ci_status else None,
+    )
     typer.echo(f"Final pre-v4 audit: {result['overall_status']} | Ready for v4 RC: {result['ready_for_v4_rc']}")
+
+
+def _load_final_audit_evidence(path: Path, label: str) -> dict:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8-sig"))
+    except json.JSONDecodeError as exc:
+        raise typer.BadParameter(f"{label} evidence must be valid JSON: {exc.msg}") from exc
+    if not isinstance(payload, dict):
+        raise typer.BadParameter(f"{label} evidence must be a JSON object")
+    return payload
 
 
 @app.command("vector-db-completion")

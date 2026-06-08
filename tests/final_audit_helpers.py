@@ -22,12 +22,30 @@ def run_audit(tmp_path: Path, *, core_validation: dict | None = None, ui_validat
     return output, result
 
 
-def run_audit_cli(tmp_path: Path) -> tuple[Path, object]:
+def run_audit_cli(
+    tmp_path: Path,
+    *,
+    core_validation: dict | None = None,
+    ui_validation: dict | None = None,
+    ci_status: dict | None = None,
+) -> tuple[Path, object]:
     output = tmp_path / "final_audit_cli"
     args = ["final-pre-v4-audit", "--core-repo", str(Path.cwd()), "--output", str(output)]
     ui = _ui_repo()
     if ui.exists():
         args.extend(["--ui-repo", str(ui)])
+    evidence_dir = tmp_path / "evidence"
+    for flag, name, payload in [
+        ("--core-validation", "core_validation.json", core_validation),
+        ("--ui-validation", "ui_validation.json", ui_validation),
+        ("--ci-status", "ci_status.json", ci_status),
+    ]:
+        if payload is None:
+            continue
+        evidence_dir.mkdir(exist_ok=True)
+        path = evidence_dir / name
+        path.write_text(json.dumps(payload), encoding="utf-8")
+        args.extend([flag, str(path)])
     result = CliRunner().invoke(app, args)
     return output, result
 
