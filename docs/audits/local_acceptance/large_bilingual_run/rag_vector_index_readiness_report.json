@@ -3,7 +3,7 @@
   "generated_at": "2026-06-08T00:00:00+00:00",
   "status": "pass",
   "severity": "resolved",
-  "reason": "Core now proves local JSON vector query, hybrid keyword/vector retrieval, metadata-filtered vector query, and stale vector index detection without real LLM/API/network. External vector database adapters remain future/disabled and must not be claimed as implemented.",
+  "reason": "Core now proves local JSON vector query, hybrid keyword/vector retrieval, metadata-filtered vector query, stale vector index detection, and external vector DB offline adapter contracts without requiring real LLM/API/network. Live Milvus/Pinecone/Qdrant/Chroma service acceptance remains needs_review until provider env/client/service are visible.",
   "tests_require_real_llm_api_network": false,
   "llm_optional_assist_only": true,
   "no_external_code_or_prompt_copying": true,
@@ -54,16 +54,29 @@
       "reason": "Core can generate deterministic local fake embeddings for tests; live providers remain optional."
     },
     "vector_db_adapter_status": {
-      "status": "future_disabled",
-      "classification": "external_adapters_not_implemented",
-      "implemented_vector_dbs": [],
-      "future_or_unproven_vector_dbs": [
+      "status": "implemented_offline_contract_tested",
+      "classification": "offline_adapter_contracts_implemented",
+      "implemented_vector_dbs": [
         "Milvus",
         "Pinecone",
         "Qdrant",
         "Chroma"
       ],
-      "reason": "External vector DB write/query adapters are not part of the local v4 gate and must not be claimed."
+      "live_acceptance_status": "implemented_needs_live_acceptance",
+      "provider_status_enum": [
+        "implemented_offline_contract_tested",
+        "implemented_local_live_verified",
+        "implemented_remote_live_verified",
+        "implemented_needs_live_acceptance",
+        "blocked_with_reason"
+      ],
+      "evidence": [
+        "heitang_kb_forge/pre_v4_p0/vector_db.py",
+        "tests/test_vector_db_adapter_matrix.py",
+        "tests/test_vector_db_provider_adapters.py",
+        "vector_db_completion_report.json"
+      ],
+      "reason": "Create/open collection, upsert, query, metadata filter, update/delete by filter, stale detection, credential redaction, and stable error taxonomy are implemented as offline adapter contracts. Real provider service writes are not claimed without live env/client/service."
     },
     "metadata_filtering": {
       "status": "implemented_local",
@@ -107,10 +120,10 @@
     }
   },
   "must_not_claim": [
-    "Milvus/Pinecone/Qdrant/Chroma adapter implementation",
-    "external vector database production readiness",
-    "cloud vector database readiness",
+    "external vector database live service readiness",
+    "Milvus/Pinecone/Qdrant/Chroma remote writes verified in this Codex process",
+    "cloud vector database production readiness without live acceptance",
     "real live embedding provider acceptance completed in this Codex process"
   ],
-  "recommended_fix": "No P0 remains for local vector/hybrid/index readiness. Keep external vector DB adapters marked future/disabled until real write/query/filter tests exist."
+  "recommended_fix": "P0 local/vector/hybrid/index readiness and external vector DB offline adapter contracts are complete. Before v4.0, attach live provider acceptance for any provider that will be claimed as service-verified."
 }

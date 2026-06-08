@@ -1,0 +1,699 @@
+{
+  "real_input_artifact_index_after_fix_version": "pre-v4-p0-1",
+  "generated_at": "2026-06-08T02:58:42.454196+00:00",
+  "artifact_count": 86,
+  "artifacts": [
+    {
+      "file_name": "agent_execution_loop_report.json",
+      "relative_path": "agent_execution_loop_report.json",
+      "size_bytes": 511,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "agent_execution_loop_report.md",
+      "relative_path": "agent_execution_loop_report.md",
+      "size_bytes": 621,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "agent_kb_access_control_report.json",
+      "relative_path": "agent_kb_access_control_report.json",
+      "size_bytes": 343,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "agent_loop_safety_report.json",
+      "relative_path": "agent_loop_safety_report.json",
+      "size_bytes": 238,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "agent_provider_mapping_readiness_report.json",
+      "relative_path": "agent_provider_mapping_readiness_report.json",
+      "size_bytes": 286,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "agent_tool_call_trace.json",
+      "relative_path": "agent_tool_call_trace.json",
+      "size_bytes": 582,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "agent_tool_error_handling_report.json",
+      "relative_path": "agent_tool_error_handling_report.json",
+      "size_bytes": 293,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "byo_storage_credential_redaction_report.json",
+      "relative_path": "byo_storage_credential_redaction_report.json",
+      "size_bytes": 213,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "chunk_strategy_report.json",
+      "relative_path": "chunk_strategy_report.json",
+      "size_bytes": 399,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "chunk_strategy_report.md",
+      "relative_path": "chunk_strategy_report.md",
+      "size_bytes": 503,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "final_gate_after_fix_report.json",
+      "relative_path": "final_gate_after_fix_report.json",
+      "size_bytes": 563,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "final_v4_rc_gate_report.json",
+      "relative_path": "final_v4_rc_gate_report.json",
+      "size_bytes": 3723,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "final_v4_rc_gate_report.md",
+      "relative_path": "final_v4_rc_gate_report.md",
+      "size_bytes": 286,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "full_ocr_acceptance_report.json",
+      "relative_path": "full_ocr_acceptance_report.json",
+      "size_bytes": 808,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "full_ocr_acceptance_report.md",
+      "relative_path": "full_ocr_acceptance_report.md",
+      "size_bytes": 917,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "full_ocr_failure_report.json",
+      "relative_path": "full_ocr_failure_report.json",
+      "size_bytes": 93,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "full_ocr_page_coverage_report.json",
+      "relative_path": "full_ocr_page_coverage_report.json",
+      "size_bytes": 252,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "hybrid_retrieval_report.json",
+      "relative_path": "hybrid_retrieval_report.json",
+      "size_bytes": 1994,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "hybrid_retrieval_report.md",
+      "relative_path": "hybrid_retrieval_report.md",
+      "size_bytes": 2100,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "incremental_index_update_report.json",
+      "relative_path": "incremental_index_update_report.json",
+      "size_bytes": 484,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "kb_agent_regeneration_report.json",
+      "relative_path": "kb_agent_regeneration_report.json",
+      "size_bytes": 251,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "kb_bound_agent_runtime_proof_report.json",
+      "relative_path": "kb_bound_agent_runtime_proof_report.json",
+      "size_bytes": 356,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "kb_bound_agent_runtime_proof_report.md",
+      "relative_path": "kb_bound_agent_runtime_proof_report.md",
+      "size_bytes": 474,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "kb_cleanup_retention_report.json",
+      "relative_path": "kb_cleanup_retention_report.json",
+      "size_bytes": 288,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "kb_index_rebuild_report.json",
+      "relative_path": "kb_index_rebuild_report.json",
+      "size_bytes": 333,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "kb_update_diff_report.json",
+      "relative_path": "kb_update_diff_report.json",
+      "size_bytes": 267,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "lifecycle_crud_completion_report.json",
+      "relative_path": "lifecycle_crud_completion_report.json",
+      "size_bytes": 537,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "lifecycle_crud_completion_report.md",
+      "relative_path": "lifecycle_crud_completion_report.md",
+      "size_bytes": 652,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "live_llm_acceptance_report.json",
+      "relative_path": "live_llm_acceptance_report.json",
+      "size_bytes": 911,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "live_llm_acceptance_report.md",
+      "relative_path": "live_llm_acceptance_report.md",
+      "size_bytes": 1035,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "live_llm_fallback_report.json",
+      "relative_path": "live_llm_fallback_report.json",
+      "size_bytes": 234,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "live_llm_query_rewrite_assist_report.json",
+      "relative_path": "live_llm_query_rewrite_assist_report.json",
+      "size_bytes": 217,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "live_llm_redaction_report.json",
+      "relative_path": "live_llm_redaction_report.json",
+      "size_bytes": 191,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "live_llm_summary_assist_report.json",
+      "relative_path": "live_llm_summary_assist_report.json",
+      "size_bytes": 211,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "local_vector_index_report.json",
+      "relative_path": "local_vector_index_report.json",
+      "size_bytes": 737,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "long_term_memory_summary_report.json",
+      "relative_path": "long_term_memory_summary_report.json",
+      "size_bytes": 301,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "malicious_document_risk_report.json",
+      "relative_path": "malicious_document_risk_report.json",
+      "size_bytes": 356,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "malicious_skill_import_risk_report.json",
+      "relative_path": "malicious_skill_import_risk_report.json",
+      "size_bytes": 310,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "memory_architecture_completion_report.json",
+      "relative_path": "memory_architecture_completion_report.json",
+      "size_bytes": 876,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "memory_architecture_completion_report.md",
+      "relative_path": "memory_architecture_completion_report.md",
+      "size_bytes": 996,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "memory_isolation_runtime_report.json",
+      "relative_path": "memory_isolation_runtime_report.json",
+      "size_bytes": 263,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "memory_token_budget_report.json",
+      "relative_path": "memory_token_budget_report.json",
+      "size_bytes": 281,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "memory_vector_index_report.json",
+      "relative_path": "memory_vector_index_report.json",
+      "size_bytes": 518,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "metadata_schema_report.json",
+      "relative_path": "metadata_schema_report.json",
+      "size_bytes": 886,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "metadata_schema_report.md",
+      "relative_path": "metadata_schema_report.md",
+      "size_bytes": 991,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "mother_child_agent_runtime_report.json",
+      "relative_path": "mother_child_agent_runtime_report.json",
+      "size_bytes": 209,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "multi_agent_kb_binding_report.json",
+      "relative_path": "multi_agent_kb_binding_report.json",
+      "size_bytes": 571,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "multi_agent_kb_binding_report.md",
+      "relative_path": "multi_agent_kb_binding_report.md",
+      "size_bytes": 683,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "multi_kb_access_control_report.json",
+      "relative_path": "multi_kb_access_control_report.json",
+      "size_bytes": 484,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "no_hidden_upload_runtime_report.json",
+      "relative_path": "no_hidden_upload_runtime_report.json",
+      "size_bytes": 213,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "no_platform_hosted_data_report.json",
+      "relative_path": "no_platform_hosted_data_report.json",
+      "size_bytes": 201,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "ocr_performance_report.json",
+      "relative_path": "ocr_performance_report.json",
+      "size_bytes": 61044,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "path_traversal_safety_report.json",
+      "relative_path": "path_traversal_safety_report.json",
+      "size_bytes": 314,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "pre_v4_p0_completion_report.json",
+      "relative_path": "pre_v4_p0_completion_report.json",
+      "size_bytes": 684,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "pre_v4_p0_completion_report.md",
+      "relative_path": "pre_v4_p0_completion_report.md",
+      "size_bytes": 794,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "pre_v4_security_completion_report.json",
+      "relative_path": "pre_v4_security_completion_report.json",
+      "size_bytes": 422,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "rag_index_completion_report.json",
+      "relative_path": "rag_index_completion_report.json",
+      "size_bytes": 458,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "rag_index_completion_report.md",
+      "relative_path": "rag_index_completion_report.md",
+      "size_bytes": 568,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "rag_index_scale_simulation_report.json",
+      "relative_path": "rag_index_scale_simulation_report.json",
+      "size_bytes": 350,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "real_input_acceptance_report_after_fix.json",
+      "relative_path": "real_input_acceptance_report_after_fix.json",
+      "size_bytes": 1356,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "real_input_acceptance_report_after_fix.md",
+      "relative_path": "real_input_acceptance_report_after_fix.md",
+      "size_bytes": 317,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "real_input_artifact_index_after_fix.json",
+      "relative_path": "real_input_artifact_index_after_fix.json",
+      "size_bytes": 22945,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "real_input_before_after_comparison.json",
+      "relative_path": "real_input_before_after_comparison.json",
+      "size_bytes": 511,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "real_input_failure_report_after_fix.json",
+      "relative_path": "real_input_failure_report_after_fix.json",
+      "size_bytes": 425,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "redis_memory_adapter_status_report.json",
+      "relative_path": "redis_memory_adapter_status_report.json",
+      "size_bytes": 338,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "scanned_pdf_text_quality_report.json",
+      "relative_path": "scanned_pdf_text_quality_report.json",
+      "size_bytes": 284,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "secret_redaction_completion_report.json",
+      "relative_path": "secret_redaction_completion_report.json",
+      "size_bytes": 288,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "short_term_memory.jsonl",
+      "relative_path": "short_term_memory.jsonl",
+      "size_bytes": 205,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": true,
+      "api_key_present": false
+    },
+    {
+      "file_name": "short_term_memory_report.json",
+      "relative_path": "short_term_memory_report.json",
+      "size_bytes": 230,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "stale_index_detection_report.json",
+      "relative_path": "stale_index_detection_report.json",
+      "size_bytes": 638,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "storage_backend_completion_report.json",
+      "relative_path": "storage_backend_completion_report.json",
+      "size_bytes": 459,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "storage_backend_completion_report.md",
+      "relative_path": "storage_backend_completion_report.md",
+      "size_bytes": 575,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "storage_target_config_report.json",
+      "relative_path": "storage_target_config_report.json",
+      "size_bytes": 324,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "unsafe_cleanup_prevention_report.json",
+      "relative_path": "unsafe_cleanup_prevention_report.json",
+      "size_bytes": 220,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "v4_rc_final_gate_report.json",
+      "relative_path": "v4_rc_final_gate_report.json",
+      "size_bytes": 3723,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "v4_rc_final_gate_report.md",
+      "relative_path": "v4_rc_final_gate_report.md",
+      "size_bytes": 286,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "vector_db_adapter_matrix.json",
+      "relative_path": "vector_db_adapter_matrix.json",
+      "size_bytes": 2281,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "vector_db_adapter_matrix.md",
+      "relative_path": "vector_db_adapter_matrix.md",
+      "size_bytes": 2388,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "vector_db_completion_report.json",
+      "relative_path": "vector_db_completion_report.json",
+      "size_bytes": 11062,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "vector_db_completion_report.md",
+      "relative_path": "vector_db_completion_report.md",
+      "size_bytes": 6297,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "vector_db_credential_redaction_report.json",
+      "relative_path": "vector_db_credential_redaction_report.json",
+      "size_bytes": 544,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "vector_db_delete_update_report.json",
+      "relative_path": "vector_db_delete_update_report.json",
+      "size_bytes": 1435,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "vector_db_error_taxonomy_report.json",
+      "relative_path": "vector_db_error_taxonomy_report.json",
+      "size_bytes": 596,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "vector_db_live_acceptance_report.json",
+      "relative_path": "vector_db_live_acceptance_report.json",
+      "size_bytes": 946,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "vector_db_live_acceptance_report.md",
+      "relative_path": "vector_db_live_acceptance_report.md",
+      "size_bytes": 1078,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    },
+    {
+      "file_name": "vector_db_metadata_filter_report.json",
+      "relative_path": "vector_db_metadata_filter_report.json",
+      "size_bytes": 297,
+      "is_raw_input": false,
+      "is_full_extracted_chunk": false,
+      "api_key_present": false
+    }
+  ],
+  "raw_inputs_committed": false,
+  "full_extracted_chunks_committed": false,
+  "api_keys_committed": false,
+  "tests_require_real_llm_api_network": false
+}

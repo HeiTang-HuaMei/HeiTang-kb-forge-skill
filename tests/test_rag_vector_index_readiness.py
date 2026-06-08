@@ -18,9 +18,9 @@ def test_rag_vector_index_report_proves_local_vector_hybrid_readiness():
     assert report["readiness"]["hybrid_keyword_vector_retrieval_status"]["status"] == "implemented"
     assert report["readiness"]["metadata_filtering"]["status"] == "implemented_local"
     assert report["readiness"]["stale_index_detection"]["status"] == "implemented_local"
-    assert report["readiness"]["vector_db_adapter_status"]["classification"] == "external_adapters_not_implemented"
-    assert report["readiness"]["vector_db_adapter_status"]["implemented_vector_dbs"] == []
-    assert "external vector database production readiness" in report["must_not_claim"]
+    assert report["readiness"]["vector_db_adapter_status"]["classification"] == "offline_adapter_contracts_implemented"
+    assert set(report["readiness"]["vector_db_adapter_status"]["implemented_vector_dbs"]) == {"Milvus", "Pinecone", "Qdrant", "Chroma"}
+    assert "external vector database live service readiness" in report["must_not_claim"]
 
 
 def test_final_gate_no_longer_blocks_on_local_rag_vector_index_readiness(tmp_path):

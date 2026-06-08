@@ -13,7 +13,7 @@
       "status": "needs_review",
       "items": {
         "large_pdf": "proven",
-        "scanned_pdf_ocr": "needs_review_limited_ocr",
+        "scanned_pdf_ocr": "proven_full_120_page_ocr_after_p0_completion",
         "docx": "proven",
         "markdown_txt": "proven",
         "chinese_english_mixed_paths": "proven",
@@ -57,14 +57,15 @@
         "vector_retrieval_status": "implemented_local_json_query",
         "hybrid_keyword_vector_retrieval_status": "implemented_local_keyword_plus_vector",
         "embedding_provider_configuration": "implemented_offline_fake_optional_live",
-        "vector_db_adapter_status": "external_adapters_future_disabled",
+        "vector_db_adapter_status": "external_adapters_offline_contract_tested",
         "metadata_filtering": "implemented_local_json_filter",
         "rerank": "implemented",
         "evidence_selection": "implemented",
         "claim_verification": "implemented_local",
         "freshness_contradiction_accuracy_scoring": "implemented_local_warning_capable",
         "incremental_update_or_rebuild_policy": "implemented_local_stale_detection",
-        "stale_index_detection": "implemented_local"
+        "stale_index_detection": "implemented_local",
+        "vector_db_live_acceptance": "implemented_needs_live_acceptance"
       },
       "evidence": [
         "docs/audits/local_acceptance/large_bilingual_run/rag_vector_index_readiness_report.json",
@@ -75,7 +76,7 @@
         "tests/test_v38_rerank.py",
         "tests/test_vector_export.py"
       ],
-      "reason": "Local vector query, hybrid retrieval, metadata filtering, and stale index detection are implemented and tested. External vector DB adapters remain future/disabled and are not claimed."
+      "reason": "Local vector query, hybrid retrieval, metadata filtering, stale index detection, and offline contracts for Milvus/Pinecone/Qdrant/Chroma adapters are implemented and tested. Live provider service acceptance is not claimed without env/client/service proof."
     },
     {
       "layer": "lifecycle",
@@ -163,7 +164,7 @@
         "no_platform_hosted_user_data": "policy_true",
         "no_hidden_upload": "static_and_reported",
         "api_keys_redacted": "tested",
-        "byo_cloud_database": "future_or_disabled",
+        "byo_cloud_database": "explicit_byo_contract_needs_live_acceptance",
         "no_destructive_cleanup_by_default": "implemented"
       },
       "evidence": [
@@ -183,7 +184,7 @@
     "rag_vector_index_readiness": {
       "status": "pass",
       "blocks_v4": false,
-      "reason": "Local JSON vector/hybrid/index readiness is implemented and tested; external vector DB adapters remain future/disabled."
+      "reason": "Local JSON vector/hybrid/index readiness and external vector DB offline adapter contracts are implemented and tested; live provider service acceptance remains needs_review."
     },
     "ui_full_operation_readiness": {
       "status": "needs_review",
@@ -208,6 +209,6 @@
     "automatic destructive cleanup",
     "BYO cloud/database implemented by default",
     "external vector database production readiness",
-    "Milvus/Pinecone/Qdrant/Chroma implemented"
+    "Milvus/Pinecone/Qdrant/Chroma live service readiness without provider acceptance proof"
   ]
 }

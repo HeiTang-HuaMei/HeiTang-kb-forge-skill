@@ -94,7 +94,8 @@ def test_build_manifest_exposes_local_vector_query_truth(tmp_path):
     assert manifest["local_hybrid_retrieval_enabled"] is True
     assert manifest["metadata_filtered_vector_query_enabled"] is True
     assert manifest["stale_vector_index_detection_enabled"] is True
-    assert manifest["external_vector_db_adapter_status"] == "future_disabled"
+    assert manifest["external_vector_db_adapter_status"] == "implemented_offline_contract_tested"
+    assert manifest["external_vector_db_live_acceptance_status"] == "implemented_needs_live_acceptance"
 
 
 def _build_vector_package(tmp_path):

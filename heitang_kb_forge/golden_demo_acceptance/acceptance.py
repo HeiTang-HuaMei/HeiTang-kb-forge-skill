@@ -194,7 +194,7 @@ def _smoke_realism(package: Path, require_v37: bool, require_v38: bool, require_
     ]
     checks = []
     for name, required, files in expectations:
-        present = [file_name for file_name in files if (package / file_name).exists()]
+        present = [file_name for file_name in files if _find_report(package, file_name)]
         status = "pass" if not required or len(present) == len(files) else "fail"
         checks.append({"name": name, "required": required, "status": status, "expected_files": files, "present_files": present})
     failed = [item for item in checks if item["status"] == "fail"]
@@ -225,6 +225,27 @@ def _read_json(path: Path) -> dict:
         return json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return {}
+
+
+def _find_report(package: Path, file_name: str) -> Path | None:
+    direct = package / file_name
+    if direct.exists() and _report_passes(direct):
+        return direct
+    candidates = sorted(path for path in package.rglob(file_name) if path.is_file() and not _hidden(path))
+    for candidate in candidates:
+        if _report_passes(candidate):
+            return candidate
+    return candidates[0] if candidates else None
+
+
+def _report_passes(path: Path) -> bool:
+    payload = _read_json(path)
+    if path.name in {"real_acceptance_smoke_result.json", "local_agent_runtime_status.json"}:
+        return payload.get("status") == "pass"
+    status = payload.get("status")
+    if status is None:
+        return bool(payload)
+    return status in {"pass", "ready", "answered", "warning", "contract_only"}
 
 
 def _manifest_identifies_package(manifest: dict) -> bool:

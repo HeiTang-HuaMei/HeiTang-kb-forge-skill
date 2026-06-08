@@ -1,0 +1,337 @@
+{
+  "vector_db_completion_report_version": "pre-v4-p0-1",
+  "generated_at": "2026-06-08T02:42:33.341683+00:00",
+  "status": "pass",
+  "provider_statuses": {
+    "chroma": "implemented_needs_live_acceptance",
+    "qdrant": "implemented_needs_live_acceptance",
+    "milvus": "implemented_needs_live_acceptance",
+    "pinecone": "implemented_needs_live_acceptance"
+  },
+  "providers": [
+    {
+      "provider": "chroma",
+      "adapter_class": "ChromaAdapter",
+      "status": "implemented_offline_contract_tested",
+      "readiness_status": "implemented_needs_live_acceptance",
+      "create_collection": {
+        "status": "pass",
+        "collection": "heitang_contract_chroma"
+      },
+      "upsert": {
+        "status": "pass",
+        "upserted": 2,
+        "collection": "heitang_contract_chroma"
+      },
+      "query_returned": 2,
+      "metadata_filter_returned": 1,
+      "metadata_filter_pass": true,
+      "update": {
+        "status": "pass",
+        "updated": 1,
+        "collection": "heitang_contract_chroma"
+      },
+      "delete": {
+        "status": "pass",
+        "deleted": 1,
+        "collection": "heitang_contract_chroma"
+      },
+      "stale_before_delete": {
+        "status": "fresh",
+        "missing_vector_count": 0,
+        "orphan_vector_count": 0,
+        "missing_vector_ids": [],
+        "orphan_vector_ids": [],
+        "rebuild_recommendation": ""
+      },
+      "stale_after_delete": {
+        "status": "stale",
+        "missing_vector_count": 1,
+        "orphan_vector_count": 0,
+        "missing_vector_ids": [
+          "vec-rag-hybrid"
+        ],
+        "orphan_vector_ids": [],
+        "rebuild_recommendation": "rebuild provider index from current embeddings"
+      },
+      "supports_create_open_collection": true,
+      "supports_upsert": true,
+      "supports_query": true,
+      "supports_metadata_filter": true,
+      "supports_delete_update_by_source_or_package": true,
+      "supports_stale_index_detection": true,
+      "credential_redaction": "env_names_only_no_values",
+      "ready_for_live_acceptance": false,
+      "live_verified": false,
+      "blocked_reason": "required_env_missing,client_library_missing",
+      "tests_require_real_llm_api_network": false
+    },
+    {
+      "provider": "qdrant",
+      "adapter_class": "QdrantAdapter",
+      "status": "implemented_offline_contract_tested",
+      "readiness_status": "implemented_needs_live_acceptance",
+      "create_collection": {
+        "status": "pass",
+        "collection": "heitang_contract_qdrant"
+      },
+      "upsert": {
+        "status": "pass",
+        "upserted": 2,
+        "collection": "heitang_contract_qdrant"
+      },
+      "query_returned": 2,
+      "metadata_filter_returned": 1,
+      "metadata_filter_pass": true,
+      "update": {
+        "status": "pass",
+        "updated": 1,
+        "collection": "heitang_contract_qdrant"
+      },
+      "delete": {
+        "status": "pass",
+        "deleted": 1,
+        "collection": "heitang_contract_qdrant"
+      },
+      "stale_before_delete": {
+        "status": "fresh",
+        "missing_vector_count": 0,
+        "orphan_vector_count": 0,
+        "missing_vector_ids": [],
+        "orphan_vector_ids": [],
+        "rebuild_recommendation": ""
+      },
+      "stale_after_delete": {
+        "status": "stale",
+        "missing_vector_count": 1,
+        "orphan_vector_count": 0,
+        "missing_vector_ids": [
+          "vec-rag-hybrid"
+        ],
+        "orphan_vector_ids": [],
+        "rebuild_recommendation": "rebuild provider index from current embeddings"
+      },
+      "supports_create_open_collection": true,
+      "supports_upsert": true,
+      "supports_query": true,
+      "supports_metadata_filter": true,
+      "supports_delete_update_by_source_or_package": true,
+      "supports_stale_index_detection": true,
+      "credential_redaction": "env_names_only_no_values",
+      "ready_for_live_acceptance": false,
+      "live_verified": false,
+      "blocked_reason": "required_env_missing,client_library_missing",
+      "tests_require_real_llm_api_network": false
+    },
+    {
+      "provider": "milvus",
+      "adapter_class": "MilvusAdapter",
+      "status": "implemented_offline_contract_tested",
+      "readiness_status": "implemented_needs_live_acceptance",
+      "create_collection": {
+        "status": "pass",
+        "collection": "heitang_contract_milvus"
+      },
+      "upsert": {
+        "status": "pass",
+        "upserted": 2,
+        "collection": "heitang_contract_milvus"
+      },
+      "query_returned": 2,
+      "metadata_filter_returned": 1,
+      "metadata_filter_pass": true,
+      "update": {
+        "status": "pass",
+        "updated": 1,
+        "collection": "heitang_contract_milvus"
+      },
+      "delete": {
+        "status": "pass",
+        "deleted": 1,
+        "collection": "heitang_contract_milvus"
+      },
+      "stale_before_delete": {
+        "status": "fresh",
+        "missing_vector_count": 0,
+        "orphan_vector_count": 0,
+        "missing_vector_ids": [],
+        "orphan_vector_ids": [],
+        "rebuild_recommendation": ""
+      },
+      "stale_after_delete": {
+        "status": "stale",
+        "missing_vector_count": 1,
+        "orphan_vector_count": 0,
+        "missing_vector_ids": [
+          "vec-rag-hybrid"
+        ],
+        "orphan_vector_ids": [],
+        "rebuild_recommendation": "rebuild provider index from current embeddings"
+      },
+      "supports_create_open_collection": true,
+      "supports_upsert": true,
+      "supports_query": true,
+      "supports_metadata_filter": true,
+      "supports_delete_update_by_source_or_package": true,
+      "supports_stale_index_detection": true,
+      "credential_redaction": "env_names_only_no_values",
+      "ready_for_live_acceptance": false,
+      "live_verified": false,
+      "blocked_reason": "required_env_missing,client_library_missing",
+      "tests_require_real_llm_api_network": false
+    },
+    {
+      "provider": "pinecone",
+      "adapter_class": "PineconeAdapter",
+      "status": "implemented_offline_contract_tested",
+      "readiness_status": "implemented_needs_live_acceptance",
+      "create_collection": {
+        "status": "pass",
+        "collection": "heitang_contract_pinecone"
+      },
+      "upsert": {
+        "status": "pass",
+        "upserted": 2,
+        "collection": "heitang_contract_pinecone"
+      },
+      "query_returned": 2,
+      "metadata_filter_returned": 1,
+      "metadata_filter_pass": true,
+      "update": {
+        "status": "pass",
+        "updated": 1,
+        "collection": "heitang_contract_pinecone"
+      },
+      "delete": {
+        "status": "pass",
+        "deleted": 1,
+        "collection": "heitang_contract_pinecone"
+      },
+      "stale_before_delete": {
+        "status": "fresh",
+        "missing_vector_count": 0,
+        "orphan_vector_count": 0,
+        "missing_vector_ids": [],
+        "orphan_vector_ids": [],
+        "rebuild_recommendation": ""
+      },
+      "stale_after_delete": {
+        "status": "stale",
+        "missing_vector_count": 1,
+        "orphan_vector_count": 0,
+        "missing_vector_ids": [
+          "vec-rag-hybrid"
+        ],
+        "orphan_vector_ids": [],
+        "rebuild_recommendation": "rebuild provider index from current embeddings"
+      },
+      "supports_create_open_collection": true,
+      "supports_upsert": true,
+      "supports_query": true,
+      "supports_metadata_filter": true,
+      "supports_delete_update_by_source_or_package": true,
+      "supports_stale_index_detection": true,
+      "credential_redaction": "env_names_only_no_values",
+      "ready_for_live_acceptance": false,
+      "live_verified": false,
+      "blocked_reason": "required_env_missing,client_library_missing",
+      "tests_require_real_llm_api_network": false
+    }
+  ],
+  "readiness": {
+    "chroma": {
+      "provider": "chroma",
+      "status": "implemented_needs_live_acceptance",
+      "required_env": [
+        "HEITANG_VECTOR_CHROMA_PATH"
+      ],
+      "optional_env": [],
+      "env_present": {
+        "HEITANG_VECTOR_CHROMA_PATH": false
+      },
+      "client_modules": [
+        "chromadb"
+      ],
+      "client_available": false,
+      "live_possible": false,
+      "live_verified": false,
+      "blocked_reason": "required_env_missing,client_library_missing",
+      "secret_fields_redacted": true
+    },
+    "qdrant": {
+      "provider": "qdrant",
+      "status": "implemented_needs_live_acceptance",
+      "required_env": [
+        "HEITANG_VECTOR_QDRANT_URL"
+      ],
+      "optional_env": [
+        "HEITANG_VECTOR_QDRANT_API_KEY"
+      ],
+      "env_present": {
+        "HEITANG_VECTOR_QDRANT_URL": false,
+        "HEITANG_VECTOR_QDRANT_API_KEY": false
+      },
+      "client_modules": [
+        "qdrant_client"
+      ],
+      "client_available": false,
+      "live_possible": false,
+      "live_verified": false,
+      "blocked_reason": "required_env_missing,client_library_missing",
+      "secret_fields_redacted": true
+    },
+    "milvus": {
+      "provider": "milvus",
+      "status": "implemented_needs_live_acceptance",
+      "required_env": [
+        "HEITANG_VECTOR_MILVUS_URI"
+      ],
+      "optional_env": [
+        "HEITANG_VECTOR_MILVUS_TOKEN"
+      ],
+      "env_present": {
+        "HEITANG_VECTOR_MILVUS_URI": false,
+        "HEITANG_VECTOR_MILVUS_TOKEN": false
+      },
+      "client_modules": [
+        "pymilvus"
+      ],
+      "client_available": false,
+      "live_possible": false,
+      "live_verified": false,
+      "blocked_reason": "required_env_missing,client_library_missing",
+      "secret_fields_redacted": true
+    },
+    "pinecone": {
+      "provider": "pinecone",
+      "status": "implemented_needs_live_acceptance",
+      "required_env": [
+        "HEITANG_VECTOR_PINECONE_API_KEY",
+        "HEITANG_VECTOR_PINECONE_INDEX"
+      ],
+      "optional_env": [
+        "HEITANG_VECTOR_PINECONE_HOST",
+        "HEITANG_VECTOR_PINECONE_ENVIRONMENT"
+      ],
+      "env_present": {
+        "HEITANG_VECTOR_PINECONE_API_KEY": false,
+        "HEITANG_VECTOR_PINECONE_INDEX": false,
+        "HEITANG_VECTOR_PINECONE_HOST": false,
+        "HEITANG_VECTOR_PINECONE_ENVIRONMENT": false
+      },
+      "client_modules": [
+        "pinecone"
+      ],
+      "client_available": false,
+      "live_possible": false,
+      "live_verified": false,
+      "blocked_reason": "required_env_missing,client_library_missing",
+      "secret_fields_redacted": true
+    }
+  },
+  "forbidden_status_values_present": [],
+  "live_acceptance_status": "needs_live_acceptance",
+  "live_acceptance_reason": "Live verification requires provider env/service visibility in the same process.",
+  "no_provider_future_disabled_placeholder_planned": true,
+  "tests_require_real_llm_api_network": false
+}

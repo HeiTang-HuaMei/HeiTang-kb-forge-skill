@@ -429,6 +429,10 @@ def _find_report(package: Path, file_name: str) -> Path | None:
         candidate = package / relative_dir / file_name
         if candidate.exists():
             candidates.append(candidate)
+    recursive = sorted(path for path in package.rglob(file_name) if path.is_file())
+    for candidate in recursive:
+        if candidate not in candidates:
+            candidates.append(candidate)
     for candidate in candidates:
         if _report_passes(candidate):
             return candidate

@@ -29,6 +29,24 @@ def test_golden_demo_acceptance_detects_missing_required_prior_stage(tmp_path):
     assert realism["checks"][0]["name"] == "v37_query_planning"
 
 
+def test_golden_demo_acceptance_resolves_prior_reports_from_nested_stage_outputs(tmp_path):
+    package = _package(tmp_path)
+    write_json(package / "v37_plan_after_fix" / "query_rewrite_report.json", {"status": "pass"})
+    write_json(package / "v37_plan_after_fix" / "retrieval_plan.json", {"status": "pass"})
+    write_json(package / "v38_after_fix" / "retrieval_quality_report.json", {"status": "pass"})
+    write_json(package / "v38_after_fix" / "knowledge_accuracy_report.json", {"status": "warning"})
+    write_json(package / "v39_after_fix" / "workspace_registry.json", {"status": "pass"})
+    write_json(package / "v39_after_fix" / "memory_lifecycle_report.json", {"status": "pass"})
+    write_json(package / "v310_after_fix" / "local_agent_runtime_status.json", {"status": "pass"})
+    write_json(package / "v310_after_fix" / "mother_child_runtime_trace.json", {"status": "pass"})
+
+    result = run_golden_demo_acceptance(package, tmp_path / "acceptance", sample_root=package)
+
+    assert result["status"] == "pass"
+    realism = _json(tmp_path / "acceptance" / "smoke_realism_report.json")
+    assert all(check["status"] == "pass" for check in realism["checks"])
+
+
 def _package(tmp_path):
     package = tmp_path / "package"
     package.mkdir()

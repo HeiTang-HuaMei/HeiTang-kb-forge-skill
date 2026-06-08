@@ -24,12 +24,13 @@ def test_product_architecture_completeness_report_covers_required_layers():
         "storage_security",
     }
     assert layers["input"]["items"]["large_pdf"] == "proven"
-    assert layers["input"]["items"]["scanned_pdf_ocr"] == "needs_review_limited_ocr"
+    assert layers["input"]["items"]["scanned_pdf_ocr"] == "proven_full_120_page_ocr_after_p0_completion"
     assert layers["rag_vector_index"]["status"] == "pass"
     assert layers["rag_vector_index"]["items"]["vector_retrieval_status"] == "implemented_local_json_query"
     assert layers["rag_vector_index"]["items"]["hybrid_keyword_vector_retrieval_status"] == "implemented_local_keyword_plus_vector"
+    assert layers["rag_vector_index"]["items"]["vector_db_adapter_status"] == "external_adapters_offline_contract_tested"
     assert layers["ui"]["classification"] == "contract_viewer_only"
-    assert layers["storage_security"]["items"]["byo_cloud_database"] == "future_or_disabled"
+    assert layers["storage_security"]["items"]["byo_cloud_database"] == "explicit_byo_contract_needs_live_acceptance"
     assert "full user-operable Workbench" in report["must_not_claim"]
 
 

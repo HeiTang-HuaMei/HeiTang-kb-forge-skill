@@ -103,6 +103,11 @@ def write_vector_query_outputs(output: Path, records: list[dict], trace: dict) -
 
 def _load_records(package: Path) -> list[dict]:
     embeddings = {str(item.get("embedding_id")): item for item in _read_jsonl(package / "embeddings.jsonl")}
+    embedding_texts = {
+        str(item.get("embedding_id")): str(item.get("text", ""))
+        for item in _read_jsonl(package / "embedding_input.jsonl")
+        if item.get("embedding_id")
+    }
     vectors = _read_jsonl(package / "vector_store_records.jsonl")
     if not vectors:
         raise ValueError("vector_store_records.jsonl is required for local vector query")
@@ -121,16 +126,13 @@ def _load_records(package: Path) -> list[dict]:
                 "source_path": str(metadata.get("source_path", "")),
                 "chunk_id": str(metadata.get("chunk_id", "")),
                 "citation": str(metadata.get("citation", "")),
-                "text": _lookup_text(package, embedding_id, metadata),
+                "text": embedding_texts.get(embedding_id) or _lookup_chunk_text(package, metadata),
             }
         )
     return records
 
 
-def _lookup_text(package: Path, embedding_id: str, metadata: dict) -> str:
-    for item in _read_jsonl(package / "embedding_input.jsonl"):
-        if str(item.get("embedding_id")) == embedding_id:
-            return str(item.get("text", ""))
+def _lookup_chunk_text(package: Path, metadata: dict) -> str:
     chunk_id = str(metadata.get("chunk_id", ""))
     for item in _read_jsonl(package / "chunks.jsonl"):
         if str(item.get("chunk_id")) == chunk_id:

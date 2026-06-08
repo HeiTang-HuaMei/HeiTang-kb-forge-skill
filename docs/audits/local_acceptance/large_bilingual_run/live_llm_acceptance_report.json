@@ -1,0 +1,27 @@
+{
+  "live_llm_acceptance_report_version": "pre-v4-p0-1",
+  "generated_at": "2026-06-08T02:52:27.634160+00:00",
+  "status": "blocked_with_reason",
+  "env_visible": {
+    "HEITANG_LLM_ACCEPTANCE_ENABLED": false,
+    "HEITANG_LLM_PROVIDER": false,
+    "HEITANG_LLM_BASE_URL": false,
+    "HEITANG_LLM_API_KEY": false,
+    "HEITANG_LLM_MODEL": false,
+    "HEITANG_LLM_TIMEOUT_SEC": false
+  },
+  "local_env_script_exists": false,
+  "provider": "",
+  "model": "",
+  "base_url_configured": false,
+  "api_key_configured": false,
+  "api_key_redacted": true,
+  "live_smoke_succeeded": false,
+  "stable_error_id": "llm_env_missing_or_not_inherited",
+  "http_status": null,
+  "response_hash": "",
+  "response_text_committed": false,
+  "blocked_reason": "required_env_missing_or_process_environment_not_inherited",
+  "core_usable_without_llm": true,
+  "tests_require_real_llm_api_network": false
+}

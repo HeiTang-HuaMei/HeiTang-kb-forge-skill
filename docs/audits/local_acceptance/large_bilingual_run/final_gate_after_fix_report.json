@@ -1,0 +1,20 @@
+{
+  "final_gate_after_fix_report_version": "pre-v4-p0-1",
+  "status": "pass_with_review",
+  "ready_for_v4_rc": true,
+  "p0_count": 0,
+  "blocking_p1_count": 0,
+  "p1_needs_review_count": 1,
+  "p1_needs_review": [
+    {
+      "id": "live_llm_needs_review",
+      "severity": "P1",
+      "status": "blocked_with_reason",
+      "reason": "required_env_missing_or_process_environment_not_inherited",
+      "blocks_core_main_chain": false
+    }
+  ],
+  "product_hardening": "pass",
+  "ui_full_operation_gate": "separate_required_before_v4",
+  "tests_require_real_llm_api_network": false
+}

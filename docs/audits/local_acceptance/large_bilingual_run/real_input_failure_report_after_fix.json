@@ -1,0 +1,15 @@
+{
+  "real_input_failure_report_after_fix_version": "pre-v4-p0-1",
+  "status": "pass",
+  "p0_blockers": [],
+  "p1_needs_review": [
+    {
+      "id": "live_llm_needs_review",
+      "severity": "P1",
+      "status": "blocked_with_reason",
+      "reason": "required_env_missing_or_process_environment_not_inherited",
+      "blocks_core_main_chain": false
+    }
+  ],
+  "tests_require_real_llm_api_network": false
+}

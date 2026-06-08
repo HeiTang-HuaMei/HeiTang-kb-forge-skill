@@ -1,0 +1,12 @@
+{
+  "pre_v4_security_completion_report_version": "pre-v4-p0-1",
+  "status": "pass",
+  "api_key_redaction": true,
+  "local_env_script_ignored": true,
+  "raw_input_ignored": true,
+  "extracted_chunks_ignored": true,
+  "prompt_injection_awareness_report": "malicious_document_risk_report.json",
+  "path_traversal_checks": true,
+  "unsafe_cleanup_prevention": true,
+  "tests_require_real_llm_api_network": false
+}

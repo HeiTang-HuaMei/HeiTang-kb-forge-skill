@@ -4,6 +4,6 @@
 - Severity: resolved
 - Tests require real LLM/API/network: false
 
-Current Core now proves local JSON vector query, hybrid keyword/vector retrieval, metadata-filtered vector query, and stale vector index detection with offline deterministic tests.
+Current Core proves local JSON vector query, hybrid keyword/vector retrieval, metadata-filtered vector query, stale vector index detection, and offline adapter contracts for Milvus, Pinecone, Qdrant, and Chroma.
 
-This does not claim Milvus, Pinecone, Qdrant, Chroma, cloud vector database, or external vector DB production readiness. Those adapters remain future/disabled until real write/query/filter tests exist.
+This does not claim live external vector database service acceptance. Real provider writes/queries require explicit env/client/service verification and remain `implemented_needs_live_acceptance` until proven.

@@ -1,0 +1,18 @@
+{
+  "real_input_before_after_comparison_version": "pre-v4-p0-1",
+  "status": "pass",
+  "before_known_blockers": [
+    "golden_demo_report_path_resolution",
+    "product_hardening_workspace_argument",
+    "vector_query_o_n_squared_text_lookup"
+  ],
+  "after_fixed": [
+    "golden_demo_pass",
+    "product_hardening_pass_with_core_workspace",
+    "vector_query_large_package_seconds"
+  ],
+  "remaining_reviews": [
+    "live_llm_needs_review"
+  ],
+  "tests_require_real_llm_api_network": false
+}

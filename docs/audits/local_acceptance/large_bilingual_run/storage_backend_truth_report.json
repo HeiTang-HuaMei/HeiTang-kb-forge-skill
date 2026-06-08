@@ -11,11 +11,16 @@
     "index_storage": "local_files_and_export",
     "generated_document_storage": "implemented_local_files",
     "local_db": "partial_store_index_or_future_backend",
-    "byo_cloud": "future_disabled_not_implemented"
+    "byo_cloud": "implemented_needs_live_acceptance"
   },
   "no_platform_hosted_user_data": true,
   "no_hidden_upload_default": true,
   "destructive_cleanup_default": false,
-  "must_not_claim": ["BYO cloud implemented", "cloud database implemented", "platform-hosted user data enabled"],
-  "gate_decision": "accepted_needs_review_non_blocking"
+  "must_not_claim": [
+    "BYO cloud implemented",
+    "cloud database implemented",
+    "platform-hosted user data enabled"
+  ],
+  "gate_decision": "accepted_needs_review_non_blocking",
+  "reason": "Local workspace is implemented by default. BYO cloud/database remains explicit opt-in and needs live acceptance before any production claim; no platform-hosted user data is implied."
 }

@@ -121,6 +121,18 @@ from heitang_kb_forge.parser_backends.reports import (
     render_parse_quality_report,
 )
 from heitang_kb_forge.platform_distribution import check_platform_upload, export_platform_package, mock_publish_package
+from heitang_kb_forge.pre_v4_p0 import (
+    run_agent_runtime_completion,
+    run_full_ocr_acceptance,
+    run_lifecycle_completion,
+    run_live_llm_acceptance,
+    run_memory_completion,
+    run_pre_v4_p0_completion,
+    run_rag_index_completion,
+    run_security_completion,
+    run_storage_completion,
+    run_vector_db_completion,
+)
 from heitang_kb_forge.progress.reporter import ProgressReporter, make_progress_reporter
 from heitang_kb_forge.product_hardening import V312_PRODUCT_HARDENING_OUTPUT_FILES, run_product_hardening
 from heitang_kb_forge.quality_gate.gate import QUALITY_GATE_OUTPUT_FILES, evaluate_quality_gate
@@ -2227,6 +2239,102 @@ def final_pre_v4_audit_command(
     """Run the final pre-v4 product truth gate without starting v4.0."""
     result = run_final_pre_v4_audit(core_repo, output, ui_repo)
     typer.echo(f"Final pre-v4 audit: {result['overall_status']} | Ready for v4 RC: {result['ready_for_v4_rc']}")
+
+
+@app.command("vector-db-completion")
+def vector_db_completion_command(output: Path = typer.Option(..., "--output", "-o")) -> None:
+    """Run pre-v4 P0 external vector DB adapter contract completion."""
+    result = run_vector_db_completion(output)
+    typer.echo(f"Vector DB completion: {result['status']}")
+
+
+@app.command("rag-index-completion")
+def rag_index_completion_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Run pre-v4 P0 local RAG index loop completion."""
+    result = run_rag_index_completion(package, output)
+    typer.echo(f"RAG index completion: {result['status']}")
+
+
+@app.command("full-ocr-acceptance")
+def full_ocr_acceptance_command(
+    source: Path = typer.Option(..., "--source", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    timeout_per_page: int = typer.Option(120, "--timeout-per-page"),
+) -> None:
+    """Run pre-v4 P0 full scanned-PDF OCR proof."""
+    result = run_full_ocr_acceptance(source, output, timeout_per_page)
+    typer.echo(f"Full OCR acceptance: {result['status']}")
+
+
+@app.command("live-llm-acceptance")
+def live_llm_acceptance_command(output: Path = typer.Option(..., "--output", "-o")) -> None:
+    """Run optional pre-v4 P0 live LLM provider acceptance when env is visible."""
+    result = run_live_llm_acceptance(output)
+    typer.echo(f"Live LLM acceptance: {result['status']}")
+
+
+@app.command("agent-runtime-completion")
+def agent_runtime_completion_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    agent: Path | None = typer.Option(None, "--agent", exists=True, file_okay=False, dir_okay=True, readable=True),
+) -> None:
+    """Run pre-v4 P0 KB-bound Agent runtime and access-control proof."""
+    result = run_agent_runtime_completion(package, output, agent)
+    typer.echo(f"Agent runtime completion: {result['status']}")
+
+
+@app.command("lifecycle-crud-completion")
+def lifecycle_crud_completion_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Run pre-v4 P0 KB lifecycle CRUD/update/rebuild proof."""
+    result = run_lifecycle_completion(package, output)
+    typer.echo(f"Lifecycle CRUD completion: {result['status']}")
+
+
+@app.command("memory-architecture-completion")
+def memory_architecture_completion_command(
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Run pre-v4 P0 short/long-term memory architecture proof."""
+    result = run_memory_completion(package, output)
+    typer.echo(f"Memory architecture completion: {result['status']}")
+
+
+@app.command("storage-backend-completion")
+def storage_backend_completion_command(output: Path = typer.Option(..., "--output", "-o")) -> None:
+    """Run pre-v4 P0 storage backend truth and privacy boundary proof."""
+    result = run_storage_completion(output)
+    typer.echo(f"Storage backend completion: {result['status']}")
+
+
+@app.command("pre-v4-security-completion")
+def pre_v4_security_completion_command(
+    core_repo: Path = typer.Option(..., "--core-repo", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Run pre-v4 P0 security, secret, and privacy-boundary completion."""
+    result = run_security_completion(core_repo, output)
+    typer.echo(f"Pre-v4 security completion: {result['status']}")
+
+
+@app.command("pre-v4-p0-completion")
+def pre_v4_p0_completion_command(
+    core_repo: Path = typer.Option(..., "--core-repo", exists=True, file_okay=False, dir_okay=True, readable=True),
+    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    source: Path | None = typer.Option(None, "--source", exists=True, file_okay=True, dir_okay=True, readable=True),
+    agent: Path | None = typer.Option(None, "--agent", exists=True, file_okay=False, dir_okay=True, readable=True),
+) -> None:
+    """Run the pre-v4 P0 Core capability completion gate."""
+    result = run_pre_v4_p0_completion(core_repo, package, output, source, agent)
+    typer.echo(f"Pre-v4 P0 completion: {result['status']} | Ready for v4 RC: {result['ready_for_v4_rc']}")
 
 
 @app.command()
@@ -4680,7 +4788,8 @@ def _build_package(
                 "local_hybrid_retrieval_enabled": vector_options.store in {"local_json", "fake"},
                 "metadata_filtered_vector_query_enabled": vector_options.store in {"local_json", "fake"},
                 "stale_vector_index_detection_enabled": vector_options.store in {"local_json", "fake"},
-                "external_vector_db_adapter_status": "future_disabled",
+                "external_vector_db_adapter_status": "implemented_offline_contract_tested",
+                "external_vector_db_live_acceptance_status": "implemented_needs_live_acceptance",
             }
         )
     downstream_summary = None
