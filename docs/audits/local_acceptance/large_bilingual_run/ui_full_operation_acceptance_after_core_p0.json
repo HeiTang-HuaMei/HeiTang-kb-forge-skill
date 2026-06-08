@@ -1,12 +1,15 @@
 {
   "ui_full_operation_acceptance_after_core_p0_version": "pre-v4-ui-gate-1",
-  "generated_at": "2026-06-08T03:39:15.477414+00:00",
+  "generated_at": "2026-06-08T11:05:14.552205+00:00",
   "status": "blocked",
   "classification": "partial_desktop_core_bridge_contract",
   "ui_repo": "../kb-forge-skill-ui",
   "ui_branch": "feature/workbench-ui-prototype",
-  "ui_commit": "pending_ui_commit",
-  "ui_repo_modified": false,
+  "ui_commit": "24dfa2b-plus-uncommitted-ui-bridge-worktree",
+  "ui_repo_modified": true,
+  "ui_repo_modified_by_core_audit": false,
+  "ui_worktree_status": "dirty_existing_uncommitted_changes",
+  "ui_validation_scope": "current_dirty_worktree_contract_viewer_and_desktop_core_bridge_contract",
   "validation": {
     "flutter_analyze": "pass",
     "flutter_test": "pass",
@@ -16,10 +19,10 @@
     "core_bridge_tests": "pass"
   },
   "validated_commands": [
-    "flutter analyze",
-    "flutter test -r expanded",
-    "flutter build web",
-    "flutter build windows",
+    "flutter analyze (rerun 2026-06-08T11:05Z, pass)",
+    "flutter test -r expanded (rerun 2026-06-08T11:05Z, pass)",
+    "flutter build web (rerun 2026-06-08T11:05Z, pass)",
+    "flutter build windows (rerun 2026-06-08T11:05Z, pass)",
     "python -m pytest tests/test_workbench_ui_contract.py tests/test_workbench_ui_routes.py tests/test_workbench_ui_mock_data.py tests/test_workbench_ui_theme_i18n.py tests/test_workbench_ui_mobile.py"
   ],
   "operations": {
@@ -38,6 +41,22 @@
     "core_bridge": "web/workbench/flutter_app/lib/core_bridge/local_core_bridge.dart",
     "core_bridge_tests": "web/workbench/flutter_app/test/core_bridge_test.dart",
     "mock_boundary": "web/workbench/src/mockService.js still loads examples/ui_mock_data for pages"
+  },
+  "worktree_evidence": {
+    "source_files_modified_before_this_core_audit": [
+      "tests/test_workbench_ui_contract.py",
+      "web/workbench/contracts.json",
+      "web/workbench/flutter_app/README.md"
+    ],
+    "source_files_untracked_before_this_core_audit": [
+      "web/workbench/flutter_app/lib/core_bridge/local_core_bridge.dart",
+      "web/workbench/flutter_app/test/core_bridge_test.dart"
+    ],
+    "ignored_outputs_created_by_validation": [
+      "web/workbench/flutter_app/.dart_tool/",
+      "web/workbench/flutter_app/build/"
+    ],
+    "core_audit_modified_ui_source": false
   },
   "p0_blockers": [],
   "p1_blockers": [

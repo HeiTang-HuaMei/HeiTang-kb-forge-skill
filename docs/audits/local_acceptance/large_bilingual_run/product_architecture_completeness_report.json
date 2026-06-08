@@ -142,19 +142,23 @@
     {
       "layer": "ui",
       "status": "needs_review",
-      "classification": "contract_viewer_only",
+      "classification": "partial_desktop_core_bridge_contract",
       "items": {
-        "workspace_setup": "contract_only",
+        "workspace_setup": "bridge_contract_only_not_page_wired",
         "file_selection": "not_proven",
-        "kb_build": "contract_only",
-        "query_verify": "contract_only",
-        "document_generation": "contract_only",
-        "agent_skill_creation": "contract_only",
-        "agent_runtime": "contract_only",
-        "storage_memory_release_reports": "contract_only",
+        "kb_build": "bridge_contract_tested_not_page_wired",
+        "query_verify": "bridge_contract_available_not_page_wired",
+        "document_generation": "bridge_contract_available_not_page_wired",
+        "agent_skill_creation": "bridge_contract_available_not_page_wired",
+        "agent_runtime": "bridge_contract_available_not_page_wired",
+        "storage_memory_release_reports": "contract_viewer_only",
         "llm_api_provider_settings": "not_proven"
       },
-      "reason": "UI repo is frozen in this pass. Core contracts exist, but full user-operable local Workbench is not proven and must not be claimed."
+      "evidence": [
+        "ui_full_operation_readiness_report.json",
+        "ui_full_operation_acceptance_after_core_p0.json"
+      ],
+      "reason": "Core did not modify UI source in this pass. The current UI worktree has existing uncommitted desktop bridge changes that pass contract/analyze/test/build validation, but full user-operable local Workbench is not proven and must not be claimed."
     },
     {
       "layer": "storage_security",
@@ -189,8 +193,8 @@
     "ui_full_operation_readiness": {
       "status": "needs_review",
       "blocks_v4": false,
-      "classification": "contract_viewer_only",
-      "reason": "UI full operation is not claimed in this Core-only pass."
+      "classification": "partial_desktop_core_bridge_contract",
+      "reason": "UI contract/bridge validation passes on the current dirty UI worktree, but full page workflow operation is still blocked before a Local Workbench RC claim."
     },
     "lifecycle_update_readiness": {
       "status": "needs_review",

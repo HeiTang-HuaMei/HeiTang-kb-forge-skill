@@ -10,7 +10,7 @@ This document is the short, human-readable truth surface for the current pre-v4.
 - Blocking P1: none
 - CI: green for the latest Core commit containing the after-live-LLM proof.
 - Full local pytest: passed for the latest Core provider-profile and P0 gate work.
-- UI validation: separate gate required before v4.0
+- UI validation: current dirty UI bridge worktree passes contract/analyze/test/build checks, but full-operation Workbench remains blocked before v4.0.
 - Historical note: `docs/audits/local_acceptance/large_bilingual_run/` preserves the earlier large-file run where live LLM was still blocked. It must not be used as the latest live-LLM P0 conclusion.
 
 ## Architecture Truth Matrix
@@ -28,7 +28,7 @@ This document is the short, human-readable truth surface for the current pre-v4.
 | Storage | `local_workspace` is the implemented default. `local_db` is partial/store-index oriented. BYO cloud/database is future/disabled, not implemented. | partial |
 | Security/privacy | Local-first, no hidden upload by default, API key redaction, and no platform-hosted user data are documented and tested. Dynamic runtime network proof and full UI security acceptance remain needs-review. | partial |
 | Scale | Synthetic 1500-scale checks exist. Real 1500 books, 1500 KBs, and 1500 Agents are not production-proven. | needs_review |
-| UI | Core emits Workbench contracts. Frozen UI commit `24dfa2b` passes Flutter analyze/test/build-web for the contract-viewer scope. Full user-operable local Workbench is still not claimed. | validated contract-viewer scope |
+| UI | Core emits Workbench contracts. UI baseline `24dfa2b` plus existing uncommitted desktop bridge worktree passes Python contract tests and Flutter analyze/test/build-web/build-windows for contract-viewer and bridge-contract scope. Full user-operable local Workbench is still not claimed. | validated partial bridge scope, full operation blocked |
 
 ## Must Not Claim Yet
 
@@ -53,6 +53,7 @@ This document is the short, human-readable truth surface for the current pre-v4.
 - `docs/audits/local_acceptance/large_bilingual_run/product_architecture_completeness_report.json`
 - `docs/audits/local_acceptance/large_bilingual_run/rag_vector_index_readiness_report.json`
 - `docs/audits/local_acceptance/large_bilingual_run/ui_full_operation_readiness_report.json`
+- `docs/audits/local_acceptance/large_bilingual_run/ui_full_operation_acceptance_after_core_p0.json`
 - `docs/audits/local_acceptance/large_bilingual_run/multi_format_parser_truth_matrix.json`
 - `docs/audits/local_acceptance/large_bilingual_run/agent_runtime_capability_truth_report.json`
 - `docs/audits/local_acceptance/large_bilingual_run/lifecycle_crud_update_readiness_report.json`

@@ -12,4 +12,4 @@ The current Core proves large mixed input build, full 120-page scanned PDF OCR a
 
 External vector DB adapter contracts for Milvus, Pinecone, Qdrant, and Chroma are implemented and tested offline. Live provider service readiness is not claimed until env/client/service acceptance is attached.
 
-UI is still a separate full-operation gate before v4.0; this Core pass did not modify UI.
+UI contract/analyze/test/build validation passes on the current dirty desktop bridge worktree, and this Core pass did not modify UI source. UI is still a separate full-operation gate before v4.0 because page workflows are not wired end to end.

@@ -17,6 +17,8 @@ def test_final_product_architecture_truth_docs_are_bilingual_and_auditable():
         assert "final_v4_rc_gate_report.json" in text
         assert "rag_vector_index_readiness_report.json" in text
         assert "ui_full_operation_readiness_report.json" in text
+        assert "ui_full_operation_acceptance_after_core_p0.json" in text
+        assert "dirty UI bridge worktree" in text or "dirty UI bridge worktree" in text
 
 
 def test_final_product_truth_docs_do_not_overclaim_blocked_capabilities():
@@ -27,6 +29,7 @@ def test_final_product_truth_docs_do_not_overclaim_blocked_capabilities():
     assert "v4.0 released or tagged" in combined
     assert "external vector database production readiness" in combined
     assert "full user-operable local Workbench" in combined
+    assert "full operation blocked" in combined
     assert "full autonomous tool-calling Agent Runtime" in combined
     assert "full scanned PDF OCR proof" in combined
     assert "BYO cloud/database implemented" in combined

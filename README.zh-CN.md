@@ -17,7 +17,7 @@ HeiTang KB Forge 是一个 offline-first、local-first 知识供应链 Core Skil
 - 当前 Core P0 状态：最新 `pre_v4_p0_after_live_llm` 证明为 `ready_for_v4_rc`。
 - 剩余 Core P0：最新 pre-v4 P0 证明中无剩余 Core P0。
 - 阻断 P1：当前没有被接受为阻断 Core 主链的 P1。
-- UI validation 仍需要按冻结 Workbench 范围单独处理；v4.0 仍未开始、未发布、未打 tag。
+- UI validation 当前在 dirty desktop bridge worktree 的 contract/analyze/test/build 范围内通过，但完整可操作 Workbench 仍然 blocked；v4.0 仍未开始、未发布、未打 tag。
 
 ## 已实现 Core 表面
 
@@ -57,7 +57,7 @@ HeiTang KB Forge 是一个 offline-first、local-first 知识供应链 Core Skil
 
 ## UI 状态
 
-UI prototype 位于独立仓库 `kb-forge-skill-ui` 的 `feature/workbench-ui-prototype` 分支。Core 仓库会输出 Workbench contracts，但本 README 不声明 UI integration 已完成。最终 pre-v4 acceptance 必须如实验证 UI build/test 和 Core/UI contract drift。
+UI prototype 位于独立仓库 `kb-forge-skill-ui` 的 `feature/workbench-ui-prototype` 分支。当前 UI worktree 有已有未提交 desktop bridge 改动，并已通过 contract/analyze/test/build 验证，但页面工作流尚未端到端接入。Core 仓库会输出 Workbench contracts，但本 README 不声明完整 UI operation 已完成。
 
 ## 安装
 

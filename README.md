@@ -17,7 +17,7 @@ Current final gate truth is centralized in [Final Product Architecture Truth](do
 - Current Core P0 status: latest `pre_v4_p0_after_live_llm` proof is `ready_for_v4_rc`.
 - Remaining Core P0: none in the latest pre-v4 P0 proof.
 - Blocking P1: none currently accepted as blocking Core main-chain work.
-- UI validation must still be handled separately for the frozen Workbench scope; v4.0 has not been started, released, or tagged.
+- UI validation currently passes for the dirty desktop bridge worktree's contract/analyze/test/build scope, but full-operation Workbench remains blocked; v4.0 has not been started, released, or tagged.
 
 ## Implemented Core Surface
 
@@ -57,7 +57,7 @@ Default behavior is local-first:
 
 ## UI Status
 
-The UI prototype is tracked separately in `kb-forge-skill-ui` on `feature/workbench-ui-prototype`. This Core repo exposes Workbench contracts, but this README does not claim UI integration is complete. Final pre-v4 acceptance must validate UI build/test results and Core/UI contract drift honestly.
+The UI prototype is tracked separately in `kb-forge-skill-ui` on `feature/workbench-ui-prototype`. The current UI worktree has existing uncommitted desktop bridge changes that pass contract/analyze/test/build validation, but page workflows are not wired end to end. This Core repo exposes Workbench contracts, but this README does not claim full UI operation is complete.
 
 ## Install
 

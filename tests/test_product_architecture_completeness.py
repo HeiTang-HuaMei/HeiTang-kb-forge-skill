@@ -29,7 +29,8 @@ def test_product_architecture_completeness_report_covers_required_layers():
     assert layers["rag_vector_index"]["items"]["vector_retrieval_status"] == "implemented_local_json_query"
     assert layers["rag_vector_index"]["items"]["hybrid_keyword_vector_retrieval_status"] == "implemented_local_keyword_plus_vector"
     assert layers["rag_vector_index"]["items"]["vector_db_adapter_status"] == "external_adapters_offline_contract_tested"
-    assert layers["ui"]["classification"] == "contract_viewer_only"
+    assert layers["ui"]["classification"] == "partial_desktop_core_bridge_contract"
+    assert layers["ui"]["items"]["kb_build"] == "bridge_contract_tested_not_page_wired"
     assert layers["storage_security"]["items"]["byo_cloud_database"] == "explicit_byo_contract_needs_live_acceptance"
     assert "full user-operable Workbench" in report["must_not_claim"]
 
@@ -50,7 +51,7 @@ def test_product_architecture_gate_summary_exposes_required_gate_fields():
     assert summary["product_architecture_completeness"]["status"] == "needs_review"
     assert summary["rag_vector_index_readiness"]["status"] == "pass"
     assert summary["rag_vector_index_readiness"]["blocks_v4"] is False
-    assert summary["ui_full_operation_readiness"]["classification"] == "contract_viewer_only"
+    assert summary["ui_full_operation_readiness"]["classification"] == "partial_desktop_core_bridge_contract"
     assert summary["lifecycle_update_readiness"]["status"] == "needs_review"
     assert summary["scale_1500_kb_agent_readiness"]["status"] == "needs_review"
 

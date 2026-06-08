@@ -3,7 +3,11 @@
   "status": "blocked",
   "classification": "partial_desktop_core_bridge_contract",
   "tests_require_real_llm_api_network": false,
-  "ui_repo_modified": false,
+  "generated_at": "2026-06-08T11:05:14.552205+00:00",
+  "ui_repo_modified": true,
+  "ui_repo_modified_by_core_audit": false,
+  "ui_worktree_status": "dirty_existing_uncommitted_changes",
+  "ui_validation_scope": "current_dirty_worktree_contract_viewer_and_desktop_core_bridge_contract",
   "operations": {
     "workspace_setup": "bridge_contract_only_not_page_wired",
     "file_selection": "not_implemented",
@@ -27,6 +31,29 @@
     "flutter_build_windows": "pass",
     "ui_contract_tests": "pass",
     "core_bridge_tests": "pass"
+  },
+  "validated_commands": [
+    "python -m pytest tests/test_workbench_ui_contract.py tests/test_workbench_ui_routes.py tests/test_workbench_ui_mock_data.py tests/test_workbench_ui_theme_i18n.py tests/test_workbench_ui_mobile.py (25 passed)",
+    "flutter analyze (pass)",
+    "flutter test -r expanded (pass)",
+    "flutter build web (pass)",
+    "flutter build windows (pass)"
+  ],
+  "worktree_evidence": {
+    "source_files_modified_before_this_core_audit": [
+      "tests/test_workbench_ui_contract.py",
+      "web/workbench/contracts.json",
+      "web/workbench/flutter_app/README.md"
+    ],
+    "source_files_untracked_before_this_core_audit": [
+      "web/workbench/flutter_app/lib/core_bridge/local_core_bridge.dart",
+      "web/workbench/flutter_app/test/core_bridge_test.dart"
+    ],
+    "ignored_outputs_created_by_validation": [
+      "web/workbench/flutter_app/.dart_tool/",
+      "web/workbench/flutter_app/build/"
+    ],
+    "core_audit_modified_ui_source": false
   },
   "p1_blockers": [
     {
