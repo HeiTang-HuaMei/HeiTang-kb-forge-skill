@@ -1,16 +1,18 @@
 from typer.testing import CliRunner
-
 from heitang_kb_forge.cli import app
 from heitang_kb_forge.pre_v4_p0 import (
     run_agent_runtime_completion,
     run_lifecycle_completion,
     run_live_llm_acceptance,
     run_memory_completion,
+    run_multi_source_ingestion_completion,
     run_pre_v4_p0_completion,
     run_rag_index_completion,
     run_security_completion,
     run_storage_completion,
+    run_structured_skill_completion,
 )
+from heitang_kb_forge.pre_v4_p0 import completion as p0_completion
 from tests.p0_helpers import make_p0_package, read_json
 
 
@@ -58,6 +60,47 @@ def test_memory_storage_security_completion_keep_local_privacy_boundary(tmp_path
     assert security["status"] == "blocked"
 
 
+def test_structured_skill_completion_closes_book_to_skill_p0_without_network(tmp_path):
+    package = make_p0_package(tmp_path)
+
+    report = run_structured_skill_completion(package, tmp_path / "out")
+
+    assert report["status"] == "pass"
+    assert report["real_structured_skill_package_generated"] is True
+    assert report["nested_skills_exist"] is True
+    assert report["test_prompts_exist"] is True
+    assert report["skill_graph_exists"] is True
+    assert report["triple_verification_passed"] is True
+    assert report["pressure_tests_passed"] is True
+    assert report["rejected_candidates_recorded"] is True
+    assert report["cangjie_skill_absorption_map"] is True
+    assert report["on_demand_loading"] is True
+    assert report["installability_tested"] is True
+    assert report["skill_connects_to_kb_rag_agent"] is True
+    assert report["tests_require_real_llm_api_network"] is False
+    assert read_json(tmp_path / "out" / "book_to_skill_benchmark_absorption_report.json")["benchmark"]["external_code_or_prompts_copied"] is False
+    assert (tmp_path / "out" / "cangjie_skill_absorption_report.json").exists()
+    assert (tmp_path / "out" / "skill_graph_report.json").exists()
+    assert (tmp_path / "out" / "skill_triple_verification_report.json").exists()
+    assert (tmp_path / "out" / "skill_pressure_test_report.json").exists()
+    assert (tmp_path / "out" / "skill_rejected_candidates_report.json").exists()
+
+
+def test_multi_source_ingestion_completion_exposes_opencli_boundary_and_guide_skill(tmp_path):
+    report = run_multi_source_ingestion_completion(tmp_path / "out")
+
+    assert report["status"] == "pass"
+    assert report["multi_source_ingestion_status"] == "pass"
+    assert report["opencli_bridge_status"] == "pass"
+    assert report["source_normalization_status"] == "pass"
+    assert report["guide_skill_from_multi_source_status"] == "pass"
+    assert report["compliance_status"] == "user_responsibility_required"
+    assert report["no_cookies_session_tokens_stored"] is True
+    assert report["hidden_scraping_implemented"] is False
+    assert report["guide_skill_is_summary_only"] is False
+    assert (tmp_path / "out" / "multi_source_ingestion_completion_report.json").exists()
+
+
 def test_live_llm_acceptance_does_not_require_network_or_print_key(tmp_path, monkeypatch):
     for name in [
         "HEITANG_LLM_ACCEPTANCE_ENABLED",
@@ -86,12 +129,28 @@ def test_pre_v4_p0_completion_writes_final_gate_and_is_honest_about_missing_live
     summary = run_pre_v4_p0_completion(tmp_path, package, output)
 
     assert summary["status"] == "blocked"
-    assert summary["p0_blockers"] == ["full_ocr"]
-    assert summary["blocking_p1_or_live_acceptance_review"] == ["live_llm"]
+    assert summary["p0_blockers"] == ["live_llm", "full_ocr"]
+    assert summary["blocking_p1_or_live_acceptance_review"] == []
     assert summary["blocking_p1_count"] == 0
     gate = read_json(output / "final_v4_rc_gate_report.json")
     assert gate["ready_for_v4_rc"] is False
+    assert any(item["id"] == "live_llm_p0_blocker" for item in gate["p0_blockers"])
     assert gate["ui_full_operation_readiness"]["classification"] == "not_run_core_only"
+    assert gate["structured_skill_package_status"]["status"] == "pass"
+    assert gate["cangjie_skill_absorption_status"]["status"] == "pass"
+    assert gate["rag_quality_metrics_status"]["status"] == "pass"
+    assert gate["agent_runtime_reliability_status"]["status"] == "pass"
+    assert gate["knowledge_engineering_governance_status"]["status"] == "pass"
+    assert gate["book_to_skill_absorption_status"]["status"] == "pass"
+    assert gate["multi_source_ingestion_status"]["status"] == "pass"
+    assert gate["opencli_bridge_status"]["status"] == "pass"
+    assert gate["opencli_bridge_status"]["compliance_status"] == "user_responsibility_required"
+    assert gate["source_normalization_status"]["status"] == "pass"
+    assert gate["guide_skill_from_multi_source_status"]["status"] == "pass"
+    assert gate["guide_skill_from_multi_source_status"]["summary_only"] is False
+    assert gate["skill_on_demand_loading_status"]["status"] == "pass"
+    assert gate["skill_installability_status"]["status"] == "pass"
+    assert gate["skill_agent_kb_compatibility_status"]["status"] == "pass"
 
 
 def test_pre_v4_p0_cli_runs_and_writes_reports(tmp_path):

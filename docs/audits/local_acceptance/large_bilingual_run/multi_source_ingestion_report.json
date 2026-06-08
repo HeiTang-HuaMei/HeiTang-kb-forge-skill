@@ -1,0 +1,44 @@
+{
+  "multi_source_ingestion_report_version": "pre-v4-p0-21",
+  "status": "pass",
+  "supported_ingestion_modes": [
+    "local_file",
+    "manual_upload",
+    "official_api",
+    "opencli_bridge",
+    "user_export"
+  ],
+  "supported_source_types": [
+    "blog_article",
+    "document",
+    "exported_chat",
+    "forum_post",
+    "github_markdown",
+    "local_note",
+    "manual_source",
+    "newsletter_export",
+    "podcast_transcript",
+    "x_post_export",
+    "x_thread_export",
+    "youtube_transcript"
+  ],
+  "source_count": 3,
+  "normalized_source_count": 3,
+  "opencli_bridge_boundary": "local_files_only_user_chosen_external_bridge",
+  "hidden_scraping_implemented": false,
+  "crawler_or_scraper_marketing": false,
+  "reports": [
+    "multi_source_inventory.json",
+    "source_normalization_report.json",
+    "source_dedup_report.json",
+    "thread_or_conversation_merge_report.json",
+    "topic_cluster_report.json",
+    "concept_map_report.json",
+    "viewpoint_evolution_timeline.json",
+    "source_citation_map.json",
+    "opencli_bridge_import_report.json",
+    "opencli_bridge_privacy_boundary_report.json",
+    "multi_source_to_guide_skill_report.json"
+  ],
+  "tests_require_real_llm_api_network": false
+}

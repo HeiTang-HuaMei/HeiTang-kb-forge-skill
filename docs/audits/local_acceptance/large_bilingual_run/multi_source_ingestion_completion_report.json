@@ -1,0 +1,14 @@
+{
+  "multi_source_ingestion_completion_report_version": "pre-v4-p0-21",
+  "status": "pass",
+  "multi_source_ingestion_status": "pass",
+  "opencli_bridge_status": "pass",
+  "source_normalization_status": "pass",
+  "guide_skill_from_multi_source_status": "pass",
+  "source_count": 3,
+  "compliance_status": "user_responsibility_required",
+  "no_cookies_session_tokens_stored": true,
+  "hidden_scraping_implemented": false,
+  "guide_skill_is_summary_only": false,
+  "tests_require_real_llm_api_network": false
+}

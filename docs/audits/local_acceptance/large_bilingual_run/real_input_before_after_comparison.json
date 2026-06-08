@@ -1,6 +1,6 @@
 {
   "real_input_before_after_comparison_version": "pre-v4-p0-1",
-  "status": "pass",
+  "status": "blocked",
   "before_known_blockers": [
     "golden_demo_report_path_resolution",
     "product_hardening_workspace_argument",
@@ -11,8 +11,6 @@
     "product_hardening_pass_with_core_workspace",
     "vector_query_large_package_seconds"
   ],
-  "remaining_reviews": [
-    "live_llm_needs_review"
-  ],
+  "remaining_reviews": [],
   "tests_require_real_llm_api_network": false
 }

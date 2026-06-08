@@ -255,6 +255,18 @@ class SkillConfig(BaseModel):
     enhanced_template: bool = False
 
 
+class SkillGenerationConfig(BaseModel):
+    enabled: bool = False
+    target: str = "generic"
+    language: str = "auto"
+    on_demand_loading: bool = True
+    output_structure: str = "structured_book_to_skill"
+    token_budget: int = 4000
+    installability_targets: list[str] = Field(default_factory=lambda: ["claude_code", "codex", "openclaw"])
+    update_existing: Path | None = None
+    preserve_manual_edits: bool = False
+
+
 class AgentPackageConfig(BaseModel):
     enabled: bool = False
     name: str = "Demo Knowledge Agent"
@@ -616,6 +628,7 @@ class ForgeConfig(BaseModel):
     store: StoreConfig = Field(default_factory=StoreConfig)
     agent_rag: AgentRAGConfig = Field(default_factory=AgentRAGConfig)
     skill: SkillConfig = Field(default_factory=SkillConfig)
+    skill_generation: SkillGenerationConfig = Field(default_factory=SkillGenerationConfig)
     agent_package: AgentPackageConfig = Field(default_factory=AgentPackageConfig)
     knowledge_bound_factory: KnowledgeBoundFactoryConfig = Field(default_factory=KnowledgeBoundFactoryConfig)
     multi_kb_orchestration: MultiKBOrchestrationConfig = Field(default_factory=MultiKBOrchestrationConfig)

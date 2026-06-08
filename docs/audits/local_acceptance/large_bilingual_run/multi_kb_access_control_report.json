@@ -1,0 +1,19 @@
+{
+  "multi_kb_access_control_report_version": "pre-v4-p0-1",
+  "status": "pass",
+  "authorized_kb_allowed": "core_package",
+  "unauthorized_kb_blocked": "unauthorized-kb",
+  "access_decision_trace": [
+    {
+      "agent_id": "child-agent-a",
+      "kb_id": "core_package",
+      "decision": "allow"
+    },
+    {
+      "agent_id": "child-agent-a",
+      "kb_id": "unauthorized-kb",
+      "decision": "deny"
+    }
+  ],
+  "tests_require_real_llm_api_network": false
+}

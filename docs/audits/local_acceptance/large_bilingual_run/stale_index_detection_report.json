@@ -1,0 +1,18 @@
+{
+  "stale_index_detection_report_version": "pre-v4-p0-1",
+  "status": "pass",
+  "stale_index_flag": "fresh",
+  "rebuild_recommendation": "rebuild local vector export when embeddings and vector records diverge",
+  "details": {
+    "status": "fresh",
+    "missing_vector_count": 0,
+    "orphan_vector_count": 0,
+    "manifest_total_records": 25742,
+    "actual_vector_records": 25742,
+    "count_mismatch": false,
+    "missing_vector_ids": [],
+    "orphan_vector_ids": [],
+    "rebuild_policy": "rebuild local vector export when embeddings and vector records diverge"
+  },
+  "tests_require_real_llm_api_network": false
+}

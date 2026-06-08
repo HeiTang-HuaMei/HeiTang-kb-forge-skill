@@ -1,8 +1,9 @@
 # UI Full Operation Acceptance After Core P0
 
 - Status: blocked
-- Classification: contract_viewer_only
+- Classification: partial_desktop_core_bridge_contract
 - Flutter analyze/test/build: pass
-- UI repo modified: false
+- Core bridge tests: pass
+- UI repo modified: true, pending commit
 
-The UI builds and its mock/contract tests pass, but it is explicitly `mock-only` and cannot operate Core workflows end to end. If v4.0 means Local Knowledge Workbench RC, this remains a blocking P1 before v4.0.
+The UI now has a tested desktop-only local Core CLI bridge contract. It still does not wire page workflows end to end, so it remains a blocking P1 if v4.0 means Local Knowledge Workbench RC.

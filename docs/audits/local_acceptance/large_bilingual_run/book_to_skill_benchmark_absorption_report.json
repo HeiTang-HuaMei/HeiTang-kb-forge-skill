@@ -1,0 +1,28 @@
+{
+  "book_to_skill_benchmark_absorption_report_version": "pre-v4-p0-17",
+  "status": "pass",
+  "benchmark": {
+    "name": "book-to-skill architecture pattern",
+    "decision": "absorb",
+    "s_level_reference": "cangjie-skill structured Skill repository pattern",
+    "what_to_absorb": [
+      "structured Skill package layout",
+      "compact entrypoint",
+      "on-demand section loading",
+      "source/evidence mapping",
+      "installability checks",
+      "nested skills with trigger tests",
+      "candidate rejection with reasons",
+      "skill graph relation model"
+    ],
+    "what_not_to_copy": [
+      "external code",
+      "external prompts",
+      "license-unclear assets"
+    ],
+    "clean_room_implementation": true,
+    "license_trace_required_if_code_copied": true,
+    "external_code_or_prompts_copied": false
+  },
+  "tests_require_real_llm_api_network": false
+}

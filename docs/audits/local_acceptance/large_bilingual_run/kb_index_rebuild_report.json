@@ -1,0 +1,11 @@
+{
+  "kb_index_rebuild_report_version": "pre-v4-p0-1",
+  "status": "pass",
+  "local_index_files": [
+    "kb_index.jsonl",
+    "vector_store_records.jsonl"
+  ],
+  "stale_index_status": "fresh",
+  "rebuild_recommendation": "rebuild available when source/index hashes diverge",
+  "tests_require_real_llm_api_network": false
+}

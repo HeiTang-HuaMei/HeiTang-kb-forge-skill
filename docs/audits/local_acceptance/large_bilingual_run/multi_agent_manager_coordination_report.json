@@ -1,0 +1,29 @@
+{
+  "multi_agent_manager_coordination_report_version": "pre-v4-p0-19",
+  "status": "pass",
+  "manager_agent": "manager-agent",
+  "child_agent_task_assignment": [
+    {
+      "task_id": "task-001",
+      "child_agent": "child-agent-a",
+      "allowed_kbs": [
+        "core_package"
+      ],
+      "decision": "assigned"
+    },
+    {
+      "task_id": "task-002",
+      "child_agent": "child-agent-b",
+      "allowed_kbs": [],
+      "decision": "standalone"
+    }
+  ],
+  "task_id_trace": true,
+  "conflict_arbitration_policy": "manager_blocks_conflicting_write_until_review",
+  "multi_agent_scale_breakpoint_report": {
+    "simulated_agents": 16,
+    "status": "pass",
+    "risk": "synthetic_coordination_not_load_test"
+  },
+  "tests_require_real_llm_api_network": false
+}

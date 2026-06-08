@@ -27,6 +27,7 @@ from heitang_kb_forge.planning.readiness import PLANNING_OUTPUT_FILES
 from heitang_kb_forge.vector.exporter import VECTOR_OUTPUT_FILES
 from heitang_kb_forge.store.exporter import STORE_OUTPUT_FILES
 from heitang_kb_forge.evidence_gate import EVIDENCE_GATE_OUTPUT_FILES
+from heitang_kb_forge.skill import STRUCTURED_SKILL_OUTPUT_FILES
 from heitang_kb_forge.document_parsing import V39_DOCUMENT_PARSING_OUTPUT_FILES
 from heitang_kb_forge.memory_lifecycle import V39_MEMORY_LIFECYCLE_OUTPUT_FILES
 from heitang_kb_forge.multi_kb_orchestration import MULTI_KB_ORCHESTRATION_OUTPUT_FILES
@@ -123,6 +124,8 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("llm_boundary_judgment", config.llm.boundary_check, output, ["llm_boundary_judgment.json"], config.task),
         _stage("llm_hallucination_check", config.llm.hallucination_check, output, ["llm_hallucination_check.json"], config.task),
         _stage("skill_package_generation", config.skill.enabled, output / "skill_package", ["SKILL.md", "skill_manifest.yaml"], "build"),
+        _stage("structured_book_to_skill_generation", config.skill_generation.enabled, output / "structured_skill_package", _structured_skill_output_files(), "build"),
+        _stage("structured_skill_validation", config.skill_generation.enabled, output / "structured_skill_validation", ["structured_skill_validation_result.json", "structured_skill_validation_report.md"], "build"),
         _stage("skill_validation", config.skill.enabled and config.skill.validate_skill, output / "skill_validation", ["skill_validation_result.json", "skill_validation_report.md"], "build"),
         _stage("llm_skill_generation", config.skill.enabled and config.skill.llm_generation and config.llm.enabled, output / "skill_package", ["llm_skill_generation_report.md"], "build"),
         _stage("enhanced_skill_template", config.skill.enabled and config.skill.enhanced_template, output / "skill_package", ["TASKS.md", "INPUT_OUTPUT.md", "skill_validation_result.json"], "build"),
@@ -267,6 +270,22 @@ def _document_generation_output_files(config: ForgeConfig) -> list[str]:
         if normalized in {"md", "docx", "pdf", "pptx"}:
             files.insert(0, f"generated.{normalized}")
     return files
+
+
+def _structured_skill_output_files() -> list[str]:
+    required = [
+        "SKILL.md",
+        "skill_manifest.json",
+        "skill_index.json",
+        "on_demand_load_manifest.json",
+        "source_inventory.json",
+        "evidence_map.json",
+        "token_budget_report.json",
+        "skill_quality_report.json",
+        "skill_agent_kb_compatibility_report.json",
+        "structured_skill_package_completion_report.json",
+    ]
+    return [item for item in required if item in STRUCTURED_SKILL_OUTPUT_FILES]
 
 
 def _document_parsing_enabled(config: ForgeConfig) -> bool:

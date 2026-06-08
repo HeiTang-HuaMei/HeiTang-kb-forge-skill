@@ -1,0 +1,32 @@
+{
+  "source_citation_map_version": "pre-v4-p0-21",
+  "status": "pass",
+  "citations": [
+    {
+      "citation_id": "msrc-0001",
+      "source_id": "sample-thread-1",
+      "source_type": "x_thread_export",
+      "source_file": "",
+      "source_url": "",
+      "created_at": "2026-01-01T00:00:00+00:00"
+    },
+    {
+      "citation_id": "msrc-0002",
+      "source_id": "sample-thread-2",
+      "source_type": "blog_article",
+      "source_file": "",
+      "source_url": "",
+      "created_at": "2026-01-02T00:00:00+00:00"
+    },
+    {
+      "citation_id": "msrc-0003",
+      "source_id": "sample-note-1",
+      "source_type": "local_note",
+      "source_file": "",
+      "source_url": "",
+      "created_at": "2026-01-03T00:00:00+00:00"
+    }
+  ],
+  "source_citations_missing": false,
+  "tests_require_real_llm_api_network": false
+}

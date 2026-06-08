@@ -1,0 +1,9 @@
+{
+  "memory_token_budget_report_version": "pre-v4-p0-1",
+  "status": "pass",
+  "all_history_injection_prevented": true,
+  "max_session_items": 20,
+  "max_context_tokens": 4000,
+  "compaction_policy": "summarize_then_index",
+  "tests_require_real_llm_api_network": false
+}

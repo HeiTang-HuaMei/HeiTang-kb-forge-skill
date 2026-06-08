@@ -1,0 +1,14 @@
+{
+  "chunk_strategy_report_version": "pre-v4-p0-1",
+  "status": "pass",
+  "chunk_count": 9599,
+  "structure_aware_chunking": true,
+  "title_section_page_paragraph_available": true,
+  "parent_section_metadata": false,
+  "configurable_overlap": true,
+  "actual_overlap_policy": {
+    "overlap_chars": 120,
+    "fallback": "character"
+  },
+  "tests_require_real_llm_api_network": false
+}

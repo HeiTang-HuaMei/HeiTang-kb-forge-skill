@@ -1,0 +1,607 @@
+{
+  "document_source_audit_report_version": "pre-v4-p0-20",
+  "status": "pass",
+  "documents": [
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/01_large_pdf_books/CN_中文大型经典与产品说明混合_260页.pdf",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/01_large_pdf_books/EN_Moby_Dick_large_text_pdf_420p.pdf",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/01_large_pdf_books/EN_Red_Chamber_Book1_large_text_pdf_260p.pdf",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/02_scanned_image_pdf/扫描型_中英混合_OCR压力测试_120页.pdf",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/03_large_docx/中英混合_产品验收长文档_100页.docx",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/04_markdown_txt/large_bilingual_plain_text_knowledge_base.txt",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/04_markdown_txt/大型中英混合知识库_500条.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/05_path_edge_cases/中文 文件夹 with spaces/Windows path sample.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/05_path_edge_cases/中文 文件夹 with spaces/路径 含 空格 和 中文.txt",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/001_en_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/002_mixed_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/003_zh_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/004_en_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/005_mixed_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/006_zh_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/007_en_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/008_mixed_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/009_zh_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/010_en_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/011_mixed_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/012_zh_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/013_en_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/014_mixed_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/015_zh_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/016_en_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/017_mixed_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/018_zh_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/019_en_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/020_mixed_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/021_zh_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/022_en_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/023_mixed_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/024_zh_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/025_en_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/026_mixed_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/027_zh_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/028_en_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/029_mixed_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/030_zh_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/031_en_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/032_mixed_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/033_zh_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/034_en_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/035_mixed_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/036_zh_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/037_en_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/038_mixed_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/039_zh_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/06_multi_file_kb/040_en_knowledge_note.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/07_conflict_verification_sources/source_A_truth.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/07_conflict_verification_sources/source_B_contradiction.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/08_kb_update_v1_v2/kb_v1.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/08_kb_update_v1_v2/kb_v2.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/09_agent_skill_materials/agent_skill_source_material.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/10_manual_doc_ppt_materials/ppt_outline_source.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/10_manual_doc_ppt_materials/software_manual_generation_source.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/README_大型真实验收包说明.md",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/source_texts/generated_public_domain_chinese_classic_stress_corpus.txt",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/source_texts/project_gutenberg_moby_dick_2701.txt",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    },
+    {
+      "source_path": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill/_local_acceptance_inputs/large_bilingual/heitang_large_real_acceptance_inputs/source_texts/project_gutenberg_red_chamber_book1_9603.txt",
+      "document_owner": "unknown_owner_review_required",
+      "maintenance_owner": "unknown_owner_review_required",
+      "last_updated_time": "2026-06-08T01:18:33.849348+00:00",
+      "source_freshness": "fresh",
+      "stale_document_warning": false,
+      "information_island_warning": "unknown_owner_review_required",
+      "do_not_ingest": false
+    }
+  ],
+  "tests_require_real_llm_api_network": false
+}

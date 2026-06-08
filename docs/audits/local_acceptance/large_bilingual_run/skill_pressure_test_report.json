@@ -1,0 +1,29 @@
+{
+  "skill_pressure_test_report_version": "pre-v4-p0-17",
+  "status": "pass",
+  "case_count": 3,
+  "cases": [
+    {
+      "skill_id": "skill_01_framework-application",
+      "positive_trigger_pass": true,
+      "bait_negative_trigger_pass": true,
+      "refusal_boundary_pass": true,
+      "test_prompts_file": "skills/skill_01_framework-application/test-prompts.json"
+    },
+    {
+      "skill_id": "skill_02_principle-check",
+      "positive_trigger_pass": true,
+      "bait_negative_trigger_pass": true,
+      "refusal_boundary_pass": true,
+      "test_prompts_file": "skills/skill_02_principle-check/test-prompts.json"
+    },
+    {
+      "skill_id": "skill_03_case-transfer",
+      "positive_trigger_pass": true,
+      "bait_negative_trigger_pass": true,
+      "refusal_boundary_pass": true,
+      "test_prompts_file": "skills/skill_03_case-transfer/test-prompts.json"
+    }
+  ],
+  "tests_require_real_llm_api_network": false
+}

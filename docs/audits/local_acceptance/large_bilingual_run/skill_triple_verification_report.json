@@ -1,0 +1,28 @@
+{
+  "skill_triple_verification_report_version": "pre-v4-p0-17",
+  "status": "pass",
+  "checks": [
+    {
+      "skill_id": "skill_01_framework-application",
+      "two_independent_evidence_when_possible": true,
+      "novel_trigger_scenario_answerable": true,
+      "non_commonsense_uniqueness": true,
+      "status": "pass"
+    },
+    {
+      "skill_id": "skill_02_principle-check",
+      "two_independent_evidence_when_possible": true,
+      "novel_trigger_scenario_answerable": true,
+      "non_commonsense_uniqueness": true,
+      "status": "pass"
+    },
+    {
+      "skill_id": "skill_03_case-transfer",
+      "two_independent_evidence_when_possible": true,
+      "novel_trigger_scenario_answerable": true,
+      "non_commonsense_uniqueness": true,
+      "status": "pass"
+    }
+  ],
+  "tests_require_real_llm_api_network": false
+}

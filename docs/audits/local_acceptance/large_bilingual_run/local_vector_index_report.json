@@ -1,0 +1,24 @@
+{
+  "local_vector_index_report_version": "pre-v4-p0-1",
+  "status": "pass",
+  "files": [
+    "embedding_input.jsonl",
+    "embeddings.jsonl",
+    "vector_store_records.jsonl",
+    "vector_store_manifest.json"
+  ],
+  "deterministic_vector_fallback": true,
+  "real_embedding_optional_config_ready": true,
+  "staleness": {
+    "status": "fresh",
+    "missing_vector_count": 0,
+    "orphan_vector_count": 0,
+    "manifest_total_records": 25742,
+    "actual_vector_records": 25742,
+    "count_mismatch": false,
+    "missing_vector_ids": [],
+    "orphan_vector_ids": [],
+    "rebuild_policy": "rebuild local vector export when embeddings and vector records diverge"
+  },
+  "tests_require_real_llm_api_network": false
+}

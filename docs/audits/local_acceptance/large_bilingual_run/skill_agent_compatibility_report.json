@@ -1,0 +1,33 @@
+{
+  "skill_agent_kb_compatibility_report_version": "pre-v4-p0-17",
+  "status": "pass",
+  "knowledge_package": "_local_acceptance_outputs/large_bilingual_run_after_fix/core_package",
+  "skill_package": "docs/audits/local_acceptance/large_bilingual_run/structured_skill_package_proof",
+  "relation": {
+    "source_package_id": "core_package",
+    "skill_id": "structured-book-skill-proof",
+    "kb_id": "core_package",
+    "supported_agent_modes": [
+      "standalone",
+      "kb_bound",
+      "mother_agent",
+      "child_agent"
+    ],
+    "source_inventory_path": "source_inventory.json",
+    "evidence_map_path": "evidence_map.json",
+    "on_demand_manifest_path": "on_demand_load_manifest.json",
+    "skill_quality_report_path": "skill_quality_report.json"
+  },
+  "rag_index_metadata_files": [
+    "rag_manifest.json",
+    "embedding_input.jsonl",
+    "retrieval_metadata.jsonl",
+    "kb_index.jsonl",
+    "vector_store_records.jsonl"
+  ],
+  "agent_package_generation_supported": true,
+  "kb_bound_agent_generation_supported": true,
+  "multi_kb_orchestration_supported": true,
+  "workbench_contract_reference": "workbench action contract should expose book-to-skill and skill validation actions",
+  "tests_require_real_llm_api_network": false
+}

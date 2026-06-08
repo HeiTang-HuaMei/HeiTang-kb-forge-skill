@@ -1,19 +1,19 @@
 {
   "ui_full_operation_readiness_report_version": "pre-v4-large-bilingual-architecture-1",
   "status": "blocked",
-  "classification": "contract_viewer_only",
+  "classification": "partial_desktop_core_bridge_contract",
   "tests_require_real_llm_api_network": false,
   "ui_repo_modified": false,
   "operations": {
-    "workspace_setup": "contract_only",
-    "file_selection": "not_proven",
-    "kb_build": "contract_only",
-    "query_verify": "contract_only",
-    "document_generation": "contract_only",
-    "agent_skill_creation": "contract_only",
-    "agent_runtime": "contract_only",
-    "storage_memory_release_reports": "contract_only",
-    "llm_api_provider_settings": "not_proven"
+    "workspace_setup": "bridge_contract_only_not_page_wired",
+    "file_selection": "not_implemented",
+    "kb_build": "bridge_contract_tested_not_page_wired",
+    "query_verify": "bridge_contract_available_not_page_wired",
+    "document_generation": "bridge_contract_available_not_page_wired",
+    "agent_skill_creation": "bridge_contract_available_not_page_wired",
+    "agent_runtime": "bridge_contract_available_not_page_wired",
+    "storage_memory_release_reports": "contract_viewer_only",
+    "llm_api_provider_settings": "not_implemented"
   },
   "must_not_claim": [
     "full user-operable local Workbench",
@@ -25,16 +25,17 @@
     "flutter_test": "pass",
     "flutter_build_web": "pass",
     "flutter_build_windows": "pass",
-    "ui_contract_tests": "pass"
+    "ui_contract_tests": "pass",
+    "core_bridge_tests": "pass"
   },
   "p1_blockers": [
     {
-      "id": "ui_full_operation_not_implemented",
+      "id": "ui_page_workflows_not_wired_to_core_bridge",
       "severity": "P1",
       "status": "blocked",
-      "reason": "UI validates and builds, but it is explicitly mock-only and cannot operate workspace setup, file selection, KB build, query/verify, document generation, Agent runtime, storage/memory reports, or provider settings end to end.",
+      "reason": "A safe desktop Core CLI bridge contract is tested, but the Workbench pages still render mock/contract data and do not wire file selection, build, query, document generation, Agent runtime, storage/memory reports, or provider settings into end-to-end operations.",
       "blocks_v4_if_v4_is_local_workbench_rc": true
     }
   ],
-  "recommended_fix_before_v4": "Implement a real local operation bridge or explicitly redefine v4.0 as contract-viewer RC. Until then, do not claim full Local Knowledge Workbench RC."
+  "recommended_fix_before_v4": "Wire desktop pages to the local Core bridge for workspace setup, file selection, KB build, query/verify, document generation, Agent/Skill creation, Agent runtime, reports, and provider settings; keep web runtime non-executing unless a local backend is explicitly started."
 }

@@ -4,13 +4,13 @@ This document is the short, human-readable truth surface for the current pre-v4.
 
 ## Current Gate
 
-- Overall status: ready_for_v4_rc
-- Ready for v4 RC: true
-- Remaining P0: none
+- Overall status: blocked
+- Ready for v4 RC: false
+- Remaining P0: live LLM provider acceptance is blocked by provider HTTP 502 in the latest local proof; P0-17 structured Book-to-Skill package completion is being added to the same gate.
 - Blocking P1: none
-- CI: green for pushed Core commit `97a6bf9`
-- Full local pytest: passed
-- UI validation: Flutter analyze/test/build-web passed for frozen UI commit `24dfa2b`
+- CI: pending for the current dirty Core worktree
+- Full local pytest: pending after the current P0-17 pass
+- UI validation: separate gate required before v4.0
 
 ## Architecture Truth Matrix
 
@@ -22,7 +22,7 @@ This document is the short, human-readable truth surface for the current pre-v4.
 | RAG vector/hybrid/index | Local keyword/index paths, local JSON vector query, hybrid keyword/vector retrieval, metadata filtering, and stale index diagnostics are implemented and tested. Milvus, Pinecone, Qdrant, Chroma, and cloud vector DB adapters remain future/disabled. | implemented locally with external DB future boundary |
 | Retrieval quality and knowledge accuracy | Local rerank, evidence selection, diagnostics, claim/freshness/contradiction/accuracy reports exist. Contradictory sources must produce warning/review, not a false pass. | implemented with review boundary |
 | Document generation | Grounded MD/DOCX/PDF/PPTX generation and validation reports exist. | implemented |
-| Agent and Skill | Skill package, standalone Agent, KB-bound Agent, local deterministic runtime smoke, KB boundary, mother/child contracts, and memory policy reports exist. Full autonomous tool-calling Agent Runtime is not implemented. | partial |
+| Agent and Skill | Legacy Skill package, standalone Agent, KB-bound Agent, local deterministic runtime smoke, KB boundary, mother/child contracts, and memory policy reports exist. The current P0-17 pass adds structured Book-to-Skill packages with compact `SKILL.md`, on-demand loading, installability reports, and KB/RAG/Agent compatibility proof. Full autonomous tool-calling Agent Runtime is not implemented. | partial under active P0 completion |
 | Lifecycle | Create/query paths are proven. Update/diff/rebuild/regenerate/refresh are partial. Cleanup/archive remains recommendation-only and non-destructive by default. | partial |
 | Storage | `local_workspace` is the implemented default. `local_db` is partial/store-index oriented. BYO cloud/database is future/disabled, not implemented. | partial |
 | Security/privacy | Local-first, no hidden upload by default, API key redaction, and no platform-hosted user data are documented and tested. Dynamic runtime network proof and full UI security acceptance remain needs-review. | partial |
@@ -36,6 +36,8 @@ This document is the short, human-readable truth surface for the current pre-v4.
 - Milvus/Pinecone/Qdrant/Chroma implemented
 - full user-operable local Workbench
 - full autonomous tool-calling Agent Runtime
+- ready_for_v4_rc while live LLM P0 remains blocked
+- Book-to-Skill completion without real structured Skill package output, on-demand loading, installability reports, and KB/RAG/Agent compatibility proof
 - full scanned PDF OCR proof
 - BYO cloud/database implemented
 - destructive cleanup enabled by default

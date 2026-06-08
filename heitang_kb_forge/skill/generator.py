@@ -7,6 +7,7 @@ from heitang_kb_forge.skill.manifest import make_skill_manifest, render_skill_ma
 from heitang_kb_forge.skill.report import render_skill_generation_report
 from heitang_kb_forge.skill.rules import make_rule_files
 from heitang_kb_forge.skill.scope import make_knowledge_scope
+from heitang_kb_forge.skill.structured import STRUCTURED_SKILL_OUTPUT_FILES, generate_structured_skill_package
 from heitang_kb_forge.schemas.skill_schema import SkillGenerationResult
 
 
@@ -24,6 +25,7 @@ SKILL_PACKAGE_FILES = [
     "eval_cases.jsonl",
     "skill_generation_report.md",
 ]
+STRUCTURED_SKILL_PACKAGE_FILES = list(dict.fromkeys(SKILL_PACKAGE_FILES + STRUCTURED_SKILL_OUTPUT_FILES))
 
 
 def generate_skill_package(
@@ -32,6 +34,12 @@ def generate_skill_package(
     skill_name: str,
     skill_type: str = "generic",
     generated_by: str = "rule_template",
+    target: str = "generic",
+    language: str = "auto",
+    on_demand: bool = True,
+    token_budget: int = 4000,
+    update_existing: Path | None = None,
+    preserve_manual_edits: bool = False,
 ) -> SkillGenerationResult:
     output.mkdir(parents=True, exist_ok=True)
     manifest = make_skill_manifest(package, skill_name, skill_type)
@@ -46,15 +54,35 @@ def generate_skill_package(
         (output / file_name).write_text(text, encoding="utf-8")
     (output / "examples.md").write_text(examples_md, encoding="utf-8")
     write_jsonl(output / "eval_cases.jsonl", eval_cases)
+    output_files = list(SKILL_PACKAGE_FILES)
+    if _has_real_chunks(package):
+        generate_structured_skill_package(
+            package,
+            output,
+            skill_name,
+            target=target,
+            language=language,
+            on_demand=on_demand,
+            token_budget=token_budget,
+            update_existing=update_existing,
+            preserve_manual_edits=preserve_manual_edits,
+            generated_by=generated_by,
+        )
+        output_files = list(STRUCTURED_SKILL_PACKAGE_FILES)
     result = SkillGenerationResult(
         skill_id=manifest.skill_id,
         skill_name=skill_name,
-        output_files=SKILL_PACKAGE_FILES,
+        output_files=output_files,
         generated_by=generated_by,
         warnings=warnings,
     )
     (output / "skill_generation_report.md").write_text(render_skill_generation_report(result), encoding="utf-8")
     return result
+
+
+def _has_real_chunks(package: Path) -> bool:
+    chunks = package / "chunks.jsonl"
+    return chunks.exists() and bool(chunks.read_text(encoding="utf-8").strip())
 
 
 def _render_skill_md(skill_name: str, skill_type: str, generated_by: str) -> str:

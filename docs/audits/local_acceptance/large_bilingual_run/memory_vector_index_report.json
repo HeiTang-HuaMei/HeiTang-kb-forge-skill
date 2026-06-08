@@ -1,0 +1,24 @@
+{
+  "memory_vector_index_report_version": "pre-v4-p0-1",
+  "status": "pass",
+  "long_term_vector_memory_records": [
+    {
+      "memory_id": "long-summary-1",
+      "vector": [
+        0.568627,
+        -0.913725,
+        0.003922,
+        0.458824,
+        -0.466667,
+        -0.521569,
+        -0.270588,
+        0.254902
+      ],
+      "metadata": {
+        "memory_type": "long_term_memory"
+      }
+    }
+  ],
+  "memory_index": "local_json",
+  "tests_require_real_llm_api_network": false
+}

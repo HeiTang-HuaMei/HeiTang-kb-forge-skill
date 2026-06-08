@@ -1,0 +1,21 @@
+{
+  "permission_isolation_report_version": "pre-v4-p0-20",
+  "status": "pass",
+  "document_tags": [
+    "public_local",
+    "review_required_if_sensitive"
+  ],
+  "kb_tags": [
+    "core_package"
+  ],
+  "agent_allowed_kbs": {
+    "child-agent-a": [
+      "core_package"
+    ],
+    "child-agent-b": []
+  },
+  "metadata_based_retrieval_filter": true,
+  "sensitive_document_warning": "tag_sensitive_sources_before_agent_binding",
+  "unauthorized_retrieval_blocked": true,
+  "tests_require_real_llm_api_network": false
+}

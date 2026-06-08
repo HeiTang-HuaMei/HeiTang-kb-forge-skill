@@ -1,675 +1,190 @@
 {
-  "audit_version": "final-pre-v4.0",
-  "generated_at": "2026-06-07T20:20:00.003825+00:00",
-  "overall_status": "ready_for_v4_rc",
-  "ready_for_v4_rc": true,
-  "severity_policy": "All issues must be classified by severity and scope. P0 issues must block v4.0. P1 issues must be fixed or explicitly reviewed before v4.0. P2 issues may be documented as future improvements. Low-risk issues may be fixed immediately, but high-risk issues must not be ignored, hidden, or bypassed.",
-  "total_checks": 29,
-  "passed_checks": 21,
-  "failed_checks": 8,
-  "p0_blockers": [],
-  "p1_blockers": [],
-  "p2_issues": [
+  "final_gate_version": "pre-v4-p0-1",
+  "generated_at": "2026-06-08T07:25:39.461708+00:00",
+  "overall_status": "blocked",
+  "ready_for_v4_rc": false,
+  "p0_blockers": [
     {
-      "id": "additional_real_world_sample_coverage",
-      "severity": "P2",
-      "scope": "Product Readiness",
-      "status": "future",
-      "reason": "More real documents and domain samples would improve release confidence.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Add broader real samples in a future hardening pass.",
-      "target_version": "future",
-      "blocks_v4": false,
-      "out_of_scope_classification": "future"
+      "id": "live_llm_p0_blocker",
+      "severity": "P0",
+      "status": "blocked_with_reason",
+      "reason": "live_llm_acceptance_not_passed",
+      "blocks_v4": true
     }
   ],
-  "fixed_in_audit": [],
-  "remaining_risks": [],
+  "p1_blockers": [],
+  "p1_needs_review": [],
+  "p2_issues": [],
   "issue_checklist": [
     {
-      "id": "knowledge_accuracy_warning_on_conflict_sources",
-      "severity": "P1",
-      "scope": "Large Bilingual Acceptance",
-      "status": "accepted_needs_review",
-      "reason": "Contradictory verification sources honestly produce status=warning score=0.6715 review_required=True; not forced to pass.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Keep the item visible in the final gate until it is fixed or explicitly accepted as non-blocking.",
-      "target_version": "current_audit",
-      "blocks_v4": false,
-      "out_of_scope_classification": "in_scope"
-    },
-    {
-      "id": "lifecycle_crud_update_archive_delete_partial",
-      "severity": "P1",
-      "scope": "Lifecycle CRUD",
-      "status": "reviewed_non_blocking",
-      "reason": "Update/archive/delete/rollback lifecycle appears partial. Cleanup plans exist, but destructive actions are not enabled by default, which is safe but means lifecycle CRUD is not fully proven.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Keep destructive lifecycle actions unsupported by default and document the non-destructive cleanup/archive boundary.",
-      "target_version": "current_audit",
-      "blocks_v4": false,
-      "out_of_scope_classification": "in_scope"
-    },
-    {
-      "id": "optional_live_llm_not_verified_process_env_isolation",
-      "severity": "P1",
-      "scope": "Large Bilingual Acceptance",
-      "status": "accepted_non_blocking_needs_review",
-      "reason": "Current Codex process did not inherit HEITANG_LLM_* variables; local core still passes without LLM and API key was not printed or committed.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Keep the item visible in the final gate until it is fixed or explicitly accepted as non-blocking.",
-      "target_version": "current_audit",
-      "blocks_v4": false,
-      "out_of_scope_classification": "in_scope"
-    },
-    {
-      "id": "scanned_pdf_full_ocr_not_proven",
-      "severity": "P1",
-      "scope": "Large Bilingual Acceptance",
-      "status": "accepted_needs_review",
-      "reason": "Scanned PDF has 120 OCR candidate pages; build used max_ocr_pages=8; full OCR remains limited and not overclaimed.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Keep the item visible in the final gate until it is fixed or explicitly accepted as non-blocking.",
-      "target_version": "current_audit",
-      "blocks_v4": false,
-      "out_of_scope_classification": "in_scope"
-    },
-    {
-      "id": "additional_real_world_sample_coverage",
-      "severity": "P2",
-      "scope": "Product Readiness",
-      "status": "future",
-      "reason": "More real documents and domain samples would improve release confidence.",
-      "user_impact": "The product claim cannot be safely presented as complete until this is resolved or explicitly accepted.",
-      "recommended_fix": "Add broader real samples in a future hardening pass.",
-      "target_version": "future",
-      "blocks_v4": false,
-      "out_of_scope_classification": "future"
+      "id": "live_llm_p0_blocker",
+      "severity": "P0",
+      "status": "blocked_with_reason",
+      "reason": "live_llm_acceptance_not_passed",
+      "blocks_v4": true
     }
   ],
-  "readiness_score": 72,
-  "core_score": 90,
-  "ui_workbench_score": 90,
-  "rag_score": 100,
-  "agent_runtime_score": 100,
-  "storage_memory_score": 100,
-  "scale_readiness_score": 55,
-  "security_privacy_score": 70,
-  "accuracy_score": 100,
-  "product_usability_score": 90,
-  "core_validation": {
-    "status": "pass",
-    "focused": "pass",
-    "full": "pass",
-    "command": "python -m pytest",
-    "result": "691 passed, 1 skipped"
-  },
-  "ui_validation": {
-    "status": "pass",
-    "flutter_analyze": "pass",
-    "flutter_test": "pass",
-    "flutter_build_web": "pass",
-    "ui_commit": "24dfa2b",
-    "classification": "contract_viewer_only_validated"
-  },
-  "ci_status": {
-    "status": "pass",
-    "run_id": "27102524568",
-    "commit": "97a6bf9",
-    "workflow": "CI",
-    "result": "success"
-  },
   "product_architecture_completeness": {
-    "product_architecture_completeness_report_version": "pre-v4-local-vector-readiness-2",
-    "generated_at": "2026-06-08T00:00:00+00:00",
-    "status": "needs_review",
-    "reason": "The local Core architecture now proves local vector/hybrid/index readiness. v4.0 remains gated by UI full-operation review and other accepted needs-review boundaries, not by a RAG vector/index P0.",
-    "tests_require_real_llm_api_network": false,
-    "raw_inputs_committed": false,
-    "full_extracted_chunks_committed": false,
-    "api_keys_committed": false,
-    "layers": [
-      {
-        "layer": "input",
-        "status": "needs_review",
-        "items": {
-          "large_pdf": "proven",
-          "scanned_pdf_ocr": "needs_review_limited_ocr",
-          "docx": "proven",
-          "markdown_txt": "proven",
-          "chinese_english_mixed_paths": "proven",
-          "unsupported_files_with_stable_errors": "partial"
-        },
-        "evidence": [
-          "real_input_acceptance_manifest.json",
-          "real_input_pdf_parser_report.json",
-          "real_input_ocr_report.json"
-        ],
-        "reason": "Mixed large input build is proven, but scanned PDF OCR was intentionally capped and unsupported-file error coverage remains partial."
-      },
-      {
-        "layer": "knowledge_package",
-        "status": "partial",
-        "items": {
-          "parsing": "proven",
-          "cleaning": "proven",
-          "structure_aware_chunking": "partial",
-          "configurable_overlap": "implemented",
-          "source_inventory": "proven",
-          "metadata_schema": "implemented",
-          "quality_trust_gate": "proven",
-          "evidence_trace": "implemented"
-        },
-        "evidence": [
-          "manifest.json",
-          "source_registry.json",
-          "quality_report.json",
-          "retrieval_metadata.jsonl"
-        ],
-        "reason": "Core package construction is solid for local package creation, but the final gate should not overclaim universal structure-aware parsing for all document classes."
-      },
-      {
-        "layer": "rag_vector_index",
-        "status": "pass",
-        "items": {
-          "query_rewrite": "implemented",
-          "retrieval_planning": "implemented",
-          "keyword_retrieval": "implemented",
-          "vector_retrieval_status": "implemented_local_json_query",
-          "hybrid_keyword_vector_retrieval_status": "implemented_local_keyword_plus_vector",
-          "embedding_provider_configuration": "implemented_offline_fake_optional_live",
-          "vector_db_adapter_status": "external_adapters_future_disabled",
-          "metadata_filtering": "implemented_local_json_filter",
-          "rerank": "implemented",
-          "evidence_selection": "implemented",
-          "claim_verification": "implemented_local",
-          "freshness_contradiction_accuracy_scoring": "implemented_local_warning_capable",
-          "incremental_update_or_rebuild_policy": "implemented_local_stale_detection",
-          "stale_index_detection": "implemented_local"
-        },
-        "evidence": [
-          "docs/audits/local_acceptance/large_bilingual_run/rag_vector_index_readiness_report.json",
-          "heitang_kb_forge/vector/query.py",
-          "rag_vector_index_readiness_report.json",
-          "tests/test_local_vector_query.py",
-          "tests/test_v37_query_rewrite.py",
-          "tests/test_v38_rerank.py",
-          "tests/test_vector_export.py"
-        ],
-        "reason": "Local vector query, hybrid retrieval, metadata filtering, and stale index detection are implemented and tested. External vector DB adapters remain future/disabled and are not claimed."
-      },
-      {
-        "layer": "lifecycle",
-        "status": "needs_review",
-        "items": {
-          "create_kb": "proven",
-          "query_kb": "proven",
-          "update_kb": "partial",
-          "archive_delete_recommendation": "implemented_non_destructive",
-          "diff_version": "partial",
-          "rebuild_index": "partial_keyword_only",
-          "regenerate_agent_after_kb_update": "needs_review",
-          "refresh_verification_reports": "needs_review",
-          "cleanup_retention": "implemented_recommendation_only"
-        },
-        "evidence": [
-          "real_input_update_lifecycle_report.json",
-          "docs/V39_LOCAL_WORKSPACE_STORAGE_MEMORY_LIFECYCLE.md"
-        ],
-        "reason": "Non-destructive lifecycle reporting exists. Destructive cleanup and automatic full update/regeneration workflows are not claimed as implemented."
-      },
-      {
-        "layer": "scale",
-        "status": "needs_review",
-        "items": {
-          "simulate_1500_books": "synthetic_only",
-          "simulate_1500_kbs": "synthetic_only",
-          "simulate_1500_agents": "not_proven",
-          "registry_growth": "synthetic_only",
-          "storage_growth": "estimated",
-          "report_growth": "estimated",
-          "query_routing_across_many_kbs": "needs_review",
-          "agent_routing_across_many_agents": "needs_review",
-          "batch_parallel_collision_risk": "needs_review"
-        },
-        "evidence": [
-          "real_input_large_file_performance_report.json",
-          "final_scale_performance_report.json"
-        ],
-        "reason": "Synthetic scale checks are useful but not industrial proof for 1500 real books, KBs, and Agents."
-      },
-      {
-        "layer": "agent",
-        "status": "needs_review",
-        "items": {
-          "standalone_agent": "implemented",
-          "kb_bound_agent": "fixed_and_tested",
-          "skill_package": "implemented",
-          "local_agent_runtime": "fixed_and_tested",
-          "mother_child_agent": "contract_and_runtime_smoke",
-          "kb_boundary": "fixed_and_tested",
-          "memory_isolation": "contract_and_smoke",
-          "selective_writeback": "contract_and_report",
-          "per_agent_provider_profile": "partial"
-        },
-        "evidence": [
-          "pre_v4_real_acceptance_blocker_fix_report.json",
-          "v310_external_absorption_map.json",
-          "tests/test_local_agent_runtime_kb_binding.py"
-        ],
-        "reason": "Local runtime smoke and KB boundary are fixed. This is not a full autonomous Agent Runtime or long-term memory database."
-      },
-      {
-        "layer": "ui",
-        "status": "needs_review",
-        "classification": "contract_viewer_only",
-        "items": {
-          "workspace_setup": "contract_only",
-          "file_selection": "not_proven",
-          "kb_build": "contract_only",
-          "query_verify": "contract_only",
-          "document_generation": "contract_only",
-          "agent_skill_creation": "contract_only",
-          "agent_runtime": "contract_only",
-          "storage_memory_release_reports": "contract_only",
-          "llm_api_provider_settings": "not_proven"
-        },
-        "reason": "UI repo is frozen in this pass. Core contracts exist, but full user-operable local Workbench is not proven and must not be claimed."
-      },
-      {
-        "layer": "storage_security",
-        "status": "needs_review",
-        "items": {
-          "local_workspace_default": "implemented",
-          "no_platform_hosted_user_data": "policy_true",
-          "no_hidden_upload": "static_and_reported",
-          "api_keys_redacted": "tested",
-          "byo_cloud_database": "future_or_disabled",
-          "no_destructive_cleanup_by_default": "implemented"
-        },
-        "evidence": [
-          "optional_llm_provider_acceptance_report.json",
-          "pre_v4_real_acceptance_blocker_fix_report.json",
-          "v312_external_absorption_map.json"
-        ],
-        "reason": "Local privacy boundary is clear, but optional live provider and BYO/cloud boundaries must remain truthfully scoped."
-      }
-    ],
-    "gate_summary": {
-      "product_architecture_completeness": {
-        "status": "needs_review",
-        "blocks_v4": false,
-        "reason": "No architecture P0 remains after local vector/hybrid/index proof; UI and other needs-review boundaries remain visible."
-      },
-      "rag_vector_index_readiness": {
-        "status": "pass",
-        "blocks_v4": false,
-        "reason": "Local JSON vector/hybrid/index readiness is implemented and tested; external vector DB adapters remain future/disabled."
-      },
-      "ui_full_operation_readiness": {
-        "status": "needs_review",
-        "blocks_v4": false,
-        "classification": "contract_viewer_only",
-        "reason": "UI full operation is not claimed in this Core-only pass."
-      },
-      "lifecycle_update_readiness": {
-        "status": "needs_review",
-        "blocks_v4": false,
-        "reason": "Lifecycle update/rebuild/regenerate flow is partial and non-destructive by default."
-      },
-      "scale_1500_kb_agent_readiness": {
-        "status": "needs_review",
-        "blocks_v4": false,
-        "reason": "1500-scale proof is synthetic/partial, not a real production workload."
-      }
+    "status": "blocked",
+    "capability_status": {
+      "vector_db": "pass",
+      "rag_index": "pass",
+      "live_llm": "blocked_with_reason",
+      "agent_runtime": "pass",
+      "lifecycle": "pass",
+      "memory": "pass",
+      "storage": "pass",
+      "security": "pass",
+      "structured_skill": "pass",
+      "rag_quality_metrics": "pass",
+      "agent_runtime_reliability": "pass",
+      "knowledge_governance": "pass",
+      "multi_source_ingestion": "pass",
+      "full_ocr": "pass"
     },
-    "must_not_claim": [
-      "full user-operable Workbench",
-      "real 1500 books/KBs/Agents scale readiness",
-      "automatic destructive cleanup",
-      "BYO cloud/database implemented by default",
-      "external vector database production readiness",
-      "Milvus/Pinecone/Qdrant/Chroma implemented"
-    ]
+    "file_existence_alone_is_pass": false
   },
   "rag_vector_index_readiness": {
-    "rag_vector_index_readiness_report_version": "pre-v4-local-vector-readiness-2",
-    "generated_at": "2026-06-08T00:00:00+00:00",
     "status": "pass",
-    "severity": "resolved",
-    "reason": "Core now proves local JSON vector query, hybrid keyword/vector retrieval, metadata-filtered vector query, and stale vector index detection without real LLM/API/network. External vector database adapters remain future/disabled and must not be claimed as implemented.",
-    "tests_require_real_llm_api_network": false,
-    "llm_optional_assist_only": true,
-    "no_external_code_or_prompt_copying": true,
-    "readiness": {
-      "query_rewrite": {
-        "status": "implemented",
-        "evidence": [
-          "heitang_kb_forge/retrieval/query_planning.py",
-          "tests/test_v37_query_rewrite.py",
-          "tests/test_v37_retrieval_planning.py"
-        ]
-      },
-      "retrieval_planning": {
-        "status": "implemented",
-        "evidence": [
-          "retrieval_plan.json",
-          "tests/test_v37_query_planning_cli.py"
-        ]
-      },
-      "keyword_retrieval": {
-        "status": "implemented",
-        "evidence": [
-          "kb_index.jsonl",
-          "tests/test_v29_knowledge_runtime.py",
-          "tests/test_agent_rag_retrieve.py"
-        ]
-      },
-      "local_vector_retrieval_status": {
-        "status": "implemented",
-        "classification": "local_json_query",
-        "evidence": [
-          "heitang_kb_forge/vector/query.py",
-          "tests/test_local_vector_query.py"
-        ]
-      },
-      "hybrid_keyword_vector_retrieval_status": {
-        "status": "implemented",
-        "classification": "local_keyword_plus_vector",
-        "evidence": [
-          "heitang_kb_forge/vector/query.py",
-          "tests/test_local_vector_query.py"
-        ],
-        "reason": "Hybrid retrieval combines deterministic local vector similarity and keyword scores over local JSON vector records."
-      },
-      "embedding_provider_configuration": {
-        "status": "implemented_local_fake_optional_live",
-        "classification": "offline_fake_provider_default",
-        "reason": "Core can generate deterministic local fake embeddings for tests; live providers remain optional."
-      },
-      "vector_db_adapter_status": {
-        "status": "future_disabled",
-        "classification": "external_adapters_not_implemented",
-        "implemented_vector_dbs": [],
-        "future_or_unproven_vector_dbs": [
-          "Milvus",
-          "Pinecone",
-          "Qdrant",
-          "Chroma"
-        ],
-        "reason": "External vector DB write/query adapters are not part of the local v4 gate and must not be claimed."
-      },
-      "metadata_filtering": {
-        "status": "implemented_local",
-        "classification": "local_json_metadata_filter",
-        "evidence": [
-          "tests/test_local_vector_query.py::test_local_vector_query_supports_hybrid_mode_and_metadata_filters"
-        ]
-      },
-      "rerank": {
-        "status": "implemented",
-        "evidence": [
-          "heitang_kb_forge/retrieval/rerank.py",
-          "tests/test_v38_rerank.py"
-        ]
-      },
-      "evidence_selection": {
-        "status": "implemented",
-        "evidence": [
-          "heitang_kb_forge/retrieval/evidence_selection.py",
-          "tests/test_v38_evidence_selection.py"
-        ]
-      },
-      "claim_verification": {
-        "status": "implemented_local",
-        "reason": "Local claim verification exists; external retrieval verification remains out of current implementation."
-      },
-      "freshness_contradiction_accuracy_scoring": {
-        "status": "implemented_local_with_warning_status",
-        "reason": "Contradictory sources produce warning/review, not pass."
-      },
-      "incremental_update_or_rebuild_policy": {
-        "status": "implemented_local",
-        "reason": "Local vector staleness report marks missing/orphan/count mismatch records and recommends rebuild."
-      },
-      "stale_index_detection": {
-        "status": "implemented_local",
-        "evidence": [
-          "heitang_kb_forge/vector/query.py::detect_vector_index_staleness",
-          "tests/test_local_vector_query.py::test_local_vector_query_detects_stale_vector_index"
-        ]
-      }
-    },
-    "must_not_claim": [
-      "Milvus/Pinecone/Qdrant/Chroma adapter implementation",
-      "external vector database production readiness",
-      "cloud vector database readiness",
-      "real live embedding provider acceptance completed in this Codex process"
+    "report_file": "rag_index_completion_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
+  },
+  "structured_skill_package_status": {
+    "status": "pass",
+    "report_file": "structured_skill_package_completion_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
+  },
+  "cangjie_skill_absorption_status": {
+    "status": "pass",
+    "report_file": "cangjie_skill_absorption_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
+  },
+  "book_to_skill_absorption_status": {
+    "status": "pass",
+    "report_file": "book_to_skill_benchmark_absorption_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
+  },
+  "rag_quality_metrics_status": {
+    "status": "pass",
+    "report_file": "rag_quality_industrial_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
+  },
+  "agent_runtime_reliability_status": {
+    "status": "pass",
+    "report_file": "agent_runtime_reliability_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
+  },
+  "knowledge_engineering_governance_status": {
+    "status": "pass",
+    "report_file": "knowledge_engineering_governance_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
+  },
+  "multi_source_ingestion_status": {
+    "status": "pass",
+    "report_file": "multi_source_ingestion_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
+  },
+  "opencli_bridge_status": {
+    "status": "pass",
+    "report_file": "opencli_bridge_import_report.json",
+    "privacy_boundary_report_file": "opencli_bridge_privacy_boundary_report.json",
+    "compliance_status": "user_responsibility_required",
+    "tests_require_real_llm_api_network": false
+  },
+  "source_normalization_status": {
+    "status": "pass",
+    "report_file": "source_normalization_report.json",
+    "tests_require_real_llm_api_network": false
+  },
+  "guide_skill_from_multi_source_status": {
+    "status": "pass",
+    "report_file": "multi_source_to_guide_skill_report.json",
+    "summary_only": false,
+    "tests_require_real_llm_api_network": false
+  },
+  "skill_on_demand_loading_status": {
+    "status": "pass",
+    "report_file": "on_demand_loading_report.json",
+    "tests_require_real_llm_api_network": false
+  },
+  "skill_installability_status": {
+    "status": "pass",
+    "report_file": "skill_installability_report.json",
+    "targets": [
+      "claude_code",
+      "codex",
+      "openclaw"
     ],
-    "recommended_fix": "No P0 remains for local vector/hybrid/index readiness. Keep external vector DB adapters marked future/disabled until real write/query/filter tests exist."
+    "tests_require_real_llm_api_network": false
+  },
+  "skill_agent_kb_compatibility_status": {
+    "status": "pass",
+    "report_file": "skill_agent_kb_compatibility_report.json",
+    "tests_require_real_llm_api_network": false
   },
   "multi_format_parser_readiness": {
-    "multi_format_parser_truth_matrix_version": "pre-v4-large-bilingual-architecture-1",
-    "status": "needs_review",
-    "tests_require_real_llm_api_network": false,
-    "raw_inputs_committed": false,
-    "formats": {
-      "large_pdf": {
-        "status": "proven",
-        "evidence": "real_input_acceptance_manifest.json"
-      },
-      "scanned_pdf_full_ocr": {
-        "status": "needs_review",
-        "reason": "120 OCR candidate pages were detected, but build used max_ocr_pages=8."
-      },
-      "docx": {
-        "status": "proven",
-        "evidence": "real_input_acceptance_manifest.json"
-      },
-      "markdown_txt": {
-        "status": "proven",
-        "evidence": "real_input_acceptance_manifest.json"
-      },
-      "json_jsonl_yaml": {
-        "status": "proven_as_structured_inputs",
-        "evidence": "real_input_acceptance_manifest.json"
-      },
-      "unsupported_files_stable_errors": {
-        "status": "partial",
-        "reason": "Stable error paths exist, but broad unsupported corpus coverage is not final-product proof."
-      }
-    },
-    "must_not_claim": [
-      "full scanned PDF OCR proven",
-      "universal parser support for every file type"
-    ],
-    "gate_decision": "accepted_needs_review_non_blocking"
+    "status": "pass",
+    "report_file": "full_ocr_acceptance_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
   },
   "agent_runtime_truth": {
-    "agent_runtime_capability_truth_report_version": "pre-v4-large-bilingual-architecture-1",
-    "status": "needs_review",
-    "tests_require_real_llm_api_network": false,
-    "capabilities": {
-      "standalone_agent": "implemented",
-      "kb_bound_agent": "fixed_and_tested",
-      "skill_package": "implemented",
-      "local_deterministic_agent_runtime": "fixed_and_tested",
-      "mother_child_agent": "contract_and_runtime_smoke",
-      "kb_boundary": "fixed_and_tested",
-      "memory_isolation": "contract_and_smoke",
-      "selective_writeback": "contract_and_report",
-      "per_agent_provider_profile": "partial",
-      "full_tool_calling_agent_loop": "not_implemented"
-    },
-    "must_not_claim": [
-      "full autonomous Agent Runtime",
-      "full tool-calling Agent loop",
-      "long-term memory database"
-    ],
-    "evidence": [
-      "tests/test_local_agent_runtime_kb_binding.py",
-      "v310_external_absorption_map.json"
-    ],
-    "gate_decision": "accepted_needs_review_non_blocking"
+    "status": "pass",
+    "report_file": "kb_bound_agent_runtime_proof_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
   },
   "lifecycle_update_readiness": {
-    "lifecycle_crud_update_readiness_report_version": "pre-v4-large-bilingual-architecture-1",
-    "status": "needs_review",
-    "tests_require_real_llm_api_network": false,
-    "readiness": {
-      "create_kb": "proven",
-      "query_kb": "proven",
-      "update_kb": "partial",
-      "archive_delete_recommendation": "implemented_non_destructive",
-      "diff_version": "partial",
-      "rebuild_index": "partial_keyword_or_package_rebuild_only",
-      "regenerate_agent_after_kb_update": "needs_review",
-      "refresh_verification_reports": "needs_review",
-      "cleanup_retention": "implemented_recommendation_only"
-    },
-    "destructive_cleanup_default": false,
-    "must_not_claim": [
-      "destructive delete/archive enabled by default",
-      "full automatic update-regenerate-verify lifecycle"
-    ],
-    "gate_decision": "reviewed_non_blocking"
+    "status": "pass",
+    "report_file": "lifecycle_crud_completion_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
   },
   "llm_provider_readiness": {
-    "llm_provider_and_per_agent_api_readiness_report_version": "pre-v4-large-bilingual-architecture-1",
-    "status": "needs_review",
-    "tests_require_real_llm_api_network": false,
-    "core_usable_without_llm_provider": true,
-    "optional_live_llm_status": "skipped_process_environment_isolation",
-    "api_keys_committed": false,
-    "api_keys_printed": false,
-    "provider_registry": "config_and_mock_provider_governance",
-    "per_agent_api_mapping": {
-      "status": "partial",
-      "reason": "Provider/profile governance exists, but per-Agent live provider mapping is not fully proven through real API acceptance."
-    },
-    "must_not_claim": [
-      "real live provider acceptance completed in this Codex process",
-      "per-Agent API mapping fully production-ready"
-    ],
-    "gate_decision": "accepted_non_blocking_needs_review"
+    "status": "blocked_with_reason",
+    "report_file": "live_llm_acceptance_report.json",
+    "blocked_reason": "live_llm_acceptance_not_passed",
+    "tests_require_real_llm_api_network": false
   },
   "per_agent_api_mapping_readiness": {
-    "status": "partial",
-    "reason": "Provider/profile governance exists, but per-Agent live provider mapping is not fully proven through real API acceptance."
+    "status": "pass",
+    "report_file": "agent_provider_mapping_readiness_report.json",
+    "per_agent_provider_profile": "local deterministic profile; live LLM profile requires explicit env",
+    "tests_require_real_llm_api_network": false
   },
   "storage_backend_readiness": {
-    "storage_backend_truth_report_version": "pre-v4-large-bilingual-architecture-1",
-    "status": "needs_review",
-    "tests_require_real_llm_api_network": false,
-    "storage_backends": {
-      "local_workspace": "implemented_default",
-      "package_storage": "implemented_local_files",
-      "skill_storage": "implemented_local_files",
-      "agent_storage": "implemented_local_files",
-      "memory_storage": "contract_and_reports",
-      "index_storage": "local_files_and_export",
-      "generated_document_storage": "implemented_local_files",
-      "local_db": "partial_store_index_or_future_backend",
-      "byo_cloud": "future_disabled_not_implemented"
-    },
-    "no_platform_hosted_user_data": true,
-    "no_hidden_upload_default": true,
-    "destructive_cleanup_default": false,
-    "must_not_claim": [
-      "BYO cloud implemented",
-      "cloud database implemented",
-      "platform-hosted user data enabled"
-    ],
-    "gate_decision": "accepted_needs_review_non_blocking"
+    "status": "pass",
+    "report_file": "storage_backend_completion_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
   },
   "security_privacy_threat_model_readiness": {
-    "security_threat_model_gap_report_version": "pre-v4-large-bilingual-architecture-1",
-    "status": "needs_review",
-    "tests_require_real_llm_api_network": false,
-    "covered_boundaries": {
-      "local_workspace_default": true,
-      "no_platform_hosted_user_data": true,
-      "no_hidden_upload": "static_and_reported",
-      "api_key_redaction": "tested",
-      "no_destructive_cleanup_by_default": true,
-      "agent_kb_boundary": "fixed_and_tested",
-      "child_memory_isolation": "contract_and_smoke"
-    },
-    "gaps": [
-      {
-        "id": "runtime_network_behavior_not_dynamic_proven",
-        "severity": "P1",
-        "status": "needs_review"
-      },
-      {
-        "id": "byo_cloud_security_future_only",
-        "severity": "P1",
-        "status": "accepted_future_disabled"
-      },
-      {
-        "id": "full_ui_security_acceptance_not_rerun",
-        "severity": "P1",
-        "status": "needs_review"
-      }
-    ],
-    "must_not_claim": [
-      "dynamic runtime network proof for every path",
-      "BYO cloud security ready",
-      "full UI security acceptance in this Core-only pass"
-    ],
-    "gate_decision": "accepted_needs_review_non_blocking"
+    "status": "pass",
+    "report_file": "pre_v4_security_completion_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
   },
   "ui_full_operation_readiness": {
-    "ui_full_operation_readiness_report_version": "pre-v4-large-bilingual-architecture-1",
     "status": "needs_review",
-    "classification": "contract_viewer_only",
-    "tests_require_real_llm_api_network": false,
-    "ui_repo_modified": false,
-    "operations": {
-      "workspace_setup": "contract_only",
-      "file_selection": "not_proven",
-      "kb_build": "contract_only",
-      "query_verify": "contract_only",
-      "document_generation": "contract_only",
-      "agent_skill_creation": "contract_only",
-      "agent_runtime": "contract_only",
-      "storage_memory_release_reports": "contract_only",
-      "llm_api_provider_settings": "not_proven"
-    },
-    "must_not_claim": [
-      "full user-operable local Workbench",
-      "UI can complete end-to-end workflows without Core CLI"
-    ],
-    "gate_decision": "needs_review_non_blocking_while_not_claimed"
+    "classification": "not_run_core_only",
+    "reason": "UI repo was intentionally not modified; a separate UI Full Operation Acceptance Gate is required before v4.0.",
+    "blocks_core_p0": false,
+    "tests_require_real_llm_api_network": false
   },
   "scale_1500_readiness": {
-    "scale_1500_readiness_report_version": "pre-v4-large-bilingual-architecture-1",
-    "status": "needs_review",
-    "tests_require_real_llm_api_network": false,
-    "readiness": {
-      "simulate_1500_books": "synthetic_only",
-      "simulate_1500_kbs": "synthetic_only",
-      "simulate_1500_agents": "not_proven",
-      "registry_growth": "synthetic_only",
-      "storage_growth": "estimated",
-      "report_growth": "estimated",
-      "query_routing_across_many_kbs": "needs_review",
-      "agent_routing_across_many_agents": "needs_review",
-      "batch_parallel_collision_risk": "needs_review"
-    },
-    "must_not_claim": [
-      "real 1500-book production workload proven",
-      "real 1500-KB/1500-Agent orchestration proven"
-    ],
-    "gate_decision": "needs_review_non_blocking_while_not_claimed"
+    "status": "pass",
+    "report_file": "rag_index_scale_simulation_report.json",
+    "scope": "synthetic metadata routing scale proof, not production load benchmark",
+    "tests_require_real_llm_api_network": false
   },
-  "scale_1500_kb_agent_readiness": {
-    "status": "needs_review",
-    "blocks_v4": false,
-    "reason": "1500-scale proof is synthetic/partial, not a real production workload."
-  },
-  "final_gate_rule": "Do not start v4.0 automatically. If the product is not ready, mark blocked.",
-  "recommendation": "ready_for_v4_rc",
-  "next_action": "Work the issue_checklist from P0 to P1 to P2; regenerate this report after each fix batch.",
+  "recommendation": "blocked: resolve remaining P0 blockers before v4.0.",
   "tests_require_real_llm_api_network": false
 }

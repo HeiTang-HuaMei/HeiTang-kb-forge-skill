@@ -1,0 +1,30 @@
+{
+  "agent_tool_call_trace_version": "pre-v4-p0-1",
+  "status": "pass",
+  "steps": [
+    {
+      "step": 1,
+      "type": "plan",
+      "status": "pass"
+    },
+    {
+      "step": 2,
+      "type": "tool_call",
+      "tool": "local_kb_retrieval",
+      "status": "pass"
+    },
+    {
+      "step": 3,
+      "type": "observation",
+      "records": 3,
+      "status": "pass"
+    },
+    {
+      "step": 4,
+      "type": "final_answer",
+      "grounded_in_tool_output": true,
+      "status": "pass"
+    }
+  ],
+  "tests_require_real_llm_api_network": false
+}

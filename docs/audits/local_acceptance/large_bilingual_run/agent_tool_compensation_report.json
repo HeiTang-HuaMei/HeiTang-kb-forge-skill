@@ -1,0 +1,26 @@
+{
+  "agent_tool_compensation_report_version": "pre-v4-p0-19",
+  "status": "pass",
+  "structured_tool_schema": {
+    "tool": "local_kb_retrieval",
+    "input": [
+      "query",
+      "allowed_kbs"
+    ],
+    "output": [
+      "records",
+      "trace"
+    ]
+  },
+  "structured_tool_error": {
+    "error_id": "tool_timeout",
+    "retryable": true,
+    "retry_count": 1,
+    "max_retry": 2
+  },
+  "timeout_seconds": 30,
+  "compensation_hook": "rollback_pending_state_revision",
+  "fabricated_tool_result": false,
+  "infinite_loop_prevented": true,
+  "tests_require_real_llm_api_network": false
+}

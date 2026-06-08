@@ -1,0 +1,12 @@
+{
+  "agent_kb_access_control_report_version": "pre-v4-p0-1",
+  "status": "pass",
+  "agent": "local_deterministic_agent",
+  "allowed_kbs": [
+    "core_package"
+  ],
+  "own_kb_access": "allowed",
+  "unauthorized_kb_access": "denied",
+  "runtime_trace_records_allow_deny_reason": true,
+  "tests_require_real_llm_api_network": false
+}

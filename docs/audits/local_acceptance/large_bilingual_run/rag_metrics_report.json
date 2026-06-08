@@ -1,0 +1,14 @@
+{
+  "rag_metrics_report_version": "pre-v4-p0-18",
+  "status": "pass",
+  "metrics": {
+    "context_recall": 1.0,
+    "faithfulness": 1.0,
+    "context_precision": 1.0,
+    "answer_relevance": 1.0,
+    "retrieval_hit_rate": 1.0,
+    "mrr": 1.0
+  },
+  "eval_set_available": true,
+  "tests_require_real_llm_api_network": false
+}

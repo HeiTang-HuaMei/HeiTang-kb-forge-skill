@@ -1,0 +1,66 @@
+# Vector Db Adapter Matrix
+
+- Status: pass
+- Tests require real LLM/API/network: False
+
+```json
+{
+  "vector_db_adapter_matrix_version": "pre-v4-p0-1",
+  "status": "pass",
+  "providers": [
+    {
+      "provider": "chroma",
+      "status": "implemented_needs_live_acceptance",
+      "offline_contract_status": "implemented_offline_contract_tested",
+      "supports_create_open_collection": true,
+      "supports_upsert": true,
+      "supports_query": true,
+      "supports_metadata_filter": true,
+      "supports_delete_update_by_source_or_package": true,
+      "supports_stale_index_detection": true,
+      "live_verified": false,
+      "blocked_reason": "required_env_missing,client_library_missing"
+    },
+    {
+      "provider": "qdrant",
+      "status": "implemented_needs_live_acceptance",
+      "offline_contract_status": "implemented_offline_contract_tested",
+      "supports_create_open_collection": true,
+      "supports_upsert": true,
+      "supports_query": true,
+      "supports_metadata_filter": true,
+      "supports_delete_update_by_source_or_package": true,
+      "supports_stale_index_detection": true,
+      "live_verified": false,
+      "blocked_reason": "required_env_missing,client_library_missing"
+    },
+    {
+      "provider": "milvus",
+      "status": "implemented_needs_live_acceptance",
+      "offline_contract_status": "implemented_offline_contract_tested",
+      "supports_create_open_collection": true,
+      "supports_upsert": true,
+      "supports_query": true,
+      "supports_metadata_filter": true,
+      "supports_delete_update_by_source_or_package": true,
+      "supports_stale_index_detection": true,
+      "live_verified": false,
+      "blocked_reason": "required_env_missing,client_library_missing"
+    },
+    {
+      "provider": "pinecone",
+      "status": "implemented_needs_live_acceptance",
+      "offline_contract_status": "implemented_offline_contract_tested",
+      "supports_create_open_collection": true,
+      "supports_upsert": true,
+      "supports_query": true,
+      "supports_metadata_filter": true,
+      "supports_delete_update_by_source_or_package": true,
+      "supports_stale_index_detection": true,
+      "live_verified": false,
+      "blocked_reason": "required_env_missing,client_library_missing"
+    }
+  ],
+  "tests_require_real_llm_api_network": false
+}
+```

@@ -1,6 +1,6 @@
 {
   "vector_db_completion_report_version": "pre-v4-p0-1",
-  "generated_at": "2026-06-08T02:42:33.341683+00:00",
+  "generated_at": "2026-06-08T06:51:06.721172+00:00",
   "status": "pass",
   "provider_statuses": {
     "chroma": "implemented_needs_live_acceptance",

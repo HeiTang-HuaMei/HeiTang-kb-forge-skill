@@ -1,0 +1,25 @@
+{
+  "query_rewrite_semantic_safety_report_version": "pre-v4-p0-18",
+  "status": "pass",
+  "default_similarity_threshold": 0.8,
+  "safe_rewrite": {
+    "original": "pricing policy",
+    "rewritten": "pricing policy",
+    "similarity": 1.0,
+    "accepted": true
+  },
+  "drift_example": {
+    "original": "pricing policy",
+    "rewritten": "weather forecast unrelated topic",
+    "similarity": 0.0,
+    "accepted": false,
+    "fallback": "pricing policy"
+  },
+  "drift_rejection_reason": "semantic_similarity_below_threshold",
+  "query_variants": [
+    "pricing policy",
+    "pricing price cost",
+    "pricing policy evidence"
+  ],
+  "tests_require_real_llm_api_network": false
+}

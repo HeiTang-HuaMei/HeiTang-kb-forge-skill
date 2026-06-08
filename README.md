@@ -14,10 +14,10 @@ HeiTang KB Forge is an offline-first, local-first knowledge supply-chain Core Sk
 
 Current final gate truth is centralized in [Final Product Architecture Truth](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md).
 
-- Current status: `ready_for_v4_rc`
-- Remaining P0: none
-- Blocking P1: none
-- UI validation has passed for the frozen contract-viewer Workbench scope; v4.0 has still not been started, released, or tagged.
+- Current status: `blocked`
+- Remaining P0: live LLM provider acceptance is blocked by provider HTTP 502 in the latest local proof; Book-to-Skill structured Skill package completion is being added to the same P0 gate.
+- Blocking P1: none currently accepted as blocking Core main-chain work.
+- UI validation must still be handled separately for the frozen Workbench scope; v4.0 has not been started, released, or tagged.
 
 ## Implemented Core Surface
 
@@ -30,6 +30,7 @@ Current final gate truth is centralized in [Final Product Architecture Truth](do
 - v3.10 Local Agent Runtime & Mother/Child Operations: deterministic local runtime smoke, task routing, child KB boundary reports, private/shared memory policy reports, and writeback action contracts.
 - v3.11 Golden Demo Acceptance Smoke: real acceptance smoke command, sample coverage, artifact openability, compatibility, and smoke realism reports.
 - v3.12 Product Hardening & Local Release Readiness: doctor/diagnostics, command/package/workspace audits, stable error taxonomy, troubleshooting, optional dependency diagnostics, privacy boundary, installer readiness, and v4 RC gate reports.
+- Pre-v4 P0-17 Book-to-Skill Structured Skill Package Completion: structured `SKILL.md` packages, on-demand loading manifests, source/evidence maps, token budget reports, installability reports for Claude Code/Codex/OpenClaw, and KB/RAG/Agent compatibility proof.
 - Final pre-v4 audit command: `final-pre-v4-audit`, which is intentionally strict and may mark the product blocked until all P0/P1 evidence is resolved.
 
 ## Still Under Final Audit
@@ -39,7 +40,7 @@ Current final gate truth is centralized in [Final Product Architecture Truth](do
 - Local JSON vector query, hybrid keyword/vector retrieval, metadata filtering, and stale index diagnostics are implemented and tested; external vector databases remain future/disabled.
 - BYO cloud and local database backends are future-compatible contracts only, not implemented default storage.
 - SaaS, multi-user permissions, platform-hosted user data, and cloud sync are out of scope.
-- Real LLM/API/network calls are not required by Core tests and are never default behavior.
+- Real LLM/API/network calls are not required by Core tests and are never default behavior; optional live LLM acceptance remains a P0 gate when explicitly configured.
 - Lifecycle destructive operations remain conservative; cleanup plans are generated, but destructive cleanup is not enabled by default.
 - Industrial-scale readiness is still being audited with explicit P0/P1/P2 findings.
 

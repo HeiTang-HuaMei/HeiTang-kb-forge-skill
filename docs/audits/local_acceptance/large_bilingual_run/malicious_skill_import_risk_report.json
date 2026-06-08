@@ -1,0 +1,11 @@
+{
+  "malicious_skill_import_risk_report_version": "pre-v4-p0-1",
+  "status": "pass",
+  "malicious_skill_import_risks": [
+    "path_traversal",
+    "unsafe_shell",
+    "secret_exfiltration"
+  ],
+  "default_action": "local_static_review_before_import",
+  "tests_require_real_llm_api_network": false
+}

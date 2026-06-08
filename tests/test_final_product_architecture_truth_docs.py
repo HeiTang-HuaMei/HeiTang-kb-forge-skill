@@ -9,7 +9,9 @@ def test_final_product_architecture_truth_docs_are_bilingual_and_auditable():
     chinese = (ROOT / "docs" / "FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md").read_text(encoding="utf-8")
 
     for text in [english, chinese]:
-        assert "Remaining P0: none" in text or "剩余 P0：无" in text
+        assert "Remaining P0:" in text or "剩余 P0：" in text
+        assert "live LLM provider acceptance" in text or "live LLM provider acceptance" in text
+        assert "provider HTTP 502" in text
         assert "Blocking P1: none" in text or "阻断 P1：无" in text
         assert "Ready for v4 RC" in text or "是否可进入 v4 RC" in text
         assert "final_v4_rc_gate_report.json" in text
@@ -37,6 +39,7 @@ def test_readmes_link_to_final_product_truth_and_show_current_blockers():
     assert "docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md" in english
     assert "docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md" in chinese
     for text in [english, chinese]:
-        assert "Remaining P0: none" in text or "剩余 P0：无" in text
-        assert "Blocking P1: none" in text or "阻断 P1：无" in text
-        assert "`ready_for_v4_rc`" in text
+        assert "Remaining P0:" in text or "剩余 P0：" in text
+        assert "live LLM provider acceptance" in text
+        assert "blocked" in text
+        assert "`ready_for_v4_rc`" not in text or "Final pre-v4 audit" in text

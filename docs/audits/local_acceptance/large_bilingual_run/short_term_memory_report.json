@@ -1,0 +1,8 @@
+{
+  "short_term_memory_report_version": "pre-v4-p0-1",
+  "status": "pass",
+  "session_memory_interface": "local_file",
+  "local_file_fallback": true,
+  "records_written": 2,
+  "tests_require_real_llm_api_network": false
+}

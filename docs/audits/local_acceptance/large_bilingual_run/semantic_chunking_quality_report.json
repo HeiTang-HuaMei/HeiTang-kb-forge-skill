@@ -1,0 +1,18 @@
+{
+  "semantic_chunking_quality_report_version": "pre-v4-p0-18",
+  "status": "pass",
+  "chunk_count": 9599,
+  "avg_chunk_chars": 921.92,
+  "target_chunk_chars": 800,
+  "overlap_chars": 120,
+  "overlap_ratio": 0.15,
+  "observed_overlap_ratio": 0.1302,
+  "observed_overlap_ratio_note": "small fixtures can exceed policy ratio because their sample text is shorter than configured target chunks",
+  "semantic_boundary_preservation": 1.0,
+  "fixed_token_baseline": {
+    "strategy": "fixed_token",
+    "semantic_boundary_preservation": 0.5
+  },
+  "semantic_aware_chunking": true,
+  "tests_require_real_llm_api_network": false
+}

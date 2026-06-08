@@ -1,8 +1,8 @@
 # UI Full Operation Readiness Report
 
 - Status: blocked
-- Classification: contract_viewer_only
-- UI repo modified: false
+- Classification: partial_desktop_core_bridge_contract
 - Flutter analyze/test/build: pass
+- Core bridge tests: pass
 
-The UI line validates as a mock/contract viewer, but full local Workbench operation is not implemented. Do not claim workspace setup, file selection, KB build, query/verify, document generation, Agent/Skill creation, Agent runtime, storage/memory/release reports, or provider settings end to end.
+A safe desktop Core CLI bridge contract exists, but page workflows are not wired end to end. Do not claim full user-operable local Workbench before wiring and validating those flows.

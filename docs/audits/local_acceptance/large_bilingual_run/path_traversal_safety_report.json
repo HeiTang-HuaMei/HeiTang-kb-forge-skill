@@ -1,0 +1,15 @@
+{
+  "path_traversal_safety_report_version": "pre-v4-p0-1",
+  "status": "pass",
+  "checks": [
+    {
+      "name": "workspace_relative_paths",
+      "status": "pass"
+    },
+    {
+      "name": "no_unsafe_parent_write",
+      "status": "pass"
+    }
+  ],
+  "tests_require_real_llm_api_network": false
+}

@@ -1,0 +1,16 @@
+{
+  "incremental_index_update_report_version": "pre-v4-p0-1",
+  "status": "pass",
+  "new_changed_deleted_source_detection": true,
+  "hash_mtime_detection": true,
+  "local_incremental_update": true,
+  "delete_archive_truthful": "recommendation_only_non_destructive",
+  "files": [
+    "new_sources.jsonl",
+    "changed_sources.jsonl",
+    "missing_sources.jsonl",
+    "stale_chunks.jsonl",
+    "source_registry.json"
+  ],
+  "tests_require_real_llm_api_network": false
+}

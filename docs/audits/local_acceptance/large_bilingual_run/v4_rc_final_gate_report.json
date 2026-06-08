@@ -1,33 +1,31 @@
 {
   "final_gate_version": "pre-v4-p0-1",
-  "generated_at": "2026-06-08T02:58:42.411546+00:00",
-  "overall_status": "ready_for_v4_rc",
-  "ready_for_v4_rc": true,
-  "p0_blockers": [],
-  "p1_blockers": [],
-  "p1_needs_review": [
+  "generated_at": "2026-06-08T07:25:39.461708+00:00",
+  "overall_status": "blocked",
+  "ready_for_v4_rc": false,
+  "p0_blockers": [
     {
-      "id": "live_llm_needs_live_acceptance_review",
-      "severity": "P1",
+      "id": "live_llm_p0_blocker",
+      "severity": "P0",
       "status": "blocked_with_reason",
-      "reason": "required_env_missing_or_process_environment_not_inherited",
-      "blocks_core_main_chain": false,
-      "blocks_v4": false
+      "reason": "live_llm_acceptance_not_passed",
+      "blocks_v4": true
     }
   ],
+  "p1_blockers": [],
+  "p1_needs_review": [],
   "p2_issues": [],
   "issue_checklist": [
     {
-      "id": "live_llm_needs_live_acceptance_review",
-      "severity": "P1",
+      "id": "live_llm_p0_blocker",
+      "severity": "P0",
       "status": "blocked_with_reason",
-      "reason": "required_env_missing_or_process_environment_not_inherited",
-      "blocks_core_main_chain": false,
-      "blocks_v4": false
+      "reason": "live_llm_acceptance_not_passed",
+      "blocks_v4": true
     }
   ],
   "product_architecture_completeness": {
-    "status": "pass",
+    "status": "blocked",
     "capability_status": {
       "vector_db": "pass",
       "rag_index": "pass",
@@ -37,6 +35,11 @@
       "memory": "pass",
       "storage": "pass",
       "security": "pass",
+      "structured_skill": "pass",
+      "rag_quality_metrics": "pass",
+      "agent_runtime_reliability": "pass",
+      "knowledge_governance": "pass",
+      "multi_source_ingestion": "pass",
       "full_ocr": "pass"
     },
     "file_existence_alone_is_pass": false
@@ -45,6 +48,86 @@
     "status": "pass",
     "report_file": "rag_index_completion_report.json",
     "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
+  },
+  "structured_skill_package_status": {
+    "status": "pass",
+    "report_file": "structured_skill_package_completion_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
+  },
+  "cangjie_skill_absorption_status": {
+    "status": "pass",
+    "report_file": "cangjie_skill_absorption_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
+  },
+  "book_to_skill_absorption_status": {
+    "status": "pass",
+    "report_file": "book_to_skill_benchmark_absorption_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
+  },
+  "rag_quality_metrics_status": {
+    "status": "pass",
+    "report_file": "rag_quality_industrial_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
+  },
+  "agent_runtime_reliability_status": {
+    "status": "pass",
+    "report_file": "agent_runtime_reliability_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
+  },
+  "knowledge_engineering_governance_status": {
+    "status": "pass",
+    "report_file": "knowledge_engineering_governance_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
+  },
+  "multi_source_ingestion_status": {
+    "status": "pass",
+    "report_file": "multi_source_ingestion_report.json",
+    "blocked_reason": "",
+    "tests_require_real_llm_api_network": false
+  },
+  "opencli_bridge_status": {
+    "status": "pass",
+    "report_file": "opencli_bridge_import_report.json",
+    "privacy_boundary_report_file": "opencli_bridge_privacy_boundary_report.json",
+    "compliance_status": "user_responsibility_required",
+    "tests_require_real_llm_api_network": false
+  },
+  "source_normalization_status": {
+    "status": "pass",
+    "report_file": "source_normalization_report.json",
+    "tests_require_real_llm_api_network": false
+  },
+  "guide_skill_from_multi_source_status": {
+    "status": "pass",
+    "report_file": "multi_source_to_guide_skill_report.json",
+    "summary_only": false,
+    "tests_require_real_llm_api_network": false
+  },
+  "skill_on_demand_loading_status": {
+    "status": "pass",
+    "report_file": "on_demand_loading_report.json",
+    "tests_require_real_llm_api_network": false
+  },
+  "skill_installability_status": {
+    "status": "pass",
+    "report_file": "skill_installability_report.json",
+    "targets": [
+      "claude_code",
+      "codex",
+      "openclaw"
+    ],
+    "tests_require_real_llm_api_network": false
+  },
+  "skill_agent_kb_compatibility_status": {
+    "status": "pass",
+    "report_file": "skill_agent_kb_compatibility_report.json",
     "tests_require_real_llm_api_network": false
   },
   "multi_format_parser_readiness": {
@@ -68,7 +151,7 @@
   "llm_provider_readiness": {
     "status": "blocked_with_reason",
     "report_file": "live_llm_acceptance_report.json",
-    "blocked_reason": "required_env_missing_or_process_environment_not_inherited",
+    "blocked_reason": "live_llm_acceptance_not_passed",
     "tests_require_real_llm_api_network": false
   },
   "per_agent_api_mapping_readiness": {
@@ -102,6 +185,6 @@
     "scope": "synthetic metadata routing scale proof, not production load benchmark",
     "tests_require_real_llm_api_network": false
   },
-  "recommendation": "ready_for_v4_rc_with_non_blocking_live_llm_review",
+  "recommendation": "blocked: resolve remaining P0 blockers before v4.0.",
   "tests_require_real_llm_api_network": false
 }

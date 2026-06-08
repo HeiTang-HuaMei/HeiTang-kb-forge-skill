@@ -14,10 +14,10 @@ HeiTang KB Forge 是一个 offline-first、local-first 知识供应链 Core Skil
 
 当前最终门禁真值集中在 [最终产品架构真值](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md)。
 
-- 当前状态：`ready_for_v4_rc`
-- 剩余 P0：无
-- 阻断 P1：无
-- 冻结的 contract-viewer Workbench 范围已通过 UI validation；v4.0 仍未开始、未发布、未打 tag。
+- 当前状态：`blocked`
+- 剩余 P0：最新本地证明中 live LLM provider acceptance 被 provider HTTP 502 阻断；Book-to-Skill 结构化 Skill package completion 正在加入同一个 P0 门禁。
+- 阻断 P1：当前没有被接受为阻断 Core 主链的 P1。
+- UI validation 仍需要按冻结 Workbench 范围单独处理；v4.0 仍未开始、未发布、未打 tag。
 
 ## 已实现 Core 表面
 
@@ -30,6 +30,7 @@ HeiTang KB Forge 是一个 offline-first、local-first 知识供应链 Core Skil
 - v3.10 Local Agent Runtime & Mother/Child Operations：确定性本地 runtime smoke、task routing、child KB boundary reports、private/shared memory policy reports 和 writeback action contracts。
 - v3.11 Golden Demo Acceptance Smoke：real acceptance smoke command、sample coverage、artifact openability、compatibility 和 smoke realism reports。
 - v3.12 Product Hardening & Local Release Readiness：doctor/diagnostics、command/package/workspace audits、stable error taxonomy、troubleshooting、optional dependency diagnostics、privacy boundary、installer readiness 和 v4 RC gate reports。
+- Pre-v4 P0-17 Book-to-Skill Structured Skill Package Completion：结构化 `SKILL.md` package、on-demand loading manifest、source/evidence map、token budget report、Claude Code/Codex/OpenClaw installability report，以及 KB/RAG/Agent compatibility proof。
 - 最终 pre-v4 审计命令：`final-pre-v4-audit`。该命令故意严格，如果 P0/P1 证据没有解决，会把产品标记为 blocked。
 
 ## 仍在最终审计中的内容
@@ -39,7 +40,7 @@ HeiTang KB Forge 是一个 offline-first、local-first 知识供应链 Core Skil
 - 本地 JSON vector query、hybrid keyword/vector retrieval、metadata filtering 和 stale index diagnostics 已实现并测试；外部 vector database 仍是 future/disabled。
 - BYO cloud 与 local database backend 目前只是 future-compatible contracts，不是已实现默认 storage。
 - SaaS、多用户权限、platform-hosted user data、cloud sync 均不在当前范围内。
-- Core 测试不需要真实 LLM/API/network 调用，这些也不是默认行为。
+- Core 测试不需要真实 LLM/API/network 调用，这些也不是默认行为；显式配置后的 live LLM acceptance 仍是独立 P0 门禁。
 - 生命周期 destructive 操作保持保守：会生成 cleanup plan，但默认不会执行破坏性清理。
 - 工业级规模就绪仍在按 P0/P1/P2 明确审计。
 

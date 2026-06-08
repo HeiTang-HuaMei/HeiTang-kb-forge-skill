@@ -1,0 +1,7 @@
+{
+  "long_term_memory_summary_report_version": "pre-v4-p0-1",
+  "status": "pass",
+  "summary_memory": "Local-first KB acceptance requires no hidden upload, optional LLM, scoped Agent KB access, and lifecycle proof.",
+  "source_session_count": 2,
+  "tests_require_real_llm_api_network": false
+}

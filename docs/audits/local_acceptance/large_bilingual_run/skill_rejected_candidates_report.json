@@ -1,0 +1,24 @@
+{
+  "skill_rejected_candidates_report_version": "pre-v4-p0-17",
+  "status": "pass",
+  "rejected_count": 2,
+  "rejected_candidates": [
+    {
+      "candidate_id": "rejected_common_sense_advice",
+      "status": "rejected",
+      "reason": "non_commonsense_uniqueness_check_failed",
+      "details": "Generic advice without package-specific evidence is not promoted into a Skill.",
+      "evidence_count": 9599,
+      "tests_require_real_llm_api_network": false
+    },
+    {
+      "candidate_id": "rejected_full_source_loader",
+      "status": "rejected",
+      "reason": "token_budget_and_privacy_boundary_failed",
+      "details": "A Skill that loads all source chunks by default would violate on-demand loading and privacy policy.",
+      "source_chunk_count": 9599,
+      "tests_require_real_llm_api_network": false
+    }
+  ],
+  "tests_require_real_llm_api_network": false
+}

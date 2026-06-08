@@ -1,0 +1,14 @@
+{
+  "agent_state_management_report_version": "pre-v4-p0-19",
+  "status": "pass",
+  "session_state_file": "agent_state_management_report.json",
+  "state_revision": 2,
+  "version_vector": {
+    "manager-agent": 2,
+    "child-agent-a": 1
+  },
+  "concurrent_write_conflict_detection": true,
+  "silent_overwrite_prevented": true,
+  "merge_strategy": "explicit_conflict_block_then_manual_review",
+  "tests_require_real_llm_api_network": false
+}

@@ -1,0 +1,13 @@
+{
+  "skill_update_merge_report_version": "pre-v4-p0-17",
+  "status": "pass",
+  "create_new_skill": true,
+  "update_existing_requested": false,
+  "diff_old_new_skill_supported": true,
+  "preserve_manual_custom_notes_requested": false,
+  "manual_custom_notes_preserved": false,
+  "manual_edit_preservation_scope": "not_applied_or_not_available",
+  "stale_skill_detection": "supported_by_diff_skill_package",
+  "versioned_skill_manifest": true,
+  "tests_require_real_llm_api_network": false
+}

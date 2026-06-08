@@ -1,0 +1,8 @@
+{
+  "memory_isolation_runtime_report_version": "pre-v4-p0-1",
+  "status": "pass",
+  "child_private_memory_boundary": true,
+  "explicit_shared_memory_only": true,
+  "parent_writeback_candidate_report": true,
+  "tests_require_real_llm_api_network": false
+}
