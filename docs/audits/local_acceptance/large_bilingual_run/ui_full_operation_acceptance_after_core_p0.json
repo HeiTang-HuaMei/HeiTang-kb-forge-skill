@@ -1,0 +1,58 @@
+{
+  "ui_full_operation_acceptance_after_core_p0_version": "pre-v4-ui-gate-1",
+  "generated_at": "2026-06-08T03:19:36.058623+00:00",
+  "status": "blocked",
+  "classification": "contract_viewer_only",
+  "ui_repo": "../kb-forge-skill-ui",
+  "ui_branch": "feature/workbench-ui-prototype",
+  "ui_commit": "24dfa2b",
+  "ui_repo_modified": false,
+  "validation": {
+    "flutter_analyze": "pass",
+    "flutter_test": "pass",
+    "flutter_build_web": "pass",
+    "flutter_build_windows": "pass",
+    "ui_contract_tests": "pass"
+  },
+  "validated_commands": [
+    "flutter analyze",
+    "flutter test -r expanded",
+    "flutter build web",
+    "flutter build windows",
+    "python -m pytest tests/test_workbench_ui_contract.py tests/test_workbench_ui_routes.py tests/test_workbench_ui_mock_data.py tests/test_workbench_ui_theme_i18n.py tests/test_workbench_ui_mobile.py"
+  ],
+  "operations": {
+    "workspace_setup": "contract_only",
+    "file_selection": "not_implemented",
+    "kb_build": "contract_only_no_core_execution",
+    "query_verify": "contract_only_no_core_execution",
+    "document_generation": "contract_only_no_core_execution",
+    "agent_skill_creation": "contract_only_no_core_execution",
+    "agent_runtime": "contract_only_no_core_execution",
+    "storage_memory_release_reports": "contract_only",
+    "llm_api_provider_settings": "not_implemented"
+  },
+  "evidence": {
+    "scope_contract": "web/workbench/contracts.json scope=mock-only",
+    "flutter_entrypoint": "web/workbench/flutter_app/lib/main.dart uses sampleWorkbenchContracts",
+    "mock_boundary": "web/workbench/src/mockService.js only loads examples/ui_mock_data"
+  },
+  "p0_blockers": [],
+  "p1_blockers": [
+    {
+      "id": "ui_full_operation_not_implemented",
+      "severity": "P1",
+      "status": "blocked",
+      "reason": "UI validates and builds, but it is explicitly mock-only and cannot operate workspace setup, file selection, KB build, query/verify, document generation, Agent runtime, storage/memory reports, or provider settings end to end.",
+      "blocks_v4_if_v4_is_local_workbench_rc": true
+    }
+  ],
+  "must_not_claim": [
+    "full user-operable local Workbench",
+    "UI can execute Core workflows end to end",
+    "UI can configure live provider/API settings",
+    "UI can build or query a real KB without CLI/manual Core path"
+  ],
+  "recommended_fix_before_v4": "Implement a real local operation bridge or explicitly redefine v4.0 as contract-viewer RC. Until then, do not claim full Local Knowledge Workbench RC.",
+  "tests_require_real_llm_api_network": false
+}

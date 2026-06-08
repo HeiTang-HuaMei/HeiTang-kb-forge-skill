@@ -1,6 +1,6 @@
 {
   "ui_full_operation_readiness_report_version": "pre-v4-large-bilingual-architecture-1",
-  "status": "needs_review",
+  "status": "blocked",
   "classification": "contract_viewer_only",
   "tests_require_real_llm_api_network": false,
   "ui_repo_modified": false,
@@ -15,6 +15,26 @@
     "storage_memory_release_reports": "contract_only",
     "llm_api_provider_settings": "not_proven"
   },
-  "must_not_claim": ["full user-operable local Workbench", "UI can complete end-to-end workflows without Core CLI"],
-  "gate_decision": "needs_review_non_blocking_while_not_claimed"
+  "must_not_claim": [
+    "full user-operable local Workbench",
+    "UI can complete end-to-end workflows without Core CLI"
+  ],
+  "gate_decision": "blocks_v4_if_v4_is_local_workbench_rc",
+  "validation": {
+    "flutter_analyze": "pass",
+    "flutter_test": "pass",
+    "flutter_build_web": "pass",
+    "flutter_build_windows": "pass",
+    "ui_contract_tests": "pass"
+  },
+  "p1_blockers": [
+    {
+      "id": "ui_full_operation_not_implemented",
+      "severity": "P1",
+      "status": "blocked",
+      "reason": "UI validates and builds, but it is explicitly mock-only and cannot operate workspace setup, file selection, KB build, query/verify, document generation, Agent runtime, storage/memory reports, or provider settings end to end.",
+      "blocks_v4_if_v4_is_local_workbench_rc": true
+    }
+  ],
+  "recommended_fix_before_v4": "Implement a real local operation bridge or explicitly redefine v4.0 as contract-viewer RC. Until then, do not claim full Local Knowledge Workbench RC."
 }
