@@ -1,6 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'core_actions/core_action_panel.dart';
+import 'core_actions/page_action_mapping.dart';
+import 'core_actions/workbench_actions.dart';
+import 'core_bridge/local_core_bridge.dart';
 import 'contracts/workbench_contracts.dart';
 
 void main() {
@@ -60,9 +65,24 @@ class WorkbenchPage {
 }
 
 class HeiTangWorkbenchApp extends StatefulWidget {
-  const HeiTangWorkbenchApp({super.key, this.contracts});
+  const HeiTangWorkbenchApp({
+    super.key,
+    this.contracts,
+    this.coreBridge = const LocalCoreBridge(),
+    this.coreCli = 'heitang-kb-forge',
+    this.coreWorkingDirectory = '.',
+    this.coreWorkspace = '.',
+    this.enableLocalCoreActions = true,
+    this.isWebRuntime = kIsWeb,
+  });
 
   final WorkbenchContracts? contracts;
+  final LocalCoreBridge coreBridge;
+  final String coreCli;
+  final String coreWorkingDirectory;
+  final String coreWorkspace;
+  final bool enableLocalCoreActions;
+  final bool isWebRuntime;
 
   @override
   State<HeiTangWorkbenchApp> createState() => _HeiTangWorkbenchAppState();
@@ -126,12 +146,24 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
               localeCode: localeCode,
               contracts: contracts,
               selectedIndex: selectedIndex,
+              coreBridge: widget.coreBridge,
+              coreCli: widget.coreCli,
+              coreWorkingDirectory: widget.coreWorkingDirectory,
+              coreWorkspace: widget.coreWorkspace,
+              enableLocalCoreActions: widget.enableLocalCoreActions,
+              isWebRuntime: widget.isWebRuntime,
               onPageChanged: (index) => setState(() => selectedIndex = index),
             ) : _DesktopWorkbench(
               localeCode: localeCode,
               contracts: contracts,
               selectedIndex: selectedIndex,
               isTablet: isTablet,
+              coreBridge: widget.coreBridge,
+              coreCli: widget.coreCli,
+              coreWorkingDirectory: widget.coreWorkingDirectory,
+              coreWorkspace: widget.coreWorkspace,
+              enableLocalCoreActions: widget.enableLocalCoreActions,
+              isWebRuntime: widget.isWebRuntime,
               onPageChanged: (index) => setState(() => selectedIndex = index),
             ),
           );
@@ -225,6 +257,12 @@ class _DesktopWorkbench extends StatelessWidget {
     required this.contracts,
     required this.selectedIndex,
     required this.isTablet,
+    required this.coreBridge,
+    required this.coreCli,
+    required this.coreWorkingDirectory,
+    required this.coreWorkspace,
+    required this.enableLocalCoreActions,
+    required this.isWebRuntime,
     required this.onPageChanged,
   });
 
@@ -232,6 +270,12 @@ class _DesktopWorkbench extends StatelessWidget {
   final WorkbenchContracts contracts;
   final int selectedIndex;
   final bool isTablet;
+  final LocalCoreBridge coreBridge;
+  final String coreCli;
+  final String coreWorkingDirectory;
+  final String coreWorkspace;
+  final bool enableLocalCoreActions;
+  final bool isWebRuntime;
   final ValueChanged<int> onPageChanged;
 
   @override
@@ -256,6 +300,12 @@ class _DesktopWorkbench extends StatelessWidget {
             localeCode: localeCode,
             contracts: contracts,
             columns: isTablet ? 2 : 3,
+            coreBridge: coreBridge,
+            coreCli: coreCli,
+            coreWorkingDirectory: coreWorkingDirectory,
+            coreWorkspace: coreWorkspace,
+            enableLocalCoreActions: enableLocalCoreActions,
+            isWebRuntime: isWebRuntime,
           ),
         ),
       ],
@@ -316,12 +366,24 @@ class _PhoneWorkbench extends StatelessWidget {
     required this.localeCode,
     required this.contracts,
     required this.selectedIndex,
+    required this.coreBridge,
+    required this.coreCli,
+    required this.coreWorkingDirectory,
+    required this.coreWorkspace,
+    required this.enableLocalCoreActions,
+    required this.isWebRuntime,
     required this.onPageChanged,
   });
 
   final String localeCode;
   final WorkbenchContracts contracts;
   final int selectedIndex;
+  final LocalCoreBridge coreBridge;
+  final String coreCli;
+  final String coreWorkingDirectory;
+  final String coreWorkspace;
+  final bool enableLocalCoreActions;
+  final bool isWebRuntime;
   final ValueChanged<int> onPageChanged;
 
   @override
@@ -351,23 +413,74 @@ class _PhoneWorkbench extends StatelessWidget {
             },
           ),
         ),
-        Expanded(child: _PageSurface(page: pages[selectedIndex], localeCode: localeCode, contracts: contracts, columns: 1)),
+        Expanded(
+          child: _PageSurface(
+            page: pages[selectedIndex],
+            localeCode: localeCode,
+            contracts: contracts,
+            columns: 1,
+            coreBridge: coreBridge,
+            coreCli: coreCli,
+            coreWorkingDirectory: coreWorkingDirectory,
+            coreWorkspace: coreWorkspace,
+            enableLocalCoreActions: enableLocalCoreActions,
+            isWebRuntime: isWebRuntime,
+          ),
+        ),
       ],
     );
   }
 }
 
 class _PageSurface extends StatelessWidget {
-  const _PageSurface({required this.page, required this.localeCode, required this.contracts, required this.columns});
+  const _PageSurface({
+    required this.page,
+    required this.localeCode,
+    required this.contracts,
+    required this.columns,
+    required this.coreBridge,
+    required this.coreCli,
+    required this.coreWorkingDirectory,
+    required this.coreWorkspace,
+    required this.enableLocalCoreActions,
+    required this.isWebRuntime,
+  });
 
   final WorkbenchPage page;
   final String localeCode;
   final WorkbenchContracts contracts;
   final int columns;
+  final LocalCoreBridge coreBridge;
+  final String coreCli;
+  final String coreWorkingDirectory;
+  final String coreWorkspace;
+  final bool enableLocalCoreActions;
+  final bool isWebRuntime;
 
   @override
   Widget build(BuildContext context) {
     final cards = _cardsFor(page.id, localeCode, contracts);
+    final corePanels = <Widget>[];
+    for (final action in coreActionsForPage(page.id, contracts)) {
+      final request = coreRequestForAction(
+        action: action,
+        coreCli: coreCli,
+        workingDirectory: coreWorkingDirectory,
+        workspace: coreWorkspace,
+      );
+      if (request != null) {
+        corePanels.add(
+          CoreActionPanel(
+            action: action,
+            request: request,
+            coreBridge: coreBridge,
+            isWebRuntime: isWebRuntime,
+            enabled: enableLocalCoreActions,
+            localeCode: localeCode,
+          ),
+        );
+      }
+    }
 
     return SingleChildScrollView(
       padding: EdgeInsets.all(columns == 1 ? 14 : 24),
@@ -394,6 +507,15 @@ class _PageSurface extends StatelessWidget {
               localeCode: localeCode,
             ),
           ),
+          if (corePanels.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            Text('Core Bridge', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 12),
+            for (var index = 0; index < corePanels.length; index++) ...[
+              if (index > 0) const SizedBox(height: 12),
+              corePanels[index],
+            ],
+          ],
         ],
       ),
     );

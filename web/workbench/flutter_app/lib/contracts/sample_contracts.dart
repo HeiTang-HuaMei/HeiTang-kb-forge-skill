@@ -45,11 +45,13 @@ final WorkbenchContracts sampleWorkbenchContracts = const WorkbenchContractLoade
     'actions': {
       'actions': [
         {'id': 'build_package', 'label': 'Build Package', 'command': 'build', 'requires': ['input', 'output']},
+        {'id': 'kb_query', 'label': 'Query / Verify KB', 'command': 'kb-answer', 'requires': ['package', 'query', 'output']},
         {'id': 'generate_documents', 'label': 'Generate Documents', 'command': 'generate-documents', 'requires': ['package', 'output']},
         {'id': 'create_standalone_agent', 'label': 'Create Standalone Agent', 'command': 'generate-agent --mode standalone', 'requires': ['output']},
         {'id': 'create_kb_bound_agent', 'label': 'Create KB-bound Agent', 'command': 'generate-agent --mode kb_bound', 'requires': ['package', 'skill', 'output']},
         {'id': 'configure_agent_hierarchy', 'label': 'Configure Agent Hierarchy', 'command': 'orchestrate-multi-kb --mother-agent', 'requires': ['mother_agent', 'child_agents']},
         {'id': 'queue_memory_writeback', 'label': 'Queue Memory Writeback', 'command': 'orchestrate-multi-kb --parent-writeback', 'requires': ['child_agent', 'candidate']},
+        {'id': 'run_agent', 'label': 'Run Local Agent', 'command': 'run-local-agent', 'requires': ['package', 'agent', 'task', 'output']},
         {'id': 'inspect_storage_status', 'label': 'Inspect Storage Status', 'command': 'workbench-contracts', 'requires': ['core_output']},
       ],
     },
