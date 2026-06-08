@@ -1,6 +1,6 @@
 {
   "version": "UI-v0.5-prototype",
-  "scope": "mock-only",
+  "scope": "mock-plus-desktop-core-bridge-contract",
   "allowed_paths": [
     "web/workbench/",
     "examples/ui_mock_data/",
@@ -74,9 +74,27 @@
     "static_web_manifest": "web/workbench/manifest.webmanifest",
     "flutter_web_manifest": "web/workbench/flutter_app/web/manifest.json"
   },
+  "local_core_bridge": {
+    "status": "bridge_contract_tested",
+    "desktop_runtime": "allowlisted_core_cli_process_bridge",
+    "web_runtime": "unsupported_for_local_cli_execution",
+    "implementation": "web/workbench/flutter_app/lib/core_bridge/local_core_bridge.dart",
+    "tests": ["web/workbench/flutter_app/test/core_bridge_test.dart"],
+    "security": {
+      "run_in_shell": false,
+      "allowlisted_actions_only": true,
+      "rejects_shell_metacharacters": true,
+      "rejects_secret_environment": true,
+      "redacts_secret_like_output": true
+    },
+    "desktop_bridge_only": true,
+    "not_full_operation_yet": true,
+    "not_v4_0_workbench_rc": true
+  },
   "future_api": {
     "boundary": "Replace web/workbench/src/mockService.js fetch functions with Core API calls later.",
     "reserved_resources": ["knowledgeBases", "agents", "workflows", "memoryScopes", "jobs", "reviewItems", "generatedDocs", "exportItems", "providers", "parserBackends", "answerPolicies", "memoryPolicies"],
-    "no_backend_logic": true
+    "no_backend_logic": false,
+    "current_backend_logic": "desktop local Core CLI bridge contract only; page workflows are not wired end to end yet"
   }
 }
