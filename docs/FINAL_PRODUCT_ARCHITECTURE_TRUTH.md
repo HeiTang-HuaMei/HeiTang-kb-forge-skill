@@ -1,16 +1,17 @@
 # Final Product Architecture Truth
 
-This document is the short, human-readable truth surface for the current pre-v4.0 Core state. It summarizes what is implemented, partial, future-only, or blocking. Machine-readable evidence remains in `final_v4_rc_gate_report.json` and `docs/audits/local_acceptance/large_bilingual_run/`.
+This document is the short, human-readable truth surface for the current pre-v4.0 Core state. It summarizes what is implemented, partial, future-only, or blocking. Machine-readable evidence remains in `docs/audits/local_acceptance/large_bilingual_run/` for historical large-file acceptance and `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/` for the latest Core P0 after-live-LLM proof.
 
 ## Current Gate
 
-- Overall status: blocked
-- Ready for v4 RC: false
-- Remaining P0: live LLM provider acceptance is blocked by provider HTTP 502 in the latest local proof; P0-17 structured Book-to-Skill package completion is being added to the same gate.
+- Latest Core P0 gate: ready_for_v4_rc
+- Latest Core P0 proof: `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/final_v4_rc_gate_report.json`
+- Remaining Core P0: none in the latest pre-v4 P0 proof.
 - Blocking P1: none
-- CI: pending for the current dirty Core worktree
-- Full local pytest: pending after the current P0-17 pass
+- CI: green for the latest Core commit containing the after-live-LLM proof.
+- Full local pytest: passed for the latest Core provider-profile and P0 gate work.
 - UI validation: separate gate required before v4.0
+- Historical note: `docs/audits/local_acceptance/large_bilingual_run/` preserves the earlier large-file run where live LLM was still blocked. It must not be used as the latest live-LLM P0 conclusion.
 
 ## Architecture Truth Matrix
 
@@ -22,7 +23,7 @@ This document is the short, human-readable truth surface for the current pre-v4.
 | RAG vector/hybrid/index | Local keyword/index paths, local JSON vector query, hybrid keyword/vector retrieval, metadata filtering, and stale index diagnostics are implemented and tested. Milvus, Pinecone, Qdrant, Chroma, and cloud vector DB adapters remain future/disabled. | implemented locally with external DB future boundary |
 | Retrieval quality and knowledge accuracy | Local rerank, evidence selection, diagnostics, claim/freshness/contradiction/accuracy reports exist. Contradictory sources must produce warning/review, not a false pass. | implemented with review boundary |
 | Document generation | Grounded MD/DOCX/PDF/PPTX generation and validation reports exist. | implemented |
-| Agent and Skill | Legacy Skill package, standalone Agent, KB-bound Agent, local deterministic runtime smoke, KB boundary, mother/child contracts, and memory policy reports exist. The current P0-17 pass adds structured Book-to-Skill packages with compact `SKILL.md`, on-demand loading, installability reports, and KB/RAG/Agent compatibility proof. Full autonomous tool-calling Agent Runtime is not implemented. | partial under active P0 completion |
+| Agent and Skill | Legacy Skill package, standalone Agent, KB-bound Agent, local deterministic runtime smoke, KB boundary, mother/child contracts, and memory policy reports exist. The P0-17 pass added structured Book-to-Skill packages with compact `SKILL.md`, on-demand loading, installability reports, and KB/RAG/Agent compatibility proof. Full autonomous tool-calling Agent Runtime is not implemented. | partial with structured Skill completion proof |
 | Lifecycle | Create/query paths are proven. Update/diff/rebuild/regenerate/refresh are partial. Cleanup/archive remains recommendation-only and non-destructive by default. | partial |
 | Storage | `local_workspace` is the implemented default. `local_db` is partial/store-index oriented. BYO cloud/database is future/disabled, not implemented. | partial |
 | Security/privacy | Local-first, no hidden upload by default, API key redaction, and no platform-hosted user data are documented and tested. Dynamic runtime network proof and full UI security acceptance remain needs-review. | partial |
@@ -31,12 +32,12 @@ This document is the short, human-readable truth surface for the current pre-v4.
 
 ## Must Not Claim Yet
 
-- v4.0 released or ready
+- v4.0 released or tagged
 - external vector database production readiness
 - Milvus/Pinecone/Qdrant/Chroma implemented
 - full user-operable local Workbench
 - full autonomous tool-calling Agent Runtime
-- ready_for_v4_rc while live LLM P0 remains blocked
+- full product-ready v4.0 until the separate UI Full Operation Acceptance Gate passes
 - Book-to-Skill completion without real structured Skill package output, on-demand loading, installability reports, and KB/RAG/Agent compatibility proof
 - full scanned PDF OCR proof
 - BYO cloud/database implemented
@@ -45,8 +46,10 @@ This document is the short, human-readable truth surface for the current pre-v4.
 
 ## Evidence Files
 
-- `final_v4_rc_gate_report.json`
-- `v4_rc_final_gate_report.json`
+- `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/final_v4_rc_gate_report.json`
+- `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/v4_rc_final_gate_report.json`
+- `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/live_llm_acceptance_report.json`
+- Historical earlier run: `docs/audits/local_acceptance/large_bilingual_run/final_v4_rc_gate_report.json`
 - `docs/audits/local_acceptance/large_bilingual_run/product_architecture_completeness_report.json`
 - `docs/audits/local_acceptance/large_bilingual_run/rag_vector_index_readiness_report.json`
 - `docs/audits/local_acceptance/large_bilingual_run/ui_full_operation_readiness_report.json`

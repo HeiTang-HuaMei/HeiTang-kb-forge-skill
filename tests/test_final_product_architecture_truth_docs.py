@@ -9,11 +9,11 @@ def test_final_product_architecture_truth_docs_are_bilingual_and_auditable():
     chinese = (ROOT / "docs" / "FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md").read_text(encoding="utf-8")
 
     for text in [english, chinese]:
-        assert "Remaining P0:" in text or "剩余 P0：" in text
-        assert "live LLM provider acceptance" in text or "live LLM provider acceptance" in text
-        assert "provider HTTP 502" in text
+        assert "Remaining Core P0:" in text or "剩余 Core P0：" in text
+        assert "none in the latest pre-v4 P0 proof" in text or "最新 pre-v4 P0 证明中无剩余 Core P0" in text
+        assert "pre_v4_p0_after_live_llm" in text
         assert "Blocking P1: none" in text or "阻断 P1：无" in text
-        assert "Ready for v4 RC" in text or "是否可进入 v4 RC" in text
+        assert "Latest Core P0 gate" in text or "最新 Core P0 门禁" in text
         assert "final_v4_rc_gate_report.json" in text
         assert "rag_vector_index_readiness_report.json" in text
         assert "ui_full_operation_readiness_report.json" in text
@@ -24,7 +24,7 @@ def test_final_product_truth_docs_do_not_overclaim_blocked_capabilities():
     chinese = (ROOT / "docs" / "FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md").read_text(encoding="utf-8")
     combined = english + "\n" + chinese
 
-    assert "v4.0 released or ready" in combined
+    assert "v4.0 released or tagged" in combined
     assert "external vector database production readiness" in combined
     assert "full user-operable local Workbench" in combined
     assert "full autonomous tool-calling Agent Runtime" in combined
@@ -39,7 +39,7 @@ def test_readmes_link_to_final_product_truth_and_show_current_blockers():
     assert "docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md" in english
     assert "docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md" in chinese
     for text in [english, chinese]:
-        assert "Remaining P0:" in text or "剩余 P0：" in text
-        assert "live LLM provider acceptance" in text
-        assert "blocked" in text
-        assert "`ready_for_v4_rc`" not in text or "Final pre-v4 audit" in text
+        assert "Remaining Core P0:" in text or "剩余 Core P0：" in text
+        assert "none" in text or "无剩余" in text
+        assert "pre_v4_p0_after_live_llm" in text
+        assert "v4.0 has not been started" in text or "v4.0 仍未开始" in text

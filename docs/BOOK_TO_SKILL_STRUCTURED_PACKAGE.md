@@ -38,4 +38,4 @@ python -m heitang_kb_forge.cli diff-skill-package --old-skill .\old_skill --new-
 - Unsupported formats are listed as unsupported, not silently claimed.
 - Raw private source text and full extracted chunks must not be committed as proof artifacts.
 
-The final v4 gate remains blocked while any P0 remains open, including live LLM provider acceptance failures.
+The final v4 gate remains blocked while any P0 remains open. In the latest `pre_v4_p0_after_live_llm` Core proof, Book-to-Skill and live LLM P0 checks pass; the separate UI Full Operation Acceptance Gate is still required before v4.0.

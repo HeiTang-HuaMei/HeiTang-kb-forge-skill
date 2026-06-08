@@ -38,4 +38,4 @@ python -m heitang_kb_forge.cli diff-skill-package --old-skill .\old_skill --new-
 - 不支持的格式必须标为 unsupported，不能静默宣称支持。
 - 私有原始输入和完整抽取 chunks 不应作为 proof artifacts 提交。
 
-只要仍有任何 P0 未解决，包括 live LLM provider acceptance 失败，最终 v4 gate 就必须保持 blocked。
+只要仍有任何 P0 未解决，最终 v4 gate 就必须保持 blocked。在最新 `pre_v4_p0_after_live_llm` Core 证明中，Book-to-Skill 与 live LLM P0 checks 已通过；v4.0 前仍需要单独执行 UI Full Operation Acceptance Gate。

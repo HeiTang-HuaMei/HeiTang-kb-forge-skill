@@ -14,8 +14,8 @@ HeiTang KB Forge is an offline-first, local-first knowledge supply-chain Core Sk
 
 Current final gate truth is centralized in [Final Product Architecture Truth](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md).
 
-- Current status: `blocked`
-- Remaining P0: live LLM provider acceptance is blocked by provider HTTP 502 in the latest local proof; Book-to-Skill structured Skill package completion is being added to the same P0 gate.
+- Current Core P0 status: latest `pre_v4_p0_after_live_llm` proof is `ready_for_v4_rc`.
+- Remaining Core P0: none in the latest pre-v4 P0 proof.
 - Blocking P1: none currently accepted as blocking Core main-chain work.
 - UI validation must still be handled separately for the frozen Workbench scope; v4.0 has not been started, released, or tagged.
 

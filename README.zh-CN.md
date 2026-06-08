@@ -14,8 +14,8 @@ HeiTang KB Forge 是一个 offline-first、local-first 知识供应链 Core Skil
 
 当前最终门禁真值集中在 [最终产品架构真值](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md)。
 
-- 当前状态：`blocked`
-- 剩余 P0：最新本地证明中 live LLM provider acceptance 被 provider HTTP 502 阻断；Book-to-Skill 结构化 Skill package completion 正在加入同一个 P0 门禁。
+- 当前 Core P0 状态：最新 `pre_v4_p0_after_live_llm` 证明为 `ready_for_v4_rc`。
+- 剩余 Core P0：最新 pre-v4 P0 证明中无剩余 Core P0。
 - 阻断 P1：当前没有被接受为阻断 Core 主链的 P1。
 - UI validation 仍需要按冻结 Workbench 范围单独处理；v4.0 仍未开始、未发布、未打 tag。
 
