@@ -29,8 +29,9 @@ v4.0 仍未开始、未发布、未打 tag。v4.0 尚未发布。UI full-operati
 - 面向 Codex、Claude Code、OpenClaw 和通用本地 Agent integration 的 Skill-first Agent package 表面。
 - 本地 mother/child Agent runtime smoke、KB boundary 检查、memory policy reports、workspace storage、lifecycle reports 和 release hardening gates。
 - no hidden upload、secret redaction、no platform-hosted user data 和 optional provider boundary 的本地隐私安全报告。
+- P1 Workbench Core contract pack，用于 UI-safe capability、action、report、artifact、error、task、provider、storage、workspace、template 和 gate registry。
 
-完整列表见 [能力矩阵](docs/00_overview/CAPABILITY_MATRIX.zh-CN.md)。Parser backend 定位见 [Parser Backend Strategy](docs/03_core_capabilities/PARSER_BACKEND_STRATEGY.zh-CN.md)。
+完整列表见 [能力矩阵](docs/00_overview/CAPABILITY_MATRIX.zh-CN.md)。Parser backend 定位见 [Parser Backend Strategy](docs/03_core_capabilities/PARSER_BACKEND_STRATEGY.zh-CN.md)。P1 Workbench contracts 见 [P1 Workbench Contract Pack](docs/03_core_capabilities/WORKBENCH_CONTRACT_PACK.zh-CN.md)。
 
 ## 快速开始
 

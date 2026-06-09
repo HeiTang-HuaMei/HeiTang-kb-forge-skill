@@ -33,6 +33,7 @@ from heitang_kb_forge.memory_lifecycle import V39_MEMORY_LIFECYCLE_OUTPUT_FILES
 from heitang_kb_forge.multi_kb_orchestration import MULTI_KB_ORCHESTRATION_OUTPUT_FILES
 from heitang_kb_forge.workspace_storage import V39_WORKSPACE_STORAGE_OUTPUT_FILES
 from heitang_kb_forge.workspace_storage.external_absorption import V39_EXTERNAL_ABSORPTION_OUTPUT_FILES
+from heitang_kb_forge.workbench import P1_WORKBENCH_OUTPUT_FILES
 from heitang_kb_forge.workbench_contracts import WORKBENCH_CONTRACT_OUTPUT_FILES
 from heitang_kb_forge.schemas.config_schema import ForgeConfig
 from heitang_kb_forge.schemas.pipeline_schema import PipelineManifest, PipelineStage
@@ -136,7 +137,7 @@ def make_pipeline_report(*, config_file: Path, config: ForgeConfig, output: Path
         _stage("knowledge_bound_factory", config.knowledge_bound_factory.enabled, output, ["knowledge_bound_factory_manifest.json", "knowledge_bound_factory_trace.json", "knowledge_bound_factory_quality_report.json", "knowledge_bound_factory_report.md"], "build"),
         _stage("multi_kb_orchestration", config.multi_kb_orchestration.enabled, output, MULTI_KB_ORCHESTRATION_OUTPUT_FILES, "build"),
         _stage("skill_reverse_fusion", config.skill_reverse_fusion.enabled, output, ["skill_reverse_profiles.json", "skill_fusion_plan.json", "skill_reverse_fusion_trace.json", "skill_reverse_fusion_quality_report.json", "skill_reverse_fusion_report.md"], "build"),
-        _stage("workbench_contracts", config.workbench_contracts.enabled, config.workbench_contracts.output or output, WORKBENCH_CONTRACT_OUTPUT_FILES, "build"),
+        _stage("workbench_contracts", config.workbench_contracts.enabled, config.workbench_contracts.output or output, P1_WORKBENCH_OUTPUT_FILES if config.workbench_contracts.profile == "p1" else WORKBENCH_CONTRACT_OUTPUT_FILES, "build"),
         _stage("workspace_init", config.workspace.enabled, config.workspace.path or (output / "workspace"), ["workspace_manifest.json"], "build"),
         _stage("workspace_register", config.workspace.enabled and config.workspace.register_outputs, config.workspace.path or (output / "workspace"), ["registries/package_registry.jsonl"], "build"),
         _stage("relationship_graph_update", config.workspace.enabled and config.workspace.register_outputs, config.workspace.path or (output / "workspace"), ["registries/relationship_graph.json"], "build"),

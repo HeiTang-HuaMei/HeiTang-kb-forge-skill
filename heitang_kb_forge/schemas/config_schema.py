@@ -304,6 +304,7 @@ class WorkbenchContractsConfig(BaseModel):
     enabled: bool = False
     output: Path | None = None
     project_name: str = "HeiTang Workbench"
+    profile: str = "legacy"
 
 
 class PerformanceConfig(BaseModel):

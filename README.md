@@ -29,8 +29,9 @@ Current truth lives in [Current Truth](docs/00_overview/CURRENT_TRUTH.md) and [F
 - Skill-first Agent package surface for Codex, Claude Code, OpenClaw, and generic local Agent integrations.
 - Local mother/child Agent runtime smoke, KB boundary checks, memory policy reports, workspace storage, lifecycle reports, and release hardening gates.
 - Local privacy and security reports for no hidden upload, secret redaction, no platform-hosted user data, and optional provider boundaries.
+- P1 Workbench Core contract pack for UI-safe capability, action, report, artifact, error, task, provider, storage, workspace, template, and gate registries.
 
-See the full [Capability Matrix](docs/00_overview/CAPABILITY_MATRIX.md). Parser backend positioning lives in [Parser Backend Strategy](docs/03_core_capabilities/PARSER_BACKEND_STRATEGY.md).
+See the full [Capability Matrix](docs/00_overview/CAPABILITY_MATRIX.md). Parser backend positioning lives in [Parser Backend Strategy](docs/03_core_capabilities/PARSER_BACKEND_STRATEGY.md). P1 Workbench contracts live in [P1 Workbench Contract Pack](docs/03_core_capabilities/WORKBENCH_CONTRACT_PACK.md).
 
 ## Quick Start
 

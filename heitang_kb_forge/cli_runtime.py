@@ -51,6 +51,12 @@ from heitang_kb_forge.multi_kb_orchestration import orchestrate_multi_kb_agents
 from heitang_kb_forge.memory_lifecycle import V39_MEMORY_LIFECYCLE_OUTPUT_FILES, write_memory_lifecycle_outputs
 from heitang_kb_forge.local_agent_runtime import run_local_agent_runtime
 from heitang_kb_forge.skill_reverse_fusion import reverse_and_fuse_skills
+from heitang_kb_forge.workbench import (
+    get_p1_workbench_action,
+    make_p1_workbench_dry_run,
+    make_p1_workbench_smoke,
+    write_p1_workbench_bundle,
+)
 from heitang_kb_forge.workbench_contracts import generate_workbench_contracts
 from heitang_kb_forge.lifecycle.change_detector import (
     LIFECYCLE_OUTPUT_FILES,
@@ -1224,14 +1230,64 @@ def reverse_fuse_skills_command(
 
 @app.command("workbench-contracts")
 def workbench_contracts_command(
-    core_output: Path = typer.Option(..., "--core-output", exists=True, file_okay=False, dir_okay=True, readable=True),
+    core_output: Path | None = typer.Option(None, "--core-output", exists=True, file_okay=False, dir_okay=True, readable=True),
     output: Path | None = typer.Option(None, "--output", "-o"),
     project_name: str = typer.Option("HeiTang Workbench", "--project-name"),
+    profile: str = typer.Option("legacy", "--profile"),
 ) -> None:
     """Generate local Workbench integration contracts from Core outputs."""
+    if profile == "p1":
+        target = output or Path("workbench_p1_contracts")
+        result = write_p1_workbench_bundle(target, project_name)
+        typer.echo(f"Built P1 Workbench contract pack at {target}")
+        typer.echo(f"Status: {result['p1_full_operation_gate_status']} | Core contract ready: {result['core_contract_ready']}")
+        return
+    if profile != "legacy":
+        raise typer.BadParameter("profile must be legacy or p1")
+    if core_output is None:
+        raise typer.BadParameter("--core-output is required unless --profile p1")
     result = generate_workbench_contracts(core_output, output, project_name)
     typer.echo(f"Built Workbench contracts at {output or core_output}")
     typer.echo(f"Status: {result['status']} | Project: {result['project_name']}")
+
+
+@app.command("workbench-action-inspect")
+def workbench_action_inspect_command(
+    action_id: str = typer.Option(..., "--action-id"),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+) -> None:
+    """Inspect a P1 Workbench action contract without running the action."""
+    try:
+        result = get_p1_workbench_action(action_id)
+    except KeyError as exc:
+        raise typer.BadParameter(str(exc), param_hint="--action-id") from exc
+    if output:
+        write_json(output / "workbench_action_inspect.json", result)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("workbench-action-dry-run")
+def workbench_action_dry_run_command(
+    action_id: str = typer.Option(..., "--action-id"),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Write a deterministic P1 Workbench dry-run result without executing real work."""
+    try:
+        result = make_p1_workbench_dry_run(action_id)
+    except KeyError as exc:
+        raise typer.BadParameter(str(exc), param_hint="--action-id") from exc
+    write_json(output / "workbench_action_dry_run.json", result)
+    typer.echo(f"Wrote P1 Workbench dry-run for {action_id} to {output}")
+
+
+@app.command("workbench-smoke")
+def workbench_smoke_command(
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Write a deterministic P1 Workbench smoke result for UI/Core contract checks."""
+    result = make_p1_workbench_smoke()
+    write_json(output / "workbench_smoke_result.json", result)
+    typer.echo(f"P1 Workbench smoke: {result['status']} | Gate: {result['p1_full_operation_gate_status']}")
 
 
 @app.command("workspace-init")
@@ -3292,9 +3348,9 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         _run_v311_config_outputs(config_data, config_data.output)
         _run_v312_config_outputs(config_data, config_data.output)
         if config_data.golden_demo_acceptance.enabled and config_data.workbench_contracts.enabled:
-            generate_workbench_contracts(config_data.output, config_data.workbench_contracts.output or config_data.output, config_data.workbench_contracts.project_name)
+            _write_config_workbench_contracts(config_data, config_data.output)
         if config_data.product_hardening.enabled and config_data.workbench_contracts.enabled:
-            generate_workbench_contracts(config_data.output, config_data.workbench_contracts.output or config_data.output, config_data.workbench_contracts.project_name)
+            _write_config_workbench_contracts(config_data, config_data.output)
         return ConfigRunResult(
             config=config_data,
             output=config_data.output,
@@ -3406,6 +3462,16 @@ def _run_config(config_data: ForgeConfig) -> ConfigRunResult:
         output=output,
         message=f"Built batch knowledge packages at {output}\nTotal: {len(items)} | Succeeded: {succeeded} | Failed: {failed}",
     )
+
+
+def _write_config_workbench_contracts(config_data: ForgeConfig, core_output: Path) -> None:
+    target = config_data.workbench_contracts.output or core_output
+    if config_data.workbench_contracts.profile == "p1":
+        write_p1_workbench_bundle(target, config_data.workbench_contracts.project_name)
+        return
+    if config_data.workbench_contracts.profile != "legacy":
+        raise typer.BadParameter("workbench_contracts.profile must be legacy or p1")
+    generate_workbench_contracts(core_output, target, config_data.workbench_contracts.project_name)
 
 
 def _write_llm_evidence_outputs(
@@ -3702,7 +3768,7 @@ def _run_v19_config_outputs(config_data: ForgeConfig, output: Path) -> None:
         skills = config_data.skill_reverse_fusion.skills or [output / "skill_package"]
         reverse_and_fuse_skills(skills, output, config_data.skill_reverse_fusion.fused_name)
     if config_data.workbench_contracts.enabled:
-        generate_workbench_contracts(output, config_data.workbench_contracts.output or output, config_data.workbench_contracts.project_name)
+        _write_config_workbench_contracts(config_data, output)
     if not config_data.workspace.enabled:
         return
     workspace = config_data.workspace.path or (output / "workspace")

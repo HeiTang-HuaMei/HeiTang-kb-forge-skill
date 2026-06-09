@@ -22,6 +22,8 @@
 ## Core 能力
 
 - [Parser Backend Strategy](03_core_capabilities/PARSER_BACKEND_STRATEGY.zh-CN.md)
+- [P1 Workbench Contract Pack](03_core_capabilities/WORKBENCH_CONTRACT_PACK.zh-CN.md)
+- [P1 Workbench Template Registry](03_core_capabilities/WORKBENCH_TEMPLATE_REGISTRY.zh-CN.md)
 
 ## 发布状态
 
