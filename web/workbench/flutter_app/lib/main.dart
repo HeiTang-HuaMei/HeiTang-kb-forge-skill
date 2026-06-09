@@ -21,19 +21,23 @@ const supportedLocaleCodes = <String>['zh-CN', 'en-US'];
 
 const pages = <WorkbenchPage>[
   WorkbenchPage('dashboard', 'Dashboard', '仪表盘', 'Operating snapshot across knowledge, review, jobs, agents, and exports.', '知识、复核、任务、Agent 与导出的运营总览。'),
-  WorkbenchPage('file-upload', 'File upload', '文件上传', 'Mock upload intake with parser readiness and reserved ingestion controls.', '模拟上传入口，展示解析器状态与预留导入控制。'),
-  WorkbenchPage('job-progress', 'Job progress', '任务进度', 'Track mock ingestion, review, and export jobs with stage-level status.', '跟踪模拟导入、复核和导出任务的阶段状态。'),
-  WorkbenchPage('knowledge-base-list', 'Knowledge base list', '知识库列表', 'Browse trusted and draft knowledge bases with bound agents and policy state.', '浏览可信与草稿知识库，以及绑定 Agent 和策略状态。'),
-  WorkbenchPage('knowledge-base-detail', 'Knowledge base detail', '知识库详情', 'Inspect one knowledge base contract, chunk state, and future API fields.', '查看单个知识库契约、分片状态和未来 API 字段。'),
-  WorkbenchPage('review-queue', 'Review queue', '复核队列', 'Prioritize risky chunks and route corrected text through a mock review flow.', '按风险处理分片，并通过模拟复核流转校正文稿。'),
-  WorkbenchPage('corrected-text-editor', 'Corrected text editor', '校正文稿编辑器', 'Edit mock corrected text without writing to any backend runtime.', '编辑模拟校正文稿，不写入任何后端运行时。'),
-  WorkbenchPage('kb-query', 'KB query', '知识库查询', 'Ask a mock grounded query and preview citation-first answer behavior.', '发起模拟证据查询，预览引用优先的回答行为。'),
+  WorkbenchPage('workspace', 'Workspace', '工作空间', 'Local workspace paths, health, storage, registry, backup, restore, and privacy boundary.', '本地工作区路径、健康、存储、注册表、备份恢复与隐私边界。'),
+  WorkbenchPage('operation-gate', 'Operation Gate', '运行门禁', 'P1 gate status, blocked reasons, and non-v4 boundary.', 'P1 门禁状态、阻塞原因与非 v4 边界。'),
+  WorkbenchPage('capability-matrix', 'Capability Matrix', '能力矩阵', 'Core P1 capability areas and action/report/artifact coverage.', 'Core P1 能力域与 action/report/artifact 覆盖。'),
+  WorkbenchPage('import-parsing', 'Import & Parsing', '导入与解析', 'Multi-format import, OCR, preprocessing, and parser quality.', '多格式导入、OCR、预处理与解析质量。'),
+  WorkbenchPage('knowledge-package-management', 'Knowledge Package Management', '知识包管理', 'Browse trusted and draft knowledge packages with bound agents and policy state.', '浏览可信与草稿知识包，以及绑定 Agent 和策略状态。'),
+  WorkbenchPage('retrieval-verification', 'Retrieval & Verification', '检索与验证', 'Query rewriting, retrieval planning, evidence selection, and validation.', '查询改写、检索规划、证据选择与知识准确性验证。'),
+  WorkbenchPage('vector-hub-provider-storage', 'Vector Hub / Provider / Storage', '向量索引 / 提供方 / 存储', 'Provider validation, vector smoke, redaction, offline fallback, and storage profiles.', '提供方验证、向量冒烟、脱敏、离线回退与存储配置。'),
   WorkbenchPage('document-generation', 'Document generation', '文档生成', 'Preview generated document drafts and citation readiness.', '预览生成文档草稿与引用就绪状态。'),
-  WorkbenchPage('agent-skill-management', 'Agent / Skill management', 'Agent / Skill 管理', 'Manage mock agents, skill tools, model providers, and KB bindings.', '管理模拟 Agent、Skill 工具、模型供应商与知识库绑定。'),
-  WorkbenchPage('multi-agent-workflow', 'Multi-agent workflow', '多 Agent 工作流', 'Visualize workflow steps, shared memory, and handoff trace.', '展示工作流步骤、共享记忆与交接链路。'),
-  WorkbenchPage('memory-scope-viewer', 'Memory scope viewer', '记忆范围查看器', 'Inspect private agent memory and workflow-shared memory isolation.', '查看 Agent 私有记忆与工作流共享记忆隔离。'),
-  WorkbenchPage('settings', 'Settings', '设置', 'Configure mock providers, parser backend, answer policy, and memory policy.', '配置模拟供应商、解析后端、回答策略与记忆策略。'),
-  WorkbenchPage('export-center', 'Export center', '导出中心', 'Review mock export items reserved for future package delivery.', '查看为未来包交付预留的模拟导出项。'),
+  WorkbenchPage('skill-factory', 'Skill Factory', '技能工厂', 'Book, package, and template Skill generation with validation and runtime profiles.', '书籍、知识包与模板驱动 Skill 生成、验证与运行时配置。'),
+  WorkbenchPage('agent-factory-runtime', 'Agent Factory & Runtime', 'Agent 工厂与运行', 'Manage standalone agents, KB-bound agents, model providers, and runtime traces.', '管理独立 Agent、KB-bound Agent、模型提供方与运行追踪。'),
+  WorkbenchPage('memory-center', 'Memory Center', '记忆中心', 'Inspect private agent memory and workflow-shared memory isolation.', '查看 Agent 私有记忆与工作流共享记忆隔离。'),
+  WorkbenchPage('task-job-center', 'Task / Job Center', '任务 / 作业中心', 'Stable task states, progress fields, retry, cancel, resume, reports, and artifacts.', '稳定任务状态、进度字段、重试、取消、恢复、报告与产物。'),
+  WorkbenchPage('artifact-management', 'Artifact Management', '产物管理', 'Review KB packages, chunks, indexes, generated docs, Skill/Agent packages, traces, and proofs.', '查看知识包、分片、索引、生成文档、Skill/Agent 包、追踪与证明。'),
+  WorkbenchPage('error-repair-center', 'Error Repair Center', '错误修复中心', 'Stable user-visible failure taxonomy and repair actions.', '稳定的用户可见错误分类与修复动作。'),
+  WorkbenchPage('reports-audit', 'Reports & Audit', '报表与审计', 'Inspect registries, hardening, gates, proofs, and blockers.', '查看注册表、加固、门禁、证明与阻塞项。'),
+  WorkbenchPage('governance', 'Governance', '治理与合规', 'Document ownership, stale/conflict controls, health, permissions, and review-required flows.', '文档归属、过期/冲突控制、健康状态、权限与复核流程。'),
+  WorkbenchPage('template-library', 'Template Library', '模板库', 'P1 Workbench templates for product, publishing, enterprise, education, commerce, and operations.', '产品、出版、企业、教育、电商与运营场景的 P1 模板。'),
 ];
 
 class WorkbenchPage {
@@ -468,18 +472,16 @@ class _PageSurface extends StatelessWidget {
         workingDirectory: coreWorkingDirectory,
         workspace: coreWorkspace,
       );
-      if (request != null) {
-        corePanels.add(
-          CoreActionPanel(
-            action: action,
-            request: request,
-            coreBridge: coreBridge,
-            isWebRuntime: isWebRuntime,
-            enabled: enableLocalCoreActions,
-            localeCode: localeCode,
-          ),
-        );
-      }
+      corePanels.add(
+        CoreActionPanel(
+          action: action,
+          request: request,
+          coreBridge: coreBridge,
+          isWebRuntime: isWebRuntime,
+          enabled: enableLocalCoreActions,
+          localeCode: localeCode,
+        ),
+      );
     }
 
     return SingleChildScrollView(
@@ -498,7 +500,7 @@ class _PageSurface extends StatelessWidget {
               crossAxisCount: columns,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              mainAxisExtent: columns == 1 ? 156 : 168,
+              mainAxisExtent: columns == 1 ? 188 : 172,
             ),
             itemCount: cards.length,
             itemBuilder: (context, index) => _WorkbenchCard(
@@ -524,72 +526,22 @@ class _PageSurface extends StatelessWidget {
   List<_CardCopy> _cardsFor(String id, String localeCode, WorkbenchContracts contracts) {
     final zh = localeCode == 'zh-CN';
     final view = _contractViewFor(page, contracts);
-    final action = _actionFor(id, contracts);
+    final actions = _actionsForView(view, contracts);
+    final reports = _reportsForView(view, contracts);
+    final artifacts = _artifactsForView(view, contracts);
     final common = view.assetTypes.isEmpty ? (zh ? '合同样例' : 'Contract sample') : view.assetTypes.join(' · ');
-    final map = <String, List<_CardCopy>>{
-      'dashboard': [
-        _CardCopy(zh ? '合同状态' : 'Contract status', contracts.status.status),
-        _CardCopy(zh ? '资产' : 'Assets', '${contracts.status.assetCount}'),
-        _CardCopy(zh ? '报告' : 'Reports', '${contracts.status.reportCount}'),
-      ],
-      'file-upload': [
-        _CardCopy(zh ? '资产类型' : 'Asset types', common),
-        _CardCopy(zh ? '构建动作' : 'Build action', _commandOrFallback(action, 'build')),
-      ],
-      'job-progress': [
-        _CardCopy(zh ? '状态徽标' : 'Status badges', contracts.errors.statusBadges.join(' · ')),
-        _CardCopy(zh ? '合同文件' : 'Contract files', '${contracts.manifest.outputFiles.length}'),
-      ],
-      'knowledge-base-list': [
-        _CardCopy(zh ? '知识包资产' : 'Knowledge package assets', _assetCount(contracts, 'knowledge_package')),
-        _CardCopy(zh ? '包存储' : 'Package storage', _storageArea(contracts, 'package_storage')),
-      ],
-      'knowledge-base-detail': [
-        _CardCopy(zh ? '包大小' : 'Package size', '${contracts.storage.sizes['package_size_bytes'] ?? 0} B'),
-        _CardCopy(zh ? '索引大小' : 'Index size', '${contracts.storage.sizes['index_size_bytes'] ?? 0} B'),
-      ],
-      'review-queue': [
-        _CardCopy(zh ? '空状态' : 'Empty states', contracts.errors.emptyStates.join(' · ')),
-        _CardCopy(zh ? '错误状态' : 'Error states', contracts.errors.errorStates.join(' · ')),
-      ],
-      'corrected-text-editor': [
-        _CardCopy(zh ? '校验状态' : 'Validation states', contracts.agent.validationStates.join(' · ')),
-        _CardCopy(zh ? '错误合同' : 'Error contract', contracts.errors.errorStates.join(' · ')),
-      ],
-      'kb-query': [
-        _CardCopy(zh ? '绑定模式' : 'Bound mode', contracts.agent.supportedModes.contains('kb_bound') ? 'kb_bound' : 'unavailable'),
-        _CardCopy(zh ? '检索字段' : 'Retrieval fields', contracts.agent.kbBoundRequired.join(' · ')),
-      ],
-      'document-generation': [
-        _CardCopy(zh ? '生成动作' : 'Generation action', _commandOrFallback(_actionById(contracts, 'generate_documents'), 'generate-documents')),
-        _CardCopy(zh ? '文档报告' : 'Document report', 'generated_file_report.json'),
-      ],
-      'agent-skill-management': [
-        _CardCopy(zh ? 'Agent 模式' : 'Agent modes', contracts.agent.supportedModes.join(' · ')),
-        _CardCopy(zh ? 'Standalone 必填' : 'Standalone required', contracts.agent.standaloneRequired.join(' · ')),
-        _CardCopy(zh ? 'KB-bound 必填' : 'KB-bound required', contracts.agent.kbBoundRequired.join(' · ')),
-      ],
-      'multi-agent-workflow': [
-        _CardCopy(zh ? '母子绑定' : 'Parent-child binding', contracts.hierarchy.bindingFields.join(' · ')),
-        _CardCopy(zh ? '子 Agent 模式' : 'Child agent modes', contracts.hierarchy.roles.join(' · ')),
-        _CardCopy(zh ? 'Trace' : 'Trace', contracts.hierarchy.traceFiles.join(' · ')),
-      ],
-      'memory-scope-viewer': [
-        _CardCopy(zh ? '私有记忆' : 'Private memory', '${contracts.memory.policy['child_private_memory_default']}'),
-        _CardCopy(zh ? '共享记忆' : 'Shared memory', '${contracts.memory.policy['workflow_shared_memory']}'),
-        _CardCopy(zh ? '写回' : 'Writeback', contracts.memory.writebackActions.join(' · ')),
-      ],
-      'settings': [
-        _CardCopy(zh ? '存储后端' : 'Storage backend', contracts.storage.backend),
-        _CardCopy(zh ? '存储区域' : 'Storage areas', contracts.storage.storageAreas.keys.join(' · ')),
-        _CardCopy(zh ? '备份导出' : 'Backup/export', contracts.storage.backupExportStatus),
-      ],
-      'export-center': [
-        _CardCopy(zh ? '导出状态' : 'Export status', contracts.status.backupExportStatus),
-        _CardCopy(zh ? '清理建议' : 'Cleanup suggestions', contracts.storage.cleanupSuggestions.isEmpty ? (zh ? '无' : 'None') : contracts.storage.cleanupSuggestions.join(' · ')),
-      ],
-    };
-    return map[id] ?? [_CardCopy(page.title(localeCode, contracts), common)];
+    return [
+      _CardCopy(zh ? 'Core 来源' : 'Core source', contracts.source.coreCommit),
+      _CardCopy(zh ? '操作契约' : 'Action contracts', actions.isEmpty ? common : actions.map((action) => action.id).take(3).join(' · ')),
+      _CardCopy(zh ? '报告契约' : 'Report contracts', reports.isEmpty ? '${contracts.status.reportCount}' : reports.map((report) => report.id).take(3).join(' · ')),
+      _CardCopy(zh ? '产物契约' : 'Artifact contracts', artifacts.isEmpty ? '${contracts.status.assetCount}' : artifacts.map((artifact) => artifact.id).take(3).join(' · ')),
+      _CardCopy(zh ? '任务状态' : 'Task statuses', contracts.taskSchema.statuses.join(' · ')),
+      _CardCopy(zh ? '门禁状态' : 'Gate status', '${contracts.gate.status} · not_v4_0_workbench_rc=${contracts.gate.notV4WorkbenchRc}'),
+      if (id == 'capability-matrix') _CardCopy(zh ? '能力域' : 'Capability areas', '${contracts.capabilities.areas.length}'),
+      if (id == 'agent-factory-runtime') _CardCopy(zh ? 'Agent 模式' : 'Agent modes', contracts.agent.supportedModes.join(' · ')),
+      if (id == 'error-repair-center') _CardCopy(zh ? '错误码' : 'Error codes', contracts.errors.errorStates.join(' · ')),
+      if (id == 'template-library') _CardCopy(zh ? '模板' : 'Templates', contracts.templates.templates.map((template) => template.id).take(3).join(' · ')),
+    ];
   }
 }
 
@@ -606,41 +558,19 @@ ContractView _contractViewFor(WorkbenchPage page, WorkbenchContracts contracts) 
       return view;
     }
   }
-  return ContractView(id: page.id, label: page.enTitle, assetTypes: const []);
+  return ContractView(id: page.id, label: page.enTitle, assetTypes: const [], corePageId: page.id, zhLabel: page.zhTitle);
 }
 
-ContractAction? _actionFor(String pageId, WorkbenchContracts contracts) {
-  final actionMap = <String, String>{
-    'file-upload': 'build_package',
-    'document-generation': 'generate_documents',
-    'agent-skill-management': 'create_standalone_agent',
-    'multi-agent-workflow': 'configure_agent_hierarchy',
-    'memory-scope-viewer': 'queue_memory_writeback',
-    'settings': 'inspect_storage_status',
-  };
-  final actionId = actionMap[pageId];
-  return actionId == null ? null : _actionById(contracts, actionId);
+List<ContractAction> _actionsForView(ContractView view, WorkbenchContracts contracts) {
+  return contracts.actions.actions.where((action) => action.pageId == view.corePageId).toList(growable: false);
 }
 
-ContractAction? _actionById(WorkbenchContracts contracts, String id) {
-  for (final action in contracts.actions.actions) {
-    if (action.id == id) {
-      return action;
-    }
-  }
-  return null;
+List<ContractReport> _reportsForView(ContractView view, WorkbenchContracts contracts) {
+  return contracts.reports.reports.where((report) => report.pageId == view.corePageId).toList(growable: false);
 }
 
-String _commandOrFallback(ContractAction? action, String fallback) => action?.command.isNotEmpty == true ? action!.command : fallback;
-
-String _assetCount(WorkbenchContracts contracts, String type) => '${contracts.assets.assets.where((asset) => asset.type == type).length}';
-
-String _storageArea(WorkbenchContracts contracts, String key) {
-  final area = contracts.storage.storageAreas[key];
-  if (area is Map<String, dynamic>) {
-    return '${area['backend'] ?? contracts.storage.backend}';
-  }
-  return contracts.storage.backend;
+List<ContractAsset> _artifactsForView(ContractView view, WorkbenchContracts contracts) {
+  return contracts.assets.assets.where((asset) => asset.pageId == view.corePageId).toList(growable: false);
 }
 
 class _WorkbenchCard extends StatelessWidget {

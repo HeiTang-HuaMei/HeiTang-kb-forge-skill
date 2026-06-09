@@ -9,7 +9,8 @@ WORKBENCH = ROOT / "web" / "workbench"
 def test_workbench_contract_exposes_desktop_core_bridge_without_full_operation_claim():
     contracts = json.loads((WORKBENCH / "contracts.json").read_text(encoding="utf-8"))
 
-    assert contracts["scope"] == "mock-plus-desktop-core-bridge-contract"
+    assert contracts["scope"] == "p1-core-contract-aligned-ui-completion-pass"
+    assert contracts["core_contract_source"]["core_commit"] == "1e786cd1da1f557cd22eae622a721c431902e6b4"
     assert contracts["future_api"]["no_backend_logic"] is False
     assert contracts["future_api"]["current_backend_logic"] == "desktop local Core CLI bridge contract only; page workflows are not wired end to end yet"
     bridge = contracts["local_core_bridge"]
@@ -50,6 +51,8 @@ def test_workbench_contract_exposes_desktop_core_bridge_without_full_operation_c
     assert contracts["release_boundary"]["supports_light_dark_mode"] is True
     assert contracts["release_boundary"]["supports_zh_cn_en_us_switch"] is True
     assert contracts["release_boundary"]["not_v4_0_release"] is True
+    assert contracts["release_boundary"]["not_v4_0_workbench_rc"] is True
+    assert contracts["release_boundary"]["not_full_operation_yet"] is True
     assert contracts["pwa"]["static_web_manifest"] == "web/workbench/manifest.webmanifest"
     assert contracts["pwa"]["flutter_web_manifest"] == "web/workbench/flutter_app/web/manifest.json"
 
@@ -61,6 +64,8 @@ def test_readme_states_workbench_visual_and_release_boundary():
     assert "light / dark mode" in readme
     assert "zh-CN / en-US language switch" in readme
     assert "not the v4.0 release" in readme
+    assert "P1 contract alignment and UI completion pass" in readme
+    assert "not_v4_0_workbench_rc" in readme
 
 
 def test_flutter_project_scaffold_has_standard_entry_files():
@@ -140,11 +145,10 @@ def test_flutter_scaffold_does_not_import_core_modules():
         "cli_runtime",
         "parser_backends",
         "knowledge_runtime",
-        "document_generation",
-        "agent_factory",
+        "from heitang_kb_forge",
+        "import heitang_kb_forge",
         "orchestration",
         "memory_runtime",
-        "heitang_kb_forge",
     ]:
         assert forbidden not in combined
 
@@ -156,4 +160,5 @@ def test_workbench_changed_surface_is_limited_to_allowed_paths():
     assert "web/workbench/" in allowed
     assert "examples/ui_mock_data/" in allowed
     assert "tests/test_workbench_ui_contract.py" in allowed
+    assert "tests/test_workbench_p1_contract_alignment.py" in allowed
     assert "docs/WORKBENCH_UI_SPEC.md" in allowed

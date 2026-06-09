@@ -1,8 +1,13 @@
 import '../contracts/workbench_contracts.dart';
 
 const pageCoreActionIds = <String, List<String>>{
-  'kb-query': <String>['kb_query'],
-  'agent-skill-management': <String>['run_agent'],
+  'workspace': <String>['workspace_inspect'],
+  'retrieval-verification': <String>['rag_query'],
+  'skill-factory': <String>['book_to_skill'],
+  'agent-factory-runtime': <String>['run_agent'],
+  'artifact-management': <String>['artifact_kb_package_inspect'],
+  'vector-hub-provider-storage': <String>['llm_provider_validate'],
+  'error-repair-center': <String>['repair_secret_risk'],
 };
 
 List<ContractAction> coreActionsForPage(String pageId, WorkbenchContracts contracts) {

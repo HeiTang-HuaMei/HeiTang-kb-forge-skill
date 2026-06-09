@@ -63,8 +63,11 @@ class LocalCoreBridge {
     'configure_agent_hierarchy': <String>['orchestrate-multi-kb'],
     'queue_memory_writeback': <String>['orchestrate-multi-kb'],
     'inspect_storage_status': <String>['workbench-contracts'],
-    'kb_query': <String>['kb-query', 'kb-answer'],
+    'workspace_inspect': <String>['workspace-list'],
+    'rag_query': <String>['kb-query'],
+    'book_to_skill': <String>['book-to-skill'],
     'run_agent': <String>['run-local-agent'],
+    'artifact_kb_package_inspect': <String>['check-contract'],
   };
 
   final Map<String, List<String>> allowedActions;

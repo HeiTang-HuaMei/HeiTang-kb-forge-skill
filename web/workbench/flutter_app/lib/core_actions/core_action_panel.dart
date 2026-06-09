@@ -7,15 +7,15 @@ class CoreActionPanel extends StatefulWidget {
   const CoreActionPanel({
     super.key,
     required this.action,
-    required this.request,
     required this.coreBridge,
     required this.isWebRuntime,
     required this.enabled,
     required this.localeCode,
+    this.request,
   });
 
   final ContractAction action;
-  final CoreBridgeRequest request;
+  final CoreBridgeRequest? request;
   final LocalCoreBridge coreBridge;
   final bool isWebRuntime;
   final bool enabled;
@@ -34,7 +34,9 @@ class _CoreActionPanelState extends State<CoreActionPanel> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final commandPreview = redactSecrets([widget.request.coreCli, ...widget.request.arguments].join(' '));
+    final commandPreview = widget.request == null ? (widget.action.command.isEmpty ? 'not_runnable' : widget.action.command) : redactSecrets([widget.request!.coreCli, ...widget.request!.arguments].join(' '));
+    final blockedReason = _blockedReason;
+    final canRun = blockedReason == null && !running;
 
     return Card(
       child: Padding(
@@ -54,9 +56,13 @@ class _CoreActionPanelState extends State<CoreActionPanel> {
             Text(_zh ? '桌面本地 Core CLI 最小闭环。Web 运行时不会执行本地命令。' : 'Minimal desktop local Core CLI path. Web runtime does not execute local commands.'),
             const SizedBox(height: 12),
             Text(commandPreview, maxLines: 3, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodySmall),
+            if (blockedReason != null) ...[
+              const SizedBox(height: 8),
+              Text('blocked_reason: $blockedReason', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colors.error, fontWeight: FontWeight.w700)),
+            ],
             const SizedBox(height: 12),
             FilledButton.icon(
-              onPressed: widget.enabled && !running ? _run : null,
+              onPressed: canRun ? _run : null,
               icon: running ? const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.play_arrow),
               label: Text(running ? (_zh ? '运行中' : 'Running') : (_zh ? '运行 Core 操作' : 'Run Core action')),
             ),
@@ -76,9 +82,27 @@ class _CoreActionPanelState extends State<CoreActionPanel> {
     );
   }
 
+  String? get _blockedReason {
+    if (widget.isWebRuntime) {
+      return 'web_local_cli_unsupported';
+    }
+    if (!widget.enabled) {
+      return 'desktop_support_disabled';
+    }
+    if (!widget.action.desktopEnabled) {
+      return widget.action.desktopBlockedReason.isNotEmpty ? widget.action.desktopBlockedReason : widget.action.blockedReason.isNotEmpty ? widget.action.blockedReason : 'desktop_support_pending';
+    }
+    return null;
+  }
+
   Future<void> _run() async {
     setState(() => running = true);
-    final nextResult = await widget.coreBridge.run(widget.request, isWeb: widget.isWebRuntime);
+    final request = widget.request;
+    if (request == null) {
+      setState(() => running = false);
+      return;
+    }
+    final nextResult = await widget.coreBridge.run(request, isWeb: widget.isWebRuntime);
     if (!mounted) {
       return;
     }

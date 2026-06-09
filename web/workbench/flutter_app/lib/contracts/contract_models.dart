@@ -10,6 +10,12 @@ class WorkbenchContracts {
     required this.memory,
     required this.storage,
     required this.errors,
+    required this.capabilities,
+    required this.reports,
+    required this.taskSchema,
+    required this.templates,
+    required this.gate,
+    required this.source,
   });
 
   final ContractManifest manifest;
@@ -22,6 +28,12 @@ class WorkbenchContracts {
   final MemoryContract memory;
   final StorageContract storage;
   final ErrorContract errors;
+  final CapabilityContract capabilities;
+  final ReportContract reports;
+  final TaskSchemaContract taskSchema;
+  final TemplateContract templates;
+  final GateContract gate;
+  final ContractSource source;
 
   factory WorkbenchContracts.fromJson(Map<String, dynamic> json) {
     return WorkbenchContracts(
@@ -35,6 +47,12 @@ class WorkbenchContracts {
       memory: MemoryContract.fromJson(_map(json['memory'])),
       storage: StorageContract.fromJson(_map(json['storage'])),
       errors: ErrorContract.fromJson(_map(json['errors'])),
+      capabilities: CapabilityContract.fromJson(_map(json['capabilities'])),
+      reports: ReportContract.fromJson(_map(json['reports'])),
+      taskSchema: TaskSchemaContract.fromJson(_map(json['task_schema'])),
+      templates: TemplateContract.fromJson(_map(json['templates'])),
+      gate: GateContract.fromJson(_map(json['gate'])),
+      source: ContractSource.fromJson(_map(json['source'])),
     );
   }
 }
@@ -66,17 +84,21 @@ class NavigationContract {
 }
 
 class ContractView {
-  const ContractView({required this.id, required this.label, required this.assetTypes});
+  const ContractView({required this.id, required this.label, required this.assetTypes, required this.corePageId, required this.zhLabel});
 
   final String id;
   final String label;
   final List<String> assetTypes;
+  final String corePageId;
+  final String zhLabel;
 
   factory ContractView.fromJson(Map<String, dynamic> json) {
     return ContractView(
       id: _string(json['id'], 'view'),
       label: _string(json['label'], 'View'),
       assetTypes: _strings(json['asset_types']),
+      corePageId: _string(json['core_page_id'], _string(json['id'], 'view')),
+      zhLabel: _string(json['label_zh'], _string(json['label'], 'View')),
     );
   }
 }
@@ -92,19 +114,57 @@ class ActionContract {
 }
 
 class ContractAction {
-  const ContractAction({required this.id, required this.label, required this.command, required this.requires});
+  const ContractAction({
+    required this.id,
+    required this.label,
+    required this.command,
+    required this.requires,
+    required this.pageId,
+    required this.status,
+    required this.commandKind,
+    required this.blockedReason,
+    required this.desktopEnabled,
+    required this.webEnabled,
+    required this.desktopBlockedReason,
+    required this.webBlockedReason,
+    required this.reportIds,
+    required this.artifactIds,
+    required this.errorCodes,
+  });
 
   final String id;
   final String label;
   final String command;
   final List<String> requires;
+  final String pageId;
+  final String status;
+  final String commandKind;
+  final String blockedReason;
+  final bool desktopEnabled;
+  final bool webEnabled;
+  final String desktopBlockedReason;
+  final String webBlockedReason;
+  final List<String> reportIds;
+  final List<String> artifactIds;
+  final List<String> errorCodes;
 
   factory ContractAction.fromJson(Map<String, dynamic> json) {
     return ContractAction(
-      id: _string(json['id'], 'action'),
+      id: _string(json['id'], _string(json['action_id'], 'action')),
       label: _string(json['label'], 'Action'),
       command: _string(json['command'], ''),
       requires: _strings(json['requires']),
+      pageId: _string(json['page_id'], ''),
+      status: _string(json['status'], 'reserved'),
+      commandKind: _string(json['command_kind'], ''),
+      blockedReason: _string(json['blocked_reason'], _string(json['ui_blocked_reason'], '')),
+      desktopEnabled: _bool(json['desktop_enabled']),
+      webEnabled: _bool(json['web_enabled']),
+      desktopBlockedReason: _string(json['desktop_blocked_reason'], ''),
+      webBlockedReason: _string(json['web_blocked_reason'], ''),
+      reportIds: _strings(json['report_ids']),
+      artifactIds: _strings(json['artifact_ids']),
+      errorCodes: _strings(json['error_codes']),
     );
   }
 }
@@ -120,17 +180,19 @@ class AssetContract {
 }
 
 class ContractAsset {
-  const ContractAsset({required this.id, required this.type, required this.path});
+  const ContractAsset({required this.id, required this.type, required this.path, required this.pageId});
 
   final String id;
   final String type;
   final String path;
+  final String pageId;
 
   factory ContractAsset.fromJson(Map<String, dynamic> json) {
     return ContractAsset(
       id: _string(json['asset_id'], 'asset'),
       type: _string(json['asset_type'], 'report'),
-      path: _string(json['path'], ''),
+      path: _string(json['path'], _string(json['deterministic_fixture_path'], '')),
+      pageId: _string(json['page_id'], ''),
     );
   }
 }
@@ -273,6 +335,125 @@ class ErrorContract {
   }
 }
 
+class CapabilityContract {
+  const CapabilityContract({required this.areas});
+
+  final List<CapabilityArea> areas;
+
+  factory CapabilityContract.fromJson(Map<String, dynamic> json) {
+    return CapabilityContract(areas: _list(json['capability_areas']).map((item) => CapabilityArea.fromJson(_map(item))).toList());
+  }
+}
+
+class CapabilityArea {
+  const CapabilityArea({required this.pageId, required this.title, required this.actionIds, required this.reportIds, required this.artifactIds});
+
+  final String pageId;
+  final String title;
+  final List<String> actionIds;
+  final List<String> reportIds;
+  final List<String> artifactIds;
+
+  factory CapabilityArea.fromJson(Map<String, dynamic> json) {
+    return CapabilityArea(
+      pageId: _string(json['page_id'], ''),
+      title: _string(json['title'], ''),
+      actionIds: _strings(json['action_ids']),
+      reportIds: _strings(json['report_ids']),
+      artifactIds: _strings(json['artifact_ids']),
+    );
+  }
+}
+
+class ReportContract {
+  const ReportContract({required this.reports});
+
+  final List<ContractReport> reports;
+
+  factory ReportContract.fromJson(Map<String, dynamic> json) {
+    return ReportContract(reports: _list(json['reports']).map((item) => ContractReport.fromJson(_map(item))).toList());
+  }
+}
+
+class ContractReport {
+  const ContractReport({required this.id, required this.pageId, required this.title});
+
+  final String id;
+  final String pageId;
+  final String title;
+
+  factory ContractReport.fromJson(Map<String, dynamic> json) {
+    return ContractReport(
+      id: _string(json['report_id'], 'report'),
+      pageId: _string(json['page_id'], ''),
+      title: _string(json['title'], ''),
+    );
+  }
+}
+
+class TaskSchemaContract {
+  const TaskSchemaContract({required this.statuses});
+
+  final List<String> statuses;
+
+  factory TaskSchemaContract.fromJson(Map<String, dynamic> json) {
+    return TaskSchemaContract(statuses: _strings(json['statuses']));
+  }
+}
+
+class TemplateContract {
+  const TemplateContract({required this.templates});
+
+  final List<ContractTemplate> templates;
+
+  factory TemplateContract.fromJson(Map<String, dynamic> json) {
+    return TemplateContract(templates: _list(json['templates']).map((item) => ContractTemplate.fromJson(_map(item))).toList());
+  }
+}
+
+class ContractTemplate {
+  const ContractTemplate({required this.id, required this.title});
+
+  final String id;
+  final String title;
+
+  factory ContractTemplate.fromJson(Map<String, dynamic> json) {
+    return ContractTemplate(id: _string(json['template_id'], 'template'), title: _string(json['title'], ''));
+  }
+}
+
+class GateContract {
+  const GateContract({required this.status, required this.notV4WorkbenchRc, required this.uiFullOperationPending, required this.blockerIds});
+
+  final String status;
+  final bool notV4WorkbenchRc;
+  final bool uiFullOperationPending;
+  final List<String> blockerIds;
+
+  factory GateContract.fromJson(Map<String, dynamic> json) {
+    return GateContract(
+      status: _string(json['p1_full_operation_gate_status'], 'blocked'),
+      notV4WorkbenchRc: _bool(json['not_v4_0_workbench_rc']),
+      uiFullOperationPending: _bool(json['ui_full_operation_pending']),
+      blockerIds: _strings(json['blocker_ids']),
+    );
+  }
+}
+
+class ContractSource {
+  const ContractSource({required this.coreCommit, required this.copiedFrom});
+
+  final String coreCommit;
+  final String copiedFrom;
+
+  factory ContractSource.fromJson(Map<String, dynamic> json) {
+    return ContractSource(
+      coreCommit: _string(json['core_commit'], ''),
+      copiedFrom: _string(json['copied_from'], ''),
+    );
+  }
+}
+
 Map<String, dynamic> _map(Object? value) => value is Map<String, dynamic> ? value : <String, dynamic>{};
 
 List<dynamic> _list(Object? value) => value is List ? value : <dynamic>[];
@@ -282,3 +463,5 @@ List<String> _strings(Object? value) => _list(value).map((item) => item.toString
 String _string(Object? value, String fallback) => value?.toString() ?? fallback;
 
 int _int(Object? value) => value is int ? value : int.tryParse(value?.toString() ?? '') ?? 0;
+
+bool _bool(Object? value) => value is bool ? value : value?.toString().toLowerCase() == 'true';

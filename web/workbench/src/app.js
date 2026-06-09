@@ -3,27 +3,30 @@ import { loadWorkbenchData } from "./mockService.js";
 
 export const PAGES = [
   { id: "dashboard", label: "Dashboard", label_zh: "仪表盘", description: "System overview and operating posture.", description_zh: "系统概览与运行态势。" },
-  { id: "file-upload", label: "Import & Parsing", label_zh: "导入与解析", description: "Multi-format import, OCR, preprocessing, and parser quality.", description_zh: "多格式导入、OCR、预处理与解析质量。" },
-  { id: "job-progress", label: "Runtime Jobs", label_zh: "任务进度", description: "Queue status, execution progress, retries, and task stages.", description_zh: "队列状态、执行进度、重试与任务阶段。" },
-  { id: "knowledge-base-list", label: "Knowledge Packages", label_zh: "知识包管理", description: "Knowledge package build, version diff, publishing, and archive.", description_zh: "知识包构建、版本差异、发布与归档。" },
-  { id: "knowledge-base-detail", label: "Package Detail", label_zh: "知识库详情", description: "Inspect one knowledge package contract, trust gate, and export targets.", description_zh: "查看单个知识包契约、质量门禁与导出目标。" },
-  { id: "review-queue", label: "Review Queue", label_zh: "复核队列", description: "Risk-labelled review items, blocked reasons, and correction routing.", description_zh: "风险复核项、阻塞原因与校正流转。" },
-  { id: "corrected-text-editor", label: "Corrected Text", label_zh: "校正文稿", description: "Correct high-risk text and prepare manual review feedback.", description_zh: "校正高风险文本，并准备人工复核反馈。" },
-  { id: "kb-query", label: "Retrieval & Verification", label_zh: "检索与验证", description: "Query rewriting, retrieval planning, evidence selection, and validation.", description_zh: "查询改写、检索规划、证据选择与知识准确性验证。" },
+  { id: "workspace", label: "Workspace", label_zh: "工作空间", description: "Local workspace paths, health, storage, registry, backup, restore, and privacy boundary.", description_zh: "本地工作区路径、健康、存储、注册表、备份恢复与隐私边界。" },
+  { id: "operation-gate", label: "Operation Gate", label_zh: "运行门禁", description: "P1 gate status, blocked reasons, and non-v4 boundary.", description_zh: "P1 门禁状态、阻塞原因与非 v4 边界。" },
+  { id: "capability-matrix", label: "Capability Matrix", label_zh: "能力矩阵", description: "Core P1 capability areas and action/report/artifact coverage.", description_zh: "Core P1 能力域与 action/report/artifact 覆盖。" },
+  { id: "import-parsing", label: "Import & Parsing", label_zh: "导入与解析", description: "Multi-format import, OCR, preprocessing, and parser quality.", description_zh: "多格式导入、OCR、预处理与解析质量。" },
+  { id: "knowledge-package-management", label: "Knowledge Package Management", label_zh: "知识包管理", description: "Knowledge package build, version diff, publishing, and archive.", description_zh: "知识包构建、版本差异、发布与归档。" },
+  { id: "retrieval-verification", label: "Retrieval & Verification", label_zh: "检索与验证", description: "Query rewriting, retrieval planning, evidence selection, and validation.", description_zh: "查询改写、检索规划、证据选择与知识准确性验证。" },
+  { id: "vector-hub-provider-storage", label: "Vector Hub / Provider / Storage", label_zh: "向量索引 / 提供方 / 存储", description: "Provider validation, vector smoke, redaction, offline fallback, and storage profiles.", description_zh: "提供方验证、向量冒烟、脱敏、离线回退与存储配置。" },
   { id: "document-generation", label: "Document Generation", label_zh: "文档生成", description: "Citation-backed document drafts, previews, and export readiness.", description_zh: "带引用的文档草稿、预览与导出就绪状态。" },
-  { id: "agent-skill-management", label: "Agent Factory & Runtime", label_zh: "Agent 工厂与运行", description: "Standalone Agent, KB-bound Agent, and multi-Agent orchestration.", description_zh: "Standalone Agent、KB-bound Agent、多 Agent 编排与运行监控。" },
-  { id: "multi-agent-workflow", label: "Orchestration", label_zh: "运行与编排", description: "Workflow steps, task queues, shared memory, and handoff trace.", description_zh: "工作流步骤、任务队列、共享记忆与交接链路。" },
-  { id: "memory-scope-viewer", label: "Memory Center", label_zh: "记忆中心", description: "Private agent memory and workflow-shared memory isolation.", description_zh: "Agent 私有记忆与工作流共享记忆隔离。" },
-  { id: "settings", label: "Reports & Audit", label_zh: "报表与审计", description: "System reports, provider configuration, storage, and privacy checks.", description_zh: "系统报告、提供方配置、存储与隐私安全。" },
-  { id: "export-center", label: "Storage & Providers", label_zh: "存储与提供方", description: "Export packages, storage targets, and local workspace delivery.", description_zh: "导出包、存储目标与本地工作区交付。" }
+  { id: "skill-factory", label: "Skill Factory", label_zh: "技能工厂", description: "Book, package, and template Skill generation with validation and runtime profiles.", description_zh: "书籍、知识包与模板驱动 Skill 生成、验证与运行时配置。" },
+  { id: "agent-factory-runtime", label: "Agent Factory & Runtime", label_zh: "Agent 工厂与运行", description: "Standalone Agent, KB-bound Agent, and multi-Agent orchestration.", description_zh: "Standalone Agent、KB-bound Agent、多 Agent 编排与运行监控。" },
+  { id: "memory-center", label: "Memory Center", label_zh: "记忆中心", description: "Private agent memory and workflow-shared memory isolation.", description_zh: "Agent 私有记忆与工作流共享记忆隔离。" },
+  { id: "task-job-center", label: "Task / Job Center", label_zh: "任务 / 作业中心", description: "Stable task states, progress, retry, cancel, resume, reports, and artifacts.", description_zh: "稳定任务状态、进度、重试、取消、恢复、报告与产物。" },
+  { id: "artifact-management", label: "Artifact Management", label_zh: "产物管理", description: "KB packages, chunks, indexes, generated docs, Skill/Agent packages, traces, and proofs.", description_zh: "知识包、分片、索引、生成文档、Skill/Agent 包、追踪与证明。" },
+  { id: "error-repair-center", label: "Error Repair Center", label_zh: "错误修复中心", description: "Stable user-visible failure taxonomy and repair actions.", description_zh: "稳定的用户可见错误分类与修复动作。" },
+  { id: "reports-audit", label: "Reports & Audit", label_zh: "报表与审计", description: "System reports, provider configuration, storage, and privacy checks.", description_zh: "系统报告、提供方配置、存储与隐私安全。" },
+  { id: "governance", label: "Governance", label_zh: "治理与合规", description: "Document ownership, stale/conflict controls, health, permissions, and review-required flows.", description_zh: "文档归属、过期/冲突控制、健康状态、权限与复核流程。" },
+  { id: "template-library", label: "Template Library", label_zh: "模板库", description: "P1 Workbench templates for product, publishing, enterprise, education, commerce, and operations.", description_zh: "产品、出版、企业、教育、电商与运营场景的 P1 模板。" }
 ];
 
 const NAV_GROUPS = [
-  { label: "Dashboard", label_zh: "仪表盘", pageIds: ["dashboard"] },
-  { label: "Workspace", label_zh: "工作区", pageIds: ["file-upload", "job-progress"] },
-  { label: "Knowledge", label_zh: "知识工程", pageIds: ["knowledge-base-list", "knowledge-base-detail", "review-queue", "corrected-text-editor", "kb-query", "document-generation"] },
-  { label: "Intelligence", label_zh: "智能能力", pageIds: ["agent-skill-management", "multi-agent-workflow", "memory-scope-viewer"] },
-  { label: "Governance", label_zh: "治理与运维", pageIds: ["settings", "export-center"] }
+  { label: "Overview", label_zh: "总览", pageIds: ["dashboard", "workspace", "operation-gate", "capability-matrix"] },
+  { label: "Knowledge", label_zh: "知识工程", pageIds: ["import-parsing", "knowledge-package-management", "retrieval-verification", "vector-hub-provider-storage"] },
+  { label: "Production", label_zh: "生产能力", pageIds: ["document-generation", "skill-factory", "agent-factory-runtime", "memory-center"] },
+  { label: "Operations", label_zh: "治理与运维", pageIds: ["task-job-center", "artifact-management", "error-repair-center", "reports-audit", "governance", "template-library"] }
 ];
 
 const STATUS_LABELS = {
@@ -249,6 +252,79 @@ function actionBar(actions) {
   return `<div class="action-bar">${actions.map((action, index) => `<button class="${index === 0 ? "primary-button" : "ghost-button"}" type="button">${action}</button>`).join("")}</div>`;
 }
 
+function p1Page(data, routeId) {
+  return data.p1Contracts.pages.find((page) => page.route_id === routeId) ?? data.p1Contracts.pages[0];
+}
+
+function p1Actions(data, page) {
+  const ids = new Set(page.action_ids);
+  return data.p1Contracts.actions.filter((action) => ids.has(action.action_id));
+}
+
+function p1Reports(data, page) {
+  const ids = new Set(page.report_ids);
+  return data.p1Contracts.reports.filter((report) => ids.has(report.report_id));
+}
+
+function p1Artifacts(data, page) {
+  const ids = new Set(page.artifact_ids);
+  return data.p1Contracts.artifacts.filter((artifact) => ids.has(artifact.artifact_id));
+}
+
+function actionState(action) {
+  if (action.desktop_enabled) {
+    return `<span class="status-pill" data-status="ready">action_id: ${action.action_id}</span>`;
+  }
+  const reason = action.desktop_blocked_reason || action.web_blocked_reason || "blocked";
+  return `<button class="ghost-button is-disabled" type="button" disabled data-action-id="${action.action_id}" data-blocked-reason="${reason}">${reason}</button>`;
+}
+
+function p1ActionRows(actions, limit = 6) {
+  return table([label("Action", "操作"), "Status", "blocked_reason"], actions.slice(0, limit).map((action) => [
+    `<strong>${action.action_id}</strong><br><span class="muted">${action.label}</span>`,
+    statusPill(action.status === "ready" ? "ready" : action.status === "dry_run" ? "review_required" : action.status === "blocked" ? "blocked" : "disabled"),
+    actionState(action)
+  ]));
+}
+
+function idList(items, idKey, limit = 5) {
+  return `<ul class="compact-list">${items.slice(0, limit).map((item) => `<li><strong>${item[idKey]}</strong><span>${item.title || item.label || item.artifact_type || item.format || ""}</span></li>`).join("")}</ul>`;
+}
+
+function renderP1ContractPage(data, routeId, options = {}) {
+  const page = p1Page(data, routeId);
+  const actions = p1Actions(data, page);
+  const reports = p1Reports(data, page);
+  const artifacts = p1Artifacts(data, page);
+  const counts = data.p1Contracts.counts;
+  return pageShell(`
+    <section class="panel hero-panel">
+      <span class="eyebrow">${label("Core P1 contract aligned", "已对齐 Core P1 契约")}</span>
+      <h2>${localized(page, "title")}</h2>
+      <p>${page.capability_summary}</p>
+      <div class="metric-grid compact">
+        ${metricCard("actions", actions.length, `Core total ${counts.actions}`, "#")}
+        ${metricCard("reports", reports.length, `Core total ${counts.reports}`, "#")}
+        ${metricCard("artifacts", artifacts.length, `Core total ${counts.artifacts}`, "#")}
+        ${metricCard("gate", data.p1Contracts.p1_full_operation_gate_status, "not_full_operation_yet", "#")}
+      </div>
+    </section>
+    <section class="panel">
+      <div class="section-title"><h3>${label("Action Contracts", "操作契约")}</h3><span>${label("unsupported operations are disabled with blocked_reason", "不支持操作 disabled 并显示 blocked_reason")}</span></div>
+      ${p1ActionRows(actions)}
+    </section>
+    <div class="split-panels">
+      ${panel(label("Report IDs", "报告 ID"), idList(reports, "report_id"))}
+      ${panel(label("Artifact IDs", "产物 ID"), idList(artifacts, "artifact_id"))}
+    </div>
+  `, `
+    ${rightPanel(label("Core Source", "Core 来源"), `<p>${data.p1Contracts.source.copied_from}</p><p class="muted">${data.p1Contracts.source.core_commit}</p>`)}
+    ${rightPanel(label("Boundary", "边界"), `<p>${page.desktop_web_boundary || data.p1Contracts.source.fixture_policy}</p><p>${page.privacy_boundary || data.p1Contracts.source.fixture_policy}</p>`)}
+    ${rightPanel(label("Gate", "门禁"), `${statusPill(data.p1Contracts.p1_full_operation_gate_status)}<p>not_v4_0_workbench_rc: ${data.p1Contracts.not_v4_0_workbench_rc}</p><p>not_full_operation_yet: ${data.p1Contracts.not_full_operation_yet}</p>`)}
+    ${options.extraRail || ""}
+  `);
+}
+
 function table(headers, rows) {
   return `
     <table class="data-table">
@@ -261,18 +337,19 @@ function table(headers, rows) {
 function renderDashboard(data) {
   const runningJobs = data.jobs.filter((job) => job.status === "running").length;
   const successRate = Math.round((data.generatedDocs.filter((doc) => doc.status === "ready").length / data.generatedDocs.length) * 100);
+  const counts = data.p1Contracts.counts;
   return pageShell(`
     <div class="toolbar-row">
       <div class="section-title"><h2>${label("Key Metrics", "关键指标")}</h2><span>${label("Workbench operating posture", "工作台运行态势")}</span></div>
       ${actionBar([label("Customize", "自定义"), label("Refresh", "刷新")])}
     </div>
     <section class="metric-grid">
-      ${metricCard(label("Knowledge Bases", "知识库"), data.metrics.knowledgeBases, label("+3 vs yesterday", "较昨日 +3"), "▣")}
-      ${metricCard(label("Skills", "技能"), "128", label("+12 vs yesterday", "较昨日 +12"), "✣")}
-      ${metricCard(label("Agents", "Agent"), data.metrics.agents, label(`${runningJobs} running`, `运行中 ${runningJobs}`), "▤")}
-      ${metricCard(label("Runtime Jobs", "运行任务"), "136", label("24 passed · 3 failed", "24 成功 · 3 失败"), "◴")}
-      ${metricCard(label("OCR Coverage", "OCR 覆盖率"), "92.7%", label("+1.8% vs yesterday", "较昨日 +1.8%"), "⌗")}
-      ${metricCard(label("Final Gate", "最终门禁"), label("Ready", "就绪"), label("5 checks passed", "5 项检查通过"), "◇")}
+      ${metricCard(label("P1 Pages", "P1 页面"), counts.pages, "Core contract", "▣")}
+      ${metricCard(label("Actions", "操作"), counts.actions, "action_id", "✣")}
+      ${metricCard(label("Reports", "报告"), counts.reports, "report_id", "▤")}
+      ${metricCard(label("Artifacts", "产物"), counts.artifacts, "artifact_id", "◴")}
+      ${metricCard(label("Error Codes", "错误码"), counts.errors, "error_code", "⌗")}
+      ${metricCard(label("P1 Gate", "P1 门禁"), data.p1Contracts.p1_full_operation_gate_status, "not_full_operation_yet", "◇")}
     </section>
     <section class="split-grid">
       ${panel(label("Recent Tasks", "最近任务"), table(
@@ -316,6 +393,36 @@ function dashboardRail(data) {
       ["08:57", label("Agent running", "Agent 执行中"), "客户服务助手"]
     ]))}
   `;
+}
+
+function renderOperationGate(data) {
+  const gate = data.p1Contracts.gate_report;
+  return renderP1ContractPage(data, "operation-gate", {
+    extraRail: rightPanel(label("Blocked Reasons", "阻塞原因"), idList(gate.blocker_ids.map((id) => ({ id, title: id })), "id"))
+  });
+}
+
+function renderCapabilityMatrix(data) {
+  const rows = data.p1Contracts.capability_matrix.map((area) => [
+    `<strong>${area.page_id}</strong><br><span class="muted">${area.title}</span>`,
+    area.action_ids.length,
+    area.report_ids.length,
+    area.artifact_ids.length,
+    area.desktop_web_boundary
+  ]);
+  return pageShell(`
+    <section class="panel hero-panel">
+      <span class="eyebrow">${label("Core P1 capability matrix", "Core P1 能力矩阵")}</span>
+      <h2>${label("Capability Matrix", "能力矩阵")}</h2>
+      <p>${label("Every Core P1 capability area keeps action/report/artifact cross references stable for UI consumption.", "每个 Core P1 能力域都保留稳定 action/report/artifact 交叉引用供 UI 消费。")}</p>
+    </section>
+    <section class="panel">
+      ${table([label("Capability", "能力域"), "actions", "reports", "artifacts", label("Boundary", "边界")], rows)}
+    </section>
+  `, `
+    ${rightPanel(label("Contract Counts", "契约计数"), `${miniMetric("pages", data.p1Contracts.counts.pages)}${miniMetric("actions", data.p1Contracts.counts.actions)}${miniMetric("reports", data.p1Contracts.counts.reports)}${miniMetric("artifacts", data.p1Contracts.counts.artifacts)}`)}
+    ${rightPanel(label("Source Commit", "来源提交"), `<p>${data.p1Contracts.source.core_commit}</p>`)}
+  `);
 }
 
 function renderFileUpload(data) {
@@ -761,24 +868,28 @@ function renderPage() {
   const data = state.data;
   const renderers = {
     dashboard: renderDashboard,
-    "file-upload": renderFileUpload,
-    "job-progress": renderJobProgress,
-    "knowledge-base-list": renderKnowledgeBaseList,
-    "knowledge-base-detail": renderKnowledgeBaseDetail,
-    "review-queue": renderReviewQueue,
-    "corrected-text-editor": renderCorrectedTextEditor,
-    "kb-query": renderKbQuery,
+    workspace: (viewData) => renderP1ContractPage(viewData, "workspace"),
+    "operation-gate": renderOperationGate,
+    "capability-matrix": renderCapabilityMatrix,
+    "import-parsing": renderFileUpload,
+    "knowledge-package-management": renderKnowledgeBaseList,
+    "retrieval-verification": renderKbQuery,
+    "vector-hub-provider-storage": (viewData) => renderP1ContractPage(viewData, "vector-hub-provider-storage"),
     "document-generation": renderDocumentGeneration,
-    "agent-skill-management": renderAgentSkillManagement,
-    "multi-agent-workflow": renderMultiAgentWorkflow,
-    "memory-scope-viewer": renderMemoryScopeViewer,
-    settings: renderSettings,
-    "export-center": renderExportCenter
+    "skill-factory": (viewData) => renderP1ContractPage(viewData, "skill-factory"),
+    "agent-factory-runtime": renderAgentSkillManagement,
+    "memory-center": renderMemoryScopeViewer,
+    "task-job-center": renderJobProgress,
+    "artifact-management": (viewData) => renderP1ContractPage(viewData, "artifact-management"),
+    "error-repair-center": (viewData) => renderP1ContractPage(viewData, "error-repair-center"),
+    "reports-audit": renderSettings,
+    governance: (viewData) => renderP1ContractPage(viewData, "governance"),
+    "template-library": (viewData) => renderP1ContractPage(viewData, "template-library")
   };
 
   shellTitle.textContent = labelFor(page);
   shellSubtitle.textContent = descriptionFor(page);
-  appRoot.innerHTML = renderers[page.id](data);
+  appRoot.innerHTML = (renderers[page.id] || ((viewData) => renderP1ContractPage(viewData, page.id)))(data);
   appRoot.focus({ preventScroll: true });
 }
 

@@ -5,17 +5,19 @@ import 'package:heitang_workbench/contracts/workbench_contracts.dart';
 import 'package:heitang_workbench/main.dart';
 
 void main() {
-  test('contract fixture parses core workbench contracts', () {
+  test('contract fixture parses p1 workbench contracts', () {
     final contracts = sampleWorkbenchContracts;
 
-    expect(contracts.manifest.outputFiles, contains('workbench_navigation_contract.json'));
-    expect(contracts.navigation.views, hasLength(14));
-    expect(contracts.actions.actions.map((action) => action.id), contains('generate_documents'));
-    expect(contracts.agent.supportedModes, containsAll(['standalone', 'kb_bound']));
-    expect(contracts.hierarchy.bindingFields, containsAll(['parent', 'child', 'child_mode', 'bound_kbs']));
-    expect(contracts.memory.lifecycleFields, contains('token_budget_policy'));
-    expect(contracts.storage.storageAreas.keys, containsAll(['package_storage', 'skill_storage', 'agent_storage', 'memory_storage', 'index_storage']));
-    expect(contracts.errors.errorStates, contains('contract_file_missing'));
+    expect(contracts.source.coreCommit, '1e786cd1da1f557cd22eae622a721c431902e6b4');
+    expect(contracts.manifest.outputFiles, contains('workbench_action_contracts.json'));
+    expect(contracts.navigation.views, hasLength(18));
+    expect(contracts.actions.actions.map((action) => action.id), containsAll(['workspace_inspect', 'rag_query', 'book_to_skill', 'run_agent']));
+    expect(contracts.reports.reports.map((report) => report.id), contains('report_p1_gate_summary'));
+    expect(contracts.taskSchema.statuses, containsAll(['queued', 'running', 'blocked', 'review_required']));
+    expect(contracts.templates.templates, hasLength(6));
+    expect(contracts.gate.status, 'blocked');
+    expect(contracts.gate.notV4WorkbenchRc, isTrue);
+    expect(contracts.gate.uiFullOperationPending, isTrue);
   });
 
   testWidgets('renders desktop HeiTang workbench shell without Flutter exceptions', (tester) async {
@@ -26,7 +28,7 @@ void main() {
     expect(find.text('黑糖 HeiTang'), findsOneWidget);
     expect(find.text('Knowledge Workbench'), findsOneWidget);
     expect(find.text('仪表盘'), findsWidgets);
-    expect(pages, hasLength(14));
+    expect(pages, hasLength(18));
     expect(find.byType(NavigationRail), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -60,26 +62,18 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('renders contract-driven agent hierarchy memory and storage pages', (tester) async {
-    await tester.binding.setSurfaceSize(const Size(1440, 1120));
+  testWidgets('renders dedicated p1 pages without Flutter exceptions', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1320));
     await tester.pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('多 Agent 工作流').first);
-    await tester.pumpAndSettle();
-    expect(find.textContaining('parent'), findsWidgets);
-    expect(find.textContaining('standalone'), findsWidgets);
-
-    await tester.tap(find.text('记忆范围查看器').first);
-    await tester.pumpAndSettle();
-    expect(find.textContaining('explicit_only'), findsWidgets);
-    expect(find.textContaining('queue_memory_writeback'), findsWidgets);
-
-    await tester.tap(find.text('设置').first);
-    await tester.pumpAndSettle();
-    expect(find.textContaining('local_workspace'), findsWidgets);
-    expect(find.textContaining('package_storage'), findsWidgets);
-    expect(tester.takeException(), isNull);
+    for (final title in ['工作空间', '向量索引 / 提供方 / 存储', '技能工厂', '产物管理', '错误修复中心', '运行门禁', '能力矩阵']) {
+      await tester.tap(find.text(title).first);
+      await tester.pumpAndSettle();
+      expect(find.text(title), findsWidgets);
+      expect(find.textContaining('Core'), findsWidgets);
+      expect(tester.takeException(), isNull);
+    }
   });
 
   testWidgets('renders contract-driven action and agent mode data in English', (tester) async {
@@ -89,16 +83,15 @@ void main() {
 
     await tester.tap(find.text('EN'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Agent / Skill management').first);
+    await tester.tap(find.text('Agent Factory & Runtime').first);
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('standalone'), findsWidgets);
+    expect(find.textContaining('run_agent'), findsWidgets);
     expect(find.textContaining('kb_bound'), findsWidgets);
-    expect(find.textContaining('retrieval_config.yaml'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('runs the desktop kb_query core action through an injected bridge', (tester) async {
+  testWidgets('runs the desktop rag_query core action through an injected bridge', (tester) async {
     final requests = <CoreBridgeRequest>[];
     final bridge = LocalCoreBridge(
       runner: (request) async {
@@ -119,22 +112,22 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('知识库查询').first);
+    await tester.tap(find.text('检索与验证').first);
     await tester.pumpAndSettle();
-    expect(find.text('Query / Verify KB'), findsOneWidget);
+    expect(find.text('Run RAG query'), findsOneWidget);
 
     await tester.tap(find.text('运行 Core 操作'));
     await tester.pumpAndSettle();
 
     expect(requests, hasLength(1));
-    expect(requests.single.actionId, 'kb_query');
-    expect(requests.single.arguments.first, 'kb-answer');
+    expect(requests.single.actionId, 'rag_query');
+    expect(requests.single.arguments.first, 'kb-query');
     expect(find.textContaining('<redacted>'), findsWidgets);
     expect(find.textContaining('sk-test-secret'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('blocks the run_agent action on web runtime without calling the runner', (tester) async {
+  testWidgets('disables local CLI actions on web runtime without calling the runner', (tester) async {
     var runnerCalled = false;
     final bridge = LocalCoreBridge(
       runner: (request) async {
@@ -154,16 +147,30 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Agent / Skill 管理').first);
+    await tester.tap(find.text('Agent 工厂与运行').first);
     await tester.pumpAndSettle();
-    expect(find.text('Run Local Agent'), findsOneWidget);
+    expect(find.text('Run Agent'), findsOneWidget);
+    expect(find.textContaining('blocked_reason: web_local_cli_unsupported'), findsOneWidget);
 
-    await tester.tap(find.text('运行 Core 操作'));
+    await tester.tap(find.text('运行 Core 操作'), warnIfMissed: false);
     await tester.pumpAndSettle();
 
     expect(runnerCalled, isFalse);
-    expect(find.text('blocked'), findsWidgets);
-    expect(find.text('core_bridge_web_unsupported'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('shows disabled blocked_reason for provider and secret actions', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1100));
+    await tester.pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts, isWebRuntime: false));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('向量索引 / 提供方 / 存储').first);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('blocked_reason: provider_required'), findsOneWidget);
+
+    await tester.tap(find.text('错误修复中心').first);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('blocked_reason: secret_required'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

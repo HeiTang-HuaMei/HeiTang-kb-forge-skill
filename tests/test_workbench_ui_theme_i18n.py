@@ -132,9 +132,9 @@ def test_key_pages_have_light_dark_renderable_shell_and_i18n_titles():
     app = (WORKBENCH / "src" / "app.js").read_text(encoding="utf-8")
     styles = (WORKBENCH / "styles.css").read_text(encoding="utf-8")
 
-    for page_id in ["dashboard", "file-upload", "knowledge-base-list", "kb-query", "agent-skill-management", "settings"]:
+    for page_id in ["dashboard", "workspace", "import-parsing", "retrieval-verification", "agent-factory-runtime", "reports-audit"]:
         assert f'id: "{page_id}"' in app
-    for title in ["仪表盘", "Import & Parsing", "知识包管理", "Retrieval & Verification", "Agent 工厂与运行", "Reports & Audit"]:
+    for title in ["仪表盘", "工作空间", "Import & Parsing", "Retrieval & Verification", "Agent 工厂与运行", "Reports & Audit"]:
         assert title in app
     assert "pageShell(" in app
     assert "right-context" in app

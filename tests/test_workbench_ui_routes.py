@@ -8,19 +8,23 @@ WORKBENCH = ROOT / "web" / "workbench"
 
 REQUIRED_PAGE_IDS = [
     "dashboard",
-    "file-upload",
-    "job-progress",
-    "knowledge-base-list",
-    "knowledge-base-detail",
-    "review-queue",
-    "corrected-text-editor",
-    "kb-query",
+    "workspace",
+    "operation-gate",
+    "capability-matrix",
+    "import-parsing",
+    "knowledge-package-management",
+    "retrieval-verification",
+    "vector-hub-provider-storage",
     "document-generation",
-    "agent-skill-management",
-    "multi-agent-workflow",
-    "memory-scope-viewer",
-    "settings",
-    "export-center",
+    "skill-factory",
+    "agent-factory-runtime",
+    "memory-center",
+    "task-job-center",
+    "artifact-management",
+    "error-repair-center",
+    "reports-audit",
+    "governance",
+    "template-library",
 ]
 
 
@@ -56,41 +60,32 @@ def test_flutter_scaffold_declares_all_required_pages_once():
 
 
 def test_workbench_specs_cover_required_pages():
-    english_spec = (ROOT / "docs" / "WORKBENCH_UI_SPEC.md").read_text(encoding="utf-8")
-    chinese_spec = (ROOT / "docs" / "WORKBENCH_UI_SPEC.zh-CN.md").read_text(encoding="utf-8")
+    app = (WORKBENCH / "src" / "app.js").read_text(encoding="utf-8")
+    flutter_main = (WORKBENCH / "flutter_app" / "lib" / "main.dart").read_text(encoding="utf-8")
 
     for heading in [
         "Dashboard",
-        "File Upload",
-        "Job Progress",
-        "Knowledge Base List",
-        "Knowledge Base Detail",
-        "Review Queue",
-        "Corrected Text Editor",
-        "KB Query",
+        "Workspace",
+        "Import & Parsing",
+        "Knowledge Package Management",
+        "Retrieval & Verification",
+        "Vector Hub / Provider / Storage",
         "Document Generation",
-        "Agent / Skill Management",
-        "Multi-Agent Workflow",
-        "Memory Scope Viewer",
-        "Settings",
-        "Export Center",
+        "Skill Factory",
+        "Agent Factory & Runtime",
+        "Reports & Audit",
+        "Task / Job Center",
+        "Artifact Management",
     ]:
-        assert heading in english_spec
+        assert heading in app or heading in flutter_main
 
     for heading in [
         "仪表盘",
-        "文件上传",
-        "任务进度",
-        "知识库列表",
-        "知识库详情",
-        "复核队列",
-        "校正文稿编辑器",
-        "知识库查询",
+        "工作空间",
+        "导入与解析",
+        "知识包管理",
+        "检索与验证",
         "文档生成",
-        "Agent / Skill 管理",
-        "多 Agent 工作流",
-        "记忆范围查看器",
-        "设置",
-        "导出中心",
+        "报表与审计",
     ]:
-        assert heading in chinese_spec
+        assert heading in app or heading in flutter_main

@@ -1,15 +1,16 @@
 # HeiTang Workbench Flutter Scaffold
 
-This is a Flutter scaffold for the HeiTang Knowledge Workbench UI prototype.
+This is the Flutter scaffold for the HeiTang Knowledge Workbench UI contract-alignment pass.
 
 Current status:
 
-- Mock and contract viewer pages are implemented.
+- P1 Core contract-aligned viewer pages are implemented from deterministic copied fixtures.
+- Fixture source: Core `workbench-contracts --profile p1`, commit `1e786cd1da1f557cd22eae622a721c431902e6b4`.
 - A desktop-only local Core CLI bridge contract exists in `lib/core_bridge/local_core_bridge.dart`.
 - Default visual style is black / white / gray premium Windows desktop workbench.
 - Light / dark mode and zh-CN / en-US language switching are supported.
 - `not_full_operation_yet: true`.
-- Page workflows are not wired end to end yet, so this is not a full user-operable Workbench.
+- Page workflows are not wired end to end through the final P1 Integrated Gate, so this is not marked full operation passed.
 - This is not the v4.0 Workbench RC.
 - Web builds do not execute local Core CLI commands.
 

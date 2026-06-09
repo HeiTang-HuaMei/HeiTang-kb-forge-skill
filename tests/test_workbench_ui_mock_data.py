@@ -22,6 +22,7 @@ def test_required_mock_data_files_exist_and_are_json():
         "provider_status.json",
         "parser_backend_status.json",
         "answer_policies.json",
+        "p1_core_contract_fixture.json",
     ]:
         assert (MOCK_DATA / file_name).exists()
         assert isinstance(read_json(file_name), dict)
@@ -60,6 +61,19 @@ def test_mock_data_represents_providers_policies_and_parser_status():
         policy["id"] for policy in policies["answer_policies"]
     }
     assert policies["memory_policies"]
+
+
+def test_mock_data_represents_p1_core_contract_alignment_fixture():
+    fixture = read_json("p1_core_contract_fixture.json")
+
+    assert fixture["source"]["core_commit"] == "1e786cd1da1f557cd22eae622a721c431902e6b4"
+    assert fixture["not_full_operation_yet"] is True
+    assert fixture["not_v4_0_workbench_rc"] is True
+    assert fixture["counts"]["actions"] == 110
+    assert fixture["counts"]["reports"] == 109
+    assert fixture["counts"]["artifacts"] == 101
+    assert fixture["counts"]["errors"] == 20
+    assert fixture["counts"]["templates"] == 6
 
 
 def test_mock_data_represents_review_generated_docs_workflow_and_exports():

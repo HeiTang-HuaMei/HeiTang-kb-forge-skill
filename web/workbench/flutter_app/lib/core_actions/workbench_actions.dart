@@ -25,14 +25,28 @@ List<String>? _argumentsForAction(String actionId, String workspace) {
   final outputPath = '$workspace/workbench_runs/$actionId';
 
   return switch (actionId) {
-    'kb_query' => <String>[
-      'kb-answer',
+    'workspace_inspect' => <String>[
+      'workspace-list',
+      '--workspace',
+      workspace,
+    ],
+    'rag_query' => <String>[
+      'kb-query',
       '--package',
       packagePath,
       '--query',
       'Summarize this knowledge package.',
       '--output',
       outputPath,
+    ],
+    'book_to_skill' => <String>[
+      'book-to-skill',
+      '--input',
+      '$workspace/source',
+      '--output',
+      outputPath,
+      '--skill-name',
+      'contract-reviewer',
     ],
     'run_agent' => <String>[
       'run-local-agent',
@@ -42,6 +56,13 @@ List<String>? _argumentsForAction(String actionId, String workspace) {
       '$workspace/agents/local-agent',
       '--task',
       'Summarize relevant evidence.',
+      '--output',
+      outputPath,
+    ],
+    'artifact_kb_package_inspect' => <String>[
+      'check-contract',
+      '--package',
+      packagePath,
       '--output',
       outputPath,
     ],

@@ -10,7 +10,8 @@ export const MOCK_DATA_FILES = {
   generatedDocs: "generated_docs.json",
   providerStatus: "provider_status.json",
   parserBackendStatus: "parser_backend_status.json",
-  answerPolicies: "answer_policies.json"
+  answerPolicies: "answer_policies.json",
+  p1Contracts: "p1_core_contract_fixture.json"
 };
 
 async function loadJson(fileName) {
@@ -42,8 +43,10 @@ export function buildWorkbenchViewModel(raw) {
   const parserBackends = raw.parserBackendStatus.parser_backends;
   const answerPolicies = raw.answerPolicies.answer_policies;
   const memoryPolicies = raw.answerPolicies.memory_policies;
+  const p1Contracts = raw.p1Contracts;
 
   return {
+    p1Contracts,
     knowledgeBases,
     agents,
     workflows,

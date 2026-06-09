@@ -5,13 +5,13 @@ void main() {
   test('builds allowlisted core commands without shell execution', () {
     const bridge = LocalCoreBridge();
     const request = CoreBridgeRequest(
-      actionId: 'build_package',
+      actionId: 'workspace_inspect',
       coreCli: 'python',
       workingDirectory: r'C:\repo',
-      arguments: ['build', '--input', r'C:\input', '--output', r'C:\output'],
+      arguments: ['workspace-list', '--workspace', r'C:\workspace'],
     );
 
-    expect(bridge.buildCommand(request), ['python', 'build', '--input', r'C:\input', '--output', r'C:\output']);
+    expect(bridge.buildCommand(request), ['python', 'workspace-list', '--workspace', r'C:\workspace']);
   });
 
   test('rejects shell metacharacters and non-allowlisted commands', () {
@@ -35,7 +35,7 @@ void main() {
           actionId: 'build_package',
           coreCli: 'python',
           workingDirectory: r'C:\repo',
-          arguments: ['run-local-agent', '--package', r'C:\package'],
+          arguments: ['cmd', '--package', r'C:\package'],
         ),
       ),
       throwsA(isA<CoreBridgeException>().having((error) => error.errorId, 'errorId', 'core_bridge_command_not_allowed')),
