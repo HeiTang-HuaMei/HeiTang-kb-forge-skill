@@ -32,7 +32,7 @@ HeiTang KB Forge 提供一条本地闭环：
 
 ## 当前版本
 
-当前 checkpoint：v4.0.0-rc.1 release candidate preparation。
+当前 checkpoint：v4.0.0 stable release。
 
 近期能力：
 

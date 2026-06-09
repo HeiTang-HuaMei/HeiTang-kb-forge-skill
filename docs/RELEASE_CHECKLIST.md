@@ -1,14 +1,15 @@
 # Release Checklist
 
-Current project version: `4.0.0rc1`
+Current project version: `4.0.0`
 
-Current release candidate: `v4.0.0-rc.1`
+Current stable release: `v4.0.0`
 
-Current stage: v4.0.0-rc.1 release candidate preparation. Stable v4.0.0 is not released until rc acceptance and hardening pass.
+Current stage: v4.0.0 stable release after rc acceptance and hardening.
 
 ## Required Checks
 
-- [ ] Version aligned in `pyproject.toml`, `skill.json`, README, Capability Status, Version Matrix, and Release Checklist
+- [x] Version aligned in `pyproject.toml`, `skill.json`, README, Capability Status, Version Matrix, and Release Checklist
+- [x] P1 Final Gate, External Project Registry, S/A Contract Inclusion, rc.1 acceptance, and release hardening evidence remain attached
 - [ ] `python -m pytest` passed
 - [ ] Doctor command `python -m heitang_kb_forge.cli doctor --output ./tmp_doctor` passed
 - [ ] Quickstart build passed

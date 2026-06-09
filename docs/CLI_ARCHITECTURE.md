@@ -1,6 +1,6 @@
 # CLI Architecture
 
-Current version: `4.0.0rc1` / `v4.0.0-rc.1`
+Current version: `4.0.0` / `v4.0.0`
 
 ## Purpose
 

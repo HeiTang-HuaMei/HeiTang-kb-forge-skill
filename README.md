@@ -2,11 +2,11 @@
 
 [中文说明](README.zh-CN.md) | English
 
-Current UI package version: `4.0.0rc1`
+Current UI package version: `4.0.0`
 
-Current release candidate: `v4.0.0-rc.1`
+Current stable release: `v4.0.0`
 
-Release status: v4.0.0-rc.1 release candidate preparation after P1 Final Gate, External Project Registry, and S/A Contract Inclusion. This is not the stable v4.0.0 release.
+Release status: v4.0.0 stable release after P1 Final Gate, External Project Registry, S/A Contract Inclusion, rc.1 acceptance, and release hardening.
 
 HeiTang KB Forge is an offline-first, agent-callable knowledge supply-chain Skill. It turns multi-format source material into standardized, auditable, reviewable, and retrievable knowledge asset packages for Agent and RAG workflows.
 
@@ -197,7 +197,9 @@ The current UI is a P1 final gate re-run evidence UI consumption pass verified a
 
 It also surfaces S/A external capability contract-inclusion fixtures from Core commit `c30f8adcadfedb30cb974eb62cc02a38c35a5158` and CI run `27221946149`. These entries are visibility and boundary data only: planned/future/provider-required projects are not installed, not local-ready, and not executable from the UI.
 
-This is still not the stable v4.0.0 release. The copied P1 evidence keeps `not_v4_0_workbench_rc=true`; unsupported provider, secret, network, and planned-adapter operations render disabled with `blocked_reason`.
+The stable UI package is aligned with Core stable commit `0217e54b162871e7c40c31ff3d0cc72e8ba78f06`.
+
+This UI package is now aligned to the stable v4.0.0 release. The copied historical P1 evidence keeps `not_v4_0_workbench_rc=true`; unsupported provider, secret, network, and planned-adapter operations render disabled with `blocked_reason`.
 
 Strategic docs:
 

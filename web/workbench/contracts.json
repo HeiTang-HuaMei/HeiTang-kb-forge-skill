@@ -318,14 +318,15 @@
     "not_v4_0_workbench_rc": true
   },
   "release_boundary": {
-    "checkpoint": "v4.0.0-rc.1 release candidate preparation; stable v4.0.0 not complete; copied P1 evidence keeps not_v4_0_workbench_rc=true",
-    "package_version": "4.0.0rc1",
-    "release_candidate": "v4.0.0-rc.1",
+    "checkpoint": "v4.0.0 stable release; copied historical P1 evidence keeps not_v4_0_workbench_rc=true",
+    "package_version": "4.0.0",
+    "stable_release": "v4.0.0",
+    "core_stable_commit": "0217e54b162871e7c40c31ff3d0cc72e8ba78f06",
     "current_ui_default": "black / white / gray premium Windows desktop workbench",
     "supports_light_dark_mode": true,
     "supports_zh_cn_en_us_switch": true,
-    "not_v4_0_release": true,
-    "not_v4_0_workbench_rc": true,
+    "not_v4_0_release": false,
+    "not_v4_0_workbench_rc": false,
     "ready_for_v4_rc": true,
     "not_full_operation_yet": false
   },

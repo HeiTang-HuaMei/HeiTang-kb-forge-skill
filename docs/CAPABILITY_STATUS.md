@@ -1,10 +1,10 @@
 # Capability Status
 
-Current project version: `4.0.0rc1`
+Current project version: `4.0.0`
 
-Current release candidate: `v4.0.0-rc.1`
+Current stable release: `v4.0.0`
 
-Latest completed pre-rc UI work includes P1 Final Gate Re-run, External Project Registry visibility, and S/A Contract Inclusion visibility. The project is now preparing the `v4.0.0-rc.1` Workbench UI release candidate; stable `v4.0.0` still requires rc acceptance and hardening.
+Latest completed UI release work includes P1 Final Gate Re-run, External Project Registry visibility, S/A Contract Inclusion visibility, rc.1 acceptance, and release hardening. The project is now on the stable `v4.0.0` Workbench UI release line.
 
 ## Stable
 

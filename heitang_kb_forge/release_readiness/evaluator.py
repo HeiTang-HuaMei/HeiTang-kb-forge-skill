@@ -50,8 +50,8 @@ def evaluate_release_readiness(workspace: Path, output: Path) -> ReleaseReadines
         warnings=warnings,
         next_actions=[
             "Resolve critical blockers before release.",
-            "Use P1 final gate, external registry, and S/A contract inclusion evidence before v4.0.0 stable.",
-            "Keep copied Workbench UI evidence aligned before tagging stable v4.0.0.",
+            "Keep P1 final gate, external registry, and S/A contract inclusion evidence attached for v4.0.0 stable.",
+            "Keep copied Workbench UI evidence aligned with the stable Core commit.",
         ],
     )
     write_json(output / "release_readiness_result.json", result)
@@ -72,7 +72,7 @@ def _status(path: Path) -> str:
 
 def _repo_gate_failures(workspace: Path) -> list[str]:
     failures: list[str] = []
-    expected = "4.0.0rc1"
+    expected = "4.0.0"
     if not _versions_aligned(workspace, expected):
         failures.append("version_mismatch")
     for name, path in {

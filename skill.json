@@ -1,8 +1,8 @@
 {
   "name": "heitang-kb-forge-skill",
   "display_name": "HeiTang KB Forge Skill",
-  "version": "4.0.0rc1",
-  "description": "Agent knowledge supply-chain Skill and Workbench UI release candidate for producing, auditing, and viewing local knowledge packages.",
+  "version": "4.0.0",
+  "description": "Agent knowledge supply-chain Skill and Workbench UI stable release for producing, auditing, and viewing local knowledge packages.",
   "entrypoints": {
     "cli": "heitang-kb-forge",
     "python_module": "python -m heitang_kb_forge.cli"

@@ -32,7 +32,7 @@ source files → knowledge package → quality gate → evidence / governance �
 
 ## Current version
 
-Current checkpoint: v4.0.0-rc.1 release candidate preparation.
+Current checkpoint: v4.0.0 stable release.
 
 Recent milestones:
 

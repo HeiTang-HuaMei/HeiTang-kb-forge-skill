@@ -1,14 +1,15 @@
 # Release Checklist
 
-当前项目版本：`4.0.0rc1`
+当前项目版本：`4.0.0`
 
-当前 release candidate：`v4.0.0-rc.1`
+当前 stable release：`v4.0.0`
 
-当前阶段：v4.0.0-rc.1 release candidate preparation。stable v4.0.0 必须在 rc acceptance 与 hardening 通过后才发布。
+当前阶段：v4.0.0 stable release，已完成 rc acceptance 与 hardening。
 
 ## Required Checks
 
-- [ ] `pyproject.toml`、`skill.json`、README、Capability Status、Version Matrix、Release Checklist 版本一致
+- [x] `pyproject.toml`、`skill.json`、README、Capability Status、Version Matrix、Release Checklist 版本一致
+- [x] P1 Final Gate、External Project Registry、S/A Contract Inclusion、rc.1 acceptance 与 release hardening evidence 仍然完整
 - [ ] `python -m pytest` 通过
 - [ ] Doctor 命令 `python -m heitang_kb_forge.cli doctor --output ./tmp_doctor` 通过
 - [ ] Quickstart build 通过

@@ -5,6 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 WORKBENCH = ROOT / "web" / "workbench"
 CORE_COMMIT = "f5fa13bb11211abb0bcecaccd845e545a2dacad3"
+CORE_STABLE_COMMIT = "0217e54b162871e7c40c31ff3d0cc72e8ba78f06"
 
 
 def test_workbench_contract_exposes_desktop_core_bridge_without_full_operation_claim():
@@ -51,8 +52,10 @@ def test_workbench_contract_exposes_desktop_core_bridge_without_full_operation_c
     assert contracts["i18n"]["locales"] == ["zh-CN", "en-US"]
     assert contracts["release_boundary"]["supports_light_dark_mode"] is True
     assert contracts["release_boundary"]["supports_zh_cn_en_us_switch"] is True
-    assert contracts["release_boundary"]["not_v4_0_release"] is True
-    assert contracts["release_boundary"]["not_v4_0_workbench_rc"] is True
+    assert contracts["release_boundary"]["not_v4_0_release"] is False
+    assert contracts["release_boundary"]["not_v4_0_workbench_rc"] is False
+    assert contracts["release_boundary"]["stable_release"] == "v4.0.0"
+    assert contracts["release_boundary"]["core_stable_commit"] == CORE_STABLE_COMMIT
     assert contracts["release_boundary"]["ready_for_v4_rc"] is True
     assert contracts["release_boundary"]["not_full_operation_yet"] is False
     assert contracts["pwa"]["static_web_manifest"] == "web/workbench/manifest.webmanifest"
@@ -65,7 +68,8 @@ def test_readme_states_workbench_visual_and_release_boundary():
     assert "black / white / gray premium Windows desktop workbench" in readme
     assert "light / dark mode" in readme
     assert "zh-CN / en-US language switch" in readme
-    assert "not the stable v4.0.0 release" in readme
+    assert "stable v4.0.0 release" in readme
+    assert CORE_STABLE_COMMIT in readme
     assert "P1 final gate re-run evidence UI consumption pass" in readme
     assert CORE_COMMIT in readme
     assert "ready_for_v4_rc=true" in readme
@@ -93,8 +97,8 @@ def test_flutter_project_scaffold_has_standard_entry_files():
     assert "flutter run -d chrome" in readme
     assert "ready_for_v4_rc=true" in readme
     assert "p1_full_operation_gate_status: ready_for_v4_rc" in readme
-    assert "v4.0.0-rc.1 Workbench release candidate" in readme
-    assert "not the stable v4.0.0 release" in readme
+    assert "stable v4.0.0" in readme
+    assert "pre-stable release boundaries" in readme
     assert "Web does not execute the local Core CLI" in readme
 
 

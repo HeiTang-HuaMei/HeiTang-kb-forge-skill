@@ -1,10 +1,10 @@
 # Capability Status
 
-当前项目版本：`4.0.0rc1`
+当前项目版本：`4.0.0`
 
-当前 release candidate：`v4.0.0-rc.1`
+当前 stable release：`v4.0.0`
 
-最新已完成的 pre-rc UI 工作包括 P1 Final Gate Re-run、External Project Registry 可见边界与 S/A Contract Inclusion 可见边界。当前正在准备 `v4.0.0-rc.1` Workbench UI release candidate；stable `v4.0.0` 仍需要 rc acceptance 与 hardening。
+最新已完成的 UI release 工作包括 P1 Final Gate Re-run、External Project Registry 可见边界、S/A Contract Inclusion 可见边界、rc.1 acceptance 与 release hardening。当前已进入 stable `v4.0.0` Workbench UI release line。
 
 ## Stable
 

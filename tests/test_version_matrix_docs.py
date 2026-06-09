@@ -10,6 +10,7 @@ def test_version_matrix_covers_release_history_and_planned_versions():
         assert version in text
     assert "| v2.6.0-alpha.1 | Implemented |" in text
     assert "| v2.7.0-alpha.1 | Implemented |" in text
-    assert "| v4.0.0-rc.1 | Current |" in text
+    assert "| v4.0.0-rc.1 | Historical |" in text
+    assert "| v4.0.0 | Current |" in text
     assert "offline export / mock publish" in text
     assert "local release quality gate" in text

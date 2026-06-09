@@ -2,11 +2,11 @@
 
 [English](README.md) | 中文说明
 
-当前 UI package 版本：`4.0.0rc1`
+当前 UI package 版本：`4.0.0`
 
-当前 release candidate：`v4.0.0-rc.1`
+当前 stable release：`v4.0.0`
 
-发布状态：在 P1 Final Gate、External Project Registry、S/A Contract Inclusion 之后，进入 v4.0.0-rc.1 release candidate preparation。当前不是 stable v4.0.0 release。
+发布状态：在 P1 Final Gate、External Project Registry、S/A Contract Inclusion、rc.1 acceptance 与 release hardening 之后，进入 v4.0.0 stable release。
 
 HeiTang KB Forge 是一个 offline-first、可被 Agent 调用的知识供应链前置 Skill。它把多格式原始资料加工成标准化、可审计、可复核、可检索的知识资产包，用于 Agent 和 RAG 工作流。
 
@@ -188,6 +188,8 @@ python -m heitang_kb_forge.cli demo-e2e --output ./tmp_demo_e2e
 ## Knowledge Workbench 终极目标
 
 HeiTang KB Forge Core 现在定义为 HeiTang Knowledge Workbench 里的知识供应链核心 Skill。
+
+当前 stable UI package 已同步到 Core stable commit `0217e54b162871e7c40c31ff3d0cc72e8ba78f06`。
 
 战略文档：
 
