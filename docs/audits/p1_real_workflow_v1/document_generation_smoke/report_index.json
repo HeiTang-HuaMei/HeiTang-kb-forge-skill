@@ -1,0 +1,25 @@
+{
+  "workflow_id": "document_generation_smoke",
+  "reports": [
+    {
+      "report_id": "generated_markdown",
+      "path": "reports/generated_markdown.json"
+    },
+    {
+      "report_id": "generated_docx",
+      "path": "reports/generated_docx.json"
+    },
+    {
+      "report_id": "generated_pdf",
+      "path": "reports/generated_pdf.json"
+    },
+    {
+      "report_id": "generated_pptx",
+      "path": "reports/generated_pptx.json"
+    },
+    {
+      "report_id": "openability_check",
+      "path": "reports/openability_check.json"
+    }
+  ]
+}

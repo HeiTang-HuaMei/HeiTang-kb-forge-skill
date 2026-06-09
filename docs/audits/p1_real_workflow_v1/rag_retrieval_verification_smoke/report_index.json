@@ -1,0 +1,17 @@
+{
+  "workflow_id": "rag_retrieval_verification_smoke",
+  "reports": [
+    {
+      "report_id": "rag_query",
+      "path": "reports/rag_query.json"
+    },
+    {
+      "report_id": "retrieval_plan",
+      "path": "reports/retrieval_plan.json"
+    },
+    {
+      "report_id": "evidence_selection",
+      "path": "reports/evidence_selection.json"
+    }
+  ]
+}

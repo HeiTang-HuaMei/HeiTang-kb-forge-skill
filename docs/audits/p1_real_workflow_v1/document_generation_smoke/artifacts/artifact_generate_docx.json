@@ -1,0 +1,5 @@
+{
+  "artifact_id": "artifact_generate_docx",
+  "action": "generate-docx",
+  "status": "ready"
+}

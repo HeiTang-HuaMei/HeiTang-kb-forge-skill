@@ -1,0 +1,24 @@
+{
+  "workflow_id": "template_to_workflow",
+  "status": "passed",
+  "evidence_level": "real_local_workflow",
+  "actions_executed": [
+    "workbench-contracts",
+    "workbench-action-inspect"
+  ],
+  "reports_generated": [
+    "template_registry",
+    "recommended_workflow_plan"
+  ],
+  "artifacts_generated": [
+    "artifact_workbench_contracts",
+    "artifact_workbench_action_inspect"
+  ],
+  "errors_observed": [],
+  "blocked_reason": null,
+  "user_visible_summary": "Read all 6 P1 templates and generated deterministic ready/blocked workflow recommendations.",
+  "gate_impact": "contributes_to_p1_real_workflow_v1_only",
+  "started_at": "2026-06-09T09:39:58.427329Z",
+  "ended_at": "2026-06-09T09:39:58.436447Z",
+  "duration_ms": 9
+}

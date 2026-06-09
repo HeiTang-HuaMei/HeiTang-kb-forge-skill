@@ -1,0 +1,25 @@
+{
+  "generated_file_report_version": "3.0.0-alpha.1",
+  "files": [
+    {
+      "format": "docx",
+      "path": "docs\\audits\\p1_real_workflow_v1\\document_generation_smoke\\artifacts\\generated_documents\\generated.docx",
+      "bytes": 37030
+    },
+    {
+      "format": "md",
+      "path": "docs\\audits\\p1_real_workflow_v1\\document_generation_smoke\\artifacts\\generated_documents\\generated.md",
+      "bytes": 1081
+    },
+    {
+      "format": "pdf",
+      "path": "docs\\audits\\p1_real_workflow_v1\\document_generation_smoke\\artifacts\\generated_documents\\generated.pdf",
+      "bytes": 1736
+    },
+    {
+      "format": "pptx",
+      "path": "docs\\audits\\p1_real_workflow_v1\\document_generation_smoke\\artifacts\\generated_documents\\generated.pptx",
+      "bytes": 1892
+    }
+  ]
+}

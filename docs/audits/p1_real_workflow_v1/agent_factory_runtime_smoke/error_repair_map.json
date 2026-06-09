@@ -1,0 +1,20 @@
+{
+  "workflow_id": "agent_factory_runtime_smoke",
+  "errors": [
+    {
+      "error_code": "tool_call_failed",
+      "repair": "Route to Error Repair Center triage; no dedicated V1 repair action is claimed.",
+      "status": "ready"
+    },
+    {
+      "error_code": "timeout",
+      "repair": "Retry with smaller local inputs or increased timeout.",
+      "status": "ready"
+    },
+    {
+      "error_code": "non_zero_exit",
+      "repair": "Open the task event log and inspect stderr summary.",
+      "status": "ready"
+    }
+  ]
+}

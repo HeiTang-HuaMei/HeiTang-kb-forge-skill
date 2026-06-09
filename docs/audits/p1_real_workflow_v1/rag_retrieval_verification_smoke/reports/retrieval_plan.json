@@ -1,0 +1,6 @@
+{
+  "report_id": "retrieval_plan",
+  "status": "pass",
+  "workspace": "<workspace>",
+  "evidence_level": "deterministic_smoke"
+}

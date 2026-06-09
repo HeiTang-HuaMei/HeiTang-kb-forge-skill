@@ -1,0 +1,6 @@
+{
+  "report_id": "agent_runtime",
+  "status": "pass",
+  "workspace": "<workspace>",
+  "evidence_level": "deterministic_smoke"
+}

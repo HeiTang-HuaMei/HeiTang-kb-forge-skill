@@ -1,0 +1,17 @@
+{
+  "workflow_id": "error_repair_task_artifact",
+  "reports": [
+    {
+      "report_id": "error_repair_map",
+      "path": "reports/error_repair_map.json"
+    },
+    {
+      "report_id": "task_events",
+      "path": "reports/task_events.json"
+    },
+    {
+      "report_id": "artifact_index",
+      "path": "reports/artifact_index.json"
+    }
+  ]
+}

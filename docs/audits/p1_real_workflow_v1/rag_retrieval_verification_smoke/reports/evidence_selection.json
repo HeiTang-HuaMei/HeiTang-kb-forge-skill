@@ -1,0 +1,6 @@
+{
+  "report_id": "evidence_selection",
+  "status": "pass",
+  "workspace": "<workspace>",
+  "evidence_level": "deterministic_smoke"
+}

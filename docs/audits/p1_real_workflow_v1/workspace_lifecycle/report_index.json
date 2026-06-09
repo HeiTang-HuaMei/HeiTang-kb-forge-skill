@@ -1,0 +1,17 @@
+{
+  "workflow_id": "workspace_lifecycle",
+  "reports": [
+    {
+      "report_id": "workspace_health",
+      "path": "reports/workspace_health.json"
+    },
+    {
+      "report_id": "storage_usage",
+      "path": "reports/storage_usage.json"
+    },
+    {
+      "report_id": "cleanup_recommendation",
+      "path": "reports/cleanup_recommendation.json"
+    }
+  ]
+}

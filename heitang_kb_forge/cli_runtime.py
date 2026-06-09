@@ -55,6 +55,11 @@ from heitang_kb_forge.workbench import (
     get_p1_workbench_action,
     make_p1_workbench_dry_run,
     make_p1_workbench_smoke,
+    error_repair,
+    run_p1_golden_workflow,
+    run_p1_golden_workflows,
+    workflow_artifact_index,
+    workflow_status,
     write_p1_workbench_bundle,
 )
 from heitang_kb_forge.workbench_contracts import generate_workbench_contracts
@@ -1288,6 +1293,86 @@ def workbench_smoke_command(
     result = make_p1_workbench_smoke()
     write_json(output / "workbench_smoke_result.json", result)
     typer.echo(f"P1 Workbench smoke: {result['status']} | Gate: {result['p1_full_operation_gate_status']}")
+
+
+@app.command("workbench-golden-workflow")
+def workbench_golden_workflow_command(
+    workflow: str | None = typer.Option(None, "--workflow"),
+    all_workflows: bool = typer.Option(False, "--all"),
+    workspace: Path = typer.Option(..., "--workspace"),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Run deterministic offline P1 Real Workflow V1 golden paths."""
+    if all_workflows:
+        result = run_p1_golden_workflows(workspace, output)
+    elif workflow:
+        result = run_p1_golden_workflow(workflow, workspace, output)
+    else:
+        raise typer.BadParameter("Use --all or --workflow <id>")
+    status = result.get("p1_real_workflow_v1_status") or result.get("status")
+    typer.echo(f"P1 golden workflow: {status}")
+
+
+@app.command("workbench-golden-workflow-status")
+def workbench_golden_workflow_status_command(
+    run_dir: Path = typer.Option(..., "--run-dir", exists=True, file_okay=False, dir_okay=True, readable=True),
+) -> None:
+    """Read a deterministic P1 Golden Workflow V1 run status."""
+    typer.echo(json.dumps(workflow_status(run_dir), ensure_ascii=False, indent=2))
+
+
+@app.command("workbench-artifact-index")
+def workbench_artifact_index_command(
+    run_dir: Path = typer.Option(..., "--run-dir", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+) -> None:
+    """Read or copy a P1 Golden Workflow V1 artifact index."""
+    result = workflow_artifact_index(run_dir)
+    if output:
+        write_json(output / "artifact_index.json", result)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("workbench-error-repair")
+def workbench_error_repair_command(
+    error_code: str = typer.Option(..., "--error-code"),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+) -> None:
+    """Return deterministic P1 Error Repair Center guidance."""
+    result = error_repair(error_code)
+    if output:
+        write_json(output / "error_repair_map.json", result)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("workbench-task-replay")
+def workbench_task_replay_command(
+    task_id: str = typer.Option(..., "--task-id"),
+    run_dir: Path = typer.Option(..., "--run-dir", exists=True, file_okay=False, dir_okay=True, readable=True),
+) -> None:
+    """Replay deterministic task events for a P1 Golden Workflow V1 run."""
+    events = []
+    path = run_dir / "task_events.jsonl"
+    if path.exists():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                payload = json.loads(line)
+                if payload.get("task_id") == task_id:
+                    events.append(payload)
+    typer.echo(json.dumps({"task_id": task_id, "events": events}, ensure_ascii=False, indent=2))
+
+
+@app.command("workbench-local-user-path")
+def workbench_local_user_path_command(
+    scenario: str = typer.Option(..., "--scenario"),
+    workspace: Path = typer.Option(..., "--workspace"),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Run a named local user path scenario for P1 Golden Workflow V1."""
+    if scenario != "golden_local":
+        raise typer.BadParameter("Only --scenario golden_local is supported in P1-RWF-V1")
+    result = run_p1_golden_workflows(workspace, output)
+    typer.echo(f"P1 local user path: {result['p1_real_workflow_v1_status']}")
 
 
 @app.command("workspace-init")

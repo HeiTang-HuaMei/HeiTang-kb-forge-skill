@@ -1,0 +1,6 @@
+{
+  "report_id": "workspace_health",
+  "status": "pass",
+  "workspace": "<workspace>",
+  "evidence_level": "real_local_workflow"
+}

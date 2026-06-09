@@ -1,0 +1,6 @@
+{
+  "report_id": "source_validation",
+  "status": "pass",
+  "workspace": "<workspace>",
+  "evidence_level": "real_local_workflow"
+}

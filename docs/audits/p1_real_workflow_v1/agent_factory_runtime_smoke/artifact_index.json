@@ -1,0 +1,17 @@
+{
+  "workflow_id": "agent_factory_runtime_smoke",
+  "artifacts": [
+    {
+      "artifact_id": "artifact_generate_agent",
+      "path": "artifacts/artifact_generate_agent.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "artifact_run_local_agent",
+      "path": "artifacts/artifact_run_local_agent.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ]
+}

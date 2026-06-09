@@ -1,0 +1,29 @@
+{
+  "workflow_id": "rag_retrieval_verification_smoke",
+  "status": "review_required",
+  "evidence_level": "deterministic_smoke",
+  "actions_executed": [
+    "kb-query",
+    "plan-retrieval",
+    "select-evidence"
+  ],
+  "reports_generated": [
+    "rag_query",
+    "retrieval_plan",
+    "evidence_selection"
+  ],
+  "artifacts_generated": [
+    "artifact_kb_query",
+    "artifact_plan_retrieval",
+    "artifact_select_evidence"
+  ],
+  "errors_observed": [
+    "llm_failed"
+  ],
+  "blocked_reason": "Claim verification is not claimed as fully real without prepared business assertions.",
+  "user_visible_summary": "Ran deterministic local retrieval smoke and evidence selection; claim verification remains smoke-only.",
+  "gate_impact": "does_not_unlock_full_p1_gate",
+  "started_at": "2026-06-09T09:39:57.915011Z",
+  "ended_at": "2026-06-09T09:39:57.922138Z",
+  "duration_ms": 6
+}

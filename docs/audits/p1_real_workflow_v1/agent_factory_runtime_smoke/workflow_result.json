@@ -1,0 +1,30 @@
+{
+  "workflow_id": "agent_factory_runtime_smoke",
+  "status": "review_required",
+  "evidence_level": "deterministic_smoke",
+  "actions_executed": [
+    "generate-agent",
+    "run-local-agent"
+  ],
+  "reports_generated": [
+    "standalone_agent",
+    "kb_bound_agent",
+    "agent_runtime",
+    "boundary_refusal"
+  ],
+  "artifacts_generated": [
+    "artifact_generate_agent",
+    "artifact_run_local_agent"
+  ],
+  "errors_observed": [
+    "tool_call_failed",
+    "timeout",
+    "non_zero_exit"
+  ],
+  "blocked_reason": "Runtime trace is deterministic smoke until full local user tasks are asserted.",
+  "user_visible_summary": "Generated deterministic agent package evidence and runtime traces, including refusal and non-zero cases.",
+  "gate_impact": "does_not_unlock_full_p1_gate",
+  "started_at": "2026-06-09T09:39:58.379483Z",
+  "ended_at": "2026-06-09T09:39:58.393711Z",
+  "duration_ms": 13
+}

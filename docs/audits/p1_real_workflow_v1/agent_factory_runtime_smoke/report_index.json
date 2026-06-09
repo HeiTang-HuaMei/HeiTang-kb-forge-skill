@@ -1,0 +1,21 @@
+{
+  "workflow_id": "agent_factory_runtime_smoke",
+  "reports": [
+    {
+      "report_id": "standalone_agent",
+      "path": "reports/standalone_agent.json"
+    },
+    {
+      "report_id": "kb_bound_agent",
+      "path": "reports/kb_bound_agent.json"
+    },
+    {
+      "report_id": "agent_runtime",
+      "path": "reports/agent_runtime.json"
+    },
+    {
+      "report_id": "boundary_refusal",
+      "path": "reports/boundary_refusal.json"
+    }
+  ]
+}

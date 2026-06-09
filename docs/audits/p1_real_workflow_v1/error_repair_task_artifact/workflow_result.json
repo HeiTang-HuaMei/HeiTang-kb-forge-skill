@@ -1,0 +1,31 @@
+{
+  "workflow_id": "error_repair_task_artifact",
+  "status": "passed",
+  "evidence_level": "real_local_workflow",
+  "actions_executed": [
+    "workbench-error-repair",
+    "workbench-artifact-index",
+    "workbench-task-replay"
+  ],
+  "reports_generated": [
+    "error_repair_map",
+    "task_events",
+    "artifact_index"
+  ],
+  "artifacts_generated": [
+    "artifact_workbench_error_repair",
+    "artifact_workbench_artifact_index",
+    "artifact_workbench_task_replay",
+    "artifact_sensitive_input_block"
+  ],
+  "errors_observed": [
+    "file_path_error",
+    "secret_risk"
+  ],
+  "blocked_reason": null,
+  "user_visible_summary": "Recorded task lifecycle, artifact index, safe copy eligibility, and sensitive artifact block evidence.",
+  "gate_impact": "contributes_to_p1_real_workflow_v1_only",
+  "started_at": "2026-06-09T09:39:58.402742Z",
+  "ended_at": "2026-06-09T09:39:58.414467Z",
+  "duration_ms": 11
+}
