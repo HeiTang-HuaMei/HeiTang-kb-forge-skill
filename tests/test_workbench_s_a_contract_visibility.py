@@ -1,0 +1,79 @@
+import json
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+WORKBENCH = ROOT / "web" / "workbench"
+CONTRACTS = WORKBENCH / "contracts.json"
+REGISTRY = ROOT / "examples" / "ui_mock_data" / "external" / "external_capability_registry_fixture.json"
+
+
+def _json(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def test_external_capability_sources_are_registered_for_existing_pages_only():
+    contracts = _json(CONTRACTS)
+    route_ids = {page["id"] for page in contracts["pages"]}
+
+    assert "external_capability_registry" in contracts["mock_data_files"]
+    assert "s_a_contract_inclusion_matrix" in contracts["mock_data_files"]
+    assert "externalCapabilities" in contracts["future_api"]["reserved_resources"]
+    assert "sAContractInclusionMatrix" in contracts["future_api"]["reserved_resources"]
+    assert "external-capability" not in route_ids
+    for page_id in [
+        "dashboard",
+        "operation-gate",
+        "capability-matrix",
+        "retrieval-verification",
+        "vector-hub-provider-storage",
+        "skill-factory",
+        "memory-center",
+        "reports-audit",
+        "template-library",
+    ]:
+        page = next(page for page in contracts["pages"] if page["id"] == page_id)
+        assert "external_capability_registry" in page["mock_sources"]
+        assert "s_a_contract_inclusion_matrix" in page["mock_sources"]
+
+
+def test_web_mock_service_loads_external_capabilities_without_runtime_calls():
+    service = (WORKBENCH / "src" / "mockService.js").read_text(encoding="utf-8")
+    app = (WORKBENCH / "src" / "app.js").read_text(encoding="utf-8")
+
+    assert "external/external_capability_registry_fixture.json" in service
+    assert "external/s_a_contract_inclusion_matrix_fixture.json" in service
+    assert "externalCapabilityPanel" in app
+    assert "Visibility only" in app
+    assert "data-blocked-reason" in app
+    assert "external-capability-run" not in app
+    assert "AnySearchSkill API callable" not in app
+
+
+def test_flutter_surface_mentions_boundary_not_run_or_installed_claims():
+    main = (WORKBENCH / "flutter_app" / "lib" / "main.dart").read_text(encoding="utf-8")
+    bridge = (WORKBENCH / "flutter_app" / "lib" / "core_bridge" / "local_core_bridge.dart").read_text(encoding="utf-8")
+
+    assert "assets/external/external_capability_registry.json" in main
+    assert "Show boundary" in main
+    assert "S/A external capabilities" in main
+    assert "ready=false" in main
+    assert "local_ready=false" in main
+    assert "anysearchskill" not in bridge.lower()
+    assert "weknora" not in bridge.lower()
+    assert "n8n" not in bridge.lower()
+
+
+def test_special_project_boundaries_are_not_silent():
+    projects = {project["project_id"]: project for project in _json(REGISTRY)["projects"]}
+
+    assert projects["n8n"]["can_execute_locally_before_v4"] is False
+    assert "external_runtime_required" in projects["n8n"]["blocked_reasons"]
+    assert projects["anysearchskill"]["can_execute_locally_before_v4"] is False
+    assert "provider_required" in projects["anysearchskill"]["blocked_reasons"]
+    assert "network_required" in projects["anysearchskill"]["blocked_reasons"]
+    assert "secret_required" in projects["anysearchskill"]["blocked_reasons"]
+    assert projects["llm_wiki_v2"]["can_execute_locally_before_v4"] is False
+    assert "future_adapter_after_v4" in projects["llm_wiki_v2"]["blocked_reasons"]
+    assert projects["weknora"]["can_execute_locally_before_v4"] is False
+    assert "future_adapter_after_v4" in projects["weknora"]["blocked_reasons"]

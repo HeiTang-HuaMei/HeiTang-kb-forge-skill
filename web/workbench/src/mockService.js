@@ -21,7 +21,9 @@ export const MOCK_DATA_FILES = {
   p1RealWorkflowV2ErrorBoundary: "p1_real_workflow_v2/action_error_boundary_report.json",
   p1RealWorkflowV2UserPaths: "p1_real_workflow_v2/full_local_user_path_closure_report.json",
   p1RealWorkflowV2GateReport: "p1_real_workflow_v2/p1_real_workflow_v2_report.json",
-  p1RealWorkflowV2RemainingBlockers: "p1_real_workflow_v2/remaining_blockers.json"
+  p1RealWorkflowV2RemainingBlockers: "p1_real_workflow_v2/remaining_blockers.json",
+  externalCapabilities: "external/external_capability_registry_fixture.json",
+  sAContractInclusionMatrix: "external/s_a_contract_inclusion_matrix_fixture.json"
 };
 
 async function loadJson(fileName) {
@@ -66,12 +68,16 @@ export function buildWorkbenchViewModel(raw) {
     gateReport: raw.p1RealWorkflowV2GateReport,
     remainingBlockers: raw.p1RealWorkflowV2RemainingBlockers
   };
+  const externalCapabilities = raw.externalCapabilities;
+  const sAContractInclusionMatrix = raw.sAContractInclusionMatrix;
 
   return {
     p1Contracts,
     p1RealWorkflowV1,
     p1RealWorkflowV2,
     p1RealWorkflowV2Reports,
+    externalCapabilities,
+    sAContractInclusionMatrix,
     knowledgeBases,
     agents,
     workflows,

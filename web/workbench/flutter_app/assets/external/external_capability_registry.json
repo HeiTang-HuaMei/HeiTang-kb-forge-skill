@@ -1,0 +1,2009 @@
+{
+  "registry_id": "s_a_contract_inclusion",
+  "version": "s_a_contract_inclusion.1",
+  "scope": "S/A external project contract inclusion only. No external project functionality is implemented.",
+  "source_registry": "docs/roadmap/external_projects/external_project_registry.json",
+  "source_registry_id": "pre_v4_external_project_registry_2026_06_09",
+  "core_repo": "kb-forge-skill",
+  "core_branch": "main",
+  "rating_counts": {
+    "S": 7,
+    "A": 16
+  },
+  "external_project_count": 23,
+  "internal_capability_anchor_count": 8,
+  "blocked_reason_taxonomy": [
+    {
+      "blocked_reason": "external_project_registry_only",
+      "definition": "Registry and roadmap entry only; no runtime integration is claimed.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none"
+    },
+    {
+      "blocked_reason": "benchmark_only_not_runtime",
+      "definition": "Benchmark pattern only; it must not be treated as bundled runtime.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none"
+    },
+    {
+      "blocked_reason": "planned_adapter_not_implemented",
+      "definition": "Adapter is planned but not implemented or ready.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none"
+    },
+    {
+      "blocked_reason": "future_adapter_after_v4",
+      "definition": "Adapter or capability is explicitly post-v4.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none"
+    },
+    {
+      "blocked_reason": "provider_required",
+      "definition": "Requires a user-configured provider boundary before runtime use.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none"
+    },
+    {
+      "blocked_reason": "secret_required",
+      "definition": "Requires explicit user-provided secret material; no fixture may include it.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none"
+    },
+    {
+      "blocked_reason": "network_required",
+      "definition": "Requires network access and cannot be counted as local-ready.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none"
+    },
+    {
+      "blocked_reason": "external_runtime_required",
+      "definition": "Requires an external runtime that is not bundled.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none"
+    },
+    {
+      "blocked_reason": "license_review_required",
+      "definition": "Requires license review before any implementation work.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none"
+    },
+    {
+      "blocked_reason": "security_review_required",
+      "definition": "Requires security review before any implementation work.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none"
+    },
+    {
+      "blocked_reason": "needs_verification",
+      "definition": "Project identity, fit, or runtime status still needs verification.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none"
+    },
+    {
+      "blocked_reason": "not_p1_blocker",
+      "definition": "Not part of the P1 local Workbench completion gate.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none"
+    },
+    {
+      "blocked_reason": "post_v4_target",
+      "definition": "Work is reserved for post-v4 planning.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none"
+    },
+    {
+      "blocked_reason": "ui_visibility_only",
+      "definition": "UI may display the boundary only; it must not expose execution.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none"
+    },
+    {
+      "blocked_reason": "template_reference_only",
+      "definition": "Template inspiration only; not runtime functionality.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none"
+    }
+  ],
+  "projects": [
+    {
+      "project_id": "llm_wiki_v2",
+      "project_name": "LLM Wiki v2",
+      "rating": "S",
+      "github_url": "https://github.com/karpathy/llm-wiki",
+      "contract_status": [
+        "future_adapter",
+        "capability_anchor"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "living_knowledge_base",
+        "memory_lifecycle",
+        "confidence_score",
+        "automatic_forgetting",
+        "knowledge_decay",
+        "strengthen_weaken_memory",
+        "stale_knowledge_cleanup"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "memory_center",
+          "title": "Memory Center"
+        },
+        {
+          "page_id": "governance",
+          "title": "Governance"
+        }
+      ],
+      "related_core_actions": [
+        "badcase_collection",
+        "conflict_document_detect",
+        "do_not_ingest_policy",
+        "document_owner_inspect",
+        "memory_cleanup",
+        "memory_compression",
+        "memory_isolation",
+        "no_all_history_injection",
+        "no_answer_sop",
+        "session_memory_inspect",
+        "stale_document_detect",
+        "summary_memory_lifecycle",
+        "vector_memory_status"
+      ],
+      "related_templates": [],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "future_adapter_after_v4",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.4",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "LLM Wiki v2 is included as future_adapter, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "mentioned_only",
+      "source_registry_implementation_mode": "capability_fusion",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "weknora",
+      "project_name": "WeKnora",
+      "rating": "S",
+      "github_url": "https://github.com/tencent/weknora",
+      "contract_status": [
+        "future_adapter",
+        "capability_anchor"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "auto_wiki",
+        "knowledge_graph",
+        "document_understanding",
+        "rag_trace",
+        "agentic_rag",
+        "visual_trace"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "retrieval_verification",
+          "title": "Retrieval & Verification"
+        },
+        {
+          "page_id": "reports_audit",
+          "title": "Reports & Audit"
+        }
+      ],
+      "related_core_actions": [
+        "artifact_registry_inspect",
+        "blocker_tracker",
+        "claim_verification",
+        "contradiction_detection",
+        "evidence_selection",
+        "final_gate",
+        "freshness_check",
+        "hybrid_retrieval",
+        "p1_workbench_gate",
+        "product_hardening",
+        "query_rewrite",
+        "rag_query",
+        "report_registry_inspect",
+        "rerank",
+        "retrieval_planning",
+        "retrieval_purpose_switch"
+      ],
+      "related_templates": [],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "future_adapter_after_v4",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.5",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "WeKnora is included as future_adapter, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "mentioned_only",
+      "source_registry_implementation_mode": "capability_fusion",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "n8n",
+      "project_name": "n8n",
+      "rating": "S",
+      "github_url": "https://github.com/n8n-io/n8n",
+      "contract_status": [
+        "future_adapter",
+        "provider_required",
+        "workflow_export"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "workflow_automation",
+        "webhook",
+        "workflow_export",
+        "external_trigger",
+        "automation_template",
+        "external_distribution"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "task_job_center",
+          "title": "Task / Job Center"
+        },
+        {
+          "page_id": "template_library",
+          "title": "Template Library"
+        }
+      ],
+      "related_core_actions": [
+        "task_cancel",
+        "task_output_inspect",
+        "task_queue_inspect",
+        "task_resume",
+        "task_retry",
+        "template_book_publisher_kb",
+        "template_education_companion",
+        "template_enterprise_policy_kb",
+        "template_manual_operation_skill",
+        "template_product_manager_kb",
+        "template_shopping_ops_agent"
+      ],
+      "related_templates": [],
+      "related_error_codes": [
+        "contract_drift",
+        "provider_auth_failed",
+        "tool_call_failed"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "future_adapter_after_v4",
+        "provider_required",
+        "external_runtime_required",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": true,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.2 / P3",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "n8n is included as future_adapter, provider_required, workflow_export for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "mentioned_only",
+      "source_registry_implementation_mode": "workflow_export",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "andrej_karpathy_skills",
+      "project_name": "andrej-karpathy-skills",
+      "rating": "S",
+      "github_url": "https://github.com/multica-ai/andrej-karpathy-skills",
+      "contract_status": [
+        "benchmark_only",
+        "capability_anchor"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "skill_governance",
+        "goal_driven_execution",
+        "skill_quality_gate",
+        "target_runtime_profile",
+        "agent_coding_discipline"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "skill_factory",
+          "title": "Skill Factory"
+        },
+        {
+          "page_id": "reports_audit",
+          "title": "Reports & Audit"
+        }
+      ],
+      "related_core_actions": [
+        "artifact_registry_inspect",
+        "blocker_tracker",
+        "book_to_skill",
+        "final_gate",
+        "p1_workbench_gate",
+        "package_to_skill",
+        "product_hardening",
+        "report_registry_inspect",
+        "skill_diff",
+        "skill_manifest_validate",
+        "skill_runtime_profile",
+        "template_skill_generation"
+      ],
+      "related_templates": [
+        "template_manual_operation_skill"
+      ],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "benchmark_only_not_runtime",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.9",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "andrej-karpathy-skills is included as benchmark_only, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "benchmark_mapped",
+      "source_registry_implementation_mode": "capability_fusion",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "paddleocr",
+      "project_name": "PaddleOCR",
+      "rating": "S",
+      "github_url": "https://github.com/PaddlePaddle/PaddleOCR",
+      "contract_status": [
+        "planned_adapter"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "ocr_foundation",
+        "text_detection",
+        "text_recognition",
+        "scanned_pdf_ocr"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "import_parsing",
+          "title": "Import & Parsing"
+        },
+        {
+          "page_id": "vector_hub_provider_storage",
+          "title": "Vector Hub / Provider / Storage"
+        }
+      ],
+      "related_core_actions": [
+        "byo_storage_profile_schema",
+        "embedding_provider_validate",
+        "format_support_matrix",
+        "input_file_folder_glob",
+        "llm_provider_validate",
+        "ocr_required_detection",
+        "offline_fallback_status",
+        "parse_repair_suggest",
+        "parser_preflight",
+        "pdf_token_reduction",
+        "provider_redaction_check",
+        "reranker_provider_validate",
+        "scanned_pdf_review",
+        "source_validate",
+        "vector_db_validate",
+        "vector_upsert_query_smoke"
+      ],
+      "related_templates": [],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "planned_adapter_not_implemented",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.6",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "PaddleOCR is included as planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "planned_adapter",
+      "source_registry_implementation_mode": "planned_adapter",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "mineru",
+      "project_name": "MinerU",
+      "rating": "S",
+      "github_url": "https://github.com/opendatalab/MinerU",
+      "contract_status": [
+        "planned_adapter"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "document_structure_understanding",
+        "complex_layout_parsing",
+        "table_formula_layout",
+        "reading_order"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "import_parsing",
+          "title": "Import & Parsing"
+        },
+        {
+          "page_id": "vector_hub_provider_storage",
+          "title": "Vector Hub / Provider / Storage"
+        }
+      ],
+      "related_core_actions": [
+        "byo_storage_profile_schema",
+        "embedding_provider_validate",
+        "format_support_matrix",
+        "input_file_folder_glob",
+        "llm_provider_validate",
+        "ocr_required_detection",
+        "offline_fallback_status",
+        "parse_repair_suggest",
+        "parser_preflight",
+        "pdf_token_reduction",
+        "provider_redaction_check",
+        "reranker_provider_validate",
+        "scanned_pdf_review",
+        "source_validate",
+        "vector_db_validate",
+        "vector_upsert_query_smoke"
+      ],
+      "related_templates": [],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "planned_adapter_not_implemented",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.6",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "MinerU is included as planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "planned_adapter",
+      "source_registry_implementation_mode": "planned_adapter",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "docling",
+      "project_name": "Docling",
+      "rating": "S",
+      "github_url": "https://github.com/docling-project/docling",
+      "contract_status": [
+        "planned_adapter"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "parser_backend_adapter",
+        "structured_document_conversion",
+        "complex_pdf_parsing"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "import_parsing",
+          "title": "Import & Parsing"
+        },
+        {
+          "page_id": "vector_hub_provider_storage",
+          "title": "Vector Hub / Provider / Storage"
+        }
+      ],
+      "related_core_actions": [
+        "byo_storage_profile_schema",
+        "embedding_provider_validate",
+        "format_support_matrix",
+        "input_file_folder_glob",
+        "llm_provider_validate",
+        "ocr_required_detection",
+        "offline_fallback_status",
+        "parse_repair_suggest",
+        "parser_preflight",
+        "pdf_token_reduction",
+        "provider_redaction_check",
+        "reranker_provider_validate",
+        "scanned_pdf_review",
+        "source_validate",
+        "vector_db_validate",
+        "vector_upsert_query_smoke"
+      ],
+      "related_templates": [],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "planned_adapter_not_implemented",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.6",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "Docling is included as planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "planned_adapter",
+      "source_registry_implementation_mode": "planned_adapter",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "anysearchskill",
+      "project_name": "AnySearchSkill",
+      "rating": "A",
+      "github_url": "https://github.com/anysearch-ai/anysearch-skill",
+      "contract_status": [
+        "provider_required",
+        "planned_adapter"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "external_retrieval",
+        "vertical_search",
+        "batch_search",
+        "source_attribution",
+        "freshness_verification"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "retrieval_verification",
+          "title": "Retrieval & Verification"
+        },
+        {
+          "page_id": "vector_hub_provider_storage",
+          "title": "Vector Hub / Provider / Storage"
+        }
+      ],
+      "related_core_actions": [
+        "byo_storage_profile_schema",
+        "claim_verification",
+        "contradiction_detection",
+        "embedding_provider_validate",
+        "evidence_selection",
+        "freshness_check",
+        "hybrid_retrieval",
+        "llm_provider_validate",
+        "offline_fallback_status",
+        "provider_redaction_check",
+        "query_rewrite",
+        "rag_query",
+        "rerank",
+        "reranker_provider_validate",
+        "retrieval_planning",
+        "retrieval_purpose_switch",
+        "vector_db_validate",
+        "vector_upsert_query_smoke"
+      ],
+      "related_templates": [],
+      "related_error_codes": [
+        "contract_drift",
+        "provider_auth_failed",
+        "network_unavailable",
+        "secret_risk"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "planned_adapter_not_implemented",
+        "provider_required",
+        "secret_required",
+        "network_required",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": true,
+      "requires_network": true,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.3",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "AnySearchSkill is included as provider_required, planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "mentioned_only",
+      "source_registry_implementation_mode": "provider_adapter",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "last30days_skill",
+      "project_name": "last30days-skill",
+      "rating": "A",
+      "github_url": "https://github.com/mvanhorn/last30days-skill",
+      "contract_status": [
+        "provider_required",
+        "future_adapter"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "trend_radar",
+        "external_signal",
+        "source_monitoring"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "retrieval_verification",
+          "title": "Retrieval & Verification"
+        },
+        {
+          "page_id": "template_library",
+          "title": "Template Library"
+        }
+      ],
+      "related_core_actions": [
+        "claim_verification",
+        "contradiction_detection",
+        "evidence_selection",
+        "freshness_check",
+        "hybrid_retrieval",
+        "query_rewrite",
+        "rag_query",
+        "rerank",
+        "retrieval_planning",
+        "retrieval_purpose_switch",
+        "template_book_publisher_kb",
+        "template_education_companion",
+        "template_enterprise_policy_kb",
+        "template_manual_operation_skill",
+        "template_product_manager_kb",
+        "template_shopping_ops_agent"
+      ],
+      "related_templates": [
+        "template_product_manager_kb"
+      ],
+      "related_error_codes": [
+        "contract_drift",
+        "provider_auth_failed",
+        "network_unavailable"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "future_adapter_after_v4",
+        "provider_required",
+        "network_required",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": true,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.3 / P3",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "last30days-skill is included as provider_required, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "benchmark_mapped",
+      "source_registry_implementation_mode": "provider_adapter",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "skill_prompt_generator",
+      "project_name": "skill-prompt-generator",
+      "rating": "A",
+      "github_url": "https://github.com/huangserva/skill-prompt-generator",
+      "contract_status": [
+        "benchmark_only",
+        "future_adapter"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "prompt_asset_library",
+        "skill_factory_enhancement",
+        "skill_generation_template"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "skill_factory",
+          "title": "Skill Factory"
+        },
+        {
+          "page_id": "template_library",
+          "title": "Template Library"
+        }
+      ],
+      "related_core_actions": [
+        "book_to_skill",
+        "package_to_skill",
+        "skill_diff",
+        "skill_manifest_validate",
+        "skill_runtime_profile",
+        "template_book_publisher_kb",
+        "template_education_companion",
+        "template_enterprise_policy_kb",
+        "template_manual_operation_skill",
+        "template_product_manager_kb",
+        "template_shopping_ops_agent",
+        "template_skill_generation"
+      ],
+      "related_templates": [
+        "template_manual_operation_skill"
+      ],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "benchmark_only_not_runtime",
+        "future_adapter_after_v4",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.9",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "skill-prompt-generator is included as benchmark_only, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "mentioned_only",
+      "source_registry_implementation_mode": "template_library",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "mmskills",
+      "project_name": "MMSkills",
+      "rating": "A",
+      "github_url": "https://github.com/DeepExperience/MMSkills",
+      "contract_status": [
+        "future_adapter"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "multimodal_skill_package",
+        "visual_state_card",
+        "multimodal_agent_context"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "template_library",
+          "title": "Template Library"
+        },
+        {
+          "page_id": "artifact_management",
+          "title": "Artifact Management"
+        }
+      ],
+      "related_core_actions": [
+        "artifact_acceptance_proof_inspect",
+        "artifact_agent_package_inspect",
+        "artifact_chunks_inspect",
+        "artifact_config_profiles_inspect",
+        "artifact_generated_docs_inspect",
+        "artifact_kb_package_inspect",
+        "artifact_memory_files_inspect",
+        "artifact_runtime_trace_inspect",
+        "artifact_skill_package_inspect",
+        "artifact_vector_index_inspect",
+        "template_book_publisher_kb",
+        "template_education_companion",
+        "template_enterprise_policy_kb",
+        "template_manual_operation_skill",
+        "template_product_manager_kb",
+        "template_shopping_ops_agent"
+      ],
+      "related_templates": [],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "future_adapter_after_v4",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.8 / P3",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "MMSkills is included as future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "mentioned_only",
+      "source_registry_implementation_mode": "capability_fusion",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "jellyfish",
+      "project_name": "Jellyfish",
+      "rating": "A",
+      "github_url": "https://github.com/Forget-C/Jellyfish",
+      "contract_status": [
+        "template_reference",
+        "future_adapter"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "aigc_production_pipeline",
+        "short_drama_workflow",
+        "storyboard_asset_management"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "template_library",
+          "title": "Template Library"
+        },
+        {
+          "page_id": "artifact_management",
+          "title": "Artifact Management"
+        },
+        {
+          "page_id": "document_generation",
+          "title": "Document Generation"
+        }
+      ],
+      "related_core_actions": [
+        "artifact_acceptance_proof_inspect",
+        "artifact_agent_package_inspect",
+        "artifact_chunks_inspect",
+        "artifact_config_profiles_inspect",
+        "artifact_generated_docs_inspect",
+        "artifact_kb_package_inspect",
+        "artifact_memory_files_inspect",
+        "artifact_runtime_trace_inspect",
+        "artifact_skill_package_inspect",
+        "artifact_vector_index_inspect",
+        "evidence_appendix",
+        "generate_docx",
+        "generate_manual_user_guide",
+        "generate_markdown",
+        "generate_pdf",
+        "generate_pptx",
+        "openability_check",
+        "template_book_publisher_kb",
+        "template_education_companion",
+        "template_enterprise_policy_kb",
+        "template_manual_operation_skill",
+        "template_product_manager_kb",
+        "template_shopping_ops_agent"
+      ],
+      "related_templates": [
+        "template_book_publisher_kb"
+      ],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "future_adapter_after_v4",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only",
+        "template_reference_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.8 / P3",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "Jellyfish is included as template_reference, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "mentioned_only",
+      "source_registry_implementation_mode": "template_library",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "story_flicks",
+      "project_name": "story-flicks",
+      "rating": "A",
+      "github_url": "https://github.com/alecm20/story-flicks",
+      "contract_status": [
+        "template_reference",
+        "future_adapter"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "story_to_video",
+        "aigc_video_pipeline",
+        "subtitle_audio_image_asset_chain"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "template_library",
+          "title": "Template Library"
+        },
+        {
+          "page_id": "artifact_management",
+          "title": "Artifact Management"
+        },
+        {
+          "page_id": "document_generation",
+          "title": "Document Generation"
+        }
+      ],
+      "related_core_actions": [
+        "artifact_acceptance_proof_inspect",
+        "artifact_agent_package_inspect",
+        "artifact_chunks_inspect",
+        "artifact_config_profiles_inspect",
+        "artifact_generated_docs_inspect",
+        "artifact_kb_package_inspect",
+        "artifact_memory_files_inspect",
+        "artifact_runtime_trace_inspect",
+        "artifact_skill_package_inspect",
+        "artifact_vector_index_inspect",
+        "evidence_appendix",
+        "generate_docx",
+        "generate_manual_user_guide",
+        "generate_markdown",
+        "generate_pdf",
+        "generate_pptx",
+        "openability_check",
+        "template_book_publisher_kb",
+        "template_education_companion",
+        "template_enterprise_policy_kb",
+        "template_manual_operation_skill",
+        "template_product_manager_kb",
+        "template_shopping_ops_agent"
+      ],
+      "related_templates": [
+        "template_book_publisher_kb"
+      ],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "future_adapter_after_v4",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only",
+        "template_reference_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.8 / P3",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "story-flicks is included as template_reference, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "mentioned_only",
+      "source_registry_implementation_mode": "template_library",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "seedance2_skill",
+      "project_name": "seedance2-skill",
+      "rating": "A",
+      "github_url": "https://github.com/dexhunter/seedance2-skill",
+      "contract_status": [
+        "needs_verification",
+        "future_adapter"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "video_generation_skill",
+        "aigc_video_skill_template"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "template_library",
+          "title": "Template Library"
+        },
+        {
+          "page_id": "artifact_management",
+          "title": "Artifact Management"
+        },
+        {
+          "page_id": "document_generation",
+          "title": "Document Generation"
+        }
+      ],
+      "related_core_actions": [
+        "artifact_acceptance_proof_inspect",
+        "artifact_agent_package_inspect",
+        "artifact_chunks_inspect",
+        "artifact_config_profiles_inspect",
+        "artifact_generated_docs_inspect",
+        "artifact_kb_package_inspect",
+        "artifact_memory_files_inspect",
+        "artifact_runtime_trace_inspect",
+        "artifact_skill_package_inspect",
+        "artifact_vector_index_inspect",
+        "evidence_appendix",
+        "generate_docx",
+        "generate_manual_user_guide",
+        "generate_markdown",
+        "generate_pdf",
+        "generate_pptx",
+        "openability_check",
+        "template_book_publisher_kb",
+        "template_education_companion",
+        "template_enterprise_policy_kb",
+        "template_manual_operation_skill",
+        "template_product_manager_kb",
+        "template_shopping_ops_agent"
+      ],
+      "related_templates": [
+        "template_book_publisher_kb"
+      ],
+      "related_error_codes": [
+        "contract_drift",
+        "network_unavailable",
+        "secret_risk"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "future_adapter_after_v4",
+        "secret_required",
+        "network_required",
+        "license_review_required",
+        "security_review_required",
+        "needs_verification",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": true,
+      "requires_network": true,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.8 / P3",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "seedance2-skill is included as needs_verification, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "needs_verification",
+      "source_registry_implementation_mode": "provider_adapter",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "ai_marketing_skills",
+      "project_name": "ai-marketing-skills",
+      "rating": "A",
+      "github_url": "https://github.com/ericosiu/ai-marketing-skills",
+      "contract_status": [
+        "template_reference"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "marketing_agent_template",
+        "growth_workflow_template",
+        "content_operations_template"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "template_library",
+          "title": "Template Library"
+        }
+      ],
+      "related_core_actions": [
+        "template_book_publisher_kb",
+        "template_education_companion",
+        "template_enterprise_policy_kb",
+        "template_manual_operation_skill",
+        "template_product_manager_kb",
+        "template_shopping_ops_agent"
+      ],
+      "related_templates": [
+        "template_shopping_ops_agent"
+      ],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only",
+        "template_reference_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.7",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "ai-marketing-skills is included as template_reference for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "mentioned_only",
+      "source_registry_implementation_mode": "template_library",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "rtk",
+      "project_name": "rtk",
+      "rating": "A",
+      "github_url": "https://github.com/rtk-ai/rtk",
+      "contract_status": [
+        "benchmark_only",
+        "needs_verification"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "memory_compression",
+        "context_budget",
+        "runtime_toolkit"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "memory_center",
+          "title": "Memory Center"
+        },
+        {
+          "page_id": "reports_audit",
+          "title": "Reports & Audit"
+        }
+      ],
+      "related_core_actions": [
+        "artifact_registry_inspect",
+        "blocker_tracker",
+        "final_gate",
+        "memory_cleanup",
+        "memory_compression",
+        "memory_isolation",
+        "no_all_history_injection",
+        "p1_workbench_gate",
+        "product_hardening",
+        "report_registry_inspect",
+        "session_memory_inspect",
+        "summary_memory_lifecycle",
+        "vector_memory_status"
+      ],
+      "related_templates": [],
+      "related_error_codes": [
+        "contract_drift",
+        "tool_call_failed"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "benchmark_only_not_runtime",
+        "external_runtime_required",
+        "license_review_required",
+        "security_review_required",
+        "needs_verification",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": true,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "needs_decision",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "rtk is included as benchmark_only, needs_verification for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "needs_verification",
+      "source_registry_implementation_mode": "benchmark_only",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "opendataloader",
+      "project_name": "OpenDataLoader",
+      "rating": "A",
+      "github_url": "https://github.com/opendataloader-project/opendataloader-pdf",
+      "contract_status": [
+        "planned_adapter"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "document_loader",
+        "parser_backend"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "import_parsing",
+          "title": "Import & Parsing"
+        },
+        {
+          "page_id": "vector_hub_provider_storage",
+          "title": "Vector Hub / Provider / Storage"
+        }
+      ],
+      "related_core_actions": [
+        "byo_storage_profile_schema",
+        "embedding_provider_validate",
+        "format_support_matrix",
+        "input_file_folder_glob",
+        "llm_provider_validate",
+        "ocr_required_detection",
+        "offline_fallback_status",
+        "parse_repair_suggest",
+        "parser_preflight",
+        "pdf_token_reduction",
+        "provider_redaction_check",
+        "reranker_provider_validate",
+        "scanned_pdf_review",
+        "source_validate",
+        "vector_db_validate",
+        "vector_upsert_query_smoke"
+      ],
+      "related_templates": [],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "planned_adapter_not_implemented",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.6",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "OpenDataLoader is included as planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "planned_adapter",
+      "source_registry_implementation_mode": "planned_adapter",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "marker",
+      "project_name": "Marker",
+      "rating": "A",
+      "github_url": "https://github.com/datalab-to/marker",
+      "contract_status": [
+        "planned_adapter"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "pdf_parser",
+        "markdown_conversion"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "import_parsing",
+          "title": "Import & Parsing"
+        },
+        {
+          "page_id": "vector_hub_provider_storage",
+          "title": "Vector Hub / Provider / Storage"
+        }
+      ],
+      "related_core_actions": [
+        "byo_storage_profile_schema",
+        "embedding_provider_validate",
+        "format_support_matrix",
+        "input_file_folder_glob",
+        "llm_provider_validate",
+        "ocr_required_detection",
+        "offline_fallback_status",
+        "parse_repair_suggest",
+        "parser_preflight",
+        "pdf_token_reduction",
+        "provider_redaction_check",
+        "reranker_provider_validate",
+        "scanned_pdf_review",
+        "source_validate",
+        "vector_db_validate",
+        "vector_upsert_query_smoke"
+      ],
+      "related_templates": [],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "planned_adapter_not_implemented",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.6",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "Marker is included as planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "planned_adapter",
+      "source_registry_implementation_mode": "planned_adapter",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "surya",
+      "project_name": "Surya",
+      "rating": "A",
+      "github_url": "https://github.com/datalab-to/surya",
+      "contract_status": [
+        "planned_adapter",
+        "needs_verification"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "ocr_layout",
+        "visual_layout_analysis"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "import_parsing",
+          "title": "Import & Parsing"
+        },
+        {
+          "page_id": "vector_hub_provider_storage",
+          "title": "Vector Hub / Provider / Storage"
+        }
+      ],
+      "related_core_actions": [
+        "byo_storage_profile_schema",
+        "embedding_provider_validate",
+        "format_support_matrix",
+        "input_file_folder_glob",
+        "llm_provider_validate",
+        "ocr_required_detection",
+        "offline_fallback_status",
+        "parse_repair_suggest",
+        "parser_preflight",
+        "pdf_token_reduction",
+        "provider_redaction_check",
+        "reranker_provider_validate",
+        "scanned_pdf_review",
+        "source_validate",
+        "vector_db_validate",
+        "vector_upsert_query_smoke"
+      ],
+      "related_templates": [],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "planned_adapter_not_implemented",
+        "license_review_required",
+        "security_review_required",
+        "needs_verification",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.6",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "Surya is included as planned_adapter, needs_verification for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "needs_verification",
+      "source_registry_implementation_mode": "planned_adapter",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "unstructured",
+      "project_name": "Unstructured",
+      "rating": "A",
+      "github_url": "https://github.com/Unstructured-IO/unstructured",
+      "contract_status": [
+        "planned_adapter",
+        "needs_verification"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "unstructured_document_parser"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "import_parsing",
+          "title": "Import & Parsing"
+        },
+        {
+          "page_id": "vector_hub_provider_storage",
+          "title": "Vector Hub / Provider / Storage"
+        }
+      ],
+      "related_core_actions": [
+        "byo_storage_profile_schema",
+        "embedding_provider_validate",
+        "format_support_matrix",
+        "input_file_folder_glob",
+        "llm_provider_validate",
+        "ocr_required_detection",
+        "offline_fallback_status",
+        "parse_repair_suggest",
+        "parser_preflight",
+        "pdf_token_reduction",
+        "provider_redaction_check",
+        "reranker_provider_validate",
+        "scanned_pdf_review",
+        "source_validate",
+        "vector_db_validate",
+        "vector_upsert_query_smoke"
+      ],
+      "related_templates": [],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "planned_adapter_not_implemented",
+        "license_review_required",
+        "security_review_required",
+        "needs_verification",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.6",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "Unstructured is included as planned_adapter, needs_verification for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "needs_verification",
+      "source_registry_implementation_mode": "planned_adapter",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "llamaindex",
+      "project_name": "LlamaIndex",
+      "rating": "A",
+      "github_url": "https://github.com/run-llama/llama_index",
+      "contract_status": [
+        "benchmark_only"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "rag_architecture",
+        "indexing_abstraction",
+        "retriever_pattern"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "retrieval_verification",
+          "title": "Retrieval & Verification"
+        },
+        {
+          "page_id": "reports_audit",
+          "title": "Reports & Audit"
+        }
+      ],
+      "related_core_actions": [
+        "artifact_registry_inspect",
+        "blocker_tracker",
+        "claim_verification",
+        "contradiction_detection",
+        "evidence_selection",
+        "final_gate",
+        "freshness_check",
+        "hybrid_retrieval",
+        "p1_workbench_gate",
+        "product_hardening",
+        "query_rewrite",
+        "rag_query",
+        "report_registry_inspect",
+        "rerank",
+        "retrieval_planning",
+        "retrieval_purpose_switch"
+      ],
+      "related_templates": [],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "benchmark_only_not_runtime",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.5",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "LlamaIndex is included as benchmark_only for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "benchmark_mapped",
+      "source_registry_implementation_mode": "benchmark_only",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "ragas",
+      "project_name": "RAGAS",
+      "rating": "A",
+      "github_url": "https://github.com/explodinggradients/ragas",
+      "contract_status": [
+        "benchmark_only",
+        "future_adapter"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "rag_evaluation",
+        "faithfulness",
+        "context_recall"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "retrieval_verification",
+          "title": "Retrieval & Verification"
+        },
+        {
+          "page_id": "reports_audit",
+          "title": "Reports & Audit"
+        }
+      ],
+      "related_core_actions": [
+        "artifact_registry_inspect",
+        "blocker_tracker",
+        "claim_verification",
+        "contradiction_detection",
+        "evidence_selection",
+        "final_gate",
+        "freshness_check",
+        "hybrid_retrieval",
+        "p1_workbench_gate",
+        "product_hardening",
+        "query_rewrite",
+        "rag_query",
+        "report_registry_inspect",
+        "rerank",
+        "retrieval_planning",
+        "retrieval_purpose_switch"
+      ],
+      "related_templates": [],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "benchmark_only_not_runtime",
+        "future_adapter_after_v4",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.5",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "RAGAS is included as benchmark_only, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "benchmark_mapped",
+      "source_registry_implementation_mode": "benchmark_only",
+      "license_or_security_review_required": true
+    },
+    {
+      "project_id": "deepeval",
+      "project_name": "DeepEval",
+      "rating": "A",
+      "github_url": "https://github.com/confident-ai/deepeval",
+      "contract_status": [
+        "benchmark_only",
+        "future_adapter"
+      ],
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "executable_action": false,
+      "mapped_capabilities": [
+        "llm_eval",
+        "rag_eval",
+        "regression_evaluation"
+      ],
+      "related_workbench_pages": [
+        {
+          "page_id": "retrieval_verification",
+          "title": "Retrieval & Verification"
+        },
+        {
+          "page_id": "reports_audit",
+          "title": "Reports & Audit"
+        }
+      ],
+      "related_core_actions": [
+        "artifact_registry_inspect",
+        "blocker_tracker",
+        "claim_verification",
+        "contradiction_detection",
+        "evidence_selection",
+        "final_gate",
+        "freshness_check",
+        "hybrid_retrieval",
+        "p1_workbench_gate",
+        "product_hardening",
+        "query_rewrite",
+        "rag_query",
+        "report_registry_inspect",
+        "rerank",
+        "retrieval_planning",
+        "retrieval_purpose_switch"
+      ],
+      "related_templates": [],
+      "related_error_codes": [
+        "contract_drift"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "benchmark_only_not_runtime",
+        "future_adapter_after_v4",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "can_execute_after_provider_config": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.5",
+      "ui_visibility": "visible_boundary_only",
+      "implementation_boundary": "DeepEval is included as benchmark_only, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "source_registry_status": "docs_only",
+      "source_registry_implementation_mode": "benchmark_only",
+      "license_or_security_review_required": true
+    }
+  ],
+  "internal_capability_anchors": [
+    {
+      "anchor_id": "book_to_skill",
+      "anchor_name": "Book-to-Skill",
+      "rating": "S",
+      "contract_status": [
+        "internal_capability",
+        "implemented"
+      ],
+      "current_status": "implemented",
+      "implemented": true,
+      "ready": true,
+      "local_ready": true,
+      "pre_v4_scope": "already_core_capability",
+      "post_v4_target": "P2.6",
+      "related_external_benchmarks": [
+        "andrej_karpathy_skills",
+        "skill_prompt_generator"
+      ],
+      "implementation_boundary": "Internal Core capability anchor. External benchmark mapping does not implement external project functionality."
+    },
+    {
+      "anchor_id": "package_to_skill",
+      "anchor_name": "Package-to-Skill",
+      "rating": "S",
+      "contract_status": [
+        "internal_capability",
+        "implemented"
+      ],
+      "current_status": "implemented",
+      "implemented": true,
+      "ready": true,
+      "local_ready": true,
+      "pre_v4_scope": "already_core_capability",
+      "post_v4_target": "P2.6 / P2.9",
+      "related_external_benchmarks": [
+        "andrej_karpathy_skills",
+        "skill_prompt_generator"
+      ],
+      "implementation_boundary": "Internal Core capability anchor. External benchmark mapping does not implement external project functionality."
+    },
+    {
+      "anchor_id": "software_to_manual_to_skill",
+      "anchor_name": "Software-to-Manual-to-Skill",
+      "rating": "S",
+      "contract_status": [
+        "internal_capability",
+        "future_adapter"
+      ],
+      "current_status": "contract_only / planned_capability",
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "pre_v4_scope": "contract_mapping_only",
+      "post_v4_target": "P2.6",
+      "related_external_benchmarks": [
+        "andrej_karpathy_skills",
+        "skill_prompt_generator"
+      ],
+      "implementation_boundary": "Internal Core capability anchor. External benchmark mapping does not implement external project functionality."
+    },
+    {
+      "anchor_id": "aigc_book_content_pipeline",
+      "anchor_name": "AIGC Book Content Pipeline",
+      "rating": "S",
+      "contract_status": [
+        "internal_capability",
+        "template_reference"
+      ],
+      "current_status": "docs_only",
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "pre_v4_scope": "docs_mapping_only",
+      "post_v4_target": "P2.7 / P2.8",
+      "related_external_benchmarks": [
+        "jellyfish",
+        "story_flicks",
+        "ai_marketing_skills",
+        "ai_money_maker_handbook"
+      ],
+      "implementation_boundary": "Internal Core capability anchor. External benchmark mapping does not implement external project functionality."
+    },
+    {
+      "anchor_id": "retrieval_and_verification",
+      "anchor_name": "Retrieval & Verification",
+      "rating": "S",
+      "contract_status": [
+        "internal_capability",
+        "implemented"
+      ],
+      "current_status": "implemented",
+      "implemented": true,
+      "ready": true,
+      "local_ready": true,
+      "pre_v4_scope": "already_core_capability",
+      "post_v4_target": "P2.3 / P2.5",
+      "related_external_benchmarks": [
+        "anysearchskill",
+        "llamaindex",
+        "ragas",
+        "deepeval"
+      ],
+      "implementation_boundary": "Internal Core capability anchor. External benchmark mapping does not implement external project functionality."
+    },
+    {
+      "anchor_id": "memory_lifecycle",
+      "anchor_name": "Memory Lifecycle",
+      "rating": "S",
+      "contract_status": [
+        "internal_capability",
+        "implemented_baseline",
+        "future_adapter"
+      ],
+      "current_status": "implemented baseline",
+      "implemented": true,
+      "ready": true,
+      "local_ready": true,
+      "pre_v4_scope": "already_core_capability",
+      "post_v4_target": "P2.4",
+      "related_external_benchmarks": [
+        "llm_wiki_v2"
+      ],
+      "implementation_boundary": "Internal Core capability anchor. External benchmark mapping does not implement external project functionality."
+    },
+    {
+      "anchor_id": "auto_wiki_knowledge_graph",
+      "anchor_name": "Auto Wiki / Knowledge Graph",
+      "rating": "S",
+      "contract_status": [
+        "internal_capability",
+        "future_adapter"
+      ],
+      "current_status": "future_capability",
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "pre_v4_scope": "registry_only",
+      "post_v4_target": "P2.5",
+      "related_external_benchmarks": [
+        "weknora"
+      ],
+      "implementation_boundary": "Internal Core capability anchor. External benchmark mapping does not implement external project functionality."
+    },
+    {
+      "anchor_id": "workflow_automation_export",
+      "anchor_name": "Workflow Automation / Export",
+      "rating": "S",
+      "contract_status": [
+        "internal_capability",
+        "future_adapter"
+      ],
+      "current_status": "future_adapter",
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "pre_v4_scope": "registry_only",
+      "post_v4_target": "P2.2 / P3",
+      "related_external_benchmarks": [
+        "n8n"
+      ],
+      "implementation_boundary": "Internal Core capability anchor. External benchmark mapping does not implement external project functionality."
+    }
+  ],
+  "release_boundary": {
+    "p1_gate_changed": false,
+    "v4_0_started": false,
+    "tag_created": false,
+    "release_written": false,
+    "external_features_implemented": false,
+    "planned_adapters_marked_ready": false,
+    "provider_network_api_ready": false
+  }
+}

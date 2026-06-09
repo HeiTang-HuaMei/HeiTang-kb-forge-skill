@@ -101,6 +101,27 @@ void main() {
     expect(remainingBlockers['status'], 'blocked');
   });
 
+  test('external capability assets parse as boundary-only S/A contract data', () async {
+    final registry = ExternalCapabilityRegistry.fromJsonString(await rootBundle.loadString('assets/external/external_capability_registry.json'));
+    final matrix = jsonDecode(await rootBundle.loadString('assets/external/s_a_contract_inclusion_matrix.json')) as Map<String, dynamic>;
+    final projects = {for (final project in registry.projects) project.projectId: project};
+
+    expect(registry.sProjectCount, 7);
+    expect(registry.aProjectCount, 16);
+    expect(registry.externalProjectCount, 23);
+    expect(registry.internalCapabilityAnchorCount, 8);
+    expect(registry.releaseBoundary['p1_gate_changed'], isFalse);
+    expect(registry.releaseBoundary['v4_0_started'], isFalse);
+    expect(registry.releaseBoundary['external_features_implemented'], isFalse);
+    expect(registry.projects.every((project) => project.canExecuteLocallyBeforeV4 == false), isTrue);
+    expect(projects['n8n']!.requiresExternalRuntime, isTrue);
+    expect(projects['anysearchskill']!.requiresApiKey, isTrue);
+    expect(projects['anysearchskill']!.requiresNetwork, isTrue);
+    expect(projects['llm_wiki_v2']!.contractStatus, contains('future_adapter'));
+    expect(projects['weknora']!.contractStatus, contains('future_adapter'));
+    expect(matrix['external_project_count'], 23);
+  });
+
   test('full p1 fixture drives real local and deterministic smoke Core actions through the bridge request path', () async {
     final contracts = const WorkbenchContractLoader().loadFromBundleJson(await rootBundle.loadString('assets/contracts/p1_core_contract_fixture.json'));
     const bridge = LocalCoreBridge();
@@ -227,6 +248,31 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('renders S/A external capability boundaries without executable claims', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1320));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        workflowV2Evidence: sampleP1WorkflowV2Evidence,
+        externalCapabilities: sampleExternalCapabilityRegistry,
+      ),
+    );
+    await tester.pump();
+
+    expect(find.textContaining('S=1 · A=1'), findsWidgets);
+    expect(find.textContaining('planned=1'), findsWidgets);
+    expect(find.textContaining('ready=false'), findsWidgets);
+    expect(find.textContaining('local_ready=false'), findsWidgets);
+    expect(find.text('运行 Core 操作'), findsNothing);
+
+    await tester.tap(find.text('记忆中心').first);
+    await tester.pump();
+    expect(find.textContaining('LLM Wiki v2'), findsWidgets);
+    expect(find.textContaining('future_adapter/capability_anchor'), findsWidgets);
+    expect(find.textContaining('显示边界'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('renders contract-driven action and agent mode data in English', (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 900));
     await tester.pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
@@ -267,6 +313,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Run RAG query'), findsOneWidget);
 
+    await tester.ensureVisible(find.text('运行 Core 操作'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('运行 Core 操作'));
     await tester.pumpAndSettle();
 

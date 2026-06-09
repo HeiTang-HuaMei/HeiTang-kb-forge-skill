@@ -288,6 +288,34 @@ function idList(items, idKey, limit = 5) {
   return `<ul class="compact-list">${items.slice(0, limit).map((item) => `<li><strong>${item[idKey]}</strong><span>${item.title || item.label || item.artifact_type || item.format || ""}</span></li>`).join("")}</ul>`;
 }
 
+function externalProjectsForRoute(data, routeId) {
+  const page = p1Page(data, routeId);
+  return data.externalCapabilities.projects.filter((project) => project.related_workbench_pages.some((mappedPage) => mappedPage.page_id === page.core_page_id));
+}
+
+function externalCapabilityRows(projects, limit = 6) {
+  return table(
+    [label("Project", "项目"), "Rating", "contract_status", "blocked_reason"],
+    projects.slice(0, limit).map((project) => [
+      `<strong>${project.project_name}</strong><br><span class="muted">${project.project_id}</span>`,
+      project.rating,
+      tags(project.contract_status),
+      `<span data-blocked-reason="${project.blocked_reason}">${project.blocked_reason}</span>`
+    ])
+  );
+}
+
+function externalCapabilityPanel(data, routeId) {
+  const projects = externalProjectsForRoute(data, routeId);
+  if (!projects.length) {
+    return "";
+  }
+  return panel(
+    label("S/A External Capability Boundary", "S/A 外部能力边界"),
+    `${externalCapabilityRows(projects, 4)}<p class="muted">${label("Visibility only: no Run button, no installed claim, no local-ready state.", "仅可见边界：没有 Run 按钮、不声明 installed、不声明 local-ready。")}</p>`
+  );
+}
+
 function renderP1ContractPage(data, routeId, options = {}) {
   const page = p1Page(data, routeId);
   const actions = p1Actions(data, page);
@@ -310,6 +338,7 @@ function renderP1ContractPage(data, routeId, options = {}) {
       <div class="section-title"><h3>${label("Action Contracts", "操作契约")}</h3><span>${label("unsupported operations are disabled with blocked_reason", "不支持操作 disabled 并显示 blocked_reason")}</span></div>
       ${p1ActionRows(actions)}
     </section>
+    ${externalCapabilityPanel(data, routeId)}
     <div class="split-panels">
       ${panel(label("Report IDs", "报告 ID"), idList(reports, "report_id"))}
       ${panel(label("Artifact IDs", "产物 ID"), idList(artifacts, "artifact_id"))}
@@ -347,6 +376,7 @@ function renderDashboard(data) {
       ${metricCard(label("Artifacts", "产物"), counts.artifacts, "artifact_id", "◴")}
       ${metricCard(label("Error Codes", "错误码"), counts.errors, "error_code", "⌗")}
       ${metricCard(label("P1 Gate", "P1 门禁"), data.p1Contracts.p1_full_operation_gate_status, "not_full_operation_yet", "◇")}
+      ${metricCard(label("S/A External", "S/A 外部项目"), data.externalCapabilities.external_project_count, `S=${data.externalCapabilities.rating_counts.S} A=${data.externalCapabilities.rating_counts.A}`, "□")}
     </section>
     <section class="split-grid">
       ${panel(label("Recent Tasks", "最近任务"), table(
@@ -369,6 +399,13 @@ function renderDashboard(data) {
         ${metricCard(label("Retrieval Hit Rate", "检索命中率"), "87.4%", label("+2.1%", "+2.1%"), "⌕")}
         ${metricCard(label("Generation Success", "生成成功率"), `${successRate}%`, label("+1.3%", "+1.3%"), "▤")}
         ${metricCard(label("Human Review Rate", "人工复核率"), "7.1%", label("-0.6%", "-0.6%"), "□")}
+      </div>
+    `)}
+    ${panel(label("External Capability Boundary", "外部能力边界"), `
+      <div class="summary-grid">
+        ${metricCard("planned_adapter", data.externalCapabilities.projects.filter((project) => project.contract_status.includes("planned_adapter")).length, "ready=false", "□")}
+        ${metricCard("future_adapter", data.externalCapabilities.projects.filter((project) => project.contract_status.includes("future_adapter")).length, "post-v4", "□")}
+        ${metricCard("provider_required", data.externalCapabilities.projects.filter((project) => project.contract_status.includes("provider_required")).length, "local_ready=false", "□")}
       </div>
     `)}
   `, dashboardRail(data));
@@ -413,6 +450,7 @@ function renderOperationGate(data) {
       `)}
       ${rightPanel(label("V2 Remaining Blockers", "V2 剩余阻塞"), `${miniMetric("status", data.p1RealWorkflowV2.remaining_blockers.length === 0 ? "none" : v2Reports.remainingBlockers.status)}${miniMetric("Core report", v2Reports.remainingBlockers.status)}`)}
       ${rightPanel(label("Blocked Reasons", "阻塞原因"), idList(gate.blocker_ids.map((id) => ({ id, title: id })), "id"))}
+      ${rightPanel(label("S/A Gate Boundary", "S/A 门禁边界"), `${miniMetric("p1_gate_changed", data.externalCapabilities.release_boundary.p1_gate_changed)}${miniMetric("v4_0_started", data.externalCapabilities.release_boundary.v4_0_started)}${miniMetric("external_features_implemented", data.externalCapabilities.release_boundary.external_features_implemented)}`)}
     `
   });
 }
@@ -435,9 +473,11 @@ function renderCapabilityMatrix(data) {
     <section class="panel">
       ${table([label("Capability", "能力域"), "actions", "reports", "artifacts", label("Boundary", "边界")], rows)}
     </section>
+    ${panel(label("S/A External Capability Matrix", "S/A 外部能力矩阵"), externalCapabilityRows(data.externalCapabilities.projects, 10))}
   `, `
     ${rightPanel(label("Contract Counts", "契约计数"), `${miniMetric("pages", data.p1Contracts.counts.pages)}${miniMetric("actions", data.p1Contracts.counts.actions)}${miniMetric("reports", data.p1Contracts.counts.reports)}${miniMetric("artifacts", data.p1Contracts.counts.artifacts)}`)}
     ${rightPanel(label("V2 Action Matrix", "V2 Action 矩阵"), `${miniMetric("ready/core_cli", v2Reports.matrix.ready_core_cli_action_count)}${miniMetric("targets", v2Reports.matrix.execution_target_count)}${miniMetric("passed", v2Reports.actionResults.passed_count)}${miniMetric("blocked", data.p1RealWorkflowV2.blocked_action_count)}`)}
+    ${rightPanel(label("External Boundary", "外部边界"), `${miniMetric("S projects", data.externalCapabilities.rating_counts.S)}${miniMetric("A projects", data.externalCapabilities.rating_counts.A)}${miniMetric("local_ready", "false")}`)}
     ${rightPanel(label("Source Commit", "来源提交"), `<p>${data.p1Contracts.source.core_commit}</p>`)}
   `);
 }

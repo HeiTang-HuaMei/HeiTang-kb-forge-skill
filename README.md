@@ -193,6 +193,8 @@ The optional Workbench UI defaults to a black / white / gray premium Windows des
 
 The current UI is a P1 final gate re-run evidence UI consumption pass verified against Core commit `f5fa13bb11211abb0bcecaccd845e545a2dacad3` and Core CI run `27210849617`. It consumes a deterministic copied Core `workbench-contracts --profile p1` fixture for 16 P1 Core pages, 110 actions, 109 reports, 101 artifacts, 20 error codes, 6 templates, task schema, capability matrix, and gate status. It also displays copied P1-RWF-V2 and P1 final-gate evidence with `drift_count=0`, 57 local execution targets passed, 10 user paths passed, `p1_full_operation_gate_status: ready_for_v4_rc`, and `ready_for_v4_rc=true`.
 
+It also surfaces S/A external capability contract-inclusion fixtures from Core commit `c30f8adcadfedb30cb974eb62cc02a38c35a5158` and CI run `27221946149`. These entries are visibility and boundary data only: planned/future/provider-required projects are not installed, not local-ready, and not executable from the UI.
+
 This is still not the v4.0 release. `not_v4_0_workbench_rc` remains true; unsupported provider, secret, network, and planned-adapter operations render disabled with `blocked_reason`.
 
 Strategic docs:

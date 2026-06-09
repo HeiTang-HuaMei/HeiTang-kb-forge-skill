@@ -34,3 +34,5 @@ flutter:
     - assets/workflows/p1_real_workflow_v2/p1_real_workflow_v2_report.json
     - assets/workflows/p1_real_workflow_v2/remaining_blockers.json
     - assets/workflows/p1_final_gate_rerun/
+    - assets/external/external_capability_registry.json
+    - assets/external/s_a_contract_inclusion_matrix.json

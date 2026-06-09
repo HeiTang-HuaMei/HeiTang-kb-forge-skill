@@ -83,7 +83,7 @@ def test_workbench_supports_chinese_and_english_i18n_switching():
     assert "const Locale('zh', 'CN')" in flutter_main
     assert "const Locale('en', 'US')" in flutter_main
     assert "SegmentedButton<String>" in flutter_main
-    assert "localeCode == 'zh-CN' ? '打开' : 'Open'" in flutter_main
+    assert "localeCode == 'zh-CN' ? '显示边界' : 'Show boundary'" in flutter_main
 
 
 def test_workbench_brand_and_mascot_assets_exist():

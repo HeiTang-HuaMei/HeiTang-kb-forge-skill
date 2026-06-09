@@ -74,6 +74,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
     this.contracts,
     this.workflowEvidence,
     this.workflowV2Evidence,
+    this.externalCapabilities,
     this.coreBridge = const LocalCoreBridge(),
     this.coreCli = 'heitang-kb-forge',
     this.coreWorkingDirectory = '.',
@@ -85,6 +86,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
   final WorkbenchContracts? contracts;
   final P1WorkflowEvidence? workflowEvidence;
   final P1WorkflowEvidence? workflowV2Evidence;
+  final ExternalCapabilityRegistry? externalCapabilities;
   final LocalCoreBridge coreBridge;
   final String coreCli;
   final String coreWorkingDirectory;
@@ -109,6 +111,9 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
   late final Future<P1WorkflowEvidence> _workflowV2EvidenceFuture = widget.workflowV2Evidence == null
       ? const P1WorkflowEvidenceLoader().loadFromAsset('assets/workflows/p1_real_workflow_v2_evidence.json').catchError((_) => sampleP1WorkflowV2Evidence)
       : Future<P1WorkflowEvidence>.value(widget.workflowV2Evidence);
+  late final Future<ExternalCapabilityRegistry> _externalCapabilitiesFuture = widget.externalCapabilities == null
+      ? const ExternalCapabilityLoader().loadFromAsset('assets/external/external_capability_registry.json').catchError((_) => sampleExternalCapabilityRegistry)
+      : Future<ExternalCapabilityRegistry>.value(widget.externalCapabilities);
 
   bool get isDark => themeMode == ThemeMode.dark;
 
@@ -136,23 +141,28 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
           builder: (context, evidenceSnapshot) => FutureBuilder<P1WorkflowEvidence>(
             future: _workflowV2EvidenceFuture,
             initialData: widget.workflowV2Evidence ?? sampleP1WorkflowV2Evidence,
-            builder: (context, v2Snapshot) => _WorkbenchScaffold(
-              contracts: contractsSnapshot.data ?? sampleWorkbenchContracts,
-              workflowEvidence: evidenceSnapshot.data ?? sampleP1WorkflowEvidence,
-              workflowV2Evidence: v2Snapshot.data ?? sampleP1WorkflowV2Evidence,
-              localeCode: localeCode,
-              themeMode: themeMode,
-              selectedIndex: selectedIndex,
-              isDark: isDark,
-              coreBridge: widget.coreBridge,
-              coreCli: widget.coreCli,
-              coreWorkingDirectory: widget.coreWorkingDirectory,
-              coreWorkspace: widget.coreWorkspace,
-              enableLocalCoreActions: widget.enableLocalCoreActions,
-              isWebRuntime: widget.isWebRuntime,
-              onThemeChanged: (value) => setState(() => themeMode = value),
-              onLocaleChanged: (value) => setState(() => localeCode = value),
-              onPageChanged: (index) => setState(() => selectedIndex = index),
+            builder: (context, v2Snapshot) => FutureBuilder<ExternalCapabilityRegistry>(
+              future: _externalCapabilitiesFuture,
+              initialData: widget.externalCapabilities ?? sampleExternalCapabilityRegistry,
+              builder: (context, externalSnapshot) => _WorkbenchScaffold(
+                contracts: contractsSnapshot.data ?? sampleWorkbenchContracts,
+                workflowEvidence: evidenceSnapshot.data ?? sampleP1WorkflowEvidence,
+                workflowV2Evidence: v2Snapshot.data ?? sampleP1WorkflowV2Evidence,
+                externalCapabilities: externalSnapshot.data ?? sampleExternalCapabilityRegistry,
+                localeCode: localeCode,
+                themeMode: themeMode,
+                selectedIndex: selectedIndex,
+                isDark: isDark,
+                coreBridge: widget.coreBridge,
+                coreCli: widget.coreCli,
+                coreWorkingDirectory: widget.coreWorkingDirectory,
+                coreWorkspace: widget.coreWorkspace,
+                enableLocalCoreActions: widget.enableLocalCoreActions,
+                isWebRuntime: widget.isWebRuntime,
+                onThemeChanged: (value) => setState(() => themeMode = value),
+                onLocaleChanged: (value) => setState(() => localeCode = value),
+                onPageChanged: (index) => setState(() => selectedIndex = index),
+              ),
             ),
           ),
         ),
@@ -245,6 +255,7 @@ class _DesktopWorkbench extends StatelessWidget {
     required this.contracts,
     required this.workflowEvidence,
     required this.workflowV2Evidence,
+    required this.externalCapabilities,
     required this.selectedIndex,
     required this.isTablet,
     required this.coreBridge,
@@ -260,6 +271,7 @@ class _DesktopWorkbench extends StatelessWidget {
   final WorkbenchContracts contracts;
   final P1WorkflowEvidence workflowEvidence;
   final P1WorkflowEvidence workflowV2Evidence;
+  final ExternalCapabilityRegistry externalCapabilities;
   final int selectedIndex;
   final bool isTablet;
   final LocalCoreBridge coreBridge;
@@ -293,6 +305,7 @@ class _DesktopWorkbench extends StatelessWidget {
             contracts: contracts,
             workflowEvidence: workflowEvidence,
             workflowV2Evidence: workflowV2Evidence,
+            externalCapabilities: externalCapabilities,
             columns: isTablet ? 2 : 3,
             coreBridge: coreBridge,
             coreCli: coreCli,
@@ -361,6 +374,7 @@ class _PhoneWorkbench extends StatelessWidget {
     required this.contracts,
     required this.workflowEvidence,
     required this.workflowV2Evidence,
+    required this.externalCapabilities,
     required this.selectedIndex,
     required this.coreBridge,
     required this.coreCli,
@@ -375,6 +389,7 @@ class _PhoneWorkbench extends StatelessWidget {
   final WorkbenchContracts contracts;
   final P1WorkflowEvidence workflowEvidence;
   final P1WorkflowEvidence workflowV2Evidence;
+  final ExternalCapabilityRegistry externalCapabilities;
   final int selectedIndex;
   final LocalCoreBridge coreBridge;
   final String coreCli;
@@ -418,6 +433,7 @@ class _PhoneWorkbench extends StatelessWidget {
             contracts: contracts,
             workflowEvidence: workflowEvidence,
             workflowV2Evidence: workflowV2Evidence,
+            externalCapabilities: externalCapabilities,
             columns: 1,
             coreBridge: coreBridge,
             coreCli: coreCli,
@@ -439,6 +455,7 @@ class _PageSurface extends StatelessWidget {
     required this.contracts,
     required this.workflowEvidence,
     required this.workflowV2Evidence,
+    required this.externalCapabilities,
     required this.columns,
     required this.coreBridge,
     required this.coreCli,
@@ -453,6 +470,7 @@ class _PageSurface extends StatelessWidget {
   final WorkbenchContracts contracts;
   final P1WorkflowEvidence workflowEvidence;
   final P1WorkflowEvidence workflowV2Evidence;
+  final ExternalCapabilityRegistry externalCapabilities;
   final int columns;
   final LocalCoreBridge coreBridge;
   final String coreCli;
@@ -463,7 +481,7 @@ class _PageSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cards = _cardsFor(page.id, localeCode, contracts, workflowEvidence, workflowV2Evidence);
+    final cards = _cardsFor(page.id, localeCode, contracts, workflowEvidence, workflowV2Evidence, externalCapabilities);
     final corePanels = <Widget>[];
     for (final action in coreActionsForPage(page.id, contracts)) {
       final request = coreRequestForAction(
@@ -523,13 +541,23 @@ class _PageSurface extends StatelessWidget {
     );
   }
 
-  List<_CardCopy> _cardsFor(String id, String localeCode, WorkbenchContracts contracts, P1WorkflowEvidence workflowEvidence, P1WorkflowEvidence workflowV2Evidence) {
+  List<_CardCopy> _cardsFor(
+    String id,
+    String localeCode,
+    WorkbenchContracts contracts,
+    P1WorkflowEvidence workflowEvidence,
+    P1WorkflowEvidence workflowV2Evidence,
+    ExternalCapabilityRegistry externalCapabilities,
+  ) {
     final zh = localeCode == 'zh-CN';
     final view = _contractViewFor(page, contracts);
     final actions = _actionsForView(view, contracts);
     final reports = _reportsForView(view, contracts);
     final artifacts = _artifactsForView(view, contracts);
     final common = view.assetTypes.isEmpty ? (zh ? '合同样例' : 'Contract sample') : view.assetTypes.join(' · ');
+    final externalProjects = externalCapabilities.projectsForCorePage(view.corePageId);
+    final providerProjects = externalProjects.where((project) => project.contractStatus.contains('provider_required') || project.requiresApiKey || project.requiresNetwork || project.requiresExternalRuntime).toList(growable: false);
+    final templateProjects = externalProjects.where((project) => project.contractStatus.contains('template_reference')).toList(growable: false);
     return [
       _CardCopy(zh ? 'Core 来源' : 'Core source', contracts.source.coreCommit),
       _CardCopy(zh ? '操作契约' : 'Action contracts', actions.isEmpty ? common : actions.map((action) => action.id).take(3).join(' · ')),
@@ -547,6 +575,13 @@ class _PageSurface extends StatelessWidget {
       if (_showsV2Evidence(id)) _CardCopy(zh ? '用户路径闭环' : 'User path closure', '${workflowV2Evidence.userPathClosureStatus} · ${workflowV2Evidence.userPathPassedCount}/${workflowV2Evidence.userPathCount} paths'),
       if (_showsV2Evidence(id)) _CardCopy(zh ? 'UI 门禁' : 'UI gate', 'ui_full_operation_pending=${workflowV2Evidence.uiFullOperationPending} · rc_candidate=${workflowV2Evidence.readyForV4RcCandidate} · ready_for_v4_rc=${workflowV2Evidence.readyForV4Rc}'),
       if (_showsV2Evidence(id)) _CardCopy(zh ? 'Provider/secret blocked' : 'Provider/secret blocked', workflowV2Evidence.blockedActions.map((action) => '${action.actionId}:${action.classification}').take(2).join(' · ')),
+      if (_showsExternalCapabilities(id)) _CardCopy(zh ? 'S/A 外部能力' : 'S/A external capabilities', 'S=${externalCapabilities.sProjectCount} · A=${externalCapabilities.aProjectCount} · anchors=${externalCapabilities.internalCapabilityAnchorCount}'),
+      if (_showsExternalCapabilities(id)) _CardCopy(zh ? 'Adapter 边界' : 'Adapter boundary', 'planned=${externalCapabilities.plannedAdapterCount} · future=${externalCapabilities.futureAdapterCount} · ready=false'),
+      if (_showsExternalCapabilities(id)) _CardCopy(zh ? 'Provider 边界' : 'Provider boundary', 'provider_required=${externalCapabilities.providerRequiredCount} · local_ready=false'),
+      if (externalProjects.isNotEmpty) _CardCopy(zh ? '页面映射' : 'Mapped external projects', externalProjects.map((project) => '${project.projectName}:${project.contractStatus.join('/')}').take(2).join(' · ')),
+      if (providerProjects.isNotEmpty) _CardCopy(zh ? 'blocked_reason' : 'blocked_reason', providerProjects.map((project) => '${project.projectId}:${project.blockedReason}').take(2).join(' · ')),
+      if (templateProjects.isNotEmpty) _CardCopy(zh ? '模板参考' : 'Template references', templateProjects.map((project) => project.projectName).take(3).join(' · ')),
+      if (id == 'operation-gate') _CardCopy(zh ? 'S/A 不影响 P1' : 'S/A does not affect P1', 'p1_gate_changed=${externalCapabilities.releaseBoundary['p1_gate_changed']} · v4_0_started=${externalCapabilities.releaseBoundary['v4_0_started']}'),
       if (id == 'capability-matrix') _CardCopy(zh ? 'Action 分类' : 'Action classification', workflowV2Evidence.actionResults.map((action) => '${action.actionId}:${action.status}').take(2).join(' · ')),
       if (id == 'capability-matrix') _CardCopy(zh ? '能力域' : 'Capability areas', '${contracts.capabilities.areas.length}'),
       if (id == 'task-job-center') _CardCopy(zh ? 'Task evidence' : 'Task evidence', workflowV2Evidence.actionResults.map((action) => '${action.actionId}:${action.assertionStatus}').take(2).join(' · ')),
@@ -565,6 +600,7 @@ class _WorkbenchScaffold extends StatelessWidget {
     required this.contracts,
     required this.workflowEvidence,
     required this.workflowV2Evidence,
+    required this.externalCapabilities,
     required this.localeCode,
     required this.themeMode,
     required this.selectedIndex,
@@ -583,6 +619,7 @@ class _WorkbenchScaffold extends StatelessWidget {
   final WorkbenchContracts contracts;
   final P1WorkflowEvidence workflowEvidence;
   final P1WorkflowEvidence workflowV2Evidence;
+  final ExternalCapabilityRegistry externalCapabilities;
   final String localeCode;
   final ThemeMode themeMode;
   final int selectedIndex;
@@ -635,6 +672,7 @@ class _WorkbenchScaffold extends StatelessWidget {
                   contracts: contracts,
                   workflowEvidence: workflowEvidence,
                   workflowV2Evidence: workflowV2Evidence,
+                  externalCapabilities: externalCapabilities,
                   selectedIndex: selectedIndex,
                   coreBridge: coreBridge,
                   coreCli: coreCli,
@@ -649,6 +687,7 @@ class _WorkbenchScaffold extends StatelessWidget {
                   contracts: contracts,
                   workflowEvidence: workflowEvidence,
                   workflowV2Evidence: workflowV2Evidence,
+                  externalCapabilities: externalCapabilities,
                   selectedIndex: selectedIndex,
                   isTablet: isTablet,
                   coreBridge: coreBridge,
@@ -716,6 +755,20 @@ bool _showsV2Evidence(String pageId) {
   }.contains(pageId);
 }
 
+bool _showsExternalCapabilities(String pageId) {
+  return const {
+    'dashboard',
+    'operation-gate',
+    'capability-matrix',
+    'vector-hub-provider-storage',
+    'retrieval-verification',
+    'reports-audit',
+    'template-library',
+    'skill-factory',
+    'memory-center',
+  }.contains(pageId);
+}
+
 class _WorkbenchCard extends StatelessWidget {
   const _WorkbenchCard({required this.title, required this.body, required this.localeCode});
 
@@ -734,7 +787,7 @@ class _WorkbenchCard extends StatelessWidget {
           children: [
             Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
             Text(body, maxLines: 4, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodyMedium),
-            FilledButton(onPressed: () {}, child: Text(localeCode == 'zh-CN' ? '打开' : 'Open')),
+            FilledButton(onPressed: () {}, child: Text(localeCode == 'zh-CN' ? '显示边界' : 'Show boundary')),
           ],
         ),
       ),
