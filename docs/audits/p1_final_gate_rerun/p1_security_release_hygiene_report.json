@@ -1,0 +1,14 @@
+{
+  "report_id": "p1_security_release_hygiene_report",
+  "status": "pass",
+  "no_build_artifacts_committed": true,
+  "no_real_secret_detected": true,
+  "no_raw_private_input_committed": true,
+  "no_local_provider_config_committed": true,
+  "tests_require_real_llm_api_network": false,
+  "network_required": false,
+  "v4_0_started": false,
+  "tag_created": false,
+  "v4_release_written": false,
+  "production_release_complete": false
+}

@@ -7,13 +7,15 @@ This is the short current-state entry for GitHub readers. It is intentionally ab
 ## Gate State
 
 - Core pre-v4 RC readiness: complete for the latest Core P0 proof.
+- P1 local Workbench final gate re-run: passed for v4 RC readiness.
+- Latest P1 proof directory: `docs/audits/p1_final_gate_rerun/`
 - Latest proof directory: `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/`
 - Latest root gates: `final_v4_rc_gate_report.json` and `v4_rc_final_gate_report.json`
 - `ready_for_v4_rc=true`
 - `P0 blockers=0`
 - Baseline evidence before P0.6 documentation governance: Core main `053a6a6`, GitHub CI run `27140288050` success.
 
-v4.0 is not released, not tagged, and not started. UI full-operation remains blocked.
+v4.0 is not released, not tagged, and not started. P1 local Workbench gate readiness does not create a v4 release.
 
 ## Product Positioning
 
@@ -22,6 +24,7 @@ HeiTang KB Forge is a local-first, offline-first Core Skill for converting local
 ## Current Evidence
 
 - Latest Core P0 proof: `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/`
+- Latest P1 final gate re-run proof: `docs/audits/p1_final_gate_rerun/`
 - Human-readable final truth: `docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md`
 - Capability summary: `docs/00_overview/CAPABILITY_MATRIX.md`
 - Documentation governance: `docs/DOCUMENTATION_GOVERNANCE.md`
@@ -29,8 +32,8 @@ HeiTang KB Forge is a local-first, offline-first Core Skill for converting local
 ## Must Not Claim
 
 - v4.0 released or tagged
-- full user-operable Workbench
-- UI full-operation complete
+- v4.0 released from the P1 gate
+- tag or release created by the P1 gate
 - external vector database production readiness
 - platform-hosted user data as a default
 - real LLM/API/network calls as required by Core tests

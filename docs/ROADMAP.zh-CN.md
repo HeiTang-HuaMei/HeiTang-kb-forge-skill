@@ -5,15 +5,16 @@
 ## 当前状态
 
 - Core pre-v4 RC readiness：最新 Core P0 证明已完成。
+- P1 local Workbench gate：已通过 v4 RC readiness。
 - 最新 Core P0 证明：`docs/audits/local_acceptance/pre_v4_p0_after_live_llm/`
+- 最新 P1 证明：`docs/audits/p1_final_gate_rerun/`
 - `ready_for_v4_rc=true`
 - `P0 blockers=0`
 - v4.0 尚未开始、未发布、未打 tag。
-- UI full-operation 仍然 blocked。
 
-## 下一门禁：P1 UI Core Parity
+## 下一门禁：Pre-v4 External Project Registry Pass
 
-下一道产品门禁是 [P1 UI Core Parity](10_roadmap/P1_UI_CORE_PARITY.zh-CN.md)。它必须证明 UI 能真实操作主要 Core workflow，之后才能声明完整 Workbench。
+下一道产品门禁是 pre-v4 external project registry pass，之后是 S/A contract inclusion，再进入 v4.0.0-rc.1 release preparation。
 
 ## 后续门禁：P2 Productization
 
@@ -32,7 +33,7 @@ HeiTang KB Forge 保持 Skill-first。UI 是 presentation layer，不是 Core pr
 ## 未证明前不属于范围
 
 - v4.0 release 或 tag
-- 完整用户可操作 Workbench
+- 由本 P1 gate 启动 v4.0
 - SaaS multi-tenancy
 - team permissions
 - cloud sync

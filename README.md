@@ -4,7 +4,7 @@ An offline-first Agent Knowledge Supply Chain Core for turning local source mate
 
 Current Core: v3.12.0-alpha.1
 
-Status: Core pre-v4 RC ready; UI full-operation not complete.
+Status: P1 local Workbench gate passed for v4 RC readiness; v4.0 not released.
 
 For quick understanding:
 - Product positioning: [docs/CURRENT_TRUTH.md](docs/CURRENT_TRUTH.md)
@@ -23,11 +23,13 @@ The repository name still contains `Skill` because the project started from a Sk
 Current Core version: `3.12.0-alpha.1`
 
 - Core pre-v4 RC readiness is complete for the latest Core P0 proof.
-- Latest proof: `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/`
+- P1 local Workbench final gate re-run is complete for v4 RC readiness.
+- Latest P1 proof: `docs/audits/p1_final_gate_rerun/`
+- Latest Core P0 proof: `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/`
 - Remaining Core P0: none in the latest pre-v4 P0 proof.
 - Final architecture truth: [docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md)
 - v4.0 is not released, not tagged, and not started. v4.0 has not been released.
-- UI full-operation is not complete; complete Workbench operation requires a separate UI acceptance gate.
+- `ready_for_v4_rc=true`; this is not a production release and does not start v4.0.
 
 ## Core capabilities
 
@@ -92,16 +94,17 @@ Use the Core to turn source libraries, editorial notes, manuscripts, policy file
 
 **Local Workbench**
 
-Core emits Workbench contracts, registries, schemas, deterministic fixtures, dry-run actions, smoke checks, reports, and artifact metadata for a future local desktop Workbench. UI full-operation not complete; the Workbench UI must pass its own acceptance gate before this repository can claim complete user operation.
-UI information architecture is frozen as a planning contract, but the UI remains a presentation layer.
+Core emits Workbench contracts, registries, schemas, deterministic fixtures, dry-run actions, smoke checks, reports, and artifact metadata for a local desktop Workbench. The P1-RWF-V2 evidence and UI consumption pass have been re-run into `ready_for_v4_rc=true`.
+UI information architecture is frozen as a planning contract, and the UI remains a presentation layer.
 
 ## Repository status / honesty boundary
 
 - This is the Core repository only; visual UI work belongs outside this Core pass.
-- UI information architecture is frozen, but UI full-operation remains blocked.
+- The P1 local Workbench gate is ready for v4 RC preparation, but this is not a v4.0 release.
 - v4.0 is not released, not tagged, and not started.
-- UI full-operation remains blocked.
 - OpenDataLoader, PaddleOCR, and MinerU are external backend candidates / planned adapters only; they are not completed Core integrations.
+- External provider, secret, and network-dependent actions require explicit user configuration and are not counted as real-local passed.
+- External GitHub benchmark implementation is post-v4 and is not part of this gate.
 - Core tests do not require real LLM/API/network calls.
 - Core does not save real user API keys, raw private input, local provider profiles, or local config outputs.
 - Core does not claim SaaS multi-tenancy, team permissions, cloud sync, or platform-hosted user data.

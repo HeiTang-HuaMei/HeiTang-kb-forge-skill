@@ -1,6 +1,6 @@
 # P1 UI Core Parity
 
-P1 是 v4.0 可以启动前的下一道必要产品门禁。它尚未完成。
+P1 现在是 local Workbench evidence gate，已通过 v4 RC readiness。这不是 v4.0 release。
 
 ## 目标
 
@@ -19,11 +19,10 @@ P1 是 v4.0 可以启动前的下一道必要产品门禁。它尚未完成。
 
 ## 验收边界
 
-P1 需要独立 UI full-operation acceptance gate。Contract view 或 minimal bridge wiring 不足以声明完整 Workbench operation。
+P1 需要 Core V1/V2 evidence、UI consumption、drift-free assets，以及明确的 provider/secret/network blocked boundary。只有 contract view 或 minimal bridge wiring 不足以通过。
 
 ## 当前状态
 
 - Core pre-v4 RC readiness 已完成。
-- UI full-operation 仍然 blocked。
-- 没有真实证据前不得启动 v4.0。
-
+- P1-RWF-V2 evidence 与 UI consumption 已复验为 `ready_for_v4_rc=true`。
+- v4.0 尚未开始、未发布、未打 tag。

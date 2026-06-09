@@ -4,7 +4,7 @@
 
 当前 Core：v3.12.0-alpha.1
 
-状态：Core pre-v4 RC ready；UI full-operation not complete。
+状态：P1 local Workbench gate passed for v4 RC readiness；v4.0 not released。
 
 快速理解入口：
 - 产品定位：[docs/CURRENT_TRUTH.md](docs/CURRENT_TRUTH.md)
@@ -23,11 +23,13 @@ HeiTang KB Forge Skill 是一个本地优先的 Agent 知识供应链 Core。它
 当前 Core 版本：`3.12.0-alpha.1`
 
 - 最新 Core P0 证明已经完成 Core pre-v4 RC readiness。
-- 最新证明目录：`docs/audits/local_acceptance/pre_v4_p0_after_live_llm/`
+- P1 local Workbench final gate re-run 已完成 v4 RC readiness。
+- 最新 P1 证明目录：`docs/audits/p1_final_gate_rerun/`
+- 最新 Core P0 证明目录：`docs/audits/local_acceptance/pre_v4_p0_after_live_llm/`
 - 剩余 Core P0：最新 pre-v4 P0 证明中无剩余 Core P0。
 - 最终架构真值：[docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md)
 - v4.0 仍未开始、未发布、未打 tag。v4.0 尚未发布。
-- UI full-operation 尚未完成；完整 Workbench operation 必须通过独立 UI acceptance gate。
+- `ready_for_v4_rc=true`；这不是 production release，也不启动 v4.0。
 
 ## Core capabilities
 
@@ -92,16 +94,17 @@ python -m heitang_kb_forge.cli final-pre-v4-audit --core-repo . --output .\tmp_f
 
 **Local Workbench**
 
-Core 会输出 Workbench contracts、registries、schemas、deterministic fixtures、dry-run actions、smoke checks、reports 和 artifact metadata，用于未来本地 desktop Workbench。UI full-operation not complete；Workbench UI 必须通过独立 acceptance gate 后，本仓库才能声明完整用户可操作。
-UI 信息架构已冻结，作为 planning contract 使用，但 UI 仍然只是 presentation layer。
+Core 会输出 Workbench contracts、registries、schemas、deterministic fixtures、dry-run actions、smoke checks、reports 和 artifact metadata，用于本地 desktop Workbench。P1-RWF-V2 evidence 与 UI consumption pass 已复验到 `ready_for_v4_rc=true`。
+UI 信息架构已冻结，继续作为 planning contract 使用，UI 仍然只是 presentation layer。
 
 ## Repository status / honesty boundary
 
 - 本仓库只处理 Core；视觉 UI 不属于本次 Core pass。
-- UI 信息架构已冻结，但 UI full-operation remains blocked。
+- P1 local Workbench gate 已可进入 v4 RC preparation，但这不是 v4.0 release。
 - v4.0 仍未开始、未发布、未打 tag。
-- UI full-operation remains blocked。
 - OpenDataLoader、PaddleOCR、MinerU 只是 external backend candidates / planned adapters，不是已完成 Core integration。
+- 依赖外部 provider、secret、network 的 actions 需要显式用户配置，且不计为 real-local passed。
+- External GitHub benchmark implementation 属于 post-v4，不属于本 gate。
 - Core tests 不要求真实 LLM/API/network 调用。
 - Core 不保存真实用户 API key、raw private input、本地 provider profile 或本地 config outputs。
 - Core 不声明 SaaS multi-tenancy、team permissions、cloud sync 或 platform-hosted user data。

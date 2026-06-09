@@ -23,5 +23,6 @@ def test_current_docs_describe_ui_as_presentation_layer():
     assert "presentation layer" in readme
     assert "presentation layer" in chinese
     assert "presentation layer" in roadmap
-    assert "UI full-operation remains blocked" in p1
+    assert "ready_for_v4_rc=true" in p1
+    assert "not released, not tagged, and not started" in p1
     assert "full Workbench" not in readme

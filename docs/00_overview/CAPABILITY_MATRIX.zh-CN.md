@@ -14,6 +14,6 @@
 | Provider 与 LLM 层 | 已有 optional provider profile acceptance。Core tests 不需要真实 LLM/API/network 调用。Provider secrets 不得进入提交输出。 | optional only |
 | 隐私与安全 | Local-first、no hidden upload、secret redaction、no platform-hosted user data 和 threat-model evidence 已文档化并测试。 | implemented with review boundaries |
 | 规模 | 已有 synthetic scale checks。真实 1500 books/KBs/Agents 未生产级证明。 | needs review |
-| UI | Core contracts 已存在。UI full-operation 仍然 blocked，且不属于本次 Core 文档瘦身提交。 | blocked for v4.0 |
+| UI | Core contracts、P1-RWF-V2 evidence 和 UI consumption proof 已存在。P1 final gate re-run 仅表示可进入 v4 RC preparation。 | ready for v4 RC；not released |
 
 见 [当前真值](CURRENT_TRUTH.zh-CN.md)、[Parser Backend Strategy](../03_core_capabilities/PARSER_BACKEND_STRATEGY.zh-CN.md)、[最终产品架构真值](../FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md) 和 [P1 UI Core Parity](../10_roadmap/P1_UI_CORE_PARITY.zh-CN.md)。

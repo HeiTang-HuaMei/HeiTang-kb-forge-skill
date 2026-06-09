@@ -36,6 +36,7 @@ This is the canonical documentation entry for the current main branch. Historica
 - Root gate: `../final_v4_rc_gate_report.json`
 - Root gate alias: `../v4_rc_final_gate_report.json`
 - Latest P0 proof: `audits/local_acceptance/pre_v4_p0_after_live_llm/`
+- Latest P1 final gate re-run proof: `audits/p1_final_gate_rerun/`
 
 ## Roadmap Gates
 
@@ -44,4 +45,4 @@ This is the canonical documentation entry for the current main branch. Historica
 
 ## Boundaries
 
-LLM remains optional only; Core tests do not require real LLM/API/network calls. v4.0 is not released, not tagged, and not started. UI full-operation remains blocked.
+LLM remains optional only; Core tests do not require real LLM/API/network calls. v4.0 is not released, not tagged, and not started. P1 local Workbench gate is ready for v4 RC preparation only.

@@ -5,15 +5,16 @@ This roadmap describes the current main branch direction only. Historical versio
 ## Current State
 
 - Core pre-v4 RC readiness: complete for the latest Core P0 proof.
+- P1 local Workbench gate: passed for v4 RC readiness.
 - Latest Core P0 proof: `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/`
+- Latest P1 proof: `docs/audits/p1_final_gate_rerun/`
 - `ready_for_v4_rc=true`
 - `P0 blockers=0`
 - v4.0 is not released, not tagged, and not started.
-- UI full-operation remains blocked.
 
-## Next Gate: P1 UI Core Parity
+## Next Gate: Pre-v4 External Project Registry Pass
 
-The next product gate is [P1 UI Core Parity](10_roadmap/P1_UI_CORE_PARITY.md). It must prove real UI operation for the main Core workflows before any full Workbench claim.
+The next product gate is a pre-v4 external project registry pass, followed by S/A contract inclusion and then v4.0.0-rc.1 release preparation.
 
 ## Later Gate: P2 Productization
 
@@ -32,7 +33,7 @@ This roadmap adds no parser code, no dependency, no model download, and no exter
 ## Non-Scope Until Proven
 
 - v4.0 release or tag
-- full user-operable Workbench
+- v4.0 started from this P1 gate
 - SaaS multi-tenancy
 - team permissions
 - cloud sync

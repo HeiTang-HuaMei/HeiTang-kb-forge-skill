@@ -1,0 +1,122 @@
+{
+  "report_id": "p1_provider_blocked_boundary_report",
+  "status": "pass",
+  "provider_secret_network_action_ids": [
+    "llm_provider_validate",
+    "vector_db_validate",
+    "vector_upsert_query_smoke",
+    "provider_redaction_check",
+    "offline_fallback_status"
+  ],
+  "provider_secret_network_actions_real_local_passed": false,
+  "external_provider_or_secret_actions_not_executed": true,
+  "tests_require_real_llm_api_network": false,
+  "network_required": false,
+  "explicit_config_exclusions": [
+    {
+      "action_id": "llm_provider_validate",
+      "page_id": "vector_hub_provider_storage",
+      "status": "ready",
+      "command_kind": "core_cli",
+      "command": "provider-readiness --workspace <workspace> --output <output>",
+      "classification": "blocked_provider_required",
+      "desktop_enabled": false,
+      "execution_target": false,
+      "requires_explicit_user_config": true,
+      "expected_reports": [
+        "report_provider_readiness"
+      ],
+      "expected_artifacts": [
+        "artifact_provider_profile_schema"
+      ],
+      "error_codes": [
+        "provider_auth_failed"
+      ],
+      "blocked_reason": "Excluded from the 57 local execution targets because provider, network, or explicit user config is required."
+    },
+    {
+      "action_id": "vector_db_validate",
+      "page_id": "vector_hub_provider_storage",
+      "status": "ready",
+      "command_kind": "core_cli",
+      "command": "vector-db-completion --output <output>",
+      "classification": "blocked_provider_required",
+      "desktop_enabled": false,
+      "execution_target": false,
+      "requires_explicit_user_config": true,
+      "expected_reports": [
+        "report_vector_db_readiness"
+      ],
+      "expected_artifacts": [
+        "artifact_vector_storage_profile"
+      ],
+      "error_codes": [
+        "vector_db_failed"
+      ],
+      "blocked_reason": "Excluded from the 57 local execution targets because provider, network, or explicit user config is required."
+    },
+    {
+      "action_id": "vector_upsert_query_smoke",
+      "page_id": "vector_hub_provider_storage",
+      "status": "ready",
+      "command_kind": "core_cli",
+      "command": "query-vector-index --package <package> --query <query> --output <output>",
+      "classification": "blocked_provider_required",
+      "desktop_enabled": false,
+      "execution_target": false,
+      "requires_explicit_user_config": true,
+      "expected_reports": [
+        "report_vector_smoke"
+      ],
+      "expected_artifacts": [
+        "artifact_vector_smoke_trace"
+      ],
+      "error_codes": [
+        "vector_db_failed"
+      ],
+      "blocked_reason": "Excluded from the 57 local execution targets because provider, network, or explicit user config is required."
+    },
+    {
+      "action_id": "provider_redaction_check",
+      "page_id": "vector_hub_provider_storage",
+      "status": "ready",
+      "command_kind": "core_cli",
+      "command": "audit-redaction-check --output <output>",
+      "classification": "blocked_secret_required",
+      "desktop_enabled": false,
+      "execution_target": false,
+      "requires_explicit_user_config": true,
+      "expected_reports": [
+        "report_provider_redaction"
+      ],
+      "expected_artifacts": [
+        "artifact_redaction_proof"
+      ],
+      "error_codes": [
+        "secret_risk"
+      ],
+      "blocked_reason": "Excluded from the 57 local execution targets because secret-risk handling must remain blocked."
+    },
+    {
+      "action_id": "offline_fallback_status",
+      "page_id": "vector_hub_provider_storage",
+      "status": "ready",
+      "command_kind": "core_cli",
+      "command": "provider-fallback-test --output <output>",
+      "classification": "blocked_provider_required",
+      "desktop_enabled": false,
+      "execution_target": false,
+      "requires_explicit_user_config": true,
+      "expected_reports": [
+        "report_offline_fallback"
+      ],
+      "expected_artifacts": [
+        "artifact_offline_fallback_fixture"
+      ],
+      "error_codes": [
+        "network_unavailable"
+      ],
+      "blocked_reason": "Excluded from the 57 local execution targets because provider, network, or explicit user config is required."
+    }
+  ]
+}

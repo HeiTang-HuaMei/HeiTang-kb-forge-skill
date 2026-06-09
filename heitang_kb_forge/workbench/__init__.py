@@ -31,6 +31,10 @@ from heitang_kb_forge.workbench.full_user_path_gate import (
     P1_RWF_V2_USER_PATHS,
     run_full_local_user_path,
 )
+from heitang_kb_forge.workbench.final_gate_rerun import (
+    P1_FINAL_GATE_RERUN_FILES,
+    write_p1_final_gate_rerun,
+)
 
 __all__ = [
     "P1_WORKBENCH_OUTPUT_FILES",
@@ -40,6 +44,7 @@ __all__ = [
     "make_p1_workbench_smoke",
     "P1_RWF_V1_REPORT_FILES",
     "P1_RWF_V1_WORKFLOWS",
+    "P1_FINAL_GATE_RERUN_FILES",
     "P1_RWF_V2_READY_ACTION_TARGET_COUNT",
     "P1_RWF_V2_REPORT_FILES",
     "P1_RWF_V2_USER_PATHS",
@@ -55,5 +60,6 @@ __all__ = [
     "write_full_ready_action_matrix",
     "workflow_artifact_index",
     "workflow_status",
+    "write_p1_final_gate_rerun",
     "write_p1_workbench_bundle",
 ]

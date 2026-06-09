@@ -8,9 +8,10 @@
 - 最新 Core P0 证明：`docs/audits/local_acceptance/pre_v4_p0_after_live_llm/final_v4_rc_gate_report.json`
 - 剩余 Core P0：最新 pre-v4 P0 证明中无剩余 Core P0。
 - 阻断 P1：无
+- 最新 P1 final gate：`docs/audits/p1_final_gate_rerun/p1_final_gate_report.json`
 - CI：包含 after-live-LLM 证明的最新 Core commit 已 green。
 - 本地 full pytest：最新 Core provider-profile 与 P0 gate 工作已通过。
-- UI validation：Core 输出 Workbench contracts，但 v4.0 前 UI full-operation 仍然 blocked。
+- UI validation：Core 输出 Workbench contracts，P1-RWF-V2 UI consumption pass 已复验到 v4 RC readiness。这仍不是 v4.0 release。
 - 历史说明：`docs/audits/local_acceptance/large_bilingual_run/` 保留 earlier large-file run，当时 live LLM 仍被阻断。它不能作为最新 live-LLM P0 结论。
 
 ## 架构真值矩阵
@@ -28,14 +29,14 @@
 | 存储 | `local_workspace` 是已实现默认。`local_db` 是 partial/store-index oriented。BYO cloud/database 是 future/disabled，不是已实现能力。 | partial |
 | 安全与隐私 | local-first、默认 no hidden upload、API key redaction、no platform-hosted user data 已文档化并测试。动态 runtime network proof 和完整 UI security acceptance 仍需 review。 | partial |
 | 规模 | 已有 synthetic 1500-scale checks。真实 1500 books、1500 KBs、1500 Agents 未生产级证明。 | needs_review |
-| UI | Core 输出 Workbench contracts。完整用户可操作本地 Workbench 仍不声明，需要独立 UI full-operation acceptance gate。 | contracts present, full operation blocked |
+| UI | Core 输出 Workbench contracts。P1-RWF-V2 evidence 与 UI consumption 已复验到 v4 RC readiness。 | ready for v4 RC，not released |
 
 ## 仍不能声明
 
 - v4.0 已发布或已打 tag
 - 外部 vector database production readiness
 - Milvus/Pinecone/Qdrant/Chroma 已实现
-- 完整用户可操作 local Workbench
+- 由 P1 final gate 发布 v4.0
 - 完整 autonomous tool-calling Agent Runtime
 - 在 separate UI Full Operation Acceptance Gate 通过前声明完整 product-ready v4.0
 - 没有真实结构化 Skill package、on-demand loading、installability reports、KB/RAG/Agent compatibility proof 就声明 Book-to-Skill completion
@@ -49,6 +50,7 @@
 - `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/final_v4_rc_gate_report.json`
 - `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/v4_rc_final_gate_report.json`
 - `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/live_llm_acceptance_report.json`
+- `docs/audits/p1_final_gate_rerun/p1_final_gate_report.json`
 - 历史 earlier run：`docs/audits/local_acceptance/large_bilingual_run/final_v4_rc_gate_report.json`
 - `docs/audits/local_acceptance/large_bilingual_run/product_architecture_completeness_report.json`
 - `docs/audits/local_acceptance/large_bilingual_run/rag_vector_index_readiness_report.json`

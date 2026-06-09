@@ -11,7 +11,7 @@ This short entry is for first-time GitHub readers. The detailed canonical matrix
 | RAG / verification | Query rewrite, retrieval planning, local JSON vector query, hybrid retrieval, rerank, evidence selection, claim verification, contradiction detection, freshness checks. | implemented locally |
 | Document generation | Grounded Markdown, DOCX, PDF, and PPTX outputs plus evidence appendix and openability checks. | implemented |
 | Skill / Agent surface | Structured Skill packages, standalone Agent packages, KB-bound Agent packages, memory policy, local runtime smoke, and orchestration contracts. | partial |
-| Workspace / Workbench | Local workspace registries, storage reports, artifact registry, task schema, P1 Workbench contracts and fixtures. | Core contracts ready; UI full-operation blocked |
+| Workspace / Workbench | Local workspace registries, storage reports, artifact registry, task schema, P1 Workbench contracts, fixtures, V2 action evidence, and UI consumption proof. | P1 local gate ready for v4 RC; not a v4.0 release |
 | Privacy / providers | Local-first reports, no hidden upload, secret redaction, optional provider boundaries. | implemented with review boundaries |
 
 OpenDataLoader, PaddleOCR, and MinerU are external backend candidates / planned adapters only. They are not completed Core integrations.

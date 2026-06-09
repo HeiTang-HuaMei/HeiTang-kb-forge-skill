@@ -30,10 +30,11 @@ def test_final_product_architecture_truth_docs_are_bilingual_and_auditable():
         assert "Blocking P1: none" in text or "阻断 P1：无" in text
         assert "Latest Core P0 gate" in text or "最新 Core P0 门禁" in text
         assert "final_v4_rc_gate_report.json" in text
+        assert "p1_final_gate_rerun" in text
         assert "rag_vector_index_readiness_report.json" in text
         assert "ui_full_operation_readiness_report.json" in text
         assert "ui_full_operation_acceptance_after_core_p0.json" in text
-        assert "UI full-operation remains blocked" in text or "UI full-operation 仍然 blocked" in text
+        assert "v4 RC readiness" in text
 
 
 def test_final_product_truth_docs_do_not_overclaim_blocked_capabilities():
@@ -43,8 +44,8 @@ def test_final_product_truth_docs_do_not_overclaim_blocked_capabilities():
 
     assert "v4.0 released or tagged" in combined
     assert "external vector database production readiness" in combined
-    assert "full user-operable local Workbench" in combined
-    assert "full operation blocked" in combined
+    assert "v4.0 release from the P1 final gate" in combined or "由 P1 final gate 发布 v4.0" in combined
+    assert "ready for v4 RC" in combined
     assert "full autonomous tool-calling Agent Runtime" in combined
     assert "full scanned PDF OCR proof" in combined
     assert "BYO cloud/database implemented" in combined

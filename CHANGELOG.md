@@ -1,5 +1,12 @@
 # Changelog
 
+## P1 Final Gate Re-run
+
+* Added `docs/audits/p1_final_gate_rerun/`.
+* Re-verified P1-RWF-V1, P1-RWF-V2, 57 local execution targets, 10 user paths, UI consumption, drift count, and provider/secret/network blocked boundaries.
+* Promoted `ready_for_v4_rc_candidate=true` to `ready_for_v4_rc=true`.
+* v4.0 is not released or tagged, and no v4 release was written.
+
 ## P0.6 GitHub Documentation Governance
 
 * Slimmed the GitHub-facing documentation surface for current main.

@@ -2,9 +2,15 @@
 
 ## Current Main
 
-This main branch is in Core pre-v4 RC readiness state. The latest Core P0 proof reports `ready_for_v4_rc=true` and `P0 blockers=0`.
+This main branch is in P1 local Workbench gate readiness for v4 RC preparation. Core pre-v4 RC readiness remains complete. The latest Core P0 proof reports `ready_for_v4_rc=true` and `P0 blockers=0`, and the latest P1 final gate re-run also reports `ready_for_v4_rc=true`.
 
-This is not a v4.0 release. v4.0 is not released, not tagged, and not started because UI full-operation remains blocked.
+This is not a v4.0 release. v4.0 is not released, not tagged, and not started.
+
+## P1 Final Gate Re-run
+
+- Added `docs/audits/p1_final_gate_rerun/`.
+- Re-verified P1-RWF-V1, P1-RWF-V2, 57 ready local action executions, 10 user paths, UI consumption, drift count, and provider/secret/network blocked boundaries.
+- Promoted `ready_for_v4_rc_candidate=true` to `ready_for_v4_rc=true` without starting v4.0, creating a tag, or writing a release.
 
 ## P0.6 GitHub Documentation Governance
 

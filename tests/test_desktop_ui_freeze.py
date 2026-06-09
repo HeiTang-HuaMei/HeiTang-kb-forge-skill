@@ -37,6 +37,7 @@ def test_current_docs_describe_ui_boundary_without_legacy_ui_docs():
     )
     assert "UI information architecture is frozen" in text or "UI 信息架构已冻结" in text
     assert "presentation layer" in text
-    assert "UI full-operation remains blocked" in text
+    assert "ready_for_v4_rc=true" in text
+    assert "v4.0 is not released, not tagged, and not started" in text
     assert "Web Console" not in text
     assert "web console" not in text

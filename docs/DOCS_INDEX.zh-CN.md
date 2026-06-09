@@ -36,6 +36,7 @@
 - 根目录 gate：`../final_v4_rc_gate_report.json`
 - 根目录 gate alias：`../v4_rc_final_gate_report.json`
 - 最新 P0 证明：`audits/local_acceptance/pre_v4_p0_after_live_llm/`
+- 最新 P1 final gate re-run 证明：`audits/p1_final_gate_rerun/`
 
 ## 路线门禁
 
@@ -44,4 +45,4 @@
 
 ## 边界
 
-LLM 仍然只是 optional only；Core tests 不需要真实 LLM/API/network 调用。v4.0 尚未开始、未发布、未打 tag。UI full-operation 仍然 blocked。
+LLM 仍然只是 optional only；Core tests 不需要真实 LLM/API/network 调用。v4.0 尚未开始、未发布、未打 tag。P1 local Workbench gate 仅表示可进入 v4 RC preparation。

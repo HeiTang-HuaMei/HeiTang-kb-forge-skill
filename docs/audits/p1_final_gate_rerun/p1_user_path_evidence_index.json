@@ -1,0 +1,70 @@
+{
+  "report_id": "p1_user_path_evidence_index",
+  "status": "pass",
+  "source_dir": "docs/audits/p1_real_workflow_v2/user_paths",
+  "user_path_count": 10,
+  "passed_count": 10,
+  "blocked_count": 0,
+  "user_paths": [
+    {
+      "user_path_id": "workspace_import_build_validate_artifact",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "blocked_steps": []
+    },
+    {
+      "user_path_id": "kb_retrieval_evidence_verification",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "blocked_steps": []
+    },
+    {
+      "user_path_id": "document_generation_openability_artifact",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "blocked_steps": []
+    },
+    {
+      "user_path_id": "skill_generation_validate_diff_installability",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "blocked_steps": []
+    },
+    {
+      "user_path_id": "agent_generation_runtime_trace",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "blocked_steps": []
+    },
+    {
+      "user_path_id": "multi_agent_memory_boundary_cleanup",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "blocked_steps": []
+    },
+    {
+      "user_path_id": "error_repair_retry_recommendation",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "blocked_steps": []
+    },
+    {
+      "user_path_id": "template_workflow_generated_assets",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "blocked_steps": []
+    },
+    {
+      "user_path_id": "reports_audit_gate_summary",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "blocked_steps": []
+    },
+    {
+      "user_path_id": "artifact_management_safe_path_sensitive_block",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "blocked_steps": []
+    }
+  ]
+}
