@@ -10,7 +10,7 @@ def test_workbench_contract_exposes_desktop_core_bridge_without_full_operation_c
     contracts = json.loads((WORKBENCH / "contracts.json").read_text(encoding="utf-8"))
 
     assert contracts["scope"] == "p1-core-contract-aligned-ui-completion-pass"
-    assert contracts["core_contract_source"]["core_commit"] == "a793247ff8704275891ff9a1aefcb78888bcc9f2"
+    assert contracts["core_contract_source"]["core_commit"] == "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9"
     assert contracts["future_api"]["no_backend_logic"] is False
     assert contracts["future_api"]["current_backend_logic"] == "desktop local Core CLI bridge contract only; page workflows are not wired end to end yet"
     bridge = contracts["local_core_bridge"]

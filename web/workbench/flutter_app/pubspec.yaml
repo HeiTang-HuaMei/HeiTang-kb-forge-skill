@@ -23,3 +23,4 @@ flutter:
     - assets/brand/black_cat_head.svg
     - assets/brand/black_tiger_head.svg
     - assets/contracts/p1_core_contract_fixture.json
+    - assets/workflows/p1_real_workflow_v1_evidence.json

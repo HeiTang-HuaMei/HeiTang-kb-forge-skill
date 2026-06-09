@@ -1,12 +1,12 @@
 {
   "report_id": "core_ui_acceptance_2026_06_09",
-  "generated_at": "2026-06-09T16:18:00+08:00",
-  "scope": "P1 Command Surface Truth Fix / Contract Drift Repair over the existing Core x UI checkpoint; no P1 real workflow completion claimed",
-  "core_repo": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill",
-  "core_commit": "a793247ff8704275891ff9a1aefcb78888bcc9f2",
+  "generated_at": "2026-06-09T17:48:00+08:00",
+  "scope": "P1-RWF-V1 Command Surface Truth & Golden Local Workflow Foundation UI sync; full P1 operation gate remains blocked",
+  "core_repo": "kb-forge-skill",
+  "core_commit": "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9",
   "ui_repo": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill-ui",
-  "ui_base_commit": "c47215332c261f63a9f60663ea3b72a4b2f38549",
-  "ui_fixture_commit": "a793247ff8704275891ff9a1aefcb78888bcc9f2",
+  "ui_base_commit": "488d4bbf24c30b034ad3b51ba2aaff1c5d5d9871",
+  "ui_fixture_commit": "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9",
   "gate_status": "blocked",
   "not_full_operation_yet": true,
   "not_v4_0_workbench_rc": true,
@@ -24,11 +24,12 @@
       "blocked": 1
     },
     "disabled_blocked_reasons": {
-      "ui_wiring_or_user_confirmation_pending": 5,
+      "mock_only": 36,
+      "Core contract is present, but the Windows desktop Workbench operation still needs UI wiring and user confirmation.": 5,
       "planned_adapter": 2,
       "provider_required": 5,
       "secret_required": 4,
-      "repair_policy_or_safe_input_required": 1
+      "P1 blocks this action until explicit repair policy, review flow, or safe user input handling exists.": 1
     }
   },
   "classification_policy": {
@@ -40,8 +41,8 @@
   "drift_check": {
     "status": "pass",
     "drift_count": 0,
-    "core_regenerated_contract_dir": "C:/Users/Administrator/Documents/New project 2/_tmp_goal_core_contracts_command_surface",
-    "core_command": "python -m heitang_kb_forge.cli_runtime workbench-contracts --profile p1 --output ../_tmp_goal_core_contracts_command_surface",
+    "core_regenerated_contract_dir": "../_tmp_p1_rwf_v1_core_contracts",
+    "core_command": "python -m heitang_kb_forge.cli_runtime workbench-contracts --profile p1 --output ../_tmp_p1_rwf_v1_core_contracts",
     "compared_collections": [
       "actions",
       "reports",
@@ -60,7 +61,8 @@
       "desktop_enabled",
       "desktop_blocked_reason"
     ],
-    "flutter_asset_matches_ui_fixture": true
+    "flutter_asset_matches_ui_fixture": true,
+    "p1_real_workflow_v1_asset_matches_fixture": true
   },
   "command_surface_truth_fix": {
     "status": "pass",
@@ -78,16 +80,12 @@
         "after": "export-platform --skill <skill> --output <output>"
       }
     },
-    "core_contract_source_commit": "a793247ff8704275891ff9a1aefcb78888bcc9f2"
+    "core_contract_source_commit": "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9",
+    "ready_core_cli_action_count": 62,
+    "unique_command_count": 48,
+    "drift_count": 0
   },
-  "known_command_surface_blockers": [
-    {
-      "action_id": "package_build",
-      "contract_command": "build --config <config> --output <output>",
-      "blocker": "The ready/core_cli contract references build, but the current Core CLI does not expose a registered build command surface.",
-      "status": "known_blocker_not_fixed_in_this_checkpoint"
-    }
-  ],
+  "known_command_surface_blockers": [],
   "real_path_validation": {
     "desktop_bridge_path": "Flutter action panel -> CoreBridgeRequest -> LocalCoreBridge allowlist -> dart:io Process.run(runInShell:false)",
     "validated_real_local_request_count": 57,
@@ -97,7 +95,7 @@
     "shell_metacharacters_rejected": true,
     "redaction_tested": true,
     "all_57_real_actions_business_e2e_executed": false,
-    "business_e2e_blocked_reason": "Real local CoreBridge request and allowlist paths are verified, but full business-input execution for every ready Core action still requires prepared local workspace inputs and per-action artifact assertions.",
+    "business_e2e_blocked_reason": "P1-RWF-V1 golden workflows passed, but full business-input execution for every ready Core action and per-action artifact assertions remain incomplete.",
     "real_core_cli_smoke_command": "heitang-kb-forge workbench-smoke --output ../_tmp_goal_core_smoke",
     "real_core_cli_smoke_result": "pass | Gate: blocked"
   },
@@ -115,5 +113,54 @@
     "flutter_build_windows": "pass",
     "secret_high_entropy_scan": "pass",
     "real_core_cli_smoke": "pass"
-  }
+  },
+  "resolved_command_surface_blockers": [
+    {
+      "action_id": "package_build",
+      "contract_command": "build --config <config> --output <output>",
+      "status": "resolved_in_core_commit",
+      "core_commit": "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9",
+      "evidence": "command_surface_truth_report.json reports build in unique_commands and drift_count=0"
+    }
+  ],
+  "p1_real_workflow_v1": {
+    "status": "passed",
+    "workflow_count": 8,
+    "workflow_ids": [
+      "workspace_lifecycle",
+      "import_parse_build",
+      "rag_retrieval_verification_smoke",
+      "document_generation_smoke",
+      "skill_factory_smoke",
+      "agent_factory_runtime_smoke",
+      "error_repair_task_artifact",
+      "template_to_workflow"
+    ],
+    "command_surface_drift_count": 0,
+    "fixture_only_counted_as_real": false,
+    "full_57_ready_action_execution_complete": false,
+    "evidence_level_counts": {
+      "real_local_workflow": 6,
+      "deterministic_smoke": 2
+    },
+    "fixture": "examples/ui_mock_data/p1_real_workflow_v1_evidence.json",
+    "flutter_asset": "web/workbench/flutter_app/assets/workflows/p1_real_workflow_v1_evidence.json"
+  },
+  "remaining_blockers": [
+    {
+      "blocker_id": "full_57_ready_action_business_input_execution_not_complete",
+      "description": "Full 57 ready Core action business-input execution and per-action artifact assertions are not complete.",
+      "status": "remaining"
+    },
+    {
+      "blocker_id": "rag_retrieval_verification_smoke_review_required",
+      "description": "Claim verification is not claimed as fully real without prepared business assertions.",
+      "status": "remaining"
+    },
+    {
+      "blocker_id": "agent_factory_runtime_smoke_review_required",
+      "description": "Runtime trace is deterministic smoke until full local user tasks are asserted.",
+      "status": "remaining"
+    }
+  ]
 }

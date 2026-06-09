@@ -1,8 +1,8 @@
 {
   "source": {
     "copied_from": "Core workbench-contracts --profile p1",
-    "core_repo": "C:\\Users\\Administrator\\Documents\\New project 2\\kb-forge-skill",
-    "core_commit": "a793247ff8704275891ff9a1aefcb78888bcc9f2",
+    "core_repo": "kb-forge-skill",
+    "core_commit": "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9",
     "fixture_policy": "deterministic copied fixture; no raw user inputs, provider secrets, build outputs, logs, or local provider config"
   },
   "profile": "p1",

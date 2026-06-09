@@ -395,7 +395,15 @@ function dashboardRail(data) {
 function renderOperationGate(data) {
   const gate = data.p1Contracts.gate_report;
   return renderP1ContractPage(data, "operation-gate", {
-    extraRail: rightPanel(label("Blocked Reasons", "阻塞原因"), idList(gate.blocker_ids.map((id) => ({ id, title: id })), "id"))
+    extraRail: `
+      ${rightPanel(label("P1-RWF-V1 Evidence", "P1-RWF-V1 证据"), `
+        ${miniMetric("status", data.p1RealWorkflowV1.p1_real_workflow_v1_status)}
+        ${miniMetric("drift_count", data.p1RealWorkflowV1.drift_count)}
+        ${miniMetric("full gate", data.p1RealWorkflowV1.p1_full_operation_gate_status)}
+        <p>${label("Fixture-only evidence is not counted as real workflow completion.", "fixture-only 证据不计为真实工作流完成。")}</p>
+      `)}
+      ${rightPanel(label("Blocked Reasons", "阻塞原因"), idList(gate.blocker_ids.map((id) => ({ id, title: id })), "id"))}
+    `
   });
 }
 

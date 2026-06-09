@@ -6,7 +6,8 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKBENCH = ROOT / "web" / "workbench"
 FIXTURE = ROOT / "examples" / "ui_mock_data" / "p1_core_contract_fixture.json"
 REPORT = ROOT / "docs" / "audits" / "core_ui_acceptance" / "core_ui_acceptance_report.json"
-CORE_COMMIT = "a793247ff8704275891ff9a1aefcb78888bcc9f2"
+P1_RWF_V1 = ROOT / "examples" / "ui_mock_data" / "p1_real_workflow_v1_evidence.json"
+CORE_COMMIT = "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9"
 
 
 DEDICATED_ROUTES = {
@@ -48,6 +49,13 @@ def test_flutter_p1_asset_matches_ui_core_contract_fixture():
 
     assert flutter_asset.exists()
     assert json.loads(flutter_asset.read_text(encoding="utf-8")) == load_fixture()
+
+
+def test_flutter_p1_real_workflow_asset_matches_ui_fixture():
+    flutter_asset = WORKBENCH / "flutter_app" / "assets" / "workflows" / "p1_real_workflow_v1_evidence.json"
+
+    assert flutter_asset.exists()
+    assert json.loads(flutter_asset.read_text(encoding="utf-8")) == json.loads(P1_RWF_V1.read_text(encoding="utf-8"))
 
 
 def test_dedicated_p1_routes_have_sidebar_and_renderers():
@@ -178,16 +186,29 @@ def test_core_ui_acceptance_report_matches_fixture_classification():
     assert report["gate_status"] == "blocked"
     assert report["drift_check"]["status"] == "pass"
     assert report["drift_check"]["drift_count"] == 0
-    assert report["known_command_surface_blockers"] == [
-        {
-            "action_id": "package_build",
-            "contract_command": "build --config <config> --output <output>",
-            "blocker": "The ready/core_cli contract references build, but the current Core CLI does not expose a registered build command surface.",
-            "status": "known_blocker_not_fixed_in_this_checkpoint",
-        }
-    ]
+    assert report["drift_check"]["p1_real_workflow_v1_asset_matches_fixture"] is True
+    assert report["known_command_surface_blockers"] == []
+    assert report["resolved_command_surface_blockers"][0]["action_id"] == "package_build"
     assert report["action_classification"]["total_actions"] == len(fixture["actions"])
     assert report["action_classification"]["real_local_workflow_actions"] == len(real_local)
     assert report["action_classification"]["deterministic_smoke_actions"] == len(smoke)
     assert report["action_classification"]["disabled_blocked_actions"] == blocked
     assert report["runtime_boundaries"]["web_static_runtime"] == "disabled_with_blocked_reason"
+
+
+def test_p1_real_workflow_v1_evidence_keeps_gate_boundary():
+    evidence = json.loads(P1_RWF_V1.read_text(encoding="utf-8"))
+
+    assert evidence["source"]["core_commit"] == CORE_COMMIT
+    assert evidence["p1_real_workflow_v1_status"] == "passed"
+    assert evidence["p1_full_operation_gate_status"] == "blocked"
+    assert evidence["ready_for_v4_rc"] is False
+    assert evidence["not_v4_0_workbench_rc"] is True
+    assert evidence["drift_count"] == 0
+    assert evidence["command_surface_drift_count"] == 0
+    assert evidence["fixture_only_counted_as_real"] is False
+    assert evidence["full_57_ready_action_execution_complete"] is False
+    assert evidence["workflow_count"] == 8
+    assert "full_57_ready_action_business_input_execution_not_complete" in {
+        item["blocker_id"] for item in evidence["remaining_blockers"]
+    }

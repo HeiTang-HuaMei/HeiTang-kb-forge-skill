@@ -1,0 +1,131 @@
+{
+  "source": {
+    "copied_from": "Core docs/audits/p1_real_workflow_v1",
+    "core_commit": "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9",
+    "fixture_policy": "deterministic copied report summary; no raw outputs, provider secrets, local provider config, or build products"
+  },
+  "p1_real_workflow_v1_status": "passed",
+  "p1_full_operation_gate_status": "blocked",
+  "ready_for_v4_rc": false,
+  "not_v4_0_workbench_rc": true,
+  "workflow_count": 8,
+  "workflow_ids": [
+    "workspace_lifecycle",
+    "import_parse_build",
+    "rag_retrieval_verification_smoke",
+    "document_generation_smoke",
+    "skill_factory_smoke",
+    "agent_factory_runtime_smoke",
+    "error_repair_task_artifact",
+    "template_to_workflow"
+  ],
+  "command_surface_truth_status": "pass",
+  "command_surface_drift_count": 0,
+  "ready_core_cli_action_count": 62,
+  "unique_command_count": 48,
+  "drift_count": 0,
+  "fixture_only_counted_as_real": false,
+  "full_57_ready_action_execution_complete": false,
+  "evidence_level_counts": {
+    "real_local_workflow": 6,
+    "deterministic_smoke": 2
+  },
+  "workflow_results": [
+    {
+      "workflow_id": "workspace_lifecycle",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "action_count": 5,
+      "report_count": 3,
+      "artifact_count": 5,
+      "blocked_reason": null
+    },
+    {
+      "workflow_id": "import_parse_build",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "action_count": 4,
+      "report_count": 4,
+      "artifact_count": 4,
+      "blocked_reason": null
+    },
+    {
+      "workflow_id": "rag_retrieval_verification_smoke",
+      "status": "review_required",
+      "evidence_level": "deterministic_smoke",
+      "action_count": 3,
+      "report_count": 3,
+      "artifact_count": 3,
+      "blocked_reason": "Claim verification is not claimed as fully real without prepared business assertions."
+    },
+    {
+      "workflow_id": "document_generation_smoke",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "action_count": 4,
+      "report_count": 5,
+      "artifact_count": 14,
+      "blocked_reason": null
+    },
+    {
+      "workflow_id": "skill_factory_smoke",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "action_count": 3,
+      "report_count": 4,
+      "artifact_count": 3,
+      "blocked_reason": null
+    },
+    {
+      "workflow_id": "agent_factory_runtime_smoke",
+      "status": "review_required",
+      "evidence_level": "deterministic_smoke",
+      "action_count": 2,
+      "report_count": 4,
+      "artifact_count": 2,
+      "blocked_reason": "Runtime trace is deterministic smoke until full local user tasks are asserted."
+    },
+    {
+      "workflow_id": "error_repair_task_artifact",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "action_count": 3,
+      "report_count": 3,
+      "artifact_count": 4,
+      "blocked_reason": null
+    },
+    {
+      "workflow_id": "template_to_workflow",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "action_count": 2,
+      "report_count": 2,
+      "artifact_count": 2,
+      "blocked_reason": null
+    }
+  ],
+  "remaining_blockers": [
+    {
+      "blocker_id": "full_57_ready_action_business_input_execution_not_complete",
+      "description": "Full 57 ready Core action business-input execution and per-action artifact assertions are not complete.",
+      "status": "remaining"
+    },
+    {
+      "blocker_id": "rag_retrieval_verification_smoke_review_required",
+      "description": "Claim verification is not claimed as fully real without prepared business assertions.",
+      "status": "remaining"
+    },
+    {
+      "blocker_id": "agent_factory_runtime_smoke_review_required",
+      "description": "Runtime trace is deterministic smoke until full local user tasks are asserted.",
+      "status": "remaining"
+    }
+  ],
+  "report_files": [
+    "p1_real_workflow_v1_report.json",
+    "command_surface_truth_report.json",
+    "golden_workflow_coverage_matrix.json",
+    "real_vs_fixture_evidence_report.json",
+    "remaining_blockers.json"
+  ]
+}

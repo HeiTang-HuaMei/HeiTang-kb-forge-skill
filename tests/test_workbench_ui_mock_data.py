@@ -66,7 +66,7 @@ def test_mock_data_represents_providers_policies_and_parser_status():
 def test_mock_data_represents_p1_core_contract_alignment_fixture():
     fixture = read_json("p1_core_contract_fixture.json")
 
-    assert fixture["source"]["core_commit"] == "a793247ff8704275891ff9a1aefcb78888bcc9f2"
+    assert fixture["source"]["core_commit"] == "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9"
     assert fixture["not_full_operation_yet"] is True
     assert fixture["not_v4_0_workbench_rc"] is True
     assert fixture["counts"]["actions"] == 110
@@ -74,6 +74,18 @@ def test_mock_data_represents_p1_core_contract_alignment_fixture():
     assert fixture["counts"]["artifacts"] == 101
     assert fixture["counts"]["errors"] == 20
     assert fixture["counts"]["templates"] == 6
+
+
+def test_mock_data_represents_p1_real_workflow_v1_evidence():
+    evidence = read_json("p1_real_workflow_v1_evidence.json")
+
+    assert evidence["source"]["core_commit"] == "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9"
+    assert evidence["p1_real_workflow_v1_status"] == "passed"
+    assert evidence["p1_full_operation_gate_status"] == "blocked"
+    assert evidence["ready_for_v4_rc"] is False
+    assert evidence["drift_count"] == 0
+    assert evidence["fixture_only_counted_as_real"] is False
+    assert evidence["full_57_ready_action_execution_complete"] is False
 
 
 def test_mock_data_represents_review_generated_docs_workflow_and_exports():

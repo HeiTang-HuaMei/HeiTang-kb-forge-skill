@@ -20,30 +20,152 @@
   ],
   "core_contract_source": {
     "copied_from": "Core workbench-contracts --profile p1",
-    "core_repo": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill",
-    "core_commit": "a793247ff8704275891ff9a1aefcb78888bcc9f2",
+    "core_repo": "kb-forge-skill",
+    "core_commit": "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9",
     "fixture": "examples/ui_mock_data/p1_core_contract_fixture.json",
     "policy": "deterministic copied fixture; no raw outputs, logs, secrets, provider configs, build products, exe, dll, or zip"
   },
   "pages": [
-    {"id": "dashboard", "mock_sources": ["knowledge_bases", "agents", "jobs", "review_queue", "provider_status", "p1_core_contracts"]},
-    {"id": "workspace", "mock_sources": ["p1_core_contracts"]},
-    {"id": "operation-gate", "mock_sources": ["p1_core_contracts"]},
-    {"id": "capability-matrix", "mock_sources": ["p1_core_contracts"]},
-    {"id": "import-parsing", "mock_sources": ["parser_backend_status", "jobs", "p1_core_contracts"]},
-    {"id": "knowledge-package-management", "mock_sources": ["knowledge_bases", "agents", "p1_core_contracts"]},
-    {"id": "retrieval-verification", "mock_sources": ["knowledge_bases", "answer_policies", "p1_core_contracts"]},
-    {"id": "vector-hub-provider-storage", "mock_sources": ["provider_status", "p1_core_contracts"]},
-    {"id": "document-generation", "mock_sources": ["generated_docs", "agents", "knowledge_bases", "p1_core_contracts"]},
-    {"id": "skill-factory", "mock_sources": ["p1_core_contracts"]},
-    {"id": "agent-factory-runtime", "mock_sources": ["agents", "knowledge_bases", "provider_status", "p1_core_contracts"]},
-    {"id": "memory-center", "mock_sources": ["memory_scopes", "agents", "workflows", "p1_core_contracts"]},
-    {"id": "task-job-center", "mock_sources": ["jobs", "p1_core_contracts"]},
-    {"id": "artifact-management", "mock_sources": ["generated_docs", "p1_core_contracts"]},
-    {"id": "error-repair-center", "mock_sources": ["p1_core_contracts"]},
-    {"id": "reports-audit", "mock_sources": ["provider_status", "parser_backend_status", "answer_policies", "p1_core_contracts"]},
-    {"id": "governance", "mock_sources": ["p1_core_contracts"]},
-    {"id": "template-library", "mock_sources": ["p1_core_contracts"]}
+    {
+      "id": "dashboard",
+      "mock_sources": [
+        "knowledge_bases",
+        "agents",
+        "jobs",
+        "review_queue",
+        "provider_status",
+        "p1_core_contracts",
+        "p1_real_workflow_v1_evidence"
+      ]
+    },
+    {
+      "id": "workspace",
+      "mock_sources": [
+        "p1_core_contracts"
+      ]
+    },
+    {
+      "id": "operation-gate",
+      "mock_sources": [
+        "p1_core_contracts",
+        "p1_real_workflow_v1_evidence"
+      ]
+    },
+    {
+      "id": "capability-matrix",
+      "mock_sources": [
+        "p1_core_contracts"
+      ]
+    },
+    {
+      "id": "import-parsing",
+      "mock_sources": [
+        "parser_backend_status",
+        "jobs",
+        "p1_core_contracts"
+      ]
+    },
+    {
+      "id": "knowledge-package-management",
+      "mock_sources": [
+        "knowledge_bases",
+        "agents",
+        "p1_core_contracts"
+      ]
+    },
+    {
+      "id": "retrieval-verification",
+      "mock_sources": [
+        "knowledge_bases",
+        "answer_policies",
+        "p1_core_contracts"
+      ]
+    },
+    {
+      "id": "vector-hub-provider-storage",
+      "mock_sources": [
+        "provider_status",
+        "p1_core_contracts"
+      ]
+    },
+    {
+      "id": "document-generation",
+      "mock_sources": [
+        "generated_docs",
+        "agents",
+        "knowledge_bases",
+        "p1_core_contracts"
+      ]
+    },
+    {
+      "id": "skill-factory",
+      "mock_sources": [
+        "p1_core_contracts"
+      ]
+    },
+    {
+      "id": "agent-factory-runtime",
+      "mock_sources": [
+        "agents",
+        "knowledge_bases",
+        "provider_status",
+        "p1_core_contracts"
+      ]
+    },
+    {
+      "id": "memory-center",
+      "mock_sources": [
+        "memory_scopes",
+        "agents",
+        "workflows",
+        "p1_core_contracts"
+      ]
+    },
+    {
+      "id": "task-job-center",
+      "mock_sources": [
+        "jobs",
+        "p1_core_contracts",
+        "p1_real_workflow_v1_evidence"
+      ]
+    },
+    {
+      "id": "artifact-management",
+      "mock_sources": [
+        "generated_docs",
+        "p1_core_contracts",
+        "p1_real_workflow_v1_evidence"
+      ]
+    },
+    {
+      "id": "error-repair-center",
+      "mock_sources": [
+        "p1_core_contracts",
+        "p1_real_workflow_v1_evidence"
+      ]
+    },
+    {
+      "id": "reports-audit",
+      "mock_sources": [
+        "provider_status",
+        "parser_backend_status",
+        "answer_policies",
+        "p1_core_contracts",
+        "p1_real_workflow_v1_evidence"
+      ]
+    },
+    {
+      "id": "governance",
+      "mock_sources": [
+        "p1_core_contracts"
+      ]
+    },
+    {
+      "id": "template-library",
+      "mock_sources": [
+        "p1_core_contracts"
+      ]
+    }
   ],
   "mock_data_files": {
     "knowledge_bases": "examples/ui_mock_data/knowledge_bases.json",
@@ -56,24 +178,53 @@
     "provider_status": "examples/ui_mock_data/provider_status.json",
     "parser_backend_status": "examples/ui_mock_data/parser_backend_status.json",
     "answer_policies": "examples/ui_mock_data/answer_policies.json",
-    "p1_core_contracts": "examples/ui_mock_data/p1_core_contract_fixture.json"
+    "p1_core_contracts": "examples/ui_mock_data/p1_core_contract_fixture.json",
+    "p1_real_workflow_v1_evidence": "examples/ui_mock_data/p1_real_workflow_v1_evidence.json"
   },
   "theme": {
-    "modes": ["light", "dark"],
-    "palette": ["black", "white", "gray"],
-    "tokens": ["--bg", "--panel", "--text", "--muted", "--line", "--accent", "--radius"],
+    "modes": [
+      "light",
+      "dark"
+    ],
+    "palette": [
+      "black",
+      "white",
+      "gray"
+    ],
+    "tokens": [
+      "--bg",
+      "--panel",
+      "--text",
+      "--muted",
+      "--line",
+      "--accent",
+      "--radius"
+    ],
     "default_visual_style": "black / white / gray premium Windows desktop workbench",
-    "state_colors_only_for": ["success", "warning", "error", "running", "blocked"],
+    "state_colors_only_for": [
+      "success",
+      "warning",
+      "error",
+      "running",
+      "blocked"
+    ],
     "not_macos_shell": true
   },
   "i18n": {
-    "locales": ["zh-CN", "en-US"],
+    "locales": [
+      "zh-CN",
+      "en-US"
+    ],
     "switcher": "segmented-control",
     "default_title_pattern": "Chinese primary title with English secondary label where useful"
   },
   "mobile": {
     "strategy": "responsive-web-pwa-ready",
-    "breakpoints_px": [980, 760, 480],
+    "breakpoints_px": [
+      980,
+      760,
+      480
+    ],
     "navigation": "select-on-mobile-sidebar-on-desktop"
   },
   "brand": {
@@ -86,7 +237,12 @@
   "flutter": {
     "project_root": "web/workbench/flutter_app",
     "desktop": "windows",
-    "targets": ["windows", "web", "android", "ios"],
+    "targets": [
+      "windows",
+      "web",
+      "android",
+      "ios"
+    ],
     "scaffold_only_when_flutter_cli_missing": true,
     "entrypoint": "web/workbench/flutter_app/lib/main.dart"
   },
@@ -99,7 +255,9 @@
     "desktop_runtime": "allowlisted_core_cli_process_bridge",
     "web_runtime": "unsupported_for_local_cli_execution",
     "implementation": "web/workbench/flutter_app/lib/core_bridge/local_core_bridge.dart",
-    "tests": ["web/workbench/flutter_app/test/core_bridge_test.dart"],
+    "tests": [
+      "web/workbench/flutter_app/test/core_bridge_test.dart"
+    ],
     "security": {
       "run_in_shell": false,
       "allowlisted_actions_only": true,
@@ -122,7 +280,21 @@
   },
   "future_api": {
     "boundary": "Replace web/workbench/src/mockService.js fixture fetches with Core API/desktop bridge calls after P1 Integrated Gate.",
-    "reserved_resources": ["knowledgeBases", "agents", "workflows", "memoryScopes", "jobs", "reviewItems", "generatedDocs", "exportItems", "providers", "parserBackends", "answerPolicies", "memoryPolicies", "p1Contracts"],
+    "reserved_resources": [
+      "knowledgeBases",
+      "agents",
+      "workflows",
+      "memoryScopes",
+      "jobs",
+      "reviewItems",
+      "generatedDocs",
+      "exportItems",
+      "providers",
+      "parserBackends",
+      "answerPolicies",
+      "memoryPolicies",
+      "p1Contracts"
+    ],
     "no_backend_logic": false,
     "current_backend_logic": "desktop local Core CLI bridge contract only; page workflows are not wired end to end yet"
   }

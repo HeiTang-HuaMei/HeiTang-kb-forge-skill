@@ -72,6 +72,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
   const HeiTangWorkbenchApp({
     super.key,
     this.contracts,
+    this.workflowEvidence,
     this.coreBridge = const LocalCoreBridge(),
     this.coreCli = 'heitang-kb-forge',
     this.coreWorkingDirectory = '.',
@@ -81,6 +82,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
   });
 
   final WorkbenchContracts? contracts;
+  final P1WorkflowEvidence? workflowEvidence;
   final LocalCoreBridge coreBridge;
   final String coreCli;
   final String coreWorkingDirectory;
@@ -99,6 +101,9 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
   late final Future<WorkbenchContracts> _contractsFuture = widget.contracts == null
       ? const WorkbenchContractLoader().loadFromAsset('assets/contracts/p1_core_contract_fixture.json').catchError((_) => sampleWorkbenchContracts)
       : Future<WorkbenchContracts>.value(widget.contracts);
+  late final Future<P1WorkflowEvidence> _workflowEvidenceFuture = widget.workflowEvidence == null
+      ? const P1WorkflowEvidenceLoader().loadFromAsset('assets/workflows/p1_real_workflow_v1_evidence.json').catchError((_) => sampleP1WorkflowEvidence)
+      : Future<P1WorkflowEvidence>.value(widget.workflowEvidence);
 
   bool get isDark => themeMode == ThemeMode.dark;
 
@@ -120,21 +125,26 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
       home: FutureBuilder<WorkbenchContracts>(
         future: _contractsFuture,
         initialData: widget.contracts ?? sampleWorkbenchContracts,
-        builder: (context, snapshot) => _WorkbenchScaffold(
-          contracts: snapshot.data ?? sampleWorkbenchContracts,
-          localeCode: localeCode,
-          themeMode: themeMode,
-          selectedIndex: selectedIndex,
-          isDark: isDark,
-          coreBridge: widget.coreBridge,
-          coreCli: widget.coreCli,
-          coreWorkingDirectory: widget.coreWorkingDirectory,
-          coreWorkspace: widget.coreWorkspace,
-          enableLocalCoreActions: widget.enableLocalCoreActions,
-          isWebRuntime: widget.isWebRuntime,
-          onThemeChanged: (value) => setState(() => themeMode = value),
-          onLocaleChanged: (value) => setState(() => localeCode = value),
-          onPageChanged: (index) => setState(() => selectedIndex = index),
+        builder: (context, contractsSnapshot) => FutureBuilder<P1WorkflowEvidence>(
+          future: _workflowEvidenceFuture,
+          initialData: widget.workflowEvidence ?? sampleP1WorkflowEvidence,
+          builder: (context, evidenceSnapshot) => _WorkbenchScaffold(
+            contracts: contractsSnapshot.data ?? sampleWorkbenchContracts,
+            workflowEvidence: evidenceSnapshot.data ?? sampleP1WorkflowEvidence,
+            localeCode: localeCode,
+            themeMode: themeMode,
+            selectedIndex: selectedIndex,
+            isDark: isDark,
+            coreBridge: widget.coreBridge,
+            coreCli: widget.coreCli,
+            coreWorkingDirectory: widget.coreWorkingDirectory,
+            coreWorkspace: widget.coreWorkspace,
+            enableLocalCoreActions: widget.enableLocalCoreActions,
+            isWebRuntime: widget.isWebRuntime,
+            onThemeChanged: (value) => setState(() => themeMode = value),
+            onLocaleChanged: (value) => setState(() => localeCode = value),
+            onPageChanged: (index) => setState(() => selectedIndex = index),
+          ),
         ),
       ),
     );
@@ -223,6 +233,7 @@ class _DesktopWorkbench extends StatelessWidget {
   const _DesktopWorkbench({
     required this.localeCode,
     required this.contracts,
+    required this.workflowEvidence,
     required this.selectedIndex,
     required this.isTablet,
     required this.coreBridge,
@@ -236,6 +247,7 @@ class _DesktopWorkbench extends StatelessWidget {
 
   final String localeCode;
   final WorkbenchContracts contracts;
+  final P1WorkflowEvidence workflowEvidence;
   final int selectedIndex;
   final bool isTablet;
   final LocalCoreBridge coreBridge;
@@ -267,6 +279,7 @@ class _DesktopWorkbench extends StatelessWidget {
             page: pages[selectedIndex],
             localeCode: localeCode,
             contracts: contracts,
+            workflowEvidence: workflowEvidence,
             columns: isTablet ? 2 : 3,
             coreBridge: coreBridge,
             coreCli: coreCli,
@@ -333,6 +346,7 @@ class _PhoneWorkbench extends StatelessWidget {
   const _PhoneWorkbench({
     required this.localeCode,
     required this.contracts,
+    required this.workflowEvidence,
     required this.selectedIndex,
     required this.coreBridge,
     required this.coreCli,
@@ -345,6 +359,7 @@ class _PhoneWorkbench extends StatelessWidget {
 
   final String localeCode;
   final WorkbenchContracts contracts;
+  final P1WorkflowEvidence workflowEvidence;
   final int selectedIndex;
   final LocalCoreBridge coreBridge;
   final String coreCli;
@@ -386,6 +401,7 @@ class _PhoneWorkbench extends StatelessWidget {
             page: pages[selectedIndex],
             localeCode: localeCode,
             contracts: contracts,
+            workflowEvidence: workflowEvidence,
             columns: 1,
             coreBridge: coreBridge,
             coreCli: coreCli,
@@ -405,6 +421,7 @@ class _PageSurface extends StatelessWidget {
     required this.page,
     required this.localeCode,
     required this.contracts,
+    required this.workflowEvidence,
     required this.columns,
     required this.coreBridge,
     required this.coreCli,
@@ -417,6 +434,7 @@ class _PageSurface extends StatelessWidget {
   final WorkbenchPage page;
   final String localeCode;
   final WorkbenchContracts contracts;
+  final P1WorkflowEvidence workflowEvidence;
   final int columns;
   final LocalCoreBridge coreBridge;
   final String coreCli;
@@ -427,7 +445,7 @@ class _PageSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cards = _cardsFor(page.id, localeCode, contracts);
+    final cards = _cardsFor(page.id, localeCode, contracts, workflowEvidence);
     final corePanels = <Widget>[];
     for (final action in coreActionsForPage(page.id, contracts)) {
       final request = coreRequestForAction(
@@ -487,7 +505,7 @@ class _PageSurface extends StatelessWidget {
     );
   }
 
-  List<_CardCopy> _cardsFor(String id, String localeCode, WorkbenchContracts contracts) {
+  List<_CardCopy> _cardsFor(String id, String localeCode, WorkbenchContracts contracts, P1WorkflowEvidence workflowEvidence) {
     final zh = localeCode == 'zh-CN';
     final view = _contractViewFor(page, contracts);
     final actions = _actionsForView(view, contracts);
@@ -501,6 +519,10 @@ class _PageSurface extends StatelessWidget {
       _CardCopy(zh ? '产物契约' : 'Artifact contracts', artifacts.isEmpty ? '${contracts.status.assetCount}' : artifacts.map((artifact) => artifact.id).take(3).join(' · ')),
       _CardCopy(zh ? '任务状态' : 'Task statuses', contracts.taskSchema.statuses.join(' · ')),
       _CardCopy(zh ? '门禁状态' : 'Gate status', '${contracts.gate.status} · not_v4_0_workbench_rc=${contracts.gate.notV4WorkbenchRc}'),
+      if (_showsWorkflowEvidence(id)) _CardCopy(zh ? 'P1-RWF-V1 状态' : 'P1-RWF-V1 status', '${workflowEvidence.status} · full_gate=${workflowEvidence.fullGateStatus}'),
+      if (_showsWorkflowEvidence(id)) _CardCopy(zh ? '命令漂移' : 'Command drift', 'drift_count=${workflowEvidence.driftCount} · fixture_only_real=${workflowEvidence.fixtureOnlyCountedAsReal}'),
+      if (_showsWorkflowEvidence(id)) _CardCopy(zh ? '黄金工作流' : 'Golden workflows', '${workflowEvidence.workflowCount} · ${workflowEvidence.evidenceLevelCounts.entries.map((entry) => '${entry.key}:${entry.value}').join(' · ')}'),
+      if (_showsWorkflowEvidence(id)) _CardCopy(zh ? '剩余阻塞' : 'Remaining blockers', workflowEvidence.remainingBlockers.take(2).join(' · ')),
       if (id == 'capability-matrix') _CardCopy(zh ? '能力域' : 'Capability areas', '${contracts.capabilities.areas.length}'),
       if (id == 'agent-factory-runtime') _CardCopy(zh ? 'Agent 模式' : 'Agent modes', contracts.agent.supportedModes.join(' · ')),
       if (id == 'error-repair-center') _CardCopy(zh ? '错误码' : 'Error codes', contracts.errors.errorStates.join(' · ')),
@@ -512,6 +534,7 @@ class _PageSurface extends StatelessWidget {
 class _WorkbenchScaffold extends StatelessWidget {
   const _WorkbenchScaffold({
     required this.contracts,
+    required this.workflowEvidence,
     required this.localeCode,
     required this.themeMode,
     required this.selectedIndex,
@@ -528,6 +551,7 @@ class _WorkbenchScaffold extends StatelessWidget {
   });
 
   final WorkbenchContracts contracts;
+  final P1WorkflowEvidence workflowEvidence;
   final String localeCode;
   final ThemeMode themeMode;
   final int selectedIndex;
@@ -578,6 +602,7 @@ class _WorkbenchScaffold extends StatelessWidget {
               ? _PhoneWorkbench(
                   localeCode: localeCode,
                   contracts: contracts,
+                  workflowEvidence: workflowEvidence,
                   selectedIndex: selectedIndex,
                   coreBridge: coreBridge,
                   coreCli: coreCli,
@@ -590,6 +615,7 @@ class _WorkbenchScaffold extends StatelessWidget {
               : _DesktopWorkbench(
                   localeCode: localeCode,
                   contracts: contracts,
+                  workflowEvidence: workflowEvidence,
                   selectedIndex: selectedIndex,
                   isTablet: isTablet,
                   coreBridge: coreBridge,
@@ -632,6 +658,17 @@ List<ContractReport> _reportsForView(ContractView view, WorkbenchContracts contr
 
 List<ContractAsset> _artifactsForView(ContractView view, WorkbenchContracts contracts) {
   return contracts.assets.assets.where((asset) => asset.pageId == view.corePageId).toList(growable: false);
+}
+
+bool _showsWorkflowEvidence(String pageId) {
+  return const {
+    'dashboard',
+    'operation-gate',
+    'task-job-center',
+    'artifact-management',
+    'error-repair-center',
+    'reports-audit',
+  }.contains(pageId);
 }
 
 class _WorkbenchCard extends StatelessWidget {

@@ -10,7 +10,7 @@ void main() {
   test('contract fixture parses p1 workbench contracts', () {
     final contracts = sampleWorkbenchContracts;
 
-    expect(contracts.source.coreCommit, 'a793247ff8704275891ff9a1aefcb78888bcc9f2');
+    expect(contracts.source.coreCommit, 'fa00d6c00a11e7fda62919318f4cf17f9b72bfd9');
     expect(contracts.manifest.outputFiles, contains('workbench_action_contracts.json'));
     expect(contracts.navigation.views, hasLength(18));
     expect(contracts.actions.actions.map((action) => action.id), containsAll(['workspace_inspect', 'rag_query', 'book_to_skill', 'run_agent']));
@@ -20,6 +20,21 @@ void main() {
     expect(contracts.gate.status, 'blocked');
     expect(contracts.gate.notV4WorkbenchRc, isTrue);
     expect(contracts.gate.uiFullOperationPending, isTrue);
+  });
+
+  test('p1 real workflow v1 evidence parses and keeps gate blocked', () async {
+    final evidence = P1WorkflowEvidence.fromJsonString(await rootBundle.loadString('assets/workflows/p1_real_workflow_v1_evidence.json'));
+
+    expect(evidence.coreCommit, 'fa00d6c00a11e7fda62919318f4cf17f9b72bfd9');
+    expect(evidence.status, 'passed');
+    expect(evidence.fullGateStatus, 'blocked');
+    expect(evidence.readyForV4Rc, isFalse);
+    expect(evidence.notV4WorkbenchRc, isTrue);
+    expect(evidence.driftCount, 0);
+    expect(evidence.fixtureOnlyCountedAsReal, isFalse);
+    expect(evidence.fullReadyActionExecutionComplete, isFalse);
+    expect(evidence.workflowCount, 8);
+    expect(evidence.remainingBlockers, contains('full_57_ready_action_business_input_execution_not_complete'));
   });
 
   test('full p1 fixture drives real local and deterministic smoke Core actions through the bridge request path', () async {
@@ -113,6 +128,21 @@ void main() {
       expect(find.textContaining('Core'), findsWidgets);
       expect(tester.takeException(), isNull);
     }
+  });
+
+  testWidgets('renders p1 real workflow v1 evidence without claiming full gate pass', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1100));
+    await tester.pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts, workflowEvidence: sampleP1WorkflowEvidence));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('运行门禁').first);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('passed · full_gate=blocked'), findsWidgets);
+    expect(find.textContaining('drift_count=0'), findsWidgets);
+    expect(find.textContaining('full_57_ready_action_business_input_execution_not_complete'), findsWidgets);
+    expect(find.textContaining('ready_for_v4_rc'), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('renders contract-driven action and agent mode data in English', (tester) async {
