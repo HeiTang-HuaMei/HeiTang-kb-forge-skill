@@ -65,23 +65,46 @@ def test_buttons_are_action_ids_or_blocked_with_reasons():
             assert action.blocked_reason
 
 
-def test_ready_core_cli_workbench_actions_match_real_cli_command_surface():
+def test_corrected_ready_core_cli_workbench_action_flags_match_real_cli_help():
     runner = CliRunner()
     bundle = make_p1_workbench_bundle()
-    ready_actions = [
-        action
+    ready_actions = {
+        action.action_id: action
         for action in bundle.action_contracts
         if action.status == "ready" and action.command_kind == "core_cli"
-    ]
-    help_cache = {}
+    }
+    expected_action_flags = {
+        "ocr_required_detection": {
+            "command": "full-ocr-acceptance",
+            "required_flags": {"--source", "--output"},
+            "removed_flags": {"--core-repo"},
+        },
+        "package_export": {
+            "command": "export-platform",
+            "required_flags": {"--skill", "--output"},
+            "removed_flags": {"--package"},
+        },
+    }
 
-    assert len(ready_actions) >= 50
-    for action in ready_actions:
+    assert len(
+        [
+            action
+            for action in bundle.action_contracts
+            if action.status == "ready" and action.command_kind == "core_cli"
+        ]
+    ) >= 50
+    for action_id, expected in expected_action_flags.items():
+        action = ready_actions[action_id]
         parts = action.command.split()
-        command_name = parts[0]
-        if command_name not in help_cache:
-            result = runner.invoke(app, [command_name, "--help"])
-            assert result.exit_code == 0, f"{action.action_id}: {command_name}\n{result.output}"
-            help_cache[command_name] = result.output
-        for flag in [part for part in parts[1:] if part.startswith("--")]:
-            assert flag in help_cache[command_name], f"{action.action_id}: {flag} missing from {command_name} --help"
+        assert parts[0] == expected["command"]
+
+        command_flags = {part for part in parts[1:] if part.startswith("--")}
+        assert command_flags >= expected["required_flags"]
+        assert command_flags.isdisjoint(expected["removed_flags"])
+
+        result = runner.invoke(app, [expected["command"], "--help"])
+        assert result.exit_code == 0, f"{action_id}: {expected['command']}\n{result.output}"
+        for flag in expected["required_flags"]:
+            assert flag in result.output, f"{action_id}: {flag} missing from CLI help"
+        for flag in expected["removed_flags"]:
+            assert flag not in result.output, f"{action_id}: stale {flag} present in CLI help"
