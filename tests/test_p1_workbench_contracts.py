@@ -1,6 +1,7 @@
 import json
 
 from typer.testing import CliRunner
+from typer.main import get_command
 
 from heitang_kb_forge.cli import app
 from heitang_kb_forge.workbench import P1_WORKBENCH_OUTPUT_FILES, make_p1_workbench_bundle, write_p1_workbench_bundle
@@ -67,6 +68,7 @@ def test_buttons_are_action_ids_or_blocked_with_reasons():
 
 def test_corrected_ready_core_cli_workbench_action_flags_match_real_cli_help():
     runner = CliRunner()
+    cli = get_command(app)
     bundle = make_p1_workbench_bundle()
     ready_actions = {
         action.action_id: action
@@ -104,7 +106,13 @@ def test_corrected_ready_core_cli_workbench_action_flags_match_real_cli_help():
 
         result = runner.invoke(app, [expected["command"], "--help"])
         assert result.exit_code == 0, f"{action_id}: {expected['command']}\n{result.output}"
+        cli_command = cli.commands[expected["command"]]
+        cli_flags = {
+            option
+            for parameter in cli_command.params
+            for option in getattr(parameter, "opts", [])
+        }
         for flag in expected["required_flags"]:
-            assert flag in result.output, f"{action_id}: {flag} missing from CLI help"
+            assert flag in cli_flags, f"{action_id}: {flag} missing from CLI help"
         for flag in expected["removed_flags"]:
-            assert flag not in result.output, f"{action_id}: stale {flag} present in CLI help"
+            assert flag not in cli_flags, f"{action_id}: stale {flag} present in CLI help"
