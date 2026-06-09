@@ -98,6 +98,7 @@ def test_workbench_pages_reference_existing_mock_sources():
 
     for page in contracts["pages"]:
         assert page["mock_sources"]
+        assert "p1_core_contracts" in page["mock_sources"]
         for source in page["mock_sources"]:
             assert source in mock_sources
             assert (ROOT / mock_sources[source]).exists()

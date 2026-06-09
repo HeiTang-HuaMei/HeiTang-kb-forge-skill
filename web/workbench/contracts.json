@@ -25,7 +25,7 @@
     "policy": "deterministic copied fixture; no raw outputs, logs, secrets, provider configs, build products, exe, dll, or zip"
   },
   "pages": [
-    {"id": "dashboard", "mock_sources": ["knowledge_bases", "agents", "jobs", "review_queue", "provider_status"]},
+    {"id": "dashboard", "mock_sources": ["knowledge_bases", "agents", "jobs", "review_queue", "provider_status", "p1_core_contracts"]},
     {"id": "workspace", "mock_sources": ["p1_core_contracts"]},
     {"id": "operation-gate", "mock_sources": ["p1_core_contracts"]},
     {"id": "capability-matrix", "mock_sources": ["p1_core_contracts"]},
@@ -33,7 +33,7 @@
     {"id": "knowledge-package-management", "mock_sources": ["knowledge_bases", "agents", "p1_core_contracts"]},
     {"id": "retrieval-verification", "mock_sources": ["knowledge_bases", "answer_policies", "p1_core_contracts"]},
     {"id": "vector-hub-provider-storage", "mock_sources": ["provider_status", "p1_core_contracts"]},
-    {"id": "document-generation", "mock_sources": ["generated_docs", "agents", "knowledge_bases"]},
+    {"id": "document-generation", "mock_sources": ["generated_docs", "agents", "knowledge_bases", "p1_core_contracts"]},
     {"id": "skill-factory", "mock_sources": ["p1_core_contracts"]},
     {"id": "agent-factory-runtime", "mock_sources": ["agents", "knowledge_bases", "provider_status", "p1_core_contracts"]},
     {"id": "memory-center", "mock_sources": ["memory_scopes", "agents", "workflows", "p1_core_contracts"]},

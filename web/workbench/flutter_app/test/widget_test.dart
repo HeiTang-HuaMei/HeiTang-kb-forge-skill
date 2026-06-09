@@ -67,7 +67,7 @@ void main() {
     await tester.pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
     await tester.pumpAndSettle();
 
-    for (final title in ['工作空间', '向量索引 / 提供方 / 存储', '技能工厂', '产物管理', '错误修复中心', '运行门禁', '能力矩阵']) {
+    for (final title in ['工作空间', '向量索引 / 提供方 / 存储', '技能工厂', '任务 / 作业中心', '产物管理', '错误修复中心', '运行门禁', '能力矩阵', '报表与审计']) {
       await tester.tap(find.text(title).first);
       await tester.pumpAndSettle();
       expect(find.text(title), findsWidgets);
