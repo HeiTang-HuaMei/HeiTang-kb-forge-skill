@@ -1,0 +1,9 @@
+{
+  "action_id": "offline_fallback_status",
+  "reports": [
+    {
+      "report_id": "report_offline_fallback",
+      "path": "reports/report_offline_fallback.json"
+    }
+  ]
+}

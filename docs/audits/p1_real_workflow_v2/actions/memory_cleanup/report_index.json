@@ -1,0 +1,9 @@
+{
+  "action_id": "memory_cleanup",
+  "reports": [
+    {
+      "report_id": "report_memory_cleanup",
+      "path": "reports/report_memory_cleanup.json"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "action_id": "rerank",
+  "reports": [
+    {
+      "report_id": "report_rerank",
+      "path": "reports/report_rerank.json"
+    }
+  ]
+}

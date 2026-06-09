@@ -1,0 +1,9 @@
+{
+  "action_id": "kb_bound_agent_generation",
+  "reports": [
+    {
+      "report_id": "report_kb_bound_agent",
+      "path": "reports/report_kb_bound_agent.json"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "action_id": "hybrid_retrieval",
+  "artifacts": [
+    {
+      "artifact_id": "artifact_hybrid_retrieval_trace",
+      "path": "artifacts/artifact_hybrid_retrieval_trace.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "command_output_manifest",
+      "path": "artifacts/command_output_manifest.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ]
+}

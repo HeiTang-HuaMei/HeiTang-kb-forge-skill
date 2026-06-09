@@ -1,0 +1,20 @@
+{
+  "command_output": "<command_output>",
+  "file_count": 2,
+  "files": [
+    {
+      "path": "contract_check_report.md",
+      "suffix": ".md",
+      "size_bytes": 637,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "contract_check_result.json",
+      "suffix": ".json",
+      "size_bytes": 688,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    }
+  ]
+}

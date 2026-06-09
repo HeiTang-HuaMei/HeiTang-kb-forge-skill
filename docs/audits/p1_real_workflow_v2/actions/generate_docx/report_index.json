@@ -1,0 +1,9 @@
+{
+  "action_id": "generate_docx",
+  "reports": [
+    {
+      "report_id": "report_generated_docx",
+      "path": "reports/report_generated_docx.json"
+    }
+  ]
+}

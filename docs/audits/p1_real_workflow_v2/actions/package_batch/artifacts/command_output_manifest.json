@@ -1,0 +1,146 @@
+{
+  "command_output": "<command_output>",
+  "file_count": 20,
+  "files": [
+    {
+      "path": "001_demo_source/cards.jsonl",
+      "suffix": ".jsonl",
+      "size_bytes": 500,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "001_demo_source/chunks.jsonl",
+      "suffix": ".jsonl",
+      "size_bytes": 337,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "001_demo_source/glossary.jsonl",
+      "suffix": ".jsonl",
+      "size_bytes": 1328,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "001_demo_source/ingest_report.md",
+      "suffix": ".md",
+      "size_bytes": 500,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "001_demo_source/manifest.json",
+      "suffix": ".json",
+      "size_bytes": 529,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "001_demo_source/qa_pairs.jsonl",
+      "suffix": ".jsonl",
+      "size_bytes": 467,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "001_demo_source/quality_report.json",
+      "suffix": ".json",
+      "size_bytes": 503,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "batch_contract_summary.json",
+      "suffix": ".json",
+      "size_bytes": 162,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "batch_contract_summary.md",
+      "suffix": ".md",
+      "size_bytes": 170,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "batch_failure_report.md",
+      "suffix": ".md",
+      "size_bytes": 28,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "batch_governance_summary.json",
+      "suffix": ".json",
+      "size_bytes": 142,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "batch_governance_summary.md",
+      "suffix": ".md",
+      "size_bytes": 152,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "batch_item_status.jsonl",
+      "suffix": ".jsonl",
+      "size_bytes": 506,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "batch_job_manifest.json",
+      "suffix": ".json",
+      "size_bytes": 472,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "batch_manifest.json",
+      "suffix": ".json",
+      "size_bytes": 977,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "batch_performance_report.md",
+      "suffix": ".md",
+      "size_bytes": 100,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "batch_performance_summary.json",
+      "suffix": ".json",
+      "size_bytes": 123,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "batch_quality_summary.json",
+      "suffix": ".json",
+      "size_bytes": 195,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "batch_quality_summary.md",
+      "suffix": ".md",
+      "size_bytes": 199,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "batch_report.md",
+      "suffix": ".md",
+      "size_bytes": 853,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    }
+  ]
+}

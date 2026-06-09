@@ -1,0 +1,9 @@
+{
+  "action_id": "artifact_skill_package_inspect",
+  "reports": [
+    {
+      "report_id": "report_artifact_skill_package",
+      "path": "reports/report_artifact_skill_package.json"
+    }
+  ]
+}

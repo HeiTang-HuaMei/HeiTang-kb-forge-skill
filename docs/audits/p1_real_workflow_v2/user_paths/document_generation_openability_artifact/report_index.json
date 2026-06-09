@@ -1,0 +1,29 @@
+{
+  "user_path_id": "document_generation_openability_artifact",
+  "reports": [
+    {
+      "report_id": "path_document_generation_openability_artifact_generate_markdown",
+      "path": "../actions/generate_markdown/report_index.json"
+    },
+    {
+      "report_id": "path_document_generation_openability_artifact_generate_docx",
+      "path": "../actions/generate_docx/report_index.json"
+    },
+    {
+      "report_id": "path_document_generation_openability_artifact_generate_pdf",
+      "path": "../actions/generate_pdf/report_index.json"
+    },
+    {
+      "report_id": "path_document_generation_openability_artifact_generate_pptx",
+      "path": "../actions/generate_pptx/report_index.json"
+    },
+    {
+      "report_id": "path_document_generation_openability_artifact_generate_manual_user_guide",
+      "path": "../actions/generate_manual_user_guide/report_index.json"
+    },
+    {
+      "report_id": "path_document_generation_openability_artifact_openability_check",
+      "path": "../actions/openability_check/report_index.json"
+    }
+  ]
+}

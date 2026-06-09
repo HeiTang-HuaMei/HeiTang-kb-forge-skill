@@ -1,0 +1,9 @@
+{
+  "action_id": "retrieval_planning",
+  "reports": [
+    {
+      "report_id": "report_retrieval_plan",
+      "path": "reports/report_retrieval_plan.json"
+    }
+  ]
+}

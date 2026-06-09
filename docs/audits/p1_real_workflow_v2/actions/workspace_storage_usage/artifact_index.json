@@ -1,0 +1,17 @@
+{
+  "action_id": "workspace_storage_usage",
+  "artifacts": [
+    {
+      "artifact_id": "artifact_storage_usage_fixture",
+      "path": "artifacts/artifact_storage_usage_fixture.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "command_output_manifest",
+      "path": "artifacts/command_output_manifest.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ]
+}

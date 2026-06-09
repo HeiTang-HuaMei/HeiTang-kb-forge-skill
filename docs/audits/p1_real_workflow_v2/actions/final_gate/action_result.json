@@ -1,0 +1,49 @@
+{
+  "action_id": "final_gate",
+  "command": "final-pre-v4-audit --core-repo <core_repo> --output <command_output>",
+  "contract_command": "final-pre-v4-audit --core-repo <repo> --output <output>",
+  "status": "passed",
+  "evidence_level": "real_local_workflow",
+  "input_source": "generated_workspace",
+  "input_artifacts": [
+    {
+      "placeholder": "<output>",
+      "path": "<command_output>"
+    },
+    {
+      "placeholder": "<repo>",
+      "path": "<core_repo>"
+    }
+  ],
+  "output_reports": [
+    {
+      "report_id": "report_final_gate",
+      "path": "reports/report_final_gate.json"
+    }
+  ],
+  "output_artifacts": [
+    {
+      "artifact_id": "artifact_final_gate_proof",
+      "path": "artifacts/artifact_final_gate_proof.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "command_output_manifest",
+      "path": "artifacts/command_output_manifest.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ],
+  "errors_observed": [],
+  "blocked_reason": null,
+  "assertion_status": "passed",
+  "started_at": "2026-06-09T11:26:12.780176Z",
+  "ended_at": "2026-06-09T11:26:48.664507Z",
+  "duration_ms": 35884,
+  "gate_impact": "contributes_to_p1_real_workflow_v2",
+  "command_exit_code": 0,
+  "output_path": "<command_output>",
+  "output_path_existed": true,
+  "deterministic_smoke_reason": null
+}

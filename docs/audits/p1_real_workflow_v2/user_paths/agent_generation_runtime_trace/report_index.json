@@ -1,0 +1,21 @@
+{
+  "user_path_id": "agent_generation_runtime_trace",
+  "reports": [
+    {
+      "report_id": "path_agent_generation_runtime_trace_standalone_agent_generation",
+      "path": "../actions/standalone_agent_generation/report_index.json"
+    },
+    {
+      "report_id": "path_agent_generation_runtime_trace_kb_bound_agent_generation",
+      "path": "../actions/kb_bound_agent_generation/report_index.json"
+    },
+    {
+      "report_id": "path_agent_generation_runtime_trace_run_agent",
+      "path": "../actions/run_agent/report_index.json"
+    },
+    {
+      "report_id": "path_agent_generation_runtime_trace_artifact_runtime_trace_inspect",
+      "path": "../actions/artifact_runtime_trace_inspect/report_index.json"
+    }
+  ]
+}

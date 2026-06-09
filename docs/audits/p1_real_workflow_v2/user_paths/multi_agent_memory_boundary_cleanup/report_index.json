@@ -1,0 +1,25 @@
+{
+  "user_path_id": "multi_agent_memory_boundary_cleanup",
+  "reports": [
+    {
+      "report_id": "path_multi_agent_memory_boundary_cleanup_multi_agent_orchestration",
+      "path": "../actions/multi_agent_orchestration/report_index.json"
+    },
+    {
+      "report_id": "path_multi_agent_memory_boundary_cleanup_summary_memory_lifecycle",
+      "path": "../actions/summary_memory_lifecycle/report_index.json"
+    },
+    {
+      "report_id": "path_multi_agent_memory_boundary_cleanup_memory_compression",
+      "path": "../actions/memory_compression/report_index.json"
+    },
+    {
+      "report_id": "path_multi_agent_memory_boundary_cleanup_memory_cleanup",
+      "path": "../actions/memory_cleanup/report_index.json"
+    },
+    {
+      "report_id": "path_multi_agent_memory_boundary_cleanup_workspace_cleanup_plan",
+      "path": "../actions/workspace_cleanup_plan/report_index.json"
+    }
+  ]
+}

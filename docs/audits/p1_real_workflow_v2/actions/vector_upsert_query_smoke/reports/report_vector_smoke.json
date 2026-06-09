@@ -1,0 +1,5 @@
+{
+  "report_id": "report_vector_smoke",
+  "action_id": "vector_upsert_query_smoke",
+  "status": "pass"
+}

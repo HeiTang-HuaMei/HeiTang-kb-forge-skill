@@ -1,0 +1,37 @@
+{
+  "user_path_id": "document_generation_openability_artifact",
+  "status": "passed",
+  "evidence_level": "real_local_workflow",
+  "actions_used": [
+    "generate_markdown",
+    "generate_docx",
+    "generate_pdf",
+    "generate_pptx",
+    "generate_manual_user_guide",
+    "openability_check"
+  ],
+  "reports_generated": [
+    "path_document_generation_openability_artifact_generate_markdown",
+    "path_document_generation_openability_artifact_generate_docx",
+    "path_document_generation_openability_artifact_generate_pdf",
+    "path_document_generation_openability_artifact_generate_pptx",
+    "path_document_generation_openability_artifact_generate_manual_user_guide",
+    "path_document_generation_openability_artifact_openability_check"
+  ],
+  "artifacts_generated": [
+    "path_document_generation_openability_artifact_generate_markdown",
+    "path_document_generation_openability_artifact_generate_docx",
+    "path_document_generation_openability_artifact_generate_pdf",
+    "path_document_generation_openability_artifact_generate_pptx",
+    "path_document_generation_openability_artifact_generate_manual_user_guide",
+    "path_document_generation_openability_artifact_openability_check"
+  ],
+  "user_visible_steps": [
+    "KB Package",
+    "Document Generation",
+    "Openability",
+    "Artifact"
+  ],
+  "blocked_steps": [],
+  "gate_impact": "contributes_to_p1_real_workflow_v2"
+}

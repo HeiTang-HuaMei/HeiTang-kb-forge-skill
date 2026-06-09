@@ -1,0 +1,344 @@
+{
+  "report_id": "p1_rwf_v2_full_local_user_path_closure",
+  "status": "pass",
+  "user_path_count": 10,
+  "passed_count": 10,
+  "blocked_count": 0,
+  "user_paths": [
+    {
+      "user_path_id": "workspace_import_build_validate_artifact",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "actions_used": [
+        "workspace_inspect",
+        "workspace_health",
+        "parser_preflight",
+        "package_build",
+        "package_validation",
+        "artifact_kb_package_inspect"
+      ],
+      "reports_generated": [
+        "path_workspace_import_build_validate_artifact_workspace_inspect",
+        "path_workspace_import_build_validate_artifact_workspace_health",
+        "path_workspace_import_build_validate_artifact_parser_preflight",
+        "path_workspace_import_build_validate_artifact_package_build",
+        "path_workspace_import_build_validate_artifact_package_validation",
+        "path_workspace_import_build_validate_artifact_artifact_kb_package_inspect"
+      ],
+      "artifacts_generated": [
+        "path_workspace_import_build_validate_artifact_workspace_inspect",
+        "path_workspace_import_build_validate_artifact_workspace_health",
+        "path_workspace_import_build_validate_artifact_parser_preflight",
+        "path_workspace_import_build_validate_artifact_package_build",
+        "path_workspace_import_build_validate_artifact_package_validation",
+        "path_workspace_import_build_validate_artifact_artifact_kb_package_inspect"
+      ],
+      "user_visible_steps": [
+        "Workspace",
+        "Import",
+        "Build",
+        "Validate",
+        "Artifact"
+      ],
+      "blocked_steps": [],
+      "gate_impact": "contributes_to_p1_real_workflow_v2"
+    },
+    {
+      "user_path_id": "kb_retrieval_evidence_verification",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "actions_used": [
+        "rag_query",
+        "retrieval_planning",
+        "rerank",
+        "evidence_selection",
+        "claim_verification"
+      ],
+      "reports_generated": [
+        "path_kb_retrieval_evidence_verification_rag_query",
+        "path_kb_retrieval_evidence_verification_retrieval_planning",
+        "path_kb_retrieval_evidence_verification_rerank",
+        "path_kb_retrieval_evidence_verification_evidence_selection",
+        "path_kb_retrieval_evidence_verification_claim_verification"
+      ],
+      "artifacts_generated": [
+        "path_kb_retrieval_evidence_verification_rag_query",
+        "path_kb_retrieval_evidence_verification_retrieval_planning",
+        "path_kb_retrieval_evidence_verification_rerank",
+        "path_kb_retrieval_evidence_verification_evidence_selection",
+        "path_kb_retrieval_evidence_verification_claim_verification"
+      ],
+      "user_visible_steps": [
+        "KB Package",
+        "Retrieval",
+        "Evidence",
+        "Verification"
+      ],
+      "blocked_steps": [],
+      "gate_impact": "contributes_to_p1_real_workflow_v2"
+    },
+    {
+      "user_path_id": "document_generation_openability_artifact",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "actions_used": [
+        "generate_markdown",
+        "generate_docx",
+        "generate_pdf",
+        "generate_pptx",
+        "generate_manual_user_guide",
+        "openability_check"
+      ],
+      "reports_generated": [
+        "path_document_generation_openability_artifact_generate_markdown",
+        "path_document_generation_openability_artifact_generate_docx",
+        "path_document_generation_openability_artifact_generate_pdf",
+        "path_document_generation_openability_artifact_generate_pptx",
+        "path_document_generation_openability_artifact_generate_manual_user_guide",
+        "path_document_generation_openability_artifact_openability_check"
+      ],
+      "artifacts_generated": [
+        "path_document_generation_openability_artifact_generate_markdown",
+        "path_document_generation_openability_artifact_generate_docx",
+        "path_document_generation_openability_artifact_generate_pdf",
+        "path_document_generation_openability_artifact_generate_pptx",
+        "path_document_generation_openability_artifact_generate_manual_user_guide",
+        "path_document_generation_openability_artifact_openability_check"
+      ],
+      "user_visible_steps": [
+        "KB Package",
+        "Document Generation",
+        "Openability",
+        "Artifact"
+      ],
+      "blocked_steps": [],
+      "gate_impact": "contributes_to_p1_real_workflow_v2"
+    },
+    {
+      "user_path_id": "skill_generation_validate_diff_installability",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "actions_used": [
+        "book_to_skill",
+        "package_to_skill",
+        "skill_manifest_validate",
+        "skill_diff",
+        "package_export"
+      ],
+      "reports_generated": [
+        "path_skill_generation_validate_diff_installability_book_to_skill",
+        "path_skill_generation_validate_diff_installability_package_to_skill",
+        "path_skill_generation_validate_diff_installability_skill_manifest_validate",
+        "path_skill_generation_validate_diff_installability_skill_diff",
+        "path_skill_generation_validate_diff_installability_package_export"
+      ],
+      "artifacts_generated": [
+        "path_skill_generation_validate_diff_installability_book_to_skill",
+        "path_skill_generation_validate_diff_installability_package_to_skill",
+        "path_skill_generation_validate_diff_installability_skill_manifest_validate",
+        "path_skill_generation_validate_diff_installability_skill_diff",
+        "path_skill_generation_validate_diff_installability_package_export"
+      ],
+      "user_visible_steps": [
+        "KB / Source",
+        "Skill Generation",
+        "Validate",
+        "Diff",
+        "Installability"
+      ],
+      "blocked_steps": [],
+      "gate_impact": "contributes_to_p1_real_workflow_v2"
+    },
+    {
+      "user_path_id": "agent_generation_runtime_trace",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "actions_used": [
+        "standalone_agent_generation",
+        "kb_bound_agent_generation",
+        "run_agent",
+        "artifact_runtime_trace_inspect"
+      ],
+      "reports_generated": [
+        "path_agent_generation_runtime_trace_standalone_agent_generation",
+        "path_agent_generation_runtime_trace_kb_bound_agent_generation",
+        "path_agent_generation_runtime_trace_run_agent",
+        "path_agent_generation_runtime_trace_artifact_runtime_trace_inspect"
+      ],
+      "artifacts_generated": [
+        "path_agent_generation_runtime_trace_standalone_agent_generation",
+        "path_agent_generation_runtime_trace_kb_bound_agent_generation",
+        "path_agent_generation_runtime_trace_run_agent",
+        "path_agent_generation_runtime_trace_artifact_runtime_trace_inspect"
+      ],
+      "user_visible_steps": [
+        "KB",
+        "Agent Generation",
+        "Run Agent",
+        "Runtime Trace"
+      ],
+      "blocked_steps": [],
+      "gate_impact": "contributes_to_p1_real_workflow_v2"
+    },
+    {
+      "user_path_id": "multi_agent_memory_boundary_cleanup",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "actions_used": [
+        "multi_agent_orchestration",
+        "summary_memory_lifecycle",
+        "memory_compression",
+        "memory_cleanup",
+        "workspace_cleanup_plan"
+      ],
+      "reports_generated": [
+        "path_multi_agent_memory_boundary_cleanup_multi_agent_orchestration",
+        "path_multi_agent_memory_boundary_cleanup_summary_memory_lifecycle",
+        "path_multi_agent_memory_boundary_cleanup_memory_compression",
+        "path_multi_agent_memory_boundary_cleanup_memory_cleanup",
+        "path_multi_agent_memory_boundary_cleanup_workspace_cleanup_plan"
+      ],
+      "artifacts_generated": [
+        "path_multi_agent_memory_boundary_cleanup_multi_agent_orchestration",
+        "path_multi_agent_memory_boundary_cleanup_summary_memory_lifecycle",
+        "path_multi_agent_memory_boundary_cleanup_memory_compression",
+        "path_multi_agent_memory_boundary_cleanup_memory_cleanup",
+        "path_multi_agent_memory_boundary_cleanup_workspace_cleanup_plan"
+      ],
+      "user_visible_steps": [
+        "Multi-agent",
+        "Memory",
+        "Boundary",
+        "Cleanup"
+      ],
+      "blocked_steps": [],
+      "gate_impact": "contributes_to_p1_real_workflow_v2"
+    },
+    {
+      "user_path_id": "error_repair_retry_recommendation",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "actions_used": [
+        "package_batch",
+        "package_diff",
+        "product_hardening",
+        "final_gate"
+      ],
+      "reports_generated": [
+        "path_error_repair_retry_recommendation_package_batch",
+        "path_error_repair_retry_recommendation_package_diff",
+        "path_error_repair_retry_recommendation_product_hardening",
+        "path_error_repair_retry_recommendation_final_gate"
+      ],
+      "artifacts_generated": [
+        "path_error_repair_retry_recommendation_package_batch",
+        "path_error_repair_retry_recommendation_package_diff",
+        "path_error_repair_retry_recommendation_product_hardening",
+        "path_error_repair_retry_recommendation_final_gate"
+      ],
+      "user_visible_steps": [
+        "Error",
+        "Repair Center",
+        "Retry Recommendation"
+      ],
+      "blocked_steps": [],
+      "gate_impact": "contributes_to_p1_real_workflow_v2"
+    },
+    {
+      "user_path_id": "template_workflow_generated_assets",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "actions_used": [
+        "package_pipeline",
+        "book_to_skill",
+        "standalone_agent_generation",
+        "artifact_agent_package_inspect"
+      ],
+      "reports_generated": [
+        "path_template_workflow_generated_assets_package_pipeline",
+        "path_template_workflow_generated_assets_book_to_skill",
+        "path_template_workflow_generated_assets_standalone_agent_generation",
+        "path_template_workflow_generated_assets_artifact_agent_package_inspect"
+      ],
+      "artifacts_generated": [
+        "path_template_workflow_generated_assets_package_pipeline",
+        "path_template_workflow_generated_assets_book_to_skill",
+        "path_template_workflow_generated_assets_standalone_agent_generation",
+        "path_template_workflow_generated_assets_artifact_agent_package_inspect"
+      ],
+      "user_visible_steps": [
+        "Template",
+        "Workflow Plan",
+        "Generated Assets"
+      ],
+      "blocked_steps": [],
+      "gate_impact": "contributes_to_p1_real_workflow_v2"
+    },
+    {
+      "user_path_id": "reports_audit_gate_summary",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "actions_used": [
+        "product_hardening",
+        "final_gate",
+        "format_support_matrix",
+        "ocr_required_detection"
+      ],
+      "reports_generated": [
+        "path_reports_audit_gate_summary_product_hardening",
+        "path_reports_audit_gate_summary_final_gate",
+        "path_reports_audit_gate_summary_format_support_matrix",
+        "path_reports_audit_gate_summary_ocr_required_detection"
+      ],
+      "artifacts_generated": [
+        "path_reports_audit_gate_summary_product_hardening",
+        "path_reports_audit_gate_summary_final_gate",
+        "path_reports_audit_gate_summary_format_support_matrix",
+        "path_reports_audit_gate_summary_ocr_required_detection"
+      ],
+      "user_visible_steps": [
+        "Reports",
+        "Audit",
+        "Gate Summary"
+      ],
+      "blocked_steps": [],
+      "gate_impact": "contributes_to_p1_real_workflow_v2"
+    },
+    {
+      "user_path_id": "artifact_management_safe_path_sensitive_block",
+      "status": "passed",
+      "evidence_level": "real_local_workflow",
+      "actions_used": [
+        "artifact_kb_package_inspect",
+        "artifact_vector_index_inspect",
+        "artifact_generated_docs_inspect",
+        "artifact_skill_package_inspect",
+        "artifact_agent_package_inspect",
+        "artifact_acceptance_proof_inspect"
+      ],
+      "reports_generated": [
+        "path_artifact_management_safe_path_sensitive_block_artifact_kb_package_inspect",
+        "path_artifact_management_safe_path_sensitive_block_artifact_vector_index_inspect",
+        "path_artifact_management_safe_path_sensitive_block_artifact_generated_docs_inspect",
+        "path_artifact_management_safe_path_sensitive_block_artifact_skill_package_inspect",
+        "path_artifact_management_safe_path_sensitive_block_artifact_agent_package_inspect",
+        "path_artifact_management_safe_path_sensitive_block_artifact_acceptance_proof_inspect"
+      ],
+      "artifacts_generated": [
+        "path_artifact_management_safe_path_sensitive_block_artifact_kb_package_inspect",
+        "path_artifact_management_safe_path_sensitive_block_artifact_vector_index_inspect",
+        "path_artifact_management_safe_path_sensitive_block_artifact_generated_docs_inspect",
+        "path_artifact_management_safe_path_sensitive_block_artifact_skill_package_inspect",
+        "path_artifact_management_safe_path_sensitive_block_artifact_agent_package_inspect",
+        "path_artifact_management_safe_path_sensitive_block_artifact_acceptance_proof_inspect"
+      ],
+      "user_visible_steps": [
+        "Artifact Management",
+        "Safe Path",
+        "Sensitive Block"
+      ],
+      "blocked_steps": [],
+      "gate_impact": "contributes_to_p1_real_workflow_v2"
+    }
+  ]
+}

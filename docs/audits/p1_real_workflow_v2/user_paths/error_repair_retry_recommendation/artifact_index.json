@@ -1,0 +1,29 @@
+{
+  "user_path_id": "error_repair_retry_recommendation",
+  "artifacts": [
+    {
+      "artifact_id": "path_error_repair_retry_recommendation_package_batch",
+      "path": "../actions/package_batch/artifact_index.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "path_error_repair_retry_recommendation_package_diff",
+      "path": "../actions/package_diff/artifact_index.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "path_error_repair_retry_recommendation_product_hardening",
+      "path": "../actions/product_hardening/artifact_index.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "path_error_repair_retry_recommendation_final_gate",
+      "path": "../actions/final_gate/artifact_index.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ]
+}

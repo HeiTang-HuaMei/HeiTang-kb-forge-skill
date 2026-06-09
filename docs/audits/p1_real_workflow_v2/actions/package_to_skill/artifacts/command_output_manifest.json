@@ -1,0 +1,545 @@
+{
+  "command_output": "<command_output>",
+  "file_count": 77,
+  "files": [
+    {
+      "path": "answer_rules.md",
+      "suffix": ".md",
+      "size_bytes": 215,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "anti_patterns/anti_patterns.md",
+      "suffix": ".md",
+      "size_bytes": 70,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "anti_patterns.md",
+      "suffix": ".md",
+      "size_bytes": 70,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "BOOK_OVERVIEW.md",
+      "suffix": ".md",
+      "size_bytes": 133,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "book_to_skill_benchmark_absorption_report.json",
+      "suffix": ".json",
+      "size_bytes": 911,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "book_to_skill_benchmark_absorption_report.md",
+      "suffix": ".md",
+      "size_bytes": 152,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "boundary_rules.md",
+      "suffix": ".md",
+      "size_bytes": 493,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "candidates/skill_01_framework-application.json",
+      "suffix": ".json",
+      "size_bytes": 896,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "candidates/skill_02_principle-check.json",
+      "suffix": ".json",
+      "size_bytes": 851,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "candidates/skill_03_case-transfer.json",
+      "suffix": ".json",
+      "size_bytes": 870,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "cangjie_skill_absorption_report.json",
+      "suffix": ".json",
+      "size_bytes": 718,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "cangjie_skill_absorption_report.md",
+      "suffix": ".md",
+      "size_bytes": 130,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "cases.md",
+      "suffix": ".md",
+      "size_bytes": 175,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "chapters/overview.md",
+      "suffix": ".md",
+      "size_bytes": 107,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "cheatsheet.md",
+      "suffix": ".md",
+      "size_bytes": 405,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "citation_rules.md",
+      "suffix": ".md",
+      "size_bytes": 200,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "citations.md",
+      "suffix": ".md",
+      "size_bytes": 77,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "claude_code_skill_compat_report.json",
+      "suffix": ".json",
+      "size_bytes": 406,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "codex_skill_compat_report.json",
+      "suffix": ".json",
+      "size_bytes": 400,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "concepts/core_concepts.md",
+      "suffix": ".md",
+      "size_bytes": 105,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "eval_cases.jsonl",
+      "suffix": ".jsonl",
+      "size_bytes": 121,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "evidence_map.json",
+      "suffix": ".json",
+      "size_bytes": 863,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "evidence_policy.md",
+      "suffix": ".md",
+      "size_bytes": 221,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "examples.md",
+      "suffix": ".md",
+      "size_bytes": 153,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "extraction_trace.json",
+      "suffix": ".json",
+      "size_bytes": 970,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "frameworks/frameworks.md",
+      "suffix": ".md",
+      "size_bytes": 180,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "frameworks.md",
+      "suffix": ".md",
+      "size_bytes": 180,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "glossary.md",
+      "suffix": ".md",
+      "size_bytes": 100,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "INDEX.md",
+      "suffix": ".md",
+      "size_bytes": 249,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "install_instructions.md",
+      "suffix": ".md",
+      "size_bytes": 423,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "installability_report.json",
+      "suffix": ".json",
+      "size_bytes": 1678,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "knowledge_scope.md",
+      "suffix": ".md",
+      "size_bytes": 284,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "on_demand_load_manifest.json",
+      "suffix": ".json",
+      "size_bytes": 3238,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "on_demand_loading_report.json",
+      "suffix": ".json",
+      "size_bytes": 707,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "openclaw_skill_compat_report.json",
+      "suffix": ".json",
+      "size_bytes": 403,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "patterns/patterns.md",
+      "suffix": ".md",
+      "size_bytes": 59,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "principles.md",
+      "suffix": ".md",
+      "size_bytes": 61,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "refusal_rules.md",
+      "suffix": ".md",
+      "size_bytes": 200,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "rejected/rejected_common_sense_advice.json",
+      "suffix": ".json",
+      "size_bytes": 305,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "rejected/rejected_full_source_loader.json",
+      "suffix": ".json",
+      "size_bytes": 330,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "safety_boundary.md",
+      "suffix": ".md",
+      "size_bytes": 509,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "SKILL.md",
+      "suffix": ".md",
+      "size_bytes": 2903,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_agent_compatibility_report.json",
+      "suffix": ".json",
+      "size_bytes": 1091,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_agent_kb_compatibility_report.json",
+      "suffix": ".json",
+      "size_bytes": 1091,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_format_support_truth_matrix.json",
+      "suffix": ".json",
+      "size_bytes": 3758,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_generation_report.md",
+      "suffix": ".md",
+      "size_bytes": 2034,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_graph.json",
+      "suffix": ".json",
+      "size_bytes": 1383,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_graph_report.json",
+      "suffix": ".json",
+      "size_bytes": 256,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_index.json",
+      "suffix": ".json",
+      "size_bytes": 2513,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_installability_report.json",
+      "suffix": ".json",
+      "size_bytes": 1678,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_manifest.json",
+      "suffix": ".json",
+      "size_bytes": 5003,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_manifest.yaml",
+      "suffix": ".yaml",
+      "size_bytes": 4036,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_output_structure_report.json",
+      "suffix": ".json",
+      "size_bytes": 2207,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_pressure_test_report.json",
+      "suffix": ".json",
+      "size_bytes": 961,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_privacy_safety_report.json",
+      "suffix": ".json",
+      "size_bytes": 448,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_quality_report.json",
+      "suffix": ".json",
+      "size_bytes": 546,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_rejected_candidates_report.json",
+      "suffix": ".json",
+      "size_bytes": 895,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_token_budget_report.json",
+      "suffix": ".json",
+      "size_bytes": 390,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_triple_verification_report.json",
+      "suffix": ".json",
+      "size_bytes": 863,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_update_merge_report.json",
+      "suffix": ".json",
+      "size_bytes": 503,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skills/skill_01_framework-application/SKILL.md",
+      "suffix": ".md",
+      "size_bytes": 956,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skills/skill_01_framework-application/test-prompts.json",
+      "suffix": ".json",
+      "size_bytes": 678,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skills/skill_02_principle-check/SKILL.md",
+      "suffix": ".md",
+      "size_bytes": 912,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skills/skill_02_principle-check/test-prompts.json",
+      "suffix": ".json",
+      "size_bytes": 667,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skills/skill_03_case-transfer/SKILL.md",
+      "suffix": ".md",
+      "size_bytes": 933,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skills/skill_03_case-transfer/test-prompts.json",
+      "suffix": ".json",
+      "size_bytes": 665,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "source_inventory.json",
+      "suffix": ".json",
+      "size_bytes": 547,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "structured_skill_package_completion_report.json",
+      "suffix": ".json",
+      "size_bytes": 879,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "structured_skill_package_completion_report.md",
+      "suffix": ".md",
+      "size_bytes": 273,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "structured_skill_package_report.json",
+      "suffix": ".json",
+      "size_bytes": 2207,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "structured_skill_package_report.md",
+      "suffix": ".md",
+      "size_bytes": 111,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "style_rules.md",
+      "suffix": ".md",
+      "size_bytes": 142,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "techniques/techniques.md",
+      "suffix": ".md",
+      "size_bytes": 180,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "token_budget_report.json",
+      "suffix": ".json",
+      "size_bytes": 390,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "trigger_rules.json",
+      "suffix": ".json",
+      "size_bytes": 1067,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "usage_examples.md",
+      "suffix": ".md",
+      "size_bytes": 334,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "verified.md",
+      "suffix": ".md",
+      "size_bytes": 137,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    }
+  ]
+}

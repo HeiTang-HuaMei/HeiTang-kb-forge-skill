@@ -1,0 +1,76 @@
+{
+  "command_output": "<command_output>",
+  "file_count": 10,
+  "files": [
+    {
+      "path": "high_risk_chunks.jsonl",
+      "suffix": ".jsonl",
+      "size_bytes": 0,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "high_risk_pages.jsonl",
+      "suffix": ".jsonl",
+      "size_bytes": 0,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "high_risk_parse_pages.jsonl",
+      "suffix": ".jsonl",
+      "size_bytes": 0,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "kb_trust_status.json",
+      "suffix": ".json",
+      "size_bytes": 54,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "knowledge_reliability_report.json",
+      "suffix": ".json",
+      "size_bytes": 411,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "manual_review_queue.jsonl",
+      "suffix": ".jsonl",
+      "size_bytes": 0,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "ocr_risk_report.json",
+      "suffix": ".json",
+      "size_bytes": 186,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "parse_quality_report.json",
+      "suffix": ".json",
+      "size_bytes": 483,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "parse_quality_report.md",
+      "suffix": ".md",
+      "size_bytes": 159,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "trusted_kb_gate.json",
+      "suffix": ".json",
+      "size_bytes": 269,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    }
+  ]
+}

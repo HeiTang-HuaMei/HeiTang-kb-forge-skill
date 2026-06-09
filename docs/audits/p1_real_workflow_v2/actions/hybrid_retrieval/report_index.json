@@ -1,0 +1,9 @@
+{
+  "action_id": "hybrid_retrieval",
+  "reports": [
+    {
+      "report_id": "report_hybrid_retrieval",
+      "path": "reports/report_hybrid_retrieval.json"
+    }
+  ]
+}

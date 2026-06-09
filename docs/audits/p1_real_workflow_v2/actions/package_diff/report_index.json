@@ -1,0 +1,9 @@
+{
+  "action_id": "package_diff",
+  "reports": [
+    {
+      "report_id": "report_package_diff",
+      "path": "reports/report_package_diff.json"
+    }
+  ]
+}

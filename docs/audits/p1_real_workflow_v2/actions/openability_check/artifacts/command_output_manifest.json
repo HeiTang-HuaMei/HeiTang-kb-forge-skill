@@ -1,0 +1,83 @@
+{
+  "command_output": "<command_output>",
+  "file_count": 11,
+  "files": [
+    {
+      "path": "artifact_openability_report.json",
+      "suffix": ".json",
+      "size_bytes": 1300,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "artifact_openability_report.md",
+      "suffix": ".md",
+      "size_bytes": 123,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "generated_package_compatibility_report.json",
+      "suffix": ".json",
+      "size_bytes": 1412,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "golden_demo_manifest.json",
+      "suffix": ".json",
+      "size_bytes": 428,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "golden_demo_report.md",
+      "suffix": ".md",
+      "size_bytes": 299,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "real_acceptance_smoke_report.md",
+      "suffix": ".md",
+      "size_bytes": 363,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "real_acceptance_smoke_result.json",
+      "suffix": ".json",
+      "size_bytes": 1402,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "sample_coverage_report.json",
+      "suffix": ".json",
+      "size_bytes": 388,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "sample_coverage_report.md",
+      "suffix": ".md",
+      "size_bytes": 178,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "smoke_realism_report.json",
+      "suffix": ".json",
+      "size_bytes": 1257,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "v311_acceptance_trace.json",
+      "suffix": ".json",
+      "size_bytes": 1012,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    }
+  ]
+}

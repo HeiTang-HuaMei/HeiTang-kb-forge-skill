@@ -55,9 +55,14 @@ from heitang_kb_forge.workbench import (
     get_p1_workbench_action,
     make_p1_workbench_dry_run,
     make_p1_workbench_smoke,
+    action_result_status,
     error_repair,
+    run_full_local_user_path,
     run_p1_golden_workflow,
     run_p1_golden_workflows,
+    run_p1_ready_action,
+    run_p1_ready_actions,
+    write_action_execution_plan,
     workflow_artifact_index,
     workflow_status,
     write_p1_workbench_bundle,
@@ -1293,6 +1298,61 @@ def workbench_smoke_command(
     result = make_p1_workbench_smoke()
     write_json(output / "workbench_smoke_result.json", result)
     typer.echo(f"P1 Workbench smoke: {result['status']} | Gate: {result['p1_full_operation_gate_status']}")
+
+
+@app.command("workbench-action-execution-plan")
+def workbench_action_execution_plan_command(
+    output: Path = typer.Option(..., "--output", "-o"),
+    workspace: Path | None = typer.Option(None, "--workspace"),
+) -> None:
+    """Write the P1-RWF-V2 57 ready action input plan."""
+    result = write_action_execution_plan(output, workspace)
+    typer.echo(f"P1-RWF-V2 action plan: {result['status']} | Targets: {result['execution_target_count']}")
+
+
+@app.command("workbench-run-ready-action")
+def workbench_run_ready_action_command(
+    action_id: str = typer.Option(..., "--action-id"),
+    workspace: Path = typer.Option(..., "--workspace"),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Run one P1-RWF-V2 ready/Core action with deterministic local demo inputs."""
+    try:
+        result = run_p1_ready_action(action_id, workspace, output / action_id)
+    except KeyError as exc:
+        raise typer.BadParameter(str(exc), param_hint="--action-id") from exc
+    typer.echo(f"P1-RWF-V2 ready action: {result['status']} | {result['action_id']}")
+
+
+@app.command("workbench-run-ready-actions")
+def workbench_run_ready_actions_command(
+    all_actions: bool = typer.Option(False, "--all"),
+    workspace: Path = typer.Option(..., "--workspace"),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Run all P1-RWF-V2 ready/Core actions with deterministic local demo inputs."""
+    if not all_actions:
+        raise typer.BadParameter("Use --all to run the P1-RWF-V2 ready action set.")
+    result = run_p1_ready_actions(workspace, output)
+    typer.echo(f"P1-RWF-V2 ready actions: {result['status']}")
+
+
+@app.command("workbench-action-result-status")
+def workbench_action_result_status_command(
+    run_dir: Path = typer.Option(..., "--run-dir", exists=True, file_okay=False, dir_okay=True, readable=True),
+) -> None:
+    """Read a P1-RWF-V2 action result status."""
+    typer.echo(json.dumps(action_result_status(run_dir), ensure_ascii=False, indent=2))
+
+
+@app.command("workbench-full-local-user-path")
+def workbench_full_local_user_path_command(
+    workspace: Path = typer.Option(..., "--workspace"),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Run P1-RWF-V2 full ready action execution and local user path closure."""
+    result = run_full_local_user_path(workspace, output)
+    typer.echo(f"P1-RWF-V2 full local user path: {result['p1_real_workflow_v2_status']}")
 
 
 @app.command("workbench-golden-workflow")

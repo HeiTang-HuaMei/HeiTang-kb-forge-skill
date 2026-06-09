@@ -1,0 +1,53 @@
+{
+  "action_id": "package_diff",
+  "command": "lifecycle-check --input <workspace>/data --package <workspace>/artifacts/demo_kb_package --output <command_output>",
+  "contract_command": "lifecycle-check --input <input> --package <package> --output <output>",
+  "status": "passed",
+  "evidence_level": "real_local_workflow",
+  "input_source": "previous_artifact",
+  "input_artifacts": [
+    {
+      "placeholder": "<input>",
+      "path": "<workspace>/data"
+    },
+    {
+      "placeholder": "<output>",
+      "path": "<command_output>"
+    },
+    {
+      "placeholder": "<package>",
+      "path": "<workspace>/artifacts/demo_kb_package"
+    }
+  ],
+  "output_reports": [
+    {
+      "report_id": "report_package_diff",
+      "path": "reports/report_package_diff.json"
+    }
+  ],
+  "output_artifacts": [
+    {
+      "artifact_id": "artifact_package_diff_fixture",
+      "path": "artifacts/artifact_package_diff_fixture.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "command_output_manifest",
+      "path": "artifacts/command_output_manifest.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ],
+  "errors_observed": [],
+  "blocked_reason": null,
+  "assertion_status": "passed",
+  "started_at": "2026-06-09T11:26:04.087382Z",
+  "ended_at": "2026-06-09T11:26:04.205194Z",
+  "duration_ms": 117,
+  "gate_impact": "contributes_to_p1_real_workflow_v2",
+  "command_exit_code": 0,
+  "output_path": "<command_output>",
+  "output_path_existed": true,
+  "deterministic_smoke_reason": null
+}

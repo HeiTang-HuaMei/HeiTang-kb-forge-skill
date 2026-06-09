@@ -1,0 +1,9 @@
+{
+  "action_id": "incremental_update",
+  "reports": [
+    {
+      "report_id": "report_incremental_update",
+      "path": "reports/report_incremental_update.json"
+    }
+  ]
+}

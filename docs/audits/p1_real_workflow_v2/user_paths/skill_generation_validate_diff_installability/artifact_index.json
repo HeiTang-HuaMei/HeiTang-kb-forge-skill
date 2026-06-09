@@ -1,0 +1,35 @@
+{
+  "user_path_id": "skill_generation_validate_diff_installability",
+  "artifacts": [
+    {
+      "artifact_id": "path_skill_generation_validate_diff_installability_book_to_skill",
+      "path": "../actions/book_to_skill/artifact_index.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "path_skill_generation_validate_diff_installability_package_to_skill",
+      "path": "../actions/package_to_skill/artifact_index.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "path_skill_generation_validate_diff_installability_skill_manifest_validate",
+      "path": "../actions/skill_manifest_validate/artifact_index.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "path_skill_generation_validate_diff_installability_skill_diff",
+      "path": "../actions/skill_diff/artifact_index.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "path_skill_generation_validate_diff_installability_package_export",
+      "path": "../actions/package_export/artifact_index.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ]
+}

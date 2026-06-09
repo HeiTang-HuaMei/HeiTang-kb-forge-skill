@@ -1,0 +1,17 @@
+{
+  "action_id": "artifact_vector_index_inspect",
+  "artifacts": [
+    {
+      "artifact_id": "artifact_vector_index",
+      "path": "artifacts/artifact_vector_index.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "command_output_manifest",
+      "path": "artifacts/command_output_manifest.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "action_id": "generate_docx",
+  "artifacts": [
+    {
+      "artifact_id": "artifact_generated_docx",
+      "path": "artifacts/artifact_generated_docx.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "command_output_manifest",
+      "path": "artifacts/command_output_manifest.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "command_output": "<command_output>",
+  "file_count": 11,
+  "files": [
+    {
+      "path": "conflict_report.json",
+      "suffix": ".json",
+      "size_bytes": 183,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "conflict_report.md",
+      "suffix": ".md",
+      "size_bytes": 49,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "governance_report.md",
+      "suffix": ".md",
+      "size_bytes": 143,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "lifecycle_manifest.json",
+      "suffix": ".json",
+      "size_bytes": 241,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "lifecycle_report.md",
+      "suffix": ".md",
+      "size_bytes": 83,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "package_diff.json",
+      "suffix": ".json",
+      "size_bytes": 287,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "package_diff_report.md",
+      "suffix": ".md",
+      "size_bytes": 81,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "review_queue.jsonl",
+      "suffix": ".jsonl",
+      "size_bytes": 0,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "review_queue_report.md",
+      "suffix": ".md",
+      "size_bytes": 94,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "staleness_report.json",
+      "suffix": ".json",
+      "size_bytes": 208,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "staleness_report.md",
+      "suffix": ".md",
+      "size_bytes": 50,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    }
+  ]
+}

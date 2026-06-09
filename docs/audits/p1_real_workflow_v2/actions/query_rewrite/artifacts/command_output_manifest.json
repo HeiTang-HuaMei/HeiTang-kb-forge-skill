@@ -1,0 +1,34 @@
+{
+  "command_output": "<command_output>",
+  "file_count": 4,
+  "files": [
+    {
+      "path": "query_rewrite_report.json",
+      "suffix": ".json",
+      "size_bytes": 603,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "query_rewrite_trace.json",
+      "suffix": ".json",
+      "size_bytes": 791,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "retrieval_plan.json",
+      "suffix": ".json",
+      "size_bytes": 1786,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "retrieval_plan_report.md",
+      "suffix": ".md",
+      "size_bytes": 645,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    }
+  ]
+}

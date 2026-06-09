@@ -1,0 +1,21 @@
+{
+  "user_path_id": "reports_audit_gate_summary",
+  "reports": [
+    {
+      "report_id": "path_reports_audit_gate_summary_product_hardening",
+      "path": "../actions/product_hardening/report_index.json"
+    },
+    {
+      "report_id": "path_reports_audit_gate_summary_final_gate",
+      "path": "../actions/final_gate/report_index.json"
+    },
+    {
+      "report_id": "path_reports_audit_gate_summary_format_support_matrix",
+      "path": "../actions/format_support_matrix/report_index.json"
+    },
+    {
+      "report_id": "path_reports_audit_gate_summary_ocr_required_detection",
+      "path": "../actions/ocr_required_detection/report_index.json"
+    }
+  ]
+}

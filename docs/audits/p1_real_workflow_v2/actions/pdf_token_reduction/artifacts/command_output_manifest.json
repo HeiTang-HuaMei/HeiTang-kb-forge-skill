@@ -1,0 +1,48 @@
+{
+  "command_output": "<command_output>",
+  "file_count": 6,
+  "files": [
+    {
+      "path": "local_pdf_markdown_report.json",
+      "suffix": ".json",
+      "size_bytes": 439,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "no_cloud_upload_report.json",
+      "suffix": ".json",
+      "size_bytes": 360,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "parser_backend_benchmark_report.json",
+      "suffix": ".json",
+      "size_bytes": 676,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "parser_backend_selection_report.json",
+      "suffix": ".json",
+      "size_bytes": 372,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "pdf_token_reduction_report.json",
+      "suffix": ".json",
+      "size_bytes": 469,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "v39_external_absorption_map.json",
+      "suffix": ".json",
+      "size_bytes": 31265,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    }
+  ]
+}

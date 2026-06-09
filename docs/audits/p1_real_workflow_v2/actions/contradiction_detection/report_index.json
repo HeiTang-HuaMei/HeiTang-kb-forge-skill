@@ -1,0 +1,9 @@
+{
+  "action_id": "contradiction_detection",
+  "reports": [
+    {
+      "report_id": "report_contradiction_detection",
+      "path": "reports/report_contradiction_detection.json"
+    }
+  ]
+}

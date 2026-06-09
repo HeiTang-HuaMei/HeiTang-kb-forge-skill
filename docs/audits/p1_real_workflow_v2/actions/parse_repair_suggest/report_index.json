@@ -1,0 +1,9 @@
+{
+  "action_id": "parse_repair_suggest",
+  "reports": [
+    {
+      "report_id": "report_parse_repair_suggestion",
+      "path": "reports/report_parse_repair_suggestion.json"
+    }
+  ]
+}

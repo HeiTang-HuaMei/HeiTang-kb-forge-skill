@@ -1,0 +1,5 @@
+{
+  "report_id": "report_stale_document",
+  "action_id": "stale_document_detect",
+  "status": "pass"
+}

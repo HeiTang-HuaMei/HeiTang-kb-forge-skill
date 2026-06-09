@@ -1,0 +1,5 @@
+{
+  "artifact_id": "artifact_stale_document_list",
+  "action_id": "stale_document_detect",
+  "status": "available"
+}

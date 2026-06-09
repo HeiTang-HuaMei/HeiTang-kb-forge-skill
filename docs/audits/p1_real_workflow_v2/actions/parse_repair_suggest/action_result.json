@@ -1,0 +1,49 @@
+{
+  "action_id": "parse_repair_suggest",
+  "command": "parse-reimport-corrected-text --corrected-text <workspace>/data/corrected_text.md --output <command_output>",
+  "contract_command": "parse-reimport-corrected-text --corrected-text <file> --output <output>",
+  "status": "passed",
+  "evidence_level": "real_local_workflow",
+  "input_source": "demo_input",
+  "input_artifacts": [
+    {
+      "placeholder": "<file>",
+      "path": "<workspace>/data/corrected_text.md"
+    },
+    {
+      "placeholder": "<output>",
+      "path": "<command_output>"
+    }
+  ],
+  "output_reports": [
+    {
+      "report_id": "report_parse_repair_suggestion",
+      "path": "reports/report_parse_repair_suggestion.json"
+    }
+  ],
+  "output_artifacts": [
+    {
+      "artifact_id": "artifact_parse_repair_patch_fixture",
+      "path": "artifacts/artifact_parse_repair_patch_fixture.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "command_output_manifest",
+      "path": "artifacts/command_output_manifest.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ],
+  "errors_observed": [],
+  "blocked_reason": null,
+  "assertion_status": "passed",
+  "started_at": "2026-06-09T11:26:02.667732Z",
+  "ended_at": "2026-06-09T11:26:02.900573Z",
+  "duration_ms": 232,
+  "gate_impact": "contributes_to_p1_real_workflow_v2",
+  "command_exit_code": 0,
+  "output_path": "<command_output>",
+  "output_path_existed": true,
+  "deterministic_smoke_reason": null
+}

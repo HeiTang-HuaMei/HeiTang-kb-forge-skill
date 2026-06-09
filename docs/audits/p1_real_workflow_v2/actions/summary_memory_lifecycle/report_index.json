@@ -1,0 +1,9 @@
+{
+  "action_id": "summary_memory_lifecycle",
+  "reports": [
+    {
+      "report_id": "report_summary_memory_lifecycle",
+      "path": "reports/report_summary_memory_lifecycle.json"
+    }
+  ]
+}

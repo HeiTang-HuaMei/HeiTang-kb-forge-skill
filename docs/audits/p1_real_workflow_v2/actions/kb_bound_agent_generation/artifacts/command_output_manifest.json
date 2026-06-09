@@ -1,0 +1,83 @@
+{
+  "command_output": "<command_output>",
+  "file_count": 11,
+  "files": [
+    {
+      "path": "agent_package_report.md",
+      "suffix": ".md",
+      "size_bytes": 333,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "agent_profile.yaml",
+      "suffix": ".yaml",
+      "size_bytes": 437,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "launch_checklist.md",
+      "suffix": ".md",
+      "size_bytes": 214,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "memory_policy.md",
+      "suffix": ".md",
+      "size_bytes": 175,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "retrieval_config.yaml",
+      "suffix": ".yaml",
+      "size_bytes": 165,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "role.md",
+      "suffix": ".md",
+      "size_bytes": 133,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "safety_boundary.md",
+      "suffix": ".md",
+      "size_bytes": 191,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "skill_manifest.yaml",
+      "suffix": ".yaml",
+      "size_bytes": 4036,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "soul.md",
+      "suffix": ".md",
+      "size_bytes": 215,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "system_prompt.md",
+      "suffix": ".md",
+      "size_bytes": 240,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "tool_config.yaml",
+      "suffix": ".yaml",
+      "size_bytes": 229,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    }
+  ]
+}

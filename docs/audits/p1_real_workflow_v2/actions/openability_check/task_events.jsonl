@@ -1,0 +1,3 @@
+{"task_id": "task_openability_check", "action_id": "openability_check", "status": "queued", "progress": 0, "current_step": "created"}
+{"task_id": "task_openability_check", "action_id": "openability_check", "status": "running", "progress": 50, "current_step": "executing_local_v2"}
+{"task_id": "task_openability_check", "action_id": "openability_check", "status": "succeeded", "progress": 100, "current_step": "evidence_written"}

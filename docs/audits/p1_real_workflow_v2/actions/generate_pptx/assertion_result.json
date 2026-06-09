@@ -1,0 +1,26 @@
+{
+  "action_id": "generate_pptx",
+  "status": "passed",
+  "checks": [
+    {
+      "check_id": "command_exit_code_zero",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check_id": "output_path_existed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check_id": "has_report_artifact_or_task_event",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check_id": "not_blocked",
+      "passed": true,
+      "detail": null
+    }
+  ]
+}

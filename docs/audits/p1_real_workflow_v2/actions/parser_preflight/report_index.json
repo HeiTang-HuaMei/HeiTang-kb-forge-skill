@@ -1,0 +1,9 @@
+{
+  "action_id": "parser_preflight",
+  "reports": [
+    {
+      "report_id": "report_parser_preflight",
+      "path": "reports/report_parser_preflight.json"
+    }
+  ]
+}

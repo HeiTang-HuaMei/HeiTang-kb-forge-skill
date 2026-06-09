@@ -1,0 +1,29 @@
+{
+  "user_path_id": "workspace_import_build_validate_artifact",
+  "reports": [
+    {
+      "report_id": "path_workspace_import_build_validate_artifact_workspace_inspect",
+      "path": "../actions/workspace_inspect/report_index.json"
+    },
+    {
+      "report_id": "path_workspace_import_build_validate_artifact_workspace_health",
+      "path": "../actions/workspace_health/report_index.json"
+    },
+    {
+      "report_id": "path_workspace_import_build_validate_artifact_parser_preflight",
+      "path": "../actions/parser_preflight/report_index.json"
+    },
+    {
+      "report_id": "path_workspace_import_build_validate_artifact_package_build",
+      "path": "../actions/package_build/report_index.json"
+    },
+    {
+      "report_id": "path_workspace_import_build_validate_artifact_package_validation",
+      "path": "../actions/package_validation/report_index.json"
+    },
+    {
+      "report_id": "path_workspace_import_build_validate_artifact_artifact_kb_package_inspect",
+      "path": "../actions/artifact_kb_package_inspect/report_index.json"
+    }
+  ]
+}

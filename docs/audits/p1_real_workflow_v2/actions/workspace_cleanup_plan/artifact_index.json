@@ -1,0 +1,17 @@
+{
+  "action_id": "workspace_cleanup_plan",
+  "artifacts": [
+    {
+      "artifact_id": "artifact_cleanup_plan_fixture",
+      "path": "artifacts/artifact_cleanup_plan_fixture.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "command_output_manifest",
+      "path": "artifacts/command_output_manifest.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ]
+}

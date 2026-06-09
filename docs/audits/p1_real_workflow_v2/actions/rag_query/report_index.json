@@ -1,0 +1,9 @@
+{
+  "action_id": "rag_query",
+  "reports": [
+    {
+      "report_id": "report_rag_query",
+      "path": "reports/report_rag_query.json"
+    }
+  ]
+}

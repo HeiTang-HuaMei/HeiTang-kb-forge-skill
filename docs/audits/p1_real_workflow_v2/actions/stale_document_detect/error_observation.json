@@ -1,0 +1,6 @@
+{
+  "action_id": "stale_document_detect",
+  "status": "none",
+  "errors_observed": [],
+  "repair_suggestion": null
+}

@@ -1,0 +1,9 @@
+{
+  "action_id": "llm_provider_validate",
+  "status": "blocked",
+  "errors_observed": [
+    "provider_auth_failed"
+  ],
+  "blocked_reason": "Provider, network, or explicit user configuration is required; not executed as a local P1-RWF-V2 target.",
+  "repair_suggestion": "Provide explicit user configuration only after the UI/bridge boundary allows it."
+}

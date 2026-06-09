@@ -1,0 +1,9 @@
+{
+  "action_id": "format_support_matrix",
+  "reports": [
+    {
+      "report_id": "report_format_support_matrix",
+      "path": "reports/report_format_support_matrix.json"
+    }
+  ]
+}

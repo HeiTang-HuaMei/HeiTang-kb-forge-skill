@@ -1,0 +1,5 @@
+{
+  "artifact_id": "artifact_provider_profile_schema",
+  "action_id": "llm_provider_validate",
+  "status": "available"
+}

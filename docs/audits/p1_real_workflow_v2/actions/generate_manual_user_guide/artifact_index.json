@@ -1,0 +1,17 @@
+{
+  "action_id": "generate_manual_user_guide",
+  "artifacts": [
+    {
+      "artifact_id": "artifact_user_guide",
+      "path": "artifacts/artifact_user_guide.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "command_output_manifest",
+      "path": "artifacts/command_output_manifest.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ]
+}

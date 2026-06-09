@@ -1,0 +1,17 @@
+{
+  "action_id": "run_agent",
+  "artifacts": [
+    {
+      "artifact_id": "artifact_runtime_trace",
+      "path": "artifacts/artifact_runtime_trace.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "command_output_manifest",
+      "path": "artifacts/command_output_manifest.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ]
+}

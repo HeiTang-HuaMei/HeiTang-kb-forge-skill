@@ -1,0 +1,45 @@
+{
+  "action_id": "memory_cleanup",
+  "command": "plan-memory-lifecycle --output <command_output>",
+  "contract_command": "plan-memory-lifecycle --output <output>",
+  "status": "passed",
+  "evidence_level": "real_local_workflow",
+  "input_source": "demo_input",
+  "input_artifacts": [
+    {
+      "placeholder": "<output>",
+      "path": "<command_output>"
+    }
+  ],
+  "output_reports": [
+    {
+      "report_id": "report_memory_cleanup",
+      "path": "reports/report_memory_cleanup.json"
+    }
+  ],
+  "output_artifacts": [
+    {
+      "artifact_id": "artifact_memory_cleanup_plan",
+      "path": "artifacts/artifact_memory_cleanup_plan.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "command_output_manifest",
+      "path": "artifacts/command_output_manifest.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ],
+  "errors_observed": [],
+  "blocked_reason": null,
+  "assertion_status": "passed",
+  "started_at": "2026-06-09T11:26:11.406817Z",
+  "ended_at": "2026-06-09T11:26:11.519041Z",
+  "duration_ms": 112,
+  "gate_impact": "contributes_to_p1_real_workflow_v2",
+  "command_exit_code": 0,
+  "output_path": "<command_output>",
+  "output_path_existed": true,
+  "deterministic_smoke_reason": null
+}

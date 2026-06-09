@@ -1,0 +1,29 @@
+{
+  "action_id": "vector_db_validate",
+  "command": "vector-db-completion --output <output>",
+  "contract_command": "vector-db-completion --output <output>",
+  "status": "blocked",
+  "evidence_level": "blocked",
+  "input_source": "blocked",
+  "input_artifacts": [
+    {
+      "placeholder": "<output>",
+      "path": "<command_output>"
+    }
+  ],
+  "output_reports": [],
+  "output_artifacts": [],
+  "errors_observed": [
+    "vector_db_failed"
+  ],
+  "blocked_reason": "Provider, network, or explicit user configuration is required; not executed as a local P1-RWF-V2 target.",
+  "assertion_status": "passed",
+  "started_at": "2026-06-09T11:26:05.633761Z",
+  "ended_at": "2026-06-09T11:26:05.667670Z",
+  "duration_ms": 33,
+  "gate_impact": "excluded_from_57_ready_action_execution",
+  "command_exit_code": null,
+  "output_path": null,
+  "output_path_existed": false,
+  "deterministic_smoke_reason": null
+}

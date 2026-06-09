@@ -1,0 +1,17 @@
+{
+  "action_id": "openability_check",
+  "artifacts": [
+    {
+      "artifact_id": "artifact_openability_proof",
+      "path": "artifacts/artifact_openability_proof.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "command_output_manifest",
+      "path": "artifacts/command_output_manifest.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ]
+}

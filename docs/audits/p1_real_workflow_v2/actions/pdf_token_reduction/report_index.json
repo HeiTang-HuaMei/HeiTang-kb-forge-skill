@@ -1,0 +1,9 @@
+{
+  "action_id": "pdf_token_reduction",
+  "reports": [
+    {
+      "report_id": "report_pdf_token_reduction",
+      "path": "reports/report_pdf_token_reduction.json"
+    }
+  ]
+}

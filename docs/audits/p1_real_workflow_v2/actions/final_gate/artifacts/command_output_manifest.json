@@ -1,0 +1,475 @@
+{
+  "command_output": "<command_output>",
+  "file_count": 67,
+  "files": [
+    {
+      "path": "artifact_openability_report.json",
+      "suffix": ".json",
+      "size_bytes": 1500,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "batch_parallel_readiness_report.json",
+      "suffix": ".json",
+      "size_bytes": 386,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "byo_storage_security_readiness_report.json",
+      "suffix": ".json",
+      "size_bytes": 372,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "byo_storage_security_readiness_report.md",
+      "suffix": ".md",
+      "size_bytes": 500,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "cli_contract_audit_report.json",
+      "suffix": ".json",
+      "size_bytes": 977,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "config_pipeline_audit_report.json",
+      "suffix": ".json",
+      "size_bytes": 447,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "config_secret_handling_report.json",
+      "suffix": ".json",
+      "size_bytes": 293,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "config_secret_handling_report.md",
+      "suffix": ".md",
+      "size_bytes": 413,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "core_ui_contract_drift_final_report.json",
+      "suffix": ".json",
+      "size_bytes": 404,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "core_ui_contract_drift_final_report.md",
+      "suffix": ".md",
+      "size_bytes": 530,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "data_classification_report.json",
+      "suffix": ".json",
+      "size_bytes": 1154,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "data_classification_report.md",
+      "suffix": ".md",
+      "size_bytes": 1271,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "docs_truth_audit_report.json",
+      "suffix": ".json",
+      "size_bytes": 492,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "error_stability_report.json",
+      "suffix": ".json",
+      "size_bytes": 198,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_artifact_report_validation.json",
+      "suffix": ".json",
+      "size_bytes": 393,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_bilingual_docs_parity_report.json",
+      "suffix": ".json",
+      "size_bytes": 1881,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_cli_config_pipeline_audit_report.json",
+      "suffix": ".json",
+      "size_bytes": 298,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_cli_config_pipeline_audit_report.md",
+      "suffix": ".md",
+      "size_bytes": 419,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_core_ui_product_audit_report.json",
+      "suffix": ".json",
+      "size_bytes": 398,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_core_ui_product_audit_report.md",
+      "suffix": ".md",
+      "size_bytes": 523,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_docs_structure_audit_report.json",
+      "suffix": ".json",
+      "size_bytes": 1678,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_docs_truth_audit_report.json",
+      "suffix": ".json",
+      "size_bytes": 492,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_docs_user_operability_report.json",
+      "suffix": ".json",
+      "size_bytes": 1323,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_external_absorption_audit.json",
+      "suffix": ".json",
+      "size_bytes": 2285,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_fix_log.json",
+      "suffix": ".json",
+      "size_bytes": 723,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_functionality_truth_matrix.json",
+      "suffix": ".json",
+      "size_bytes": 14028,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_functionality_truth_matrix.md",
+      "suffix": ".md",
+      "size_bytes": 773,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_industrial_red_team_report.json",
+      "suffix": ".json",
+      "size_bytes": 6616,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_industrial_red_team_report.md",
+      "suffix": ".md",
+      "size_bytes": 6231,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_product_capability_proof_report.json",
+      "suffix": ".json",
+      "size_bytes": 2260,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_product_capability_proof_report.md",
+      "suffix": ".md",
+      "size_bytes": 1149,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_product_capability_proof_report.zh-CN.md",
+      "suffix": ".md",
+      "size_bytes": 558,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_regression_matrix.json",
+      "suffix": ".json",
+      "size_bytes": 1478,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_scale_performance_report.json",
+      "suffix": ".json",
+      "size_bytes": 482,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_scale_performance_report.md",
+      "suffix": ".md",
+      "size_bytes": 603,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_security_privacy_report.json",
+      "suffix": ".json",
+      "size_bytes": 681,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_security_privacy_report.md",
+      "suffix": ".md",
+      "size_bytes": 796,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_user_workflow_acceptance_report.json",
+      "suffix": ".json",
+      "size_bytes": 5593,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_user_workflow_acceptance_report.md",
+      "suffix": ".md",
+      "size_bytes": 674,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_v4_rc_gate_report.json",
+      "suffix": ".json",
+      "size_bytes": 37616,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_v4_rc_gate_report.md",
+      "suffix": ".md",
+      "size_bytes": 1245,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_v4_rc_gate_report.zh-CN.md",
+      "suffix": ".md",
+      "size_bytes": 551,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_version_history_audit.json",
+      "suffix": ".json",
+      "size_bytes": 909,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "final_version_history_audit.md",
+      "suffix": ".md",
+      "size_bytes": 1019,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "network_dependency_audit_report.json",
+      "suffix": ".json",
+      "size_bytes": 19218,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "network_dependency_audit_report.md",
+      "suffix": ".md",
+      "size_bytes": 6260,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "no_hidden_upload_report.json",
+      "suffix": ".json",
+      "size_bytes": 307,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "no_hidden_upload_report.md",
+      "suffix": ".md",
+      "size_bytes": 421,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "registry_scale_report.json",
+      "suffix": ".json",
+      "size_bytes": 402,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "report_non_empty_validation_report.json",
+      "suffix": ".json",
+      "size_bytes": 3068,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "repository_surface_audit_report.json",
+      "suffix": ".json",
+      "size_bytes": 4178,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "repository_surface_audit_report.md",
+      "suffix": ".md",
+      "size_bytes": 4300,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "runtime_speed_report.json",
+      "suffix": ".json",
+      "size_bytes": 270,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "secrets_leakage_audit_report.json",
+      "suffix": ".json",
+      "size_bytes": 429,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "secrets_leakage_audit_report.md",
+      "suffix": ".md",
+      "size_bytes": 543,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "storage_backend_security_report.json",
+      "suffix": ".json",
+      "size_bytes": 402,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "storage_backend_security_report.md",
+      "suffix": ".md",
+      "size_bytes": 524,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "threat_model_report.json",
+      "suffix": ".json",
+      "size_bytes": 1197,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "threat_model_report.md",
+      "suffix": ".md",
+      "size_bytes": 1307,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "ui_product_acceptance_report.json",
+      "suffix": ".json",
+      "size_bytes": 358,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "ui_product_acceptance_report.md",
+      "suffix": ".md",
+      "size_bytes": 477,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "ui_security_privacy_acceptance_report.json",
+      "suffix": ".json",
+      "size_bytes": 433,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "ui_security_privacy_acceptance_report.md",
+      "suffix": ".md",
+      "size_bytes": 561,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "v4_rc_final_gate_report.json",
+      "suffix": ".json",
+      "size_bytes": 37616,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "v4_rc_final_gate_report.md",
+      "suffix": ".md",
+      "size_bytes": 176,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "version_metadata_audit_report.json",
+      "suffix": ".json",
+      "size_bytes": 2163,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "version_metadata_audit_report.md",
+      "suffix": ".md",
+      "size_bytes": 2275,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    }
+  ]
+}

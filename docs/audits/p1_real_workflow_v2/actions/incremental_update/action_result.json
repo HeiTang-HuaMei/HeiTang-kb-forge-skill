@@ -1,0 +1,49 @@
+{
+  "action_id": "incremental_update",
+  "command": "refresh-check --workspace <workspace> --output <command_output>",
+  "contract_command": "refresh-check --workspace <workspace> --output <output>",
+  "status": "passed",
+  "evidence_level": "real_local_workflow",
+  "input_source": "generated_workspace",
+  "input_artifacts": [
+    {
+      "placeholder": "<output>",
+      "path": "<command_output>"
+    },
+    {
+      "placeholder": "<workspace>",
+      "path": "<workspace>"
+    }
+  ],
+  "output_reports": [
+    {
+      "report_id": "report_incremental_update",
+      "path": "reports/report_incremental_update.json"
+    }
+  ],
+  "output_artifacts": [
+    {
+      "artifact_id": "artifact_incremental_plan_fixture",
+      "path": "artifacts/artifact_incremental_plan_fixture.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "command_output_manifest",
+      "path": "artifacts/command_output_manifest.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ],
+  "errors_observed": [],
+  "blocked_reason": null,
+  "assertion_status": "passed",
+  "started_at": "2026-06-09T11:26:04.228838Z",
+  "ended_at": "2026-06-09T11:26:04.354487Z",
+  "duration_ms": 124,
+  "gate_impact": "contributes_to_p1_real_workflow_v2",
+  "command_exit_code": 0,
+  "output_path": "<command_output>",
+  "output_path_existed": true,
+  "deterministic_smoke_reason": null
+}

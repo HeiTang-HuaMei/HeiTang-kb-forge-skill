@@ -1,0 +1,45 @@
+{
+  "action_id": "workspace_inspect",
+  "command": "workspace-list --workspace <workspace>",
+  "contract_command": "workspace-list --workspace <workspace>",
+  "status": "passed",
+  "evidence_level": "real_local_workflow",
+  "input_source": "generated_workspace",
+  "input_artifacts": [
+    {
+      "placeholder": "<workspace>",
+      "path": "<workspace>"
+    }
+  ],
+  "output_reports": [
+    {
+      "report_id": "report_workspace_health",
+      "path": "reports/report_workspace_health.json"
+    }
+  ],
+  "output_artifacts": [
+    {
+      "artifact_id": "artifact_workspace_registry_snapshot",
+      "path": "artifacts/artifact_workspace_registry_snapshot.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "command_output_manifest",
+      "path": "artifacts/command_output_manifest.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ],
+  "errors_observed": [],
+  "blocked_reason": null,
+  "assertion_status": "passed",
+  "started_at": "2026-06-09T11:26:00.939543Z",
+  "ended_at": "2026-06-09T11:26:00.991777Z",
+  "duration_ms": 51,
+  "gate_impact": "contributes_to_p1_real_workflow_v2",
+  "command_exit_code": 0,
+  "output_path": "<command_output>",
+  "output_path_existed": true,
+  "deterministic_smoke_reason": null
+}

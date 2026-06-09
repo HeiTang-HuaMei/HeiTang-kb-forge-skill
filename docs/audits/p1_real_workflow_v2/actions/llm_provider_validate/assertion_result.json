@@ -1,0 +1,16 @@
+{
+  "action_id": "llm_provider_validate",
+  "status": "passed",
+  "checks": [
+    {
+      "check_id": "blocked_reason_present",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check_id": "not_real_local_passed",
+      "passed": true,
+      "detail": null
+    }
+  ]
+}

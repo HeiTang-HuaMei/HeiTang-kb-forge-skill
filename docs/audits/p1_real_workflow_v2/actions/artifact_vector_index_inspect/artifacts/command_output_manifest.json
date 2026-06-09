@@ -1,0 +1,41 @@
+{
+  "command_output": "<command_output>",
+  "file_count": 5,
+  "files": [
+    {
+      "path": "kb_index.jsonl",
+      "suffix": ".jsonl",
+      "size_bytes": 1313,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "kb_index_manifest.json",
+      "suffix": ".json",
+      "size_bytes": 421,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "rag_eval_baseline.jsonl",
+      "suffix": ".jsonl",
+      "size_bytes": 789,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "rag_eval_baseline_report.md",
+      "suffix": ".md",
+      "size_bytes": 327,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "retrieval_quality_report.json",
+      "suffix": ".json",
+      "size_bytes": 264,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    }
+  ]
+}

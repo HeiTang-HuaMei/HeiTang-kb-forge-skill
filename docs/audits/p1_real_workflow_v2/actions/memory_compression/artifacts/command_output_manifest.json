@@ -1,0 +1,48 @@
+{
+  "command_output": "<command_output>",
+  "file_count": 6,
+  "files": [
+    {
+      "path": "memory_compaction_plan.json",
+      "suffix": ".json",
+      "size_bytes": 1013,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "memory_index_contract.json",
+      "suffix": ".json",
+      "size_bytes": 194,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "memory_lifecycle_report.json",
+      "suffix": ".json",
+      "size_bytes": 1579,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "memory_lifecycle_report.md",
+      "suffix": ".md",
+      "size_bytes": 784,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "memory_retention_policy.json",
+      "suffix": ".json",
+      "size_bytes": 358,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    },
+    {
+      "path": "token_budget_policy.json",
+      "suffix": ".json",
+      "size_bytes": 969,
+      "committed_to_repo": false,
+      "commit_policy": "summarized_only"
+    }
+  ]
+}

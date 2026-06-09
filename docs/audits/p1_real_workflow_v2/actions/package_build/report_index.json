@@ -1,0 +1,9 @@
+{
+  "action_id": "package_build",
+  "reports": [
+    {
+      "report_id": "report_package_quality",
+      "path": "reports/report_package_quality.json"
+    }
+  ]
+}

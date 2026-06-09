@@ -1,0 +1,9 @@
+{
+  "action_id": "package_pipeline",
+  "reports": [
+    {
+      "report_id": "report_pipeline_summary",
+      "path": "reports/report_pipeline_summary.json"
+    }
+  ]
+}

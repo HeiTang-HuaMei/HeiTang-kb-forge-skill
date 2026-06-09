@@ -1,0 +1,9 @@
+{
+  "action_id": "query_rewrite",
+  "reports": [
+    {
+      "report_id": "report_query_rewrite",
+      "path": "reports/report_query_rewrite.json"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "action_id": "retrieval_planning",
+  "command": "plan-retrieval --query What local evidence is available in the deterministic P1 demo package? --output <command_output>",
+  "contract_command": "plan-retrieval --query <query> --output <output>",
+  "status": "passed",
+  "evidence_level": "real_local_workflow",
+  "input_source": "demo_input",
+  "input_artifacts": [
+    {
+      "placeholder": "<output>",
+      "path": "<command_output>"
+    },
+    {
+      "placeholder": "<query>",
+      "path": "What local evidence is available in the deterministic P1 demo package?"
+    }
+  ],
+  "output_reports": [
+    {
+      "report_id": "report_retrieval_plan",
+      "path": "reports/report_retrieval_plan.json"
+    }
+  ],
+  "output_artifacts": [
+    {
+      "artifact_id": "artifact_retrieval_plan",
+      "path": "artifacts/artifact_retrieval_plan.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "command_output_manifest",
+      "path": "artifacts/command_output_manifest.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ],
+  "errors_observed": [],
+  "blocked_reason": null,
+  "assertion_status": "passed",
+  "started_at": "2026-06-09T11:26:04.687144Z",
+  "ended_at": "2026-06-09T11:26:04.776242Z",
+  "duration_ms": 88,
+  "gate_impact": "contributes_to_p1_real_workflow_v2",
+  "command_exit_code": 0,
+  "output_path": "<command_output>",
+  "output_path_existed": true,
+  "deterministic_smoke_reason": null
+}

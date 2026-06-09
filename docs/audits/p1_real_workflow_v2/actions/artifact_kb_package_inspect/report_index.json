@@ -1,0 +1,9 @@
+{
+  "action_id": "artifact_kb_package_inspect",
+  "reports": [
+    {
+      "report_id": "report_artifact_kb_package",
+      "path": "reports/report_artifact_kb_package.json"
+    }
+  ]
+}

@@ -15,6 +15,22 @@ from heitang_kb_forge.workbench.golden_workflows import (
     workflow_artifact_index,
     workflow_status,
 )
+from heitang_kb_forge.workbench.action_executor import (
+    action_result_status,
+    run_p1_ready_action,
+    run_p1_ready_actions,
+)
+from heitang_kb_forge.workbench.action_input_planner import write_action_execution_plan
+from heitang_kb_forge.workbench.full_action_matrix import (
+    P1_RWF_V2_READY_ACTION_TARGET_COUNT,
+    build_full_ready_action_matrix,
+    write_full_ready_action_matrix,
+)
+from heitang_kb_forge.workbench.full_user_path_gate import (
+    P1_RWF_V2_REPORT_FILES,
+    P1_RWF_V2_USER_PATHS,
+    run_full_local_user_path,
+)
 
 __all__ = [
     "P1_WORKBENCH_OUTPUT_FILES",
@@ -24,9 +40,19 @@ __all__ = [
     "make_p1_workbench_smoke",
     "P1_RWF_V1_REPORT_FILES",
     "P1_RWF_V1_WORKFLOWS",
+    "P1_RWF_V2_READY_ACTION_TARGET_COUNT",
+    "P1_RWF_V2_REPORT_FILES",
+    "P1_RWF_V2_USER_PATHS",
+    "action_result_status",
+    "build_full_ready_action_matrix",
     "error_repair",
     "run_p1_golden_workflow",
     "run_p1_golden_workflows",
+    "run_full_local_user_path",
+    "run_p1_ready_action",
+    "run_p1_ready_actions",
+    "write_action_execution_plan",
+    "write_full_ready_action_matrix",
     "workflow_artifact_index",
     "workflow_status",
     "write_p1_workbench_bundle",

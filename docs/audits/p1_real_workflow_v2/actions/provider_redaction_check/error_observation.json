@@ -1,0 +1,9 @@
+{
+  "action_id": "provider_redaction_check",
+  "status": "blocked",
+  "errors_observed": [
+    "secret_risk"
+  ],
+  "blocked_reason": "Secret-risk handling remains blocked and is not executed with synthetic secrets.",
+  "repair_suggestion": "Provide explicit user configuration only after the UI/bridge boundary allows it."
+}

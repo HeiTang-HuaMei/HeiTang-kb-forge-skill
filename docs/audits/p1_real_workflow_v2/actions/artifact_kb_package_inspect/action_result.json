@@ -1,0 +1,49 @@
+{
+  "action_id": "artifact_kb_package_inspect",
+  "command": "check-contract --package <workspace>/artifacts/demo_kb_package --output <command_output>",
+  "contract_command": "check-contract --package <package> --output <output>",
+  "status": "passed",
+  "evidence_level": "real_local_workflow",
+  "input_source": "previous_artifact",
+  "input_artifacts": [
+    {
+      "placeholder": "<output>",
+      "path": "<command_output>"
+    },
+    {
+      "placeholder": "<package>",
+      "path": "<workspace>/artifacts/demo_kb_package"
+    }
+  ],
+  "output_reports": [
+    {
+      "report_id": "report_artifact_kb_package",
+      "path": "reports/report_artifact_kb_package.json"
+    }
+  ],
+  "output_artifacts": [
+    {
+      "artifact_id": "artifact_kb_package",
+      "path": "artifacts/artifact_kb_package.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "command_output_manifest",
+      "path": "artifacts/command_output_manifest.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ],
+  "errors_observed": [],
+  "blocked_reason": null,
+  "assertion_status": "passed",
+  "started_at": "2026-06-09T11:26:48.680500Z",
+  "ended_at": "2026-06-09T11:26:48.747471Z",
+  "duration_ms": 66,
+  "gate_impact": "contributes_to_p1_real_workflow_v2",
+  "command_exit_code": 0,
+  "output_path": "<command_output>",
+  "output_path_existed": true,
+  "deterministic_smoke_reason": null
+}

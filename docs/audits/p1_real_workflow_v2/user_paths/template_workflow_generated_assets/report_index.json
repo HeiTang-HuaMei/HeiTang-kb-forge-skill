@@ -1,0 +1,21 @@
+{
+  "user_path_id": "template_workflow_generated_assets",
+  "reports": [
+    {
+      "report_id": "path_template_workflow_generated_assets_package_pipeline",
+      "path": "../actions/package_pipeline/report_index.json"
+    },
+    {
+      "report_id": "path_template_workflow_generated_assets_book_to_skill",
+      "path": "../actions/book_to_skill/report_index.json"
+    },
+    {
+      "report_id": "path_template_workflow_generated_assets_standalone_agent_generation",
+      "path": "../actions/standalone_agent_generation/report_index.json"
+    },
+    {
+      "report_id": "path_template_workflow_generated_assets_artifact_agent_package_inspect",
+      "path": "../actions/artifact_agent_package_inspect/report_index.json"
+    }
+  ]
+}

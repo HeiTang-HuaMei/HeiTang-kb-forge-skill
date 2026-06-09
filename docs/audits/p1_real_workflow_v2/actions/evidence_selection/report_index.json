@@ -1,0 +1,9 @@
+{
+  "action_id": "evidence_selection",
+  "reports": [
+    {
+      "report_id": "report_evidence_selection",
+      "path": "reports/report_evidence_selection.json"
+    }
+  ]
+}

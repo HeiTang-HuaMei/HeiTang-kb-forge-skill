@@ -1,0 +1,17 @@
+{
+  "action_id": "package_to_skill",
+  "artifacts": [
+    {
+      "artifact_id": "artifact_skill_package",
+      "path": "artifacts/artifact_skill_package.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    },
+    {
+      "artifact_id": "command_output_manifest",
+      "path": "artifacts/command_output_manifest.json",
+      "sensitive": false,
+      "safe_copy_eligible": true
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "artifact_id": "artifact_vector_smoke_trace",
+  "action_id": "vector_upsert_query_smoke",
+  "status": "available"
+}
