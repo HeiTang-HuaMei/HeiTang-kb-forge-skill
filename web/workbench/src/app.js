@@ -394,6 +394,7 @@ function dashboardRail(data) {
 
 function renderOperationGate(data) {
   const gate = data.p1Contracts.gate_report;
+  const v2Reports = data.p1RealWorkflowV2Reports;
   return renderP1ContractPage(data, "operation-gate", {
     extraRail: `
       ${rightPanel(label("P1-RWF-V1 Evidence", "P1-RWF-V1 证据"), `
@@ -402,12 +403,22 @@ function renderOperationGate(data) {
         ${miniMetric("full gate", data.p1RealWorkflowV1.p1_full_operation_gate_status)}
         <p>${label("Fixture-only evidence is not counted as real workflow completion.", "fixture-only 证据不计为真实工作流完成。")}</p>
       `)}
+      ${rightPanel(label("P1-RWF-V2 Evidence", "P1-RWF-V2 证据"), `
+        ${miniMetric("status", v2Reports.gateReport.p1_real_workflow_v2_status)}
+        ${miniMetric("57 actions", `${v2Reports.actionResults.passed_count}/${v2Reports.matrix.execution_target_count}`)}
+        ${miniMetric("user paths", `${v2Reports.userPaths.passed_count}/${v2Reports.userPaths.user_path_count}`)}
+        ${miniMetric("full gate", data.p1RealWorkflowV2.p1_full_operation_gate_status)}
+        ${miniMetric("assertions", `${v2Reports.artifactAssertions.status}/${v2Reports.reportAssertions.status}/${v2Reports.errorBoundary.status}`)}
+        <p>${label("Provider, secret, and network actions remain blocked and are not counted as real-local passed.", "provider、secret 与 network action 仍保持 blocked，不计为 real-local passed。")}</p>
+      `)}
+      ${rightPanel(label("V2 Remaining Blockers", "V2 剩余阻塞"), `${miniMetric("status", data.p1RealWorkflowV2.remaining_blockers.length === 0 ? "none" : v2Reports.remainingBlockers.status)}${miniMetric("Core report", v2Reports.remainingBlockers.status)}`)}
       ${rightPanel(label("Blocked Reasons", "阻塞原因"), idList(gate.blocker_ids.map((id) => ({ id, title: id })), "id"))}
     `
   });
 }
 
 function renderCapabilityMatrix(data) {
+  const v2Reports = data.p1RealWorkflowV2Reports;
   const rows = data.p1Contracts.capability_matrix.map((area) => [
     `<strong>${area.page_id}</strong><br><span class="muted">${area.title}</span>`,
     area.action_ids.length,
@@ -426,6 +437,7 @@ function renderCapabilityMatrix(data) {
     </section>
   `, `
     ${rightPanel(label("Contract Counts", "契约计数"), `${miniMetric("pages", data.p1Contracts.counts.pages)}${miniMetric("actions", data.p1Contracts.counts.actions)}${miniMetric("reports", data.p1Contracts.counts.reports)}${miniMetric("artifacts", data.p1Contracts.counts.artifacts)}`)}
+    ${rightPanel(label("V2 Action Matrix", "V2 Action 矩阵"), `${miniMetric("ready/core_cli", v2Reports.matrix.ready_core_cli_action_count)}${miniMetric("targets", v2Reports.matrix.execution_target_count)}${miniMetric("passed", v2Reports.actionResults.passed_count)}${miniMetric("blocked", data.p1RealWorkflowV2.blocked_action_count)}`)}
     ${rightPanel(label("Source Commit", "来源提交"), `<p>${data.p1Contracts.source.core_commit}</p>`)}
   `);
 }

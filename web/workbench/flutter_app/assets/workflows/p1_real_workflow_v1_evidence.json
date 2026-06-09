@@ -1,7 +1,7 @@
 {
   "source": {
     "copied_from": "Core docs/audits/p1_real_workflow_v1",
-    "core_commit": "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9",
+    "core_commit": "f9c9718666376adf8540fea075f916b3f22b85e4",
     "fixture_policy": "deterministic copied report summary; no raw outputs, provider secrets, local provider config, or build products"
   },
   "p1_real_workflow_v1_status": "passed",

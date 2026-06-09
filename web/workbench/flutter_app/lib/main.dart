@@ -73,6 +73,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
     super.key,
     this.contracts,
     this.workflowEvidence,
+    this.workflowV2Evidence,
     this.coreBridge = const LocalCoreBridge(),
     this.coreCli = 'heitang-kb-forge',
     this.coreWorkingDirectory = '.',
@@ -83,6 +84,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
 
   final WorkbenchContracts? contracts;
   final P1WorkflowEvidence? workflowEvidence;
+  final P1WorkflowEvidence? workflowV2Evidence;
   final LocalCoreBridge coreBridge;
   final String coreCli;
   final String coreWorkingDirectory;
@@ -104,6 +106,9 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
   late final Future<P1WorkflowEvidence> _workflowEvidenceFuture = widget.workflowEvidence == null
       ? const P1WorkflowEvidenceLoader().loadFromAsset('assets/workflows/p1_real_workflow_v1_evidence.json').catchError((_) => sampleP1WorkflowEvidence)
       : Future<P1WorkflowEvidence>.value(widget.workflowEvidence);
+  late final Future<P1WorkflowEvidence> _workflowV2EvidenceFuture = widget.workflowV2Evidence == null
+      ? const P1WorkflowEvidenceLoader().loadFromAsset('assets/workflows/p1_real_workflow_v2_evidence.json').catchError((_) => sampleP1WorkflowV2Evidence)
+      : Future<P1WorkflowEvidence>.value(widget.workflowV2Evidence);
 
   bool get isDark => themeMode == ThemeMode.dark;
 
@@ -128,22 +133,27 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
         builder: (context, contractsSnapshot) => FutureBuilder<P1WorkflowEvidence>(
           future: _workflowEvidenceFuture,
           initialData: widget.workflowEvidence ?? sampleP1WorkflowEvidence,
-          builder: (context, evidenceSnapshot) => _WorkbenchScaffold(
-            contracts: contractsSnapshot.data ?? sampleWorkbenchContracts,
-            workflowEvidence: evidenceSnapshot.data ?? sampleP1WorkflowEvidence,
-            localeCode: localeCode,
-            themeMode: themeMode,
-            selectedIndex: selectedIndex,
-            isDark: isDark,
-            coreBridge: widget.coreBridge,
-            coreCli: widget.coreCli,
-            coreWorkingDirectory: widget.coreWorkingDirectory,
-            coreWorkspace: widget.coreWorkspace,
-            enableLocalCoreActions: widget.enableLocalCoreActions,
-            isWebRuntime: widget.isWebRuntime,
-            onThemeChanged: (value) => setState(() => themeMode = value),
-            onLocaleChanged: (value) => setState(() => localeCode = value),
-            onPageChanged: (index) => setState(() => selectedIndex = index),
+          builder: (context, evidenceSnapshot) => FutureBuilder<P1WorkflowEvidence>(
+            future: _workflowV2EvidenceFuture,
+            initialData: widget.workflowV2Evidence ?? sampleP1WorkflowV2Evidence,
+            builder: (context, v2Snapshot) => _WorkbenchScaffold(
+              contracts: contractsSnapshot.data ?? sampleWorkbenchContracts,
+              workflowEvidence: evidenceSnapshot.data ?? sampleP1WorkflowEvidence,
+              workflowV2Evidence: v2Snapshot.data ?? sampleP1WorkflowV2Evidence,
+              localeCode: localeCode,
+              themeMode: themeMode,
+              selectedIndex: selectedIndex,
+              isDark: isDark,
+              coreBridge: widget.coreBridge,
+              coreCli: widget.coreCli,
+              coreWorkingDirectory: widget.coreWorkingDirectory,
+              coreWorkspace: widget.coreWorkspace,
+              enableLocalCoreActions: widget.enableLocalCoreActions,
+              isWebRuntime: widget.isWebRuntime,
+              onThemeChanged: (value) => setState(() => themeMode = value),
+              onLocaleChanged: (value) => setState(() => localeCode = value),
+              onPageChanged: (index) => setState(() => selectedIndex = index),
+            ),
           ),
         ),
       ),
@@ -234,6 +244,7 @@ class _DesktopWorkbench extends StatelessWidget {
     required this.localeCode,
     required this.contracts,
     required this.workflowEvidence,
+    required this.workflowV2Evidence,
     required this.selectedIndex,
     required this.isTablet,
     required this.coreBridge,
@@ -248,6 +259,7 @@ class _DesktopWorkbench extends StatelessWidget {
   final String localeCode;
   final WorkbenchContracts contracts;
   final P1WorkflowEvidence workflowEvidence;
+  final P1WorkflowEvidence workflowV2Evidence;
   final int selectedIndex;
   final bool isTablet;
   final LocalCoreBridge coreBridge;
@@ -280,6 +292,7 @@ class _DesktopWorkbench extends StatelessWidget {
             localeCode: localeCode,
             contracts: contracts,
             workflowEvidence: workflowEvidence,
+            workflowV2Evidence: workflowV2Evidence,
             columns: isTablet ? 2 : 3,
             coreBridge: coreBridge,
             coreCli: coreCli,
@@ -347,6 +360,7 @@ class _PhoneWorkbench extends StatelessWidget {
     required this.localeCode,
     required this.contracts,
     required this.workflowEvidence,
+    required this.workflowV2Evidence,
     required this.selectedIndex,
     required this.coreBridge,
     required this.coreCli,
@@ -360,6 +374,7 @@ class _PhoneWorkbench extends StatelessWidget {
   final String localeCode;
   final WorkbenchContracts contracts;
   final P1WorkflowEvidence workflowEvidence;
+  final P1WorkflowEvidence workflowV2Evidence;
   final int selectedIndex;
   final LocalCoreBridge coreBridge;
   final String coreCli;
@@ -402,6 +417,7 @@ class _PhoneWorkbench extends StatelessWidget {
             localeCode: localeCode,
             contracts: contracts,
             workflowEvidence: workflowEvidence,
+            workflowV2Evidence: workflowV2Evidence,
             columns: 1,
             coreBridge: coreBridge,
             coreCli: coreCli,
@@ -422,6 +438,7 @@ class _PageSurface extends StatelessWidget {
     required this.localeCode,
     required this.contracts,
     required this.workflowEvidence,
+    required this.workflowV2Evidence,
     required this.columns,
     required this.coreBridge,
     required this.coreCli,
@@ -435,6 +452,7 @@ class _PageSurface extends StatelessWidget {
   final String localeCode;
   final WorkbenchContracts contracts;
   final P1WorkflowEvidence workflowEvidence;
+  final P1WorkflowEvidence workflowV2Evidence;
   final int columns;
   final LocalCoreBridge coreBridge;
   final String coreCli;
@@ -445,7 +463,7 @@ class _PageSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cards = _cardsFor(page.id, localeCode, contracts, workflowEvidence);
+    final cards = _cardsFor(page.id, localeCode, contracts, workflowEvidence, workflowV2Evidence);
     final corePanels = <Widget>[];
     for (final action in coreActionsForPage(page.id, contracts)) {
       final request = coreRequestForAction(
@@ -482,7 +500,7 @@ class _PageSurface extends StatelessWidget {
               crossAxisCount: columns,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              mainAxisExtent: columns == 1 ? 188 : 172,
+              mainAxisExtent: columns == 1 ? 204 : 188,
             ),
             itemCount: cards.length,
             itemBuilder: (context, index) => _WorkbenchCard(
@@ -505,7 +523,7 @@ class _PageSurface extends StatelessWidget {
     );
   }
 
-  List<_CardCopy> _cardsFor(String id, String localeCode, WorkbenchContracts contracts, P1WorkflowEvidence workflowEvidence) {
+  List<_CardCopy> _cardsFor(String id, String localeCode, WorkbenchContracts contracts, P1WorkflowEvidence workflowEvidence, P1WorkflowEvidence workflowV2Evidence) {
     final zh = localeCode == 'zh-CN';
     final view = _contractViewFor(page, contracts);
     final actions = _actionsForView(view, contracts);
@@ -523,9 +541,20 @@ class _PageSurface extends StatelessWidget {
       if (_showsWorkflowEvidence(id)) _CardCopy(zh ? '命令漂移' : 'Command drift', 'drift_count=${workflowEvidence.driftCount} · fixture_only_real=${workflowEvidence.fixtureOnlyCountedAsReal}'),
       if (_showsWorkflowEvidence(id)) _CardCopy(zh ? '黄金工作流' : 'Golden workflows', '${workflowEvidence.workflowCount} · ${workflowEvidence.evidenceLevelCounts.entries.map((entry) => '${entry.key}:${entry.value}').join(' · ')}'),
       if (_showsWorkflowEvidence(id)) _CardCopy(zh ? '剩余阻塞' : 'Remaining blockers', workflowEvidence.remainingBlockers.take(2).join(' · ')),
+      if (_showsV2Evidence(id)) _CardCopy(zh ? 'P1-RWF-V2 状态' : 'P1-RWF-V2 status', '${workflowV2Evidence.status} · full_gate=${workflowV2Evidence.fullGateStatus}'),
+      if (_showsV2Evidence(id)) _CardCopy(zh ? '57 action 矩阵' : '57 action matrix', '${workflowV2Evidence.passedActionCount}/${workflowV2Evidence.executionTargetCount} passed · failed=${workflowV2Evidence.failedActionCount}'),
+      if (_showsV2Evidence(id)) _CardCopy(zh ? '产物 / 报告断言' : 'Artifact / report assertions', 'artifact=${workflowV2Evidence.artifactAssertionStatus} · report=${workflowV2Evidence.reportAssertionStatus} · error=${workflowV2Evidence.errorBoundaryStatus}'),
+      if (_showsV2Evidence(id)) _CardCopy(zh ? '用户路径闭环' : 'User path closure', '${workflowV2Evidence.userPathClosureStatus} · ${workflowV2Evidence.userPathPassedCount}/${workflowV2Evidence.userPathCount} paths'),
+      if (_showsV2Evidence(id)) _CardCopy(zh ? 'UI 门禁' : 'UI gate', 'ui_full_operation_pending=${workflowV2Evidence.uiFullOperationPending} · rc_candidate=${workflowV2Evidence.readyForV4RcCandidate}'),
+      if (_showsV2Evidence(id)) _CardCopy(zh ? 'Provider/secret blocked' : 'Provider/secret blocked', workflowV2Evidence.blockedActions.map((action) => '${action.actionId}:${action.classification}').take(2).join(' · ')),
+      if (id == 'capability-matrix') _CardCopy(zh ? 'Action 分类' : 'Action classification', workflowV2Evidence.actionResults.map((action) => '${action.actionId}:${action.status}').take(2).join(' · ')),
       if (id == 'capability-matrix') _CardCopy(zh ? '能力域' : 'Capability areas', '${contracts.capabilities.areas.length}'),
+      if (id == 'task-job-center') _CardCopy(zh ? 'Task evidence' : 'Task evidence', workflowV2Evidence.actionResults.map((action) => '${action.actionId}:${action.assertionStatus}').take(2).join(' · ')),
+      if (id == 'artifact-management') _CardCopy(zh ? 'Artifact evidence' : 'Artifact evidence', workflowV2Evidence.actionResults.map((action) => '${action.actionId}:${action.artifactCount}').take(2).join(' · ')),
+      if (id == 'reports-audit') _CardCopy(zh ? 'Gate impact' : 'Gate impact', workflowV2Evidence.userPaths.map((path) => '${path.userPathId}:${path.gateImpact}').take(1).join('')),
       if (id == 'agent-factory-runtime') _CardCopy(zh ? 'Agent 模式' : 'Agent modes', contracts.agent.supportedModes.join(' · ')),
       if (id == 'error-repair-center') _CardCopy(zh ? '错误码' : 'Error codes', contracts.errors.errorStates.join(' · ')),
+      if (id == 'error-repair-center') _CardCopy(zh ? 'Blocked reason' : 'Blocked reason', workflowV2Evidence.blockedActions.map((action) => action.blockedReason).take(1).join('')),
       if (id == 'template-library') _CardCopy(zh ? '模板' : 'Templates', contracts.templates.templates.map((template) => template.id).take(3).join(' · ')),
     ];
   }
@@ -535,6 +564,7 @@ class _WorkbenchScaffold extends StatelessWidget {
   const _WorkbenchScaffold({
     required this.contracts,
     required this.workflowEvidence,
+    required this.workflowV2Evidence,
     required this.localeCode,
     required this.themeMode,
     required this.selectedIndex,
@@ -552,6 +582,7 @@ class _WorkbenchScaffold extends StatelessWidget {
 
   final WorkbenchContracts contracts;
   final P1WorkflowEvidence workflowEvidence;
+  final P1WorkflowEvidence workflowV2Evidence;
   final String localeCode;
   final ThemeMode themeMode;
   final int selectedIndex;
@@ -603,6 +634,7 @@ class _WorkbenchScaffold extends StatelessWidget {
                   localeCode: localeCode,
                   contracts: contracts,
                   workflowEvidence: workflowEvidence,
+                  workflowV2Evidence: workflowV2Evidence,
                   selectedIndex: selectedIndex,
                   coreBridge: coreBridge,
                   coreCli: coreCli,
@@ -616,6 +648,7 @@ class _WorkbenchScaffold extends StatelessWidget {
                   localeCode: localeCode,
                   contracts: contracts,
                   workflowEvidence: workflowEvidence,
+                  workflowV2Evidence: workflowV2Evidence,
                   selectedIndex: selectedIndex,
                   isTablet: isTablet,
                   coreBridge: coreBridge,
@@ -671,6 +704,18 @@ bool _showsWorkflowEvidence(String pageId) {
   }.contains(pageId);
 }
 
+bool _showsV2Evidence(String pageId) {
+  return const {
+    'dashboard',
+    'operation-gate',
+    'capability-matrix',
+    'task-job-center',
+    'artifact-management',
+    'error-repair-center',
+    'reports-audit',
+  }.contains(pageId);
+}
+
 class _WorkbenchCard extends StatelessWidget {
   const _WorkbenchCard({required this.title, required this.body, required this.localeCode});
 
@@ -688,7 +733,7 @@ class _WorkbenchCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-            Text(body, maxLines: 3, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodyMedium),
+            Text(body, maxLines: 4, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodyMedium),
             FilledButton(onPressed: () {}, child: Text(localeCode == 'zh-CN' ? '打开' : 'Open')),
           ],
         ),

@@ -4,6 +4,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MOCK_DATA = ROOT / "examples" / "ui_mock_data"
+CORE_COMMIT = "f9c9718666376adf8540fea075f916b3f22b85e4"
 
 
 def read_json(name):
@@ -23,6 +24,8 @@ def test_required_mock_data_files_exist_and_are_json():
         "parser_backend_status.json",
         "answer_policies.json",
         "p1_core_contract_fixture.json",
+        "p1_real_workflow_v1_evidence.json",
+        "p1_real_workflow_v2_evidence.json",
     ]:
         assert (MOCK_DATA / file_name).exists()
         assert isinstance(read_json(file_name), dict)
@@ -66,7 +69,7 @@ def test_mock_data_represents_providers_policies_and_parser_status():
 def test_mock_data_represents_p1_core_contract_alignment_fixture():
     fixture = read_json("p1_core_contract_fixture.json")
 
-    assert fixture["source"]["core_commit"] == "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9"
+    assert fixture["source"]["core_commit"] == CORE_COMMIT
     assert fixture["not_full_operation_yet"] is True
     assert fixture["not_v4_0_workbench_rc"] is True
     assert fixture["counts"]["actions"] == 110
@@ -79,13 +82,46 @@ def test_mock_data_represents_p1_core_contract_alignment_fixture():
 def test_mock_data_represents_p1_real_workflow_v1_evidence():
     evidence = read_json("p1_real_workflow_v1_evidence.json")
 
-    assert evidence["source"]["core_commit"] == "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9"
+    assert evidence["source"]["core_commit"] == CORE_COMMIT
     assert evidence["p1_real_workflow_v1_status"] == "passed"
     assert evidence["p1_full_operation_gate_status"] == "blocked"
     assert evidence["ready_for_v4_rc"] is False
     assert evidence["drift_count"] == 0
     assert evidence["fixture_only_counted_as_real"] is False
     assert evidence["full_57_ready_action_execution_complete"] is False
+
+
+def test_mock_data_represents_p1_real_workflow_v2_evidence_and_reports():
+    evidence = read_json("p1_real_workflow_v2_evidence.json")
+    report_dir = MOCK_DATA / "p1_real_workflow_v2"
+    matrix = json.loads((report_dir / "full_ready_action_execution_matrix.json").read_text(encoding="utf-8"))
+    action_results = json.loads((report_dir / "action_execution_result_index.json").read_text(encoding="utf-8"))
+    user_paths = json.loads((report_dir / "full_local_user_path_closure_report.json").read_text(encoding="utf-8"))
+    errors = json.loads((report_dir / "action_error_boundary_report.json").read_text(encoding="utf-8"))
+
+    assert evidence["source"]["core_commit"] == CORE_COMMIT
+    assert evidence["p1_real_workflow_v2_status"] == "passed"
+    assert evidence["p1_full_operation_gate_status"] == "passed_for_v4_rc_candidate"
+    assert evidence["ui_full_operation_pending"] is False
+    assert evidence["ready_for_v4_rc_candidate"] is True
+    assert evidence["ready_for_v4_rc"] is False
+    assert evidence["not_v4_0_workbench_rc"] is True
+    assert evidence["v4_0_started"] is False
+    assert evidence["tag_created"] is False
+    assert evidence["v4_release_written"] is False
+    assert evidence["drift_count"] == 0
+    assert evidence["ready_core_cli_action_count"] == 62
+    assert evidence["execution_target_count"] == 57
+    assert evidence["passed_action_count"] == 57
+    assert evidence["failed_action_count"] == 0
+    assert evidence["blocked_action_count"] == 5
+    assert evidence["full_57_ready_action_execution_complete"] is True
+    assert evidence["remaining_blockers"] == []
+    assert matrix["execution_target_count"] == 57
+    assert action_results["passed_count"] == 57
+    assert user_paths["status"] == "pass"
+    assert user_paths["user_path_count"] == 10
+    assert errors["external_provider_or_secret_actions_not_executed"] is True
 
 
 def test_mock_data_represents_review_generated_docs_workflow_and_exports():

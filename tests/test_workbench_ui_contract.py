@@ -4,15 +4,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKBENCH = ROOT / "web" / "workbench"
+CORE_COMMIT = "f9c9718666376adf8540fea075f916b3f22b85e4"
 
 
 def test_workbench_contract_exposes_desktop_core_bridge_without_full_operation_claim():
     contracts = json.loads((WORKBENCH / "contracts.json").read_text(encoding="utf-8"))
 
-    assert contracts["scope"] == "p1-core-contract-aligned-ui-completion-pass"
-    assert contracts["core_contract_source"]["core_commit"] == "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9"
+    assert contracts["scope"] == "p1-rwf-v2-full-ready-action-evidence-ui-consumption-pass"
+    assert contracts["core_contract_source"]["core_commit"] == CORE_COMMIT
     assert contracts["future_api"]["no_backend_logic"] is False
-    assert contracts["future_api"]["current_backend_logic"] == "desktop local Core CLI bridge contract only; page workflows are not wired end to end yet"
+    assert contracts["future_api"]["current_backend_logic"] == "desktop local Core CLI bridge contract plus copied P1-RWF-V2 evidence consumption; web still does not execute local CLI"
     bridge = contracts["local_core_bridge"]
     assert bridge["status"] == "bridge_contract_tested"
     assert bridge["desktop_runtime"] == "allowlisted_core_cli_process_bridge"
@@ -64,7 +65,8 @@ def test_readme_states_workbench_visual_and_release_boundary():
     assert "light / dark mode" in readme
     assert "zh-CN / en-US language switch" in readme
     assert "not the v4.0 release" in readme
-    assert "P1 contract alignment and UI completion pass" in readme
+    assert "P1-RWF-V2 evidence UI consumption pass" in readme
+    assert CORE_COMMIT in readme
     assert "not_v4_0_workbench_rc" in readme
 
 
@@ -88,6 +90,7 @@ def test_flutter_project_scaffold_has_standard_entry_files():
     assert "flutter run -d windows" in readme
     assert "flutter run -d chrome" in readme
     assert "not_full_operation_yet: true" in readme
+    assert "p1_full_operation_gate_status: passed_for_v4_rc_candidate" in readme
     assert "not the v4.0 Workbench RC" in readme
     assert "Web does not execute the local Core CLI" in readme
 
@@ -102,6 +105,15 @@ def test_workbench_pages_reference_existing_mock_sources():
         for source in page["mock_sources"]:
             assert source in mock_sources
             assert (ROOT / mock_sources[source]).exists()
+    for source in [
+        "p1_real_workflow_v2_matrix",
+        "p1_real_workflow_v2_action_results",
+        "p1_real_workflow_v2_artifact_assertions",
+        "p1_real_workflow_v2_user_paths",
+        "p1_real_workflow_v2_gate_report",
+    ]:
+        assert source in mock_sources
+        assert (ROOT / mock_sources[source]).exists()
 
 
 def test_mock_service_is_the_only_data_loading_boundary():

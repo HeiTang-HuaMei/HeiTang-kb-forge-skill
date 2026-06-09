@@ -1,6 +1,6 @@
 {
-  "version": "UI-p1-contract-alignment-pass",
-  "scope": "p1-core-contract-aligned-ui-completion-pass",
+  "version": "UI-p1-rwf-v2-evidence-pass",
+  "scope": "p1-rwf-v2-full-ready-action-evidence-ui-consumption-pass",
   "allowed_paths": [
     "README.md",
     "web/workbench/",
@@ -21,7 +21,7 @@
   "core_contract_source": {
     "copied_from": "Core workbench-contracts --profile p1",
     "core_repo": "kb-forge-skill",
-    "core_commit": "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9",
+    "core_commit": "f9c9718666376adf8540fea075f916b3f22b85e4",
     "fixture": "examples/ui_mock_data/p1_core_contract_fixture.json",
     "policy": "deterministic copied fixture; no raw outputs, logs, secrets, provider configs, build products, exe, dll, or zip"
   },
@@ -35,7 +35,8 @@
         "review_queue",
         "provider_status",
         "p1_core_contracts",
-        "p1_real_workflow_v1_evidence"
+        "p1_real_workflow_v1_evidence",
+        "p1_real_workflow_v2_evidence"
       ]
     },
     {
@@ -48,13 +49,15 @@
       "id": "operation-gate",
       "mock_sources": [
         "p1_core_contracts",
-        "p1_real_workflow_v1_evidence"
+        "p1_real_workflow_v1_evidence",
+        "p1_real_workflow_v2_evidence"
       ]
     },
     {
       "id": "capability-matrix",
       "mock_sources": [
-        "p1_core_contracts"
+        "p1_core_contracts",
+        "p1_real_workflow_v2_evidence"
       ]
     },
     {
@@ -126,7 +129,8 @@
       "mock_sources": [
         "jobs",
         "p1_core_contracts",
-        "p1_real_workflow_v1_evidence"
+        "p1_real_workflow_v1_evidence",
+        "p1_real_workflow_v2_evidence"
       ]
     },
     {
@@ -134,14 +138,16 @@
       "mock_sources": [
         "generated_docs",
         "p1_core_contracts",
-        "p1_real_workflow_v1_evidence"
+        "p1_real_workflow_v1_evidence",
+        "p1_real_workflow_v2_evidence"
       ]
     },
     {
       "id": "error-repair-center",
       "mock_sources": [
         "p1_core_contracts",
-        "p1_real_workflow_v1_evidence"
+        "p1_real_workflow_v1_evidence",
+        "p1_real_workflow_v2_evidence"
       ]
     },
     {
@@ -151,7 +157,8 @@
         "parser_backend_status",
         "answer_policies",
         "p1_core_contracts",
-        "p1_real_workflow_v1_evidence"
+        "p1_real_workflow_v1_evidence",
+        "p1_real_workflow_v2_evidence"
       ]
     },
     {
@@ -179,7 +186,16 @@
     "parser_backend_status": "examples/ui_mock_data/parser_backend_status.json",
     "answer_policies": "examples/ui_mock_data/answer_policies.json",
     "p1_core_contracts": "examples/ui_mock_data/p1_core_contract_fixture.json",
-    "p1_real_workflow_v1_evidence": "examples/ui_mock_data/p1_real_workflow_v1_evidence.json"
+    "p1_real_workflow_v1_evidence": "examples/ui_mock_data/p1_real_workflow_v1_evidence.json",
+    "p1_real_workflow_v2_evidence": "examples/ui_mock_data/p1_real_workflow_v2_evidence.json",
+    "p1_real_workflow_v2_matrix": "examples/ui_mock_data/p1_real_workflow_v2/full_ready_action_execution_matrix.json",
+    "p1_real_workflow_v2_action_results": "examples/ui_mock_data/p1_real_workflow_v2/action_execution_result_index.json",
+    "p1_real_workflow_v2_artifact_assertions": "examples/ui_mock_data/p1_real_workflow_v2/action_artifact_assertion_report.json",
+    "p1_real_workflow_v2_report_assertions": "examples/ui_mock_data/p1_real_workflow_v2/action_report_assertion_report.json",
+    "p1_real_workflow_v2_error_boundary": "examples/ui_mock_data/p1_real_workflow_v2/action_error_boundary_report.json",
+    "p1_real_workflow_v2_user_paths": "examples/ui_mock_data/p1_real_workflow_v2/full_local_user_path_closure_report.json",
+    "p1_real_workflow_v2_gate_report": "examples/ui_mock_data/p1_real_workflow_v2/p1_real_workflow_v2_report.json",
+    "p1_real_workflow_v2_remaining_blockers": "examples/ui_mock_data/p1_real_workflow_v2/remaining_blockers.json"
   },
   "theme": {
     "modes": [
@@ -270,7 +286,7 @@
     "not_v4_0_workbench_rc": true
   },
   "release_boundary": {
-    "checkpoint": "P1 contract alignment and UI completion pass; not v4.0 and not final integrated full-operation gate",
+    "checkpoint": "P1-RWF-V2 evidence UI consumption pass; not v4.0 and not production release complete",
     "current_ui_default": "black / white / gray premium Windows desktop workbench",
     "supports_light_dark_mode": true,
     "supports_zh_cn_en_us_switch": true,
@@ -293,9 +309,10 @@
       "parserBackends",
       "answerPolicies",
       "memoryPolicies",
-      "p1Contracts"
+      "p1Contracts",
+      "p1RealWorkflowV2Reports"
     ],
     "no_backend_logic": false,
-    "current_backend_logic": "desktop local Core CLI bridge contract only; page workflows are not wired end to end yet"
+    "current_backend_logic": "desktop local Core CLI bridge contract plus copied P1-RWF-V2 evidence consumption; web still does not execute local CLI"
   }
 }

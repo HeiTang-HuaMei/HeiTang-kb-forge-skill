@@ -12,7 +12,16 @@ export const MOCK_DATA_FILES = {
   parserBackendStatus: "parser_backend_status.json",
   answerPolicies: "answer_policies.json",
   p1Contracts: "p1_core_contract_fixture.json",
-  p1RealWorkflowV1: "p1_real_workflow_v1_evidence.json"
+  p1RealWorkflowV1: "p1_real_workflow_v1_evidence.json",
+  p1RealWorkflowV2: "p1_real_workflow_v2_evidence.json",
+  p1RealWorkflowV2Matrix: "p1_real_workflow_v2/full_ready_action_execution_matrix.json",
+  p1RealWorkflowV2ActionResults: "p1_real_workflow_v2/action_execution_result_index.json",
+  p1RealWorkflowV2ArtifactAssertions: "p1_real_workflow_v2/action_artifact_assertion_report.json",
+  p1RealWorkflowV2ReportAssertions: "p1_real_workflow_v2/action_report_assertion_report.json",
+  p1RealWorkflowV2ErrorBoundary: "p1_real_workflow_v2/action_error_boundary_report.json",
+  p1RealWorkflowV2UserPaths: "p1_real_workflow_v2/full_local_user_path_closure_report.json",
+  p1RealWorkflowV2GateReport: "p1_real_workflow_v2/p1_real_workflow_v2_report.json",
+  p1RealWorkflowV2RemainingBlockers: "p1_real_workflow_v2/remaining_blockers.json"
 };
 
 async function loadJson(fileName) {
@@ -46,10 +55,23 @@ export function buildWorkbenchViewModel(raw) {
   const memoryPolicies = raw.answerPolicies.memory_policies;
   const p1Contracts = raw.p1Contracts;
   const p1RealWorkflowV1 = raw.p1RealWorkflowV1;
+  const p1RealWorkflowV2 = raw.p1RealWorkflowV2;
+  const p1RealWorkflowV2Reports = {
+    matrix: raw.p1RealWorkflowV2Matrix,
+    actionResults: raw.p1RealWorkflowV2ActionResults,
+    artifactAssertions: raw.p1RealWorkflowV2ArtifactAssertions,
+    reportAssertions: raw.p1RealWorkflowV2ReportAssertions,
+    errorBoundary: raw.p1RealWorkflowV2ErrorBoundary,
+    userPaths: raw.p1RealWorkflowV2UserPaths,
+    gateReport: raw.p1RealWorkflowV2GateReport,
+    remainingBlockers: raw.p1RealWorkflowV2RemainingBlockers
+  };
 
   return {
     p1Contracts,
     p1RealWorkflowV1,
+    p1RealWorkflowV2,
+    p1RealWorkflowV2Reports,
     knowledgeBases,
     agents,
     workflows,

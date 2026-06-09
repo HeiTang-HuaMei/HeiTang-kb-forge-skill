@@ -1,17 +1,19 @@
 # HeiTang Workbench Flutter Scaffold
 
-This is the Flutter scaffold for the HeiTang Knowledge Workbench UI contract-alignment pass.
+This is the Flutter scaffold for the HeiTang Knowledge Workbench P1-RWF-V2 evidence UI consumption pass.
 
 Current status:
 
 - P1 Core contract-aligned viewer pages are implemented from deterministic copied fixtures.
-- Fixture source: Core `workbench-contracts --profile p1`, verified against commit `fa00d6c00a11e7fda62919318f4cf17f9b72bfd9`.
-- P1-RWF-V1 evidence is copied as a deterministic asset and displayed without changing the full P1 gate status.
+- Fixture source: Core `workbench-contracts --profile p1`, verified against commit `f9c9718666376adf8540fea075f916b3f22b85e4`.
+- P1-RWF-V2 evidence and top-level reports are copied as deterministic assets and displayed with `drift_count=0`.
+- 57 local execution targets and 10 user paths are shown as passed from copied Core reports.
+- `p1_full_operation_gate_status: passed_for_v4_rc_candidate`.
 - A desktop-only local Core CLI bridge contract exists in `lib/core_bridge/local_core_bridge.dart`.
 - Default visual style is black / white / gray premium Windows desktop workbench.
 - Light / dark mode and zh-CN / en-US language switching are supported.
 - `not_full_operation_yet: true`.
-- Page workflows are not wired end to end through the final P1 Integrated Gate, so this is not marked full operation passed.
+- Provider, secret, network, and planned-adapter operations stay disabled with blocked reasons.
 - This is not the v4.0 Workbench RC.
 - Web builds do not execute local Core CLI commands.
 

@@ -1,166 +1,104 @@
 {
-  "report_id": "core_ui_acceptance_2026_06_09",
-  "generated_at": "2026-06-09T17:48:00+08:00",
-  "scope": "P1-RWF-V1 Command Surface Truth & Golden Local Workflow Foundation UI sync; full P1 operation gate remains blocked",
+  "report_id": "core_ui_acceptance_p1_rwf_v2_2026_06_09",
+  "generated_at": "2026-06-09T20:15:00+08:00",
+  "scope": "P1-RWF-V2 Full 57 Ready Action Execution & Final Local User Path Closure UI consumption; not v4.0 release",
   "core_repo": "kb-forge-skill",
-  "core_commit": "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9",
+  "core_commit": "f9c9718666376adf8540fea075f916b3f22b85e4",
+  "core_ci_run_id": "27204682530",
   "ui_repo": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill-ui",
-  "ui_base_commit": "488d4bbf24c30b034ad3b51ba2aaff1c5d5d9871",
-  "ui_fixture_commit": "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9",
-  "gate_status": "blocked",
-  "not_full_operation_yet": true,
+  "ui_fixture_commit": "f9c9718666376adf8540fea075f916b3f22b85e4",
+  "gate_status": "passed_for_v4_rc_candidate",
+  "p1_real_workflow_v2_status": "passed",
+  "ui_full_operation_pending": false,
+  "ready_for_v4_rc_candidate": true,
   "not_v4_0_workbench_rc": true,
+  "v4_0_started": false,
+  "tag_created": false,
+  "v4_release_written": false,
+  "action_execution": {
+    "ready_core_cli_action_count": 62,
+    "execution_target_count": 57,
+    "passed_action_count": 57,
+    "failed_action_count": 0,
+    "blocked_provider_secret_network_actions": 5,
+    "full_57_ready_action_execution_complete": true
+  },
   "action_classification": {
     "total_actions": 110,
     "real_local_workflow_actions": 57,
     "deterministic_smoke_actions": 36,
-    "disabled_blocked_actions": 17,
-    "web_enabled_actions": 0,
-    "status_counts": {
-      "dry_run": 37,
-      "ready": 62,
-      "ui_pending": 6,
-      "planned_adapter": 4,
-      "blocked": 1
-    },
-    "disabled_blocked_reasons": {
-      "mock_only": 36,
-      "Core contract is present, but the Windows desktop Workbench operation still needs UI wiring and user confirmation.": 5,
-      "planned_adapter": 2,
-      "provider_required": 5,
-      "secret_required": 4,
-      "P1 blocks this action until explicit repair policy, review flow, or safe user input handling exists.": 1
-    }
+    "disabled_blocked_actions": 17
   },
-  "classification_policy": {
-    "real_local_workflow": "status == ready && command_kind == core_cli && desktop_enabled == true",
-    "deterministic_smoke": "status == dry_run && command_kind == ui_safe_wrapper && desktop_blocked_reason == mock_only",
-    "disabled_blocked": "all other actions must have no CoreBridgeRequest and must expose blocked_reason",
-    "web_runtime": "all static/web actions are disabled with web_local_cli_unsupported"
+  "user_path_closure": {
+    "status": "pass",
+    "user_path_count": 10,
+    "passed_count": 10,
+    "blocked_count": 0
   },
   "drift_check": {
     "status": "pass",
     "drift_count": 0,
-    "core_regenerated_contract_dir": "../_tmp_p1_rwf_v1_core_contracts",
-    "core_command": "python -m heitang_kb_forge.cli_runtime workbench-contracts --profile p1 --output ../_tmp_p1_rwf_v1_core_contracts",
-    "compared_collections": [
-      "actions",
-      "reports",
-      "artifacts",
-      "errors",
-      "templates",
-      "capability_matrix",
-      "task_schema",
-      "gate_report"
-    ],
-    "ui_only_action_fields_allowed": [
-      "route_id",
-      "ui_blocked_reason",
-      "web_enabled",
-      "web_blocked_reason",
-      "desktop_enabled",
-      "desktop_blocked_reason"
-    ],
+    "command_surface_drift_count": 0,
     "flutter_asset_matches_ui_fixture": true,
-    "p1_real_workflow_v1_asset_matches_fixture": true
-  },
-  "command_surface_truth_fix": {
-    "status": "pass",
-    "fixed_action_ids": [
-      "ocr_required_detection",
-      "package_export"
-    ],
-    "command_changes": {
-      "ocr_required_detection": {
-        "before": "full-ocr-acceptance --core-repo <repo> --output <output>",
-        "after": "full-ocr-acceptance --source <source> --output <output>"
-      },
-      "package_export": {
-        "before": "export-platform --package <package> --output <output>",
-        "after": "export-platform --skill <skill> --output <output>"
-      }
-    },
-    "core_contract_source_commit": "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9",
-    "ready_core_cli_action_count": 62,
-    "unique_command_count": 48,
-    "drift_count": 0
-  },
-  "known_command_surface_blockers": [],
-  "real_path_validation": {
-    "desktop_bridge_path": "Flutter action panel -> CoreBridgeRequest -> LocalCoreBridge allowlist -> dart:io Process.run(runInShell:false)",
-    "validated_real_local_request_count": 57,
-    "validated_deterministic_smoke_request_count": 36,
-    "validated_disabled_request_count": 17,
-    "secret_environment_rejected": true,
-    "shell_metacharacters_rejected": true,
-    "redaction_tested": true,
-    "all_57_real_actions_business_e2e_executed": false,
-    "business_e2e_blocked_reason": "P1-RWF-V1 golden workflows passed, but full business-input execution for every ready Core action and per-action artifact assertions remain incomplete.",
-    "real_core_cli_smoke_command": "heitang-kb-forge workbench-smoke --output ../_tmp_goal_core_smoke",
-    "real_core_cli_smoke_result": "pass | Gate: blocked"
+    "p1_real_workflow_v1_asset_matches_fixture": true,
+    "p1_real_workflow_v2_asset_matches_fixture": true
   },
   "runtime_boundaries": {
-    "windows_desktop_runtime": "allowlisted_local_core_cli",
+    "windows_desktop_runtime": "allowlisted_local_core_cli_view_and_trigger_safe_actions",
     "web_static_runtime": "disabled_with_blocked_reason",
     "external_provider_or_secret_actions": "disabled_with_blocked_reason",
-    "planned_adapter_actions": "disabled_with_blocked_reason"
+    "planned_adapter_actions": "disabled_with_blocked_reason",
+    "run_in_shell": false
+  },
+  "ui_consumption": {
+    "status": "pass",
+    "fixture_matches_flutter_asset": true,
+    "web_local_cli_disabled": true,
+    "desktop_bridge_allowlist_run_in_shell_false": true,
+    "pages": [
+      "dashboard",
+      "operation-gate",
+      "capability-matrix",
+      "task-job-center",
+      "artifact-management",
+      "reports-audit",
+      "error-repair-center"
+    ]
   },
   "validation": {
-    "flutter_test": "pass",
+    "flutter_pub_get": "pass",
     "flutter_analyze": "pass",
-    "python_contract_tests": "pass",
+    "flutter_test": "pass",
     "flutter_build_web": "pass",
     "flutter_build_windows": "pass",
-    "secret_high_entropy_scan": "pass",
-    "real_core_cli_smoke": "pass"
+    "python_contract_tests": "pass",
+    "secret_pattern_scan": "pass"
   },
-  "resolved_command_surface_blockers": [
+  "remaining_blockers": [],
+  "remaining_risks": [
     {
-      "action_id": "package_build",
-      "contract_command": "build --config <config> --output <output>",
-      "status": "resolved_in_core_commit",
-      "core_commit": "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9",
-      "evidence": "command_surface_truth_report.json reports build in unique_commands and drift_count=0"
+      "risk_id": "provider_secret_network_actions_remain_explicit_config_only",
+      "status": "accepted_boundary",
+      "description": "The 5 provider/secret/network ready/core_cli actions remain excluded from the 57 local execution target set and are shown as blocked, not real-local passed."
     }
   ],
-  "p1_real_workflow_v1": {
-    "status": "passed",
-    "workflow_count": 8,
-    "workflow_ids": [
-      "workspace_lifecycle",
-      "import_parse_build",
-      "rag_retrieval_verification_smoke",
-      "document_generation_smoke",
-      "skill_factory_smoke",
-      "agent_factory_runtime_smoke",
-      "error_repair_task_artifact",
-      "template_to_workflow"
-    ],
-    "command_surface_drift_count": 0,
-    "fixture_only_counted_as_real": false,
-    "full_57_ready_action_execution_complete": false,
-    "evidence_level_counts": {
-      "real_local_workflow": 6,
-      "deterministic_smoke": 2
-    },
-    "fixture": "examples/ui_mock_data/p1_real_workflow_v1_evidence.json",
-    "flutter_asset": "web/workbench/flutter_app/assets/workflows/p1_real_workflow_v1_evidence.json"
-  },
-  "remaining_blockers": [
-    {
-      "blocker_id": "full_57_ready_action_business_input_execution_not_complete",
-      "description": "Full 57 ready Core action business-input execution and per-action artifact assertions are not complete.",
-      "status": "remaining"
-    },
-    {
-      "blocker_id": "rag_retrieval_verification_smoke_review_required",
-      "description": "Claim verification is not claimed as fully real without prepared business assertions.",
-      "status": "remaining"
-    },
-    {
-      "blocker_id": "agent_factory_runtime_smoke_review_required",
-      "description": "Runtime trace is deterministic smoke until full local user tasks are asserted.",
-      "status": "remaining"
-    }
-  ]
+  "p1_real_workflow_v2": {
+    "fixture": "examples/ui_mock_data/p1_real_workflow_v2_evidence.json",
+    "flutter_asset": "web/workbench/flutter_app/assets/workflows/p1_real_workflow_v2_evidence.json",
+    "source_commit": "f9c9718666376adf8540fea075f916b3f22b85e4",
+    "report_files": [
+      "full_ready_action_execution_matrix.json",
+      "full_ready_action_execution_matrix.md",
+      "action_input_plan.json",
+      "action_execution_result_index.json",
+      "action_artifact_assertion_report.json",
+      "action_report_assertion_report.json",
+      "action_error_boundary_report.json",
+      "full_local_user_path_closure_report.json",
+      "p1_real_workflow_v2_report.json",
+      "p1_real_workflow_v2_report.md",
+      "remaining_blockers.json",
+      "remaining_blockers.md"
+    ]
+  }
 }

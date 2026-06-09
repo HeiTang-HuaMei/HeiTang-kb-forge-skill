@@ -7,7 +7,9 @@ WORKBENCH = ROOT / "web" / "workbench"
 FIXTURE = ROOT / "examples" / "ui_mock_data" / "p1_core_contract_fixture.json"
 REPORT = ROOT / "docs" / "audits" / "core_ui_acceptance" / "core_ui_acceptance_report.json"
 P1_RWF_V1 = ROOT / "examples" / "ui_mock_data" / "p1_real_workflow_v1_evidence.json"
-CORE_COMMIT = "fa00d6c00a11e7fda62919318f4cf17f9b72bfd9"
+P1_RWF_V2 = ROOT / "examples" / "ui_mock_data" / "p1_real_workflow_v2_evidence.json"
+P1_RWF_V2_REPORT_DIR = ROOT / "examples" / "ui_mock_data" / "p1_real_workflow_v2"
+CORE_COMMIT = "f9c9718666376adf8540fea075f916b3f22b85e4"
 
 
 DEDICATED_ROUTES = {
@@ -56,6 +58,29 @@ def test_flutter_p1_real_workflow_asset_matches_ui_fixture():
 
     assert flutter_asset.exists()
     assert json.loads(flutter_asset.read_text(encoding="utf-8")) == json.loads(P1_RWF_V1.read_text(encoding="utf-8"))
+
+
+def test_flutter_p1_real_workflow_v2_asset_matches_ui_fixture_and_reports():
+    flutter_asset = WORKBENCH / "flutter_app" / "assets" / "workflows" / "p1_real_workflow_v2_evidence.json"
+    flutter_report_dir = WORKBENCH / "flutter_app" / "assets" / "workflows" / "p1_real_workflow_v2"
+    report_files = [
+        "full_ready_action_execution_matrix.json",
+        "action_execution_result_index.json",
+        "action_artifact_assertion_report.json",
+        "action_report_assertion_report.json",
+        "action_error_boundary_report.json",
+        "full_local_user_path_closure_report.json",
+        "p1_real_workflow_v2_report.json",
+        "remaining_blockers.json",
+    ]
+
+    assert flutter_asset.exists()
+    assert json.loads(flutter_asset.read_text(encoding="utf-8")) == json.loads(P1_RWF_V2.read_text(encoding="utf-8"))
+    for file_name in report_files:
+        fixture = P1_RWF_V2_REPORT_DIR / file_name
+        asset = flutter_report_dir / file_name
+        assert asset.exists()
+        assert json.loads(asset.read_text(encoding="utf-8")) == json.loads(fixture.read_text(encoding="utf-8"))
 
 
 def test_dedicated_p1_routes_have_sidebar_and_renderers():
@@ -183,12 +208,38 @@ def test_core_ui_acceptance_report_matches_fixture_classification():
 
     assert report["core_commit"] == CORE_COMMIT
     assert report["ui_fixture_commit"] == CORE_COMMIT
-    assert report["gate_status"] == "blocked"
+    assert report["gate_status"] == "passed_for_v4_rc_candidate"
+    assert report["p1_real_workflow_v2_status"] == "passed"
+    assert report["ui_full_operation_pending"] is False
+    assert report["ready_for_v4_rc_candidate"] is True
+    assert report["not_v4_0_workbench_rc"] is True
+    assert report["v4_0_started"] is False
+    assert report["tag_created"] is False
+    assert report["v4_release_written"] is False
     assert report["drift_check"]["status"] == "pass"
     assert report["drift_check"]["drift_count"] == 0
+    assert report["drift_check"]["command_surface_drift_count"] == 0
+    assert report["drift_check"]["flutter_asset_matches_ui_fixture"] is True
     assert report["drift_check"]["p1_real_workflow_v1_asset_matches_fixture"] is True
-    assert report["known_command_surface_blockers"] == []
-    assert report["resolved_command_surface_blockers"][0]["action_id"] == "package_build"
+    assert report["drift_check"]["p1_real_workflow_v2_asset_matches_fixture"] is True
+    assert report["action_execution"] == {
+        "ready_core_cli_action_count": 62,
+        "execution_target_count": 57,
+        "passed_action_count": 57,
+        "failed_action_count": 0,
+        "blocked_provider_secret_network_actions": 5,
+        "full_57_ready_action_execution_complete": True,
+    }
+    assert report["user_path_closure"] == {
+        "status": "pass",
+        "user_path_count": 10,
+        "passed_count": 10,
+        "blocked_count": 0,
+    }
+    assert report["ui_consumption"]["status"] == "pass"
+    assert report["ui_consumption"]["fixture_matches_flutter_asset"] is True
+    assert report["ui_consumption"]["web_local_cli_disabled"] is True
+    assert report["remaining_blockers"] == []
     assert report["action_classification"]["total_actions"] == len(fixture["actions"])
     assert report["action_classification"]["real_local_workflow_actions"] == len(real_local)
     assert report["action_classification"]["deterministic_smoke_actions"] == len(smoke)
@@ -212,3 +263,64 @@ def test_p1_real_workflow_v1_evidence_keeps_gate_boundary():
     assert "full_57_ready_action_business_input_execution_not_complete" in {
         item["blocker_id"] for item in evidence["remaining_blockers"]
     }
+
+
+def test_p1_real_workflow_v2_evidence_promotes_ui_gate_candidate_without_v4_release():
+    evidence = json.loads(P1_RWF_V2.read_text(encoding="utf-8"))
+    blocked_actions = {action["action_id"]: action for action in evidence["blocked_actions"]}
+
+    assert evidence["source"]["core_commit"] == CORE_COMMIT
+    assert evidence["p1_real_workflow_v2_status"] == "passed"
+    assert evidence["p1_full_operation_gate_status"] == "passed_for_v4_rc_candidate"
+    assert evidence["ui_full_operation_pending"] is False
+    assert evidence["ready_for_v4_rc_candidate"] is True
+    assert evidence["ready_for_v4_rc"] is False
+    assert evidence["not_v4_0_workbench_rc"] is True
+    assert evidence["v4_0_started"] is False
+    assert evidence["tag_created"] is False
+    assert evidence["v4_release_written"] is False
+    assert evidence["drift_count"] == 0
+    assert evidence["command_surface_drift_count"] == 0
+    assert evidence["fixture_only_counted_as_real"] is False
+    assert evidence["ready_core_cli_action_count"] == 62
+    assert evidence["execution_target_count"] == 57
+    assert evidence["passed_action_count"] == 57
+    assert evidence["failed_action_count"] == 0
+    assert evidence["blocked_action_count"] == 5
+    assert evidence["full_57_ready_action_execution_complete"] is True
+    assert evidence["artifact_assertion_status"] == "pass"
+    assert evidence["report_assertion_status"] == "pass"
+    assert evidence["error_boundary_status"] == "pass"
+    assert evidence["user_path_closure_status"] == "pass"
+    assert evidence["user_path_count"] == 10
+    assert evidence["user_path_passed_count"] == 10
+    assert evidence["remaining_blockers"] == []
+    assert blocked_actions["provider_redaction_check"]["classification"] == "blocked_secret_required"
+    assert blocked_actions["llm_provider_validate"]["classification"] == "blocked_provider_required"
+
+
+def test_p1_real_workflow_v2_report_files_have_expected_gate_inputs():
+    matrix = json.loads((P1_RWF_V2_REPORT_DIR / "full_ready_action_execution_matrix.json").read_text(encoding="utf-8"))
+    results = json.loads((P1_RWF_V2_REPORT_DIR / "action_execution_result_index.json").read_text(encoding="utf-8"))
+    artifacts = json.loads((P1_RWF_V2_REPORT_DIR / "action_artifact_assertion_report.json").read_text(encoding="utf-8"))
+    reports = json.loads((P1_RWF_V2_REPORT_DIR / "action_report_assertion_report.json").read_text(encoding="utf-8"))
+    errors = json.loads((P1_RWF_V2_REPORT_DIR / "action_error_boundary_report.json").read_text(encoding="utf-8"))
+    paths = json.loads((P1_RWF_V2_REPORT_DIR / "full_local_user_path_closure_report.json").read_text(encoding="utf-8"))
+    gate = json.loads((P1_RWF_V2_REPORT_DIR / "p1_real_workflow_v2_report.json").read_text(encoding="utf-8"))
+
+    assert matrix["ready_core_cli_action_count"] == 62
+    assert matrix["execution_target_count"] == 57
+    assert len([action for action in matrix["actions"] if action["execution_target"]]) == 57
+    assert len([action for action in matrix["actions"] if action["classification"] == "blocked_provider_required"]) == 4
+    assert len([action for action in matrix["actions"] if action["classification"] == "blocked_secret_required"]) == 1
+    assert results["passed_count"] == 57
+    assert results["failed_count"] == 0
+    assert artifacts["status"] == "pass"
+    assert reports["status"] == "pass"
+    assert errors["status"] == "pass"
+    assert errors["external_provider_or_secret_actions_not_executed"] is True
+    assert paths["status"] == "pass"
+    assert paths["user_path_count"] == 10
+    assert paths["passed_count"] == 10
+    assert gate["p1_real_workflow_v2_status"] == "passed"
+    assert gate["p1_full_operation_gate_status"] == "core_passed_pending_ui_consumption"

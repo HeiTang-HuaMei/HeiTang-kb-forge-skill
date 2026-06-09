@@ -2,37 +2,40 @@
 
 Generated: 2026-06-09
 
-Scope: P1-RWF-V1 Command Surface Truth & Golden Local Workflow Foundation UI sync. This does not claim full P1 operation or v4.0 readiness.
+Scope: P1-RWF-V2 Full 57 Ready Action Execution & Final Local User Path Closure UI consumption. This is not a v4.0 release, does not create a tag, and does not write a v4 release.
 
 ## Result
 
-Status: blocked.
+Status: passed_for_v4_rc_candidate.
 
-The UI fixture and Flutter asset are synced to Core commit `fa00d6c00a11e7fda62919318f4cf17f9b72bfd9`. `p1_real_workflow_v1_status` is passed for the golden local workflow foundation, but `p1_full_operation_gate_status` remains blocked and `ready_for_v4_rc` remains false.
+The UI fixture and Flutter asset are synced to Core commit `f9c9718666376adf8540fea075f916b3f22b85e4`. `p1_real_workflow_v2_status` is passed, `ui_full_operation_pending` is false, and `ready_for_v4_rc_candidate` is true. v4.0 remains not started.
 
 ## Drift Check
 
-Core contracts were regenerated from:
+Drift status: pass. Drift count: 0. Flutter Core contract asset matches the UI fixture. P1-RWF-V1 and P1-RWF-V2 Flutter evidence assets match their UI fixtures.
 
-`python -m heitang_kb_forge.cli_runtime workbench-contracts --profile p1 --output ../_tmp_p1_rwf_v1_core_contracts`
+## UI Evidence Consumption
 
-Drift status: pass. Drift count: 0. Flutter Core contract asset matches the UI fixture. The P1-RWF-V1 Flutter evidence asset matches the UI evidence fixture.
+The UI consumes the copied V2 summary plus top-level copied reports for the action matrix, action result index, artifact assertions, report assertions, error boundary, user path closure, gate report, and remaining blockers. These files are deterministic copied evidence, not raw private inputs, local provider config, logs, build products, exe, dll, or zip files.
 
-## Command Surface Truth
+## V2 Action Execution
 
-Ready/core_cli command surface drift count: 0. `package_build` is no longer carried as a known command-surface blocker because Core commit `fa00d6c00a11e7fda62919318f4cf17f9b72bfd9` exposes `build` in the audited CLI command surface.
+- Ready/core_cli actions: 62.
+- Local execution targets: 57.
+- Passed local execution targets: 57.
+- Failed local execution targets: 0.
+- Provider/secret/network actions shown as blocked, not real-local passed: 5.
 
-## Golden Local Workflow Evidence
+## User Path Closure
 
-- Workflow count: 8.
-- Evidence levels: real_local_workflow=6, deterministic_smoke=2.
-- Fixture-only counted as real: false.
-- Full 57 ready action execution complete: false.
+- User paths: 10.
+- Passed: 10.
+- Blocked: 0.
 
 ## Remaining Blockers
 
-- full_57_ready_action_business_input_execution_not_complete.
-- rag_retrieval_verification_smoke_review_required.
-- agent_factory_runtime_smoke_review_required.
+- None for P1-RWF-V2 UI consumption.
 
-This remains not the final P1 Integrated Gate, not v4.0, and not v4 RC ready.
+## Remaining Risks
+
+- Provider/secret/network actions remain explicit-config only and are not counted as real-local passed.

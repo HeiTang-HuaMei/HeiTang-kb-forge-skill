@@ -1,0 +1,391 @@
+{
+  "report_id": "p1_rwf_v2_action_error_boundary_report",
+  "status": "pass",
+  "external_provider_or_secret_actions_not_executed": true,
+  "tests_require_real_llm_api_network": false,
+  "network_required": false,
+  "actions": [
+    {
+      "action_id": "workspace_inspect",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "workspace_health",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "workspace_storage_usage",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "workspace_cleanup_plan",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "source_validate",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "format_support_matrix",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "parser_preflight",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "ocr_required_detection",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "parse_repair_suggest",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "pdf_token_reduction",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "package_build",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "package_batch",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "package_pipeline",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "package_validation",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "package_diff",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "incremental_update",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "stale_index_detect",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "package_export",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "query_rewrite",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "retrieval_planning",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "rag_query",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "hybrid_retrieval",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "rerank",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "evidence_selection",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "claim_verification",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "contradiction_detection",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "freshness_check",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "llm_provider_validate",
+      "status": "blocked",
+      "errors_observed": [
+        "provider_auth_failed"
+      ],
+      "blocked_reason": "Provider, network, or explicit user configuration is required; not executed as a local P1-RWF-V2 target."
+    },
+    {
+      "action_id": "vector_db_validate",
+      "status": "blocked",
+      "errors_observed": [
+        "vector_db_failed"
+      ],
+      "blocked_reason": "Provider, network, or explicit user configuration is required; not executed as a local P1-RWF-V2 target."
+    },
+    {
+      "action_id": "vector_upsert_query_smoke",
+      "status": "blocked",
+      "errors_observed": [
+        "vector_db_failed"
+      ],
+      "blocked_reason": "Provider, network, or explicit user configuration is required; not executed as a local P1-RWF-V2 target."
+    },
+    {
+      "action_id": "provider_redaction_check",
+      "status": "blocked",
+      "errors_observed": [
+        "secret_risk"
+      ],
+      "blocked_reason": "Secret-risk handling remains blocked and is not executed with synthetic secrets."
+    },
+    {
+      "action_id": "offline_fallback_status",
+      "status": "blocked",
+      "errors_observed": [
+        "network_unavailable"
+      ],
+      "blocked_reason": "Provider, network, or explicit user configuration is required; not executed as a local P1-RWF-V2 target."
+    },
+    {
+      "action_id": "generate_markdown",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "generate_docx",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "generate_pdf",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "generate_pptx",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "generate_manual_user_guide",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "evidence_appendix",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "openability_check",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "book_to_skill",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "package_to_skill",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "skill_manifest_validate",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "skill_diff",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "standalone_agent_generation",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "kb_bound_agent_generation",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "run_agent",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "multi_agent_orchestration",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "summary_memory_lifecycle",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "memory_compression",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "memory_cleanup",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "document_owner_inspect",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "stale_document_detect",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "conflict_document_detect",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "product_hardening",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "final_gate",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "artifact_kb_package_inspect",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "artifact_vector_index_inspect",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "artifact_generated_docs_inspect",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "artifact_skill_package_inspect",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "artifact_agent_package_inspect",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "artifact_runtime_trace_inspect",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    },
+    {
+      "action_id": "artifact_acceptance_proof_inspect",
+      "status": "passed",
+      "errors_observed": [],
+      "blocked_reason": null
+    }
+  ]
+}
