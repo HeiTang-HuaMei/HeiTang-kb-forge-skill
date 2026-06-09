@@ -12,11 +12,11 @@
 - `P0 blockers=0`
 - Pre-v4 External Project Registry 已完成。
 - S/A Contract Inclusion 已完成。
-- 当前 release candidate preparation 目标：`v4.0.0-rc.1`。
+- 当前 stable release line：`v4.0.0`。
 
-## 下一门禁：v4.0.0-rc.1 Acceptance & Hardening
+## 当前门禁：v4.0.0 Stable Release
 
-下一道产品门禁是 rc.1 acceptance 与 hardening：full local validation、release-readiness、CI green、release-check workflow evidence，以及无 secret/build/raw artifact pollution，之后才进入 stable `v4.0.0`。
+当前产品门禁是 stable `v4.0.0`：rc.1 acceptance 与 hardening 之后，full local validation、release-readiness、CI green、release-check workflow evidence，以及无 secret/build/raw artifact pollution。
 
 ## 后续门禁：P2 Productization
 
@@ -34,8 +34,8 @@ HeiTang KB Forge 保持 Skill-first。UI 是 presentation layer，不是 Core pr
 
 ## 未证明前不属于范围
 
-- rc.1 acceptance 前发布 stable v4.0.0
-- release-check evidence 前创建 stable v4.0.0 tag
+- 未完成 rc.1 acceptance 与 hardening evidence 就发布 stable v4.0.0
+- 没有 release-check evidence 就创建 stable v4.0.0 tag
 - SaaS multi-tenancy
 - team permissions
 - cloud sync

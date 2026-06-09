@@ -102,7 +102,7 @@ Document outputs include:
 
 - Core pre-v4 RC readiness is complete for the latest Core P0 proof.
 - UI full-operation is not complete.
-- `v4.0.0-rc.1` is in release candidate preparation; stable `v4.0.0` is not released.
+- Stable `v4.0.0` is the current release line after rc.1 acceptance and hardening evidence.
 - Core tests do not require real LLM/API/network calls.
 - Real user secrets, raw private input, local provider profiles, and local configs must not be committed.
 

@@ -1,7 +1,7 @@
 # Docs Index
 
-Current Core package version: `4.0.0rc1`
-Current release candidate: `v4.0.0-rc.1`
+Current Core package version: `4.0.0`
+Current stable release: `v4.0.0`
 
 This is the canonical documentation entry for the current main branch. Historical version details live in git history and tags, not as accumulated process docs on main.
 
@@ -50,4 +50,4 @@ This is the canonical documentation entry for the current main branch. Historica
 
 ## Boundaries
 
-LLM remains optional only; Core tests do not require real LLM/API/network calls. `v4.0.0-rc.1` is the current release candidate preparation target, and stable `v4.0.0` requires rc.1 acceptance and hardening evidence.
+LLM remains optional only; Core tests do not require real LLM/API/network calls. `v4.0.0` is the current stable release line after rc.1 acceptance and hardening evidence.

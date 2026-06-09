@@ -10,9 +10,9 @@ def test_version_metadata_is_aligned_to_latest_completed_core_version(tmp_path):
     output, _ = run_audit(tmp_path)
 
     report = load_json(output, "version_metadata_audit_report.json")
-    assert report["expected_version"] == "4.0.0rc1"
+    assert report["expected_version"] == "4.0.0"
     assert all(item["status"] == "correct" for item in report["records"]), report["records"]
-    assert 'version = "4.0.0rc1"' in (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    assert 'version = "4.0.0"' in (ROOT / "pyproject.toml").read_text(encoding="utf-8")
 
 
 def test_version_matrix_is_chronological_and_marks_v4_future():
@@ -22,4 +22,4 @@ def test_version_matrix_is_chronological_and_marks_v4_future():
     positions = [table.index(item) for item in order]
     assert positions == sorted(positions)
     assert "| v4.0.0-rc.1 | Local Knowledge Workbench release candidate |" in text
-    assert "| v4.0.0 | Stable Local Knowledge Workbench release |" in text and "| future | no |" in text
+    assert "| v4.0.0 | Stable Local Knowledge Workbench release |" in text and "| current | yes |" in text

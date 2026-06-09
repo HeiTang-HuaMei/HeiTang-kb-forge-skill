@@ -1,9 +1,9 @@
 # Capability Status
 
-Current Core package version: `4.0.0rc1`
-Current release candidate: `v4.0.0-rc.1`
+Current Core package version: `4.0.0`
+Current stable release: `v4.0.0`
 
-Latest completed pre-rc Core work includes v3.12 Product Hardening & Local Release Readiness, P1 Final Gate Re-run, External Project Registry, and S/A Contract Inclusion. The project is now preparing the `v4.0.0-rc.1` release candidate.
+Latest completed release work includes v3.12 Product Hardening & Local Release Readiness, P1 Final Gate Re-run, External Project Registry, S/A Contract Inclusion, rc.1 acceptance, and release hardening. The project is now on the stable `v4.0.0` release line.
 
 ## Stable
 

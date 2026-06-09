@@ -1,9 +1,9 @@
 # 版本矩阵
 
-当前 Core package 版本：`4.0.0rc1`
-当前 release candidate：`v4.0.0-rc.1`
+当前 Core package 版本：`4.0.0`
+当前 stable release：`v4.0.0`
 
-当前阶段：v4.0.0-rc.1 release candidate preparation。stable v4.0.0 等待 rc.1 acceptance 与 hardening。
+当前阶段：v4.0.0 stable release，已完成 rc.1 acceptance 与 hardening。
 
 | Version | Goal | Key Capabilities | Key Commands | Key Outputs | Status | Supported by Current HEAD | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -38,8 +38,8 @@
 | v3.11.0-alpha.1 | Golden Demo & Real Acceptance Smoke | Real sample smoke、artifact openability、compatibility、sample coverage | `run-golden-demo-acceptance` | acceptance reports | superseded | yes | final release evidence 前必须重跑。 |
 | v3.12.0-alpha.1 | Product Hardening & Local Release Readiness | doctor、command/package/workspace audits、privacy boundary、installer readiness、v4 gate | `product-hardening`, `doctor` | hardening and v4 gate reports | historical | yes | 最新已完成 alpha Core 版本。 |
 | final-pre-v4.0 | Full product truth gate | Capability proof、docs truth、security/privacy、scale、Core/UI drift、workflow acceptance | `final-pre-v4-audit` | final audit reports | completed | yes | 最新 P0/P1 证据显示 `ready_for_v4_rc=true`。 |
-| v4.0.0-rc.1 | Local Knowledge Workbench release candidate | P1 final gate、external project registry、S/A contract inclusion、local-first release readiness | `doctor`, `release-readiness`, `final-pre-v4-audit` | rc evidence、release readiness reports | current | yes | Candidate release；不是 stable v4.0.0。 |
-| v4.0.0 | Stable Local Knowledge Workbench release | rc.1 acceptance 与 hardening 之后的 stable release | release-check workflow | release notes、tag、release-check CI | future | no | rc.1 acceptance 前不得声明 stable。 |
+| v4.0.0-rc.1 | Local Knowledge Workbench release candidate | P1 final gate、external project registry、S/A contract inclusion、local-first release readiness | `doctor`, `release-readiness`, `final-pre-v4-audit` | rc evidence、release readiness reports | historical | yes | stable v4.0.0 前已验收的 candidate release。 |
+| v4.0.0 | Stable Local Knowledge Workbench release | rc.1 acceptance 与 hardening 之后的 stable release | release-check workflow | release notes、tag、release-check CI | current | yes | 当前 stable release line。 |
 
 不支持或未来项：
 

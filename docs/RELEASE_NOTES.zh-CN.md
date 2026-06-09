@@ -1,5 +1,11 @@
 # Release Notes
 
+## v4.0.0
+
+Stable `v4.0.0` 在 P1 Final Gate Re-run、Pre-v4 External Project Registry、S/A Contract Inclusion、rc.1 acceptance 与 release hardening 完成后启动。Core pre-v4 RC readiness 作为历史证据继续保留。最新 Core P0 证明显示 `ready_for_v4_rc=true` 且 `P0 blockers=0`，最新 P1 final gate re-run 也显示 `ready_for_v4_rc=true`。
+
+本 stable release 保持 local-first 边界：Core tests 不需要真实 LLM/API/network 调用，外部项目除非单独实现，否则仍是 visibility 或 planned-adapter boundary，provider secrets 不进入提交输出。
+
 ## v4.0.0-rc.1
 
 本 release candidate 在 P1 Final Gate Re-run、Pre-v4 External Project Registry 与 S/A Contract Inclusion 完成后启动。最新 Core P0 证明显示 `ready_for_v4_rc=true` 且 `P0 blockers=0`，最新 P1 final gate re-run 也显示 `ready_for_v4_rc=true`。

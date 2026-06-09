@@ -34,41 +34,41 @@ jobs:
           python -m heitang_kb_forge.cli doctor --output ./tmp_doctor
       - name: Prepare release evidence workspace
         run: |
-          New-Item -ItemType Directory -Force ./tmp_rc_release_workspace/skill_package | Out-Null
-          New-Item -ItemType Directory -Force ./tmp_rc_release_workspace/derived_skill_package | Out-Null
-          New-Item -ItemType Directory -Force ./tmp_rc_release_workspace/agent_package | Out-Null
-          New-Item -ItemType Directory -Force ./tmp_rc_release_workspace/workspace/registries | Out-Null
-          New-Item -ItemType Directory -Force ./tmp_rc_release_workspace/platform_distribution | Out-Null
-          Copy-Item ./tmp_quickstart_output/manifest.json ./tmp_rc_release_workspace/manifest.json -Force
-          Copy-Item ./tmp_quickstart_output/chunks.jsonl ./tmp_rc_release_workspace/chunks.jsonl -Force
-          Copy-Item ./tmp_quickstart_output/quality_report.json ./tmp_rc_release_workspace/quality_report.json -Force
-          Copy-Item ./SKILL.md ./tmp_rc_release_workspace/skill_package/SKILL.md -Force
-          Copy-Item ./SKILL.md ./tmp_rc_release_workspace/derived_skill_package/SKILL.md -Force
-          Set-Content -Path ./tmp_rc_release_workspace/agent_package/agent_profile.yaml -Value "agent_id: rc1_local_agent`nmode: local`n"
-          Set-Content -Path ./tmp_rc_release_workspace/workspace/workspace_manifest.json -Value '{"workspace":"rc1"}'
-          Set-Content -Path ./tmp_rc_release_workspace/workspace/registries/provider_registry.json -Value '{"providers":[]}'
-          Set-Content -Path ./tmp_rc_release_workspace/workspace/registries/prompt_profile_registry.json -Value '{"profiles":[]}'
-          Set-Content -Path ./tmp_rc_release_workspace/workspace/registries/llm_call_audit.jsonl -Value ''
-          Set-Content -Path ./tmp_rc_release_workspace/MCP_BOUNDARY.md -Value 'MCP export is stub-only for this release evidence. No MCP server is started, and no real platform runtime is executed.'
-          New-Item -ItemType Directory -Force ./tmp_rc_golden_samples/minimal_knowledge_package | Out-Null
-          New-Item -ItemType Directory -Force ./tmp_rc_golden_samples/knowledge_package | Out-Null
-          New-Item -ItemType Directory -Force ./tmp_rc_golden_samples/skill_package | Out-Null
-          New-Item -ItemType Directory -Force ./tmp_rc_golden_samples/derived_skill_package | Out-Null
-          New-Item -ItemType Directory -Force ./tmp_rc_golden_samples/agent_package | Out-Null
-          New-Item -ItemType Directory -Force ./tmp_rc_golden_samples/workspace | Out-Null
-          New-Item -ItemType Directory -Force ./tmp_rc_golden_samples/platform_export_mock | Out-Null
-          New-Item -ItemType Directory -Force ./tmp_rc_golden_samples/platform_exports | Out-Null
+          New-Item -ItemType Directory -Force ./tmp_release_workspace/skill_package | Out-Null
+          New-Item -ItemType Directory -Force ./tmp_release_workspace/derived_skill_package | Out-Null
+          New-Item -ItemType Directory -Force ./tmp_release_workspace/agent_package | Out-Null
+          New-Item -ItemType Directory -Force ./tmp_release_workspace/workspace/registries | Out-Null
+          New-Item -ItemType Directory -Force ./tmp_release_workspace/platform_distribution | Out-Null
+          Copy-Item ./tmp_quickstart_output/manifest.json ./tmp_release_workspace/manifest.json -Force
+          Copy-Item ./tmp_quickstart_output/chunks.jsonl ./tmp_release_workspace/chunks.jsonl -Force
+          Copy-Item ./tmp_quickstart_output/quality_report.json ./tmp_release_workspace/quality_report.json -Force
+          Copy-Item ./SKILL.md ./tmp_release_workspace/skill_package/SKILL.md -Force
+          Copy-Item ./SKILL.md ./tmp_release_workspace/derived_skill_package/SKILL.md -Force
+          Set-Content -Path ./tmp_release_workspace/agent_package/agent_profile.yaml -Value "agent_id: v4_local_agent`nmode: local`n"
+          Set-Content -Path ./tmp_release_workspace/workspace/workspace_manifest.json -Value '{"workspace":"v4.0.0"}'
+          Set-Content -Path ./tmp_release_workspace/workspace/registries/provider_registry.json -Value '{"providers":[]}'
+          Set-Content -Path ./tmp_release_workspace/workspace/registries/prompt_profile_registry.json -Value '{"profiles":[]}'
+          Set-Content -Path ./tmp_release_workspace/workspace/registries/llm_call_audit.jsonl -Value ''
+          Set-Content -Path ./tmp_release_workspace/MCP_BOUNDARY.md -Value 'MCP export is stub-only for this release evidence. No MCP server is started, and no real platform runtime is executed.'
+          New-Item -ItemType Directory -Force ./tmp_release_golden_samples/minimal_knowledge_package | Out-Null
+          New-Item -ItemType Directory -Force ./tmp_release_golden_samples/knowledge_package | Out-Null
+          New-Item -ItemType Directory -Force ./tmp_release_golden_samples/skill_package | Out-Null
+          New-Item -ItemType Directory -Force ./tmp_release_golden_samples/derived_skill_package | Out-Null
+          New-Item -ItemType Directory -Force ./tmp_release_golden_samples/agent_package | Out-Null
+          New-Item -ItemType Directory -Force ./tmp_release_golden_samples/workspace | Out-Null
+          New-Item -ItemType Directory -Force ./tmp_release_golden_samples/platform_export_mock | Out-Null
+          New-Item -ItemType Directory -Force ./tmp_release_golden_samples/platform_exports | Out-Null
       - name: Release evidence inputs
         run: |
           python -m heitang_kb_forge.cli export-platform --skill . --output ./tmp_platform_export --platform all --allow-untrusted
-          Copy-Item ./tmp_platform_export/generic/platform_manifest.json ./tmp_rc_release_workspace/platform_distribution/platform_manifest.json -Force
-          Copy-Item ./tmp_platform_export/generic/platform_upload_check_result.json ./tmp_rc_release_workspace/platform_distribution/platform_upload_check_result.json -Force
-          python -m heitang_kb_forge.cli quality-gate --workspace ./tmp_rc_release_workspace --output ./tmp_release_readiness --release-threshold 60
-          python -m heitang_kb_forge.cli release-blockers --workspace ./tmp_rc_release_workspace --output ./tmp_release_readiness
+          Copy-Item ./tmp_platform_export/generic/platform_manifest.json ./tmp_release_workspace/platform_distribution/platform_manifest.json -Force
+          Copy-Item ./tmp_platform_export/generic/platform_upload_check_result.json ./tmp_release_workspace/platform_distribution/platform_upload_check_result.json -Force
+          python -m heitang_kb_forge.cli quality-gate --workspace ./tmp_release_workspace --output ./tmp_release_readiness --release-threshold 60
+          python -m heitang_kb_forge.cli release-blockers --workspace ./tmp_release_workspace --output ./tmp_release_readiness
           python -m heitang_kb_forge.cli regression-check --workspace . --output ./tmp_release_readiness
-          python -m heitang_kb_forge.cli validate-golden-samples --workspace ./tmp_rc_golden_samples --output ./tmp_release_readiness
+          python -m heitang_kb_forge.cli validate-golden-samples --workspace ./tmp_release_golden_samples --output ./tmp_release_readiness
           python -m heitang_kb_forge.cli certify-export --export ./tmp_platform_export --output ./tmp_release_readiness --platform all
-          python -m heitang_kb_forge.cli compatibility-matrix --workspace ./tmp_rc_release_workspace --output ./tmp_release_readiness
+          python -m heitang_kb_forge.cli compatibility-matrix --workspace ./tmp_release_workspace --output ./tmp_release_readiness
       - name: Release readiness
         run: |
           python -m heitang_kb_forge.cli release-readiness --workspace . --output ./tmp_release_readiness

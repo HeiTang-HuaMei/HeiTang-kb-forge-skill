@@ -1,7 +1,7 @@
 # Current Truth
 
-Current Core package version: `4.0.0rc1`
-Current release candidate: `v4.0.0-rc.1`
+Current Core package version: `4.0.0`
+Current stable release: `v4.0.0`
 
 This is the short current-state entry for GitHub readers. It is intentionally about the current main branch, not historical version planning.
 
@@ -18,7 +18,7 @@ This is the short current-state entry for GitHub readers. It is intentionally ab
 - S/A Contract Inclusion complete.
 - Baseline evidence before P0.6 documentation governance: Core main `053a6a6`, GitHub CI run `27140288050` success.
 
-`v4.0.0-rc.1` is the current release candidate preparation target. Stable `v4.0.0` is not released until rc.1 acceptance and hardening pass.
+`v4.0.0` is the current stable release line after rc.1 acceptance and hardening evidence.
 
 ## Product Positioning
 
@@ -34,7 +34,7 @@ HeiTang KB Forge is a local-first, offline-first Core Skill for converting local
 
 ## Must Not Claim
 
-- stable v4.0.0 released before rc.1 acceptance
+- stable v4.0.0 released without rc.1 acceptance and hardening evidence
 - stable v4.0.0 released from the P1 gate alone
 - stable tag or release created by the P1 gate alone
 - external vector database production readiness

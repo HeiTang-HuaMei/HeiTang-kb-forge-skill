@@ -1,9 +1,9 @@
 # Version Matrix
 
-Current Core package version: `4.0.0rc1`
-Current release candidate: `v4.0.0-rc.1`
+Current Core package version: `4.0.0`
+Current stable release: `v4.0.0`
 
-Current stage: v4.0.0-rc.1 release candidate preparation. Stable v4.0.0 is pending rc.1 acceptance and hardening.
+Current stage: v4.0.0 stable release after rc.1 acceptance and hardening.
 
 | Version | Goal | Key Capabilities | Key Commands | Key Outputs | Status | Supported by Current HEAD | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -38,8 +38,8 @@ Current stage: v4.0.0-rc.1 release candidate preparation. Stable v4.0.0 is pendi
 | v3.11.0-alpha.1 | Golden Demo & Real Acceptance Smoke | Real sample smoke, artifact openability, compatibility, sample coverage | `run-golden-demo-acceptance` | acceptance reports | superseded | yes | Must be rerun for final release evidence. |
 | v3.12.0-alpha.1 | Product Hardening & Local Release Readiness | doctor, command/package/workspace audits, privacy boundary, installer readiness, v4 gate | `product-hardening`, `doctor` | hardening and v4 gate reports | historical | yes | Latest completed alpha Core version. |
 | final-pre-v4.0 | Full product truth gate | Capability proof, docs truth, security/privacy, scale, Core/UI drift, workflow acceptance | `final-pre-v4-audit` | final audit reports | completed | yes | Latest P0/P1 evidence reports `ready_for_v4_rc=true`. |
-| v4.0.0-rc.1 | Local Knowledge Workbench release candidate | P1 final gate, external project registry, S/A contract inclusion, local-first release readiness | `doctor`, `release-readiness`, `final-pre-v4-audit` | rc evidence, release readiness reports | current | yes | Candidate release; not stable v4.0.0. |
-| v4.0.0 | Stable Local Knowledge Workbench release | Stable release after rc.1 acceptance and hardening | release-check workflow | release notes, tag, release-check CI | future | no | Do not claim stable before rc.1 acceptance. |
+| v4.0.0-rc.1 | Local Knowledge Workbench release candidate | P1 final gate, external project registry, S/A contract inclusion, local-first release readiness | `doctor`, `release-readiness`, `final-pre-v4-audit` | rc evidence, release readiness reports | historical | yes | Candidate release accepted before stable v4.0.0. |
+| v4.0.0 | Stable Local Knowledge Workbench release | Stable release after rc.1 acceptance and hardening | release-check workflow | release notes, tag, release-check CI | current | yes | Current stable release line. |
 
 Unsupported or future:
 

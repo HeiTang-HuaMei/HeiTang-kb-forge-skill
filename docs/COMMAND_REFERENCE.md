@@ -1,9 +1,9 @@
 # Command Reference
 
-Current Core package version: `4.0.0rc1`
-Current release candidate: `v4.0.0-rc.1`
+Current Core package version: `4.0.0`
+Current stable release: `v4.0.0`
 
-Current stage: v4.0.0-rc.1 release candidate preparation. Stable v4.0.0 requires rc.1 acceptance and hardening evidence.
+Current stage: v4.0.0 stable release after rc.1 acceptance and hardening evidence.
 
 All commands are local Core commands. Real LLM/API/network calls are not required by tests and are disabled by default.
 

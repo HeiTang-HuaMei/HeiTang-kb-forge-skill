@@ -1,5 +1,11 @@
 # Release Notes
 
+## v4.0.0
+
+Stable `v4.0.0` starts after P1 Final Gate Re-run, Pre-v4 External Project Registry, S/A Contract Inclusion, rc.1 acceptance, and release hardening completed. Core pre-v4 RC readiness remains attached as historical evidence. The latest Core P0 proof reports `ready_for_v4_rc=true` and `P0 blockers=0`, and the latest P1 final gate re-run also reports `ready_for_v4_rc=true`.
+
+This stable release preserves local-first boundaries: Core tests do not require real LLM/API/network calls, external projects remain visibility or planned-adapter boundaries unless separately implemented, and provider secrets stay outside committed outputs.
+
 ## v4.0.0-rc.1
 
 This release candidate starts after P1 Final Gate Re-run, Pre-v4 External Project Registry, and S/A Contract Inclusion have completed. Core pre-v4 RC readiness remains complete. The latest Core P0 proof reports `ready_for_v4_rc=true` and `P0 blockers=0`, and the latest P1 final gate re-run also reports `ready_for_v4_rc=true`.

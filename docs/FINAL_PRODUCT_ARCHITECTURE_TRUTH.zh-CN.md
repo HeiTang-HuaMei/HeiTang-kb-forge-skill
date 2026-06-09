@@ -1,6 +1,6 @@
 # 最终产品架构真值
 
-本文档是当前 pre-v4.0 Core 状态的短版人工可读真值入口，用于集中说明哪些已实现、哪些部分实现、哪些是未来能力、哪些仍然阻断。机器可读证据保留在 `docs/audits/local_acceptance/large_bilingual_run/` 的历史大文件验收记录，以及 `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/` 的最新 Core P0 after-live-LLM 证明。
+本文档是当前 v4.0.0 Core 状态的短版人工可读真值入口，用于集中说明哪些已实现、哪些部分实现、哪些是未来能力、哪些仍然阻断。机器可读证据保留在 `docs/audits/local_acceptance/large_bilingual_run/` 的历史大文件验收记录，以及 `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/` 的最新 Core P0 after-live-LLM 证明。
 
 ## 当前门禁
 
@@ -11,7 +11,7 @@
 - 最新 P1 final gate：`docs/audits/p1_final_gate_rerun/p1_final_gate_report.json`
 - CI：包含 after-live-LLM 证明的最新 Core commit 已 green。
 - 本地 full pytest：最新 Core provider-profile 与 P0 gate 工作已通过。
-- UI validation：Core 输出 Workbench contracts，P1-RWF-V2 UI consumption pass 已复验到 v4 RC readiness。这仍不是 v4.0 release。
+- UI validation：Core 输出 Workbench contracts，P1-RWF-V2 UI consumption pass 已复验到 v4 RC readiness。stable v4.0.0 由 rc.1 acceptance 与 hardening evidence 支撑。
 - 历史说明：`docs/audits/local_acceptance/large_bilingual_run/` 保留 earlier large-file run，当时 live LLM 仍被阻断。它不能作为最新 live-LLM P0 结论。
 
 ## 架构真值矩阵
@@ -29,11 +29,11 @@
 | 存储 | `local_workspace` 是已实现默认。`local_db` 是 partial/store-index oriented。BYO cloud/database 是 future/disabled，不是已实现能力。 | partial |
 | 安全与隐私 | local-first、默认 no hidden upload、API key redaction、no platform-hosted user data 已文档化并测试。动态 runtime network proof 和完整 UI security acceptance 仍需 review。 | partial |
 | 规模 | 已有 synthetic 1500-scale checks。真实 1500 books、1500 KBs、1500 Agents 未生产级证明。 | needs_review |
-| UI | Core 输出 Workbench contracts。P1-RWF-V2 evidence 与 UI consumption 已复验到 v4 RC readiness。 | ready for v4 RC，not released |
+| UI | Core 输出 Workbench contracts。P1-RWF-V2 evidence 与 UI consumption 已复验到 v4 RC readiness，并通过 rc.1 acceptance 与 hardening 推进到 v4.0.0。 | stable v4.0.0 |
 
 ## 仍不能声明
 
-- v4.0 已发布或已打 tag
+- 仅凭 P1 evidence 发布 v4.0
 - 外部 vector database production readiness
 - Milvus/Pinecone/Qdrant/Chroma 已实现
 - 由 P1 final gate 发布 v4.0

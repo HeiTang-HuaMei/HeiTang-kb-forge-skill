@@ -1,8 +1,8 @@
 {
   "name": "heitang-kb-forge-skill",
   "display_name": "HeiTang KB Forge Skill",
-  "version": "4.0.0rc1",
-  "description": "Local-first knowledge workbench Core Skill for producing, auditing, retrieving, generating, and validating knowledge packages for the v4.0.0-rc.1 release candidate.",
+  "version": "4.0.0",
+  "description": "Local-first knowledge workbench Core Skill for producing, auditing, retrieving, generating, and validating knowledge packages for the v4.0.0 stable release.",
   "entrypoints": {
     "cli": "heitang-kb-forge",
     "python_module": "python -m heitang_kb_forge.cli"

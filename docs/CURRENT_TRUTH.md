@@ -1,7 +1,7 @@
 # Current Truth
 
-Current Core package version: `4.0.0rc1`
-Current release candidate: `v4.0.0-rc.1`
+Current Core package version: `4.0.0`
+Current stable release: `v4.0.0`
 
 HeiTang KB Forge Skill is an offline-first Agent Knowledge Supply Chain Core. It turns local source materials into standardized, traceable, searchable, auditable, and reusable knowledge assets for RAG, verification, document generation, structured Skill packages, and local Agent workflows.
 
@@ -14,8 +14,8 @@ HeiTang KB Forge Skill is an offline-first Agent Knowledge Supply Chain Core. It
 - Latest P1 proof: `docs/audits/p1_final_gate_rerun/`
 - Latest Core P0 proof: `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/`
 - Remaining Core P0: none in the latest pre-v4 P0 proof.
-- `ready_for_v4_rc=true`; `v4.0.0-rc.1` is in release candidate preparation.
-- Stable `v4.0.0` is not released until rc.1 acceptance and hardening pass.
+- `ready_for_v4_rc=true`; rc.1 acceptance and hardening evidence have been completed.
+- Stable `v4.0.0` is the current release line.
 
 The detailed canonical current-truth page is [00_overview/CURRENT_TRUTH.md](00_overview/CURRENT_TRUTH.md).
 

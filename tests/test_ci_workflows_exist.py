@@ -11,8 +11,8 @@ def test_ci_and_release_check_workflows_are_local_and_offline_safe():
     assert "python -m pytest" in ci
     assert "doctor --output ./tmp_doctor" in release
     assert "tmp_quickstart_output/manifest.json" in release
-    assert "quality-gate --workspace ./tmp_rc_release_workspace" in release
-    assert "validate-golden-samples --workspace ./tmp_rc_golden_samples" in release
+    assert "quality-gate --workspace ./tmp_release_workspace" in release
+    assert "validate-golden-samples --workspace ./tmp_release_golden_samples" in release
     assert "certify-export --export ./tmp_platform_export" in release
     assert "release-readiness --workspace ." in release
     assert "r['release_ready'] is True" in release

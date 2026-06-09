@@ -1,5 +1,11 @@
 # Changelog
 
+## v4.0.0
+
+* Promoted the v4.0.0 release line from rc.1 to stable after P1 Final Gate Re-run, Pre-v4 External Project Registry, S/A Contract Inclusion, rc.1 acceptance, and release hardening completed.
+* Aligned Core package metadata to `4.0.0` and user-facing stable naming to `v4.0.0`.
+* Preserved local-first boundaries: no default LLM/API/network dependency, no external project runtime implementation, no provider secret storage, and no SaaS/cloud/team-permission claim.
+
 ## v4.0.0-rc.1
 
 * Started the v4.0.0 release-candidate line after P1 Final Gate Re-run, Pre-v4 External Project Registry, and S/A Contract Inclusion completed.

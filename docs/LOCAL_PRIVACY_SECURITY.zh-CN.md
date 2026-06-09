@@ -1,9 +1,9 @@
 # 本地隐私与安全
 
-当前 Core package 版本：`4.0.0rc1`
-当前 release candidate：`v4.0.0-rc.1`
+当前 Core package 版本：`4.0.0`
+当前 stable release：`v4.0.0`
 
-当前阶段：v4.0.0-rc.1 release candidate preparation。stable v4.0.0 需要 rc.1 acceptance 与 hardening evidence。
+当前阶段：v4.0.0 stable release，已完成 rc.1 acceptance 与 hardening evidence。
 
 HeiTang KB Forge Core 默认 local-first。
 

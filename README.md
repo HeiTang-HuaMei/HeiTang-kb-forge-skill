@@ -2,9 +2,9 @@
 
 An offline-first Agent Knowledge Supply Chain Core for turning local source materials into standardized, traceable, searchable, auditable, and reusable knowledge assets.
 
-Current Core: v4.0.0-rc.1
+Current Core: v4.0.0
 
-Status: v4.0.0-rc.1 release candidate preparation after P1 Final Gate, External Project Registry, and S/A Contract Inclusion.
+Status: v4.0.0 stable release after P1 Final Gate, External Project Registry, S/A Contract Inclusion, rc.1 acceptance, and release hardening.
 
 For quick understanding:
 - Product positioning: [docs/CURRENT_TRUTH.md](docs/CURRENT_TRUTH.md)
@@ -22,8 +22,8 @@ The repository name still contains `Skill` because the project started from a Sk
 
 ## Current status
 
-Current Core package version: `4.0.0rc1`
-Current release candidate: `v4.0.0-rc.1`
+Current Core package version: `4.0.0`
+Current stable release: `v4.0.0`
 
 - Core pre-v4 RC readiness is complete for the latest Core P0 proof.
 - P1 local Workbench final gate re-run is complete for v4 RC readiness.
@@ -32,7 +32,7 @@ Current release candidate: `v4.0.0-rc.1`
 - Latest Core P0 proof: `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/`
 - Remaining Core P0: none in the latest pre-v4 P0 proof.
 - Final architecture truth: [docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md)
-- `ready_for_v4_rc=true`; `v4.0.0-rc.1` is a release candidate, not the stable `v4.0.0` release.
+- `ready_for_v4_rc=true`; rc.1 acceptance and hardening evidence have been promoted into the stable `v4.0.0` release line.
 
 ## Core capabilities
 
@@ -103,8 +103,8 @@ UI information architecture is frozen as a planning contract, and the UI remains
 ## Repository status / honesty boundary
 
 - This is the Core repository only; visual UI work belongs outside this Core pass.
-- The P1 local Workbench gate is ready for v4 RC preparation, and this branch is preparing `v4.0.0-rc.1`.
-- Stable `v4.0.0` is not released until rc.1 acceptance and hardening evidence passes.
+- The P1 local Workbench gate, rc.1 acceptance, and release hardening evidence are complete for stable `v4.0.0`.
+- Historical P1 evidence may still contain `not_v4_0_workbench_rc=true` as a time-point boundary from before the stable release.
 - OpenDataLoader, PaddleOCR, and MinerU are external backend candidates / planned adapters only; they are not completed Core integrations.
 - S/A external projects are included as contract, matrix, provider boundary, and UI visibility entries only; this does not implement their functionality.
 - External provider, secret, and network-dependent actions require explicit user configuration and are not counted as real-local passed.
