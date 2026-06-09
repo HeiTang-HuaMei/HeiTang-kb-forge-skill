@@ -1,0 +1,648 @@
+{
+  "matrix_id": "workbench_external_capability_matrix",
+  "version": "s_a_contract_inclusion.1",
+  "scope": "Extends Workbench visibility only; no new major page or executable action is added.",
+  "page_count": 11,
+  "pages": [
+    {
+      "page_id": "artifact_management",
+      "title": "Artifact Management",
+      "external_capability_count": 4,
+      "external_capabilities": [
+        {
+          "project_id": "jellyfish",
+          "project_name": "Jellyfish",
+          "rating": "A",
+          "contract_status": [
+            "template_reference",
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "mmskills",
+          "project_name": "MMSkills",
+          "rating": "A",
+          "contract_status": [
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "seedance2_skill",
+          "project_name": "seedance2-skill",
+          "rating": "A",
+          "contract_status": [
+            "needs_verification",
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "story_flicks",
+          "project_name": "story-flicks",
+          "rating": "A",
+          "contract_status": [
+            "template_reference",
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        }
+      ]
+    },
+    {
+      "page_id": "document_generation",
+      "title": "Document Generation",
+      "external_capability_count": 3,
+      "external_capabilities": [
+        {
+          "project_id": "jellyfish",
+          "project_name": "Jellyfish",
+          "rating": "A",
+          "contract_status": [
+            "template_reference",
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "seedance2_skill",
+          "project_name": "seedance2-skill",
+          "rating": "A",
+          "contract_status": [
+            "needs_verification",
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "story_flicks",
+          "project_name": "story-flicks",
+          "rating": "A",
+          "contract_status": [
+            "template_reference",
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        }
+      ]
+    },
+    {
+      "page_id": "governance",
+      "title": "Governance",
+      "external_capability_count": 1,
+      "external_capabilities": [
+        {
+          "project_id": "llm_wiki_v2",
+          "project_name": "LLM Wiki v2",
+          "rating": "S",
+          "contract_status": [
+            "future_adapter",
+            "capability_anchor"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        }
+      ]
+    },
+    {
+      "page_id": "import_parsing",
+      "title": "Import & Parsing",
+      "external_capability_count": 7,
+      "external_capabilities": [
+        {
+          "project_id": "docling",
+          "project_name": "Docling",
+          "rating": "S",
+          "contract_status": [
+            "planned_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "marker",
+          "project_name": "Marker",
+          "rating": "A",
+          "contract_status": [
+            "planned_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "mineru",
+          "project_name": "MinerU",
+          "rating": "S",
+          "contract_status": [
+            "planned_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "opendataloader",
+          "project_name": "OpenDataLoader",
+          "rating": "A",
+          "contract_status": [
+            "planned_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "paddleocr",
+          "project_name": "PaddleOCR",
+          "rating": "S",
+          "contract_status": [
+            "planned_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "surya",
+          "project_name": "Surya",
+          "rating": "A",
+          "contract_status": [
+            "planned_adapter",
+            "needs_verification"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "unstructured",
+          "project_name": "Unstructured",
+          "rating": "A",
+          "contract_status": [
+            "planned_adapter",
+            "needs_verification"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        }
+      ]
+    },
+    {
+      "page_id": "memory_center",
+      "title": "Memory Center",
+      "external_capability_count": 2,
+      "external_capabilities": [
+        {
+          "project_id": "llm_wiki_v2",
+          "project_name": "LLM Wiki v2",
+          "rating": "S",
+          "contract_status": [
+            "future_adapter",
+            "capability_anchor"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "rtk",
+          "project_name": "rtk",
+          "rating": "A",
+          "contract_status": [
+            "benchmark_only",
+            "needs_verification"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        }
+      ]
+    },
+    {
+      "page_id": "reports_audit",
+      "title": "Reports & Audit",
+      "external_capability_count": 6,
+      "external_capabilities": [
+        {
+          "project_id": "andrej_karpathy_skills",
+          "project_name": "andrej-karpathy-skills",
+          "rating": "S",
+          "contract_status": [
+            "benchmark_only",
+            "capability_anchor"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "deepeval",
+          "project_name": "DeepEval",
+          "rating": "A",
+          "contract_status": [
+            "benchmark_only",
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "llamaindex",
+          "project_name": "LlamaIndex",
+          "rating": "A",
+          "contract_status": [
+            "benchmark_only"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "ragas",
+          "project_name": "RAGAS",
+          "rating": "A",
+          "contract_status": [
+            "benchmark_only",
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "rtk",
+          "project_name": "rtk",
+          "rating": "A",
+          "contract_status": [
+            "benchmark_only",
+            "needs_verification"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "weknora",
+          "project_name": "WeKnora",
+          "rating": "S",
+          "contract_status": [
+            "future_adapter",
+            "capability_anchor"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        }
+      ]
+    },
+    {
+      "page_id": "retrieval_verification",
+      "title": "Retrieval & Verification",
+      "external_capability_count": 6,
+      "external_capabilities": [
+        {
+          "project_id": "anysearchskill",
+          "project_name": "AnySearchSkill",
+          "rating": "A",
+          "contract_status": [
+            "provider_required",
+            "planned_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "deepeval",
+          "project_name": "DeepEval",
+          "rating": "A",
+          "contract_status": [
+            "benchmark_only",
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "last30days_skill",
+          "project_name": "last30days-skill",
+          "rating": "A",
+          "contract_status": [
+            "provider_required",
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "llamaindex",
+          "project_name": "LlamaIndex",
+          "rating": "A",
+          "contract_status": [
+            "benchmark_only"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "ragas",
+          "project_name": "RAGAS",
+          "rating": "A",
+          "contract_status": [
+            "benchmark_only",
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "weknora",
+          "project_name": "WeKnora",
+          "rating": "S",
+          "contract_status": [
+            "future_adapter",
+            "capability_anchor"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        }
+      ]
+    },
+    {
+      "page_id": "skill_factory",
+      "title": "Skill Factory",
+      "external_capability_count": 2,
+      "external_capabilities": [
+        {
+          "project_id": "andrej_karpathy_skills",
+          "project_name": "andrej-karpathy-skills",
+          "rating": "S",
+          "contract_status": [
+            "benchmark_only",
+            "capability_anchor"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "skill_prompt_generator",
+          "project_name": "skill-prompt-generator",
+          "rating": "A",
+          "contract_status": [
+            "benchmark_only",
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        }
+      ]
+    },
+    {
+      "page_id": "task_job_center",
+      "title": "Task / Job Center",
+      "external_capability_count": 1,
+      "external_capabilities": [
+        {
+          "project_id": "n8n",
+          "project_name": "n8n",
+          "rating": "S",
+          "contract_status": [
+            "future_adapter",
+            "provider_required",
+            "workflow_export"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        }
+      ]
+    },
+    {
+      "page_id": "template_library",
+      "title": "Template Library",
+      "external_capability_count": 8,
+      "external_capabilities": [
+        {
+          "project_id": "ai_marketing_skills",
+          "project_name": "ai-marketing-skills",
+          "rating": "A",
+          "contract_status": [
+            "template_reference"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "jellyfish",
+          "project_name": "Jellyfish",
+          "rating": "A",
+          "contract_status": [
+            "template_reference",
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "last30days_skill",
+          "project_name": "last30days-skill",
+          "rating": "A",
+          "contract_status": [
+            "provider_required",
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "mmskills",
+          "project_name": "MMSkills",
+          "rating": "A",
+          "contract_status": [
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "n8n",
+          "project_name": "n8n",
+          "rating": "S",
+          "contract_status": [
+            "future_adapter",
+            "provider_required",
+            "workflow_export"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "seedance2_skill",
+          "project_name": "seedance2-skill",
+          "rating": "A",
+          "contract_status": [
+            "needs_verification",
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "skill_prompt_generator",
+          "project_name": "skill-prompt-generator",
+          "rating": "A",
+          "contract_status": [
+            "benchmark_only",
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "story_flicks",
+          "project_name": "story-flicks",
+          "rating": "A",
+          "contract_status": [
+            "template_reference",
+            "future_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        }
+      ]
+    },
+    {
+      "page_id": "vector_hub_provider_storage",
+      "title": "Vector Hub / Provider / Storage",
+      "external_capability_count": 8,
+      "external_capabilities": [
+        {
+          "project_id": "anysearchskill",
+          "project_name": "AnySearchSkill",
+          "rating": "A",
+          "contract_status": [
+            "provider_required",
+            "planned_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "docling",
+          "project_name": "Docling",
+          "rating": "S",
+          "contract_status": [
+            "planned_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "marker",
+          "project_name": "Marker",
+          "rating": "A",
+          "contract_status": [
+            "planned_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "mineru",
+          "project_name": "MinerU",
+          "rating": "S",
+          "contract_status": [
+            "planned_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "opendataloader",
+          "project_name": "OpenDataLoader",
+          "rating": "A",
+          "contract_status": [
+            "planned_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "paddleocr",
+          "project_name": "PaddleOCR",
+          "rating": "S",
+          "contract_status": [
+            "planned_adapter"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "surya",
+          "project_name": "Surya",
+          "rating": "A",
+          "contract_status": [
+            "planned_adapter",
+            "needs_verification"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "unstructured",
+          "project_name": "Unstructured",
+          "rating": "A",
+          "contract_status": [
+            "planned_adapter",
+            "needs_verification"
+          ],
+          "blocked_reason": "external_project_registry_only",
+          "ui_visibility": "visible_boundary_only",
+          "can_execute_locally_before_v4": false
+        }
+      ]
+    }
+  ]
+}

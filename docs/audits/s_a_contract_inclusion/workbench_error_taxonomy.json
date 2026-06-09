@@ -1,0 +1,307 @@
+{
+  "taxonomy_id": "workbench_external_blocked_reason_taxonomy",
+  "version": "s_a_contract_inclusion.1",
+  "blocked_reason_count": 15,
+  "blocked_reasons": [
+    {
+      "blocked_reason": "external_project_registry_only",
+      "definition": "Registry and roadmap entry only; no runtime integration is claimed.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none",
+      "project_ids": [
+        "ai_marketing_skills",
+        "andrej_karpathy_skills",
+        "anysearchskill",
+        "deepeval",
+        "docling",
+        "jellyfish",
+        "last30days_skill",
+        "llamaindex",
+        "llm_wiki_v2",
+        "marker",
+        "mineru",
+        "mmskills",
+        "n8n",
+        "opendataloader",
+        "paddleocr",
+        "ragas",
+        "rtk",
+        "seedance2_skill",
+        "skill_prompt_generator",
+        "story_flicks",
+        "surya",
+        "unstructured",
+        "weknora"
+      ]
+    },
+    {
+      "blocked_reason": "benchmark_only_not_runtime",
+      "definition": "Benchmark pattern only; it must not be treated as bundled runtime.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none",
+      "project_ids": [
+        "andrej_karpathy_skills",
+        "deepeval",
+        "llamaindex",
+        "ragas",
+        "rtk",
+        "skill_prompt_generator"
+      ]
+    },
+    {
+      "blocked_reason": "planned_adapter_not_implemented",
+      "definition": "Adapter is planned but not implemented or ready.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none",
+      "project_ids": [
+        "anysearchskill",
+        "docling",
+        "marker",
+        "mineru",
+        "opendataloader",
+        "paddleocr",
+        "surya",
+        "unstructured"
+      ]
+    },
+    {
+      "blocked_reason": "future_adapter_after_v4",
+      "definition": "Adapter or capability is explicitly post-v4.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none",
+      "project_ids": [
+        "deepeval",
+        "jellyfish",
+        "last30days_skill",
+        "llm_wiki_v2",
+        "mmskills",
+        "n8n",
+        "ragas",
+        "seedance2_skill",
+        "skill_prompt_generator",
+        "story_flicks",
+        "weknora"
+      ]
+    },
+    {
+      "blocked_reason": "provider_required",
+      "definition": "Requires a user-configured provider boundary before runtime use.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none",
+      "project_ids": [
+        "anysearchskill",
+        "last30days_skill",
+        "n8n"
+      ]
+    },
+    {
+      "blocked_reason": "secret_required",
+      "definition": "Requires explicit user-provided secret material; no fixture may include it.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none",
+      "project_ids": [
+        "anysearchskill",
+        "seedance2_skill"
+      ]
+    },
+    {
+      "blocked_reason": "network_required",
+      "definition": "Requires network access and cannot be counted as local-ready.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none",
+      "project_ids": [
+        "anysearchskill",
+        "last30days_skill",
+        "seedance2_skill"
+      ]
+    },
+    {
+      "blocked_reason": "external_runtime_required",
+      "definition": "Requires an external runtime that is not bundled.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none",
+      "project_ids": [
+        "n8n",
+        "rtk"
+      ]
+    },
+    {
+      "blocked_reason": "license_review_required",
+      "definition": "Requires license review before any implementation work.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none",
+      "project_ids": [
+        "ai_marketing_skills",
+        "andrej_karpathy_skills",
+        "anysearchskill",
+        "deepeval",
+        "docling",
+        "jellyfish",
+        "last30days_skill",
+        "llamaindex",
+        "llm_wiki_v2",
+        "marker",
+        "mineru",
+        "mmskills",
+        "n8n",
+        "opendataloader",
+        "paddleocr",
+        "ragas",
+        "rtk",
+        "seedance2_skill",
+        "skill_prompt_generator",
+        "story_flicks",
+        "surya",
+        "unstructured",
+        "weknora"
+      ]
+    },
+    {
+      "blocked_reason": "security_review_required",
+      "definition": "Requires security review before any implementation work.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none",
+      "project_ids": [
+        "ai_marketing_skills",
+        "andrej_karpathy_skills",
+        "anysearchskill",
+        "deepeval",
+        "docling",
+        "jellyfish",
+        "last30days_skill",
+        "llamaindex",
+        "llm_wiki_v2",
+        "marker",
+        "mineru",
+        "mmskills",
+        "n8n",
+        "opendataloader",
+        "paddleocr",
+        "ragas",
+        "rtk",
+        "seedance2_skill",
+        "skill_prompt_generator",
+        "story_flicks",
+        "surya",
+        "unstructured",
+        "weknora"
+      ]
+    },
+    {
+      "blocked_reason": "needs_verification",
+      "definition": "Project identity, fit, or runtime status still needs verification.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none",
+      "project_ids": [
+        "rtk",
+        "seedance2_skill",
+        "surya",
+        "unstructured"
+      ]
+    },
+    {
+      "blocked_reason": "not_p1_blocker",
+      "definition": "Not part of the P1 local Workbench completion gate.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none",
+      "project_ids": [
+        "ai_marketing_skills",
+        "andrej_karpathy_skills",
+        "anysearchskill",
+        "deepeval",
+        "docling",
+        "jellyfish",
+        "last30days_skill",
+        "llamaindex",
+        "llm_wiki_v2",
+        "marker",
+        "mineru",
+        "mmskills",
+        "n8n",
+        "opendataloader",
+        "paddleocr",
+        "ragas",
+        "rtk",
+        "seedance2_skill",
+        "skill_prompt_generator",
+        "story_flicks",
+        "surya",
+        "unstructured",
+        "weknora"
+      ]
+    },
+    {
+      "blocked_reason": "post_v4_target",
+      "definition": "Work is reserved for post-v4 planning.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none",
+      "project_ids": [
+        "ai_marketing_skills",
+        "andrej_karpathy_skills",
+        "anysearchskill",
+        "deepeval",
+        "docling",
+        "jellyfish",
+        "last30days_skill",
+        "llamaindex",
+        "llm_wiki_v2",
+        "marker",
+        "mineru",
+        "mmskills",
+        "n8n",
+        "opendataloader",
+        "paddleocr",
+        "ragas",
+        "rtk",
+        "seedance2_skill",
+        "skill_prompt_generator",
+        "story_flicks",
+        "surya",
+        "unstructured",
+        "weknora"
+      ]
+    },
+    {
+      "blocked_reason": "ui_visibility_only",
+      "definition": "UI may display the boundary only; it must not expose execution.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none",
+      "project_ids": [
+        "ai_marketing_skills",
+        "andrej_karpathy_skills",
+        "anysearchskill",
+        "deepeval",
+        "docling",
+        "jellyfish",
+        "last30days_skill",
+        "llamaindex",
+        "llm_wiki_v2",
+        "marker",
+        "mineru",
+        "mmskills",
+        "n8n",
+        "opendataloader",
+        "paddleocr",
+        "ragas",
+        "rtk",
+        "seedance2_skill",
+        "skill_prompt_generator",
+        "story_flicks",
+        "surya",
+        "unstructured",
+        "weknora"
+      ]
+    },
+    {
+      "blocked_reason": "template_reference_only",
+      "definition": "Template inspiration only; not runtime functionality.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none",
+      "project_ids": [
+        "ai_marketing_skills",
+        "jellyfish",
+        "story_flicks"
+      ]
+    }
+  ]
+}

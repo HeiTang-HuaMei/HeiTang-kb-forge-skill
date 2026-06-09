@@ -1,25 +1,17 @@
 # External Project Inclusion Policy
 
-This policy governs pre-v4 external project registry entries.
+External GitHub projects may enter HeiTang KB Forge through registry, benchmark, template, planned_adapter, future_adapter, provider_required, or capability_anchor contracts before implementation.
 
-## Allowed Before v4
+Inclusion does not imply that the project is installed, ready, available, executable, or bundled.
 
-- Record project identity, rating, current repo status, mapped capabilities, and post-v4 target.
-- Map known Core evidence files when the repo already contains benchmark or planned-adapter references.
-- Mark provider, network, external runtime, license, and security review boundaries.
-- Add docs and tests proving the registry remains a registry.
+## Rules
 
-## Not Allowed Before v4
-
-- Implement external project functionality.
-- Copy external project code, prompts, configs, or raw outputs.
-- Add new external dependencies.
-- Call external APIs or providers.
-- Bundle n8n or any other external runtime.
-- Mark planned adapters, future adapters, provider-required actions, or needs-verification entries as ready.
-- Change P1 real workflow evidence or final gate status.
-- Start v4.0, create a tag, or write a release.
-
-## Review Rule
-
-Every S/A project needs a post-v4 target and an explicit boundary before any future contract inclusion. Every provider, network, or external-runtime entry must stay `can_be_ready_before_v4=false`.
+- No external project code is copied by contract inclusion.
+- No external dependency is added by contract inclusion.
+- No provider API is called by contract inclusion.
+- No API key, token, local provider profile, or raw private input is committed.
+- Provider, network, secret, and external runtime requirements must stay blocked until explicit user configuration and post-v4 implementation evidence exist.
+- planned_adapter and future_adapter entries must stay not ready.
+- needs_verification entries must not become executable actions.
+- template_reference entries may only appear as scenarios or template references.
+- Contract inclusion must not change the P1 gate, start v4.0, create a tag, or write a release.

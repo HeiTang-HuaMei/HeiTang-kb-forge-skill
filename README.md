@@ -11,6 +11,7 @@ For quick understanding:
 - Capability matrix: [docs/CAPABILITY_MATRIX.md](docs/CAPABILITY_MATRIX.md)
 - AIGC book content pipeline scenario: [docs/AIGC_BOOK_CONTENT_PIPELINE.md](docs/AIGC_BOOK_CONTENT_PIPELINE.md)
 - External benchmarks and post-v4 roadmap: [docs/roadmap/external_projects/](docs/roadmap/external_projects/)
+- S/A external project contract inclusion: [docs/roadmap/external_projects/S_A_CONTRACT_INCLUSION.md](docs/roadmap/external_projects/S_A_CONTRACT_INCLUSION.md)
 - Chinese README: [README.zh-CN.md](README.zh-CN.md)
 
 ## What this project is
@@ -104,6 +105,7 @@ UI information architecture is frozen as a planning contract, and the UI remains
 - The P1 local Workbench gate is ready for v4 RC preparation, but this is not a v4.0 release.
 - v4.0 is not released, not tagged, and not started.
 - OpenDataLoader, PaddleOCR, and MinerU are external backend candidates / planned adapters only; they are not completed Core integrations.
+- S/A external projects are included as contract, matrix, provider boundary, and UI visibility entries only; this does not implement their functionality.
 - External provider, secret, and network-dependent actions require explicit user configuration and are not counted as real-local passed.
 - External GitHub benchmark implementation is post-v4 and is not part of this gate.
 - Core tests do not require real LLM/API/network calls.

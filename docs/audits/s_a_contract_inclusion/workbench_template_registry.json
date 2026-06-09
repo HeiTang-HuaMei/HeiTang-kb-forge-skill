@@ -1,0 +1,162 @@
+{
+  "registry_id": "workbench_external_template_registry",
+  "version": "s_a_contract_inclusion.1",
+  "scope": "Template and scenario reference only; no runtime or copied external content.",
+  "entry_count": 7,
+  "entries": [
+    {
+      "project_id": "andrej_karpathy_skills",
+      "project_name": "andrej-karpathy-skills",
+      "contract_status": [
+        "benchmark_only",
+        "capability_anchor"
+      ],
+      "related_templates": [
+        "template_manual_operation_skill"
+      ],
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "benchmark_only_not_runtime",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "can_execute_locally_before_v4": false
+    },
+    {
+      "project_id": "last30days_skill",
+      "project_name": "last30days-skill",
+      "contract_status": [
+        "provider_required",
+        "future_adapter"
+      ],
+      "related_templates": [
+        "template_product_manager_kb"
+      ],
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "future_adapter_after_v4",
+        "provider_required",
+        "network_required",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "can_execute_locally_before_v4": false
+    },
+    {
+      "project_id": "skill_prompt_generator",
+      "project_name": "skill-prompt-generator",
+      "contract_status": [
+        "benchmark_only",
+        "future_adapter"
+      ],
+      "related_templates": [
+        "template_manual_operation_skill"
+      ],
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "benchmark_only_not_runtime",
+        "future_adapter_after_v4",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "can_execute_locally_before_v4": false
+    },
+    {
+      "project_id": "jellyfish",
+      "project_name": "Jellyfish",
+      "contract_status": [
+        "template_reference",
+        "future_adapter"
+      ],
+      "related_templates": [
+        "template_book_publisher_kb"
+      ],
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "future_adapter_after_v4",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only",
+        "template_reference_only"
+      ],
+      "can_execute_locally_before_v4": false
+    },
+    {
+      "project_id": "story_flicks",
+      "project_name": "story-flicks",
+      "contract_status": [
+        "template_reference",
+        "future_adapter"
+      ],
+      "related_templates": [
+        "template_book_publisher_kb"
+      ],
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "future_adapter_after_v4",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only",
+        "template_reference_only"
+      ],
+      "can_execute_locally_before_v4": false
+    },
+    {
+      "project_id": "seedance2_skill",
+      "project_name": "seedance2-skill",
+      "contract_status": [
+        "needs_verification",
+        "future_adapter"
+      ],
+      "related_templates": [
+        "template_book_publisher_kb"
+      ],
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "future_adapter_after_v4",
+        "secret_required",
+        "network_required",
+        "license_review_required",
+        "security_review_required",
+        "needs_verification",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "can_execute_locally_before_v4": false
+    },
+    {
+      "project_id": "ai_marketing_skills",
+      "project_name": "ai-marketing-skills",
+      "contract_status": [
+        "template_reference"
+      ],
+      "related_templates": [
+        "template_shopping_ops_agent"
+      ],
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only",
+        "template_reference_only"
+      ],
+      "can_execute_locally_before_v4": false
+    }
+  ]
+}

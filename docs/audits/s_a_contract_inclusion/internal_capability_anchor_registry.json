@@ -1,0 +1,169 @@
+{
+  "registry_id": "internal_capability_anchor_registry",
+  "version": "s_a_contract_inclusion.1",
+  "entry_count": 8,
+  "entries": [
+    {
+      "anchor_id": "book_to_skill",
+      "anchor_name": "Book-to-Skill",
+      "rating": "S",
+      "contract_status": [
+        "internal_capability",
+        "implemented"
+      ],
+      "current_status": "implemented",
+      "implemented": true,
+      "ready": true,
+      "local_ready": true,
+      "pre_v4_scope": "already_core_capability",
+      "post_v4_target": "P2.6",
+      "related_external_benchmarks": [
+        "andrej_karpathy_skills",
+        "skill_prompt_generator"
+      ],
+      "implementation_boundary": "Internal Core capability anchor. External benchmark mapping does not implement external project functionality."
+    },
+    {
+      "anchor_id": "package_to_skill",
+      "anchor_name": "Package-to-Skill",
+      "rating": "S",
+      "contract_status": [
+        "internal_capability",
+        "implemented"
+      ],
+      "current_status": "implemented",
+      "implemented": true,
+      "ready": true,
+      "local_ready": true,
+      "pre_v4_scope": "already_core_capability",
+      "post_v4_target": "P2.6 / P2.9",
+      "related_external_benchmarks": [
+        "andrej_karpathy_skills",
+        "skill_prompt_generator"
+      ],
+      "implementation_boundary": "Internal Core capability anchor. External benchmark mapping does not implement external project functionality."
+    },
+    {
+      "anchor_id": "software_to_manual_to_skill",
+      "anchor_name": "Software-to-Manual-to-Skill",
+      "rating": "S",
+      "contract_status": [
+        "internal_capability",
+        "future_adapter"
+      ],
+      "current_status": "contract_only / planned_capability",
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "pre_v4_scope": "contract_mapping_only",
+      "post_v4_target": "P2.6",
+      "related_external_benchmarks": [
+        "andrej_karpathy_skills",
+        "skill_prompt_generator"
+      ],
+      "implementation_boundary": "Internal Core capability anchor. External benchmark mapping does not implement external project functionality."
+    },
+    {
+      "anchor_id": "aigc_book_content_pipeline",
+      "anchor_name": "AIGC Book Content Pipeline",
+      "rating": "S",
+      "contract_status": [
+        "internal_capability",
+        "template_reference"
+      ],
+      "current_status": "docs_only",
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "pre_v4_scope": "docs_mapping_only",
+      "post_v4_target": "P2.7 / P2.8",
+      "related_external_benchmarks": [
+        "jellyfish",
+        "story_flicks",
+        "ai_marketing_skills",
+        "ai_money_maker_handbook"
+      ],
+      "implementation_boundary": "Internal Core capability anchor. External benchmark mapping does not implement external project functionality."
+    },
+    {
+      "anchor_id": "retrieval_and_verification",
+      "anchor_name": "Retrieval & Verification",
+      "rating": "S",
+      "contract_status": [
+        "internal_capability",
+        "implemented"
+      ],
+      "current_status": "implemented",
+      "implemented": true,
+      "ready": true,
+      "local_ready": true,
+      "pre_v4_scope": "already_core_capability",
+      "post_v4_target": "P2.3 / P2.5",
+      "related_external_benchmarks": [
+        "anysearchskill",
+        "llamaindex",
+        "ragas",
+        "deepeval"
+      ],
+      "implementation_boundary": "Internal Core capability anchor. External benchmark mapping does not implement external project functionality."
+    },
+    {
+      "anchor_id": "memory_lifecycle",
+      "anchor_name": "Memory Lifecycle",
+      "rating": "S",
+      "contract_status": [
+        "internal_capability",
+        "implemented_baseline",
+        "future_adapter"
+      ],
+      "current_status": "implemented baseline",
+      "implemented": true,
+      "ready": true,
+      "local_ready": true,
+      "pre_v4_scope": "already_core_capability",
+      "post_v4_target": "P2.4",
+      "related_external_benchmarks": [
+        "llm_wiki_v2"
+      ],
+      "implementation_boundary": "Internal Core capability anchor. External benchmark mapping does not implement external project functionality."
+    },
+    {
+      "anchor_id": "auto_wiki_knowledge_graph",
+      "anchor_name": "Auto Wiki / Knowledge Graph",
+      "rating": "S",
+      "contract_status": [
+        "internal_capability",
+        "future_adapter"
+      ],
+      "current_status": "future_capability",
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "pre_v4_scope": "registry_only",
+      "post_v4_target": "P2.5",
+      "related_external_benchmarks": [
+        "weknora"
+      ],
+      "implementation_boundary": "Internal Core capability anchor. External benchmark mapping does not implement external project functionality."
+    },
+    {
+      "anchor_id": "workflow_automation_export",
+      "anchor_name": "Workflow Automation / Export",
+      "rating": "S",
+      "contract_status": [
+        "internal_capability",
+        "future_adapter"
+      ],
+      "current_status": "future_adapter",
+      "implemented": false,
+      "ready": false,
+      "local_ready": false,
+      "pre_v4_scope": "registry_only",
+      "post_v4_target": "P2.2 / P3",
+      "related_external_benchmarks": [
+        "n8n"
+      ],
+      "implementation_boundary": "Internal Core capability anchor. External benchmark mapping does not implement external project functionality."
+    }
+  ]
+}

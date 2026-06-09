@@ -53,6 +53,8 @@ from heitang_kb_forge.local_agent_runtime import run_local_agent_runtime
 from heitang_kb_forge.skill_reverse_fusion import reverse_and_fuse_skills
 from heitang_kb_forge.workbench import (
     get_p1_workbench_action,
+    inspect_external_capability,
+    make_external_capability_bundle,
     make_p1_workbench_dry_run,
     make_p1_workbench_smoke,
     action_result_status,
@@ -65,6 +67,7 @@ from heitang_kb_forge.workbench import (
     write_action_execution_plan,
     workflow_artifact_index,
     workflow_status,
+    write_external_capability_bundle,
     write_p1_workbench_bundle,
 )
 from heitang_kb_forge.workbench_contracts import generate_workbench_contracts
@@ -1298,6 +1301,63 @@ def workbench_smoke_command(
     result = make_p1_workbench_smoke()
     write_json(output / "workbench_smoke_result.json", result)
     typer.echo(f"P1 Workbench smoke: {result['status']} | Gate: {result['p1_full_operation_gate_status']}")
+
+
+@app.command("external-capability-registry")
+def external_capability_registry_command(
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Write S/A external capability contract-inclusion reports without executing external projects."""
+    result = write_external_capability_bundle(output)
+    typer.echo(f"S/A external capability registry: {result['external_project_count']} projects | Output: {output}")
+
+
+@app.command("external-capability-inspect")
+def external_capability_inspect_command(
+    project_id: str = typer.Option(..., "--project-id"),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+) -> None:
+    """Inspect one S/A external capability contract entry without executing external projects."""
+    try:
+        result = inspect_external_capability(project_id)
+    except KeyError as exc:
+        raise typer.BadParameter(str(exc), param_hint="--project-id") from exc
+    if output:
+        write_json(output / "external_capability_inspect.json", result)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("external-capability-matrix")
+def external_capability_matrix_command(
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Write the S/A contract inclusion matrix and Workbench visibility matrix."""
+    bundle = make_external_capability_bundle()
+    write_json(output / "s_a_contract_inclusion_matrix.json", bundle["s_a_contract_inclusion_matrix.json"])
+    write_json(output / "workbench_capability_matrix.json", bundle["workbench_capability_matrix.json"])
+    (output / "s_a_contract_inclusion_matrix.md").parent.mkdir(parents=True, exist_ok=True)
+    (output / "s_a_contract_inclusion_matrix.md").write_text(bundle["s_a_contract_inclusion_matrix.md"], encoding="utf-8", newline="\n")
+    typer.echo(f"S/A external capability matrix: {bundle['s_a_contract_inclusion_matrix.json']['external_project_count']} projects | Output: {output}")
+
+
+@app.command("planned-adapter-status")
+def planned_adapter_status_command(
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Write planned/future adapter and provider boundary reports without enabling runtime execution."""
+    bundle = make_external_capability_bundle()
+    for filename in [
+        "planned_adapter_registry.json",
+        "future_adapter_registry.json",
+        "provider_required_registry.json",
+        "planned_adapter_status_report.json",
+        "provider_boundary_report.json",
+    ]:
+        write_json(output / filename, bundle[filename])
+    for filename in ["planned_adapter_status_report.md", "provider_boundary_report.md"]:
+        (output / filename).parent.mkdir(parents=True, exist_ok=True)
+        (output / filename).write_text(bundle[filename], encoding="utf-8", newline="\n")
+    typer.echo(f"Planned/future adapter status written at {output}")
 
 
 @app.command("workbench-action-execution-plan")

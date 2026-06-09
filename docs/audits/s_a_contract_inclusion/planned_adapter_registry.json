@@ -1,0 +1,218 @@
+{
+  "registry_id": "planned_adapter_registry",
+  "version": "s_a_contract_inclusion.1",
+  "status_filter": "planned_adapter",
+  "entry_count": 8,
+  "ready_count": 0,
+  "can_execute_locally_before_v4_count": 0,
+  "entries": [
+    {
+      "project_id": "paddleocr",
+      "project_name": "PaddleOCR",
+      "rating": "S",
+      "github_url": "https://github.com/PaddlePaddle/PaddleOCR",
+      "contract_status": [
+        "planned_adapter"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "planned_adapter_not_implemented",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "post_v4_target": "P2.6",
+      "ui_visibility": "visible_boundary_only"
+    },
+    {
+      "project_id": "mineru",
+      "project_name": "MinerU",
+      "rating": "S",
+      "github_url": "https://github.com/opendatalab/MinerU",
+      "contract_status": [
+        "planned_adapter"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "planned_adapter_not_implemented",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "post_v4_target": "P2.6",
+      "ui_visibility": "visible_boundary_only"
+    },
+    {
+      "project_id": "docling",
+      "project_name": "Docling",
+      "rating": "S",
+      "github_url": "https://github.com/docling-project/docling",
+      "contract_status": [
+        "planned_adapter"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "planned_adapter_not_implemented",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "post_v4_target": "P2.6",
+      "ui_visibility": "visible_boundary_only"
+    },
+    {
+      "project_id": "anysearchskill",
+      "project_name": "AnySearchSkill",
+      "rating": "A",
+      "github_url": "https://github.com/anysearch-ai/anysearch-skill",
+      "contract_status": [
+        "provider_required",
+        "planned_adapter"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "planned_adapter_not_implemented",
+        "provider_required",
+        "secret_required",
+        "network_required",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": true,
+      "requires_network": true,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "post_v4_target": "P2.3",
+      "ui_visibility": "visible_boundary_only"
+    },
+    {
+      "project_id": "opendataloader",
+      "project_name": "OpenDataLoader",
+      "rating": "A",
+      "github_url": "https://github.com/opendataloader-project/opendataloader-pdf",
+      "contract_status": [
+        "planned_adapter"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "planned_adapter_not_implemented",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "post_v4_target": "P2.6",
+      "ui_visibility": "visible_boundary_only"
+    },
+    {
+      "project_id": "marker",
+      "project_name": "Marker",
+      "rating": "A",
+      "github_url": "https://github.com/datalab-to/marker",
+      "contract_status": [
+        "planned_adapter"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "planned_adapter_not_implemented",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "post_v4_target": "P2.6",
+      "ui_visibility": "visible_boundary_only"
+    },
+    {
+      "project_id": "surya",
+      "project_name": "Surya",
+      "rating": "A",
+      "github_url": "https://github.com/datalab-to/surya",
+      "contract_status": [
+        "planned_adapter",
+        "needs_verification"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "planned_adapter_not_implemented",
+        "license_review_required",
+        "security_review_required",
+        "needs_verification",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "post_v4_target": "P2.6",
+      "ui_visibility": "visible_boundary_only"
+    },
+    {
+      "project_id": "unstructured",
+      "project_name": "Unstructured",
+      "rating": "A",
+      "github_url": "https://github.com/Unstructured-IO/unstructured",
+      "contract_status": [
+        "planned_adapter",
+        "needs_verification"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "planned_adapter_not_implemented",
+        "license_review_required",
+        "security_review_required",
+        "needs_verification",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "requires_api_key": false,
+      "requires_network": false,
+      "requires_external_runtime": false,
+      "can_execute_locally_before_v4": false,
+      "post_v4_target": "P2.6",
+      "ui_visibility": "visible_boundary_only"
+    }
+  ]
+}
