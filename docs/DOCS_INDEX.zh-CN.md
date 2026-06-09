@@ -1,6 +1,7 @@
 # 文档索引
 
-当前 Core 版本：`3.12.0-alpha.1`
+当前 Core package 版本：`4.0.0rc1`
+当前 release candidate：`v4.0.0-rc.1`
 
 这是当前 main 分支的唯一主文档入口。历史版本细节通过 git history 和 tags 查看，不再作为过程文档堆放在 main。
 
@@ -49,4 +50,4 @@
 
 ## 边界
 
-LLM 仍然只是 optional only；Core tests 不需要真实 LLM/API/network 调用。v4.0 尚未开始、未发布、未打 tag。P1 local Workbench gate 仅表示可进入 v4 RC preparation。
+LLM 仍然只是 optional only；Core tests 不需要真实 LLM/API/network 调用。`v4.0.0-rc.1` 是当前 release candidate preparation 目标，stable `v4.0.0` 需要 rc.1 acceptance 与 hardening evidence。

@@ -1,6 +1,7 @@
 # 能力矩阵
 
-当前 Core 版本：`3.12.0-alpha.1`
+当前 Core package 版本：`4.0.0rc1`
+当前 release candidate：`v4.0.0-rc.1`
 
 | 领域 | 当前 main 分支真值 | 状态 |
 | --- | --- | --- |

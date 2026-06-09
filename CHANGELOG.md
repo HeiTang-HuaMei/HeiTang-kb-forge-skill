@@ -1,5 +1,11 @@
 # Changelog
 
+## v4.0.0-rc.1
+
+* Started the v4.0.0 release-candidate line after P1 Final Gate Re-run, Pre-v4 External Project Registry, and S/A Contract Inclusion completed.
+* Aligned Core package metadata to `4.0.0rc1` and user-facing release candidate naming to `v4.0.0-rc.1`.
+* Preserved local-first boundaries: no default LLM/API/network dependency, no external project runtime implementation, no provider secret storage, and no stable `v4.0.0` claim before rc.1 acceptance and hardening.
+
 ## P1 Final Gate Re-run
 
 * Added `docs/audits/p1_final_gate_rerun/`.

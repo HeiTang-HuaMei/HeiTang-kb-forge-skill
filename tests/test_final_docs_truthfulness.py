@@ -9,12 +9,14 @@ def test_readme_current_status_is_not_stale():
     english = (ROOT / "README.md").read_text(encoding="utf-8")
     chinese = (ROOT / "README.zh-CN.md").read_text(encoding="utf-8")
 
-    assert "Current Core version: `3.12.0-alpha.1`" in english
-    assert "当前 Core 版本：`3.12.0-alpha.1`" in chinese
+    assert "Current Core package version: `4.0.0rc1`" in english
+    assert "当前 Core package 版本：`4.0.0rc1`" in chinese
     assert "Current version: `2.9.0-alpha.1`" not in english
     assert "当前版本：`2.9.0-alpha.1`" not in chinese
-    assert "v4.0 has not been released" in english
-    assert "v4.0 尚未发布" in chinese
+    assert "v4.0.0-rc.1" in english
+    assert "v4.0.0-rc.1" in chinese
+    assert "not the stable `v4.0.0` release" in english
+    assert "不是 stable `v4.0.0` release" in chinese
 
 
 def test_docs_do_not_claim_forbidden_future_features_as_implemented():

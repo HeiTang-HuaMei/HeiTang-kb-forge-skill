@@ -1,6 +1,6 @@
 # User Manual
 
-This manual describes the local Core workflow at `3.12.0-alpha.1`. v4.0 is not released.
+This manual describes the local Core workflow at package version `4.0.0rc1` for the `v4.0.0-rc.1` release candidate. Stable `v4.0.0` requires rc.1 acceptance and hardening evidence.
 
 ## 1. Install Locally
 

@@ -1,6 +1,7 @@
 # Capability Matrix
 
-Current Core version: `3.12.0-alpha.1`
+Current Core package version: `4.0.0rc1`
+Current release candidate: `v4.0.0-rc.1`
 
 | Area | Current main branch truth | Status |
 | --- | --- | --- |
@@ -14,6 +15,6 @@ Current Core version: `3.12.0-alpha.1`
 | Provider and LLM layer | Optional provider profile acceptance exists. Core tests do not require real LLM/API/network calls. Provider secrets must stay outside committed outputs. | optional only |
 | Privacy and security | Local-first, no hidden upload, secret redaction, no platform-hosted user data, and threat-model evidence are documented and tested. | implemented with review boundaries |
 | Scale | Synthetic scale checks exist. Real 1500 books/KBs/Agents are not production-proven. | needs review |
-| UI | Core contracts, P1-RWF-V2 evidence, and UI consumption proof exist. The P1 final gate re-run is ready for v4 RC preparation only. | ready for v4 RC; not released |
+| UI | Core contracts, P1-RWF-V2 evidence, and UI consumption proof exist. The P1 final gate re-run, External Project Registry, and S/A Contract Inclusion are complete. | v4.0.0-rc.1 candidate; stable pending rc hardening |
 
 See [Current Truth](CURRENT_TRUTH.md), [Parser Backend Strategy](../03_core_capabilities/PARSER_BACKEND_STRATEGY.md), [Final Product Architecture Truth](../FINAL_PRODUCT_ARCHITECTURE_TRUTH.md), and [P1 UI Core Parity](../10_roadmap/P1_UI_CORE_PARITY.md).

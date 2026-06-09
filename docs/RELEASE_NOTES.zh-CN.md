@@ -1,10 +1,12 @@
 # Release Notes
 
+## v4.0.0-rc.1
+
+本 release candidate 在 P1 Final Gate Re-run、Pre-v4 External Project Registry 与 S/A Contract Inclusion 完成后启动。最新 Core P0 证明显示 `ready_for_v4_rc=true` 且 `P0 blockers=0`，最新 P1 final gate re-run 也显示 `ready_for_v4_rc=true`。
+
+这不是 stable `v4.0.0` release。stable `v4.0.0` 需要 rc.1 acceptance 与 hardening evidence。
+
 ## 当前 main
-
-当前 main 处于 P1 local Workbench gate readiness for v4 RC preparation 状态。最新 Core P0 证明显示 `ready_for_v4_rc=true` 且 `P0 blockers=0`，最新 P1 final gate re-run 也显示 `ready_for_v4_rc=true`。
-
-这不是 v4.0 release。v4.0 尚未开始、未发布、未打 tag。
 
 ## P1 Final Gate Re-run
 

@@ -1,8 +1,9 @@
 # Command Reference
 
-Current Core version: `3.12.0-alpha.1`
+Current Core package version: `4.0.0rc1`
+Current release candidate: `v4.0.0-rc.1`
 
-Current stage: pre-v4.0 industrial acceptance audit / local Workbench RC preparation. v4.0 is not released.
+Current stage: v4.0.0-rc.1 release candidate preparation. Stable v4.0.0 requires rc.1 acceptance and hardening evidence.
 
 All commands are local Core commands. Real LLM/API/network calls are not required by tests and are disabled by default.
 

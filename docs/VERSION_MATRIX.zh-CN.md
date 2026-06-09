@@ -1,8 +1,9 @@
 # 版本矩阵
 
-当前 Core 版本：`3.12.0-alpha.1`
+当前 Core package 版本：`4.0.0rc1`
+当前 release candidate：`v4.0.0-rc.1`
 
-当前阶段：pre-v4.0 industrial acceptance audit / local Workbench RC preparation。v4.0 尚未发布。
+当前阶段：v4.0.0-rc.1 release candidate preparation。stable v4.0.0 等待 rc.1 acceptance 与 hardening。
 
 | Version | Goal | Key Capabilities | Key Commands | Key Outputs | Status | Supported by Current HEAD | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -35,9 +36,10 @@
 | v3.9.0-alpha.1 | Local Workspace Storage & Memory Lifecycle | Registries、retention、cleanup plans、本地 PDF token reduction | `init-workspace`, `scan-workspace`, `plan-memory-lifecycle`, `preprocess-pdf-markdown` | registry, memory, parser reports | superseded | yes | 默认 `local_workspace`；`local_db`/BYO cloud 是 future only。 |
 | v3.10.0-alpha.1 | Local Agent Runtime & Mother/Child Operations | Local runtime smoke、hierarchy routing、KB boundary、memory policy reports | `run-local-agent`, `orchestrate-multi-kb` | runtime and hierarchy reports | superseded | yes | 不是 cloud service 或 full autonomous runtime。 |
 | v3.11.0-alpha.1 | Golden Demo & Real Acceptance Smoke | Real sample smoke、artifact openability、compatibility、sample coverage | `run-golden-demo-acceptance` | acceptance reports | superseded | yes | final release evidence 前必须重跑。 |
-| v3.12.0-alpha.1 | Product Hardening & Local Release Readiness | doctor、command/package/workspace audits、privacy boundary、installer readiness、v4 gate | `product-hardening`, `doctor` | hardening and v4 gate reports | current | yes | 最新已完成 Core 版本。 |
-| final-pre-v4.0 | Full product truth gate | Capability proof、docs truth、security/privacy、scale、Core/UI drift、workflow acceptance | `final-pre-v4-audit` | final audit reports | active | yes | P0/P1 未解决会阻止 v4.0。 |
-| v4.0 | Local Knowledge Workbench RC | Local Workbench release candidate | not released | not released | future | no | tag 前不得宣称已发布。 |
+| v3.12.0-alpha.1 | Product Hardening & Local Release Readiness | doctor、command/package/workspace audits、privacy boundary、installer readiness、v4 gate | `product-hardening`, `doctor` | hardening and v4 gate reports | historical | yes | 最新已完成 alpha Core 版本。 |
+| final-pre-v4.0 | Full product truth gate | Capability proof、docs truth、security/privacy、scale、Core/UI drift、workflow acceptance | `final-pre-v4-audit` | final audit reports | completed | yes | 最新 P0/P1 证据显示 `ready_for_v4_rc=true`。 |
+| v4.0.0-rc.1 | Local Knowledge Workbench release candidate | P1 final gate、external project registry、S/A contract inclusion、local-first release readiness | `doctor`, `release-readiness`, `final-pre-v4-audit` | rc evidence、release readiness reports | current | yes | Candidate release；不是 stable v4.0.0。 |
+| v4.0.0 | Stable Local Knowledge Workbench release | rc.1 acceptance 与 hardening 之后的 stable release | release-check workflow | release notes、tag、release-check CI | future | no | rc.1 acceptance 前不得声明 stable。 |
 
 不支持或未来项：
 

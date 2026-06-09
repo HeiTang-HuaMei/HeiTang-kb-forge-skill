@@ -1,6 +1,7 @@
 # Parser Backend Strategy
 
-当前 Core 版本：`3.12.0-alpha.1`
+当前 Core package 版本：`4.0.0rc1`
+当前 release candidate：`v4.0.0-rc.1`
 
 本文只记录 parser backend strategy。不新增 parser 代码、不新增依赖、不下载模型、不运行外部 parser。
 

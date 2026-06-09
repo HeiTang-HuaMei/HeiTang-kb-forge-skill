@@ -10,11 +10,13 @@ This roadmap describes the current main branch direction only. Historical versio
 - Latest P1 proof: `docs/audits/p1_final_gate_rerun/`
 - `ready_for_v4_rc=true`
 - `P0 blockers=0`
-- v4.0 is not released, not tagged, and not started.
+- Pre-v4 External Project Registry complete.
+- S/A Contract Inclusion complete.
+- Current release candidate preparation target: `v4.0.0-rc.1`.
 
-## Next Gate: Pre-v4 External Project Registry Pass
+## Next Gate: v4.0.0-rc.1 Acceptance & Hardening
 
-The next product gate is a pre-v4 external project registry pass, followed by S/A contract inclusion and then v4.0.0-rc.1 release preparation.
+The next product gate is rc.1 acceptance and hardening: full local validation, release-readiness, CI green, release-check workflow evidence, and no secret/build/raw artifact pollution before stable `v4.0.0`.
 
 ## Later Gate: P2 Productization
 
@@ -32,8 +34,8 @@ This roadmap adds no parser code, no dependency, no model download, and no exter
 
 ## Non-Scope Until Proven
 
-- v4.0 release or tag
-- v4.0 started from this P1 gate
+- stable v4.0.0 release before rc.1 acceptance
+- stable v4.0.0 tag before release-check evidence
 - SaaS multi-tenancy
 - team permissions
 - cloud sync

@@ -1,10 +1,12 @@
 # Release Notes
 
+## v4.0.0-rc.1
+
+This release candidate starts after P1 Final Gate Re-run, Pre-v4 External Project Registry, and S/A Contract Inclusion have completed. Core pre-v4 RC readiness remains complete. The latest Core P0 proof reports `ready_for_v4_rc=true` and `P0 blockers=0`, and the latest P1 final gate re-run also reports `ready_for_v4_rc=true`.
+
+This is not the stable `v4.0.0` release. Stable `v4.0.0` requires rc.1 acceptance and hardening evidence.
+
 ## Current Main
-
-This main branch is in P1 local Workbench gate readiness for v4 RC preparation. Core pre-v4 RC readiness remains complete. The latest Core P0 proof reports `ready_for_v4_rc=true` and `P0 blockers=0`, and the latest P1 final gate re-run also reports `ready_for_v4_rc=true`.
-
-This is not a v4.0 release. v4.0 is not released, not tagged, and not started.
 
 ## P1 Final Gate Re-run
 

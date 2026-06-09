@@ -1,8 +1,9 @@
 # 本地隐私与安全
 
-当前 Core 版本：`3.12.0-alpha.1`
+当前 Core package 版本：`4.0.0rc1`
+当前 release candidate：`v4.0.0-rc.1`
 
-当前阶段：pre-v4.0 industrial acceptance audit / local Workbench RC preparation。v4.0 尚未发布。
+当前阶段：v4.0.0-rc.1 release candidate preparation。stable v4.0.0 需要 rc.1 acceptance 与 hardening evidence。
 
 HeiTang KB Forge Core 默认 local-first。
 

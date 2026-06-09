@@ -15,6 +15,6 @@ def test_readme_and_core_docs_are_bilingually_aligned():
     for english, chinese in pairs:
         english_text = (ROOT / english).read_text(encoding="utf-8")
         chinese_text = (ROOT / chinese).read_text(encoding="utf-8")
-        for marker in ["3.12.0-alpha.1", "v4.0", "LLM"]:
+        for marker in ["4.0.0rc1", "v4.0", "LLM"]:
             assert marker in english_text
             assert marker in chinese_text

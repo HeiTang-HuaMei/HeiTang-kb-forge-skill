@@ -1,8 +1,9 @@
 # Capability Status
 
-Current Core version: `3.12.0-alpha.1`
+Current Core package version: `4.0.0rc1`
+Current release candidate: `v4.0.0-rc.1`
 
-Latest completed Core version is v3.12 Product Hardening & Local Release Readiness. The project is now in final pre-v4.0 industrial acceptance audit / local Workbench RC preparation. v4.0 is not released.
+Latest completed pre-rc Core work includes v3.12 Product Hardening & Local Release Readiness, P1 Final Gate Re-run, External Project Registry, and S/A Contract Inclusion. The project is now preparing the `v4.0.0-rc.1` release candidate.
 
 ## Stable
 

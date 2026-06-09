@@ -1,8 +1,9 @@
 # Capability Status
 
-当前 Core 版本：`3.12.0-alpha.1`
+当前 Core package 版本：`4.0.0rc1`
+当前 release candidate：`v4.0.0-rc.1`
 
-最新已完成 Core 版本是 v3.12 Product Hardening & Local Release Readiness。当前处于 final pre-v4.0 industrial acceptance audit / local Workbench RC preparation。v4.0 尚未发布。
+最新已完成的 pre-rc Core 工作包括 v3.12 Product Hardening & Local Release Readiness、P1 Final Gate Re-run、External Project Registry 与 S/A Contract Inclusion。当前正在准备 `v4.0.0-rc.1` release candidate。
 
 ## Stable
 

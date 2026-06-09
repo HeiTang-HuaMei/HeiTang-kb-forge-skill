@@ -1,6 +1,7 @@
 # Parser Backend Strategy
 
-Current Core version: `3.12.0-alpha.1`
+Current Core package version: `4.0.0rc1`
+Current release candidate: `v4.0.0-rc.1`
 
 This document records parser backend strategy only. It does not add parser code, dependencies, model downloads, or external parser execution.
 

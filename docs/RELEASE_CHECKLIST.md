@@ -1,12 +1,14 @@
 # Release Checklist
 
-Current Core version: `3.12.0-alpha.1`
+Current Core package version: `4.0.0rc1`
+Current release candidate: `v4.0.0-rc.1`
 
-Current stage: pre-v4.0 industrial acceptance audit / local Workbench RC preparation. v4.0 is not released.
+Current stage: v4.0.0-rc.1 release candidate preparation. Stable v4.0.0 is not released until rc.1 acceptance and hardening pass.
 
 ## Required Checks
 
 - [ ] Version aligned in `pyproject.toml`, `skill.json`, README, Capability Status, Version Matrix, and Release Checklist
+- [ ] P1 Final Gate, External Project Registry, and S/A Contract Inclusion evidence remain attached
 - [ ] `python -m pytest` passed
 - [ ] Doctor command `python -m heitang_kb_forge.cli doctor --output ./tmp_doctor` passed
 - [ ] Quickstart build passed
@@ -18,6 +20,7 @@ Current stage: pre-v4.0 industrial acceptance audit / local Workbench RC prepara
 - [ ] Export certification generated
 - [ ] Compatibility matrix generated
 - [ ] Release readiness generated
+- [ ] Release readiness explicitly checked for `release_ready=true` in release-check workflow
 - [ ] No tmp output directories committed
 - [ ] No secret leak
 - [ ] No default external network or platform call

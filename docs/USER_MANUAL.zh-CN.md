@@ -1,6 +1,6 @@
 # 用户手册
 
-本文说明 `3.12.0-alpha.1` 的本地 Core 工作流。v4.0 尚未发布。
+本文说明 package version `4.0.0rc1` / `v4.0.0-rc.1` release candidate 的本地 Core 工作流。stable `v4.0.0` 需要 rc.1 acceptance 与 hardening evidence。
 
 ## 1. 本地安装
 

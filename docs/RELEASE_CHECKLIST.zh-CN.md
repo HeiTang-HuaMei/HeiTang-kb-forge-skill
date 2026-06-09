@@ -1,12 +1,14 @@
 # Release Checklist
 
-当前 Core 版本：`3.12.0-alpha.1`
+当前 Core package 版本：`4.0.0rc1`
+当前 release candidate：`v4.0.0-rc.1`
 
-当前阶段：pre-v4.0 industrial acceptance audit / local Workbench RC preparation。v4.0 尚未发布。
+当前阶段：v4.0.0-rc.1 release candidate preparation。stable v4.0.0 必须在 rc.1 acceptance 与 hardening 通过后才发布。
 
 ## Required Checks
 
 - [ ] `pyproject.toml`、`skill.json`、README、Capability Status、Version Matrix、Release Checklist 版本一致
+- [ ] P1 Final Gate、External Project Registry 与 S/A Contract Inclusion evidence 仍然完整
 - [ ] `python -m pytest` 通过
 - [ ] Doctor 命令 `python -m heitang_kb_forge.cli doctor --output ./tmp_doctor` 通过
 - [ ] Quickstart build 通过
@@ -18,6 +20,7 @@
 - [ ] Export certification 已生成
 - [ ] Compatibility matrix 已生成
 - [ ] Release readiness 已生成
+- [ ] release-check workflow 显式检查 `release_ready=true`
 - [ ] 未提交 tmp 输出目录
 - [ ] 无 secret leak
 - [ ] 默认不调用外部网络或平台

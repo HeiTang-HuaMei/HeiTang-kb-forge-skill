@@ -1,8 +1,9 @@
 # Version Matrix
 
-Current Core version: `3.12.0-alpha.1`
+Current Core package version: `4.0.0rc1`
+Current release candidate: `v4.0.0-rc.1`
 
-Current stage: pre-v4.0 industrial acceptance audit / local Workbench RC preparation. v4.0 is not released.
+Current stage: v4.0.0-rc.1 release candidate preparation. Stable v4.0.0 is pending rc.1 acceptance and hardening.
 
 | Version | Goal | Key Capabilities | Key Commands | Key Outputs | Status | Supported by Current HEAD | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -35,9 +36,10 @@ Current stage: pre-v4.0 industrial acceptance audit / local Workbench RC prepara
 | v3.9.0-alpha.1 | Local Workspace Storage & Memory Lifecycle | Registries, retention, cleanup plans, local PDF token reduction | `init-workspace`, `scan-workspace`, `plan-memory-lifecycle`, `preprocess-pdf-markdown` | registry, memory, parser reports | superseded | yes | `local_workspace` is default; `local_db`/BYO cloud are future only. |
 | v3.10.0-alpha.1 | Local Agent Runtime & Mother/Child Operations | Local runtime smoke, hierarchy routing, KB access boundary, memory policy reports | `run-local-agent`, `orchestrate-multi-kb` | runtime and hierarchy reports | superseded | yes | Not a cloud service or full autonomous runtime. |
 | v3.11.0-alpha.1 | Golden Demo & Real Acceptance Smoke | Real sample smoke, artifact openability, compatibility, sample coverage | `run-golden-demo-acceptance` | acceptance reports | superseded | yes | Must be rerun for final release evidence. |
-| v3.12.0-alpha.1 | Product Hardening & Local Release Readiness | doctor, command/package/workspace audits, privacy boundary, installer readiness, v4 gate | `product-hardening`, `doctor` | hardening and v4 gate reports | current | yes | Latest completed Core version. |
-| final-pre-v4.0 | Full product truth gate | Capability proof, docs truth, security/privacy, scale, Core/UI drift, workflow acceptance | `final-pre-v4-audit` | final audit reports | active | yes | Blocks v4.0 if P0/P1 evidence is unresolved. |
-| v4.0 | Local Knowledge Workbench RC | Local Workbench release candidate | not released | not released | future | no | Do not claim released before tag. |
+| v3.12.0-alpha.1 | Product Hardening & Local Release Readiness | doctor, command/package/workspace audits, privacy boundary, installer readiness, v4 gate | `product-hardening`, `doctor` | hardening and v4 gate reports | historical | yes | Latest completed alpha Core version. |
+| final-pre-v4.0 | Full product truth gate | Capability proof, docs truth, security/privacy, scale, Core/UI drift, workflow acceptance | `final-pre-v4-audit` | final audit reports | completed | yes | Latest P0/P1 evidence reports `ready_for_v4_rc=true`. |
+| v4.0.0-rc.1 | Local Knowledge Workbench release candidate | P1 final gate, external project registry, S/A contract inclusion, local-first release readiness | `doctor`, `release-readiness`, `final-pre-v4-audit` | rc evidence, release readiness reports | current | yes | Candidate release; not stable v4.0.0. |
+| v4.0.0 | Stable Local Knowledge Workbench release | Stable release after rc.1 acceptance and hardening | release-check workflow | release notes, tag, release-check CI | future | no | Do not claim stable before rc.1 acceptance. |
 
 Unsupported or future:
 
