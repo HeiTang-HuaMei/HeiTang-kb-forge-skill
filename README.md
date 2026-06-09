@@ -10,6 +10,7 @@ For quick understanding:
 - Product positioning: [docs/CURRENT_TRUTH.md](docs/CURRENT_TRUTH.md)
 - Capability matrix: [docs/CAPABILITY_MATRIX.md](docs/CAPABILITY_MATRIX.md)
 - AIGC book content pipeline scenario: [docs/AIGC_BOOK_CONTENT_PIPELINE.md](docs/AIGC_BOOK_CONTENT_PIPELINE.md)
+- External benchmarks and post-v4 roadmap: [docs/roadmap/external_projects/](docs/roadmap/external_projects/)
 - Chinese README: [README.zh-CN.md](README.zh-CN.md)
 
 ## What this project is

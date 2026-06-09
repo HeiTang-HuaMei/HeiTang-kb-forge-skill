@@ -1,0 +1,8 @@
+{
+  "matrix_id": "a_level_project_priority_matrix_2026_06_09",
+  "project_count": 16,
+  "provider_or_network_required": ["anysearchskill", "last30days_skill", "seedance2_skill"],
+  "planned_adapter_candidates": ["opendataloader", "marker", "surya", "unstructured"],
+  "benchmark_only_candidates": ["llamaindex", "ragas", "deepeval", "rtk"],
+  "template_candidates": ["skill_prompt_generator", "jellyfish", "story_flicks", "ai_marketing_skills", "mmskills"]
+}

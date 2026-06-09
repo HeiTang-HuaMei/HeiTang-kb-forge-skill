@@ -42,6 +42,8 @@
 
 - [P1 UI Core Parity](10_roadmap/P1_UI_CORE_PARITY.zh-CN.md)
 - [P2 Productization](10_roadmap/P2_PRODUCTIZATION.zh-CN.md)
+- [Pre-v4 外部项目总账](roadmap/external_projects/EXTERNAL_PROJECT_REGISTRY.zh-CN.md)
+- [Post-v4 外部项目路线](roadmap/external_projects/POST_V4_EXTERNAL_ROADMAP.zh-CN.md)
 
 ## 边界
 

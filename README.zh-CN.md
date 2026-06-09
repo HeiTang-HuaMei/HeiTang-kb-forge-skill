@@ -10,6 +10,7 @@
 - 产品定位：[docs/CURRENT_TRUTH.md](docs/CURRENT_TRUTH.md)
 - 能力矩阵：[docs/CAPABILITY_MATRIX.md](docs/CAPABILITY_MATRIX.md)
 - AIGC 图书/内容生产场景：[docs/AIGC_BOOK_CONTENT_PIPELINE.md](docs/AIGC_BOOK_CONTENT_PIPELINE.md)
+- 外部 benchmark 与 post-v4 路线：[docs/roadmap/external_projects/](docs/roadmap/external_projects/)
 - English README：[README.md](README.md)
 
 ## What this project is

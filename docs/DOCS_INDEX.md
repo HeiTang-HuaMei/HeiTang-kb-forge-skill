@@ -42,6 +42,8 @@ This is the canonical documentation entry for the current main branch. Historica
 
 - [P1 UI Core Parity](10_roadmap/P1_UI_CORE_PARITY.md)
 - [P2 Productization](10_roadmap/P2_PRODUCTIZATION.md)
+- [Pre-v4 External Project Registry](roadmap/external_projects/EXTERNAL_PROJECT_REGISTRY.md)
+- [Post-v4 External Roadmap](roadmap/external_projects/POST_V4_EXTERNAL_ROADMAP.md)
 
 ## Boundaries
 
