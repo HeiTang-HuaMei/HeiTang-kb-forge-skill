@@ -1,0 +1,39 @@
+﻿{
+    "report_type":  "desktop_web_boundary_report",
+    "generated_at":  "2026-06-09T13:50:10+08:00",
+    "status":  "passed",
+    "desktop_bridge":  {
+                           "allowlist":  "passed",
+                           "run_in_shell_false":  "passed",
+                           "shell_metacharacter_reject":  "passed",
+                           "secret_env_reject":  "passed",
+                           "stdout_stderr_command_preview_redaction":  "passed",
+                           "non_zero_exit_render":  "passed",
+                           "timeout_render":  "passed",
+                           "fake_runner_action_lifecycle":  "passed"
+                       },
+    "web_boundary":  {
+                         "local_cli_unsupported":  "passed",
+                         "runner_not_called_in_web_widget_test":  "passed"
+                     },
+    "theme_i18n_windows_regression":  {
+                                          "windows_desktop_shell":  "passed",
+                                          "no_navigationrail_desktop_main_nav":  "passed",
+                                          "no_macos_shell_controls":  "passed",
+                                          "black_white_gray_palette":  "passed",
+                                          "light_dark_toggle":  "passed",
+                                          "zh_cn_en_us_switch":  "passed"
+                                      },
+    "safety_grep":  {
+                        "broad_grep_status":  "reviewed_with_expected_hits",
+                        "no_runInShell_true":  true,
+                        "no_high_entropy_secret_like_hits":  true,
+                        "expected_hits":  [
+                                              "negative NavigationRail assertions",
+                                              "fake sk-* redaction samples in tests",
+                                              "redaction regex source",
+                                              "desktop-only dart:io runner",
+                                              "token/status wording"
+                                          ]
+                    }
+}

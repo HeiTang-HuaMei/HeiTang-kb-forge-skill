@@ -1,0 +1,29 @@
+﻿{
+    "report_type":  "report_artifact_error_task_coverage_report",
+    "generated_at":  "2026-06-09T13:50:10+08:00",
+    "status":  "passed_fixture_backed",
+    "report_center":  {
+                          "status":  "passed",
+                          "evidence":  "reports-audit route and widget render coverage; Core fixture has 109 report IDs including report_p1_gate_summary."
+                      },
+    "artifact_center":  {
+                            "status":  "passed",
+                            "evidence":  "artifact-management route and widget render coverage; Core fixture has 101 artifact IDs."
+                        },
+    "error_repair_center":  {
+                                "status":  "passed",
+                                "evidence":  "error-repair-center route and widget render coverage; disabled secret_required action is visible."
+                            },
+    "task_job_center":  {
+                            "status":  "passed",
+                            "evidence":  "task-job-center route and widget render coverage; task schema statuses match Core."
+                        },
+    "operation_gate":  {
+                           "status":  "blocked_honestly_rendered",
+                           "evidence":  "operation-gate renders p1_full_operation_gate_status=blocked and not_v4_0_workbench_rc=true."
+                       },
+    "capability_matrix":  {
+                              "status":  "passed",
+                              "evidence":  "capability-matrix route renders Core capability areas and cross references."
+                          }
+}

@@ -1,0 +1,305 @@
+﻿{
+    "report_type":  "p1_integrated_acceptance_report",
+    "generated_at":  "2026-06-09T13:50:10+08:00",
+    "task_name":  "P1 Integrated Local Workbench Acceptance Gate",
+    "scope":  "Core x UI integration acceptance, drift check, real path verification, report generation, and small acceptance-only UI fix",
+    "boundaries":  {
+                       "not_v4_0_release":  true,
+                       "no_tag_created":  true,
+                       "no_v4_release_written":  true,
+                       "no_saas_started":  true,
+                       "no_build_artifacts_committed":  true,
+                       "planned_adapter_not_marked_ready":  true,
+                       "mock_fixture_not_claimed_real_execution":  true
+                   },
+    "core_repo":  {
+                      "path":  "C:\\Users\\Administrator\\Documents\\New project 2\\kb-forge-skill",
+                      "branch":  "main",
+                      "baseline_commit":  "1e786cd1da1f557cd22eae622a721c431902e6b4",
+                      "validation_commit":  "42badea23ad006a7ec4bc0f0a4094cf4ec8a6fc7",
+                      "baseline_ci":  {
+                                          "run_id":  27179494913,
+                                          "status":  "completed",
+                                          "conclusion":  "success",
+                                          "head_sha":  "1e786cd1da1f557cd22eae622a721c431902e6b4",
+                                          "workflow":  "CI"
+                                      },
+                      "validation_ci":  {
+                                            "run_id":  27181345445,
+                                            "status":  "completed",
+                                            "conclusion":  "success",
+                                            "head_sha":  "42badea23ad006a7ec4bc0f0a4094cf4ec8a6fc7",
+                                            "workflow":  "CI",
+                                            "note":  "Current Core HEAD CI. Baseline P1 contract CI run 27179494913 also completed successfully at 1e786cd1da1f557cd22eae622a721c431902e6b4."
+                                        }
+                  },
+    "ui_repo":  {
+                    "path":  "C:\\Users\\Administrator\\Documents\\New project 2\\kb-forge-skill-ui",
+                    "branch":  "feature/workbench-ui-prototype",
+                    "baseline_commit":  "a18bfa451088577f25cdc7c685f8871bb3442dff",
+                    "validation_commit":  "c47215332c261f63a9f60663ea3b72a4b2f38549",
+                    "baseline_ci":  {
+                                        "run_id":  27184428350,
+                                        "status":  "completed",
+                                        "conclusion":  "success",
+                                        "head_sha":  "a18bfa451088577f25cdc7c685f8871bb3442dff",
+                                        "workflow":  "CI"
+                                    },
+                    "validation_ci":  {
+                                          "run_id":  27186563505,
+                                          "status":  "completed",
+                                          "conclusion":  "success",
+                                          "head_sha":  "c47215332c261f63a9f60663ea3b72a4b2f38549",
+                                          "workflow":  "CI",
+                                          "note":  "Latest UI CI after the small contract-source declaration fix."
+                                      }
+                },
+    "core_contract_generation":  {
+                                     "status":  "passed",
+                                     "output":  "..\\_tmp_p1_core_contracts",
+                                     "required_files_present":  true,
+                                     "counts":  {
+                                                    "pages":  16,
+                                                    "actions":  110,
+                                                    "reports":  109,
+                                                    "artifacts":  101,
+                                                    "errors":  20,
+                                                    "templates":  6,
+                                                    "ui_routes":  18
+                                                },
+                                     "p1_gate":  {
+                                                     "core_contract_ready":  true,
+                                                     "ui_full_operation_pending":  true,
+                                                     "p1_full_operation_gate_status":  "blocked",
+                                                     "not_v4_0_workbench_rc":  true
+                                                 }
+                                 },
+    "statuses":  {
+                     "drift_status":  "clean",
+                     "route_coverage_status":  "passed",
+                     "action_coverage_status":  "passed",
+                     "report_coverage_status":  "passed_fixture_backed",
+                     "artifact_coverage_status":  "passed_fixture_backed",
+                     "error_repair_coverage_status":  "passed_fixture_backed",
+                     "task_center_coverage_status":  "passed_fixture_backed",
+                     "desktop_web_boundary_status":  "passed",
+                     "p1_integrated_gate_status":  "blocked",
+                     "ready_for_v4_rc_candidate":  false
+                 },
+    "validation_results":  {
+                               "core":  [
+                                            {
+                                                "command":  "python -m heitang_kb_forge.cli_runtime workbench-contracts --profile p1 --output ..\\_tmp_p1_core_contracts",
+                                                "status":  "passed",
+                                                "summary":  "Generated P1 Workbench contract pack. Status: blocked; Core contract ready: True."
+                                            },
+                                            {
+                                                "command":  "python -m pytest tests -k \"p1 or workbench\"",
+                                                "status":  "passed",
+                                                "summary":  "30 passed, 806 deselected in 8.05s."
+                                            },
+                                            {
+                                                "command":  "python -m pytest",
+                                                "status":  "passed",
+                                                "summary":  "835 passed, 1 skipped in 400.82s."
+                                            },
+                                            {
+                                                "command":  "git diff --check",
+                                                "status":  "passed",
+                                                "summary":  "No whitespace errors."
+                                            },
+                                            {
+                                                "command":  "rg \"sk-|api[_-]?key|token|secret\" .",
+                                                "status":  "reviewed_with_expected_hits",
+                                                "summary":  "Broad grep produced documentation, code option, and test fixture hits; narrow high-entropy secret scan found no hits."
+                                            },
+                                            {
+                                                "command":  "rg -n \"sk-[A-Za-z0-9_-]{20,}|AIza[0-9A-Za-z_-]{35}|ghp_[A-Za-z0-9_]{36}|xox[baprs]-[A-Za-z0-9-]{10,}\" .",
+                                                "status":  "passed",
+                                                "summary":  "No high-entropy secret-like hits."
+                                            }
+                                        ],
+                               "ui":  [
+                                          {
+                                              "command":  "python -m pytest",
+                                              "status":  "passed",
+                                              "summary":  "474 passed, 1 skipped in 47.14s after UI contract-source declaration fix."
+                                          },
+                                          {
+                                              "command":  "python -m pytest tests\\test_workbench_ui_contract.py tests\\test_workbench_p1_contract_alignment.py tests\\test_workbench_ui_mock_data.py tests\\test_workbench_ui_routes.py tests\\test_workbench_ui_theme_i18n.py tests\\test_workbench_ui_mobile.py",
+                                              "status":  "passed",
+                                              "summary":  "34 passed in 3.81s after fix."
+                                          },
+                                          {
+                                              "command":  "flutter pub get",
+                                              "status":  "passed",
+                                              "summary":  "Dependencies resolved; package update notices only."
+                                          },
+                                          {
+                                              "command":  "flutter analyze",
+                                              "status":  "passed",
+                                              "summary":  "No issues found."
+                                          },
+                                          {
+                                              "command":  "flutter test -r expanded",
+                                              "status":  "passed",
+                                              "summary":  "15 widget/core-bridge tests passed after adding task center and reports audit render coverage."
+                                          },
+                                          {
+                                              "command":  "flutter build web",
+                                              "status":  "passed",
+                                              "summary":  "Built build\\web. Wasm dry run succeeded notice only."
+                                          },
+                                          {
+                                              "command":  "flutter build windows",
+                                              "status":  "passed",
+                                              "summary":  "Built build\\windows\\x64\\runner\\Release\\heitang_workbench.exe. Build output not committed."
+                                          },
+                                          {
+                                              "command":  "git diff --check",
+                                              "status":  "passed_with_warnings",
+                                              "summary":  "No whitespace errors; Git warned LF will be replaced by CRLF for touched files."
+                                          },
+                                          {
+                                              "command":  "rg \"NavigationRail|runInShell: true|sk-|api[_-]?key|token|secret|dart:io|traffic-light|window-control|macOS|glassmorphism\" web\\workbench\\flutter_app tests web\\workbench README.md",
+                                              "status":  "reviewed_with_expected_hits",
+                                              "summary":  "Expected hits only: negative assertions, fake redaction samples, status/token wording, redaction regex, desktop-only dart:io Process runner. No runInShell:true, traffic-light, window-control, macOS shell, or glassmorphism product hits."
+                                          },
+                                          {
+                                              "command":  "rg -n \"sk-[A-Za-z0-9_-]{20,}|AIza[0-9A-Za-z_-]{35}|ghp_[A-Za-z0-9_]{36}|xox[baprs]-[A-Za-z0-9-]{10,}\" web\\workbench\\flutter_app tests web\\workbench README.md",
+                                              "status":  "passed",
+                                              "summary":  "No high-entropy secret-like hits."
+                                          }
+                                      ]
+                           },
+    "paths":  {
+                  "core_contract_output":  {
+                                               "path":  "..\\_tmp_p1_core_contracts",
+                                               "exists":  true,
+                                               "note":  "Temporary generated output used for local acceptance only; not committed."
+                                           },
+                  "core_required_contract_files":  [
+                                                       {
+                                                           "path":  "..\\_tmp_p1_core_contracts\\workbench_manifest.json",
+                                                           "exists":  true
+                                                       },
+                                                       {
+                                                           "path":  "..\\_tmp_p1_core_contracts\\workbench_action_contracts.json",
+                                                           "exists":  true
+                                                       },
+                                                       {
+                                                           "path":  "..\\_tmp_p1_core_contracts\\workbench_capability_matrix.json",
+                                                           "exists":  true
+                                                       },
+                                                       {
+                                                           "path":  "..\\_tmp_p1_core_contracts\\workbench_report_registry.json",
+                                                           "exists":  true
+                                                       },
+                                                       {
+                                                           "path":  "..\\_tmp_p1_core_contracts\\workbench_artifact_registry.json",
+                                                           "exists":  true
+                                                       },
+                                                       {
+                                                           "path":  "..\\_tmp_p1_core_contracts\\workbench_error_taxonomy.json",
+                                                           "exists":  true
+                                                       },
+                                                       {
+                                                           "path":  "..\\_tmp_p1_core_contracts\\workbench_task_schema.json",
+                                                           "exists":  true
+                                                       },
+                                                       {
+                                                           "path":  "..\\_tmp_p1_core_contracts\\workbench_provider_schema.json",
+                                                           "exists":  true
+                                                       },
+                                                       {
+                                                           "path":  "..\\_tmp_p1_core_contracts\\workbench_storage_schema.json",
+                                                           "exists":  true
+                                                       },
+                                                       {
+                                                           "path":  "..\\_tmp_p1_core_contracts\\workbench_workspace_schema.json",
+                                                           "exists":  true
+                                                       },
+                                                       {
+                                                           "path":  "..\\_tmp_p1_core_contracts\\workbench_template_registry.json",
+                                                           "exists":  true
+                                                       },
+                                                       {
+                                                           "path":  "..\\_tmp_p1_core_contracts\\workbench_p1_gate_report.json",
+                                                           "exists":  true
+                                                       }
+                                                   ],
+                  "ui_fixture":  {
+                                     "path":  "..\\kb-forge-skill-ui\\examples\\ui_mock_data\\p1_core_contract_fixture.json",
+                                     "exists":  true
+                                 },
+                  "ui_contract_manifest":  {
+                                               "path":  "..\\kb-forge-skill-ui\\web\\workbench\\contracts.json",
+                                               "exists":  true
+                                           },
+                  "ui_static_renderer":  {
+                                             "path":  "..\\kb-forge-skill-ui\\web\\workbench\\src\\app.js",
+                                             "exists":  true
+                                         },
+                  "ui_flutter_entrypoint":  {
+                                                "path":  "..\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\lib\\main.dart",
+                                                "exists":  true
+                                            },
+                  "desktop_bridge":  {
+                                         "path":  "..\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\lib\\core_bridge\\local_core_bridge.dart",
+                                         "exists":  true
+                                     },
+                  "desktop_bridge_io_runner":  {
+                                                   "path":  "..\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\lib\\core_bridge\\local_core_bridge_runner_io.dart",
+                                                   "exists":  true
+                                               },
+                  "desktop_bridge_tests":  {
+                                               "path":  "..\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\test\\core_bridge_test.dart",
+                                               "exists":  true
+                                           },
+                  "widget_render_tests":  {
+                                              "path":  "..\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\test\\widget_test.dart",
+                                              "exists":  true
+                                          },
+                  "ui_python_contract_tests":  {
+                                                   "path":  "..\\kb-forge-skill-ui\\tests\\test_workbench_ui_contract.py",
+                                                   "exists":  true
+                                               }
+              },
+    "blockers":  [
+                     {
+                         "id":  "core_gate_reports_ui_full_operation_pending",
+                         "severity":  "blocker",
+                         "source":  "workbench_p1_gate_report.json",
+                         "detail":  "Core P1 gate intentionally declares ui_full_operation_pending=true and p1_full_operation_gate_status=blocked."
+                     },
+                     {
+                         "id":  "page_workflows_fixture_backed_not_real_end_to_end",
+                         "severity":  "blocker",
+                         "source":  "UI P1 fixture/tests",
+                         "detail":  "UI route/render tests are fixture-backed. Desktop bridge smoke uses fake/injected runner; no real large local user workflow was executed."
+                     },
+                     {
+                         "id":  "planned_adapters_not_ready",
+                         "severity":  "blocker",
+                         "source":  "Core/UI action blocked reasons",
+                         "detail":  "Some actions remain planned_adapter, provider_required, secret_required, or mock_only and must not be marked ready."
+                     }
+                 ],
+    "remaining_risks":  [
+                            "GitHub Actions reported Node.js 20 deprecation and windows-latest redirection notices; not a P1 behavior failure, but CI workflow maintenance is upcoming.",
+                            "Core safety grep broad pattern has many expected documentation/test hits; high-entropy secret-like scan found no hits.",
+                            "UI Flutter builds generated local build artifacts, but they are ignored and not committed."
+                        ],
+    "recommendation":  "Keep P1 Integrated Gate blocked until full-operation UI workflows are wired to real safe Core execution paths and planned adapters are no longer blocked. Do not start v4.0 or mark v4 release.",
+    "report_files":  [
+                         "p1_integrated_acceptance_report.json",
+                         "p1_integrated_acceptance_report.md",
+                         "core_contract_drift_report.json",
+                         "ui_contract_alignment_report.json",
+                         "ui_route_coverage_report.json",
+                         "ui_action_coverage_report.json",
+                         "report_artifact_error_task_coverage_report.json",
+                         "desktop_web_boundary_report.json",
+                         "p1_remaining_blockers.json"
+                     ]
+}
