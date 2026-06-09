@@ -545,7 +545,7 @@ class _PageSurface extends StatelessWidget {
       if (_showsV2Evidence(id)) _CardCopy(zh ? '57 action 矩阵' : '57 action matrix', '${workflowV2Evidence.passedActionCount}/${workflowV2Evidence.executionTargetCount} passed · failed=${workflowV2Evidence.failedActionCount}'),
       if (_showsV2Evidence(id)) _CardCopy(zh ? '产物 / 报告断言' : 'Artifact / report assertions', 'artifact=${workflowV2Evidence.artifactAssertionStatus} · report=${workflowV2Evidence.reportAssertionStatus} · error=${workflowV2Evidence.errorBoundaryStatus}'),
       if (_showsV2Evidence(id)) _CardCopy(zh ? '用户路径闭环' : 'User path closure', '${workflowV2Evidence.userPathClosureStatus} · ${workflowV2Evidence.userPathPassedCount}/${workflowV2Evidence.userPathCount} paths'),
-      if (_showsV2Evidence(id)) _CardCopy(zh ? 'UI 门禁' : 'UI gate', 'ui_full_operation_pending=${workflowV2Evidence.uiFullOperationPending} · rc_candidate=${workflowV2Evidence.readyForV4RcCandidate}'),
+      if (_showsV2Evidence(id)) _CardCopy(zh ? 'UI 门禁' : 'UI gate', 'ui_full_operation_pending=${workflowV2Evidence.uiFullOperationPending} · rc_candidate=${workflowV2Evidence.readyForV4RcCandidate} · ready_for_v4_rc=${workflowV2Evidence.readyForV4Rc}'),
       if (_showsV2Evidence(id)) _CardCopy(zh ? 'Provider/secret blocked' : 'Provider/secret blocked', workflowV2Evidence.blockedActions.map((action) => '${action.actionId}:${action.classification}').take(2).join(' · ')),
       if (id == 'capability-matrix') _CardCopy(zh ? 'Action 分类' : 'Action classification', workflowV2Evidence.actionResults.map((action) => '${action.actionId}:${action.status}').take(2).join(' · ')),
       if (id == 'capability-matrix') _CardCopy(zh ? '能力域' : 'Capability areas', '${contracts.capabilities.areas.length}'),

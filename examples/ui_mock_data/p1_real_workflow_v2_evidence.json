@@ -1,17 +1,18 @@
 {
   "source": {
-    "copied_from": "Core docs/audits/p1_real_workflow_v2",
+    "copied_from": "Core docs/audits/p1_real_workflow_v2 plus docs/audits/p1_final_gate_rerun",
     "core_repo": "kb-forge-skill",
-    "core_commit": "f9c9718666376adf8540fea075f916b3f22b85e4",
-    "core_ci_run_id": "27204682530",
+    "core_commit": "f5fa13bb11211abb0bcecaccd845e545a2dacad3",
+    "core_ci_run_id": "27210849617",
     "fixture_policy": "deterministic copied V2 summary; no raw command outputs, provider secrets, local provider config, build products, exe, dll, zip, or temp logs"
   },
   "p1_real_workflow_v2_status": "passed",
   "core_p1_full_operation_gate_status": "core_passed_pending_ui_consumption",
-  "p1_full_operation_gate_status": "passed_for_v4_rc_candidate",
+  "p1_final_gate_status": "ready_for_v4_rc",
+  "p1_full_operation_gate_status": "ready_for_v4_rc",
   "ui_full_operation_pending": false,
   "ready_for_v4_rc_candidate": true,
-  "ready_for_v4_rc": false,
+  "ready_for_v4_rc": true,
   "not_v4_0_workbench_rc": true,
   "v4_0_started": false,
   "tag_created": false,

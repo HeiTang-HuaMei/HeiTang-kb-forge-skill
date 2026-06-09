@@ -33,3 +33,4 @@ flutter:
     - assets/workflows/p1_real_workflow_v2/full_local_user_path_closure_report.json
     - assets/workflows/p1_real_workflow_v2/p1_real_workflow_v2_report.json
     - assets/workflows/p1_real_workflow_v2/remaining_blockers.json
+    - assets/workflows/p1_final_gate_rerun/

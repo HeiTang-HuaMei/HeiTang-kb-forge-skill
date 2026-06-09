@@ -1,0 +1,15 @@
+{
+  "report_id": "p1_core_validation_summary",
+  "status": "pass",
+  "source_commit": "f5fa13bb11211abb0bcecaccd845e545a2dacad3",
+  "ci_run_id": "27210849617",
+  "p1_real_workflow_v1_status": "passed",
+  "p1_real_workflow_v2_status": "passed",
+  "root_gate_ready_for_v4_rc": true,
+  "root_gate_alias_ready_for_v4_rc": true,
+  "focused_tests": "python -m pytest tests -k \"p1 or workbench or workflow or gate or docs or readme\"",
+  "full_pytest": "python -m pytest",
+  "diff_check": "git diff --check",
+  "safety_scan": "rg \"sk-|api[_-]?key|token|secret\" .",
+  "validation_status": "pass"
+}

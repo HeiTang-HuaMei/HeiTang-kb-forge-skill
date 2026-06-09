@@ -1,6 +1,6 @@
 {
-  "version": "UI-p1-rwf-v2-evidence-pass",
-  "scope": "p1-rwf-v2-full-ready-action-evidence-ui-consumption-pass",
+  "version": "UI-p1-final-gate-ready-for-v4-rc",
+  "scope": "p1-final-gate-rerun-ready-for-v4-rc-evidence-pass",
   "allowed_paths": [
     "README.md",
     "web/workbench/",
@@ -21,7 +21,7 @@
   "core_contract_source": {
     "copied_from": "Core workbench-contracts --profile p1",
     "core_repo": "kb-forge-skill",
-    "core_commit": "f9c9718666376adf8540fea075f916b3f22b85e4",
+    "core_commit": "f5fa13bb11211abb0bcecaccd845e545a2dacad3",
     "fixture": "examples/ui_mock_data/p1_core_contract_fixture.json",
     "policy": "deterministic copied fixture; no raw outputs, logs, secrets, provider configs, build products, exe, dll, or zip"
   },
@@ -195,7 +195,8 @@
     "p1_real_workflow_v2_error_boundary": "examples/ui_mock_data/p1_real_workflow_v2/action_error_boundary_report.json",
     "p1_real_workflow_v2_user_paths": "examples/ui_mock_data/p1_real_workflow_v2/full_local_user_path_closure_report.json",
     "p1_real_workflow_v2_gate_report": "examples/ui_mock_data/p1_real_workflow_v2/p1_real_workflow_v2_report.json",
-    "p1_real_workflow_v2_remaining_blockers": "examples/ui_mock_data/p1_real_workflow_v2/remaining_blockers.json"
+    "p1_real_workflow_v2_remaining_blockers": "examples/ui_mock_data/p1_real_workflow_v2/remaining_blockers.json",
+    "p1_final_gate_report": "examples/ui_mock_data/p1_final_gate_rerun/p1_final_gate_report.json"
   },
   "theme": {
     "modes": [
@@ -286,13 +287,14 @@
     "not_v4_0_workbench_rc": true
   },
   "release_boundary": {
-    "checkpoint": "P1-RWF-V2 evidence UI consumption pass; not v4.0 and not production release complete",
+    "checkpoint": "P1 final gate re-run ready_for_v4_rc=true; not v4.0 and not production release complete",
     "current_ui_default": "black / white / gray premium Windows desktop workbench",
     "supports_light_dark_mode": true,
     "supports_zh_cn_en_us_switch": true,
     "not_v4_0_release": true,
     "not_v4_0_workbench_rc": true,
-    "not_full_operation_yet": true
+    "ready_for_v4_rc": true,
+    "not_full_operation_yet": false
   },
   "future_api": {
     "boundary": "Replace web/workbench/src/mockService.js fixture fetches with Core API/desktop bridge calls after P1 Integrated Gate.",
@@ -310,9 +312,10 @@
       "answerPolicies",
       "memoryPolicies",
       "p1Contracts",
-      "p1RealWorkflowV2Reports"
+      "p1RealWorkflowV2Reports",
+      "p1FinalGateRerun"
     ],
     "no_backend_logic": false,
-    "current_backend_logic": "desktop local Core CLI bridge contract plus copied P1-RWF-V2 evidence consumption; web still does not execute local CLI"
+    "current_backend_logic": "desktop local Core CLI bridge contract plus copied P1-RWF-V2 and P1 final gate evidence consumption; web still does not execute local CLI"
   }
 }

@@ -1,0 +1,16 @@
+{
+  "report_id": "p1_ui_validation_summary",
+  "status": "pass",
+  "source_commit": "f5fa13bb11211abb0bcecaccd845e545a2dacad3",
+  "ui_commit": "8c0eee28f8185802285cc62fd7214e7b030fdf4e",
+  "core_ci_run_id": "27210849617",
+  "ui_ci_run_id": "27206487860",
+  "ui_full_operation_pending": false,
+  "ready_for_v4_rc_candidate": true,
+  "drift_count": 0,
+  "command_surface_drift_count": 0,
+  "flutter_asset_matches_ui_fixture": true,
+  "web_local_cli_disabled": true,
+  "desktop_bridge_allowlist_run_in_shell_false": true,
+  "validation_status": "pass"
+}

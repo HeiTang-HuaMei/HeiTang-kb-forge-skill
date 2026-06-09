@@ -9,7 +9,8 @@ REPORT = ROOT / "docs" / "audits" / "core_ui_acceptance" / "core_ui_acceptance_r
 P1_RWF_V1 = ROOT / "examples" / "ui_mock_data" / "p1_real_workflow_v1_evidence.json"
 P1_RWF_V2 = ROOT / "examples" / "ui_mock_data" / "p1_real_workflow_v2_evidence.json"
 P1_RWF_V2_REPORT_DIR = ROOT / "examples" / "ui_mock_data" / "p1_real_workflow_v2"
-CORE_COMMIT = "f9c9718666376adf8540fea075f916b3f22b85e4"
+P1_FINAL_GATE = ROOT / "examples" / "ui_mock_data" / "p1_final_gate_rerun"
+CORE_COMMIT = "f5fa13bb11211abb0bcecaccd845e545a2dacad3"
 
 
 DEDICATED_ROUTES = {
@@ -81,6 +82,36 @@ def test_flutter_p1_real_workflow_v2_asset_matches_ui_fixture_and_reports():
         asset = flutter_report_dir / file_name
         assert asset.exists()
         assert json.loads(asset.read_text(encoding="utf-8")) == json.loads(fixture.read_text(encoding="utf-8"))
+
+
+def test_flutter_p1_final_gate_assets_match_ui_fixture():
+    flutter_report_dir = WORKBENCH / "flutter_app" / "assets" / "workflows" / "p1_final_gate_rerun"
+    report_files = [
+        "p1_final_gate_report.json",
+        "p1_core_validation_summary.json",
+        "p1_ui_validation_summary.json",
+        "p1_rwf_v1_v2_evidence_index.json",
+        "p1_action_execution_evidence_index.json",
+        "p1_user_path_evidence_index.json",
+        "p1_provider_blocked_boundary_report.json",
+        "p1_security_release_hygiene_report.json",
+        "p1_remaining_risks.json",
+    ]
+
+    for file_name in report_files:
+        fixture = P1_FINAL_GATE / file_name
+        asset = flutter_report_dir / file_name
+        assert asset.exists()
+        assert json.loads(asset.read_text(encoding="utf-8")) == json.loads(fixture.read_text(encoding="utf-8"))
+
+    final_gate = json.loads((P1_FINAL_GATE / "p1_final_gate_report.json").read_text(encoding="utf-8"))
+    assert final_gate["core_commit"] == CORE_COMMIT
+    assert final_gate["core_ci_run_id"] == "27210849617"
+    assert final_gate["p1_final_gate_status"] == "ready_for_v4_rc"
+    assert final_gate["ready_for_v4_rc"] is True
+    assert final_gate["v4_0_started"] is False
+    assert final_gate["tag_created"] is False
+    assert final_gate["v4_release_written"] is False
 
 
 def test_dedicated_p1_routes_have_sidebar_and_renderers():
@@ -208,10 +239,12 @@ def test_core_ui_acceptance_report_matches_fixture_classification():
 
     assert report["core_commit"] == CORE_COMMIT
     assert report["ui_fixture_commit"] == CORE_COMMIT
-    assert report["gate_status"] == "passed_for_v4_rc_candidate"
+    assert report["gate_status"] == "ready_for_v4_rc"
+    assert report["p1_final_gate_status"] == "ready_for_v4_rc"
     assert report["p1_real_workflow_v2_status"] == "passed"
     assert report["ui_full_operation_pending"] is False
     assert report["ready_for_v4_rc_candidate"] is True
+    assert report["ready_for_v4_rc"] is True
     assert report["not_v4_0_workbench_rc"] is True
     assert report["v4_0_started"] is False
     assert report["tag_created"] is False
@@ -222,6 +255,7 @@ def test_core_ui_acceptance_report_matches_fixture_classification():
     assert report["drift_check"]["flutter_asset_matches_ui_fixture"] is True
     assert report["drift_check"]["p1_real_workflow_v1_asset_matches_fixture"] is True
     assert report["drift_check"]["p1_real_workflow_v2_asset_matches_fixture"] is True
+    assert report["drift_check"]["p1_final_gate_asset_matches_fixture"] is True
     assert report["action_execution"] == {
         "ready_core_cli_action_count": 62,
         "execution_target_count": 57,
@@ -271,10 +305,11 @@ def test_p1_real_workflow_v2_evidence_promotes_ui_gate_candidate_without_v4_rele
 
     assert evidence["source"]["core_commit"] == CORE_COMMIT
     assert evidence["p1_real_workflow_v2_status"] == "passed"
-    assert evidence["p1_full_operation_gate_status"] == "passed_for_v4_rc_candidate"
+    assert evidence["p1_final_gate_status"] == "ready_for_v4_rc"
+    assert evidence["p1_full_operation_gate_status"] == "ready_for_v4_rc"
     assert evidence["ui_full_operation_pending"] is False
     assert evidence["ready_for_v4_rc_candidate"] is True
-    assert evidence["ready_for_v4_rc"] is False
+    assert evidence["ready_for_v4_rc"] is True
     assert evidence["not_v4_0_workbench_rc"] is True
     assert evidence["v4_0_started"] is False
     assert evidence["tag_created"] is False

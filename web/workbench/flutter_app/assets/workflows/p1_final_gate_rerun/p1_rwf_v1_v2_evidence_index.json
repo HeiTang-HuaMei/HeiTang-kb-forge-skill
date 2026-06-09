@@ -1,0 +1,17 @@
+{
+  "report_id": "p1_rwf_v1_v2_evidence_index",
+  "status": "pass",
+  "v1": {
+    "path": "docs/audits/p1_real_workflow_v1",
+    "status": "passed",
+    "historical_gate_status": "blocked",
+    "historical_blockers_superseded_by_v2": true
+  },
+  "v2": {
+    "path": "docs/audits/p1_real_workflow_v2",
+    "status": "passed",
+    "original_gate_status": "core_passed_pending_ui_consumption",
+    "original_ui_full_operation_pending": true,
+    "final_gate_rerun_resolves_ui_pending": true
+  }
+}

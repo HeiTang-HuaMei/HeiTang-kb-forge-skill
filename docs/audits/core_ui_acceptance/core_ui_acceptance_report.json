@@ -1,16 +1,18 @@
 {
   "report_id": "core_ui_acceptance_p1_rwf_v2_2026_06_09",
-  "generated_at": "2026-06-09T20:15:00+08:00",
-  "scope": "P1-RWF-V2 Full 57 Ready Action Execution & Final Local User Path Closure UI consumption; not v4.0 release",
+  "generated_at": "2026-06-09T21:55:00+08:00",
+  "scope": "P1 Final Gate Re-run UI consumption; ready_for_v4_rc=true; not v4.0 release",
   "core_repo": "kb-forge-skill",
-  "core_commit": "f9c9718666376adf8540fea075f916b3f22b85e4",
-  "core_ci_run_id": "27204682530",
+  "core_commit": "f5fa13bb11211abb0bcecaccd845e545a2dacad3",
+  "core_ci_run_id": "27210849617",
   "ui_repo": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill-ui",
-  "ui_fixture_commit": "f9c9718666376adf8540fea075f916b3f22b85e4",
-  "gate_status": "passed_for_v4_rc_candidate",
+  "ui_fixture_commit": "f5fa13bb11211abb0bcecaccd845e545a2dacad3",
+  "gate_status": "ready_for_v4_rc",
+  "p1_final_gate_status": "ready_for_v4_rc",
   "p1_real_workflow_v2_status": "passed",
   "ui_full_operation_pending": false,
   "ready_for_v4_rc_candidate": true,
+  "ready_for_v4_rc": true,
   "not_v4_0_workbench_rc": true,
   "v4_0_started": false,
   "tag_created": false,
@@ -41,7 +43,8 @@
     "command_surface_drift_count": 0,
     "flutter_asset_matches_ui_fixture": true,
     "p1_real_workflow_v1_asset_matches_fixture": true,
-    "p1_real_workflow_v2_asset_matches_fixture": true
+    "p1_real_workflow_v2_asset_matches_fixture": true,
+    "p1_final_gate_asset_matches_fixture": true
   },
   "runtime_boundaries": {
     "windows_desktop_runtime": "allowlisted_local_core_cli_view_and_trigger_safe_actions",
@@ -85,7 +88,7 @@
   "p1_real_workflow_v2": {
     "fixture": "examples/ui_mock_data/p1_real_workflow_v2_evidence.json",
     "flutter_asset": "web/workbench/flutter_app/assets/workflows/p1_real_workflow_v2_evidence.json",
-    "source_commit": "f9c9718666376adf8540fea075f916b3f22b85e4",
+    "source_commit": "f5fa13bb11211abb0bcecaccd845e545a2dacad3",
     "report_files": [
       "full_ready_action_execution_matrix.json",
       "full_ready_action_execution_matrix.md",
@@ -100,5 +103,12 @@
       "remaining_blockers.json",
       "remaining_blockers.md"
     ]
+  },
+  "p1_final_gate": {
+    "fixture": "examples/ui_mock_data/p1_final_gate_rerun/p1_final_gate_report.json",
+    "flutter_asset": "web/workbench/flutter_app/assets/workflows/p1_final_gate_rerun/p1_final_gate_report.json",
+    "source_commit": "f5fa13bb11211abb0bcecaccd845e545a2dacad3",
+    "p1_final_gate_status": "ready_for_v4_rc",
+    "ready_for_v4_rc": true
   }
 }

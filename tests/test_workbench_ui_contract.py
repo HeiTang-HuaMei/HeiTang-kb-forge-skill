@@ -4,16 +4,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKBENCH = ROOT / "web" / "workbench"
-CORE_COMMIT = "f9c9718666376adf8540fea075f916b3f22b85e4"
+CORE_COMMIT = "f5fa13bb11211abb0bcecaccd845e545a2dacad3"
 
 
 def test_workbench_contract_exposes_desktop_core_bridge_without_full_operation_claim():
     contracts = json.loads((WORKBENCH / "contracts.json").read_text(encoding="utf-8"))
 
-    assert contracts["scope"] == "p1-rwf-v2-full-ready-action-evidence-ui-consumption-pass"
+    assert contracts["scope"] == "p1-final-gate-rerun-ready-for-v4-rc-evidence-pass"
     assert contracts["core_contract_source"]["core_commit"] == CORE_COMMIT
     assert contracts["future_api"]["no_backend_logic"] is False
-    assert contracts["future_api"]["current_backend_logic"] == "desktop local Core CLI bridge contract plus copied P1-RWF-V2 evidence consumption; web still does not execute local CLI"
+    assert contracts["future_api"]["current_backend_logic"] == "desktop local Core CLI bridge contract plus copied P1-RWF-V2 and P1 final gate evidence consumption; web still does not execute local CLI"
     bridge = contracts["local_core_bridge"]
     assert bridge["status"] == "bridge_contract_tested"
     assert bridge["desktop_runtime"] == "allowlisted_core_cli_process_bridge"
@@ -53,7 +53,8 @@ def test_workbench_contract_exposes_desktop_core_bridge_without_full_operation_c
     assert contracts["release_boundary"]["supports_zh_cn_en_us_switch"] is True
     assert contracts["release_boundary"]["not_v4_0_release"] is True
     assert contracts["release_boundary"]["not_v4_0_workbench_rc"] is True
-    assert contracts["release_boundary"]["not_full_operation_yet"] is True
+    assert contracts["release_boundary"]["ready_for_v4_rc"] is True
+    assert contracts["release_boundary"]["not_full_operation_yet"] is False
     assert contracts["pwa"]["static_web_manifest"] == "web/workbench/manifest.webmanifest"
     assert contracts["pwa"]["flutter_web_manifest"] == "web/workbench/flutter_app/web/manifest.json"
 
@@ -65,8 +66,9 @@ def test_readme_states_workbench_visual_and_release_boundary():
     assert "light / dark mode" in readme
     assert "zh-CN / en-US language switch" in readme
     assert "not the v4.0 release" in readme
-    assert "P1-RWF-V2 evidence UI consumption pass" in readme
+    assert "P1 final gate re-run evidence UI consumption pass" in readme
     assert CORE_COMMIT in readme
+    assert "ready_for_v4_rc=true" in readme
     assert "not_v4_0_workbench_rc" in readme
 
 
@@ -89,8 +91,8 @@ def test_flutter_project_scaffold_has_standard_entry_files():
     assert "android/local.properties" in gitignore
     assert "flutter run -d windows" in readme
     assert "flutter run -d chrome" in readme
-    assert "not_full_operation_yet: true" in readme
-    assert "p1_full_operation_gate_status: passed_for_v4_rc_candidate" in readme
+    assert "ready_for_v4_rc=true" in readme
+    assert "p1_full_operation_gate_status: ready_for_v4_rc" in readme
     assert "not the v4.0 Workbench RC" in readme
     assert "Web does not execute the local Core CLI" in readme
 

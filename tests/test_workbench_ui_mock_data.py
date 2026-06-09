@@ -4,7 +4,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MOCK_DATA = ROOT / "examples" / "ui_mock_data"
-CORE_COMMIT = "f9c9718666376adf8540fea075f916b3f22b85e4"
+CORE_COMMIT = "f5fa13bb11211abb0bcecaccd845e545a2dacad3"
 
 
 def read_json(name):
@@ -101,10 +101,11 @@ def test_mock_data_represents_p1_real_workflow_v2_evidence_and_reports():
 
     assert evidence["source"]["core_commit"] == CORE_COMMIT
     assert evidence["p1_real_workflow_v2_status"] == "passed"
-    assert evidence["p1_full_operation_gate_status"] == "passed_for_v4_rc_candidate"
+    assert evidence["p1_final_gate_status"] == "ready_for_v4_rc"
+    assert evidence["p1_full_operation_gate_status"] == "ready_for_v4_rc"
     assert evidence["ui_full_operation_pending"] is False
     assert evidence["ready_for_v4_rc_candidate"] is True
-    assert evidence["ready_for_v4_rc"] is False
+    assert evidence["ready_for_v4_rc"] is True
     assert evidence["not_v4_0_workbench_rc"] is True
     assert evidence["v4_0_started"] is False
     assert evidence["tag_created"] is False

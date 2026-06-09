@@ -9,7 +9,7 @@ import 'package:heitang_workbench/contracts/workbench_contracts.dart';
 import 'package:heitang_workbench/main.dart';
 
 void main() {
-  const coreCommit = 'f9c9718666376adf8540fea075f916b3f22b85e4';
+  const coreCommit = 'f5fa13bb11211abb0bcecaccd845e545a2dacad3';
 
   test('contract fixture parses p1 workbench contracts', () {
     final contracts = sampleWorkbenchContracts;
@@ -46,10 +46,10 @@ void main() {
 
     expect(evidence.coreCommit, coreCommit);
     expect(evidence.status, 'passed');
-    expect(evidence.fullGateStatus, 'passed_for_v4_rc_candidate');
+    expect(evidence.fullGateStatus, 'ready_for_v4_rc');
     expect(evidence.uiFullOperationPending, isFalse);
     expect(evidence.readyForV4RcCandidate, isTrue);
-    expect(evidence.readyForV4Rc, isFalse);
+    expect(evidence.readyForV4Rc, isTrue);
     expect(evidence.notV4WorkbenchRc, isTrue);
     expect(evidence.driftCount, 0);
     expect(evidence.fixtureOnlyCountedAsReal, isFalse);
@@ -194,7 +194,7 @@ void main() {
     }
   });
 
-  testWidgets('renders p1 real workflow v1 evidence without claiming full gate pass', (tester) async {
+  testWidgets('renders p1 real workflow v1 evidence while final V2 gate is ready', (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1100));
     await tester.pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts, workflowEvidence: sampleP1WorkflowEvidence));
     await tester.pumpAndSettle();
@@ -205,7 +205,7 @@ void main() {
     expect(find.textContaining('passed · full_gate=blocked'), findsWidgets);
     expect(find.textContaining('drift_count=0'), findsWidgets);
     expect(find.textContaining('full_57_ready_action_business_input_execution_not_complete'), findsWidgets);
-    expect(find.textContaining('ready_for_v4_rc'), findsNothing);
+    expect(find.textContaining('ready_for_v4_rc=true'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
@@ -217,13 +217,13 @@ void main() {
     await tester.tap(find.text('运行门禁').first);
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('passed · full_gate=passed_for_v4_rc_candidate'), findsWidgets);
+    expect(find.textContaining('passed · full_gate=ready_for_v4_rc'), findsWidgets);
     expect(find.textContaining('57/57 passed'), findsWidgets);
     expect(find.textContaining('artifact=pass · report=pass · error=pass'), findsWidgets);
     expect(find.textContaining('pass · 10/10 paths'), findsWidgets);
-    expect(find.textContaining('ui_full_operation_pending=false · rc_candidate=true'), findsWidgets);
+    expect(find.textContaining('ui_full_operation_pending=false · rc_candidate=true · ready_for_v4_rc=true'), findsWidgets);
     expect(find.textContaining('provider_redaction_check:blocked_secret_required'), findsWidgets);
-    expect(find.textContaining('ready_for_v4_rc=true'), findsNothing);
+    expect(find.textContaining('ready_for_v4_rc=true'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 

@@ -224,7 +224,7 @@ class P1WorkflowEvidenceLoader {
 }
 
 final sampleP1WorkflowEvidence = P1WorkflowEvidence.fromJson({
-  'source': {'core_commit': 'f9c9718666376adf8540fea075f916b3f22b85e4'},
+  'source': {'core_commit': 'f5fa13bb11211abb0bcecaccd845e545a2dacad3'},
   'p1_real_workflow_v1_status': 'passed',
   'p1_full_operation_gate_status': 'blocked',
   'ready_for_v4_rc': false,
@@ -252,12 +252,13 @@ final sampleP1WorkflowEvidence = P1WorkflowEvidence.fromJson({
 });
 
 final sampleP1WorkflowV2Evidence = P1WorkflowEvidence.fromJson({
-  'source': {'core_commit': 'f9c9718666376adf8540fea075f916b3f22b85e4'},
+  'source': {'core_commit': 'f5fa13bb11211abb0bcecaccd845e545a2dacad3'},
   'p1_real_workflow_v2_status': 'passed',
-  'p1_full_operation_gate_status': 'passed_for_v4_rc_candidate',
+  'p1_final_gate_status': 'ready_for_v4_rc',
+  'p1_full_operation_gate_status': 'ready_for_v4_rc',
   'ui_full_operation_pending': false,
   'ready_for_v4_rc_candidate': true,
-  'ready_for_v4_rc': false,
+  'ready_for_v4_rc': true,
   'not_v4_0_workbench_rc': true,
   'ready_core_cli_action_count': 62,
   'execution_target_count': 57,

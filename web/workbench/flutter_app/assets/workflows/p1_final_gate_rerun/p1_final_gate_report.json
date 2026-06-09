@@ -1,0 +1,77 @@
+{
+  "report_id": "p1_final_gate_rerun",
+  "scope": "P1 Final Gate Re-run; not v4.0 release",
+  "p1_final_gate_status": "ready_for_v4_rc",
+  "p1_full_operation_gate_status": "ready_for_v4_rc",
+  "ready_for_v4_rc": true,
+  "ready_for_v4_rc_candidate": true,
+  "p1_real_workflow_v1_status": "passed",
+  "p1_real_workflow_v2_status": "passed",
+  "core_v2_original_gate_status": "core_passed_pending_ui_consumption",
+  "core_v2_original_ui_full_operation_pending": true,
+  "ui_full_operation_pending": false,
+  "ready_core_cli_action_count": 62,
+  "execution_target_count": 57,
+  "passed_action_count": 57,
+  "failed_action_count": 0,
+  "user_path_count": 10,
+  "user_path_passed_count": 10,
+  "report_assertion_status": "pass",
+  "artifact_assertion_status": "pass",
+  "error_boundary_status": "pass",
+  "drift_count": 0,
+  "command_surface_drift_count": 0,
+  "provider_secret_network_action_ids": [
+    "llm_provider_validate",
+    "vector_db_validate",
+    "vector_upsert_query_smoke",
+    "provider_redaction_check",
+    "offline_fallback_status"
+  ],
+  "provider_secret_network_boundary": "explicit_config_blocked_not_real_local_passed",
+  "provider_secret_network_actions_real_local_passed": false,
+  "blockers": [],
+  "remaining_risks": [
+    {
+      "risk_id": "provider_secret_network_actions_remain_explicit_config_only",
+      "status": "accepted_boundary",
+      "description": "The five provider/secret/network actions remain blocked and are not counted as real-local passed."
+    },
+    {
+      "risk_id": "external_github_benchmark_implementation_is_post_v4",
+      "status": "accepted_boundary",
+      "description": "External GitHub project implementation is not part of this P1 final gate rerun."
+    },
+    {
+      "risk_id": "v4_release_preparation_not_started",
+      "status": "accepted_boundary",
+      "description": "This gate only establishes readiness for v4 RC preparation; it does not start v4.0, create a tag, or write a release."
+    }
+  ],
+  "not_v4_0_workbench_rc": true,
+  "v4_0_started": false,
+  "tag_created": false,
+  "v4_release_written": false,
+  "production_release_complete": false,
+  "external_project_implemented": false,
+  "tests_require_real_llm_api_network": false,
+  "network_required": false,
+  "output_files": [
+    "p1_final_gate_report.json",
+    "p1_final_gate_report.md",
+    "p1_core_validation_summary.json",
+    "p1_ui_validation_summary.json",
+    "p1_rwf_v1_v2_evidence_index.json",
+    "p1_action_execution_evidence_index.json",
+    "p1_user_path_evidence_index.json",
+    "p1_provider_blocked_boundary_report.json",
+    "p1_security_release_hygiene_report.json",
+    "p1_remaining_risks.json",
+    "p1_next_step_recommendation.md"
+  ],
+  "core_commit": "f5fa13bb11211abb0bcecaccd845e545a2dacad3",
+  "core_ci_run_id": "27210849617",
+  "ui_commit": "8c0eee28f8185802285cc62fd7214e7b030fdf4e",
+  "ui_ci_run_id": "27206487860",
+  "generated_at": "2026-06-09T13:13:16.189337Z"
+}
