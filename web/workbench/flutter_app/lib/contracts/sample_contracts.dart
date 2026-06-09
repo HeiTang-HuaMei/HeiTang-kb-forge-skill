@@ -7,7 +7,7 @@ final WorkbenchContracts sampleWorkbenchContracts = const WorkbenchContractLoade
   jsonEncode({
     'source': {
       'copied_from': 'Core workbench-contracts --profile p1',
-      'core_commit': '533fc9267934dc8080a12ba018602e2f226bd385',
+      'core_commit': 'a793247ff8704275891ff9a1aefcb78888bcc9f2',
     },
     'manifest': {
       'project_name': 'HeiTang P1 Workbench UI',

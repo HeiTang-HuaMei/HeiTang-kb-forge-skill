@@ -2,7 +2,7 @@
   "source": {
     "copied_from": "Core workbench-contracts --profile p1",
     "core_repo": "C:\\Users\\Administrator\\Documents\\New project 2\\kb-forge-skill",
-    "core_commit": "533fc9267934dc8080a12ba018602e2f226bd385",
+    "core_commit": "a793247ff8704275891ff9a1aefcb78888bcc9f2",
     "fixture_policy": "deterministic copied fixture; no raw user inputs, provider secrets, build outputs, logs, or local provider config"
   },
   "profile": "p1",
@@ -2009,7 +2009,7 @@
       "button_id": "btn_ocr_required_detection",
       "status": "ready",
       "command_kind": "core_cli",
-      "command": "full-ocr-acceptance --core-repo <repo> --output <output>",
+      "command": "full-ocr-acceptance --source <source> --output <output>",
       "blocked_reason": null,
       "dry_run_supported": true,
       "smoke_supported": true,
@@ -2479,7 +2479,7 @@
       "button_id": "btn_package_export",
       "status": "ready",
       "command_kind": "core_cli",
-      "command": "export-platform --package <package> --output <output>",
+      "command": "export-platform --skill <skill> --output <output>",
       "blocked_reason": null,
       "dry_run_supported": true,
       "smoke_supported": true,

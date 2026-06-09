@@ -10,7 +10,7 @@ void main() {
   test('contract fixture parses p1 workbench contracts', () {
     final contracts = sampleWorkbenchContracts;
 
-    expect(contracts.source.coreCommit, '533fc9267934dc8080a12ba018602e2f226bd385');
+    expect(contracts.source.coreCommit, 'a793247ff8704275891ff9a1aefcb78888bcc9f2');
     expect(contracts.manifest.outputFiles, contains('workbench_action_contracts.json'));
     expect(contracts.navigation.views, hasLength(18));
     expect(contracts.actions.actions.map((action) => action.id), containsAll(['workspace_inspect', 'rag_query', 'book_to_skill', 'run_agent']));

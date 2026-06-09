@@ -66,7 +66,7 @@ def test_mock_data_represents_providers_policies_and_parser_status():
 def test_mock_data_represents_p1_core_contract_alignment_fixture():
     fixture = read_json("p1_core_contract_fixture.json")
 
-    assert fixture["source"]["core_commit"] == "533fc9267934dc8080a12ba018602e2f226bd385"
+    assert fixture["source"]["core_commit"] == "a793247ff8704275891ff9a1aefcb78888bcc9f2"
     assert fixture["not_full_operation_yet"] is True
     assert fixture["not_v4_0_workbench_rc"] is True
     assert fixture["counts"]["actions"] == 110

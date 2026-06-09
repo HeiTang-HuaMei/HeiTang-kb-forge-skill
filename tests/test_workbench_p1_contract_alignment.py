@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKBENCH = ROOT / "web" / "workbench"
 FIXTURE = ROOT / "examples" / "ui_mock_data" / "p1_core_contract_fixture.json"
 REPORT = ROOT / "docs" / "audits" / "core_ui_acceptance" / "core_ui_acceptance_report.json"
-CORE_COMMIT = "533fc9267934dc8080a12ba018602e2f226bd385"
+CORE_COMMIT = "a793247ff8704275891ff9a1aefcb78888bcc9f2"
 
 
 DEDICATED_ROUTES = {
@@ -90,6 +90,16 @@ def test_core_contract_ids_are_cross_referenced():
         assert set(action["task_statuses"]) <= task_statuses
 
 
+def test_corrected_core_cli_action_commands_are_synced():
+    fixture = load_fixture()
+    actions = {action["action_id"]: action for action in fixture["actions"]}
+
+    assert actions["ocr_required_detection"]["command"] == "full-ocr-acceptance --source <source> --output <output>"
+    assert actions["package_export"]["command"] == "export-platform --skill <skill> --output <output>"
+    assert "--core-repo" not in actions["ocr_required_detection"]["command"]
+    assert "--package" not in actions["package_export"]["command"]
+
+
 def test_unsupported_actions_are_disabled_with_blocked_reason():
     fixture = load_fixture()
     disabled = [action for action in fixture["actions"] if not action["desktop_enabled"]]
@@ -168,6 +178,14 @@ def test_core_ui_acceptance_report_matches_fixture_classification():
     assert report["gate_status"] == "blocked"
     assert report["drift_check"]["status"] == "pass"
     assert report["drift_check"]["drift_count"] == 0
+    assert report["known_command_surface_blockers"] == [
+        {
+            "action_id": "package_build",
+            "contract_command": "build --config <config> --output <output>",
+            "blocker": "The ready/core_cli contract references build, but the current Core CLI does not expose a registered build command surface.",
+            "status": "known_blocker_not_fixed_in_this_checkpoint",
+        }
+    ]
     assert report["action_classification"]["total_actions"] == len(fixture["actions"])
     assert report["action_classification"]["real_local_workflow_actions"] == len(real_local)
     assert report["action_classification"]["deterministic_smoke_actions"] == len(smoke)

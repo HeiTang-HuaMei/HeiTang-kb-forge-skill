@@ -2,7 +2,7 @@
 
 Generated: 2026-06-09
 
-Scope: Core x UI combination acceptance, drift check, real path validation, and report generation.
+Scope: P1 Command Surface Truth Fix / Contract Drift Repair over the existing Core x UI checkpoint. This does not claim P1 real workflow completion.
 
 ## Result
 
@@ -29,13 +29,22 @@ Policy:
 
 Core contracts were regenerated from:
 
-`python -m heitang_kb_forge.cli_runtime workbench-contracts --profile p1 --output ../_tmp_goal_core_contracts_ui_acceptance`
+`python -m heitang_kb_forge.cli_runtime workbench-contracts --profile p1 --output ../_tmp_goal_core_contracts_command_surface`
 
-Verified Core commit: `533fc9267934dc8080a12ba018602e2f226bd385`.
+Verified Core commit: `a793247ff8704275891ff9a1aefcb78888bcc9f2`.
 
 Drift status: pass.
 
 The UI fixture and Flutter asset match each other. Core fields in actions, reports, artifacts, errors, templates, capability matrix, task schema, and gate report match the regenerated Core contracts. UI-only action fields are limited to route and runtime blocked/enabled metadata.
+
+Command surface truth fix:
+
+- `ocr_required_detection`: `full-ocr-acceptance --core-repo <repo> --output <output>` -> `full-ocr-acceptance --source <source> --output <output>`.
+- `package_export`: `export-platform --package <package> --output <output>` -> `export-platform --skill <skill> --output <output>`.
+
+Known command surface blocker:
+
+- `package_build` still references `build --config <config> --output <output>`, but the current Core CLI does not expose a registered `build` command surface. This is recorded only; it is not fixed in this checkpoint.
 
 ## Real Path Validation
 

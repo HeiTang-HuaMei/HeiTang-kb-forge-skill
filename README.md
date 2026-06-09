@@ -191,7 +191,7 @@ HeiTang KB Forge Core is now defined as the knowledge supply-chain core Skill in
 
 The optional Workbench UI defaults to a black / white / gray premium Windows desktop workbench style. It supports light / dark mode and a zh-CN / en-US language switch.
 
-The current UI is a P1 contract alignment and UI completion pass verified against Core commit `533fc9267934dc8080a12ba018602e2f226bd385`. It consumes a deterministic copied Core `workbench-contracts --profile p1` fixture for 16 P1 Core pages, 110 actions, 109 reports, 101 artifacts, 20 error codes, 6 templates, task schema, capability matrix, and gate status.
+The current UI is a P1 contract alignment and UI completion pass verified against Core commit `a793247ff8704275891ff9a1aefcb78888bcc9f2`. It consumes a deterministic copied Core `workbench-contracts --profile p1` fixture for 16 P1 Core pages, 110 actions, 109 reports, 101 artifacts, 20 error codes, 6 templates, task schema, capability matrix, and gate status.
 
 This is still not the final P1 Integrated Gate and not the v4.0 release. `not_full_operation_yet` and `not_v4_0_workbench_rc` remain true; unsupported operations render disabled with `blocked_reason`.
 

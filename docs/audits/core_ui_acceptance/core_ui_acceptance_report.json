@@ -1,12 +1,12 @@
 {
   "report_id": "core_ui_acceptance_2026_06_09",
-  "generated_at": "2026-06-09T14:45:00+08:00",
-  "scope": "Core x UI combination acceptance, drift check, real path validation, report generation",
+  "generated_at": "2026-06-09T16:18:00+08:00",
+  "scope": "P1 Command Surface Truth Fix / Contract Drift Repair over the existing Core x UI checkpoint; no P1 real workflow completion claimed",
   "core_repo": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill",
-  "core_commit": "533fc9267934dc8080a12ba018602e2f226bd385",
+  "core_commit": "a793247ff8704275891ff9a1aefcb78888bcc9f2",
   "ui_repo": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill-ui",
   "ui_base_commit": "c47215332c261f63a9f60663ea3b72a4b2f38549",
-  "ui_fixture_commit": "533fc9267934dc8080a12ba018602e2f226bd385",
+  "ui_fixture_commit": "a793247ff8704275891ff9a1aefcb78888bcc9f2",
   "gate_status": "blocked",
   "not_full_operation_yet": true,
   "not_v4_0_workbench_rc": true,
@@ -40,8 +40,8 @@
   "drift_check": {
     "status": "pass",
     "drift_count": 0,
-    "core_regenerated_contract_dir": "C:/Users/Administrator/Documents/New project 2/_tmp_goal_core_contracts_ui_acceptance",
-    "core_command": "python -m heitang_kb_forge.cli_runtime workbench-contracts --profile p1 --output ../_tmp_goal_core_contracts_ui_acceptance",
+    "core_regenerated_contract_dir": "C:/Users/Administrator/Documents/New project 2/_tmp_goal_core_contracts_command_surface",
+    "core_command": "python -m heitang_kb_forge.cli_runtime workbench-contracts --profile p1 --output ../_tmp_goal_core_contracts_command_surface",
     "compared_collections": [
       "actions",
       "reports",
@@ -62,6 +62,32 @@
     ],
     "flutter_asset_matches_ui_fixture": true
   },
+  "command_surface_truth_fix": {
+    "status": "pass",
+    "fixed_action_ids": [
+      "ocr_required_detection",
+      "package_export"
+    ],
+    "command_changes": {
+      "ocr_required_detection": {
+        "before": "full-ocr-acceptance --core-repo <repo> --output <output>",
+        "after": "full-ocr-acceptance --source <source> --output <output>"
+      },
+      "package_export": {
+        "before": "export-platform --package <package> --output <output>",
+        "after": "export-platform --skill <skill> --output <output>"
+      }
+    },
+    "core_contract_source_commit": "a793247ff8704275891ff9a1aefcb78888bcc9f2"
+  },
+  "known_command_surface_blockers": [
+    {
+      "action_id": "package_build",
+      "contract_command": "build --config <config> --output <output>",
+      "blocker": "The ready/core_cli contract references build, but the current Core CLI does not expose a registered build command surface.",
+      "status": "known_blocker_not_fixed_in_this_checkpoint"
+    }
+  ],
   "real_path_validation": {
     "desktop_bridge_path": "Flutter action panel -> CoreBridgeRequest -> LocalCoreBridge allowlist -> dart:io Process.run(runInShell:false)",
     "validated_real_local_request_count": 57,
