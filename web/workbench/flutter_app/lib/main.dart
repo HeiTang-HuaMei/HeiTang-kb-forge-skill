@@ -9,7 +9,7 @@ import 'core_bridge/local_core_bridge.dart';
 import 'contracts/workbench_contracts.dart';
 
 void main() {
-  runApp(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
+  runApp(const HeiTangWorkbenchApp());
 }
 
 const brandAssets = <String>[
@@ -96,13 +96,14 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
   String localeCode = 'zh-CN';
   ThemeMode themeMode = ThemeMode.light;
   int selectedIndex = 0;
+  late final Future<WorkbenchContracts> _contractsFuture = widget.contracts == null
+      ? const WorkbenchContractLoader().loadFromAsset('assets/contracts/p1_core_contract_fixture.json').catchError((_) => sampleWorkbenchContracts)
+      : Future<WorkbenchContracts>.value(widget.contracts);
 
   bool get isDark => themeMode == ThemeMode.dark;
 
   @override
   Widget build(BuildContext context) {
-    final contracts = widget.contracts ?? sampleWorkbenchContracts;
-
     return MaterialApp(
       title: 'HeiTang Knowledge Workbench',
       debugShowCheckedModeBanner: false,
@@ -116,62 +117,25 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
       themeMode: themeMode,
       theme: _theme(Brightness.light),
       darkTheme: _theme(Brightness.dark),
-      home: LayoutBuilder(
-        builder: (context, constraints) {
-          final isPhone = constraints.maxWidth < 720;
-          final isTablet = constraints.maxWidth >= 720 && constraints.maxWidth < 1040;
-
-          return Scaffold(
-            appBar: AppBar(
-              titleSpacing: 16,
-              title: _BrandHeader(localeCode: localeCode, compact: isPhone),
-              actions: [
-                IconButton(
-                  tooltip: isDark ? 'Light mode' : 'Dark mode',
-                  onPressed: () => setState(() => themeMode = isDark ? ThemeMode.light : ThemeMode.dark),
-                  icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
-                ),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.only(right: 12),
-                  child: SegmentedButton<String>(
-                    showSelectedIcon: false,
-                    segments: const [
-                      ButtonSegment(value: 'zh-CN', label: Text('中')),
-                      ButtonSegment(value: 'en-US', label: Text('EN')),
-                    ],
-                    selected: {localeCode},
-                    onSelectionChanged: (value) => setState(() => localeCode = value.first),
-                  ),
-                ),
-              ],
-            ),
-            body: isPhone ? _PhoneWorkbench(
-              localeCode: localeCode,
-              contracts: contracts,
-              selectedIndex: selectedIndex,
-              coreBridge: widget.coreBridge,
-              coreCli: widget.coreCli,
-              coreWorkingDirectory: widget.coreWorkingDirectory,
-              coreWorkspace: widget.coreWorkspace,
-              enableLocalCoreActions: widget.enableLocalCoreActions,
-              isWebRuntime: widget.isWebRuntime,
-              onPageChanged: (index) => setState(() => selectedIndex = index),
-            ) : _DesktopWorkbench(
-              localeCode: localeCode,
-              contracts: contracts,
-              selectedIndex: selectedIndex,
-              isTablet: isTablet,
-              coreBridge: widget.coreBridge,
-              coreCli: widget.coreCli,
-              coreWorkingDirectory: widget.coreWorkingDirectory,
-              coreWorkspace: widget.coreWorkspace,
-              enableLocalCoreActions: widget.enableLocalCoreActions,
-              isWebRuntime: widget.isWebRuntime,
-              onPageChanged: (index) => setState(() => selectedIndex = index),
-            ),
-          );
-        },
+      home: FutureBuilder<WorkbenchContracts>(
+        future: _contractsFuture,
+        initialData: widget.contracts ?? sampleWorkbenchContracts,
+        builder: (context, snapshot) => _WorkbenchScaffold(
+          contracts: snapshot.data ?? sampleWorkbenchContracts,
+          localeCode: localeCode,
+          themeMode: themeMode,
+          selectedIndex: selectedIndex,
+          isDark: isDark,
+          coreBridge: widget.coreBridge,
+          coreCli: widget.coreCli,
+          coreWorkingDirectory: widget.coreWorkingDirectory,
+          coreWorkspace: widget.coreWorkspace,
+          enableLocalCoreActions: widget.enableLocalCoreActions,
+          isWebRuntime: widget.isWebRuntime,
+          onThemeChanged: (value) => setState(() => themeMode = value),
+          onLocaleChanged: (value) => setState(() => localeCode = value),
+          onPageChanged: (index) => setState(() => selectedIndex = index),
+        ),
       ),
     );
   }
@@ -542,6 +506,103 @@ class _PageSurface extends StatelessWidget {
       if (id == 'error-repair-center') _CardCopy(zh ? '错误码' : 'Error codes', contracts.errors.errorStates.join(' · ')),
       if (id == 'template-library') _CardCopy(zh ? '模板' : 'Templates', contracts.templates.templates.map((template) => template.id).take(3).join(' · ')),
     ];
+  }
+}
+
+class _WorkbenchScaffold extends StatelessWidget {
+  const _WorkbenchScaffold({
+    required this.contracts,
+    required this.localeCode,
+    required this.themeMode,
+    required this.selectedIndex,
+    required this.isDark,
+    required this.coreBridge,
+    required this.coreCli,
+    required this.coreWorkingDirectory,
+    required this.coreWorkspace,
+    required this.enableLocalCoreActions,
+    required this.isWebRuntime,
+    required this.onThemeChanged,
+    required this.onLocaleChanged,
+    required this.onPageChanged,
+  });
+
+  final WorkbenchContracts contracts;
+  final String localeCode;
+  final ThemeMode themeMode;
+  final int selectedIndex;
+  final bool isDark;
+  final LocalCoreBridge coreBridge;
+  final String coreCli;
+  final String coreWorkingDirectory;
+  final String coreWorkspace;
+  final bool enableLocalCoreActions;
+  final bool isWebRuntime;
+  final ValueChanged<ThemeMode> onThemeChanged;
+  final ValueChanged<String> onLocaleChanged;
+  final ValueChanged<int> onPageChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isPhone = constraints.maxWidth < 720;
+        final isTablet = constraints.maxWidth >= 720 && constraints.maxWidth < 1040;
+
+        return Scaffold(
+          appBar: AppBar(
+            titleSpacing: 16,
+            title: _BrandHeader(localeCode: localeCode, compact: isPhone),
+            actions: [
+              IconButton(
+                tooltip: isDark ? 'Light mode' : 'Dark mode',
+                onPressed: () => onThemeChanged(isDark ? ThemeMode.light : ThemeMode.dark),
+                icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+              ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.only(right: 12),
+                child: SegmentedButton<String>(
+                  showSelectedIcon: false,
+                  segments: const [
+                    ButtonSegment(value: 'zh-CN', label: Text('中')),
+                    ButtonSegment(value: 'en-US', label: Text('EN')),
+                  ],
+                  selected: {localeCode},
+                  onSelectionChanged: (value) => onLocaleChanged(value.first),
+                ),
+              ),
+            ],
+          ),
+          body: isPhone
+              ? _PhoneWorkbench(
+                  localeCode: localeCode,
+                  contracts: contracts,
+                  selectedIndex: selectedIndex,
+                  coreBridge: coreBridge,
+                  coreCli: coreCli,
+                  coreWorkingDirectory: coreWorkingDirectory,
+                  coreWorkspace: coreWorkspace,
+                  enableLocalCoreActions: enableLocalCoreActions,
+                  isWebRuntime: isWebRuntime,
+                  onPageChanged: onPageChanged,
+                )
+              : _DesktopWorkbench(
+                  localeCode: localeCode,
+                  contracts: contracts,
+                  selectedIndex: selectedIndex,
+                  isTablet: isTablet,
+                  coreBridge: coreBridge,
+                  coreCli: coreCli,
+                  coreWorkingDirectory: coreWorkingDirectory,
+                  coreWorkspace: coreWorkspace,
+                  enableLocalCoreActions: enableLocalCoreActions,
+                  isWebRuntime: isWebRuntime,
+                  onPageChanged: onPageChanged,
+                ),
+        );
+      },
+    );
   }
 }
 

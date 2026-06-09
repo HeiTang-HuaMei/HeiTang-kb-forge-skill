@@ -10,7 +10,7 @@ def test_workbench_contract_exposes_desktop_core_bridge_without_full_operation_c
     contracts = json.loads((WORKBENCH / "contracts.json").read_text(encoding="utf-8"))
 
     assert contracts["scope"] == "p1-core-contract-aligned-ui-completion-pass"
-    assert contracts["core_contract_source"]["core_commit"] == "1e786cd1da1f557cd22eae622a721c431902e6b4"
+    assert contracts["core_contract_source"]["core_commit"] == "533fc9267934dc8080a12ba018602e2f226bd385"
     assert contracts["future_api"]["no_backend_logic"] is False
     assert contracts["future_api"]["current_backend_logic"] == "desktop local Core CLI bridge contract only; page workflows are not wired end to end yet"
     bridge = contracts["local_core_bridge"]
@@ -160,6 +160,7 @@ def test_workbench_changed_surface_is_limited_to_allowed_paths():
 
     assert "web/workbench/" in allowed
     assert "examples/ui_mock_data/" in allowed
+    assert "docs/audits/core_ui_acceptance/" in allowed
     assert "tests/test_workbench_ui_contract.py" in allowed
     assert "tests/test_workbench_p1_contract_alignment.py" in allowed
     assert "docs/WORKBENCH_UI_SPEC.md" in allowed

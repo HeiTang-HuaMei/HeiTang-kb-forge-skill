@@ -5,7 +5,7 @@ This is the Flutter scaffold for the HeiTang Knowledge Workbench UI contract-ali
 Current status:
 
 - P1 Core contract-aligned viewer pages are implemented from deterministic copied fixtures.
-- Fixture source: Core `workbench-contracts --profile p1`, commit `1e786cd1da1f557cd22eae622a721c431902e6b4`.
+- Fixture source: Core `workbench-contracts --profile p1`, verified against commit `533fc9267934dc8080a12ba018602e2f226bd385`.
 - A desktop-only local Core CLI bridge contract exists in `lib/core_bridge/local_core_bridge.dart`.
 - Default visual style is black / white / gray premium Windows desktop workbench.
 - Light / dark mode and zh-CN / en-US language switching are supported.

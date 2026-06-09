@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/services.dart' show rootBundle;
+
 import 'contract_models.dart';
 
 class WorkbenchContractLoader {
@@ -11,6 +13,10 @@ class WorkbenchContractLoader {
       throw const FormatException('Workbench contract bundle must be a JSON object.');
     }
     return WorkbenchContracts.fromJson(decoded);
+  }
+
+  Future<WorkbenchContracts> loadFromAsset(String path) async {
+    return loadFromBundleJson(await rootBundle.loadString(path));
   }
 
   WorkbenchContracts loadFromContracts({

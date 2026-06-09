@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heitang_workbench/core_actions/workbench_actions.dart';
 import 'package:heitang_workbench/core_bridge/local_core_bridge.dart';
 import 'package:heitang_workbench/contracts/workbench_contracts.dart';
 import 'package:heitang_workbench/main.dart';
@@ -8,7 +10,7 @@ void main() {
   test('contract fixture parses p1 workbench contracts', () {
     final contracts = sampleWorkbenchContracts;
 
-    expect(contracts.source.coreCommit, '1e786cd1da1f557cd22eae622a721c431902e6b4');
+    expect(contracts.source.coreCommit, '533fc9267934dc8080a12ba018602e2f226bd385');
     expect(contracts.manifest.outputFiles, contains('workbench_action_contracts.json'));
     expect(contracts.navigation.views, hasLength(18));
     expect(contracts.actions.actions.map((action) => action.id), containsAll(['workspace_inspect', 'rag_query', 'book_to_skill', 'run_agent']));
@@ -18,6 +20,43 @@ void main() {
     expect(contracts.gate.status, 'blocked');
     expect(contracts.gate.notV4WorkbenchRc, isTrue);
     expect(contracts.gate.uiFullOperationPending, isTrue);
+  });
+
+  test('full p1 fixture drives real local and deterministic smoke Core actions through the bridge request path', () async {
+    final contracts = const WorkbenchContractLoader().loadFromBundleJson(await rootBundle.loadString('assets/contracts/p1_core_contract_fixture.json'));
+    const bridge = LocalCoreBridge();
+    final realLocalActions = contracts.actions.actions.where((action) => action.status == 'ready' && action.commandKind == 'core_cli' && action.desktopEnabled).toList();
+    final smokeActions = contracts.actions.actions.where((action) => action.status == 'dry_run' && action.commandKind == 'ui_safe_wrapper' && action.desktopBlockedReason == 'mock_only').toList();
+    final blockedActions = contracts.actions.actions.where((action) => !realLocalActions.contains(action) && !smokeActions.contains(action)).toList();
+
+    expect(contracts.actions.actions, hasLength(110));
+    expect(realLocalActions, hasLength(57));
+    expect(smokeActions, hasLength(36));
+    expect(blockedActions, isNotEmpty);
+
+    for (final action in [...realLocalActions, ...smokeActions]) {
+      final request = coreRequestForAction(
+        action: action,
+        coreCli: 'heitang-kb-forge',
+        workingDirectory: r'C:\repo',
+        workspace: r'C:\workspace',
+      );
+      expect(request, isNotNull, reason: action.id);
+      final command = bridge.buildCommand(request!);
+      expect(command.first, 'heitang-kb-forge', reason: action.id);
+      expect(command[1], request.arguments.first, reason: action.id);
+    }
+
+    for (final action in blockedActions) {
+      final request = coreRequestForAction(
+        action: action,
+        coreCli: 'heitang-kb-forge',
+        workingDirectory: r'C:\repo',
+        workspace: r'C:\workspace',
+      );
+      expect(request, isNull, reason: action.id);
+      expect(action.desktopBlockedReason.isNotEmpty || action.blockedReason.isNotEmpty || action.webBlockedReason.isNotEmpty, isTrue, reason: action.id);
+    }
   });
 
   testWidgets('renders desktop HeiTang workbench shell without Flutter exceptions', (tester) async {

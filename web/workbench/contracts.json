@@ -6,6 +6,7 @@
     "web/workbench/",
     "web/workbench/flutter_app/README.md",
     "examples/ui_mock_data/",
+    "docs/audits/core_ui_acceptance/",
     "docs/WORKBENCH_UI_SPEC.zh-CN.md",
     "docs/WORKBENCH_UI_SPEC.md",
     "docs/WORKBENCH_MOBILE_SPEC.zh-CN.md",
@@ -20,7 +21,7 @@
   "core_contract_source": {
     "copied_from": "Core workbench-contracts --profile p1",
     "core_repo": "C:/Users/Administrator/Documents/New project 2/kb-forge-skill",
-    "core_commit": "1e786cd1da1f557cd22eae622a721c431902e6b4",
+    "core_commit": "533fc9267934dc8080a12ba018602e2f226bd385",
     "fixture": "examples/ui_mock_data/p1_core_contract_fixture.json",
     "policy": "deterministic copied fixture; no raw outputs, logs, secrets, provider configs, build products, exe, dll, or zip"
   },

@@ -7,7 +7,12 @@ CoreBridgeRequest? coreRequestForAction({
   required String workingDirectory,
   required String workspace,
 }) {
-  final arguments = _argumentsForAction(action.id, workspace);
+  final deterministicSmoke = action.status == 'dry_run' && action.commandKind == 'ui_safe_wrapper' && action.desktopBlockedReason == 'mock_only';
+  final realLocalWorkflow = action.status == 'ready' && action.commandKind == 'core_cli' && action.desktopEnabled;
+  if (!realLocalWorkflow && !deterministicSmoke) {
+    return null;
+  }
+  final arguments = argumentsForCoreCommand(action.command, actionId: action.id, workspace: workspace, workingDirectory: workingDirectory);
   if (arguments == null) {
     return null;
   }
@@ -20,52 +25,39 @@ CoreBridgeRequest? coreRequestForAction({
   );
 }
 
-List<String>? _argumentsForAction(String actionId, String workspace) {
-  final packagePath = '$workspace/package';
-  final outputPath = '$workspace/workbench_runs/$actionId';
-
-  return switch (actionId) {
-    'workspace_inspect' => <String>[
-      'workspace-list',
-      '--workspace',
-      workspace,
-    ],
-    'rag_query' => <String>[
-      'kb-query',
-      '--package',
-      packagePath,
-      '--query',
-      'Summarize this knowledge package.',
-      '--output',
-      outputPath,
-    ],
-    'book_to_skill' => <String>[
-      'book-to-skill',
-      '--input',
-      '$workspace/source',
-      '--output',
-      outputPath,
-      '--skill-name',
-      'contract-reviewer',
-    ],
-    'run_agent' => <String>[
-      'run-local-agent',
-      '--package',
-      packagePath,
-      '--agent',
-      '$workspace/agents/local-agent',
-      '--task',
-      'Summarize relevant evidence.',
-      '--output',
-      outputPath,
-    ],
-    'artifact_kb_package_inspect' => <String>[
-      'check-contract',
-      '--package',
-      packagePath,
-      '--output',
-      outputPath,
-    ],
-    _ => null,
+List<String>? argumentsForCoreCommand(String command, {required String actionId, required String workspace, required String workingDirectory}) {
+  final parts = command.trim().split(RegExp(r'\s+')).where((part) => part.isNotEmpty).toList(growable: false);
+  if (parts.isEmpty) {
+    return null;
+  }
+  final values = <String, String>{
+    '<workspace>': workspace,
+    '<package>': '$workspace/package',
+    '<packages>': '$workspace/packages',
+    '<input>': '$workspace/input',
+    '<source>': '$workspace/source',
+    '<output>': '$workspace/workbench_runs/$actionId',
+    '<query>': 'Summarize this knowledge package.',
+    '<task>': 'Summarize relevant evidence.',
+    '<agent>': '$workspace/agents/local-agent',
+    '<skill>': '$workspace/skill',
+    '<old>': '$workspace/skill-old',
+    '<new>': '$workspace/skill-new',
+    '<file>': '$workspace/input/corrected.txt',
+    '<config>': '$workspace/config.yaml',
+    '<repo>': workingDirectory,
+    '<name>': 'contract-reviewer',
   };
+  final arguments = <String>[];
+  for (final part in parts) {
+    final replacement = values[part];
+    if (replacement != null) {
+      arguments.add(replacement);
+    } else if (part.startsWith('<') && part.endsWith('>')) {
+      return null;
+    } else {
+      arguments.add(part);
+    }
+  }
+  return arguments;
 }

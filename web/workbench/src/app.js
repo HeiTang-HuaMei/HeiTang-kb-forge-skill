@@ -272,10 +272,7 @@ function p1Artifacts(data, page) {
 }
 
 function actionState(action) {
-  if (action.desktop_enabled) {
-    return `<span class="status-pill" data-status="ready">action_id: ${action.action_id}</span>`;
-  }
-  const reason = action.desktop_blocked_reason || action.web_blocked_reason || "blocked";
+  const reason = action.web_blocked_reason || action.desktop_blocked_reason || "web_local_cli_unsupported";
   return `<button class="ghost-button is-disabled" type="button" disabled data-action-id="${action.action_id}" data-blocked-reason="${reason}">${reason}</button>`;
 }
 

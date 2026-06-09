@@ -89,10 +89,13 @@ class _CoreActionPanelState extends State<CoreActionPanel> {
     if (!widget.enabled) {
       return 'desktop_support_disabled';
     }
+    if (widget.request != null) {
+      return null;
+    }
     if (!widget.action.desktopEnabled) {
       return widget.action.desktopBlockedReason.isNotEmpty ? widget.action.desktopBlockedReason : widget.action.blockedReason.isNotEmpty ? widget.action.blockedReason : 'desktop_support_pending';
     }
-    return null;
+    return 'local_request_mapping_missing';
   }
 
   Future<void> _run() async {

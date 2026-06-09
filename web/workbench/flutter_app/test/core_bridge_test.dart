@@ -20,7 +20,7 @@ void main() {
     expect(
       () => bridge.buildCommand(
         const CoreBridgeRequest(
-          actionId: 'build_package',
+          actionId: 'package_build',
           coreCli: 'python',
           workingDirectory: r'C:\repo',
           arguments: ['build', '--input', r'C:\input && del C:\x', '--output', r'C:\output'],
@@ -32,7 +32,7 @@ void main() {
     expect(
       () => bridge.buildCommand(
         const CoreBridgeRequest(
-          actionId: 'build_package',
+          actionId: 'package_build',
           coreCli: 'python',
           workingDirectory: r'C:\repo',
           arguments: ['cmd', '--package', r'C:\package'],
@@ -49,7 +49,7 @@ void main() {
 
     final rejected = await bridge.run(
       const CoreBridgeRequest(
-        actionId: 'build_package',
+        actionId: 'package_build',
         coreCli: 'python',
         workingDirectory: r'C:\repo',
         arguments: ['build', '--input', r'C:\input', '--output', r'C:\output'],
@@ -62,7 +62,7 @@ void main() {
 
     final result = await bridge.run(
       const CoreBridgeRequest(
-        actionId: 'build_package',
+        actionId: 'package_build',
         coreCli: 'python',
         workingDirectory: r'C:\repo',
         arguments: ['build', '--input', r'C:\input', '--output', r'C:\output', '--sample-key=sk-live-secret'],
@@ -82,7 +82,7 @@ void main() {
 
     final result = await bridge.run(
       const CoreBridgeRequest(
-        actionId: 'build_package',
+        actionId: 'package_build',
         coreCli: 'python',
         workingDirectory: r'C:\repo',
         arguments: ['build', '--input', r'C:\input', '--output', r'C:\output'],
@@ -103,7 +103,7 @@ void main() {
 
     final result = await bridge.run(
       const CoreBridgeRequest(
-        actionId: 'build_package',
+        actionId: 'package_build',
         coreCli: 'python',
         workingDirectory: r'C:\repo',
         arguments: ['build', '--input', r'C:\input', '--output', r'C:\output'],

@@ -36,22 +36,39 @@ class WorkbenchContracts {
   final ContractSource source;
 
   factory WorkbenchContracts.fromJson(Map<String, dynamic> json) {
+    final gateJson = _map(json['gate']).isNotEmpty ? _map(json['gate']) : _map(json['gate_report']);
+    final navigationJson = _map(json['navigation']).isNotEmpty ? _map(json['navigation']) : <String, dynamic>{'views': _list(json['pages'])};
+    final manifestJson = _map(json['manifest']).isNotEmpty
+        ? _map(json['manifest'])
+        : <String, dynamic>{
+            'project_name': 'HeiTang P1 Workbench UI',
+            'status': _string(json['p1_full_operation_gate_status'], 'blocked'),
+            'output_files': _strings(_map(json['gate_report'])['evidence_files']),
+          };
+    final statusJson = _map(json['status']).isNotEmpty
+        ? _map(json['status'])
+        : <String, dynamic>{
+            'status': _string(json['p1_full_operation_gate_status'], 'blocked'),
+            'asset_count': _int(_map(json['counts'])['artifacts']),
+            'report_count': _int(_map(json['counts'])['reports']),
+          };
+
     return WorkbenchContracts(
-      manifest: ContractManifest.fromJson(_map(json['manifest'])),
-      navigation: NavigationContract.fromJson(_map(json['navigation'])),
-      actions: ActionContract.fromJson(_map(json['actions'])),
-      assets: AssetContract.fromJson(_map(json['assets'])),
-      status: StatusContract.fromJson(_map(json['status'])),
+      manifest: ContractManifest.fromJson(manifestJson),
+      navigation: NavigationContract.fromJson(navigationJson),
+      actions: ActionContract.fromJson(_collectionMap(json, 'actions')),
+      assets: AssetContract.fromJson(_collectionMap(json, 'assets', fallbackKey: 'artifacts')),
+      status: StatusContract.fromJson(statusJson),
       agent: AgentContract.fromJson(_map(json['agent'])),
       hierarchy: HierarchyContract.fromJson(_map(json['hierarchy'])),
       memory: MemoryContract.fromJson(_map(json['memory'])),
       storage: StorageContract.fromJson(_map(json['storage'])),
-      errors: ErrorContract.fromJson(_map(json['errors'])),
-      capabilities: CapabilityContract.fromJson(_map(json['capabilities'])),
-      reports: ReportContract.fromJson(_map(json['reports'])),
+      errors: ErrorContract.fromJson(_collectionMap(json, 'errors')),
+      capabilities: CapabilityContract.fromJson(_collectionMap(json, 'capability_areas', fallbackKey: 'capability_matrix')),
+      reports: ReportContract.fromJson(_collectionMap(json, 'reports')),
       taskSchema: TaskSchemaContract.fromJson(_map(json['task_schema'])),
-      templates: TemplateContract.fromJson(_map(json['templates'])),
-      gate: GateContract.fromJson(_map(json['gate'])),
+      templates: TemplateContract.fromJson(_collectionMap(json, 'templates')),
+      gate: GateContract.fromJson(gateJson),
       source: ContractSource.fromJson(_map(json['source'])),
     );
   }
@@ -94,11 +111,11 @@ class ContractView {
 
   factory ContractView.fromJson(Map<String, dynamic> json) {
     return ContractView(
-      id: _string(json['id'], 'view'),
-      label: _string(json['label'], 'View'),
+      id: _string(json['id'], _string(json['route_id'], 'view')),
+      label: _string(json['label'], _string(json['title'], 'View')),
       assetTypes: _strings(json['asset_types']),
-      corePageId: _string(json['core_page_id'], _string(json['id'], 'view')),
-      zhLabel: _string(json['label_zh'], _string(json['label'], 'View')),
+      corePageId: _string(json['core_page_id'], _string(json['page_id'], _string(json['id'], 'view'))),
+      zhLabel: _string(json['label_zh'], _string(json['title_zh'], _string(json['label'], 'View'))),
     );
   }
 }
@@ -109,7 +126,8 @@ class ActionContract {
   final List<ContractAction> actions;
 
   factory ActionContract.fromJson(Map<String, dynamic> json) {
-    return ActionContract(actions: _list(json['actions']).map((item) => ContractAction.fromJson(_map(item))).toList());
+    final source = json.containsKey('actions') ? json['actions'] : json;
+    return ActionContract(actions: _list(source).map((item) => ContractAction.fromJson(_map(item))).toList());
   }
 }
 
@@ -175,7 +193,8 @@ class AssetContract {
   final List<ContractAsset> assets;
 
   factory AssetContract.fromJson(Map<String, dynamic> json) {
-    return AssetContract(assets: _list(json['assets']).map((item) => ContractAsset.fromJson(_map(item))).toList());
+    final source = json.containsKey('assets') ? json['assets'] : json.containsKey('artifacts') ? json['artifacts'] : json;
+    return AssetContract(assets: _list(source).map((item) => ContractAsset.fromJson(_map(item))).toList());
   }
 }
 
@@ -190,7 +209,7 @@ class ContractAsset {
   factory ContractAsset.fromJson(Map<String, dynamic> json) {
     return ContractAsset(
       id: _string(json['asset_id'], 'asset'),
-      type: _string(json['asset_type'], 'report'),
+      type: _string(json['asset_type'], _string(json['artifact_type'], 'report')),
       path: _string(json['path'], _string(json['deterministic_fixture_path'], '')),
       pageId: _string(json['page_id'], ''),
     );
@@ -327,9 +346,10 @@ class ErrorContract {
   final List<String> statusBadges;
 
   factory ErrorContract.fromJson(Map<String, dynamic> json) {
+    final source = json.containsKey('errors') ? json['errors'] : json['error_states'];
     return ErrorContract(
       emptyStates: _list(json['empty_states']).map((item) => _string(_map(item)['id'], 'empty')).toList(),
-      errorStates: _list(json['error_states']).map((item) => _string(_map(item)['id'], 'error')).toList(),
+      errorStates: _list(source).map((item) => _string(_map(item)['id'], _string(_map(item)['error_code'], 'error'))).toList(),
       statusBadges: _strings(json['status_badges']),
     );
   }
@@ -341,7 +361,8 @@ class CapabilityContract {
   final List<CapabilityArea> areas;
 
   factory CapabilityContract.fromJson(Map<String, dynamic> json) {
-    return CapabilityContract(areas: _list(json['capability_areas']).map((item) => CapabilityArea.fromJson(_map(item))).toList());
+    final source = json.containsKey('capability_areas') ? json['capability_areas'] : json;
+    return CapabilityContract(areas: _list(source).map((item) => CapabilityArea.fromJson(_map(item))).toList());
   }
 }
 
@@ -371,7 +392,8 @@ class ReportContract {
   final List<ContractReport> reports;
 
   factory ReportContract.fromJson(Map<String, dynamic> json) {
-    return ReportContract(reports: _list(json['reports']).map((item) => ContractReport.fromJson(_map(item))).toList());
+    final source = json.containsKey('reports') ? json['reports'] : json;
+    return ReportContract(reports: _list(source).map((item) => ContractReport.fromJson(_map(item))).toList());
   }
 }
 
@@ -407,7 +429,8 @@ class TemplateContract {
   final List<ContractTemplate> templates;
 
   factory TemplateContract.fromJson(Map<String, dynamic> json) {
-    return TemplateContract(templates: _list(json['templates']).map((item) => ContractTemplate.fromJson(_map(item))).toList());
+    final source = json.containsKey('templates') ? json['templates'] : json;
+    return TemplateContract(templates: _list(source).map((item) => ContractTemplate.fromJson(_map(item))).toList());
   }
 }
 
@@ -457,6 +480,15 @@ class ContractSource {
 Map<String, dynamic> _map(Object? value) => value is Map<String, dynamic> ? value : <String, dynamic>{};
 
 List<dynamic> _list(Object? value) => value is List ? value : <dynamic>[];
+
+Map<String, dynamic> _collectionMap(Map<String, dynamic> json, String key, {String? fallbackKey}) {
+  final mapped = _map(json[key]);
+  if (mapped.isNotEmpty) {
+    return mapped;
+  }
+  final fallback = fallbackKey == null ? null : json[fallbackKey];
+  return <String, dynamic>{key: _list(json[key]).isNotEmpty ? json[key] : _list(fallback)};
+}
 
 List<String> _strings(Object? value) => _list(value).map((item) => item.toString()).toList();
 
