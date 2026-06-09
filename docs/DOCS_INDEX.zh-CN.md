@@ -7,8 +7,12 @@
 ## 从这里开始
 
 - [README](../README.zh-CN.md)
-- [当前真值](00_overview/CURRENT_TRUTH.zh-CN.md)
-- [能力矩阵](00_overview/CAPABILITY_MATRIX.zh-CN.md)
+- [当前真值](CURRENT_TRUTH.md)
+- [能力矩阵](CAPABILITY_MATRIX.md)
+- [AIGC 图书/内容生产场景](AIGC_BOOK_CONTENT_PIPELINE.md)
+- [GitHub About 建议文案](GITHUB_PROFILE_COPY.md)
+- [详细当前真值](00_overview/CURRENT_TRUTH.zh-CN.md)
+- [详细能力矩阵](00_overview/CAPABILITY_MATRIX.zh-CN.md)
 - [最终产品架构真值](FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md)
 - [文档治理](DOCUMENTATION_GOVERNANCE.zh-CN.md)
 

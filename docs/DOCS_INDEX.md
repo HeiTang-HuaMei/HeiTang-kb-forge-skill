@@ -7,8 +7,12 @@ This is the canonical documentation entry for the current main branch. Historica
 ## Start Here
 
 - [README](../README.md)
-- [Current Truth](00_overview/CURRENT_TRUTH.md)
-- [Capability Matrix](00_overview/CAPABILITY_MATRIX.md)
+- [Current Truth](CURRENT_TRUTH.md)
+- [Capability Matrix](CAPABILITY_MATRIX.md)
+- [AIGC Book Content Pipeline](AIGC_BOOK_CONTENT_PIPELINE.md)
+- [GitHub Profile Copy](GITHUB_PROFILE_COPY.md)
+- [Detailed Current Truth](00_overview/CURRENT_TRUTH.md)
+- [Detailed Capability Matrix](00_overview/CAPABILITY_MATRIX.md)
 - [Final Product Architecture Truth](FINAL_PRODUCT_ARCHITECTURE_TRUTH.md)
 - [Documentation Governance](DOCUMENTATION_GOVERNANCE.md)
 

@@ -1,39 +1,47 @@
 # HeiTang KB Forge Skill
 
-[English](README.md) | 中文说明
+一个 offline-first 的 Agent Knowledge Supply Chain Core，用来把本地资料转成标准化、可追溯、可检索、可审计、可复用的知识资产。
+
+当前 Core：v3.12.0-alpha.1
+
+状态：Core pre-v4 RC ready；UI full-operation not complete。
+
+快速理解入口：
+- 产品定位：[docs/CURRENT_TRUTH.md](docs/CURRENT_TRUTH.md)
+- 能力矩阵：[docs/CAPABILITY_MATRIX.md](docs/CAPABILITY_MATRIX.md)
+- AIGC 图书/内容生产场景：[docs/AIGC_BOOK_CONTENT_PIPELINE.md](docs/AIGC_BOOK_CONTENT_PIPELINE.md)
+- English README：[README.md](README.md)
+
+## What this project is
+
+HeiTang KB Forge Skill 是一个本地优先的 Agent 知识供应链 Core。它负责把本地文件、书稿、制度、运营资料、课程材料等输入，转成带证据、可追踪、可复用的 knowledge package，并继续服务于 RAG、验证、文档生成、结构化 Skill package 和本地 Agent workflow。
+
+仓库名里保留 `Skill`，是因为项目最早从 Skill-first package surface 起步。当前 Core 已经更宽：它是 headless 的知识资产生产层，可以输出 Skill package、Agent package、reports、artifacts、indexes 和 Workbench contracts。UI 只是 presentation layer，不是 Core product engine。
+
+## Current status
 
 当前 Core 版本：`3.12.0-alpha.1`
 
-HeiTang KB Forge 是一个 offline-first、local-first 的 Core Skill，用于构建 Agent-ready knowledge package。它把本地资料转成标准化、可追溯、可检索、可审计、可复用的知识资产，可服务于 RAG、文档生成、Skill package 和本地 Agent workflow。
-
-## 当前状态
-
-最新 Core P0 证明已经完成 Core pre-v4 RC readiness：
-
-- 最新 Core P0 证明：`docs/audits/local_acceptance/pre_v4_p0_after_live_llm`
-- `ready_for_v4_rc=true`
-- `P0 blockers=0`
+- 最新 Core P0 证明已经完成 Core pre-v4 RC readiness。
+- 最新证明目录：`docs/audits/local_acceptance/pre_v4_p0_after_live_llm/`
 - 剩余 Core P0：最新 pre-v4 P0 证明中无剩余 Core P0。
-- 本轮文档治理前的基线证据：Core main `053a6a6`，GitHub CI run `27140288050` success。
+- 最终架构真值：[docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md)
+- v4.0 仍未开始、未发布、未打 tag。v4.0 尚未发布。
+- UI full-operation 尚未完成；完整 Workbench operation 必须通过独立 UI acceptance gate。
 
-v4.0 仍未开始、未发布、未打 tag。v4.0 尚未发布。UI full-operation 仍然 blocked，因此本仓库不能声明完整用户可操作 Workbench。
+## Core capabilities
 
-当前真值入口：[当前真值](docs/00_overview/CURRENT_TRUTH.zh-CN.md) 和 [最终产品架构真值](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md)。
-
-## Core 能力
-
-- Markdown、TXT、DOCX、文本 PDF、图片/OCR 路由、CSV/TSV/XLSX、HTML、EPUB、ZIP 和多源混合输入的本地 ingestion。
-- 标准 package 输出：`manifest.json`、`chunks.jsonl`、`cards.jsonl`、`qa_pairs.jsonl`、`glossary.jsonl`、`quality_report.json`、`ingest_report.md`。
+- 本地导入 Markdown、TXT、DOCX、文本 PDF、图片/OCR 路由、CSV/TSV/XLSX、HTML、EPUB、ZIP 和多源混合材料。
+- 标准 knowledge package 输出：`manifest.json`、`chunks.jsonl`、`cards.jsonl`、`qa_pairs.jsonl`、`glossary.jsonl`、`quality_report.json`、`ingest_report.md`。
 - 确定性 query rewrite、retrieval planning、本地索引、本地 JSON vector query、hybrid retrieval、rerank、evidence selection 和 knowledge accuracy reports。
+- 面向回答和验证两种目的的 RAG 路径，包括 claim verification、contradiction detection、freshness check 和 no-answer evidence handling。
 - Grounded Markdown、DOCX、PDF、PPTX 文档生成。
-- 面向 Codex、Claude Code、OpenClaw 和通用本地 Agent integration 的 Skill-first Agent package 表面。
-- 本地 mother/child Agent runtime smoke、KB boundary 检查、memory policy reports、workspace storage、lifecycle reports 和 release hardening gates。
-- no hidden upload、secret redaction、no platform-hosted user data 和 optional provider boundary 的本地隐私安全报告。
-- P1 Workbench Core contract pack，用于 UI-safe capability、action、report、artifact、error、task、provider、storage、workspace、template 和 gate registry。
+- 面向 Codex、Claude Code、OpenClaw 和通用本地 Agent integration 的 Skill-first package generation。
+- Standalone / KB-bound Agent package surface、本地 runtime smoke、KB boundary 检查、memory policy reports 和 mother/child orchestration contracts。
+- 本地 workspace registry、storage reports、lifecycle plans、artifact registries 和 P1 Workbench contract pack。
+- no hidden upload、secret redaction、optional provider boundary 和 local-first operation 的隐私安全报告。
 
-完整列表见 [能力矩阵](docs/00_overview/CAPABILITY_MATRIX.zh-CN.md)。Parser backend 定位见 [Parser Backend Strategy](docs/03_core_capabilities/PARSER_BACKEND_STRATEGY.zh-CN.md)。P1 Workbench contracts 见 [P1 Workbench Contract Pack](docs/03_core_capabilities/WORKBENCH_CONTRACT_PACK.zh-CN.md)。
-
-## 快速开始
+## Quick start
 
 安装本地开发包：
 
@@ -58,58 +66,47 @@ python -m heitang_kb_forge.cli kb-query --package .\tmp_quickstart_output --quer
 python -m heitang_kb_forge.cli generate-documents --package .\tmp_quickstart_output --output .\tmp_documents
 ```
 
-有完整证据输入时运行严格 final pre-v4 Core audit：
+在具备完整证据输入时运行严格 final pre-v4 Core audit：
 
 ```powershell
 python -m heitang_kb_forge.cli final-pre-v4-audit --core-repo . --output .\tmp_final_audit
 ```
 
-## 文档
+## Scenario entry points
 
-唯一主文档入口是 [文档索引](docs/DOCS_INDEX.zh-CN.md)。请从这里进入：
+**Agent Knowledge Base**
 
-- 当前真值与发布状态
-- 能力矩阵
-- P1 UI Core Parity 与 P2 Productization 路线
-- 命令参考、用户手册、故障排查、架构、隐私文档
-- 根目录 report/audit/gate 证据策略
+把本地资料构建成 Agent-ready knowledge package，包含可追踪 chunks、cards、glossary、QA pairs 和 quality reports。通常从 `build` 开始，用 `check-contract` 验证，再进入 Skill 或 Agent package generation。
 
-常用入口：
+**RAG / Verification**
 
-- [当前真值](docs/00_overview/CURRENT_TRUTH.zh-CN.md)
-- [能力矩阵](docs/00_overview/CAPABILITY_MATRIX.zh-CN.md)
-- [Parser Backend Strategy](docs/03_core_capabilities/PARSER_BACKEND_STRATEGY.zh-CN.md)
-- [P1 UI Core Parity](docs/10_roadmap/P1_UI_CORE_PARITY.zh-CN.md)
-- [P2 Productization](docs/10_roadmap/P2_PRODUCTIZATION.zh-CN.md)
-- [文档治理](docs/DOCUMENTATION_GOVERNANCE.zh-CN.md)
+使用确定性的 query planning、本地 retrieval、hybrid ranking、evidence selection、claim verification、contradiction detection 和 freshness check。Core 会区分 answering retrieval 与 validation retrieval，让报告说明答案为什么可被证据支持，或为什么应该被阻断。
 
-## 路线状态
+**Structured Skill Factory**
 
-- Core pre-v4 RC readiness：最新 Core P0 gate 已完成。
-- P1 UI Core Parity：未完成；UI full-operation 仍然 blocked。
-- P2 Productization：P1 UI Core Parity 有证据后再推进。
-- v4.0：未开始、未发布、未打 tag。
+从图书或知识包生成结构化 Skill package，包含 `SKILL.md`、manifests、prompts、test-prompts、token-budget reports、installability checks，以及面向 Codex、Claude Code、OpenClaw 和本地 integration 的 runtime profile guidance。
 
-UI 信息架构已冻结，作为规划 contract 使用，但 UI 是 presentation layer，不是 Core product engine。本 README 不声明完整 Workbench operation。
+**AIGC Book Content Pipeline**
 
-## 根目录证据表面
+把资料库、编辑说明、书稿、制度文件和参考材料转成 AIGC 内容生产资产：package inventory、RAG verification、structured Skill outputs、Agent packages、evidence appendix，以及 Markdown/DOCX/PDF/PPTX 文档输出。见 [docs/AIGC_BOOK_CONTENT_PIPELINE.md](docs/AIGC_BOOK_CONTENT_PIPELINE.md)。
 
-根目录只保留当前 gate JSON 文件。历史过程文档与旧 root reports 应回到 git history、tags 或明确范围的 audit proof 目录中。请优先使用 [文档治理](docs/DOCUMENTATION_GOVERNANCE.zh-CN.md) 和 [文档索引](docs/DOCS_INDEX.zh-CN.md)。
+**Local Workbench**
 
-## 边界
+Core 会输出 Workbench contracts、registries、schemas、deterministic fixtures、dry-run actions、smoke checks、reports 和 artifact metadata，用于未来本地 desktop Workbench。UI full-operation not complete；Workbench UI 必须通过独立 acceptance gate 后，本仓库才能声明完整用户可操作。
+UI 信息架构已冻结，作为 planning contract 使用，但 UI 仍然只是 presentation layer。
 
-HeiTang KB Forge 默认不会：
+## Repository status / honesty boundary
 
-- 调用真实 LLM API
-- 调用 embedding API
-- 上传用户文档或生成包
-- 保存真实用户 API key
-- 运行外部 Agent runtime
-- 启动真实 MCP server
-- 提供 SaaS 多租户、团队权限、cloud sync 或 platform-hosted user data
-- 在独立 UI full-operation gate 通过前，声明完整 Workbench operation 或 v4.0 release readiness
+- 本仓库只处理 Core；视觉 UI 不属于本次 Core pass。
+- UI 信息架构已冻结，但 UI full-operation remains blocked。
+- v4.0 仍未开始、未发布、未打 tag。
+- UI full-operation remains blocked。
+- OpenDataLoader、PaddleOCR、MinerU 只是 external backend candidates / planned adapters，不是已完成 Core integration。
+- Core tests 不要求真实 LLM/API/network 调用。
+- Core 不保存真实用户 API key、raw private input、本地 provider profile 或本地 config outputs。
+- Core 不声明 SaaS multi-tenancy、team permissions、cloud sync 或 platform-hosted user data。
 
-LLM 仍然只是 optional only；Core tests 不需要真实 LLM/API/network 调用。
+规范文档入口是 [docs/DOCS_INDEX.zh-CN.md](docs/DOCS_INDEX.zh-CN.md)。GitHub About 建议文案见 [docs/GITHUB_PROFILE_COPY.md](docs/GITHUB_PROFILE_COPY.md)。
 
 ## License
 

@@ -1,39 +1,47 @@
 # HeiTang KB Forge Skill
 
-[中文说明](README.zh-CN.md) | English
+An offline-first Agent Knowledge Supply Chain Core for turning local source materials into standardized, traceable, searchable, auditable, and reusable knowledge assets.
+
+Current Core: v3.12.0-alpha.1
+
+Status: Core pre-v4 RC ready; UI full-operation not complete.
+
+For quick understanding:
+- Product positioning: [docs/CURRENT_TRUTH.md](docs/CURRENT_TRUTH.md)
+- Capability matrix: [docs/CAPABILITY_MATRIX.md](docs/CAPABILITY_MATRIX.md)
+- AIGC book content pipeline scenario: [docs/AIGC_BOOK_CONTENT_PIPELINE.md](docs/AIGC_BOOK_CONTENT_PIPELINE.md)
+- Chinese README: [README.zh-CN.md](README.zh-CN.md)
+
+## What this project is
+
+HeiTang KB Forge Skill is the Core engine for a local-first Agent knowledge workflow. It ingests local files, turns them into evidence-carrying knowledge packages, and exposes the assets needed by RAG, verification, document generation, structured Skill packages, and local Agent workflows.
+
+The repository name still contains `Skill` because the project started from a Skill-first package surface. The current Core is broader: it is a headless knowledge supply chain that can produce Skill packages, Agent packages, reports, artifacts, indexes, and Workbench contracts. The UI remains a presentation layer, not the Core product engine.
+
+## Current status
 
 Current Core version: `3.12.0-alpha.1`
 
-HeiTang KB Forge is an offline-first, local-first Core Skill for building Agent-ready knowledge packages. It turns local source material into standardized, traceable, searchable, auditable, and reusable knowledge assets for RAG, document generation, Skill packages, and local Agent workflows.
-
-## Current Status
-
-Core pre-v4 RC readiness is complete for the latest Core P0 proof:
-
-- Latest Core P0 proof: `docs/audits/local_acceptance/pre_v4_p0_after_live_llm`
-- `ready_for_v4_rc=true`
-- `P0 blockers=0`
+- Core pre-v4 RC readiness is complete for the latest Core P0 proof.
+- Latest proof: `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/`
 - Remaining Core P0: none in the latest pre-v4 P0 proof.
-- Baseline evidence before this documentation governance pass: Core main `053a6a6`, GitHub CI run `27140288050` success.
+- Final architecture truth: [docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md)
+- v4.0 is not released, not tagged, and not started. v4.0 has not been released.
+- UI full-operation is not complete; complete Workbench operation requires a separate UI acceptance gate.
 
-v4.0 is not released, not tagged, and not started. v4.0 has not been released. UI full-operation remains blocked, so this repository must not claim a full user-operable Workbench.
+## Core capabilities
 
-Current truth lives in [Current Truth](docs/00_overview/CURRENT_TRUTH.md) and [Final Product Architecture Truth](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md).
-
-## Core Capabilities
-
-- Multi-format local ingestion for Markdown, TXT, DOCX, text PDF, images/OCR routes, CSV/TSV/XLSX, HTML, EPUB, ZIP, and mixed source sets.
-- Standard package outputs: `manifest.json`, `chunks.jsonl`, `cards.jsonl`, `qa_pairs.jsonl`, `glossary.jsonl`, `quality_report.json`, and `ingest_report.md`.
+- Local ingestion for Markdown, TXT, DOCX, text PDF, image/OCR routes, CSV/TSV/XLSX, HTML, EPUB, ZIP, and mixed source sets.
+- Standard knowledge package outputs: `manifest.json`, `chunks.jsonl`, `cards.jsonl`, `qa_pairs.jsonl`, `glossary.jsonl`, `quality_report.json`, and `ingest_report.md`.
 - Deterministic query rewrite, retrieval planning, local indexing, local JSON vector query, hybrid retrieval, rerank, evidence selection, and knowledge accuracy reports.
+- RAG validation paths for answering retrieval and verification retrieval, including claim, contradiction, freshness, and no-answer evidence handling.
 - Grounded Markdown, DOCX, PDF, and PPTX document generation.
-- Skill-first Agent package surface for Codex, Claude Code, OpenClaw, and generic local Agent integrations.
-- Local mother/child Agent runtime smoke, KB boundary checks, memory policy reports, workspace storage, lifecycle reports, and release hardening gates.
-- Local privacy and security reports for no hidden upload, secret redaction, no platform-hosted user data, and optional provider boundaries.
-- P1 Workbench Core contract pack for UI-safe capability, action, report, artifact, error, task, provider, storage, workspace, template, and gate registries.
+- Skill-first package generation for Codex, Claude Code, OpenClaw, and generic local Agent integrations.
+- Standalone and KB-bound Agent package surfaces, local runtime smoke, KB boundary checks, memory policy reports, and mother/child orchestration contracts.
+- Local workspace registry, storage reports, lifecycle plans, artifact registries, and P1 Workbench contract pack.
+- Privacy and security reports for no hidden upload, secret redaction, optional provider boundaries, and local-first operation.
 
-See the full [Capability Matrix](docs/00_overview/CAPABILITY_MATRIX.md). Parser backend positioning lives in [Parser Backend Strategy](docs/03_core_capabilities/PARSER_BACKEND_STRATEGY.md). P1 Workbench contracts live in [P1 Workbench Contract Pack](docs/03_core_capabilities/WORKBENCH_CONTRACT_PACK.md).
-
-## Quick Start
+## Quick start
 
 Install the local development package:
 
@@ -64,52 +72,41 @@ Run the strict final pre-v4 Core audit when evidence inputs are available:
 python -m heitang_kb_forge.cli final-pre-v4-audit --core-repo . --output .\tmp_final_audit
 ```
 
-## Documentation
+## Scenario entry points
 
-The canonical documentation entry is [Docs Index](docs/DOCS_INDEX.md). Start there for:
+**Agent Knowledge Base**
 
-- current truth and release state
-- capability matrix
-- P1 UI Core Parity and P2 Productization roadmaps
-- command reference, user manual, troubleshooting, architecture, and privacy docs
-- root report/audit/gate evidence policy
+Build local source material into an Agent-ready knowledge package with traceable chunks, cards, glossary, QA pairs, and quality reports. Start with `build`, then validate with `check-contract`, and bind through Skill or Agent package generation.
 
-Useful entry points:
+**RAG / Verification**
 
-- [Current Truth](docs/00_overview/CURRENT_TRUTH.md)
-- [Capability Matrix](docs/00_overview/CAPABILITY_MATRIX.md)
-- [Parser Backend Strategy](docs/03_core_capabilities/PARSER_BACKEND_STRATEGY.md)
-- [P1 UI Core Parity](docs/10_roadmap/P1_UI_CORE_PARITY.md)
-- [P2 Productization](docs/10_roadmap/P2_PRODUCTIZATION.md)
-- [Documentation Governance](docs/DOCUMENTATION_GOVERNANCE.md)
+Use deterministic query planning, local retrieval, hybrid ranking, evidence selection, claim verification, contradiction detection, and freshness checks. The Core separates answering retrieval from validation retrieval so reports can show why an answer is grounded or blocked.
 
-## Roadmap State
+**Structured Skill Factory**
 
-- Core pre-v4 RC readiness: complete for the latest Core P0 gate.
-- P1 UI Core Parity: not complete; UI full-operation remains blocked.
-- P2 Productization: future work after P1 UI Core Parity evidence exists.
-- v4.0: not started, not released, not tagged.
+Generate structured Skill packages from books or knowledge packages, including `SKILL.md`, manifests, prompts, test prompts, token-budget reports, installability checks, and runtime profile guidance for Codex, Claude Code, OpenClaw, and local integrations.
 
-UI information architecture is frozen as a planning contract, but the UI is a presentation layer. It is not the Core product engine, and this README does not claim complete Workbench operation.
+**AIGC Book Content Pipeline**
 
-## Root Evidence Surface
+Use the Core to turn source libraries, editorial notes, manuscripts, policy files, and reference material into reusable AIGC production assets: package inventory, RAG verification, structured Skill outputs, Agent packages, evidence appendices, and generated Markdown/DOCX/PDF/PPTX documents. See [docs/AIGC_BOOK_CONTENT_PIPELINE.md](docs/AIGC_BOOK_CONTENT_PIPELINE.md).
 
-Only the current root gate JSON files are kept at the repository root. Historical process documents and old root reports belong in git history, tags, or scoped audit proof directories. Use [Documentation Governance](docs/DOCUMENTATION_GOVERNANCE.md) and [Docs Index](docs/DOCS_INDEX.md) first.
+**Local Workbench**
 
-## Boundaries
+Core emits Workbench contracts, registries, schemas, deterministic fixtures, dry-run actions, smoke checks, reports, and artifact metadata for a future local desktop Workbench. UI full-operation not complete; the Workbench UI must pass its own acceptance gate before this repository can claim complete user operation.
+UI information architecture is frozen as a planning contract, but the UI remains a presentation layer.
 
-HeiTang KB Forge does not by default:
+## Repository status / honesty boundary
 
-- call real LLM APIs
-- call embedding APIs
-- upload user documents or generated packages
-- save real user API keys
-- run external Agent runtimes
-- start a real MCP server
-- provide SaaS multi-tenancy, team permissions, cloud sync, or platform-hosted user data
-- claim complete Workbench operation or v4.0 release readiness before the separate UI full-operation gate passes
+- This is the Core repository only; visual UI work belongs outside this Core pass.
+- UI information architecture is frozen, but UI full-operation remains blocked.
+- v4.0 is not released, not tagged, and not started.
+- UI full-operation remains blocked.
+- OpenDataLoader, PaddleOCR, and MinerU are external backend candidates / planned adapters only; they are not completed Core integrations.
+- Core tests do not require real LLM/API/network calls.
+- Core does not save real user API keys, raw private input, local provider profiles, or local config outputs.
+- Core does not claim SaaS multi-tenancy, team permissions, cloud sync, or platform-hosted user data.
 
-LLM remains optional only; Core tests do not require real LLM/API/network calls.
+The canonical docs entry is [docs/DOCS_INDEX.md](docs/DOCS_INDEX.md). Suggested GitHub About copy lives in [docs/GITHUB_PROFILE_COPY.md](docs/GITHUB_PROFILE_COPY.md).
 
 ## License
 
