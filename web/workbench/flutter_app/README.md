@@ -6,6 +6,8 @@ Current status:
 
 - Mock and contract viewer pages are implemented.
 - A desktop-only local Core CLI bridge contract exists in `lib/core_bridge/local_core_bridge.dart`.
+- Default visual style is black / white / gray premium Windows desktop workbench.
+- Light / dark mode and zh-CN / en-US language switching are supported.
 - `not_full_operation_yet: true`.
 - Page workflows are not wired end to end yet, so this is not a full user-operable Workbench.
 - This is not the v4.0 Workbench RC.

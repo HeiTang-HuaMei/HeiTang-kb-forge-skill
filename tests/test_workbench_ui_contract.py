@@ -42,8 +42,25 @@ def test_workbench_contract_exposes_desktop_core_bridge_without_full_operation_c
     assert set(contracts["flutter"]["targets"]) == {"windows", "web", "android", "ios"}
     assert contracts["flutter"]["scaffold_only_when_flutter_cli_missing"] is True
     assert contracts["brand"]["name"] == "黑糖 HeiTang"
+    assert contracts["theme"]["default_visual_style"] == "black / white / gray premium Windows desktop workbench"
+    assert contracts["theme"]["modes"] == ["light", "dark"]
+    assert contracts["theme"]["not_macos_shell"] is True
+    assert contracts["theme"]["state_colors_only_for"] == ["success", "warning", "error", "running", "blocked"]
+    assert contracts["i18n"]["locales"] == ["zh-CN", "en-US"]
+    assert contracts["release_boundary"]["supports_light_dark_mode"] is True
+    assert contracts["release_boundary"]["supports_zh_cn_en_us_switch"] is True
+    assert contracts["release_boundary"]["not_v4_0_release"] is True
     assert contracts["pwa"]["static_web_manifest"] == "web/workbench/manifest.webmanifest"
     assert contracts["pwa"]["flutter_web_manifest"] == "web/workbench/flutter_app/web/manifest.json"
+
+
+def test_readme_states_workbench_visual_and_release_boundary():
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+    assert "black / white / gray premium Windows desktop workbench" in readme
+    assert "light / dark mode" in readme
+    assert "zh-CN / en-US language switch" in readme
+    assert "not the v4.0 release" in readme
 
 
 def test_flutter_project_scaffold_has_standard_entry_files():

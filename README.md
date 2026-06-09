@@ -187,6 +187,12 @@ python -m heitang_kb_forge.cli demo-e2e --output ./tmp_demo_e2e
 
 HeiTang KB Forge Core is now defined as the knowledge supply-chain core Skill inside the larger HeiTang Knowledge Workbench direction.
 
+## Workbench UI Boundary
+
+The optional Workbench UI defaults to a black / white / gray premium Windows desktop workbench style. It supports light / dark mode and a zh-CN / en-US language switch.
+
+The current UI is a P1 visual shell / theme / i18n checkpoint, not the complete P1 Full Operation Workbench. It remains a local prototype plus desktop Core bridge contract, and it is not the v4.0 release.
+
 Strategic docs:
 
 - [Final Target](docs/WORKBENCH_FINAL_TARGET.md)

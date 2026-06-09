@@ -10,40 +10,63 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body data-theme="light">
-    <div class="workbench-shell">
-      <header class="topbar">
+    <div class="workbench-shell" data-shell="windows-desktop">
+      <aside class="sidebar" aria-label="Workbench navigation">
         <div class="brand-lockup">
           <div class="brand-mascots" aria-label="HeiTang black cat and black tiger brand marks">
             <img src="./flutter_app/assets/brand/black_cat_head.svg" alt="黑猫头" />
             <img src="./flutter_app/assets/brand/black_tiger_head.svg" alt="黑虎头" />
           </div>
           <div>
-            <p class="brand-name">黑糖 HeiTang</p>
-            <p class="eyebrow" data-i18n="product.kicker">Mock-only UI Prototype</p>
-            <h1 data-i18n="product.title">HeiTang Knowledge Workbench</h1>
+            <p class="brand-name">HeiTang 黑糖</p>
+            <p class="eyebrow" data-i18n="product.kicker">Windows Desktop Workbench</p>
           </div>
         </div>
-        <div class="toolbar" aria-label="Workbench controls">
-          <button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle theme">◐</button>
-          <div class="segmented" aria-label="Language">
-            <button class="segment is-active" type="button" data-locale="zh-CN">中</button>
-            <button class="segment" type="button" data-locale="en-US">EN</button>
-          </div>
+        <div class="nav-list" id="nav-list"></div>
+        <div class="local-first-card">
+          <strong data-i18n="common.localFirst">本地优先 · 隐私安全</strong>
+          <span data-i18n="common.localFirstDetail">所有数据仅保存在本机</span>
         </div>
-      </header>
+      </aside>
 
-      <nav class="mobile-nav" aria-label="Mobile page navigation">
-        <select id="mobile-page-select" aria-label="Page"></select>
-      </nav>
+      <section class="app-frame" aria-label="HeiTang Workbench">
+        <header class="topbar">
+          <div class="page-heading">
+            <h1 id="shell-title" data-i18n="product.title">HeiTang Knowledge Workbench</h1>
+            <p id="shell-subtitle">系统概览与运行态势</p>
+          </div>
+          <div class="toolbar" aria-label="Workbench controls">
+            <label class="global-search">
+              <span aria-hidden="true">⌕</span>
+              <input id="global-search" type="search" data-i18n-placeholder="common.searchPlaceholder" placeholder="搜索知识、技能、文档..." />
+              <kbd>Ctrl K</kbd>
+            </label>
+            <button class="command-button" type="button" data-i18n="common.terminal">终端</button>
+            <button class="command-button" type="button" data-i18n="common.notify">通知</button>
+            <button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle theme">◐</button>
+            <div class="segmented" aria-label="Language">
+              <button class="segment is-active" type="button" data-locale="zh-CN">中</button>
+              <button class="segment" type="button" data-locale="en-US">EN</button>
+            </div>
+            <div class="avatar" aria-label="User profile">HT</div>
+          </div>
+        </header>
 
-      <div class="layout">
-        <aside class="sidebar" aria-label="Workbench navigation">
-          <div class="sidebar-brand">KB Forge</div>
-          <div class="nav-list" id="nav-list"></div>
-        </aside>
+        <nav class="mobile-nav" aria-label="Mobile page navigation">
+          <select id="mobile-page-select" aria-label="Page"></select>
+        </nav>
 
-        <main class="content" id="app-root" data-testid="workbench-app" tabindex="-1"></main>
-      </div>
+        <div class="layout">
+          <main class="content" id="app-root" data-testid="workbench-app" tabindex="-1"></main>
+        </div>
+
+        <footer class="statusbar" aria-label="Workbench status">
+          <span><span class="status-dot"></span><span data-i18n="common.systemStatus">系统状态</span>: <strong data-i18n="common.normal">正常运行</strong></span>
+          <span><span data-i18n="common.location">位置</span>: /Users/heitang/HeiTang/Workspace</span>
+          <span><span data-i18n="common.version">版本</span>: v1.0.0</span>
+          <span data-i18n="common.checkUpdates">检查更新</span>
+        </footer>
+      </section>
     </div>
 
     <script type="module" src="./src/app.js"></script>

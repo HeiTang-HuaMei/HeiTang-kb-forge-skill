@@ -2,7 +2,9 @@
   "version": "UI-v0.5-prototype",
   "scope": "mock-plus-desktop-core-bridge-contract",
   "allowed_paths": [
+    "README.md",
     "web/workbench/",
+    "web/workbench/flutter_app/README.md",
     "examples/ui_mock_data/",
     "docs/WORKBENCH_UI_SPEC.zh-CN.md",
     "docs/WORKBENCH_UI_SPEC.md",
@@ -45,11 +47,15 @@
   "theme": {
     "modes": ["light", "dark"],
     "palette": ["black", "white", "gray"],
-    "tokens": ["--bg", "--panel", "--text", "--muted", "--line", "--accent", "--radius"]
+    "tokens": ["--bg", "--panel", "--text", "--muted", "--line", "--accent", "--radius"],
+    "default_visual_style": "black / white / gray premium Windows desktop workbench",
+    "state_colors_only_for": ["success", "warning", "error", "running", "blocked"],
+    "not_macos_shell": true
   },
   "i18n": {
     "locales": ["zh-CN", "en-US"],
-    "switcher": "segmented-control"
+    "switcher": "segmented-control",
+    "default_title_pattern": "Chinese primary title with English secondary label where useful"
   },
   "mobile": {
     "strategy": "responsive-web-pwa-ready",
@@ -90,6 +96,13 @@
     "desktop_bridge_only": true,
     "not_full_operation_yet": true,
     "not_v4_0_workbench_rc": true
+  },
+  "release_boundary": {
+    "checkpoint": "P1 visual shell / theme / i18n checkpoint; not complete P1 Full Operation Workbench",
+    "current_ui_default": "black / white / gray premium Windows desktop workbench",
+    "supports_light_dark_mode": true,
+    "supports_zh_cn_en_us_switch": true,
+    "not_v4_0_release": true
   },
   "future_api": {
     "boundary": "Replace web/workbench/src/mockService.js fetch functions with Core API calls later.",
