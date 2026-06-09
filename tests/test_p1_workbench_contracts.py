@@ -1,5 +1,8 @@
 import json
 
+from typer.testing import CliRunner
+
+from heitang_kb_forge.cli import app
 from heitang_kb_forge.workbench import P1_WORKBENCH_OUTPUT_FILES, make_p1_workbench_bundle, write_p1_workbench_bundle
 
 
@@ -60,3 +63,25 @@ def test_buttons_are_action_ids_or_blocked_with_reasons():
             assert action.blocked_reason is None
         if action.status in {"planned_adapter", "ui_pending", "blocked"}:
             assert action.blocked_reason
+
+
+def test_ready_core_cli_workbench_actions_match_real_cli_command_surface():
+    runner = CliRunner()
+    bundle = make_p1_workbench_bundle()
+    ready_actions = [
+        action
+        for action in bundle.action_contracts
+        if action.status == "ready" and action.command_kind == "core_cli"
+    ]
+    help_cache = {}
+
+    assert len(ready_actions) >= 50
+    for action in ready_actions:
+        parts = action.command.split()
+        command_name = parts[0]
+        if command_name not in help_cache:
+            result = runner.invoke(app, [command_name, "--help"])
+            assert result.exit_code == 0, f"{action.action_id}: {command_name}\n{result.output}"
+            help_cache[command_name] = result.output
+        for flag in [part for part in parts[1:] if part.startswith("--")]:
+            assert flag in help_cache[command_name], f"{action.action_id}: {flag} missing from {command_name} --help"
