@@ -65,7 +65,7 @@ def test_readme_states_workbench_visual_and_release_boundary():
     assert "black / white / gray premium Windows desktop workbench" in readme
     assert "light / dark mode" in readme
     assert "zh-CN / en-US language switch" in readme
-    assert "not the v4.0 release" in readme
+    assert "not the stable v4.0.0 release" in readme
     assert "P1 final gate re-run evidence UI consumption pass" in readme
     assert CORE_COMMIT in readme
     assert "ready_for_v4_rc=true" in readme
@@ -93,7 +93,8 @@ def test_flutter_project_scaffold_has_standard_entry_files():
     assert "flutter run -d chrome" in readme
     assert "ready_for_v4_rc=true" in readme
     assert "p1_full_operation_gate_status: ready_for_v4_rc" in readme
-    assert "not the v4.0 Workbench RC" in readme
+    assert "v4.0.0-rc.1 Workbench release candidate" in readme
+    assert "not the stable v4.0.0 release" in readme
     assert "Web does not execute the local Core CLI" in readme
 
 

@@ -318,7 +318,9 @@
     "not_v4_0_workbench_rc": true
   },
   "release_boundary": {
-    "checkpoint": "P1 final gate re-run ready_for_v4_rc=true; not v4.0 and not production release complete",
+    "checkpoint": "v4.0.0-rc.1 release candidate preparation; stable v4.0.0 not complete; copied P1 evidence keeps not_v4_0_workbench_rc=true",
+    "package_version": "4.0.0rc1",
+    "release_candidate": "v4.0.0-rc.1",
     "current_ui_default": "black / white / gray premium Windows desktop workbench",
     "supports_light_dark_mode": true,
     "supports_zh_cn_en_us_switch": true,

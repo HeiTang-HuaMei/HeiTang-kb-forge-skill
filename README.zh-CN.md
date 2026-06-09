@@ -2,9 +2,11 @@
 
 [English](README.md) | 中文说明
 
-当前版本：`2.7.0-alpha.1`
+当前 UI package 版本：`4.0.0rc1`
 
-发布状态：alpha minimal end-to-end demo / portfolio checkpoint。当前不是 stable release。
+当前 release candidate：`v4.0.0-rc.1`
+
+发布状态：在 P1 Final Gate、External Project Registry、S/A Contract Inclusion 之后，进入 v4.0.0-rc.1 release candidate preparation。当前不是 stable v4.0.0 release。
 
 HeiTang KB Forge 是一个 offline-first、可被 Agent 调用的知识供应链前置 Skill。它把多格式原始资料加工成标准化、可审计、可复核、可检索的知识资产包，用于 Agent 和 RAG 工作流。
 

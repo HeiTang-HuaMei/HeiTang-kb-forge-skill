@@ -24,8 +24,8 @@ def test_release_readiness_blocks_on_missing_capability_docs(tmp_path):
     workspace = tmp_path / "workspace"
     output = tmp_path / "release"
     workspace.mkdir()
-    (workspace / "pyproject.toml").write_text('version = "2.7.0-alpha.1"\n', encoding="utf-8")
-    (workspace / "skill.json").write_text('{"version":"2.7.0-alpha.1"}', encoding="utf-8")
+    (workspace / "pyproject.toml").write_text('version = "4.0.0rc1"\n', encoding="utf-8")
+    (workspace / "skill.json").write_text('{"version":"4.0.0rc1"}', encoding="utf-8")
 
     result = CliRunner().invoke(app, ["release-readiness", "--workspace", str(workspace), "--output", str(output)])
 
@@ -41,11 +41,11 @@ def test_release_readiness_blocks_on_incomplete_quickstart_output(tmp_path):
     workspace.mkdir()
     docs = workspace / "docs"
     docs.mkdir()
-    (workspace / "pyproject.toml").write_text('version = "2.7.0-alpha.1"\n', encoding="utf-8")
-    (workspace / "skill.json").write_text('{"version":"2.7.0-alpha.1"}', encoding="utf-8")
+    (workspace / "pyproject.toml").write_text('version = "4.0.0rc1"\n', encoding="utf-8")
+    (workspace / "skill.json").write_text('{"version":"4.0.0rc1"}', encoding="utf-8")
     (workspace / "README.md").write_text("HeiTang KB Forge Skill\n", encoding="utf-8")
     (docs / "CAPABILITY_STATUS.md").write_text("Stable\n", encoding="utf-8")
-    (docs / "VERSION_MATRIX.md").write_text("v2.7.0-alpha.1\n", encoding="utf-8")
+    (docs / "VERSION_MATRIX.md").write_text("v4.0.0-rc.1\n", encoding="utf-8")
     (docs / "RELEASE_CHECKLIST.md").write_text("Release checklist\n", encoding="utf-8")
     (workspace / "tmp_quickstart_output").mkdir()
 
@@ -109,11 +109,11 @@ def _minimal_release_workspace(tmp_path):
     workspace.mkdir()
     docs = workspace / "docs"
     docs.mkdir()
-    (workspace / "pyproject.toml").write_text('version = "2.7.0-alpha.1"\n', encoding="utf-8")
-    (workspace / "skill.json").write_text('{"version":"2.7.0-alpha.1"}', encoding="utf-8")
-    (workspace / "README.md").write_text("HeiTang KB Forge Skill\n2.7.0-alpha.1\n", encoding="utf-8")
-    (docs / "CAPABILITY_STATUS.md").write_text("2.7.0-alpha.1\nStable\n", encoding="utf-8")
-    (docs / "VERSION_MATRIX.md").write_text("2.7.0-alpha.1\n", encoding="utf-8")
-    (docs / "RELEASE_CHECKLIST.md").write_text("2.7.0-alpha.1\n", encoding="utf-8")
+    (workspace / "pyproject.toml").write_text('version = "4.0.0rc1"\n', encoding="utf-8")
+    (workspace / "skill.json").write_text('{"version":"4.0.0rc1"}', encoding="utf-8")
+    (workspace / "README.md").write_text("HeiTang KB Forge Skill\n4.0.0rc1\n", encoding="utf-8")
+    (docs / "CAPABILITY_STATUS.md").write_text("4.0.0rc1\nStable\n", encoding="utf-8")
+    (docs / "VERSION_MATRIX.md").write_text("4.0.0rc1\n", encoding="utf-8")
+    (docs / "RELEASE_CHECKLIST.md").write_text("4.0.0rc1\n", encoding="utf-8")
     return workspace
 

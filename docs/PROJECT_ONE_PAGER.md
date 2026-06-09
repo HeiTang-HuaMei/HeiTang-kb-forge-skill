@@ -32,13 +32,14 @@ source files → knowledge package → quality gate → evidence / governance �
 
 ## Current version
 
-Current checkpoint: v2.7.0-alpha.1.
+Current checkpoint: v4.0.0-rc.1 release candidate preparation.
 
 Recent milestones:
 
 - v2.5.1: release engineering, CI, CLI convergence.
 - v2.6: real LLM provider governance with domestic / international provider registry.
 - v2.7: minimal end-to-end portfolio demo.
+- P1: final gate evidence, external project registry visibility, and S/A contract inclusion visibility.
 
 ## Boundaries
 

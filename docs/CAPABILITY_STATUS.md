@@ -1,8 +1,10 @@
 # Capability Status
 
-Current project version: `2.7.0-alpha.1`
+Current project version: `4.0.0rc1`
 
-v2.7.0-alpha.1 is a minimal end-to-end demo / portfolio release checkpoint. It does not implement full runtime compatibility.
+Current release candidate: `v4.0.0-rc.1`
+
+Latest completed pre-rc UI work includes P1 Final Gate Re-run, External Project Registry visibility, and S/A Contract Inclusion visibility. The project is now preparing the `v4.0.0-rc.1` Workbench UI release candidate; stable `v4.0.0` still requires rc acceptance and hardening.
 
 ## Stable
 

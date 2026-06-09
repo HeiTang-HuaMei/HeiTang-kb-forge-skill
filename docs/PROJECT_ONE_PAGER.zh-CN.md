@@ -32,13 +32,14 @@ HeiTang KB Forge 提供一条本地闭环：
 
 ## 当前版本
 
-当前 checkpoint：v2.7.0-alpha.1。
+当前 checkpoint：v4.0.0-rc.1 release candidate preparation。
 
 近期能力：
 
 - v2.5.1：工程收敛、CI、CLI 收敛。
 - v2.6：国内外 LLM Provider 治理。
 - v2.7：最小端到端作品集 Demo。
+- P1：final gate evidence、external project registry 可见边界与 S/A contract inclusion 可见边界。
 
 ## 当前边界
 

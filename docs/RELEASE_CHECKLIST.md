@@ -1,6 +1,10 @@
 # Release Checklist
 
-Current project version: `2.7.0-alpha.1`
+Current project version: `4.0.0rc1`
+
+Current release candidate: `v4.0.0-rc.1`
+
+Current stage: v4.0.0-rc.1 release candidate preparation. Stable v4.0.0 is not released until rc acceptance and hardening pass.
 
 ## Required Checks
 

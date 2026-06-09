@@ -2,9 +2,11 @@
 
 [中文说明](README.zh-CN.md) | English
 
-Current version: `2.7.0-alpha.1`
+Current UI package version: `4.0.0rc1`
 
-Release status: alpha minimal end-to-end demo / portfolio checkpoint. This is not a stable release.
+Current release candidate: `v4.0.0-rc.1`
+
+Release status: v4.0.0-rc.1 release candidate preparation after P1 Final Gate, External Project Registry, and S/A Contract Inclusion. This is not the stable v4.0.0 release.
 
 HeiTang KB Forge is an offline-first, agent-callable knowledge supply-chain Skill. It turns multi-format source material into standardized, auditable, reviewable, and retrievable knowledge asset packages for Agent and RAG workflows.
 
@@ -195,7 +197,7 @@ The current UI is a P1 final gate re-run evidence UI consumption pass verified a
 
 It also surfaces S/A external capability contract-inclusion fixtures from Core commit `c30f8adcadfedb30cb974eb62cc02a38c35a5158` and CI run `27221946149`. These entries are visibility and boundary data only: planned/future/provider-required projects are not installed, not local-ready, and not executable from the UI.
 
-This is still not the v4.0 release. `not_v4_0_workbench_rc` remains true; unsupported provider, secret, network, and planned-adapter operations render disabled with `blocked_reason`.
+This is still not the stable v4.0.0 release. The copied P1 evidence keeps `not_v4_0_workbench_rc=true`; unsupported provider, secret, network, and planned-adapter operations render disabled with `blocked_reason`.
 
 Strategic docs:
 

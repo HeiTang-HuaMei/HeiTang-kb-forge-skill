@@ -1,6 +1,6 @@
 # HeiTang Workbench Flutter Scaffold
 
-This is the Flutter scaffold for the HeiTang Knowledge Workbench P1 final gate re-run evidence UI consumption pass.
+This is the Flutter scaffold for the HeiTang Knowledge Workbench `v4.0.0-rc.1` release candidate UI.
 
 Current status:
 
@@ -16,7 +16,7 @@ Current status:
 - Light / dark mode and zh-CN / en-US language switching are supported.
 - Provider, secret, network, and planned-adapter operations stay disabled with blocked reasons.
 - External projects are not installed, not local-ready, and not executable from this UI.
-- This is not the v4.0 Workbench RC.
+- This is the v4.0.0-rc.1 Workbench release candidate, not the stable v4.0.0 release.
 - Web builds do not execute local Core CLI commands.
 
 When Flutter is available, run from this directory:

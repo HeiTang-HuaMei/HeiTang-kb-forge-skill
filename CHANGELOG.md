@@ -1,5 +1,13 @@
 # Changelog
 
+## v4.0.0-rc.1
+
+* Aligned UI package metadata to `4.0.0rc1`.
+* Marked the Workbench UI as `v4.0.0-rc.1` release candidate preparation.
+* Preserved copied P1 evidence boundaries, including `not_v4_0_workbench_rc=true`.
+* Preserved External Project Registry and S/A Contract Inclusion as visibility-only boundary data.
+* Did not tag or claim stable `v4.0.0`.
+
 ## v2.7.0-alpha.1
 
 * Added local offline `demo-e2e` command.

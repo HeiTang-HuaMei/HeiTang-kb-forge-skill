@@ -1,6 +1,10 @@
 # Release Checklist
 
-当前项目版本：`2.7.0-alpha.1`
+当前项目版本：`4.0.0rc1`
+
+当前 release candidate：`v4.0.0-rc.1`
+
+当前阶段：v4.0.0-rc.1 release candidate preparation。stable v4.0.0 必须在 rc acceptance 与 hardening 通过后才发布。
 
 ## Required Checks
 
