@@ -14,6 +14,18 @@ void main() {
     expect(bridge.buildCommand(request), ['python', 'workspace-list', '--workspace', r'C:\workspace']);
   });
 
+  test('allows skill governance report core command', () {
+    const bridge = LocalCoreBridge();
+    const request = CoreBridgeRequest(
+      actionId: 'skill_governance_report',
+      coreCli: 'python',
+      workingDirectory: r'C:\repo',
+      arguments: ['skill-governance-report', '--skill', r'C:\workspace\skill', '--output', r'C:\workspace\out'],
+    );
+
+    expect(bridge.buildCommand(request), ['python', 'skill-governance-report', '--skill', r'C:\workspace\skill', '--output', r'C:\workspace\out']);
+  });
+
   test('rejects shell metacharacters and non-allowlisted commands', () {
     const bridge = LocalCoreBridge();
 

@@ -21,9 +21,13 @@ void main() {
     expect(
         contracts.actions.actions.map((action) => action.id),
         containsAll(
-            ['workspace_inspect', 'rag_query', 'book_to_skill', 'run_agent']));
+            ['workspace_inspect', 'rag_query', 'book_to_skill', 'skill_governance_report', 'run_agent']));
     expect(contracts.reports.reports.map((report) => report.id),
         contains('report_p1_gate_summary'));
+    expect(contracts.reports.reports.map((report) => report.id),
+        contains('report_skill_governance'));
+    expect(contracts.assets.assets.map((asset) => asset.id),
+        contains('skill_governance_report_json'));
     expect(contracts.taskSchema.statuses,
         containsAll(['queued', 'running', 'blocked', 'review_required']));
     expect(contracts.templates.templates, hasLength(6));

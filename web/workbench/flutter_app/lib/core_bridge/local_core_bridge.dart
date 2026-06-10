@@ -102,6 +102,7 @@ class LocalCoreBridge {
     'package_to_skill': <String>['generate-skill'],
     'skill_manifest_validate': <String>['validate-skill-package'],
     'skill_diff': <String>['diff-skill-package'],
+    'skill_governance_report': <String>['skill-governance-report'],
     'skill_runtime_profile': <String>['workbench-action-dry-run'],
     'agent_profile_inspect': <String>['workbench-action-dry-run'],
     'standalone_agent_generation': <String>['generate-agent'],
