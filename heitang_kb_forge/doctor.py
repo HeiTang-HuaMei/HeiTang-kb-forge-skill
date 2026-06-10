@@ -96,22 +96,23 @@ def _quickstart_input_check() -> dict[str, Any]:
 
 
 def _version_alignment_check() -> dict[str, Any]:
-    expected = "4.1.0"
-    versions = []
+    versions: dict[str, str | None] = {}
     pyproject = Path("pyproject.toml")
     skill_json = Path("skill.json")
     if pyproject.exists():
         for line in pyproject.read_text(encoding="utf-8").splitlines():
             if line.startswith("version = "):
-                versions.append(line.split("=", 1)[1].strip().strip('"'))
+                versions["pyproject.toml"] = line.split("=", 1)[1].strip().strip('"')
                 break
     if skill_json.exists():
-        versions.append(json.loads(skill_json.read_text(encoding="utf-8")).get("version"))
-    ok = versions and all(version == expected for version in versions)
+        versions["skill.json"] = json.loads(skill_json.read_text(encoding="utf-8")).get("version")
+    values = [version for version in versions.values() if version]
+    ok = bool(values) and len(values) == len(versions) and len(set(values)) == 1
+    message = f"Aligned version {values[0]} across {sorted(versions)}" if ok else f"Version mismatch: {versions}"
     return _check(
         "version_alignment",
         "pass" if ok else "fail",
-        f"Expected {expected}; found {versions}",
+        message,
         "Align project metadata versions.",
         required=True,
     )

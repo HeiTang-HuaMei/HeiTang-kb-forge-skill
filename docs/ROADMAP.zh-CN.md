@@ -12,12 +12,13 @@
 - `P0 blockers=0`
 - Pre-v4 External Project Registry 已完成。
 - S/A Contract Inclusion 已完成。
-- 当前 stable release tag：`v4.0.0`。
-- 当前 release candidate line：`v4.1.0`。
+- 当前 release line：`v4.1.1`。
+- 最新 stable release tag：`v4.1.0`。
+- 历史 stable release tag：`v4.0.0`。
 
-## 当前门禁：v4.1.0 Parser/OCR Industrial Release
+## 当前门禁：v4.1.1 Test Framework Governance
 
-当前产品门禁是 `v4.1.0` release candidate：P2.1 parser/OCR backend evidence、Workbench sync、reproducibility、failure-mode coverage、Core/UI validation、release-readiness、CI green、release-check workflow evidence，以及无 secret/build/raw artifact pollution。stable `v4.0.0` / v4.0 tag 保持不变。
+当前产品门禁是 `v4.1.1` Test Framework Governance release line：validation gate manifest、changed-file impact selector、dry-run / executable validation runner、pytest markers、obsolete-test pruning register、token-efficient logs、Core/UI validation、release-readiness、CI green、release-check workflow evidence，以及无 secret/build/raw artifact pollution。既有 `v4.0.0` 与 `v4.1.0` tag 保持不变；`v4.1.1` 在门禁、tag 和 release 完成前不是 stable。
 
 ## 后续门禁：P2 Productization
 
@@ -37,8 +38,8 @@ HeiTang KB Forge 保持 Skill-first。UI 是 presentation layer，不是 Core pr
 
 - 未完成 rc.1 acceptance 与 hardening evidence 就发布 stable v4.0.0
 - 没有 release-check evidence 就创建 stable v4.0.0 tag
-- 没有 P2.1 parser/OCR evidence、Workbench sync、validation 与 release hygiene 就发布 v4.1.0
-- 在 v4.1.0 release hardening 中启动 P2.2
+- 没有 test governance manifest、impacted gate selection、validation 与 release hygiene 就发布 v4.1.1
+- 在 v4.1.1 release hardening 中启动 P2.2
 - SaaS multi-tenancy
 - team permissions
 - cloud sync

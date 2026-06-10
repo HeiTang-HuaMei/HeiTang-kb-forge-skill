@@ -1,5 +1,16 @@
 # Release Notes
 
+## v4.1.1
+
+`v4.1.1` 是 Test Framework Governance release。它把 v4.1.0 validation hardening 中形成的经验固化为可执行治理资产，同时保留 v4.1.0 Parser/OCR runtime 边界。
+
+- 新增 `docs/testing/VALIDATION_GATE_MANIFEST.json` 作为结构化 gate manifest。
+- 新增 `python -m heitang_kb_forge.test_governance.gates`，用于 changed-file impact selection 和 dry-run / executable validation plans。
+- 新增 pytest markers：Fast、Medium、Full、docs truth、parser backend、release、UI contract 和 slow gate grouping。
+- 新增 `docs/testing/TEST_PRUNING_REGISTER.md` 及中文同源文档，用于在删除前登记 obsolete / duplicate test pruning。
+- 保持 `v4.1.0` 和 `v4.0.0` tag 不变。
+- 不启动 P2.2。
+
 ## v4.1.0
 
 `v4.1.0` 是 Parser/OCR Pluggable Backend Runtime release。它把已完成的 P2.1 runtime integration 工业化，让第三方可以检查 backend matrix、replay evidence、理解 install mode 与 limitations，并验证受控 fallback 行为。

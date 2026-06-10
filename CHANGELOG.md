@@ -1,5 +1,14 @@
 # Changelog
 
+## v4.1.1
+
+* Added Test Framework Governance for scalable validation.
+* Added `docs/testing/VALIDATION_GATE_MANIFEST.json` as the structured source for Fast / Medium / Chunked Full Gate selection.
+* Added `python -m heitang_kb_forge.test_governance.gates` for changed-file impact selection, dry-run validation plans, and optional execution with log capture.
+* Added pytest markers for fast, medium, full, docs truth, parser backend, release, UI contract, and slow gate grouping.
+* Added `docs/testing/TEST_PRUNING_REGISTER.md` and the zh-CN peer to make obsolete and duplicate test pruning auditable before deletion.
+* Preserved the v4.1.0 Parser/OCR runtime boundary and did not start P2.2.
+
 ## v4.1.0
 
 * Added industrial release hardening for the P2.1 Parser/OCR Pluggable Backend Runtime.

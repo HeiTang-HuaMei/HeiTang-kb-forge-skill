@@ -1,0 +1,9 @@
+{
+  "name": "core_fast_doctor_release_readiness",
+  "command": "python -m pytest tests/test_doctor_command.py tests/test_doctor_cli.py tests/test_release_readiness_gate.py -q",
+  "exit_code": 0,
+  "exit_code_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_doctor_release_readiness.log.exitcode",
+  "status": "passed",
+  "log_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_doctor_release_readiness.log",
+  "summary": "........                                                                 [100%]\n8 passed in 1.84s"
+}

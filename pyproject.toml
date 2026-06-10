@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "heitang-kb-forge-skill"
-version = "4.1.0"
+version = "4.1.1"
 description = "Local CLI skill for generating standardized knowledge base packages."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -85,4 +85,14 @@ packages = ["heitang_kb_forge"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+  "fast: fast gate tests for narrow changed-file validation",
+  "medium: medium gate tests for phase closure",
+  "full: release-blocking chunked full gate tests",
+  "docs_truth: documentation truth and version-surface tests",
+  "parser_backend: parser/OCR backend boundary and evidence tests",
+  "release: release checklist, readiness, and version metadata tests",
+  "ui_contract: Core/UI contract and fixture drift tests",
+  "slow: long-running tests that belong in auditable full-gate chunks",
+]
 

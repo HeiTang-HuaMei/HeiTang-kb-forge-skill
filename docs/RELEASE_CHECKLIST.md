@@ -1,10 +1,10 @@
 # Release Checklist
 
-Current Core package version: `4.1.0`
-Current stable release: `v4.0.0`
-Current release candidate line: `v4.1.0`
+Current Core package version: `4.1.1`
+Current release line: `v4.1.1`
+Latest stable release: `v4.1.0`
 
-Current stage: v4.1.0 Parser/OCR industrial release candidate after P2.1 hardening.
+Current stage: v4.1.1 Test Framework Governance after v4.1.0 Parser/OCR industrial hardening.
 
 ## Required Checks
 
@@ -15,8 +15,11 @@ Current stage: v4.1.0 Parser/OCR industrial release candidate after P2.1 hardeni
 - [x] Docling, PaddleOCR, and Unstructured represented as optional dependency-gated runtime adapters
 - [x] Unstructured stable surface documented as `.md/.txt`
 - [x] Builtin parser fallback preserved
-- [ ] Before any validation phase, read [Validation Strategy](testing/VALIDATION_STRATEGY.md), generate a changed-file impact map, select Fast / Medium / Full Gate, run only impacted tests during development, run Medium Gate at phase closure, run Chunked Full Gate before tag/release, preserve logs for long-running gates, and never report skipped/deferred tests as passed
-- [ ] `python -m pytest` passed for v4.1.0 release candidate Full Gate before tag/release
+- [x] Test Framework Governance artifacts added: [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json), [Test Pruning Register](testing/TEST_PRUNING_REGISTER.md), pytest markers, and `heitang_kb_forge.test_governance.gates`
+- [x] v4.1.1 is tracked as a release line, not a stable release, until Chunked Full Gate, tag, release, and release-check evidence are complete
+- [ ] Before any validation phase, read [Validation Strategy](testing/VALIDATION_STRATEGY.md), load [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json), generate a changed-file impact map, select Fast / Medium / Full Gate, run only impacted tests during development, run Medium Gate at phase closure, run Chunked Full Gate before tag/release, preserve logs for long-running gates, and never report skipped/deferred tests as passed
+- [ ] Post-Codex Full Review completed before tag/release with P0=0, P1=0, and P2 fixed or explicitly deferred; P3 backlog does not block release
+- [ ] `python -m pytest` passed for v4.1.1 Full Gate before tag/release
 - [ ] Doctor command `python -m heitang_kb_forge.cli doctor --output ./tmp_doctor` passed
 - [ ] Quickstart build passed
 - [ ] Quickstart output contains `manifest.json`, `chunks.jsonl`, and `quality_report.json`
@@ -50,8 +53,8 @@ Current stage: v4.1.0 Parser/OCR industrial release candidate after P2.1 hardeni
 - Do not claim full runtime compatibility; v2.7 is a local offline demo / portfolio release.
 - Do not claim parser backend mode is enabled by default; v2.8 parser backend reliability is opt-in.
 - Do not claim Docling or Marker are mandatory dependencies; v2.8 adapters are optional local integrations.
-- Do not claim Docling, PaddleOCR, or Unstructured are bundled by default; v4.1.0 keeps them optional and dependency-gated.
-- Do not claim Unstructured PDF/DOCX/image support is stable in v4.1.0; the stable surface is `.md/.txt`.
+- Do not claim Docling, PaddleOCR, or Unstructured are bundled by default; v4.1.1 preserves the v4.1.0 optional dependency-gated boundary.
+- Do not claim Unstructured PDF/DOCX/image support is stable in v4.1.1; the stable surface is `.md/.txt`.
 - Do not display static Workbench runtime execution controls for heavy parser/OCR adapters unless backed by a Core executable contract.
 - Do not export draft parser-backed KBs to Skill, Agent, or platform packages unless `--allow-untrusted` is explicit.
 - Do not claim Knowledge Runtime Loop is enabled by default; v2.9 runtime outputs are opt-in and local.
@@ -63,6 +66,7 @@ Current stage: v4.1.0 Parser/OCR industrial release candidate after P2.1 hardeni
 - Do not claim real OpenClaw / Codex / Claude Code / MCP runtime execution.
 - Do not claim Feishu / mobile / installer / iOS support before future client platform integrations are implemented.
 - Do not claim SaaS / permissions before v3.x.
+- Do not use Post-Codex Review Gate as an infinite scope expansion loop; only P0/P1/P2 can block release.
 
 ## Release Readiness Gate
 

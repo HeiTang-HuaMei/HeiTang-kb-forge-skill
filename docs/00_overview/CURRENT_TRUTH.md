@@ -1,23 +1,26 @@
 # Current Truth
 
-Current Core package version: `4.1.0`
-Current stable release: `v4.1.0`
+Current Core package version: `4.1.1`
+Current release line: `v4.1.1`
+Latest stable release: `v4.1.0`
 
 This is the short current-state entry for GitHub readers. It is intentionally about the current main branch, not historical version planning.
 
 ## Gate State
 
-- P2.1 Parser/OCR Pluggable Backend Runtime is release-hardened for v4.1.0.
+- v4.1.1 Test Framework Governance adds a validation gate manifest, changed-file impact selector, validation runner, pytest markers, and obsolete-test pruning register.
+- P2.1 Parser/OCR Pluggable Backend Runtime is release-hardened from v4.1.0.
 - Docling, PaddleOCR, and Unstructured are real opt-in local runtime adapters.
 - Builtin parser remains the default fallback.
 - Latest P2.1 evidence directory: `docs/audits/p2_1_parser_ocr_backends/`
 - Latest live runtime proof: `docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json`
 - Unstructured stable surface is `.md/.txt`; PDF/DOCX/image extras are future hardening.
 - External registry hygiene remains `needs_verification=0`.
+- `v4.1.0` remains the historical Parser/OCR stable tag.
 - `v4.0.0` remains an untouched historical stable tag.
-- P2.2 Skill Governance has not started in this release hardening task.
+- P2.2 Skill Governance has not started in this release.
 
-`v4.1.0` is the current Parser/OCR industrial release candidate after P2.1 release hardening.
+`v4.1.1` is the current Test Framework Governance release line after v4.1.0 Parser/OCR industrial release hardening. It is not a stable tag until Chunked Full Gate, tag, release, and release-check evidence are complete.
 
 ## Product Positioning
 
@@ -44,5 +47,5 @@ HeiTang KB Forge is a local-first, offline-first Core Skill for converting local
 - SaaS multi-tenancy, team permissions, or cloud sync
 - bundled Docling/PaddleOCR/Unstructured dependencies by default
 - static Workbench controls that imply local heavy runtime execution
-- Unstructured PDF/DOCX/image support as stable in v4.1.0
-- P2.2 started inside v4.1.0
+- Unstructured PDF/DOCX/image support as stable in v4.1.1
+- P2.2 started inside v4.1.1

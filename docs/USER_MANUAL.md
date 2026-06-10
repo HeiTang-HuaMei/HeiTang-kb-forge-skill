@@ -1,6 +1,6 @@
 # User Manual
 
-This manual describes the local Core workflow at package version `4.1.0` for the v4.1.0 Parser/OCR industrial release candidate after P2.1 hardening. The stable `v4.0.0` / v4.0 tag remains untouched.
+This manual describes the local Core workflow at package version `4.1.1` for the v4.1.1 Test Framework Governance release after v4.1.0 Parser/OCR hardening. The existing `v4.0.0` and `v4.1.0` tags remain untouched.
 
 ## 1. Install Locally
 

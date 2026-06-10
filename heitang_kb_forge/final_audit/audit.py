@@ -1141,8 +1141,8 @@ def _bilingual_docs_parity(core_repo: Path) -> dict:
 
 
 def _version_metadata_audit(core_repo: Path) -> dict:
-    expected = "4.1.0"
-    expected_stage = "v4.1.0 parser/OCR industrial release"
+    expected = "4.1.1"
+    expected_stage = "v4.1.1 test framework governance release"
     files = [
         "pyproject.toml",
         "skill.json",

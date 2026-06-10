@@ -1,10 +1,10 @@
 # 本地隐私与安全
 
-当前 Core package 版本：`4.1.0`
-当前 stable release：`v4.0.0`
-当前 release candidate line：`v4.1.0`
+当前 Core package 版本：`4.1.1`
+当前 release line：`v4.1.1`
+最新 stable release：`v4.1.0`
 
-当前阶段：v4.1.0 Parser/OCR industrial release candidate，已完成 P2.1 hardening；stable v4.0.0 / v4.0 tag 保持不变。
+当前阶段：v4.1.1 Test Framework Governance，位于 v4.1.0 Parser/OCR hardening 之后；既有 v4.0.0 与 v4.1.0 tag 保持不变。
 
 HeiTang KB Forge Core 默认 local-first。
 

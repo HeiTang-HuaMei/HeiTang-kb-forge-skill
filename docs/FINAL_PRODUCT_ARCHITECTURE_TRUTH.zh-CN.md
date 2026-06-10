@@ -1,6 +1,6 @@
 # 最终产品架构真值
 
-本文档是当前 v4.1.0 Core 状态的短版人工可读真值入口，用于集中说明哪些已实现、哪些部分实现、哪些是未来能力、哪些仍然阻断。机器可读证据保留在 `docs/audits/local_acceptance/large_bilingual_run/` 的历史大文件验收记录、`docs/audits/local_acceptance/pre_v4_p0_after_live_llm/` 的最新 Core P0 after-live-LLM 证明，以及 `docs/audits/p2_1_parser_ocr_backends/` 的 P2.1 Parser/OCR backend release evidence。
+本文档是当前 v4.1.1 Core 状态的短版人工可读真值入口，用于集中说明哪些已实现、哪些部分实现、哪些是未来能力、哪些仍然阻断。机器可读证据保留在 `docs/audits/local_acceptance/large_bilingual_run/` 的历史大文件验收记录、`docs/audits/local_acceptance/pre_v4_p0_after_live_llm/` 的最新 Core P0 after-live-LLM 证明、`docs/audits/p2_1_parser_ocr_backends/` 的 P2.1 Parser/OCR backend release evidence，以及 `docs/testing/VALIDATION_GATE_MANIFEST.json` 的 v4.1.1 test governance。
 
 ## 当前门禁
 
@@ -13,6 +13,7 @@
 - 本地 full pytest：最新 Core provider-profile 与 P0 gate 工作已通过。
 - UI validation：Core 输出 Workbench contracts，P1-RWF-V2 UI consumption 保留为历史 v4 readiness evidence；P2.1 parser backend matrix evidence 可在 Workbench 展示，但不声明 static heavy runtime execution。
 - P2.1 parser/OCR evidence：Docling、PaddleOCR、Unstructured 是真实 opt-in 本地 runtime adapters；builtin parser fallback 保留；Unstructured stable surface 是 `.md/.txt`。
+- v4.1.1 test governance：validation gate manifest、changed-file impact selector、validation runner、pytest markers 和 obsolete-test pruning register 已存在。
 - 历史说明：`docs/audits/local_acceptance/large_bilingual_run/` 保留 earlier large-file run，当时 live LLM 仍被阻断。它不能作为最新 live-LLM P0 结论。
 
 ## 架构真值矩阵
@@ -30,6 +31,7 @@
 | 存储 | `local_workspace` 是已实现默认。`local_db` 是 partial/store-index oriented。BYO cloud/database 是 future/disabled，不是已实现能力。 | partial |
 | 安全与隐私 | local-first、默认 no hidden upload、API key redaction、no platform-hosted user data 已文档化并测试。动态 runtime network proof 和完整 UI security acceptance 仍需 review。 | partial |
 | 规模 | 已有 synthetic 1500-scale checks。真实 1500 books、1500 KBs、1500 Agents 未生产级证明。 | needs_review |
+| Test governance | Validation gate manifest、changed-file impact selector、dry-run / executable validation runner、pytest markers、obsolete-test pruning register 和 token-efficient log policy 已存在。 | v4.1.1 test governance |
 | UI | Core 输出 Workbench contracts。P1-RWF-V2 evidence 与 UI consumption 已复验到 v4 RC readiness；P2.1 Workbench sync 可展示 backend matrix、evidence、install mode 与 limitations，但不展示 runtime execution controls。 | v4.1.0 Workbench sync |
 
 ## 仍不能声明
@@ -46,8 +48,8 @@
 - 默认启用破坏性 cleanup
 - 默认 platform-hosted user data
 - 默认打包 Docling、PaddleOCR 或 Unstructured
-- 在 v4.1.0 中声明 Unstructured PDF/DOCX/image support 已稳定
-- 在 v4.1.0 中启动 P2.2 Skill Governance
+- 在 v4.1.1 中声明 Unstructured PDF/DOCX/image support 已稳定
+- 在 v4.1.1 中启动 P2.2 Skill Governance
 
 ## 证据文件
 
@@ -57,6 +59,8 @@
 - `docs/audits/p1_final_gate_rerun/p1_final_gate_report.json`
 - `docs/audits/p2_1_parser_ocr_backends/parser_backend_matrix.json`
 - `docs/audits/p2_1_parser_ocr_backends/backend_capability_boundaries.md`
+- `docs/testing/VALIDATION_GATE_MANIFEST.json`
+- `docs/testing/TEST_PRUNING_REGISTER.md`
 - 历史 earlier run：`docs/audits/local_acceptance/large_bilingual_run/final_v4_rc_gate_report.json`
 - `docs/audits/local_acceptance/large_bilingual_run/product_architecture_completeness_report.json`
 - `docs/audits/local_acceptance/large_bilingual_run/rag_vector_index_readiness_report.json`

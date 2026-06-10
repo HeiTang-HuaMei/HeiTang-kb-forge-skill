@@ -1,8 +1,8 @@
 # 文档索引
 
-当前 Core package 版本：`4.1.0`
-当前 stable release：`v4.0.0`
-当前 release candidate line：`v4.1.0`
+当前 Core package 版本：`4.1.1`
+当前 release line：`v4.1.1`
+最新 stable release：`v4.1.0`
 
 这是当前 main 分支的唯一主文档入口。历史版本细节通过 git history 和 tags 查看，不再作为过程文档堆放在 main。
 
@@ -25,6 +25,8 @@
 - [故障排查](TROUBLESHOOTING.zh-CN.md)
 - [版本矩阵](VERSION_MATRIX.zh-CN.md)
 - [验证策略](testing/VALIDATION_STRATEGY.zh-CN.md)
+- [验证门禁 Manifest](testing/VALIDATION_GATE_MANIFEST.json)
+- [测试瘦身登记表](testing/TEST_PRUNING_REGISTER.zh-CN.md)
 
 ## Core 能力
 
@@ -54,4 +56,4 @@
 
 ## 边界
 
-LLM 仍然只是 optional only；Core tests 不需要真实 LLM/API/network 调用。stable `v4.0.0` / v4.0 tag 保持不变，`v4.1.0` 是 P2.1 hardening 之后的当前 Parser/OCR industrial release candidate line。Heavy parser/OCR dependencies 仍为 optional，默认不打包。
+LLM 仍然只是 optional only；Core tests 不需要真实 LLM/API/network 调用。既有 `v4.0.0` 与 `v4.1.0` tag 保持不变，`v4.1.1` 是 P2.1 hardening 之后的当前 Test Framework Governance release。Heavy parser/OCR dependencies 仍为 optional，默认不打包。

@@ -1,0 +1,9 @@
+{
+  "name": "core_fast_test_governance",
+  "command": "python -m pytest tests/test_test_governance_manifest.py -q",
+  "exit_code": 0,
+  "exit_code_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_test_governance.log.exitcode",
+  "status": "passed",
+  "log_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_test_governance.log",
+  "summary": ".........                                                                [100%]\n9 passed in 0.38s"
+}

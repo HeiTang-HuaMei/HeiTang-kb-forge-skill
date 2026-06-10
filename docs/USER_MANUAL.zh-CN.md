@@ -1,6 +1,6 @@
 # 用户手册
 
-本文说明 package version `4.1.0` / v4.1.0 Parser/OCR industrial release candidate 的本地 Core 工作流，P2.1 hardening 已完成；stable `v4.0.0` / v4.0 tag 保持不变。
+本文说明 package version `4.1.1` / v4.1.1 Test Framework Governance release 的本地 Core 工作流，位于 v4.1.0 Parser/OCR hardening 之后；既有 `v4.0.0` 与 `v4.1.0` tag 保持不变。
 
 ## 1. 本地安装
 

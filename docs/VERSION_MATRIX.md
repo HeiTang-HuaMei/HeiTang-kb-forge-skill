@@ -1,9 +1,10 @@
 # Version Matrix
 
-Current Core package version: `4.1.0`
-Current stable release: `v4.1.0`
+Current Core package version: `4.1.1`
+Current release line: `v4.1.1`
+Latest stable release: `v4.1.0`
 
-Current stage: v4.1.0 Parser/OCR industrial release after P2.1 hardening.
+Current stage: v4.1.1 Test Framework Governance after v4.1.0 Parser/OCR industrial hardening.
 
 | Version | Goal | Key Capabilities | Key Commands | Key Outputs | Status | Supported by Current HEAD | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -40,7 +41,8 @@ Current stage: v4.1.0 Parser/OCR industrial release after P2.1 hardening.
 | final-pre-v4.0 | Full product truth gate | Capability proof, docs truth, security/privacy, scale, Core/UI drift, workflow acceptance | `final-pre-v4-audit` | final audit reports | completed | yes | Latest P0/P1 evidence reports `ready_for_v4_rc=true`. |
 | v4.0.0-rc.1 | Local Knowledge Workbench release candidate | P1 final gate, external project registry, S/A contract inclusion, local-first release readiness | `doctor`, `release-readiness`, `final-pre-v4-audit` | rc evidence, release readiness reports | historical | yes | Candidate release accepted before stable v4.0.0. |
 | v4.0.0 | Stable Local Knowledge Workbench release | Stable release after rc.1 acceptance and hardening | release-check workflow | release notes, tag, release-check CI | historical | yes | Untouched historical stable tag. |
-| v4.1.0 | Parser/OCR Pluggable Backend Runtime | P2.1 release hardening for Docling, PaddleOCR, Unstructured, builtin fallback, evidence replay, failure modes, Workbench sync | `parser-backend-registry`, `parser-backend-matrix`, `parser-backend-inspect`, `parser-backend-smoke`, `parser-backend-release-evidence` | `docs/audits/p2_1_parser_ocr_backends/` | current | yes | Current Parser/OCR industrial release line; heavy dependencies remain optional. |
+| v4.1.0 | Parser/OCR Pluggable Backend Runtime | P2.1 release hardening for Docling, PaddleOCR, Unstructured, builtin fallback, evidence replay, failure modes, Workbench sync | `parser-backend-registry`, `parser-backend-matrix`, `parser-backend-inspect`, `parser-backend-smoke`, `parser-backend-release-evidence` | `docs/audits/p2_1_parser_ocr_backends/` | historical | yes | Historical Parser/OCR industrial release line; heavy dependencies remain optional. |
+| v4.1.1 | Test Framework Governance | Validation gate manifest, changed-file impact selector, dry-run/executable validation runner, pytest markers, obsolete-test pruning register, token-efficient log policy | `python -m heitang_kb_forge.test_governance.gates` | `docs/testing/VALIDATION_GATE_MANIFEST.json`, `docs/testing/TEST_PRUNING_REGISTER.md` | current | yes | Current scalable validation and test governance release; no P2.2 feature work started. |
 
 Unsupported or future:
 

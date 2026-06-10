@@ -1,9 +1,10 @@
 # Capability Status
 
-Current Core package version: `4.1.0`
-Current stable release: `v4.1.0`
+Current Core package version: `4.1.1`
+Current release line: `v4.1.1`
+Latest stable release: `v4.1.0`
 
-Latest completed release work includes v3.12 Product Hardening & Local Release Readiness, P1 Final Gate Re-run, External Project Registry, S/A Contract Inclusion, v4.0.0 release hardening, and P2.1 Parser/OCR industrial hardening. The project is now on the `v4.1.0` Parser/OCR release line.
+Latest completed release work includes v3.12 Product Hardening & Local Release Readiness, P1 Final Gate Re-run, External Project Registry, S/A Contract Inclusion, v4.0.0 release hardening, and P2.1 Parser/OCR industrial hardening. The project is now on the `v4.1.1` test governance release line; it is not stable until Chunked Full Gate, tag, release, and release-check evidence are complete.
 
 ## Stable
 
@@ -18,6 +19,7 @@ Latest completed release work includes v3.12 Product Hardening & Local Release R
 - release quality gate
 - regression check
 - release blockers
+- validation gate manifest and impact-based test governance
 
 ## Preview
 

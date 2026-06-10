@@ -1,6 +1,6 @@
 # Final Product Architecture Truth
 
-This document is the short, human-readable truth surface for the current v4.1.0 Core state. It summarizes what is implemented, partial, future-only, or blocking. Machine-readable evidence remains in `docs/audits/local_acceptance/large_bilingual_run/` for historical large-file acceptance, `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/` for the latest Core P0 after-live-LLM proof, and `docs/audits/p2_1_parser_ocr_backends/` for P2.1 Parser/OCR backend release evidence.
+This document is the short, human-readable truth surface for the current v4.1.1 Core state. It summarizes what is implemented, partial, future-only, or blocking. Machine-readable evidence remains in `docs/audits/local_acceptance/large_bilingual_run/` for historical large-file acceptance, `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/` for the latest Core P0 after-live-LLM proof, `docs/audits/p2_1_parser_ocr_backends/` for P2.1 Parser/OCR backend release evidence, and `docs/testing/VALIDATION_GATE_MANIFEST.json` for v4.1.1 test governance.
 
 ## Current Gate
 
@@ -13,6 +13,7 @@ This document is the short, human-readable truth surface for the current v4.1.0 
 - Full local pytest: passed for the latest Core provider-profile and P0 gate work.
 - UI validation: Core emits Workbench contracts, P1-RWF-V2 UI consumption remains historical v4 readiness evidence, and P2.1 parser backend matrix evidence is Workbench-visible without static heavy runtime execution claims.
 - P2.1 parser/OCR evidence: Docling, PaddleOCR, and Unstructured are real opt-in local runtime adapters; builtin parser fallback is preserved; Unstructured stable surface is `.md/.txt`.
+- v4.1.1 test governance: validation gate manifest, changed-file impact selector, validation runner, pytest markers, and obsolete-test pruning register are present.
 - Historical note: `docs/audits/local_acceptance/large_bilingual_run/` preserves the earlier large-file run where live LLM was still blocked. It must not be used as the latest live-LLM P0 conclusion.
 
 ## Architecture Truth Matrix
@@ -30,6 +31,7 @@ This document is the short, human-readable truth surface for the current v4.1.0 
 | Storage | `local_workspace` is the implemented default. `local_db` is partial/store-index oriented. BYO cloud/database is future/disabled, not implemented. | partial |
 | Security/privacy | Local-first, no hidden upload by default, API key redaction, and no platform-hosted user data are documented and tested. Dynamic runtime network proof and full UI security acceptance remain needs-review. | partial |
 | Scale | Synthetic 1500-scale checks exist. Real 1500 books, 1500 KBs, and 1500 Agents are not production-proven. | needs_review |
+| Test governance | Validation gate manifest, changed-file impact selector, dry-run/executable validation runner, pytest markers, obsolete-test pruning register, and token-efficient log policy are present. | v4.1.1 test governance |
 | UI | Core emits Workbench contracts. P1-RWF-V2 evidence and UI consumption are re-verified for v4 RC readiness; P2.1 Workbench sync may show backend matrix, evidence, install mode, and limitations without runtime execution controls. | v4.1.0 Workbench sync |
 
 ## Must Not Claim Yet
@@ -45,8 +47,8 @@ This document is the short, human-readable truth surface for the current v4.1.0 
 - BYO cloud/database implemented
 - destructive cleanup enabled by default
 - Docling, PaddleOCR, or Unstructured bundled in the default install
-- Unstructured PDF/DOCX/image support as stable in v4.1.0
-- P2.2 Skill Governance started inside v4.1.0
+- Unstructured PDF/DOCX/image support as stable in v4.1.1
+- P2.2 Skill Governance started inside v4.1.1
 - do not claim platform-hosted user data as a default
 
 ## Evidence Files
@@ -55,6 +57,8 @@ This document is the short, human-readable truth surface for the current v4.1.0 
 - `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/v4_rc_final_gate_report.json`
 - `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/live_llm_acceptance_report.json`
 - `docs/audits/p1_final_gate_rerun/p1_final_gate_report.json`
+- `docs/testing/VALIDATION_GATE_MANIFEST.json`
+- `docs/testing/TEST_PRUNING_REGISTER.md`
 - Historical earlier run: `docs/audits/local_acceptance/large_bilingual_run/final_v4_rc_gate_report.json`
 - `docs/audits/local_acceptance/large_bilingual_run/product_architecture_completeness_report.json`
 - `docs/audits/local_acceptance/large_bilingual_run/rag_vector_index_readiness_report.json`

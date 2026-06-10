@@ -1,10 +1,10 @@
 # Command Reference
 
-Current Core package version: `4.1.0`
-Current stable release: `v4.0.0`
-Current release candidate line: `v4.1.0`
+Current Core package version: `4.1.1`
+Current release line: `v4.1.1`
+Latest stable release: `v4.1.0`
 
-Current stage: v4.1.0 Parser/OCR industrial release candidate after P2.1 hardening; the stable v4.0.0 / v4.0 tag remains untouched.
+Current stage: v4.1.1 Test Framework Governance after v4.1.0 Parser/OCR hardening; the existing v4.0.0 and v4.1.0 tags remain untouched.
 
 All commands are local Core commands. Real LLM/API/network calls are not required by tests and are disabled by default.
 

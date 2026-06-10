@@ -1,20 +1,22 @@
 # Validation Strategy
 
-This policy is part of v4.1.0 Test Governance Emergency Hardening. It defines impact-based staged validation for development work, phase closure, and final tag/release gates.
+This policy is part of v4.1.1 Test Framework Governance. It defines impact-based staged validation for development work, phase closure, and final tag/release gates.
 
 ## Before Any Validation Phase
 
 Every validation phase must start here:
 
 1. Read this strategy.
-2. Generate a changed-file impact map.
-3. Select Fast / Medium / Full Gate.
-4. Run only impacted tests during development.
-5. Run Medium Gate at phase closure.
-6. Run Chunked Full Gate before tag/release.
-7. Preserve logs and exit codes for long-running gates.
-8. Report skipped/deferred checks with reason.
-9. Never report skipped/deferred checks as passed.
+2. Load `VALIDATION_GATE_MANIFEST.json`.
+3. Generate a changed-file impact map.
+4. Select Fast / Medium / Full Gate with `python -m heitang_kb_forge.test_governance.gates --changed-file <path> --phase <phase>`.
+5. Run only impacted tests during development.
+6. Run Medium Gate at phase closure.
+7. Run Post-Codex Review Gate at the required level.
+8. Run Chunked Full Gate before tag/release.
+9. Preserve logs and exit codes for long-running gates.
+10. Report skipped/deferred checks with reason.
+11. Never report skipped/deferred checks as passed.
 
 ## Gate Levels
 
@@ -77,7 +79,7 @@ Chunked Full Gate requires:
 Recommended Core chunks:
 
 ```powershell
-python -m pytest tests/test_final_docs_truthfulness.py tests/test_final_bilingual_docs_parity.py tests/test_final_docs_structure.py tests/test_release_checklist_docs.py tests/test_readme_scope.py tests/test_version_alignment.py tests/test_version_matrix_docs.py -q
+python -m pytest tests/test_final_docs_truthfulness.py tests/test_final_bilingual_docs_parity.py tests/test_final_docs_structure.py tests/test_release_checklist_docs.py tests/test_readme_scope.py tests/test_version_alignment.py tests/test_version_matrix_docs.py tests/test_final_version_metadata.py tests/test_skill_metadata.py tests/test_v12_docs.py tests/test_test_governance_manifest.py -q
 python -m pytest tests/test_v28_parser_backends.py tests/test_external_project_registry.py tests/test_planned_adapter_boundaries.py tests/test_s_a_contract_inclusion.py tests/test_post_v4_external_roadmap.py -q
 python -m pytest -q
 ```
@@ -94,7 +96,132 @@ flutter build windows
 
 For final tag/release, preserve each command's log and exit code in the validation report.
 
+## Post-Codex Review Gate
+
+Post-Codex Review Gate is a finite, evidence-driven review layer. It prevents two failure modes: AI assuming its own work is complete while missing truth, architecture, boundary, or evidence problems; and AI endlessly expanding low-value findings until the task cannot close.
+
+It is not an automatic fix step. Review output is an issue table. Fixes require the normal Fast/Medium/Full validation path.
+
+### Light Review
+
+Run after every small task:
+
+- docs edits
+- test edits
+- UI copy edits
+- status file updates
+- single-file fixes
+- small script changes
+
+Check only:
+
+- unexpected path changes
+- writes to the legacy C drive path
+- skipped/deferred reported as passed
+- unrecorded test failures
+- whether `HANDOFF.md` or `current_status.md` needs an update
+- forbidden scope started
+- complete large logs pasted into the conversation
+
+Output only P0/P1/P2. P3 is omitted unless it affects comprehension or release judgment.
+
+### Medium Review
+
+Run at phase closure:
+
+- test governance stage completed
+- module completed
+- UI surface completed
+- registry / contract pass completed
+- runner / manifest / marker mechanism completed
+
+Check:
+
+- documentation truth vs code
+- Core/UI contract drift
+- Workbench overclaiming
+- external projects mislabeled ready/executable
+- real test evidence
+- dependency/runtime boundaries
+- Token/log rules
+- Full Gate Baseline reuse wording
+
+Output a P0/P1/P2 issue table. P3 goes to backlog and does not block.
+
+### Full Review
+
+Run and pass before tag/release. Full Review checks:
+
+- README / README.zh-CN
+- CURRENT_TRUTH / CAPABILITY_MATRIX
+- CHANGELOG / Release Notes
+- Workbench display
+- External Registry
+- Validation Report
+- Release Checklist
+- Core/UI contract
+- skipped/deferred/passed semantics
+- tag/release boundaries
+- Workspace path boundaries
+- Token/log rules
+
+Full Review handles only P0/P1/P2. P3 goes to backlog.
+
+### Severity
+
+| Severity | Meaning | Blocks release |
+| --- | --- | --- |
+| P0 | Wrong release, data damage, ready/executable mislabeling, tag/release breakage, severe security risk | yes |
+| P1 | Core flow unavailable, test framework broken, Core/UI contract drift, untrustworthy release evidence | yes |
+| P2 | Important docs error, capability boundary error, misleading local behavior, wrong test strategy expression | until fixed or explicitly deferred |
+| P3 | Copy, formatting, low-value cleanup | no |
+
+### Stop Conditions
+
+Review stops when:
+
+1. P0 = 0
+2. P1 = 0
+3. P2 is fixed or explicitly deferred
+4. P3 is recorded as backlog and non-blocking
+5. Fixes have corresponding Fast/Medium Gate evidence
+6. No new scope is added
+
+The goal is not "zero issues"; it is "zero release-blocking issues."
+
+### Issue Schema
+
+Every issue must include:
+
+```text
+id
+severity: P0/P1/P2/P3
+surface
+file/path
+evidence
+impact
+recommended_fix
+blocks_release: true/false
+```
+
+Review must not output speculative issues, auto-fix files, expand P3 indefinitely, or say "no issues" without listing inspected surfaces.
+
+### v4.1.1 Phase Placement
+
+For v4.1.1, insert the gate as:
+
+```text
+Phase 13: CI / Release / Version Plan integration
+Phase 13.5: Post-Codex Review Gate
+Phase 14: v4.1.1 Final Gate
+Phase 15: Commit / Push / CI / Tag / Release
+```
+
+Full Review is required before the v4.1.1 tag/release.
+
 ## Changed-File Impact Map
+
+The executable source of truth is `VALIDATION_GATE_MANIFEST.json`. The table below is the human-readable summary; if the table and manifest drift, the manifest and `tests/test_test_governance_manifest.py` must be updated together.
 
 | Changed files | Required validation |
 | --- | --- |
@@ -114,7 +241,7 @@ When a change spans multiple rows, run the union of required validation.
 For Core docs/truth changes:
 
 ```powershell
-python -m pytest tests/test_final_docs_truthfulness.py tests/test_final_bilingual_docs_parity.py tests/test_final_docs_structure.py tests/test_release_checklist_docs.py tests/test_readme_scope.py tests/test_version_alignment.py tests/test_version_matrix_docs.py -q
+python -m pytest tests/test_final_docs_truthfulness.py tests/test_final_bilingual_docs_parity.py tests/test_final_docs_structure.py tests/test_release_checklist_docs.py tests/test_readme_scope.py tests/test_version_alignment.py tests/test_version_matrix_docs.py tests/test_test_governance_manifest.py -q
 git diff --check
 ```
 
@@ -159,7 +286,7 @@ impact: release tag is blocked until full result is green
 risk: undiscovered cross-module regression
 replacement_evidence: parser backend focused tests and docs truth tests passed locally
 owner: release operator
-must_run_before: v4.1.0 tag/release
+must_run_before: v4.1.1 tag/release
 ```
 
 Skipped, timed-out, deferred, blocked, or unavailable checks must never be reported as passed. A report may say `not run`, `deferred`, `blocked`, or `failed`, but not `passed`.
@@ -186,6 +313,8 @@ Validation reports live under `docs/audits/test_engineering/` and must include:
 - `selected_gate`
 - `changed_files`
 - `impacted_surfaces`
+- `post_codex_review_level`
+- `post_codex_review_result`
 - `commands_run`
 - `commands_deferred`
 - `commands_skipped`
@@ -196,4 +325,4 @@ Validation reports live under `docs/audits/test_engineering/` and must include:
 
 ## Release Rule
 
-Full Gate is mandatory before any tag or release. For v4.1.0, do not tag or publish until Core and UI Chunked Full Gates pass, CI is green, hygiene scans are clean, and the stable `v4.0.0` tag remains untouched.
+Full Gate and Full Review are mandatory before any tag or release. For v4.1.1, do not tag or publish until Core and UI Chunked Full Gates pass, Full Review has no release-blocking P0/P1/P2 issues, CI is green, hygiene scans are clean, and the existing `v4.0.0` and `v4.1.0` tags remain untouched.

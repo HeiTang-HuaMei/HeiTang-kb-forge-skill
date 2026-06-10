@@ -12,12 +12,13 @@ This roadmap describes the current main branch direction only. Historical versio
 - `P0 blockers=0`
 - Pre-v4 External Project Registry complete.
 - S/A Contract Inclusion complete.
-- Current stable release tag: `v4.0.0`.
-- Current release candidate line: `v4.1.0`.
+- Current release line: `v4.1.1`.
+- Latest stable release tag: `v4.1.0`.
+- Historical stable release tag: `v4.0.0`.
 
-## Current Gate: v4.1.0 Parser/OCR Industrial Release
+## Current Gate: v4.1.1 Test Framework Governance
 
-The current product gate is the `v4.1.0` release candidate: P2.1 parser/OCR backend evidence, Workbench sync, reproducibility, failure-mode coverage, Core/UI validation, release-readiness, CI green, release-check workflow evidence, and no secret/build/raw artifact pollution. The stable `v4.0.0` / v4.0 tag remains untouched.
+The current product gate is the `v4.1.1` Test Framework Governance release line: validation gate manifest, changed-file impact selector, dry-run/executable validation runner, pytest markers, obsolete-test pruning register, token-efficient logs, Core/UI validation, release-readiness, CI green, release-check workflow evidence, and no secret/build/raw artifact pollution. The existing `v4.0.0` and `v4.1.0` tags remain untouched; `v4.1.1` is not stable until its gates, tag, and release are complete.
 
 ## Later Gate: P2 Productization
 
@@ -37,8 +38,8 @@ This roadmap adds no new parser backend beyond the existing P2.1 Docling/PaddleO
 
 - stable v4.0.0 release without rc.1 acceptance and hardening evidence
 - stable v4.0.0 tag without release-check evidence
-- v4.1.0 release without P2.1 parser/OCR evidence, Workbench sync, validation, and release hygiene
-- P2.2 started inside v4.1.0 release hardening
+- v4.1.1 release without test governance manifest, impacted gate selection, validation, and release hygiene
+- P2.2 started inside v4.1.1 release hardening
 - SaaS multi-tenancy
 - team permissions
 - cloud sync

@@ -2,9 +2,9 @@
 
 An offline-first Agent Knowledge Supply Chain Core for turning local source materials into standardized, traceable, searchable, auditable, and reusable knowledge assets.
 
-Current Core: v4.1.0
+Current Core: v4.1.1
 
-Status: v4.1.0 stable release candidate after P2.1 Parser/OCR industrial release hardening and Workbench sync.
+Status: v4.1.1 Test Framework Governance release line after v4.1.0 Parser/OCR industrial hardening and Workbench sync.
 
 For quick understanding:
 - Product positioning: [docs/CURRENT_TRUTH.md](docs/CURRENT_TRUTH.md)
@@ -12,6 +12,8 @@ For quick understanding:
 - AIGC book content pipeline scenario: [docs/AIGC_BOOK_CONTENT_PIPELINE.md](docs/AIGC_BOOK_CONTENT_PIPELINE.md)
 - P2.1 parser/OCR backend evidence: [docs/audits/p2_1_parser_ocr_backends/](docs/audits/p2_1_parser_ocr_backends/)
 - Validation strategy: [docs/testing/VALIDATION_STRATEGY.md](docs/testing/VALIDATION_STRATEGY.md)
+- Validation gate manifest: [docs/testing/VALIDATION_GATE_MANIFEST.json](docs/testing/VALIDATION_GATE_MANIFEST.json)
+- Test pruning register: [docs/testing/TEST_PRUNING_REGISTER.md](docs/testing/TEST_PRUNING_REGISTER.md)
 - External benchmarks and post-v4 roadmap: [docs/roadmap/external_projects/](docs/roadmap/external_projects/)
 - S/A external project contract inclusion: [docs/roadmap/external_projects/S_A_CONTRACT_INCLUSION.md](docs/roadmap/external_projects/S_A_CONTRACT_INCLUSION.md)
 - Chinese README: [README.zh-CN.md](README.zh-CN.md)
@@ -24,19 +26,22 @@ The repository name still contains `Skill` because the project started from a Sk
 
 ## Current status
 
-Current Core package version: `4.1.0`
-Current stable release: `v4.0.0`
-Current release candidate line: `v4.1.0`
+Current Core package version: `4.1.1`
+Current release line: `v4.1.1`
+Latest stable release: `v4.1.0`
+Historical stable release: `v4.0.0`
 
-- P2.1 Parser/OCR pluggable backend runtime is release-hardened for v4.1.0.
+- v4.1.1 adds test framework governance: a validation gate manifest, changed-file impact selector, dry-run/executable gate runner, pytest markers, and an obsolete-test pruning register.
+- v4.1.1 must not be called stable until the Chunked Full Gate, tag, release, and release-check evidence are complete.
+- P2.1 Parser/OCR pluggable backend runtime remains release-hardened from v4.1.0.
 - Docling, PaddleOCR, and Unstructured are real opt-in local runtime adapters, dependency-gated and not bundled.
 - Latest P2.1 proof: `docs/audits/p2_1_parser_ocr_backends/`
 - Latest live runtime proof: `docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json`
 - Unstructured stable surface in this release is `.md/.txt`; PDF/DOCX/image extras remain future hardening.
 - Builtin parser remains the default fallback path.
-- v4.0.0 remains an untouched historical stable tag.
+- v4.1.0 remains the historical Parser/OCR stable tag, and v4.0.0 remains an untouched historical stable tag.
 - Final architecture truth: [docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md)
-- `ready_for_v4_rc=true` remains historical P1 evidence; v4.1.0 adds P2.1 parser/OCR release hardening without starting P2.2.
+- `ready_for_v4_rc=true` remains historical P1 evidence; v4.1.1 adds test governance without starting P2.2.
 
 ## Core capabilities
 

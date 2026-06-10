@@ -2,9 +2,9 @@
 
 一个 offline-first 的 Agent Knowledge Supply Chain Core，用来把本地资料转成标准化、可追溯、可检索、可审计、可复用的知识资产。
 
-当前 Core：v4.1.0
+当前 Core：v4.1.1
 
-状态：P2.1 Parser/OCR industrial release hardening 与 Workbench sync 之后，进入 v4.1.0 stable release candidate。
+状态：v4.1.0 Parser/OCR industrial hardening 与 Workbench sync 之后，进入 v4.1.1 Test Framework Governance release line。
 
 快速理解入口：
 - 产品定位：[docs/CURRENT_TRUTH.md](docs/CURRENT_TRUTH.md)
@@ -12,6 +12,8 @@
 - AIGC 图书/内容生产场景：[docs/AIGC_BOOK_CONTENT_PIPELINE.md](docs/AIGC_BOOK_CONTENT_PIPELINE.md)
 - P2.1 parser/OCR backend evidence：[docs/audits/p2_1_parser_ocr_backends/](docs/audits/p2_1_parser_ocr_backends/)
 - 验证策略：[docs/testing/VALIDATION_STRATEGY.zh-CN.md](docs/testing/VALIDATION_STRATEGY.zh-CN.md)
+- 验证门禁 manifest：[docs/testing/VALIDATION_GATE_MANIFEST.json](docs/testing/VALIDATION_GATE_MANIFEST.json)
+- 测试瘦身登记表：[docs/testing/TEST_PRUNING_REGISTER.zh-CN.md](docs/testing/TEST_PRUNING_REGISTER.zh-CN.md)
 - 外部 benchmark 与 post-v4 路线：[docs/roadmap/external_projects/](docs/roadmap/external_projects/)
 - S/A 外部项目合同加入：[docs/roadmap/external_projects/S_A_CONTRACT_INCLUSION.zh-CN.md](docs/roadmap/external_projects/S_A_CONTRACT_INCLUSION.zh-CN.md)
 - English README：[README.md](README.md)
@@ -24,19 +26,22 @@ HeiTang KB Forge Skill 是一个本地优先的 Agent 知识供应链 Core。它
 
 ## Current status
 
-当前 Core package 版本：`4.1.0`
-当前 stable release：`v4.0.0`
-当前 release candidate line：`v4.1.0`
+当前 Core package 版本：`4.1.1`
+当前 release line：`v4.1.1`
+最新 stable release：`v4.1.0`
+历史 stable release：`v4.0.0`
 
-- P2.1 Parser/OCR pluggable backend runtime 已完成 v4.1.0 release hardening。
+- v4.1.1 增加 test framework governance：validation gate manifest、changed-file impact selector、dry-run / executable gate runner、pytest markers 和 obsolete-test pruning register。
+- v4.1.1 在 Chunked Full Gate、tag、release 与 release-check evidence 完成前，不能写成 stable。
+- P2.1 Parser/OCR pluggable backend runtime 保留 v4.1.0 release hardening 结果。
 - Docling、PaddleOCR、Unstructured 是真实 opt-in 本地 runtime adapters，依赖门控，不随默认安装打包。
 - 最新 P2.1 proof：`docs/audits/p2_1_parser_ocr_backends/`
 - 最新 live runtime proof：`docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json`
 - 本 release 中 Unstructured 的 stable surface 是 `.md/.txt`；PDF/DOCX/image extras 属于 future hardening。
 - Builtin parser 仍是默认 fallback path。
-- v4.0.0 保持为未改动的历史 stable tag。
+- v4.1.0 保持为历史 Parser/OCR stable tag，v4.0.0 保持为未改动的历史 stable tag。
 - 最终架构真值：[docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md)
-- `ready_for_v4_rc=true` 保留为历史 P1 evidence；v4.1.0 只增加 P2.1 parser/OCR release hardening，不启动 P2.2。
+- `ready_for_v4_rc=true` 保留为历史 P1 evidence；v4.1.1 只增加测试治理，不启动 P2.2。
 
 ## Core capabilities
 

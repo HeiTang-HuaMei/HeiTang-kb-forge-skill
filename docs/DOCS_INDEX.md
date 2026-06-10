@@ -1,8 +1,8 @@
 # Docs Index
 
-Current Core package version: `4.1.0`
-Current stable release: `v4.0.0`
-Current release candidate line: `v4.1.0`
+Current Core package version: `4.1.1`
+Current release line: `v4.1.1`
+Latest stable release: `v4.1.0`
 
 This is the canonical documentation entry for the current main branch. Historical version details live in git history and tags, not as accumulated process docs on main.
 
@@ -25,6 +25,8 @@ This is the canonical documentation entry for the current main branch. Historica
 - [Troubleshooting](TROUBLESHOOTING.md)
 - [Version Matrix](VERSION_MATRIX.md)
 - [Validation Strategy](testing/VALIDATION_STRATEGY.md)
+- [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json)
+- [Test Pruning Register](testing/TEST_PRUNING_REGISTER.md)
 
 ## Core Capabilities
 
@@ -54,4 +56,4 @@ This is the canonical documentation entry for the current main branch. Historica
 
 ## Boundaries
 
-LLM remains optional only; Core tests do not require real LLM/API/network calls. The stable `v4.0.0` / v4.0 tag remains untouched, and `v4.1.0` is the current Parser/OCR industrial release candidate line after P2.1 hardening. Heavy parser/OCR dependencies remain optional and are not bundled by default.
+LLM remains optional only; Core tests do not require real LLM/API/network calls. The existing `v4.0.0` and `v4.1.0` tags remain untouched, and `v4.1.1` is the current Test Framework Governance release after P2.1 hardening. Heavy parser/OCR dependencies remain optional and are not bundled by default.
