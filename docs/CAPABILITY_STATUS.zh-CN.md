@@ -2,9 +2,9 @@
 
 当前项目版本：`4.1.1`
 
-当前 release line：`v4.1.1`
+当前 stable release：`v4.1.1`
 
-最新已完成的 UI release 工作包括 P1 Final Gate Re-run、External Project Registry 可见边界、S/A Contract Inclusion 可见边界、rc.1 acceptance、release hardening 与 P2.1 parser/OCR backend evidence sync。当前进入 `v4.1.1` test governance release line；在 v4.1.1 gates、tag、release 与 release-check evidence 完成前，`v4.1.0` 仍是最新 stable parser/OCR evidence line。
+最新已完成的 UI release 工作包括 P1 Final Gate Re-run、External Project Registry 可见边界、S/A Contract Inclusion 可见边界、rc.1 acceptance、release hardening、P2.1 parser/OCR backend evidence sync，以及 v4.1.1 Test Framework Governance stable closure。`v4.1.1` 是当前 stable release；`v4.1.0` 保持为历史 stable parser/OCR evidence line。
 
 ## Stable
 

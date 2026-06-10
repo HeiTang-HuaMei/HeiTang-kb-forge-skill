@@ -44,5 +44,5 @@ None.
 - UI Chunked Full Gate: 6/6 chunks passed with log and exit code sidecars.
 - External registry: needs_verification=0; no ready/executable/real_local_passed flags found in Core registry review.
 - UI external registry asset: no executable_action=true or ready/executable flags found.
-- Tag boundary: no v4.1.1 tag created; v4.0.0/v4.1.0 untouched.
+- Tag boundary: at Full Review time, the v4.1.1 tag was pending publication; stable closure creates a new v4.1.1 tag while v4.0.0/v4.1.0 remain untouched.
 - Workspace path boundary: current v4.1.1 validation reports do not reference C legacy paths.

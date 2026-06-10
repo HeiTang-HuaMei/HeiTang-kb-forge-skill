@@ -2,9 +2,9 @@
 
 当前项目版本：`4.1.1`
 
-当前 release line：`v4.1.1`
+当前 stable release：`v4.1.1`
 
-当前阶段：v4.1.1 Test Framework Governance，位于 v4.1.0 P2.1 Parser/OCR Workbench evidence sync 之后；v4.0.0 与 v4.1.0 均保持为未改动的历史 stable tag。
+当前阶段：v4.1.1 Test Framework Governance stable release closure，位于 v4.1.0 P2.1 Parser/OCR Workbench evidence sync 之后；v4.0.0 与 v4.1.0 均保持为未改动的历史 stable tag。
 
 ## Required Checks
 
@@ -13,10 +13,10 @@
 - [x] Parser backend matrix fixture 与 Flutter asset 已从 Core runtime baseline commit `576a62075dc1ecbe00388bb0569fd1fc767be7cb` 复制
 - [x] Workbench 展示 parser/OCR evidence、安装模式、稳定表面、已知限制，并不声明 runtime execution
 - [x] Test Framework Governance artifacts 已添加：[Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json)、[测试瘦身登记表](testing/TEST_PRUNING_REGISTER.zh-CN.md)、pytest markers 与 `heitang_kb_forge.test_governance.gates`
-- [x] v4.1.1 在 Chunked Full Gate、tag、release 与 release-check evidence 完成前仅作为 release line，不写成 stable release
+- [x] v4.1.1 stable release closure 已由 Chunked Full Gate、Post-Codex Full Review、CI、Release Check、tag 和 GitHub Release evidence 支撑
 - [ ] 任何 validation phase 前，加载 [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json)，生成 changed-file impact map，选择 Fast / Medium / Full Gate，开发中只运行 impacted tests，phase closure 运行 Medium Gate，tag/release 前运行 Chunked Full Gate，长时间 gate 保存 logs，并且绝不把 skipped/deferred tests 汇报为 passed
-- [ ] tag/release 前完成 Post-Codex Full Review，且 P0=0、P1=0、P2 已修复或明确 deferred；P3 backlog 不阻塞 release
-- [ ] `python -m pytest` 通过
+- [x] tag/release 前完成 Post-Codex Full Review，且 P0=0、P1=0、P2 已修复或明确 deferred；P3 backlog 不阻塞 release
+- [x] v4.1.1 UI Chunked Full Gate 的 `python -m pytest` 分段验证通过
 - [ ] Doctor 命令 `python -m heitang_kb_forge.cli doctor --output ./tmp_doctor` 通过
 - [ ] Quickstart build 通过
 - [ ] Quickstart 输出包含 `manifest.json`、`chunks.jsonl` 和 `quality_report.json`
@@ -26,7 +26,7 @@
 - [ ] Golden samples 已检查
 - [ ] Export certification 已生成
 - [ ] Compatibility matrix 已生成
-- [ ] Release readiness 已生成
+- [x] Release readiness 已生成，并已在 release-check workflow 中检查
 - [ ] 未提交 tmp 输出目录
 - [ ] 无 secret leak
 - [ ] 默认不调用外部网络或平台

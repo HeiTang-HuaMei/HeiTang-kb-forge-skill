@@ -2,7 +2,7 @@
 
 Current project version: `4.1.1`
 
-Current release line: `v4.1.1`
+Current stable release: `v4.1.1`
 
 Current stage: v4.1.1 Test Framework Governance after v4.1.0 P2.1 Parser/OCR Workbench evidence sync; v4.0.0 and v4.1.0 tags remain untouched.
 
@@ -26,7 +26,7 @@ Current stage: v4.1.1 Test Framework Governance after v4.1.0 P2.1 Parser/OCR Wor
 | v4.0.0-rc.1 | Historical | Workbench UI release candidate with P1 final gate evidence, external registry visibility, and S/A contract inclusion visibility | pytest, Flutter tests/builds | accepted before stable v4.0.0; external projects remain visibility-only | historical |
 | v4.0.0 | Historical | Stable Local Knowledge Workbench release | pytest, Flutter tests/builds, CI, release hardening | external projects remain visibility-only unless separately implemented | historical |
 | v4.1.0 | Historical | Parser/OCR backend evidence sync for Workbench | pytest, Flutter tests/builds, CI, release hardening | parser/OCR runtimes remain optional dependency gated; Unstructured stable surface is `.md/.txt`; static Workbench does not execute runtimes | stable |
-| v4.1.1 | Current | Test Framework Governance for UI validation | validation gate manifest, changed-file impact selector, pytest markers, UI contract gates, Flutter chunk gates | v4.1.0 parser/OCR fixture remains historical evidence; static Workbench still does not execute runtimes | current |
+| v4.1.1 | Stable | Test Framework Governance for UI validation | validation gate manifest, changed-file impact selector, pytest markers, UI contract gates, Flutter chunk gates | v4.1.0 parser/OCR fixture remains historical evidence; static Workbench still does not execute runtimes | stable |
 | runtime compatibility planned | Planned | runtime compatibility smoke | planned | not implemented | planned |
 | v2.8 planned | Planned | domain Skill factory | planned | not implemented | planned |
 | v2.9 planned | Planned | Feishu / personal KB / mobile / installer / iOS | planned | not implemented | planned |

@@ -2,9 +2,9 @@
 
 Current project version: `4.1.1`
 
-Current release line: `v4.1.1`
+Current stable release: `v4.1.1`
 
-Current stage: v4.1.1 Test Framework Governance after v4.1.0 P2.1 Parser/OCR Workbench evidence sync; v4.0.0 and v4.1.0 remain untouched historical stable tags.
+Current stage: v4.1.1 Test Framework Governance stable release closure after v4.1.0 P2.1 Parser/OCR Workbench evidence sync; v4.0.0 and v4.1.0 remain untouched historical stable tags.
 
 ## Required Checks
 
@@ -13,10 +13,10 @@ Current stage: v4.1.1 Test Framework Governance after v4.1.0 P2.1 Parser/OCR Wor
 - [x] Parser backend matrix fixture and Flutter asset are copied from Core runtime baseline commit `576a62075dc1ecbe00388bb0569fd1fc767be7cb`
 - [x] Workbench displays parser/OCR evidence, install mode, stable surface, known limitations, and no runtime execution claim
 - [x] Test Framework Governance artifacts added: [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json), [Test Pruning Register](testing/TEST_PRUNING_REGISTER.md), pytest markers, and `heitang_kb_forge.test_governance.gates`
-- [x] v4.1.1 is tracked as a release line, not a stable release, until Chunked Full Gate, tag, release, and release-check evidence are complete
+- [x] v4.1.1 stable release closure is backed by Chunked Full Gate, Post-Codex Full Review, CI, Release Check, tag, and GitHub Release evidence
 - [ ] Before any validation phase, load [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json), generate a changed-file impact map, select Fast / Medium / Full Gate, run only impacted tests during development, run Medium Gate at phase closure, run Chunked Full Gate before tag/release, preserve logs for long-running gates, and never report skipped/deferred tests as passed
-- [ ] Post-Codex Full Review completed before tag/release with P0=0, P1=0, and P2 fixed or explicitly deferred; P3 backlog does not block release
-- [ ] `python -m pytest` passed
+- [x] Post-Codex Full Review completed before tag/release with P0=0, P1=0, and P2 fixed or explicitly deferred; P3 backlog does not block release
+- [x] `python -m pytest` passed through the v4.1.1 UI Chunked Full Gate
 - [ ] Doctor command `python -m heitang_kb_forge.cli doctor --output ./tmp_doctor` passed
 - [ ] Quickstart build passed
 - [ ] Quickstart output contains `manifest.json`, `chunks.jsonl`, and `quality_report.json`
@@ -26,7 +26,7 @@ Current stage: v4.1.1 Test Framework Governance after v4.1.0 P2.1 Parser/OCR Wor
 - [ ] Golden samples checked
 - [ ] Export certification generated
 - [ ] Compatibility matrix generated
-- [ ] Release readiness generated
+- [x] Release readiness generated and checked in release-check workflow
 - [ ] No tmp output directories committed
 - [ ] No secret leak
 - [ ] No default external network or platform call

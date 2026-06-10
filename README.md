@@ -4,9 +4,9 @@
 
 Current UI package version: `4.1.1`
 
-Current release line: `v4.1.1` Test Framework Governance
+Current stable release: `v4.1.1` Test Framework Governance
 
-Release status: v4.1.1 UI test framework governance line after v4.1.0 Parser/OCR Workbench sync. The `v4.0.0` and `v4.1.0` tags remain untouched; v4.1.1 is not stable until Chunked Full Gate, tag, release, and release-check evidence are complete.
+Release status: v4.1.1 UI test framework governance stable release after v4.1.0 Parser/OCR Workbench sync. The `v4.0.0` and `v4.1.0` tags remain untouched; the v4.1.0 parser/OCR fixture remains historical Core evidence consumed by the static Workbench.
 
 HeiTang KB Forge is an offline-first, agent-callable knowledge supply-chain Skill. It turns multi-format source material into standardized, auditable, reviewable, and retrievable knowledge asset packages for Agent and RAG workflows.
 

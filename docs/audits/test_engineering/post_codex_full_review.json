@@ -45,7 +45,7 @@
     "ui_chunked_full_gate": "6/6 chunks passed with log and exit code sidecars",
     "external_registry": "needs_verification=0; no ready/executable/real_local_passed flags found in Core registry review",
     "ui_external_registry": "no executable_action=true or ready/executable flags found in UI asset review",
-    "tag_boundary": "Core HEAD points at existing v4.1.0; UI HEAD has no tag; no v4.1.1 tag created",
+    "tag_boundary": "At Full Review time, v4.1.1 tag publication was pending; stable closure creates a new v4.1.1 tag while v4.0.0/v4.1.0 remain untouched",
     "workspace_path_boundary": "Current v4.1.1 validation reports do not reference C legacy paths; old tracked v4.1.0 UI log remains historical evidence only"
   }
 }

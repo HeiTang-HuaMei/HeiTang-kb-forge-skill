@@ -23,8 +23,8 @@ def test_project_versions_are_aligned():
     ]:
         assert VERSION in (ROOT / relative).read_text(encoding="utf-8")
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert "Current release line: `v4.1.1` Test Framework Governance" in readme
+    assert "Current stable release: `v4.1.1` Test Framework Governance" in readme
     assert "The `v4.0.0` and `v4.1.0` tags remain untouched" in readme
-    assert "v4.1.1 is not stable until Chunked Full Gate" in readme
+    assert "v4.1.1 UI test framework governance stable release" in readme
 
 
