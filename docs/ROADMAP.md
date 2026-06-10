@@ -12,11 +12,12 @@ This roadmap describes the current main branch direction only. Historical versio
 - `P0 blockers=0`
 - Pre-v4 External Project Registry complete.
 - S/A Contract Inclusion complete.
-- Current stable release line: `v4.0.0`.
+- Current stable release tag: `v4.0.0`.
+- Current release candidate line: `v4.1.0`.
 
-## Current Gate: v4.0.0 Stable Release
+## Current Gate: v4.1.0 Parser/OCR Industrial Release
 
-The current product gate is stable `v4.0.0`: full local validation, release-readiness, CI green, release-check workflow evidence, and no secret/build/raw artifact pollution after rc.1 acceptance and hardening.
+The current product gate is the `v4.1.0` release candidate: P2.1 parser/OCR backend evidence, Workbench sync, reproducibility, failure-mode coverage, Core/UI validation, release-readiness, CI green, release-check workflow evidence, and no secret/build/raw artifact pollution. The stable `v4.0.0` / v4.0 tag remains untouched.
 
 ## Later Gate: P2 Productization
 
@@ -28,18 +29,20 @@ HeiTang KB Forge remains Skill-first. The UI is a presentation layer, not the Co
 
 ## Parser Backend Direction
 
-Current completed parser capability remains verified internal parser, bounded best-effort OCR, and PDF token reduction. external backend candidate and planned adapter status is tracked in [Parser Backend Strategy](03_core_capabilities/PARSER_BACKEND_STRATEGY.md): OpenDataLoader for end-to-end PDF -> Markdown/JSON/RAG-ready parsing, PaddleOCR for OCR foundation, MinerU for document structure understanding and complex layout parsing, and PaddleOCR + MinerU as a planned OCR + document understanding pipeline.
+Current completed parser capability includes the builtin fallback plus opt-in local runtime adapters for Docling, PaddleOCR, and Unstructured. The default parser truth remains verified internal parser, bounded best-effort OCR, and PDF token reduction. P2.1 release evidence is indexed at `docs/audits/p2_1_parser_ocr_backends/`. Unstructured is stable only for `.md/.txt`; broader PDF/DOCX/image surfaces remain future hardening. OpenDataLoader for PDF -> Markdown/JSON/RAG-ready packaging, MinerU, and PaddleOCR + MinerU as an OCR + document understanding pipeline remain external backend candidate / planned adapter only.
 
-This roadmap adds no parser code, no dependency, no model download, and no external parser execution.
+This roadmap adds no new parser backend beyond the existing P2.1 Docling/PaddleOCR/Unstructured runtime integrations.
 
 ## Non-Scope Until Proven
 
 - stable v4.0.0 release without rc.1 acceptance and hardening evidence
 - stable v4.0.0 tag without release-check evidence
+- v4.1.0 release without P2.1 parser/OCR evidence, Workbench sync, validation, and release hygiene
+- P2.2 started inside v4.1.0 release hardening
 - SaaS multi-tenancy
 - team permissions
 - cloud sync
 - platform-hosted user data
 - full external vector database production readiness
-- external parser backend adapter completion
+- new external parser backend expansion beyond the existing P2.1 adapters
 - real LLM/API/network dependency in Core tests

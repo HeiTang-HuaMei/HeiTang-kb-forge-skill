@@ -12,11 +12,12 @@
 - `P0 blockers=0`
 - Pre-v4 External Project Registry 已完成。
 - S/A Contract Inclusion 已完成。
-- 当前 stable release line：`v4.0.0`。
+- 当前 stable release tag：`v4.0.0`。
+- 当前 release candidate line：`v4.1.0`。
 
-## 当前门禁：v4.0.0 Stable Release
+## 当前门禁：v4.1.0 Parser/OCR Industrial Release
 
-当前产品门禁是 stable `v4.0.0`：rc.1 acceptance 与 hardening 之后，full local validation、release-readiness、CI green、release-check workflow evidence，以及无 secret/build/raw artifact pollution。
+当前产品门禁是 `v4.1.0` release candidate：P2.1 parser/OCR backend evidence、Workbench sync、reproducibility、failure-mode coverage、Core/UI validation、release-readiness、CI green、release-check workflow evidence，以及无 secret/build/raw artifact pollution。stable `v4.0.0` / v4.0 tag 保持不变。
 
 ## 后续门禁：P2 Productization
 
@@ -28,18 +29,20 @@ HeiTang KB Forge 保持 Skill-first。UI 是 presentation layer，不是 Core pr
 
 ## Parser Backend 方向
 
-当前已完成 parser 能力仍然是已验证的 internal parser、bounded best-effort OCR 和 PDF token reduction。external backend candidate 与 planned adapter 状态记录在 [Parser Backend Strategy](03_core_capabilities/PARSER_BACKEND_STRATEGY.zh-CN.md)：OpenDataLoader 用于端到端 PDF -> Markdown/JSON/RAG-ready parsing，PaddleOCR 用于 OCR foundation，MinerU 用于文档结构理解与复杂版面解析，PaddleOCR + MinerU 作为 planned OCR + document understanding pipeline。
+当前已完成 parser 能力包括 builtin fallback，以及 Docling、PaddleOCR、Unstructured 的 opt-in local runtime adapters。默认 parser truth 仍是 verified internal parser、bounded best-effort OCR 和 PDF token reduction。P2.1 release evidence 索引在 `docs/audits/p2_1_parser_ocr_backends/`。Unstructured 仅 `.md/.txt` 稳定；更广 PDF/DOCX/image surface 属于 future hardening。OpenDataLoader for PDF -> Markdown/JSON/RAG-ready packaging、MinerU，以及 PaddleOCR + MinerU as an OCR + document understanding pipeline 仍只是 external backend candidate / planned adapter。
 
-本路线图不新增 parser 代码、不新增依赖、不下载模型、不运行外部 parser。
+本路线图不扩展新的 parser backend，只做现有 P2.1 Docling/PaddleOCR/Unstructured runtime integration 的 release closure。
 
 ## 未证明前不属于范围
 
 - 未完成 rc.1 acceptance 与 hardening evidence 就发布 stable v4.0.0
 - 没有 release-check evidence 就创建 stable v4.0.0 tag
+- 没有 P2.1 parser/OCR evidence、Workbench sync、validation 与 release hygiene 就发布 v4.1.0
+- 在 v4.1.0 release hardening 中启动 P2.2
 - SaaS multi-tenancy
 - team permissions
 - cloud sync
 - platform-hosted user data
 - 完整 external vector database production readiness
-- external parser backend adapter completion
+- 超出现有 P2.1 adapters 的新 external parser backend expansion
 - Core tests 依赖真实 LLM/API/network

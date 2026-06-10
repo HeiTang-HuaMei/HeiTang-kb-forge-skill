@@ -12,4 +12,4 @@ def test_legacy_v12_process_docs_are_not_kept_on_main():
     assert "git history and tags" in governance
     assert "old `V*` version process notes" in governance
     assert "Current State" in roadmap
-    assert "v4.0.0 Stable Release" in roadmap
+    assert "v4.1.0 Parser/OCR Industrial Release" in roadmap

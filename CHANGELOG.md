@@ -1,5 +1,14 @@
 # Changelog
 
+## v4.1.0
+
+* Added industrial release hardening for the P2.1 Parser/OCR Pluggable Backend Runtime.
+* Added stable parser backend release CLI surfaces: `parser-backend-registry`, `parser-backend-matrix`, `parser-backend-inspect`, `parser-backend-smoke`, and `parser-backend-release-evidence`.
+* Indexed Docling, PaddleOCR, and Unstructured as real opt-in local runtime adapters with dependency-gated status, fallback behavior, failure-mode reports, and Workbench-visible evidence.
+* Preserved the builtin parser fallback and default install boundary; heavy parser/OCR dependencies remain optional extras and are not bundled.
+* Documented the v4.1.0 stable surfaces: Docling Markdown/TXT acceptance samples, PaddleOCR PNG OCR acceptance sample, and Unstructured `.md/.txt`; broader PDF/DOCX/image claims remain future hardening.
+* Kept `v4.0.0` as an untouched historical stable tag and did not start P2.2 Skill Governance.
+
 ## v4.0.0
 
 * Promoted the v4.0.0 release line from rc.1 to stable after P1 Final Gate Re-run, Pre-v4 External Project Registry, S/A Contract Inclusion, rc.1 acceptance, and release hardening completed.

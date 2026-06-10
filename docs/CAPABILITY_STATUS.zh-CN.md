@@ -1,9 +1,9 @@
 # Capability Status
 
-当前 Core package 版本：`4.0.0`
-当前 stable release：`v4.0.0`
+当前 Core package 版本：`4.1.0`
+当前 stable release：`v4.1.0`
 
-最新已完成的 release 工作包括 v3.12 Product Hardening & Local Release Readiness、P1 Final Gate Re-run、External Project Registry、S/A Contract Inclusion、rc.1 acceptance 与 release hardening。当前已进入 stable `v4.0.0` release line。
+最新已完成的 release 工作包括 v3.12 Product Hardening & Local Release Readiness、P1 Final Gate Re-run、External Project Registry、S/A Contract Inclusion、v4.0.0 release hardening，以及 P2.1 Parser/OCR industrial hardening。当前已进入 `v4.1.0` Parser/OCR release line。
 
 ## Stable
 
@@ -42,6 +42,7 @@
 - minimal end-to-end portfolio demo
 - demo evidence pack
 - parser backend abstraction 和 optional real runtime adapters
+- parser backend registry、matrix、inspect、smoke、release evidence、failure modes 与 Workbench-visible boundaries
 - parser backend compare
 - parse quality gate
 - manual parser review queue
@@ -94,4 +95,3 @@ No deprecated capabilities yet.
 - default network access
 - SaaS multi-tenancy
 - permission system
-

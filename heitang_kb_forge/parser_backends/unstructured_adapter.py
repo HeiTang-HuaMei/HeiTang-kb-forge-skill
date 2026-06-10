@@ -3,7 +3,7 @@ from __future__ import annotations
 from importlib.util import find_spec
 from pathlib import Path
 
-from heitang_kb_forge.parser_backends.base import ParserBackend, ParserBackendRecord
+from heitang_kb_forge.parser_backends.base import ParserBackend, ParserBackendRecord, failure_metadata
 from heitang_kb_forge.parser_backends.normalize import column_safe_path, normalize_text, source_type
 
 
@@ -40,7 +40,18 @@ class UnstructuredParserBackend(ParserBackend):
             text=text,
             warnings=warnings,
             confidence=0.86 if text else 0.0,
-            metadata={"adapter": "unstructured", "runtime_invoked": True, "element_count": len(elements)},
+            metadata={"adapter": "unstructured", "runtime_invoked": True, "element_count": len(elements)}
+            if text
+            else {
+                "adapter": "unstructured",
+                "runtime_invoked": True,
+                "element_count": len(elements),
+                **failure_metadata(
+                    self.name,
+                    "empty_parse_result",
+                    repair_suggestion="Check the source text or rerun with backend=builtin for supported Markdown/TXT sources.",
+                ),
+            },
         )
 
 
@@ -61,7 +72,11 @@ def _unavailable_record(backend: ParserBackend, path: Path, command: str, reason
         status="unavailable",
         warnings=[reason],
         confidence=0.0,
-        metadata={"adapter": backend.name, "runtime_invoked": False},
+        metadata={
+            "adapter": backend.name,
+            "runtime_invoked": False,
+            **failure_metadata(backend.name, "optional_runtime_dependency_missing"),
+        },
     )
 
 
@@ -75,5 +90,9 @@ def _failed_record(backend: ParserBackend, path: Path, command: str, warning: st
         status="failed",
         warnings=[warning],
         confidence=0.0,
-        metadata={"adapter": backend.name, "runtime_invoked": True},
+        metadata={
+            "adapter": backend.name,
+            "runtime_invoked": True,
+            **failure_metadata(backend.name, "backend_runtime_exception"),
+        },
     )

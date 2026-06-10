@@ -8,13 +8,13 @@ v4.0 后排序规则：强化功能优先，加强体验第二，生态拓展后
 2. 不一次性实现多个 S 级大系统。
 3. 外部项目以融合能力为主，不完整搬运。
 4. provider、network、external runtime 能力必须要求显式用户配置。
-5. 本路线不启动 v4.0、不打 tag、不写 release。
+5. 本路线不修改 `v4.0.0`，也不在 v4.1.0 P2.1 release closure 中启动 P2.2。
 
 ## 建议路线
 
 | 阶段 | 重点 | 边界 |
 | --- | --- | --- |
-| P2.1 | External Project Verification Baseline + Parser/OCR Multi-Backend Integration | verification baseline closed；Docling / PaddleOCR / Unstructured optional runtime adapters |
+| P2.1 | External Project Verification Baseline + Parser/OCR Multi-Backend Integration | verification baseline closed；Docling / PaddleOCR / Unstructured optional runtime adapters 已完成 v4.1.0 release hardening |
 | P2.2 | Skill Governance + Book-to-Skill Deepening | andrej-karpathy-skills；skill-prompt-generator；Book-to-Skill / Software-to-Manual-to-Skill |
 | P2.3 | Parser/OCR Backend Hardening | MinerU；Marker；Surya；OpenDataLoader；optional runtime adapters acceptance hardening |
 | P2.4 | Living Knowledge Base / Memory Lifecycle | LLM Wiki v2；memory lifecycle / confidence / forgetting / decay |

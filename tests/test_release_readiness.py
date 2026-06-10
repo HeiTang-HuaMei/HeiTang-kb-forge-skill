@@ -10,12 +10,12 @@ def _write_release_workspace_contract(workspace):
     docs.mkdir()
     workflows = workspace / ".github" / "workflows"
     workflows.mkdir(parents=True)
-    (workspace / "pyproject.toml").write_text('version = "4.0.0"\n', encoding="utf-8")
-    (workspace / "skill.json").write_text('{"version":"4.0.0"}', encoding="utf-8")
-    (workspace / "README.md").write_text("HeiTang KB Forge Skill\n4.0.0\n", encoding="utf-8")
-    (docs / "CAPABILITY_STATUS.md").write_text("4.0.0\nStable\nPreview\nExperimental\n", encoding="utf-8")
-    (docs / "VERSION_MATRIX.md").write_text("v4.0.0\n4.0.0\n", encoding="utf-8")
-    (docs / "RELEASE_CHECKLIST.md").write_text("4.0.0\nRelease checklist\n", encoding="utf-8")
+    (workspace / "pyproject.toml").write_text('version = "4.1.0"\n', encoding="utf-8")
+    (workspace / "skill.json").write_text('{"version":"4.1.0"}', encoding="utf-8")
+    (workspace / "README.md").write_text("HeiTang KB Forge Skill\n4.1.0\n", encoding="utf-8")
+    (docs / "CAPABILITY_STATUS.md").write_text("4.1.0\nStable\nPreview\nExperimental\n", encoding="utf-8")
+    (docs / "VERSION_MATRIX.md").write_text("v4.1.0\n4.1.0\n", encoding="utf-8")
+    (docs / "RELEASE_CHECKLIST.md").write_text("4.1.0\nRelease checklist\n", encoding="utf-8")
     (workflows / "ci.yml").write_text("name: CI\n", encoding="utf-8")
     (workflows / "release-check.yml").write_text("name: Release Check\n", encoding="utf-8")
 

@@ -1,7 +1,8 @@
 # Docs Index
 
-Current Core package version: `4.0.0`
+Current Core package version: `4.1.0`
 Current stable release: `v4.0.0`
+Current release candidate line: `v4.1.0`
 
 This is the canonical documentation entry for the current main branch. Historical version details live in git history and tags, not as accumulated process docs on main.
 
@@ -23,6 +24,7 @@ This is the canonical documentation entry for the current main branch. Historica
 - [Command Reference](COMMAND_REFERENCE.md)
 - [Troubleshooting](TROUBLESHOOTING.md)
 - [Version Matrix](VERSION_MATRIX.md)
+- [Validation Strategy](testing/VALIDATION_STRATEGY.md)
 
 ## Core Capabilities
 
@@ -34,6 +36,8 @@ This is the canonical documentation entry for the current main branch. Historica
 
 - [Roadmap](ROADMAP.md)
 - [Release Notes](RELEASE_NOTES.md)
+- Current audit index: `audits/index.md`
+- P2.1 parser/OCR backend evidence: `audits/p2_1_parser_ocr_backends/`
 - Root gate: `../final_v4_rc_gate_report.json`
 - Root gate alias: `../v4_rc_final_gate_report.json`
 - Latest P0 proof: `audits/local_acceptance/pre_v4_p0_after_live_llm/`
@@ -50,4 +54,4 @@ This is the canonical documentation entry for the current main branch. Historica
 
 ## Boundaries
 
-LLM remains optional only; Core tests do not require real LLM/API/network calls. `v4.0.0` is the current stable release line after rc.1 acceptance and hardening evidence.
+LLM remains optional only; Core tests do not require real LLM/API/network calls. The stable `v4.0.0` / v4.0 tag remains untouched, and `v4.1.0` is the current Parser/OCR industrial release candidate line after P2.1 hardening. Heavy parser/OCR dependencies remain optional and are not bundled by default.

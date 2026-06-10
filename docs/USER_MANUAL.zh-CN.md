@@ -1,6 +1,6 @@
 # 用户手册
 
-本文说明 package version `4.0.0` / stable `v4.0.0` release 的本地 Core 工作流，前置 rc.1 acceptance 与 hardening evidence 已完成。
+本文说明 package version `4.1.0` / v4.1.0 Parser/OCR industrial release candidate 的本地 Core 工作流，P2.1 hardening 已完成；stable `v4.0.0` / v4.0 tag 保持不变。
 
 ## 1. 本地安装
 
@@ -23,6 +23,25 @@ python -m pip install -e ".[ocr,pdf-table,parser-docling,parser-marker,parser-pa
 可选 parser backend 包括 Docling、PaddleOCR 和 Unstructured，在安装对应本地 extras 后可用。
 当前 `parser-unstructured` extra 已验证 Markdown/TXT source。
 使用包含 backend 支持文档源和 OCR 源的目录运行 `parser-runtime-acceptance`，生成这些可选 parser/OCR backend 的 live runtime evidence；未安装本地依赖或缺少支持的 source 时会报告 `blocked`。
+
+运行 optional heavy backend 前，先检查 release-grade backend surface：
+
+```powershell
+python -m heitang_kb_forge.cli parser-backend-registry --output .\tmp_parser_registry
+python -m heitang_kb_forge.cli parser-backend-matrix --output .\tmp_parser_matrix
+python -m heitang_kb_forge.cli parser-backend-inspect docling --output .\tmp_parser_docling
+python -m heitang_kb_forge.cli parser-backend-inspect paddleocr --output .\tmp_parser_paddleocr
+python -m heitang_kb_forge.cli parser-backend-inspect unstructured --output .\tmp_parser_unstructured
+python -m heitang_kb_forge.cli parser-backend-smoke --backend builtin --output .\tmp_parser_builtin_smoke
+```
+
+默认安装下，optional backend inspect command 可能报告 `blocked_by_dependency`；这是预期行为，并保留 builtin fallback。只有在已准备好对应本地 runtime 的环境中才安装 optional extras：
+
+```powershell
+python -m pip install -e ".[parser-docling]"
+python -m pip install -e ".[parser-paddleocr]"
+python -m pip install -e ".[parser-unstructured]"
+```
 
 ## 3. 构建知识包
 

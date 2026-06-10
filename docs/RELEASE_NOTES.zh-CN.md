@@ -1,5 +1,18 @@
 # Release Notes
 
+## v4.1.0
+
+`v4.1.0` 是 Parser/OCR Pluggable Backend Runtime release。它把已完成的 P2.1 runtime integration 工业化，让第三方可以检查 backend matrix、replay evidence、理解 install mode 与 limitations，并验证受控 fallback 行为。
+
+- 新增 release evidence：`docs/audits/p2_1_parser_ocr_backends/`。
+- 新增稳定 CLI surface：backend registry、matrix、inspect、smoke、release evidence generation。
+- Docling、PaddleOCR、Unstructured 作为 opt-in 本地 runtime adapters 集成。
+- 保留 builtin parser fallback 和默认安装行为。
+- heavy parser/OCR dependencies 仍为 optional；默认不打包、不下载模型。
+- 明确 Unstructured stable surface 是 `.md/.txt`；更广 PDF/DOCX/image extras 属于 future hardening。
+- `v4.0.0` 保持为未改动的历史 stable tag。
+- 不启动 P2.2。
+
 ## v4.0.0
 
 Stable `v4.0.0` 在 P1 Final Gate Re-run、Pre-v4 External Project Registry、S/A Contract Inclusion、rc.1 acceptance 与 release hardening 完成后启动。Core pre-v4 RC readiness 作为历史证据继续保留。最新 Core P0 证明显示 `ready_for_v4_rc=true` 且 `P0 blockers=0`，最新 P1 final gate re-run 也显示 `ready_for_v4_rc=true`。

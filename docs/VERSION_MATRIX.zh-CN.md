@@ -1,9 +1,9 @@
 # 版本矩阵
 
-当前 Core package 版本：`4.0.0`
-当前 stable release：`v4.0.0`
+当前 Core package 版本：`4.1.0`
+当前 stable release：`v4.1.0`
 
-当前阶段：v4.0.0 stable release，已完成 rc.1 acceptance 与 hardening。
+当前阶段：v4.1.0 Parser/OCR industrial release，已完成 P2.1 hardening。
 
 | Version | Goal | Key Capabilities | Key Commands | Key Outputs | Status | Supported by Current HEAD | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -39,7 +39,8 @@
 | v3.12.0-alpha.1 | Product Hardening & Local Release Readiness | doctor、command/package/workspace audits、privacy boundary、installer readiness、v4 gate | `product-hardening`, `doctor` | hardening and v4 gate reports | historical | yes | 最新已完成 alpha Core 版本。 |
 | final-pre-v4.0 | Full product truth gate | Capability proof、docs truth、security/privacy、scale、Core/UI drift、workflow acceptance | `final-pre-v4-audit` | final audit reports | completed | yes | 最新 P0/P1 证据显示 `ready_for_v4_rc=true`。 |
 | v4.0.0-rc.1 | Local Knowledge Workbench release candidate | P1 final gate、external project registry、S/A contract inclusion、local-first release readiness | `doctor`, `release-readiness`, `final-pre-v4-audit` | rc evidence、release readiness reports | historical | yes | stable v4.0.0 前已验收的 candidate release。 |
-| v4.0.0 | Stable Local Knowledge Workbench release | rc.1 acceptance 与 hardening 之后的 stable release | release-check workflow | release notes、tag、release-check CI | current | yes | 当前 stable release line。 |
+| v4.0.0 | Stable Local Knowledge Workbench release | rc.1 acceptance 与 hardening 之后的 stable release | release-check workflow | release notes、tag、release-check CI | historical | yes | 未改动的历史 stable tag。 |
+| v4.1.0 | Parser/OCR Pluggable Backend Runtime | Docling、PaddleOCR、Unstructured、builtin fallback、evidence replay、failure modes、Workbench sync 的 P2.1 release hardening | `parser-backend-registry`, `parser-backend-matrix`, `parser-backend-inspect`, `parser-backend-smoke`, `parser-backend-release-evidence` | `docs/audits/p2_1_parser_ocr_backends/` | current | yes | 当前 Parser/OCR industrial release line；heavy dependencies 仍为 optional。 |
 
 不支持或未来项：
 

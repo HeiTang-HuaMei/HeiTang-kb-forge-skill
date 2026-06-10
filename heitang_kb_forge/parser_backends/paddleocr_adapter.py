@@ -6,7 +6,7 @@ from importlib.util import find_spec
 from pathlib import Path
 from typing import Any
 
-from heitang_kb_forge.parser_backends.base import ParserBackend, ParserBackendRecord
+from heitang_kb_forge.parser_backends.base import ParserBackend, ParserBackendRecord, failure_metadata
 from heitang_kb_forge.parser_backends.normalize import column_safe_path, normalize_text, source_type
 
 
@@ -24,7 +24,16 @@ class PaddleOCRParserBackend(ParserBackend):
     def parse_source(self, path: Path, command: str) -> ParserBackendRecord:
         available, reason = self.is_available()
         if not available:
-            return _record(self, path, command, "unavailable", [reason or "paddleocr_adapter_unavailable"], 0.0, False)
+            return _record(
+                self,
+                path,
+                command,
+                "unavailable",
+                [reason or "paddleocr_adapter_unavailable"],
+                0.0,
+                False,
+                "optional_runtime_dependency_missing",
+            )
         try:
             engine = _make_paddleocr()
             raw_result = _run_paddleocr(engine, path)
@@ -33,7 +42,7 @@ class PaddleOCRParserBackend(ParserBackend):
             _collect_text_and_scores(raw_result, texts, scores)
             text = normalize_text("\n".join(dict.fromkeys(item.strip() for item in texts if item and item.strip())))
         except Exception as exc:
-            return _record(self, path, command, "failed", [f"paddleocr_parse_failed:{exc}"], 0.0, True)
+            return _record(self, path, command, "failed", [f"paddleocr_parse_failed:{exc}"], 0.0, True, "backend_runtime_exception")
         confidence = round(sum(scores) / len(scores), 3) if scores else (0.74 if text else 0.0)
         return ParserBackendRecord(
             source_path=column_safe_path(path),
@@ -45,7 +54,18 @@ class PaddleOCRParserBackend(ParserBackend):
             text=text,
             warnings=[] if text else ["empty_text"],
             confidence=confidence,
-            metadata={"adapter": "paddleocr", "runtime_invoked": True, "text_item_count": len(texts)},
+            metadata={"adapter": "paddleocr", "runtime_invoked": True, "text_item_count": len(texts)}
+            if text
+            else {
+                "adapter": "paddleocr",
+                "runtime_invoked": True,
+                "text_item_count": len(texts),
+                **failure_metadata(
+                    self.name,
+                    "empty_parse_result",
+                    repair_suggestion="Use an image/PDF with visible text, verify OCR language/model availability, or rerun with backend=builtin for supported text sources.",
+                ),
+            },
         )
 
 
@@ -189,6 +209,7 @@ def _record(
     warnings: list[str],
     confidence: float,
     runtime_invoked: bool,
+    error_code: str,
 ) -> ParserBackendRecord:
     return ParserBackendRecord(
         source_path=column_safe_path(path),
@@ -199,5 +220,13 @@ def _record(
         status=status,
         warnings=warnings,
         confidence=confidence,
-        metadata={"adapter": backend.name, "runtime_invoked": runtime_invoked},
+        metadata={
+            "adapter": backend.name,
+            "runtime_invoked": runtime_invoked,
+            **failure_metadata(
+                backend.name,
+                error_code,
+                repair_suggestion="Install parser-paddleocr, verify local OCR model/cache availability, or rerun with backend=builtin for supported text sources.",
+            ),
+        },
     )

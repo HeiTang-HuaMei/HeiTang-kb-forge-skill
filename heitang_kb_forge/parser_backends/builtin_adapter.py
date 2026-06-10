@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from heitang_kb_forge.parser_backends.base import ParserBackend, ParserBackendRecord
+from heitang_kb_forge.parser_backends.base import ParserBackend, ParserBackendRecord, failure_metadata
 from heitang_kb_forge.parser_backends.normalize import column_safe_path, normalize_text, source_type
 from heitang_kb_forge.parsers.docx_parser import parse_docx
 from heitang_kb_forge.parsers.hardening import parse_epub, parse_html, parse_zip
@@ -53,6 +53,11 @@ class BuiltinParserBackend(ParserBackend):
                 status="unsupported",
                 warnings=[f"unsupported_extension:{path.suffix.lower()}"],
                 confidence=0.0,
+                metadata=failure_metadata(
+                    self.name,
+                    "unsupported_file_type",
+                    repair_suggestion="Use a supported file extension or select a backend with matching supported_extensions.",
+                ),
             )
         try:
             text = normalize_text(parser(path))
@@ -66,6 +71,7 @@ class BuiltinParserBackend(ParserBackend):
                 status="failed",
                 warnings=[f"parse_failed:{exc}"],
                 confidence=0.0,
+                metadata=failure_metadata(self.name, "backend_runtime_exception"),
             )
         warnings = []
         confidence = 0.95
@@ -85,5 +91,14 @@ class BuiltinParserBackend(ParserBackend):
             text=text,
             warnings=warnings,
             confidence=confidence,
-            metadata={"adapter": "builtin"},
+            metadata={"adapter": "builtin"}
+            if text
+            else {
+                "adapter": "builtin",
+                **failure_metadata(
+                    self.name,
+                    "empty_parse_result",
+                    repair_suggestion="Check whether the source has extractable text or route OCR/image sources through a reviewed OCR backend.",
+                ),
+            },
         )

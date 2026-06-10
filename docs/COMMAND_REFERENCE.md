@@ -1,9 +1,10 @@
 # Command Reference
 
-Current Core package version: `4.0.0`
+Current Core package version: `4.1.0`
 Current stable release: `v4.0.0`
+Current release candidate line: `v4.1.0`
 
-Current stage: v4.0.0 stable release after rc.1 acceptance and hardening evidence.
+Current stage: v4.1.0 Parser/OCR industrial release candidate after P2.1 hardening; the stable v4.0.0 / v4.0 tag remains untouched.
 
 All commands are local Core commands. Real LLM/API/network calls are not required by tests and are disabled by default.
 
@@ -31,6 +32,13 @@ python -m heitang_kb_forge.cli check-contract --package .\tmp_package --output .
 
 ```powershell
 python -m heitang_kb_forge.cli parser-backend-list
+python -m heitang_kb_forge.cli parser-backend-registry --output .\tmp_parser_registry
+python -m heitang_kb_forge.cli parser-backend-matrix --output .\tmp_parser_matrix
+python -m heitang_kb_forge.cli parser-backend-inspect docling --output .\tmp_parser_docling
+python -m heitang_kb_forge.cli parser-backend-inspect paddleocr --output .\tmp_parser_paddleocr
+python -m heitang_kb_forge.cli parser-backend-inspect unstructured --output .\tmp_parser_unstructured
+python -m heitang_kb_forge.cli parser-backend-smoke --backend builtin --output .\tmp_parser_builtin_smoke
+python -m heitang_kb_forge.cli parser-backend-release-evidence --output .\tmp_p2_1_parser_evidence
 python -m heitang_kb_forge.cli parse-with-backend --backend builtin --input .\examples\quickstart\input --output .\tmp_parse
 python -m heitang_kb_forge.cli parse-with-backend --backend docling --input .\examples\quickstart\input --output .\tmp_parse_docling
 python -m heitang_kb_forge.cli parse-with-backend --backend unstructured --input .\examples\quickstart\input --output .\tmp_parse_unstructured

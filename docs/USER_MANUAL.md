@@ -1,6 +1,6 @@
 # User Manual
 
-This manual describes the local Core workflow at package version `4.0.0` for the stable `v4.0.0` release after rc.1 acceptance and hardening evidence.
+This manual describes the local Core workflow at package version `4.1.0` for the v4.1.0 Parser/OCR industrial release candidate after P2.1 hardening. The stable `v4.0.0` / v4.0 tag remains untouched.
 
 ## 1. Install Locally
 
@@ -23,6 +23,25 @@ Supported local input routes include Markdown, TXT, DOCX, text PDF, image/OCR ro
 Optional parser backends include Docling, PaddleOCR, and Unstructured when their local extras are installed.
 The current `parser-unstructured` extra is validated for Markdown/TXT sources.
 Use `parser-runtime-acceptance` with a folder that contains backend-supported document and OCR sources to write live runtime evidence for those optional parser/OCR backends; it reports `blocked` when the local dependencies or supported sources are not available.
+
+Inspect the release-grade backend surface before running optional heavy backends:
+
+```powershell
+python -m heitang_kb_forge.cli parser-backend-registry --output .\tmp_parser_registry
+python -m heitang_kb_forge.cli parser-backend-matrix --output .\tmp_parser_matrix
+python -m heitang_kb_forge.cli parser-backend-inspect docling --output .\tmp_parser_docling
+python -m heitang_kb_forge.cli parser-backend-inspect paddleocr --output .\tmp_parser_paddleocr
+python -m heitang_kb_forge.cli parser-backend-inspect unstructured --output .\tmp_parser_unstructured
+python -m heitang_kb_forge.cli parser-backend-smoke --backend builtin --output .\tmp_parser_builtin_smoke
+```
+
+In a default install, optional backend inspect commands may report `blocked_by_dependency`; this is expected and preserves the builtin fallback. Install optional extras only in environments prepared for those local runtimes:
+
+```powershell
+python -m pip install -e ".[parser-docling]"
+python -m pip install -e ".[parser-paddleocr]"
+python -m pip install -e ".[parser-unstructured]"
+```
 
 ## 3. Build a Knowledge Package
 

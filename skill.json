@@ -1,8 +1,8 @@
 {
   "name": "heitang-kb-forge-skill",
   "display_name": "HeiTang KB Forge Skill",
-  "version": "4.0.0",
-  "description": "Local-first knowledge workbench Core Skill for producing, auditing, retrieving, generating, and validating knowledge packages for the v4.0.0 stable release.",
+  "version": "4.1.0",
+  "description": "Local-first knowledge workbench Core Skill for producing, auditing, retrieving, generating, validating knowledge packages, and inspecting opt-in parser/OCR backend runtime evidence for the v4.1.0 stable release.",
   "entrypoints": {
     "cli": "heitang-kb-forge",
     "python_module": "python -m heitang_kb_forge.cli"
@@ -80,7 +80,7 @@
     "quality_report.json",
     "ingest_report.md"
   ],
-  "optional_extras": ["ocr", "pdf-table", "parser-docling", "parser-marker", "web", "dev"],
+  "optional_extras": ["ocr", "pdf-table", "parser-docling", "parser-marker", "parser-paddleocr", "parser-unstructured", "web", "dev"],
   "agent_targets": ["OpenClaw", "Claude Code", "Codex", "Generic Agent", "MCP-ready"],
   "network_required_by_default": false,
   "real_platform_publish_by_default": false,

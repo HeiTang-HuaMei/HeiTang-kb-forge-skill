@@ -1,0 +1,43 @@
+{
+  "schema_version": "p2.1.evidence_index.v1",
+  "release_version": "v4.1.0",
+  "status": "pass",
+  "artifacts": [
+    {
+      "id": "baseline_lock",
+      "path": "docs/audits/p2_1_parser_ocr_backends/p2_1_baseline_lock_report.md"
+    },
+    {
+      "id": "acceptance_report",
+      "path": "docs/audits/p2_1_parser_ocr_backends/p2_1_acceptance_report.md"
+    },
+    {
+      "id": "backend_matrix",
+      "path": "docs/audits/p2_1_parser_ocr_backends/parser_backend_matrix.json"
+    },
+    {
+      "id": "backend_status_schema",
+      "path": "docs/audits/p2_1_parser_ocr_backends/backend_status_schema.json"
+    },
+    {
+      "id": "backend_status_report",
+      "path": "docs/audits/p2_1_parser_ocr_backends/parser_backend_status_report.md"
+    },
+    {
+      "id": "capability_boundaries",
+      "path": "docs/audits/p2_1_parser_ocr_backends/backend_capability_boundaries.md"
+    },
+    {
+      "id": "live_acceptance_replay",
+      "path": "docs/audits/p2_1_parser_ocr_backends/live_acceptance_replay.md"
+    },
+    {
+      "id": "failure_modes",
+      "path": "docs/audits/p2_1_parser_ocr_backends/failure_mode_report.json"
+    },
+    {
+      "id": "fresh_clone_reproducibility",
+      "path": "docs/audits/p2_1_parser_ocr_backends/fresh_clone_reproducibility_report.md"
+    }
+  ]
+}

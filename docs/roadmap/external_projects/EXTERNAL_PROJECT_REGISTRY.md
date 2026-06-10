@@ -2,7 +2,7 @@
 
 This registry is the external GitHub project and internal capability anchor ledger. It tracks registry, roadmap, benchmark mapping, docs, tests, and explicit optional local parser/OCR runtime adapter boundaries.
 
-It does not make external projects default product functionality, call provider APIs, bundle external runtimes, or start v4.0.
+It does not make external projects default product functionality, call provider APIs, bundle external runtimes, modify `v4.0.0`, or start P2.2.
 
 Source of truth: [external_project_registry.json](external_project_registry.json).
 
@@ -14,7 +14,7 @@ Source of truth: [external_project_registry.json](external_project_registry.json
 - B projects: 4
 - Projects with `current_repo_status=needs_verification`: 0
 - Internal Capability Anchors: 8
-- Optional local parser/OCR runtime adapters: Docling, PaddleOCR, Unstructured
+- Optional local parser/OCR runtime adapters release-hardened for v4.1.0: Docling, PaddleOCR, Unstructured
 - Planned adapters marked ready: false
 - v4.0 started: false
 - tag created: false
@@ -28,10 +28,10 @@ Source of truth: [external_project_registry.json](external_project_registry.json
 | WeKnora | mentioned_only | registry_only | P2.5 |
 | n8n | mentioned_only | registry_only | P2.2 / P3 |
 | andrej-karpathy-skills | benchmark_mapped | registry_only | P2.9 |
-| PaddleOCR | planned_adapter | registry_only | P2.1 |
+| PaddleOCR | planned_adapter + optional_runtime_adapter | registry_only | P2.1 |
 | MinerU | planned_adapter | registry_only | P2.6 |
-| Docling | planned_adapter | registry_only | P2.1 |
-| Unstructured | planned_adapter | registry_only | P2.1 |
+| Docling | planned_adapter + optional_runtime_adapter | registry_only | P2.1 |
+| Unstructured | planned_adapter + optional_runtime_adapter | registry_only | P2.1 |
 
 ## A Projects
 

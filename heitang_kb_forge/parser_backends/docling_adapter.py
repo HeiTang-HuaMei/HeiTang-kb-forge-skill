@@ -3,7 +3,7 @@ from __future__ import annotations
 from importlib.util import find_spec
 from pathlib import Path
 
-from heitang_kb_forge.parser_backends.base import ParserBackend, ParserBackendRecord
+from heitang_kb_forge.parser_backends.base import ParserBackend, ParserBackendRecord, failure_metadata
 from heitang_kb_forge.parser_backends.normalize import column_safe_path, normalize_text, source_type
 
 
@@ -30,7 +30,11 @@ class DoclingParserBackend(ParserBackend):
                 status="unavailable",
                 warnings=[reason or "docling_adapter_unavailable"],
                 confidence=0.0,
-                metadata={"adapter": "docling", "runtime_invoked": False},
+                metadata={
+                    "adapter": "docling",
+                    "runtime_invoked": False,
+                    **failure_metadata(self.name, "optional_runtime_dependency_missing"),
+                },
             )
         try:
             from docling.document_converter import DocumentConverter
@@ -47,7 +51,11 @@ class DoclingParserBackend(ParserBackend):
                 status="failed",
                 warnings=[f"docling_parse_failed:{exc}"],
                 confidence=0.0,
-                metadata={"adapter": "docling", "runtime_invoked": True},
+                metadata={
+                    "adapter": "docling",
+                    "runtime_invoked": True,
+                    **failure_metadata(self.name, "backend_runtime_exception"),
+                },
             )
         return ParserBackendRecord(
             source_path=column_safe_path(path),
@@ -59,7 +67,13 @@ class DoclingParserBackend(ParserBackend):
             text=text,
             warnings=[] if text else ["empty_text"],
             confidence=0.88 if text else 0.0,
-            metadata={"adapter": "docling", "runtime_invoked": True},
+            metadata={"adapter": "docling", "runtime_invoked": True}
+            if text
+            else {
+                "adapter": "docling",
+                "runtime_invoked": True,
+                **failure_metadata(self.name, "empty_parse_result"),
+            },
         )
 
 

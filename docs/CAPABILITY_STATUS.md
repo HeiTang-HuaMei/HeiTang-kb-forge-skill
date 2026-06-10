@@ -1,9 +1,9 @@
 # Capability Status
 
-Current Core package version: `4.0.0`
-Current stable release: `v4.0.0`
+Current Core package version: `4.1.0`
+Current stable release: `v4.1.0`
 
-Latest completed release work includes v3.12 Product Hardening & Local Release Readiness, P1 Final Gate Re-run, External Project Registry, S/A Contract Inclusion, rc.1 acceptance, and release hardening. The project is now on the stable `v4.0.0` release line.
+Latest completed release work includes v3.12 Product Hardening & Local Release Readiness, P1 Final Gate Re-run, External Project Registry, S/A Contract Inclusion, v4.0.0 release hardening, and P2.1 Parser/OCR industrial hardening. The project is now on the `v4.1.0` Parser/OCR release line.
 
 ## Stable
 
@@ -42,6 +42,7 @@ Latest completed release work includes v3.12 Product Hardening & Local Release R
 - minimal end-to-end portfolio demo
 - demo evidence pack
 - parser backend abstraction and optional real runtime adapters
+- parser backend registry, matrix, inspect, smoke, release evidence, failure modes, and Workbench-visible boundaries
 - parser backend compare
 - parse quality gate
 - manual parser review queue
@@ -103,4 +104,3 @@ No deprecated capabilities yet.
 - default network access
 - SaaS multi-tenancy
 - permission system
-

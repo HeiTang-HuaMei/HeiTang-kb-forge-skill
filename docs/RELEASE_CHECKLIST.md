@@ -1,16 +1,22 @@
 # Release Checklist
 
-Current Core package version: `4.0.0`
+Current Core package version: `4.1.0`
 Current stable release: `v4.0.0`
+Current release candidate line: `v4.1.0`
 
-Current stage: v4.0.0 stable release after rc.1 acceptance and hardening.
+Current stage: v4.1.0 Parser/OCR industrial release candidate after P2.1 hardening.
 
 ## Required Checks
 
 - [x] Version aligned in `pyproject.toml`, `skill.json`, README, Capability Status, Version Matrix, and Release Checklist
 - [x] P1 Final Gate, External Project Registry, and S/A Contract Inclusion evidence remain attached
 - [x] rc.1 acceptance and hardening evidence passed
-- [ ] `python -m pytest` passed for stable v4.0.0
+- [x] P2.1 parser/OCR backend evidence indexed under `docs/audits/p2_1_parser_ocr_backends/`
+- [x] Docling, PaddleOCR, and Unstructured represented as optional dependency-gated runtime adapters
+- [x] Unstructured stable surface documented as `.md/.txt`
+- [x] Builtin parser fallback preserved
+- [ ] Before any validation phase, read [Validation Strategy](testing/VALIDATION_STRATEGY.md), generate a changed-file impact map, select Fast / Medium / Full Gate, run only impacted tests during development, run Medium Gate at phase closure, run Chunked Full Gate before tag/release, preserve logs for long-running gates, and never report skipped/deferred tests as passed
+- [ ] `python -m pytest` passed for v4.1.0 release candidate Full Gate before tag/release
 - [ ] Doctor command `python -m heitang_kb_forge.cli doctor --output ./tmp_doctor` passed
 - [ ] Quickstart build passed
 - [ ] Quickstart output contains `manifest.json`, `chunks.jsonl`, and `quality_report.json`
@@ -44,6 +50,9 @@ Current stage: v4.0.0 stable release after rc.1 acceptance and hardening.
 - Do not claim full runtime compatibility; v2.7 is a local offline demo / portfolio release.
 - Do not claim parser backend mode is enabled by default; v2.8 parser backend reliability is opt-in.
 - Do not claim Docling or Marker are mandatory dependencies; v2.8 adapters are optional local integrations.
+- Do not claim Docling, PaddleOCR, or Unstructured are bundled by default; v4.1.0 keeps them optional and dependency-gated.
+- Do not claim Unstructured PDF/DOCX/image support is stable in v4.1.0; the stable surface is `.md/.txt`.
+- Do not display static Workbench runtime execution controls for heavy parser/OCR adapters unless backed by a Core executable contract.
 - Do not export draft parser-backed KBs to Skill, Agent, or platform packages unless `--allow-untrusted` is explicit.
 - Do not claim Knowledge Runtime Loop is enabled by default; v2.9 runtime outputs are opt-in and local.
 - Do not claim v2.9 calls LLM APIs, embedding APIs, vector databases, or external Agent runtimes.
@@ -58,4 +67,3 @@ Current stage: v4.0.0 stable release after rc.1 acceptance and hardening.
 ## Release Readiness Gate
 
 `release-readiness` must return `release_ready=false` when version mismatch, critical blockers, missing Capability Status, missing Version Matrix, missing Release Checklist, README planned-as-completed claims, suspected secrets, missing mock boundaries, missing quickstart outputs, or doctor failures are detected.
-

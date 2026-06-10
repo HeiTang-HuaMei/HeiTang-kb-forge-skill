@@ -1,5 +1,18 @@
 # Release Notes
 
+## v4.1.0
+
+`v4.1.0` is the Parser/OCR Pluggable Backend Runtime release. It industrializes the completed P2.1 runtime integration so a third party can inspect the backend matrix, replay evidence, understand install modes and limitations, and verify controlled fallback behavior.
+
+- Added release evidence at `docs/audits/p2_1_parser_ocr_backends/`.
+- Added stable CLI surfaces for backend registry, matrix, inspect, smoke, and release evidence generation.
+- Integrated Docling, PaddleOCR, and Unstructured as opt-in local runtime adapters only.
+- Preserved builtin parser fallback and default install behavior.
+- Kept heavy parser/OCR dependencies optional; no default bundling or model download.
+- Documented Unstructured stable surface as `.md/.txt`; broader PDF/DOCX/image extras remain future hardening.
+- Kept `v4.0.0` untouched as the historical stable tag.
+- Did not start P2.2.
+
 ## v4.0.0
 
 Stable `v4.0.0` starts after P1 Final Gate Re-run, Pre-v4 External Project Registry, S/A Contract Inclusion, rc.1 acceptance, and release hardening completed. Core pre-v4 RC readiness remains attached as historical evidence. The latest Core P0 proof reports `ready_for_v4_rc=true` and `P0 blockers=0`, and the latest P1 final gate re-run also reports `ready_for_v4_rc=true`.

@@ -1,0 +1,7 @@
+command: python -m pytest tests/test_final_docs_truthfulness.py tests/test_final_bilingual_docs_parity.py tests/test_final_docs_structure.py tests/test_release_checklist_docs.py tests/test_readme_scope.py tests/test_version_alignment.py tests/test_version_matrix_docs.py -q
+exit_code: 0
+summary: 13 passed in 2.07s
+
+command: git diff --check
+exit_code: 0
+summary: no whitespace errors; line-ending warnings only

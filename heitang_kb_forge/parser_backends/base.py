@@ -53,9 +53,13 @@ class ParserBackendRun:
     records: list[ParserBackendRecord]
     warnings: list[str] = field(default_factory=list)
     kb_trust_status: str = "raw_parse_output"
+    error_code: str | None = None
+    fallback_result: str | None = None
+    repair_suggestion: str | None = None
+    audit_trace: str | None = None
 
     def to_dict(self) -> dict:
-        return {
+        payload = {
             "parser_backend_version": "2.8.0-alpha.1",
             "backend_name": self.backend_name,
             "backend_version": self.backend_version,
@@ -68,6 +72,15 @@ class ParserBackendRun:
             "warnings": self.warnings,
             "records": [record.to_dict() for record in self.records],
         }
+        if self.error_code is not None:
+            payload["error_code"] = self.error_code
+        if self.fallback_result is not None:
+            payload["fallback_result"] = self.fallback_result
+        if self.repair_suggestion is not None:
+            payload["repair_suggestion"] = self.repair_suggestion
+        if self.audit_trace is not None:
+            payload["audit_trace"] = self.audit_trace
+        return payload
 
 
 class ParserBackend:
@@ -81,3 +94,19 @@ class ParserBackend:
 
     def parse_source(self, path: Path, command: str) -> ParserBackendRecord:
         raise NotImplementedError
+
+
+def failure_metadata(
+    backend_id: str,
+    error_code: str,
+    fallback_result: str = "builtin_available",
+    repair_suggestion: str = "Install the optional backend dependency or rerun with backend=builtin.",
+    audit_trace: str = "parser_backend_record",
+) -> dict[str, str]:
+    return {
+        "error_code": error_code,
+        "fallback_result": fallback_result,
+        "repair_suggestion": repair_suggestion,
+        "audit_trace": audit_trace,
+        "backend_id": backend_id,
+    }

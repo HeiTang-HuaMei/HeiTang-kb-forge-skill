@@ -13,6 +13,7 @@ from heitang_kb_forge.parser_backends import docling_adapter, paddleocr_adapter,
 
 ROOT = Path(__file__).resolve().parents[1]
 PARSER_RUNTIME_ACCEPTANCE_REPORT = ROOT / "docs" / "audits" / "parser_runtime_acceptance" / "parser_runtime_acceptance_report.json"
+P21_AUDIT_DIR = ROOT / "docs" / "audits" / "p2_1_parser_ocr_backends"
 
 STANDARD_FILES = {
     "chunks.jsonl",
@@ -266,6 +267,74 @@ def test_paddleocr_backend_reads_callable_json_runtime_result(tmp_path, monkeypa
     assert record["confidence"] == 0.91
 
 
+def test_docling_runtime_exception_has_stable_failure_metadata(tmp_path, monkeypatch):
+    class FakeDocumentConverter:
+        def convert(self, source):
+            raise RuntimeError("fixture runtime failure")
+
+    docling = types.ModuleType("docling")
+    docling.__path__ = []
+    converter = types.ModuleType("docling.document_converter")
+    converter.DocumentConverter = FakeDocumentConverter
+    monkeypatch.setitem(sys.modules, "docling", docling)
+    monkeypatch.setitem(sys.modules, "docling.document_converter", converter)
+    monkeypatch.setattr(docling_adapter, "find_spec", lambda name: object())
+
+    source = tmp_path / "input.md"
+    output = tmp_path / "docling_failure"
+    source.write_text("Docling runtime exception fixture.", encoding="utf-8")
+
+    result = CliRunner().invoke(app, ["parse-with-backend", "--input", str(source), "--output", str(output), "--backend", "docling"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(output / "parser_backend_result.json")
+    record = payload["records"][0]
+    assert payload["status"] == "warning"
+    assert record["status"] == "failed"
+    assert record["metadata"]["error_code"] == "backend_runtime_exception"
+    assert record["metadata"]["fallback_result"] == "builtin_available"
+    assert record["metadata"]["repair_suggestion"]
+    assert record["metadata"]["audit_trace"]
+
+
+def test_docling_empty_result_has_stable_failure_metadata(tmp_path, monkeypatch):
+    class FakeDocument:
+        def export_to_markdown(self):
+            return ""
+
+        def export_to_text(self):
+            return ""
+
+        text = ""
+
+        def __str__(self):
+            return ""
+
+    class FakeDocumentConverter:
+        def convert(self, source):
+            return types.SimpleNamespace(document=FakeDocument())
+
+    docling = types.ModuleType("docling")
+    docling.__path__ = []
+    converter = types.ModuleType("docling.document_converter")
+    converter.DocumentConverter = FakeDocumentConverter
+    monkeypatch.setitem(sys.modules, "docling", docling)
+    monkeypatch.setitem(sys.modules, "docling.document_converter", converter)
+    monkeypatch.setattr(docling_adapter, "find_spec", lambda name: object())
+
+    source = tmp_path / "input.md"
+    output = tmp_path / "docling_empty"
+    source.write_text("", encoding="utf-8")
+
+    result = CliRunner().invoke(app, ["parse-with-backend", "--input", str(source), "--output", str(output), "--backend", "docling"])
+
+    assert result.exit_code == 0, result.output
+    record = _json(output / "parser_backend_result.json")["records"][0]
+    assert record["status"] == "empty"
+    assert record["metadata"]["error_code"] == "empty_parse_result"
+    assert record["metadata"]["fallback_result"] == "builtin_available"
+
+
 def test_parser_runtime_acceptance_reports_dependency_gated_blocked_status(tmp_path, monkeypatch):
     monkeypatch.setattr(docling_adapter, "find_spec", lambda name: None)
     monkeypatch.setattr(paddleocr_adapter, "find_spec", lambda name: None)
@@ -293,6 +362,121 @@ def test_parser_runtime_acceptance_reports_dependency_gated_blocked_status(tmp_p
         assert entry["dependency_available"] is False
         assert entry["runtime_invoked"] is False
     assert (output / "parser_runtime_acceptance_report.md").exists()
+
+
+def test_parser_backend_registry_matrix_inspect_and_smoke_cli_write_stable_outputs(tmp_path):
+    registry_output = tmp_path / "registry"
+    matrix_output = tmp_path / "matrix"
+    inspect_output = tmp_path / "inspect"
+    smoke_output = tmp_path / "smoke"
+
+    registry = CliRunner().invoke(app, ["parser-backend-registry", "--output", str(registry_output)])
+    matrix = CliRunner().invoke(app, ["parser-backend-matrix", "--output", str(matrix_output)])
+    inspect = CliRunner().invoke(app, ["parser-backend-inspect", "builtin", "--output", str(inspect_output)])
+    smoke = CliRunner().invoke(app, ["parser-backend-smoke", "--backend", "builtin", "--output", str(smoke_output)])
+
+    assert registry.exit_code == 0, registry.output
+    assert matrix.exit_code == 0, matrix.output
+    assert inspect.exit_code == 0, inspect.output
+    assert smoke.exit_code == 0, smoke.output
+    assert _json(registry_output / "parser_backend_registry.json")["schema_version"] == "p2.1.parser_backend_registry.v1"
+    matrix_payload = _json(matrix_output / "parser_backend_matrix.json")
+    assert matrix_payload["schema_version"] == "p2.1.parser_backend_matrix.v1"
+    assert {backend["backend_id"] for backend in matrix_payload["backends"]} == {"builtin", "docling", "paddleocr", "unstructured"}
+    assert all(backend["static_workbench_executable"] is False for backend in matrix_payload["backends"])
+    assert _json(inspect_output / "parser_backend_inspect_builtin.json")["status"] == "available"
+    assert _json(smoke_output / "parser_backend_smoke_builtin.json")["status"] == "pass"
+    for path in [
+        registry_output / "parser_backend_registry.md",
+        matrix_output / "parser_backend_matrix.md",
+        inspect_output / "parser_backend_inspect_builtin.md",
+        smoke_output / "parser_backend_smoke_builtin.md",
+    ]:
+        assert path.exists()
+
+
+def test_parser_backend_inspect_missing_optional_dependency_reports_blocked(tmp_path, monkeypatch):
+    monkeypatch.setattr(docling_adapter, "find_spec", lambda name: None)
+    output = tmp_path / "inspect_docling"
+
+    result = CliRunner().invoke(app, ["parser-backend-inspect", "docling", "--output", str(output)])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(output / "parser_backend_inspect_docling.json")
+    assert payload["status"] == "blocked_by_dependency"
+    assert payload["error_code"] == "optional_runtime_dependency_missing"
+    assert payload["fallback_result"] == "builtin_available"
+    assert payload["repair_suggestion"]
+
+
+def test_parser_backend_inspect_invalid_backend_id_has_stable_failure(tmp_path):
+    output = tmp_path / "inspect_invalid"
+
+    result = CliRunner().invoke(app, ["parser-backend-inspect", "not-a-backend", "--output", str(output)])
+
+    assert result.exit_code == 1
+    payload = _json(output / "parser_backend_inspect_not-a-backend.json")
+    assert payload["status"] == "fail"
+    assert payload["error_code"] == "invalid_backend_id"
+    assert payload["fallback_result"] == "builtin_available"
+    assert payload["workbench_visible_status"] == "not_ready"
+
+
+def test_parser_backend_smoke_unsupported_file_type_reports_fallback(tmp_path):
+    source = tmp_path / "input.bin"
+    output = tmp_path / "unsupported_smoke"
+    source.write_bytes(b"unsupported")
+
+    result = CliRunner().invoke(app, ["parser-backend-smoke", "--backend", "builtin", "--input", str(source), "--output", str(output)])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(output / "parser_backend_smoke_builtin.json")
+    assert payload["status"] == "warning"
+    assert payload["run"]["error_code"] == "unsupported_file_type"
+    assert payload["run"]["fallback_result"] == "builtin_available_when_supported"
+    assert payload["run"]["repair_suggestion"]
+
+
+def test_parser_backend_release_evidence_cli_writes_complete_system(tmp_path):
+    output = tmp_path / "release_evidence"
+
+    result = CliRunner().invoke(app, ["parser-backend-release-evidence", "--output", str(output)])
+
+    assert result.exit_code == 0, result.output
+    required = [
+        "p2_1_baseline_lock_report.json",
+        "p2_1_baseline_lock_report.md",
+        "p2_1_acceptance_report.json",
+        "p2_1_acceptance_report.md",
+        "backend_status_schema.json",
+        "parser_backend_matrix.json",
+        "parser_backend_matrix.md",
+        "parser_backend_status_report.md",
+        "backend_capability_boundaries.md",
+        "live_acceptance_replay.md",
+        "failure_mode_report.json",
+        "failure_mode_report.md",
+        "fresh_clone_reproducibility_report.json",
+        "fresh_clone_reproducibility_report.md",
+        "evidence_index.json",
+        "evidence_index.md",
+    ]
+    for name in required:
+        assert (output / name).exists(), name
+    schema = _json(output / "backend_status_schema.json")
+    failure = _json(output / "failure_mode_report.json")
+    matrix = _json(output / "parser_backend_matrix.json")
+    assert schema["schema_version"] == "p2.1.backend_status.schema.v1"
+    assert failure["status"] == "pass"
+    assert failure["fallback_preserved"] is True
+    assert {case["case_id"] for case in failure["cases"]} >= {
+        "missing_backend_dependency",
+        "invalid_backend_id",
+        "unsupported_file_type",
+        "runtime_exception",
+        "empty_result",
+    }
+    assert matrix["known_limitation_report_path"].endswith("backend_capability_boundaries.md")
 
 
 def test_parser_runtime_acceptance_reports_dependency_missing_before_source_shape(tmp_path, monkeypatch):
@@ -404,6 +588,38 @@ def test_committed_parser_runtime_acceptance_report_proves_optional_runtime_back
         assert entry["text_length"] > 0
         assert "text" not in entry
     assert entries["unstructured"]["supported_extensions"] == [".md", ".txt"]
+
+
+def test_committed_p21_release_evidence_is_internally_consistent():
+    matrix = _json(P21_AUDIT_DIR / "parser_backend_matrix.json")
+    schema = _json(P21_AUDIT_DIR / "backend_status_schema.json")
+    failure = _json(P21_AUDIT_DIR / "failure_mode_report.json")
+    evidence = _json(P21_AUDIT_DIR / "evidence_index.json")
+
+    required_fields = set(schema["required_backend_fields"])
+    for backend in matrix["backends"]:
+        assert required_fields <= set(backend)
+        assert backend["static_workbench_executable"] is False
+    unstructured = {backend["backend_id"]: backend for backend in matrix["backends"]}["unstructured"]
+    assert unstructured["validated_stable_surface"] == [".md", ".txt"]
+    assert any("future hardening" in item for item in unstructured["known_limitations"])
+    assert failure["crash_only_failures_allowed"] is False
+    artifact_paths = {item["path"] for item in evidence["artifacts"]}
+    assert "docs/audits/p2_1_parser_ocr_backends/parser_backend_matrix.json" in artifact_paths
+    assert "docs/audits/p2_1_parser_ocr_backends/backend_capability_boundaries.md" in artifact_paths
+
+
+def test_audit_index_links_p21_release_artifacts():
+    text = (ROOT / "docs" / "audits" / "index.md").read_text(encoding="utf-8")
+
+    for marker in [
+        "p2_1_parser_ocr_backends/parser_backend_matrix.json",
+        "p2_1_parser_ocr_backends/parser_backend_status_report.md",
+        "p2_1_parser_ocr_backends/backend_capability_boundaries.md",
+        "p2_1_parser_ocr_backends/live_acceptance_replay.md",
+        "p2_1_parser_ocr_backends/failure_mode_report.json",
+    ]:
+        assert marker in text
 
 
 def test_parse_compare_records_optional_backend_differences(tmp_path):

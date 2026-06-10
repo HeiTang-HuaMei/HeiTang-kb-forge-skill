@@ -45,7 +45,8 @@ def test_final_product_truth_docs_do_not_overclaim_blocked_capabilities():
     assert "v4.0 released from P1 evidence alone" in combined or "仅凭 P1 evidence 发布 v4.0" in combined
     assert "external vector database production readiness" in combined
     assert "v4.0 release from the P1 final gate" in combined or "由 P1 final gate 发布 v4.0" in combined
-    assert "stable v4.0.0" in combined
+    assert "v4.1.0" in combined
+    assert "p2_1_parser_ocr_backends" in combined
     assert "full autonomous tool-calling Agent Runtime" in combined
     assert "full scanned PDF OCR proof" in combined
     assert "BYO cloud/database implemented" in combined
@@ -58,10 +59,7 @@ def test_readmes_link_to_final_product_truth_and_show_current_blockers():
     assert "docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md" in english
     assert "docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md" in chinese
     for text in [english, chinese]:
-        assert "Remaining Core P0:" in text or "剩余 Core P0：" in text
-        assert "none" in text or "无剩余" in text
-        assert "pre_v4_p0_after_live_llm" in text
-        assert "v4.0.0" in text
-        assert "stable `v4.0.0`" in text
+        assert "v4.1.0" in text
+        assert "p2_1_parser_ocr_backends" in text
         assert "CURRENT_TRUTH" in text or "CURRENT_TRUTH.zh-CN" in text
         assert "CAPABILITY_MATRIX" in text or "CAPABILITY_MATRIX.zh-CN" in text

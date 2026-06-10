@@ -55,7 +55,22 @@ def collect_backend_sources(input_path: Path, backend_name: str = "builtin") -> 
 
 
 def parse_sources_with_backend(input_path: Path, backend_name: str, command: str, sources: list[Path] | None = None) -> ParserBackendRun:
-    backend = get_backend(backend_name)
+    try:
+        backend = get_backend(backend_name)
+    except ValueError:
+        return ParserBackendRun(
+            backend_name=backend_name.strip().lower(),
+            backend_version="unknown",
+            command=command,
+            status="failed",
+            source_count=0,
+            records=[],
+            warnings=[f"invalid_backend_id:{backend_name}"],
+            error_code="invalid_backend_id",
+            fallback_result="builtin_available",
+            repair_suggestion="Run parser-backend-list or parser-backend-registry and retry with a listed backend_id.",
+            audit_trace="parser_backends.registry.parse_sources_with_backend",
+        )
     source_files = sources if sources is not None else collect_backend_sources(input_path, backend.name)
     available, reason = backend.is_available()
     warnings = [] if available else [reason or f"{backend.name}_unavailable"]
@@ -72,6 +87,7 @@ def parse_sources_with_backend(input_path: Path, backend_name: str, command: str
         status = "warning"
     else:
         status = "success"
+    error_code = "unsupported_file_type" if not source_files else None
     return ParserBackendRun(
         backend_name=backend.name,
         backend_version=backend.version,
@@ -80,4 +96,8 @@ def parse_sources_with_backend(input_path: Path, backend_name: str, command: str
         source_count=len(source_files),
         records=records,
         warnings=warnings,
+        error_code=error_code,
+        fallback_result="builtin_available_when_supported" if error_code else None,
+        repair_suggestion="Use a supported file extension or select a backend with matching supported_extensions." if error_code else None,
+        audit_trace="parser_backends.registry.collect_backend_sources" if error_code else None,
     )

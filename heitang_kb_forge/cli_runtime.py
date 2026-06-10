@@ -142,6 +142,30 @@ from heitang_kb_forge.parser_backends.reports import (
     render_parse_compare_report,
     render_parse_quality_report,
 )
+from heitang_kb_forge.parser_backends.release_hardening import (
+    inspect_backend_status,
+    make_acceptance_summary_report,
+    make_backend_status_schema,
+    make_baseline_lock_report,
+    make_evidence_index,
+    make_failure_mode_report,
+    make_fresh_clone_reproducibility_report,
+    make_parser_backend_matrix,
+    make_parser_backend_registry,
+    make_parser_backend_smoke,
+    render_acceptance_summary_report,
+    render_backend_status_report,
+    render_baseline_lock_report,
+    render_capability_boundaries_report,
+    render_evidence_index,
+    render_failure_mode_report,
+    render_fresh_clone_reproducibility_report,
+    render_inspect_report,
+    render_live_acceptance_replay_report,
+    render_matrix_report,
+    render_registry_report,
+    render_smoke_report,
+)
 from heitang_kb_forge.platform_distribution import check_platform_upload, export_platform_package, mock_publish_package
 from heitang_kb_forge.pre_v4_p0 import (
     run_agent_runtime_completion,
@@ -531,6 +555,106 @@ def parser_backend_list() -> None:
     for backend in list_backends():
         reason = f" | {backend['reason']}" if backend.get("reason") else ""
         typer.echo(f"{backend['name']}: {backend['status']}{reason}")
+
+
+@app.command("parser-backend-registry")
+def parser_backend_registry_command(
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Write or print the parser backend registry without importing heavy dependencies."""
+    report = make_parser_backend_registry()
+    if output is not None:
+        _write_dual_parser_backend_report(output, "parser_backend_registry", report, render_registry_report(report))
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(f"Parser backend registry: {len(report['backends'])} backends")
+
+
+@app.command("parser-backend-matrix")
+def parser_backend_matrix_command(
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Write or print the release parser backend capability matrix."""
+    report = make_parser_backend_matrix()
+    if output is not None:
+        _write_dual_parser_backend_report(output, "parser_backend_matrix", report, render_matrix_report(report))
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(f"Parser backend matrix: {report['release_version']} | Backends: {len(report['backends'])}")
+
+
+@app.command("parser-backend-inspect")
+def parser_backend_inspect_command(
+    backend_id: str = typer.Argument(...),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Inspect one parser backend with deterministic status and repair guidance."""
+    report = inspect_backend_status(backend_id)
+    safe_name = report["backend_id"] or "unknown"
+    if output is not None:
+        _write_dual_parser_backend_report(output, f"parser_backend_inspect_{safe_name}", report, render_inspect_report(report))
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(f"Parser backend inspect: {safe_name} | Status: {report['status']}")
+    if report["status"] == "fail":
+        raise typer.Exit(1)
+
+
+@app.command("parser-backend-smoke")
+def parser_backend_smoke_command(
+    backend: str = typer.Option("builtin", "--backend"),
+    input: Path | None = typer.Option(None, "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Run a deterministic backend smoke without requiring optional heavy dependencies by default."""
+    report = make_parser_backend_smoke(backend, input)
+    safe_name = report["backend_id"] or "unknown"
+    if output is not None:
+        _write_dual_parser_backend_report(output, f"parser_backend_smoke_{safe_name}", report, render_smoke_report(report))
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(f"Parser backend smoke: {safe_name} | Status: {report['status']}")
+    if report["status"] == "fail":
+        raise typer.Exit(1)
+
+
+@app.command("parser-backend-release-evidence")
+def parser_backend_release_evidence_command(
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Write the complete v4.1.0 P2.1 parser/OCR release evidence system."""
+    baseline = make_baseline_lock_report()
+    acceptance = make_acceptance_summary_report()
+    schema = make_backend_status_schema()
+    matrix = make_parser_backend_matrix()
+    failure_modes = make_failure_mode_report()
+    reproducibility = make_fresh_clone_reproducibility_report()
+    evidence_index = make_evidence_index()
+    output.mkdir(parents=True, exist_ok=True)
+    _write_dual_parser_backend_report(output, "p2_1_baseline_lock_report", baseline, render_baseline_lock_report(baseline))
+    _write_dual_parser_backend_report(output, "p2_1_acceptance_report", acceptance, render_acceptance_summary_report(acceptance))
+    write_json(output / "backend_status_schema.json", schema)
+    _write_dual_parser_backend_report(output, "parser_backend_matrix", matrix, render_matrix_report(matrix))
+    (output / "parser_backend_status_report.md").write_text(render_backend_status_report(matrix), encoding="utf-8")
+    (output / "backend_capability_boundaries.md").write_text(render_capability_boundaries_report(matrix), encoding="utf-8")
+    (output / "live_acceptance_replay.md").write_text(render_live_acceptance_replay_report(acceptance), encoding="utf-8")
+    _write_dual_parser_backend_report(output, "failure_mode_report", failure_modes, render_failure_mode_report(failure_modes))
+    _write_dual_parser_backend_report(
+        output,
+        "fresh_clone_reproducibility_report",
+        reproducibility,
+        render_fresh_clone_reproducibility_report(reproducibility),
+    )
+    _write_dual_parser_backend_report(output, "evidence_index", evidence_index, render_evidence_index(evidence_index))
+    typer.echo(f"P2.1 parser/OCR release evidence: {output}")
 
 
 @app.command("parse-with-backend")
@@ -5565,6 +5689,12 @@ def _make_source_inventory(source_files: list[Path]) -> dict:
 def _render_quality_report_md(quality_report: dict) -> str:
     rows = "\n".join(f"- {key}: {value}" for key, value in quality_report.items())
     return f"# Quality Report\n\n{rows}\n"
+
+
+def _write_dual_parser_backend_report(output: Path, stem: str, payload: dict, markdown: str) -> None:
+    output.mkdir(parents=True, exist_ok=True)
+    write_json(output / f"{stem}.json", payload)
+    (output / f"{stem}.md").write_text(markdown, encoding="utf-8")
 
 
 def _write_parser_backend_run(output: Path, run) -> None:

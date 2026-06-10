@@ -11,6 +11,7 @@ def test_command_surface_is_documented_in_current_entry_docs():
 
     for phrase in ["build", "doctor", "final-pre-v4-audit"]:
         assert phrase in command_reference
-    assert "4.0.0" in user_manual
+    assert "4.1.0" in user_manual
+    assert "parser-backend-matrix" in command_reference
     assert "old implementation notes" in governance
     assert "git history and tags" in governance

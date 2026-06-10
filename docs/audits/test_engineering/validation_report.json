@@ -1,0 +1,136 @@
+{
+  "version": "v4.1.0",
+  "gate": "chunked_full_gate",
+  "phase": "Parser/OCR Runtime + Workbench Visual Industrialization + Test Governance Bridge",
+  "repository": "core",
+  "release_blocking": true,
+  "changed_files": [
+    "heitang_kb_forge/parser_backends/**",
+    "heitang_kb_forge/cli_runtime.py",
+    "docs/**",
+    "README.md",
+    "README.zh-CN.md",
+    "pyproject.toml",
+    "skill.json",
+    "tests/**"
+  ],
+  "impacted_surfaces": [
+    "parser_ocr_runtime_evidence",
+    "release_truth_docs",
+    "external_registry_boundaries",
+    "test_governance",
+    "release_hygiene"
+  ],
+  "chunks": [
+    {
+      "name": "core_docs_truth_gate",
+      "repository": "core",
+      "command": "python -m pytest tests/test_final_docs_truthfulness.py tests/test_final_bilingual_docs_parity.py tests/test_final_docs_structure.py tests/test_release_checklist_docs.py tests/test_readme_scope.py tests/test_version_alignment.py tests/test_version_matrix_docs.py -q",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/full_gate_logs/core_docs_truth_gate.log",
+      "summary": "13 passed in 1.50s",
+      "status": "passed",
+      "release_blocking": true
+    },
+    {
+      "name": "core_parser_backend_gate",
+      "repository": "core",
+      "command": "python -m pytest tests/test_v28_parser_backends.py -q",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/full_gate_logs/core_parser_backend_gate.log",
+      "summary": "31 passed in 6.48s",
+      "status": "passed",
+      "release_blocking": true
+    },
+    {
+      "name": "core_external_boundary_gate",
+      "repository": "core",
+      "command": "python -m pytest tests/test_external_project_registry.py tests/test_planned_adapter_boundaries.py tests/test_s_a_contract_inclusion.py tests/test_post_v4_external_roadmap.py -q",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/full_gate_logs/core_external_boundary_gate.log",
+      "summary": "16 passed in 2.80s",
+      "status": "passed",
+      "release_blocking": true
+    },
+    {
+      "name": "core_remaining_or_full_gate",
+      "repository": "core",
+      "command": "python -m pytest -q",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/full_gate_logs/core_remaining_or_full_gate.log",
+      "summary": "895 passed, 1 skipped in 2993.07s",
+      "status": "passed",
+      "release_blocking": true
+    },
+    {
+      "name": "core_git_diff_check",
+      "repository": "core",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/full_gate_logs/core_git_diff_check.log",
+      "summary": "no whitespace errors; LF/CRLF warnings only",
+      "status": "passed",
+      "release_blocking": true
+    },
+    {
+      "name": "core_secret_provider_scan",
+      "repository": "core",
+      "command": "rg keyword scan for secrets/provider config",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/full_gate_logs/core_secret_provider_scan.log",
+      "summary": "keyword hits reviewed; no real secret or local provider credential found",
+      "status": "passed",
+      "release_blocking": true
+    },
+    {
+      "name": "core_untracked_files_review",
+      "repository": "core",
+      "command": "git ls-files -o --exclude-standard",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/full_gate_logs/core_untracked_files.log",
+      "summary": "untracked files reviewed as intended source/audit additions; no build output, raw runtime output, local provider config, or temporary debug directory",
+      "status": "passed",
+      "release_blocking": true
+    }
+  ],
+  "deferred": [],
+  "skipped": [],
+  "commands_deferred": [],
+  "commands_skipped": [],
+  "skip_reason": "",
+  "exit_codes": {
+    "core_docs_truth_gate": 0,
+    "core_parser_backend_gate": 0,
+    "core_external_boundary_gate": 0,
+    "core_remaining_or_full_gate": 0,
+    "core_git_diff_check": 0,
+    "core_secret_provider_scan": 0,
+    "core_untracked_files_review": 0
+  },
+  "log_paths": [
+    "docs/audits/test_engineering/full_gate_logs/core_docs_truth_gate.log",
+    "docs/audits/test_engineering/full_gate_logs/core_parser_backend_gate.log",
+    "docs/audits/test_engineering/full_gate_logs/core_external_boundary_gate.log",
+    "docs/audits/test_engineering/full_gate_logs/core_remaining_or_full_gate.log",
+    "docs/audits/test_engineering/full_gate_logs/core_git_diff_check.log",
+    "docs/audits/test_engineering/full_gate_logs/core_secret_provider_scan.log",
+    "docs/audits/test_engineering/full_gate_logs/core_untracked_files.log"
+  ],
+  "decision": "chunked_full_gate_passed_pending_commit_push_ci",
+  "remaining_release_gates": [
+    "commit_core_changes",
+    "push_core_branch",
+    "core_ci_green",
+    "ui_ci_green",
+    "tag_v4.1.0",
+    "github_release"
+  ],
+  "boundaries": {
+    "v4_0_0_tag_untouched": true,
+    "v4_1_0_tag_created": false,
+    "p2_2_started": false,
+    "no_skipped_as_passed": true,
+    "opaque_full_pytest_not_used_as_sole_evidence": true,
+    "unstructured_stable_surface": ".md/.txt"
+  }
+}

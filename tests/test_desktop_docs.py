@@ -24,6 +24,7 @@ def test_current_docs_describe_ui_as_presentation_layer():
     assert "presentation layer" in chinese
     assert "presentation layer" in roadmap
     assert "ready_for_v4_rc=true" in p1
-    assert "stable `v4.0.0`" in p1
+    assert "historical P1-backed release" in p1
+    assert "v4.1.0" in p1
     assert "rc.1 acceptance and hardening evidence" in p1
     assert "full Workbench" not in readme

@@ -1,7 +1,8 @@
 # 文档索引
 
-当前 Core package 版本：`4.0.0`
+当前 Core package 版本：`4.1.0`
 当前 stable release：`v4.0.0`
+当前 release candidate line：`v4.1.0`
 
 这是当前 main 分支的唯一主文档入口。历史版本细节通过 git history 和 tags 查看，不再作为过程文档堆放在 main。
 
@@ -23,6 +24,7 @@
 - [命令参考](COMMAND_REFERENCE.zh-CN.md)
 - [故障排查](TROUBLESHOOTING.zh-CN.md)
 - [版本矩阵](VERSION_MATRIX.zh-CN.md)
+- [验证策略](testing/VALIDATION_STRATEGY.zh-CN.md)
 
 ## Core 能力
 
@@ -34,6 +36,8 @@
 
 - [路线图](ROADMAP.zh-CN.md)
 - [Release Notes](RELEASE_NOTES.zh-CN.md)
+- 当前 audit index：`audits/index.md`
+- P2.1 parser/OCR backend evidence：`audits/p2_1_parser_ocr_backends/`
 - 根目录 gate：`../final_v4_rc_gate_report.json`
 - 根目录 gate alias：`../v4_rc_final_gate_report.json`
 - 最新 P0 证明：`audits/local_acceptance/pre_v4_p0_after_live_llm/`
@@ -50,4 +54,4 @@
 
 ## 边界
 
-LLM 仍然只是 optional only；Core tests 不需要真实 LLM/API/network 调用。`v4.0.0` 是 rc.1 acceptance 与 hardening evidence 之后的当前 stable release line。
+LLM 仍然只是 optional only；Core tests 不需要真实 LLM/API/network 调用。stable `v4.0.0` / v4.0 tag 保持不变，`v4.1.0` 是 P2.1 hardening 之后的当前 Parser/OCR industrial release candidate line。Heavy parser/OCR dependencies 仍为 optional，默认不打包。

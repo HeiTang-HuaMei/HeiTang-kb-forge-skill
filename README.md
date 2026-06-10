@@ -2,14 +2,16 @@
 
 An offline-first Agent Knowledge Supply Chain Core for turning local source materials into standardized, traceable, searchable, auditable, and reusable knowledge assets.
 
-Current Core: v4.0.0
+Current Core: v4.1.0
 
-Status: v4.0.0 stable release after P1 Final Gate, External Project Registry, S/A Contract Inclusion, rc.1 acceptance, and release hardening.
+Status: v4.1.0 stable release candidate after P2.1 Parser/OCR industrial release hardening and Workbench sync.
 
 For quick understanding:
 - Product positioning: [docs/CURRENT_TRUTH.md](docs/CURRENT_TRUTH.md)
 - Capability matrix: [docs/CAPABILITY_MATRIX.md](docs/CAPABILITY_MATRIX.md)
 - AIGC book content pipeline scenario: [docs/AIGC_BOOK_CONTENT_PIPELINE.md](docs/AIGC_BOOK_CONTENT_PIPELINE.md)
+- P2.1 parser/OCR backend evidence: [docs/audits/p2_1_parser_ocr_backends/](docs/audits/p2_1_parser_ocr_backends/)
+- Validation strategy: [docs/testing/VALIDATION_STRATEGY.md](docs/testing/VALIDATION_STRATEGY.md)
 - External benchmarks and post-v4 roadmap: [docs/roadmap/external_projects/](docs/roadmap/external_projects/)
 - S/A external project contract inclusion: [docs/roadmap/external_projects/S_A_CONTRACT_INCLUSION.md](docs/roadmap/external_projects/S_A_CONTRACT_INCLUSION.md)
 - Chinese README: [README.zh-CN.md](README.zh-CN.md)
@@ -22,17 +24,19 @@ The repository name still contains `Skill` because the project started from a Sk
 
 ## Current status
 
-Current Core package version: `4.0.0`
+Current Core package version: `4.1.0`
 Current stable release: `v4.0.0`
+Current release candidate line: `v4.1.0`
 
-- Core pre-v4 RC readiness is complete for the latest Core P0 proof.
-- P1 local Workbench final gate re-run is complete for v4 RC readiness.
-- Pre-v4 External Project Registry and S/A Contract Inclusion are complete.
-- Latest P1 proof: `docs/audits/p1_final_gate_rerun/`
-- Latest Core P0 proof: `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/`
-- Remaining Core P0: none in the latest pre-v4 P0 proof.
+- P2.1 Parser/OCR pluggable backend runtime is release-hardened for v4.1.0.
+- Docling, PaddleOCR, and Unstructured are real opt-in local runtime adapters, dependency-gated and not bundled.
+- Latest P2.1 proof: `docs/audits/p2_1_parser_ocr_backends/`
+- Latest live runtime proof: `docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json`
+- Unstructured stable surface in this release is `.md/.txt`; PDF/DOCX/image extras remain future hardening.
+- Builtin parser remains the default fallback path.
+- v4.0.0 remains an untouched historical stable tag.
 - Final architecture truth: [docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md)
-- `ready_for_v4_rc=true`; rc.1 acceptance and hardening evidence have been promoted into the stable `v4.0.0` release line.
+- `ready_for_v4_rc=true` remains historical P1 evidence; v4.1.0 adds P2.1 parser/OCR release hardening without starting P2.2.
 
 ## Core capabilities
 
@@ -44,6 +48,7 @@ Current stable release: `v4.0.0`
 - Skill-first package generation for Codex, Claude Code, OpenClaw, and generic local Agent integrations.
 - Standalone and KB-bound Agent package surfaces, local runtime smoke, KB boundary checks, memory policy reports, and mother/child orchestration contracts.
 - Local workspace registry, storage reports, lifecycle plans, artifact registries, and P1 Workbench contract pack.
+- Parser/OCR backend runtime registry, matrix, inspect, smoke, live acceptance replay, and release evidence reports for opt-in Docling, PaddleOCR, and Unstructured adapters.
 - Privacy and security reports for no hidden upload, secret redaction, optional provider boundaries, and local-first operation.
 
 ## Quick start
@@ -64,6 +69,9 @@ Build and inspect a local knowledge package:
 
 ```powershell
 python -m heitang_kb_forge.cli doctor --output .\tmp_doctor
+python -m heitang_kb_forge.cli parser-backend-registry --output .\tmp_parser_registry
+python -m heitang_kb_forge.cli parser-backend-matrix --output .\tmp_parser_matrix
+python -m heitang_kb_forge.cli parser-backend-smoke --backend builtin --output .\tmp_parser_builtin_smoke
 python -m heitang_kb_forge.cli build --input .\examples\quickstart\input --output .\tmp_quickstart_output
 python -m heitang_kb_forge.cli check-contract --package .\tmp_quickstart_output --output .\tmp_contract
 python -m heitang_kb_forge.cli kb-index --package .\tmp_quickstart_output --output .\tmp_kb_index
@@ -103,10 +111,11 @@ UI information architecture is frozen as a planning contract, and the UI remains
 ## Repository status / honesty boundary
 
 - This is the Core repository only; visual UI work belongs outside this Core pass.
-- The P1 local Workbench gate, rc.1 acceptance, and release hardening evidence are complete for stable `v4.0.0`.
+- The P1 local Workbench gate, rc.1 acceptance, and release hardening evidence remain attached as v4.0.0 historical release proof.
 - Historical P1 evidence may still contain `not_v4_0_workbench_rc=true` as a time-point boundary from before the stable release.
 - OpenDataLoader and MinerU remain external backend candidates / planned adapters only.
-- Docling, PaddleOCR, and Unstructured are implemented only as opt-in local parser/OCR runtime adapters; they are dependency-gated, not bundled, not default Core parsing, and not UI-executable external projects.
+- Docling, PaddleOCR, and Unstructured are implemented as opt-in local parser/OCR runtime adapters; they are dependency-gated, not bundled, not default Core parsing, and not static Workbench-executable external projects.
+- P2.1 validates Docling on Markdown/TXT live acceptance samples, PaddleOCR on a PNG OCR sample, and Unstructured on `.md/.txt`; broader surfaces remain explicitly bounded by [backend capability boundaries](docs/audits/p2_1_parser_ocr_backends/backend_capability_boundaries.md).
 - S/A external projects are included as contract, matrix, provider boundary, and UI visibility entries only; this does not implement their functionality.
 - External provider, secret, and network-dependent actions require explicit user configuration and are not counted as real-local passed.
 - External GitHub benchmark implementation is post-v4 and is not part of this gate.

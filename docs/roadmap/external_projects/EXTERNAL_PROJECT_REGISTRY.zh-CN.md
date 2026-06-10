@@ -2,7 +2,7 @@
 
 这是外部 GitHub 项目和内部能力方向总账。本文件记录 registry、roadmap、benchmark mapping、docs、tests，以及显式的可选本地 parser/OCR runtime adapter 边界。
 
-本文件不把外部项目变成默认产品功能，不调用 provider API，不打包外部 runtime，不启动 v4.0。
+本文件不把外部项目变成默认产品功能，不调用 provider API，不打包外部 runtime，不修改 `v4.0.0`，也不启动 P2.2。
 
 唯一数据源：[external_project_registry.json](external_project_registry.json)。
 
@@ -14,7 +14,7 @@
 - B 级项目数：4
 - `current_repo_status=needs_verification` 项目数：0
 - Internal Capability Anchors 数：8
-- 可选本地 parser/OCR runtime adapters：Docling、PaddleOCR、Unstructured
+- 已完成 v4.1.0 release hardening 的可选本地 parser/OCR runtime adapters：Docling、PaddleOCR、Unstructured
 - planned_adapter 标为 ready：false
 - v4.0 started：false
 - tag created：false
@@ -28,10 +28,10 @@
 | WeKnora | mentioned_only | registry_only | P2.5 |
 | n8n | mentioned_only | registry_only | P2.2 / P3 |
 | andrej-karpathy-skills | benchmark_mapped | registry_only | P2.9 |
-| PaddleOCR | planned_adapter | registry_only | P2.1 |
+| PaddleOCR | planned_adapter + optional_runtime_adapter | registry_only | P2.1 |
 | MinerU | planned_adapter | registry_only | P2.6 |
-| Docling | planned_adapter | registry_only | P2.1 |
-| Unstructured | planned_adapter | registry_only | P2.1 |
+| Docling | planned_adapter + optional_runtime_adapter | registry_only | P2.1 |
+| Unstructured | planned_adapter + optional_runtime_adapter | registry_only | P2.1 |
 
 ## A 级项目
 

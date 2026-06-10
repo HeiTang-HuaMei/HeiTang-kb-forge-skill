@@ -1,0 +1,33 @@
+{
+  "schema_version": "p2.1.backend_status.schema.v1",
+  "required_backend_fields": [
+    "backend_id",
+    "dependency_mode",
+    "dependency_available",
+    "runtime_invoked",
+    "sample_input_type",
+    "validated_stable_surface",
+    "known_limitations",
+    "status",
+    "evidence_path",
+    "fallback_behavior"
+  ],
+  "failure_fields": [
+    "error_code",
+    "human_readable_reason",
+    "backend_id",
+    "fallback_result",
+    "repair_suggestion",
+    "audit_trace",
+    "workbench_visible_status"
+  ],
+  "stable_status_values": [
+    "builtin_passed",
+    "real_runtime_integrated",
+    "optional_dependency_gated",
+    "limited_surface",
+    "future_hardening",
+    "blocked_by_dependency",
+    "not_ready"
+  ]
+}

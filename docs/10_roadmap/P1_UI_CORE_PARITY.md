@@ -1,6 +1,6 @@
 # P1 UI Core Parity
 
-P1 is now the local Workbench evidence gate that has passed for v4 RC readiness. The project has moved through `v4.0.0-rc.1` acceptance and hardening into stable `v4.0.0`.
+P1 is the historical local Workbench evidence gate that passed for v4 RC readiness. The project moved through `v4.0.0-rc.1` acceptance and hardening into stable `v4.0.0`; current main has advanced to v4.1.0 Parser/OCR release hardening while preserving this P1 evidence.
 
 ## Goal
 
@@ -25,4 +25,5 @@ P1 requires Core V1/V2 evidence, UI consumption, drift-free assets, and explicit
 
 - Core pre-v4 RC readiness is complete.
 - P1-RWF-V2 evidence and UI consumption have been re-run into `ready_for_v4_rc=true`.
-- Stable `v4.0.0` is current after rc.1 acceptance and hardening evidence.
+- Stable `v4.0.0` remains the historical P1-backed release after rc.1 acceptance and hardening evidence.
+- Current `v4.1.0` adds P2.1 parser/OCR backend matrix evidence without changing the P1 gate.

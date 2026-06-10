@@ -1,9 +1,10 @@
 # Local Privacy and Security
 
-Current Core package version: `4.0.0`
+Current Core package version: `4.1.0`
 Current stable release: `v4.0.0`
+Current release candidate line: `v4.1.0`
 
-Current stage: v4.0.0 stable release after rc.1 acceptance and hardening evidence.
+Current stage: v4.1.0 Parser/OCR industrial release candidate after P2.1 hardening; the stable v4.0.0 / v4.0 tag remains untouched.
 
 HeiTang KB Forge Core is local-first by default.
 

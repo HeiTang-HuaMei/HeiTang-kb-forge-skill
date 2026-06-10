@@ -52,7 +52,7 @@ def evaluate_release_readiness(workspace: Path, output: Path) -> ReleaseReadines
             "Resolve critical blockers before release.",
             "Use v2.6 opt-in LLM live smoke for provider evidence.",
             "Use v2.8 parser backend reliability evidence for parser-risk validation.",
-            "Keep P1 final gate, external registry, and S/A contract inclusion evidence attached for v4.0.0 stable.",
+            "Keep P1 final gate, external registry, S/A contract inclusion, and P2.1 parser/OCR backend evidence attached for v4.1.0 stable.",
         ],
     )
     write_json(output / "release_readiness_result.json", result)
@@ -73,7 +73,7 @@ def _status(path: Path) -> str:
 
 def _repo_gate_failures(workspace: Path) -> list[str]:
     failures: list[str] = []
-    expected = "4.0.0"
+    expected = "4.1.0"
     if not _versions_aligned(workspace, expected):
         failures.append("version_mismatch")
     for name, path in {
