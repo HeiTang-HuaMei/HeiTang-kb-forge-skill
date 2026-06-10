@@ -69,6 +69,13 @@ STRUCTURED_SKILL_OUTPUT_FILES = [
     "skill_format_support_truth_matrix.json",
     "skill_privacy_safety_report.json",
     "skill_agent_kb_compatibility_report.json",
+    "skill_governance_report.json",
+    "skill_governance_report.md",
+]
+
+SKILL_GOVERNANCE_OUTPUT_FILES = [
+    "skill_governance_report.json",
+    "skill_governance_report.md",
 ]
 
 STRUCTURED_REQUIRED_FILES = [
@@ -271,6 +278,7 @@ def generate_structured_skill_package(
     write_json(output / "structured_skill_package_completion_report.json", completion)
     (output / "structured_skill_package_completion_report.md").write_text(_completion_md(completion), encoding="utf-8")
     write_json(output / "on_demand_loading_report.json", _on_demand_report(on_demand_manifest, token_report))
+    run_skill_governance_report(output)
     return completion
 
 
@@ -409,6 +417,109 @@ def diff_structured_skill_packages(old_skill: Path, new_skill: Path, output: Pat
     output.mkdir(parents=True, exist_ok=True)
     write_json(output / "skill_diff_report.json", result)
     (output / "skill_diff_report.md").write_text(_diff_md(result), encoding="utf-8")
+    return result
+
+
+def run_skill_governance_report(skill: Path, output: Path | None = None, old_skill: Path | None = None) -> dict:
+    if not skill.exists() or not skill.is_dir():
+        raise FileNotFoundError(f"Skill package not found: {skill}")
+    target = output or skill
+    target.mkdir(parents=True, exist_ok=True)
+
+    validation = validate_structured_skill_package(skill)
+    completion = _read_json(skill / "structured_skill_package_completion_report.json")
+    installability = _read_json(skill / "skill_installability_report.json")
+    privacy = _read_json(skill / "skill_privacy_safety_report.json")
+    compatibility = _read_json(skill / "skill_agent_kb_compatibility_report.json")
+    quality = _read_json(skill / "skill_quality_report.json")
+    token_budget = _read_json(skill / "token_budget_report.json")
+    manifest = _read_json(skill / "skill_manifest.json")
+
+    warnings = list(validation.get("warnings", []))
+    if old_skill is not None:
+        diff = diff_structured_skill_packages(old_skill, skill, target / "skill_diff")
+    elif (skill / "skill_diff_report.json").exists():
+        diff = _read_json(skill / "skill_diff_report.json")
+    else:
+        diff = {
+            "status": "not_run",
+            "baseline_provided": False,
+            "changed_files": [],
+            "added_files": [],
+            "removed_files": [],
+            "regeneration_recommendation": "provide_old_skill_to_compare",
+        }
+        warnings.append("diff_baseline_not_provided")
+
+    checks = {
+        "generation": {
+            "status": "pass" if completion.get("status") == "pass" and completion.get("real_structured_skill_package_generated") is True else "blocked",
+            "evidence_file": "structured_skill_package_completion_report.json",
+        },
+        "validation": {
+            "status": validation.get("status", "missing"),
+            "release_ready": validation.get("release_ready", False),
+            "errors": validation.get("errors", []),
+            "evidence_file": "structured_skill_validation_result.json",
+        },
+        "diff_comparison": {
+            "status": diff.get("status", "missing"),
+            "baseline_provided": old_skill is not None or diff.get("baseline_provided") is True,
+            "changed_file_count": len(diff.get("changed_files", [])),
+            "added_file_count": len(diff.get("added_files", [])),
+            "removed_file_count": len(diff.get("removed_files", [])),
+            "regeneration_recommendation": diff.get("regeneration_recommendation", "unknown"),
+            "evidence_file": "skill_diff_report.json",
+        },
+        "installability": {
+            "status": installability.get("status", "missing"),
+            "targets": sorted(installability.get("targets", {}).keys()),
+            "evidence_file": "skill_installability_report.json",
+        },
+        "privacy_boundary": {
+            "status": privacy.get("status", "missing"),
+            "local_first_default": privacy.get("local_first_default") is True,
+            "raw_source_text_copied_wholesale": privacy.get("raw_source_text_copied_wholesale"),
+            "evidence_file": "skill_privacy_safety_report.json",
+        },
+        "kb_agent_compatibility": {
+            "status": compatibility.get("status", "missing"),
+            "kb_bound_agent_generation_supported": compatibility.get("kb_bound_agent_generation_supported") is True,
+            "evidence_file": "skill_agent_kb_compatibility_report.json",
+        },
+        "token_budget": {
+            "status": "pass" if token_budget.get("full_book_loaded_by_default") is False else "blocked",
+            "recommended_load_policy": token_budget.get("recommended_load_policy"),
+            "evidence_file": "token_budget_report.json",
+        },
+        "quality": {
+            "status": quality.get("status", "missing"),
+            "evidence_file": "skill_quality_report.json",
+        },
+    }
+    blockers = [name for name, check in checks.items() if name != "diff_comparison" and check.get("status") != "pass"]
+    result = {
+        "skill_governance_report_version": "v4.2-p2.2-1",
+        "status": "pass" if not blockers else "blocked",
+        "release_ready": not blockers and not warnings,
+        "skill_package": _posix(skill),
+        "skill_id": manifest.get("skill_id"),
+        "skill_name": manifest.get("skill_name"),
+        "source_package_id": manifest.get("source_package_id"),
+        "generated_by": manifest.get("generated_by"),
+        "checks": checks,
+        "blockers": blockers,
+        "warnings": warnings,
+        "cli_commands": ["book-to-skill", "validate-skill-package", "diff-skill-package", "skill-governance-report"],
+        "ui_contract": {
+            "status_field": "skill_governance_report_available",
+            "asset_id": "skill_governance_report_json",
+            "ready_for_workbench_display": True,
+        },
+        "tests_require_real_llm_api_network": False,
+    }
+    write_json(target / "skill_governance_report.json", result)
+    (target / "skill_governance_report.md").write_text(_skill_governance_md(result), encoding="utf-8")
     return result
 
 
@@ -1299,6 +1410,38 @@ def _diff_md(result: dict) -> str:
             "",
         ]
     )
+
+
+def _skill_governance_md(result: dict) -> str:
+    lines = [
+        "# Skill Governance Report",
+        "",
+        f"Status: {result['status']}",
+        f"Release ready: {result['release_ready']}",
+        f"Skill: {result.get('skill_name') or result.get('skill_id') or 'unknown'}",
+        f"Source package: {result.get('source_package_id') or 'unknown'}",
+        "",
+        "## Checks",
+        "",
+    ]
+    for name, check in result["checks"].items():
+        lines.append(f"- {name}: {check.get('status')}")
+    lines.extend(
+        [
+            "",
+            "## Blockers",
+            "",
+            *(f"- {item}" for item in result["blockers"]),
+            *(["- none"] if not result["blockers"] else []),
+            "",
+            "## Warnings",
+            "",
+            *(f"- {item}" for item in result["warnings"]),
+            *(["- none"] if not result["warnings"] else []),
+            "",
+        ]
+    )
+    return "\n".join(lines)
 
 
 def _section(title: str, items: list[str]) -> str:

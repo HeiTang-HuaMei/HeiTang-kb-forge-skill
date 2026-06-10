@@ -219,6 +219,7 @@ from heitang_kb_forge.skill import (
     collect_book_to_skill_inputs,
     diff_structured_skill_packages,
     generate_skill_package,
+    run_skill_governance_report,
     validate_structured_skill_package,
 )
 from heitang_kb_forge.skill_validation import SKILL_VALIDATION_FILES, validate_skill_package
@@ -1263,6 +1264,18 @@ def diff_skill_package_command(
     result = diff_structured_skill_packages(old_skill, new_skill, output)
     typer.echo(f"Built structured Skill diff at {output}")
     typer.echo(f"Changed: {len(result['changed_files'])} | Added: {len(result['added_files'])} | Removed: {len(result['removed_files'])}")
+
+
+@app.command("skill-governance-report")
+def skill_governance_report_command(
+    skill: Path = typer.Option(..., "--skill", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    old_skill: Path | None = typer.Option(None, "--old-skill", exists=True, file_okay=False, dir_okay=True, readable=True),
+) -> None:
+    """Build a Skill governance report from generation, validation, diff, and installability evidence."""
+    result = run_skill_governance_report(skill, output, old_skill)
+    typer.echo(f"Built Skill governance report at {output}")
+    typer.echo(f"Status: {result['status']} | Release ready: {result['release_ready']}")
 
 
 @app.command("validate-skill")
