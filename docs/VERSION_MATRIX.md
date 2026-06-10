@@ -1,10 +1,10 @@
 # Version Matrix
 
-Current project version: `4.0.0`
+Current project version: `4.1.0`
 
-Current stable release: `v4.0.0`
+Current release line: `v4.1.0`
 
-Current stage: v4.0.0 stable release after rc acceptance and hardening.
+Current stage: v4.1.0 P2.1 Parser/OCR Workbench evidence sync; v4.0.0 remains an untouched historical stable tag.
 
 | Version | Status | Main Capability | Test Coverage | Known Limits | Checkpoint / Tag |
 | --- | --- | --- | --- | --- | --- |
@@ -24,7 +24,8 @@ Current stage: v4.0.0 stable release after rc acceptance and hardening.
 | v2.6.0-alpha.1 | Implemented | provider registry governance, security, fallback, redaction, cost guard, opt-in live smoke | pytest | alpha checkpoint, no default network, live smoke is Preview | v2.6.0-alpha.1 |
 | v2.7.0-alpha.1 | Implemented | minimal end-to-end demo / portfolio release | pytest | no real runtime compatibility, no live platform runtime | historical |
 | v4.0.0-rc.1 | Historical | Workbench UI release candidate with P1 final gate evidence, external registry visibility, and S/A contract inclusion visibility | pytest, Flutter tests/builds | accepted before stable v4.0.0; external projects remain visibility-only | historical |
-| v4.0.0 | Current | Stable Local Knowledge Workbench release | pytest, Flutter tests/builds, CI, release hardening | external projects remain visibility-only unless separately implemented | current |
+| v4.0.0 | Historical | Stable Local Knowledge Workbench release | pytest, Flutter tests/builds, CI, release hardening | external projects remain visibility-only unless separately implemented | historical |
+| v4.1.0 | Current | Parser/OCR backend evidence sync for Workbench | pytest, Flutter tests/builds, CI, release hardening | parser/OCR runtimes remain optional dependency gated; Unstructured stable surface is `.md/.txt`; static Workbench does not execute runtimes | current |
 | runtime compatibility planned | Planned | runtime compatibility smoke | planned | not implemented | planned |
 | v2.8 planned | Planned | domain Skill factory | planned | not implemented | planned |
 | v2.9 planned | Planned | Feishu / personal KB / mobile / installer / iOS | planned | not implemented | planned |

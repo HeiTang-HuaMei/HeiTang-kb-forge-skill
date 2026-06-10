@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 
 
@@ -123,7 +124,7 @@ def test_dedicated_p1_routes_have_sidebar_and_renderers():
     assert DEDICATED_ROUTES <= route_ids
     for route in DEDICATED_ROUTES:
         assert f'id: "{route}"' in app or f'"{route}"' in app
-        assert f"WorkbenchPage('{route}'" in flutter_main
+        assert re.search(rf"WorkbenchPage\(\s*'{re.escape(route)}'", flutter_main)
 
     assert '"operation-gate": renderOperationGate' in app
     assert '"capability-matrix": renderCapabilityMatrix' in app

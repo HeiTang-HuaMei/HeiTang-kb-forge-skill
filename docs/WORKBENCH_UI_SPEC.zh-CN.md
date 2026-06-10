@@ -1,6 +1,6 @@
 # HeiTang Knowledge Workbench UI 规格
 
-状态：UI-v0.1 至 UI-v0.5 原型。本规格定义仅使用模拟数据的产品界面，Core 集成保留到未来服务层。
+状态：UI-v0.1 至 UI-v0.5 原型，并加入 v4.1.0 Parser/OCR evidence sync。本规格定义基于 fixture 的产品界面，Core runtime 集成保留给明确的 bridge / service 层。
 
 ## 范围
 
@@ -8,6 +8,7 @@
 - 在 `web/workbench/flutter_app/` 下提供 Flutter scaffold，覆盖 Windows 桌面、Web/PWA、Android、iOS target。
 - 数据源只允许使用 `examples/ui_mock_data/*.json`。
 - 不实现解析、RAG、文档生成、Agent 编排或记忆运行时逻辑。
+- 展示复制自 Core fixture 的 P2.1 parser backend matrix evidence，但不执行 parser/OCR runtime。
 - 未来 API 替换边界保留在 `web/workbench/src/mockService.js`。
 - Flutter UI scaffold 不得导入 Core pipeline 模块。
 
@@ -45,13 +46,22 @@
 
 展示知识库、可信/草稿状态、Agent、复核风险、当前任务和供应商就绪状态。
 
-模拟数据源：`knowledge_bases.json`、`agents.json`、`jobs.json`、`review_queue.json`、`provider_status.json`。
+模拟数据源：`knowledge_bases.json`、`agents.json`、`jobs.json`、`review_queue.json`、`provider_status.json`、`parser_backends/parser_backend_matrix.json`。
 
 ### 文件上传
 
 展示模拟拖放区和解析器就绪状态。上传按钮只做界面展示，不调用解析后端。
 
-模拟数据源：`parser_backend_status.json`、`jobs.json`。
+模拟数据源：`parser_backend_status.json`、`parser_backends/parser_backend_matrix.json`、`jobs.json`。
+
+Parser backend matrix 展示规则：
+
+- Builtin：保留 fallback。
+- Docling：真实 runtime 已集成，optional dependency gated，稳定表面以发布证据为准。
+- PaddleOCR：真实 runtime 已集成，optional dependency gated，稳定 PNG OCR 证据。
+- Unstructured：真实 runtime 已集成，optional dependency gated，稳定表面仅 `.md/.txt`。
+- 静态 Web 与 Flutter Workbench 不展示 parser/OCR runtime 执行控件。
+- Flutter 以 dashboard summary cards、边界 callout、data table、backend detail panels 与 audit evidence rows 展示矩阵。
 
 ### 任务进度
 
@@ -117,7 +127,7 @@
 
 展示供应商状态、解析后端状态、回答策略和记忆策略的模拟配置。
 
-模拟数据源：`provider_status.json`、`parser_backend_status.json`、`answer_policies.json`。
+模拟数据源：`provider_status.json`、`parser_backend_status.json`、`parser_backends/parser_backend_matrix.json`、`answer_policies.json`。
 
 ### 导出中心
 
@@ -138,6 +148,7 @@ UI 只消费以下文件：
 - `generated_docs.json`
 - `provider_status.json`
 - `parser_backend_status.json`
+- `parser_backends/parser_backend_matrix.json`
 - `answer_policies.json`
 
 必须覆盖：
@@ -146,7 +157,7 @@ UI 只消费以下文件：
 - 多个 Agent，并包含 Agent 到知识库绑定。
 - 不同模型供应商和供应商状态。
 - 回答策略模式。
-- 解析后端状态。
+- 从 Core v4.1.0 evidence 派生的解析后端状态，包括安装模式、稳定表面、证据路径、已知限制，以及不声明静态可执行。
 - 复核队列风险。
 - 生成文档和导出项。
 - 多 Agent 工作流、工作流共享记忆、交接链路。
@@ -166,6 +177,7 @@ UI 只消费以下文件：
 - `exportItems`
 - `providers`
 - `parserBackends`
+- `parserBackendMatrix`
 - `answerPolicies`
 - `memoryPolicies`
 

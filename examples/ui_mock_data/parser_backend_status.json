@@ -1,8 +1,54 @@
 {
+  "source": {
+    "derived_from": "examples/ui_mock_data/parser_backends/parser_backend_matrix.json",
+    "core_runtime_baseline_commit": "576a62075dc1ecbe00388bb0569fd1fc767be7cb",
+    "release_version": "v4.1.0",
+    "policy": "Compatibility summary only; Workbench does not execute parser/OCR runtimes."
+  },
   "parser_backends": [
-    {"id": "docling_local", "name": "Docling Local", "status": "available", "supports": ["pdf", "docx", "html"]},
-    {"id": "marker_remote", "name": "Marker Remote", "status": "degraded", "supports": ["pdf", "image"]},
-    {"id": "unstructured_local", "name": "Unstructured Local", "status": "available", "supports": ["pdf", "docx", "pptx", "html"]},
-    {"id": "plain_text", "name": "Plain Text", "status": "available", "supports": ["md", "txt", "json"]}
+    {
+      "id": "builtin",
+      "name": "Built-in parser fallback",
+      "status": "builtin_passed",
+      "supports": [".md", ".txt"],
+      "dependency_mode": "default",
+      "optional_extra": null,
+      "evidence_path": "tests/test_v28_parser_backends.py::test_parse_with_backend_builtin_writes_normalized_outputs",
+      "static_workbench_executable": false
+    },
+    {
+      "id": "docling",
+      "name": "Docling local runtime adapter",
+      "status": "real_runtime_integrated",
+      "supports": [".md", ".txt"],
+      "dependency_mode": "optional_extra",
+      "optional_extra": "parser-docling",
+      "evidence_path": "docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json",
+      "static_workbench_executable": false
+    },
+    {
+      "id": "paddleocr",
+      "name": "PaddleOCR local OCR runtime adapter",
+      "status": "real_runtime_integrated",
+      "supports": [".png"],
+      "dependency_mode": "optional_extra",
+      "optional_extra": "parser-paddleocr",
+      "evidence_path": "docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json",
+      "static_workbench_executable": false
+    },
+    {
+      "id": "unstructured",
+      "name": "Unstructured local runtime adapter",
+      "status": "real_runtime_integrated",
+      "supports": [".md", ".txt"],
+      "dependency_mode": "optional_extra",
+      "optional_extra": "parser-unstructured",
+      "evidence_path": "docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json",
+      "known_limitations": [
+        "Stable P2.1 surface is explicitly limited to .md/.txt.",
+        "PDF/DOCX/image extras are future hardening and are not claimed stable in v4.1.0."
+      ],
+      "static_workbench_executable": false
+    }
   ]
 }

@@ -50,7 +50,7 @@ def evaluate_release_readiness(workspace: Path, output: Path) -> ReleaseReadines
         warnings=warnings,
         next_actions=[
             "Resolve critical blockers before release.",
-            "Keep P1 final gate, external registry, and S/A contract inclusion evidence attached for v4.0.0 stable.",
+            "Keep P1 final gate, external registry, S/A contract inclusion, and P2.1 parser backend evidence attached to the current release line.",
             "Keep copied Workbench UI evidence aligned with the stable Core commit.",
         ],
     )
@@ -72,8 +72,8 @@ def _status(path: Path) -> str:
 
 def _repo_gate_failures(workspace: Path) -> list[str]:
     failures: list[str] = []
-    expected = "4.0.0"
-    if not _versions_aligned(workspace, expected):
+    expected = _project_metadata_version(workspace)
+    if not _is_release_version(expected) or not _versions_aligned(workspace, expected):
         failures.append("version_mismatch")
     for name, path in {
         "capability_status_missing": workspace / "docs" / "CAPABILITY_STATUS.md",
@@ -100,7 +100,25 @@ def _repo_gate_failures(workspace: Path) -> list[str]:
     return failures
 
 
-def _versions_aligned(workspace: Path, expected: str) -> bool:
+def _project_metadata_version(workspace: Path) -> str | None:
+    pyproject = workspace / "pyproject.toml"
+    if pyproject.exists():
+        for line in pyproject.read_text(encoding="utf-8").splitlines():
+            if line.startswith("version = "):
+                return line.split("=", 1)[1].strip().strip('"')
+    skill_json = workspace / "skill.json"
+    if skill_json.exists():
+        try:
+            version = json.loads(skill_json.read_text(encoding="utf-8")).get("version")
+        except json.JSONDecodeError:
+            return None
+        return str(version) if version else None
+    return None
+
+
+def _versions_aligned(workspace: Path, expected: str | None) -> bool:
+    if not expected:
+        return False
     versions = []
     pyproject = workspace / "pyproject.toml"
     skill_json = workspace / "skill.json"
@@ -127,6 +145,10 @@ def _versions_aligned(workspace: Path, expected: str) -> bool:
         if path.exists() and expected not in path.read_text(encoding="utf-8", errors="ignore"):
             return False
     return bool(versions) and all(version == expected for version in versions)
+
+
+def _is_release_version(version: str | None) -> bool:
+    return bool(version) and version != "0.0.0"
 
 
 def _suspected_secret(workspace: Path) -> bool:

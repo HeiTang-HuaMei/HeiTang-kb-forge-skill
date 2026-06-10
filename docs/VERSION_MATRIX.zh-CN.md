@@ -1,10 +1,10 @@
 # Version Matrix
 
-当前项目版本：`4.0.0`
+当前项目版本：`4.1.0`
 
-当前 stable release：`v4.0.0`
+当前 release line：`v4.1.0`
 
-当前阶段：v4.0.0 stable release，已完成 rc acceptance 与 hardening。
+当前阶段：v4.1.0 P2.1 Parser/OCR Workbench evidence sync；v4.0.0 保持为未改动的历史 stable tag。
 
 | Version | Status | Main Capability | Test Coverage | Known Limits | Checkpoint / Tag |
 | --- | --- | --- | --- | --- | --- |
@@ -24,7 +24,8 @@
 | v2.6.0-alpha.1 | Implemented | provider registry governance、security、fallback、redaction、cost guard、opt-in live smoke | pytest | alpha checkpoint, no default network, live smoke is Preview | v2.6.0-alpha.1 |
 | v2.7.0-alpha.1 | Implemented | minimal end-to-end demo / portfolio release | pytest | no real runtime compatibility, no live platform runtime | historical |
 | v4.0.0-rc.1 | Historical | Workbench UI release candidate，包含 P1 final gate evidence、external registry 可见边界与 S/A contract inclusion 可见边界 | pytest、Flutter tests/builds | stable v4.0.0 前已验收；外部项目仍只做可见边界 | historical |
-| v4.0.0 | Current | Stable Local Knowledge Workbench release | pytest、Flutter tests/builds、CI、release hardening | 外部项目除非单独实现，否则仍只做可见边界 | current |
+| v4.0.0 | Historical | Stable Local Knowledge Workbench release | pytest、Flutter tests/builds、CI、release hardening | 外部项目除非单独实现，否则仍只做可见边界 | historical |
+| v4.1.0 | Current | Parser/OCR backend evidence sync for Workbench | pytest、Flutter tests/builds、CI、release hardening | parser/OCR runtime 仍为 optional dependency gated；Unstructured 稳定表面仅 `.md/.txt`；静态 Workbench 不执行 runtime | current |
 | runtime compatibility planned | Planned | runtime compatibility smoke | planned | not implemented | planned |
 | v2.8 planned | Planned | domain Skill factory | planned | not implemented | planned |
 | v2.9 planned | Planned | Feishu / personal KB / mobile / installer / iOS | planned | not implemented | planned |

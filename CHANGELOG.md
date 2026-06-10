@@ -1,5 +1,14 @@
 # Changelog
 
+## v4.1.0
+
+* Added Workbench Parser/OCR backend matrix evidence sync for Core runtime baseline `576a62075dc1ecbe00388bb0569fd1fc767be7cb`.
+* Added Flutter asset and UI fixture coverage for builtin fallback, Docling, PaddleOCR, and Unstructured backend status.
+* Added visible install mode, acceptance status, stable surface, evidence path, known limitation, and optional dependency boundary fields.
+* Preserved Unstructured stable surface as `.md/.txt` only for this release.
+* Preserved static Workbench as evidence-only for parser/OCR backends; no parser/OCR runtime execution controls were added.
+* Preserved `v4.0.0` as an untouched historical stable tag.
+
 ## v4.0.0-rc.1
 
 * Aligned UI package metadata to `4.0.0rc1`.

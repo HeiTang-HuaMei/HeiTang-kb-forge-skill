@@ -1,15 +1,17 @@
 # Release Checklist
 
-Current project version: `4.0.0`
+Current project version: `4.1.0`
 
-Current stable release: `v4.0.0`
+Current release line: `v4.1.0`
 
-Current stage: v4.0.0 stable release after rc acceptance and hardening.
+Current stage: v4.1.0 P2.1 Parser/OCR Workbench evidence sync; v4.0.0 remains an untouched historical stable tag.
 
 ## Required Checks
 
 - [x] Version aligned in `pyproject.toml`, `skill.json`, README, Capability Status, Version Matrix, and Release Checklist
 - [x] P1 Final Gate, External Project Registry, S/A Contract Inclusion, rc.1 acceptance, and release hardening evidence remain attached
+- [x] Parser backend matrix fixture and Flutter asset are copied from Core runtime baseline commit `576a62075dc1ecbe00388bb0569fd1fc767be7cb`
+- [x] Workbench displays parser/OCR evidence, install mode, stable surface, known limitations, and no runtime execution claim
 - [ ] `python -m pytest` passed
 - [ ] Doctor command `python -m heitang_kb_forge.cli doctor --output ./tmp_doctor` passed
 - [ ] Quickstart build passed
@@ -41,6 +43,9 @@ Current stage: v4.0.0 stable release after rc acceptance and hardening.
 - Do not claim real OpenClaw / Codex / Claude Code / MCP runtime execution.
 - Do not claim Feishu / mobile / installer / iOS support before v2.9.
 - Do not claim SaaS / permissions before v3.x.
+- Do not claim parser/OCR runtimes execute from static Workbench.
+- Do not claim Unstructured PDF/DOCX/image support as stable in v4.1.0; stable surface is `.md/.txt`.
+- Do not bundle Docling, PaddleOCR, or Unstructured as default dependencies.
 
 ## Release Readiness Gate
 

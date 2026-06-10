@@ -5,6 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MOCK_DATA = ROOT / "examples" / "ui_mock_data"
 CORE_COMMIT = "f5fa13bb11211abb0bcecaccd845e545a2dacad3"
+PARSER_RUNTIME_BASELINE_COMMIT = "576a62075dc1ecbe00388bb0569fd1fc767be7cb"
 
 
 def read_json(name):
@@ -22,6 +23,7 @@ def test_required_mock_data_files_exist_and_are_json():
         "generated_docs.json",
         "provider_status.json",
         "parser_backend_status.json",
+        "parser_backends/parser_backend_matrix.json",
         "answer_policies.json",
         "p1_core_contract_fixture.json",
         "p1_real_workflow_v1_evidence.json",
@@ -53,17 +55,49 @@ def test_mock_data_represents_knowledge_bases_agents_and_bindings():
 
 def test_mock_data_represents_providers_policies_and_parser_status():
     providers = read_json("provider_status.json")["providers"]
-    parser_backends = read_json("parser_backend_status.json")["parser_backends"]
+    parser_status = read_json("parser_backend_status.json")
+    parser_backends = parser_status["parser_backends"]
     policies = read_json("answer_policies.json")
 
     assert len(providers) >= 3
     assert {"available", "degraded", "offline"} <= {provider["status"] for provider in providers}
-    assert len(parser_backends) >= 3
-    assert {"available", "degraded"} <= {backend["status"] for backend in parser_backends}
+    assert parser_status["source"]["derived_from"] == "examples/ui_mock_data/parser_backends/parser_backend_matrix.json"
+    assert parser_status["source"]["core_runtime_baseline_commit"] == PARSER_RUNTIME_BASELINE_COMMIT
+    assert {backend["id"] for backend in parser_backends} == {"builtin", "docling", "paddleocr", "unstructured"}
+    assert {backend["status"] for backend in parser_backends} == {"builtin_passed", "real_runtime_integrated"}
+    assert all(backend["static_workbench_executable"] is False for backend in parser_backends)
+    assert next(backend for backend in parser_backends if backend["id"] == "unstructured")["supports"] == [".md", ".txt"]
     assert {"grounded_only", "cite_or_abstain", "needs_review"} <= {
         policy["id"] for policy in policies["answer_policies"]
     }
     assert policies["memory_policies"]
+
+
+def test_parser_backend_matrix_fixture_matches_flutter_asset_and_core_boundaries():
+    fixture = read_json("parser_backends/parser_backend_matrix.json")
+    asset = json.loads(
+        (ROOT / "web" / "workbench" / "flutter_app" / "assets" / "parser_backends" / "parser_backend_matrix.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert fixture == asset
+    assert fixture["schema_version"] == "p2.1.parser_backend_matrix.v1"
+    assert fixture["release_version"] == "v4.1.0"
+    assert fixture["runtime_baseline_commit"] == PARSER_RUNTIME_BASELINE_COMMIT
+    assert fixture["default_heavy_dependencies_bundled"] is False
+    assert fixture["static_workbench_runtime_execution_claimed"] is False
+    assert {backend["backend_id"] for backend in fixture["backends"]} == {"builtin", "docling", "paddleocr", "unstructured"}
+    assert all(backend["static_workbench_executable"] is False for backend in fixture["backends"])
+    assert all("evidence_path" in backend and backend["evidence_path"] for backend in fixture["backends"])
+
+    unstructured = next(backend for backend in fixture["backends"] if backend["backend_id"] == "unstructured")
+    assert unstructured["validated_stable_surface"] == [".md", ".txt"]
+    assert any(".md/.txt" in limitation for limitation in unstructured["known_limitations"])
+    assert not any(
+        extension in unstructured["validated_stable_surface"]
+        for extension in [".pdf", ".docx", ".png", ".jpg", ".jpeg"]
+    )
 
 
 def test_mock_data_represents_p1_core_contract_alignment_fixture():

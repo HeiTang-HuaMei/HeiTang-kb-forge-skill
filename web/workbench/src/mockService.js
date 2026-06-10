@@ -10,6 +10,7 @@ export const MOCK_DATA_FILES = {
   generatedDocs: "generated_docs.json",
   providerStatus: "provider_status.json",
   parserBackendStatus: "parser_backend_status.json",
+  parserBackendMatrix: "parser_backends/parser_backend_matrix.json",
   answerPolicies: "answer_policies.json",
   p1Contracts: "p1_core_contract_fixture.json",
   p1RealWorkflowV1: "p1_real_workflow_v1_evidence.json",
@@ -52,7 +53,8 @@ export function buildWorkbenchViewModel(raw) {
   const generatedDocs = raw.generatedDocs.generated_docs;
   const exportItems = raw.generatedDocs.export_items;
   const providers = raw.providerStatus.providers;
-  const parserBackends = raw.parserBackendStatus.parser_backends;
+  const parserBackendMatrix = raw.parserBackendMatrix;
+  const parserBackends = parserBackendMatrix.backends;
   const answerPolicies = raw.answerPolicies.answer_policies;
   const memoryPolicies = raw.answerPolicies.memory_policies;
   const p1Contracts = raw.p1Contracts;
@@ -78,6 +80,7 @@ export function buildWorkbenchViewModel(raw) {
     p1RealWorkflowV2Reports,
     externalCapabilities,
     sAContractInclusionMatrix,
+    parserBackendMatrix,
     knowledgeBases,
     agents,
     workflows,

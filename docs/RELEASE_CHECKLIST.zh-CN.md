@@ -1,15 +1,17 @@
 # Release Checklist
 
-当前项目版本：`4.0.0`
+当前项目版本：`4.1.0`
 
-当前 stable release：`v4.0.0`
+当前 release line：`v4.1.0`
 
-当前阶段：v4.0.0 stable release，已完成 rc acceptance 与 hardening。
+当前阶段：v4.1.0 P2.1 Parser/OCR Workbench evidence sync；v4.0.0 保持为未改动的历史 stable tag。
 
 ## Required Checks
 
 - [x] `pyproject.toml`、`skill.json`、README、Capability Status、Version Matrix、Release Checklist 版本一致
 - [x] P1 Final Gate、External Project Registry、S/A Contract Inclusion、rc.1 acceptance 与 release hardening evidence 仍然完整
+- [x] Parser backend matrix fixture 与 Flutter asset 已从 Core runtime baseline commit `576a62075dc1ecbe00388bb0569fd1fc767be7cb` 复制
+- [x] Workbench 展示 parser/OCR evidence、安装模式、稳定表面、已知限制，并不声明 runtime execution
 - [ ] `python -m pytest` 通过
 - [ ] Doctor 命令 `python -m heitang_kb_forge.cli doctor --output ./tmp_doctor` 通过
 - [ ] Quickstart build 通过
@@ -41,6 +43,9 @@
 - 不声明真实 OpenClaw / Codex / Claude Code / MCP runtime 执行。
 - v2.9 前不声明飞书 / 移动端 / 安装端 / iOS 支持。
 - v3.x 前不声明 SaaS / 权限系统。
+- 不声明 static Workbench 可以执行 parser/OCR runtime。
+- 不声明 Unstructured PDF/DOCX/image support 在 v4.1.0 已稳定；稳定表面仅 `.md/.txt`。
+- 不把 Docling、PaddleOCR 或 Unstructured 打包为默认依赖。
 
 ## Release Readiness Gate
 

@@ -1,10 +1,10 @@
 # Capability Status
 
-当前项目版本：`4.0.0`
+当前项目版本：`4.1.0`
 
-当前 stable release：`v4.0.0`
+当前 release line：`v4.1.0`
 
-最新已完成的 UI release 工作包括 P1 Final Gate Re-run、External Project Registry 可见边界、S/A Contract Inclusion 可见边界、rc.1 acceptance 与 release hardening。当前已进入 stable `v4.0.0` Workbench UI release line。
+最新已完成的 UI release 工作包括 P1 Final Gate Re-run、External Project Registry 可见边界、S/A Contract Inclusion 可见边界、rc.1 acceptance、release hardening 与 P2.1 parser/OCR backend evidence sync。当前进入 `v4.1.0` Workbench evidence sync line；`v4.0.0` tag 保持不变。
 
 ## Stable
 
@@ -42,6 +42,9 @@
 - opt-in provider live smoke
 - minimal end-to-end portfolio demo
 - demo evidence pack
+- parser/OCR backend matrix evidence 可见性
+- optional parser/OCR dependency 边界展示
+- parser backend 稳定表面与已知限制展示
 
 ## Experimental
 

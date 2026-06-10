@@ -2,11 +2,11 @@
 
 [English](README.md) | 中文说明
 
-当前 UI package 版本：`4.0.0`
+当前 UI package 版本：`4.1.0`
 
-当前 stable release：`v4.0.0`
+当前 release line：`v4.1.0` Parser/OCR evidence sync
 
-发布状态：在 P1 Final Gate、External Project Registry、S/A Contract Inclusion、rc.1 acceptance 与 release hardening 之后，进入 v4.0.0 stable release。
+发布状态：在 v4.0.0 stable release 之后进入 v4.1.0 P2.1 Parser/OCR Workbench 同步；`v4.0.0` tag 保持不变。
 
 HeiTang KB Forge 是一个 offline-first、可被 Agent 调用的知识供应链前置 Skill。它把多格式原始资料加工成标准化、可审计、可复核、可检索的知识资产包，用于 Agent 和 RAG 工作流。
 
@@ -189,7 +189,9 @@ python -m heitang_kb_forge.cli demo-e2e --output ./tmp_demo_e2e
 
 HeiTang KB Forge Core 现在定义为 HeiTang Knowledge Workbench 里的知识供应链核心 Skill。
 
-当前 stable UI package 已同步到 Core stable commit `0217e54b162871e7c40c31ff3d0cc72e8ba78f06`。
+P2.1 / v4.1.0 中，Workbench 额外消费 Core runtime baseline commit `576a62075dc1ecbe00388bb0569fd1fc767be7cb` 生成的 parser backend matrix。界面通过 dashboard summary cards、边界 callout、matrix table、backend detail panels 与 audit evidence rows 展示 builtin fallback、Docling、PaddleOCR、Unstructured 的安装模式、最近验收状态、证据路径与已知限制。Docling 与 PaddleOCR 是 optional dependency gated 的真实 runtime 集成；Unstructured 本轮稳定表面只声明 `.md/.txt`。UI 不提供 parser/OCR runtime 执行控件，也不声明默认安装重型依赖。
+
+当前 UI package 保留历史 v4.0.0 边界证据，并增加 v4.1.0 parser/OCR evidence 可见性；历史 Core stable commit 仍为 `0217e54b162871e7c40c31ff3d0cc72e8ba78f06`。
 
 战略文档：
 

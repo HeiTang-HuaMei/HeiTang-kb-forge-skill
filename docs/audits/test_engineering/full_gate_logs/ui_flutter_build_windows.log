@@ -1,0 +1,5 @@
+command: flutter build windows
+exit_code: 0
+summary: Built build\windows\x64\runner\Release\heitang_workbench.exe successfully in 19.3s.
+notes:
+- build\windows is generated output and must remain uncommitted.

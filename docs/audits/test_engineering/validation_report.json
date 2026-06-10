@@ -1,0 +1,149 @@
+{
+  "version": "v4.1.0",
+  "gate": "chunked_full_gate",
+  "phase": "Workbench Visual Industrialization",
+  "repository": "ui",
+  "release_blocking": true,
+  "changed_files": [
+    "examples/ui_mock_data/parser_backends/parser_backend_matrix.json",
+    "web/workbench/flutter_app/assets/parser_backends/parser_backend_matrix.json",
+    "web/workbench/flutter_app/lib/contracts/parser_backend_matrix.dart",
+    "web/workbench/flutter_app/lib/backend_evidence/parser_backend_dashboard.dart",
+    "web/workbench/flutter_app/lib/main.dart",
+    "web/workbench/src/app.js",
+    "web/workbench/src/mockService.js",
+    "web/workbench/contracts.json",
+    "docs/**",
+    "tests/**"
+  ],
+  "impacted_surfaces": [
+    "workbench_parser_backend_matrix",
+    "flutter_asset_chain",
+    "dart_loader",
+    "static_web_mock_service",
+    "ui_contract_tests",
+    "flutter_rendering",
+    "release_hygiene"
+  ],
+  "chunks": [
+    {
+      "name": "ui_pytest_gate",
+      "repository": "ui",
+      "command": "python -m pytest",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_pytest_gate.log",
+      "summary": "496 passed, 1 skipped in 38.27s",
+      "status": "passed",
+      "release_blocking": true
+    },
+    {
+      "name": "ui_flutter_analyze",
+      "repository": "ui",
+      "command": "flutter analyze",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_analyze.log",
+      "summary": "No issues found; ran in 10.6s",
+      "status": "passed",
+      "release_blocking": true
+    },
+    {
+      "name": "ui_flutter_test",
+      "repository": "ui",
+      "command": "flutter test -r expanded",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_test.log",
+      "summary": "25 passed; All tests passed",
+      "status": "passed",
+      "release_blocking": true
+    },
+    {
+      "name": "ui_flutter_build_web",
+      "repository": "ui",
+      "command": "flutter build web",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_build_web.log",
+      "summary": "Built build/web successfully in 65.6s",
+      "status": "passed",
+      "release_blocking": true
+    },
+    {
+      "name": "ui_flutter_build_windows",
+      "repository": "ui",
+      "command": "flutter build windows",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_build_windows.log",
+      "summary": "Built Windows exe successfully in 19.3s",
+      "status": "passed",
+      "release_blocking": true
+    },
+    {
+      "name": "ui_git_diff_check",
+      "repository": "ui",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_git_diff_check.log",
+      "summary": "no whitespace errors; LF/CRLF warnings only",
+      "status": "passed",
+      "release_blocking": true
+    },
+    {
+      "name": "ui_secret_provider_scan",
+      "repository": "ui",
+      "command": "rg keyword scan for secrets/provider config",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_secret_provider_scan.log",
+      "summary": "keyword hits reviewed; no real secret or local provider credential found",
+      "status": "passed",
+      "release_blocking": true
+    },
+    {
+      "name": "ui_untracked_files_review",
+      "repository": "ui",
+      "command": "git ls-files -o --exclude-standard",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_untracked_files.log",
+      "summary": "untracked files reviewed as intended source/audit additions; build outputs and tmp_doctor_debug are not untracked",
+      "status": "passed",
+      "release_blocking": true
+    }
+  ],
+  "deferred": [],
+  "skipped": [],
+  "commands_deferred": [],
+  "commands_skipped": [],
+  "skip_reason": "",
+  "exit_codes": {
+    "ui_pytest_gate": 0,
+    "ui_flutter_analyze": 0,
+    "ui_flutter_test": 0,
+    "ui_flutter_build_web": 0,
+    "ui_flutter_build_windows": 0,
+    "ui_git_diff_check": 0,
+    "ui_secret_provider_scan": 0,
+    "ui_untracked_files_review": 0
+  },
+  "log_paths": [
+    "docs/audits/test_engineering/full_gate_logs/ui_pytest_gate.log",
+    "docs/audits/test_engineering/full_gate_logs/ui_flutter_analyze.log",
+    "docs/audits/test_engineering/full_gate_logs/ui_flutter_test.log",
+    "docs/audits/test_engineering/full_gate_logs/ui_flutter_build_web.log",
+    "docs/audits/test_engineering/full_gate_logs/ui_flutter_build_windows.log",
+    "docs/audits/test_engineering/full_gate_logs/ui_git_diff_check.log",
+    "docs/audits/test_engineering/full_gate_logs/ui_secret_provider_scan.log",
+    "docs/audits/test_engineering/full_gate_logs/ui_untracked_files.log"
+  ],
+  "decision": "chunked_full_gate_passed_pending_commit_push_ci",
+  "remaining_release_gates": [
+    "commit_ui_changes",
+    "push_ui_branch",
+    "ui_ci_green"
+  ],
+  "boundaries": {
+    "no_static_workbench_runtime_execution_claim": true,
+    "no_false_executable_state": true,
+    "unstructured_stable_surface": ".md/.txt",
+    "tmp_doctor_debug_not_committed": true,
+    "flutter_build_outputs_not_committed": true,
+    "no_skipped_as_passed": true
+  }
+}

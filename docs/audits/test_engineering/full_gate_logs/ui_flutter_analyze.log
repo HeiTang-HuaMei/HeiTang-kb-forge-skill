@@ -1,0 +1,7 @@
+command: flutter analyze
+exit_code: 0
+summary: No issues found! (ran in 10.6s)
+notes:
+- Direct command was used after PowerShell/cmd redirection attempts timed out with empty logs.
+- The timed-out redirection attempts are not counted as passed.
+- This chunk is counted from the direct command with exit_code=0 and visible output.

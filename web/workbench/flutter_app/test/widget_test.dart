@@ -15,11 +15,17 @@ void main() {
     final contracts = sampleWorkbenchContracts;
 
     expect(contracts.source.coreCommit, coreCommit);
-    expect(contracts.manifest.outputFiles, contains('workbench_action_contracts.json'));
+    expect(contracts.manifest.outputFiles,
+        contains('workbench_action_contracts.json'));
     expect(contracts.navigation.views, hasLength(18));
-    expect(contracts.actions.actions.map((action) => action.id), containsAll(['workspace_inspect', 'rag_query', 'book_to_skill', 'run_agent']));
-    expect(contracts.reports.reports.map((report) => report.id), contains('report_p1_gate_summary'));
-    expect(contracts.taskSchema.statuses, containsAll(['queued', 'running', 'blocked', 'review_required']));
+    expect(
+        contracts.actions.actions.map((action) => action.id),
+        containsAll(
+            ['workspace_inspect', 'rag_query', 'book_to_skill', 'run_agent']));
+    expect(contracts.reports.reports.map((report) => report.id),
+        contains('report_p1_gate_summary'));
+    expect(contracts.taskSchema.statuses,
+        containsAll(['queued', 'running', 'blocked', 'review_required']));
     expect(contracts.templates.templates, hasLength(6));
     expect(contracts.gate.status, 'blocked');
     expect(contracts.gate.notV4WorkbenchRc, isTrue);
@@ -27,7 +33,8 @@ void main() {
   });
 
   test('p1 real workflow v1 evidence parses and keeps gate blocked', () async {
-    final evidence = P1WorkflowEvidence.fromJsonString(await rootBundle.loadString('assets/workflows/p1_real_workflow_v1_evidence.json'));
+    final evidence = P1WorkflowEvidence.fromJsonString(await rootBundle
+        .loadString('assets/workflows/p1_real_workflow_v1_evidence.json'));
 
     expect(evidence.coreCommit, coreCommit);
     expect(evidence.status, 'passed');
@@ -38,11 +45,15 @@ void main() {
     expect(evidence.fixtureOnlyCountedAsReal, isFalse);
     expect(evidence.fullReadyActionExecutionComplete, isFalse);
     expect(evidence.workflowCount, 8);
-    expect(evidence.remainingBlockers, contains('full_57_ready_action_business_input_execution_not_complete'));
+    expect(evidence.remainingBlockers,
+        contains('full_57_ready_action_business_input_execution_not_complete'));
   });
 
-  test('p1 real workflow v2 evidence parses final local path closure without v4 release', () async {
-    final evidence = P1WorkflowEvidence.fromJsonString(await rootBundle.loadString('assets/workflows/p1_real_workflow_v2_evidence.json'));
+  test(
+      'p1 real workflow v2 evidence parses final local path closure without v4 release',
+      () async {
+    final evidence = P1WorkflowEvidence.fromJsonString(await rootBundle
+        .loadString('assets/workflows/p1_real_workflow_v2_evidence.json'));
 
     expect(evidence.coreCommit, coreCommit);
     expect(evidence.status, 'passed');
@@ -66,45 +77,91 @@ void main() {
     expect(evidence.userPathCount, 10);
     expect(evidence.userPathPassedCount, 10);
     expect(evidence.remainingBlockers, isEmpty);
-    expect(evidence.remainingRisks, contains('provider_secret_network_actions_remain_explicit_config_only'));
-    expect(evidence.actionResults.where((action) => action.status == 'passed'), hasLength(57));
-    expect(evidence.blockedActions.map((action) => action.actionId), contains('provider_redaction_check'));
-    expect(evidence.blockedActions.firstWhere((action) => action.actionId == 'provider_redaction_check').classification, 'blocked_secret_required');
+    expect(
+        evidence.remainingRisks,
+        contains(
+            'provider_secret_network_actions_remain_explicit_config_only'));
+    expect(evidence.actionResults.where((action) => action.status == 'passed'),
+        hasLength(57));
+    expect(evidence.blockedActions.map((action) => action.actionId),
+        contains('provider_redaction_check'));
+    expect(
+        evidence.blockedActions
+            .firstWhere(
+                (action) => action.actionId == 'provider_redaction_check')
+            .classification,
+        'blocked_secret_required');
   });
 
-  test('p1 real workflow v2 copied report assets parse and match the fixture summary', () async {
-    final matrix = jsonDecode(await rootBundle.loadString('assets/workflows/p1_real_workflow_v2/full_ready_action_execution_matrix.json')) as Map<String, dynamic>;
-    final actionResults = jsonDecode(await rootBundle.loadString('assets/workflows/p1_real_workflow_v2/action_execution_result_index.json')) as Map<String, dynamic>;
-    final artifactAssertions = jsonDecode(await rootBundle.loadString('assets/workflows/p1_real_workflow_v2/action_artifact_assertion_report.json')) as Map<String, dynamic>;
-    final reportAssertions = jsonDecode(await rootBundle.loadString('assets/workflows/p1_real_workflow_v2/action_report_assertion_report.json')) as Map<String, dynamic>;
-    final errorBoundary = jsonDecode(await rootBundle.loadString('assets/workflows/p1_real_workflow_v2/action_error_boundary_report.json')) as Map<String, dynamic>;
-    final userPaths = P1WorkflowEvidence.fromJson(jsonDecode(await rootBundle.loadString('assets/workflows/p1_real_workflow_v2/full_local_user_path_closure_report.json')) as Map<String, dynamic>);
-    final gateReport = jsonDecode(await rootBundle.loadString('assets/workflows/p1_real_workflow_v2/p1_real_workflow_v2_report.json')) as Map<String, dynamic>;
-    final remainingBlockers = jsonDecode(await rootBundle.loadString('assets/workflows/p1_real_workflow_v2/remaining_blockers.json')) as Map<String, dynamic>;
+  test(
+      'p1 real workflow v2 copied report assets parse and match the fixture summary',
+      () async {
+    final matrix = jsonDecode(await rootBundle.loadString(
+            'assets/workflows/p1_real_workflow_v2/full_ready_action_execution_matrix.json'))
+        as Map<String, dynamic>;
+    final actionResults = jsonDecode(await rootBundle.loadString(
+            'assets/workflows/p1_real_workflow_v2/action_execution_result_index.json'))
+        as Map<String, dynamic>;
+    final artifactAssertions = jsonDecode(await rootBundle.loadString(
+            'assets/workflows/p1_real_workflow_v2/action_artifact_assertion_report.json'))
+        as Map<String, dynamic>;
+    final reportAssertions = jsonDecode(await rootBundle.loadString(
+            'assets/workflows/p1_real_workflow_v2/action_report_assertion_report.json'))
+        as Map<String, dynamic>;
+    final errorBoundary = jsonDecode(await rootBundle.loadString(
+            'assets/workflows/p1_real_workflow_v2/action_error_boundary_report.json'))
+        as Map<String, dynamic>;
+    final userPaths = P1WorkflowEvidence.fromJson(jsonDecode(
+            await rootBundle.loadString(
+                'assets/workflows/p1_real_workflow_v2/full_local_user_path_closure_report.json'))
+        as Map<String, dynamic>);
+    final gateReport = jsonDecode(await rootBundle.loadString(
+            'assets/workflows/p1_real_workflow_v2/p1_real_workflow_v2_report.json'))
+        as Map<String, dynamic>;
+    final remainingBlockers = jsonDecode(await rootBundle.loadString(
+            'assets/workflows/p1_real_workflow_v2/remaining_blockers.json'))
+        as Map<String, dynamic>;
 
     expect(matrix['ready_core_cli_action_count'], 62);
     expect(matrix['execution_target_count'], 57);
-    expect((matrix['actions'] as List).where((action) => action['execution_target'] == true), hasLength(57));
-    expect((matrix['actions'] as List).where((action) => action['classification'] == 'blocked_provider_required'), hasLength(4));
+    expect(
+        (matrix['actions'] as List)
+            .where((action) => action['execution_target'] == true),
+        hasLength(57));
+    expect(
+        (matrix['actions'] as List).where((action) =>
+            action['classification'] == 'blocked_provider_required'),
+        hasLength(4));
     expect(actionResults['passed_count'], 57);
     expect(actionResults['failed_count'], 0);
-    expect((actionResults['results'] as List).where((action) => action['evidence_level'] == 'blocked'), hasLength(5));
+    expect(
+        (actionResults['results'] as List)
+            .where((action) => action['evidence_level'] == 'blocked'),
+        hasLength(5));
     expect(artifactAssertions['status'], 'pass');
     expect(reportAssertions['status'], 'pass');
     expect(errorBoundary['status'], 'pass');
-    expect(errorBoundary['external_provider_or_secret_actions_not_executed'], isTrue);
+    expect(errorBoundary['external_provider_or_secret_actions_not_executed'],
+        isTrue);
     expect(userPaths.userPathCount, 10);
     expect(userPaths.userPathPassedCount, 10);
     expect(userPaths.userPaths.first.actionCount, 6);
     expect(gateReport['p1_real_workflow_v2_status'], 'passed');
-    expect(gateReport['p1_full_operation_gate_status'], 'core_passed_pending_ui_consumption');
+    expect(gateReport['p1_full_operation_gate_status'],
+        'core_passed_pending_ui_consumption');
     expect(remainingBlockers['status'], 'blocked');
   });
 
-  test('external capability assets parse as boundary-only S/A contract data', () async {
-    final registry = ExternalCapabilityRegistry.fromJsonString(await rootBundle.loadString('assets/external/external_capability_registry.json'));
-    final matrix = jsonDecode(await rootBundle.loadString('assets/external/s_a_contract_inclusion_matrix.json')) as Map<String, dynamic>;
-    final projects = {for (final project in registry.projects) project.projectId: project};
+  test('external capability assets parse as boundary-only S/A contract data',
+      () async {
+    final registry = ExternalCapabilityRegistry.fromJsonString(await rootBundle
+        .loadString('assets/external/external_capability_registry.json'));
+    final matrix = jsonDecode(await rootBundle
+            .loadString('assets/external/s_a_contract_inclusion_matrix.json'))
+        as Map<String, dynamic>;
+    final projects = {
+      for (final project in registry.projects) project.projectId: project
+    };
 
     expect(registry.sProjectCount, 7);
     expect(registry.aProjectCount, 16);
@@ -113,7 +170,10 @@ void main() {
     expect(registry.releaseBoundary['p1_gate_changed'], isFalse);
     expect(registry.releaseBoundary['v4_0_started'], isFalse);
     expect(registry.releaseBoundary['external_features_implemented'], isFalse);
-    expect(registry.projects.every((project) => project.canExecuteLocallyBeforeV4 == false), isTrue);
+    expect(
+        registry.projects
+            .every((project) => project.canExecuteLocallyBeforeV4 == false),
+        isTrue);
     expect(projects['n8n']!.requiresExternalRuntime, isTrue);
     expect(projects['anysearchskill']!.requiresApiKey, isTrue);
     expect(projects['anysearchskill']!.requiresNetwork, isTrue);
@@ -122,12 +182,65 @@ void main() {
     expect(matrix['external_project_count'], 23);
   });
 
-  test('full p1 fixture drives real local and deterministic smoke Core actions through the bridge request path', () async {
-    final contracts = const WorkbenchContractLoader().loadFromBundleJson(await rootBundle.loadString('assets/contracts/p1_core_contract_fixture.json'));
+  test('p2.1 parser backend matrix asset parses with release boundaries',
+      () async {
+    final matrix = ParserBackendMatrix.fromJsonString(await rootBundle
+        .loadString('assets/parser_backends/parser_backend_matrix.json'));
+    final backendIds =
+        matrix.backends.map((backend) => backend.backendId).toSet();
+    final docling = matrix.backend('docling')!;
+    final paddleocr = matrix.backend('paddleocr')!;
+    final unstructured = matrix.backend('unstructured')!;
+
+    expect(matrix.schemaVersion, 'p2.1.parser_backend_matrix.v1');
+    expect(matrix.releaseVersion, 'v4.1.0');
+    expect(matrix.runtimeBaselineCommit,
+        '576a62075dc1ecbe00388bb0569fd1fc767be7cb');
+    expect(matrix.defaultHeavyDependenciesBundled, isFalse);
+    expect(matrix.staticWorkbenchRuntimeExecutionClaimed, isFalse);
+    expect(backendIds, {'builtin', 'docling', 'paddleocr', 'unstructured'});
+    expect(
+        matrix.backends
+            .every((backend) => backend.staticWorkbenchExecutable == false),
+        isTrue);
+    expect(docling.optionalExtra, 'parser-docling');
+    expect(docling.installMode.label, 'parser-docling');
+    expect(docling.evidence.status, 'pass');
+    expect(docling.workbenchState,
+        containsAll(['real_runtime_integrated', 'optional_dependency_gated']));
+    expect(paddleocr.validatedStableSurface, ['.png']);
+    expect(unstructured.validatedStableSurface, ['.md', '.txt']);
+    expect(unstructured.isLimitedSurface, isTrue);
+    expect(unstructured.capabilityBoundary.staticWorkbenchExecutable, isFalse);
+    expect(unstructured.knownLimitations.join(' '), contains('.md/.txt'));
+    expect(unstructured.knownLimitations.join(' '),
+        contains('not claimed stable in v4.1.0'));
+  });
+
+  test(
+      'full p1 fixture drives real local and deterministic smoke Core actions through the bridge request path',
+      () async {
+    final contracts = const WorkbenchContractLoader().loadFromBundleJson(
+        await rootBundle
+            .loadString('assets/contracts/p1_core_contract_fixture.json'));
     const bridge = LocalCoreBridge();
-    final realLocalActions = contracts.actions.actions.where((action) => action.status == 'ready' && action.commandKind == 'core_cli' && action.desktopEnabled).toList();
-    final smokeActions = contracts.actions.actions.where((action) => action.status == 'dry_run' && action.commandKind == 'ui_safe_wrapper' && action.desktopBlockedReason == 'mock_only').toList();
-    final blockedActions = contracts.actions.actions.where((action) => !realLocalActions.contains(action) && !smokeActions.contains(action)).toList();
+    final realLocalActions = contracts.actions.actions
+        .where((action) =>
+            action.status == 'ready' &&
+            action.commandKind == 'core_cli' &&
+            action.desktopEnabled)
+        .toList();
+    final smokeActions = contracts.actions.actions
+        .where((action) =>
+            action.status == 'dry_run' &&
+            action.commandKind == 'ui_safe_wrapper' &&
+            action.desktopBlockedReason == 'mock_only')
+        .toList();
+    final blockedActions = contracts.actions.actions
+        .where((action) =>
+            !realLocalActions.contains(action) &&
+            !smokeActions.contains(action))
+        .toList();
 
     expect(contracts.actions.actions, hasLength(110));
     expect(realLocalActions, hasLength(57));
@@ -155,13 +268,21 @@ void main() {
         workspace: r'C:\workspace',
       );
       expect(request, isNull, reason: action.id);
-      expect(action.desktopBlockedReason.isNotEmpty || action.blockedReason.isNotEmpty || action.webBlockedReason.isNotEmpty, isTrue, reason: action.id);
+      expect(
+          action.desktopBlockedReason.isNotEmpty ||
+              action.blockedReason.isNotEmpty ||
+              action.webBlockedReason.isNotEmpty,
+          isTrue,
+          reason: action.id);
     }
   });
 
-  testWidgets('renders desktop HeiTang workbench shell without Flutter exceptions', (tester) async {
+  testWidgets(
+      'renders desktop HeiTang workbench shell without Flutter exceptions',
+      (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 900));
-    await tester.pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
+    await tester
+        .pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
     await tester.pumpAndSettle();
 
     expect(find.text('黑糖 HeiTang'), findsOneWidget);
@@ -172,9 +293,12 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('renders mobile HeiTang workbench shell without Flutter exceptions', (tester) async {
+  testWidgets(
+      'renders mobile HeiTang workbench shell without Flutter exceptions',
+      (tester) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
-    await tester.pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
+    await tester
+        .pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
     await tester.pumpAndSettle();
 
     expect(find.text('黑糖 HeiTang'), findsOneWidget);
@@ -187,7 +311,8 @@ void main() {
 
   testWidgets('keeps English and dark mode controls usable', (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 900));
-    await tester.pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
+    await tester
+        .pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('EN'));
@@ -201,12 +326,24 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('renders dedicated p1 pages without Flutter exceptions', (tester) async {
+  testWidgets('renders dedicated p1 pages without Flutter exceptions',
+      (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1320));
-    await tester.pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
+    await tester
+        .pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
     await tester.pumpAndSettle();
 
-    for (final title in ['工作空间', '向量索引 / 提供方 / 存储', '技能工厂', '任务 / 作业中心', '产物管理', '错误修复中心', '运行门禁', '能力矩阵', '报表与审计']) {
+    for (final title in [
+      '工作空间',
+      '向量索引 / 提供方 / 存储',
+      '技能工厂',
+      '任务 / 作业中心',
+      '产物管理',
+      '错误修复中心',
+      '运行门禁',
+      '能力矩阵',
+      '报表与审计'
+    ]) {
       await tester.tap(find.text(title).first);
       await tester.pumpAndSettle();
       expect(find.text(title), findsWidgets);
@@ -215,9 +352,13 @@ void main() {
     }
   });
 
-  testWidgets('renders p1 real workflow v1 evidence while final V2 gate is ready', (tester) async {
+  testWidgets(
+      'renders p1 real workflow v1 evidence while final V2 gate is ready',
+      (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1100));
-    await tester.pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts, workflowEvidence: sampleP1WorkflowEvidence));
+    await tester.pumpWidget(HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        workflowEvidence: sampleP1WorkflowEvidence));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('运行门禁').first);
@@ -225,30 +366,46 @@ void main() {
 
     expect(find.textContaining('passed · full_gate=blocked'), findsWidgets);
     expect(find.textContaining('drift_count=0'), findsWidgets);
-    expect(find.textContaining('full_57_ready_action_business_input_execution_not_complete'), findsWidgets);
+    expect(
+        find.textContaining(
+            'full_57_ready_action_business_input_execution_not_complete'),
+        findsWidgets);
     expect(find.textContaining('ready_for_v4_rc=true'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('renders p1 real workflow v2 evidence and keeps v4 release boundary', (tester) async {
+  testWidgets(
+      'renders p1 real workflow v2 evidence and keeps v4 release boundary',
+      (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1320));
-    await tester.pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts, workflowV2Evidence: sampleP1WorkflowV2Evidence));
+    await tester.pumpWidget(HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        workflowV2Evidence: sampleP1WorkflowV2Evidence));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('运行门禁').first);
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('passed · full_gate=ready_for_v4_rc'), findsWidgets);
+    expect(find.textContaining('passed · full_gate=ready_for_v4_rc'),
+        findsWidgets);
     expect(find.textContaining('57/57 passed'), findsWidgets);
-    expect(find.textContaining('artifact=pass · report=pass · error=pass'), findsWidgets);
+    expect(find.textContaining('artifact=pass · report=pass · error=pass'),
+        findsWidgets);
     expect(find.textContaining('pass · 10/10 paths'), findsWidgets);
-    expect(find.textContaining('ui_full_operation_pending=false · rc_candidate=true · ready_for_v4_rc=true'), findsWidgets);
-    expect(find.textContaining('provider_redaction_check:blocked_secret_required'), findsWidgets);
+    expect(
+        find.textContaining(
+            'ui_full_operation_pending=false · rc_candidate=true · ready_for_v4_rc=true'),
+        findsWidgets);
+    expect(
+        find.textContaining('provider_redaction_check:blocked_secret_required'),
+        findsWidgets);
     expect(find.textContaining('ready_for_v4_rc=true'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('renders S/A external capability boundaries without executable claims', (tester) async {
+  testWidgets(
+      'renders S/A external capability boundaries without executable claims',
+      (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1320));
     await tester.pumpWidget(
       HeiTangWorkbenchApp(
@@ -268,14 +425,60 @@ void main() {
     await tester.tap(find.text('记忆中心').first);
     await tester.pump();
     expect(find.textContaining('LLM Wiki v2'), findsWidgets);
-    expect(find.textContaining('future_adapter/capability_anchor'), findsWidgets);
+    expect(
+        find.textContaining('future_adapter/capability_anchor'), findsWidgets);
     expect(find.textContaining('显示边界'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('renders contract-driven action and agent mode data in English', (tester) async {
+  testWidgets(
+      'renders parser backend evidence without executable parser claims',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1320));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        parserBackends: sampleParserBackendMatrix,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('导入与解析').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Parser Backend Matrix'), findsWidgets);
+    expect(find.text('Parser/OCR 后端证据面板'), findsOneWidget);
+    expect(find.text('Backend Matrix Table'), findsOneWidget);
+    expect(find.text('Reports & Audit Evidence'), findsOneWidget);
+    expect(find.textContaining('v4.1.0 · 4 backends · static_runtime=false'),
+        findsWidgets);
+    expect(find.textContaining('docling:parser-docling'), findsWidgets);
+    expect(find.textContaining('paddleocr:parser-paddleocr'), findsWidgets);
+    expect(find.textContaining('unstructured:.md/.txt'), findsWidgets);
+    expect(find.textContaining('default_heavy_deps=false'), findsWidgets);
+    expect(find.textContaining('no_static_execution=true'), findsWidgets);
+    expect(find.textContaining('Failure Mode Report'), findsOneWidget);
+    expect(find.textContaining('Fresh Clone Reproducibility'), findsOneWidget);
+    expect(find.textContaining('Static Web Workbench'), findsOneWidget);
+    expect(find.textContaining('Run parser'), findsNothing);
+    expect(find.textContaining('Execute parser'), findsNothing);
+    expect(find.textContaining('运行解析后端'), findsNothing);
+
+    await tester.tap(find.text('运行门禁').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Parser/OCR 后端证据面板'), findsOneWidget);
+
+    await tester.tap(find.text('能力矩阵').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Backend Matrix Table'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('renders contract-driven action and agent mode data in English',
+      (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 900));
-    await tester.pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
+    await tester
+        .pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('EN'));
@@ -288,12 +491,15 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('runs the desktop rag_query core action through an injected bridge', (tester) async {
+  testWidgets(
+      'runs the desktop rag_query core action through an injected bridge',
+      (tester) async {
     final requests = <CoreBridgeRequest>[];
     final bridge = LocalCoreBridge(
       runner: (request) async {
         requests.add(request);
-        return const CoreBridgeProcessResult(exitCode: 0, stdout: 'answer token=sk-test-secret', stderr: '');
+        return const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'answer token=sk-test-secret', stderr: '');
       },
     );
 
@@ -326,12 +532,15 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('disables local CLI actions on web runtime without calling the runner', (tester) async {
+  testWidgets(
+      'disables local CLI actions on web runtime without calling the runner',
+      (tester) async {
     var runnerCalled = false;
     final bridge = LocalCoreBridge(
       runner: (request) async {
         runnerCalled = true;
-        return const CoreBridgeProcessResult(exitCode: 0, stdout: 'unexpected', stderr: '');
+        return const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'unexpected', stderr: '');
       },
     );
 
@@ -349,7 +558,8 @@ void main() {
     await tester.tap(find.text('Agent 工厂与运行').first);
     await tester.pumpAndSettle();
     expect(find.text('Run Agent'), findsOneWidget);
-    expect(find.textContaining('blocked_reason: web_local_cli_unsupported'), findsOneWidget);
+    expect(find.textContaining('blocked_reason: web_local_cli_unsupported'),
+        findsOneWidget);
 
     await tester.tap(find.text('运行 Core 操作'), warnIfMissed: false);
     await tester.pumpAndSettle();
@@ -358,18 +568,22 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('shows disabled blocked_reason for provider and secret actions', (tester) async {
+  testWidgets('shows disabled blocked_reason for provider and secret actions',
+      (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1100));
-    await tester.pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts, isWebRuntime: false));
+    await tester.pumpWidget(HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts, isWebRuntime: false));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('向量索引 / 提供方 / 存储').first);
     await tester.pumpAndSettle();
-    expect(find.textContaining('blocked_reason: provider_required'), findsOneWidget);
+    expect(find.textContaining('blocked_reason: provider_required'),
+        findsOneWidget);
 
     await tester.tap(find.text('错误修复中心').first);
     await tester.pumpAndSettle();
-    expect(find.textContaining('blocked_reason: secret_required'), findsOneWidget);
+    expect(
+        find.textContaining('blocked_reason: secret_required'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

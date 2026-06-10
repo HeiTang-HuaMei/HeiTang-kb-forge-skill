@@ -2,11 +2,11 @@
 
 [中文说明](README.zh-CN.md) | English
 
-Current UI package version: `4.0.0`
+Current UI package version: `4.1.0`
 
-Current stable release: `v4.0.0`
+Current release line: `v4.1.0` Parser/OCR evidence sync
 
-Release status: v4.0.0 stable release after P1 Final Gate, External Project Registry, S/A Contract Inclusion, rc.1 acceptance, and release hardening.
+Release status: v4.1.0 P2.1 Parser/OCR Workbench sync after v4.0.0 stable release. The `v4.0.0` tag remains untouched.
 
 HeiTang KB Forge is an offline-first, agent-callable knowledge supply-chain Skill. It turns multi-format source material into standardized, auditable, reviewable, and retrievable knowledge asset packages for Agent and RAG workflows.
 
@@ -197,9 +197,11 @@ The current UI is a P1 final gate re-run evidence UI consumption pass verified a
 
 It also surfaces S/A external capability contract-inclusion fixtures from Core commit `c30f8adcadfedb30cb974eb62cc02a38c35a5158` and CI run `27221946149`. These entries are visibility and boundary data only: planned/future/provider-required projects are not installed, not local-ready, and not executable from the UI.
 
+For P2.1 / v4.1.0, the Workbench also consumes the Core parser backend matrix from runtime baseline commit `576a62075dc1ecbe00388bb0569fd1fc767be7cb`. It shows builtin fallback, Docling, PaddleOCR, and Unstructured install mode, last acceptance status, evidence path, and known limitations through dashboard summary cards, callouts, a matrix table, backend detail panels, and audit evidence rows. Docling and PaddleOCR are optional dependency gated real-runtime integrations; Unstructured is optional dependency gated with stable `.md/.txt` surface only. The UI does not expose parser/OCR runtime execution controls and does not claim default heavy dependency bundling.
+
 The stable UI package is aligned with Core stable commit `0217e54b162871e7c40c31ff3d0cc72e8ba78f06`.
 
-This UI package is now aligned to the stable v4.0.0 release. The copied historical P1 evidence keeps `not_v4_0_workbench_rc=true`; unsupported provider, secret, network, and planned-adapter operations render disabled with `blocked_reason`.
+This UI package keeps the historical stable v4.0.0 boundary evidence while adding v4.1.0 parser/OCR evidence visibility. The copied historical P1 evidence keeps `not_v4_0_workbench_rc=true`; unsupported provider, secret, network, planned-adapter, and parser/OCR runtime operations render disabled or evidence-only with `blocked_reason` or explicit optional dependency boundaries.
 
 Strategic docs:
 

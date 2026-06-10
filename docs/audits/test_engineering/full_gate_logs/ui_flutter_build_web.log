@@ -1,0 +1,6 @@
+command: flutter build web
+exit_code: 0
+summary: Built build\web successfully in 65.6s.
+notes:
+- Flutter emitted a Material/Cupertino icon font warning, but the build completed with exit_code=0.
+- build\web is generated output and must remain uncommitted.

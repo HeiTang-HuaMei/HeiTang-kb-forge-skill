@@ -1,6 +1,6 @@
 # HeiTang Workbench Flutter Scaffold
 
-This is the Flutter scaffold for the HeiTang Knowledge Workbench stable `v4.0.0` UI.
+This is the Flutter scaffold for the HeiTang Knowledge Workbench `v4.1.0` Parser/OCR evidence sync UI.
 
 Current status:
 
@@ -8,6 +8,9 @@ Current status:
 - Fixture source: Core `workbench-contracts --profile p1`, synced to commit `f5fa13bb11211abb0bcecaccd845e545a2dacad3` with CI run `27210849617` green.
 - P1-RWF-V2 evidence, top-level reports, and P1 final gate reports are copied as deterministic assets and displayed with `drift_count=0`.
 - S/A external capability contract-inclusion fixtures are copied from Core commit `c30f8adcadfedb30cb974eb62cc02a38c35a5158` and shown as boundary-only planned/future/provider entries.
+- P2.1 parser backend matrix evidence is copied from Core runtime baseline commit `576a62075dc1ecbe00388bb0569fd1fc767be7cb` into `assets/parser_backends/parser_backend_matrix.json`.
+- Builtin fallback, Docling, PaddleOCR, and Unstructured are shown with install mode, acceptance status, stable surface, evidence path, and known limitations.
+- Unstructured is displayed with stable `.md/.txt` surface only; PDF/DOCX/image extras remain future hardening.
 - 57 local execution targets and 10 user paths are shown as passed from copied Core reports.
 - `p1_full_operation_gate_status: ready_for_v4_rc`.
 - `ready_for_v4_rc=true`.
@@ -16,7 +19,8 @@ Current status:
 - Light / dark mode and zh-CN / en-US language switching are supported.
 - Provider, secret, network, and planned-adapter operations stay disabled with blocked reasons.
 - External projects are not installed, not local-ready, and not executable from this UI.
-- This UI package is aligned to stable v4.0.0. Historical copied P1 evidence still records pre-stable release boundaries.
+- Parser/OCR backends are not executed from this UI; static Web Workbench only displays Core evidence and boundaries.
+- This UI package is aligned to v4.1.0 Workbench evidence sync. The historical `v4.0.0` tag remains untouched.
 - Web builds do not execute local Core CLI commands.
 
 When Flutter is available, run from this directory:

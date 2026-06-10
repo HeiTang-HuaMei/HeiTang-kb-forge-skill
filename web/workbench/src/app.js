@@ -33,6 +33,7 @@ const STATUS_LABELS = {
   "zh-CN": {
     available: "可用",
     blocked: "阻塞",
+    builtin_passed: "内置通过",
     degraded: "降级",
     done: "完成",
     draft: "草稿",
@@ -44,12 +45,14 @@ const STATUS_LABELS = {
     queued: "排队中",
     ready: "就绪",
     review_required: "需复核",
+    real_runtime_integrated: "真实运行时已集成",
     running: "运行中",
     trusted: "已发布"
   },
   "en-US": {
     available: "available",
     blocked: "blocked",
+    builtin_passed: "builtin passed",
     degraded: "degraded",
     done: "done",
     draft: "draft",
@@ -61,6 +64,7 @@ const STATUS_LABELS = {
     queued: "queued",
     ready: "ready",
     review_required: "review required",
+    real_runtime_integrated: "real runtime integrated",
     running: "running",
     trusted: "published"
   }
@@ -377,6 +381,7 @@ function renderDashboard(data) {
       ${metricCard(label("Error Codes", "错误码"), counts.errors, "error_code", "⌗")}
       ${metricCard(label("P1 Gate", "P1 门禁"), data.p1Contracts.p1_full_operation_gate_status, "not_full_operation_yet", "◇")}
       ${metricCard(label("S/A External", "S/A 外部项目"), data.externalCapabilities.external_project_count, `S=${data.externalCapabilities.rating_counts.S} A=${data.externalCapabilities.rating_counts.A}`, "□")}
+      ${metricCard(label("Parser Backends", "解析后端"), data.parserBackendMatrix.backends.length, data.parserBackendMatrix.release_version, "▤")}
     </section>
     <section class="split-grid">
       ${panel(label("Recent Tasks", "最近任务"), table(
@@ -449,6 +454,7 @@ function renderOperationGate(data) {
         <p>${label("Provider, secret, and network actions remain blocked and are not counted as real-local passed.", "provider、secret 与 network action 仍保持 blocked，不计为 real-local passed。")}</p>
       `)}
       ${rightPanel(label("V2 Remaining Blockers", "V2 剩余阻塞"), `${miniMetric("status", data.p1RealWorkflowV2.remaining_blockers.length === 0 ? "none" : v2Reports.remainingBlockers.status)}${miniMetric("Core report", v2Reports.remainingBlockers.status)}`)}
+      ${rightPanel(label("Parser/OCR v4.1.0 Boundary", "Parser/OCR v4.1.0 边界"), `${miniMetric("release", data.parserBackendMatrix.release_version)}${miniMetric("optional_gated", data.parserBackends.filter((backend) => backend.dependency_mode === "optional_extra").length)}${miniMetric("static execution", data.parserBackendMatrix.static_workbench_runtime_execution_claimed)}`)}
       ${rightPanel(label("Blocked Reasons", "阻塞原因"), idList(gate.blocker_ids.map((id) => ({ id, title: id })), "id"))}
       ${rightPanel(label("S/A Gate Boundary", "S/A 门禁边界"), `${miniMetric("p1_gate_changed", data.externalCapabilities.release_boundary.p1_gate_changed)}${miniMetric("v4_0_started", data.externalCapabilities.release_boundary.v4_0_started)}${miniMetric("external_features_implemented", data.externalCapabilities.release_boundary.external_features_implemented)}`)}
     `
@@ -474,10 +480,12 @@ function renderCapabilityMatrix(data) {
       ${table([label("Capability", "能力域"), "actions", "reports", "artifacts", label("Boundary", "边界")], rows)}
     </section>
     ${panel(label("S/A External Capability Matrix", "S/A 外部能力矩阵"), externalCapabilityRows(data.externalCapabilities.projects, 10))}
+    ${parserBackendMatrixPanel(data)}
   `, `
     ${rightPanel(label("Contract Counts", "契约计数"), `${miniMetric("pages", data.p1Contracts.counts.pages)}${miniMetric("actions", data.p1Contracts.counts.actions)}${miniMetric("reports", data.p1Contracts.counts.reports)}${miniMetric("artifacts", data.p1Contracts.counts.artifacts)}`)}
     ${rightPanel(label("V2 Action Matrix", "V2 Action 矩阵"), `${miniMetric("ready/core_cli", v2Reports.matrix.ready_core_cli_action_count)}${miniMetric("targets", v2Reports.matrix.execution_target_count)}${miniMetric("passed", v2Reports.actionResults.passed_count)}${miniMetric("blocked", data.p1RealWorkflowV2.blocked_action_count)}`)}
     ${rightPanel(label("External Boundary", "外部边界"), `${miniMetric("S projects", data.externalCapabilities.rating_counts.S)}${miniMetric("A projects", data.externalCapabilities.rating_counts.A)}${miniMetric("local_ready", "false")}`)}
+    ${rightPanel(label("Parser Evidence", "解析证据"), `<p>${data.parserBackendMatrix.acceptance_report_path}</p><p class="muted">${data.parserBackendMatrix.known_limitation_report_path}</p>`)}
     ${rightPanel(label("Source Commit", "来源提交"), `<p>${data.p1Contracts.source.core_commit}</p>`)}
   `);
 }
@@ -491,22 +499,20 @@ function renderFileUpload(data) {
       [label("Execute Job", "执行任务"), label("Progress", "执行进度")],
       [label("Validate Result", "结果校验"), label("Quality gate", "质量门禁")]
     ], 3)}
+    ${parserBackendMatrixPanel(data)}
     <section class="split-grid">
       ${panel(label("1. Select Source", "1. 选择来源"), `
         <div class="dropzone">
           <div class="upload-glyph">⇧</div>
           <h3>${label("Drag files or folders here, or choose files", "拖拽文件或文件夹到此处，或点击选择")}</h3>
-          <p>${label("Supports PDFs, Office files, Markdown, HTML, EPUB, images, and archives.", "支持 PDF、Office、Markdown、HTML、EPUB、图片与压缩件。")}</p>
-          <div class="file-types">${["PDF", "DOCX", "PPTX", "XLSX", "MD", "HTML", "EPUB", "MOBI", label("Image", "图片")].map((type) => `<span>${type}</span>`).join("")}</div>
+          <p>${label("Source selection stays broad; backend-specific stable surfaces are limited to the release evidence matrix.", "来源选择保持宽入口；各后端稳定表面以发布证据矩阵为准。")}</p>
+          <div class="file-types">${["MD", "TXT", "PNG", "PDF*", "DOCX*", "HTML*"].map((type) => `<span>${type}</span>`).join("")}</div>
         </div>
         ${actionBar([label("Select files", "选择文件"), label("Select folder", "选择文件夹"), label("Import from link", "从链接导入")])}
       `)}
       ${panel(label("2. Parser Configuration", "2. 解析配置"), `
         <div class="option-grid">
-          ${optionCard("HeiTang Parser", label("Recommended", "推荐"), true)}
-          ${optionCard("Unstructured", label("General documents", "通用文档"), false)}
-          ${optionCard("LlamaParse", label("Long technical docs", "长技术文档"), false)}
-          ${optionCard(label("Custom rules", "自定义规则"), label("Enterprise rules", "企业规则"), false)}
+          ${data.parserBackends.map((backend, index) => optionCard(backend.display_name, `${backend.dependency_mode}${backend.optional_extra ? ` · ${backend.optional_extra}` : ""}`, index === 0)).join("")}
         </div>
         <div class="check-grid">
           ${check(label("Clean text", "清洗文本"), true)}
@@ -805,6 +811,7 @@ function renderSettings(data) {
         ${providerList(data.providers)}
         ${parserList(data.parserBackends)}
       `)}
+      ${parserBackendMatrixPanel(data)}
     </section>
   `, `
     ${rightPanel(label("Issues & Quick Fix", "问题与修复建议"), `<ul class="compact-list"><li>UI Gate ${statusPill("blocked")}<button class="primary-button" type="button">${label("Quick fix", "一键修复")}</button></li><li>Final Gate ${statusPill("review_required")}</li></ul>`)}
@@ -865,8 +872,33 @@ function providerList(providers) {
   return `<ul class="compact-list">${providers.map((provider) => `<li><strong>${provider.name}</strong>${statusPill(provider.status)}<span>${provider.models.join(", ")}</span></li>`).join("")}</ul>`;
 }
 
+function parserBackendMatrixPanel(data) {
+  return panel(
+    label("Parser Backend Matrix", "解析后端矩阵"),
+    `
+      ${table(
+        [label("Backend", "后端"), "status", label("Install mode", "安装模式"), label("Stable surface", "稳定表面"), label("Evidence", "证据")],
+        data.parserBackends.map((backend) => [
+          `<strong>${backend.display_name}</strong><br><span class="muted">${backend.backend_id}</span>`,
+          statusPill(backend.status),
+          backend.optional_extra || backend.dependency_mode,
+          backend.validated_stable_surface.join(", "),
+          `<span>${backend.evidence_path}</span>`
+        ])
+      )}
+      <p class="muted">${label("Static Workbench evidence only: no parser/OCR runtime execution is claimed here.", "静态 Workbench 仅展示证据：这里不声明 parser/OCR runtime 可执行。")}</p>
+      <p class="muted">${data.parserBackendMatrix.known_limitation_report_path}</p>
+    `
+  );
+}
+
 function parserList(backends) {
-  return `<ul class="compact-list">${backends.map((backend) => `<li><strong>${backend.name}</strong>${statusPill(backend.status)}<span>${backend.supports.join(", ")}</span></li>`).join("")}</ul>`;
+  return `<ul class="compact-list">${backends.map((backend) => {
+    const name = backend.display_name || backend.name;
+    const supports = backend.validated_stable_surface || backend.supports || [];
+    const installMode = backend.optional_extra || backend.dependency_mode || "default";
+    return `<li><strong>${name}</strong>${statusPill(backend.status)}<span>${installMode} · ${supports.join(", ")}</span></li>`;
+  }).join("")}</ul>`;
 }
 
 function policyList(policies) {

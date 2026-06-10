@@ -1,6 +1,6 @@
 {
-  "version": "UI-p1-final-gate-ready-for-v4-rc",
-  "scope": "p1-final-gate-rerun-ready-for-v4-rc-evidence-pass",
+  "version": "UI-p2.1-v4.1.0-parser-backend-evidence",
+  "scope": "p2.1-v4.1.0-parser-backend-evidence-sync",
   "allowed_paths": [
     "README.md",
     "web/workbench/",
@@ -36,6 +36,15 @@
     "matrix_fixture": "examples/ui_mock_data/external/s_a_contract_inclusion_matrix_fixture.json",
     "policy": "UI visibility only; no external project code, dependencies, provider API calls, bundled runtime, secrets, raw outputs, local provider config, or executable external actions"
   },
+  "parser_backend_source": {
+    "copied_from": "Core parser-backend-release-evidence",
+    "core_repo": "kb-forge-skill",
+    "core_runtime_baseline_commit": "576a62075dc1ecbe00388bb0569fd1fc767be7cb",
+    "release_version": "v4.1.0",
+    "matrix_fixture": "examples/ui_mock_data/parser_backends/parser_backend_matrix.json",
+    "flutter_asset": "web/workbench/flutter_app/assets/parser_backends/parser_backend_matrix.json",
+    "policy": "UI evidence visibility only; no parser/OCR runtime execution controls, no default heavy dependency bundling, and no stable unstructured PDF/DOCX/image claim"
+  },
   "pages": [
     {
       "id": "dashboard",
@@ -45,6 +54,7 @@
         "jobs",
         "review_queue",
         "provider_status",
+        "parser_backend_matrix",
         "p1_core_contracts",
         "external_capability_registry",
         "s_a_contract_inclusion_matrix",
@@ -64,6 +74,7 @@
         "p1_core_contracts",
         "external_capability_registry",
         "s_a_contract_inclusion_matrix",
+        "parser_backend_matrix",
         "p1_real_workflow_v1_evidence",
         "p1_real_workflow_v2_evidence"
       ]
@@ -74,13 +85,15 @@
         "p1_core_contracts",
         "external_capability_registry",
         "s_a_contract_inclusion_matrix",
-        "p1_real_workflow_v2_evidence"
+        "p1_real_workflow_v2_evidence",
+        "parser_backend_matrix"
       ]
     },
     {
       "id": "import-parsing",
       "mock_sources": [
         "parser_backend_status",
+        "parser_backend_matrix",
         "jobs",
         "p1_core_contracts"
       ]
@@ -164,7 +177,8 @@
         "generated_docs",
         "p1_core_contracts",
         "p1_real_workflow_v1_evidence",
-        "p1_real_workflow_v2_evidence"
+        "p1_real_workflow_v2_evidence",
+        "parser_backend_matrix"
       ]
     },
     {
@@ -172,7 +186,8 @@
       "mock_sources": [
         "p1_core_contracts",
         "p1_real_workflow_v1_evidence",
-        "p1_real_workflow_v2_evidence"
+        "p1_real_workflow_v2_evidence",
+        "parser_backend_matrix"
       ]
     },
     {
@@ -180,6 +195,7 @@
       "mock_sources": [
         "provider_status",
         "parser_backend_status",
+        "parser_backend_matrix",
         "answer_policies",
         "p1_core_contracts",
         "external_capability_registry",
@@ -213,6 +229,7 @@
     "generated_docs": "examples/ui_mock_data/generated_docs.json",
     "provider_status": "examples/ui_mock_data/provider_status.json",
     "parser_backend_status": "examples/ui_mock_data/parser_backend_status.json",
+    "parser_backend_matrix": "examples/ui_mock_data/parser_backends/parser_backend_matrix.json",
     "answer_policies": "examples/ui_mock_data/answer_policies.json",
     "p1_core_contracts": "examples/ui_mock_data/p1_core_contract_fixture.json",
     "p1_real_workflow_v1_evidence": "examples/ui_mock_data/p1_real_workflow_v1_evidence.json",
@@ -318,9 +335,13 @@
     "not_v4_0_workbench_rc": true
   },
   "release_boundary": {
-    "checkpoint": "v4.0.0 stable release; copied historical P1 evidence keeps not_v4_0_workbench_rc=true",
-    "package_version": "4.0.0",
+    "checkpoint": "v4.1.0 parser/OCR evidence sync; v4.0.0 tag remains untouched",
+    "package_version": "4.1.0",
     "stable_release": "v4.0.0",
+    "current_release_line": "v4.1.0",
+    "release_candidate": "v4.1.0",
+    "release_candidate_tag_created": false,
+    "release_candidate_release_created": false,
     "core_stable_commit": "0217e54b162871e7c40c31ff3d0cc72e8ba78f06",
     "current_ui_default": "black / white / gray premium Windows desktop workbench",
     "supports_light_dark_mode": true,
@@ -343,6 +364,7 @@
       "exportItems",
       "providers",
       "parserBackends",
+      "parserBackendMatrix",
       "answerPolicies",
       "memoryPolicies",
       "p1Contracts",
@@ -352,6 +374,6 @@
       "sAContractInclusionMatrix"
     ],
     "no_backend_logic": false,
-    "current_backend_logic": "desktop local Core CLI bridge contract plus copied P1-RWF-V2 and P1 final gate evidence consumption; web still does not execute local CLI"
+    "current_backend_logic": "desktop local Core CLI bridge contract plus copied P1-RWF-V2, P1 final gate, S/A boundary, and P2.1 parser backend evidence consumption; web still does not execute local CLI or parser/OCR runtimes"
   }
 }

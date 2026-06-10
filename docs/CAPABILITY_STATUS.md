@@ -1,10 +1,10 @@
 # Capability Status
 
-Current project version: `4.0.0`
+Current project version: `4.1.0`
 
-Current stable release: `v4.0.0`
+Current release line: `v4.1.0`
 
-Latest completed UI release work includes P1 Final Gate Re-run, External Project Registry visibility, S/A Contract Inclusion visibility, rc.1 acceptance, and release hardening. The project is now on the stable `v4.0.0` Workbench UI release line.
+Latest completed UI release work includes P1 Final Gate Re-run, External Project Registry visibility, S/A Contract Inclusion visibility, rc.1 acceptance, release hardening, and P2.1 parser/OCR backend evidence sync. The project is now on the `v4.1.0` Workbench evidence sync line; the `v4.0.0` tag remains untouched.
 
 ## Stable
 
@@ -42,6 +42,9 @@ Latest completed UI release work includes P1 Final Gate Re-run, External Project
 - opt-in provider live smoke
 - minimal end-to-end portfolio demo
 - demo evidence pack
+- parser/OCR backend matrix evidence visibility
+- optional parser/OCR dependency boundary display
+- parser backend stable surface and known limitation display
 
 ## Experimental
 

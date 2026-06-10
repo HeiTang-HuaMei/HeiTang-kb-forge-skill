@@ -1,0 +1,168 @@
+{
+  "schema_version": "p2.1.parser_backend_matrix.v1",
+  "release_version": "v4.1.0",
+  "release_title": "HeiTang KB Forge v4.1.0 Parser/OCR Pluggable Backend Runtime",
+  "runtime_baseline_commit": "576a62075dc1ecbe00388bb0569fd1fc767be7cb",
+  "baseline_hygiene_commit": "13640d5",
+  "v4_0_0_tag_expected_commit": "0217e54b162871e7c40c31ff3d0cc72e8ba78f06",
+  "default_heavy_dependencies_bundled": false,
+  "default_core_parser_changed": false,
+  "static_workbench_runtime_execution_claimed": false,
+  "acceptance_report_path": "docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json",
+  "known_limitation_report_path": "docs/audits/p2_1_parser_ocr_backends/backend_capability_boundaries.md",
+  "backends": [
+    {
+      "backend_id": "builtin",
+      "display_name": "Built-in parser fallback",
+      "dependency_mode": "default",
+      "optional_extra": null,
+      "default_install_available": true,
+      "current_environment_available": true,
+      "dependency_available": true,
+      "runtime_invoked": true,
+      "sample_input_type": "Markdown/TXT local source",
+      "validated_stable_surface": [
+        ".md",
+        ".txt"
+      ],
+      "adapter_supported_extensions": [
+        ".csv",
+        ".docx",
+        ".epub",
+        ".htm",
+        ".html",
+        ".jpeg",
+        ".jpg",
+        ".markdown",
+        ".md",
+        ".pdf",
+        ".png",
+        ".ppt",
+        ".pptx",
+        ".tsv",
+        ".txt",
+        ".xlsx",
+        ".zip"
+      ],
+      "known_limitations": [
+        "Best-effort OCR/image extraction still requires review.",
+        "Not a replacement for optional layout/OCR runtimes."
+      ],
+      "status": "builtin_passed",
+      "workbench_state": [
+        "builtin_passed"
+      ],
+      "evidence_path": "tests/test_v28_parser_backends.py::test_parse_with_backend_builtin_writes_normalized_outputs",
+      "fallback_behavior": "Preserved default parser path; used when optional backend is missing or not selected.",
+      "static_workbench_executable": false
+    },
+    {
+      "backend_id": "docling",
+      "display_name": "Docling local runtime adapter",
+      "dependency_mode": "optional_extra",
+      "optional_extra": "parser-docling",
+      "default_install_available": false,
+      "current_environment_available": false,
+      "dependency_available": true,
+      "runtime_invoked": true,
+      "sample_input_type": "Markdown/TXT document source in live acceptance replay",
+      "validated_stable_surface": [
+        ".md",
+        ".txt"
+      ],
+      "adapter_supported_extensions": [
+        ".docx",
+        ".htm",
+        ".html",
+        ".md",
+        ".pdf",
+        ".pptx",
+        ".txt"
+      ],
+      "known_limitations": [
+        "P2.1 live acceptance proves Docling runtime invocation on Markdown/TXT samples only.",
+        "Docling adapter declares broader document extensions, but PDF/DOCX/HTML/PPTX must be revalidated before stable claims.",
+        "Docling is not bundled and is not default Core parsing."
+      ],
+      "status": "real_runtime_integrated",
+      "workbench_state": [
+        "real_runtime_integrated",
+        "optional_dependency_gated",
+        "limited_surface"
+      ],
+      "evidence_path": "docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json",
+      "fallback_behavior": "If parser-docling is missing or runtime fails, the report marks the backend unavailable/failed and preserves builtin fallback guidance.",
+      "static_workbench_executable": false
+    },
+    {
+      "backend_id": "paddleocr",
+      "display_name": "PaddleOCR local OCR runtime adapter",
+      "dependency_mode": "optional_extra",
+      "optional_extra": "parser-paddleocr",
+      "default_install_available": false,
+      "current_environment_available": false,
+      "dependency_available": true,
+      "runtime_invoked": true,
+      "sample_input_type": "PNG OCR image in live acceptance replay",
+      "validated_stable_surface": [
+        ".png"
+      ],
+      "adapter_supported_extensions": [
+        ".bmp",
+        ".jpeg",
+        ".jpg",
+        ".pdf",
+        ".png",
+        ".tif",
+        ".tiff"
+      ],
+      "known_limitations": [
+        "P2.1 live acceptance proves OCR runtime invocation on a PNG sample.",
+        "PDF/TIFF/JPEG support remains adapter-declared but not universally stable for this release.",
+        "PaddleOCR and model files are not bundled in the default install."
+      ],
+      "status": "real_runtime_integrated",
+      "workbench_state": [
+        "real_runtime_integrated",
+        "optional_dependency_gated",
+        "limited_surface"
+      ],
+      "evidence_path": "docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json",
+      "fallback_behavior": "If parser-paddleocr or local OCR model/runtime is missing, the report marks the backend unavailable/failed and preserves builtin fallback guidance.",
+      "static_workbench_executable": false
+    },
+    {
+      "backend_id": "unstructured",
+      "display_name": "Unstructured local runtime adapter",
+      "dependency_mode": "optional_extra",
+      "optional_extra": "parser-unstructured",
+      "default_install_available": false,
+      "current_environment_available": false,
+      "dependency_available": true,
+      "runtime_invoked": true,
+      "sample_input_type": "Markdown/TXT document source in live acceptance replay",
+      "validated_stable_surface": [
+        ".md",
+        ".txt"
+      ],
+      "adapter_supported_extensions": [
+        ".md",
+        ".txt"
+      ],
+      "known_limitations": [
+        "Stable P2.1 surface is explicitly limited to .md/.txt.",
+        "PDF/DOCX/image extras are future hardening and are not claimed stable in v4.1.0.",
+        "Unstructured is not bundled and is not default Core parsing."
+      ],
+      "status": "real_runtime_integrated",
+      "workbench_state": [
+        "real_runtime_integrated",
+        "optional_dependency_gated",
+        "limited_surface"
+      ],
+      "evidence_path": "docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json",
+      "fallback_behavior": "If parser-unstructured is missing or runtime fails, the report marks the backend unavailable/failed and preserves builtin fallback guidance.",
+      "static_workbench_executable": false
+    }
+  ]
+}

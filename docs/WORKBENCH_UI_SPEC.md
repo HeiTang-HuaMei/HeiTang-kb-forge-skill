@@ -1,6 +1,6 @@
 # HeiTang Knowledge Workbench UI Spec
 
-Status: UI-v0.1 through UI-v0.5 prototype. This spec defines a mock-only product surface and reserves Core integration for a future service layer.
+Status: UI-v0.1 through UI-v0.5 prototype plus v4.1.0 Parser/OCR evidence sync. This spec defines a fixture-backed product surface and reserves runtime Core integration for explicit bridge/service layers.
 
 ## Scope
 
@@ -8,6 +8,7 @@ Status: UI-v0.1 through UI-v0.5 prototype. This spec defines a mock-only product
 - Provide a Flutter scaffold under `web/workbench/flutter_app/` for Windows desktop, Web/PWA, Android, and iOS targets.
 - Use only `examples/ui_mock_data/*.json` as data sources.
 - Keep parser, RAG, document generation, agent orchestration, and memory runtime logic out of scope.
+- Display P2.1 parser backend matrix evidence from copied Core fixtures without executing parser/OCR runtimes.
 - Reserve future API replacement at `web/workbench/src/mockService.js`.
 - Do not import Core pipeline modules from Flutter UI scaffold files.
 
@@ -45,13 +46,22 @@ Status: UI-v0.1 through UI-v0.5 prototype. This spec defines a mock-only product
 
 Shows summary metrics for knowledge bases, trusted/draft state, agents, review risks, current jobs, and provider readiness.
 
-Mock sources: `knowledge_bases.json`, `agents.json`, `jobs.json`, `review_queue.json`, `provider_status.json`.
+Mock sources: `knowledge_bases.json`, `agents.json`, `jobs.json`, `review_queue.json`, `provider_status.json`, `parser_backends/parser_backend_matrix.json`.
 
 ### File Upload
 
 Shows a mock dropzone and parser readiness. Upload actions are visual only and must not call parser backends.
 
-Mock sources: `parser_backend_status.json`, `jobs.json`.
+Mock sources: `parser_backend_status.json`, `parser_backends/parser_backend_matrix.json`, `jobs.json`.
+
+Parser backend matrix display rules:
+
+- Builtin: preserved fallback.
+- Docling: real runtime integrated, optional dependency gated, stable surface limited to release evidence.
+- PaddleOCR: real runtime integrated, optional dependency gated, stable PNG OCR evidence.
+- Unstructured: real runtime integrated, optional dependency gated, stable `.md/.txt` surface only.
+- Static Web and Flutter Workbench surfaces must not display parser/OCR runtime execution controls.
+- Flutter renders the matrix as dashboard summary cards, boundary callouts, a data table, backend detail panels, and audit evidence rows.
 
 ### Job Progress
 
@@ -117,7 +127,7 @@ Mock sources: `memory_scopes.json`, `agents.json`, `workflows.json`.
 
 Shows provider status, parser backend status, answer policy, and memory policy as mock configuration.
 
-Mock sources: `provider_status.json`, `parser_backend_status.json`, `answer_policies.json`.
+Mock sources: `provider_status.json`, `parser_backend_status.json`, `parser_backends/parser_backend_matrix.json`, `answer_policies.json`.
 
 ### Export Center
 
@@ -138,6 +148,7 @@ The UI consumes these files only:
 - `generated_docs.json`
 - `provider_status.json`
 - `parser_backend_status.json`
+- `parser_backends/parser_backend_matrix.json`
 - `answer_policies.json`
 
 Required concepts:
@@ -146,7 +157,7 @@ Required concepts:
 - Multiple agents, including Agent-to-KB binding.
 - Different model providers and model status.
 - Answer policy modes.
-- Parser backend status.
+- Parser backend status derived from Core v4.1.0 evidence, including install mode, stable surface, evidence path, known limitations, and no static executable claim.
 - Review queue risks.
 - Generated documents and export items.
 - Multi-agent workflow, workflow shared memory, handoff trace.
@@ -166,6 +177,7 @@ Required concepts:
 - `exportItems`
 - `providers`
 - `parserBackends`
+- `parserBackendMatrix`
 - `answerPolicies`
 - `memoryPolicies`
 

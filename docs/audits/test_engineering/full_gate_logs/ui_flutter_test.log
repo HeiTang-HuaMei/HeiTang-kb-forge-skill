@@ -1,0 +1,5 @@
+command: flutter test -r expanded
+exit_code: 0
+summary: 25 passed; All tests passed.
+notes:
+- Direct command was used to preserve a reliable exit code after Flutter analyze redirection proved unreliable.
