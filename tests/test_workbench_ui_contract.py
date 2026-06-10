@@ -81,7 +81,7 @@ def test_readme_states_workbench_visual_and_release_boundary():
     assert "black / white / gray premium Windows desktop workbench" in readme
     assert "light / dark mode" in readme
     assert "zh-CN / en-US language switch" in readme
-    assert "v4.1.1 UI test framework governance line" in readme
+    assert "v4.1.1 UI test framework governance stable release" in readme
     assert "v4.1.0 Parser/OCR Workbench sync" in readme
     assert "`v4.0.0` and `v4.1.0` tags remain untouched" in readme
     assert CORE_STABLE_COMMIT in readme
