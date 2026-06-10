@@ -73,8 +73,7 @@ def _status(path: Path) -> str:
 
 def _repo_gate_failures(workspace: Path) -> list[str]:
     failures: list[str] = []
-    expected = "4.1.0"
-    if not _versions_aligned(workspace, expected):
+    if not _versions_aligned(workspace):
         failures.append("version_mismatch")
     for name, path in {
         "capability_status_missing": workspace / "docs" / "CAPABILITY_STATUS.md",
@@ -101,7 +100,7 @@ def _repo_gate_failures(workspace: Path) -> list[str]:
     return failures
 
 
-def _versions_aligned(workspace: Path, expected: str) -> bool:
+def _versions_aligned(workspace: Path) -> bool:
     versions = []
     pyproject = workspace / "pyproject.toml"
     skill_json = workspace / "skill.json"
@@ -115,6 +114,9 @@ def _versions_aligned(workspace: Path, expected: str) -> bool:
             versions.append(json.loads(skill_json.read_text(encoding="utf-8")).get("version"))
         except json.JSONDecodeError:
             return False
+    if len(versions) != 2 or any(not version for version in versions) or len(set(versions)) != 1:
+        return False
+    expected = versions[0]
     for path in [
         workspace / "README.md",
         workspace / "README.zh-CN.md",
@@ -127,7 +129,7 @@ def _versions_aligned(workspace: Path, expected: str) -> bool:
     ]:
         if path.exists() and expected not in path.read_text(encoding="utf-8", errors="ignore"):
             return False
-    return bool(versions) and all(version == expected for version in versions)
+    return True
 
 
 def _suspected_secret(workspace: Path) -> bool:

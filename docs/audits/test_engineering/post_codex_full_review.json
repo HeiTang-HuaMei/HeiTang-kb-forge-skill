@@ -27,6 +27,18 @@
       "blocks_release": true,
       "status": "resolved",
       "fix_evidence": "Both reports now include skipped_tests for tests/test_live_provider_smoke.py::test_live_provider_smoke_entrypoint_is_explicitly_opt_in with reason HEITANG_RUN_LIVE_TESTS=1."
+    },
+    {
+      "id": "PCR-v4.1.1-002",
+      "severity": "P1",
+      "surface": "Test and release evidence",
+      "file/path": "heitang_kb_forge/release_readiness/evaluator.py; tests/test_release_readiness_gate.py",
+      "evidence": "Remote Core Release Check run 27296664588 failed in Release readiness with critical_blockers=[version_mismatch] because release-readiness expected historical 4.1.0 while current metadata is 4.1.1.",
+      "impact": "Core release-check evidence could not become green, so v4.1.1 tag/release would be blocked and release readiness evidence would be untrustworthy.",
+      "recommended_fix": "Derive the expected release version from pyproject.toml and skill.json, require those sources to match, and keep existing docs containing the current version.",
+      "blocks_release": true,
+      "status": "resolved",
+      "fix_evidence": "Focused release-readiness tests passed (19 passed); Core phase_closure gates passed; Core Chunked Full Gate rerun passed 8/8 chunks with exit code 0."
     }
   ],
   "stop_conditions": {
@@ -41,11 +53,11 @@
   "evidence": {
     "core_validation_report": "docs/audits/test_engineering/validation_report.json",
     "ui_validation_report": "docs/audits/test_engineering/validation_report.json",
-    "core_chunked_full_gate": "8/8 chunks passed with log and exit code sidecars",
+    "core_chunked_full_gate": "8/8 chunks passed with log and exit code sidecars after release-readiness version alignment fix",
     "ui_chunked_full_gate": "6/6 chunks passed with log and exit code sidecars",
     "external_registry": "needs_verification=0; no ready/executable/real_local_passed flags found in Core registry review",
     "ui_external_registry": "no executable_action=true or ready/executable flags found in UI asset review",
-    "tag_boundary": "Core HEAD points at existing v4.1.0; UI HEAD has no tag; no v4.1.1 tag created",
+    "tag_boundary": "Existing v4.0.0 and v4.1.0 tags remain untouched; no v4.1.1 tag created",
     "workspace_path_boundary": "Current v4.1.1 validation reports do not reference C legacy paths; old tracked v4.1.0 UI log remains historical evidence only"
   }
 }

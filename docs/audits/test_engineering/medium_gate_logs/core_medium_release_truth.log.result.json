@@ -1,9 +1,9 @@
 {
-  "name": "core_full_docs_truth_chunk",
+  "name": "core_medium_release_truth",
   "command": "python -m pytest tests/test_final_docs_truthfulness.py tests/test_final_bilingual_docs_parity.py tests/test_final_docs_structure.py tests/test_release_checklist_docs.py tests/test_readme_scope.py tests/test_version_alignment.py tests/test_version_matrix_docs.py tests/test_final_version_metadata.py tests/test_skill_metadata.py tests/test_v12_docs.py tests/test_test_governance_manifest.py -q",
   "exit_code": 0,
-  "exit_code_path": "docs/audits/test_engineering/full_gate_logs/core_full_docs_truth_chunk.log.exitcode",
+  "exit_code_path": "docs/audits/test_engineering/medium_gate_logs/core_medium_release_truth.log.exitcode",
   "status": "passed",
-  "log_path": "docs/audits/test_engineering/full_gate_logs/core_full_docs_truth_chunk.log",
-  "summary": "..........................                                               [100%]\n26 passed in 26.01s"
+  "log_path": "docs/audits/test_engineering/medium_gate_logs/core_medium_release_truth.log",
+  "summary": "..........................                                               [100%]\n26 passed in 23.81s"
 }

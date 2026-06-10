@@ -3,7 +3,7 @@
   "release_title": "Test Framework Governance, Obsolete Test Pruning & Scalable Validation",
   "repository": "core",
   "gate": "chunked_full_gate",
-  "decision": "chunked_full_gate_and_post_codex_full_review_passed_pending_commit_push_ci_tag_release",
+  "decision": "chunked_full_gate_and_post_codex_full_review_passed_pending_commit_push_ci_release_check_tag_release",
   "release_blocking": true,
   "generated_local_date": "2026-06-11",
   "changed_files": [
@@ -13,7 +13,9 @@
     "tests/test_test_governance_manifest.py",
     "docs/testing/TEST_PRUNING_REGISTER.md",
     "docs/testing/TEST_PRUNING_REGISTER.zh-CN.md",
-    "v4.1.1 truth docs and metadata"
+    "v4.1.1 truth docs and metadata",
+    "heitang_kb_forge/release_readiness/evaluator.py",
+    "tests/test_release_readiness_gate.py"
   ],
   "chunks": [
     {
@@ -23,7 +25,7 @@
       "exit_code_path": "docs/audits/test_engineering/full_gate_logs/core_full_docs_truth_chunk.log.exitcode",
       "status": "passed",
       "log_path": "docs/audits/test_engineering/full_gate_logs/core_full_docs_truth_chunk.log",
-      "summary": "..........................                                               [100%]\n26 passed in 19.80s"
+      "summary": "..........................                                               [100%]\n26 passed in 26.01s"
     },
     {
       "name": "core_full_parser_backend_chunk",
@@ -32,7 +34,7 @@
       "exit_code_path": "docs/audits/test_engineering/full_gate_logs/core_full_parser_backend_chunk.log.exitcode",
       "status": "passed",
       "log_path": "docs/audits/test_engineering/full_gate_logs/core_full_parser_backend_chunk.log",
-      "summary": "...............................................                          [100%]\n47 passed in 4.98s"
+      "summary": "...............................................                          [100%]\n47 passed in 7.19s"
     },
     {
       "name": "core_full_a_c_chunk",
@@ -41,7 +43,7 @@
       "exit_code_path": "docs/audits/test_engineering/full_gate_logs/core_full_a_c_chunk.log.exitcode",
       "status": "passed",
       "log_path": "docs/audits/test_engineering/full_gate_logs/core_full_a_c_chunk.log",
-      "summary": "........................................................................ [ 67%]\n...................................                                      [100%]\n107 passed in 33.71s"
+      "summary": "........................................................................ [ 67%]\n...................................                                      [100%]\n107 passed in 62.69s (0:01:02)"
     },
     {
       "name": "core_full_d_f_chunk",
@@ -50,7 +52,7 @@
       "exit_code_path": "docs/audits/test_engineering/full_gate_logs/core_full_d_f_chunk.log.exitcode",
       "status": "passed",
       "log_path": "docs/audits/test_engineering/full_gate_logs/core_full_d_f_chunk.log",
-      "summary": "........................................................................ [ 60%]\n................................................                         [100%]\n120 passed in 250.13s (0:04:10)"
+      "summary": "........................................................................ [ 60%]\n................................................                         [100%]\n120 passed in 352.91s (0:05:52)"
     },
     {
       "name": "core_full_g_m_chunk",
@@ -59,7 +61,7 @@
       "exit_code_path": "docs/audits/test_engineering/full_gate_logs/core_full_g_m_chunk.log.exitcode",
       "status": "passed",
       "log_path": "docs/audits/test_engineering/full_gate_logs/core_full_g_m_chunk.log",
-      "summary": "..............................s......................................... [ 62%]\n............................................                             [100%]\n115 passed, 1 skipped in 30.55s"
+      "summary": "..............................s......................................... [ 62%]\n............................................                             [100%]\n115 passed, 1 skipped in 47.39s"
     },
     {
       "name": "core_full_n_s_chunk",
@@ -68,7 +70,7 @@
       "exit_code_path": "docs/audits/test_engineering/full_gate_logs/core_full_n_s_chunk.log.exitcode",
       "status": "passed",
       "log_path": "docs/audits/test_engineering/full_gate_logs/core_full_n_s_chunk.log",
-      "summary": "........................................................................ [ 29%]\n........................................................................ [ 59%]\n........................................................................ [ 89%]\n..........................                                               [100%]\n242 passed in 90.25s (0:01:30)"
+      "summary": "........................................................................ [ 29%]\n........................................................................ [ 59%]\n........................................................................ [ 89%]\n..........................                                               [100%]\n242 passed in 197.17s (0:03:17)"
     },
     {
       "name": "core_full_t_z_chunk",
@@ -77,7 +79,7 @@
       "exit_code_path": "docs/audits/test_engineering/full_gate_logs/core_full_t_z_chunk.log.exitcode",
       "status": "passed",
       "log_path": "docs/audits/test_engineering/full_gate_logs/core_full_t_z_chunk.log",
-      "summary": "........................................................................ [ 22%]\n........................................................................ [ 45%]\n........................................................................ [ 67%]\n........................................................................ [ 90%]\n................................                                         [100%]\n320 passed in 97.41s (0:01:37)"
+      "summary": "........................................................................ [ 22%]\n........................................................................ [ 45%]\n........................................................................ [ 67%]\n........................................................................ [ 90%]\n................................                                         [100%]\n320 passed in 112.23s (0:01:52)"
     },
     {
       "name": "core_git_diff_check",
@@ -86,7 +88,7 @@
       "exit_code_path": "docs/audits/test_engineering/full_gate_logs/core_git_diff_check.log.exitcode",
       "status": "passed",
       "log_path": "docs/audits/test_engineering/full_gate_logs/core_git_diff_check.log",
-      "summary": "warning: in the working copy of 'docs/ROADMAP.zh-CN.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/USER_MANUAL.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/USER_MANUAL.zh-CN.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/VERSION_MATRIX.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/VERSION_MATRIX.zh-CN.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/audits/test_engineering/full_gate_logs/core_git_diff_check.log', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/testing/VALIDATION_STRATEGY.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/testing/VALIDATION_STRATEGY.zh-CN.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'heitang_kb_forge/doctor.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'heitang_kb_forge/final_audit/audit.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'pyproject.toml', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'skill.json', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_cli_architecture_docs.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_final_docs_truthfulness.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_final_version_metadata.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_release_checklist_docs.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_skill_metadata.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_v12_docs.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_version_alignment.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_version_matrix_docs.py', LF will be replaced by CRLF the next time Git touches it"
+      "summary": "warning: in the working copy of 'heitang_kb_forge/release_readiness/evaluator.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_release_readiness_gate.py', LF will be replaced by CRLF the next time Git touches it"
     }
   ],
   "deferred": [],
@@ -110,6 +112,18 @@
         "blocks_release": true,
         "status": "resolved",
         "fix_evidence": "Both reports now include skipped_tests for tests/test_live_provider_smoke.py::test_live_provider_smoke_entrypoint_is_explicitly_opt_in with reason HEITANG_RUN_LIVE_TESTS=1."
+      },
+      {
+        "id": "PCR-v4.1.1-002",
+        "severity": "P1",
+        "surface": "Test and release evidence",
+        "file/path": "heitang_kb_forge/release_readiness/evaluator.py; tests/test_release_readiness_gate.py",
+        "evidence": "Remote Core Release Check run 27296664588 failed in Release readiness with critical_blockers=[version_mismatch] because release-readiness expected historical 4.1.0 while current metadata is 4.1.1.",
+        "impact": "Core release-check evidence could not become green, so v4.1.1 tag/release would be blocked and release readiness evidence would be untrustworthy.",
+        "recommended_fix": "Derive the expected release version from pyproject.toml and skill.json, require those sources to match, and keep existing docs containing the current version.",
+        "blocks_release": true,
+        "status": "resolved",
+        "fix_evidence": "Focused release-readiness tests passed (19 passed); Core phase_closure gates passed; Core Chunked Full Gate rerun passed 8/8 chunks with exit code 0."
       }
     ],
     "blocking_rule": "P0=0, P1=0, P2 fixed or explicitly deferred; P3 backlog does not block release."
@@ -118,6 +132,7 @@
     "Commit",
     "Push",
     "CI green",
+    "Release Check green",
     "v4.1.1 tag",
     "GitHub Release"
   ],
@@ -131,7 +146,9 @@
   ],
   "notes": [
     "Core release sequence was rerun after fixing doctor version alignment and splitting the former remaining full chunk into A-C / D-F / G-M / N-S / T-Z chunks.",
-    "An earlier core_full_d_f_chunk attempt failed because doctor expected the historical 4.1.0 metadata version; that attempt is superseded by the passing rerun and remains auditable in prior log history."
+    "An earlier core_full_d_f_chunk attempt failed because doctor expected the historical 4.1.0 metadata version; that attempt is superseded by the passing rerun and remains auditable in prior log history.",
+    "Core release sequence was rerun after fixing release-readiness version alignment to derive the expected version from pyproject.toml and skill.json instead of hardcoding v4.1.0.",
+    "Remote Core Release Check run 27296664588 failed with critical blocker version_mismatch before this fix; that failed run is superseded only after a new Core commit/push and green Release Check."
   ],
   "runner_output": "docs/audits/test_engineering/full_gate_logs/core_release_sequence_runner.json",
   "runner_exit_code_path": "docs/audits/test_engineering/full_gate_logs/core_release_sequence_runner.exitcode",

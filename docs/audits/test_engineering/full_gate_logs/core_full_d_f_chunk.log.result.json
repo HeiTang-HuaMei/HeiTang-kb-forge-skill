@@ -5,5 +5,5 @@
   "exit_code_path": "docs/audits/test_engineering/full_gate_logs/core_full_d_f_chunk.log.exitcode",
   "status": "passed",
   "log_path": "docs/audits/test_engineering/full_gate_logs/core_full_d_f_chunk.log",
-  "summary": "........................................................................ [ 60%]\n................................................                         [100%]\n120 passed in 250.13s (0:04:10)"
+  "summary": "........................................................................ [ 60%]\n................................................                         [100%]\n120 passed in 352.91s (0:05:52)"
 }

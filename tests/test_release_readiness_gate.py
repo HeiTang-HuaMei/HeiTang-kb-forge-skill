@@ -9,8 +9,8 @@ def test_release_readiness_blocks_on_version_mismatch(tmp_path):
     workspace = tmp_path / "workspace"
     output = tmp_path / "release"
     workspace.mkdir()
-    (workspace / "pyproject.toml").write_text('version = "0.0.0"\n', encoding="utf-8")
-    (workspace / "skill.json").write_text('{"version":"0.0.0"}', encoding="utf-8")
+    (workspace / "pyproject.toml").write_text('version = "4.1.1"\n', encoding="utf-8")
+    (workspace / "skill.json").write_text('{"version":"4.1.0"}', encoding="utf-8")
 
     result = CliRunner().invoke(app, ["release-readiness", "--workspace", str(workspace), "--output", str(output)])
 
