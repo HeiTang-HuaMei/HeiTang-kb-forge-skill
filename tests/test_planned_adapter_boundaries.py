@@ -19,7 +19,10 @@ def test_planned_adapter_registry_contains_no_ready_or_local_executable_entries(
     for entry in payload["entries"]:
         assert "planned_adapter" in entry["contract_status"]
         assert entry["can_execute_locally_before_v4"] is False
-        assert "planned_adapter_not_implemented" in entry["blocked_reasons"]
+        if "optional_runtime_adapter" in entry["contract_status"]:
+            assert "optional_runtime_dependency_missing" in entry["blocked_reasons"]
+        else:
+            assert "planned_adapter_not_implemented" in entry["blocked_reasons"]
 
 
 def test_future_adapter_registry_contains_no_ready_or_local_executable_entries():

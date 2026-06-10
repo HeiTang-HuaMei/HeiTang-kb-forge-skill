@@ -446,7 +446,7 @@ class ParserBackendTrustPolicyConfig(BaseModel):
 class ParserBackendConfig(BaseModel):
     use_for_build: bool = False
     default: str = "builtin"
-    enabled: list[str] = Field(default_factory=lambda: ["builtin", "docling", "marker"])
+    enabled: list[str] = Field(default_factory=lambda: ["builtin", "docling", "marker", "paddleocr", "unstructured"])
     allow_untrusted: bool = False
     trust_policy: ParserBackendTrustPolicyConfig = Field(default_factory=ParserBackendTrustPolicyConfig)
 

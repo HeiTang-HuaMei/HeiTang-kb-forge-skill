@@ -12,7 +12,7 @@ python -m heitang_kb_forge.cli doctor --output .\tmp_doctor
 Optional local parser extras:
 
 ```powershell
-python -m pip install -e ".[ocr,pdf-table,parser-docling,parser-marker,web]"
+python -m pip install -e ".[ocr,pdf-table,parser-docling,parser-marker,parser-paddleocr,parser-unstructured,web]"
 ```
 
 ## 2. Prepare Input Files
@@ -20,6 +20,9 @@ python -m pip install -e ".[ocr,pdf-table,parser-docling,parser-marker,web]"
 Put source files under a local folder such as `.\examples\quickstart\input`.
 
 Supported local input routes include Markdown, TXT, DOCX, text PDF, image/OCR routes when extras are installed, CSV, TSV, XLSX, HTML, EPUB, and ZIP.
+Optional parser backends include Docling, PaddleOCR, and Unstructured when their local extras are installed.
+The current `parser-unstructured` extra is validated for Markdown/TXT sources.
+Use `parser-runtime-acceptance` with a folder that contains backend-supported document and OCR sources to write live runtime evidence for those optional parser/OCR backends; it reports `blocked` when the local dependencies or supported sources are not available.
 
 ## 3. Build a Knowledge Package
 

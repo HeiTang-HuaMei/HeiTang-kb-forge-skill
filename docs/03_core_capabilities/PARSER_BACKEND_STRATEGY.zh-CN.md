@@ -1,9 +1,9 @@
 # Parser Backend Strategy
 
-当前 Core package 版本：`4.0.0rc1`
-当前 release candidate：`v4.0.0-rc.1`
+当前 Core package 版本：`4.0.0`
+当前 stable release：`v4.0.0`
 
-本文只记录 parser backend strategy。不新增 parser 代码、不新增依赖、不下载模型、不运行外部 parser。
+本文记录 parser backend strategy。不会把外部 runtime 变成默认路径，不下载模型；只有显式选择 backend 且本地安装对应依赖时，才会运行外部 parser。
 
 ## 已完成的 Core Parser 能力
 
@@ -13,20 +13,27 @@ HeiTang KB Forge 当前已完成的 parser 能力仍然是：
 - bounded best-effort OCR，用于本地 OCR route
 - 本地 PDF token reduction 和 parser truth evidence
 
-这些才是当前 Core tests 与 final proof 覆盖的已完成 parser 能力。外部 parser backend 在 adapter 与 acceptance proof 改变产品真值前，仍然只是独立候选。
+这些才是当前 Core tests 与 final proof 覆盖的已完成 parser 能力。外部 parser backend 现在已有可选的本地真实 adapter，但只有在本地安装对应依赖并显式选择后才会调用；默认 Core 真值不变。
+
+可选的本地真实 runtime adapter 已覆盖三个 S 级 parser/OCR 项目：
+
+- Docling：结构化文档转换
+- PaddleOCR：本地 OCR runtime
+- Unstructured：通过 `parser-unstructured` extra 覆盖 Markdown/TXT 文档解析
 
 ## 外部 Backend 候选
 
 | 候选 | 定位 | 当前状态 |
 | --- | --- | --- |
 | OpenDataLoader | 端到端 PDF -> Markdown/JSON/RAG-ready parser 候选，用于未来完整 PDF 内容包装路径。 | external backend candidate；planned adapter |
-| PaddleOCR | OCR 基础能力候选，用于文字检测与识别。 | external backend candidate；planned adapter |
+| PaddleOCR | OCR 基础能力候选，用于文字检测与识别。 | optional real local runtime adapter；planned adapter |
 | MinerU | 文档结构理解与复杂版面解析候选，用于阅读顺序、章节、图片、公式和表格密集页面。 | external backend candidate；planned adapter |
-| PaddleOCR + MinerU | OCR + document understanding pipeline 候选：PaddleOCR 提供 OCR foundation，MinerU 处理结构与复杂版面推理。 | external backend candidate；planned adapter |
+| PaddleOCR + MinerU | OCR + document understanding pipeline 候选：PaddleOCR 提供 OCR foundation，MinerU 处理结构与复杂版面推理。 | optional real local runtime adapter target；planned adapter |
 
 ## 治理边界
 
-- 不把 OpenDataLoader、PaddleOCR、MinerU 或 PaddleOCR + MinerU pipeline 描述为当前已完成的 HeiTang KB Forge 能力。
+- 不把 OpenDataLoader、MinerU 或 PaddleOCR + MinerU pipeline 描述为当前已完成的 HeiTang KB Forge 能力。
+- 不把 Docling、PaddleOCR 或 Unstructured 描述为默认 Core parser、已打包 runtime 或 UI 可执行外部项目；它们仍然是 opt-in 的本地 runtime adapters。
 - 未来 adapter 必须通过 local privacy、secret redaction、parser quality、token reduction、reliability 和 acceptance gate 后，才能改变产品真值。
-- 本策略不新增依赖、不下载模型、不触发 runtime invocation、不改变 Core parser 实现。
+- 本策略保持默认 Core parser 实现不变，但当本地安装对应依赖并显式选择时，optional adapter 可以触发真实 runtime invocation。
 - 当前 release 表述必须继续说明：HeiTang KB Forge 已完成能力是已验证的 internal parser、bounded best-effort OCR 和 PDF token reduction。

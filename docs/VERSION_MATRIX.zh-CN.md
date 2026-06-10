@@ -23,7 +23,7 @@
 | v2.5.1-alpha.1 | CLI architecture convergence | CLI compatibility split、metadata convergence | `doctor` | doctor and readiness reports | historical | yes | alpha checkpoint。 |
 | v2.6.0-alpha.1 | Provider governance | Provider registry、redaction、fallback、cost guard | `provider-list`, `provider-config-validate`, `provider-security-audit` | provider reports | historical | yes | live smoke 必须显式 opt-in。 |
 | v2.7.0-alpha.1 | Local portfolio demo | Offline demo evidence workflow | `demo-e2e` | demo evidence pack | historical | yes | no live platform runtime。 |
-| v2.8.0-alpha.1 | Parser reliability | Parser backend abstraction、trust gate、OCR risk | `parser-backend-list`, `parse-with-backend`, `trusted-kb-gate` | parser quality reports | historical | yes | optional external parser stubs only。 |
+| v2.8.0-alpha.1 | Parser reliability | Parser backend abstraction、trust gate、OCR risk | `parser-backend-list`, `parse-with-backend`, `trusted-kb-gate` | parser quality reports | historical | yes | optional external parser adapter 在本地安装依赖并显式选择时可调用真实 runtime；默认 Core path 仍是 builtin。 |
 | v2.9.0-alpha.1 | Knowledge Runtime Loop | Local KB index/query/answer、citations、refusal | `kb-index`, `kb-query`, `kb-answer` | KB runtime reports | superseded | yes | 作为历史功能版本仍支持。 |
 | v3.0.0-alpha.1 | Document Generation Loop | Grounded MD/DOCX/PDF/PPTX exports | `generate-documents`, `generate-md`, `generate-docx`, `generate-pdf`, `generate-pptx` | document generation reports | superseded | yes | opt-in and local。 |
 | v3.1.0-alpha.1 | Knowledge-bound factory | Standalone and KB-bound Agent generation | `generate-agent`, `generate-bound-agent` | Agent package reports | superseded | yes | CLI validation 稳定。 |

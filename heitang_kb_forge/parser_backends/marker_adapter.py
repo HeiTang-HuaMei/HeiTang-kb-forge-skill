@@ -11,6 +11,7 @@ class MarkerParserBackend(ParserBackend):
     name = "marker"
     version = "optional"
     description = "Optional Marker adapter. It is unavailable unless the local marker package is installed."
+    supported_extensions = frozenset({".pdf"})
 
     def is_available(self) -> tuple[bool, str | None]:
         if find_spec("marker") is None:
@@ -29,4 +30,3 @@ class MarkerParserBackend(ParserBackend):
             warnings=[reason or "marker_adapter_unavailable"],
             confidence=0.0,
         )
-

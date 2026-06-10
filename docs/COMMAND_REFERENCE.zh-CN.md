@@ -32,6 +32,11 @@ python -m heitang_kb_forge.cli check-contract --package .\tmp_package --output .
 ```powershell
 python -m heitang_kb_forge.cli parser-backend-list
 python -m heitang_kb_forge.cli parse-with-backend --backend builtin --input .\examples\quickstart\input --output .\tmp_parse
+python -m heitang_kb_forge.cli parse-with-backend --backend docling --input .\examples\quickstart\input --output .\tmp_parse_docling
+python -m heitang_kb_forge.cli parse-with-backend --backend unstructured --input .\examples\quickstart\input --output .\tmp_parse_unstructured
+python -m heitang_kb_forge.cli parse-with-backend --backend paddleocr --input .\examples\quickstart\input --output .\tmp_parse_paddleocr
+# 三个 runtime backend 一起验收时，input 目录应同时包含 backend 支持的文档源和 OCR 图片/PDF 源。
+python -m heitang_kb_forge.cli parser-runtime-acceptance --input .\examples\quickstart\input --output .\tmp_parser_runtime_acceptance
 python -m heitang_kb_forge.cli parse-quality-gate --package .\tmp_package --output .\tmp_parse_quality
 python -m heitang_kb_forge.cli preprocess-pdf-markdown --source .\examples\quickstart\input --output .\tmp_pdf_md
 python -m heitang_kb_forge.cli benchmark-parser-backends --source .\examples\quickstart\input --output .\tmp_parser_benchmark

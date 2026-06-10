@@ -1,10 +1,18 @@
 import json
+import os
+import sys
+import types
+from pathlib import Path
 
 from typer.testing import CliRunner
 
 from heitang_kb_forge.cli import app
 from heitang_kb_forge.exporters.jsonl_exporter import write_json
+from heitang_kb_forge.parser_backends import docling_adapter, paddleocr_adapter, unstructured_adapter
 
+
+ROOT = Path(__file__).resolve().parents[1]
+PARSER_RUNTIME_ACCEPTANCE_REPORT = ROOT / "docs" / "audits" / "parser_runtime_acceptance" / "parser_runtime_acceptance_report.json"
 
 STANDARD_FILES = {
     "chunks.jsonl",
@@ -48,6 +56,20 @@ def test_parser_backend_list_reports_builtin_docling_and_marker():
     assert "builtin: available" in result.output
     assert "docling:" in result.output
     assert "marker:" in result.output
+    assert "paddleocr:" in result.output
+    assert "unstructured:" in result.output
+
+
+def test_backend_registry_exposes_runtime_supported_extensions():
+    from heitang_kb_forge.parser_backends import list_backends
+
+    rows = {row["name"]: row for row in list_backends()}
+
+    assert ".pdf" in rows["docling"]["supported_extensions"]
+    assert ".md" in rows["unstructured"]["supported_extensions"]
+    assert ".txt" in rows["unstructured"]["supported_extensions"]
+    assert ".png" in rows["paddleocr"]["supported_extensions"]
+    assert rows["marker"]["supported_extensions"] == [".pdf"]
 
 
 def test_parse_with_backend_builtin_writes_normalized_outputs(tmp_path):
@@ -81,7 +103,8 @@ def test_parse_with_backend_unsupported_only_returns_warning(tmp_path):
     assert "no_supported_sources" in payload["warnings"]
 
 
-def test_optional_docling_backend_is_unavailable_without_crashing(tmp_path):
+def test_optional_docling_backend_is_unavailable_without_crashing(tmp_path, monkeypatch):
+    monkeypatch.setattr(docling_adapter, "find_spec", lambda name: None)
     source = tmp_path / "input.md"
     output = tmp_path / "docling"
     source.write_text("Docling optional fixture.", encoding="utf-8")
@@ -95,10 +118,298 @@ def test_optional_docling_backend_is_unavailable_without_crashing(tmp_path):
     assert payload["records"][0]["status"] in {"unavailable", "disabled"}
 
 
-def test_parse_compare_records_optional_backend_differences(tmp_path):
+def test_docling_backend_invokes_installed_runtime(tmp_path, monkeypatch):
+    calls = []
+
+    class FakeDocument:
+        def export_to_markdown(self):
+            return "# Parsed by Docling\n\nRuntime text."
+
+    class FakeDocumentConverter:
+        def convert(self, source):
+            calls.append(source)
+            return types.SimpleNamespace(document=FakeDocument())
+
+    docling = types.ModuleType("docling")
+    docling.__path__ = []
+    converter = types.ModuleType("docling.document_converter")
+    converter.DocumentConverter = FakeDocumentConverter
+    monkeypatch.setitem(sys.modules, "docling", docling)
+    monkeypatch.setitem(sys.modules, "docling.document_converter", converter)
+    monkeypatch.setattr(docling_adapter, "find_spec", lambda name: object())
+
+    source = tmp_path / "input.pdf"
+    output = tmp_path / "docling"
+    source.write_bytes(b"%PDF fake fixture")
+
+    result = CliRunner().invoke(app, ["parse-with-backend", "--input", str(source), "--output", str(output), "--backend", "docling"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(output / "parser_backend_result.json")
+    assert payload["status"] == "success"
+    assert calls == [str(source)]
+    record = payload["records"][0]
+    assert record["metadata"]["runtime_invoked"] is True
+    assert "Parsed by Docling" in record["text"]
+
+
+def test_unstructured_backend_invokes_partition_runtime(tmp_path, monkeypatch):
+    calls = []
+
+    def fake_partition(filename):
+        calls.append(filename)
+        return [types.SimpleNamespace(text="Unstructured element one."), types.SimpleNamespace(text="Element two.")]
+
+    unstructured = types.ModuleType("unstructured")
+    unstructured.__path__ = []
+    partition_pkg = types.ModuleType("unstructured.partition")
+    partition_pkg.__path__ = []
+    auto = types.ModuleType("unstructured.partition.auto")
+    auto.partition = fake_partition
+    monkeypatch.setitem(sys.modules, "unstructured", unstructured)
+    monkeypatch.setitem(sys.modules, "unstructured.partition", partition_pkg)
+    monkeypatch.setitem(sys.modules, "unstructured.partition.auto", auto)
+    monkeypatch.setattr(unstructured_adapter, "find_spec", lambda name: object())
+
     source = tmp_path / "input.md"
+    output = tmp_path / "unstructured"
+    source.write_text("fake markdown fixture", encoding="utf-8")
+
+    result = CliRunner().invoke(app, ["parse-with-backend", "--input", str(source), "--output", str(output), "--backend", "unstructured"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(output / "parser_backend_result.json")
+    assert payload["status"] == "success"
+    assert calls == [str(source)]
+    record = payload["records"][0]
+    assert record["metadata"]["runtime_invoked"] is True
+    assert record["metadata"]["element_count"] == 2
+    assert "Unstructured element one" in record["text"]
+
+
+def test_paddleocr_backend_invokes_ocr_runtime(tmp_path, monkeypatch):
+    calls = []
+    monkeypatch.delenv("PADDLE_PDX_CACHE_HOME", raising=False)
+    monkeypatch.delenv("MODELSCOPE_CACHE", raising=False)
+    monkeypatch.delenv("HF_HOME", raising=False)
+    monkeypatch.delenv("HF_HUB_CACHE", raising=False)
+    monkeypatch.delenv("PADDLE_HOME", raising=False)
+
+    class FakePaddleOCR:
+        def __init__(self, **kwargs):
+            calls.append(("init", kwargs))
+
+        def ocr(self, source, cls=True):
+            calls.append(("ocr", source, cls))
+            return [[[None, ("Paddle OCR text", 0.96)]]]
+
+    paddleocr = types.ModuleType("paddleocr")
+    paddleocr.PaddleOCR = FakePaddleOCR
+    monkeypatch.setitem(sys.modules, "paddleocr", paddleocr)
+    monkeypatch.setattr(paddleocr_adapter, "find_spec", lambda name: object())
+
+    source = tmp_path / "scan.png"
+    output = tmp_path / "paddleocr"
+    source.write_bytes(b"fake png fixture")
+
+    result = CliRunner().invoke(app, ["parse-with-backend", "--input", str(source), "--output", str(output), "--backend", "paddleocr"])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(output / "parser_backend_result.json")
+    assert payload["status"] == "success"
+    assert calls[0][0] == "init"
+    assert calls[0][1]["device"] == "cpu"
+    assert calls[0][1]["enable_mkldnn"] is False
+    assert calls[0][1]["lang"] == "ch"
+    assert calls[0][1]["use_doc_orientation_classify"] is False
+    assert calls[0][1]["use_doc_unwarping"] is False
+    assert calls[0][1]["use_textline_orientation"] is False
+    assert calls[1] == ("ocr", str(source), True)
+    record = payload["records"][0]
+    assert record["metadata"]["runtime_invoked"] is True
+    assert record["confidence"] == 0.96
+    assert record["text"] == "Paddle OCR text"
+    assert ".heitang_cache" in os.environ["PADDLE_PDX_CACHE_HOME"]
+    assert ".heitang_cache" in os.environ["MODELSCOPE_CACHE"]
+    assert ".heitang_cache" in os.environ["HF_HOME"]
+    assert ".heitang_cache" in os.environ["HF_HUB_CACHE"]
+    assert ".heitang_cache" in os.environ["PADDLE_HOME"]
+
+
+def test_paddleocr_backend_reads_callable_json_runtime_result(tmp_path, monkeypatch):
+    class FakePaddleOCRResult:
+        def json(self):
+            return {"rec_texts": ["Callable JSON OCR text"], "rec_scores": [0.91]}
+
+    class FakePaddleOCR:
+        def __init__(self, **kwargs):
+            pass
+
+        def predict(self, input):
+            return [FakePaddleOCRResult()]
+
+    paddleocr = types.ModuleType("paddleocr")
+    paddleocr.PaddleOCR = FakePaddleOCR
+    monkeypatch.setitem(sys.modules, "paddleocr", paddleocr)
+    monkeypatch.setattr(paddleocr_adapter, "find_spec", lambda name: object())
+
+    source = tmp_path / "scan.png"
+    output = tmp_path / "paddleocr"
+    source.write_bytes(b"fake png fixture")
+
+    result = CliRunner().invoke(app, ["parse-with-backend", "--input", str(source), "--output", str(output), "--backend", "paddleocr"])
+
+    assert result.exit_code == 0, result.output
+    record = _json(output / "parser_backend_result.json")["records"][0]
+    assert record["status"] == "success"
+    assert record["text"] == "Callable JSON OCR text"
+    assert record["confidence"] == 0.91
+
+
+def test_parser_runtime_acceptance_reports_dependency_gated_blocked_status(tmp_path, monkeypatch):
+    monkeypatch.setattr(docling_adapter, "find_spec", lambda name: None)
+    monkeypatch.setattr(paddleocr_adapter, "find_spec", lambda name: None)
+    monkeypatch.setattr(unstructured_adapter, "find_spec", lambda name: None)
+    input_dir = tmp_path / "input"
+    output = tmp_path / "acceptance"
+    input_dir.mkdir()
+    (input_dir / "input.pdf").write_bytes(b"%PDF fake fixture")
+    (input_dir / "input.md").write_text("fake markdown fixture", encoding="utf-8")
+    (input_dir / "scan.png").write_bytes(b"fake png fixture")
+
+    result = CliRunner().invoke(app, ["parser-runtime-acceptance", "--input", str(input_dir), "--output", str(output)])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(output / "parser_runtime_acceptance_report.json")
+    assert payload["status"] == "blocked"
+    assert payload["live_runtime_completion_proven"] is False
+    assert payload["blocked_count"] == 3
+    assert payload["default_core_parser_changed"] is False
+    assert payload["external_runtime_bundled"] is False
+    assert payload["provider_network_api_required"] is False
+    for entry in payload["entries"]:
+        assert entry["status"] == "blocked"
+        assert entry["blocked_reason"] == "optional_runtime_dependency_missing"
+        assert entry["dependency_available"] is False
+        assert entry["runtime_invoked"] is False
+    assert (output / "parser_runtime_acceptance_report.md").exists()
+
+
+def test_parser_runtime_acceptance_reports_dependency_missing_before_source_shape(tmp_path, monkeypatch):
+    monkeypatch.setattr(paddleocr_adapter, "find_spec", lambda name: None)
+    source = tmp_path / "input.md"
+    output = tmp_path / "acceptance"
+    source.write_text("No PaddleOCR-supported source here.", encoding="utf-8")
+
+    result = CliRunner().invoke(
+        app,
+        [
+            "parser-runtime-acceptance",
+            "--input",
+            str(source),
+            "--output",
+            str(output),
+            "--backends",
+            "paddleocr",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    entry = _json(output / "parser_runtime_acceptance_report.json")["entries"][0]
+    assert entry["status"] == "blocked"
+    assert entry["blocked_reason"] == "optional_runtime_dependency_missing"
+    assert entry["source_count"] == 0
+
+
+def test_parser_runtime_acceptance_passes_when_all_runtime_backends_invoke(tmp_path, monkeypatch):
+    class FakeDocument:
+        def export_to_markdown(self):
+            return "Docling runtime acceptance text."
+
+    class FakeDocumentConverter:
+        def convert(self, source):
+            return types.SimpleNamespace(document=FakeDocument())
+
+    def fake_partition(filename):
+        return [types.SimpleNamespace(text=f"Unstructured runtime text for {filename}.")]
+
+    class FakePaddleOCR:
+        def __init__(self, **kwargs):
+            pass
+
+        def ocr(self, source, cls=True):
+            return [[[None, (f"PaddleOCR runtime text for {source}", 0.97)]]]
+
+    docling = types.ModuleType("docling")
+    docling.__path__ = []
+    converter = types.ModuleType("docling.document_converter")
+    converter.DocumentConverter = FakeDocumentConverter
+    unstructured = types.ModuleType("unstructured")
+    unstructured.__path__ = []
+    partition_pkg = types.ModuleType("unstructured.partition")
+    partition_pkg.__path__ = []
+    auto = types.ModuleType("unstructured.partition.auto")
+    auto.partition = fake_partition
+    paddleocr = types.ModuleType("paddleocr")
+    paddleocr.PaddleOCR = FakePaddleOCR
+    monkeypatch.setitem(sys.modules, "docling", docling)
+    monkeypatch.setitem(sys.modules, "docling.document_converter", converter)
+    monkeypatch.setitem(sys.modules, "unstructured", unstructured)
+    monkeypatch.setitem(sys.modules, "unstructured.partition", partition_pkg)
+    monkeypatch.setitem(sys.modules, "unstructured.partition.auto", auto)
+    monkeypatch.setitem(sys.modules, "paddleocr", paddleocr)
+    monkeypatch.setattr(docling_adapter, "find_spec", lambda name: object())
+    monkeypatch.setattr(paddleocr_adapter, "find_spec", lambda name: object())
+    monkeypatch.setattr(unstructured_adapter, "find_spec", lambda name: object())
+
+    input_dir = tmp_path / "input"
+    output = tmp_path / "acceptance"
+    input_dir.mkdir()
+    (input_dir / "input.pdf").write_bytes(b"%PDF fake fixture")
+    (input_dir / "input.md").write_text("fake markdown fixture", encoding="utf-8")
+    (input_dir / "scan.png").write_bytes(b"fake png fixture")
+
+    result = CliRunner().invoke(app, ["parser-runtime-acceptance", "--input", str(input_dir), "--output", str(output)])
+
+    assert result.exit_code == 0, result.output
+    payload = _json(output / "parser_runtime_acceptance_report.json")
+    assert payload["status"] == "pass"
+    assert payload["live_runtime_completion_proven"] is True
+    assert payload["pass_count"] == 3
+    assert payload["blocked_count"] == 0
+    assert {entry["backend_name"] for entry in payload["entries"]} == {"docling", "paddleocr", "unstructured"}
+    for entry in payload["entries"]:
+        assert entry["status"] == "pass"
+        assert entry["dependency_available"] is True
+        assert entry["runtime_invoked"] is True
+        assert entry["runtime_invoked_count"] == entry["source_count"]
+        assert entry["text_length"] > 0
+
+
+def test_committed_parser_runtime_acceptance_report_proves_optional_runtime_backends():
+    payload = _json(PARSER_RUNTIME_ACCEPTANCE_REPORT)
+
+    assert payload["status"] == "pass"
+    assert payload["live_runtime_completion_proven"] is True
+    assert payload["required_backends"] == ["docling", "paddleocr", "unstructured"]
+    assert payload["default_core_parser_changed"] is False
+    assert payload["external_runtime_bundled"] is False
+    assert payload["provider_network_api_required"] is False
+    entries = {entry["backend_name"]: entry for entry in payload["entries"]}
+    assert set(entries) == {"docling", "paddleocr", "unstructured"}
+    for entry in entries.values():
+        assert entry["status"] == "pass"
+        assert entry["dependency_available"] is True
+        assert entry["runtime_invoked"] is True
+        assert entry["text_length"] > 0
+        assert "text" not in entry
+    assert entries["unstructured"]["supported_extensions"] == [".md", ".txt"]
+
+
+def test_parse_compare_records_optional_backend_differences(tmp_path):
+    source = tmp_path / "input.pdf"
     output = tmp_path / "compare"
-    source.write_text("Compare parser backend fixture.", encoding="utf-8")
+    source.write_bytes(b"%PDF fake fixture")
 
     result = CliRunner().invoke(app, ["parse-compare", "--input", str(source), "--output", str(output), "--backends", "builtin,docling,marker"])
 

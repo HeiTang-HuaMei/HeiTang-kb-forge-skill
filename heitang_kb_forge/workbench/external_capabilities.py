@@ -36,6 +36,7 @@ BLOCKED_REASON_TAXONOMY = [
     ("external_project_registry_only", "Registry and roadmap entry only; no runtime integration is claimed."),
     ("benchmark_only_not_runtime", "Benchmark pattern only; it must not be treated as bundled runtime."),
     ("planned_adapter_not_implemented", "Adapter is planned but not implemented or ready."),
+    ("optional_runtime_dependency_missing", "Optional local runtime adapter exists but the dependency is not bundled or required."),
     ("future_adapter_after_v4", "Adapter or capability is explicitly post-v4."),
     ("provider_required", "Requires a user-configured provider boundary before runtime use."),
     ("secret_required", "Requires explicit user-provided secret material; no fixture may include it."),
@@ -65,12 +66,12 @@ CONTRACT_STATUS_BY_PROJECT = {
     "ai_marketing_skills": ["template_reference"],
     "rtk": ["benchmark_only"],
     "opendataloader": ["planned_adapter"],
-    "paddleocr": ["planned_adapter"],
+    "paddleocr": ["planned_adapter", "optional_runtime_adapter"],
     "mineru": ["planned_adapter"],
-    "docling": ["planned_adapter"],
+    "docling": ["planned_adapter", "optional_runtime_adapter"],
     "marker": ["planned_adapter"],
     "surya": ["planned_adapter"],
-    "unstructured": ["planned_adapter"],
+    "unstructured": ["planned_adapter", "optional_runtime_adapter"],
     "llamaindex": ["benchmark_only"],
     "ragas": ["benchmark_only", "future_adapter"],
     "deepeval": ["benchmark_only", "future_adapter"],
@@ -215,7 +216,7 @@ def _registry_payload(registry: dict[str, Any], projects: list[dict[str, Any]], 
     return {
         "registry_id": "s_a_contract_inclusion",
         "version": S_A_CONTRACT_INCLUSION_VERSION,
-        "scope": "S/A external project contract inclusion only. No external project functionality is implemented.",
+        "scope": "S/A external project contract inclusion plus optional parser/OCR runtime adapter visibility. External runtimes are opt-in and not bundled.",
         "source_registry": SOURCE_REGISTRY_RELATIVE_PATH.as_posix(),
         "source_registry_id": registry["registry_id"],
         "core_repo": registry["core_repo"],
@@ -302,8 +303,10 @@ def _blocked_reasons(project: dict[str, Any], statuses: list[str]) -> list[str]:
     reasons = ["external_project_registry_only"]
     if "benchmark_only" in statuses:
         reasons.append("benchmark_only_not_runtime")
-    if "planned_adapter" in statuses:
+    if "planned_adapter" in statuses and "optional_runtime_adapter" not in statuses:
         reasons.append("planned_adapter_not_implemented")
+    if "optional_runtime_adapter" in statuses:
+        reasons.append("optional_runtime_dependency_missing")
     if "future_adapter" in statuses:
         reasons.append("future_adapter_after_v4")
     if "provider_required" in statuses:
@@ -341,7 +344,8 @@ def _implementation_boundary(project: dict[str, Any], statuses: list[str]) -> st
     status_text = ", ".join(statuses)
     return (
         f"{project['project_name']} is included as {status_text} for post-v4 planning and UI visibility only. "
-        "This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action."
+        "This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. "
+        "Optional runtime adapters require explicit local dependency installation and backend selection."
     )
 
 
@@ -610,14 +614,14 @@ def _render_external_capability_registry_md(payload: dict[str, Any]) -> str:
     lines = [
         "# S/A External Capability Registry",
         "",
-        "This is contract inclusion only. It does not implement external project functionality, add dependencies, call APIs, or bundle external runtimes.",
+        "This is contract inclusion plus optional local parser/OCR runtime adapter visibility. It does not bundle external runtimes, call provider APIs, or expose UI execution.",
         "",
         "## Summary",
         "",
         f"- S projects: {payload['rating_counts']['S']}",
         f"- A projects: {payload['rating_counts']['A']}",
         f"- Internal capability anchors: {payload['internal_capability_anchor_count']}",
-        "- External features implemented: false",
+        "- Optional local parser/OCR runtime adapters: Docling, PaddleOCR, Unstructured",
         "- Planned adapters marked ready: false",
         "- Provider/network/API ready: false",
         "- v4.0 started: false",
@@ -651,12 +655,18 @@ def _render_matrix_md(payload: dict[str, Any]) -> str:
 
 
 def _render_planned_adapter_md(payload: dict[str, Any]) -> str:
+    optional_runtime_adapter_count = sum(
+        1
+        for entry in payload["entries"]
+        if entry["project_id"] in {"docling", "paddleocr", "unstructured"}
+    )
     lines = [
         "# Planned Adapter Status Report",
         "",
         "- Ready count: 0",
         "- Implemented count: 0",
         "- Can execute locally before v4 count: 0",
+        f"- Optional local runtime adapter count: {optional_runtime_adapter_count}",
         "",
         "| Project | Status | Blocked reason |",
         "| --- | --- | --- |",

@@ -20,7 +20,7 @@
         "strengthen_weaken_memory",
         "stale_knowledge_cleanup"
       ],
-      "implementation_boundary": "LLM Wiki v2 is included as future_adapter, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action."
+      "implementation_boundary": "LLM Wiki v2 is included as future_adapter, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
     },
     {
       "project_id": "weknora",
@@ -37,7 +37,7 @@
         "agentic_rag",
         "visual_trace"
       ],
-      "implementation_boundary": "WeKnora is included as future_adapter, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action."
+      "implementation_boundary": "WeKnora is included as future_adapter, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
     },
     {
       "project_id": "andrej_karpathy_skills",
@@ -53,7 +53,7 @@
         "target_runtime_profile",
         "agent_coding_discipline"
       ],
-      "implementation_boundary": "andrej-karpathy-skills is included as benchmark_only, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action."
+      "implementation_boundary": "andrej-karpathy-skills is included as benchmark_only, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
     },
     {
       "project_id": "skill_prompt_generator",
@@ -67,7 +67,7 @@
         "skill_factory_enhancement",
         "skill_generation_template"
       ],
-      "implementation_boundary": "skill-prompt-generator is included as benchmark_only, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action."
+      "implementation_boundary": "skill-prompt-generator is included as benchmark_only, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
     },
     {
       "project_id": "jellyfish",
@@ -81,7 +81,7 @@
         "short_drama_workflow",
         "storyboard_asset_management"
       ],
-      "implementation_boundary": "Jellyfish is included as template_reference, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action."
+      "implementation_boundary": "Jellyfish is included as template_reference, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
     },
     {
       "project_id": "story_flicks",
@@ -95,7 +95,7 @@
         "aigc_video_pipeline",
         "subtitle_audio_image_asset_chain"
       ],
-      "implementation_boundary": "story-flicks is included as template_reference, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action."
+      "implementation_boundary": "story-flicks is included as template_reference, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
     },
     {
       "project_id": "seedance2_skill",
@@ -109,7 +109,7 @@
         "video_generation_skill",
         "aigc_video_skill_template"
       ],
-      "implementation_boundary": "seedance2-skill is included as provider_required, template_reference, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action."
+      "implementation_boundary": "seedance2-skill is included as provider_required, template_reference, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
     },
     {
       "project_id": "ai_marketing_skills",
@@ -122,7 +122,7 @@
         "growth_workflow_template",
         "content_operations_template"
       ],
-      "implementation_boundary": "ai-marketing-skills is included as template_reference for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action."
+      "implementation_boundary": "ai-marketing-skills is included as template_reference for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
     },
     {
       "project_id": "rtk",
@@ -135,7 +135,7 @@
         "context_budget",
         "runtime_toolkit"
       ],
-      "implementation_boundary": "rtk is included as benchmark_only for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action."
+      "implementation_boundary": "rtk is included as benchmark_only for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
     },
     {
       "project_id": "llamaindex",
@@ -148,7 +148,7 @@
         "indexing_abstraction",
         "retriever_pattern"
       ],
-      "implementation_boundary": "LlamaIndex is included as benchmark_only for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action."
+      "implementation_boundary": "LlamaIndex is included as benchmark_only for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
     },
     {
       "project_id": "ragas",
@@ -162,7 +162,7 @@
         "faithfulness",
         "context_recall"
       ],
-      "implementation_boundary": "RAGAS is included as benchmark_only, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action."
+      "implementation_boundary": "RAGAS is included as benchmark_only, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
     },
     {
       "project_id": "deepeval",
@@ -176,7 +176,7 @@
         "rag_eval",
         "regression_evaluation"
       ],
-      "implementation_boundary": "DeepEval is included as benchmark_only, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action."
+      "implementation_boundary": "DeepEval is included as benchmark_only, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
     }
   ]
 }

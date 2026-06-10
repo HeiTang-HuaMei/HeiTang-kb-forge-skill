@@ -4,29 +4,74 @@ from importlib.util import find_spec
 from pathlib import Path
 
 from heitang_kb_forge.parser_backends.base import ParserBackend, ParserBackendRecord
-from heitang_kb_forge.parser_backends.normalize import column_safe_path, source_type
+from heitang_kb_forge.parser_backends.normalize import column_safe_path, normalize_text, source_type
 
 
 class DoclingParserBackend(ParserBackend):
     name = "docling"
     version = "optional"
-    description = "Optional Docling adapter. It is unavailable unless the local docling package is installed."
+    description = "Optional Docling runtime adapter using DocumentConverter when docling is installed."
+    supported_extensions = frozenset({".docx", ".html", ".htm", ".md", ".pdf", ".pptx", ".txt"})
 
     def is_available(self) -> tuple[bool, str | None]:
         if find_spec("docling") is None:
             return False, "Optional dependency 'docling' is not installed. Install the parser-docling extra or use backend=builtin."
-        return False, "Docling is installed, but this adapter intentionally requires an explicit local integration before live parsing."
+        return True, None
 
     def parse_source(self, path: Path, command: str) -> ParserBackendRecord:
         available, reason = self.is_available()
+        if not available:
+            return ParserBackendRecord(
+                source_path=column_safe_path(path),
+                source_type=source_type(path),
+                backend_name=self.name,
+                backend_version=self.version,
+                command=command,
+                status="unavailable",
+                warnings=[reason or "docling_adapter_unavailable"],
+                confidence=0.0,
+                metadata={"adapter": "docling", "runtime_invoked": False},
+            )
+        try:
+            from docling.document_converter import DocumentConverter
+
+            result = DocumentConverter().convert(str(path))
+            text = normalize_text(_docling_result_text(result))
+        except Exception as exc:
+            return ParserBackendRecord(
+                source_path=column_safe_path(path),
+                source_type=source_type(path),
+                backend_name=self.name,
+                backend_version=self.version,
+                command=command,
+                status="failed",
+                warnings=[f"docling_parse_failed:{exc}"],
+                confidence=0.0,
+                metadata={"adapter": "docling", "runtime_invoked": True},
+            )
         return ParserBackendRecord(
             source_path=column_safe_path(path),
             source_type=source_type(path),
             backend_name=self.name,
             backend_version=self.version,
             command=command,
-            status="unavailable" if not available else "disabled",
-            warnings=[reason or "docling_adapter_unavailable"],
-            confidence=0.0,
+            status="success" if text else "empty",
+            text=text,
+            warnings=[] if text else ["empty_text"],
+            confidence=0.88 if text else 0.0,
+            metadata={"adapter": "docling", "runtime_invoked": True},
         )
 
+
+def _docling_result_text(result: object) -> str:
+    document = getattr(result, "document", result)
+    for method_name in ("export_to_markdown", "export_to_text"):
+        method = getattr(document, method_name, None)
+        if callable(method):
+            text = method()
+            if text:
+                return str(text)
+    text = getattr(document, "text", None)
+    if text:
+        return str(text)
+    return str(document)

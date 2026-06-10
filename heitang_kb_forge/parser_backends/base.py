@@ -74,10 +74,10 @@ class ParserBackend:
     name = "unknown"
     version = "unknown"
     description = ""
+    supported_extensions: frozenset[str] = frozenset()
 
     def is_available(self) -> tuple[bool, str | None]:
         return True, None
 
     def parse_source(self, path: Path, command: str) -> ParserBackendRecord:
         raise NotImplementedError
-

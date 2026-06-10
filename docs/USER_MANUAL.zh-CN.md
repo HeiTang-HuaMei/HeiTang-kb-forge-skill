@@ -12,7 +12,7 @@ python -m heitang_kb_forge.cli doctor --output .\tmp_doctor
 可选本地 parser extras：
 
 ```powershell
-python -m pip install -e ".[ocr,pdf-table,parser-docling,parser-marker,web]"
+python -m pip install -e ".[ocr,pdf-table,parser-docling,parser-marker,parser-paddleocr,parser-unstructured,web]"
 ```
 
 ## 2. 准备输入文件
@@ -20,6 +20,9 @@ python -m pip install -e ".[ocr,pdf-table,parser-docling,parser-marker,web]"
 把源文件放到本地目录，例如 `.\examples\quickstart\input`。
 
 支持的本地输入路径包括 Markdown、TXT、DOCX、文本型 PDF、安装 extras 后的图片/OCR 路由、CSV、TSV、XLSX、HTML、EPUB 和 ZIP。
+可选 parser backend 包括 Docling、PaddleOCR 和 Unstructured，在安装对应本地 extras 后可用。
+当前 `parser-unstructured` extra 已验证 Markdown/TXT source。
+使用包含 backend 支持文档源和 OCR 源的目录运行 `parser-runtime-acceptance`，生成这些可选 parser/OCR backend 的 live runtime evidence；未安装本地依赖或缺少支持的 source 时会报告 `blocked`。
 
 ## 3. 构建知识包
 

@@ -129,10 +129,12 @@ from heitang_kb_forge.parser_backends import (
     list_backends,
     load_chunks,
     load_parse_run,
+    make_parser_runtime_acceptance_report,
     make_ocr_risk_report,
     parse_sources_with_backend,
     read_kb_trust_status,
     reimport_corrected_text,
+    render_parser_runtime_acceptance_report,
     trust_gate_result,
 )
 from heitang_kb_forge.parser_backends.reports import (
@@ -556,6 +558,21 @@ def parse_compare_command(
     write_json(output / "parse_compare_result.json", result)
     (output / "parse_compare_report.md").write_text(render_parse_compare_report(result), encoding="utf-8")
     typer.echo(f"Parse compare: {result['status']} | Backends: {', '.join(result['backends'])}")
+
+
+@app.command("parser-runtime-acceptance")
+def parser_runtime_acceptance_command(
+    input: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    backends: str = typer.Option("docling,paddleocr,unstructured", "--backends"),
+) -> None:
+    """Write live parser/OCR runtime acceptance evidence for optional local backends."""
+    backend_names = [name.strip() for name in backends.split(",") if name.strip()]
+    report = make_parser_runtime_acceptance_report(input, backend_names)
+    output.mkdir(parents=True, exist_ok=True)
+    write_json(output / "parser_runtime_acceptance_report.json", report)
+    (output / "parser_runtime_acceptance_report.md").write_text(render_parser_runtime_acceptance_report(report), encoding="utf-8")
+    typer.echo(f"Parser runtime acceptance: {report['status']} | Backends: {', '.join(report['required_backends'])}")
 
 
 @app.command("parse-quality-gate")

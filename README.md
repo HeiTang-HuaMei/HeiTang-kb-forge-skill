@@ -57,7 +57,7 @@ python -m pip install -e ".[dev]"
 Optional local parser extras:
 
 ```powershell
-python -m pip install -e ".[ocr,pdf-table,parser-docling,parser-marker,web]"
+python -m pip install -e ".[ocr,pdf-table,parser-docling,parser-marker,parser-paddleocr,parser-unstructured,web]"
 ```
 
 Build and inspect a local knowledge package:
@@ -105,7 +105,8 @@ UI information architecture is frozen as a planning contract, and the UI remains
 - This is the Core repository only; visual UI work belongs outside this Core pass.
 - The P1 local Workbench gate, rc.1 acceptance, and release hardening evidence are complete for stable `v4.0.0`.
 - Historical P1 evidence may still contain `not_v4_0_workbench_rc=true` as a time-point boundary from before the stable release.
-- OpenDataLoader, PaddleOCR, and MinerU are external backend candidates / planned adapters only; they are not completed Core integrations.
+- OpenDataLoader and MinerU remain external backend candidates / planned adapters only.
+- Docling, PaddleOCR, and Unstructured are implemented only as opt-in local parser/OCR runtime adapters; they are dependency-gated, not bundled, not default Core parsing, and not UI-executable external projects.
 - S/A external projects are included as contract, matrix, provider boundary, and UI visibility entries only; this does not implement their functionality.
 - External provider, secret, and network-dependent actions require explicit user configuration and are not counted as real-local passed.
 - External GitHub benchmark implementation is post-v4 and is not part of this gate.

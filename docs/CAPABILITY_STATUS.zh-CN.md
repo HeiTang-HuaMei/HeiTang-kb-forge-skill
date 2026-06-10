@@ -41,7 +41,7 @@
 - opt-in provider live smoke
 - minimal end-to-end portfolio demo
 - demo evidence pack
-- parser backend abstraction
+- parser backend abstraction 和 optional real runtime adapters
 - parser backend compare
 - parse quality gate
 - manual parser review queue

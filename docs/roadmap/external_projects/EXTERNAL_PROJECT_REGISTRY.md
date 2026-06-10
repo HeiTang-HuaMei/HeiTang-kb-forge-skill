@@ -1,20 +1,20 @@
 # External Project Registry
 
-This registry is the pre-v4 total ledger for external GitHub projects and internal capability anchors. It is registry, roadmap, benchmark mapping, docs, and tests only.
+This registry is the external GitHub project and internal capability anchor ledger. It tracks registry, roadmap, benchmark mapping, docs, tests, and explicit optional local parser/OCR runtime adapter boundaries.
 
-It does not implement external project functionality, does not add dependencies, does not call provider APIs, does not bundle external runtimes, and does not start v4.0.
+It does not make external projects default product functionality, call provider APIs, bundle external runtimes, or start v4.0.
 
 Source of truth: [external_project_registry.json](external_project_registry.json).
 
 ## Summary
 
 - External projects: 27
-- S projects: 7
-- A projects: 16
+- S projects: 8
+- A projects: 15
 - B projects: 4
 - Projects with `current_repo_status=needs_verification`: 0
 - Internal Capability Anchors: 8
-- External features implemented by this pass: false
+- Optional local parser/OCR runtime adapters: Docling, PaddleOCR, Unstructured
 - Planned adapters marked ready: false
 - v4.0 started: false
 - tag created: false
@@ -28,9 +28,10 @@ Source of truth: [external_project_registry.json](external_project_registry.json
 | WeKnora | mentioned_only | registry_only | P2.5 |
 | n8n | mentioned_only | registry_only | P2.2 / P3 |
 | andrej-karpathy-skills | benchmark_mapped | registry_only | P2.9 |
-| PaddleOCR | planned_adapter | registry_only | P2.6 |
+| PaddleOCR | planned_adapter | registry_only | P2.1 |
 | MinerU | planned_adapter | registry_only | P2.6 |
-| Docling | planned_adapter | registry_only | P2.6 |
+| Docling | planned_adapter | registry_only | P2.1 |
+| Unstructured | planned_adapter | registry_only | P2.1 |
 
 ## A Projects
 
@@ -48,7 +49,6 @@ Source of truth: [external_project_registry.json](external_project_registry.json
 | OpenDataLoader | planned_adapter | registry_only | P2.6 |
 | Marker | planned_adapter | registry_only | P2.6 |
 | Surya | planned_adapter | registry_only | P2.6 |
-| Unstructured | planned_adapter | registry_only | P2.6 |
 | LlamaIndex | benchmark_mapped | registry_only | P2.5 |
 | RAGAS | benchmark_mapped | registry_only | P2.5 |
 | DeepEval | docs_only | registry_only | P2.5 |

@@ -14,9 +14,9 @@ v4.0 后排序规则：强化功能优先，加强体验第二，生态拓展后
 
 | 阶段 | 重点 | 边界 |
 | --- | --- | --- |
-| P2.1 | External Benchmark Registry & S/A Contract Inclusion | 全部项目登记；S/A contract inclusion；no runtime integration |
+| P2.1 | External Project Verification Baseline + Parser/OCR Multi-Backend Integration | verification baseline closed；Docling / PaddleOCR / Unstructured optional runtime adapters |
 | P2.2 | Skill Governance + Book-to-Skill Deepening | andrej-karpathy-skills；skill-prompt-generator；Book-to-Skill / Software-to-Manual-to-Skill |
-| P2.3 | Parser/OCR Backend Adapter | PaddleOCR；MinerU；Docling / Marker / Surya / Unstructured |
+| P2.3 | Parser/OCR Backend Hardening | MinerU；Marker；Surya；OpenDataLoader；optional runtime adapters acceptance hardening |
 | P2.4 | Living Knowledge Base / Memory Lifecycle | LLM Wiki v2；memory lifecycle / confidence / forgetting / decay |
 | P2.5 | Auto Wiki + RAG Evaluation | WeKnora；LlamaIndex / RAGAS / DeepEval |
 | P2.6 | Industry Template Library + AIGC Book Pipeline | ai-marketing-skills；ai-money-maker-handbook；AIGC Book Content Pipeline |

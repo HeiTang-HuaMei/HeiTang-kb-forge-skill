@@ -8,9 +8,9 @@ Workbench visibility only. Entries are not ready, not installed, and not executa
 | WeKnora | Retrieval & Verification, Reports & Audit | future_adapter, capability_anchor | false |
 | n8n | Task / Job Center, Template Library | future_adapter, provider_required, workflow_export | false |
 | andrej-karpathy-skills | Skill Factory, Reports & Audit | benchmark_only, capability_anchor | false |
-| PaddleOCR | Import & Parsing, Vector Hub / Provider / Storage | planned_adapter | false |
+| PaddleOCR | Import & Parsing, Vector Hub / Provider / Storage | planned_adapter, optional_runtime_adapter | false |
 | MinerU | Import & Parsing, Vector Hub / Provider / Storage | planned_adapter | false |
-| Docling | Import & Parsing, Vector Hub / Provider / Storage | planned_adapter | false |
+| Docling | Import & Parsing, Vector Hub / Provider / Storage | planned_adapter, optional_runtime_adapter | false |
 | AnySearchSkill | Retrieval & Verification, Vector Hub / Provider / Storage | provider_required, planned_adapter | false |
 | last30days-skill | Retrieval & Verification, Template Library | provider_required, future_adapter | false |
 | skill-prompt-generator | Skill Factory, Template Library | benchmark_only, future_adapter | false |
@@ -23,7 +23,7 @@ Workbench visibility only. Entries are not ready, not installed, and not executa
 | OpenDataLoader | Import & Parsing, Vector Hub / Provider / Storage | planned_adapter | false |
 | Marker | Import & Parsing, Vector Hub / Provider / Storage | planned_adapter | false |
 | Surya | Import & Parsing, Vector Hub / Provider / Storage | planned_adapter | false |
-| Unstructured | Import & Parsing, Vector Hub / Provider / Storage | planned_adapter | false |
+| Unstructured | Import & Parsing, Vector Hub / Provider / Storage | planned_adapter, optional_runtime_adapter | false |
 | LlamaIndex | Retrieval & Verification, Reports & Audit | benchmark_only | false |
 | RAGAS | Retrieval & Verification, Reports & Audit | benchmark_only, future_adapter | false |
 | DeepEval | Retrieval & Verification, Reports & Audit | benchmark_only, future_adapter | false |

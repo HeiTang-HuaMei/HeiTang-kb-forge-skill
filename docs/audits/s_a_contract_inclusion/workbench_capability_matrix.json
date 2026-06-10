@@ -132,7 +132,8 @@
           "project_name": "Docling",
           "rating": "S",
           "contract_status": [
-            "planned_adapter"
+            "planned_adapter",
+            "optional_runtime_adapter"
           ],
           "blocked_reason": "external_project_registry_only",
           "ui_visibility": "visible_boundary_only",
@@ -176,7 +177,8 @@
           "project_name": "PaddleOCR",
           "rating": "S",
           "contract_status": [
-            "planned_adapter"
+            "planned_adapter",
+            "optional_runtime_adapter"
           ],
           "blocked_reason": "external_project_registry_only",
           "ui_visibility": "visible_boundary_only",
@@ -196,9 +198,10 @@
         {
           "project_id": "unstructured",
           "project_name": "Unstructured",
-          "rating": "A",
+          "rating": "S",
           "contract_status": [
-            "planned_adapter"
+            "planned_adapter",
+            "optional_runtime_adapter"
           ],
           "blocked_reason": "external_project_registry_only",
           "ui_visibility": "visible_boundary_only",
@@ -567,7 +570,8 @@
           "project_name": "Docling",
           "rating": "S",
           "contract_status": [
-            "planned_adapter"
+            "planned_adapter",
+            "optional_runtime_adapter"
           ],
           "blocked_reason": "external_project_registry_only",
           "ui_visibility": "visible_boundary_only",
@@ -611,7 +615,8 @@
           "project_name": "PaddleOCR",
           "rating": "S",
           "contract_status": [
-            "planned_adapter"
+            "planned_adapter",
+            "optional_runtime_adapter"
           ],
           "blocked_reason": "external_project_registry_only",
           "ui_visibility": "visible_boundary_only",
@@ -631,9 +636,10 @@
         {
           "project_id": "unstructured",
           "project_name": "Unstructured",
-          "rating": "A",
+          "rating": "S",
           "contract_status": [
-            "planned_adapter"
+            "planned_adapter",
+            "optional_runtime_adapter"
           ],
           "blocked_reason": "external_project_registry_only",
           "ui_visibility": "visible_boundary_only",

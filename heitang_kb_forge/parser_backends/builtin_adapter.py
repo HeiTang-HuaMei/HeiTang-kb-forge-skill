@@ -39,6 +39,7 @@ class BuiltinParserBackend(ParserBackend):
     name = "builtin"
     version = "2.8.0-alpha.1"
     description = "KB Forge built-in parsers normalized into the parser backend contract."
+    supported_extensions = frozenset(BUILTIN_PARSERS)
 
     def parse_source(self, path: Path, command: str) -> ParserBackendRecord:
         parser = BUILTIN_PARSERS.get(path.suffix.lower())
@@ -86,4 +87,3 @@ class BuiltinParserBackend(ParserBackend):
             confidence=confidence,
             metadata={"adapter": "builtin"},
         )
-

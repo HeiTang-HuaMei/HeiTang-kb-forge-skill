@@ -41,7 +41,7 @@ Latest completed release work includes v3.12 Product Hardening & Local Release R
 - opt-in provider live smoke
 - minimal end-to-end portfolio demo
 - demo evidence pack
-- parser backend abstraction
+- parser backend abstraction and optional real runtime adapters
 - parser backend compare
 - parse quality gate
 - manual parser review queue

@@ -69,12 +69,13 @@
       "rating": "S",
       "github_url": "https://github.com/docling-project/docling",
       "contract_status": [
-        "planned_adapter"
+        "planned_adapter",
+        "optional_runtime_adapter"
       ],
       "blocked_reason": "external_project_registry_only",
       "blocked_reasons": [
         "external_project_registry_only",
-        "planned_adapter_not_implemented",
+        "optional_runtime_dependency_missing",
         "license_review_required",
         "security_review_required",
         "not_p1_blocker",
@@ -85,7 +86,7 @@
       "requires_network": false,
       "requires_external_runtime": false,
       "can_execute_locally_before_v4": false,
-      "post_v4_target": "P2.6",
+      "post_v4_target": "P2.1",
       "ui_visibility": "visible_boundary_only"
     },
     {
@@ -304,12 +305,13 @@
       "rating": "S",
       "github_url": "https://github.com/PaddlePaddle/PaddleOCR",
       "contract_status": [
-        "planned_adapter"
+        "planned_adapter",
+        "optional_runtime_adapter"
       ],
       "blocked_reason": "external_project_registry_only",
       "blocked_reasons": [
         "external_project_registry_only",
-        "planned_adapter_not_implemented",
+        "optional_runtime_dependency_missing",
         "license_review_required",
         "security_review_required",
         "not_p1_blocker",
@@ -320,7 +322,7 @@
       "requires_network": false,
       "requires_external_runtime": false,
       "can_execute_locally_before_v4": false,
-      "post_v4_target": "P2.6",
+      "post_v4_target": "P2.1",
       "ui_visibility": "visible_boundary_only"
     },
     {
@@ -463,15 +465,16 @@
     {
       "project_id": "unstructured",
       "project_name": "Unstructured",
-      "rating": "A",
+      "rating": "S",
       "github_url": "https://github.com/Unstructured-IO/unstructured",
       "contract_status": [
-        "planned_adapter"
+        "planned_adapter",
+        "optional_runtime_adapter"
       ],
       "blocked_reason": "external_project_registry_only",
       "blocked_reasons": [
         "external_project_registry_only",
-        "planned_adapter_not_implemented",
+        "optional_runtime_dependency_missing",
         "license_review_required",
         "security_review_required",
         "not_p1_blocker",
@@ -482,7 +485,7 @@
       "requires_network": false,
       "requires_external_runtime": false,
       "can_execute_locally_before_v4": false,
-      "post_v4_target": "P2.6",
+      "post_v4_target": "P2.1",
       "ui_visibility": "visible_boundary_only"
     },
     {

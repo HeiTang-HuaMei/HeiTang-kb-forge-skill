@@ -1,14 +1,14 @@
 {
   "registry_id": "s_a_contract_inclusion",
   "version": "s_a_contract_inclusion.1",
-  "scope": "S/A external project contract inclusion only. No external project functionality is implemented.",
+  "scope": "S/A external project contract inclusion plus optional parser/OCR runtime adapter visibility. External runtimes are opt-in and not bundled.",
   "source_registry": "docs/roadmap/external_projects/external_project_registry.json",
   "source_registry_id": "pre_v4_external_project_registry_2026_06_09",
   "core_repo": "kb-forge-skill",
   "core_branch": "main",
   "rating_counts": {
-    "S": 7,
-    "A": 16
+    "S": 8,
+    "A": 15
   },
   "external_project_count": 23,
   "internal_capability_anchor_count": 8,
@@ -28,6 +28,12 @@
     {
       "blocked_reason": "planned_adapter_not_implemented",
       "definition": "Adapter is planned but not implemented or ready.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none"
+    },
+    {
+      "blocked_reason": "optional_runtime_dependency_missing",
+      "definition": "Optional local runtime adapter exists but the dependency is not bundled or required.",
       "local_ready_allowed": false,
       "p1_gate_impact": "none"
     },
@@ -174,7 +180,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.4",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "LLM Wiki v2 is included as future_adapter, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "LLM Wiki v2 is included as future_adapter, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "mentioned_only",
       "source_registry_implementation_mode": "capability_fusion",
       "license_or_security_review_required": true
@@ -250,7 +256,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.5",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "WeKnora is included as future_adapter, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "WeKnora is included as future_adapter, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "mentioned_only",
       "source_registry_implementation_mode": "capability_fusion",
       "license_or_security_review_required": true
@@ -326,7 +332,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.2 / P3",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "n8n is included as future_adapter, provider_required, workflow_export for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "n8n is included as future_adapter, provider_required, workflow_export for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "mentioned_only",
       "source_registry_implementation_mode": "workflow_export",
       "license_or_security_review_required": true
@@ -399,7 +405,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.9",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "andrej-karpathy-skills is included as benchmark_only, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "andrej-karpathy-skills is included as benchmark_only, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "benchmark_mapped",
       "source_registry_implementation_mode": "capability_fusion",
       "license_or_security_review_required": true
@@ -410,7 +416,8 @@
       "rating": "S",
       "github_url": "https://github.com/PaddlePaddle/PaddleOCR",
       "contract_status": [
-        "planned_adapter"
+        "planned_adapter",
+        "optional_runtime_adapter"
       ],
       "implemented": false,
       "ready": false,
@@ -457,7 +464,7 @@
       "blocked_reason": "external_project_registry_only",
       "blocked_reasons": [
         "external_project_registry_only",
-        "planned_adapter_not_implemented",
+        "optional_runtime_dependency_missing",
         "license_review_required",
         "security_review_required",
         "not_p1_blocker",
@@ -470,11 +477,11 @@
       "can_execute_locally_before_v4": false,
       "can_execute_after_provider_config": false,
       "p1_gate_impact": "none_not_p1_blocker",
-      "post_v4_target": "P2.6",
+      "post_v4_target": "P2.1",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "PaddleOCR is included as planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "PaddleOCR is included as planned_adapter, optional_runtime_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "planned_adapter",
-      "source_registry_implementation_mode": "planned_adapter",
+      "source_registry_implementation_mode": "optional_runtime_adapter",
       "license_or_security_review_required": true
     },
     {
@@ -545,7 +552,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.6",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "MinerU is included as planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "MinerU is included as planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "planned_adapter",
       "source_registry_implementation_mode": "planned_adapter",
       "license_or_security_review_required": true
@@ -556,7 +563,8 @@
       "rating": "S",
       "github_url": "https://github.com/docling-project/docling",
       "contract_status": [
-        "planned_adapter"
+        "planned_adapter",
+        "optional_runtime_adapter"
       ],
       "implemented": false,
       "ready": false,
@@ -602,7 +610,7 @@
       "blocked_reason": "external_project_registry_only",
       "blocked_reasons": [
         "external_project_registry_only",
-        "planned_adapter_not_implemented",
+        "optional_runtime_dependency_missing",
         "license_review_required",
         "security_review_required",
         "not_p1_blocker",
@@ -615,11 +623,11 @@
       "can_execute_locally_before_v4": false,
       "can_execute_after_provider_config": false,
       "p1_gate_impact": "none_not_p1_blocker",
-      "post_v4_target": "P2.6",
+      "post_v4_target": "P2.1",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "Docling is included as planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "Docling is included as planned_adapter, optional_runtime_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "planned_adapter",
-      "source_registry_implementation_mode": "planned_adapter",
+      "source_registry_implementation_mode": "optional_runtime_adapter",
       "license_or_security_review_required": true
     },
     {
@@ -700,7 +708,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.3",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "AnySearchSkill is included as provider_required, planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "AnySearchSkill is included as provider_required, planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "mentioned_only",
       "source_registry_implementation_mode": "provider_adapter",
       "license_or_security_review_required": true
@@ -779,7 +787,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.3 / P3",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "last30days-skill is included as provider_required, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "last30days-skill is included as provider_required, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "benchmark_mapped",
       "source_registry_implementation_mode": "provider_adapter",
       "license_or_security_review_required": true
@@ -851,7 +859,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.9",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "skill-prompt-generator is included as benchmark_only, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "skill-prompt-generator is included as benchmark_only, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "mentioned_only",
       "source_registry_implementation_mode": "template_library",
       "license_or_security_review_required": true
@@ -923,7 +931,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.8 / P3",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "MMSkills is included as future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "MMSkills is included as future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "mentioned_only",
       "source_registry_implementation_mode": "capability_fusion",
       "license_or_security_review_required": true
@@ -1010,7 +1018,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.8 / P3",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "Jellyfish is included as template_reference, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "Jellyfish is included as template_reference, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "mentioned_only",
       "source_registry_implementation_mode": "template_library",
       "license_or_security_review_required": true
@@ -1097,7 +1105,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.8 / P3",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "story-flicks is included as template_reference, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "story-flicks is included as template_reference, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "mentioned_only",
       "source_registry_implementation_mode": "template_library",
       "license_or_security_review_required": true
@@ -1190,7 +1198,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.8 / P3",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "seedance2-skill is included as provider_required, template_reference, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "seedance2-skill is included as provider_required, template_reference, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "mentioned_only",
       "source_registry_implementation_mode": "video_prompt_template_reference",
       "license_or_security_review_required": true
@@ -1250,7 +1258,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.7",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "ai-marketing-skills is included as template_reference for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "ai-marketing-skills is included as template_reference for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "mentioned_only",
       "source_registry_implementation_mode": "template_library",
       "license_or_security_review_required": true
@@ -1321,7 +1329,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P3",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "rtk is included as benchmark_only for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "rtk is included as benchmark_only for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "benchmark_mapped",
       "source_registry_implementation_mode": "token_compression_cli_benchmark",
       "license_or_security_review_required": true
@@ -1392,7 +1400,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.6",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "OpenDataLoader is included as planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "OpenDataLoader is included as planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "planned_adapter",
       "source_registry_implementation_mode": "planned_adapter",
       "license_or_security_review_required": true
@@ -1463,7 +1471,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.6",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "Marker is included as planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "Marker is included as planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "planned_adapter",
       "source_registry_implementation_mode": "planned_adapter",
       "license_or_security_review_required": true
@@ -1534,7 +1542,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.6",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "Surya is included as planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "Surya is included as planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "planned_adapter",
       "source_registry_implementation_mode": "ocr_layout_backend",
       "license_or_security_review_required": true
@@ -1542,10 +1550,11 @@
     {
       "project_id": "unstructured",
       "project_name": "Unstructured",
-      "rating": "A",
+      "rating": "S",
       "github_url": "https://github.com/Unstructured-IO/unstructured",
       "contract_status": [
-        "planned_adapter"
+        "planned_adapter",
+        "optional_runtime_adapter"
       ],
       "implemented": false,
       "ready": false,
@@ -1589,7 +1598,7 @@
       "blocked_reason": "external_project_registry_only",
       "blocked_reasons": [
         "external_project_registry_only",
-        "planned_adapter_not_implemented",
+        "optional_runtime_dependency_missing",
         "license_review_required",
         "security_review_required",
         "not_p1_blocker",
@@ -1602,11 +1611,11 @@
       "can_execute_locally_before_v4": false,
       "can_execute_after_provider_config": false,
       "p1_gate_impact": "none_not_p1_blocker",
-      "post_v4_target": "P2.6",
+      "post_v4_target": "P2.1",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "Unstructured is included as planned_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "Unstructured is included as planned_adapter, optional_runtime_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "planned_adapter",
-      "source_registry_implementation_mode": "unified_parser_backend",
+      "source_registry_implementation_mode": "optional_runtime_adapter",
       "license_or_security_review_required": true
     },
     {
@@ -1676,7 +1685,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.5",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "LlamaIndex is included as benchmark_only for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "LlamaIndex is included as benchmark_only for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "benchmark_mapped",
       "source_registry_implementation_mode": "benchmark_only",
       "license_or_security_review_required": true
@@ -1750,7 +1759,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.5",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "RAGAS is included as benchmark_only, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "RAGAS is included as benchmark_only, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "benchmark_mapped",
       "source_registry_implementation_mode": "benchmark_only",
       "license_or_security_review_required": true
@@ -1824,7 +1833,7 @@
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.5",
       "ui_visibility": "visible_boundary_only",
-      "implementation_boundary": "DeepEval is included as benchmark_only, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, add dependencies, call APIs, bundle runtimes, or expose a Run action.",
+      "implementation_boundary": "DeepEval is included as benchmark_only, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection.",
       "source_registry_status": "docs_only",
       "source_registry_implementation_mode": "benchmark_only",
       "license_or_security_review_required": true

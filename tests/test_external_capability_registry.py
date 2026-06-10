@@ -41,7 +41,10 @@ def test_all_s_a_source_projects_are_in_external_capability_registry():
     source_ids = {project["project_id"] for project in source["projects"] if project["rating"] in {"S", "A"}}
     included_ids = {project["project_id"] for project in payload["projects"]}
 
-    assert payload["rating_counts"] == {"S": 7, "A": 16}
+    assert payload["rating_counts"] == {
+        "S": sum(1 for project in source["projects"] if project["rating"] == "S"),
+        "A": sum(1 for project in source["projects"] if project["rating"] == "A"),
+    }
     assert payload["external_project_count"] == 23
     assert payload["internal_capability_anchor_count"] == 8
     assert included_ids == source_ids

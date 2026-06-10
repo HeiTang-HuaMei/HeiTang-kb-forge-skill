@@ -1,20 +1,20 @@
 # 外部项目总账
 
-这是 pre-v4 阶段的外部 GitHub 项目和内部能力方向总账。本文件只做 registry、roadmap、benchmark mapping、docs 和 tests。
+这是外部 GitHub 项目和内部能力方向总账。本文件记录 registry、roadmap、benchmark mapping、docs、tests，以及显式的可选本地 parser/OCR runtime adapter 边界。
 
-本轮不实现外部项目功能，不新增依赖，不调用 provider API，不打包外部 runtime，不启动 v4.0。
+本文件不把外部项目变成默认产品功能，不调用 provider API，不打包外部 runtime，不启动 v4.0。
 
 唯一数据源：[external_project_registry.json](external_project_registry.json)。
 
 ## 汇总
 
 - 外部项目数：27
-- S 级项目数：7
-- A 级项目数：16
+- S 级项目数：8
+- A 级项目数：15
 - B 级项目数：4
 - `current_repo_status=needs_verification` 项目数：0
 - Internal Capability Anchors 数：8
-- 本轮实现外部功能：false
+- 可选本地 parser/OCR runtime adapters：Docling、PaddleOCR、Unstructured
 - planned_adapter 标为 ready：false
 - v4.0 started：false
 - tag created：false
@@ -28,9 +28,10 @@
 | WeKnora | mentioned_only | registry_only | P2.5 |
 | n8n | mentioned_only | registry_only | P2.2 / P3 |
 | andrej-karpathy-skills | benchmark_mapped | registry_only | P2.9 |
-| PaddleOCR | planned_adapter | registry_only | P2.6 |
+| PaddleOCR | planned_adapter | registry_only | P2.1 |
 | MinerU | planned_adapter | registry_only | P2.6 |
-| Docling | planned_adapter | registry_only | P2.6 |
+| Docling | planned_adapter | registry_only | P2.1 |
+| Unstructured | planned_adapter | registry_only | P2.1 |
 
 ## A 级项目
 
@@ -48,7 +49,6 @@
 | OpenDataLoader | planned_adapter | registry_only | P2.6 |
 | Marker | planned_adapter | registry_only | P2.6 |
 | Surya | planned_adapter | registry_only | P2.6 |
-| Unstructured | planned_adapter | registry_only | P2.6 |
 | LlamaIndex | benchmark_mapped | registry_only | P2.5 |
 | RAGAS | benchmark_mapped | registry_only | P2.5 |
 | DeepEval | docs_only | registry_only | P2.5 |

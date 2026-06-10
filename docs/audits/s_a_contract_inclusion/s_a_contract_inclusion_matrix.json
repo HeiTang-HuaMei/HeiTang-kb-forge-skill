@@ -4,8 +4,8 @@
   "source_registry": "docs/roadmap/external_projects/external_project_registry.json",
   "external_project_count": 23,
   "rating_counts": {
-    "S": 7,
-    "A": 16
+    "S": 8,
+    "A": 15
   },
   "entries": [
     {
@@ -172,7 +172,8 @@
       "project_name": "PaddleOCR",
       "rating": "S",
       "contract_status": [
-        "planned_adapter"
+        "planned_adapter",
+        "optional_runtime_adapter"
       ],
       "mapped_capabilities": [
         "ocr_foundation",
@@ -191,7 +192,7 @@
       "blocked_reason": "external_project_registry_only",
       "blocked_reasons": [
         "external_project_registry_only",
-        "planned_adapter_not_implemented",
+        "optional_runtime_dependency_missing",
         "license_review_required",
         "security_review_required",
         "not_p1_blocker",
@@ -200,7 +201,7 @@
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
-      "post_v4_target": "P2.6",
+      "post_v4_target": "P2.1",
       "ui_visibility": "visible_boundary_only"
     },
     {
@@ -244,7 +245,8 @@
       "project_name": "Docling",
       "rating": "S",
       "contract_status": [
-        "planned_adapter"
+        "planned_adapter",
+        "optional_runtime_adapter"
       ],
       "mapped_capabilities": [
         "parser_backend_adapter",
@@ -262,7 +264,7 @@
       "blocked_reason": "external_project_registry_only",
       "blocked_reasons": [
         "external_project_registry_only",
-        "planned_adapter_not_implemented",
+        "optional_runtime_dependency_missing",
         "license_review_required",
         "security_review_required",
         "not_p1_blocker",
@@ -271,7 +273,7 @@
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
-      "post_v4_target": "P2.6",
+      "post_v4_target": "P2.1",
       "ui_visibility": "visible_boundary_only"
     },
     {
@@ -719,9 +721,10 @@
     {
       "project_id": "unstructured",
       "project_name": "Unstructured",
-      "rating": "A",
+      "rating": "S",
       "contract_status": [
-        "planned_adapter"
+        "planned_adapter",
+        "optional_runtime_adapter"
       ],
       "mapped_capabilities": [
         "unstructured_document_parser"
@@ -737,7 +740,7 @@
       "blocked_reason": "external_project_registry_only",
       "blocked_reasons": [
         "external_project_registry_only",
-        "planned_adapter_not_implemented",
+        "optional_runtime_dependency_missing",
         "license_review_required",
         "security_review_required",
         "not_p1_blocker",
@@ -746,7 +749,7 @@
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
-      "post_v4_target": "P2.6",
+      "post_v4_target": "P2.1",
       "ui_visibility": "visible_boundary_only"
     },
     {

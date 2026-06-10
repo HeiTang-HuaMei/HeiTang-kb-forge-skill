@@ -1,7 +1,7 @@
 {
   "taxonomy_id": "workbench_external_blocked_reason_taxonomy",
   "version": "s_a_contract_inclusion.1",
-  "blocked_reason_count": 15,
+  "blocked_reason_count": 16,
   "blocked_reasons": [
     {
       "blocked_reason": "external_project_registry_only",
@@ -55,12 +55,20 @@
       "p1_gate_impact": "none",
       "project_ids": [
         "anysearchskill",
-        "docling",
         "marker",
         "mineru",
         "opendataloader",
+        "surya"
+      ]
+    },
+    {
+      "blocked_reason": "optional_runtime_dependency_missing",
+      "definition": "Optional local runtime adapter exists but the dependency is not bundled or required.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none",
+      "project_ids": [
+        "docling",
         "paddleocr",
-        "surya",
         "unstructured"
       ]
     },

@@ -9,6 +9,7 @@ REQUIRED_REASONS = {
     "external_project_registry_only",
     "benchmark_only_not_runtime",
     "planned_adapter_not_implemented",
+    "optional_runtime_dependency_missing",
     "future_adapter_after_v4",
     "provider_required",
     "secret_required",
@@ -60,4 +61,17 @@ def test_template_reference_entries_are_template_only():
         project = projects[project_id]
         assert "template_reference" in project["contract_status"]
         assert "template_reference_only" in project["blocked_reasons"]
+        assert project["executable_action"] is False
+
+
+def test_optional_parser_runtime_adapters_are_dependency_gated_not_ready():
+    projects = {project["project_id"]: project for project in _json("external_capability_registry.json")["projects"]}
+
+    for project_id in ["docling", "paddleocr", "unstructured"]:
+        project = projects[project_id]
+        assert "optional_runtime_adapter" in project["contract_status"]
+        assert "optional_runtime_dependency_missing" in project["blocked_reasons"]
+        assert "planned_adapter_not_implemented" not in project["blocked_reasons"]
+        assert project["ready"] is False
+        assert project["local_ready"] is False
         assert project["executable_action"] is False
