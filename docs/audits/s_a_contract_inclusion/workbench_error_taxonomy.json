@@ -91,7 +91,8 @@
       "project_ids": [
         "anysearchskill",
         "last30days_skill",
-        "n8n"
+        "n8n",
+        "seedance2_skill"
       ]
     },
     {
@@ -192,12 +193,7 @@
       "definition": "Project identity, fit, or runtime status still needs verification.",
       "local_ready_allowed": false,
       "p1_gate_impact": "none",
-      "project_ids": [
-        "rtk",
-        "seedance2_skill",
-        "surya",
-        "unstructured"
-      ]
+      "project_ids": []
     },
     {
       "blocked_reason": "not_p1_blocker",
@@ -300,6 +296,7 @@
       "project_ids": [
         "ai_marketing_skills",
         "jellyfish",
+        "seedance2_skill",
         "story_flicks"
       ]
     }

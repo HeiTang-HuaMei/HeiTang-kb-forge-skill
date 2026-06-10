@@ -12,7 +12,7 @@
 - S 级项目数：7
 - A 级项目数：16
 - B 级项目数：4
-- `current_repo_status=needs_verification` 项目数：7
+- `current_repo_status=needs_verification` 项目数：0
 - Internal Capability Anchors 数：8
 - 本轮实现外部功能：false
 - planned_adapter 标为 ready：false
@@ -42,13 +42,13 @@
 | MMSkills | mentioned_only | registry_only | P2.8 / P3 |
 | Jellyfish | mentioned_only | registry_only | P2.8 / P3 |
 | story-flicks | mentioned_only | registry_only | P2.8 / P3 |
-| seedance2-skill | needs_verification | registry_only | P2.8 / P3 |
+| seedance2-skill | mentioned_only | registry_only | P2.8 / P3 |
 | ai-marketing-skills | mentioned_only | registry_only | P2.7 |
-| rtk | needs_verification | registry_only | needs_decision |
+| rtk | benchmark_mapped | registry_only | P3 |
 | OpenDataLoader | planned_adapter | registry_only | P2.6 |
 | Marker | planned_adapter | registry_only | P2.6 |
-| Surya | needs_verification | registry_only | P2.6 |
-| Unstructured | needs_verification | registry_only | P2.6 |
+| Surya | planned_adapter | registry_only | P2.6 |
+| Unstructured | planned_adapter | registry_only | P2.6 |
 | LlamaIndex | benchmark_mapped | registry_only | P2.5 |
 | RAGAS | benchmark_mapped | registry_only | P2.5 |
 | DeepEval | docs_only | registry_only | P2.5 |
@@ -58,9 +58,9 @@
 | 项目 | 当前状态 | pre-v4 范围 | post-v4 目标 |
 | --- | --- | --- | --- |
 | ai-money-maker-handbook | mentioned_only | registry_only | P2.7 |
-| vibe-coding-cn | needs_verification | registry_only | P3 |
-| Ruflo | needs_verification | registry_only | needs_decision |
-| Growth-Loop | needs_verification | registry_only | P3 |
+| vibe-coding-cn | benchmark_mapped | registry_only | P3 |
+| Ruflo | benchmark_mapped | registry_only | P3 |
+| Growth-Loop | not_found | registry_only | P3 |
 
 ## Internal Capability Anchors
 

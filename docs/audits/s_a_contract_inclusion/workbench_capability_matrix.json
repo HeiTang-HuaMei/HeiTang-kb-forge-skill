@@ -37,7 +37,8 @@
           "project_name": "seedance2-skill",
           "rating": "A",
           "contract_status": [
-            "needs_verification",
+            "provider_required",
+            "template_reference",
             "future_adapter"
           ],
           "blocked_reason": "external_project_registry_only",
@@ -80,7 +81,8 @@
           "project_name": "seedance2-skill",
           "rating": "A",
           "contract_status": [
-            "needs_verification",
+            "provider_required",
+            "template_reference",
             "future_adapter"
           ],
           "blocked_reason": "external_project_registry_only",
@@ -185,8 +187,7 @@
           "project_name": "Surya",
           "rating": "A",
           "contract_status": [
-            "planned_adapter",
-            "needs_verification"
+            "planned_adapter"
           ],
           "blocked_reason": "external_project_registry_only",
           "ui_visibility": "visible_boundary_only",
@@ -197,8 +198,7 @@
           "project_name": "Unstructured",
           "rating": "A",
           "contract_status": [
-            "planned_adapter",
-            "needs_verification"
+            "planned_adapter"
           ],
           "blocked_reason": "external_project_registry_only",
           "ui_visibility": "visible_boundary_only",
@@ -228,8 +228,7 @@
           "project_name": "rtk",
           "rating": "A",
           "contract_status": [
-            "benchmark_only",
-            "needs_verification"
+            "benchmark_only"
           ],
           "blocked_reason": "external_project_registry_only",
           "ui_visibility": "visible_boundary_only",
@@ -294,8 +293,7 @@
           "project_name": "rtk",
           "rating": "A",
           "contract_status": [
-            "benchmark_only",
-            "needs_verification"
+            "benchmark_only"
           ],
           "blocked_reason": "external_project_registry_only",
           "ui_visibility": "visible_boundary_only",
@@ -513,7 +511,8 @@
           "project_name": "seedance2-skill",
           "rating": "A",
           "contract_status": [
-            "needs_verification",
+            "provider_required",
+            "template_reference",
             "future_adapter"
           ],
           "blocked_reason": "external_project_registry_only",
@@ -623,8 +622,7 @@
           "project_name": "Surya",
           "rating": "A",
           "contract_status": [
-            "planned_adapter",
-            "needs_verification"
+            "planned_adapter"
           ],
           "blocked_reason": "external_project_registry_only",
           "ui_visibility": "visible_boundary_only",
@@ -635,8 +633,7 @@
           "project_name": "Unstructured",
           "rating": "A",
           "contract_status": [
-            "planned_adapter",
-            "needs_verification"
+            "planned_adapter"
           ],
           "blocked_reason": "external_project_registry_only",
           "ui_visibility": "visible_boundary_only",

@@ -97,21 +97,23 @@
       "rating": "A",
       "github_url": "https://github.com/dexhunter/seedance2-skill",
       "contract_status": [
-        "needs_verification",
+        "provider_required",
+        "template_reference",
         "future_adapter"
       ],
       "blocked_reason": "external_project_registry_only",
       "blocked_reasons": [
         "external_project_registry_only",
         "future_adapter_after_v4",
+        "provider_required",
         "secret_required",
         "network_required",
         "license_review_required",
         "security_review_required",
-        "needs_verification",
         "not_p1_blocker",
         "post_v4_target",
-        "ui_visibility_only"
+        "ui_visibility_only",
+        "template_reference_only"
       ],
       "requires_api_key": true,
       "requires_network": true,
@@ -126,8 +128,7 @@
       "rating": "A",
       "github_url": "https://github.com/rtk-ai/rtk",
       "contract_status": [
-        "benchmark_only",
-        "needs_verification"
+        "benchmark_only"
       ],
       "blocked_reason": "external_project_registry_only",
       "blocked_reasons": [
@@ -136,7 +137,6 @@
         "external_runtime_required",
         "license_review_required",
         "security_review_required",
-        "needs_verification",
         "not_p1_blocker",
         "post_v4_target",
         "ui_visibility_only"
@@ -145,7 +145,7 @@
       "requires_network": false,
       "requires_external_runtime": true,
       "can_execute_locally_before_v4": false,
-      "post_v4_target": "needs_decision",
+      "post_v4_target": "P3",
       "ui_visibility": "visible_boundary_only"
     }
   ]

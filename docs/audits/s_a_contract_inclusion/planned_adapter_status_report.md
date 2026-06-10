@@ -19,9 +19,9 @@
 | OpenDataLoader | planned_adapter | external_project_registry_only |
 | PaddleOCR | planned_adapter | external_project_registry_only |
 | RAGAS | benchmark_only, future_adapter | external_project_registry_only |
-| seedance2-skill | needs_verification, future_adapter | external_project_registry_only |
+| seedance2-skill | provider_required, template_reference, future_adapter | external_project_registry_only |
 | skill-prompt-generator | benchmark_only, future_adapter | external_project_registry_only |
 | story-flicks | template_reference, future_adapter | external_project_registry_only |
-| Surya | planned_adapter, needs_verification | external_project_registry_only |
-| Unstructured | planned_adapter, needs_verification | external_project_registry_only |
+| Surya | planned_adapter | external_project_registry_only |
+| Unstructured | planned_adapter | external_project_registry_only |
 | WeKnora | future_adapter, capability_anchor | external_project_registry_only |

@@ -356,21 +356,23 @@
       "rating": "A",
       "github_url": "https://github.com/dexhunter/seedance2-skill",
       "contract_status": [
-        "needs_verification",
+        "provider_required",
+        "template_reference",
         "future_adapter"
       ],
       "blocked_reason": "external_project_registry_only",
       "blocked_reasons": [
         "external_project_registry_only",
         "future_adapter_after_v4",
+        "provider_required",
         "secret_required",
         "network_required",
         "license_review_required",
         "security_review_required",
-        "needs_verification",
         "not_p1_blocker",
         "post_v4_target",
-        "ui_visibility_only"
+        "ui_visibility_only",
+        "template_reference_only"
       ],
       "requires_api_key": true,
       "requires_network": true,
@@ -439,8 +441,7 @@
       "rating": "A",
       "github_url": "https://github.com/datalab-to/surya",
       "contract_status": [
-        "planned_adapter",
-        "needs_verification"
+        "planned_adapter"
       ],
       "blocked_reason": "external_project_registry_only",
       "blocked_reasons": [
@@ -448,7 +449,6 @@
         "planned_adapter_not_implemented",
         "license_review_required",
         "security_review_required",
-        "needs_verification",
         "not_p1_blocker",
         "post_v4_target",
         "ui_visibility_only"
@@ -466,8 +466,7 @@
       "rating": "A",
       "github_url": "https://github.com/Unstructured-IO/unstructured",
       "contract_status": [
-        "planned_adapter",
-        "needs_verification"
+        "planned_adapter"
       ],
       "blocked_reason": "external_project_registry_only",
       "blocked_reasons": [
@@ -475,7 +474,6 @@
         "planned_adapter_not_implemented",
         "license_review_required",
         "security_review_required",
-        "needs_verification",
         "not_p1_blocker",
         "post_v4_target",
         "ui_visibility_only"

@@ -17,13 +17,13 @@ Workbench visibility only. Entries are not ready, not installed, and not executa
 | MMSkills | Template Library, Artifact Management | future_adapter | false |
 | Jellyfish | Template Library, Artifact Management, Document Generation | template_reference, future_adapter | false |
 | story-flicks | Template Library, Artifact Management, Document Generation | template_reference, future_adapter | false |
-| seedance2-skill | Template Library, Artifact Management, Document Generation | needs_verification, future_adapter | false |
+| seedance2-skill | Template Library, Artifact Management, Document Generation | provider_required, template_reference, future_adapter | false |
 | ai-marketing-skills | Template Library | template_reference | false |
-| rtk | Memory Center, Reports & Audit | benchmark_only, needs_verification | false |
+| rtk | Memory Center, Reports & Audit | benchmark_only | false |
 | OpenDataLoader | Import & Parsing, Vector Hub / Provider / Storage | planned_adapter | false |
 | Marker | Import & Parsing, Vector Hub / Provider / Storage | planned_adapter | false |
-| Surya | Import & Parsing, Vector Hub / Provider / Storage | planned_adapter, needs_verification | false |
-| Unstructured | Import & Parsing, Vector Hub / Provider / Storage | planned_adapter, needs_verification | false |
+| Surya | Import & Parsing, Vector Hub / Provider / Storage | planned_adapter | false |
+| Unstructured | Import & Parsing, Vector Hub / Provider / Storage | planned_adapter | false |
 | LlamaIndex | Retrieval & Verification, Reports & Audit | benchmark_only | false |
 | RAGAS | Retrieval & Verification, Reports & Audit | benchmark_only, future_adapter | false |
 | DeepEval | Retrieval & Verification, Reports & Audit | benchmark_only, future_adapter | false |

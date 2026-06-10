@@ -6,7 +6,7 @@ Status: pass
 - S project count: 7
 - A project count: 16
 - B project count: 4
-- needs_verification status count: 7
+- needs_verification status count: 0
 - Internal Capability Anchors count: 8
 - LLM Wiki v2 URL correct: true
 - Book-to-Skill included: true

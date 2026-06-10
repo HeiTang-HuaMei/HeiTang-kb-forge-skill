@@ -508,7 +508,8 @@
       "project_name": "seedance2-skill",
       "rating": "A",
       "contract_status": [
-        "needs_verification",
+        "provider_required",
+        "template_reference",
         "future_adapter"
       ],
       "mapped_capabilities": [
@@ -529,14 +530,15 @@
       "blocked_reasons": [
         "external_project_registry_only",
         "future_adapter_after_v4",
+        "provider_required",
         "secret_required",
         "network_required",
         "license_review_required",
         "security_review_required",
-        "needs_verification",
         "not_p1_blocker",
         "post_v4_target",
-        "ui_visibility_only"
+        "ui_visibility_only",
+        "template_reference_only"
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
@@ -581,8 +583,7 @@
       "project_name": "rtk",
       "rating": "A",
       "contract_status": [
-        "benchmark_only",
-        "needs_verification"
+        "benchmark_only"
       ],
       "mapped_capabilities": [
         "memory_compression",
@@ -604,14 +605,13 @@
         "external_runtime_required",
         "license_review_required",
         "security_review_required",
-        "needs_verification",
         "not_p1_blocker",
         "post_v4_target",
         "ui_visibility_only"
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
-      "post_v4_target": "needs_decision",
+      "post_v4_target": "P3",
       "ui_visibility": "visible_boundary_only"
     },
     {
@@ -687,8 +687,7 @@
       "project_name": "Surya",
       "rating": "A",
       "contract_status": [
-        "planned_adapter",
-        "needs_verification"
+        "planned_adapter"
       ],
       "mapped_capabilities": [
         "ocr_layout",
@@ -708,7 +707,6 @@
         "planned_adapter_not_implemented",
         "license_review_required",
         "security_review_required",
-        "needs_verification",
         "not_p1_blocker",
         "post_v4_target",
         "ui_visibility_only"
@@ -723,8 +721,7 @@
       "project_name": "Unstructured",
       "rating": "A",
       "contract_status": [
-        "planned_adapter",
-        "needs_verification"
+        "planned_adapter"
       ],
       "mapped_capabilities": [
         "unstructured_document_parser"
@@ -743,7 +740,6 @@
         "planned_adapter_not_implemented",
         "license_review_required",
         "security_review_required",
-        "needs_verification",
         "not_p1_blocker",
         "post_v4_target",
         "ui_visibility_only"

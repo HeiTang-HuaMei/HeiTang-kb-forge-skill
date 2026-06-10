@@ -29,13 +29,13 @@ This is contract inclusion only. It does not implement external project function
 | MMSkills | A | future_adapter | external_project_registry_only | P2.8 / P3 |
 | Jellyfish | A | template_reference, future_adapter | external_project_registry_only | P2.8 / P3 |
 | story-flicks | A | template_reference, future_adapter | external_project_registry_only | P2.8 / P3 |
-| seedance2-skill | A | needs_verification, future_adapter | external_project_registry_only | P2.8 / P3 |
+| seedance2-skill | A | provider_required, template_reference, future_adapter | external_project_registry_only | P2.8 / P3 |
 | ai-marketing-skills | A | template_reference | external_project_registry_only | P2.7 |
-| rtk | A | benchmark_only, needs_verification | external_project_registry_only | needs_decision |
+| rtk | A | benchmark_only | external_project_registry_only | P3 |
 | OpenDataLoader | A | planned_adapter | external_project_registry_only | P2.6 |
 | Marker | A | planned_adapter | external_project_registry_only | P2.6 |
-| Surya | A | planned_adapter, needs_verification | external_project_registry_only | P2.6 |
-| Unstructured | A | planned_adapter, needs_verification | external_project_registry_only | P2.6 |
+| Surya | A | planned_adapter | external_project_registry_only | P2.6 |
+| Unstructured | A | planned_adapter | external_project_registry_only | P2.6 |
 | LlamaIndex | A | benchmark_only | external_project_registry_only | P2.5 |
 | RAGAS | A | benchmark_only, future_adapter | external_project_registry_only | P2.5 |
 | DeepEval | A | benchmark_only, future_adapter | external_project_registry_only | P2.5 |

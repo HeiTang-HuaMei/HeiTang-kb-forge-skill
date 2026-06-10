@@ -118,7 +118,8 @@
       "project_id": "seedance2_skill",
       "project_name": "seedance2-skill",
       "contract_status": [
-        "needs_verification",
+        "provider_required",
+        "template_reference",
         "future_adapter"
       ],
       "related_templates": [
@@ -127,14 +128,15 @@
       "blocked_reasons": [
         "external_project_registry_only",
         "future_adapter_after_v4",
+        "provider_required",
         "secret_required",
         "network_required",
         "license_review_required",
         "security_review_required",
-        "needs_verification",
         "not_p1_blocker",
         "post_v4_target",
-        "ui_visibility_only"
+        "ui_visibility_only",
+        "template_reference_only"
       ],
       "can_execute_locally_before_v4": false
     },

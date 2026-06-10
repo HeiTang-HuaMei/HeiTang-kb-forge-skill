@@ -51,11 +51,11 @@ def test_provider_boundary_report_keeps_provider_network_and_runtime_disabled():
         assert entry["can_execute_locally_before_v4"] is False
 
 
-def test_needs_verification_entries_are_not_executable():
+def test_verified_closure_entries_are_not_executable():
     projects = {project["project_id"]: project for project in _json("external_capability_registry.json")["projects"]}
 
-    for project_id in ["seedance2_skill", "rtk", "surya", "unstructured"]:
-        assert "needs_verification" in projects[project_id]["contract_status"]
-        assert "needs_verification" in projects[project_id]["blocked_reasons"]
+    for project_id in ["seedance2_skill", "rtk"]:
+        assert "needs_verification" not in projects[project_id]["contract_status"]
+        assert "needs_verification" not in projects[project_id]["blocked_reasons"]
         assert projects[project_id]["executable_action"] is False
         assert projects[project_id]["can_execute_locally_before_v4"] is False
