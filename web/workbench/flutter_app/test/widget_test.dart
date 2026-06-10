@@ -36,6 +36,28 @@ void main() {
     expect(contracts.gate.uiFullOperationPending, isTrue);
   });
 
+  test('p2.2 skill governance report asset parses as display evidence',
+      () async {
+    final report = jsonDecode(await rootBundle.loadString(
+            'assets/fixtures/p2_2/skill_governance_report.json'))
+        as Map<String, dynamic>;
+    final checks = report['checks'] as Map<String, dynamic>;
+    final uiContract = report['ui_contract'] as Map<String, dynamic>;
+
+    expect(report['skill_governance_report_version'], 'v4.2-p2.2-1');
+    expect(report['status'], 'pass');
+    expect(report['release_ready'], isFalse);
+    expect(checks['generation']['status'], 'pass');
+    expect(checks['validation']['status'], 'pass');
+    expect(checks['installability']['status'], 'pass');
+    expect(checks['privacy_boundary']['local_first_default'], isTrue);
+    expect(checks['token_budget']['recommended_load_policy'], 'on_demand');
+    expect(report['warnings'], contains('diff_baseline_not_provided'));
+    expect(uiContract['asset_id'], 'skill_governance_report_json');
+    expect(uiContract['ready_for_workbench_display'], isTrue);
+    expect(report['tests_require_real_llm_api_network'], isFalse);
+  });
+
   test('p1 real workflow v1 evidence parses and keeps gate blocked', () async {
     final evidence = P1WorkflowEvidence.fromJsonString(await rootBundle
         .loadString('assets/workflows/p1_real_workflow_v1_evidence.json'));

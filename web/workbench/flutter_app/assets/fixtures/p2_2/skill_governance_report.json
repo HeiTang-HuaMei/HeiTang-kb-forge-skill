@@ -1,0 +1,76 @@
+{
+  "skill_governance_report_version": "v4.2-p2.2-1",
+  "status": "pass",
+  "release_ready": false,
+  "skill_package": "fixtures/p2_2/readme_operations_skill/skill_package",
+  "skill_id": "readme_operations_skill",
+  "skill_name": "README Operations Skill",
+  "source_package_id": "pkg_readme_skill",
+  "generated_by": "book_to_skill",
+  "checks": {
+    "generation": {
+      "status": "pass",
+      "evidence_file": "structured_skill_package_completion_report.json"
+    },
+    "validation": {
+      "status": "pass",
+      "release_ready": true,
+      "errors": [],
+      "evidence_file": "structured_skill_validation_result.json"
+    },
+    "diff_comparison": {
+      "status": "not_run",
+      "baseline_provided": false,
+      "changed_file_count": 0,
+      "added_file_count": 0,
+      "removed_file_count": 0,
+      "regeneration_recommendation": "provide_old_skill_to_compare",
+      "evidence_file": "skill_diff_report.json"
+    },
+    "installability": {
+      "status": "pass",
+      "targets": [
+        "claude_code",
+        "codex",
+        "openclaw"
+      ],
+      "evidence_file": "skill_installability_report.json"
+    },
+    "privacy_boundary": {
+      "status": "pass",
+      "local_first_default": true,
+      "raw_source_text_copied_wholesale": false,
+      "evidence_file": "skill_privacy_safety_report.json"
+    },
+    "kb_agent_compatibility": {
+      "status": "pass",
+      "kb_bound_agent_generation_supported": true,
+      "evidence_file": "skill_agent_kb_compatibility_report.json"
+    },
+    "token_budget": {
+      "status": "pass",
+      "recommended_load_policy": "on_demand",
+      "evidence_file": "token_budget_report.json"
+    },
+    "quality": {
+      "status": "pass",
+      "evidence_file": "skill_quality_report.json"
+    }
+  },
+  "blockers": [],
+  "warnings": [
+    "diff_baseline_not_provided"
+  ],
+  "cli_commands": [
+    "book-to-skill",
+    "validate-skill-package",
+    "diff-skill-package",
+    "skill-governance-report"
+  ],
+  "ui_contract": {
+    "status_field": "skill_governance_report_available",
+    "asset_id": "skill_governance_report_json",
+    "ready_for_workbench_display": true
+  },
+  "tests_require_real_llm_api_network": false
+}
