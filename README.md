@@ -4,7 +4,7 @@ An offline-first Agent Knowledge Supply Chain Core for turning local source mate
 
 Current Core: v4.1.1
 
-Status: v4.1.1 Test Framework Governance release line after v4.1.0 Parser/OCR industrial hardening and Workbench sync.
+Status: v4.1.1 Test Framework Governance stable release after v4.1.0 Parser/OCR industrial hardening and Workbench sync.
 
 For quick understanding:
 - Product positioning: [docs/CURRENT_TRUTH.md](docs/CURRENT_TRUTH.md)
@@ -27,12 +27,12 @@ The repository name still contains `Skill` because the project started from a Sk
 ## Current status
 
 Current Core package version: `4.1.1`
-Current release line: `v4.1.1`
-Latest stable release: `v4.1.0`
+Current stable release: `v4.1.1`
+Previous stable release: `v4.1.0`
 Historical stable release: `v4.0.0`
 
 - v4.1.1 adds test framework governance: a validation gate manifest, changed-file impact selector, dry-run/executable gate runner, pytest markers, and an obsolete-test pruning register.
-- v4.1.1 must not be called stable until the Chunked Full Gate, tag, release, and release-check evidence are complete.
+- v4.1.1 stable release closure is backed by Chunked Full Gate, Post-Codex Full Review, CI, Release Check, tag, and GitHub Release evidence.
 - P2.1 Parser/OCR pluggable backend runtime remains release-hardened from v4.1.0.
 - Docling, PaddleOCR, and Unstructured are real opt-in local runtime adapters, dependency-gated and not bundled.
 - Latest P2.1 proof: `docs/audits/p2_1_parser_ocr_backends/`

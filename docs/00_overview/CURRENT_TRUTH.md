@@ -1,8 +1,8 @@
 # Current Truth
 
 Current Core package version: `4.1.1`
-Current release line: `v4.1.1`
-Latest stable release: `v4.1.0`
+Current stable release: `v4.1.1`
+Previous stable release: `v4.1.0`
 
 This is the short current-state entry for GitHub readers. It is intentionally about the current main branch, not historical version planning.
 
@@ -20,7 +20,7 @@ This is the short current-state entry for GitHub readers. It is intentionally ab
 - `v4.0.0` remains an untouched historical stable tag.
 - P2.2 Skill Governance has not started in this release.
 
-`v4.1.1` is the current Test Framework Governance release line after v4.1.0 Parser/OCR industrial release hardening. It is not a stable tag until Chunked Full Gate, tag, release, and release-check evidence are complete.
+`v4.1.1` is the current stable Test Framework Governance release after v4.1.0 Parser/OCR industrial release hardening. The stable closure is backed by Chunked Full Gate, Post-Codex Full Review, CI, Release Check, tag, and GitHub Release evidence.
 
 ## Product Positioning
 

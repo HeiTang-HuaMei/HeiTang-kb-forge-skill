@@ -1,8 +1,8 @@
 # 版本矩阵
 
 当前 Core package 版本：`4.1.1`
-当前 release line：`v4.1.1`
-最新 stable release：`v4.1.0`
+当前 stable release：`v4.1.1`
+上一个 stable release：`v4.1.0`
 
 当前阶段：v4.1.1 Test Framework Governance，位于 v4.1.0 Parser/OCR industrial hardening 之后。
 
@@ -42,7 +42,7 @@
 | v4.0.0-rc.1 | Local Knowledge Workbench release candidate | P1 final gate、external project registry、S/A contract inclusion、local-first release readiness | `doctor`, `release-readiness`, `final-pre-v4-audit` | rc evidence、release readiness reports | historical | yes | stable v4.0.0 前已验收的 candidate release。 |
 | v4.0.0 | Stable Local Knowledge Workbench release | rc.1 acceptance 与 hardening 之后的 stable release | release-check workflow | release notes、tag、release-check CI | historical | yes | 未改动的历史 stable tag。 |
 | v4.1.0 | Parser/OCR Pluggable Backend Runtime | Docling、PaddleOCR、Unstructured、builtin fallback、evidence replay、failure modes、Workbench sync 的 P2.1 release hardening | `parser-backend-registry`, `parser-backend-matrix`, `parser-backend-inspect`, `parser-backend-smoke`, `parser-backend-release-evidence` | `docs/audits/p2_1_parser_ocr_backends/` | historical | yes | 历史 Parser/OCR industrial release line；heavy dependencies 仍为 optional。 |
-| v4.1.1 | Test Framework Governance | Validation gate manifest、changed-file impact selector、dry-run / executable validation runner、pytest markers、obsolete-test pruning register、token-efficient log policy | `python -m heitang_kb_forge.test_governance.gates` | `docs/testing/VALIDATION_GATE_MANIFEST.json`, `docs/testing/TEST_PRUNING_REGISTER.md` | current | yes | 当前 scalable validation 与 test governance release；未启动 P2.2 feature work。 |
+| v4.1.1 | Test Framework Governance | Validation gate manifest、changed-file impact selector、dry-run / executable validation runner、pytest markers、obsolete-test pruning register、token-efficient log policy | `python -m heitang_kb_forge.test_governance.gates` | `docs/testing/VALIDATION_GATE_MANIFEST.json`, `docs/testing/TEST_PRUNING_REGISTER.md` | stable | yes | 当前 stable scalable validation 与 test governance release；未启动 P2.2 feature work。 |
 
 不支持或未来项：
 

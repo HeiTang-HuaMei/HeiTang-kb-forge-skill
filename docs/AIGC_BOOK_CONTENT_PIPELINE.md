@@ -102,7 +102,7 @@ Document outputs include:
 
 - Core pre-v4 RC readiness is complete for the latest Core P0 proof.
 - UI full-operation is not complete.
-- `v4.1.1` is the current Test Framework Governance release line after v4.1.0 Parser/OCR hardening; `v4.1.0` and `v4.0.0` remain untouched historical stable tags.
+- `v4.1.1` is the current stable Test Framework Governance release after v4.1.0 Parser/OCR hardening; `v4.1.0` and `v4.0.0` remain untouched historical stable tags.
 - Core tests do not require real LLM/API/network calls.
 - Real user secrets, raw private input, local provider profiles, and local configs must not be committed.
 

@@ -12,13 +12,13 @@ This roadmap describes the current main branch direction only. Historical versio
 - `P0 blockers=0`
 - Pre-v4 External Project Registry complete.
 - S/A Contract Inclusion complete.
-- Current release line: `v4.1.1`.
-- Latest stable release tag: `v4.1.0`.
+- Current stable release: `v4.1.1`.
+- Previous stable release tag: `v4.1.0`.
 - Historical stable release tag: `v4.0.0`.
 
-## Current Gate: v4.1.1 Test Framework Governance
+## Current Stable Gate: v4.1.1 Test Framework Governance
 
-The current product gate is the `v4.1.1` Test Framework Governance release line: validation gate manifest, changed-file impact selector, dry-run/executable validation runner, pytest markers, obsolete-test pruning register, token-efficient logs, Core/UI validation, release-readiness, CI green, release-check workflow evidence, and no secret/build/raw artifact pollution. The existing `v4.0.0` and `v4.1.0` tags remain untouched; `v4.1.1` is not stable until its gates, tag, and release are complete.
+The current stable product gate is the `v4.1.1` Test Framework Governance release: validation gate manifest, changed-file impact selector, dry-run/executable validation runner, pytest markers, obsolete-test pruning register, token-efficient logs, Core/UI validation, release-readiness, CI green, release-check workflow evidence, and no secret/build/raw artifact pollution. The existing `v4.0.0` and `v4.1.0` tags remain untouched.
 
 ## Later Gate: P2 Productization
 

@@ -1,10 +1,10 @@
 # Capability Status
 
 当前 Core package 版本：`4.1.1`
-当前 release line：`v4.1.1`
-最新 stable release：`v4.1.0`
+当前 stable release：`v4.1.1`
+上一个 stable release：`v4.1.0`
 
-最新已完成的 release 工作包括 v3.12 Product Hardening & Local Release Readiness、P1 Final Gate Re-run、External Project Registry、S/A Contract Inclusion、v4.0.0 release hardening，以及 P2.1 Parser/OCR industrial hardening。当前已进入 `v4.1.1` test governance release line；在 Chunked Full Gate、tag、release 与 release-check evidence 完成前不是 stable。
+最新已完成的 release 工作包括 v3.12 Product Hardening & Local Release Readiness、P1 Final Gate Re-run、External Project Registry、S/A Contract Inclusion、v4.0.0 release hardening、P2.1 Parser/OCR industrial hardening，以及 v4.1.1 Test Framework Governance stable closure。`v4.1.1` 是当前 stable release；`v4.1.0` 保持为历史 Parser/OCR stable tag。
 
 ## Stable
 

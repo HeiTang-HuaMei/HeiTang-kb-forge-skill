@@ -1,8 +1,8 @@
 # 文档索引
 
 当前 Core package 版本：`4.1.1`
-当前 release line：`v4.1.1`
-最新 stable release：`v4.1.0`
+当前 stable release：`v4.1.1`
+上一个 stable release：`v4.1.0`
 
 这是当前 main 分支的唯一主文档入口。历史版本细节通过 git history 和 tags 查看，不再作为过程文档堆放在 main。
 

@@ -12,13 +12,13 @@
 - `P0 blockers=0`
 - Pre-v4 External Project Registry 已完成。
 - S/A Contract Inclusion 已完成。
-- 当前 release line：`v4.1.1`。
-- 最新 stable release tag：`v4.1.0`。
+- 当前 stable release：`v4.1.1`。
+- 上一个 stable release tag：`v4.1.0`。
 - 历史 stable release tag：`v4.0.0`。
 
-## 当前门禁：v4.1.1 Test Framework Governance
+## 当前 stable 门禁：v4.1.1 Test Framework Governance
 
-当前产品门禁是 `v4.1.1` Test Framework Governance release line：validation gate manifest、changed-file impact selector、dry-run / executable validation runner、pytest markers、obsolete-test pruning register、token-efficient logs、Core/UI validation、release-readiness、CI green、release-check workflow evidence，以及无 secret/build/raw artifact pollution。既有 `v4.0.0` 与 `v4.1.0` tag 保持不变；`v4.1.1` 在门禁、tag 和 release 完成前不是 stable。
+当前 stable 产品门禁是 `v4.1.1` Test Framework Governance release：validation gate manifest、changed-file impact selector、dry-run / executable validation runner、pytest markers、obsolete-test pruning register、token-efficient logs、Core/UI validation、release-readiness、CI green、release-check workflow evidence，以及无 secret/build/raw artifact pollution。既有 `v4.0.0` 与 `v4.1.0` tag 保持不变。
 
 ## 后续门禁：P2 Productization
 

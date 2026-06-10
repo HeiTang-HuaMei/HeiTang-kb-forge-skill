@@ -1,8 +1,8 @@
 # 当前真值
 
 当前 Core package 版本：`4.1.1`
-当前 release line：`v4.1.1`
-最新 stable release：`v4.1.0`
+当前 stable release：`v4.1.1`
+上一个 stable release：`v4.1.0`
 
 这是面向 GitHub 读者的当前状态入口。它只描述当前 main 分支，不堆放历史版本规划。
 
@@ -20,7 +20,7 @@
 - `v4.0.0` 保持为未改动的历史 stable tag。
 - P2.2 Skill Governance 没有在本 release 中启动。
 
-`v4.1.1` 是 v4.1.0 Parser/OCR industrial release hardening 之后的当前 Test Framework Governance release line。它在 Chunked Full Gate、tag、release 与 release-check evidence 完成前不是 stable tag。
+`v4.1.1` 是 v4.1.0 Parser/OCR industrial release hardening 之后的当前 stable Test Framework Governance release。stable closure 已由 Chunked Full Gate、Post-Codex Full Review、CI、Release Check、tag 和 GitHub Release evidence 支撑。
 
 ## 产品定位
 

@@ -1,8 +1,8 @@
 # Parser Backend Strategy
 
 Current Core package version: `4.1.1`
-Current release line: `v4.1.1`
-Latest stable release: `v4.1.0`
+Current stable release: `v4.1.1`
+Previous stable release: `v4.1.0`
 
 This document records parser backend strategy only. It does not make external runtimes default, download models, or execute external parser code unless a backend is explicitly selected and its local dependency is installed.
 

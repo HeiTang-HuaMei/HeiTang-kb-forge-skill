@@ -1,8 +1,8 @@
 # 能力矩阵
 
 当前 Core package 版本：`4.1.1`
-当前 release line：`v4.1.1`
-最新 stable release：`v4.1.0`
+当前 stable release：`v4.1.1`
+上一个 stable release：`v4.1.0`
 
 | 领域 | 当前 main 分支真值 | 状态 |
 | --- | --- | --- |

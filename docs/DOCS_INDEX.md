@@ -1,8 +1,8 @@
 # Docs Index
 
 Current Core package version: `4.1.1`
-Current release line: `v4.1.1`
-Latest stable release: `v4.1.0`
+Current stable release: `v4.1.1`
+Previous stable release: `v4.1.0`
 
 This is the canonical documentation entry for the current main branch. Historical version details live in git history and tags, not as accumulated process docs on main.
 

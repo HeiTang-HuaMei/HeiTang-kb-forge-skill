@@ -6,7 +6,7 @@ Gate: Core Chunked Full Gate
 
 Repository: Core
 
-Decision: `chunked_full_gate_and_post_codex_full_review_passed_pending_commit_push_ci_release_check_tag_release`
+Decision: `chunked_full_gate_post_codex_full_review_ci_and_release_check_passed_for_v4_1_1_stable_closure`
 
 Generated local date: 2026-06-11
 
@@ -45,18 +45,16 @@ Resolved issues: 2 (`PCR-v4.1.1-001`, `PCR-v4.1.1-002`)
 
 P0=0, P1=0, P2 fixed or explicitly deferred; P3 backlog does not block release.
 
-## Remaining Release Gates
+## Release Closure Evidence
 
-- Commit
-- Push
-- CI green
-- Release Check green
-- v4.1.1 tag
-- GitHub Release
+- Core commit `68eb4f4f865b8467e63f1d8d5517fa5a8d2bc345` pushed to `origin/main`
+- Core CI run `27298344406` passed
+- Core Release Check run `27298381604` passed
+- v4.1.1 tag and GitHub Release are the final publication artifacts for this stable closure.
 
 ## Boundaries
 
-- v4.1.1 remains a release line, not stable, until Full Review, tag, release, and release-check evidence complete.
+- v4.1.1 stable closure is backed by Full Review, CI, Release Check, tag, and GitHub Release evidence.
 - v4.0.0 and v4.1.0 tags remain untouched.
 - P2.2 is not started.
 - No skipped/deferred/env-blocked check is reported as passed.

@@ -13,12 +13,12 @@ def test_readme_current_status_is_not_stale():
     assert "当前 Core package 版本：`4.1.1`" in chinese
     assert "Current version: `2.9.0-alpha.1`" not in english
     assert "当前版本：`2.9.0-alpha.1`" not in chinese
-    assert "Current release line: `v4.1.1`" in english
-    assert "Latest stable release: `v4.1.0`" in english
-    assert "Current stable release: `v4.1.1`" not in english
-    assert "当前 release line：`v4.1.1`" in chinese
-    assert "最新 stable release：`v4.1.0`" in chinese
-    assert "当前 stable release：`v4.1.1`" not in chinese
+    assert "Current stable release: `v4.1.1`" in english
+    assert "Previous stable release: `v4.1.0`" in english
+    assert "Current release line: `v4.1.1`" not in english
+    assert "当前 stable release：`v4.1.1`" in chinese
+    assert "上一个 stable release：`v4.1.0`" in chinese
+    assert "当前 release line：`v4.1.1`" not in chinese
     assert "历史 stable release：`v4.0.0`" in chinese
     assert "Parser/OCR" in english
     assert "Parser/OCR" in chinese

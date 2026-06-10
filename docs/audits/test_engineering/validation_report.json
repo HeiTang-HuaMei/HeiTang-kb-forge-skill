@@ -3,7 +3,7 @@
   "release_title": "Test Framework Governance, Obsolete Test Pruning & Scalable Validation",
   "repository": "core",
   "gate": "chunked_full_gate",
-  "decision": "chunked_full_gate_and_post_codex_full_review_passed_pending_commit_push_ci_release_check_tag_release",
+  "decision": "chunked_full_gate_post_codex_full_review_ci_and_release_check_passed_for_v4_1_1_stable_closure",
   "release_blocking": true,
   "generated_local_date": "2026-06-11",
   "changed_files": [
@@ -137,7 +137,7 @@
     "GitHub Release"
   ],
   "boundaries": [
-    "v4.1.1 remains a release line, not stable, until Full Review, tag, release, and release-check evidence complete.",
+    "v4.1.1 stable closure is backed by Full Review, CI, Release Check, tag, and GitHub Release evidence.",
     "v4.0.0 and v4.1.0 tags remain untouched.",
     "P2.2 is not started.",
     "No skipped/deferred/env-blocked check is reported as passed.",

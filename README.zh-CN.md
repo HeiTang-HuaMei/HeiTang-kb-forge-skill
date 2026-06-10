@@ -4,7 +4,7 @@
 
 当前 Core：v4.1.1
 
-状态：v4.1.0 Parser/OCR industrial hardening 与 Workbench sync 之后，进入 v4.1.1 Test Framework Governance release line。
+状态：v4.1.0 Parser/OCR industrial hardening 与 Workbench sync 之后，v4.1.1 Test Framework Governance 已进入 stable release closure。
 
 快速理解入口：
 - 产品定位：[docs/CURRENT_TRUTH.md](docs/CURRENT_TRUTH.md)
@@ -27,12 +27,12 @@ HeiTang KB Forge Skill 是一个本地优先的 Agent 知识供应链 Core。它
 ## Current status
 
 当前 Core package 版本：`4.1.1`
-当前 release line：`v4.1.1`
-最新 stable release：`v4.1.0`
+当前 stable release：`v4.1.1`
+上一个 stable release：`v4.1.0`
 历史 stable release：`v4.0.0`
 
 - v4.1.1 增加 test framework governance：validation gate manifest、changed-file impact selector、dry-run / executable gate runner、pytest markers 和 obsolete-test pruning register。
-- v4.1.1 在 Chunked Full Gate、tag、release 与 release-check evidence 完成前，不能写成 stable。
+- v4.1.1 stable release closure 已由 Chunked Full Gate、Post-Codex Full Review、CI、Release Check、tag 和 GitHub Release evidence 支撑。
 - P2.1 Parser/OCR pluggable backend runtime 保留 v4.1.0 release hardening 结果。
 - Docling、PaddleOCR、Unstructured 是真实 opt-in 本地 runtime adapters，依赖门控，不随默认安装打包。
 - 最新 P2.1 proof：`docs/audits/p2_1_parser_ocr_backends/`

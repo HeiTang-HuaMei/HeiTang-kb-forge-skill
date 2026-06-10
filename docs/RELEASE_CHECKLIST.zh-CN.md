@@ -1,10 +1,10 @@
 # Release Checklist
 
 当前 Core package 版本：`4.1.1`
-当前 release line：`v4.1.1`
-最新 stable release：`v4.1.0`
+当前 stable release：`v4.1.1`
+上一个 stable release：`v4.1.0`
 
-当前阶段：v4.1.1 Test Framework Governance，位于 v4.1.0 Parser/OCR industrial hardening 之后。
+当前阶段：v4.1.1 Test Framework Governance stable release closure，位于 v4.1.0 Parser/OCR industrial hardening 之后。
 
 ## Required Checks
 
@@ -16,10 +16,10 @@
 - [x] Unstructured stable surface 明确为 `.md/.txt`
 - [x] Builtin parser fallback 保留
 - [x] Test Framework Governance artifacts 已添加：[Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json)、[测试瘦身登记表](testing/TEST_PRUNING_REGISTER.zh-CN.md)、pytest markers 与 `heitang_kb_forge.test_governance.gates`
-- [x] v4.1.1 在 Chunked Full Gate、tag、release 与 release-check evidence 完成前仅作为 release line，不写成 stable release
+- [x] v4.1.1 stable release closure 已由 Chunked Full Gate、Post-Codex Full Review、CI、Release Check、tag 和 GitHub Release evidence 支撑
 - [ ] 任何 validation phase 前，阅读 [验证策略](testing/VALIDATION_STRATEGY.zh-CN.md)，加载 [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json)，生成 changed-file impact map，选择 Fast / Medium / Full Gate，开发中只运行 impacted tests，phase closure 运行 Medium Gate，tag/release 前运行 Chunked Full Gate，长时间 gate 保存 logs，并且绝不把 skipped/deferred tests 汇报为 passed
-- [ ] tag/release 前完成 Post-Codex Full Review，且 P0=0、P1=0、P2 已修复或明确 deferred；P3 backlog 不阻塞 release
-- [ ] v4.1.1 在 tag/release 前完成 Full Gate 的 `python -m pytest`
+- [x] tag/release 前完成 Post-Codex Full Review，且 P0=0、P1=0、P2 已修复或明确 deferred；P3 backlog 不阻塞 release
+- [x] v4.1.1 在 tag/release 前通过 Chunked Full Gate 的 `python -m pytest` 分段验证
 - [ ] Doctor 命令 `python -m heitang_kb_forge.cli doctor --output ./tmp_doctor` 通过
 - [ ] Quickstart build 通过
 - [ ] Quickstart 输出包含 `manifest.json`、`chunks.jsonl` 和 `quality_report.json`
@@ -30,7 +30,7 @@
 - [ ] Export certification 已生成
 - [ ] Compatibility matrix 已生成
 - [ ] Release readiness 已生成
-- [ ] release-check workflow 显式检查 `release_ready=true`
+- [x] release-check workflow 显式检查 `release_ready=true`
 - [ ] 未提交 tmp 输出目录
 - [ ] 无 secret leak
 - [ ] 默认不调用外部网络或平台

@@ -1,8 +1,8 @@
 # Local Privacy and Security
 
 Current Core package version: `4.1.1`
-Current release line: `v4.1.1`
-Latest stable release: `v4.1.0`
+Current stable release: `v4.1.1`
+Previous stable release: `v4.1.0`
 
 Current stage: v4.1.1 Test Framework Governance after v4.1.0 Parser/OCR hardening; the existing v4.0.0 and v4.1.0 tags remain untouched.
 
