@@ -9,6 +9,9 @@
 ## Required Checks
 
 - [x] `pyproject.toml`、`skill.json`、README、Capability Status、Version Matrix、Release Checklist 版本一致
+- [x] v4.1.1 已登记为 P2.2 Entry Gate / Test Governance Stable Baseline，不是 P2.2 的一部分
+- [x] Core/UI release-truth closure、Core/UI CI green、Core/UI Release Check green、v4.1.1 tag / GitHub Release、Workspace handoff/status 同步完成前，P2.2 保持阻塞
+- [x] v4.1.1 范围限定为测试治理、发布治理、测试成本控制，不夹带 P2.2 业务能力
 - [x] P1 Final Gate、External Project Registry、S/A Contract Inclusion、rc.1 acceptance 与 release hardening evidence 仍然完整
 - [x] Parser backend matrix fixture 与 Flutter asset 已从 Core runtime baseline commit `576a62075dc1ecbe00388bb0569fd1fc767be7cb` 复制
 - [x] Workbench 展示 parser/OCR evidence、安装模式、稳定表面、已知限制，并不声明 runtime execution

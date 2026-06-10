@@ -9,6 +9,9 @@ Current stage: v4.1.1 Test Framework Governance stable release closure after v4.
 ## Required Checks
 
 - [x] Version aligned in `pyproject.toml`, `skill.json`, README, Capability Status, Version Matrix, and Release Checklist
+- [x] v4.1.1 is documented as the P2.2 Entry Gate / Test Governance Stable Baseline, not as part of P2.2
+- [x] P2.2 remains blocked until Core/UI release-truth closure, Core/UI CI green, Core/UI Release Check green, v4.1.1 tag / GitHub Release, and Workspace handoff/status sync are complete
+- [x] v4.1.1 scope is limited to test governance, release governance, and validation cost control; no P2.2 business capability is included
 - [x] P1 Final Gate, External Project Registry, S/A Contract Inclusion, rc.1 acceptance, and release hardening evidence remain attached
 - [x] Parser backend matrix fixture and Flutter asset are copied from Core runtime baseline commit `576a62075dc1ecbe00388bb0569fd1fc767be7cb`
 - [x] Workbench displays parser/OCR evidence, install mode, stable surface, known limitations, and no runtime execution claim
