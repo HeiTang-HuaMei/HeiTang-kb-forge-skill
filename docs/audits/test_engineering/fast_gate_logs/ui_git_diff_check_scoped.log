@@ -9,7 +9,6 @@ warning: in the working copy of 'docs/VERSION_MATRIX.md', LF will be replaced by
 warning: in the working copy of 'docs/VERSION_MATRIX.zh-CN.md', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'docs/WORKBENCH_UI_SPEC.md', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'docs/WORKBENCH_UI_SPEC.zh-CN.md', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'docs/audits/test_engineering/full_gate_logs/ui_git_diff_check.log', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'pyproject.toml', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'skill.json', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'tests/test_skill_metadata.py', LF will be replaced by CRLF the next time Git touches it

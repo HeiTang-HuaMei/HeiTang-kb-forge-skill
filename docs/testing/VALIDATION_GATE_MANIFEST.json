@@ -1,0 +1,248 @@
+{
+  "schema_version": "validation_gate_manifest.v1",
+  "release_version": "v4.1.1",
+  "release_title": "UI Test Framework Governance, Obsolete Test Pruning & Scalable Validation",
+  "log_root": "docs/audits/test_engineering",
+  "runner_module": "heitang_kb_forge.test_governance.gates",
+  "default_phase": "development",
+  "phases": ["development", "phase_closure", "release"],
+  "default_gates": {
+    "development": ["ui_fast_test_governance"],
+    "phase_closure": ["ui_medium_release_truth"]
+  },
+  "pytest_markers": [
+    "fast",
+    "medium",
+    "full",
+    "docs_truth",
+    "ui_contract",
+    "release",
+    "flutter",
+    "slow"
+  ],
+  "gates": [
+    {
+      "name": "ui_fast_test_governance",
+      "level": "fast",
+      "repository": "ui",
+      "command": "python -m pytest tests/test_test_governance_manifest.py -q",
+      "log_path": "docs/audits/test_engineering/fast_gate_logs/ui_fast_test_governance.log",
+      "exit_code_required": true,
+      "release_blocking": false,
+      "impacted_surfaces": ["test_governance", "validation_runner"]
+    },
+    {
+      "name": "ui_fast_version_truth",
+      "level": "fast",
+      "repository": "ui",
+      "command": "python -m pytest tests/test_version_alignment.py tests/test_version_matrix_docs.py tests/test_skill_metadata.py tests/test_release_checklist_docs.py -q",
+      "log_path": "docs/audits/test_engineering/fast_gate_logs/ui_fast_version_truth.log",
+      "exit_code_required": true,
+      "release_blocking": false,
+      "impacted_surfaces": ["docs_truth", "version_truth", "release_checklist"]
+    },
+    {
+      "name": "ui_fast_workbench_contract",
+      "level": "fast",
+      "repository": "ui",
+      "command": "python -m pytest tests/test_workbench_ui_contract.py tests/test_workbench_ui_mock_data.py tests/test_workbench_external_capability_registry.py -q",
+      "log_path": "docs/audits/test_engineering/fast_gate_logs/ui_fast_workbench_contract.log",
+      "exit_code_required": true,
+      "release_blocking": false,
+      "impacted_surfaces": ["ui_contract", "fixture_drift"]
+    },
+    {
+      "name": "ui_medium_release_truth",
+      "level": "medium",
+      "repository": "ui",
+      "command": "python -m pytest tests/test_version_alignment.py tests/test_version_matrix_docs.py tests/test_skill_metadata.py tests/test_release_checklist_docs.py tests/test_changelog_scope.py tests/test_capability_status_docs.py tests/test_readme_scope.py tests/test_workbench_ui_contract.py tests/test_workbench_ui_mock_data.py tests/test_workbench_external_capability_registry.py tests/test_test_governance_manifest.py -q",
+      "log_path": "docs/audits/test_engineering/medium_gate_logs/ui_medium_release_truth.log",
+      "exit_code_required": true,
+      "release_blocking": false,
+      "impacted_surfaces": ["docs_truth", "version_truth", "release_checklist", "ui_contract", "test_governance"]
+    },
+    {
+      "name": "ui_full_pytest_chunk",
+      "level": "chunked_full",
+      "repository": "ui",
+      "command": "python -m pytest -q",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_full_pytest_chunk.log",
+      "exit_code_required": true,
+      "release_blocking": true,
+      "impacted_surfaces": ["full_ui_python_regression"]
+    },
+    {
+      "name": "ui_flutter_analyze_chunk",
+      "level": "chunked_full",
+      "repository": "ui",
+      "command": "flutter analyze",
+      "working_directory": "web/workbench/flutter_app",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_analyze_chunk.log",
+      "exit_code_required": true,
+      "release_blocking": true,
+      "impacted_surfaces": ["flutter_static_analysis"]
+    },
+    {
+      "name": "ui_flutter_test_chunk",
+      "level": "chunked_full",
+      "repository": "ui",
+      "command": "flutter test -r expanded",
+      "working_directory": "web/workbench/flutter_app",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_test_chunk.log",
+      "exit_code_required": true,
+      "release_blocking": true,
+      "impacted_surfaces": ["flutter_widget_regression"]
+    },
+    {
+      "name": "ui_flutter_build_web_chunk",
+      "level": "chunked_full",
+      "repository": "ui",
+      "command": "flutter build web",
+      "working_directory": "web/workbench/flutter_app",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_build_web_chunk.log",
+      "exit_code_required": true,
+      "release_blocking": true,
+      "impacted_surfaces": ["flutter_web_build"]
+    },
+    {
+      "name": "ui_flutter_build_windows_chunk",
+      "level": "chunked_full",
+      "repository": "ui",
+      "command": "flutter build windows",
+      "working_directory": "web/workbench/flutter_app",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_build_windows_chunk.log",
+      "exit_code_required": true,
+      "release_blocking": true,
+      "impacted_surfaces": ["flutter_windows_build"]
+    },
+    {
+      "name": "ui_git_diff_check",
+      "level": "chunked_full",
+      "repository": "ui",
+      "command": "git diff --check",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_git_diff_check.log",
+      "exit_code_required": true,
+      "release_blocking": true,
+      "impacted_surfaces": ["release_hygiene"]
+    }
+  ],
+  "impact_rules": [
+    {
+      "name": "test_governance",
+      "patterns": [
+        "docs/testing/**",
+        "heitang_kb_forge/test_governance/**",
+        "tests/test_test_governance_manifest.py",
+        "pyproject.toml"
+      ],
+      "impacted_surfaces": ["test_governance", "validation_runner"],
+      "fast_gates": ["ui_fast_test_governance", "ui_fast_version_truth"],
+      "medium_gates": ["ui_medium_release_truth"],
+      "full_gate_required_before_release": true
+    },
+    {
+      "name": "docs_truth",
+      "patterns": ["README*.md", "CHANGELOG.md", "docs/**", "skill.json"],
+      "impacted_surfaces": ["docs_truth", "version_truth", "release_checklist"],
+      "fast_gates": ["ui_fast_version_truth"],
+      "medium_gates": ["ui_medium_release_truth"],
+      "full_gate_required_before_release": true
+    },
+    {
+      "name": "ui_contract",
+      "patterns": [
+        "web/workbench/contracts.json",
+        "web/workbench/src/**",
+        "examples/ui_mock_data/**",
+        "web/workbench/flutter_app/assets/**",
+        "tests/test_workbench_*.py"
+      ],
+      "impacted_surfaces": ["ui_contract", "fixture_drift"],
+      "fast_gates": ["ui_fast_workbench_contract"],
+      "medium_gates": ["ui_medium_release_truth"],
+      "full_gate_required_before_release": true
+    },
+    {
+      "name": "flutter_surface",
+      "patterns": [
+        "web/workbench/flutter_app/lib/**",
+        "web/workbench/flutter_app/test/**",
+        "web/workbench/flutter_app/pubspec.yaml",
+        "web/workbench/flutter_app/assets/**"
+      ],
+      "impacted_surfaces": ["flutter_static_analysis", "flutter_widget_regression"],
+      "fast_gates": ["ui_fast_workbench_contract"],
+      "medium_gates": ["ui_medium_release_truth"],
+      "full_gate_required_before_release": true
+    },
+    {
+      "name": "version_metadata",
+      "patterns": ["pyproject.toml", "skill.json", "docs/VERSION_MATRIX*.md", "tests/test_version_alignment.py"],
+      "impacted_surfaces": ["version_truth", "release_checklist"],
+      "fast_gates": ["ui_fast_version_truth"],
+      "medium_gates": ["ui_medium_release_truth"],
+      "full_gate_required_before_release": true
+    }
+  ],
+  "release_gate_sequence": [
+    "ui_full_pytest_chunk",
+    "ui_flutter_analyze_chunk",
+    "ui_flutter_test_chunk",
+    "ui_flutter_build_web_chunk",
+    "ui_flutter_build_windows_chunk",
+    "ui_git_diff_check"
+  ],
+  "post_codex_review_gate": {
+    "required": true,
+    "levels": {
+      "light": {
+        "when": "after_each_task",
+        "target_duration": "1-3 minutes",
+        "outputs": ["P0", "P1", "P2"]
+      },
+      "medium": {
+        "when": "after_phase_closure",
+        "target_duration": "5-15 minutes",
+        "outputs": ["P0", "P1", "P2"],
+        "p3_policy": "backlog_only_non_blocking"
+      },
+      "full": {
+        "when": "before_tag_or_release",
+        "required_before": ["v4.1.1 tag", "v4.1.1 release"],
+        "outputs": ["P0", "P1", "P2"],
+        "p3_policy": "backlog_only_non_blocking"
+      }
+    },
+    "issue_schema": [
+      "id",
+      "severity",
+      "surface",
+      "file/path",
+      "evidence",
+      "impact",
+      "recommended_fix",
+      "blocks_release"
+    ],
+    "stop_conditions": [
+      "P0 = 0",
+      "P1 = 0",
+      "P2 fixed or explicitly deferred",
+      "P3 recorded as non-blocking backlog",
+      "fixes have corresponding Fast/Medium Gate evidence",
+      "no new scope added"
+    ],
+    "release_rule": "Full Review must have no release-blocking P0/P1/P2 issues before tag/release."
+  },
+  "reporting_policy": {
+    "never_report_skipped_or_deferred_as_passed": true,
+    "required_command_fields": ["command", "exit_code", "status", "log_path", "summary"],
+    "allowed_status": ["passed", "failed", "not_run", "deferred", "blocked", "env_blocked", "tool_unavailable"],
+    "allowed_non_pass_status": ["not_run", "deferred", "blocked", "env_blocked", "tool_unavailable", "failed"],
+    "forbidden_skip_reasons": ["passed by default", "assumed passed", "probably unrelated", "skip because slow"]
+  },
+  "obsolete_test_pruning": {
+    "register": "docs/testing/TEST_PRUNING_REGISTER.md",
+    "rule": "Do not delete a test until the replacement canonical invariant and validation gate are named.",
+    "preferred_replacements": ["semantic_assertion", "structured_contract_assertion", "canonical_truth_source"]
+  }
+}

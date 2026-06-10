@@ -335,11 +335,11 @@
     "not_v4_0_workbench_rc": true
   },
   "release_boundary": {
-    "checkpoint": "v4.1.0 parser/OCR evidence sync; v4.0.0 tag remains untouched",
-    "package_version": "4.1.0",
-    "stable_release": "v4.0.0",
-    "current_release_line": "v4.1.0",
-    "release_candidate": "v4.1.0",
+    "checkpoint": "v4.1.1 test framework governance line; v4.1.0 parser/OCR evidence fixture remains historical",
+    "package_version": "4.1.1",
+    "stable_release": "v4.1.0",
+    "current_release_line": "v4.1.1",
+    "release_candidate": "v4.1.1",
     "release_candidate_tag_created": false,
     "release_candidate_release_created": false,
     "core_stable_commit": "0217e54b162871e7c40c31ff3d0cc72e8ba78f06",

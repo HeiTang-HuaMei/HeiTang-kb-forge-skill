@@ -1,6 +1,6 @@
 # HeiTang Knowledge Workbench UI 规格
 
-状态：UI-v0.1 至 UI-v0.5 原型，并加入 v4.1.0 Parser/OCR evidence sync。本规格定义基于 fixture 的产品界面，Core runtime 集成保留给明确的 bridge / service 层。
+状态：UI-v0.1 至 UI-v0.5 原型，并加入 v4.1.0 Parser/OCR evidence sync 与 v4.1.1 validation governance。本规格定义基于 fixture 的产品界面，Core runtime 集成保留给明确的 bridge / service 层。
 
 ## 范围
 

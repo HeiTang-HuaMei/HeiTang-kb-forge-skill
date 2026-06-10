@@ -1,0 +1,51 @@
+{
+  "review_id": "post_codex_full_review_v4.1.1_2026-06-11",
+  "review_level": "Full Review",
+  "status": "passed",
+  "generated_local_date": "2026-06-11",
+  "surfaces_checked": [
+    "Documentation truth",
+    "Product architecture boundary",
+    "Core/UI contract consistency",
+    "External project ready/executable claims",
+    "Test and release evidence",
+    "Dependency/runtime boundary",
+    "Workspace path hygiene",
+    "Token/log governance",
+    "Tag/release boundary"
+  ],
+  "open_issues": [],
+  "resolved_issues": [
+    {
+      "id": "PCR-v4.1.1-001",
+      "severity": "P2",
+      "surface": "Test and release evidence",
+      "file/path": "docs/audits/test_engineering/validation_report.md; docs/audits/test_engineering/validation_report.json",
+      "evidence": "Core core_full_g_m_chunk and UI ui_full_pytest_chunk summaries contained 1 skipped test, while the report initially said Deferred Or Skipped: None.",
+      "impact": "Could be misread as no skipped test existed, weakening the no-skipped-as-passed release evidence rule.",
+      "recommended_fix": "Record skipped tests separately from skipped chunks and keep chunk status tied to command exit code.",
+      "blocks_release": true,
+      "status": "resolved",
+      "fix_evidence": "Both reports now include skipped_tests for tests/test_live_provider_smoke.py::test_live_provider_smoke_entrypoint_is_explicitly_opt_in with reason HEITANG_RUN_LIVE_TESTS=1."
+    }
+  ],
+  "stop_conditions": {
+    "P0": 0,
+    "P1": 0,
+    "P2_open": 0,
+    "P2_resolved_or_deferred": true,
+    "P3_backlog_only": true,
+    "fixes_have_corresponding_gates": true,
+    "no_new_scope_added": true
+  },
+  "evidence": {
+    "core_validation_report": "docs/audits/test_engineering/validation_report.json",
+    "ui_validation_report": "docs/audits/test_engineering/validation_report.json",
+    "core_chunked_full_gate": "8/8 chunks passed with log and exit code sidecars",
+    "ui_chunked_full_gate": "6/6 chunks passed with log and exit code sidecars",
+    "external_registry": "needs_verification=0; no ready/executable/real_local_passed flags found in Core registry review",
+    "ui_external_registry": "no executable_action=true or ready/executable flags found in UI asset review",
+    "tag_boundary": "Core HEAD points at existing v4.1.0; UI HEAD has no tag; no v4.1.1 tag created",
+    "workspace_path_boundary": "Current v4.1.1 validation reports do not reference C legacy paths; old tracked v4.1.0 UI log remains historical evidence only"
+  }
+}

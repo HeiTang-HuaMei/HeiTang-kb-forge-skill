@@ -2,11 +2,11 @@
 
 [中文说明](README.zh-CN.md) | English
 
-Current UI package version: `4.1.0`
+Current UI package version: `4.1.1`
 
-Current release line: `v4.1.0` Parser/OCR evidence sync
+Current release line: `v4.1.1` Test Framework Governance
 
-Release status: v4.1.0 P2.1 Parser/OCR Workbench sync after v4.0.0 stable release. The `v4.0.0` tag remains untouched.
+Release status: v4.1.1 UI test framework governance line after v4.1.0 Parser/OCR Workbench sync. The `v4.0.0` and `v4.1.0` tags remain untouched; v4.1.1 is not stable until Chunked Full Gate, tag, release, and release-check evidence are complete.
 
 HeiTang KB Forge is an offline-first, agent-callable knowledge supply-chain Skill. It turns multi-format source material into standardized, auditable, reviewable, and retrievable knowledge asset packages for Agent and RAG workflows.
 
@@ -199,9 +199,13 @@ It also surfaces S/A external capability contract-inclusion fixtures from Core c
 
 For P2.1 / v4.1.0, the Workbench also consumes the Core parser backend matrix from runtime baseline commit `576a62075dc1ecbe00388bb0569fd1fc767be7cb`. It shows builtin fallback, Docling, PaddleOCR, and Unstructured install mode, last acceptance status, evidence path, and known limitations through dashboard summary cards, callouts, a matrix table, backend detail panels, and audit evidence rows. Docling and PaddleOCR are optional dependency gated real-runtime integrations; Unstructured is optional dependency gated with stable `.md/.txt` surface only. The UI does not expose parser/OCR runtime execution controls and does not claim default heavy dependency bundling.
 
-The stable UI package is aligned with Core stable commit `0217e54b162871e7c40c31ff3d0cc72e8ba78f06`.
+The latest stable UI line is v4.1.0 Parser/OCR evidence sync. The current v4.1.1 line adds test governance and must not be called stable until its gates, tag, release, and release-check evidence are complete.
 
-This UI package keeps the historical stable v4.0.0 boundary evidence while adding v4.1.0 parser/OCR evidence visibility. The copied historical P1 evidence keeps `not_v4_0_workbench_rc=true`; unsupported provider, secret, network, planned-adapter, and parser/OCR runtime operations render disabled or evidence-only with `blocked_reason` or explicit optional dependency boundaries.
+For v4.1.1, the UI package adds test framework governance: a validation gate manifest, changed-file impact selector, dry-run/executable gate runner, pytest markers, and an obsolete-test pruning register. The parser/OCR fixture remains v4.1.0 historical Core evidence; it is not rewritten as a new runtime execution claim.
+
+The historical v4.0.0 boundary evidence still references Core stable commit `0217e54b162871e7c40c31ff3d0cc72e8ba78f06`.
+
+This UI package keeps the historical v4.0.0 boundary evidence and v4.1.0 parser/OCR evidence visibility. The copied historical P1 evidence keeps `not_v4_0_workbench_rc=true`; unsupported provider, secret, network, planned-adapter, and parser/OCR runtime operations render disabled or evidence-only with `blocked_reason` or explicit optional dependency boundaries.
 
 Strategic docs:
 

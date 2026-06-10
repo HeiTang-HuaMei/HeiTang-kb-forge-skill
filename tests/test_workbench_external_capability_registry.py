@@ -38,7 +38,8 @@ def test_external_capability_source_is_declared_without_changing_p1_readiness():
     assert contracts["release_boundary"]["ready_for_v4_rc"] is True
     assert contracts["release_boundary"]["not_v4_0_release"] is False
     assert contracts["release_boundary"]["not_v4_0_workbench_rc"] is False
-    assert contracts["release_boundary"]["stable_release"] == "v4.0.0"
+    assert contracts["release_boundary"]["stable_release"] == "v4.1.0"
+    assert contracts["release_boundary"]["current_release_line"] == "v4.1.1"
 
 
 def test_external_capability_registry_counts_and_release_boundary():

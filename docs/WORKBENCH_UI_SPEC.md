@@ -1,6 +1,6 @@
 # HeiTang Knowledge Workbench UI Spec
 
-Status: UI-v0.1 through UI-v0.5 prototype plus v4.1.0 Parser/OCR evidence sync. This spec defines a fixture-backed product surface and reserves runtime Core integration for explicit bridge/service layers.
+Status: UI-v0.1 through UI-v0.5 prototype plus v4.1.0 Parser/OCR evidence sync and v4.1.1 validation governance. This spec defines a fixture-backed product surface and reserves runtime Core integration for explicit bridge/service layers.
 
 ## Scope
 

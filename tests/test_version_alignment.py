@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "4.1.0"
+VERSION = "4.1.1"
 
 
 def test_project_versions_are_aligned():
@@ -23,7 +23,8 @@ def test_project_versions_are_aligned():
     ]:
         assert VERSION in (ROOT / relative).read_text(encoding="utf-8")
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert "Current release line: `v4.1.0` Parser/OCR evidence sync" in readme
-    assert "The `v4.0.0` tag remains untouched" in readme
+    assert "Current release line: `v4.1.1` Test Framework Governance" in readme
+    assert "The `v4.0.0` and `v4.1.0` tags remain untouched" in readme
+    assert "v4.1.1 is not stable until Chunked Full Gate" in readme
 
 

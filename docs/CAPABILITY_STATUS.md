@@ -1,10 +1,10 @@
 # Capability Status
 
-Current project version: `4.1.0`
+Current project version: `4.1.1`
 
-Current release line: `v4.1.0`
+Current release line: `v4.1.1`
 
-Latest completed UI release work includes P1 Final Gate Re-run, External Project Registry visibility, S/A Contract Inclusion visibility, rc.1 acceptance, release hardening, and P2.1 parser/OCR backend evidence sync. The project is now on the `v4.1.0` Workbench evidence sync line; the `v4.0.0` tag remains untouched.
+Latest completed UI release work includes P1 Final Gate Re-run, External Project Registry visibility, S/A Contract Inclusion visibility, rc.1 acceptance, release hardening, and P2.1 parser/OCR backend evidence sync. The project is now on the `v4.1.1` test governance release line; `v4.1.0` remains the latest stable parser/OCR evidence line until v4.1.1 gates, tag, release, and release-check evidence are complete.
 
 ## Stable
 
@@ -45,6 +45,7 @@ Latest completed UI release work includes P1 Final Gate Re-run, External Project
 - parser/OCR backend matrix evidence visibility
 - optional parser/OCR dependency boundary display
 - parser backend stable surface and known limitation display
+- validation gate manifest and impact-based UI test governance
 
 ## Experimental
 

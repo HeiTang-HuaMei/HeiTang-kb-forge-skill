@@ -1,5 +1,14 @@
 # Changelog
 
+## v4.1.1
+
+* Added UI validation gate manifest, changed-file impact rules, and executable validation runner.
+* Added test pruning register for auditable obsolete-test consolidation.
+* Added pytest markers for Fast, Medium, Chunked Full, UI contract, docs truth, release, Flutter, and slow gates.
+* Preserved v4.1.0 Parser/OCR evidence fixtures as historical Core evidence consumed by the static Workbench.
+* Kept v4.1.1 as a release line until Chunked Full Gate, tag, release, and release-check evidence are complete.
+* Did not add parser/OCR runtime execution controls to the static Workbench.
+
 ## v4.1.0
 
 * Added Workbench Parser/OCR backend matrix evidence sync for Core runtime baseline `576a62075dc1ecbe00388bb0569fd1fc767be7cb`.

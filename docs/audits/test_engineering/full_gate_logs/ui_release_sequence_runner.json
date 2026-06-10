@@ -1,20 +1,100 @@
 {
-  "version": "v4.1.1",
-  "release_title": "Test Framework Governance, Obsolete Test Pruning & Scalable Validation",
-  "repository": "ui",
-  "gate": "chunked_full_gate",
-  "decision": "chunked_full_gate_and_post_codex_full_review_passed_pending_commit_push_ci_tag_release",
-  "release_blocking": true,
-  "generated_local_date": "2026-06-11",
+  "manifest_version": "v4.1.1",
+  "phase": "release",
   "changed_files": [
-    "docs/testing/VALIDATION_GATE_MANIFEST.json",
-    "heitang_kb_forge/test_governance/gates.py",
-    "tests/test_test_governance_manifest.py",
-    "docs/RELEASE_CHECKLIST.md",
-    "docs/RELEASE_CHECKLIST.zh-CN.md",
-    "v4.1.1 Workbench truth docs and metadata"
+    "docs/testing/VALIDATION_GATE_MANIFEST.json"
   ],
-  "chunks": [
+  "matched_rules": [
+    "test_governance",
+    "docs_truth"
+  ],
+  "impacted_surfaces": [
+    "docs_truth",
+    "release_checklist",
+    "test_governance",
+    "validation_runner",
+    "version_truth"
+  ],
+  "selected_gates": [
+    {
+      "name": "ui_full_pytest_chunk",
+      "level": "chunked_full",
+      "repository": "ui",
+      "command": "python -m pytest -q",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_full_pytest_chunk.log",
+      "exit_code_required": true,
+      "release_blocking": true,
+      "impacted_surfaces": [
+        "full_ui_python_regression"
+      ]
+    },
+    {
+      "name": "ui_flutter_analyze_chunk",
+      "level": "chunked_full",
+      "repository": "ui",
+      "command": "flutter analyze",
+      "working_directory": "web/workbench/flutter_app",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_analyze_chunk.log",
+      "exit_code_required": true,
+      "release_blocking": true,
+      "impacted_surfaces": [
+        "flutter_static_analysis"
+      ]
+    },
+    {
+      "name": "ui_flutter_test_chunk",
+      "level": "chunked_full",
+      "repository": "ui",
+      "command": "flutter test -r expanded",
+      "working_directory": "web/workbench/flutter_app",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_test_chunk.log",
+      "exit_code_required": true,
+      "release_blocking": true,
+      "impacted_surfaces": [
+        "flutter_widget_regression"
+      ]
+    },
+    {
+      "name": "ui_flutter_build_web_chunk",
+      "level": "chunked_full",
+      "repository": "ui",
+      "command": "flutter build web",
+      "working_directory": "web/workbench/flutter_app",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_build_web_chunk.log",
+      "exit_code_required": true,
+      "release_blocking": true,
+      "impacted_surfaces": [
+        "flutter_web_build"
+      ]
+    },
+    {
+      "name": "ui_flutter_build_windows_chunk",
+      "level": "chunked_full",
+      "repository": "ui",
+      "command": "flutter build windows",
+      "working_directory": "web/workbench/flutter_app",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_build_windows_chunk.log",
+      "exit_code_required": true,
+      "release_blocking": true,
+      "impacted_surfaces": [
+        "flutter_windows_build"
+      ]
+    },
+    {
+      "name": "ui_git_diff_check",
+      "level": "chunked_full",
+      "repository": "ui",
+      "command": "git diff --check",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_git_diff_check.log",
+      "exit_code_required": true,
+      "release_blocking": true,
+      "impacted_surfaces": [
+        "release_hygiene"
+      ]
+    }
+  ],
+  "release_blocking": true,
+  "results": [
     {
       "name": "ui_full_pytest_chunk",
       "command": "python -m pytest -q",
@@ -68,60 +148,6 @@
       "status": "passed",
       "log_path": "docs/audits/test_engineering/full_gate_logs/ui_git_diff_check.log",
       "summary": "warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'README.zh-CN.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/CAPABILITY_STATUS.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/CAPABILITY_STATUS.zh-CN.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/RELEASE_CHECKLIST.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/RELEASE_CHECKLIST.zh-CN.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/VERSION_MATRIX.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/VERSION_MATRIX.zh-CN.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/WORKBENCH_UI_SPEC.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/WORKBENCH_UI_SPEC.zh-CN.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/audits/test_engineering/full_gate_logs/ui_git_diff_check.log', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'pyproject.toml', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'skill.json', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_skill_metadata.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_version_alignment.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_version_matrix_docs.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_workbench_external_capability_registry.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_workbench_ui_contract.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'web/workbench/contracts.json', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'web/workbench/flutter_app/README.md', LF will be replaced by CRLF the next time Git touches it"
-    }
-  ],
-  "deferred": [],
-  "skipped": [],
-  "commands_deferred": [],
-  "commands_skipped": [],
-  "post_codex_full_review": {
-    "status": "passed",
-    "review_report_json": "docs/audits/test_engineering/post_codex_full_review.json",
-    "review_report_md": "docs/audits/test_engineering/post_codex_full_review.md",
-    "open_issues": [],
-    "resolved_issues": [
-      {
-        "id": "PCR-v4.1.1-001",
-        "severity": "P2",
-        "surface": "Test and release evidence",
-        "file/path": "docs/audits/test_engineering/validation_report.md; docs/audits/test_engineering/validation_report.json",
-        "evidence": "Core core_full_g_m_chunk and UI ui_full_pytest_chunk summaries contained 1 skipped test, while the report initially said Deferred Or Skipped: None.",
-        "impact": "Could be misread as no skipped test existed, weakening the no-skipped-as-passed release evidence rule.",
-        "recommended_fix": "Record skipped tests separately from skipped chunks and keep chunk status tied to command exit code.",
-        "blocks_release": true,
-        "status": "resolved",
-        "fix_evidence": "Both reports now include skipped_tests for tests/test_live_provider_smoke.py::test_live_provider_smoke_entrypoint_is_explicitly_opt_in with reason HEITANG_RUN_LIVE_TESTS=1."
-      }
-    ],
-    "blocking_rule": "P0=0, P1=0, P2 fixed or explicitly deferred; P3 backlog does not block release."
-  },
-  "remaining_release_gates": [
-    "Commit",
-    "Push",
-    "CI green",
-    "v4.1.1 tag/release coordination"
-  ],
-  "boundaries": [
-    "Static Workbench does not claim local parser/OCR runtime execution.",
-    "Parser/OCR fixture remains historical Core evidence and is not rewritten as v4.1.1 runtime execution.",
-    "Flutter build outputs are local artifacts and must remain uncommitted.",
-    "No skipped/deferred/env-blocked check is reported as passed.",
-    "v4.0.0 and v4.1.0 tags remain untouched.",
-    "P2.2 is not started."
-  ],
-  "notes": [
-    "UI release sequence includes pytest, Flutter analyze, Flutter test, Flutter web build, Flutter Windows build, and git diff check.",
-    "UI manifest now requires Post-Codex Review Gate metadata, matching the Core release-governance boundary."
-  ],
-  "runner_output": "docs/audits/test_engineering/full_gate_logs/ui_release_sequence_runner.json",
-  "runner_exit_code_path": "docs/audits/test_engineering/full_gate_logs/ui_release_sequence_runner.exitcode",
-  "skipped_tests": [
-    {
-      "chunk": "ui_full_pytest_chunk",
-      "test": "tests/test_live_provider_smoke.py::test_live_provider_smoke_entrypoint_is_explicitly_opt_in",
-      "status": "skipped",
-      "reason": "Live provider smoke tests require HEITANG_RUN_LIVE_TESTS=1",
-      "release_impact": "non_blocking_explicit_opt_in_live_provider_smoke"
     }
   ]
 }

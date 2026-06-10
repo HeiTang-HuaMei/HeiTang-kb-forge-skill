@@ -1,10 +1,10 @@
 # Release Checklist
 
-当前项目版本：`4.1.0`
+当前项目版本：`4.1.1`
 
-当前 release line：`v4.1.0`
+当前 release line：`v4.1.1`
 
-当前阶段：v4.1.0 P2.1 Parser/OCR Workbench evidence sync；v4.0.0 保持为未改动的历史 stable tag。
+当前阶段：v4.1.1 Test Framework Governance，位于 v4.1.0 P2.1 Parser/OCR Workbench evidence sync 之后；v4.0.0 与 v4.1.0 均保持为未改动的历史 stable tag。
 
 ## Required Checks
 
@@ -12,6 +12,10 @@
 - [x] P1 Final Gate、External Project Registry、S/A Contract Inclusion、rc.1 acceptance 与 release hardening evidence 仍然完整
 - [x] Parser backend matrix fixture 与 Flutter asset 已从 Core runtime baseline commit `576a62075dc1ecbe00388bb0569fd1fc767be7cb` 复制
 - [x] Workbench 展示 parser/OCR evidence、安装模式、稳定表面、已知限制，并不声明 runtime execution
+- [x] Test Framework Governance artifacts 已添加：[Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json)、[测试瘦身登记表](testing/TEST_PRUNING_REGISTER.zh-CN.md)、pytest markers 与 `heitang_kb_forge.test_governance.gates`
+- [x] v4.1.1 在 Chunked Full Gate、tag、release 与 release-check evidence 完成前仅作为 release line，不写成 stable release
+- [ ] 任何 validation phase 前，加载 [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json)，生成 changed-file impact map，选择 Fast / Medium / Full Gate，开发中只运行 impacted tests，phase closure 运行 Medium Gate，tag/release 前运行 Chunked Full Gate，长时间 gate 保存 logs，并且绝不把 skipped/deferred tests 汇报为 passed
+- [ ] tag/release 前完成 Post-Codex Full Review，且 P0=0、P1=0、P2 已修复或明确 deferred；P3 backlog 不阻塞 release
 - [ ] `python -m pytest` 通过
 - [ ] Doctor 命令 `python -m heitang_kb_forge.cli doctor --output ./tmp_doctor` 通过
 - [ ] Quickstart build 通过
@@ -46,6 +50,7 @@
 - 不声明 static Workbench 可以执行 parser/OCR runtime。
 - 不声明 Unstructured PDF/DOCX/image support 在 v4.1.0 已稳定；稳定表面仅 `.md/.txt`。
 - 不把 Docling、PaddleOCR 或 Unstructured 打包为默认依赖。
+- 不把 Post-Codex Review Gate 变成无限扩展范围的循环；只有 P0/P1/P2 可以阻塞 release。
 
 ## Release Readiness Gate
 

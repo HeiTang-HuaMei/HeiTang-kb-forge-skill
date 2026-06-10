@@ -1,10 +1,10 @@
 # Release Checklist
 
-Current project version: `4.1.0`
+Current project version: `4.1.1`
 
-Current release line: `v4.1.0`
+Current release line: `v4.1.1`
 
-Current stage: v4.1.0 P2.1 Parser/OCR Workbench evidence sync; v4.0.0 remains an untouched historical stable tag.
+Current stage: v4.1.1 Test Framework Governance after v4.1.0 P2.1 Parser/OCR Workbench evidence sync; v4.0.0 and v4.1.0 remain untouched historical stable tags.
 
 ## Required Checks
 
@@ -12,6 +12,10 @@ Current stage: v4.1.0 P2.1 Parser/OCR Workbench evidence sync; v4.0.0 remains an
 - [x] P1 Final Gate, External Project Registry, S/A Contract Inclusion, rc.1 acceptance, and release hardening evidence remain attached
 - [x] Parser backend matrix fixture and Flutter asset are copied from Core runtime baseline commit `576a62075dc1ecbe00388bb0569fd1fc767be7cb`
 - [x] Workbench displays parser/OCR evidence, install mode, stable surface, known limitations, and no runtime execution claim
+- [x] Test Framework Governance artifacts added: [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json), [Test Pruning Register](testing/TEST_PRUNING_REGISTER.md), pytest markers, and `heitang_kb_forge.test_governance.gates`
+- [x] v4.1.1 is tracked as a release line, not a stable release, until Chunked Full Gate, tag, release, and release-check evidence are complete
+- [ ] Before any validation phase, load [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json), generate a changed-file impact map, select Fast / Medium / Full Gate, run only impacted tests during development, run Medium Gate at phase closure, run Chunked Full Gate before tag/release, preserve logs for long-running gates, and never report skipped/deferred tests as passed
+- [ ] Post-Codex Full Review completed before tag/release with P0=0, P1=0, and P2 fixed or explicitly deferred; P3 backlog does not block release
 - [ ] `python -m pytest` passed
 - [ ] Doctor command `python -m heitang_kb_forge.cli doctor --output ./tmp_doctor` passed
 - [ ] Quickstart build passed
@@ -46,6 +50,7 @@ Current stage: v4.1.0 P2.1 Parser/OCR Workbench evidence sync; v4.0.0 remains an
 - Do not claim parser/OCR runtimes execute from static Workbench.
 - Do not claim Unstructured PDF/DOCX/image support as stable in v4.1.0; stable surface is `.md/.txt`.
 - Do not bundle Docling, PaddleOCR, or Unstructured as default dependencies.
+- Do not use Post-Codex Review Gate as an infinite scope expansion loop; only P0/P1/P2 can block release.
 
 ## Release Readiness Gate
 
