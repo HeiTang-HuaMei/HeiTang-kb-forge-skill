@@ -9,6 +9,9 @@ Current stage: v4.1.1 Test Framework Governance stable release closure after v4.
 ## Required Checks
 
 - [x] Version aligned in `pyproject.toml`, `skill.json`, README, Capability Status, Version Matrix, and Release Checklist
+- [x] v4.1.1 is documented as the P2.2 Entry Gate / Test Governance Stable Baseline, not as part of P2.2
+- [x] P2.2 remains blocked until Core/UI release-truth closure, Core/UI CI green, Core/UI Release Check green, v4.1.1 tag / GitHub Release, and Workspace handoff/status sync are complete
+- [x] v4.1.1 scope is limited to test governance, release governance, and validation cost control; no P2.2 business capability is included
 - [x] P1 Final Gate, External Project Registry, and S/A Contract Inclusion evidence remain attached
 - [x] rc.1 acceptance and hardening evidence passed
 - [x] P2.1 parser/OCR backend evidence indexed under `docs/audits/p2_1_parser_ocr_backends/`

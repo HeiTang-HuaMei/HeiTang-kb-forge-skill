@@ -24,4 +24,4 @@ def test_version_matrix_is_chronological_and_marks_v4_future():
     assert "| v4.0.0-rc.1 | Local Knowledge Workbench release candidate |" in text
     assert "| v4.0.0 | Stable Local Knowledge Workbench release |" in text and "| historical | yes |" in text
     assert "| v4.1.0 | Parser/OCR Pluggable Backend Runtime |" in text and "| historical | yes |" in text
-    assert "| v4.1.1 | Test Framework Governance |" in text and "| stable | yes |" in text
+    assert "| v4.1.1 | P2.2 Entry Gate / Test Framework Governance |" in text and "| stable | yes |" in text

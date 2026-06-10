@@ -20,6 +20,18 @@
 
 当前 stable 产品门禁是 `v4.1.1` Test Framework Governance release：validation gate manifest、changed-file impact selector、dry-run / executable validation runner、pytest markers、obsolete-test pruning register、token-efficient logs、Core/UI validation、release-readiness、CI green、release-check workflow evidence，以及无 secret/build/raw artifact pollution。既有 `v4.0.0` 与 `v4.1.0` tag 保持不变。
 
+## P2.2 前置门禁
+
+`v4.1.1` 是 P2.2 Entry Gate / Test Governance Stable Baseline。它不是 P2.2 的一部分，而是 v4.2 / P2.2 External Project Expansion / Next Capability Phase 启动前必须满足的准入门槛。
+
+版本关系：
+
+- `v4.1.0` = Parser/OCR Stable Baseline
+- `v4.1.1` = P2.2 Entry Gate / Test Governance Stable Baseline
+- `v4.2 / P2.2` = External Project Expansion / Next Capability Phase
+
+v4.1.1 stable release 未完成前，不允许启动 P2.2：Core/UI release-truth closure、Core/UI CI green、Core/UI Release Check green、v4.1.1 tag / GitHub Release，以及 Workspace handoff/status 同步都必须完成。v4.1.1 只解决测试治理、发布治理、测试成本控制，不夹带 P2.2 业务能力。
+
 ## 后续门禁：P2 Productization
 
 [P2 Productization](10_roadmap/P2_PRODUCTIZATION.zh-CN.md) 只能在 P1 有证据后开始。范围包括 packaging、release notes、publication hygiene、diagnostics polish 和 final product acceptance loops。

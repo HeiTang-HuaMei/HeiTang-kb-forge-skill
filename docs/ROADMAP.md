@@ -20,6 +20,18 @@ This roadmap describes the current main branch direction only. Historical versio
 
 The current stable product gate is the `v4.1.1` Test Framework Governance release: validation gate manifest, changed-file impact selector, dry-run/executable validation runner, pytest markers, obsolete-test pruning register, token-efficient logs, Core/UI validation, release-readiness, CI green, release-check workflow evidence, and no secret/build/raw artifact pollution. The existing `v4.0.0` and `v4.1.0` tags remain untouched.
 
+## P2.2 Entry Gate
+
+`v4.1.1` is the P2.2 Entry Gate / Test Governance Stable Baseline. It is not part of P2.2; it is the required gate before v4.2 / P2.2 External Project Expansion / Next Capability Phase can start.
+
+Version relationship:
+
+- `v4.1.0` = Parser/OCR Stable Baseline
+- `v4.1.1` = P2.2 Entry Gate / Test Governance Stable Baseline
+- `v4.2 / P2.2` = External Project Expansion / Next Capability Phase
+
+P2.2 must not start until v4.1.1 stable release is complete: Core/UI release-truth closure, Core/UI CI green, Core/UI Release Check green, v4.1.1 tag / GitHub Release, and Workspace handoff/status sync. v4.1.1 only covers test governance, release governance, and validation cost control; it must not carry P2.2 business capabilities.
+
 ## Later Gate: P2 Productization
 
 [P2 Productization](10_roadmap/P2_PRODUCTIZATION.md) starts only after P1 has evidence. It covers packaging, release notes, publication hygiene, diagnostics polish, and final product acceptance loops.

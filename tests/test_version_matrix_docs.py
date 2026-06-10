@@ -14,7 +14,7 @@ def test_version_matrix_covers_release_history_and_planned_versions():
     assert "| v2.9.0-alpha.1 | Knowledge Runtime Loop |" in text
     assert "| v4.0.0-rc.1 | Local Knowledge Workbench release candidate |" in text
     assert "| v4.1.0 | Parser/OCR Pluggable Backend Runtime |" in text
-    assert "| v4.1.1 | Test Framework Governance |" in text
+    assert "| v4.1.1 | P2.2 Entry Gate / Test Framework Governance |" in text
     assert "offline export / mock publish" in text
     assert "local release quality gate" in text
     assert "Parser backend abstraction" in text
