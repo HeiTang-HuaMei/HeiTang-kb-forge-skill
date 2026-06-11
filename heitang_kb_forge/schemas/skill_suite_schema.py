@@ -83,3 +83,18 @@ class SkillSuiteManifest(BaseModel):
     status: str
     skillx_integration: dict[str, str | bool]
     tests_require_real_llm_api_network: bool = False
+
+
+class SkillPackManifest(BaseModel):
+    skill_pack_version: str = "v4.2-p2.2-1"
+    suite_id: str
+    status: str
+    manifest_file: str = "skill_pack_manifest.json"
+    files: list[str]
+    file_hashes: dict[str, str]
+    description_trigger_quality_status: str
+    allowed_files_boundary_status: str
+    suite_validation_status: str
+    installability_check_status: str
+    anthropic_skill_creator_integration: dict[str, str | bool]
+    tests_require_real_llm_api_network: bool = False
