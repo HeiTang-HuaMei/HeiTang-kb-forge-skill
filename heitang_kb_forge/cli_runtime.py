@@ -54,8 +54,12 @@ from heitang_kb_forge.local_agent_runtime import run_local_agent_runtime
 from heitang_kb_forge.skill_reverse_fusion import reverse_and_fuse_skills
 from heitang_kb_forge.skill_suite import (
     build_skill_suite,
+    check_skill_suite_installability,
+    diff_skill_suites,
     export_skill_pack,
     plan_skill_suite,
+    run_skill_suite_governance,
+    validate_skill_suite,
 )
 from heitang_kb_forge.workbench import (
     get_p1_workbench_action,
@@ -1300,6 +1304,77 @@ def export_skill_pack_command(
     typer.echo(f"Exported Skill Pack at {output}")
     typer.echo(
         f"Status: {result['status']} | Files: {len(result['files'])} | Installability: {result['installability_check_status']}"
+    )
+
+
+@app.command("validate-skill-suite")
+def validate_skill_suite_command(
+    suite: Path = typer.Option(
+        ..., "--suite", exists=True, file_okay=False, dir_okay=True, readable=True
+    ),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+) -> None:
+    """Validate Skill Suite hierarchy, routing, graph, evidence, and boundaries."""
+    result = validate_skill_suite(suite, output)
+    typer.echo(f"Built Skill Suite validation at {output or suite}")
+    typer.echo(
+        f"Status: {result['status']} | Release ready: {result['release_ready']}"
+    )
+
+
+@app.command("diff-skill-suite")
+def diff_skill_suite_command(
+    before: Path = typer.Option(
+        ..., "--before", exists=True, file_okay=False, dir_okay=True, readable=True
+    ),
+    after: Path = typer.Option(
+        ..., "--after", exists=True, file_okay=False, dir_okay=True, readable=True
+    ),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Diff two Skill Suites by Skill, routing, and dependency graph."""
+    result = diff_skill_suites(before, after, output)
+    typer.echo(f"Built Skill Suite diff at {output}")
+    typer.echo(
+        f"Added: {len(result['added_skill_ids'])} | Removed: {len(result['removed_skill_ids'])} | Changed: {len(result['changed_skills'])}"
+    )
+
+
+@app.command("check-skill-suite-installability")
+def check_skill_suite_installability_command(
+    suite: Path = typer.Option(
+        ..., "--suite", exists=True, file_okay=False, dir_okay=True, readable=True
+    ),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+) -> None:
+    """Check local-first Skill Suite installability without external runtime claims."""
+    result = check_skill_suite_installability(suite, output)
+    typer.echo(f"Built Skill Suite installability report at {output or suite}")
+    typer.echo(
+        f"Status: {result['status']} | Release ready: {result['release_ready']}"
+    )
+
+
+@app.command("skill-suite-governance-report")
+def skill_suite_governance_report_command(
+    suite: Path = typer.Option(
+        ..., "--suite", exists=True, file_okay=False, dir_okay=True, readable=True
+    ),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    old_suite: Path | None = typer.Option(
+        None,
+        "--old-suite",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        readable=True,
+    ),
+) -> None:
+    """Build suite-level validation, diff, installability, and governance evidence."""
+    result = run_skill_suite_governance(suite, output, old_suite)
+    typer.echo(f"Built Skill Suite governance report at {output or suite}")
+    typer.echo(
+        f"Status: {result['status']} | Release ready: {result['release_ready']}"
     )
 
 

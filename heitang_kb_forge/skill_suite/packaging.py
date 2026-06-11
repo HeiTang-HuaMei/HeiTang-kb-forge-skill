@@ -24,7 +24,7 @@ SKILL_PACK_OUTPUT_FILES = [
     "PACK_README.md",
 ]
 
-_REQUIRED_TOP_LEVEL_FILES = [
+REQUIRED_SUITE_FILES = [
     "suite.json",
     "SKILL_INDEX.md",
     "ROUTING.md",
@@ -33,6 +33,16 @@ _REQUIRED_TOP_LEVEL_FILES = [
     "DEPENDENCY_GRAPH.json",
     "SKILL_HIERARCHY.json",
     "hierarchy_analysis.json",
+]
+OPTIONAL_SUITE_REPORT_FILES = [
+    "suite_validation_report.json",
+    "VALIDATION_REPORT.md",
+    "skill_suite_diff_report.json",
+    "DIFF_REPORT.md",
+    "skill_suite_installability_report.json",
+    "INSTALLABILITY_REPORT.md",
+    "skill_suite_governance_report.json",
+    "GOVERNANCE_REPORT.md",
 ]
 _GENERIC_DESCRIPTION_MARKERS = {"todo", "tbd", "skill description", "placeholder"}
 
@@ -50,8 +60,11 @@ def export_skill_pack(suite: Path, output: Path) -> dict:
     suite_manifest = SkillSuiteManifest.model_validate(
         _read_json(suite / "suite.json")
     )
-    skill_paths = [_safe_relative_path(skill.path) for skill in suite_manifest.skills]
-    allowed_files = [Path(item) for item in _REQUIRED_TOP_LEVEL_FILES] + skill_paths
+    skill_paths = [safe_skill_path(skill.path) for skill in suite_manifest.skills]
+    allowed_files = [Path(item) for item in REQUIRED_SUITE_FILES] + skill_paths
+    allowed_files.extend(
+        Path(item) for item in OPTIONAL_SUITE_REPORT_FILES if (suite / item).is_file()
+    )
     missing_files = [
         path.as_posix()
         for path in allowed_files
@@ -63,7 +76,7 @@ def export_skill_pack(suite: Path, output: Path) -> dict:
         )
 
     quality_rows = [
-        _inspect_skill_markdown(
+        inspect_skill_markdown(
             suite / path,
             path.as_posix(),
             expected_name=skill.title,
@@ -116,10 +129,35 @@ def export_skill_pack(suite: Path, output: Path) -> dict:
         "arbitrary_source_files_copied": False,
         "tests_require_real_llm_api_network": False,
     }
+    validation_status = _gate_status(suite / "suite_validation_report.json")
+    installability_status = _gate_status(
+        suite / "skill_suite_installability_report.json"
+    )
+    governance_status = _governance_status(
+        suite / "skill_suite_governance_report.json"
+    )
+    pack_status = (
+        "ready"
+        if suite_manifest.status == "ready"
+        and validation_status == "pass"
+        and installability_status == "pass"
+        and governance_status == "pass"
+        else "review_required"
+        if suite_manifest.status != "ready"
+        or "fail"
+        in {validation_status, installability_status, governance_status}
+        else "packaging_ready"
+    )
     write_json(output / "description_trigger_quality_report.json", quality_report)
     write_json(output / "allowed_files_boundary_report.json", boundary_report)
     (output / "skill_eval_checklist.md").write_text(
-        _render_eval_checklist(suite_manifest), encoding="utf-8"
+        _render_eval_checklist(
+            suite_manifest,
+            validation_status,
+            installability_status,
+            governance_status,
+        ),
+        encoding="utf-8",
     )
     (output / "skill_optimization_notes.md").write_text(
         _render_optimization_notes(suite_manifest), encoding="utf-8"
@@ -127,9 +165,10 @@ def export_skill_pack(suite: Path, output: Path) -> dict:
     (output / "PACK_README.md").write_text(
         _render_pack_readme(
             suite_manifest.suite_id,
-            "packaging_ready"
-            if suite_manifest.status == "ready"
-            else "review_required",
+            pack_status,
+            validation_status,
+            installability_status,
+            governance_status,
         ),
         encoding="utf-8",
     )
@@ -140,17 +179,14 @@ def export_skill_pack(suite: Path, output: Path) -> dict:
         file_hashes[name] = _sha256(output / name)
     pack_manifest = SkillPackManifest(
         suite_id=suite_manifest.suite_id,
-        status=(
-            "packaging_ready"
-            if suite_manifest.status == "ready"
-            else "review_required"
-        ),
+        status=pack_status,
         files=sorted(copied_files + generated_payload_files),
         file_hashes=file_hashes,
         description_trigger_quality_status="pass",
         allowed_files_boundary_status="pass",
-        suite_validation_status="deferred_to_slice_8",
-        installability_check_status="deferred_to_slice_8",
+        suite_validation_status=validation_status,
+        installability_check_status=installability_status,
+        suite_governance_status=governance_status,
         anthropic_skill_creator_integration={
             "integration_level": "L3_contract_absorbed+partial_L4_packaging_governance_fused",
             "anthropic_platform_binding": False,
@@ -163,7 +199,7 @@ def export_skill_pack(suite: Path, output: Path) -> dict:
     return pack_manifest.model_dump(mode="json")
 
 
-def _inspect_skill_markdown(
+def inspect_skill_markdown(
     path: Path,
     relative_path: str,
     *,
@@ -217,7 +253,7 @@ def _section(body: str, heading: str) -> str:
     return re.sub(r"\s+", " ", match.group(1)).strip() if match else ""
 
 
-def _safe_relative_path(value: str) -> Path:
+def safe_skill_path(value: str) -> Path:
     path = Path(value)
     if path.is_absolute() or ".." in path.parts or path.as_posix() != value.replace("\\", "/"):
         raise ValueError(f"Skill Pack contains unsafe manifest path: {value}")
@@ -243,7 +279,33 @@ def _read_json(path: Path) -> dict:
     return payload
 
 
-def _render_eval_checklist(suite: SkillSuiteManifest) -> str:
+def _gate_status(path: Path) -> str:
+    if not path.exists():
+        return "deferred_to_slice_8"
+    payload = _read_json(path)
+    return "pass" if payload.get("status") == "pass" else "fail"
+
+
+def _governance_status(path: Path) -> str:
+    if not path.exists():
+        return "deferred_to_slice_8"
+    payload = _read_json(path)
+    return (
+        "pass"
+        if payload.get("status") == "pass" and payload.get("release_ready") is True
+        else "fail"
+    )
+
+
+def _render_eval_checklist(
+    suite: SkillSuiteManifest,
+    validation_status: str,
+    installability_status: str,
+    governance_status: str,
+) -> str:
+    validation_check = "x" if validation_status == "pass" else " "
+    installability_check = "x" if installability_status == "pass" else " "
+    governance_check = "x" if governance_status == "pass" else " "
     return f"""# Skill Evaluation Checklist
 
 - [x] Suite manifest present: `{suite.suite_id}`
@@ -252,8 +314,9 @@ def _render_eval_checklist(suite: SkillSuiteManifest) -> str:
 - [x] Dependency graph present
 - [x] Description and trigger quality checked
 - [x] Allowed-files boundary checked
-- [ ] Suite validation: deferred to Slice 8
-- [ ] Installability check: deferred to Slice 8
+- [{validation_check}] Suite validation: {validation_status}
+- [{installability_check}] Installability check: {installability_status}
+- [{governance_check}] Suite governance: {governance_status}
 """
 
 
@@ -269,15 +332,22 @@ def _render_optimization_notes(suite: SkillSuiteManifest) -> str:
 """
 
 
-def _render_pack_readme(suite_id: str, status: str) -> str:
+def _render_pack_readme(
+    suite_id: str,
+    status: str,
+    validation_status: str,
+    installability_status: str,
+    governance_status: str,
+) -> str:
     return f"""# Skill Pack
 
 - Suite: `{suite_id}`
 - Packaging status: `{status}`
 - Description/trigger quality: `pass`
 - Allowed-files boundary: `pass`
-- Suite validation: `deferred_to_slice_8`
-- Installability: `deferred_to_slice_8`
+- Suite validation: `{validation_status}`
+- Installability: `{installability_status}`
+- Suite governance: `{governance_status}`
 
 This is a local-first Skill Pack. It does not require Anthropic platform binding,
 Claude Skills runtime, an external account, or a provider API.

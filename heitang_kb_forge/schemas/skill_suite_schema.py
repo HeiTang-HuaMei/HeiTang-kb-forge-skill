@@ -96,5 +96,6 @@ class SkillPackManifest(BaseModel):
     allowed_files_boundary_status: str
     suite_validation_status: str
     installability_check_status: str
+    suite_governance_status: str
     anthropic_skill_creator_integration: dict[str, str | bool]
     tests_require_real_llm_api_network: bool = False

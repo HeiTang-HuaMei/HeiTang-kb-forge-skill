@@ -33,6 +33,7 @@ def test_export_skill_pack_cli_copies_only_allowed_files(tmp_path):
     assert manifest["allowed_files_boundary_status"] == "pass"
     assert manifest["suite_validation_status"] == "deferred_to_slice_8"
     assert manifest["installability_check_status"] == "deferred_to_slice_8"
+    assert manifest["suite_governance_status"] == "deferred_to_slice_8"
     assert manifest["anthropic_skill_creator_integration"] == {
         "integration_level": "L3_contract_absorbed+partial_L4_packaging_governance_fused",
         "anthropic_platform_binding": False,
