@@ -8,6 +8,7 @@ import 'core_actions/workbench_actions.dart';
 import 'core_bridge/local_core_bridge.dart';
 import 'contracts/workbench_contracts.dart';
 import 'backend_evidence/parser_backend_dashboard.dart';
+import 'skill_factory/skill_factory_workflow.dart';
 
 void main() {
   runApp(const HeiTangWorkbenchApp());
@@ -79,8 +80,8 @@ const pages = <WorkbenchPage>[
       'skill-factory',
       'Skill Factory',
       '技能工厂',
-      'Book, package, and template Skill generation with validation and runtime profiles.',
-      '书籍、知识包与模板驱动 Skill 生成、验证与运行时配置。'),
+      'Inspect the Knowledge Package to Methodology to Skill Suite evidence, governance reports, and export boundary.',
+      '查看知识包到方法论再到 Skill Suite 的证据、治理报告与导出边界。'),
   WorkbenchPage(
       'agent-factory-runtime',
       'Agent Factory & Runtime',
@@ -171,6 +172,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
     this.parserBackends,
     this.skillGovernanceReport,
     this.methodologyMap,
+    this.skillSuiteWorkflow,
     this.coreBridge = const LocalCoreBridge(),
     this.coreCli = 'heitang-kb-forge',
     this.coreWorkingDirectory = '.',
@@ -187,6 +189,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
   final ParserBackendMatrix? parserBackends;
   final Map<String, dynamic>? skillGovernanceReport;
   final Map<String, dynamic>? methodologyMap;
+  final Map<String, dynamic>? skillSuiteWorkflow;
   final LocalCoreBridge coreBridge;
   final String coreCli;
   final String coreWorkingDirectory;
@@ -303,6 +306,7 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
                         sampleSkillGovernanceReport,
                     methodologyMap:
                         widget.methodologyMap ?? sampleMethodologyMap,
+                    skillSuiteWorkflow: widget.skillSuiteWorkflow,
                     localeCode: localeCode,
                     themeMode: themeMode,
                     selectedIndex: selectedIndex,
@@ -428,6 +432,7 @@ class _DesktopWorkbench extends StatelessWidget {
     required this.parserBackends,
     required this.skillGovernanceReport,
     required this.methodologyMap,
+    required this.skillSuiteWorkflow,
     required this.selectedIndex,
     required this.isTablet,
     required this.coreBridge,
@@ -447,6 +452,7 @@ class _DesktopWorkbench extends StatelessWidget {
   final ParserBackendMatrix parserBackends;
   final Map<String, dynamic> skillGovernanceReport;
   final Map<String, dynamic> methodologyMap;
+  final Map<String, dynamic>? skillSuiteWorkflow;
   final int selectedIndex;
   final bool isTablet;
   final LocalCoreBridge coreBridge;
@@ -484,6 +490,7 @@ class _DesktopWorkbench extends StatelessWidget {
             parserBackends: parserBackends,
             skillGovernanceReport: skillGovernanceReport,
             methodologyMap: methodologyMap,
+            skillSuiteWorkflow: skillSuiteWorkflow,
             columns: isTablet ? 2 : 3,
             coreBridge: coreBridge,
             coreCli: coreCli,
@@ -565,6 +572,7 @@ class _PhoneWorkbench extends StatelessWidget {
     required this.parserBackends,
     required this.skillGovernanceReport,
     required this.methodologyMap,
+    required this.skillSuiteWorkflow,
     required this.selectedIndex,
     required this.coreBridge,
     required this.coreCli,
@@ -583,6 +591,7 @@ class _PhoneWorkbench extends StatelessWidget {
   final ParserBackendMatrix parserBackends;
   final Map<String, dynamic> skillGovernanceReport;
   final Map<String, dynamic> methodologyMap;
+  final Map<String, dynamic>? skillSuiteWorkflow;
   final int selectedIndex;
   final LocalCoreBridge coreBridge;
   final String coreCli;
@@ -631,6 +640,7 @@ class _PhoneWorkbench extends StatelessWidget {
             parserBackends: parserBackends,
             skillGovernanceReport: skillGovernanceReport,
             methodologyMap: methodologyMap,
+            skillSuiteWorkflow: skillSuiteWorkflow,
             columns: 1,
             coreBridge: coreBridge,
             coreCli: coreCli,
@@ -656,6 +666,7 @@ class _PageSurface extends StatelessWidget {
     required this.parserBackends,
     required this.skillGovernanceReport,
     required this.methodologyMap,
+    required this.skillSuiteWorkflow,
     required this.columns,
     required this.coreBridge,
     required this.coreCli,
@@ -674,6 +685,7 @@ class _PageSurface extends StatelessWidget {
   final ParserBackendMatrix parserBackends;
   final Map<String, dynamic> skillGovernanceReport;
   final Map<String, dynamic> methodologyMap;
+  final Map<String, dynamic>? skillSuiteWorkflow;
   final int columns;
   final LocalCoreBridge coreBridge;
   final String coreCli;
@@ -684,7 +696,10 @@ class _PageSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cards = _cardsFor(
+    final isSkillFactory = page.id == 'skill-factory';
+    final cards = isSkillFactory
+        ? const <_CardCopy>[]
+        : _cardsFor(
         page.id,
         localeCode,
         contracts,
@@ -728,22 +743,28 @@ class _PageSurface extends StatelessWidget {
           Text(page.description(localeCode),
               style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: 20),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: columns,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              mainAxisExtent: columns == 1 ? 204 : 188,
-            ),
-            itemCount: cards.length,
-            itemBuilder: (context, index) => _WorkbenchCard(
-              title: cards[index].title,
-              body: cards[index].body,
+          if (isSkillFactory)
+            SkillFactoryWorkflowSurface(
               localeCode: localeCode,
+              workflow: skillSuiteWorkflow,
+            )
+          else
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                mainAxisExtent: columns == 1 ? 204 : 188,
+              ),
+              itemCount: cards.length,
+              itemBuilder: (context, index) => _WorkbenchCard(
+                title: cards[index].title,
+                body: cards[index].body,
+                localeCode: localeCode,
+              ),
             ),
-          ),
           if (_showsParserBackends(page.id)) ...[
             const SizedBox(height: 20),
             ParserBackendEvidenceDashboard(
@@ -1058,6 +1079,7 @@ class _WorkbenchScaffold extends StatelessWidget {
     required this.parserBackends,
     required this.skillGovernanceReport,
     required this.methodologyMap,
+    required this.skillSuiteWorkflow,
     required this.localeCode,
     required this.themeMode,
     required this.selectedIndex,
@@ -1080,6 +1102,7 @@ class _WorkbenchScaffold extends StatelessWidget {
   final ParserBackendMatrix parserBackends;
   final Map<String, dynamic> skillGovernanceReport;
   final Map<String, dynamic> methodologyMap;
+  final Map<String, dynamic>? skillSuiteWorkflow;
   final String localeCode;
   final ThemeMode themeMode;
   final int selectedIndex;
@@ -1140,6 +1163,7 @@ class _WorkbenchScaffold extends StatelessWidget {
                   parserBackends: parserBackends,
                   skillGovernanceReport: skillGovernanceReport,
                   methodologyMap: methodologyMap,
+                  skillSuiteWorkflow: skillSuiteWorkflow,
                   selectedIndex: selectedIndex,
                   coreBridge: coreBridge,
                   coreCli: coreCli,
@@ -1158,6 +1182,7 @@ class _WorkbenchScaffold extends StatelessWidget {
                   parserBackends: parserBackends,
                   skillGovernanceReport: skillGovernanceReport,
                   methodologyMap: methodologyMap,
+                  skillSuiteWorkflow: skillSuiteWorkflow,
                   selectedIndex: selectedIndex,
                   isTablet: isTablet,
                   coreBridge: coreBridge,

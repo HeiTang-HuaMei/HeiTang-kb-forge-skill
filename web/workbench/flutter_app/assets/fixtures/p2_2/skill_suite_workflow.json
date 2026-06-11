@@ -1,0 +1,179 @@
+{
+  "metadata": {
+    "release_version": "v4.2.0",
+    "release_state": "release_candidate",
+    "p2_2_status": "implementation_complete_release_pending",
+    "core_commit": "ffb0c1f3375eb1fc365f1ee385806b60bfcc7e43",
+    "fixture_kind": "contract_evidence_snapshot",
+    "runtime_execution_claimed": false
+  },
+  "knowledge_package": {
+    "package_id": "pkg-operations",
+    "status": "validated",
+    "source_count": 3,
+    "chunk_count": 18
+  },
+  "evidence_windows": [
+    {
+      "evidence_id": "window_001",
+      "title": "Evidence-led operations",
+      "source_path": "knowledge/operations.md",
+      "citation": "operations.md#review-boundary",
+      "confidence": 0.94,
+      "risk_flags": []
+    },
+    {
+      "evidence_id": "window_002",
+      "title": "Scoped validation",
+      "source_path": "knowledge/testing.md",
+      "citation": "testing.md#changed-file-impact",
+      "confidence": 0.91,
+      "risk_flags": [
+        "requires_release_review"
+      ]
+    }
+  ],
+  "methodology": {
+    "source_package_id": "pkg-operations",
+    "status": "evidence_backed",
+    "confidence": 0.92,
+    "modules": [
+      {
+        "module_id": "methodology_module_001",
+        "title": "Evidence-led Operations",
+        "status": "supported",
+        "principle": "Prefer repository evidence over unsupported claims.",
+        "workflow": "Inspect, classify, validate, and record.",
+        "evidence_ids": [
+          "window_001"
+        ]
+      },
+      {
+        "module_id": "methodology_module_002",
+        "title": "Scoped Release Review",
+        "status": "supported",
+        "principle": "Escalate validation only when impact conditions trigger.",
+        "workflow": "Select impact gate, review evidence, then release.",
+        "evidence_ids": [
+          "window_002"
+        ]
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "candidate_id": "planning-release-governance",
+      "title": "Release Governance Planner",
+      "type": "planning",
+      "status": "accepted",
+      "confidence": 0.93,
+      "trigger": "Plan a governed release.",
+      "evidence_ids": [
+        "window_001",
+        "window_002"
+      ],
+      "recommendation": "keep"
+    },
+    {
+      "candidate_id": "functional-impact-validation",
+      "title": "Impact Validation",
+      "type": "functional",
+      "status": "accepted",
+      "confidence": 0.91,
+      "trigger": "Select validation for changed files.",
+      "evidence_ids": [
+        "window_002"
+      ],
+      "recommendation": "keep"
+    },
+    {
+      "candidate_id": "atomic-record-evidence",
+      "title": "Record Validation Evidence",
+      "type": "atomic",
+      "status": "accepted",
+      "confidence": 0.9,
+      "trigger": "Persist a validation result.",
+      "evidence_ids": [
+        "window_001"
+      ],
+      "recommendation": "keep"
+    }
+  ],
+  "hierarchy": {
+    "status": "pass",
+    "levels": {
+      "planning": [
+        "planning-release-governance"
+      ],
+      "functional": [
+        "functional-impact-validation"
+      ],
+      "atomic": [
+        "atomic-record-evidence"
+      ]
+    }
+  },
+  "suite": {
+    "suite_id": "operations-governance-suite",
+    "status": "ready",
+    "skill_count": 3,
+    "routing_rules": [
+      {
+        "trigger": "release planning",
+        "skill_id": "planning-release-governance"
+      },
+      {
+        "trigger": "changed file validation",
+        "skill_id": "functional-impact-validation"
+      }
+    ],
+    "dependency_edges": [
+      {
+        "from": "planning-release-governance",
+        "to": "functional-impact-validation"
+      },
+      {
+        "from": "functional-impact-validation",
+        "to": "atomic-record-evidence"
+      }
+    ]
+  },
+  "reports": {
+    "validation": {
+      "status": "pass",
+      "release_ready": true,
+      "report_path": "reports/suite_validation_report.json"
+    },
+    "diff": {
+      "status": "pass",
+      "release_ready": true,
+      "baseline_provided": true,
+      "added_count": 3,
+      "removed_count": 0,
+      "changed_count": 0,
+      "report_path": "reports/suite_diff_report.json"
+    },
+    "installability": {
+      "status": "pass",
+      "release_ready": true,
+      "report_path": "reports/suite_installability_report.json"
+    },
+    "governance": {
+      "status": "pass",
+      "release_ready": true,
+      "report_path": "reports/suite_governance_report.json"
+    }
+  },
+  "export": {
+    "status": "ready",
+    "file_count": 14,
+    "local_first": true,
+    "manifest_path": "skill_pack_manifest.json",
+    "runtime_boundary": {
+      "provider_required": false,
+      "external_runtime_required": false,
+      "platform_binding": false
+    }
+  },
+  "tests_require_real_llm_api_network": false
+}

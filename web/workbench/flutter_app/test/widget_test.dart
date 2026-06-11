@@ -531,47 +531,23 @@ void main() {
   });
 
   testWidgets(
-      'renders skill governance report evidence on Skill Factory without runtime claims',
+      'renders the Skill Factory workflow without runtime claims',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1100));
     await tester.pumpWidget(HeiTangWorkbenchApp(
       contracts: sampleWorkbenchContracts,
-      skillGovernanceReport: sampleSkillGovernanceReport,
-      methodologyMap: sampleMethodologyMap,
       initialSelectedIndex:
           pages.indexWhere((page) => page.id == 'skill-factory'),
     ));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('Skill Governance Report'), findsWidgets);
-    expect(
-        find.textContaining(
-            'README Operations Skill · status=pass · release_ready=true'),
-        findsWidgets);
-    expect(find.textContaining('diff=pass · baseline=true · changed=3'),
-        findsWidgets);
-    expect(
-        find.textContaining(
-            'validation=pass · installability=pass · token=pass'),
-        findsWidgets);
-    expect(
-        find.textContaining(
-            'asset=skill_governance_report_json · display=true · static_only=true'),
-        findsWidgets);
-    expect(find.text('方法论地图'), findsOneWidget);
-    expect(find.textContaining('pkg-operations · modules=2 · confidence=0.91'),
-        findsOneWidget);
-    expect(find.textContaining('count=2 · window_001 · window_002'),
-        findsOneWidget);
-    expect(
-        find.textContaining(
-            'Evidence-led Operations · concepts=1 · principles=1 · workflows=1'),
-        findsOneWidget);
-    expect(
-        find.textContaining(
-            'trace=2 · unsupported=pass · risks=none · static_only=true'),
-        findsOneWidget);
+    expect(find.text('Knowledge-to-Skill Suite 工作流'), findsOneWidget);
+    expect(find.textContaining('release_candidate'), findsWidgets);
+    expect(find.textContaining('Core 证据快照'), findsOneWidget);
+    expect(find.text('知识包'), findsWidgets);
+    expect(find.text('方法论'), findsWidgets);
+    expect(find.text('Skill Suite'), findsWidgets);
     expect(find.textContaining('Execute local runtime'), findsNothing);
     expect(find.textContaining('运行本地 runtime'), findsNothing);
     expect(tester.takeException(), isNull);
