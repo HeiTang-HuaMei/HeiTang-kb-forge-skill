@@ -20,8 +20,13 @@ void main() {
     expect(contracts.navigation.views, hasLength(18));
     expect(
         contracts.actions.actions.map((action) => action.id),
-        containsAll(
-            ['workspace_inspect', 'rag_query', 'book_to_skill', 'skill_governance_report', 'run_agent']));
+        containsAll([
+          'workspace_inspect',
+          'rag_query',
+          'book_to_skill',
+          'skill_governance_report',
+          'run_agent'
+        ]));
     expect(contracts.reports.reports.map((report) => report.id),
         contains('report_p1_gate_summary'));
     expect(contracts.reports.reports.map((report) => report.id),
@@ -38,21 +43,23 @@ void main() {
 
   test('p2.2 skill governance report asset parses as display evidence',
       () async {
-    final report = jsonDecode(await rootBundle.loadString(
-            'assets/fixtures/p2_2/skill_governance_report.json'))
+    final report = jsonDecode(await rootBundle
+            .loadString('assets/fixtures/p2_2/skill_governance_report.json'))
         as Map<String, dynamic>;
     final checks = report['checks'] as Map<String, dynamic>;
     final uiContract = report['ui_contract'] as Map<String, dynamic>;
 
     expect(report['skill_governance_report_version'], 'v4.2-p2.2-1');
     expect(report['status'], 'pass');
-    expect(report['release_ready'], isFalse);
+    expect(report['release_ready'], isTrue);
     expect(checks['generation']['status'], 'pass');
     expect(checks['validation']['status'], 'pass');
+    expect(checks['diff_comparison']['status'], 'pass');
+    expect(checks['diff_comparison']['baseline_provided'], isTrue);
     expect(checks['installability']['status'], 'pass');
     expect(checks['privacy_boundary']['local_first_default'], isTrue);
     expect(checks['token_budget']['recommended_load_policy'], 'on_demand');
-    expect(report['warnings'], contains('diff_baseline_not_provided'));
+    expect(report['warnings'], isEmpty);
     expect(uiContract['asset_id'], 'skill_governance_report_json');
     expect(uiContract['ready_for_workbench_display'], isTrue);
     expect(report['tests_require_real_llm_api_network'], isFalse);
@@ -498,6 +505,41 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Backend Matrix Table'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'renders skill governance report evidence on Skill Factory without runtime claims',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1100));
+    await tester.pumpWidget(HeiTangWorkbenchApp(
+      contracts: sampleWorkbenchContracts,
+      skillGovernanceReport: sampleSkillGovernanceReport,
+      initialSelectedIndex:
+          pages.indexWhere((page) => page.id == 'skill-factory'),
+    ));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('Skill Governance Report'), findsWidgets);
+    expect(
+        find.textContaining(
+            'README Operations Skill · status=pass · release_ready=true'),
+        findsWidgets);
+    expect(find.textContaining('diff=pass · baseline=true · changed=3'),
+        findsWidgets);
+    expect(
+        find.textContaining(
+            'validation=pass · installability=pass · token=pass'),
+        findsWidgets);
+    expect(
+        find.textContaining(
+            'asset=skill_governance_report_json · display=true · static_only=true'),
+        findsWidgets);
+    expect(find.textContaining('Execute local runtime'), findsNothing);
+    expect(find.textContaining('运行本地 runtime'), findsNothing);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
   });
 
   testWidgets('renders contract-driven action and agent mode data in English',

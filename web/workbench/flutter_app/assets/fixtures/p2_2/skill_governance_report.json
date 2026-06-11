@@ -1,7 +1,7 @@
 {
   "skill_governance_report_version": "v4.2-p2.2-1",
   "status": "pass",
-  "release_ready": false,
+  "release_ready": true,
   "skill_package": "fixtures/p2_2/readme_operations_skill/skill_package",
   "skill_id": "readme_operations_skill",
   "skill_name": "README Operations Skill",
@@ -19,12 +19,12 @@
       "evidence_file": "structured_skill_validation_result.json"
     },
     "diff_comparison": {
-      "status": "not_run",
-      "baseline_provided": false,
-      "changed_file_count": 0,
-      "added_file_count": 0,
+      "status": "pass",
+      "baseline_provided": true,
+      "changed_file_count": 3,
+      "added_file_count": 1,
       "removed_file_count": 0,
-      "regeneration_recommendation": "provide_old_skill_to_compare",
+      "regeneration_recommendation": "review_changed_skill_assets",
       "evidence_file": "skill_diff_report.json"
     },
     "installability": {
@@ -58,9 +58,7 @@
     }
   },
   "blockers": [],
-  "warnings": [
-    "diff_baseline_not_provided"
-  ],
+  "warnings": [],
   "cli_commands": [
     "book-to-skill",
     "validate-skill-package",

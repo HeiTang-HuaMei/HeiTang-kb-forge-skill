@@ -169,12 +169,14 @@ class HeiTangWorkbenchApp extends StatefulWidget {
     this.workflowV2Evidence,
     this.externalCapabilities,
     this.parserBackends,
+    this.skillGovernanceReport,
     this.coreBridge = const LocalCoreBridge(),
     this.coreCli = 'heitang-kb-forge',
     this.coreWorkingDirectory = '.',
     this.coreWorkspace = '.',
     this.enableLocalCoreActions = true,
     this.isWebRuntime = kIsWeb,
+    this.initialSelectedIndex = 0,
   });
 
   final WorkbenchContracts? contracts;
@@ -182,12 +184,14 @@ class HeiTangWorkbenchApp extends StatefulWidget {
   final P1WorkflowEvidence? workflowV2Evidence;
   final ExternalCapabilityRegistry? externalCapabilities;
   final ParserBackendMatrix? parserBackends;
+  final Map<String, dynamic>? skillGovernanceReport;
   final LocalCoreBridge coreBridge;
   final String coreCli;
   final String coreWorkingDirectory;
   final String coreWorkspace;
   final bool enableLocalCoreActions;
   final bool isWebRuntime;
+  final int initialSelectedIndex;
 
   @override
   State<HeiTangWorkbenchApp> createState() => _HeiTangWorkbenchAppState();
@@ -196,7 +200,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
 class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
   String localeCode = 'zh-CN';
   ThemeMode themeMode = ThemeMode.light;
-  int selectedIndex = 0;
+  late int selectedIndex = widget.initialSelectedIndex;
   late final Future<WorkbenchContracts> _contractsFuture =
       widget.contracts == null
           ? const WorkbenchContractLoader()
@@ -232,6 +236,9 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
           .loadFromAsset('assets/parser_backends/parser_backend_matrix.json')
           .catchError((_) => sampleParserBackendMatrix)
       : Future<ParserBackendMatrix>.value(widget.parserBackends);
+  late final Future<Map<String, dynamic>> _skillGovernanceReportFuture =
+      Future<Map<String, dynamic>>.value(
+          widget.skillGovernanceReport ?? sampleSkillGovernanceReport);
 
   bool get isDark => themeMode == ThemeMode.dark;
 
@@ -273,31 +280,42 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
                   FutureBuilder<ParserBackendMatrix>(
                 future: _parserBackendsFuture,
                 initialData: widget.parserBackends ?? sampleParserBackendMatrix,
-                builder: (context, parserSnapshot) => _WorkbenchScaffold(
-                  contracts: contractsSnapshot.data ?? sampleWorkbenchContracts,
-                  workflowEvidence:
-                      evidenceSnapshot.data ?? sampleP1WorkflowEvidence,
-                  workflowV2Evidence:
-                      v2Snapshot.data ?? sampleP1WorkflowV2Evidence,
-                  externalCapabilities:
-                      externalSnapshot.data ?? sampleExternalCapabilityRegistry,
-                  parserBackends:
-                      parserSnapshot.data ?? sampleParserBackendMatrix,
-                  localeCode: localeCode,
-                  themeMode: themeMode,
-                  selectedIndex: selectedIndex,
-                  isDark: isDark,
-                  coreBridge: widget.coreBridge,
-                  coreCli: widget.coreCli,
-                  coreWorkingDirectory: widget.coreWorkingDirectory,
-                  coreWorkspace: widget.coreWorkspace,
-                  enableLocalCoreActions: widget.enableLocalCoreActions,
-                  isWebRuntime: widget.isWebRuntime,
-                  onThemeChanged: (value) => setState(() => themeMode = value),
-                  onLocaleChanged: (value) =>
-                      setState(() => localeCode = value),
-                  onPageChanged: (index) =>
-                      setState(() => selectedIndex = index),
+                builder: (context, parserSnapshot) =>
+                    FutureBuilder<Map<String, dynamic>>(
+                  future: _skillGovernanceReportFuture,
+                  initialData: widget.skillGovernanceReport ??
+                      sampleSkillGovernanceReport,
+                  builder: (context, skillGovernanceSnapshot) =>
+                      _WorkbenchScaffold(
+                    contracts:
+                        contractsSnapshot.data ?? sampleWorkbenchContracts,
+                    workflowEvidence:
+                        evidenceSnapshot.data ?? sampleP1WorkflowEvidence,
+                    workflowV2Evidence:
+                        v2Snapshot.data ?? sampleP1WorkflowV2Evidence,
+                    externalCapabilities: externalSnapshot.data ??
+                        sampleExternalCapabilityRegistry,
+                    parserBackends:
+                        parserSnapshot.data ?? sampleParserBackendMatrix,
+                    skillGovernanceReport: skillGovernanceSnapshot.data ??
+                        sampleSkillGovernanceReport,
+                    localeCode: localeCode,
+                    themeMode: themeMode,
+                    selectedIndex: selectedIndex,
+                    isDark: isDark,
+                    coreBridge: widget.coreBridge,
+                    coreCli: widget.coreCli,
+                    coreWorkingDirectory: widget.coreWorkingDirectory,
+                    coreWorkspace: widget.coreWorkspace,
+                    enableLocalCoreActions: widget.enableLocalCoreActions,
+                    isWebRuntime: widget.isWebRuntime,
+                    onThemeChanged: (value) =>
+                        setState(() => themeMode = value),
+                    onLocaleChanged: (value) =>
+                        setState(() => localeCode = value),
+                    onPageChanged: (index) =>
+                        setState(() => selectedIndex = index),
+                  ),
                 ),
               ),
             ),
@@ -404,6 +422,7 @@ class _DesktopWorkbench extends StatelessWidget {
     required this.workflowV2Evidence,
     required this.externalCapabilities,
     required this.parserBackends,
+    required this.skillGovernanceReport,
     required this.selectedIndex,
     required this.isTablet,
     required this.coreBridge,
@@ -421,6 +440,7 @@ class _DesktopWorkbench extends StatelessWidget {
   final P1WorkflowEvidence workflowV2Evidence;
   final ExternalCapabilityRegistry externalCapabilities;
   final ParserBackendMatrix parserBackends;
+  final Map<String, dynamic> skillGovernanceReport;
   final int selectedIndex;
   final bool isTablet;
   final LocalCoreBridge coreBridge;
@@ -456,6 +476,7 @@ class _DesktopWorkbench extends StatelessWidget {
             workflowV2Evidence: workflowV2Evidence,
             externalCapabilities: externalCapabilities,
             parserBackends: parserBackends,
+            skillGovernanceReport: skillGovernanceReport,
             columns: isTablet ? 2 : 3,
             coreBridge: coreBridge,
             coreCli: coreCli,
@@ -535,6 +556,7 @@ class _PhoneWorkbench extends StatelessWidget {
     required this.workflowV2Evidence,
     required this.externalCapabilities,
     required this.parserBackends,
+    required this.skillGovernanceReport,
     required this.selectedIndex,
     required this.coreBridge,
     required this.coreCli,
@@ -551,6 +573,7 @@ class _PhoneWorkbench extends StatelessWidget {
   final P1WorkflowEvidence workflowV2Evidence;
   final ExternalCapabilityRegistry externalCapabilities;
   final ParserBackendMatrix parserBackends;
+  final Map<String, dynamic> skillGovernanceReport;
   final int selectedIndex;
   final LocalCoreBridge coreBridge;
   final String coreCli;
@@ -597,6 +620,7 @@ class _PhoneWorkbench extends StatelessWidget {
             workflowV2Evidence: workflowV2Evidence,
             externalCapabilities: externalCapabilities,
             parserBackends: parserBackends,
+            skillGovernanceReport: skillGovernanceReport,
             columns: 1,
             coreBridge: coreBridge,
             coreCli: coreCli,
@@ -620,6 +644,7 @@ class _PageSurface extends StatelessWidget {
     required this.workflowV2Evidence,
     required this.externalCapabilities,
     required this.parserBackends,
+    required this.skillGovernanceReport,
     required this.columns,
     required this.coreBridge,
     required this.coreCli,
@@ -636,6 +661,7 @@ class _PageSurface extends StatelessWidget {
   final P1WorkflowEvidence workflowV2Evidence;
   final ExternalCapabilityRegistry externalCapabilities;
   final ParserBackendMatrix parserBackends;
+  final Map<String, dynamic> skillGovernanceReport;
   final int columns;
   final LocalCoreBridge coreBridge;
   final String coreCli;
@@ -646,8 +672,15 @@ class _PageSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cards = _cardsFor(page.id, localeCode, contracts, workflowEvidence,
-        workflowV2Evidence, externalCapabilities, parserBackends);
+    final cards = _cardsFor(
+        page.id,
+        localeCode,
+        contracts,
+        workflowEvidence,
+        workflowV2Evidence,
+        externalCapabilities,
+        parserBackends,
+        skillGovernanceReport);
     final corePanels = <Widget>[];
     for (final action in coreActionsForPage(page.id, contracts)) {
       final request = coreRequestForAction(
@@ -731,6 +764,7 @@ class _PageSurface extends StatelessWidget {
     P1WorkflowEvidence workflowV2Evidence,
     ExternalCapabilityRegistry externalCapabilities,
     ParserBackendMatrix parserBackends,
+    Map<String, dynamic> skillGovernanceReport,
   ) {
     final zh = localeCode == 'zh-CN';
     final view = _contractViewFor(page, contracts);
@@ -753,6 +787,24 @@ class _PageSurface extends StatelessWidget {
         .where(
             (project) => project.contractStatus.contains('template_reference'))
         .toList(growable: false);
+    final governanceChecks =
+        (skillGovernanceReport['checks'] as Map?)?.cast<String, dynamic>() ??
+            const <String, dynamic>{};
+    final governanceUiContract = (skillGovernanceReport['ui_contract'] as Map?)
+            ?.cast<String, dynamic>() ??
+        const <String, dynamic>{};
+    final diffCheck = (governanceChecks['diff_comparison'] as Map?)
+            ?.cast<String, dynamic>() ??
+        const <String, dynamic>{};
+    final installabilityCheck =
+        (governanceChecks['installability'] as Map?)?.cast<String, dynamic>() ??
+            const <String, dynamic>{};
+    final validationCheck =
+        (governanceChecks['validation'] as Map?)?.cast<String, dynamic>() ??
+            const <String, dynamic>{};
+    final tokenBudgetCheck =
+        (governanceChecks['token_budget'] as Map?)?.cast<String, dynamic>() ??
+            const <String, dynamic>{};
     return [
       _CardCopy(zh ? 'Core 来源' : 'Core source', contracts.source.coreCommit),
       _CardCopy(
@@ -860,6 +912,20 @@ class _PageSurface extends StatelessWidget {
         _CardCopy(
             zh ? 'Optional Dependency Reason' : 'Optional Dependency Reason',
             'optional_gated=${parserBackends.optionalDependencyGatedCount} · no_static_execution=${parserBackends.backends.every((backend) => !backend.staticWorkbenchExecutable)}'),
+      if (_showsSkillGovernance(id))
+        _CardCopy(zh ? 'Skill Governance Report' : 'Skill Governance Report',
+            '${skillGovernanceReport['skill_name'] ?? 'unknown'} · status=${skillGovernanceReport['status']} · release_ready=${skillGovernanceReport['release_ready']}'),
+      if (_showsSkillGovernance(id))
+        _CardCopy(zh ? 'Diff baseline' : 'Diff baseline',
+            'diff=${diffCheck['status']} · baseline=${diffCheck['baseline_provided']} · changed=${diffCheck['changed_file_count']}'),
+      if (_showsSkillGovernance(id))
+        _CardCopy(
+            zh ? 'Validation / installability' : 'Validation / installability',
+            'validation=${validationCheck['status']} · installability=${installabilityCheck['status']} · token=${tokenBudgetCheck['status']}'),
+      if (_showsSkillGovernance(id))
+        _CardCopy(
+            zh ? 'Workbench display evidence' : 'Workbench display evidence',
+            'asset=${governanceUiContract['asset_id']} · display=${governanceUiContract['ready_for_workbench_display']} · static_only=true'),
       if (externalProjects.isNotEmpty)
         _CardCopy(
             zh ? '页面映射' : 'Mapped external projects',
@@ -948,6 +1014,7 @@ class _WorkbenchScaffold extends StatelessWidget {
     required this.workflowV2Evidence,
     required this.externalCapabilities,
     required this.parserBackends,
+    required this.skillGovernanceReport,
     required this.localeCode,
     required this.themeMode,
     required this.selectedIndex,
@@ -968,6 +1035,7 @@ class _WorkbenchScaffold extends StatelessWidget {
   final P1WorkflowEvidence workflowV2Evidence;
   final ExternalCapabilityRegistry externalCapabilities;
   final ParserBackendMatrix parserBackends;
+  final Map<String, dynamic> skillGovernanceReport;
   final String localeCode;
   final ThemeMode themeMode;
   final int selectedIndex;
@@ -1026,6 +1094,7 @@ class _WorkbenchScaffold extends StatelessWidget {
                   workflowV2Evidence: workflowV2Evidence,
                   externalCapabilities: externalCapabilities,
                   parserBackends: parserBackends,
+                  skillGovernanceReport: skillGovernanceReport,
                   selectedIndex: selectedIndex,
                   coreBridge: coreBridge,
                   coreCli: coreCli,
@@ -1042,6 +1111,7 @@ class _WorkbenchScaffold extends StatelessWidget {
                   workflowV2Evidence: workflowV2Evidence,
                   externalCapabilities: externalCapabilities,
                   parserBackends: parserBackends,
+                  skillGovernanceReport: skillGovernanceReport,
                   selectedIndex: selectedIndex,
                   isTablet: isTablet,
                   coreBridge: coreBridge,
@@ -1149,6 +1219,31 @@ bool _showsParserBackends(String pageId) {
     'error-repair-center',
   }.contains(pageId);
 }
+
+bool _showsSkillGovernance(String pageId) {
+  return pageId == 'skill-factory';
+}
+
+const sampleSkillGovernanceReport = <String, dynamic>{
+  'skill_governance_report_version': 'v4.2-p2.2-1',
+  'status': 'pass',
+  'release_ready': true,
+  'skill_name': 'README Operations Skill',
+  'checks': {
+    'validation': {'status': 'pass'},
+    'diff_comparison': {
+      'status': 'pass',
+      'baseline_provided': true,
+      'changed_file_count': 3,
+    },
+    'installability': {'status': 'pass'},
+    'token_budget': {'status': 'pass'},
+  },
+  'ui_contract': {
+    'asset_id': 'skill_governance_report_json',
+    'ready_for_workbench_display': true,
+  },
+};
 
 class _WorkbenchCard extends StatelessWidget {
   const _WorkbenchCard(
