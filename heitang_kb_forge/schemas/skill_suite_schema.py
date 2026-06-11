@@ -49,3 +49,37 @@ class SkillCandidatePlan(BaseModel):
     evidence_trace_preserved: bool = True
     anything2skill_integration: dict[str, str | bool]
     tests_require_real_llm_api_network: bool = False
+
+
+class SuiteSkill(BaseModel):
+    skill_id: str
+    title: str
+    skill_type: str
+    path: str
+    trigger: str
+    purpose: str
+    depends_on: list[str] = Field(default_factory=list)
+    supporting_evidence: list[str] = Field(min_length=1)
+    confidence: float = Field(ge=0, le=1)
+    status: str
+
+
+class DependencyEdge(BaseModel):
+    source: str
+    target: str
+    relationship: str = "depends_on"
+
+
+class SkillSuiteManifest(BaseModel):
+    skill_suite_version: str = "v4.2-p2.2-1"
+    suite_id: str
+    source_package_id: str
+    skill_count: int = Field(ge=1)
+    hierarchy_counts: dict[str, int]
+    skills: list[SuiteSkill]
+    dependency_edges: list[DependencyEdge] = Field(default_factory=list)
+    duplicate_skill_groups: list[list[str]] = Field(default_factory=list)
+    conflict_skill_pairs: list[list[str]] = Field(default_factory=list)
+    status: str
+    skillx_integration: dict[str, str | bool]
+    tests_require_real_llm_api_network: bool = False
