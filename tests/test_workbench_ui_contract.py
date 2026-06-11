@@ -62,10 +62,10 @@ def test_workbench_contract_exposes_desktop_core_bridge_without_full_operation_c
     assert contracts["release_boundary"]["supports_zh_cn_en_us_switch"] is True
     assert contracts["release_boundary"]["not_v4_0_release"] is False
     assert contracts["release_boundary"]["not_v4_0_workbench_rc"] is False
-    assert contracts["release_boundary"]["package_version"] == "4.1.1"
-    assert contracts["release_boundary"]["stable_release"] == "v4.1.0"
-    assert contracts["release_boundary"]["current_release_line"] == "v4.1.1"
-    assert contracts["release_boundary"]["release_candidate"] == "v4.1.1"
+    assert contracts["release_boundary"]["package_version"] == "4.2.0"
+    assert contracts["release_boundary"]["stable_release"] == "v4.2.0"
+    assert contracts["release_boundary"]["current_release_line"] == "v4.2.0"
+    assert contracts["release_boundary"]["release_candidate"] == "v4.2.0"
     assert contracts["release_boundary"]["release_candidate_tag_created"] is False
     assert contracts["release_boundary"]["release_candidate_release_created"] is False
     assert contracts["release_boundary"]["core_stable_commit"] == CORE_STABLE_COMMIT
@@ -81,9 +81,9 @@ def test_readme_states_workbench_visual_and_release_boundary():
     assert "black / white / gray premium Windows desktop workbench" in readme
     assert "light / dark mode" in readme
     assert "zh-CN / en-US language switch" in readme
-    assert "v4.1.1 UI test framework governance stable release" in readme
+    assert "v4.2.0 UI industrial workflow release" in readme
     assert "v4.1.0 Parser/OCR Workbench sync" in readme
-    assert "`v4.0.0` and `v4.1.0` tags remain untouched" in readme
+    assert "`v4.0.0`, `v4.1.0`, and `v4.1.1` tags remain untouched" in readme
     assert CORE_STABLE_COMMIT in readme
     assert "P1 final gate re-run evidence UI consumption pass" in readme
     assert CORE_COMMIT in readme
@@ -115,7 +115,7 @@ def test_flutter_project_scaffold_has_standard_entry_files():
     assert "flutter run -d chrome" in readme
     assert "ready_for_v4_rc=true" in readme
     assert "p1_full_operation_gate_status: ready_for_v4_rc" in readme
-    assert "v4.1.1` Test Framework Governance" in readme
+    assert "v4.2.0` P2.2" in readme
     assert "preserving `v4.1.0` Parser/OCR evidence sync fixtures" in readme
     assert "historical `v4.0.0` and `v4.1.0` tags remain untouched" in readme
     assert "assets/parser_backends/parser_backend_matrix.json" in readme

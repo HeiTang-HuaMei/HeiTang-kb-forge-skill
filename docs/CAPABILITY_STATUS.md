@@ -1,10 +1,10 @@
 # Capability Status
 
-Current project version: `4.1.1`
+Current project version: `4.2.0`
 
-Current stable release: `v4.1.1`
+Current stable release: `v4.2.0`
 
-Latest completed UI release work includes P1 Final Gate Re-run, External Project Registry visibility, S/A Contract Inclusion visibility, rc.1 acceptance, release hardening, P2.1 parser/OCR backend evidence sync, and v4.1.1 Test Framework Governance stable closure. `v4.1.1` is the current stable release; `v4.1.0` remains the historical stable parser/OCR evidence line.
+Latest completed UI release work includes P1 Final Gate Re-run, External Project Registry visibility, S/A Contract Inclusion visibility, rc.1 acceptance, release hardening, P2.1 parser/OCR backend evidence sync, v4.1.1 Test Framework Governance stable closure, and v4.2.0 P2.2 Skill Factory industrial closure. `v4.2.0` is the current stable release; `v4.1.1` remains the P2.2 Entry Gate / Test Governance stable line.
 
 ## Stable
 
@@ -46,6 +46,8 @@ Latest completed UI release work includes P1 Final Gate Re-run, External Project
 - optional parser/OCR dependency boundary display
 - parser backend stable surface and known limitation display
 - validation gate manifest and impact-based UI test governance
+- P2.2 Skill Factory workflow evidence display
+- methodology, candidate, hierarchy, suite, report, and export surfaces
 
 ## Experimental
 

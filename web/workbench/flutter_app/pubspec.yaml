@@ -1,7 +1,7 @@
 name: heitang_workbench
 description: Contract-driven HeiTang Knowledge Workbench Flutter scaffold.
 publish_to: "none"
-version: 4.1.0+1
+version: 4.2.0+1
 
 environment:
   sdk: ">=3.4.0 <4.0.0"

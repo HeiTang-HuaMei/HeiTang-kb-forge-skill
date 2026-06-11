@@ -13,7 +13,7 @@ MANIFEST_PATH = ROOT / "docs" / "testing" / "VALIDATION_GATE_MANIFEST.json"
 def test_validation_gate_manifest_is_structurally_valid():
     manifest = load_manifest(MANIFEST_PATH)
 
-    assert manifest["release_version"] == "v4.1.1"
+    assert manifest["release_version"] == "v4.2.0"
     assert validate_manifest(manifest) == []
     assert manifest["reporting_policy"]["never_report_skipped_or_deferred_as_passed"] is True
     assert "passed by default" in manifest["reporting_policy"]["forbidden_skip_reasons"]
@@ -95,7 +95,7 @@ def test_post_codex_review_gate_is_finite_and_release_blocking():
     assert review_gate["levels"]["light"]["when"] == "after_each_task"
     assert review_gate["levels"]["medium"]["when"] == "after_phase_closure"
     assert review_gate["levels"]["full"]["when"] == "before_tag_or_release"
-    assert "v4.1.1 tag" in review_gate["levels"]["full"]["required_before"]
+    assert "v4.2.0 tag" in review_gate["levels"]["full"]["required_before"]
     assert "P3 recorded as non-blocking backlog" in review_gate["stop_conditions"]
     assert "no release-blocking P0/P1/P2" in review_gate["release_rule"]
 
@@ -104,7 +104,7 @@ def test_post_codex_review_gate_is_finite_and_release_blocking():
 
 
 def test_execute_mode_returns_nonzero_when_any_gate_fails(monkeypatch):
-    monkeypatch.setattr(gates, "load_manifest", lambda path: {"release_version": "v4.1.1"})
+    monkeypatch.setattr(gates, "load_manifest", lambda path: {"release_version": "v4.2.0"})
     monkeypatch.setattr(gates, "build_validation_plan", lambda changed_files, phase, manifest: {"selected_gates": []})
     monkeypatch.setattr(gates, "run_validation_plan", lambda plan, repo_root: {"results": [{"status": "failed"}]})
 
@@ -119,7 +119,7 @@ def test_run_validation_plan_writes_per_gate_exit_code_and_result(tmp_path, monk
 
     def fake_run(command, cwd, shell, text, stdout, stderr):
         captured["command"] = command
-        stdout.write("fake gate passed\n")
+        stdout.write("fake gate passed   \nsecond line\t\n")
         return SimpleNamespace(returncode=0)
 
     monkeypatch.setattr(gates.subprocess, "run", fake_run)
@@ -143,3 +143,4 @@ def test_run_validation_plan_writes_per_gate_exit_code_and_result(tmp_path, monk
     assert json.loads(result_path.read_text(encoding="utf-8"))["exit_code"] == 0
     assert result["exit_code_path"] == "docs/audits/test_engineering/full_gate_logs/fake_gate.log.exitcode"
     assert captured["command"] == "fake command tests/test_fake.py"
+    assert (tmp_path / result["log_path"]).read_text(encoding="utf-8") == "fake gate passed\nsecond line\n"

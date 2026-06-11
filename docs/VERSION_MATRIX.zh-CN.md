@@ -1,10 +1,10 @@
 # Version Matrix
 
-当前项目版本：`4.1.1`
+当前项目版本：`4.2.0`
 
-当前 stable release：`v4.1.1`
+当前 stable release：`v4.2.0`
 
-当前阶段：v4.1.1 Test Framework Governance，位于 v4.1.0 P2.1 Parser/OCR Workbench evidence sync 之后；v4.0.0 与 v4.1.0 tag 均保持不变。
+当前阶段：v4.2.0 P2.2 Skill Factory industrial workflow，位于 v4.1.1 Test Framework Governance 之后；v4.0.0、v4.1.0、v4.1.1 tag 均保持不变。
 
 | Version | Status | Main Capability | Test Coverage | Known Limits | Checkpoint / Tag |
 | --- | --- | --- | --- | --- | --- |
@@ -26,7 +26,8 @@
 | v4.0.0-rc.1 | Historical | Workbench UI release candidate，包含 P1 final gate evidence、external registry 可见边界与 S/A contract inclusion 可见边界 | pytest、Flutter tests/builds | stable v4.0.0 前已验收；外部项目仍只做可见边界 | historical |
 | v4.0.0 | Historical | Stable Local Knowledge Workbench release | pytest、Flutter tests/builds、CI、release hardening | 外部项目除非单独实现，否则仍只做可见边界 | historical |
 | v4.1.0 | Historical | Parser/OCR backend evidence sync for Workbench | pytest、Flutter tests/builds、CI、release hardening | parser/OCR runtime 仍为 optional dependency gated；Unstructured 稳定表面仅 `.md/.txt`；静态 Workbench 不执行 runtime | stable |
-| v4.1.1 | Stable | UI validation 的 Test Framework Governance | validation gate manifest、changed-file impact selector、pytest markers、UI contract gates、Flutter chunk gates | v4.1.0 parser/OCR fixture 保持为 historical evidence；静态 Workbench 仍不执行 runtime | stable |
+| v4.1.1 | Historical | UI validation 的 Test Framework Governance | validation gate manifest、changed-file impact selector、pytest markers、UI contract gates、Flutter chunk gates | v4.1.0 parser/OCR fixture 保持为 historical evidence；静态 Workbench 仍不执行 runtime | stable |
+| v4.2.0 | Stable | P2.2 Skill Factory industrial workflow | pytest、Flutter tests、Flutter analyze、static evidence workflow checks | Web static-only；local Core CLI execution 仍只属于 desktop bridge，不由 web build 执行 | stable |
 | runtime compatibility planned | Planned | runtime compatibility smoke | planned | not implemented | planned |
 | v2.8 planned | Planned | domain Skill factory | planned | not implemented | planned |
 | v2.9 planned | Planned | Feishu / personal KB / mobile / installer / iOS | planned | not implemented | planned |

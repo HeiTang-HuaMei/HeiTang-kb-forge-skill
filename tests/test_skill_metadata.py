@@ -16,10 +16,11 @@ def test_skill_metadata_files_exist_and_are_agent_readable():
     assert "HeiTang KB Forge Skill" in text
     assert "Agent knowledge supply-chain" in text
     assert metadata["name"] == "heitang-kb-forge-skill"
-    assert metadata["version"] == "4.1.1"
+    assert metadata["version"] == "4.2.0"
     assert metadata["entrypoints"]["cli"] == "heitang-kb-forge"
     assert "build_knowledge_package" in metadata["capabilities"]
     assert "agent_ask" in metadata["preview_capabilities"]
+    assert "skill_factory_industrial_workflow" in metadata["preview_capabilities"]
     assert "master_skill_learning" in metadata["experimental_capabilities"]
     assert "llm_live_smoke" in metadata["experimental_capabilities"]
     assert "provider_security_governance" in metadata["experimental_capabilities"]

@@ -1,10 +1,10 @@
 # Capability Status
 
-当前项目版本：`4.1.1`
+当前项目版本：`4.2.0`
 
-当前 stable release：`v4.1.1`
+当前 stable release：`v4.2.0`
 
-最新已完成的 UI release 工作包括 P1 Final Gate Re-run、External Project Registry 可见边界、S/A Contract Inclusion 可见边界、rc.1 acceptance、release hardening、P2.1 parser/OCR backend evidence sync，以及 v4.1.1 Test Framework Governance stable closure。`v4.1.1` 是当前 stable release；`v4.1.0` 保持为历史 stable parser/OCR evidence line。
+最新已完成的 UI release 工作包括 P1 Final Gate Re-run、External Project Registry 可见边界、S/A Contract Inclusion 可见边界、rc.1 acceptance、release hardening、P2.1 parser/OCR backend evidence sync、v4.1.1 Test Framework Governance stable closure，以及 v4.2.0 P2.2 Skill Factory industrial closure。`v4.2.0` 是当前 stable release；`v4.1.1` 保持为 P2.2 Entry Gate / Test Governance stable line。
 
 ## Stable
 
@@ -46,6 +46,8 @@
 - optional parser/OCR dependency 边界展示
 - parser backend 稳定表面与已知限制展示
 - validation gate manifest 与 impact-based UI test governance
+- P2.2 Skill Factory workflow evidence display
+- methodology、candidate、hierarchy、suite、report 和 export surfaces
 
 ## Experimental
 

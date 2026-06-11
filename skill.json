@@ -1,8 +1,8 @@
 {
   "name": "heitang-kb-forge-skill",
   "display_name": "HeiTang KB Forge Skill",
-  "version": "4.1.1",
-  "description": "Agent knowledge supply-chain Skill and Workbench UI v4.1.1 test framework governance line for producing, auditing, viewing, and validating local knowledge packages.",
+  "version": "4.2.0",
+  "description": "Agent knowledge supply-chain Skill and Workbench UI v4.2.0 P2.2 industrial line for viewing evidence-backed Knowledge Package to Methodology to Skill Suite workflows.",
   "entrypoints": {
     "cli": "heitang-kb-forge",
     "python_module": "python -m heitang_kb_forge.cli"
@@ -26,7 +26,10 @@
     "platform_distribution",
     "xhs_skill_package_mock",
     "agent_tool_export",
-    "mcp_stub_export"
+    "mcp_stub_export",
+    "skill_factory_industrial_workflow",
+    "methodology_evidence_view",
+    "skill_suite_reports_view"
   ],
   "experimental_capabilities": [
     "master_skill_learning",

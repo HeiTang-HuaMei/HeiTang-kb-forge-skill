@@ -1,7 +1,7 @@
 {
   "schema_version": "validation_gate_manifest.v1",
-  "release_version": "v4.1.1",
-  "release_title": "UI Test Framework Governance, Obsolete Test Pruning & Scalable Validation",
+  "release_version": "v4.2.0",
+  "release_title": "P2.2 Skill Factory Industrial UI Workflow",
   "log_root": "docs/audits/test_engineering",
   "runner_module": "heitang_kb_forge.test_governance.gates",
   "default_phase": "development",
@@ -208,7 +208,7 @@
       },
       "full": {
         "when": "before_tag_or_release",
-        "required_before": ["v4.1.1 tag", "v4.1.1 release"],
+        "required_before": ["v4.2.0 tag", "v4.2.0 release"],
         "outputs": ["P0", "P1", "P2"],
         "p3_policy": "backlog_only_non_blocking"
       }

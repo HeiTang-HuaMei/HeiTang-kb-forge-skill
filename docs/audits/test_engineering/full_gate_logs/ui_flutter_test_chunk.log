@@ -11,28 +11,37 @@ Got dependencies!
 Try `flutter pub outdated` for more information.
 00:00 +0: loading D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/core_bridge_test.dart
 00:00 +0: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/core_bridge_test.dart: builds allowlisted core commands without shell execution
-00:00 +1: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/core_bridge_test.dart: rejects shell metacharacters and non-allowlisted commands
-00:00 +2: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/core_bridge_test.dart: rejects secret environment and redacts command output
-00:00 +3: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/core_bridge_test.dart: marks timed out core operations without invoking a shell
-00:00 +4: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/core_bridge_test.dart: marks non-zero exit code as failed and redacts stderr
-00:00 +5: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/core_bridge_test.dart: marks web runtime unsupported for local cli bridge
-00:01 +6: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: contract fixture parses p1 workbench contracts
-00:01 +7: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: p1 real workflow v1 evidence parses and keeps gate blocked
-00:01 +8: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: p1 real workflow v2 evidence parses final local path closure without v4 release
-00:01 +9: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: p1 real workflow v2 copied report assets parse and match the fixture summary
-00:01 +10: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: external capability assets parse as boundary-only S/A contract data
-00:01 +11: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: p2.1 parser backend matrix asset parses with release boundaries
-00:01 +12: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: full p1 fixture drives real local and deterministic smoke Core actions through the bridge request path
-00:01 +13: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders desktop HeiTang workbench shell without Flutter exceptions
-00:03 +14: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders mobile HeiTang workbench shell without Flutter exceptions
-00:03 +15: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: keeps English and dark mode controls usable
-00:06 +16: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders dedicated p1 pages without Flutter exceptions
-00:08 +17: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders p1 real workflow v1 evidence while final V2 gate is ready
-00:08 +18: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders p1 real workflow v2 evidence and keeps v4 release boundary
-00:09 +19: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders S/A external capability boundaries without executable claims
-00:09 +20: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders parser backend evidence without executable parser claims
-00:10 +21: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders contract-driven action and agent mode data in English
-00:11 +22: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: runs the desktop rag_query core action through an injected bridge
-00:11 +23: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: disables local CLI actions on web runtime without calling the runner
-00:12 +24: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: shows disabled blocked_reason for provider and secret actions
-00:12 +25: All tests passed!
+00:00 +1: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/core_bridge_test.dart: allows skill governance report core command
+00:00 +2: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/core_bridge_test.dart: allows methodology extraction core command
+00:00 +3: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/core_bridge_test.dart: rejects shell metacharacters and non-allowlisted commands
+00:00 +4: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/core_bridge_test.dart: rejects secret environment and redacts command output
+00:00 +5: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/core_bridge_test.dart: marks timed out core operations without invoking a shell
+00:00 +6: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/core_bridge_test.dart: marks non-zero exit code as failed and redacts stderr
+00:00 +7: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/core_bridge_test.dart: marks web runtime unsupported for local cli bridge
+00:00 +8: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/skill_factory_workflow_test.dart: workflow fixture covers the P2.2 industrial UI chain
+00:00 +9: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/skill_factory_workflow_test.dart: skill factory maps and allowlists the P2.2 local CLI contract
+00:00 +10: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/skill_factory_workflow_test.dart: renders every Skill Factory workflow surface
+00:00 +11: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/skill_factory_workflow_test.dart: renders every Skill Factory workflow surface
+00:00 +12: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/skill_factory_workflow_test.dart: renders every Skill Factory workflow surface
+00:00 +13: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/skill_factory_workflow_test.dart: renders every Skill Factory workflow surface
+00:00 +14: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/skill_factory_workflow_test.dart: renders every Skill Factory workflow surface
+00:00 +15: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/skill_factory_workflow_test.dart: renders every Skill Factory workflow surface
+00:00 +16: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/skill_factory_workflow_test.dart: renders every Skill Factory workflow surface
+00:00 +17: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/skill_factory_workflow_test.dart: renders every Skill Factory workflow surface
+00:00 +18: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/skill_factory_workflow_test.dart: renders every Skill Factory workflow surface
+00:00 +19: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/skill_factory_workflow_test.dart: renders every Skill Factory workflow surface
+00:02 +20: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/skill_factory_workflow_test.dart: renders every Skill Factory workflow surface
+00:02 +21: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/skill_factory_workflow_test.dart: renders every Skill Factory workflow surface
+00:03 +22: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: keeps English and dark mode controls usable
+00:03 +23: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: keeps English and dark mode controls usable
+00:04 +24: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders dedicated p1 pages without Flutter exceptions
+00:06 +25: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders p1 real workflow v1 evidence while final V2 gate is ready
+00:06 +26: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders p1 real workflow v2 evidence and keeps v4 release boundary
+00:06 +27: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders S/A external capability boundaries without executable claims
+00:07 +28: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders parser backend evidence without executable parser claims
+00:07 +29: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders the Skill Factory workflow without runtime claims
+00:07 +30: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders contract-driven action and agent mode data in English
+00:08 +31: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: runs the desktop rag_query core action through an injected bridge
+00:08 +32: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: disables local CLI actions on web runtime without calling the runner
+00:08 +33: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: shows disabled blocked_reason for provider and secret actions
+00:09 +34: All tests passed!

@@ -1,6 +1,6 @@
 # HeiTang Knowledge Workbench UI Spec
 
-Status: UI-v0.1 through UI-v0.5 prototype plus v4.1.0 Parser/OCR evidence sync and v4.1.1 validation governance. This spec defines a fixture-backed product surface and reserves runtime Core integration for explicit bridge/service layers.
+Status: UI-v0.1 through UI-v0.5 prototype, v4.1.0 Parser/OCR evidence sync, v4.1.1 validation governance, and v4.2.0 P2.2 Skill Factory industrial workflow. This spec defines a fixture-backed product surface and reserves runtime Core integration for explicit bridge/service layers.
 
 ## Scope
 
@@ -9,6 +9,7 @@ Status: UI-v0.1 through UI-v0.5 prototype plus v4.1.0 Parser/OCR evidence sync a
 - Use only `examples/ui_mock_data/*.json` as data sources.
 - Keep parser, RAG, document generation, agent orchestration, and memory runtime logic out of scope.
 - Display P2.1 parser backend matrix evidence from copied Core fixtures without executing parser/OCR runtimes.
+- Display the P2.2 Knowledge Package -> Evidence -> Methodology -> Candidates -> Hierarchy -> Skill Suite -> Reports -> Export workflow from copied Core contract evidence without executing the local Core CLI from Web.
 - Reserve future API replacement at `web/workbench/src/mockService.js`.
 - Do not import Core pipeline modules from Flutter UI scaffold files.
 

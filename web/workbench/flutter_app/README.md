@@ -1,6 +1,6 @@
 # HeiTang Workbench Flutter Scaffold
 
-This is the Flutter scaffold for the HeiTang Knowledge Workbench `v4.1.1` Test Framework Governance UI line, preserving `v4.1.0` Parser/OCR evidence sync fixtures.
+This is the Flutter scaffold for the HeiTang Knowledge Workbench `v4.2.0` P2.2 Skill Factory industrial UI line, preserving `v4.1.0` Parser/OCR evidence sync fixtures and `v4.1.1` Test Governance as the Entry Gate baseline.
 
 Current status:
 
@@ -20,8 +20,9 @@ Current status:
 - Provider, secret, network, and planned-adapter operations stay disabled with blocked reasons.
 - External projects are not installed, not local-ready, and not executable from this UI.
 - Parser/OCR backends are not executed from this UI; static Web Workbench only displays Core evidence and boundaries.
+- v4.2.0 Skill Factory workflow displays Knowledge Package, Evidence, Methodology, Candidates, Hierarchy, Skill Suite, Reports, and Export evidence without executing local CLI from the web build.
 - v4.1.1 validation governance lives in the Python test gate manifest and does not add parser/OCR runtime execution controls.
-- The parser/OCR evidence fixture remains aligned to v4.1.0 Workbench evidence sync. The current UI package line is v4.1.1 test governance, and the historical `v4.0.0` and `v4.1.0` tags remain untouched.
+- The parser/OCR evidence fixture remains aligned to v4.1.0 Workbench evidence sync. The current UI package line is v4.2.0 P2.2 Skill Factory industrial workflow, v4.1.1 remains the Entry Gate baseline, and the historical `v4.0.0` and `v4.1.0` tags remain untouched.
 - Web builds do not execute local Core CLI commands.
 
 When Flutter is available, run from this directory:

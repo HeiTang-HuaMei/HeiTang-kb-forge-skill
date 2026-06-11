@@ -2,11 +2,11 @@
 
 [中文说明](README.zh-CN.md) | English
 
-Current UI package version: `4.1.1`
+Current UI package version: `4.2.0`
 
-Current stable release: `v4.1.1` Test Framework Governance
+Current stable release: `v4.2.0` P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline
 
-Release status: v4.1.1 UI test framework governance stable release after v4.1.0 Parser/OCR Workbench sync. The `v4.0.0` and `v4.1.0` tags remain untouched; the v4.1.0 parser/OCR fixture remains historical Core evidence consumed by the static Workbench.
+Release status: v4.2.0 UI industrial workflow release after v4.1.1 P2.2 Entry Gate / Test Governance Stable Baseline and v4.1.0 Parser/OCR Workbench sync. The `v4.0.0`, `v4.1.0`, and `v4.1.1` tags remain untouched; the v4.1.0 parser/OCR fixture remains historical Core evidence consumed by the static Workbench.
 
 HeiTang KB Forge is an offline-first, agent-callable knowledge supply-chain Skill. It turns multi-format source material into standardized, auditable, reviewable, and retrievable knowledge asset packages for Agent and RAG workflows.
 
@@ -41,6 +41,7 @@ Preview capabilities:
 - Provider registry, config validation, redaction, fallback, and cost guard
 - Provider live smoke, disabled unless explicitly opted in
 - Minimal end-to-end portfolio demo workflow
+- P2.2 Skill Factory industrial workflow: Knowledge Package, Evidence, Methodology, Candidates, Hierarchy, Skill Suite, Reports, and Export evidence surfaces
 
 Experimental capabilities:
 
@@ -199,9 +200,9 @@ It also surfaces S/A external capability contract-inclusion fixtures from Core c
 
 For P2.1 / v4.1.0, the Workbench also consumes the Core parser backend matrix from runtime baseline commit `576a62075dc1ecbe00388bb0569fd1fc767be7cb`. It shows builtin fallback, Docling, PaddleOCR, and Unstructured install mode, last acceptance status, evidence path, and known limitations through dashboard summary cards, callouts, a matrix table, backend detail panels, and audit evidence rows. Docling and PaddleOCR are optional dependency gated real-runtime integrations; Unstructured is optional dependency gated with stable `.md/.txt` surface only. The UI does not expose parser/OCR runtime execution controls and does not claim default heavy dependency bundling.
 
-The latest stable UI line is v4.1.0 Parser/OCR evidence sync. The current v4.1.1 line adds test governance and must not be called stable until its gates, tag, release, and release-check evidence are complete.
+For v4.2.0, the UI package closes the P2.2 Skill Factory workflow as a static evidence surface: Knowledge Package -> Evidence -> Methodology -> Candidates -> Hierarchy -> Skill Suite -> Reports -> Export. It displays methodology, candidate, dependency, routing, validation, diff, installability, governance, and export evidence without executing local CLI from the web build.
 
-For v4.1.1, the UI package adds test framework governance: a validation gate manifest, changed-file impact selector, dry-run/executable gate runner, pytest markers, and an obsolete-test pruning register. The parser/OCR fixture remains v4.1.0 historical Core evidence; it is not rewritten as a new runtime execution claim.
+For v4.1.1, the UI package added test framework governance and remains the P2.2 Entry Gate / Test Governance Stable Baseline. The parser/OCR fixture remains v4.1.0 historical Core evidence; it is not rewritten as a new runtime execution claim.
 
 The historical v4.0.0 boundary evidence still references Core stable commit `0217e54b162871e7c40c31ff3d0cc72e8ba78f06`.
 

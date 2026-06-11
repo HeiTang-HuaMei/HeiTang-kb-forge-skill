@@ -1,5 +1,13 @@
 # Changelog
 
+## v4.2.0
+
+* Completed the P2.2 Skill Factory industrial UI workflow.
+* Added a product-level Knowledge Package -> Evidence -> Methodology -> Candidates -> Hierarchy -> Skill Suite -> Reports -> Export surface.
+* Displayed methodology, candidate, routing, dependency, validation, diff, installability, governance, and export evidence from Core contract fixtures.
+* Preserved Web static-only behavior: the web Workbench does not execute the local Core CLI.
+* Preserved v4.1.1 as the P2.2 Entry Gate / Test Governance Stable Baseline and did not start P2.3.
+
 ## v4.1.1
 
 * Added UI validation gate manifest, changed-file impact rules, and executable validation runner.

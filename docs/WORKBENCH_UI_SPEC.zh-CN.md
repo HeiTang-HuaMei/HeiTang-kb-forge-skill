@@ -1,6 +1,6 @@
 # HeiTang Knowledge Workbench UI 规格
 
-状态：UI-v0.1 至 UI-v0.5 原型，并加入 v4.1.0 Parser/OCR evidence sync 与 v4.1.1 validation governance。本规格定义基于 fixture 的产品界面，Core runtime 集成保留给明确的 bridge / service 层。
+状态：UI-v0.1 至 UI-v0.5 原型，并加入 v4.1.0 Parser/OCR evidence sync、v4.1.1 validation governance 与 v4.2.0 P2.2 Skill Factory industrial workflow。本规格定义基于 fixture 的产品界面，Core runtime 集成保留给明确的 bridge / service 层。
 
 ## 范围
 
@@ -9,6 +9,7 @@
 - 数据源只允许使用 `examples/ui_mock_data/*.json`。
 - 不实现解析、RAG、文档生成、Agent 编排或记忆运行时逻辑。
 - 展示复制自 Core fixture 的 P2.1 parser backend matrix evidence，但不执行 parser/OCR runtime。
+- 展示复制自 Core contract evidence 的 P2.2 Knowledge Package -> Evidence -> Methodology -> Candidates -> Hierarchy -> Skill Suite -> Reports -> Export workflow，但 Web 不执行本地 Core CLI。
 - 未来 API 替换边界保留在 `web/workbench/src/mockService.js`。
 - Flutter UI scaffold 不得导入 Core pipeline 模块。
 

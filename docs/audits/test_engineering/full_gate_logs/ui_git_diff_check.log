@@ -10,12 +10,16 @@ warning: in the working copy of 'docs/VERSION_MATRIX.zh-CN.md', LF will be repla
 warning: in the working copy of 'docs/WORKBENCH_UI_SPEC.md', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'docs/WORKBENCH_UI_SPEC.zh-CN.md', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'docs/audits/test_engineering/full_gate_logs/ui_git_diff_check.log', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/testing/VALIDATION_GATE_MANIFEST.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'heitang_kb_forge/test_governance/gates.py', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'pyproject.toml', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'skill.json', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'tests/test_skill_metadata.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/test_test_governance_manifest.py', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'tests/test_version_alignment.py', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'tests/test_version_matrix_docs.py', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'tests/test_workbench_external_capability_registry.py', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'tests/test_workbench_ui_contract.py', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'web/workbench/contracts.json', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'web/workbench/flutter_app/README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'web/workbench/flutter_app/pubspec.yaml', LF will be replaced by CRLF the next time Git touches it

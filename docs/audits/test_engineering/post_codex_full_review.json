@@ -1,51 +1,51 @@
 {
-  "review_id": "post_codex_full_review_v4.1.1_2026-06-11",
-  "review_level": "Full Review",
+  "review_id": "post_codex_full_review_v4.2.0_2026-06-11",
+  "review_level": "full",
   "status": "passed",
   "generated_local_date": "2026-06-11",
   "surfaces_checked": [
-    "Documentation truth",
-    "Product architecture boundary",
-    "Core/UI contract consistency",
-    "External project ready/executable claims",
-    "Test and release evidence",
-    "Dependency/runtime boundary",
-    "Workspace path hygiene",
-    "Token/log governance",
-    "Tag/release boundary"
+    "documentation_truth",
+    "product_architecture_boundary",
+    "core_ui_contract_consistency",
+    "external_project_ready_executable_claims",
+    "test_and_release_evidence",
+    "dependency_runtime_boundary",
+    "workspace_path_hygiene",
+    "token_log_governance",
+    "tag_release_boundary"
   ],
   "open_issues": [],
   "resolved_issues": [
     {
-      "id": "PCR-v4.1.1-001",
-      "severity": "P2",
+      "id": "PCR-v4.2.0-001",
+      "severity": "P1",
       "surface": "Test and release evidence",
-      "file/path": "docs/audits/test_engineering/validation_report.md; docs/audits/test_engineering/validation_report.json",
-      "evidence": "Core core_full_g_m_chunk and UI ui_full_pytest_chunk summaries contained 1 skipped test, while the report initially said Deferred Or Skipped: None.",
-      "impact": "Could be misread as no skipped test existed, weakening the no-skipped-as-passed release evidence rule.",
-      "recommended_fix": "Record skipped tests separately from skipped chunks and keep chunk status tied to command exit code.",
+      "file/path": "Core/UI docs/audits/test_engineering/validation_report.{md,json} and post_codex_full_review.{md,json}",
+      "evidence": "Canonical reports still identified v4.1.1 and stated that P2.2 was not started while current manifests and Full Gate sidecars were v4.2.0.",
+      "impact": "v4.2.0 had no trustworthy canonical Full Gate/Full Review evidence.",
+      "recommended_fix": "Regenerate canonical reports from the current Core 8/8 and UI 6/6 sidecars and record skipped tests separately.",
       "blocks_release": true,
-      "status": "resolved",
-      "fix_evidence": "Both reports now include skipped_tests for tests/test_live_provider_smoke.py::test_live_provider_smoke_entrypoint_is_explicitly_opt_in with reason HEITANG_RUN_LIVE_TESTS=1."
+      "status": "resolved"
     }
   ],
   "stop_conditions": {
     "P0": 0,
     "P1": 0,
-    "P2_open": 0,
-    "P2_resolved_or_deferred": true,
-    "P3_backlog_only": true,
-    "fixes_have_corresponding_gates": true,
-    "no_new_scope_added": true
+    "open_P2": 0,
+    "P3_blocks_release": false,
+    "fixes_have_gate_evidence": true,
+    "new_scope_added": false
   },
   "evidence": {
-    "core_validation_report": "docs/audits/test_engineering/validation_report.json",
-    "ui_validation_report": "docs/audits/test_engineering/validation_report.json",
-    "core_chunked_full_gate": "8/8 chunks passed with log and exit code sidecars",
-    "ui_chunked_full_gate": "6/6 chunks passed with log and exit code sidecars",
-    "external_registry": "needs_verification=0; no ready/executable/real_local_passed flags found in Core registry review",
-    "ui_external_registry": "no executable_action=true or ready/executable flags found in UI asset review",
-    "tag_boundary": "At Full Review time, v4.1.1 tag publication was pending; stable closure creates a new v4.1.1 tag while v4.0.0/v4.1.0 remain untouched",
-    "workspace_path_boundary": "Current v4.1.1 validation reports do not reference C legacy paths; old tracked v4.1.0 UI log remains historical evidence only"
+    "core_chunked_full_gate": "8/8 chunks completed with exit code 0",
+    "ui_chunked_full_gate": "6/6 chunks completed with exit code 0",
+    "core_test_summary": "1000 passed, 1 skipped across configured chunks",
+    "ui_test_summary": "505 passed, 1 skipped; Flutter tests 34 passed",
+    "core_external_registry": "27 projects; needs_verification=0; no ready/executable/local_ready claims",
+    "ui_external_registry": "23 projects; no executable_action/ready/executable/needs_verification claims",
+    "workbench_boundary": "Web static evidence workflow; no local CLI execution",
+    "workspace_path_boundary": "D-drive primary workspace; no new C-drive governance writes",
+    "log_governance": "per-gate logs with exit-code and result sidecars",
+    "tag_boundary": "v4.0.0, v4.1.0, and v4.1.1 untouched; v4.2.0 pending remote green gates"
   }
 }

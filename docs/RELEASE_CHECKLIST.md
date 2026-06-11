@@ -1,25 +1,25 @@
 # Release Checklist
 
-Current project version: `4.1.1`
+Current project version: `4.2.0`
 
-Current stable release: `v4.1.1`
+Current stable release: `v4.2.0`
 
-Current stage: v4.1.1 Test Framework Governance stable release closure after v4.1.0 P2.1 Parser/OCR Workbench evidence sync; v4.0.0 and v4.1.0 remain untouched historical stable tags.
+Current stage: v4.2.0 P2.2 Skill Factory industrial workflow release closure after v4.1.1 P2.2 Entry Gate; v4.0.0, v4.1.0, and v4.1.1 remain untouched historical stable tags.
 
 ## Required Checks
 
 - [x] Version aligned in `pyproject.toml`, `skill.json`, README, Capability Status, Version Matrix, and Release Checklist
-- [x] v4.1.1 is documented as the P2.2 Entry Gate / Test Governance Stable Baseline, not as part of P2.2
-- [x] P2.2 remains blocked until Core/UI release-truth closure, Core/UI CI green, Core/UI Release Check green, v4.1.1 tag / GitHub Release, and Workspace handoff/status sync are complete
-- [x] v4.1.1 scope is limited to test governance, release governance, and validation cost control; no P2.2 business capability is included
+- [x] v4.1.1 is preserved as the P2.2 Entry Gate / Test Governance Stable Baseline, not as part of P2.2 UI capability delivery
+- [x] v4.2.0 covers P2.2 Skill Factory industrial UI closure: Knowledge Package, Evidence, Methodology, Candidates, Hierarchy, Skill Suite, Reports, and Export evidence surfaces
+- [x] P2.3 is not started, and Web static Workbench does not execute the local Core CLI
 - [x] P1 Final Gate, External Project Registry, S/A Contract Inclusion, rc.1 acceptance, and release hardening evidence remain attached
 - [x] Parser backend matrix fixture and Flutter asset are copied from Core runtime baseline commit `576a62075dc1ecbe00388bb0569fd1fc767be7cb`
 - [x] Workbench displays parser/OCR evidence, install mode, stable surface, known limitations, and no runtime execution claim
 - [x] Test Framework Governance artifacts added: [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json), [Test Pruning Register](testing/TEST_PRUNING_REGISTER.md), pytest markers, and `heitang_kb_forge.test_governance.gates`
-- [x] v4.1.1 stable release closure is backed by Chunked Full Gate, Post-Codex Full Review, CI, Release Check, tag, and GitHub Release evidence
-- [ ] Before any validation phase, load [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json), generate a changed-file impact map, select Fast / Medium / Full Gate, run only impacted tests during development, run Medium Gate at phase closure, run Chunked Full Gate before tag/release, preserve logs for long-running gates, and never report skipped/deferred tests as passed
+- [ ] v4.2.0 stable release closure is backed by a new Chunked Full Gate, Post-Codex Full Review, CI, Release Check, tag, and GitHub Release evidence
+- [x] Before any validation phase, load [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json), generate a changed-file impact map, select Fast / Medium / Full Gate, run only impacted tests during development, run Medium Gate at phase closure, run Chunked Full Gate before tag/release, preserve logs for long-running gates, and never report skipped/deferred tests as passed
 - [x] Post-Codex Full Review completed before tag/release with P0=0, P1=0, and P2 fixed or explicitly deferred; P3 backlog does not block release
-- [x] `python -m pytest` passed through the v4.1.1 UI Chunked Full Gate
+- [x] `python -m pytest` passed through the v4.2.0 UI Chunked Full Gate
 - [ ] Doctor command `python -m heitang_kb_forge.cli doctor --output ./tmp_doctor` passed
 - [ ] Quickstart build passed
 - [ ] Quickstart output contains `manifest.json`, `chunks.jsonl`, and `quality_report.json`

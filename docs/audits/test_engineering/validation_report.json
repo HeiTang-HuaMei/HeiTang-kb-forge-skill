@@ -1,127 +1,91 @@
 {
-  "version": "v4.1.1",
-  "release_title": "Test Framework Governance, Obsolete Test Pruning & Scalable Validation",
+  "version": "v4.2.0",
+  "release_title": "P2.2 Skill Factory Industrial UI Closure",
   "repository": "ui",
   "gate": "chunked_full_gate",
-  "decision": "chunked_full_gate_and_post_codex_full_review_passed_pending_commit_push_ci_tag_release",
+  "decision": "chunked_full_gate_and_post_codex_full_review_passed_pending_remote_release_gates",
   "release_blocking": true,
   "generated_local_date": "2026-06-11",
-  "changed_files": [
-    "docs/testing/VALIDATION_GATE_MANIFEST.json",
-    "heitang_kb_forge/test_governance/gates.py",
-    "tests/test_test_governance_manifest.py",
-    "docs/RELEASE_CHECKLIST.md",
-    "docs/RELEASE_CHECKLIST.zh-CN.md",
-    "v4.1.1 Workbench truth docs and metadata"
-  ],
   "chunks": [
     {
       "name": "ui_full_pytest_chunk",
-      "command": "python -m pytest -q",
       "exit_code": 0,
-      "exit_code_path": "docs/audits/test_engineering/full_gate_logs/ui_full_pytest_chunk.log.exitcode",
       "status": "passed",
-      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_full_pytest_chunk.log",
-      "summary": "........................................................................ [ 14%]\n........................................................................ [ 28%]\n...................s.................................................... [ 42%]\n........................................................................ [ 56%]\n........................................................................ [ 71%]\n........................................................................ [ 85%]\n........................................................................ [ 99%]\n..                                                                       [100%]\n505 passed, 1 skipped in 26.57s"
+      "summary": "505 passed, 1 skipped",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_full_pytest_chunk.log"
     },
     {
       "name": "ui_flutter_analyze_chunk",
-      "command": "flutter analyze",
       "exit_code": 0,
-      "exit_code_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_analyze_chunk.log.exitcode",
       "status": "passed",
-      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_analyze_chunk.log",
-      "summary": "Resolving dependencies...\nDownloading packages...\n  flutter_lints 4.0.0 (6.0.0 available)\n  lints 4.0.0 (6.1.0 available)\n  matcher 0.12.19 (0.12.20 available)\n  meta 1.18.0 (1.18.3 available)\n  test_api 0.7.11 (0.7.12 available)\n  vector_math 2.2.0 (2.4.0 available)\nGot dependencies!\n6 packages have newer versions incompatible with dependency constraints.\nTry `flutter pub outdated` for more information.\nAnalyzing flutter_app...                                        \nNo issues found! (ran in 5.9s)"
+      "summary": "No issues found",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_analyze_chunk.log"
     },
     {
       "name": "ui_flutter_test_chunk",
-      "command": "flutter test -r expanded",
       "exit_code": 0,
-      "exit_code_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_test_chunk.log.exitcode",
       "status": "passed",
-      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_test_chunk.log",
-      "summary": "00:01 +6: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: contract fixture parses p1 workbench contracts\n00:01 +7: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: p1 real workflow v1 evidence parses and keeps gate blocked\n00:01 +8: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: p1 real workflow v2 evidence parses final local path closure without v4 release\n00:01 +9: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: p1 real workflow v2 copied report assets parse and match the fixture summary\n00:01 +10: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: external capability assets parse as boundary-only S/A contract data\n00:01 +11: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: p2.1 parser backend matrix asset parses with release boundaries\n00:01 +12: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: full p1 fixture drives real local and deterministic smoke Core actions through the bridge request path\n00:01 +13: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders desktop HeiTang workbench shell without Flutter exceptions\n00:03 +14: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders mobile HeiTang workbench shell without Flutter exceptions\n00:03 +15: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: keeps English and dark mode controls usable\n00:06 +16: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders dedicated p1 pages without Flutter exceptions\n00:08 +17: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders p1 real workflow v1 evidence while final V2 gate is ready\n00:08 +18: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders p1 real workflow v2 evidence and keeps v4 release boundary\n00:09 +19: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders S/A external capability boundaries without executable claims\n00:09 +20: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders parser backend evidence without executable parser claims\n00:10 +21: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: renders contract-driven action and agent mode data in English\n00:11 +22: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: runs the desktop rag_query core action through an injected bridge\n00:11 +23: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: disables local CLI actions on web runtime without calling the runner\n00:12 +24: D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart: shows disabled blocked_reason for provider and secret actions\n00:12 +25: All tests passed!"
+      "summary": "34 passed",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_test_chunk.log"
     },
     {
       "name": "ui_flutter_build_web_chunk",
-      "command": "flutter build web",
       "exit_code": 0,
-      "exit_code_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_build_web_chunk.log.exitcode",
       "status": "passed",
-      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_build_web_chunk.log",
-      "summary": "Resolving dependencies...\nDownloading packages...\n  flutter_lints 4.0.0 (6.0.0 available)\n  lints 4.0.0 (6.1.0 available)\n  matcher 0.12.19 (0.12.20 available)\n  meta 1.18.0 (1.18.3 available)\n  test_api 0.7.11 (0.7.12 available)\n  vector_math 2.2.0 (2.4.0 available)\nGot dependencies!\n6 packages have newer versions incompatible with dependency constraints.\nTry `flutter pub outdated` for more information.\nCompiling lib\\main.dart for the Web...                          \nWasm dry run succeeded. Consider building and testing your application with the `--wasm` flag. See docs for more info: https://docs.flutter.dev/platform-integration/web/wasm\nUse --no-wasm-dry-run to disable these warnings.\nExpected to find fonts for (MaterialIcons, packages/cupertino_icons/CupertinoIcons), but found (MaterialIcons). This usually means you are referring to font families in an IconData class but not including them in the assets section of your pubspec.yaml, are missing the package that would include them, or are missing \"uses-material-design: true\".\nFont asset \"MaterialIcons-Regular.otf\" was tree-shaken, reducing it from 1645184 to 9600 bytes (99.4% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.\nCompiling lib\\main.dart for the Web...                             56.7s\n√ Built build\\web"
+      "summary": "Web build completed",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_build_web_chunk.log"
     },
     {
       "name": "ui_flutter_build_windows_chunk",
-      "command": "flutter build windows",
       "exit_code": 0,
-      "exit_code_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_build_windows_chunk.log.exitcode",
       "status": "passed",
-      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_build_windows_chunk.log",
-      "summary": "Resolving dependencies...\nDownloading packages...\n  flutter_lints 4.0.0 (6.0.0 available)\n  lints 4.0.0 (6.1.0 available)\n  matcher 0.12.19 (0.12.20 available)\n  meta 1.18.0 (1.18.3 available)\n  test_api 0.7.11 (0.7.12 available)\n  vector_math 2.2.0 (2.4.0 available)\nGot dependencies!\n6 packages have newer versions incompatible with dependency constraints.\nTry `flutter pub outdated` for more information.\nBuilding Windows application...                                    51.6s\n√ Built build\\windows\\x64\\runner\\Release\\heitang_workbench.exe"
+      "summary": "Windows build completed",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_flutter_build_windows_chunk.log"
     },
     {
       "name": "ui_git_diff_check",
-      "command": "git diff --check",
       "exit_code": 0,
-      "exit_code_path": "docs/audits/test_engineering/full_gate_logs/ui_git_diff_check.log.exitcode",
       "status": "passed",
-      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_git_diff_check.log",
-      "summary": "warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'README.zh-CN.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/CAPABILITY_STATUS.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/CAPABILITY_STATUS.zh-CN.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/RELEASE_CHECKLIST.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/RELEASE_CHECKLIST.zh-CN.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/VERSION_MATRIX.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/VERSION_MATRIX.zh-CN.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/WORKBENCH_UI_SPEC.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/WORKBENCH_UI_SPEC.zh-CN.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/audits/test_engineering/full_gate_logs/ui_git_diff_check.log', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'pyproject.toml', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'skill.json', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_skill_metadata.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_version_alignment.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_version_matrix_docs.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_workbench_external_capability_registry.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'tests/test_workbench_ui_contract.py', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'web/workbench/contracts.json', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'web/workbench/flutter_app/README.md', LF will be replaced by CRLF the next time Git touches it"
+      "summary": "No whitespace errors; CRLF conversion warnings only",
+      "log_path": "docs/audits/test_engineering/full_gate_logs/ui_git_diff_check.log"
     }
   ],
   "deferred": [],
   "skipped": [],
-  "commands_deferred": [],
-  "commands_skipped": [],
-  "post_codex_full_review": {
-    "status": "passed",
-    "review_report_json": "docs/audits/test_engineering/post_codex_full_review.json",
-    "review_report_md": "docs/audits/test_engineering/post_codex_full_review.md",
-    "open_issues": [],
-    "resolved_issues": [
-      {
-        "id": "PCR-v4.1.1-001",
-        "severity": "P2",
-        "surface": "Test and release evidence",
-        "file/path": "docs/audits/test_engineering/validation_report.md; docs/audits/test_engineering/validation_report.json",
-        "evidence": "Core core_full_g_m_chunk and UI ui_full_pytest_chunk summaries contained 1 skipped test, while the report initially said Deferred Or Skipped: None.",
-        "impact": "Could be misread as no skipped test existed, weakening the no-skipped-as-passed release evidence rule.",
-        "recommended_fix": "Record skipped tests separately from skipped chunks and keep chunk status tied to command exit code.",
-        "blocks_release": true,
-        "status": "resolved",
-        "fix_evidence": "Both reports now include skipped_tests for tests/test_live_provider_smoke.py::test_live_provider_smoke_entrypoint_is_explicitly_opt_in with reason HEITANG_RUN_LIVE_TESTS=1."
-      }
-    ],
-    "blocking_rule": "P0=0, P1=0, P2 fixed or explicitly deferred; P3 backlog does not block release."
-  },
-  "remaining_release_gates": [
-    "Commit",
-    "Push",
-    "CI green",
-    "v4.1.1 tag/release coordination"
-  ],
-  "boundaries": [
-    "Static Workbench does not claim local parser/OCR runtime execution.",
-    "Parser/OCR fixture remains historical Core evidence and is not rewritten as v4.1.1 runtime execution.",
-    "Flutter build outputs are local artifacts and must remain uncommitted.",
-    "No skipped/deferred/env-blocked check is reported as passed.",
-    "v4.0.0 and v4.1.0 tags remain untouched.",
-    "P2.2 is not started."
-  ],
-  "notes": [
-    "UI release sequence includes pytest, Flutter analyze, Flutter test, Flutter web build, Flutter Windows build, and git diff check.",
-    "UI manifest now requires Post-Codex Review Gate metadata, matching the Core release-governance boundary."
-  ],
-  "runner_output": "docs/audits/test_engineering/full_gate_logs/ui_release_sequence_runner.json",
-  "runner_exit_code_path": "docs/audits/test_engineering/full_gate_logs/ui_release_sequence_runner.exitcode",
   "skipped_tests": [
     {
       "chunk": "ui_full_pytest_chunk",
       "test": "tests/test_live_provider_smoke.py::test_live_provider_smoke_entrypoint_is_explicitly_opt_in",
-      "status": "skipped",
-      "reason": "Live provider smoke tests require HEITANG_RUN_LIVE_TESTS=1",
+      "reason": "Requires explicit HEITANG_RUN_LIVE_TESTS=1 opt-in and a live provider boundary",
       "release_impact": "non_blocking_explicit_opt_in_live_provider_smoke"
     }
+  ],
+  "post_codex_full_review": {
+    "status": "passed",
+    "report": "docs/audits/test_engineering/post_codex_full_review.md",
+    "open_issue_counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0
+    },
+    "resolved_issues": [
+      "PCR-v4.2.0-001"
+    ]
+  },
+  "remaining_release_gates": [
+    "commit",
+    "push",
+    "UI CI green",
+    "UI Release Check green",
+    "green run commit equals UI HEAD",
+    "coordinate Core v4.2.0 tag and GitHub Release"
+  ],
+  "boundaries": [
+    "Web remains static-only and does not execute the local Core CLI",
+    "external projects remain visibility-only and are not installed, ready, or executable",
+    "v4.1.0 parser/OCR fixture remains historical evidence",
+    "v4.1.1 remains the P2.2 Entry Gate / Test Governance Stable Baseline",
+    "P2.3 is not started",
+    "skipped and deferred checks are not reported as passed"
   ]
 }
