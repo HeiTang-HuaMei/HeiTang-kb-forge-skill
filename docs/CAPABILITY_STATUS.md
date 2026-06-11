@@ -1,10 +1,10 @@
 # Capability Status
 
-Current Core package version: `4.1.1`
-Current stable release: `v4.1.1`
-Previous stable release: `v4.1.0`
+Current Core package version: `4.2.0`
+Current stable release: `v4.2.0`
+Previous stable release: `v4.1.1`
 
-Latest completed release work includes v3.12 Product Hardening & Local Release Readiness, P1 Final Gate Re-run, External Project Registry, S/A Contract Inclusion, v4.0.0 release hardening, P2.1 Parser/OCR industrial hardening, and v4.1.1 Test Framework Governance stable closure. `v4.1.1` is the current stable release; `v4.1.0` remains the historical Parser/OCR stable tag.
+Latest completed release work includes v3.12 Product Hardening & Local Release Readiness, P1 Final Gate Re-run, External Project Registry, S/A Contract Inclusion, v4.0.0 release hardening, P2.1 Parser/OCR industrial hardening, v4.1.1 Test Framework Governance stable closure, and v4.2.0 P2.2 Knowledge-to-Methodology-to-Skill-Suite industrial closure. `v4.2.0` is the current stable release; `v4.1.1` remains the P2.2 Entry Gate / Test Governance stable tag.
 
 ## Stable
 
@@ -20,6 +20,10 @@ Latest completed release work includes v3.12 Product Hardening & Local Release R
 - regression check
 - release blockers
 - validation gate manifest and impact-based test governance
+- evidence-window methodology extraction
+- evidence-backed Skill candidate planning
+- Planning / Functional / Atomic Skill Suite generation
+- suite-level validation, diff, installability, governance, and Skill Pack export
 
 ## Preview
 

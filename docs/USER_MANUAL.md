@@ -1,6 +1,6 @@
 # User Manual
 
-This manual describes the local Core workflow at package version `4.1.1` for the v4.1.1 Test Framework Governance release after v4.1.0 Parser/OCR hardening. The existing `v4.0.0` and `v4.1.0` tags remain untouched.
+This manual describes the local Core workflow at package version `4.2.0` for the v4.2.0 P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline after v4.1.1 Test Framework Governance. The existing `v4.0.0`, `v4.1.0`, and `v4.1.1` tags remain untouched.
 
 ## 1. Install Locally
 
@@ -107,7 +107,22 @@ python -m heitang_kb_forge.cli generate-agent --mode kb_bound --package .\tmp_pa
 
 `kb_bound` mode requires both `--package` and `--skill`.
 
-## 10. Run Local Agent Runtime Smoke
+## 10. Build a Governable Skill Suite
+
+```powershell
+python -m heitang_kb_forge.cli extract-methodology --kb .\tmp_package --out .\tmp_methodology
+python -m heitang_kb_forge.cli plan-skill-suite --methodology .\tmp_methodology --out .\tmp_skill_plan
+python -m heitang_kb_forge.cli build-skill-suite --plan .\tmp_skill_plan --out .\tmp_skill_suite
+python -m heitang_kb_forge.cli validate-skill-suite --suite .\tmp_skill_suite
+python -m heitang_kb_forge.cli diff-skill-suite --before .\tmp_old_skill_suite --after .\tmp_skill_suite --out .\tmp_suite_diff
+python -m heitang_kb_forge.cli check-skill-suite-installability --suite .\tmp_skill_suite
+python -m heitang_kb_forge.cli skill-suite-governance-report --suite .\tmp_skill_suite
+python -m heitang_kb_forge.cli export-skill-pack --suite .\tmp_skill_suite --out .\tmp_skill_pack
+```
+
+The suite flow keeps source evidence and risk flags attached from methodology extraction through validation, diff, installability, governance, and export. It does not call external provider APIs or vendor external runtimes.
+
+## 11. Run Local Agent Runtime Smoke
 
 ```powershell
 python -m heitang_kb_forge.cli run-local-agent --package .\tmp_package --agent .\tmp_agent_bound --task "Summarize the package" --output .\tmp_agent_runtime
@@ -115,7 +130,7 @@ python -m heitang_kb_forge.cli run-local-agent --package .\tmp_package --agent .
 
 This is a deterministic local runtime smoke, not a SaaS service and not a full autonomous Agent Runtime.
 
-## 11. Inspect Workspace, Storage, and Memory Lifecycle
+## 12. Inspect Workspace, Storage, and Memory Lifecycle
 
 ```powershell
 python -m heitang_kb_forge.cli init-workspace --workspace .\tmp_workspace --output .\tmp_workspace_init
@@ -127,7 +142,7 @@ python -m heitang_kb_forge.cli plan-memory-lifecycle --output .\tmp_memory
 
 Cleanup planning is not destructive by default.
 
-## 12. Run Golden Demo Acceptance
+## 13. Run Golden Demo Acceptance
 
 ```powershell
 python -m heitang_kb_forge.cli run-golden-demo-acceptance --package .\tmp_package --output .\tmp_golden --no-require-v37 --no-require-v38 --no-require-v39 --no-require-v310
@@ -135,7 +150,7 @@ python -m heitang_kb_forge.cli run-golden-demo-acceptance --package .\tmp_packag
 
 Use the `--require-*` defaults for release evidence once all prior version artifacts are present.
 
-## 13. Run Product Hardening
+## 14. Run Product Hardening
 
 ```powershell
 python -m heitang_kb_forge.cli product-hardening --workspace . --package .\tmp_package --output .\tmp_hardening --no-require-v37 --no-require-v38 --no-require-v39 --no-require-v310 --no-require-v311
@@ -143,7 +158,7 @@ python -m heitang_kb_forge.cli product-hardening --workspace . --package .\tmp_p
 
 For release evidence, run with default `--require-*` checks and provide all prior artifacts.
 
-## 14. Run Final Pre-v4 Audit
+## 15. Run Final Pre-v4 Audit
 
 ```powershell
 python -m heitang_kb_forge.cli final-pre-v4-audit --core-repo . --output .\tmp_final_audit
@@ -151,7 +166,7 @@ python -m heitang_kb_forge.cli final-pre-v4-audit --core-repo . --output .\tmp_f
 
 This audit may return `blocked`. That is correct when P0/P1 evidence is missing.
 
-## 15. Read Reports
+## 16. Read Reports
 
 Inside the `.\tmp_final_audit` output directory, start with:
 

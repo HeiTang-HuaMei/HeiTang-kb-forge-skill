@@ -1,10 +1,10 @@
 # Version Matrix
 
-Current Core package version: `4.1.1`
-Current stable release: `v4.1.1`
-Previous stable release: `v4.1.0`
+Current Core package version: `4.2.0`
+Current stable release: `v4.2.0`
+Previous stable release: `v4.1.1`
 
-Current stage: v4.1.1 Test Framework Governance after v4.1.0 Parser/OCR industrial hardening.
+Current stage: v4.2.0 P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline after v4.1.1 Test Framework Governance.
 
 | Version | Goal | Key Capabilities | Key Commands | Key Outputs | Status | Supported by Current HEAD | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -42,7 +42,8 @@ Current stage: v4.1.1 Test Framework Governance after v4.1.0 Parser/OCR industri
 | v4.0.0-rc.1 | Local Knowledge Workbench release candidate | P1 final gate, external project registry, S/A contract inclusion, local-first release readiness | `doctor`, `release-readiness`, `final-pre-v4-audit` | rc evidence, release readiness reports | historical | yes | Candidate release accepted before stable v4.0.0. |
 | v4.0.0 | Stable Local Knowledge Workbench release | Stable release after rc.1 acceptance and hardening | release-check workflow | release notes, tag, release-check CI | historical | yes | Untouched historical stable tag. |
 | v4.1.0 | Parser/OCR Pluggable Backend Runtime | P2.1 release hardening for Docling, PaddleOCR, Unstructured, builtin fallback, evidence replay, failure modes, Workbench sync | `parser-backend-registry`, `parser-backend-matrix`, `parser-backend-inspect`, `parser-backend-smoke`, `parser-backend-release-evidence` | `docs/audits/p2_1_parser_ocr_backends/` | historical | yes | Historical Parser/OCR industrial release line; heavy dependencies remain optional. |
-| v4.1.1 | P2.2 Entry Gate / Test Framework Governance | Validation gate manifest, changed-file impact selector, dry-run/executable validation runner, pytest markers, obsolete-test pruning register, token-efficient log policy | `python -m heitang_kb_forge.test_governance.gates` | `docs/testing/VALIDATION_GATE_MANIFEST.json`, `docs/testing/TEST_PRUNING_REGISTER.md` | stable | yes | P2.2 Entry Gate / Test Governance Stable Baseline; no P2.2 feature work starts until Core/UI release-truth closure, CI, Release Check, tag/release, and Workspace handoff/status sync are complete. |
+| v4.1.1 | P2.2 Entry Gate / Test Framework Governance | Validation gate manifest, changed-file impact selector, dry-run/executable validation runner, pytest markers, obsolete-test pruning register, token-efficient log policy | `python -m heitang_kb_forge.test_governance.gates` | `docs/testing/VALIDATION_GATE_MANIFEST.json`, `docs/testing/TEST_PRUNING_REGISTER.md` | historical | yes | P2.2 Entry Gate / Test Governance Stable Baseline; Core/UI release-truth closure, CI, Release Check, tag/release, and Workspace handoff/status sync completed before P2.2 feature work. |
+| v4.2.0 | P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline | Evidence windows, methodology extraction, skill candidate planning, Planning / Functional / Atomic hierarchy, routing rules, dependency graph, Skill Pack export, validation, diff, installability, governance report, and UI/CLI industrial closure | `extract-methodology`, `plan-skill-suite`, `build-skill-suite`, `export-skill-pack`, `validate-skill-suite`, `diff-skill-suite`, `check-skill-suite-installability`, `skill-suite-governance-report` | `methodology_map.json`, `skill_candidates.json`, `suite.json`, `SKILL_INDEX.md`, `ROUTING.md`, `DEPENDENCY_GRAPH.json`, `VALIDATION_REPORT.md`, `DIFF_REPORT.md`, `INSTALLABILITY_REPORT.md`, `GOVERNANCE_REPORT.md`, `skill_pack_manifest.json` | stable | yes | Anything2Skill, SkillX, and Anthropic Skills / skill-creator are used as L3/L4 contract/capability inspiration only; no runtime vendoring, provider/API integration, account binding, or P2.3 startup. |
 
 Unsupported or future:
 

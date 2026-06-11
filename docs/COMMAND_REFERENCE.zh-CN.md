@@ -1,10 +1,10 @@
 # 命令参考
 
-当前 Core package 版本：`4.1.1`
-当前 stable release：`v4.1.1`
-上一个 stable release：`v4.1.0`
+当前 Core package 版本：`4.2.0`
+当前 stable release：`v4.2.0`
+上一个 stable release：`v4.1.1`
 
-当前阶段：v4.1.1 Test Framework Governance，位于 v4.1.0 Parser/OCR hardening 之后；既有 v4.0.0 与 v4.1.0 tag 保持不变。
+当前阶段：v4.2.0 P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline，位于 v4.1.1 Test Framework Governance 之后；既有 v4.0.0、v4.1.0、v4.1.1 tag 保持不变。
 
 所有命令都是本地 Core 命令。Core tests 不需要真实 LLM/API/network，默认也不会调用。
 
@@ -95,6 +95,21 @@ python -m heitang_kb_forge.cli orchestrate-multi-kb --packages .\tmp_package --o
 python -m heitang_kb_forge.cli run-local-agent --package .\tmp_package --agent .\tmp_agent_bound --task "Summarize the package" --output .\tmp_runtime
 python -m heitang_kb_forge.cli workbench-contracts --core-output .\tmp_package --output .\tmp_workbench_contracts
 ```
+
+## P2.2 Skill Suite Flow
+
+```powershell
+python -m heitang_kb_forge.cli extract-methodology --kb .\tmp_package --out .\tmp_methodology
+python -m heitang_kb_forge.cli plan-skill-suite --methodology .\tmp_methodology --out .\tmp_skill_plan
+python -m heitang_kb_forge.cli build-skill-suite --plan .\tmp_skill_plan --out .\tmp_skill_suite
+python -m heitang_kb_forge.cli validate-skill-suite --suite .\tmp_skill_suite
+python -m heitang_kb_forge.cli diff-skill-suite --before .\tmp_old_skill_suite --after .\tmp_skill_suite --out .\tmp_suite_diff
+python -m heitang_kb_forge.cli check-skill-suite-installability --suite .\tmp_skill_suite
+python -m heitang_kb_forge.cli skill-suite-governance-report --suite .\tmp_skill_suite
+python -m heitang_kb_forge.cli export-skill-pack --suite .\tmp_skill_suite --out .\tmp_skill_pack
+```
+
+该流程保持 local-first。Anything2Skill、SkillX、Anthropic Skills / skill-creator 只作为 contract 与 capability shape 参考；Core 不 vendor 外部 runtime，也不调用 provider/account API。
 
 ## Workspace and Memory Lifecycle
 

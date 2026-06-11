@@ -2,9 +2,9 @@
 
 一个 offline-first 的 Agent Knowledge Supply Chain Core，用来把本地资料转成标准化、可追溯、可检索、可审计、可复用的知识资产。
 
-当前 Core：v4.1.1
+当前 Core：v4.2.0
 
-状态：v4.1.0 Parser/OCR industrial hardening 与 Workbench sync 之后，v4.1.1 Test Framework Governance 已进入 stable release closure。
+状态：v4.1.1 P2.2 Entry Gate / Test Governance Stable Baseline 之后，v4.2.0 P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline 已进入 release closure。
 
 快速理解入口：
 - 产品定位：[docs/CURRENT_TRUTH.md](docs/CURRENT_TRUTH.md)
@@ -26,22 +26,23 @@ HeiTang KB Forge Skill 是一个本地优先的 Agent 知识供应链 Core。它
 
 ## Current status
 
-当前 Core package 版本：`4.1.1`
-当前 stable release：`v4.1.1`
-上一个 stable release：`v4.1.0`
+当前 Core package 版本：`4.2.0`
+当前 stable release：`v4.2.0`
+上一个 stable release：`v4.1.1`
 历史 stable release：`v4.0.0`
 
-- v4.1.1 增加 test framework governance：validation gate manifest、changed-file impact selector、dry-run / executable gate runner、pytest markers 和 obsolete-test pruning register。
-- v4.1.1 stable release closure 已由 Chunked Full Gate、Post-Codex Full Review、CI、Release Check、tag 和 GitHub Release evidence 支撑。
+- v4.2.0 完成 P2.2 Knowledge-to-Methodology-to-Skill-Suite industrial baseline。
+- 已有 knowledge asset package 可以继续生成 evidence windows、methodology map、skill candidates、Skill Suite hierarchy、Skill Pack export、validation/diff/installability reports 和 suite governance evidence。
+- v4.1.1 保持为 P2.2 Entry Gate / Test Governance Stable Baseline。
 - P2.1 Parser/OCR pluggable backend runtime 保留 v4.1.0 release hardening 结果。
 - Docling、PaddleOCR、Unstructured 是真实 opt-in 本地 runtime adapters，依赖门控，不随默认安装打包。
 - 最新 P2.1 proof：`docs/audits/p2_1_parser_ocr_backends/`
 - 最新 live runtime proof：`docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json`
 - 本 release 中 Unstructured 的 stable surface 是 `.md/.txt`；PDF/DOCX/image extras 属于 future hardening。
 - Builtin parser 仍是默认 fallback path。
-- v4.1.0 保持为历史 Parser/OCR stable tag，v4.0.0 保持为未改动的历史 stable tag。
+- v4.1.0 保持为历史 Parser/OCR stable tag，v4.1.1 保持为历史 P2.2 Entry Gate tag，v4.0.0 保持为未改动的历史 stable tag。
 - 最终架构真值：[docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.zh-CN.md)
-- `ready_for_v4_rc=true` 保留为历史 P1 evidence；v4.1.1 只增加测试治理，不启动 P2.2。
+- `ready_for_v4_rc=true` 保留为历史 P1 evidence；P2.3 未启动。
 
 ## Core capabilities
 
@@ -51,6 +52,7 @@ HeiTang KB Forge Skill 是一个本地优先的 Agent 知识供应链 Core。它
 - 面向回答和验证两种目的的 RAG 路径，包括 claim verification、contradiction detection、freshness check 和 no-answer evidence handling。
 - Grounded Markdown、DOCX、PDF、PPTX 文档生成。
 - 面向 Codex、Claude Code、OpenClaw 和通用本地 Agent integration 的 Skill-first package generation。
+- P2.2 Skill Suite flow：methodology extraction、基于 evidence 的 candidate planning、Planning/Functional/Atomic hierarchy、routing rules、dependency graph、validation、diff、installability、governance report 和受控 Skill Pack export。
 - Standalone / KB-bound Agent package surface、本地 runtime smoke、KB boundary 检查、memory policy reports 和 mother/child orchestration contracts。
 - 本地 workspace registry、storage reports、lifecycle plans、artifact registries 和 P1 Workbench contract pack。
 - Parser/OCR backend runtime registry、matrix、inspect、smoke、live acceptance replay，以及 Docling、PaddleOCR、Unstructured 的 opt-in adapter release evidence。

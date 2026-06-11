@@ -12,25 +12,25 @@ This roadmap describes the current main branch direction only. Historical versio
 - `P0 blockers=0`
 - Pre-v4 External Project Registry complete.
 - S/A Contract Inclusion complete.
-- Current stable release: `v4.1.1`.
-- Previous stable release tag: `v4.1.0`.
+- Current stable release: `v4.2.0`.
+- Previous stable release tag: `v4.1.1`.
 - Historical stable release tag: `v4.0.0`.
 
-## Current Stable Gate: v4.1.1 Test Framework Governance
+## Current Stable Gate: v4.2.0 P2.2 Industrial Baseline
 
-The current stable product gate is the `v4.1.1` Test Framework Governance release: validation gate manifest, changed-file impact selector, dry-run/executable validation runner, pytest markers, obsolete-test pruning register, token-efficient logs, Core/UI validation, release-readiness, CI green, release-check workflow evidence, and no secret/build/raw artifact pollution. The existing `v4.0.0` and `v4.1.0` tags remain untouched.
+The current stable product gate is the `v4.2.0` P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline. Existing knowledge asset packages can flow through evidence windows, methodology extraction, skill candidate planning, Planning / Functional / Atomic Skill hierarchy, routing rules, dependency graph, Skill Pack export, validation, diff, installability, governance, and UI/CLI industrial closure. The existing `v4.0.0`, `v4.1.0`, and `v4.1.1` tags remain untouched.
 
-## P2.2 Entry Gate
+## P2.2 Entry Gate and Current Baseline
 
-`v4.1.1` is the P2.2 Entry Gate / Test Governance Stable Baseline. It is not part of P2.2; it is the required gate before v4.2 / P2.2 External Project Expansion / Next Capability Phase can start.
+`v4.1.1` is the P2.2 Entry Gate / Test Governance Stable Baseline. It is not part of P2.2; it was the required gate before v4.2 / P2.2 feature work could start and is now fulfilled.
 
 Version relationship:
 
 - `v4.1.0` = Parser/OCR Stable Baseline
 - `v4.1.1` = P2.2 Entry Gate / Test Governance Stable Baseline
-- `v4.2 / P2.2` = External Project Expansion / Next Capability Phase
+- `v4.2.0 / P2.2` = Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline
 
-P2.2 must not start until v4.1.1 stable release is complete: Core/UI release-truth closure, Core/UI CI green, Core/UI Release Check green, v4.1.1 tag / GitHub Release, and Workspace handoff/status sync. v4.1.1 only covers test governance, release governance, and validation cost control; it must not carry P2.2 business capabilities.
+P2.2 feature work started only after v4.1.1 stable release completed: Core/UI release-truth closure, Core/UI CI green, Core/UI Release Check green, v4.1.1 tag / GitHub Release, and Workspace handoff/status sync. v4.2.0 carries P2.2 business capability; P2.3 has not started.
 
 ## Later Gate: P2 Productization
 
@@ -52,6 +52,7 @@ This roadmap adds no new parser backend beyond the existing P2.1 Docling/PaddleO
 - stable v4.0.0 tag without release-check evidence
 - v4.1.1 release without test governance manifest, impacted gate selection, validation, and release hygiene
 - P2.2 started inside v4.1.1 release hardening
+- P2.3 started inside v4.2.0 release closure
 - SaaS multi-tenancy
 - team permissions
 - cloud sync

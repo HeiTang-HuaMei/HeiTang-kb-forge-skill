@@ -1,10 +1,10 @@
 # 本地隐私与安全
 
-当前 Core package 版本：`4.1.1`
-当前 stable release：`v4.1.1`
-上一个 stable release：`v4.1.0`
+当前 Core package 版本：`4.2.0`
+当前 stable release：`v4.2.0`
+上一个 stable release：`v4.1.1`
 
-当前阶段：v4.1.1 Test Framework Governance，位于 v4.1.0 Parser/OCR hardening 之后；既有 v4.0.0 与 v4.1.0 tag 保持不变。
+当前阶段：v4.2.0 P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline，位于 v4.1.1 Test Framework Governance 之后；既有 v4.0.0、v4.1.0、v4.1.1 tag 保持不变。
 
 HeiTang KB Forge Core 默认 local-first。
 
@@ -15,6 +15,7 @@ HeiTang KB Forge Core 默认 local-first。
 - LLM optional only：Core features 和 tests 必须在没有 LLM provider 配置时仍可使用。
 - No hidden upload：除非未来显式、审查过、opt-in 的功能声明，否则命令不得上传文档或生成包。
 - Tests 不需要真实 LLM/API/network：确定性本地路径和 offline fallback 是必需边界。
+- P2.2 Skill Suite flow 保持 local-first：methodology extraction、candidate planning、suite build、validation、diff、installability、governance 和 export 不需要外部 provider API 或 vendored runtime。
 
 ## Storage Boundary
 

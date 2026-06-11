@@ -1,5 +1,18 @@
 # Release Notes
 
+## v4.2.0
+
+`v4.2.0` 是 P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline。它从已有 knowledge asset package 出发，提炼 methodology evidence，规划 Skill Suite，生成可路由 Skill，并闭环 validation、diff、installability、governance、UI 与 CLI evidence。
+
+- 新增 P2.2 methodology flow：`extract-methodology --kb <knowledge_package> --out <methodology>`，输出 evidence windows、methodology map、source trace、confidence 和 risk flags。
+- 新增 Skill Suite planning/build 命令：`plan-skill-suite` 与 `build-skill-suite`，覆盖 Planning / Functional / Atomic 分类、routing rules、dependency graph、duplicate/conflict detection、merge/split evidence 和 suite manifest。
+- 新增受控 Skill Pack export：`export-skill-pack`，包含 allowed-file boundary、manifest hashes、description/trigger quality、evaluation checklist 和 optimization notes。
+- 新增 suite-level governance 命令：`validate-skill-suite`、`diff-skill-suite`、`check-skill-suite-installability` 和 `skill-suite-governance-report`。
+- 完成 Knowledge Package -> Evidence -> Methodology -> Candidates -> Hierarchy -> Skill Suite -> Reports -> Export 的 UI/CLI industrial workflow evidence；static Workbench 仍只展示 evidence，不作为本地 CLI executor。
+- 对应 UI release commit：`0049ccf135a3cd7fd76b51ec923db3ceb583c1c0`。
+- `v4.1.1` 保持为 P2.2 Entry Gate / Test Governance Stable Baseline，`v4.1.0` 保持为 Parser/OCR Stable Baseline，`v4.0.0` 保持不变。
+- 未启动 P2.3，未增加外部 runtime/provider/API integration 或 runtime vendoring。
+
 ## v4.1.1
 
 `v4.1.1` 是 Test Framework Governance release。它把 v4.1.0 validation hardening 中形成的经验固化为可执行治理资产，同时保留 v4.1.0 Parser/OCR runtime 边界。

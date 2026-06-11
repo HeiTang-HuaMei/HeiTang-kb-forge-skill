@@ -1,17 +1,17 @@
 # Release Checklist
 
-Current Core package version: `4.1.1`
-Current stable release: `v4.1.1`
-Previous stable release: `v4.1.0`
+Current Core package version: `4.2.0`
+Current stable release: `v4.2.0`
+Previous stable release: `v4.1.1`
 
-Current stage: v4.1.1 Test Framework Governance stable release closure after v4.1.0 Parser/OCR industrial hardening.
+Current stage: v4.2.0 P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline release closure after v4.1.1 P2.2 Entry Gate.
 
 ## Required Checks
 
 - [x] Version aligned in `pyproject.toml`, `skill.json`, README, Capability Status, Version Matrix, and Release Checklist
-- [x] v4.1.1 is documented as the P2.2 Entry Gate / Test Governance Stable Baseline, not as part of P2.2
-- [x] P2.2 remains blocked until Core/UI release-truth closure, Core/UI CI green, Core/UI Release Check green, v4.1.1 tag / GitHub Release, and Workspace handoff/status sync are complete
-- [x] v4.1.1 scope is limited to test governance, release governance, and validation cost control; no P2.2 business capability is included
+- [x] v4.1.1 is preserved as the P2.2 Entry Gate / Test Governance Stable Baseline, not as part of P2.2 capability delivery
+- [x] v4.2.0 covers P2.2 Knowledge-to-Methodology-to-Skill-Suite industrial closure: methodology extraction, candidates, hierarchy, suite build, export, validation, diff, installability, governance, and UI/CLI closure
+- [x] P2.3 is not started, and P2.2 does not add external runtime/provider/API integration or runtime vendoring
 - [x] P1 Final Gate, External Project Registry, and S/A Contract Inclusion evidence remain attached
 - [x] rc.1 acceptance and hardening evidence passed
 - [x] P2.1 parser/OCR backend evidence indexed under `docs/audits/p2_1_parser_ocr_backends/`
@@ -19,10 +19,10 @@ Current stage: v4.1.1 Test Framework Governance stable release closure after v4.
 - [x] Unstructured stable surface documented as `.md/.txt`
 - [x] Builtin parser fallback preserved
 - [x] Test Framework Governance artifacts added: [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json), [Test Pruning Register](testing/TEST_PRUNING_REGISTER.md), pytest markers, and `heitang_kb_forge.test_governance.gates`
-- [x] v4.1.1 stable release closure is backed by Chunked Full Gate, Post-Codex Full Review, CI, Release Check, tag, and GitHub Release evidence
-- [ ] Before any validation phase, read [Validation Strategy](testing/VALIDATION_STRATEGY.md), load [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json), generate a changed-file impact map, select Fast / Medium / Full Gate, run only impacted tests during development, run Medium Gate at phase closure, run Chunked Full Gate before tag/release, preserve logs for long-running gates, and never report skipped/deferred tests as passed
+- [ ] v4.2.0 stable release closure is backed by a new Chunked Full Gate, Post-Codex Full Review, CI, Release Check, tag, and GitHub Release evidence
+- [x] Before any validation phase, read [Validation Strategy](testing/VALIDATION_STRATEGY.md), load [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json), generate a changed-file impact map, select Fast / Medium / Full Gate, run only impacted tests during development, run Medium Gate at phase closure, run Chunked Full Gate before tag/release, preserve logs for long-running gates, and never report skipped/deferred tests as passed
 - [x] Post-Codex Full Review completed before tag/release with P0=0, P1=0, and P2 fixed or explicitly deferred; P3 backlog does not block release
-- [x] `python -m pytest` passed through the v4.1.1 Chunked Full Gate before tag/release
+- [x] `python -m pytest` passed through the v4.2.0 Chunked Full Gate before tag/release
 - [ ] Doctor command `python -m heitang_kb_forge.cli doctor --output ./tmp_doctor` passed
 - [ ] Quickstart build passed
 - [ ] Quickstart output contains `manifest.json`, `chunks.jsonl`, and `quality_report.json`
@@ -56,8 +56,9 @@ Current stage: v4.1.1 Test Framework Governance stable release closure after v4.
 - Do not claim full runtime compatibility; v2.7 is a local offline demo / portfolio release.
 - Do not claim parser backend mode is enabled by default; v2.8 parser backend reliability is opt-in.
 - Do not claim Docling or Marker are mandatory dependencies; v2.8 adapters are optional local integrations.
-- Do not claim Docling, PaddleOCR, or Unstructured are bundled by default; v4.1.1 preserves the v4.1.0 optional dependency-gated boundary.
-- Do not claim Unstructured PDF/DOCX/image support is stable in v4.1.1; the stable surface is `.md/.txt`.
+- Do not claim Docling, PaddleOCR, or Unstructured are bundled by default; v4.2.0 preserves the v4.1.0 optional dependency-gated boundary.
+- Do not claim Unstructured PDF/DOCX/image support is stable in v4.2.0; the stable surface is `.md/.txt`.
+- Do not claim Anything2Skill, SkillX, or Anthropic Skills / skill-creator are integrated as external runtimes, vendored code, providers, accounts, or APIs.
 - Do not display static Workbench runtime execution controls for heavy parser/OCR adapters unless backed by a Core executable contract.
 - Do not export draft parser-backed KBs to Skill, Agent, or platform packages unless `--allow-untrusted` is explicit.
 - Do not claim Knowledge Runtime Loop is enabled by default; v2.9 runtime outputs are opt-in and local.

@@ -1,17 +1,17 @@
 # Release Checklist
 
-当前 Core package 版本：`4.1.1`
-当前 stable release：`v4.1.1`
-上一个 stable release：`v4.1.0`
+当前 Core package 版本：`4.2.0`
+当前 stable release：`v4.2.0`
+上一个 stable release：`v4.1.1`
 
-当前阶段：v4.1.1 Test Framework Governance stable release closure，位于 v4.1.0 Parser/OCR industrial hardening 之后。
+当前阶段：v4.2.0 P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline release closure，位于 v4.1.1 P2.2 Entry Gate 之后。
 
 ## Required Checks
 
 - [x] `pyproject.toml`、`skill.json`、README、Capability Status、Version Matrix、Release Checklist 版本一致
-- [x] v4.1.1 已登记为 P2.2 Entry Gate / Test Governance Stable Baseline，不是 P2.2 的一部分
-- [x] Core/UI release-truth closure、Core/UI CI green、Core/UI Release Check green、v4.1.1 tag / GitHub Release、Workspace handoff/status 同步完成前，P2.2 保持阻塞
-- [x] v4.1.1 范围限定为测试治理、发布治理、测试成本控制，不夹带 P2.2 业务能力
+- [x] v4.1.1 保留为 P2.2 Entry Gate / Test Governance Stable Baseline，不是 P2.2 能力交付本身
+- [x] v4.2.0 覆盖 P2.2 Knowledge-to-Methodology-to-Skill-Suite industrial closure：methodology extraction、candidates、hierarchy、suite build、export、validation、diff、installability、governance 和 UI/CLI closure
+- [x] P2.3 未启动，P2.2 不增加外部 runtime/provider/API integration 或 runtime vendoring
 - [x] P1 Final Gate、External Project Registry 与 S/A Contract Inclusion evidence 仍然完整
 - [x] rc.1 acceptance 与 hardening evidence 已通过
 - [x] P2.1 parser/OCR backend evidence 已索引到 `docs/audits/p2_1_parser_ocr_backends/`
@@ -19,10 +19,10 @@
 - [x] Unstructured stable surface 明确为 `.md/.txt`
 - [x] Builtin parser fallback 保留
 - [x] Test Framework Governance artifacts 已添加：[Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json)、[测试瘦身登记表](testing/TEST_PRUNING_REGISTER.zh-CN.md)、pytest markers 与 `heitang_kb_forge.test_governance.gates`
-- [x] v4.1.1 stable release closure 已由 Chunked Full Gate、Post-Codex Full Review、CI、Release Check、tag 和 GitHub Release evidence 支撑
-- [ ] 任何 validation phase 前，阅读 [验证策略](testing/VALIDATION_STRATEGY.zh-CN.md)，加载 [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json)，生成 changed-file impact map，选择 Fast / Medium / Full Gate，开发中只运行 impacted tests，phase closure 运行 Medium Gate，tag/release 前运行 Chunked Full Gate，长时间 gate 保存 logs，并且绝不把 skipped/deferred tests 汇报为 passed
+- [ ] v4.2.0 stable release closure 由新的 Chunked Full Gate、Post-Codex Full Review、CI、Release Check、tag 和 GitHub Release evidence 支撑
+- [x] 任何 validation phase 前，阅读 [验证策略](testing/VALIDATION_STRATEGY.zh-CN.md)，加载 [Validation Gate Manifest](testing/VALIDATION_GATE_MANIFEST.json)，生成 changed-file impact map，选择 Fast / Medium / Full Gate，开发中只运行 impacted tests，phase closure 运行 Medium Gate，tag/release 前运行 Chunked Full Gate，长时间 gate 保存 logs，并且绝不把 skipped/deferred tests 汇报为 passed
 - [x] tag/release 前完成 Post-Codex Full Review，且 P0=0、P1=0、P2 已修复或明确 deferred；P3 backlog 不阻塞 release
-- [x] v4.1.1 在 tag/release 前通过 Chunked Full Gate 的 `python -m pytest` 分段验证
+- [x] v4.2.0 在 tag/release 前通过 Chunked Full Gate 的 `python -m pytest` 分段验证
 - [ ] Doctor 命令 `python -m heitang_kb_forge.cli doctor --output ./tmp_doctor` 通过
 - [ ] Quickstart build 通过
 - [ ] Quickstart 输出包含 `manifest.json`、`chunks.jsonl` 和 `quality_report.json`
@@ -54,8 +54,9 @@
 - 不声明完整 runtime compatibility；v2.7 是本地离线 demo / portfolio release。
 - 不声明 parser backend 默认开启；v2.8 parser backend reliability 是 opt-in。
 - 不声明 Docling 或 Marker 是必装依赖；v2.8 adapter 是可选本地集成。
-- 不声明 Docling、PaddleOCR 或 Unstructured 默认打包；v4.1.1 保留 v4.1.0 optional dependency-gated 边界。
-- 不声明 Unstructured PDF/DOCX/image support 在 v4.1.1 已稳定；stable surface 是 `.md/.txt`。
+- 不声明 Docling、PaddleOCR 或 Unstructured 默认打包；v4.2.0 保留 v4.1.0 optional dependency-gated 边界。
+- 不声明 Unstructured PDF/DOCX/image support 在 v4.2.0 已稳定；stable surface 是 `.md/.txt`。
+- 不声明 Anything2Skill、SkillX、Anthropic Skills / skill-creator 已作为外部 runtime、vendored code、provider、account 或 API 集成。
 - 没有 Core executable contract 支撑时，不在 static Workbench 展示 heavy parser/OCR runtime execution controls。
 - 未显式 `--allow-untrusted` 时，不把 draft parser-backed KB 导出为 Skill、Agent 或平台包。
 - 不声明 Knowledge Runtime Loop 默认开启；v2.9 runtime 输出是 opt-in 且本地运行。

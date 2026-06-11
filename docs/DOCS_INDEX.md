@@ -1,8 +1,8 @@
 # Docs Index
 
-Current Core package version: `4.1.1`
-Current stable release: `v4.1.1`
-Previous stable release: `v4.1.0`
+Current Core package version: `4.2.0`
+Current stable release: `v4.2.0`
+Previous stable release: `v4.1.1`
 
 This is the canonical documentation entry for the current main branch. Historical version details live in git history and tags, not as accumulated process docs on main.
 
@@ -56,4 +56,4 @@ This is the canonical documentation entry for the current main branch. Historica
 
 ## Boundaries
 
-LLM remains optional only; Core tests do not require real LLM/API/network calls. The existing `v4.0.0` and `v4.1.0` tags remain untouched, and `v4.1.1` is the current Test Framework Governance release after P2.1 hardening. Heavy parser/OCR dependencies remain optional and are not bundled by default.
+LLM remains optional only; Core tests do not require real LLM/API/network calls. The existing `v4.0.0`, `v4.1.0`, and `v4.1.1` tags remain untouched, and `v4.2.0` is the current P2.2 Knowledge-to-Methodology-to-Skill-Suite industrial baseline after the v4.1.1 Entry Gate. Heavy parser/OCR dependencies remain optional and are not bundled by default.

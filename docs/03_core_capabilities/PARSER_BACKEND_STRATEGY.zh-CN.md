@@ -1,8 +1,8 @@
 # Parser Backend Strategy
 
-当前 Core package 版本：`4.1.1`
-当前 stable release：`v4.1.1`
-上一个 stable release：`v4.1.0`
+当前 Core package 版本：`4.2.0`
+当前 stable release：`v4.2.0`
+上一个 stable release：`v4.1.1`
 
 本文记录 parser backend strategy。不会把外部 runtime 变成默认路径，不下载模型；只有显式选择 backend 且本地安装对应依赖时，才会运行外部 parser。
 

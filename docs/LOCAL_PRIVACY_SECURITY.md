@@ -1,10 +1,10 @@
 # Local Privacy and Security
 
-Current Core package version: `4.1.1`
-Current stable release: `v4.1.1`
-Previous stable release: `v4.1.0`
+Current Core package version: `4.2.0`
+Current stable release: `v4.2.0`
+Previous stable release: `v4.1.1`
 
-Current stage: v4.1.1 Test Framework Governance after v4.1.0 Parser/OCR hardening; the existing v4.0.0 and v4.1.0 tags remain untouched.
+Current stage: v4.2.0 P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline after v4.1.1 Test Framework Governance; the existing v4.0.0, v4.1.0, and v4.1.1 tags remain untouched.
 
 HeiTang KB Forge Core is local-first by default.
 
@@ -15,6 +15,7 @@ HeiTang KB Forge Core is local-first by default.
 - LLM optional only: Core features and tests must remain usable without configured LLM providers.
 - No hidden upload: commands must not upload documents or generated packages unless a future explicit, reviewed, opt-in feature says so.
 - No real LLM/API/network required by tests: deterministic local paths and offline fallbacks are mandatory.
+- P2.2 Skill Suite flow remains local-first: methodology extraction, candidate planning, suite build, validation, diff, installability, governance, and export do not require external provider APIs or vendored runtimes.
 
 ## Storage Boundary
 

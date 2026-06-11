@@ -1,6 +1,6 @@
 # Final Product Architecture Truth
 
-This document is the short, human-readable truth surface for the current v4.1.1 Core state. It summarizes what is implemented, partial, future-only, or blocking. Machine-readable evidence remains in `docs/audits/local_acceptance/large_bilingual_run/` for historical large-file acceptance, `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/` for the latest Core P0 after-live-LLM proof, `docs/audits/p2_1_parser_ocr_backends/` for P2.1 Parser/OCR backend release evidence, and `docs/testing/VALIDATION_GATE_MANIFEST.json` for v4.1.1 test governance.
+This document is the short, human-readable truth surface for the current v4.2.0 Core state. It summarizes what is implemented, partial, future-only, or blocking. Machine-readable evidence remains in `docs/audits/local_acceptance/large_bilingual_run/` for historical large-file acceptance, `docs/audits/local_acceptance/pre_v4_p0_after_live_llm/` for the latest Core P0 after-live-LLM proof, `docs/audits/p2_1_parser_ocr_backends/` for P2.1 Parser/OCR backend release evidence, `docs/audits/p2_2/` for the P2.2 supplemental version plan, and `docs/testing/VALIDATION_GATE_MANIFEST.json` for v4.2.0 release validation.
 
 ## Current Gate
 
@@ -13,7 +13,9 @@ This document is the short, human-readable truth surface for the current v4.1.1 
 - Full local pytest: passed for the latest Core provider-profile and P0 gate work.
 - UI validation: Core emits Workbench contracts, P1-RWF-V2 UI consumption remains historical v4 readiness evidence, and P2.1 parser backend matrix evidence is Workbench-visible without static heavy runtime execution claims.
 - P2.1 parser/OCR evidence: Docling, PaddleOCR, and Unstructured are real opt-in local runtime adapters; builtin parser fallback is preserved; Unstructured stable surface is `.md/.txt`.
-- v4.1.1 test governance: validation gate manifest, changed-file impact selector, validation runner, pytest markers, and obsolete-test pruning register are present.
+- v4.1.1 test governance: validation gate manifest, changed-file impact selector, validation runner, pytest markers, and obsolete-test pruning register are present as the P2.2 Entry Gate baseline.
+- v4.2.0 P2.2 Skill Suite governance: existing knowledge packages can produce evidence windows, methodology maps, skill candidates, Planning / Functional / Atomic hierarchy, routing rules, dependency graph, validation, diff, installability, governance report, and controlled Skill Pack export.
+- Historical v4 RC readiness evidence and the v4.1.0 Parser/OCR stable baseline remain attached for audit continuity.
 - Historical note: `docs/audits/local_acceptance/large_bilingual_run/` preserves the earlier large-file run where live LLM was still blocked. It must not be used as the latest live-LLM P0 conclusion.
 
 ## Architecture Truth Matrix
@@ -26,13 +28,13 @@ This document is the short, human-readable truth surface for the current v4.1.1 
 | RAG vector/hybrid/index | Local keyword/index paths, local JSON vector query, hybrid keyword/vector retrieval, metadata filtering, and stale index diagnostics are implemented and tested. Milvus, Pinecone, Qdrant, Chroma, and cloud vector DB adapters remain future/disabled. | implemented locally with external DB future boundary |
 | Retrieval quality and knowledge accuracy | Local rerank, evidence selection, diagnostics, claim/freshness/contradiction/accuracy reports exist. Contradictory sources must produce warning/review, not a false pass. | implemented with review boundary |
 | Document generation | Grounded MD/DOCX/PDF/PPTX generation and validation reports exist. | implemented |
-| Agent and Skill | Legacy Skill package, standalone Agent, KB-bound Agent, local deterministic runtime smoke, KB boundary, mother/child contracts, and memory policy reports exist. The P0-17 pass added structured Book-to-Skill packages with compact `SKILL.md`, on-demand loading, installability reports, and KB/RAG/Agent compatibility proof. Full autonomous tool-calling Agent Runtime is not implemented. | partial with structured Skill completion proof |
+| Agent and Skill | Legacy Skill package, standalone Agent, KB-bound Agent, local deterministic runtime smoke, KB boundary, mother/child contracts, memory policy reports, and P2.2 Skill Suite generation exist. The P2.2 path builds methodology-backed Planning / Functional / Atomic Skills with routing, dependency graph, validation, diff, installability, governance, and Skill Pack export. Full autonomous tool-calling Agent Runtime is not implemented. | implemented with suite governance boundaries |
 | Lifecycle | Create/query paths are proven. Update/diff/rebuild/regenerate/refresh are partial. Cleanup/archive remains recommendation-only and non-destructive by default. | partial |
 | Storage | `local_workspace` is the implemented default. `local_db` is partial/store-index oriented. BYO cloud/database is future/disabled, not implemented. | partial |
 | Security/privacy | Local-first, no hidden upload by default, API key redaction, and no platform-hosted user data are documented and tested. Dynamic runtime network proof and full UI security acceptance remain needs-review. | partial |
 | Scale | Synthetic 1500-scale checks exist. Real 1500 books, 1500 KBs, and 1500 Agents are not production-proven. | needs_review |
-| Test governance | Validation gate manifest, changed-file impact selector, dry-run/executable validation runner, pytest markers, obsolete-test pruning register, and token-efficient log policy are present. | v4.1.1 test governance |
-| UI | Core emits Workbench contracts. P1-RWF-V2 evidence and UI consumption are re-verified for v4 RC readiness; P2.1 Workbench sync may show backend matrix, evidence, install mode, and limitations without runtime execution controls. | v4.1.0 Workbench sync |
+| Test governance | Validation gate manifest, changed-file impact selector, dry-run/executable validation runner, pytest markers, obsolete-test pruning register, and token-efficient log policy are present. | v4.1.1 baseline reused as release process |
+| UI | Core emits Workbench contracts. P1-RWF-V2 evidence and UI consumption are historical v4 readiness evidence; P2.1 Workbench sync may show backend matrix, evidence, install mode, and limitations without runtime execution controls; P2.2 UI industrial closure shows Knowledge Package -> Evidence -> Methodology -> Candidates -> Hierarchy -> Skill Suite -> Reports -> Export as a static evidence workflow. | v4.2.0 UI/CLI industrial closure |
 
 ## Must Not Claim Yet
 
@@ -47,8 +49,9 @@ This document is the short, human-readable truth surface for the current v4.1.1 
 - BYO cloud/database implemented
 - destructive cleanup enabled by default
 - Docling, PaddleOCR, or Unstructured bundled in the default install
-- Unstructured PDF/DOCX/image support as stable in v4.1.1
-- P2.2 Skill Governance started inside v4.1.1
+- Unstructured PDF/DOCX/image support as stable in v4.2.0
+- P2.3 started inside v4.2.0
+- Anything2Skill, SkillX, or Anthropic Skills / skill-creator integrated as external runtimes, vendored code, providers, accounts, or APIs
 - do not claim platform-hosted user data as a default
 
 ## Evidence Files

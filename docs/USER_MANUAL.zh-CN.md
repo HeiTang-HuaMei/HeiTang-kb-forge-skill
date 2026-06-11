@@ -1,6 +1,6 @@
 # 用户手册
 
-本文说明 package version `4.1.1` / v4.1.1 Test Framework Governance release 的本地 Core 工作流，位于 v4.1.0 Parser/OCR hardening 之后；既有 `v4.0.0` 与 `v4.1.0` tag 保持不变。
+本文说明 package version `4.2.0` / v4.2.0 P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline 的本地 Core 工作流，位于 v4.1.1 Test Framework Governance 之后；既有 `v4.0.0`、`v4.1.0`、`v4.1.1` tag 保持不变。
 
 ## 1. 本地安装
 
@@ -107,7 +107,22 @@ python -m heitang_kb_forge.cli generate-agent --mode kb_bound --package .\tmp_pa
 
 `kb_bound` mode 必须提供 `--package` 和 `--skill`。
 
-## 10. 运行本地 Agent Runtime Smoke
+## 10. 构建可治理 Skill Suite
+
+```powershell
+python -m heitang_kb_forge.cli extract-methodology --kb .\tmp_package --out .\tmp_methodology
+python -m heitang_kb_forge.cli plan-skill-suite --methodology .\tmp_methodology --out .\tmp_skill_plan
+python -m heitang_kb_forge.cli build-skill-suite --plan .\tmp_skill_plan --out .\tmp_skill_suite
+python -m heitang_kb_forge.cli validate-skill-suite --suite .\tmp_skill_suite
+python -m heitang_kb_forge.cli diff-skill-suite --before .\tmp_old_skill_suite --after .\tmp_skill_suite --out .\tmp_suite_diff
+python -m heitang_kb_forge.cli check-skill-suite-installability --suite .\tmp_skill_suite
+python -m heitang_kb_forge.cli skill-suite-governance-report --suite .\tmp_skill_suite
+python -m heitang_kb_forge.cli export-skill-pack --suite .\tmp_skill_suite --out .\tmp_skill_pack
+```
+
+suite flow 会从 methodology extraction 到 validation、diff、installability、governance 和 export 保留 source evidence 与 risk flags。它不调用外部 provider API，也不 vendor 外部 runtime。
+
+## 11. 运行本地 Agent Runtime Smoke
 
 ```powershell
 python -m heitang_kb_forge.cli run-local-agent --package .\tmp_package --agent .\tmp_agent_bound --task "Summarize the package" --output .\tmp_agent_runtime
@@ -115,7 +130,7 @@ python -m heitang_kb_forge.cli run-local-agent --package .\tmp_package --agent .
 
 这是确定性的本地 runtime smoke，不是 SaaS service，也不是完整 autonomous Agent Runtime。
 
-## 11. 检查 Workspace、Storage 与 Memory Lifecycle
+## 12. 检查 Workspace、Storage 与 Memory Lifecycle
 
 ```powershell
 python -m heitang_kb_forge.cli init-workspace --workspace .\tmp_workspace --output .\tmp_workspace_init
@@ -127,7 +142,7 @@ python -m heitang_kb_forge.cli plan-memory-lifecycle --output .\tmp_memory
 
 cleanup plan 默认不执行破坏性删除。
 
-## 12. 运行 Golden Demo Acceptance
+## 13. 运行 Golden Demo Acceptance
 
 ```powershell
 python -m heitang_kb_forge.cli run-golden-demo-acceptance --package .\tmp_package --output .\tmp_golden --no-require-v37 --no-require-v38 --no-require-v39 --no-require-v310
@@ -135,7 +150,7 @@ python -m heitang_kb_forge.cli run-golden-demo-acceptance --package .\tmp_packag
 
 准备 release evidence 时，应使用默认 `--require-*` 检查，并提供所有 prior artifacts。
 
-## 13. 运行 Product Hardening
+## 14. 运行 Product Hardening
 
 ```powershell
 python -m heitang_kb_forge.cli product-hardening --workspace . --package .\tmp_package --output .\tmp_hardening --no-require-v37 --no-require-v38 --no-require-v39 --no-require-v310 --no-require-v311
@@ -143,7 +158,7 @@ python -m heitang_kb_forge.cli product-hardening --workspace . --package .\tmp_p
 
 准备 release evidence 时，应使用默认 `--require-*` 检查。
 
-## 14. 运行最终 Pre-v4 审计
+## 15. 运行最终 Pre-v4 审计
 
 ```powershell
 python -m heitang_kb_forge.cli final-pre-v4-audit --core-repo . --output .\tmp_final_audit
@@ -151,7 +166,7 @@ python -m heitang_kb_forge.cli final-pre-v4-audit --core-repo . --output .\tmp_f
 
 该审计可能返回 `blocked`。当 P0/P1 证据缺失时，这是正确结果。
 
-## 15. 阅读报告
+## 16. 阅读报告
 
 在 `.\tmp_final_audit` 输出目录中，优先阅读：
 

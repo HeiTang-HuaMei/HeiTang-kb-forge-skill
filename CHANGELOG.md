@@ -1,5 +1,14 @@
 # Changelog
 
+## v4.2.0
+
+* Completed the P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline.
+* Added methodology extraction from existing knowledge packages with evidence windows, methodology maps, source trace, confidence, and risk flags.
+* Added Skill Suite planning and generation with Planning / Functional / Atomic hierarchy, routing rules, dependency graph, duplicate/conflict detection, and merge/split evidence.
+* Added suite-level validation, diff, installability, governance reports, and controlled Skill Pack export.
+* Closed the UI/CLI industrial workflow boundary while keeping the static Workbench evidence-only and not a local CLI executor.
+* Preserved v4.1.1 as the P2.2 Entry Gate / Test Governance Stable Baseline and did not start P2.3.
+
 ## v4.1.1
 
 * Added Test Framework Governance for scalable validation.

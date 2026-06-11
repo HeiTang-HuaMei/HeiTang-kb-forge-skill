@@ -1,15 +1,16 @@
 # Current Truth
 
-Current Core package version: `4.1.1`
-Current stable release: `v4.1.1`
-Previous stable release: `v4.1.0`
+Current Core package version: `4.2.0`
+Current stable release: `v4.2.0`
+Previous stable release: `v4.1.1`
 
 HeiTang KB Forge Skill is an offline-first Agent Knowledge Supply Chain Core. It turns local source materials into standardized, traceable, searchable, auditable, and reusable knowledge assets for RAG, verification, document generation, structured Skill packages, and local Agent workflows.
 
 ## Current Gate
 
-- v4.1.1 Test Framework Governance: validation gate manifest, changed-file impact selector, validation runner, pytest markers, and obsolete-test pruning register.
-- P2.1 Parser/OCR Pluggable Backend Runtime: release-hardened in v4.1.0 and preserved in v4.1.1.
+- v4.2.0 P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline: evidence windows, methodology extraction, skill candidate planning, Planning / Functional / Atomic Skill Suite hierarchy, Skill Pack export, suite validation, diff, installability, and governance reports.
+- v4.1.1 Test Framework Governance remains the P2.2 Entry Gate / Test Governance Stable Baseline.
+- P2.1 Parser/OCR Pluggable Backend Runtime: release-hardened in v4.1.0 and preserved through v4.2.0.
 - Docling, PaddleOCR, and Unstructured: real opt-in local runtime adapters, dependency-gated and not bundled.
 - Builtin parser: preserved default fallback.
 - Latest P2.1 proof: `docs/audits/p2_1_parser_ocr_backends/`
@@ -18,8 +19,8 @@ HeiTang KB Forge Skill is an offline-first Agent Knowledge Supply Chain Core. It
 - External registry hygiene remains `needs_verification=0`.
 - `v4.1.0` remains the historical Parser/OCR stable tag.
 - `v4.0.0` remains an untouched historical stable tag.
-- `v4.1.1` is the current stable Test Framework Governance release backed by Chunked Full Gate, Post-Codex Full Review, CI, Release Check, tag, and GitHub Release evidence.
-- P2.2 Skill Governance has not started in this release.
+- `v4.1.1` remains the historical P2.2 Entry Gate / Test Governance Stable Baseline.
+- `v4.2.0` is the current P2.2 industrial baseline release; P2.3 has not started.
 
 The detailed canonical current-truth page is [00_overview/CURRENT_TRUTH.md](00_overview/CURRENT_TRUTH.md).
 

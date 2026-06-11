@@ -1,14 +1,15 @@
 # Current Truth
 
-Current Core package version: `4.1.1`
-Current stable release: `v4.1.1`
-Previous stable release: `v4.1.0`
+Current Core package version: `4.2.0`
+Current stable release: `v4.2.0`
+Previous stable release: `v4.1.1`
 
 This is the short current-state entry for GitHub readers. It is intentionally about the current main branch, not historical version planning.
 
 ## Gate State
 
-- v4.1.1 Test Framework Governance adds a validation gate manifest, changed-file impact selector, validation runner, pytest markers, and obsolete-test pruning register.
+- v4.2.0 P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline adds evidence windows, methodology extraction, skill candidate planning, Skill Suite hierarchy, Skill Pack export, suite validation, diff, installability, and governance reports.
+- v4.1.1 Test Framework Governance remains the P2.2 Entry Gate / Test Governance Stable Baseline.
 - P2.1 Parser/OCR Pluggable Backend Runtime is release-hardened from v4.1.0.
 - Docling, PaddleOCR, and Unstructured are real opt-in local runtime adapters.
 - Builtin parser remains the default fallback.
@@ -18,9 +19,9 @@ This is the short current-state entry for GitHub readers. It is intentionally ab
 - External registry hygiene remains `needs_verification=0`.
 - `v4.1.0` remains the historical Parser/OCR stable tag.
 - `v4.0.0` remains an untouched historical stable tag.
-- P2.2 Skill Governance has not started in this release.
+- `v4.2.0` is the current P2.2 industrial baseline release; P2.3 has not started.
 
-`v4.1.1` is the current stable Test Framework Governance release after v4.1.0 Parser/OCR industrial release hardening. The stable closure is backed by Chunked Full Gate, Post-Codex Full Review, CI, Release Check, tag, and GitHub Release evidence.
+`v4.2.0` is the current stable P2.2 Knowledge-to-Methodology-to-Skill-Suite release after the v4.1.1 Entry Gate. The stable closure is backed by a new Chunked Full Gate, Post-Codex Full Review, CI, Release Check, tag, and GitHub Release evidence.
 
 ## Product Positioning
 
@@ -47,5 +48,6 @@ HeiTang KB Forge is a local-first, offline-first Core Skill for converting local
 - SaaS multi-tenancy, team permissions, or cloud sync
 - bundled Docling/PaddleOCR/Unstructured dependencies by default
 - static Workbench controls that imply local heavy runtime execution
-- Unstructured PDF/DOCX/image support as stable in v4.1.1
-- P2.2 started inside v4.1.1
+- Unstructured PDF/DOCX/image support as stable in v4.2.0
+- P2.3 started inside v4.2.0
+- Anything2Skill, SkillX, or Anthropic Skills / skill-creator integrated as external runtimes, vendored code, providers, accounts, or APIs

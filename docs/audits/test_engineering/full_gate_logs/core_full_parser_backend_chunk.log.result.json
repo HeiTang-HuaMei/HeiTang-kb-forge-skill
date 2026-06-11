@@ -5,5 +5,5 @@
   "exit_code_path": "docs/audits/test_engineering/full_gate_logs/core_full_parser_backend_chunk.log.exitcode",
   "status": "passed",
   "log_path": "docs/audits/test_engineering/full_gate_logs/core_full_parser_backend_chunk.log",
-  "summary": "...............................................                          [100%]\n47 passed in 7.19s"
+  "summary": "...............................................                          [100%]\n47 passed in 6.44s"
 }

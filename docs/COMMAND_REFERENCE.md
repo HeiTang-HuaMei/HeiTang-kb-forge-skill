@@ -1,10 +1,10 @@
 # Command Reference
 
-Current Core package version: `4.1.1`
-Current stable release: `v4.1.1`
-Previous stable release: `v4.1.0`
+Current Core package version: `4.2.0`
+Current stable release: `v4.2.0`
+Previous stable release: `v4.1.1`
 
-Current stage: v4.1.1 Test Framework Governance after v4.1.0 Parser/OCR hardening; the existing v4.0.0 and v4.1.0 tags remain untouched.
+Current stage: v4.2.0 P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline after v4.1.1 Test Framework Governance; the existing v4.0.0, v4.1.0, and v4.1.1 tags remain untouched.
 
 All commands are local Core commands. Real LLM/API/network calls are not required by tests and are disabled by default.
 
@@ -95,6 +95,21 @@ python -m heitang_kb_forge.cli orchestrate-multi-kb --packages .\tmp_package --o
 python -m heitang_kb_forge.cli run-local-agent --package .\tmp_package --agent .\tmp_agent_bound --task "Summarize the package" --output .\tmp_runtime
 python -m heitang_kb_forge.cli workbench-contracts --core-output .\tmp_package --output .\tmp_workbench_contracts
 ```
+
+## P2.2 Skill Suite Flow
+
+```powershell
+python -m heitang_kb_forge.cli extract-methodology --kb .\tmp_package --out .\tmp_methodology
+python -m heitang_kb_forge.cli plan-skill-suite --methodology .\tmp_methodology --out .\tmp_skill_plan
+python -m heitang_kb_forge.cli build-skill-suite --plan .\tmp_skill_plan --out .\tmp_skill_suite
+python -m heitang_kb_forge.cli validate-skill-suite --suite .\tmp_skill_suite
+python -m heitang_kb_forge.cli diff-skill-suite --before .\tmp_old_skill_suite --after .\tmp_skill_suite --out .\tmp_suite_diff
+python -m heitang_kb_forge.cli check-skill-suite-installability --suite .\tmp_skill_suite
+python -m heitang_kb_forge.cli skill-suite-governance-report --suite .\tmp_skill_suite
+python -m heitang_kb_forge.cli export-skill-pack --suite .\tmp_skill_suite --out .\tmp_skill_pack
+```
+
+This flow is local-first. Anything2Skill, SkillX, and Anthropic Skills / skill-creator inform the contract and capability shape only; the Core does not vendor external runtimes or call provider/account APIs.
 
 ## Workspace and Memory Lifecycle
 

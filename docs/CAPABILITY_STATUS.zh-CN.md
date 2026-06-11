@@ -1,10 +1,10 @@
 # Capability Status
 
-当前 Core package 版本：`4.1.1`
-当前 stable release：`v4.1.1`
-上一个 stable release：`v4.1.0`
+当前 Core package 版本：`4.2.0`
+当前 stable release：`v4.2.0`
+上一个 stable release：`v4.1.1`
 
-最新已完成的 release 工作包括 v3.12 Product Hardening & Local Release Readiness、P1 Final Gate Re-run、External Project Registry、S/A Contract Inclusion、v4.0.0 release hardening、P2.1 Parser/OCR industrial hardening，以及 v4.1.1 Test Framework Governance stable closure。`v4.1.1` 是当前 stable release；`v4.1.0` 保持为历史 Parser/OCR stable tag。
+最新已完成的 release 工作包括 v3.12 Product Hardening & Local Release Readiness、P1 Final Gate Re-run、External Project Registry、S/A Contract Inclusion、v4.0.0 release hardening、P2.1 Parser/OCR industrial hardening、v4.1.1 Test Framework Governance stable closure，以及 v4.2.0 P2.2 Knowledge-to-Methodology-to-Skill-Suite industrial closure。`v4.2.0` 是当前 stable release；`v4.1.1` 保持为 P2.2 Entry Gate / Test Governance stable tag。
 
 ## Stable
 
@@ -20,6 +20,10 @@
 - regression check
 - release blockers
 - validation gate manifest 和 impact-based test governance
+- evidence-window methodology extraction
+- 基于 evidence 的 Skill candidate planning
+- Planning / Functional / Atomic Skill Suite generation
+- suite-level validation、diff、installability、governance 和 Skill Pack export
 
 ## Preview
 

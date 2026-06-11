@@ -2,9 +2,9 @@
 
 An offline-first Agent Knowledge Supply Chain Core for turning local source materials into standardized, traceable, searchable, auditable, and reusable knowledge assets.
 
-Current Core: v4.1.1
+Current Core: v4.2.0
 
-Status: v4.1.1 Test Framework Governance stable release after v4.1.0 Parser/OCR industrial hardening and Workbench sync.
+Status: v4.2.0 P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline after v4.1.1 P2.2 Entry Gate / Test Governance Stable Baseline.
 
 For quick understanding:
 - Product positioning: [docs/CURRENT_TRUTH.md](docs/CURRENT_TRUTH.md)
@@ -26,22 +26,23 @@ The repository name still contains `Skill` because the project started from a Sk
 
 ## Current status
 
-Current Core package version: `4.1.1`
-Current stable release: `v4.1.1`
-Previous stable release: `v4.1.0`
+Current Core package version: `4.2.0`
+Current stable release: `v4.2.0`
+Previous stable release: `v4.1.1`
 Historical stable release: `v4.0.0`
 
-- v4.1.1 adds test framework governance: a validation gate manifest, changed-file impact selector, dry-run/executable gate runner, pytest markers, and an obsolete-test pruning register.
-- v4.1.1 stable release closure is backed by Chunked Full Gate, Post-Codex Full Review, CI, Release Check, tag, and GitHub Release evidence.
+- v4.2.0 completes the P2.2 Knowledge-to-Methodology-to-Skill-Suite industrial baseline.
+- Existing knowledge asset packages can be transformed into evidence windows, methodology maps, skill candidates, Skill Suite hierarchy, Skill Pack exports, validation/diff/installability reports, and suite governance evidence.
+- v4.1.1 remains the P2.2 Entry Gate / Test Governance Stable Baseline.
 - P2.1 Parser/OCR pluggable backend runtime remains release-hardened from v4.1.0.
 - Docling, PaddleOCR, and Unstructured are real opt-in local runtime adapters, dependency-gated and not bundled.
 - Latest P2.1 proof: `docs/audits/p2_1_parser_ocr_backends/`
 - Latest live runtime proof: `docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json`
 - Unstructured stable surface in this release is `.md/.txt`; PDF/DOCX/image extras remain future hardening.
 - Builtin parser remains the default fallback path.
-- v4.1.0 remains the historical Parser/OCR stable tag, and v4.0.0 remains an untouched historical stable tag.
+- v4.1.0 remains the historical Parser/OCR stable tag, v4.1.1 remains the historical P2.2 Entry Gate tag, and v4.0.0 remains an untouched historical stable tag.
 - Final architecture truth: [docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md](docs/FINAL_PRODUCT_ARCHITECTURE_TRUTH.md)
-- `ready_for_v4_rc=true` remains historical P1 evidence; v4.1.1 adds test governance without starting P2.2.
+- `ready_for_v4_rc=true` remains historical P1 evidence; P2.3 has not started.
 
 ## Core capabilities
 
@@ -51,6 +52,7 @@ Historical stable release: `v4.0.0`
 - RAG validation paths for answering retrieval and verification retrieval, including claim, contradiction, freshness, and no-answer evidence handling.
 - Grounded Markdown, DOCX, PDF, and PPTX document generation.
 - Skill-first package generation for Codex, Claude Code, OpenClaw, and generic local Agent integrations.
+- P2.2 Skill Suite flow: methodology extraction, evidence-backed candidate planning, Planning/Functional/Atomic hierarchy generation, routing rules, dependency graph, validation, diff, installability, governance report, and controlled Skill Pack export.
 - Standalone and KB-bound Agent package surfaces, local runtime smoke, KB boundary checks, memory policy reports, and mother/child orchestration contracts.
 - Local workspace registry, storage reports, lifecycle plans, artifact registries, and P1 Workbench contract pack.
 - Parser/OCR backend runtime registry, matrix, inspect, smoke, live acceptance replay, and release evidence reports for opt-in Docling, PaddleOCR, and Unstructured adapters.

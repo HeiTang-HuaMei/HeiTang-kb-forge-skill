@@ -1,5 +1,18 @@
 # Release Notes
 
+## v4.2.0
+
+`v4.2.0` is the P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline. It starts from existing knowledge asset packages, extracts methodology evidence, plans a Skill Suite, builds routable Skills, and closes validation, diff, installability, governance, UI, and CLI evidence.
+
+- Added the P2.2 methodology flow: `extract-methodology --kb <knowledge_package> --out <methodology>` with evidence windows, methodology map, source trace, confidence, and risk flags.
+- Added Skill Suite planning and build commands: `plan-skill-suite` and `build-skill-suite`, including Planning / Functional / Atomic classifications, routing rules, dependency graph, duplicate/conflict detection, merge/split evidence, and suite manifests.
+- Added controlled Skill Pack export through `export-skill-pack`, with allowed-file boundaries, manifest hashes, description/trigger quality, evaluation checklist, and optimization notes.
+- Added suite-level governance commands: `validate-skill-suite`, `diff-skill-suite`, `check-skill-suite-installability`, and `skill-suite-governance-report`.
+- Closed UI/CLI industrial workflow evidence for Knowledge Package -> Evidence -> Methodology -> Candidates -> Hierarchy -> Skill Suite -> Reports -> Export while keeping the static Workbench evidence-only and not a local CLI executor.
+- Corresponding UI release commit: `0049ccf135a3cd7fd76b51ec923db3ceb583c1c0`.
+- Kept `v4.1.1` as the P2.2 Entry Gate / Test Governance Stable Baseline, `v4.1.0` as the Parser/OCR Stable Baseline, and `v4.0.0` untouched.
+- Did not start P2.3 and did not add external runtime/provider/API integration or runtime vendoring.
+
 ## v4.1.1
 
 `v4.1.1` is the Test Framework Governance release. It turns the v4.1.0 validation hardening lessons into executable governance artifacts while preserving the v4.1.0 Parser/OCR runtime boundary.

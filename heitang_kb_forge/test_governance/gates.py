@@ -180,6 +180,14 @@ def summarize_log(log_path: Path, max_lines: int = 20) -> str:
     return "\n".join(selected) if selected else "log empty"
 
 
+def _strip_log_trailing_whitespace(log_path: Path) -> None:
+    content = log_path.read_text(encoding="utf-8", errors="replace")
+    normalized = "\n".join(line.rstrip(" \t") for line in content.splitlines())
+    if content.endswith(("\n", "\r")):
+        normalized += "\n"
+    log_path.write_text(normalized, encoding="utf-8")
+
+
 def build_gate_command(gate: dict[str, Any], working_directory: Path) -> str:
     patterns = gate.get("test_file_patterns", [])
     if not patterns:
@@ -212,6 +220,7 @@ def run_validation_plan(plan: dict[str, Any], repo_root: Path) -> dict[str, Any]
                 stdout=log_file,
                 stderr=subprocess.STDOUT,
             )
+        _strip_log_trailing_whitespace(log_path)
         exit_code_path = log_path.with_name(f"{log_path.name}.exitcode")
         result_path = log_path.with_name(f"{log_path.name}.result.json")
         exit_code_path.write_text(f"{completed.returncode}\n", encoding="utf-8")

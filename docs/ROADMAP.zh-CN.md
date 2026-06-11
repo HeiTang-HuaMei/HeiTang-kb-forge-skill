@@ -12,25 +12,25 @@
 - `P0 blockers=0`
 - Pre-v4 External Project Registry 已完成。
 - S/A Contract Inclusion 已完成。
-- 当前 stable release：`v4.1.1`。
-- 上一个 stable release tag：`v4.1.0`。
+- 当前 stable release：`v4.2.0`。
+- 上一个 stable release tag：`v4.1.1`。
 - 历史 stable release tag：`v4.0.0`。
 
-## 当前 stable 门禁：v4.1.1 Test Framework Governance
+## 当前 stable 门禁：v4.2.0 P2.2 Industrial Baseline
 
-当前 stable 产品门禁是 `v4.1.1` Test Framework Governance release：validation gate manifest、changed-file impact selector、dry-run / executable validation runner、pytest markers、obsolete-test pruning register、token-efficient logs、Core/UI validation、release-readiness、CI green、release-check workflow evidence，以及无 secret/build/raw artifact pollution。既有 `v4.0.0` 与 `v4.1.0` tag 保持不变。
+当前 stable 产品门禁是 `v4.2.0` P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline。已有 knowledge asset package 可以进入 evidence windows、methodology extraction、skill candidate planning、Planning / Functional / Atomic Skill hierarchy、routing rules、dependency graph、Skill Pack export、validation、diff、installability、governance 和 UI/CLI industrial closure。既有 `v4.0.0`、`v4.1.0`、`v4.1.1` tag 保持不变。
 
-## P2.2 前置门禁
+## P2.2 前置门禁与当前基线
 
-`v4.1.1` 是 P2.2 Entry Gate / Test Governance Stable Baseline。它不是 P2.2 的一部分，而是 v4.2 / P2.2 External Project Expansion / Next Capability Phase 启动前必须满足的准入门槛。
+`v4.1.1` 是 P2.2 Entry Gate / Test Governance Stable Baseline。它不是 P2.2 的一部分，而是 v4.2 / P2.2 feature work 启动前必须满足且已经 fulfilled 的准入门槛。
 
 版本关系：
 
 - `v4.1.0` = Parser/OCR Stable Baseline
 - `v4.1.1` = P2.2 Entry Gate / Test Governance Stable Baseline
-- `v4.2 / P2.2` = External Project Expansion / Next Capability Phase
+- `v4.2.0 / P2.2` = Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline
 
-v4.1.1 stable release 未完成前，不允许启动 P2.2：Core/UI release-truth closure、Core/UI CI green、Core/UI Release Check green、v4.1.1 tag / GitHub Release，以及 Workspace handoff/status 同步都必须完成。v4.1.1 只解决测试治理、发布治理、测试成本控制，不夹带 P2.2 业务能力。
+P2.2 feature work 只在 v4.1.1 stable release 完成后启动：Core/UI release-truth closure、Core/UI CI green、Core/UI Release Check green、v4.1.1 tag / GitHub Release，以及 Workspace handoff/status 同步均已完成。v4.2.0 承载 P2.2 业务能力；P2.3 未启动。
 
 ## 后续门禁：P2 Productization
 
@@ -52,6 +52,7 @@ HeiTang KB Forge 保持 Skill-first。UI 是 presentation layer，不是 Core pr
 - 没有 release-check evidence 就创建 stable v4.0.0 tag
 - 没有 test governance manifest、impacted gate selection、validation 与 release hygiene 就发布 v4.1.1
 - 在 v4.1.1 release hardening 中启动 P2.2
+- 在 v4.2.0 release closure 中启动 P2.3
 - SaaS multi-tenancy
 - team permissions
 - cloud sync
