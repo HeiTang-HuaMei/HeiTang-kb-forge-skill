@@ -88,6 +88,77 @@ def test_book_to_skill_cli_generates_structured_package_from_readme_input(tmp_pa
     assert "Validation: pass" in result.output
 
 
+def test_readme_input_skill_governance_report_accepts_diff_baseline(tmp_path):
+    old_readme = tmp_path / "old" / "README.md"
+    new_readme = tmp_path / "new" / "README.md"
+    old_readme.parent.mkdir()
+    new_readme.parent.mkdir()
+    old_readme.write_text(
+        "# README Operations Playbook\n\n"
+        "## Principles\n\n"
+        "Use local evidence and keep scope narrow.\n\n"
+        "## Workflow\n\n"
+        "1. Ingest the README.\n"
+        "2. Generate a standard Skill.\n",
+        encoding="utf-8",
+    )
+    new_readme.write_text(
+        "# README Operations Playbook\n\n"
+        "## Principles\n\n"
+        "Use local evidence, keep scope narrow, and cite generated chunks.\n\n"
+        "## Workflow\n\n"
+        "1. Ingest the README.\n"
+        "2. Generate a standard Skill.\n"
+        "3. Validate installability and governance evidence.\n",
+        encoding="utf-8",
+    )
+    old_output = tmp_path / "old_output"
+    new_output = tmp_path / "new_output"
+
+    for source, output in [(old_readme, old_output), (new_readme, new_output)]:
+        result = CliRunner().invoke(
+            app,
+            [
+                "book-to-skill",
+                "--input",
+                str(source),
+                "--output",
+                str(output),
+                "--skill-name",
+                "README Operations Skill",
+                "--target",
+                "codex",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+
+    report_output = tmp_path / "governance_report"
+    result = CliRunner().invoke(
+        app,
+        [
+            "skill-governance-report",
+            "--skill",
+            str(new_output / "skill_package"),
+            "--old-skill",
+            str(old_output / "skill_package"),
+            "--output",
+            str(report_output),
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    report = _read_json(report_output / "skill_governance_report.json")
+    assert report["status"] == "pass"
+    assert report["release_ready"] is True
+    assert report["checks"]["diff_comparison"]["status"] == "pass"
+    assert report["checks"]["diff_comparison"]["baseline_provided"] is True
+    assert report["checks"]["diff_comparison"]["changed_file_count"] >= 1
+    assert report["checks"]["installability"]["status"] == "pass"
+    assert report["checks"]["token_budget"]["status"] == "pass"
+    assert report["warnings"] == []
+    assert "Status: pass | Release ready: True" in result.output
+
+
 def test_book_to_skill_cli_requires_input_or_package(tmp_path):
     result = CliRunner().invoke(app, ["book-to-skill", "--output", str(tmp_path / "out")])
 
