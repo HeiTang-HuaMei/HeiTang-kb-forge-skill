@@ -16,6 +16,7 @@ def test_workbench_contracts_expose_structured_book_to_skill_status_and_actions(
     write_json(core / "skill_governance_report.json", {"status": "pass"})
     write_json(core / "evidence_windows.json", {"window_count": 1})
     write_json(core / "methodology_map.json", {"module_count": 1})
+    write_json(core / "skill_candidates.json", {"candidate_count": 1})
 
     generate_workbench_contracts(core)
 
@@ -28,5 +29,6 @@ def test_workbench_contracts_expose_structured_book_to_skill_status_and_actions(
     assert status["skill_governance_report_available"] is True
     assert status["methodology_map_available"] is True
     assert status["evidence_windows_available"] is True
-    assert {"book-to-skill", "extract-methodology", "validate-skill-package", "diff-skill-package", "skill-governance-report"}.issubset({action["command"] for action in actions})
-    assert {"structured_skill_package_SKILL_md", "structured_skill_package_skill_manifest_json", "skill_governance_report_json", "evidence_windows_json", "methodology_map_json"}.issubset({asset["asset_id"] for asset in assets})
+    assert status["skill_candidates_available"] is True
+    assert {"book-to-skill", "extract-methodology", "plan-skill-suite", "validate-skill-package", "diff-skill-package", "skill-governance-report"}.issubset({action["command"] for action in actions})
+    assert {"structured_skill_package_SKILL_md", "structured_skill_package_skill_manifest_json", "skill_governance_report_json", "evidence_windows_json", "methodology_map_json", "skill_candidates_json"}.issubset({asset["asset_id"] for asset in assets})

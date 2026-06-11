@@ -52,6 +52,7 @@ from heitang_kb_forge.memory_lifecycle import V39_MEMORY_LIFECYCLE_OUTPUT_FILES,
 from heitang_kb_forge.methodology import extract_methodology
 from heitang_kb_forge.local_agent_runtime import run_local_agent_runtime
 from heitang_kb_forge.skill_reverse_fusion import reverse_and_fuse_skills
+from heitang_kb_forge.skill_suite import plan_skill_suite
 from heitang_kb_forge.workbench import (
     get_p1_workbench_action,
     inspect_external_capability,
@@ -1253,6 +1254,21 @@ def extract_methodology_command(
     result = extract_methodology(kb, output)
     typer.echo(f"Built methodology map at {output}")
     typer.echo(f"Modules: {result['module_count']} | Confidence: {result['confidence']}")
+
+
+@app.command("plan-skill-suite")
+def plan_skill_suite_command(
+    methodology: Path = typer.Option(
+        ..., "--methodology", exists=True, file_okay=False, dir_okay=True, readable=True
+    ),
+    output: Path = typer.Option(..., "--out", "-o"),
+) -> None:
+    """Plan source-traced Skill candidates from a methodology map."""
+    result = plan_skill_suite(methodology, output)
+    typer.echo(f"Built Skill candidate plan at {output}")
+    typer.echo(
+        f"Candidates: {result['candidate_count']} | Unsupported claims excluded: {result['unsupported_claim_count']}"
+    )
 
 
 @app.command("validate-skill-package")
