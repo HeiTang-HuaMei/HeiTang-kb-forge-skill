@@ -49,6 +49,7 @@ from heitang_kb_forge.knowledge_runtime import (
 from heitang_kb_forge.knowledge_bound_factory import generate_knowledge_bound_agent, generate_standalone_agent
 from heitang_kb_forge.multi_kb_orchestration import orchestrate_multi_kb_agents
 from heitang_kb_forge.memory_lifecycle import V39_MEMORY_LIFECYCLE_OUTPUT_FILES, write_memory_lifecycle_outputs
+from heitang_kb_forge.methodology import extract_methodology
 from heitang_kb_forge.local_agent_runtime import run_local_agent_runtime
 from heitang_kb_forge.skill_reverse_fusion import reverse_and_fuse_skills
 from heitang_kb_forge.workbench import (
@@ -1241,6 +1242,17 @@ def book_to_skill_command(
     validation = validate_structured_skill_package(skill_output, output / "skill_validation")
     typer.echo(f"Built structured Skill Package at {skill_output}")
     typer.echo(f"Skill: {result.skill_name} | Validation: {validation['status']}")
+
+
+@app.command("extract-methodology")
+def extract_methodology_command(
+    kb: Path = typer.Option(..., "--kb", exists=True, file_okay=False, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--out", "-o"),
+) -> None:
+    """Extract evidence windows and a source-traced methodology map from a knowledge package."""
+    result = extract_methodology(kb, output)
+    typer.echo(f"Built methodology map at {output}")
+    typer.echo(f"Modules: {result['module_count']} | Confidence: {result['confidence']}")
 
 
 @app.command("validate-skill-package")

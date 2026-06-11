@@ -64,6 +64,7 @@ def generate_workbench_contracts(core_output: Path, output: Path | None = None, 
         "actions": [
             {"id": "build_package", "label": "Build Package", "command": "build", "requires": ["input", "output"]},
             {"id": "book_to_skill", "label": "Book to Skill", "command": "book-to-skill", "requires": ["input_or_package", "output", "skill_name"]},
+            {"id": "extract_methodology", "label": "Extract Methodology", "command": "extract-methodology", "requires": ["knowledge_package", "output"]},
             {"id": "generate_structured_skill", "label": "Generate Structured Skill", "command": "generate-skill --on-demand", "requires": ["package", "output"]},
             {"id": "validate_skill_package", "label": "Validate Skill Package", "command": "validate-skill-package", "requires": ["skill", "output"]},
             {"id": "diff_skill_package", "label": "Diff Skill Package", "command": "diff-skill-package", "requires": ["old_skill", "new_skill", "output"]},
@@ -157,6 +158,8 @@ def generate_workbench_contracts(core_output: Path, output: Path | None = None, 
         "skill_installability_available": (core_output / "skill_installability_report.json").exists() or (core_output / "structured_skill_package" / "skill_installability_report.json").exists(),
         "skill_agent_kb_compatibility_available": (core_output / "skill_agent_kb_compatibility_report.json").exists() or (core_output / "structured_skill_package" / "skill_agent_kb_compatibility_report.json").exists(),
         "skill_governance_report_available": (core_output / "skill_governance_report.json").exists() or (core_output / "structured_skill_package" / "skill_governance_report.json").exists(),
+        "methodology_map_available": (core_output / "methodology_map.json").exists(),
+        "evidence_windows_available": (core_output / "evidence_windows.json").exists(),
     }
     manifest = {
         "workbench_contract_version": "3.4.0-alpha.1",
@@ -197,6 +200,10 @@ def generate_workbench_contracts(core_output: Path, output: Path | None = None, 
 def _assets(core_output: Path) -> list[dict]:
     candidates = [
         ("manifest.json", "knowledge_package"),
+        ("evidence_windows.json", "report"),
+        ("methodology_map.json", "report"),
+        ("methodology_map.md", "report"),
+        ("source_trace.json", "report"),
         ("generated_file_report.json", "report"),
         ("knowledge_bound_factory_manifest.json", "report"),
         ("multi_kb_orchestration_manifest.json", "report"),
