@@ -98,6 +98,7 @@ class LocalCoreBridge {
     'evidence_appendix': <String>['select-evidence'],
     'openability_check': <String>['run-golden-demo-acceptance'],
     'book_to_skill': <String>['book-to-skill'],
+    'extract_methodology': <String>['extract-methodology'],
     'template_skill_generation': <String>['workbench-action-dry-run'],
     'package_to_skill': <String>['generate-skill'],
     'skill_manifest_validate': <String>['validate-skill-package'],

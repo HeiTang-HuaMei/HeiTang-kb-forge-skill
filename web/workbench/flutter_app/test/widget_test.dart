@@ -24,6 +24,7 @@ void main() {
           'workspace_inspect',
           'rag_query',
           'book_to_skill',
+          'extract_methodology',
           'skill_governance_report',
           'run_agent'
         ]));
@@ -33,6 +34,8 @@ void main() {
         contains('report_skill_governance'));
     expect(contracts.assets.assets.map((asset) => asset.id),
         contains('skill_governance_report_json'));
+    expect(contracts.assets.assets.map((asset) => asset.id),
+        contains('methodology_map_json'));
     expect(contracts.taskSchema.statuses,
         containsAll(['queued', 'running', 'blocked', 'review_required']));
     expect(contracts.templates.templates, hasLength(6));
@@ -63,6 +66,26 @@ void main() {
     expect(uiContract['asset_id'], 'skill_governance_report_json');
     expect(uiContract['ready_for_workbench_display'], isTrue);
     expect(report['tests_require_real_llm_api_network'], isFalse);
+  });
+
+  test('p2.2 methodology map asset preserves evidence and risk boundary',
+      () async {
+    final methodology = jsonDecode(await rootBundle
+            .loadString('assets/fixtures/p2_2/methodology_map.json'))
+        as Map<String, dynamic>;
+    final modules = methodology['methodology_modules'] as List<dynamic>;
+    final first = modules.first as Map<String, dynamic>;
+
+    expect(methodology['methodology_map_version'], 'v4.2-p2.2-1');
+    expect(methodology['module_count'], 2);
+    expect(methodology['source_evidence'], ['window_001', 'window_002']);
+    expect(first['source_evidence'], ['window_001']);
+    expect(first['principles'], isNotEmpty);
+    expect(first['decision_rules'], isNotEmpty);
+    expect(first['workflows'], isNotEmpty);
+    expect(methodology['risk_flags'], contains('missing_execution_evidence'));
+    expect(methodology['unsupported_claim_detection']['status'], 'pass');
+    expect(methodology['tests_require_real_llm_api_network'], isFalse);
   });
 
   test('p1 real workflow v1 evidence parses and keeps gate blocked', () async {
@@ -514,6 +537,7 @@ void main() {
     await tester.pumpWidget(HeiTangWorkbenchApp(
       contracts: sampleWorkbenchContracts,
       skillGovernanceReport: sampleSkillGovernanceReport,
+      methodologyMap: sampleMethodologyMap,
       initialSelectedIndex:
           pages.indexWhere((page) => page.id == 'skill-factory'),
     ));
@@ -535,6 +559,19 @@ void main() {
         find.textContaining(
             'asset=skill_governance_report_json · display=true · static_only=true'),
         findsWidgets);
+    expect(find.text('方法论地图'), findsOneWidget);
+    expect(find.textContaining('pkg-operations · modules=2 · confidence=0.91'),
+        findsOneWidget);
+    expect(find.textContaining('count=2 · window_001 · window_002'),
+        findsOneWidget);
+    expect(
+        find.textContaining(
+            'Evidence-led Operations · concepts=1 · principles=1 · workflows=1'),
+        findsOneWidget);
+    expect(
+        find.textContaining(
+            'trace=2 · unsupported=pass · risks=none · static_only=true'),
+        findsOneWidget);
     expect(find.textContaining('Execute local runtime'), findsNothing);
     expect(find.textContaining('运行本地 runtime'), findsNothing);
     expect(tester.takeException(), isNull);

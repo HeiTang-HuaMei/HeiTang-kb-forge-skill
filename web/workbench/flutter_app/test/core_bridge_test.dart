@@ -26,6 +26,18 @@ void main() {
     expect(bridge.buildCommand(request), ['python', 'skill-governance-report', '--skill', r'C:\workspace\skill', '--output', r'C:\workspace\out']);
   });
 
+  test('allows methodology extraction core command', () {
+    const bridge = LocalCoreBridge();
+    const request = CoreBridgeRequest(
+      actionId: 'extract_methodology',
+      coreCli: 'python',
+      workingDirectory: r'C:\repo',
+      arguments: ['extract-methodology', '--kb', r'C:\workspace\package', '--out', r'C:\workspace\out'],
+    );
+
+    expect(bridge.buildCommand(request), ['python', 'extract-methodology', '--kb', r'C:\workspace\package', '--out', r'C:\workspace\out']);
+  });
+
   test('rejects shell metacharacters and non-allowlisted commands', () {
     const bridge = LocalCoreBridge();
 

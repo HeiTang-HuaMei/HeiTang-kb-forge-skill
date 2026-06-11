@@ -170,6 +170,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
     this.externalCapabilities,
     this.parserBackends,
     this.skillGovernanceReport,
+    this.methodologyMap,
     this.coreBridge = const LocalCoreBridge(),
     this.coreCli = 'heitang-kb-forge',
     this.coreWorkingDirectory = '.',
@@ -185,6 +186,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
   final ExternalCapabilityRegistry? externalCapabilities;
   final ParserBackendMatrix? parserBackends;
   final Map<String, dynamic>? skillGovernanceReport;
+  final Map<String, dynamic>? methodologyMap;
   final LocalCoreBridge coreBridge;
   final String coreCli;
   final String coreWorkingDirectory;
@@ -299,6 +301,8 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
                         parserSnapshot.data ?? sampleParserBackendMatrix,
                     skillGovernanceReport: skillGovernanceSnapshot.data ??
                         sampleSkillGovernanceReport,
+                    methodologyMap:
+                        widget.methodologyMap ?? sampleMethodologyMap,
                     localeCode: localeCode,
                     themeMode: themeMode,
                     selectedIndex: selectedIndex,
@@ -423,6 +427,7 @@ class _DesktopWorkbench extends StatelessWidget {
     required this.externalCapabilities,
     required this.parserBackends,
     required this.skillGovernanceReport,
+    required this.methodologyMap,
     required this.selectedIndex,
     required this.isTablet,
     required this.coreBridge,
@@ -441,6 +446,7 @@ class _DesktopWorkbench extends StatelessWidget {
   final ExternalCapabilityRegistry externalCapabilities;
   final ParserBackendMatrix parserBackends;
   final Map<String, dynamic> skillGovernanceReport;
+  final Map<String, dynamic> methodologyMap;
   final int selectedIndex;
   final bool isTablet;
   final LocalCoreBridge coreBridge;
@@ -477,6 +483,7 @@ class _DesktopWorkbench extends StatelessWidget {
             externalCapabilities: externalCapabilities,
             parserBackends: parserBackends,
             skillGovernanceReport: skillGovernanceReport,
+            methodologyMap: methodologyMap,
             columns: isTablet ? 2 : 3,
             coreBridge: coreBridge,
             coreCli: coreCli,
@@ -557,6 +564,7 @@ class _PhoneWorkbench extends StatelessWidget {
     required this.externalCapabilities,
     required this.parserBackends,
     required this.skillGovernanceReport,
+    required this.methodologyMap,
     required this.selectedIndex,
     required this.coreBridge,
     required this.coreCli,
@@ -574,6 +582,7 @@ class _PhoneWorkbench extends StatelessWidget {
   final ExternalCapabilityRegistry externalCapabilities;
   final ParserBackendMatrix parserBackends;
   final Map<String, dynamic> skillGovernanceReport;
+  final Map<String, dynamic> methodologyMap;
   final int selectedIndex;
   final LocalCoreBridge coreBridge;
   final String coreCli;
@@ -621,6 +630,7 @@ class _PhoneWorkbench extends StatelessWidget {
             externalCapabilities: externalCapabilities,
             parserBackends: parserBackends,
             skillGovernanceReport: skillGovernanceReport,
+            methodologyMap: methodologyMap,
             columns: 1,
             coreBridge: coreBridge,
             coreCli: coreCli,
@@ -645,6 +655,7 @@ class _PageSurface extends StatelessWidget {
     required this.externalCapabilities,
     required this.parserBackends,
     required this.skillGovernanceReport,
+    required this.methodologyMap,
     required this.columns,
     required this.coreBridge,
     required this.coreCli,
@@ -662,6 +673,7 @@ class _PageSurface extends StatelessWidget {
   final ExternalCapabilityRegistry externalCapabilities;
   final ParserBackendMatrix parserBackends;
   final Map<String, dynamic> skillGovernanceReport;
+  final Map<String, dynamic> methodologyMap;
   final int columns;
   final LocalCoreBridge coreBridge;
   final String coreCli;
@@ -680,7 +692,8 @@ class _PageSurface extends StatelessWidget {
         workflowV2Evidence,
         externalCapabilities,
         parserBackends,
-        skillGovernanceReport);
+        skillGovernanceReport,
+        methodologyMap);
     final corePanels = <Widget>[];
     for (final action in coreActionsForPage(page.id, contracts)) {
       final request = coreRequestForAction(
@@ -765,6 +778,7 @@ class _PageSurface extends StatelessWidget {
     ExternalCapabilityRegistry externalCapabilities,
     ParserBackendMatrix parserBackends,
     Map<String, dynamic> skillGovernanceReport,
+    Map<String, dynamic> methodologyMap,
   ) {
     final zh = localeCode == 'zh-CN';
     final view = _contractViewFor(page, contracts);
@@ -804,6 +818,19 @@ class _PageSurface extends StatelessWidget {
             const <String, dynamic>{};
     final tokenBudgetCheck =
         (governanceChecks['token_budget'] as Map?)?.cast<String, dynamic>() ??
+            const <String, dynamic>{};
+    final methodologyModules =
+        (methodologyMap['methodology_modules'] as List?) ?? const <dynamic>[];
+    final firstMethodologyModule = methodologyModules.isEmpty
+        ? const <String, dynamic>{}
+        : (methodologyModules.first as Map).cast<String, dynamic>();
+    final methodologyEvidence =
+        (methodologyMap['source_evidence'] as List?) ?? const <dynamic>[];
+    final methodologyRisks =
+        (methodologyMap['risk_flags'] as List?) ?? const <dynamic>[];
+    final unsupportedClaims =
+        (methodologyMap['unsupported_claim_detection'] as Map?)
+                ?.cast<String, dynamic>() ??
             const <String, dynamic>{};
     return [
       _CardCopy(zh ? 'Core 来源' : 'Core source', contracts.source.coreCommit),
@@ -926,6 +953,21 @@ class _PageSurface extends StatelessWidget {
         _CardCopy(
             zh ? 'Workbench display evidence' : 'Workbench display evidence',
             'asset=${governanceUiContract['asset_id']} · display=${governanceUiContract['ready_for_workbench_display']} · static_only=true'),
+      if (_showsMethodology(id))
+        _CardCopy(
+            zh ? '方法论地图' : 'Methodology Map',
+            '${methodologyMap['source_package_id']} · modules=${methodologyMap['module_count']} · confidence=${methodologyMap['confidence']}'),
+      if (_showsMethodology(id))
+        _CardCopy(zh ? 'Evidence Windows' : 'Evidence Windows',
+            'count=${methodologyEvidence.length} · ${methodologyEvidence.take(3).join(' · ')}'),
+      if (_showsMethodology(id))
+        _CardCopy(
+            zh ? '方法论模块' : 'Methodology Module',
+            '${firstMethodologyModule['title']} · concepts=${(firstMethodologyModule['concepts'] as List?)?.length ?? 0} · principles=${(firstMethodologyModule['principles'] as List?)?.length ?? 0} · workflows=${(firstMethodologyModule['workflows'] as List?)?.length ?? 0}'),
+      if (_showsMethodology(id))
+        _CardCopy(
+            zh ? '来源追踪 / 风险' : 'Source Trace / Risk',
+            'trace=${methodologyEvidence.length} · unsupported=${unsupportedClaims['status']} · risks=${methodologyRisks.isEmpty ? 'none' : methodologyRisks.join('/')} · static_only=true'),
       if (externalProjects.isNotEmpty)
         _CardCopy(
             zh ? '页面映射' : 'Mapped external projects',
@@ -1015,6 +1057,7 @@ class _WorkbenchScaffold extends StatelessWidget {
     required this.externalCapabilities,
     required this.parserBackends,
     required this.skillGovernanceReport,
+    required this.methodologyMap,
     required this.localeCode,
     required this.themeMode,
     required this.selectedIndex,
@@ -1036,6 +1079,7 @@ class _WorkbenchScaffold extends StatelessWidget {
   final ExternalCapabilityRegistry externalCapabilities;
   final ParserBackendMatrix parserBackends;
   final Map<String, dynamic> skillGovernanceReport;
+  final Map<String, dynamic> methodologyMap;
   final String localeCode;
   final ThemeMode themeMode;
   final int selectedIndex;
@@ -1095,6 +1139,7 @@ class _WorkbenchScaffold extends StatelessWidget {
                   externalCapabilities: externalCapabilities,
                   parserBackends: parserBackends,
                   skillGovernanceReport: skillGovernanceReport,
+                  methodologyMap: methodologyMap,
                   selectedIndex: selectedIndex,
                   coreBridge: coreBridge,
                   coreCli: coreCli,
@@ -1112,6 +1157,7 @@ class _WorkbenchScaffold extends StatelessWidget {
                   externalCapabilities: externalCapabilities,
                   parserBackends: parserBackends,
                   skillGovernanceReport: skillGovernanceReport,
+                  methodologyMap: methodologyMap,
                   selectedIndex: selectedIndex,
                   isTablet: isTablet,
                   coreBridge: coreBridge,
@@ -1224,6 +1270,10 @@ bool _showsSkillGovernance(String pageId) {
   return pageId == 'skill-factory';
 }
 
+bool _showsMethodology(String pageId) {
+  return pageId == 'skill-factory';
+}
+
 const sampleSkillGovernanceReport = <String, dynamic>{
   'skill_governance_report_version': 'v4.2-p2.2-1',
   'status': 'pass',
@@ -1243,6 +1293,45 @@ const sampleSkillGovernanceReport = <String, dynamic>{
     'asset_id': 'skill_governance_report_json',
     'ready_for_workbench_display': true,
   },
+};
+
+const sampleMethodologyMap = <String, dynamic>{
+  'methodology_map_version': 'v4.2-p2.2-1',
+  'source_package_id': 'pkg-operations',
+  'module_count': 2,
+  'confidence': 0.91,
+  'risk_flags': <String>[],
+  'source_evidence': <String>['window_001', 'window_002'],
+  'unsupported_claim_detection': {
+    'status': 'pass',
+    'excluded_count': 0,
+  },
+  'methodology_modules': <Map<String, dynamic>>[
+    {
+      'module_id': 'methodology_module_001',
+      'title': 'Evidence-led Operations',
+      'concepts': <Map<String, dynamic>>[
+        {'statement': 'Evidence-led Operations'}
+      ],
+      'principles': <Map<String, dynamic>>[
+        {'statement': 'Use local evidence and prefer narrow scope.'}
+      ],
+      'workflows': <Map<String, dynamic>>[
+        {'statement': 'First inspect the source, then apply the decision rule.'}
+      ],
+    },
+    {
+      'module_id': 'methodology_module_002',
+      'title': 'Review Boundary',
+      'concepts': <Map<String, dynamic>>[
+        {'statement': 'Review Boundary'}
+      ],
+      'principles': <Map<String, dynamic>>[
+        {'statement': 'Unsupported claims require review.'}
+      ],
+      'workflows': <Map<String, dynamic>>[],
+    },
+  ],
 };
 
 class _WorkbenchCard extends StatelessWidget {

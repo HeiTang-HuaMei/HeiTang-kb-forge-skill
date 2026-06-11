@@ -38,3 +38,4 @@ flutter:
     - assets/external/s_a_contract_inclusion_matrix.json
     - assets/parser_backends/parser_backend_matrix.json
     - assets/fixtures/p2_2/skill_governance_report.json
+    - assets/fixtures/p2_2/methodology_map.json

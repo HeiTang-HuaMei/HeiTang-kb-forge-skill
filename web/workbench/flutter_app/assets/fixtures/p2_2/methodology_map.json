@@ -1,0 +1,101 @@
+{
+  "methodology_map_version": "v4.2-p2.2-1",
+  "source_package_id": "pkg-operations",
+  "module_count": 2,
+  "methodology_modules": [
+    {
+      "module_id": "methodology_module_001",
+      "title": "Evidence-led Operations",
+      "concepts": [
+        {
+          "item_id": "module_001_concept_01",
+          "statement": "Evidence-led Operations",
+          "source_evidence": ["window_001"],
+          "confidence": 0.92,
+          "risk_flags": []
+        }
+      ],
+      "principles": [
+        {
+          "item_id": "module_001_principles_01",
+          "statement": "Use local evidence and prefer narrow scope.",
+          "source_evidence": ["window_001"],
+          "confidence": 0.92,
+          "risk_flags": []
+        }
+      ],
+      "decision_rules": [
+        {
+          "item_id": "module_001_decision_rules_02",
+          "statement": "When evidence is missing, stop and request review.",
+          "source_evidence": ["window_001"],
+          "confidence": 0.92,
+          "risk_flags": []
+        }
+      ],
+      "workflows": [
+        {
+          "item_id": "module_001_workflows_03",
+          "statement": "First inspect the source, then apply the decision rule.",
+          "source_evidence": ["window_001"],
+          "confidence": 0.92,
+          "risk_flags": []
+        }
+      ],
+      "anti_patterns": [],
+      "constraints": [],
+      "applicability_boundary": [],
+      "failure_modes": [],
+      "source_evidence": ["window_001"],
+      "confidence": 0.92,
+      "risk_flags": []
+    },
+    {
+      "module_id": "methodology_module_002",
+      "title": "Review Boundary",
+      "concepts": [
+        {
+          "item_id": "module_002_concept_01",
+          "statement": "Review Boundary",
+          "source_evidence": ["window_002"],
+          "confidence": 0.9,
+          "risk_flags": []
+        }
+      ],
+      "principles": [
+        {
+          "item_id": "module_002_principles_01",
+          "statement": "Unsupported claims require review.",
+          "source_evidence": ["window_002"],
+          "confidence": 0.9,
+          "risk_flags": []
+        }
+      ],
+      "decision_rules": [],
+      "workflows": [],
+      "anti_patterns": [],
+      "constraints": [],
+      "applicability_boundary": [],
+      "failure_modes": [],
+      "source_evidence": ["window_002"],
+      "confidence": 0.85,
+      "risk_flags": ["missing_execution_evidence"]
+    }
+  ],
+  "concepts": [],
+  "principles": [],
+  "decision_rules": [],
+  "workflows": [],
+  "anti_patterns": [],
+  "constraints": [],
+  "applicability_boundary": [],
+  "failure_modes": [],
+  "source_evidence": ["window_001", "window_002"],
+  "confidence": 0.885,
+  "risk_flags": ["missing_execution_evidence"],
+  "unsupported_claim_detection": {
+    "status": "pass",
+    "excluded_count": 0
+  },
+  "tests_require_real_llm_api_network": false
+}
