@@ -1,0 +1,70 @@
+{
+  "schema_version": "document_batch_import.v1.preflight",
+  "status": "pass",
+  "files": [
+    {
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105156/input/001_table_claims.xlsx",
+      "relative_path": "001_table_claims.xlsx",
+      "extension": ".xlsx",
+      "file_type": "table_document",
+      "status": "ready",
+      "is_scanned": false,
+      "contains_tables": true,
+      "contains_images": false,
+      "contains_formulas": false,
+      "multi_column_layout": false,
+      "mixed_layout_document": false,
+      "needs_ocr": false,
+      "duplicate_of": null,
+      "error": null
+    },
+    {
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105156/input/002_table_claims.csv",
+      "relative_path": "002_table_claims.csv",
+      "extension": ".csv",
+      "file_type": "table_document",
+      "status": "ready",
+      "is_scanned": false,
+      "contains_tables": true,
+      "contains_images": false,
+      "contains_formulas": false,
+      "multi_column_layout": false,
+      "mixed_layout_document": false,
+      "needs_ocr": false,
+      "duplicate_of": null,
+      "error": null
+    },
+    {
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105156/input/003_methodology.md",
+      "relative_path": "003_methodology.md",
+      "extension": ".md",
+      "file_type": "text_document",
+      "status": "ready",
+      "is_scanned": false,
+      "contains_tables": false,
+      "contains_images": false,
+      "contains_formulas": false,
+      "multi_column_layout": false,
+      "mixed_layout_document": false,
+      "needs_ocr": false,
+      "duplicate_of": null,
+      "error": null
+    },
+    {
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105156/input/verification_source.md",
+      "relative_path": "verification_source.md",
+      "extension": ".md",
+      "file_type": "text_document",
+      "status": "ready",
+      "is_scanned": false,
+      "contains_tables": false,
+      "contains_images": false,
+      "contains_formulas": false,
+      "multi_column_layout": false,
+      "mixed_layout_document": false,
+      "needs_ocr": false,
+      "duplicate_of": null,
+      "error": null
+    }
+  ]
+}

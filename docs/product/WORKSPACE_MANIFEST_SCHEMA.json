@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HeiTang Workspace Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "workspace_id",
+    "workspace_name",
+    "schema_version",
+    "workspace_root",
+    "asset_roots",
+    "registries",
+    "path_boundary",
+    "legacy_default_workspace"
+  ],
+  "properties": {
+    "workspace_id": {
+      "type": "string"
+    },
+    "workspace_name": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "workspace_root": {
+      "type": "string"
+    },
+    "asset_roots": {
+      "type": "object",
+      "required": [
+        "sources",
+        "knowledge_bases",
+        "skills",
+        "agents",
+        "workflows",
+        "runs",
+        "reports",
+        "audits",
+        "exports",
+        "memory",
+        "settings"
+      ],
+      "properties": {
+        "sources": {
+          "type": "string"
+        },
+        "knowledge_bases": {
+          "type": "string"
+        },
+        "skills": {
+          "type": "string"
+        },
+        "agents": {
+          "type": "string"
+        },
+        "workflows": {
+          "type": "string"
+        },
+        "runs": {
+          "type": "string"
+        },
+        "reports": {
+          "type": "string"
+        },
+        "audits": {
+          "type": "string"
+        },
+        "exports": {
+          "type": "string"
+        },
+        "memory": {
+          "type": "string"
+        },
+        "settings": {
+          "type": "string"
+        }
+      }
+    },
+    "registries": {
+      "type": "object",
+      "required": [
+        "sources",
+        "knowledge_bases",
+        "skills",
+        "agents",
+        "workflows",
+        "runs",
+        "reports",
+        "audits",
+        "exports",
+        "memory",
+        "settings"
+      ],
+      "properties": {
+        "sources": {
+          "type": "string",
+          "pattern": "^registries/.+\\.jsonl?$"
+        },
+        "knowledge_bases": {
+          "type": "string",
+          "pattern": "^registries/.+\\.jsonl?$"
+        },
+        "skills": {
+          "type": "string",
+          "pattern": "^registries/.+\\.jsonl?$"
+        },
+        "agents": {
+          "type": "string",
+          "pattern": "^registries/.+\\.jsonl?$"
+        },
+        "workflows": {
+          "type": "string",
+          "pattern": "^registries/.+\\.jsonl?$"
+        },
+        "runs": {
+          "type": "string",
+          "pattern": "^registries/.+\\.jsonl?$"
+        },
+        "reports": {
+          "type": "string",
+          "pattern": "^registries/.+\\.jsonl?$"
+        },
+        "audits": {
+          "type": "string",
+          "pattern": "^registries/.+\\.jsonl?$"
+        },
+        "exports": {
+          "type": "string",
+          "pattern": "^registries/.+\\.jsonl?$"
+        },
+        "memory": {
+          "type": "string",
+          "pattern": "^registries/.+\\.jsonl?$"
+        },
+        "settings": {
+          "type": "string",
+          "pattern": "^registries/.+\\.jsonl?$"
+        }
+      }
+    },
+    "path_boundary": {
+      "type": "string",
+      "enum": [
+        "workspace_relative_only"
+      ]
+    },
+    "legacy_default_workspace": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "mode",
+        "moves_legacy_artifacts"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "mode": {
+          "const": "register_without_move_delete_or_rename"
+        },
+        "moves_legacy_artifacts": {
+          "const": false
+        }
+      }
+    }
+  }
+}

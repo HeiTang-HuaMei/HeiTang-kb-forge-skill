@@ -1,0 +1,16 @@
+{
+  "schema_version": "external_evidence_map.v1",
+  "evidence_map_required": true,
+  "evidence_count": 1,
+  "evidence": [
+    {
+      "evidence_id": "evidence_25396b374dde4a45",
+      "chunk_id": "chunk_b0e68ec47ffe40ed",
+      "source_id": "source_5b8e698d3f9bb794",
+      "claim_id": "",
+      "support_status": "source_chunk",
+      "confidence": 0.86,
+      "backlink": "http://127.0.0.1:3457/docs/external-source-fixture.html"
+    }
+  ]
+}

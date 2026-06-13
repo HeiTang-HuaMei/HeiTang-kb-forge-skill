@@ -1,0 +1,24 @@
+{
+  "schema_version": "user_task_to_bridge_flow_candidates.v1",
+  "status": "future_candidates_only",
+  "flows": [
+    {
+      "user_task_id": "create_skill_agent_package",
+      "candidate_actions": [
+        "generate-skill-template",
+        "compose-dedicated-skill",
+        "generate-agent-package"
+      ],
+      "current_executable": false,
+      "blocked_reason": "Campaign 5 Bridge action acceptance has not run."
+    },
+    {
+      "user_task_id": "prepare_multi_agent_workflow_spec",
+      "candidate_actions": [
+        "build-multi-agent-workflow-spec"
+      ],
+      "current_executable": false,
+      "blocked_reason": "Multi-Agent runtime and bridge execution are not accepted."
+    }
+  ]
+}

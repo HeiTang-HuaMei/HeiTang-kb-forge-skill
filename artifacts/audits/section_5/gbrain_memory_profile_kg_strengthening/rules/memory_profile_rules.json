@@ -1,0 +1,20 @@
+{
+  "schema_version": "gbrain_memory_profile_rules.v1",
+  "rules": [
+    {
+      "rule_id": "scope_memory_profile",
+      "purpose": "Represent person/team/project memory scope as project metadata, not a separate GBrain runtime.",
+      "evidence_hook": "knowledge_lifecycle confidence and source trace"
+    },
+    {
+      "rule_id": "source_bound_identity",
+      "purpose": "Tie each memory/profile assertion to a source chunk, evidence id, and freshness signal.",
+      "evidence_hook": "source_trace and evidence_map"
+    },
+    {
+      "rule_id": "confidence_and_staleness",
+      "purpose": "Surface stale or unsupported profile facts as gaps instead of synthesized certainty.",
+      "evidence_hook": "stale_evidence_report and confidence_report"
+    }
+  ]
+}

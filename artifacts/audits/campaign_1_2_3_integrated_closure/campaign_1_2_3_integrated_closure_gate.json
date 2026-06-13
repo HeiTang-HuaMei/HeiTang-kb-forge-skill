@@ -1,0 +1,580 @@
+{
+  "schema_version": "campaign_1_2_3_integrated_closure_gate.v1",
+  "generated_at": "2026-06-14T04:05:00+08:00",
+  "gate": "Campaign 1-3 Integrated Closure Gate",
+  "status": "passed",
+  "verdict": "accepted_for_closure_pack_generation",
+  "implementation_level": "bounded industrial-grade integrated closure gate",
+  "campaign_status_matrix": {
+    "schema_version": "campaign_1_2_3_status_matrix.v1",
+    "status": "passed",
+    "items": [
+      {
+        "campaign_id": "campaign_1",
+        "status": "accepted",
+        "evidence_path": "artifacts/audits/backend_remediation_acceptance_review/backend_remediation_acceptance_matrix.json"
+      },
+      {
+        "campaign_id": "campaign_2",
+        "status": "accepted",
+        "evidence_path": "artifacts/audits/knowledge_supply_chain_acceptance_review/campaign_2_acceptance_matrix.json"
+      },
+      {
+        "campaign_id": "campaign_3_final_consistency",
+        "status": "accepted_for_stage_test",
+        "evidence_path": "artifacts/audits/campaign_3_final_consistency/run_manifest.json"
+      },
+      {
+        "campaign_id": "campaign_1_3_stage_test",
+        "status": "passed",
+        "evidence_path": "artifacts/audits/campaign_1_3_stage_test/run_manifest.json"
+      }
+    ],
+    "errors": []
+  },
+  "real_integration_matrix": {
+    "schema_version": "real_integration_matrix.v1",
+    "status": "passed",
+    "items": [
+      {
+        "item_id": "campaign_1_backend_remediation",
+        "campaign_section": "Campaign 1",
+        "status": "real_integration",
+        "description": "backend strengthening acceptance",
+        "evidence_path": "artifacts/audits/backend_remediation_acceptance_review/backend_remediation_acceptance_matrix.json"
+      },
+      {
+        "item_id": "campaign_2_knowledge_supply_chain",
+        "campaign_section": "Campaign 2",
+        "status": "real_integration",
+        "description": "batch import / DU / KB / package / search acceptance",
+        "evidence_path": "artifacts/audits/knowledge_supply_chain_acceptance_review/campaign_2_acceptance_matrix.json"
+      },
+      {
+        "item_id": "llm_wiki_v2_knowledge_lifecycle",
+        "campaign_section": "Campaign 3 5.1",
+        "status": "real_integration",
+        "description": "Memory Separation / Knowledge Lifecycle",
+        "evidence_path": "artifacts/audits/section_5/llm_wiki_v2_knowledge_lifecycle/run_manifest.json"
+      },
+      {
+        "item_id": "weknora_auto_wiki",
+        "campaign_section": "Campaign 3 5.2",
+        "status": "real_integration",
+        "description": "Auto Wiki / local knowledge graph synthesis",
+        "evidence_path": "artifacts/audits/section_5/weknora_auto_wiki/run_manifest.json"
+      },
+      {
+        "item_id": "n8n_workflow_export",
+        "campaign_section": "Campaign 3 5.4",
+        "status": "real_integration",
+        "description": "local workflow export contract",
+        "evidence_path": "artifacts/audits/section_5/n8n_workflow_export/run_manifest.json"
+      },
+      {
+        "item_id": "prompt_asset_library",
+        "campaign_section": "Campaign 3 5.6",
+        "status": "real_integration",
+        "description": "local Prompt Asset Library enhancement",
+        "evidence_path": "artifacts/audits/section_5/skill_prompt_generator_prompt_asset_library/run_manifest.json"
+      },
+      {
+        "item_id": "marketing_skill_patterns",
+        "campaign_section": "Campaign 3 5.7",
+        "status": "real_integration",
+        "description": "local Marketing Skill Pattern Library",
+        "evidence_path": "artifacts/audits/section_5/ai_marketing_skills_pattern_library/run_manifest.json"
+      },
+      {
+        "item_id": "business_scenario_templates",
+        "campaign_section": "Campaign 3 5.8",
+        "status": "real_integration",
+        "description": "local Business Scenario Template Library",
+        "evidence_path": "artifacts/audits/section_5/ai_money_maker_handbook_business_scenario_library/run_manifest.json"
+      },
+      {
+        "item_id": "mattpocock_governance_rules",
+        "campaign_section": "Campaign 3 5.13",
+        "status": "real_integration",
+        "description": "local engineering governance rule-pack",
+        "evidence_path": "artifacts/audits/section_5/mattpocock_skills_engineering_governance/run_manifest.json"
+      },
+      {
+        "item_id": "sirchmunk_direct_file_search",
+        "campaign_section": "Campaign 3 5.14",
+        "status": "real_integration",
+        "description": "bounded direct file search provider candidate",
+        "evidence_path": "artifacts/audits/section_5/sirchmunk_direct_file_search/run_manifest.json"
+      },
+      {
+        "item_id": "horizon_topic_intake_schema",
+        "campaign_section": "Campaign 3 5.S2",
+        "status": "real_integration",
+        "description": "local Topic Intake Pipeline schema",
+        "evidence_path": "artifacts/audits/section_5/horizon_topic_intake_strengthening/run_manifest.json"
+      },
+      {
+        "item_id": "obsidian_vault_adapter",
+        "campaign_section": "Campaign 3 5.S3",
+        "status": "real_integration",
+        "description": "local Markdown vault adapter",
+        "evidence_path": "artifacts/audits/section_5/obsidian_vault_strengthening/run_manifest.json"
+      },
+      {
+        "item_id": "external_source_memory_verification",
+        "campaign_section": "Campaign 3 Supplement 3.0",
+        "status": "real_integration",
+        "description": "External Source Memory & Verification",
+        "evidence_path": "artifacts/audits/section_5/campaign_3_supplement_3_0_acceptance_gate/run_manifest.json"
+      },
+      {
+        "item_id": "knowledge_to_skill_to_agent_package",
+        "campaign_section": "Campaign 3 Supplement 4.0",
+        "status": "real_integration",
+        "description": "Knowledge-to-Skill-to-Agent Package & Product Handoff Contract",
+        "evidence_path": "artifacts/audits/campaign_3_4_0/run_manifest.json"
+      }
+    ],
+    "errors": []
+  },
+  "framework_only_matrix": {
+    "schema_version": "framework_only_matrix.v1",
+    "status": "passed",
+    "items": [
+      {
+        "item_id": "external_source_framework",
+        "campaign_section": "framework_only",
+        "status": "framework_only",
+        "description": "External Source framework schemas and registry",
+        "evidence_path": "artifacts/audits/section_5/external_source_framework/run_manifest.json"
+      },
+      {
+        "item_id": "pre_4_0_workspace_partition_foundation",
+        "campaign_section": "framework_only",
+        "status": "framework_only",
+        "description": "Workspace partition and KB scope foundation contract",
+        "evidence_path": "artifacts/audits/pre_4_0_workspace_partition/run_manifest.json"
+      },
+      {
+        "item_id": "campaign_4_ui_handoff",
+        "campaign_section": "framework_only",
+        "status": "framework_only",
+        "description": "Campaign 4 UI handoff contract, not UI completion",
+        "evidence_path": "artifacts/audits/campaign_3_4_0/campaign_4_ui_handoff_report.json"
+      },
+      {
+        "item_id": "campaign_5_bridge_handoff",
+        "campaign_section": "framework_only",
+        "status": "framework_only",
+        "description": "Campaign 5 Bridge handoff contract, not Bridge completion",
+        "evidence_path": "artifacts/audits/campaign_3_4_0/campaign_5_bridge_handoff_report.json"
+      }
+    ],
+    "errors": []
+  },
+  "preflight_only_matrix": {
+    "schema_version": "preflight_only_matrix.v1",
+    "status": "passed",
+    "items": [
+      {
+        "item_id": "platform_link_preflight",
+        "campaign_section": "preflight_only",
+        "status": "preflight_only",
+        "description": "Platform detection/readability state only",
+        "evidence_path": "artifacts/audits/section_5/external_source_platform_preflight/run_manifest.json"
+      },
+      {
+        "item_id": "external_link_import_entry",
+        "campaign_section": "preflight_only",
+        "status": "preflight_only",
+        "description": "Controlled UI entry and allowlist safety only",
+        "evidence_path": "artifacts/audits/section_5/external_source_link_import_entry/run_manifest.json"
+      }
+    ],
+    "errors": []
+  },
+  "metadata_only_matrix": {
+    "schema_version": "metadata_only_matrix.v1",
+    "status": "passed",
+    "items": [
+      {
+        "item_id": "seedance2_skill_template_metadata",
+        "campaign_section": "metadata_only",
+        "status": "metadata_only",
+        "description": "video Skill template metadata only",
+        "evidence_path": "artifacts/audits/section_5/seedance2_skill_template_metadata/run_manifest.json"
+      }
+    ],
+    "errors": []
+  },
+  "reference_only_matrix": {
+    "schema_version": "reference_only_matrix.v1",
+    "status": "passed",
+    "items": [
+      {
+        "item_id": "mmskills_multimodal_skill_package",
+        "campaign_section": "reference_only",
+        "status": "reference_only",
+        "description": "reference-only multimodal Skill package schema",
+        "evidence_path": "artifacts/audits/section_5/mmskills_multimodal_skill_package/run_manifest.json"
+      },
+      {
+        "item_id": "jellyfish_content_asset_schema",
+        "campaign_section": "reference_only",
+        "status": "reference_only",
+        "description": "reference-only content asset schema",
+        "evidence_path": "artifacts/audits/section_5/jellyfish_content_asset_schema/run_manifest.json"
+      },
+      {
+        "item_id": "story_flicks_video_pipeline_schema",
+        "campaign_section": "reference_only",
+        "status": "reference_only",
+        "description": "reference-only AIGC video pipeline schema",
+        "evidence_path": "artifacts/audits/section_5/story_flicks_video_pipeline_schema/run_manifest.json"
+      },
+      {
+        "item_id": "rag_anything_cross_modal_rag_schema",
+        "campaign_section": "reference_only",
+        "status": "reference_only",
+        "description": "reference-only cross-modal RAG schema",
+        "evidence_path": "artifacts/audits/section_5/rag_anything_cross_modal_rag_schema/run_manifest.json"
+      },
+      {
+        "item_id": "andrej_karpathy_skills",
+        "campaign_section": "reference_only",
+        "status": "reference_only",
+        "description": "future/reference Knowledge-to-Skill methodology reference",
+        "evidence_path": "docs/roadmap/external_projects/external_project_registry.json"
+      },
+      {
+        "item_id": "presenton",
+        "campaign_section": "reference_only",
+        "status": "reference_only",
+        "description": "future/reference Document/PPT workflow reference",
+        "evidence_path": "docs/roadmap/external_projects/external_project_registry.json"
+      },
+      {
+        "item_id": "codegraph",
+        "campaign_section": "reference_only",
+        "status": "reference_only",
+        "description": "future/reference codebase graph reference",
+        "evidence_path": "docs/roadmap/external_projects/external_project_registry.json"
+      },
+      {
+        "item_id": "understand_anything",
+        "campaign_section": "reference_only",
+        "status": "reference_only",
+        "description": "future/reference knowledge graph UI reference",
+        "evidence_path": "docs/roadmap/external_projects/external_project_registry.json"
+      },
+      {
+        "item_id": "claude_plugins_official",
+        "campaign_section": "reference_only",
+        "status": "reference_only",
+        "description": "future/reference plugin ecosystem reference",
+        "evidence_path": "docs/roadmap/external_projects/external_project_registry.json"
+      },
+      {
+        "item_id": "pi_mono",
+        "campaign_section": "reference_only",
+        "status": "reference_only",
+        "description": "future/reference Agent runtime architecture reference",
+        "evidence_path": "docs/roadmap/external_projects/external_project_registry.json"
+      }
+    ],
+    "errors": []
+  },
+  "planned_not_active_matrix": {
+    "schema_version": "planned_not_active_matrix.v1",
+    "status": "passed",
+    "items": [
+      {
+        "item_id": "campaign_4_goal_oriented_ui_workbench",
+        "campaign_section": "planned_not_active",
+        "status": "planned_not_active",
+        "description": "Campaign 4 not started",
+        "evidence_path": "docs/governance/CAMPAIGN_4_9_REPLACEMENT_PLAN.md"
+      },
+      {
+        "item_id": "campaign_5_chain_level_bridge",
+        "campaign_section": "planned_not_active",
+        "status": "planned_not_active",
+        "description": "Campaign 5 not started",
+        "evidence_path": "docs/governance/CAMPAIGN_4_9_REPLACEMENT_PLAN.md"
+      },
+      {
+        "item_id": "campaign_6_agent_runtime_memory",
+        "campaign_section": "planned_not_active",
+        "status": "planned_not_active",
+        "description": "Campaign 6 not started",
+        "evidence_path": "docs/governance/CAMPAIGN_4_9_REPLACEMENT_PLAN.md"
+      },
+      {
+        "item_id": "campaign_7_configuration_system",
+        "campaign_section": "planned_not_active",
+        "status": "planned_not_active",
+        "description": "Campaign 7 not started",
+        "evidence_path": "docs/governance/CAMPAIGN_4_9_REPLACEMENT_PLAN.md"
+      },
+      {
+        "item_id": "campaign_8_full_testing_review",
+        "campaign_section": "planned_not_active",
+        "status": "planned_not_active",
+        "description": "Campaign 8 not started",
+        "evidence_path": "docs/governance/CAMPAIGN_4_9_REPLACEMENT_PLAN.md"
+      },
+      {
+        "item_id": "campaign_9_exe_packaging",
+        "campaign_section": "planned_not_active",
+        "status": "planned_not_active",
+        "description": "Campaign 9 not started",
+        "evidence_path": "docs/governance/CAMPAIGN_4_9_REPLACEMENT_PLAN.md"
+      },
+      {
+        "item_id": "redis_vector_memory_store",
+        "campaign_section": "planned_not_active",
+        "status": "planned_not_active",
+        "description": "future Campaign 8/6 target, not Campaign 3 runtime",
+        "evidence_path": "docs/governance/GOAL_ACCEPTANCE_LEDGER.json"
+      }
+    ],
+    "errors": []
+  },
+  "non_runtime_boundary_matrix": {
+    "schema_version": "campaign_1_2_3_non_runtime_boundary_matrix.v1",
+    "status": "passed",
+    "items": [
+      {
+        "rule_id": "framework_only_is_not_business_completion",
+        "enforced": true,
+        "status": "passed"
+      },
+      {
+        "rule_id": "preflight_only_is_not_full_read_or_capture",
+        "enforced": true,
+        "status": "passed"
+      },
+      {
+        "rule_id": "metadata_only_is_not_runtime",
+        "enforced": true,
+        "status": "passed"
+      },
+      {
+        "rule_id": "reference_only_is_not_provider_ready",
+        "enforced": true,
+        "status": "passed"
+      },
+      {
+        "rule_id": "planned_not_active_is_not_started",
+        "enforced": true,
+        "status": "passed"
+      },
+      {
+        "rule_id": "closure_gate_is_not_final_product_acceptance",
+        "enforced": true,
+        "status": "passed"
+      },
+      {
+        "rule_id": "stage_test_is_not_final_full_gate",
+        "enforced": true,
+        "status": "passed"
+      },
+      {
+        "rule_id": "ui_handoff_is_not_campaign_4_ui_complete",
+        "enforced": true,
+        "status": "passed"
+      },
+      {
+        "rule_id": "bridge_handoff_is_not_campaign_5_bridge_complete",
+        "enforced": true,
+        "status": "passed"
+      },
+      {
+        "rule_id": "agent_package_is_not_agent_runtime_ready",
+        "enforced": true,
+        "status": "passed"
+      },
+      {
+        "rule_id": "memory_spec_is_not_redis_vector_runtime_ready",
+        "enforced": true,
+        "status": "passed"
+      }
+    ],
+    "errors": []
+  },
+  "unfinished_items": {
+    "schema_version": "campaign_1_2_3_unfinished_items.v1",
+    "status": "passed",
+    "items": [
+      {
+        "item": "Closure Pack generation",
+        "status": "not_started"
+      },
+      {
+        "item": "Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate",
+        "status": "not_started"
+      },
+      {
+        "item": "repository push",
+        "status": "not_started"
+      },
+      {
+        "item": "closure tag",
+        "status": "not_started"
+      },
+      {
+        "item": "tag-related CI/CL green",
+        "status": "not_started"
+      },
+      {
+        "item": "Closure Checklist green",
+        "status": "not_started"
+      },
+      {
+        "item": "Campaign 1-3 Integrated Review and New Conversation Handoff Gate",
+        "status": "not_started"
+      },
+      {
+        "item": "Campaign 4 Goal-Oriented Product UI Workbench",
+        "status": "not_started"
+      },
+      {
+        "item": "Campaign 5 Chain-Level Local Core Bridge",
+        "status": "not_started"
+      },
+      {
+        "item": "Campaign 6 Agent Runtime & Memory Platform",
+        "status": "not_started"
+      },
+      {
+        "item": "Campaign 7 Configuration System",
+        "status": "not_started"
+      },
+      {
+        "item": "Campaign 8 Full Testing / Full Review",
+        "status": "not_started"
+      },
+      {
+        "item": "Campaign 9 EXE Packaging",
+        "status": "not_started"
+      },
+      {
+        "item": "Final Release",
+        "status": "not_started"
+      }
+    ],
+    "errors": []
+  },
+  "forbidden_misinterpretations": {
+    "schema_version": "campaign_1_2_3_forbidden_misinterpretations.v1",
+    "status": "passed",
+    "items": [
+      {
+        "rule": "framework_only must not be written as business completion",
+        "forbidden": true
+      },
+      {
+        "rule": "preflight_only must not be written as full read or capture completion",
+        "forbidden": true
+      },
+      {
+        "rule": "metadata_only must not be written as runtime",
+        "forbidden": true
+      },
+      {
+        "rule": "reference_only must not be written as provider-ready",
+        "forbidden": true
+      },
+      {
+        "rule": "planned_not_active must not be written as started",
+        "forbidden": true
+      },
+      {
+        "rule": "Closure Gate must not be written as final product acceptance",
+        "forbidden": true
+      },
+      {
+        "rule": "Stage Test must not be written as Full Gate",
+        "forbidden": true
+      },
+      {
+        "rule": "Closure Pack must not be written as Release Pack",
+        "forbidden": true
+      },
+      {
+        "rule": "push/tag/CI must not be written as commercial release",
+        "forbidden": true
+      },
+      {
+        "rule": "Campaign 4 must not start inside closure",
+        "forbidden": true
+      },
+      {
+        "rule": "Campaign 5 Bridge must not be marked complete by handoff or allowlist",
+        "forbidden": true
+      }
+    ],
+    "errors": []
+  },
+  "test_result_manifest": {
+    "schema_version": "campaign_1_2_3_test_result_manifest.v1",
+    "status": "passed",
+    "items": [
+      {
+        "test_id": "stage_test",
+        "status": "passed",
+        "evidence_path": "artifacts/audits/campaign_1_3_stage_test/stage_test_result_matrix.json"
+      },
+      {
+        "test_id": "stage_gate_focused",
+        "status": "passed",
+        "evidence_path": "artifacts/audits/current_run/campaign_1_3_stage_test_focused_pytest.log"
+      },
+      {
+        "test_id": "governance_sync",
+        "status": "passed",
+        "evidence_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_test_governance.log.result.json"
+      }
+    ],
+    "errors": []
+  },
+  "failure_count": 0,
+  "failures": [],
+  "campaign_state_after_gate": {
+    "campaign_3_final_consistency_gate_passed": true,
+    "campaign_3_accepted": true,
+    "campaign_1_3_stage_test_gate_passed": true,
+    "campaign_1_3_integrated_closure_gate_passed": true,
+    "closure_pack_generated": false,
+    "repository_public_surface_cleanup_gate_passed": false,
+    "repository_push_succeeded": false,
+    "tag_created": false,
+    "ci_green": false,
+    "closure_checklist_green": false,
+    "campaign_1_3_review_handoff_gate_passed": false,
+    "campaign_4_entry_gate_allowed": false,
+    "campaign_4_active": false,
+    "campaign_5_active": false,
+    "campaign_6_active": false,
+    "campaign_7_active": false,
+    "campaign_8_active": false,
+    "campaign_9_active": false,
+    "agent_runtime_ready": false,
+    "bridge_execution_accepted": false,
+    "full_gate_passed": false,
+    "exe_packaging_done": false,
+    "final_release_allowed": false,
+    "next_business_item": "Generate Campaign 1-3 Closure Pack only"
+  },
+  "next_action_manifest": {
+    "next_safe_action": "Generate Campaign 1-3 Closure Pack only",
+    "may_generate_closure_pack": true,
+    "may_run_repository_cleanup": false,
+    "may_push": false,
+    "may_tag": false,
+    "may_check_ci_green": false,
+    "may_enter_campaign_4": false,
+    "may_enter_campaign_5": false
+  },
+  "not_goal_complete": true
+}

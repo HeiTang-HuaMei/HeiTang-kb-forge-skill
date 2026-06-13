@@ -1,0 +1,94 @@
+{
+  "schema_version": "workspace_asset_isolation_matrix.v1",
+  "status": "foundation_ready",
+  "rows": [
+    {
+      "asset_type": "sources",
+      "owner_field": "workspace_id",
+      "default_scope": "workspace_private",
+      "path_root": "workspace/sources",
+      "allowed_cross_workspace_reference": "explicit_reference_record",
+      "forbidden_misinterpretation": "asset_presence_is_global_access"
+    },
+    {
+      "asset_type": "knowledge_bases",
+      "owner_field": "workspace_id",
+      "default_scope": "workspace_private",
+      "path_root": "workspace/knowledge_bases",
+      "allowed_cross_workspace_reference": "explicit_reference_record",
+      "forbidden_misinterpretation": "asset_presence_is_global_access"
+    },
+    {
+      "asset_type": "skills",
+      "owner_field": "workspace_id",
+      "default_scope": "workspace_private",
+      "path_root": "workspace/skills",
+      "allowed_cross_workspace_reference": "explicit_reference_record",
+      "forbidden_misinterpretation": "asset_presence_is_global_access"
+    },
+    {
+      "asset_type": "agents",
+      "owner_field": "workspace_id",
+      "default_scope": "workspace_private",
+      "path_root": "workspace/agents",
+      "allowed_cross_workspace_reference": "explicit_reference_record",
+      "forbidden_misinterpretation": "asset_presence_is_global_access"
+    },
+    {
+      "asset_type": "workflows",
+      "owner_field": "workspace_id",
+      "default_scope": "workspace_private",
+      "path_root": "workspace/workflows",
+      "allowed_cross_workspace_reference": "explicit_reference_record",
+      "forbidden_misinterpretation": "asset_presence_is_global_access"
+    },
+    {
+      "asset_type": "runs",
+      "owner_field": "workspace_id",
+      "default_scope": "workspace_private",
+      "path_root": "workspace/runs",
+      "allowed_cross_workspace_reference": "explicit_reference_record",
+      "forbidden_misinterpretation": "asset_presence_is_global_access"
+    },
+    {
+      "asset_type": "reports",
+      "owner_field": "workspace_id",
+      "default_scope": "workspace_private",
+      "path_root": "workspace/reports",
+      "allowed_cross_workspace_reference": "explicit_reference_record",
+      "forbidden_misinterpretation": "asset_presence_is_global_access"
+    },
+    {
+      "asset_type": "audits",
+      "owner_field": "workspace_id",
+      "default_scope": "workspace_private",
+      "path_root": "workspace/audits",
+      "allowed_cross_workspace_reference": "explicit_reference_record",
+      "forbidden_misinterpretation": "asset_presence_is_global_access"
+    },
+    {
+      "asset_type": "exports",
+      "owner_field": "workspace_id",
+      "default_scope": "workspace_private",
+      "path_root": "workspace/exports",
+      "allowed_cross_workspace_reference": "explicit_reference_record",
+      "forbidden_misinterpretation": "asset_presence_is_global_access"
+    },
+    {
+      "asset_type": "memory",
+      "owner_field": "workspace_id",
+      "default_scope": "workspace_private",
+      "path_root": "workspace/memory",
+      "allowed_cross_workspace_reference": "explicit_reference_record",
+      "forbidden_misinterpretation": "asset_presence_is_global_access"
+    },
+    {
+      "asset_type": "settings",
+      "owner_field": "workspace_id",
+      "default_scope": "workspace_private",
+      "path_root": "workspace/settings",
+      "allowed_cross_workspace_reference": "explicit_reference_record",
+      "forbidden_misinterpretation": "asset_presence_is_global_access"
+    }
+  ]
+}

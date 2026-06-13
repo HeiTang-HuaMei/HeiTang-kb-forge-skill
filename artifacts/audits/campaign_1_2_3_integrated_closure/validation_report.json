@@ -1,0 +1,12 @@
+{
+  "schema_version": "campaign_1_2_3_integrated_closure_validation.v1",
+  "generated_at": "2026-06-14T04:05:00+08:00",
+  "status": "passed",
+  "error_count": 0,
+  "errors": [],
+  "next_safe_action": "Generate Campaign 1-3 Closure Pack only",
+  "campaign_1_3_integrated_closure_gate_passed": true,
+  "closure_pack_generated": false,
+  "campaign_4_active": false,
+  "not_goal_complete": true
+}

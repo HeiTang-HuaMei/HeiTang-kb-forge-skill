@@ -17,6 +17,7 @@ This is the short current-state entry for GitHub readers. It is intentionally ab
 - Latest live runtime proof: `docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json`
 - Unstructured stable surface is `.md/.txt`; PDF/DOCX/image extras are future hardening.
 - External registry hygiene remains `needs_verification=0`.
+- Product Output Surface and External Trend Alignment Gate is registered as governance-only; external trend projects remain future/reference entries with no runtime integration.
 - `v4.1.0` remains the historical Parser/OCR stable tag.
 - `v4.0.0` remains an untouched historical stable tag.
 - `v4.2.0` is the current P2.2 industrial baseline release; P2.3 has not started.
@@ -26,6 +27,8 @@ This is the short current-state entry for GitHub readers. It is intentionally ab
 ## Product Positioning
 
 HeiTang KB Forge is a local-first, offline-first Core Skill for converting local source materials into auditable, retrievable, Agent-ready knowledge packages. The Core is headless and Skill-first. UI is a presentation layer and must pass a separate full-operation gate before any full Workbench claim.
+
+HeiTang Knowledge Workbench has four distinct product output surfaces: `knowledge_package`, `document_outputs`, `skill_outputs`, and `agent_creation_package`. `document_outputs` include Markdown, DOCX / Word, PDF, and PPTX / PowerPoint through the existing `generate-documents` Core capability. Document Outputs are formal product outputs, not audit-report side effects and not covered by Skill Outputs.
 
 ## Current Evidence
 
@@ -51,3 +54,4 @@ HeiTang KB Forge is a local-first, offline-first Core Skill for converting local
 - Unstructured PDF/DOCX/image support as stable in v4.2.0
 - P2.3 started inside v4.2.0
 - Anything2Skill, SkillX, or Anthropic Skills / skill-creator integrated as external runtimes, vendored code, providers, accounts, or APIs
+- Presenton as an integrated PPT runtime, LongLive as integrated video generation, CodeGraph / Understand Anything as integrated knowledge graph, Claude plugin runtime, or pi-mono runtime

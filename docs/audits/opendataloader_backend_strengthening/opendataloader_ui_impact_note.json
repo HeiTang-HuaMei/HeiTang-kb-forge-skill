@@ -1,0 +1,14 @@
+{
+  "schema_version": "opendataloader.ui_impact_note.v1",
+  "adapter_id": "opendataloader",
+  "ui_status": "dependency_missing",
+  "desktop_bridge_actions": [
+    "check_opendataloader_backend",
+    "smoke_opendataloader_backend",
+    "run_opendataloader_convert"
+  ],
+  "web_execution_enabled": false,
+  "web_blocked_reason": "web_local_cli_unsupported",
+  "truthfulness_note": "UI may expose desktop-local actions, but static web surfaces must show dependency_missing or structured_skipped until check/smoke evidence proves local availability.",
+  "evidence_path": "docs/audits/opendataloader_backend_strengthening/opendataloader_integration_decision_report.json"
+}

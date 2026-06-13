@@ -1,0 +1,131 @@
+{
+  "schema_version": "content_asset_workflow_templates.v1",
+  "status": "passed",
+  "workflow_count": 6,
+  "workflows": [
+    {
+      "asset_id": "story_seed",
+      "workflow_steps": [
+        "select_source_backed_premise",
+        "record_target_audience",
+        "attach_source_trace",
+        "mark_unknowns_and_risks",
+        "request_editor_review"
+      ],
+      "output_assets": [
+        "story_seed_card",
+        "source_trace_table",
+        "risk_note"
+      ],
+      "quality_gates": [
+        "source_trace_required",
+        "no_external_script_copying",
+        "human_review_required"
+      ]
+    },
+    {
+      "asset_id": "character_card",
+      "workflow_steps": [
+        "extract_character_role",
+        "normalize_identity_fields",
+        "attach_continuity_tags",
+        "record_source_and_consent_boundary",
+        "prepare_visual_reference_placeholder"
+      ],
+      "output_assets": [
+        "character_card",
+        "continuity_tag_map",
+        "visual_reference_placeholder"
+      ],
+      "quality_gates": [
+        "source_trace_required",
+        "no_biometric_identity_claim",
+        "consent_boundary_required"
+      ]
+    },
+    {
+      "asset_id": "scene_card",
+      "workflow_steps": [
+        "assign_scene_id",
+        "summarize_scene_beat",
+        "map_props_and_locations",
+        "link_evidence_and_unknowns",
+        "prepare_downstream_asset_request"
+      ],
+      "output_assets": [
+        "scene_card",
+        "props_list",
+        "asset_request"
+      ],
+      "quality_gates": [
+        "scene_id_required",
+        "source_trace_required",
+        "no_runtime_rendering"
+      ]
+    },
+    {
+      "asset_id": "shot_card",
+      "workflow_steps": [
+        "assign_shot_id",
+        "link_scene_and_dependencies",
+        "record_camera_and_composition",
+        "set_duration_hint",
+        "mark_review_status"
+      ],
+      "output_assets": [
+        "shot_card",
+        "storyboard_row",
+        "dependency_edge"
+      ],
+      "quality_gates": [
+        "shot_id_required",
+        "dependency_trace_required",
+        "no_video_generation_execution"
+      ]
+    },
+    {
+      "asset_id": "continuity_note",
+      "workflow_steps": [
+        "identify_continuity_constraint",
+        "link_affected_assets",
+        "record_source_trace",
+        "set_version",
+        "publish_review_note"
+      ],
+      "output_assets": [
+        "continuity_note",
+        "affected_asset_map",
+        "review_note"
+      ],
+      "quality_gates": [
+        "affected_assets_required",
+        "version_required",
+        "source_trace_required"
+      ]
+    },
+    {
+      "asset_id": "production_checkpoint",
+      "workflow_steps": [
+        "collect_asset_statuses",
+        "classify_blockers",
+        "assign_approval_owner",
+        "record_export_boundary",
+        "prepare_summary_report"
+      ],
+      "output_assets": [
+        "checkpoint_report",
+        "blocker_table",
+        "export_boundary_note"
+      ],
+      "quality_gates": [
+        "approval_owner_required",
+        "runtime_not_bundled",
+        "export_boundary_required"
+      ]
+    }
+  ],
+  "external_code_or_content_copied": false,
+  "external_runtime_integrated": false,
+  "short_drama_workbench_runtime": false,
+  "video_generation_runtime": false
+}

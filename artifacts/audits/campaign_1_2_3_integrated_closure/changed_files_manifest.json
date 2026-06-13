@@ -1,0 +1,6 @@
+{
+  "schema_version": "campaign_1_2_3_changed_files_manifest.v1",
+  "status": "captured",
+  "note": "Changed file inventory is finalized by the later Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate.",
+  "git_status_hint": "Run git status --short during the repository cleanup safety gate."
+}

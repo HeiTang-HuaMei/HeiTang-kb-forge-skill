@@ -1,0 +1,63 @@
+{
+  "name": "HeiTang KB Forge Knowledge Supply Chain Events",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "heitang-kb-forge/events",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "ea124c03-dbb2-513d-a753-bbcec9aa1610",
+      "name": "HeiTang Event Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "ea124c03-dbb2-513d-a753-bbcec9aa1610"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {\"accepted\": true, \"event_type\": $json.body.event_type, \"run_id\": $json.body.run_id} }}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "id": "8457ec73-1413-5208-995f-35108a8de8cb",
+      "name": "Acknowledge HeiTang Event",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        280,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HeiTang Event Webhook": {
+      "main": [
+        [
+          {
+            "node": "Acknowledge HeiTang Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7438d36e-850a-5045-b54a-c8c08d6a76b1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "heitangExportAdapter": "n8n_workflow_export.v1"
+  },
+  "tags": []
+}

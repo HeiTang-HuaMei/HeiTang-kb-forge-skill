@@ -1,0 +1,397 @@
+{
+  "schema_version": "knowledge_graph_snapshot.v1",
+  "entity_count": 23,
+  "relation_count": 22,
+  "entity_type_counts": {
+    "evidence": 5,
+    "process": 4,
+    "concept": 14
+  },
+  "entities": [
+    {
+      "entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "name": "Sheet: RoutingEvidence. Row 2. Capability: office_table_routing. Claim: HeiTang table routing must preserve source linea",
+      "entity_type": "evidence",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "entity_id": "page_row_2_capability_office_table_routing_claim_csv_routing_uses",
+      "name": "Row 2. Capability: office_table_routing. Claim: CSV routing uses builtin parser for table documents. Method: Run batch i",
+      "entity_type": "process",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md",
+      "chunk_id": "71c2aba2d55c92eef5f99660",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md#chunk=71c2aba2d55c92eef5f99660"
+    },
+    {
+      "entity_id": "page_evidence_led_workflow",
+      "name": "Evidence-led workflow",
+      "entity_type": "process",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md",
+      "chunk_id": "6c9f55d32434bd1e56fd2d1a",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md#chunk=6c9f55d32434bd1e56fd2d1a"
+    },
+    {
+      "entity_id": "term_avoid",
+      "name": "Avoid",
+      "entity_type": "concept",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md",
+      "chunk_id": "6c9f55d32434bd1e56fd2d1a",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md#chunk=6c9f55d32434bd1e56fd2d1a"
+    },
+    {
+      "entity_id": "term_capability",
+      "name": "Capability",
+      "entity_type": "concept",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "entity_id": "term_claim",
+      "name": "Claim",
+      "entity_type": "evidence",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "entity_id": "term_csv",
+      "name": "CSV",
+      "entity_type": "concept",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md",
+      "chunk_id": "71c2aba2d55c92eef5f99660",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md#chunk=71c2aba2d55c92eef5f99660"
+    },
+    {
+      "entity_id": "term_document",
+      "name": "Document",
+      "entity_type": "concept",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "entity_id": "term_evidence",
+      "name": "Evidence",
+      "entity_type": "evidence",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "entity_id": "term_evidence_led",
+      "name": "Evidence-led",
+      "entity_type": "evidence",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md",
+      "chunk_id": "6c9f55d32434bd1e56fd2d1a",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md#chunk=6c9f55d32434bd1e56fd2d1a"
+    },
+    {
+      "entity_id": "term_extract",
+      "name": "Extract",
+      "entity_type": "concept",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "entity_id": "term_first",
+      "name": "First",
+      "entity_type": "concept",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "entity_id": "term_heitang",
+      "name": "HeiTang",
+      "entity_type": "concept",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "entity_id": "term_knowledge",
+      "name": "Knowledge",
+      "entity_type": "concept",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "entity_id": "term_llm",
+      "name": "LLM",
+      "entity_type": "concept",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "entity_id": "term_method",
+      "name": "Method",
+      "entity_type": "process",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "entity_id": "term_methodology",
+      "name": "Methodology",
+      "entity_type": "process",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "entity_id": "term_routingevidence",
+      "name": "RoutingEvidence",
+      "entity_type": "evidence",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "entity_id": "term_row",
+      "name": "Row",
+      "entity_type": "concept",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "entity_id": "term_run",
+      "name": "Run",
+      "entity_type": "concept",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md",
+      "chunk_id": "71c2aba2d55c92eef5f99660",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md#chunk=71c2aba2d55c92eef5f99660"
+    },
+    {
+      "entity_id": "term_sheet",
+      "name": "Sheet",
+      "entity_type": "concept",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "entity_id": "term_source",
+      "name": "Source",
+      "entity_type": "concept",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "entity_id": "term_then",
+      "name": "Then",
+      "entity_type": "concept",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md",
+      "chunk_id": "6c9f55d32434bd1e56fd2d1a",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md#chunk=6c9f55d32434bd1e56fd2d1a"
+    }
+  ],
+  "relations": [
+    {
+      "relation_id": "relation_1",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "page_row_2_capability_office_table_routing_claim_csv_routing_uses",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md",
+      "chunk_id": "71c2aba2d55c92eef5f99660",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md#chunk=71c2aba2d55c92eef5f99660"
+    },
+    {
+      "relation_id": "relation_2",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "page_evidence_led_workflow",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md",
+      "chunk_id": "6c9f55d32434bd1e56fd2d1a",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md#chunk=6c9f55d32434bd1e56fd2d1a"
+    },
+    {
+      "relation_id": "relation_3",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_avoid",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md",
+      "chunk_id": "6c9f55d32434bd1e56fd2d1a",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md#chunk=6c9f55d32434bd1e56fd2d1a"
+    },
+    {
+      "relation_id": "relation_4",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_capability",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "relation_id": "relation_5",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_claim",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "relation_id": "relation_6",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_csv",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md",
+      "chunk_id": "71c2aba2d55c92eef5f99660",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md#chunk=71c2aba2d55c92eef5f99660"
+    },
+    {
+      "relation_id": "relation_7",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_document",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "relation_id": "relation_8",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_evidence",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "relation_id": "relation_9",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_evidence_led",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md",
+      "chunk_id": "6c9f55d32434bd1e56fd2d1a",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md#chunk=6c9f55d32434bd1e56fd2d1a"
+    },
+    {
+      "relation_id": "relation_10",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_extract",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "relation_id": "relation_11",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_first",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "relation_id": "relation_12",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_heitang",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "relation_id": "relation_13",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_knowledge",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "relation_id": "relation_14",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_llm",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "relation_id": "relation_15",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_method",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "relation_id": "relation_16",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_methodology",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "relation_id": "relation_17",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_routingevidence",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "relation_id": "relation_18",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_row",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "relation_id": "relation_19",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_run",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md",
+      "chunk_id": "71c2aba2d55c92eef5f99660",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md#chunk=71c2aba2d55c92eef5f99660"
+    },
+    {
+      "relation_id": "relation_20",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_sheet",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "relation_id": "relation_21",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_source",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md#chunk=23cd46a53974710d5a2a00b0"
+    },
+    {
+      "relation_id": "relation_22",
+      "source_entity_id": "page_sheet_routingevidence_row_2_capability_office_table_routing_",
+      "target_entity_id": "term_then",
+      "relation_type": "related_to",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md",
+      "chunk_id": "6c9f55d32434bd1e56fd2d1a",
+      "citation": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md#chunk=6c9f55d32434bd1e56fd2d1a"
+    }
+  ],
+  "weknora_runtime_integrated": false
+}

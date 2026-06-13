@@ -1,0 +1,51 @@
+{
+  "schema_version": "ui_impact_note.v1",
+  "generated_at": "2026-06-12T19:55:57+08:00",
+  "section": "5.3",
+  "project_id": "anysearchskill",
+  "integration_decision": "needs_strengthening",
+  "current_ui_state": {
+    "status_visible": true,
+    "contract_status": [
+      "provider_adapter",
+      "real_smoke_passed",
+      "needs_strengthening"
+    ],
+    "requires_api_key": false,
+    "api_key_optional": true,
+    "requires_network": true,
+    "blocked_reason": "ui_configuration_pending",
+    "check_action_available": false,
+    "smoke_action_available": false,
+    "run_action_available": false,
+    "result_display_available": false,
+    "repair_suggestion_display_available": false,
+    "report_export_available": false
+  },
+  "core_actions": [
+    "check-anysearch-provider",
+    "smoke-anysearch-provider",
+    "run-anysearch-retrieval"
+  ],
+  "future_ui_location": "External Source Center / Retrieval & Verification",
+  "ui_must_show": [
+    "provider_adapter",
+    "real_smoke_passed",
+    "needs_strengthening",
+    "network_required",
+    "API key optional",
+    "ui_configuration_pending"
+  ],
+  "ui_must_not_show": [
+    "local_ready",
+    "offline_ready",
+    "External Source Center complete",
+    "API/proxy configuration complete",
+    "proxy smoke passed",
+    "release ready"
+  ],
+  "final_target_not_downgraded": true,
+  "remaining_gap": "The UI now exposes the truthful provider status but does not yet provide settings, test, run, result, repair, or export workflows.",
+  "next_required_e2e_step": "Keep AnySearch status-only until the later UI, Core Bridge, and configuration campaigns implement the full External Source Center workflow.",
+  "not_goal_complete": true
+}

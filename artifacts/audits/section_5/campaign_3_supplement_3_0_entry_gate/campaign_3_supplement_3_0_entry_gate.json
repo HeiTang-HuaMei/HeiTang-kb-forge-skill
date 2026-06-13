@@ -1,0 +1,69 @@
+{
+  "schema_version": "campaign_3_supplement_3_0_entry_gate.v1",
+  "generated_at": "2026-06-13T00:00:00+08:00",
+  "campaign": "Campaign 3",
+  "supplement": "3.0 External Source Memory & Verification",
+  "status": "passed",
+  "verdict": "accepted_for_campaign_3_3_0_p0_framework_start",
+  "failure_count": 0,
+  "failures": [],
+  "reviewed_evidence": [
+    "artifacts/audits/section_5/campaign_3_supplement_2_0_closure_gate/campaign_3_supplement_2_0_closure_gate.json",
+    "artifacts/audits/section_5/campaign_3_supplement_2_0_closure_gate/run_manifest.json",
+    "docs/governance/CAMPAIGN_3_0_EXTERNAL_SOURCE_MEMORY_VERIFICATION_PLAN.md",
+    "docs/governance/PLAN_SEQUENCE_LOCK.md",
+    "docs/governance/TARGET_ACCEPTANCE_MATRIX.md",
+    "docs/governance/CAMPAIGN_STAGE_GATE_POLICY.md"
+  ],
+  "p0_required_markers": [
+    "External Source Memory & Verification framework",
+    "Generic Web URL Ingestion",
+    "Platform Link Preflight",
+    "OpenCLI External Search Verification",
+    "Manual Evidence Upload",
+    "Unified Source Trace and Evidence Map",
+    "UI External Link Import entry",
+    "Core Bridge allowlist registrations and no-shell tests",
+    "Progress events",
+    "Failure isolation"
+  ],
+  "p1_required_markers": [
+    "Authenticated Browser Connector Alpha",
+    "Basic Video-to-Knowledge Ingestion",
+    "Basic Visual Evidence Understanding",
+    "Basic Knowledge Verification Engine",
+    "Basic Knowledge Verification Dashboard"
+  ],
+  "safety_markers": [
+    "Do not bypass login.",
+    "Do not bypass paywalls.",
+    "Do not bypass CAPTCHA.",
+    "Do not save or upload user cookies.",
+    "Do not provide cookie import.",
+    "Do not implement an unlimited crawler.",
+    "Authorized browser reading is limited to current visible content."
+  ],
+  "campaign_state_after_gate": {
+    "campaign_3_supplement_2_0_closure_gate_passed": true,
+    "campaign_3_3_0_entry_gate_passed": true,
+    "campaign_3_3_0_business_implementation_active": false,
+    "campaign_3_3_0_accepted": false,
+    "campaign_3_4_0_active": false,
+    "campaign_3_4_0_accepted": false,
+    "campaign_3_accepted": false,
+    "campaign_4_allowed": false,
+    "next_business_item": "Campaign 3 Supplement 3.0 P0 External Source Memory & Verification framework"
+  },
+  "non_substitution_rules": {
+    "entry_gate_accepts_campaign_3": false,
+    "entry_gate_accepts_campaign_3_3_0": false,
+    "entry_gate_starts_campaign_3_4_0": false,
+    "entry_gate_opens_campaign_4": false,
+    "plan_registration_substitutes_business_implementation": false,
+    "focused_tests_substitute_full_gate": false
+  },
+  "final_target_not_downgraded": true,
+  "remaining_gap": "Campaign 3 Supplement 3.0 P0/P1 implementation and acceptance, Supplement 4.0, expanded Campaign 3 final consistency gate, Campaign 4 UI industrial acceptance, Core Bridge acceptance, configuration, Full Gate, EXE, and release remain incomplete.",
+  "next_required_e2e_step": "Run Campaign 3 Supplement 3.0 P0 External Source Memory & Verification framework only.",
+  "not_goal_complete": true
+}

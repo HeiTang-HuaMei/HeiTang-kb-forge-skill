@@ -1,0 +1,20 @@
+{
+  "schema_version": "ai_collaboration_rules.v1",
+  "rules": [
+    {
+      "rule_id": "concise_shared_language",
+      "purpose": "Prefer project terms and short status updates over re-explaining stable context.",
+      "evidence_hook": "PROJECT_CONTROL_INDEX and HANDOFF"
+    },
+    {
+      "rule_id": "handoff_state",
+      "purpose": "Long work must leave current item, evidence root, validation, and next item in project memory.",
+      "evidence_hook": "current_status, HANDOFF, and task_log"
+    },
+    {
+      "rule_id": "ask_only_for_blocking_unknowns",
+      "purpose": "Continue automatically inside authorized project scope and ask only for missing secrets, irreversible external risk, or true impasse.",
+      "evidence_hook": "Full Access Execution Policy"
+    }
+  ]
+}

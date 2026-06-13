@@ -1,0 +1,138 @@
+{
+  "schema_version": "horizon_strengthening_manifest.v1",
+  "section": "5.S2",
+  "campaign": "Campaign 3",
+  "status": "passed",
+  "project_id": "horizon",
+  "project_name": "Horizon",
+  "library_name": "HeiTang Horizon Topic Intake Strengthening",
+  "integration_decision": "real_integration",
+  "decision_qualifier": "topic_intake_pipeline_schema_only",
+  "integration_mode": "topic_intake_pipeline_schema_strengthening",
+  "source_verification": {
+    "repository_url": "https://github.com/Thysrael/Horizon",
+    "repository_head": "7e0ffbbd069765b77af053e73ccc0cd6ccc2456f",
+    "default_branch": "main",
+    "repository_accessible": true,
+    "repository_archived": false,
+    "repository_disabled": false,
+    "license_spdx": "MIT",
+    "repository_cloned": false,
+    "external_code_copied": false,
+    "external_prompt_text_copied": false,
+    "external_workflow_copied": false,
+    "external_skill_files_copied": false,
+    "external_installer_executed": false
+  },
+  "official_runtime_observation": {
+    "documented_positioning": [
+      "ai_powered_news_radar",
+      "daily_briefing",
+      "source_monitoring",
+      "deduplicate_score_filter_enrich_summarize",
+      "delivery_channels"
+    ],
+    "documented_sources": [
+      "rss",
+      "hacker_news",
+      "reddit",
+      "telegram",
+      "twitter_x",
+      "github",
+      "openbb"
+    ],
+    "documented_runtime_dependencies": [
+      "uv_or_docker",
+      "configured_sources",
+      "ai_provider_api_key",
+      "optional_delivery_credentials",
+      "optional_mcp_server"
+    ],
+    "runtime_installed": false,
+    "runtime_executed": false,
+    "crawler_or_scraper_enabled": false,
+    "scheduled_fetch_enabled": false,
+    "api_key_requested": false,
+    "delivery_channel_configured": false,
+    "mcp_registered": false,
+    "network_ingestion_executed": false
+  },
+  "dedup_boundary": {
+    "overlap_checked": true,
+    "not_peer_project": true,
+    "strengthens_existing_domains": [
+      "marketing_skill_pattern_library",
+      "business_scenario_template_library",
+      "knowledge_output_flywheel_future_module",
+      "external_source_memory_future_plan"
+    ],
+    "existing_capability_anchors": [
+      "5.7 ai-marketing-skills local Marketing Skill Pattern Library",
+      "5.8 ai-money-maker-handbook local Business Scenario Template Library",
+      "Campaign 3 Supplement 3.0 planned External Source Memory & Verification"
+    ],
+    "distinct_strengthening_value": [
+      "source_scoring_schema",
+      "dedup_topic_merge_rules",
+      "daily_briefing_candidate_schema",
+      "content_intake_boundary_rules"
+    ],
+    "does_not_replace": [
+      "ai-marketing-skills Marketing Skill Pattern Library",
+      "ai-money-maker-handbook Business Scenario Template Library",
+      "AnySearchSkill external retrieval provider",
+      "Campaign 3 Supplement 3.0 External Source Memory & Verification"
+    ]
+  },
+  "runtime_boundary": {
+    "local_topic_intake_schema_implemented": true,
+    "horizon_runtime_integrated": false,
+    "crawler_or_scraper_integrated": false,
+    "scheduled_fetcher_enabled": false,
+    "ai_scoring_runtime_enabled": false,
+    "api_key_required": false,
+    "delivery_channel_enabled": false,
+    "mcp_connector_enabled": false,
+    "external_source_ingestion_implemented": false,
+    "knowledge_to_skill_template_generator_implemented": false,
+    "campaign_3_3_0_implemented": false,
+    "campaign_3_4_0_implemented": false
+  },
+  "ui_contract": {
+    "status_visible": true,
+    "topic_radar_visible": true,
+    "information_intake_visible": true,
+    "daily_briefing_preview_visible": true,
+    "content_candidate_queue_visible": true,
+    "future_module_slot_visible": true,
+    "local_ready": true,
+    "ready": false,
+    "executable_action": false,
+    "horizon_runtime_action_available": false,
+    "crawler_action_available": false,
+    "scheduler_action_available": false,
+    "delivery_action_available": false,
+    "mcp_connector_action_available": false,
+    "ui_visibility": "visible_status_only"
+  },
+  "rule_counts": {
+    "source_scoring": 3,
+    "topic_dedup": 3,
+    "candidate_required_fields": 13,
+    "content_intake_boundary": 4
+  },
+  "output_files": [
+    "horizon_strengthening_manifest.json",
+    "source_scoring_rules.json",
+    "topic_dedup_rules.json",
+    "briefing_candidate_schema.json",
+    "content_intake_boundary_rules.json",
+    "horizon_strengthening_validation_report.json",
+    "horizon_strengthening_report.md"
+  ],
+  "tests_require_real_llm_api_network": false,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "This advances Section 5 strengthening item 5.S2 as a local Topic Intake Pipeline schema only. It does not install or execute Horizon, configure crawlers, schedulers, delivery channels, MCP, API keys, Campaign 3.0 external-source ingestion, Campaign 4 UI workflow, Full Gate, EXE, or release.",
+  "next_required_e2e_step": "Process Section 5 strengthening item 5.S3 Obsidian-compatible Vault only.",
+  "not_goal_complete": true
+}

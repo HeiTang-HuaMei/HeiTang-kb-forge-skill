@@ -1,0 +1,139 @@
+{
+  "schema_version": "campaign_3_final_consistency_status_boundary_matrix.v1",
+  "status": "passed",
+  "items": [
+    {
+      "item_id": "campaign_3_final_consistency_gate_passed",
+      "expected_value": true,
+      "actual_value": true,
+      "status": "passed"
+    },
+    {
+      "item_id": "campaign_3_accepted",
+      "expected_value": true,
+      "actual_value": true,
+      "status": "passed"
+    },
+    {
+      "item_id": "campaign_1_3_stage_test_gate_passed",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "campaign_1_3_integrated_closure_gate_passed",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "closure_pack_generated",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "repository_public_surface_cleanup_gate_passed",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "repository_push_succeeded",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "tag_created",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "ci_green",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "closure_checklist_green",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "campaign_1_3_review_handoff_gate_passed",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "campaign_4_active",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "campaign_5_active",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "campaign_6_active",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "campaign_7_active",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "campaign_8_active",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "campaign_9_active",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "agent_runtime_ready",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "bridge_execution_accepted",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "full_gate_passed",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "exe_packaging_done",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "final_release_allowed",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    }
+  ],
+  "errors": []
+}

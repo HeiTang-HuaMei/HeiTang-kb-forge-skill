@@ -1,0 +1,47 @@
+{
+  "schema_version": "external_link_import_no_shell_security_report.v1",
+  "status": "passed",
+  "run_in_shell": false,
+  "allowlist_only": true,
+  "arbitrary_shell_execution": false,
+  "shell_executables_rejected": [
+    "cmd",
+    "cmd.exe",
+    "powershell",
+    "powershell.exe",
+    "pwsh",
+    "bash",
+    "sh",
+    "zsh"
+  ],
+  "shell_metacharacters_rejected": [
+    "&&",
+    "||",
+    ";",
+    "|",
+    "`",
+    "$(",
+    ">",
+    "<"
+  ],
+  "credentialed_url_rejected": true,
+  "workspace_path_boundary_enforced": true,
+  "bounded_timeout_enforced": true,
+  "evidence": {
+    "runner": "../kb-forge-skill-ui/web/workbench/flutter_app/lib/core_bridge/local_core_bridge_runner_io.dart",
+    "bridge": "../kb-forge-skill-ui/web/workbench/flutter_app/lib/core_bridge/local_core_bridge.dart",
+    "run_in_shell_false": true,
+    "shell_executable_rejection": true,
+    "shell_metacharacter_rejection": true,
+    "workspace_path_boundary": true
+  },
+  "campaign_4_active": false,
+  "campaign_5_active": false,
+  "ui_industrial_workbench_complete": false,
+  "local_core_bridge_complete": false,
+  "bridge_execution_accepted": false,
+  "external_link_import_ui_entry_only": true,
+  "external_link_import_bridge_allowlist_only": true,
+  "not_campaign_4_ui_redesign": true,
+  "not_campaign_5_bridge_acceptance": true
+}

@@ -1,0 +1,58 @@
+{
+  "schema_version": "anysearch_provider_run.v1",
+  "provider_id": "anysearchskill",
+  "integration_mode": "provider_adapter",
+  "report_kind": "run",
+  "status": "passed",
+  "runtime_status": "available",
+  "smoke_status": "not_run",
+  "query": "external retrieval provider freshness verification source attribution",
+  "max_results": 3,
+  "result_count": 3,
+  "sources": [
+    {
+      "rank": 1,
+      "title": "Provenance",
+      "url": "https://linkfetch.io/docs/provenance",
+      "snippet": "Provenance LinkFetch ships provenance on every response. It's not a feature — it's the contract. If you can't explain where your data came from, you can't ship agent workflows to a regulated customer. We give you the audit trail by default. ## The meta.provenance object Every endpoint response has t...",
+      "provider": "anysearchskill",
+      "source_id": "anysearch_1"
+    },
+    {
+      "rank": 2,
+      "title": "Blog | Retrieval Augmented Generation Explained - TopQuadrant",
+      "url": "https://www.topquadrant.com/resources/blog-retrieval-augmented-generation-explained/",
+      "snippet": "Traceability and Source Attribution. Since responses originate from retrieved documents, RAG systems can offer citations or links back to source material. This ...",
+      "provider": "anysearchskill",
+      "source_id": "anysearch_2"
+    },
+    {
+      "rank": 3,
+      "title": "FreshContext — Temporal Intelligence Infrastructure",
+      "url": "https://freshcontext-site.pages.dev/",
+      "snippet": "Rank live signals by freshness, provenance, and temporal relevance before they reach an agent, feed, or retrieval workflow. Use FreshContext through MCP, APIs, feeds, and freshness-aware infrastructure tools. FreshContext gives agents a temporal view of retrieved information: where it came from, w.....",
+      "provider": "anysearchskill",
+      "source_id": "anysearch_3"
+    }
+  ],
+  "network_required": true,
+  "network_allowed": true,
+  "network_called": true,
+  "external_runtime_required": false,
+  "api_key_optional": true,
+  "api_key_configured": false,
+  "api_key_env": "ANYSEARCH_API_KEY",
+  "anonymous_mode": true,
+  "endpoint": "https://api.anysearch.com/mcp",
+  "reverse_proxy_configured": false,
+  "proxy_configured": false,
+  "secrets_persisted": false,
+  "elapsed_ms": 3215,
+  "error_code": null,
+  "error": null,
+  "repair_suggestion": null,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "A provider result does not complete the External Source Center UI, general API/proxy configuration campaign, Agent verification workflow, Full Gate, EXE, or release.",
+  "next_required_e2e_step": "Finish the Section 5 item 5.3 integration decision and UI impact evidence before moving to item 5.4 n8n.",
+  "not_goal_complete": true
+}

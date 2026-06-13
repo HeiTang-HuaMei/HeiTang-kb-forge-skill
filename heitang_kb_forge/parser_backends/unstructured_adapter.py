@@ -12,6 +12,13 @@ class UnstructuredParserBackend(ParserBackend):
     version = "optional"
     description = "Optional Unstructured runtime adapter using unstructured.partition.auto.partition when installed."
     supported_extensions = frozenset({".md", ".txt"})
+    adapter_type = "document_parser"
+    optional_dependency = "unstructured"
+    optional_extra = "parser-unstructured"
+    integration_decision = "real_integration"
+    validated_extensions = frozenset({".md", ".txt"})
+    supported_outputs = ("normalized_text",)
+    reading_order_support = "partial"
 
     def is_available(self) -> tuple[bool, str | None]:
         if find_spec("unstructured") is None:

@@ -1,0 +1,12 @@
+{
+  "schema_version": "external_fetch_report.v1",
+  "status": "passed",
+  "source_url": "http://127.0.0.1:3457/index.html",
+  "final_url": "http://127.0.0.1:3457/index.html",
+  "http_status": 200,
+  "content_type": "text/html",
+  "byte_count": 615,
+  "retrieved_at": "2026-06-13T00:00:00+08:00",
+  "extraction_method": "html_parser",
+  "text_length": 225
+}

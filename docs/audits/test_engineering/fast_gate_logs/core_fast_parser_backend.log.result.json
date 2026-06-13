@@ -1,0 +1,9 @@
+{
+  "name": "core_fast_parser_backend",
+  "command": "python -m pytest tests/test_docling_backend_strengthening.py tests/test_document_backend_contract.py tests/test_marker_backend_decision.py tests/test_mineru_backend_strengthening.py tests/test_opendataloader_backend_strengthening.py tests/test_paddleocr_backend_strengthening.py tests/test_surya_backend_decision.py tests/test_unstructured_fallback_strengthening.py tests/test_v28_parser_backends.py -q",
+  "exit_code": 0,
+  "exit_code_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_parser_backend.log.exitcode",
+  "status": "passed",
+  "log_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_parser_backend.log",
+  "summary": ".....................................................................    [100%]\n69 passed in 15.35s"
+}

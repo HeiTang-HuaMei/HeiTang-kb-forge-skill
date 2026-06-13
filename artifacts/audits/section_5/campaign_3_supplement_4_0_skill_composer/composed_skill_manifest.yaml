@@ -1,0 +1,14 @@
+schema_version: "composed_skill_manifest.v1"
+skill_id: "dedicated_skill_13f9b31a22e79249"
+skill_name: "HeiTang Dedicated Source-Grounded Skill"
+skill_type: "visual_video_skill"
+composition_state: "composed_dedicated_skill"
+lifecycle_state: "dedicated_skill_draft"
+validation_state: "validated"
+publication_state: "draft"
+published: false
+source_kb_id: "kb_campaign_3_supplement_3_0_verified_external_sources"
+source_trace_required: true
+agent_package_generated_by_4_0c: false
+campaign_4_active: false
+campaign_5_active: false

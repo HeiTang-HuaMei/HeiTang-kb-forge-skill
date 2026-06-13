@@ -1,0 +1,18 @@
+{
+  "schema_version": "marker.ui_impact_note.v1",
+  "adapter_id": "marker",
+  "ui_status": "available_smoke_passed_license_gate_pending",
+  "runtime_status": "available",
+  "smoke_status": "passed",
+  "license_gate_status": "license_gate_pending",
+  "model_cache_path": "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill\\_local_dependency_remediation\\marker\\model_cache",
+  "desktop_bridge_actions": [
+    "check_marker_backend",
+    "smoke_marker_backend",
+    "run_marker_convert"
+  ],
+  "web_execution_enabled": false,
+  "web_blocked_reason": "web_local_cli_unsupported",
+  "truthfulness_note": "UI may show Marker ready only after a real smoke passes with the configured workspace-local model cache. The licensing gate and EXE bundling remain separate acceptance items.",
+  "evidence_path": "docs/audits/dependency_remediation/marker/marker_integration_decision_report.json"
+}

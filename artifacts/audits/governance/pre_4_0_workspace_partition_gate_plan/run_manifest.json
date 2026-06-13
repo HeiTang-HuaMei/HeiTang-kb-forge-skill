@@ -1,0 +1,27 @@
+{
+  "schema_version": "audit_run_manifest.v1",
+  "run_id": "pre_4_0_workspace_partition_gate_plan",
+  "generated_at": "2026-06-13T15:45:00+08:00",
+  "type": "governance_plan_registration",
+  "scope": "PRE_4_0_WORKSPACE_PARTITION_AND_KB_ACCESS_SCOPE_FOUNDATION_GATE",
+  "status": "passed",
+  "plan_state": "planned_not_active",
+  "evidence_files": [
+    "run_manifest.json",
+    "run_summary.md",
+    "docs/governance/PRE_4_0_WORKSPACE_PARTITION_FOUNDATION_GATE_PLAN.md"
+  ],
+  "activation_prerequisite": "Campaign 3 Supplement 3.0 Acceptance Gate passed",
+  "next_after_gate_passed": "Campaign 3 Supplement 4.0 Knowledge-to-Skill-to-Agent Package & Product Handoff Contract",
+  "pre_4_0_workspace_partition_complete": false,
+  "workspace_manifest_ready": false,
+  "workspace_registry_ready": false,
+  "workspace_path_boundary_ready": false,
+  "kb_partition_ready": false,
+  "kb_access_scope_ready": false,
+  "legacy_default_workspace_ready": false,
+  "supplement_4_0_active": false,
+  "campaign_4_active": false,
+  "campaign_5_active": false,
+  "not_goal_complete": true
+}

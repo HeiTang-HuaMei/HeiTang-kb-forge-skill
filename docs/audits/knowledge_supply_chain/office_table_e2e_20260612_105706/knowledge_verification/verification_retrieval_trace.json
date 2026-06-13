@@ -1,0 +1,37 @@
+{
+  "verification_retrieval_trace_version": "3.8.0-alpha.1",
+  "package": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/knowledge_package",
+  "verification_source_count": 10,
+  "claim_count": 8,
+  "steps": [
+    {
+      "name": "extract_claims",
+      "status": "pass",
+      "count": 8
+    },
+    {
+      "name": "load_local_verification_sources",
+      "status": "pass",
+      "count": 10
+    },
+    {
+      "name": "source_cross_check",
+      "status": "pass"
+    },
+    {
+      "name": "contradiction_detection",
+      "status": "pass"
+    },
+    {
+      "name": "freshness_verification",
+      "status": "warning"
+    },
+    {
+      "name": "knowledge_accuracy_scoring",
+      "status": "pass"
+    }
+  ],
+  "allow_external_network": false,
+  "llm_used": false,
+  "tests_require_real_llm_api_network": false
+}

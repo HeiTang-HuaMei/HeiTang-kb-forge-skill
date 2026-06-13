@@ -1,0 +1,14 @@
+{
+  "schema_version": "bound_skills.v1",
+  "skills": [
+    {
+      "skill_id": "dedicated_skill_13f9b31a22e79249",
+      "skill_name": "HeiTang Dedicated Source-Grounded Skill",
+      "skill_type": "visual_video_skill",
+      "composition_state": "composed_dedicated_skill",
+      "publication_state": "draft",
+      "published": false,
+      "source_trace_required": true
+    }
+  ]
+}

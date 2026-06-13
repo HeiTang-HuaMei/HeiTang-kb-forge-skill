@@ -15,6 +15,14 @@ class PaddleOCRParserBackend(ParserBackend):
     version = "optional"
     description = "Optional PaddleOCR runtime adapter for local image/PDF OCR when paddleocr is installed."
     supported_extensions = frozenset({".bmp", ".jpeg", ".jpg", ".pdf", ".png", ".tif", ".tiff"})
+    adapter_type = "ocr"
+    optional_dependency = "paddleocr"
+    optional_extra = "parser-paddleocr"
+    integration_decision = "real_integration"
+    validated_extensions = frozenset({".pdf", ".png"})
+    supported_outputs = ("normalized_text", "ocr_text")
+    ocr_support = "supported"
+    reading_order_support = "unknown"
 
     def is_available(self) -> tuple[bool, str | None]:
         if find_spec("paddleocr") is None:
@@ -44,6 +52,13 @@ class PaddleOCRParserBackend(ParserBackend):
         except Exception as exc:
             return _record(self, path, command, "failed", [f"paddleocr_parse_failed:{exc}"], 0.0, True, "backend_runtime_exception")
         confidence = round(sum(scores) / len(scores), 3) if scores else (0.74 if text else 0.0)
+        trace_metadata = {
+            "adapter": "paddleocr",
+            "runtime_invoked": True,
+            "text_item_count": len(texts),
+            "input_kind": "scanned_pdf_page_ocr" if path.suffix.lower() == ".pdf" else "image_ocr",
+            "page": _source_page(path),
+        }
         return ParserBackendRecord(
             source_path=column_safe_path(path),
             source_type=source_type(path),
@@ -54,12 +69,10 @@ class PaddleOCRParserBackend(ParserBackend):
             text=text,
             warnings=[] if text else ["empty_text"],
             confidence=confidence,
-            metadata={"adapter": "paddleocr", "runtime_invoked": True, "text_item_count": len(texts)}
+            metadata=trace_metadata
             if text
             else {
-                "adapter": "paddleocr",
-                "runtime_invoked": True,
-                "text_item_count": len(texts),
+                **trace_metadata,
                 **failure_metadata(
                     self.name,
                     "empty_parse_result",
@@ -146,6 +159,10 @@ def _run_paddleocr(engine: object, path: Path) -> object:
     raise RuntimeError("PaddleOCR runtime exposes neither ocr() nor predict().")
 
 
+def _source_page(path: Path) -> int:
+    return 1
+
+
 def _collect_text_and_scores(value: Any, texts: list[str], scores: list[float]) -> None:
     if value is None:
         return
@@ -223,6 +240,8 @@ def _record(
         metadata={
             "adapter": backend.name,
             "runtime_invoked": runtime_invoked,
+            "input_kind": "scanned_pdf_page_ocr" if path.suffix.lower() == ".pdf" else "image_ocr",
+            "page": _source_page(path),
             **failure_metadata(
                 backend.name,
                 error_code,

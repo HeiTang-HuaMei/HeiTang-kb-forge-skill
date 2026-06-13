@@ -1,0 +1,65 @@
+{
+  "schema_version": "document_understanding_workflow.v1",
+  "status": "completed",
+  "generated_at": "2026-06-12T02:57:44.292292+00:00",
+  "input_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/input",
+  "preflight_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/batch_import",
+  "runtime_config_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/runtime_config.json",
+  "total_items": 3,
+  "success_count": 3,
+  "failed_count": 0,
+  "skipped_count": 0,
+  "normalized_source_count": 3,
+  "runtime_invoked_count": 3,
+  "progress_events_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/progress_events.jsonl",
+  "items": [
+    {
+      "item_id": "doc-0001",
+      "relative_path": "001_table_claims.xlsx",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/input/001_table_claims.xlsx",
+      "preflight_backend": "builtin",
+      "executed_backend": "builtin",
+      "route_source": "preflight_recommendation",
+      "status": "success",
+      "runtime_invoked": true,
+      "normalized_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "parser_result_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/backend_runs/doc-0001/parser_backend_result.json",
+      "error": null
+    },
+    {
+      "item_id": "doc-0002",
+      "relative_path": "002_table_claims.csv",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/input/002_table_claims.csv",
+      "preflight_backend": "builtin",
+      "executed_backend": "builtin",
+      "route_source": "preflight_recommendation",
+      "status": "success",
+      "runtime_invoked": true,
+      "normalized_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md",
+      "parser_result_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/backend_runs/doc-0002/parser_backend_result.json",
+      "error": null
+    },
+    {
+      "item_id": "doc-0003",
+      "relative_path": "003_methodology.md",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/input/003_methodology.md",
+      "preflight_backend": "builtin",
+      "executed_backend": "builtin",
+      "route_source": "preflight_recommendation",
+      "status": "success",
+      "runtime_invoked": true,
+      "normalized_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md",
+      "parser_result_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/backend_runs/doc-0003/parser_backend_result.json",
+      "error": null
+    }
+  ],
+  "output_files": [
+    "document_understanding_manifest.json",
+    "document_understanding_report.md",
+    "document_understanding_records.jsonl",
+    "runtime_configuration_report.json",
+    "normalized_sources/",
+    "backend_runs/",
+    "progress_events.jsonl"
+  ]
+}

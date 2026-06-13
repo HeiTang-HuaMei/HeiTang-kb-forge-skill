@@ -1,0 +1,12 @@
+{
+  "schema_version": "agent_profile.v1",
+  "agent_id": "agent_package_db9dbcaecafc0ca7",
+  "agent_name": "HeiTang Source-Grounded Package Agent",
+  "agent_type": "knowledge_bound_agent_package",
+  "source_kb_id": "kb_campaign_3_supplement_3_0_verified_external_sources",
+  "source_skill_id": "dedicated_skill_13f9b31a22e79249",
+  "agent_state": "agent_package_ready",
+  "agent_runtime_state": "agent_runtime_not_integrated",
+  "agent_executable_state": "agent_executable_not_ready",
+  "kb_trust_status": "verified_external_source_knowledge_base"
+}

@@ -1,0 +1,9 @@
+{
+  "name": "core_fast_mmskills_multimodal_package",
+  "command": "python -m pytest tests/test_multimodal_skill_package.py tests/test_mmskills_integration_decision.py tests/test_s_a_contract_inclusion.py tests/test_external_capability_registry.py tests/test_external_project_registry.py -q",
+  "exit_code": 0,
+  "exit_code_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_mmskills_multimodal_package.log.exitcode",
+  "status": "passed",
+  "log_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_mmskills_multimodal_package.log",
+  "summary": ".....................                                                    [100%]\n21 passed in 3.13s"
+}

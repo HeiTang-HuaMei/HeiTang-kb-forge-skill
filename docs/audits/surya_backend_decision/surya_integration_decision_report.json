@@ -1,0 +1,275 @@
+{
+  "schema_version": "surya.integration_decision.v1",
+  "status": "blocked",
+  "adapter_id": "surya",
+  "decision": "needs_strengthening",
+  "allowed_decisions": [
+    "real_integration",
+    "reference_only",
+    "needs_strengthening",
+    "stop_integration"
+  ],
+  "current_environment_status": "blocked_by_dependency",
+  "dependency_status": "missing",
+  "runtime_status": "skipped",
+  "dependency_available_currently": false,
+  "dependency_name": "surya-ocr",
+  "optional_extra": "parser-surya",
+  "supported_inputs": [
+    ".jpeg",
+    ".jpg",
+    ".pdf",
+    ".png",
+    ".tif",
+    ".tiff"
+  ],
+  "validated_inputs": [],
+  "supported_outputs": [
+    "ocr_json",
+    "layout_json",
+    "table_json"
+  ],
+  "capabilities": {
+    "benchmark_adapter": true,
+    "primary_parser": false,
+    "ocr_benchmark": true,
+    "layout_benchmark": true,
+    "table_benchmark": true,
+    "requires_inference_backend": "vllm_or_llama_cpp",
+    "runtime_invocation_blocked_until_strengthened": true,
+    "structured_skipped_when_missing": true
+  },
+  "commands": {
+    "check": "check-surya-backend",
+    "smoke": "smoke-surya-backend"
+  },
+  "artifacts": [
+    "surya_smoke_report.json",
+    "surya_smoke_report.md",
+    "surya_dependency_remediation_report.json",
+    "surya_dependency_remediation_report.md",
+    "surya_integration_decision_report.json",
+    "surya_integration_decision_report.md",
+    "surya_ui_impact_note.json",
+    "surya_ui_impact_note.md"
+  ],
+  "ui_bridge_actions": [
+    "check_surya_backend",
+    "smoke_surya_backend"
+  ],
+  "fallback_result": "builtin_available",
+  "repair_suggestion": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete.",
+  "inspect_report": {
+    "schema_version": "p2.1.parser_backend_inspect.v1",
+    "status": "blocked_by_dependency",
+    "backend_id": "surya",
+    "backend": {
+      "backend_id": "surya",
+      "display_name": "Surya OCR/layout benchmark reference adapter",
+      "dependency_mode": "optional_extra",
+      "optional_extra": "parser-surya",
+      "default_install_available": false,
+      "current_environment_available": false,
+      "dependency_available": true,
+      "runtime_invoked": true,
+      "sample_input_type": "PDF/image OCR and layout benchmark source",
+      "validated_stable_surface": [],
+      "adapter_supported_extensions": [
+        ".jpeg",
+        ".jpg",
+        ".pdf",
+        ".png",
+        ".tif",
+        ".tiff"
+      ],
+      "known_limitations": [
+        "Surya is prioritized as an OCR/layout benchmark, not a primary parser backend.",
+        "Surya 2 requires surya-ocr plus a vllm or llama.cpp inference backend; default install does not bundle models or inference servers.",
+        "The adapter is intentionally blocked before runtime invocation until dependency remediation and benchmark smoke evidence are complete."
+      ],
+      "status": "future_hardening",
+      "workbench_state": [
+        "needs_strengthening",
+        "reference_benchmark"
+      ],
+      "evidence_path": "docs/audits/surya_backend_decision/surya_integration_decision_report.json",
+      "fallback_behavior": "Surya is reported as a benchmark/reference candidate; missing or installed dependency does not make it a primary parser backend yet.",
+      "static_workbench_executable": false,
+      "capability_contract": {
+        "schema_version": "document_backend.capability.v1",
+        "adapter_id": "surya",
+        "adapter_name": "surya",
+        "adapter_version": "optional",
+        "adapter_type": "document_understanding_benchmark",
+        "integration_decision": "needs_strengthening",
+        "dependency_name": "surya-ocr",
+        "optional_extra": "parser-surya",
+        "dependency_status": "missing",
+        "runtime_status": "skipped",
+        "supported_inputs": [
+          ".jpeg",
+          ".jpg",
+          ".pdf",
+          ".png",
+          ".tif",
+          ".tiff"
+        ],
+        "validated_inputs": [],
+        "supported_outputs": [
+          "ocr_json",
+          "layout_json",
+          "table_json"
+        ],
+        "ocr_support": "partial",
+        "layout_support": "partial",
+        "table_support": "partial",
+        "figure_support": "unknown",
+        "formula_support": "unknown",
+        "reading_order_support": "unknown",
+        "confidence": 0.0,
+        "warnings": [
+          "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete."
+        ],
+        "errors": [
+          {
+            "code": "optional_runtime_dependency_missing",
+            "message": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete.",
+            "retryable": false,
+            "fallback_reason": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete.",
+            "fallback_result": "builtin_available",
+            "repair_suggestion": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete."
+          }
+        ],
+        "source_trace": [],
+        "fallback_reason": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete.",
+        "fallback_result": "builtin_available",
+        "repair_suggestion": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete."
+      }
+    },
+    "registry": {
+      "name": "surya",
+      "version": "optional",
+      "available": false,
+      "status": "unavailable",
+      "contract_status": "skipped",
+      "description": "Optional Surya OCR/layout benchmark adapter. It is not promoted as a primary parser backend.",
+      "supported_extensions": [
+        ".jpeg",
+        ".jpg",
+        ".pdf",
+        ".png",
+        ".tif",
+        ".tiff"
+      ],
+      "reason": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete.",
+      "capability_contract": {
+        "schema_version": "document_backend.capability.v1",
+        "adapter_id": "surya",
+        "adapter_name": "surya",
+        "adapter_version": "optional",
+        "adapter_type": "document_understanding_benchmark",
+        "integration_decision": "needs_strengthening",
+        "dependency_name": "surya-ocr",
+        "optional_extra": "parser-surya",
+        "dependency_status": "missing",
+        "runtime_status": "skipped",
+        "supported_inputs": [
+          ".jpeg",
+          ".jpg",
+          ".pdf",
+          ".png",
+          ".tif",
+          ".tiff"
+        ],
+        "validated_inputs": [],
+        "supported_outputs": [
+          "ocr_json",
+          "layout_json",
+          "table_json"
+        ],
+        "ocr_support": "partial",
+        "layout_support": "partial",
+        "table_support": "partial",
+        "figure_support": "unknown",
+        "formula_support": "unknown",
+        "reading_order_support": "unknown",
+        "confidence": 0.0,
+        "warnings": [
+          "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete."
+        ],
+        "errors": [
+          {
+            "code": "optional_runtime_dependency_missing",
+            "message": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete.",
+            "retryable": false,
+            "fallback_reason": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete.",
+            "fallback_result": "builtin_available",
+            "repair_suggestion": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete."
+          }
+        ],
+        "source_trace": [],
+        "fallback_reason": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete.",
+        "fallback_result": "builtin_available",
+        "repair_suggestion": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete."
+      }
+    },
+    "capability_contract": {
+      "schema_version": "document_backend.capability.v1",
+      "adapter_id": "surya",
+      "adapter_name": "surya",
+      "adapter_version": "optional",
+      "adapter_type": "document_understanding_benchmark",
+      "integration_decision": "needs_strengthening",
+      "dependency_name": "surya-ocr",
+      "optional_extra": "parser-surya",
+      "dependency_status": "missing",
+      "runtime_status": "skipped",
+      "supported_inputs": [
+        ".jpeg",
+        ".jpg",
+        ".pdf",
+        ".png",
+        ".tif",
+        ".tiff"
+      ],
+      "validated_inputs": [],
+      "supported_outputs": [
+        "ocr_json",
+        "layout_json",
+        "table_json"
+      ],
+      "ocr_support": "partial",
+      "layout_support": "partial",
+      "table_support": "partial",
+      "figure_support": "unknown",
+      "formula_support": "unknown",
+      "reading_order_support": "unknown",
+      "confidence": 0.0,
+      "warnings": [
+        "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete."
+      ],
+      "errors": [
+        {
+          "code": "optional_runtime_dependency_missing",
+          "message": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete.",
+          "retryable": false,
+          "fallback_reason": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete.",
+          "fallback_result": "builtin_available",
+          "repair_suggestion": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete."
+        }
+      ],
+      "source_trace": [],
+      "fallback_reason": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete.",
+      "fallback_result": "builtin_available",
+      "repair_suggestion": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete."
+    },
+    "error_code": "optional_runtime_dependency_missing",
+    "human_readable_reason": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete.",
+    "fallback_result": "builtin_available",
+    "repair_suggestion": "Optional dependency 'surya-ocr' or its vllm/llama.cpp inference backend is not installed. Keep Surya as a benchmark candidate until dependency remediation and smoke evidence are complete.",
+    "audit_trace": "parser-backend-inspect",
+    "workbench_visible_status": "blocked_by_dependency"
+  },
+  "smoke_status": "blocked",
+  "run_status": null
+}

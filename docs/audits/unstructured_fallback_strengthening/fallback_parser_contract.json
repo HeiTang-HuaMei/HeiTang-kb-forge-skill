@@ -1,0 +1,55 @@
+{
+  "schema_version": "fallback_parser.contract.v1",
+  "status": "pass",
+  "adapter_id": "builtin",
+  "adapter_type": "fallback_parser",
+  "decision": "real_integration",
+  "dependency_status": "bundled",
+  "runtime_status": "ready",
+  "default_install_available": true,
+  "handles_basic_text_documents": true,
+  "validated_stable_surface": [
+    ".md",
+    ".txt"
+  ],
+  "adapter_supported_extensions": [
+    ".csv",
+    ".docx",
+    ".epub",
+    ".htm",
+    ".html",
+    ".jpeg",
+    ".jpg",
+    ".markdown",
+    ".md",
+    ".pdf",
+    ".png",
+    ".ppt",
+    ".pptx",
+    ".tsv",
+    ".txt",
+    ".xlsx",
+    ".zip"
+  ],
+  "supported_outputs": [
+    "normalized_text"
+  ],
+  "primary_document_understanding_backend": false,
+  "full_ocr_support": false,
+  "full_layout_support": false,
+  "table_extraction_support": false,
+  "figure_extraction_support": false,
+  "formula_recognition_support": false,
+  "contract_capabilities": {
+    "ocr_support": "partial",
+    "layout_support": "unsupported",
+    "table_support": "partial",
+    "figure_support": "unsupported",
+    "formula_support": "unsupported",
+    "reading_order_support": "partial"
+  },
+  "ui_status": "available",
+  "fallback_result": "not_needed",
+  "repair_suggestion": "Use backend=builtin for basic Markdown/TXT fallback; select a real Document Understanding backend for layout/OCR-heavy sources.",
+  "truthfulness_note": "The built-in parser is a dependable basic text fallback, not a full Document Understanding backend."
+}

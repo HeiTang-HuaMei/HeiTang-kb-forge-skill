@@ -1,0 +1,6 @@
+{
+  "schema_version": "document_batch_import.v1.unsupported_file_report",
+  "status": "pass",
+  "unsupported_count": 0,
+  "files": []
+}

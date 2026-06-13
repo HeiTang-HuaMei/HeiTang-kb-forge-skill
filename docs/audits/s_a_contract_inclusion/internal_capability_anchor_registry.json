@@ -133,13 +133,14 @@
       "rating": "S",
       "contract_status": [
         "internal_capability",
+        "implemented_baseline",
         "future_adapter"
       ],
-      "current_status": "future_capability",
-      "implemented": false,
-      "ready": false,
-      "local_ready": false,
-      "pre_v4_scope": "registry_only",
+      "current_status": "implemented baseline",
+      "implemented": true,
+      "ready": true,
+      "local_ready": true,
+      "pre_v4_scope": "already_core_capability",
       "post_v4_target": "P2.5",
       "related_external_benchmarks": [
         "weknora"
@@ -152,13 +153,14 @@
       "rating": "S",
       "contract_status": [
         "internal_capability",
-        "future_adapter"
+        "implemented_baseline",
+        "future_runtime_adapter"
       ],
-      "current_status": "future_adapter",
-      "implemented": false,
-      "ready": false,
-      "local_ready": false,
-      "pre_v4_scope": "registry_only",
+      "current_status": "implemented export baseline",
+      "implemented": true,
+      "ready": true,
+      "local_ready": true,
+      "pre_v4_scope": "already_core_capability",
       "post_v4_target": "P2.2 / P3",
       "related_external_benchmarks": [
         "n8n"

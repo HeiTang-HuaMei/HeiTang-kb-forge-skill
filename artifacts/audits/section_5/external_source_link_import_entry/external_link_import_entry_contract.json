@@ -1,0 +1,48 @@
+{
+  "schema_version": "external_link_import_entry_contract.v1",
+  "section": "5.3.0-P0",
+  "campaign": "Campaign 3",
+  "supplement": "3.0 External Source Memory & Verification",
+  "step": "P0 External Link Import entry plus real Core Bridge allowlist registrations and no-shell tests",
+  "status": "passed",
+  "integration_decision": "real_integration",
+  "decision_qualifier": "external_link_import_entry_bridge_allowlist_only",
+  "implementation_scope": "bounded_industrial_grade_implementation",
+  "runtime_evidence": {
+    "status": "passed",
+    "source_url": "http://127.0.0.1:7964/index.html",
+    "content_hash": "60a442e06f318f552c0aafc15f4e92562b558e216421cd426d5be8af1a734855",
+    "source_trace_count": 1,
+    "evidence_count": 1,
+    "progress_event_count": 8,
+    "backlink": "http://127.0.0.1:7964/index.html"
+  },
+  "output_paths": {
+    "runtime_evidence": "artifacts/audits/section_5/external_source_link_import_entry/runtime_evidence",
+    "ui_entry": "../kb-forge-skill-ui/web/workbench/flutter_app/lib/external_sources/external_link_import_panel.dart",
+    "bridge_allowlist": "../kb-forge-skill-ui/web/workbench/flutter_app/lib/core_bridge/local_core_bridge.dart"
+  },
+  "boundaries": {
+    "authenticated_browser_connector_implemented": false,
+    "video_ocr_visual_evidence_implemented": false,
+    "knowledge_verification_engine_implemented": false,
+    "campaign_3_3_0_accepted": false,
+    "campaign_3_4_0_active": false,
+    "campaign_4_active": false,
+    "campaign_5_bridge_accepted": false,
+    "full_gate_passed": false,
+    "exe_packaging_done": false,
+    "release_allowed": false
+  },
+  "campaign_4_active": false,
+  "campaign_5_active": false,
+  "ui_industrial_workbench_complete": false,
+  "local_core_bridge_complete": false,
+  "bridge_execution_accepted": false,
+  "external_link_import_ui_entry_only": true,
+  "external_link_import_bridge_allowlist_only": true,
+  "not_campaign_4_ui_redesign": true,
+  "not_campaign_5_bridge_acceptance": true,
+  "next_safe_action": "STOP: Campaign 3 Supplement 3.0 next P0 subitem only; PLAN_SEQUENCE_LOCK must name it before execution. Authenticated Browser, Video/OCR, Knowledge Verification, Campaign 4, Campaign 5, Full Gate, EXE, and Release remain blocked.",
+  "not_goal_complete": true
+}

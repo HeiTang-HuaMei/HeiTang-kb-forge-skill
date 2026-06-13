@@ -1,0 +1,30 @@
+{
+  "schema_version": "audit_run_manifest.v1",
+  "run_id": "external_source_link_import_entry",
+  "generated_at": "2026-06-13T04:08:09.549259Z",
+  "type": "section_5_supplement_3_0_p0_external_link_import_entry",
+  "scope": "CAMPAIGN_3_SUPPLEMENT_3_0_P0_EXTERNAL_LINK_IMPORT_ENTRY_CORE_BRIDGE",
+  "status": "passed",
+  "integration_decision": "real_integration",
+  "decision_qualifier": "external_link_import_entry_bridge_allowlist_only",
+  "evidence_files": [
+    "run_manifest.json",
+    "run_summary.md",
+    "external_link_import_entry_contract.json",
+    "core_bridge_allowlist_report.json",
+    "no_shell_security_report.json",
+    "ui_impact_note.json",
+    "external_link_import_validation_report.json"
+  ],
+  "next_business_item": "STOP: Campaign 3 Supplement 3.0 next P0 subitem only; PLAN_SEQUENCE_LOCK must name it before execution. Authenticated Browser, Video/OCR, Knowledge Verification, Campaign 4, Campaign 5, Full Gate, EXE, and Release remain blocked.",
+  "campaign_4_active": false,
+  "campaign_5_active": false,
+  "ui_industrial_workbench_complete": false,
+  "local_core_bridge_complete": false,
+  "bridge_execution_accepted": false,
+  "external_link_import_ui_entry_only": true,
+  "external_link_import_bridge_allowlist_only": true,
+  "not_campaign_4_ui_redesign": true,
+  "not_campaign_5_bridge_acceptance": true,
+  "not_goal_complete": true
+}

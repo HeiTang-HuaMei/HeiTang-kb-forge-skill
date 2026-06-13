@@ -41,6 +41,7 @@ BLOCKED_REASON_TAXONOMY = [
     ("provider_required", "Requires a user-configured provider boundary before runtime use."),
     ("secret_required", "Requires explicit user-provided secret material; no fixture may include it."),
     ("network_required", "Requires network access and cannot be counted as local-ready."),
+    ("ui_configuration_pending", "Desktop UI provider configuration and execution workflow are not accepted yet."),
     ("external_runtime_required", "Requires an external runtime that is not bundled."),
     ("license_review_required", "Requires license review before any implementation work."),
     ("security_review_required", "Requires security review before any implementation work."),
@@ -52,18 +53,46 @@ BLOCKED_REASON_TAXONOMY = [
 ]
 
 CONTRACT_STATUS_BY_PROJECT = {
-    "llm_wiki_v2": ["future_adapter", "capability_anchor"],
-    "weknora": ["future_adapter", "capability_anchor"],
-    "n8n": ["future_adapter", "provider_required", "workflow_export"],
-    "anysearchskill": ["provider_required", "planned_adapter"],
+    "llm_wiki_v2": ["capability_fusion", "real_integration", "runtime_not_bundled"],
+    "weknora": ["capability_fusion", "real_integration", "runtime_not_bundled"],
+    "n8n": ["workflow_export_adapter", "export_validation_passed", "runtime_not_bundled"],
+    "anysearchskill": ["provider_adapter", "real_smoke_passed", "needs_strengthening"],
     "andrej_karpathy_skills": ["benchmark_only", "capability_anchor"],
     "last30days_skill": ["provider_required", "future_adapter"],
-    "skill_prompt_generator": ["benchmark_only", "future_adapter"],
-    "mmskills": ["future_adapter"],
-    "jellyfish": ["template_reference", "future_adapter"],
-    "story_flicks": ["template_reference", "future_adapter"],
-    "seedance2_skill": ["provider_required", "template_reference", "future_adapter"],
-    "ai_marketing_skills": ["template_reference"],
+    "skill_prompt_generator": [
+        "prompt_asset_library_enhancer",
+        "real_integration",
+        "runtime_not_bundled",
+        "license_gate_pending",
+    ],
+    "mmskills": ["schema_package_reference", "reference_only", "runtime_not_bundled"],
+    "jellyfish": ["content_asset_schema_reference", "reference_only", "runtime_not_bundled"],
+    "story_flicks": ["aigc_video_pipeline_schema_reference", "reference_only", "runtime_not_bundled"],
+    "seedance2_skill": [
+        "verified_video_skill_template_metadata",
+        "reference_only",
+        "template_reference",
+        "provider_not_integrated",
+        "runtime_not_bundled",
+    ],
+    "rag_anything": [
+        "cross_modal_rag_schema_reference",
+        "reference_only",
+        "runtime_not_bundled",
+    ],
+    "mattpocock_skills": [
+        "engineering_governance_rule_pack",
+        "real_integration",
+        "runtime_not_bundled",
+    ],
+    "sirchmunk": [
+        "bounded_direct_file_search_provider",
+        "real_integration",
+        "runtime_not_bundled",
+        "embedding_free",
+        "vector_db_not_required",
+    ],
+    "ai_marketing_skills": ["marketing_skill_pattern_library", "real_integration", "runtime_not_bundled"],
     "rtk": ["benchmark_only"],
     "opendataloader": ["planned_adapter"],
     "paddleocr": ["planned_adapter", "optional_runtime_adapter"],
@@ -77,6 +106,139 @@ CONTRACT_STATUS_BY_PROJECT = {
     "deepeval": ["benchmark_only", "future_adapter"],
 }
 
+INTEGRATED_PROJECT_STATE = {
+    "llm_wiki_v2": {
+        "local_ready": True,
+        "blocked_reasons": ["ui_visibility_only"],
+        "ui_visibility": "visible_status_only",
+        "boundary": "Local Knowledge Lifecycle capability fusion is implemented. No LLM Wiki vendor runtime or external code is bundled.",
+    },
+    "weknora": {
+        "local_ready": True,
+        "blocked_reasons": ["ui_visibility_only"],
+        "ui_visibility": "visible_status_only",
+        "boundary": "Local Auto Wiki, Knowledge Graph, RAG trace, and visual trace capability fusion is implemented. No WeKnora runtime is bundled.",
+    },
+    "n8n": {
+        "local_ready": True,
+        "blocked_reasons": [
+            "external_runtime_required",
+            "license_review_required",
+            "security_review_required",
+            "ui_visibility_only",
+        ],
+        "ui_visibility": "visible_status_only",
+        "boundary": "A local, offline n8n workflow export adapter is implemented and validated. Import and execution require a user-owned n8n runtime; no runtime or credentials are bundled.",
+    },
+    "anysearchskill": {
+        "local_ready": False,
+        "can_execute_after_provider_config": True,
+        "blocked_reasons": [
+            "ui_configuration_pending",
+            "network_required",
+            "license_review_required",
+            "security_review_required",
+            "ui_visibility_only",
+        ],
+        "ui_visibility": "visible_status_only",
+        "boundary": "A controlled network provider adapter, anonymous real smoke, and real retrieval run are implemented. UI/Core Bridge and real proxy-path acceptance remain incomplete.",
+    },
+    "skill_prompt_generator": {
+        "local_ready": True,
+        "blocked_reasons": [
+            "license_review_required",
+            "security_review_required",
+            "ui_visibility_only",
+        ],
+        "ui_visibility": "visible_status_only",
+        "boundary": "A local Prompt Asset Library / Skill Factory enhancer is implemented and validated from existing Skill Suite evidence. No skill-prompt-generator repository code, external prompts, or runtime is bundled; P2.2 Skill Factory is not replaced.",
+    },
+    "mmskills": {
+        "local_ready": True,
+        "blocked_reasons": [
+            "license_review_required",
+            "security_review_required",
+            "ui_visibility_only",
+        ],
+        "ui_visibility": "visible_status_only",
+        "boundary": "A local multimodal Skill package schema/reference, visual state card contract, keyframe index, and preview validator are implemented. No MMSkills repository code, OSWorld runtime, raw trajectories, or branch-loaded runtime is bundled or executed.",
+    },
+    "jellyfish": {
+        "local_ready": True,
+        "blocked_reasons": [
+            "license_review_required",
+            "security_review_required",
+            "ui_visibility_only",
+        ],
+        "ui_visibility": "visible_status_only",
+        "boundary": "A local original Content Asset Schema reference, storyboard metadata schema, continuity notes, and production checkpoint contract are implemented and validated. No Jellyfish repository code, short-drama workbench runtime, video generation runtime, asset rendering runtime, or network media operation is bundled or executed.",
+    },
+    "story_flicks": {
+        "local_ready": True,
+        "blocked_reasons": [
+            "license_review_required",
+            "security_review_required",
+            "ui_visibility_only",
+        ],
+        "ui_visibility": "visible_status_only",
+        "boundary": "A local original AIGC video pipeline schema reference with stage, asset handoff, timeline metadata, and delivery checkpoint contracts is implemented and validated. No story-flicks repository code, story-to-video runtime, image/audio/video generation runtime, voice cloning, media rendering, provider execution, or network media operation is bundled or executed.",
+    },
+    "seedance2_skill": {
+        "local_ready": True,
+        "blocked_reasons": [
+            "provider_required",
+            "secret_required",
+            "network_required",
+            "license_review_required",
+            "security_review_required",
+            "template_reference_only",
+            "ui_visibility_only",
+        ],
+        "ui_visibility": "visible_status_only",
+        "boundary": "The public seedance2-skill repository identity and MIT license are verified and represented as local non-executable video Skill template metadata. No external SKILL.md or prompt text is copied, no provider adapter or credential flow is integrated, and no Seedance API request, video generation, media transfer, rendering, or account operation is available.",
+    },
+    "rag_anything": {
+        "local_ready": True,
+        "blocked_reasons": [
+            "license_review_required",
+            "security_review_required",
+            "ui_visibility_only",
+        ],
+        "ui_visibility": "visible_status_only",
+        "boundary": "A local original cross-modal RAG schema, modality-aware evidence trace contract, cross-modal knowledge graph schema, and benchmark profile are implemented and validated. No RAG-Anything, LightRAG, MinerU, LLM/VLM, embedding, vector database, external-source ingestion, or multimodal query runtime is bundled or executed.",
+    },
+    "mattpocock_skills": {
+        "local_ready": True,
+        "blocked_reasons": [
+            "license_review_required",
+            "security_review_required",
+            "ui_visibility_only",
+        ],
+        "ui_visibility": "visible_status_only",
+        "boundary": "A local engineering governance rule-pack is implemented and validated for Pre-Code Gate, Test Gate, Review Gate, and AI collaboration discipline. No mattpocock/skills code, prompts, SKILL.md files, scripts, runtime, Agent creation, Agent binding, or executable workflow is bundled or executed.",
+    },
+    "sirchmunk": {
+        "local_ready": True,
+        "blocked_reasons": [
+            "license_review_required",
+            "security_review_required",
+            "ui_visibility_only",
+        ],
+        "ui_visibility": "visible_status_only",
+        "boundary": "A local bounded direct-file-search provider candidate is implemented and validated with workspace path-boundary enforcement, source trace, and evidence map. No Sirchmunk vendor runtime, LLM/API key, network call, embedding, vector DB, index build requirement, or arbitrary shell execution is bundled or executed.",
+    },
+    "ai_marketing_skills": {
+        "local_ready": True,
+        "blocked_reasons": [
+            "license_review_required",
+            "security_review_required",
+            "ui_visibility_only",
+        ],
+        "ui_visibility": "visible_status_only",
+        "boundary": "A local original Marketing Skill Pattern Library is implemented and validated for Template Library / Skill Factory preview. No ai-marketing-skills repository code, prompts, SKILL.md files, scripts, crawler, paid media execution, account operation, or runtime is bundled or executed.",
+    },
+}
+
 INTERNAL_ANCHOR_STATUS = {
     "book_to_skill": ["internal_capability", "implemented"],
     "package_to_skill": ["internal_capability", "implemented"],
@@ -84,8 +246,8 @@ INTERNAL_ANCHOR_STATUS = {
     "aigc_book_content_pipeline": ["internal_capability", "template_reference"],
     "retrieval_and_verification": ["internal_capability", "implemented"],
     "memory_lifecycle": ["internal_capability", "implemented_baseline", "future_adapter"],
-    "auto_wiki_knowledge_graph": ["internal_capability", "future_adapter"],
-    "workflow_automation_export": ["internal_capability", "future_adapter"],
+    "auto_wiki_knowledge_graph": ["internal_capability", "implemented_baseline", "future_adapter"],
+    "workflow_automation_export": ["internal_capability", "implemented_baseline", "future_runtime_adapter"],
 }
 
 PROJECT_PAGE_MAPPING = {
@@ -100,7 +262,10 @@ PROJECT_PAGE_MAPPING = {
     "jellyfish": ["template_library", "artifact_management", "document_generation"],
     "story_flicks": ["template_library", "artifact_management", "document_generation"],
     "seedance2_skill": ["template_library", "artifact_management", "document_generation"],
-    "ai_marketing_skills": ["template_library"],
+    "rag_anything": ["retrieval_verification", "reports_audit"],
+    "mattpocock_skills": ["governance", "reports_audit"],
+    "sirchmunk": ["retrieval_verification", "reports_audit"],
+    "ai_marketing_skills": ["template_library", "skill_factory"],
     "rtk": ["memory_center", "reports_audit"],
     "opendataloader": ["import_parsing", "vector_hub_provider_storage"],
     "paddleocr": ["import_parsing", "vector_hub_provider_storage"],
@@ -130,6 +295,7 @@ PROJECT_ERROR_MAPPING = {
     "future_adapter": ["contract_drift"],
     "needs_verification": ["contract_drift"],
     "workflow_export": ["tool_call_failed"],
+    "bounded_direct_file_search_provider": ["tool_call_failed"],
 }
 
 
@@ -199,7 +365,7 @@ def write_external_capability_bundle(output: Path, repo_root: Path | None = None
         "a_project_count": registry["rating_counts"]["A"],
         "external_project_count": registry["external_project_count"],
         "internal_capability_anchor_count": registry["internal_capability_anchor_count"],
-        "external_features_implemented": False,
+        "external_features_implemented": registry["release_boundary"]["external_features_implemented"],
         "planned_adapters_marked_ready": False,
     }
 
@@ -235,7 +401,7 @@ def _registry_payload(registry: dict[str, Any], projects: list[dict[str, Any]], 
             "v4_0_started": False,
             "tag_created": False,
             "release_written": False,
-            "external_features_implemented": False,
+            "external_features_implemented": any(project["implemented"] for project in projects),
             "planned_adapters_marked_ready": False,
             "provider_network_api_ready": False,
         },
@@ -245,7 +411,12 @@ def _registry_payload(registry: dict[str, Any], projects: list[dict[str, Any]], 
 def _project_entry(project: dict[str, Any], page_titles: dict[str, str], page_actions: dict[str, list[str]]) -> dict[str, Any]:
     statuses = CONTRACT_STATUS_BY_PROJECT[project["project_id"]]
     page_ids = PROJECT_PAGE_MAPPING[project["project_id"]]
-    blocked_reasons = _blocked_reasons(project, statuses)
+    integrated = INTEGRATED_PROJECT_STATE.get(project["project_id"])
+    blocked_reasons = (
+        list(integrated["blocked_reasons"])
+        if integrated
+        else _blocked_reasons(project, statuses)
+    )
     related_error_codes = _related_error_codes(project, statuses)
     related_actions = sorted({action_id for page_id in page_ids for action_id in page_actions.get(page_id, [])})
     return {
@@ -254,9 +425,9 @@ def _project_entry(project: dict[str, Any], page_titles: dict[str, str], page_ac
         "rating": project["rating"],
         "github_url": project["github_url"],
         "contract_status": statuses,
-        "implemented": False,
+        "implemented": integrated is not None,
         "ready": False,
-        "local_ready": False,
+        "local_ready": bool(integrated and integrated["local_ready"]),
         "executable_action": False,
         "mapped_capabilities": project["mapped_capabilities"],
         "related_workbench_pages": [{"page_id": page_id, "title": page_titles[page_id]} for page_id in page_ids],
@@ -269,11 +440,21 @@ def _project_entry(project: dict[str, Any], page_titles: dict[str, str], page_ac
         "requires_network": project["requires_network"],
         "requires_external_runtime": project["requires_external_runtime"],
         "can_execute_locally_before_v4": False,
-        "can_execute_after_provider_config": False,
+        "can_execute_after_provider_config": bool(
+            integrated and integrated.get("can_execute_after_provider_config")
+        ),
         "p1_gate_impact": "none_not_p1_blocker",
         "post_v4_target": project["post_v4_target"],
-        "ui_visibility": "visible_boundary_only",
-        "implementation_boundary": _implementation_boundary(project, statuses),
+        "ui_visibility": (
+            integrated["ui_visibility"]
+            if integrated
+            else "visible_boundary_only"
+        ),
+        "implementation_boundary": (
+            integrated["boundary"]
+            if integrated
+            else _implementation_boundary(project, statuses)
+        ),
         "source_registry_status": project["current_repo_status"],
         "source_registry_implementation_mode": project["implementation_mode"],
         "license_or_security_review_required": project["license_or_security_review_required"],
@@ -377,7 +558,7 @@ def _matrix_payload(registry_payload: dict[str, Any], projects: list[dict[str, A
         "gate_boundary": {
             "p1_gate_changed": False,
             "v4_0_started": False,
-            "external_features_implemented": False,
+            "external_features_implemented": registry_payload["release_boundary"]["external_features_implemented"],
             "planned_adapters_marked_ready": False,
         },
     }
@@ -565,7 +746,9 @@ def _provider_boundary_report(projects: list[dict[str, Any]]) -> dict[str, Any]:
         "entry_count": len(provider_rows),
         "provider_network_api_ready": False,
         "n8n_bundled_runtime": False,
-        "anysearchskill_api_callable": False,
+        "anysearchskill_api_callable": True,
+        "anysearchskill_real_smoke_passed": True,
+        "n8n_workflow_export_ready": True,
         "weknora_embedded": False,
         "llm_wiki_memory_engine_implemented": False,
         "entries": provider_rows,
@@ -614,7 +797,7 @@ def _render_external_capability_registry_md(payload: dict[str, Any]) -> str:
     lines = [
         "# S/A External Capability Registry",
         "",
-        "This is contract inclusion plus optional local parser/OCR runtime adapter visibility. It does not bundle external runtimes, call provider APIs, or expose UI execution.",
+        "This registry preserves contract boundaries while recording completed local capability-fusion, provider-adapter, and workflow-export work. It does not bundle external runtimes or expose UI execution.",
         "",
         "## Summary",
         "",
@@ -685,7 +868,9 @@ def _render_provider_boundary_md(payload: dict[str, Any]) -> str:
         "Provider, network, secret, and external runtime capabilities are not local-ready in this pass.",
         "",
         "- n8n bundled runtime: false",
-        "- AnySearchSkill API callable: false",
+        "- AnySearchSkill API callable: true",
+        "- AnySearchSkill real smoke passed: true",
+        "- n8n workflow export ready: true",
         "- WeKnora embedded: false",
         "- LLM Wiki memory engine implemented: false",
         "",

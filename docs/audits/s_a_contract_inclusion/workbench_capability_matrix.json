@@ -14,11 +14,12 @@
           "project_name": "Jellyfish",
           "rating": "A",
           "contract_status": [
-            "template_reference",
-            "future_adapter"
+            "content_asset_schema_reference",
+            "reference_only",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         },
         {
@@ -26,10 +27,12 @@
           "project_name": "MMSkills",
           "rating": "A",
           "contract_status": [
-            "future_adapter"
+            "schema_package_reference",
+            "reference_only",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         },
         {
@@ -37,12 +40,14 @@
           "project_name": "seedance2-skill",
           "rating": "A",
           "contract_status": [
-            "provider_required",
+            "verified_video_skill_template_metadata",
+            "reference_only",
             "template_reference",
-            "future_adapter"
+            "provider_not_integrated",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "provider_required",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         },
         {
@@ -50,11 +55,12 @@
           "project_name": "story-flicks",
           "rating": "A",
           "contract_status": [
-            "template_reference",
-            "future_adapter"
+            "aigc_video_pipeline_schema_reference",
+            "reference_only",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         }
       ]
@@ -69,11 +75,12 @@
           "project_name": "Jellyfish",
           "rating": "A",
           "contract_status": [
-            "template_reference",
-            "future_adapter"
+            "content_asset_schema_reference",
+            "reference_only",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         },
         {
@@ -81,12 +88,14 @@
           "project_name": "seedance2-skill",
           "rating": "A",
           "contract_status": [
-            "provider_required",
+            "verified_video_skill_template_metadata",
+            "reference_only",
             "template_reference",
-            "future_adapter"
+            "provider_not_integrated",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "provider_required",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         },
         {
@@ -94,11 +103,12 @@
           "project_name": "story-flicks",
           "rating": "A",
           "contract_status": [
-            "template_reference",
-            "future_adapter"
+            "aigc_video_pipeline_schema_reference",
+            "reference_only",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         }
       ]
@@ -106,18 +116,32 @@
     {
       "page_id": "governance",
       "title": "Governance",
-      "external_capability_count": 1,
+      "external_capability_count": 2,
       "external_capabilities": [
         {
           "project_id": "llm_wiki_v2",
           "project_name": "LLM Wiki v2",
           "rating": "S",
           "contract_status": [
-            "future_adapter",
-            "capability_anchor"
+            "capability_fusion",
+            "real_integration",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "ui_visibility_only",
+          "ui_visibility": "visible_status_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "mattpocock_skills",
+          "project_name": "mattpocock/skills",
+          "rating": "A",
+          "contract_status": [
+            "engineering_governance_rule_pack",
+            "real_integration",
+            "runtime_not_bundled"
+          ],
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         }
       ]
@@ -219,11 +243,12 @@
           "project_name": "LLM Wiki v2",
           "rating": "S",
           "contract_status": [
-            "future_adapter",
-            "capability_anchor"
+            "capability_fusion",
+            "real_integration",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "ui_visibility_only",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         },
         {
@@ -242,7 +267,7 @@
     {
       "page_id": "reports_audit",
       "title": "Reports & Audit",
-      "external_capability_count": 6,
+      "external_capability_count": 9,
       "external_capabilities": [
         {
           "project_id": "andrej_karpathy_skills",
@@ -280,6 +305,32 @@
           "can_execute_locally_before_v4": false
         },
         {
+          "project_id": "mattpocock_skills",
+          "project_name": "mattpocock/skills",
+          "rating": "A",
+          "contract_status": [
+            "engineering_governance_rule_pack",
+            "real_integration",
+            "runtime_not_bundled"
+          ],
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
+          "project_id": "rag_anything",
+          "project_name": "RAG-Anything",
+          "rating": "A",
+          "contract_status": [
+            "cross_modal_rag_schema_reference",
+            "reference_only",
+            "runtime_not_bundled"
+          ],
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
           "project_id": "ragas",
           "project_name": "RAGAS",
           "rating": "A",
@@ -303,15 +354,31 @@
           "can_execute_locally_before_v4": false
         },
         {
+          "project_id": "sirchmunk",
+          "project_name": "Sirchmunk",
+          "rating": "A",
+          "contract_status": [
+            "bounded_direct_file_search_provider",
+            "real_integration",
+            "runtime_not_bundled",
+            "embedding_free",
+            "vector_db_not_required"
+          ],
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
           "project_id": "weknora",
           "project_name": "WeKnora",
           "rating": "S",
           "contract_status": [
-            "future_adapter",
-            "capability_anchor"
+            "capability_fusion",
+            "real_integration",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "ui_visibility_only",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         }
       ]
@@ -319,18 +386,19 @@
     {
       "page_id": "retrieval_verification",
       "title": "Retrieval & Verification",
-      "external_capability_count": 6,
+      "external_capability_count": 8,
       "external_capabilities": [
         {
           "project_id": "anysearchskill",
           "project_name": "AnySearchSkill",
           "rating": "A",
           "contract_status": [
-            "provider_required",
-            "planned_adapter"
+            "provider_adapter",
+            "real_smoke_passed",
+            "needs_strengthening"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "ui_configuration_pending",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         },
         {
@@ -369,6 +437,19 @@
           "can_execute_locally_before_v4": false
         },
         {
+          "project_id": "rag_anything",
+          "project_name": "RAG-Anything",
+          "rating": "A",
+          "contract_status": [
+            "cross_modal_rag_schema_reference",
+            "reference_only",
+            "runtime_not_bundled"
+          ],
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
           "project_id": "ragas",
           "project_name": "RAGAS",
           "rating": "A",
@@ -381,15 +462,31 @@
           "can_execute_locally_before_v4": false
         },
         {
+          "project_id": "sirchmunk",
+          "project_name": "Sirchmunk",
+          "rating": "A",
+          "contract_status": [
+            "bounded_direct_file_search_provider",
+            "real_integration",
+            "runtime_not_bundled",
+            "embedding_free",
+            "vector_db_not_required"
+          ],
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
+          "can_execute_locally_before_v4": false
+        },
+        {
           "project_id": "weknora",
           "project_name": "WeKnora",
           "rating": "S",
           "contract_status": [
-            "future_adapter",
-            "capability_anchor"
+            "capability_fusion",
+            "real_integration",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "ui_visibility_only",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         }
       ]
@@ -397,8 +494,21 @@
     {
       "page_id": "skill_factory",
       "title": "Skill Factory",
-      "external_capability_count": 2,
+      "external_capability_count": 3,
       "external_capabilities": [
+        {
+          "project_id": "ai_marketing_skills",
+          "project_name": "ai-marketing-skills",
+          "rating": "A",
+          "contract_status": [
+            "marketing_skill_pattern_library",
+            "real_integration",
+            "runtime_not_bundled"
+          ],
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
+          "can_execute_locally_before_v4": false
+        },
         {
           "project_id": "andrej_karpathy_skills",
           "project_name": "andrej-karpathy-skills",
@@ -416,11 +526,13 @@
           "project_name": "skill-prompt-generator",
           "rating": "A",
           "contract_status": [
-            "benchmark_only",
-            "future_adapter"
+            "prompt_asset_library_enhancer",
+            "real_integration",
+            "runtime_not_bundled",
+            "license_gate_pending"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         }
       ]
@@ -435,12 +547,12 @@
           "project_name": "n8n",
           "rating": "S",
           "contract_status": [
-            "future_adapter",
-            "provider_required",
-            "workflow_export"
+            "workflow_export_adapter",
+            "export_validation_passed",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "external_runtime_required",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         }
       ]
@@ -455,10 +567,12 @@
           "project_name": "ai-marketing-skills",
           "rating": "A",
           "contract_status": [
-            "template_reference"
+            "marketing_skill_pattern_library",
+            "real_integration",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         },
         {
@@ -466,11 +580,12 @@
           "project_name": "Jellyfish",
           "rating": "A",
           "contract_status": [
-            "template_reference",
-            "future_adapter"
+            "content_asset_schema_reference",
+            "reference_only",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         },
         {
@@ -490,10 +605,12 @@
           "project_name": "MMSkills",
           "rating": "A",
           "contract_status": [
-            "future_adapter"
+            "schema_package_reference",
+            "reference_only",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         },
         {
@@ -501,12 +618,12 @@
           "project_name": "n8n",
           "rating": "S",
           "contract_status": [
-            "future_adapter",
-            "provider_required",
-            "workflow_export"
+            "workflow_export_adapter",
+            "export_validation_passed",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "external_runtime_required",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         },
         {
@@ -514,12 +631,14 @@
           "project_name": "seedance2-skill",
           "rating": "A",
           "contract_status": [
-            "provider_required",
+            "verified_video_skill_template_metadata",
+            "reference_only",
             "template_reference",
-            "future_adapter"
+            "provider_not_integrated",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "provider_required",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         },
         {
@@ -527,11 +646,13 @@
           "project_name": "skill-prompt-generator",
           "rating": "A",
           "contract_status": [
-            "benchmark_only",
-            "future_adapter"
+            "prompt_asset_library_enhancer",
+            "real_integration",
+            "runtime_not_bundled",
+            "license_gate_pending"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         },
         {
@@ -539,11 +660,12 @@
           "project_name": "story-flicks",
           "rating": "A",
           "contract_status": [
-            "template_reference",
-            "future_adapter"
+            "aigc_video_pipeline_schema_reference",
+            "reference_only",
+            "runtime_not_bundled"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "license_review_required",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         }
       ]
@@ -558,11 +680,12 @@
           "project_name": "AnySearchSkill",
           "rating": "A",
           "contract_status": [
-            "provider_required",
-            "planned_adapter"
+            "provider_adapter",
+            "real_smoke_passed",
+            "needs_strengthening"
           ],
-          "blocked_reason": "external_project_registry_only",
-          "ui_visibility": "visible_boundary_only",
+          "blocked_reason": "ui_configuration_pending",
+          "ui_visibility": "visible_status_only",
           "can_execute_locally_before_v4": false
         },
         {

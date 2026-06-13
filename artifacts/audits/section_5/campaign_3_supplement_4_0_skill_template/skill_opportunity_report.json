@@ -1,0 +1,60 @@
+{
+  "schema_version": "skill_opportunity_report.v1",
+  "status": "passed",
+  "source_kb_id": "kb_campaign_3_supplement_3_0_verified_external_sources",
+  "selected_skill_type": "visual_video_skill",
+  "supported_skill_types": [
+    "domain_expert_skill",
+    "research_learning_skill",
+    "product_business_skill",
+    "operation_growth_skill",
+    "literary_skill",
+    "visual_video_skill",
+    "general_personal_skill"
+  ],
+  "visual_video_skill_is_subtype_only": true,
+  "opportunities": [
+    {
+      "skill_type": "visual_video_skill",
+      "work_scenario": "source-grounded knowledge synthesis and verification",
+      "recommendation": "primary",
+      "confidence": 0.86
+    },
+    {
+      "skill_type": "domain_expert_skill",
+      "work_scenario": "specialized domain Q&A with evidence boundaries",
+      "recommendation": "candidate",
+      "confidence": 0.52
+    },
+    {
+      "skill_type": "research_learning_skill",
+      "work_scenario": "research, learning, summarization, and source-grounded synthesis",
+      "recommendation": "candidate",
+      "confidence": 0.52
+    },
+    {
+      "skill_type": "product_business_skill",
+      "work_scenario": "PRD, competitive analysis, user research, and business analysis",
+      "recommendation": "candidate",
+      "confidence": 0.52
+    },
+    {
+      "skill_type": "operation_growth_skill",
+      "work_scenario": "operations, growth, content distribution, and campaign planning",
+      "recommendation": "candidate",
+      "confidence": 0.52
+    },
+    {
+      "skill_type": "literary_skill",
+      "work_scenario": "novel, screenplay, story, character, and worldbuilding work",
+      "recommendation": "candidate",
+      "confidence": 0.52
+    },
+    {
+      "skill_type": "general_personal_skill",
+      "work_scenario": "personal knowledge assistant and reusable knowledge workflow",
+      "recommendation": "candidate",
+      "confidence": 0.52
+    }
+  ]
+}

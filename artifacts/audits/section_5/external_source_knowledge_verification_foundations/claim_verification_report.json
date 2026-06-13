@@ -1,0 +1,197 @@
+{
+  "schema_version": "claim_verification_report.v1",
+  "section": "5.3.0-P1",
+  "campaign": "Campaign 3",
+  "supplement": "3.0 External Source Memory & Verification",
+  "step": "P1 Knowledge Verification Engine and dashboard foundations",
+  "status": "passed",
+  "integration_decision": "real_integration",
+  "decision_qualifier": "knowledge_verification_foundations_only",
+  "integration_mode": "local_claim_to_external_evidence_verification",
+  "generated_at": "2026-06-13T07:26:21.704726Z",
+  "claim_count": 5,
+  "status_counts": {
+    "conflicting": 0,
+    "low_confidence": 0,
+    "needs_human_review": 0,
+    "outdated": 0,
+    "partially_verified": 4,
+    "unsupported": 1,
+    "verified": 0
+  },
+  "claims": [
+    {
+      "claim_id": "claim_b62723629303ac04",
+      "text": "Manual evidence sample is user supplied visible text for an unreadable platform page.",
+      "source": "inline_claim",
+      "content_hash": "b62723629303ac046522af5fee66b0dbcf5305ea440a012a471458b78842c24f",
+      "verification_status": "partially_verified",
+      "confidence": 0.62,
+      "supporting_sources": [
+        {
+          "source_id": "source_3507a397b339fe0c",
+          "evidence_id": "manual_evidence_11f6e870b0e643fc",
+          "source_type": "manual_upload",
+          "source_url": "https://example.com/manual-evidence-source",
+          "title": "Manual Evidence Upload audit sample",
+          "backlink": "manual_evidence_manifest.json#manual_evidence_11f6e870b0e643fc",
+          "content_hash": "6d3a157090d6898c1f3ca507da4d270534d7a1bbc3cf5e8dfc1e723382f3de89",
+          "published_at": "",
+          "text": "Manual evidence sample: user supplied visible text for an unreadable platform page, retained as traceable manual evidence only.",
+          "match_type": "supporting"
+        }
+      ],
+      "conflicting_sources": [],
+      "freshness_status": "fresh",
+      "verified_at": "2026-06-13T07:26:21.704726Z",
+      "source_trace": [
+        "source_3507a397b339fe0c"
+      ],
+      "evidence_ids": [
+        "manual_evidence_11f6e870b0e643fc"
+      ],
+      "failure_reason": "",
+      "repair_suggestion": "Add another independent source to strengthen verification."
+    },
+    {
+      "claim_id": "claim_041980bdf018c68a",
+      "text": "Any website is your CLI.",
+      "source": "inline_claim",
+      "content_hash": "041980bdf018c68aa6a30431d4b13756b3c99965e29ddce9a5625b707f94110f",
+      "verification_status": "partially_verified",
+      "confidence": 0.62,
+      "supporting_sources": [
+        {
+          "source_id": "source_5982ec7be8523211",
+          "evidence_id": "opencli_evidence_af5f7b13df13b3ab",
+          "source_type": "public_registry_result",
+          "source_url": "https://www.npmjs.com/package/@jackwener/opencli",
+          "title": "@jackwener/opencli",
+          "backlink": "https://www.npmjs.com/package/@jackwener/opencli",
+          "content_hash": "208bdb8ff2f2af4137116f598d6487f4b8294b9878bcc721e5f62943146b9ca5",
+          "published_at": "",
+          "text": "Make any website or Electron App your CLI. AI-powered.",
+          "match_type": "supporting"
+        }
+      ],
+      "conflicting_sources": [],
+      "freshness_status": "fresh",
+      "verified_at": "2026-06-13T07:26:21.704726Z",
+      "source_trace": [
+        "source_5982ec7be8523211"
+      ],
+      "evidence_ids": [
+        "opencli_evidence_af5f7b13df13b3ab"
+      ],
+      "failure_reason": "",
+      "repair_suggestion": "Add another independent source to strengthen verification."
+    },
+    {
+      "claim_id": "claim_7d17236ae52c9405",
+      "text": "Visible subtitle claim is from the source video.",
+      "source": "inline_claim",
+      "content_hash": "7d17236ae52c94059028592dd5b13004fade5aba490f65b586a90d8ae9bb0956",
+      "verification_status": "partially_verified",
+      "confidence": 0.62,
+      "supporting_sources": [
+        {
+          "source_id": "source_f180ebb3ae7645b5",
+          "evidence_id": "evidence_a489a2bbe322c6b3",
+          "source_type": "subtitle_file",
+          "source_url": "https://video.example/watch/demo",
+          "title": "Video Visual Demo",
+          "backlink": "https://video.example/watch/demo#t=1",
+          "content_hash": "a489a2bbe322c6b35cd67caba4d64309d1e3176a55f9de8ef653db16bd2207c1",
+          "published_at": "",
+          "text": "Visible subtitle claim from the source video.",
+          "match_type": "supporting"
+        }
+      ],
+      "conflicting_sources": [],
+      "freshness_status": "fresh",
+      "verified_at": "2026-06-13T07:26:21.704726Z",
+      "source_trace": [
+        "source_f180ebb3ae7645b5"
+      ],
+      "evidence_ids": [
+        "evidence_a489a2bbe322c6b3"
+      ],
+      "failure_reason": "",
+      "repair_suggestion": "Add another independent source to strengthen verification."
+    },
+    {
+      "claim_id": "claim_ffd5341f40204412",
+      "text": "Unsupported claim is absent from approved evidence.",
+      "source": "inline_claim",
+      "content_hash": "ffd5341f40204412ba18680250f5d211ffac97a9147f322d339e2b97f4688e5f",
+      "verification_status": "unsupported",
+      "confidence": 0.2,
+      "supporting_sources": [],
+      "conflicting_sources": [],
+      "freshness_status": "unknown",
+      "verified_at": "2026-06-13T07:26:21.704726Z",
+      "source_trace": [],
+      "evidence_ids": [],
+      "failure_reason": "No supporting external evidence was found.",
+      "repair_suggestion": "Add approved source evidence or mark the claim for human review."
+    },
+    {
+      "claim_id": "claim_b62723629303ac04",
+      "text": "Manual evidence sample is user supplied visible text for an unreadable platform page.",
+      "source": "answer",
+      "content_hash": "b62723629303ac046522af5fee66b0dbcf5305ea440a012a471458b78842c24f",
+      "verification_status": "partially_verified",
+      "confidence": 0.62,
+      "supporting_sources": [
+        {
+          "source_id": "source_3507a397b339fe0c",
+          "evidence_id": "manual_evidence_11f6e870b0e643fc",
+          "source_type": "manual_upload",
+          "source_url": "https://example.com/manual-evidence-source",
+          "title": "Manual Evidence Upload audit sample",
+          "backlink": "manual_evidence_manifest.json#manual_evidence_11f6e870b0e643fc",
+          "content_hash": "6d3a157090d6898c1f3ca507da4d270534d7a1bbc3cf5e8dfc1e723382f3de89",
+          "published_at": "",
+          "text": "Manual evidence sample: user supplied visible text for an unreadable platform page, retained as traceable manual evidence only.",
+          "match_type": "supporting"
+        }
+      ],
+      "conflicting_sources": [],
+      "freshness_status": "fresh",
+      "verified_at": "2026-06-13T07:26:21.704726Z",
+      "source_trace": [
+        "source_3507a397b339fe0c"
+      ],
+      "evidence_ids": [
+        "manual_evidence_11f6e870b0e643fc"
+      ],
+      "failure_reason": "",
+      "repair_suggestion": "Add another independent source to strengthen verification."
+    }
+  ],
+  "runtime_boundary": {
+    "knowledge_verification_engine_foundations_implemented": true,
+    "knowledge_verification_dashboard_foundation_implemented": true,
+    "external_network_required": false,
+    "llm_required": false,
+    "opencli_runtime_invoked_by_this_step": false,
+    "browser_connector_invoked_by_this_step": false,
+    "video_ocr_runtime_invoked_by_this_step": false,
+    "supplement_3_0_complete": false,
+    "campaign_3_3_0_acceptance_gate_passed": false,
+    "campaign_4_active": false,
+    "campaign_5_active": false,
+    "bridge_execution_accepted": false
+  },
+  "safety_boundary": {
+    "no_arbitrary_shell_execution": true,
+    "no_cookie_import": true,
+    "no_login_bypass": true,
+    "no_paywall_bypass": true,
+    "no_captcha_bypass": true,
+    "no_unlimited_crawler": true,
+    "user_supplied_or_approved_evidence_only": true
+  },
+  "tests_require_real_llm_api_network": false,
+  "not_goal_complete": true
+}

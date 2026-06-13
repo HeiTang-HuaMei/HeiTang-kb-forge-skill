@@ -1,0 +1,12 @@
+{
+  "retrieval_quality_version": "2.9.0-alpha.1",
+  "status": "pass",
+  "query": "What does the local knowledge supply chain preserve for diagnostics?",
+  "total_records": 23,
+  "selected_count": 5,
+  "top_score": 19,
+  "min_score": 1,
+  "citation_coverage": 1.0,
+  "selected_citation_coverage": 1.0,
+  "warnings": []
+}

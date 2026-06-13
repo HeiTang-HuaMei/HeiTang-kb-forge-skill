@@ -1,0 +1,6 @@
+memory_policy:
+  short_term_memory_runtime: "not_integrated"
+  long_term_memory_runtime: "not_integrated"
+  redis_runtime_ready: false
+  vector_runtime_ready: false
+  source_trace_required: true

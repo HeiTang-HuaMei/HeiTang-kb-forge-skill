@@ -1,0 +1,41 @@
+{
+  "schema_version": "horizon_content_intake_boundary_rules.v1",
+  "rules": [
+    {
+      "rule_id": "no_vendor_runtime",
+      "purpose": "Do not install, clone, vendor, or execute Horizon runtime for this strengthening item.",
+      "blocked_side_effects": [
+        "horizon_install",
+        "uv_sync",
+        "docker_compose_run"
+      ]
+    },
+    {
+      "rule_id": "no_crawler_or_scheduler",
+      "purpose": "Do not start source crawlers, scheduled fetchers, or monitoring jobs.",
+      "blocked_side_effects": [
+        "network_fetch_loop",
+        "cron_schedule",
+        "source_monitor"
+      ]
+    },
+    {
+      "rule_id": "no_delivery_or_mcp_side_effect",
+      "purpose": "Do not configure email, webhooks, GitHub Pages publishing, or MCP servers.",
+      "blocked_side_effects": [
+        "email_send",
+        "webhook_post",
+        "mcp_registration",
+        "pages_publish"
+      ]
+    },
+    {
+      "rule_id": "no_campaign_3_0_substitution",
+      "purpose": "Do not treat this schema strengthening as External Source Memory & Verification implementation.",
+      "blocked_side_effects": [
+        "external_source_ingestion_acceptance",
+        "campaign_3_0_activation"
+      ]
+    }
+  ]
+}

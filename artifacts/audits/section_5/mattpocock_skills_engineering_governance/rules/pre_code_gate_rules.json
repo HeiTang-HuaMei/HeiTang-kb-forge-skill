@@ -1,0 +1,25 @@
+{
+  "schema_version": "pre_code_gate_rules.v1",
+  "rules": [
+    {
+      "rule_id": "align_scope",
+      "purpose": "State the task scope, current plan item, forbidden later states, and verification target before editing.",
+      "evidence_hook": "PLAN_SEQUENCE_LOCK plus task-specific tests"
+    },
+    {
+      "rule_id": "map_domain_language",
+      "purpose": "Use project vocabulary and existing module boundaries before naming new files or abstractions.",
+      "evidence_hook": "PROJECT_CONTROL_INDEX and local package inspection"
+    },
+    {
+      "rule_id": "define_acceptance",
+      "purpose": "Name the smallest verifiable acceptance criteria and the focused gate before implementation.",
+      "evidence_hook": "VALIDATION_GATE_MANIFEST impact rule"
+    },
+    {
+      "rule_id": "record_risks",
+      "purpose": "Record runtime, dependency, UI, release, and rollback risks for governed changes.",
+      "evidence_hook": "pre_action_checkpoint and rollback_plan when risk is non-trivial"
+    }
+  ]
+}

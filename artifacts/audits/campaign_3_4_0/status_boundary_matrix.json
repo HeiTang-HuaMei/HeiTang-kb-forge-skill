@@ -1,0 +1,202 @@
+{
+  "schema_version": "campaign_3_supplement_4_0_status_boundary_matrix.v1",
+  "status": "passed",
+  "items": [
+    {
+      "item_id": "campaign_4_active",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "UI handoff is not Campaign 4."
+    },
+    {
+      "item_id": "campaign_4_ui_complete",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "UI handoff is not UI workbench completion."
+    },
+    {
+      "item_id": "campaign_5_active",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Bridge handoff is not Campaign 5."
+    },
+    {
+      "item_id": "bridge_execution_accepted",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Bridge execution remains future."
+    },
+    {
+      "item_id": "future_allowlist_candidates_active",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Candidates do not enter current allowlist."
+    },
+    {
+      "item_id": "agent_runtime_ready",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Agent Package is not runtime."
+    },
+    {
+      "item_id": "agent_executable",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Execution remains disabled."
+    },
+    {
+      "item_id": "redis_runtime_ready",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Redis is not accepted runtime."
+    },
+    {
+      "item_id": "vector_runtime_ready",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Vector DB is not accepted runtime."
+    },
+    {
+      "item_id": "memory_isolation_runtime_ready",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Memory isolation runtime remains future."
+    },
+    {
+      "item_id": "memory_backend_redis_runtime_ready",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Redis backend is candidate only."
+    },
+    {
+      "item_id": "memory_backend_vector_runtime_ready",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Vector backend is candidate only."
+    },
+    {
+      "item_id": "multi_agent_runtime_ready",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Multi-Agent runtime remains future."
+    },
+    {
+      "item_id": "bundle_boundary:campaign_4_active",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Bundle boundary flag must remain false."
+    },
+    {
+      "item_id": "bundle_boundary:campaign_5_active",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Bundle boundary flag must remain false."
+    },
+    {
+      "item_id": "bundle_boundary:campaign_4_ui_complete",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Bundle boundary flag must remain false."
+    },
+    {
+      "item_id": "bundle_boundary:campaign_5_bridge_complete",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Bundle boundary flag must remain false."
+    },
+    {
+      "item_id": "bundle_boundary:ui_handoff_is_campaign_4_completion",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Bundle boundary flag must remain false."
+    },
+    {
+      "item_id": "bundle_boundary:bridge_handoff_is_campaign_5_completion",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Bundle boundary flag must remain false."
+    },
+    {
+      "item_id": "bundle_boundary:agent_runtime_ready",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Bundle boundary flag must remain false."
+    },
+    {
+      "item_id": "bundle_boundary:agent_executable",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Bundle boundary flag must remain false."
+    },
+    {
+      "item_id": "bundle_boundary:redis_runtime_ready",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Bundle boundary flag must remain false."
+    },
+    {
+      "item_id": "bundle_boundary:vector_runtime_ready",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Bundle boundary flag must remain false."
+    },
+    {
+      "item_id": "bundle_boundary:memory_isolation_runtime_ready",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Bundle boundary flag must remain false."
+    },
+    {
+      "item_id": "bundle_boundary:multi_agent_runtime_ready",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Bundle boundary flag must remain false."
+    },
+    {
+      "item_id": "bundle_boundary:multi_agent_executable",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Bundle boundary flag must remain false."
+    },
+    {
+      "item_id": "bundle_boundary:bridge_execution_accepted",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Bundle boundary flag must remain false."
+    },
+    {
+      "item_id": "bundle_boundary:future_allowlist_candidate_active",
+      "status": "passed",
+      "actual_value": false,
+      "expected_value": false,
+      "repair_suggestion": "Bundle boundary flag must remain false."
+    }
+  ]
+}

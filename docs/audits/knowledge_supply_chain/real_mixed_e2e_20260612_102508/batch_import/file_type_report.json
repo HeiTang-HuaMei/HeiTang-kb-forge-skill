@@ -1,0 +1,16 @@
+{
+  "schema_version": "document_batch_import.v1.file_type_report",
+  "status": "pass",
+  "counts_by_extension": {
+    ".md": 1,
+    ".pdf": 1,
+    ".png": 1,
+    ".txt": 1
+  },
+  "counts_by_file_type": {
+    "image_or_scanned_document": 1,
+    "pdf": 1,
+    "text_document": 2
+  },
+  "total_files": 4
+}

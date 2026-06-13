@@ -1,0 +1,85 @@
+{
+  "schema_version": "campaign_1_3_stage_test_boundary_matrix.v1",
+  "status": "passed",
+  "items": [
+    {
+      "item_id": "stage_test_is_full_gate",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "stage_test_runs_integrated_closure",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "stage_test_generates_closure_pack",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "stage_test_runs_repository_cleanup",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "stage_test_pushes_repository",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "stage_test_creates_tag",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "stage_test_verifies_ci_green",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "stage_test_opens_campaign_4",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "stage_test_opens_campaign_5",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "ui_handoff_is_campaign_4_completion",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "bridge_handoff_is_campaign_5_completion",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "agent_package_is_agent_runtime_ready",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "memory_spec_is_redis_vector_runtime_ready",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed"
+    }
+  ],
+  "errors": []
+}

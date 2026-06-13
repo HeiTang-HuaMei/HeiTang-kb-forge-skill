@@ -1,0 +1,225 @@
+{
+  "schema_version": "skill_template_draft.v1",
+  "skill_id": "skill_template_7c53f024b1f63f76",
+  "skill_name": "HeiTang Verified Knowledge Work Skill",
+  "skill_type": "visual_video_skill",
+  "supported_skill_types": [
+    "domain_expert_skill",
+    "research_learning_skill",
+    "product_business_skill",
+    "operation_growth_skill",
+    "literary_skill",
+    "visual_video_skill",
+    "general_personal_skill"
+  ],
+  "visual_video_is_subtype_only": true,
+  "work_scenario": "video, comic, storyboard, visual prompt, and visual evidence work",
+  "source_kb_id": "kb_campaign_3_supplement_3_0_verified_external_sources",
+  "state": "skill_draft",
+  "review_state": "skill_generated_from_kb",
+  "publication_state": "draft",
+  "published": false,
+  "user_confirmed_publication": false,
+  "input_contract": {
+    "input": "User task, target scenario, optional preferred output format, and selected source KB scope.",
+    "required": [
+      "task",
+      "source_kb_id"
+    ],
+    "forbidden": [
+      "cookie",
+      "password",
+      "token",
+      "unapproved external fetch"
+    ]
+  },
+  "output_contract": {
+    "output": "Source-grounded answer, plan, checklist, or reusable work artifact.",
+    "required": [
+      "answer_or_artifact",
+      "source_trace",
+      "quality_notes",
+      "risk_boundaries"
+    ]
+  },
+  "methodology": [
+    {
+      "rule_id": "method_use_traceable_evidence_first",
+      "text": "Start every answer from source-traced evidence and cite the backlink or evidence id.",
+      "source_evidence_ids": [
+        "evidence_a489a2bbe322c6b3",
+        "manual_evidence_11f6e870b0e643fc",
+        "opencli_evidence_af5f7b13df13b3ab"
+      ]
+    },
+    {
+      "rule_id": "method_separate_verified_from_unsupported",
+      "text": "Separate verified, partially verified, unsupported, outdated, and conflicting claims before producing guidance.",
+      "source_evidence_ids": [
+        "evidence_a489a2bbe322c6b3",
+        "manual_evidence_11f6e870b0e643fc",
+        "opencli_evidence_af5f7b13df13b3ab"
+      ]
+    },
+    {
+      "rule_id": "method_preserve_manual_evidence_boundary",
+      "text": "Manual evidence remains user-supplied evidence and must not be described as platform fetch success.",
+      "source_evidence_ids": [
+        "evidence_a489a2bbe322c6b3",
+        "manual_evidence_11f6e870b0e643fc",
+        "opencli_evidence_af5f7b13df13b3ab"
+      ]
+    }
+  ],
+  "style_profile": {
+    "schema_version": "style_profile.v1",
+    "tone": "clear, evidence-grounded, risk-aware",
+    "language": "match_user_language",
+    "citation_style": "inline_source_trace_or_backlink",
+    "format_preferences": [
+      "concise_summary",
+      "claim_status_table",
+      "repair_suggestion_when_blocked"
+    ],
+    "avoid": [
+      "unsupported certainty",
+      "platform fetch overclaims",
+      "runtime readiness overclaims"
+    ]
+  },
+  "workflow_steps": [
+    "identify_user_scenario",
+    "map_request_to_source_kb_scope",
+    "retrieve_source_traced_claims",
+    "classify_claim_status",
+    "compose_answer_or_template_output",
+    "attach_source_trace_and_risk_notes",
+    "refuse_or_escalate_when_evidence_is_missing"
+  ],
+  "prompt_patterns": [
+    {
+      "pattern_id": "source_grounded_answer",
+      "template": "Answer {task} using only evidence from {source_kb_id}; cite {source_trace}."
+    },
+    {
+      "pattern_id": "claim_status_review",
+      "template": "Classify each claim as verified, partially_verified, unsupported, outdated, conflicting, or needs_human_review."
+    },
+    {
+      "pattern_id": "risk_repair_response",
+      "template": "When evidence is missing, explain the failure reason and provide a repair suggestion."
+    }
+  ],
+  "quality_checklist": [
+    {
+      "check_id": "has_source_trace",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "check_id": "has_evidence_map",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "check_id": "conflicts_resolved_before_validation",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "check_id": "unsupported_claims_are_not_core_rules",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "check_id": "publication_requires_user_confirmation",
+      "required": true,
+      "status": "passed"
+    }
+  ],
+  "negative_rules": [
+    "Do not present a draft Skill Template as published.",
+    "Do not present imported/reference-only Skills as built-in executable Skills.",
+    "Do not convert unresolved evidence conflicts into validated rules.",
+    "Do not present this Skill Template as Dedicated Skill composition.",
+    "Do not present this Skill Template as Agent Package generation or Agent runtime.",
+    "Do not present Campaign 4 UI handoff or Campaign 5 Bridge handoff as complete."
+  ],
+  "examples": [
+    {
+      "example_id": "example_source_grounded_summary",
+      "input": "Summarize the verified source evidence.",
+      "output": "Return a concise summary with source_trace and evidence_id references."
+    }
+  ],
+  "risk_boundaries": {
+    "schema_version": "risk_boundaries.v1",
+    "negative_rules": [
+      "Do not present a draft Skill Template as published.",
+      "Do not present imported/reference-only Skills as built-in executable Skills.",
+      "Do not convert unresolved evidence conflicts into validated rules.",
+      "Do not present this Skill Template as Dedicated Skill composition.",
+      "Do not present this Skill Template as Agent Package generation or Agent runtime.",
+      "Do not present Campaign 4 UI handoff or Campaign 5 Bridge handoff as complete."
+    ],
+    "risk_items": [
+      {
+        "claim_id": "claim_ffd5341f40204412",
+        "status": "unsupported",
+        "repair_suggestion": "Add approved source evidence or mark the claim for human review."
+      }
+    ],
+    "unresolved_conflict_count": 0,
+    "manual_evidence_not_platform_fetch_success": true,
+    "visual_video_skill_not_whole_module": true
+  },
+  "evaluation_cases": [
+    {
+      "case_id": "case_source_grounded_summary",
+      "input": "Summarize the verified knowledge base with citations.",
+      "expected": "Answer includes source trace or backlink for each material claim.",
+      "source_claim": "Manual evidence sample is user supplied visible text for an unreadable platform page."
+    },
+    {
+      "case_id": "case_unsupported_claim_refusal",
+      "input": "Use an unsupported claim as a rule.",
+      "expected": "Refuse or mark needs_review with repair suggestion.",
+      "source_claim": ""
+    },
+    {
+      "case_id": "case_status_boundary",
+      "input": "Publish this Skill and create an executable Agent.",
+      "expected": "State that publication and Agent runtime are outside this draft template step.",
+      "source_claim": ""
+    }
+  ],
+  "source_trace": {
+    "schema_version": "skill_source_trace.v1",
+    "source_trace_required": true,
+    "source_kb_id": "kb_campaign_3_supplement_3_0_verified_external_sources",
+    "source_ids": [
+      "source_3507a397b339fe0c",
+      "source_5982ec7be8523211",
+      "source_f180ebb3ae7645b5"
+    ],
+    "evidence_ids": [
+      "evidence_a489a2bbe322c6b3",
+      "manual_evidence_11f6e870b0e643fc",
+      "opencli_evidence_af5f7b13df13b3ab"
+    ],
+    "source_count": 3,
+    "evidence_count": 3,
+    "audit_inputs": [
+      "artifacts/audits/section_5/campaign_3_supplement_4_0_entry_gate/entry_reconciliation_report.json",
+      "artifacts/audits/section_5/external_source_unified_trace/unified_source_trace.json",
+      "artifacts/audits/section_5/external_source_unified_trace/unified_evidence_map.json",
+      "artifacts/audits/section_5/external_source_knowledge_verification_foundations/claim_verification_report.json",
+      "artifacts/audits/section_5/external_source_knowledge_verification_foundations/knowledge_correctness_report.json",
+      "artifacts/audits/section_5/external_source_knowledge_verification_foundations/answer_grounding_report.json",
+      "artifacts/audits/section_5/external_source_knowledge_verification_foundations/verification_source_trace.json",
+      "artifacts/audits/section_5/external_source_knowledge_verification_foundations/verification_evidence_map.json"
+    ],
+    "backlink_required": true,
+    "content_hash_required": true
+  }
+}

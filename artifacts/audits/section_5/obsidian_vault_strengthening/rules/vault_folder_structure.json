@@ -1,0 +1,20 @@
+{
+  "schema_version": "local_markdown_vault_folder_structure.v1",
+  "folder_count": 2,
+  "folders": [
+    {
+      "folder": "Marketing",
+      "note_count": 1,
+      "notes": [
+        "Marketing/Content Plan.md"
+      ]
+    },
+    {
+      "folder": "Research",
+      "note_count": 1,
+      "notes": [
+        "Research/AI Radar.md"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "audit_run_manifest.v1",
+  "run_id": "mmskills_multimodal_skill_package",
+  "generated_at": "2026-06-12T21:19:50+08:00",
+  "type": "section_5_integration_decision",
+  "scope": "SECTION_5_ITEM_5_5_MMSKILLS",
+  "status": "passed",
+  "integration_decision": "reference_only",
+  "evidence_files": [
+    "pre_action_checkpoint.md",
+    "rollback_plan.md",
+    "multimodal_skill_package/multimodal_skill_manifest.json",
+    "multimodal_skill_package/visual_state_cards.jsonl",
+    "multimodal_skill_package/keyframe_schema.json",
+    "multimodal_skill_package/keyframe_index.jsonl",
+    "multimodal_skill_package/branch_loading_policy.json",
+    "multimodal_skill_package/multimodal_skill_preview.json",
+    "validation/multimodal_skill_validation_report.json",
+    "mmskills_integration_decision_report.json",
+    "mmskills_integration_decision_report.md",
+    "mmskills_ui_impact_note.json",
+    "mmskills_ui_impact_note.md",
+    "run_summary.md"
+  ],
+  "campaign_state_after_run": {
+    "campaign_3_item_5_1": "advanced",
+    "campaign_3_item_5_2": "advanced",
+    "campaign_3_item_5_3": "advanced_needs_strengthening",
+    "campaign_3_item_5_4": "advanced",
+    "campaign_3_item_5_5": "advanced_reference_only",
+    "campaign_3_accepted": false,
+    "campaign_4_allowed": false,
+    "next_section_5_item": "5.6 skill-prompt-generator"
+  },
+  "retention": "milestone",
+  "keep_in_git": true,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "Section 5 items 5.6 through 5.13 and all later campaigns remain incomplete; MMSkills is not a runtime integration.",
+  "next_required_e2e_step": "Process Section 5 item 5.6 skill-prompt-generator only.",
+  "not_goal_complete": true
+}

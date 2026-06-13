@@ -1,0 +1,18 @@
+{
+  "schema_version": "authenticated_source_evidence_map.v1",
+  "session_id": "abs_92a57bf7a7b948798a5a75512f0e48e0",
+  "evidence_count": 1,
+  "evidence": [
+    {
+      "source_id": "source_9b0e60d1abe4de6d",
+      "evidence_id": "evidence_98f6b4660ec8ab53",
+      "content_hash": "98f6b4660ec8ab53177e982f87d8f36c3a2e1c6cc3cc568544dfa04cb6200334",
+      "source_type": "authenticated_browser_visible_content",
+      "integration_mode": "user_authorized_visible_content",
+      "trace_ref": "auth_source_trace.json",
+      "content_ref": "visible_content_extract.jsonl#1",
+      "backlink": "https://example.com/user-visible/article"
+    }
+  ],
+  "knowledge_verification_engine_complete": false
+}

@@ -1,0 +1,43 @@
+{
+  "schema_version": "audit_run_manifest.v1",
+  "run_id": "external_source_manual_evidence",
+  "generated_at": "2026-06-13T01:55:47.658928Z",
+  "type": "section_5_supplement_3_0_p0_manual_evidence_upload",
+  "scope": "CAMPAIGN_3_SUPPLEMENT_3_0_P0_MANUAL_EVIDENCE_UPLOAD",
+  "status": "passed",
+  "integration_decision": "real_integration",
+  "decision_qualifier": "manual_evidence_upload_only",
+  "evidence_files": [
+    "manual_evidence_manifest.json",
+    "manual_evidence_blocks.jsonl",
+    "manual_source_trace.json",
+    "manual_evidence_map.json",
+    "manual_evidence_validation_report.json",
+    "manual_evidence_report.md",
+    "run_manifest.json",
+    "run_summary.md"
+  ],
+  "campaign_state_after_run": {
+    "campaign_3_supplement_3_0_entry_gate_passed": true,
+    "campaign_3_3_0_p0_framework_passed": true,
+    "generic_web_url_ingestion_implemented": true,
+    "platform_preflight_implemented": true,
+    "opencli_external_search_verification_implemented": true,
+    "manual_evidence_upload_passed": true,
+    "authenticated_browser_runtime_integrated": false,
+    "video_transcription_implemented": false,
+    "visual_ocr_runtime_integrated": false,
+    "knowledge_verification_runtime_implemented": false,
+    "campaign_3_3_0_accepted": false,
+    "campaign_3_4_0_active": false,
+    "campaign_3_accepted": false,
+    "campaign_4_allowed": false,
+    "next_business_item": "Campaign 3 Supplement 3.0 P0 unified Source Trace / Evidence Map, progress events, and failure isolation"
+  },
+  "retention": "milestone",
+  "keep_in_git": true,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "Manual Evidence Upload records user-supplied text and metadata-only manual evidence as traceable manual blocks, source_trace, evidence_map, content_hash, and manifest backlinks. It does not perform OCR, video transcription, authenticated browser reading, OpenCLI expansion, UI workflow acceptance, Core Bridge execution acceptance, Supplement 3.0 acceptance, Supplement 4.0, Campaign 4, Full Gate, EXE packaging, or release.",
+  "next_required_e2e_step": "Run Campaign 3 Supplement 3.0 P0 unified Source Trace / Evidence Map, progress events, and failure isolation only.",
+  "not_goal_complete": true
+}

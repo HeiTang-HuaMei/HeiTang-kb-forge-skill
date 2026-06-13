@@ -1,0 +1,57 @@
+{
+  "evidence_version": "2.0",
+  "chunks": {
+    "9d8f45ecc0c6d78172a0eb3e": {
+      "evidence_id": "ev_9d8f45ecc0c6d78172a0eb3e",
+      "source_file": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0001_diagnostics.md",
+      "source_id": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0001_diagnostics.md",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    },
+    "3c644816f0123b87cc8187a9": {
+      "evidence_id": "ev_3c644816f0123b87cc8187a9",
+      "source_file": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0002_sample_marker_pdf.md",
+      "source_id": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0002_sample_marker_pdf.md",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    },
+    "5bcac284c999367a4f6acda0": {
+      "evidence_id": "ev_5bcac284c999367a4f6acda0",
+      "source_file": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0003_sample_paddleocr_image.md",
+      "source_id": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0003_sample_paddleocr_image.md",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    },
+    "30aad324971429ffc31dfc3c": {
+      "evidence_id": "ev_30aad324971429ffc31dfc3c",
+      "source_file": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0004_supply_chain_notes.md",
+      "source_id": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0004_supply_chain_notes.md",
+      "page_number": null,
+      "slide_number": null,
+      "paragraph_index": null,
+      "table_id": null,
+      "asset_id": null,
+      "bbox": null,
+      "evidence_type": "text",
+      "extraction_method": "parser"
+    }
+  }
+}

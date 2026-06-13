@@ -35,6 +35,13 @@ STAGES = {
     "batch_item_success",
     "batch_item_failed",
     "batch_done",
+    "document_understanding_started",
+    "document_understanding_item",
+    "document_understanding_done",
+    "knowledge_base_started",
+    "knowledge_base_done",
+    "knowledge_package_started",
+    "knowledge_package_done",
 }
 
 STATUSES = {"started", "running", "success", "warning", "failed", "skipped"}

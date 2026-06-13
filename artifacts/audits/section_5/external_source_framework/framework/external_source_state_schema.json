@@ -1,0 +1,41 @@
+{
+  "schema_version": "external_source_state_schema.v1",
+  "readability_states": [
+    "public_readable",
+    "partial_readable",
+    "login_required",
+    "auth_required",
+    "blocked_by_platform",
+    "anti_crawl_detected",
+    "paywall_or_permission_required",
+    "video_without_transcript",
+    "needs_opencli_verification",
+    "needs_manual_evidence"
+  ],
+  "auth_session_states": [
+    "auth_required",
+    "user_authorized_session",
+    "visible_content_readable",
+    "visible_content_partial",
+    "user_cancelled",
+    "session_expired",
+    "permission_denied",
+    "manual_evidence_required"
+  ],
+  "verification_states": [
+    "verified",
+    "partially_verified",
+    "unsupported",
+    "outdated",
+    "conflicting",
+    "low_confidence",
+    "needs_human_review"
+  ],
+  "state_reporting_rules": [
+    "unreadable_sources_must_record_reason",
+    "login_required_is_not_runtime_failure",
+    "license_or_permission_gate_is_not_runtime_failure",
+    "structured_skipped_is_not_passed",
+    "ready_requires_real_runtime_smoke"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "schema_version": "horizon_briefing_candidate_schema.v1",
+  "description": "Local schema for Topic Radar / Information Intake / Daily Briefing candidate queues.",
+  "required_fields": [
+    "candidate_id",
+    "source_type",
+    "source_url",
+    "title",
+    "retrieved_at",
+    "content_hash",
+    "source_score",
+    "dedup_key",
+    "topic_tags",
+    "evidence_ids",
+    "source_trace",
+    "risk_flags",
+    "status"
+  ],
+  "allowed_statuses": [
+    "candidate",
+    "selected",
+    "deferred",
+    "rejected",
+    "needs_review"
+  ],
+  "allowed_source_types": [
+    "rss",
+    "public_web",
+    "github",
+    "manual_evidence",
+    "future_platform_link",
+    "future_video_source"
+  ],
+  "side_effects": {
+    "fetches_network_content": false,
+    "runs_horizon_runtime": false,
+    "calls_llm_provider": false,
+    "publishes_briefing": false
+  }
+}

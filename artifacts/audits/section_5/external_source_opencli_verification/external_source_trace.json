@@ -1,0 +1,38 @@
+{
+  "schema_version": "external_source_trace.v1",
+  "source_trace_required": true,
+  "source_count": 3,
+  "query": "opencli",
+  "claim": "OpenCLI exposes public web sources as structured CLI candidates",
+  "input_url": "",
+  "retrieved_at": "2026-06-13T08:08:10+08:00",
+  "sources": [
+    {
+      "source_id": "opencli_candidate_2c87374a2b62b00a",
+      "evidence_id": "opencli_evidence_af5f7b13df13b3ab",
+      "source_type": "public_registry_result",
+      "title": "@jackwener/opencli",
+      "source_url": "https://www.npmjs.com/package/@jackwener/opencli",
+      "retrieved_at": "2026-06-13T08:08:10+08:00",
+      "provider": "opencli:npm"
+    },
+    {
+      "source_id": "opencli_candidate_750ebfe3d745208e",
+      "evidence_id": "opencli_evidence_6edb4ae33c870150",
+      "source_type": "public_registry_result",
+      "title": "@thehappyboy/opencli-mcp-http",
+      "source_url": "https://www.npmjs.com/package/@thehappyboy/opencli-mcp-http",
+      "retrieved_at": "2026-06-13T08:08:10+08:00",
+      "provider": "opencli:npm"
+    },
+    {
+      "source_id": "opencli_candidate_48fa0ed3fdf49d39",
+      "evidence_id": "opencli_evidence_0ecfe2826fef3aee",
+      "source_type": "public_registry_result",
+      "title": "opencli-plugin-socialdatax",
+      "source_url": "https://www.npmjs.com/package/opencli-plugin-socialdatax",
+      "retrieved_at": "2026-06-13T08:08:10+08:00",
+      "provider": "opencli:npm"
+    }
+  ]
+}

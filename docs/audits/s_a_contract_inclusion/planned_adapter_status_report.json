@@ -1,41 +1,12 @@
 {
   "report_id": "planned_adapter_status_report",
   "version": "s_a_contract_inclusion.1",
-  "planned_adapter_count": 8,
-  "future_adapter_count": 11,
+  "planned_adapter_count": 7,
+  "future_adapter_count": 3,
   "ready_count": 0,
   "implemented_count": 0,
   "can_execute_locally_before_v4_count": 0,
   "entries": [
-    {
-      "project_id": "anysearchskill",
-      "project_name": "AnySearchSkill",
-      "rating": "A",
-      "github_url": "https://github.com/anysearch-ai/anysearch-skill",
-      "contract_status": [
-        "provider_required",
-        "planned_adapter"
-      ],
-      "blocked_reason": "external_project_registry_only",
-      "blocked_reasons": [
-        "external_project_registry_only",
-        "planned_adapter_not_implemented",
-        "provider_required",
-        "secret_required",
-        "network_required",
-        "license_review_required",
-        "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only"
-      ],
-      "requires_api_key": true,
-      "requires_network": true,
-      "requires_external_runtime": false,
-      "can_execute_locally_before_v4": false,
-      "post_v4_target": "P2.3",
-      "ui_visibility": "visible_boundary_only"
-    },
     {
       "project_id": "deepeval",
       "project_name": "DeepEval",
@@ -90,33 +61,6 @@
       "ui_visibility": "visible_boundary_only"
     },
     {
-      "project_id": "jellyfish",
-      "project_name": "Jellyfish",
-      "rating": "A",
-      "github_url": "https://github.com/Forget-C/Jellyfish",
-      "contract_status": [
-        "template_reference",
-        "future_adapter"
-      ],
-      "blocked_reason": "external_project_registry_only",
-      "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
-        "license_review_required",
-        "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only",
-        "template_reference_only"
-      ],
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "can_execute_locally_before_v4": false,
-      "post_v4_target": "P2.8 / P3",
-      "ui_visibility": "visible_boundary_only"
-    },
-    {
       "project_id": "last30days_skill",
       "project_name": "last30days-skill",
       "rating": "A",
@@ -142,32 +86,6 @@
       "requires_external_runtime": false,
       "can_execute_locally_before_v4": false,
       "post_v4_target": "P2.3 / P3",
-      "ui_visibility": "visible_boundary_only"
-    },
-    {
-      "project_id": "llm_wiki_v2",
-      "project_name": "LLM Wiki v2",
-      "rating": "S",
-      "github_url": "https://github.com/karpathy/llm-wiki",
-      "contract_status": [
-        "future_adapter",
-        "capability_anchor"
-      ],
-      "blocked_reason": "external_project_registry_only",
-      "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
-        "license_review_required",
-        "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only"
-      ],
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "can_execute_locally_before_v4": false,
-      "post_v4_target": "P2.4",
       "ui_visibility": "visible_boundary_only"
     },
     {
@@ -218,60 +136,6 @@
       "requires_external_runtime": false,
       "can_execute_locally_before_v4": false,
       "post_v4_target": "P2.6",
-      "ui_visibility": "visible_boundary_only"
-    },
-    {
-      "project_id": "mmskills",
-      "project_name": "MMSkills",
-      "rating": "A",
-      "github_url": "https://github.com/DeepExperience/MMSkills",
-      "contract_status": [
-        "future_adapter"
-      ],
-      "blocked_reason": "external_project_registry_only",
-      "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
-        "license_review_required",
-        "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only"
-      ],
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "can_execute_locally_before_v4": false,
-      "post_v4_target": "P2.8 / P3",
-      "ui_visibility": "visible_boundary_only"
-    },
-    {
-      "project_id": "n8n",
-      "project_name": "n8n",
-      "rating": "S",
-      "github_url": "https://github.com/n8n-io/n8n",
-      "contract_status": [
-        "future_adapter",
-        "provider_required",
-        "workflow_export"
-      ],
-      "blocked_reason": "external_project_registry_only",
-      "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
-        "provider_required",
-        "external_runtime_required",
-        "license_review_required",
-        "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only"
-      ],
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": true,
-      "can_execute_locally_before_v4": false,
-      "post_v4_target": "P2.2 / P3",
       "ui_visibility": "visible_boundary_only"
     },
     {
@@ -353,91 +217,6 @@
       "ui_visibility": "visible_boundary_only"
     },
     {
-      "project_id": "seedance2_skill",
-      "project_name": "seedance2-skill",
-      "rating": "A",
-      "github_url": "https://github.com/dexhunter/seedance2-skill",
-      "contract_status": [
-        "provider_required",
-        "template_reference",
-        "future_adapter"
-      ],
-      "blocked_reason": "external_project_registry_only",
-      "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
-        "provider_required",
-        "secret_required",
-        "network_required",
-        "license_review_required",
-        "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only",
-        "template_reference_only"
-      ],
-      "requires_api_key": true,
-      "requires_network": true,
-      "requires_external_runtime": false,
-      "can_execute_locally_before_v4": false,
-      "post_v4_target": "P2.8 / P3",
-      "ui_visibility": "visible_boundary_only"
-    },
-    {
-      "project_id": "skill_prompt_generator",
-      "project_name": "skill-prompt-generator",
-      "rating": "A",
-      "github_url": "https://github.com/huangserva/skill-prompt-generator",
-      "contract_status": [
-        "benchmark_only",
-        "future_adapter"
-      ],
-      "blocked_reason": "external_project_registry_only",
-      "blocked_reasons": [
-        "external_project_registry_only",
-        "benchmark_only_not_runtime",
-        "future_adapter_after_v4",
-        "license_review_required",
-        "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only"
-      ],
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "can_execute_locally_before_v4": false,
-      "post_v4_target": "P2.9",
-      "ui_visibility": "visible_boundary_only"
-    },
-    {
-      "project_id": "story_flicks",
-      "project_name": "story-flicks",
-      "rating": "A",
-      "github_url": "https://github.com/alecm20/story-flicks",
-      "contract_status": [
-        "template_reference",
-        "future_adapter"
-      ],
-      "blocked_reason": "external_project_registry_only",
-      "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
-        "license_review_required",
-        "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only",
-        "template_reference_only"
-      ],
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "can_execute_locally_before_v4": false,
-      "post_v4_target": "P2.8 / P3",
-      "ui_visibility": "visible_boundary_only"
-    },
-    {
       "project_id": "surya",
       "project_name": "Surya",
       "rating": "A",
@@ -486,32 +265,6 @@
       "requires_external_runtime": false,
       "can_execute_locally_before_v4": false,
       "post_v4_target": "P2.1",
-      "ui_visibility": "visible_boundary_only"
-    },
-    {
-      "project_id": "weknora",
-      "project_name": "WeKnora",
-      "rating": "S",
-      "github_url": "https://github.com/tencent/weknora",
-      "contract_status": [
-        "future_adapter",
-        "capability_anchor"
-      ],
-      "blocked_reason": "external_project_registry_only",
-      "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
-        "license_review_required",
-        "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only"
-      ],
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "can_execute_locally_before_v4": false,
-      "post_v4_target": "P2.5",
       "ui_visibility": "visible_boundary_only"
     }
   ]

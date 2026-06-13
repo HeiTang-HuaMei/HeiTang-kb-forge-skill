@@ -1,0 +1,11 @@
+{
+  "schema_version": "renaming_compatibility_matrix.v1",
+  "status": "passed",
+  "old_public_name": "HeiTang KB Forge Skill",
+  "new_public_name": "HeiTang Knowledge Workbench",
+  "python_import_namespace": "heitang_kb_forge",
+  "python_import_namespace_preserved": true,
+  "package_distribution_name_changed": false,
+  "repository_rename_recommended": "HeiTang-Knowledge-Workbench",
+  "errors": []
+}

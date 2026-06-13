@@ -1,0 +1,18 @@
+{
+  "schema_version": "external_source_trace_schema.v1",
+  "source_trace_required": true,
+  "timestamp_trace_supported": true,
+  "image_trace_supported": true,
+  "manual_trace_supported": true,
+  "required_fields": [
+    "source_id",
+    "source_type",
+    "source_url",
+    "canonical_url",
+    "retrieved_at",
+    "content_hash",
+    "backlink",
+    "trace_status",
+    "failure_reason"
+  ]
+}

@@ -1,44 +1,9 @@
 {
   "mapping_id": "benchmark_capability_mapping",
   "version": "s_a_contract_inclusion.1",
-  "entry_count": 12,
+  "entry_count": 6,
   "runtime_integration_count": 0,
   "entries": [
-    {
-      "project_id": "llm_wiki_v2",
-      "project_name": "LLM Wiki v2",
-      "contract_status": [
-        "future_adapter",
-        "capability_anchor"
-      ],
-      "mapped_capabilities": [
-        "living_knowledge_base",
-        "memory_lifecycle",
-        "confidence_score",
-        "automatic_forgetting",
-        "knowledge_decay",
-        "strengthen_weaken_memory",
-        "stale_knowledge_cleanup"
-      ],
-      "implementation_boundary": "LLM Wiki v2 is included as future_adapter, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
-    },
-    {
-      "project_id": "weknora",
-      "project_name": "WeKnora",
-      "contract_status": [
-        "future_adapter",
-        "capability_anchor"
-      ],
-      "mapped_capabilities": [
-        "auto_wiki",
-        "knowledge_graph",
-        "document_understanding",
-        "rag_trace",
-        "agentic_rag",
-        "visual_trace"
-      ],
-      "implementation_boundary": "WeKnora is included as future_adapter, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
-    },
     {
       "project_id": "andrej_karpathy_skills",
       "project_name": "andrej-karpathy-skills",
@@ -56,73 +21,23 @@
       "implementation_boundary": "andrej-karpathy-skills is included as benchmark_only, capability_anchor for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
     },
     {
-      "project_id": "skill_prompt_generator",
-      "project_name": "skill-prompt-generator",
-      "contract_status": [
-        "benchmark_only",
-        "future_adapter"
-      ],
-      "mapped_capabilities": [
-        "prompt_asset_library",
-        "skill_factory_enhancement",
-        "skill_generation_template"
-      ],
-      "implementation_boundary": "skill-prompt-generator is included as benchmark_only, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
-    },
-    {
-      "project_id": "jellyfish",
-      "project_name": "Jellyfish",
-      "contract_status": [
-        "template_reference",
-        "future_adapter"
-      ],
-      "mapped_capabilities": [
-        "aigc_production_pipeline",
-        "short_drama_workflow",
-        "storyboard_asset_management"
-      ],
-      "implementation_boundary": "Jellyfish is included as template_reference, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
-    },
-    {
-      "project_id": "story_flicks",
-      "project_name": "story-flicks",
-      "contract_status": [
-        "template_reference",
-        "future_adapter"
-      ],
-      "mapped_capabilities": [
-        "story_to_video",
-        "aigc_video_pipeline",
-        "subtitle_audio_image_asset_chain"
-      ],
-      "implementation_boundary": "story-flicks is included as template_reference, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
-    },
-    {
       "project_id": "seedance2_skill",
       "project_name": "seedance2-skill",
       "contract_status": [
-        "provider_required",
+        "verified_video_skill_template_metadata",
+        "reference_only",
         "template_reference",
-        "future_adapter"
+        "provider_not_integrated",
+        "runtime_not_bundled"
       ],
       "mapped_capabilities": [
         "video_generation_skill",
-        "aigc_video_skill_template"
+        "aigc_video_skill_template",
+        "verified_video_skill_template_metadata",
+        "provider_boundary_metadata",
+        "template_library_preview"
       ],
-      "implementation_boundary": "seedance2-skill is included as provider_required, template_reference, future_adapter for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
-    },
-    {
-      "project_id": "ai_marketing_skills",
-      "project_name": "ai-marketing-skills",
-      "contract_status": [
-        "template_reference"
-      ],
-      "mapped_capabilities": [
-        "marketing_agent_template",
-        "growth_workflow_template",
-        "content_operations_template"
-      ],
-      "implementation_boundary": "ai-marketing-skills is included as template_reference for post-v4 planning and UI visibility only. This pass does not copy external code, bundle runtimes, call network APIs, or expose a UI Run action. Optional runtime adapters require explicit local dependency installation and backend selection."
+      "implementation_boundary": "The public seedance2-skill repository identity and MIT license are verified and represented as local non-executable video Skill template metadata. No external SKILL.md or prompt text is copied, no provider adapter or credential flow is integrated, and no Seedance API request, video generation, media transfer, rendering, or account operation is available."
     },
     {
       "project_id": "rtk",

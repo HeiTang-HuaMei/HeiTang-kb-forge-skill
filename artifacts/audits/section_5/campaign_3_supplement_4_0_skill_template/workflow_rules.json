@@ -1,0 +1,12 @@
+{
+  "schema_version": "workflow_rules.v1",
+  "workflow_steps": [
+    "identify_user_scenario",
+    "map_request_to_source_kb_scope",
+    "retrieve_source_traced_claims",
+    "classify_claim_status",
+    "compose_answer_or_template_output",
+    "attach_source_trace_and_risk_notes",
+    "refuse_or_escalate_when_evidence_is_missing"
+  ]
+}

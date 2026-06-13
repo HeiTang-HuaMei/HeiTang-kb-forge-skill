@@ -1,0 +1,31 @@
+{
+  "schema_version": "aigc_video_timeline_schema.v1",
+  "status": "passed",
+  "track_types": [
+    "visual_reference",
+    "narration_cue",
+    "audio_cue",
+    "subtitle",
+    "caption",
+    "source_trace"
+  ],
+  "required_item_fields": [
+    "item_id",
+    "track_type",
+    "start_ms",
+    "duration_ms",
+    "source_asset_ids",
+    "source_trace",
+    "review_status"
+  ],
+  "source_trace_required": true,
+  "rendered_media_included": false,
+  "runtime_boundary": {
+    "story_to_video_runtime": false,
+    "image_generation_runtime": false,
+    "video_generation_runtime": false,
+    "audio_generation_runtime": false,
+    "voice_cloning_runtime": false,
+    "media_rendering_runtime": false
+  }
+}

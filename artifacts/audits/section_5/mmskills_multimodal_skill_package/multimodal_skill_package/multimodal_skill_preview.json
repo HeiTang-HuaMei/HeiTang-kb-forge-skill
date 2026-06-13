@@ -1,0 +1,110 @@
+{
+  "schema_version": "multimodal_skill_preview.v1",
+  "status": "passed",
+  "skill_name": "HeiTang Visual Evidence Skill",
+  "source_status": "text_fallback",
+  "state_card_preview": [
+    {
+      "state_card_id": "state_card_001",
+      "asset_id": "23cd46a53974710d5a2a00b0",
+      "state_name": "Sheet: RoutingEvidence. Row 2. Capability: office_table_rout",
+      "when_to_use": "Use when the user task depends on visual or layout evidence from D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md.",
+      "when_not_to_use": "Do not use as proof of live GUI state, external runtime execution, or raw demonstration replay.",
+      "visible_cues": [
+        "asset_type:textual_visual_placeholder",
+        "Sheet: RoutingEvidence. Row 2. Capability: office_table_routing. Claim: HeiTang table routing must preserve source linea",
+        "Sheet: RoutingEvidence. Row 2. Capability: office_table_routing. Claim: HeiTang table routing must preserve source lineage and use builtin parser for XLSX.. Met"
+      ],
+      "verification_cue": "Verify against source trace, cited package evidence, and current user context before acting.",
+      "source_file": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "confidence": "medium",
+      "review_required": true
+    },
+    {
+      "state_card_id": "state_card_002",
+      "asset_id": "71c2aba2d55c92eef5f99660",
+      "state_name": "Row 2. Capability: office_table_routing. Claim: CSV routing ",
+      "when_to_use": "Use when the user task depends on visual or layout evidence from D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md.",
+      "when_not_to_use": "Do not use as proof of live GUI state, external runtime execution, or raw demonstration replay.",
+      "visible_cues": [
+        "asset_type:textual_visual_placeholder",
+        "Row 2. Capability: office_table_routing. Claim: CSV routing uses builtin parser for table documents. Method: Run batch i",
+        "Row 2. Capability: office_table_routing. Claim: CSV routing uses builtin parser for table documents. Method: Run batch import then DU. Evidence: CSV normalized "
+      ],
+      "verification_cue": "Verify against source trace, cited package evidence, and current user context before acting.",
+      "source_file": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md",
+      "confidence": "medium",
+      "review_required": true
+    },
+    {
+      "state_card_id": "state_card_003",
+      "asset_id": "6c9f55d32434bd1e56fd2d1a",
+      "state_name": "Evidence-led workflow",
+      "when_to_use": "Use when the user task depends on visual or layout evidence from D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md.",
+      "when_not_to_use": "Do not use as proof of live GUI state, external runtime execution, or raw demonstration replay.",
+      "visible_cues": [
+        "asset_type:textual_visual_placeholder",
+        "Evidence-led workflow",
+        "# Evidence-led workflow\n\nUse local evidence and prefer narrow scope. When evidence is missing, stop and request review. First inspect the source. Then apply the"
+      ],
+      "verification_cue": "Verify against source trace, cited package evidence, and current user context before acting.",
+      "source_file": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md",
+      "confidence": "medium",
+      "review_required": true
+    }
+  ],
+  "keyframe_preview": [
+    {
+      "keyframe_id": "state_card_001_full_frame",
+      "state_card_id": "state_card_001",
+      "asset_id": "23cd46a53974710d5a2a00b0",
+      "view": "full_frame",
+      "source_file": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "visible_cues": [
+        "asset_type:textual_visual_placeholder",
+        "Sheet: RoutingEvidence. Row 2. Capability: office_table_routing. Claim: HeiTang table routing must preserve source linea",
+        "Sheet: RoutingEvidence. Row 2. Capability: office_table_routing. Claim: HeiTang table routing must preserve source lineage and use builtin parser for XLSX.. Met"
+      ],
+      "verification_cue": "Verify against source trace, cited package evidence, and current user context before acting.",
+      "stored_binary_image": false,
+      "reference_only": true
+    },
+    {
+      "keyframe_id": "state_card_001_focus_crop",
+      "state_card_id": "state_card_001",
+      "asset_id": "23cd46a53974710d5a2a00b0",
+      "view": "focus_crop",
+      "source_file": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "visible_cues": [
+        "asset_type:textual_visual_placeholder",
+        "Sheet: RoutingEvidence. Row 2. Capability: office_table_routing. Claim: HeiTang table routing must preserve source linea",
+        "Sheet: RoutingEvidence. Row 2. Capability: office_table_routing. Claim: HeiTang table routing must preserve source lineage and use builtin parser for XLSX.. Met"
+      ],
+      "verification_cue": "Verify against source trace, cited package evidence, and current user context before acting.",
+      "stored_binary_image": false,
+      "reference_only": true
+    },
+    {
+      "keyframe_id": "state_card_002_full_frame",
+      "state_card_id": "state_card_002",
+      "asset_id": "71c2aba2d55c92eef5f99660",
+      "view": "full_frame",
+      "source_file": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md",
+      "visible_cues": [
+        "asset_type:textual_visual_placeholder",
+        "Row 2. Capability: office_table_routing. Claim: CSV routing uses builtin parser for table documents. Method: Run batch i",
+        "Row 2. Capability: office_table_routing. Claim: CSV routing uses builtin parser for table documents. Method: Run batch import then DU. Evidence: CSV normalized "
+      ],
+      "verification_cue": "Verify against source trace, cited package evidence, and current user context before acting.",
+      "stored_binary_image": false,
+      "reference_only": true
+    }
+  ],
+  "evidence_map_present": false,
+  "ui_pages": [
+    "Template Library",
+    "Artifact Management"
+  ],
+  "ui_action_available": false,
+  "runtime_execution_claimed": false
+}

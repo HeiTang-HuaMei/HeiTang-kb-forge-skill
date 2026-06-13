@@ -1,0 +1,12 @@
+{
+  "schema_version": "root_surface_report.v1",
+  "status": "passed",
+  "root_file_count": 19,
+  "root_directory_count": 18,
+  "root_level_report_files": [
+    "CHANGELOG.md",
+    "final_fix_log.json",
+    "final_v4_rc_gate_report.json",
+    "v4_rc_final_gate_report.json"
+  ]
+}

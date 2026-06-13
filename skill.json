@@ -1,6 +1,6 @@
 {
   "name": "heitang-kb-forge-skill",
-  "display_name": "HeiTang KB Forge Skill",
+  "display_name": "HeiTang Knowledge Workbench",
   "version": "4.2.0",
   "description": "Local-first knowledge workbench Core Skill for producing, auditing, retrieving, generating, validating knowledge packages, extracting methodology, building governable Skill Suites, and preserving opt-in parser/OCR backend runtime boundaries.",
   "entrypoints": {

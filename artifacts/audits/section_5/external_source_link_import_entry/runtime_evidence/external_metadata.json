@@ -1,0 +1,17 @@
+{
+  "schema_version": "external_source_metadata.v1",
+  "source_url": "http://127.0.0.1:7964/index.html",
+  "source_type": "public_html",
+  "platform": "generic_web",
+  "title": "External Link Import Audit",
+  "author": "",
+  "published_at": "",
+  "retrieved_at": "2026-06-13T04:00:50.353111Z",
+  "content_hash": "60a442e06f318f552c0aafc15f4e92562b558e216421cd426d5be8af1a734855",
+  "language": "",
+  "domain": "127.0.0.1:7964",
+  "canonical_url": "http://127.0.0.1:7964/index.html",
+  "backlink": "http://127.0.0.1:7964/index.html",
+  "content_type": "text/html",
+  "extraction_method": "html_parser"
+}

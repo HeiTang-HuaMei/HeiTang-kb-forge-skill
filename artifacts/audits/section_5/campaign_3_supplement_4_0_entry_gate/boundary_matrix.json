@@ -1,0 +1,167 @@
+{
+  "schema_version": "campaign_3_supplement_4_0_entry_boundary_matrix.v1",
+  "generated_at": "2026-06-13T21:15:00+08:00",
+  "status": "passed",
+  "items": [
+    {
+      "item_id": "entry_gate_is_4_0_business_implementation",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "kb_profiler_run",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "skill_generator_run",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "skill_validator_run",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "skill_testcase_generator_run",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "agent_package_ready",
+      "expected_value": true,
+      "actual_value": true,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "agent_runtime_ready",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "agent_executable_platform_ready",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "agent_product_workbench_ready",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "agent_memory_runtime_ready",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "multi_agent_runtime_ready",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "campaign_3_final_consistency_gate_passed",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "campaign_4_active",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "campaign_5_active",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "stage_test_gate_passed",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "closure_pack_generated",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "upload_done",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "tag_created",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "item_id": "ci_green",
+      "expected_value": false,
+      "actual_value": false,
+      "status": "passed",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    }
+  ],
+  "forbidden_overclaims": [
+    "4.0 Entry Reconciliation is not Skill generation.",
+    "4.0 Entry Reconciliation is not Campaign 4.",
+    "4.0 Entry Reconciliation is not Campaign 3 Final Consistency Gate.",
+    "Agent Package readiness is not Agent runtime readiness.",
+    "UI Handoff Contract is not Campaign 4 UI completion.",
+    "Bridge Handoff Contract is not Campaign 5 Bridge completion."
+  ]
+}

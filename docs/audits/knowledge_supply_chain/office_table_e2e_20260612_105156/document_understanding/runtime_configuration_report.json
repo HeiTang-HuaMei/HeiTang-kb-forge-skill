@@ -1,0 +1,19 @@
+{
+  "schema_version": "document_understanding.runtime_configuration_report.v1",
+  "config_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105156/runtime_config.json",
+  "working_directory": "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill",
+  "routes": {
+    ".csv": "builtin",
+    ".md": "builtin",
+    ".xlsx": "builtin"
+  },
+  "backends": {
+    "builtin": {
+      "python": "D:\\D\\python\\python.exe",
+      "model_cache": null,
+      "timeout_seconds": 120,
+      "environment_keys": []
+    }
+  },
+  "secrets_persisted": false
+}

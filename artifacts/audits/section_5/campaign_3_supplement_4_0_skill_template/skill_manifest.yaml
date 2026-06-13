@@ -1,0 +1,16 @@
+skill_id: "skill_template_7c53f024b1f63f76"
+skill_name: "HeiTang Verified Knowledge Work Skill"
+skill_type: "visual_video_skill"
+source_kb_id: "kb_campaign_3_supplement_3_0_verified_external_sources"
+state: "skill_draft"
+review_state: "skill_generated_from_kb"
+publication_state: "draft"
+source_trace_required: true
+supported_skill_types:
+  - "domain_expert_skill"
+  - "research_learning_skill"
+  - "product_business_skill"
+  - "operation_growth_skill"
+  - "literary_skill"
+  - "visual_video_skill"
+  - "general_personal_skill"

@@ -2,7 +2,7 @@
   "registry_id": "planned_adapter_registry",
   "version": "s_a_contract_inclusion.1",
   "status_filter": "planned_adapter",
-  "entry_count": 8,
+  "entry_count": 7,
   "ready_count": 0,
   "can_execute_locally_before_v4_count": 0,
   "entries": [
@@ -81,35 +81,6 @@
       "requires_external_runtime": false,
       "can_execute_locally_before_v4": false,
       "post_v4_target": "P2.1",
-      "ui_visibility": "visible_boundary_only"
-    },
-    {
-      "project_id": "anysearchskill",
-      "project_name": "AnySearchSkill",
-      "rating": "A",
-      "github_url": "https://github.com/anysearch-ai/anysearch-skill",
-      "contract_status": [
-        "provider_required",
-        "planned_adapter"
-      ],
-      "blocked_reason": "external_project_registry_only",
-      "blocked_reasons": [
-        "external_project_registry_only",
-        "planned_adapter_not_implemented",
-        "provider_required",
-        "secret_required",
-        "network_required",
-        "license_review_required",
-        "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only"
-      ],
-      "requires_api_key": true,
-      "requires_network": true,
-      "requires_external_runtime": false,
-      "can_execute_locally_before_v4": false,
-      "post_v4_target": "P2.3",
       "ui_visibility": "visible_boundary_only"
     },
     {

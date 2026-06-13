@@ -1,0 +1,24 @@
+{
+  "schema_version": "pre_action_checkpoint.v1",
+  "created_at": "2026-06-13T00:00:00+08:00",
+  "action": "install_project_local_opencli_dependency",
+  "target": "_local_dependency_remediation/opencli",
+  "reason": "Campaign 3 Supplement 3.0 P0 OpenCLI External Search Verification requires an official OpenCLI package availability check and isolated local dependency remediation.",
+  "scope": [
+    "project-local npm package installation under _local_dependency_remediation/opencli",
+    "no global PATH modification",
+    "no registry writes",
+    "no user-global Java/Node/npm environment pollution",
+    "no browser session, cookie import, login bypass, CAPTCHA bypass, paywall bypass, or platform-control bypass"
+  ],
+  "source": {
+    "package": "@jackwener/opencli",
+    "registry": "https://registry.npmjs.org/",
+    "version": "1.8.3",
+    "license": "Apache-2.0",
+    "engine": "node >=20.0.0"
+  },
+  "final_target_not_downgraded": true,
+  "not_goal_complete": true,
+  "next_required_e2e_step": "Install isolated OpenCLI dependency, then run OpenCLI External Search Verification adapter smoke without accepting Supplement 3.0."
+}

@@ -40,6 +40,16 @@ class BuiltinParserBackend(ParserBackend):
     version = "2.8.0-alpha.1"
     description = "KB Forge built-in parsers normalized into the parser backend contract."
     supported_extensions = frozenset(BUILTIN_PARSERS)
+    adapter_type = "fallback_parser"
+    integration_decision = "real_integration"
+    validated_extensions = frozenset(BUILTIN_PARSERS)
+    supported_outputs = ("normalized_text",)
+    ocr_support = "partial"
+    layout_support = "unsupported"
+    table_support = "partial"
+    figure_support = "unsupported"
+    formula_support = "unsupported"
+    reading_order_support = "partial"
 
     def parse_source(self, path: Path, command: str) -> ParserBackendRecord:
         parser = BUILTIN_PARSERS.get(path.suffix.lower())

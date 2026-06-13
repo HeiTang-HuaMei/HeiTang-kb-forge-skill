@@ -1,0 +1,47 @@
+{
+  "schema_version": "ui_impact_note.v1",
+  "generated_at": "2026-06-13T01:44:35+08:00",
+  "section": "5.12",
+  "project_id": "rag_anything",
+  "integration_decision": "reference_only",
+  "current_ui_state": {
+    "status_visible": true,
+    "source_and_license_visible": true,
+    "schema_preview_available": true,
+    "benchmark_profile_preview_available": true,
+    "reference_only_visible": true,
+    "local_ready": true,
+    "ready": false,
+    "executable_action": false,
+    "vendor_runtime_action_available": false,
+    "multimodal_query_action_available": false,
+    "ui_visibility": "visible_status_only"
+  },
+  "related_workbench_pages": [
+    "retrieval_verification",
+    "reports_audit"
+  ],
+  "ui_must_show": [
+    "reference_only",
+    "cross-modal schema and benchmark profile available",
+    "RAG-Anything runtime not bundled",
+    "no runtime quality score",
+    "Campaign 3.0 external-source capabilities not active"
+  ],
+  "ui_must_not_show": [
+    "RAG-Anything runtime ready",
+    "Run multimodal query",
+    "multimodal retrieval passed",
+    "Campaign 3 accepted",
+    "Campaign 3.0 active",
+    "Campaign 4 complete"
+  ],
+  "campaign_3_accepted": false,
+  "campaign_3_3_0_active": false,
+  "campaign_3_4_0_active": false,
+  "campaign_4_allowed": false,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "Campaign 3 Supplements 3.0 and 4.0 remain planned_not_active, and Campaign 4 must later provide the industrial UI workflow; this run only updates the truthful status asset.",
+  "next_required_e2e_step": "Process Section 5 item 5.13 mattpocock/skills only.",
+  "not_goal_complete": true
+}

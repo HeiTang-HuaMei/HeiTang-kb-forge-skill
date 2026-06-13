@@ -1,0 +1,26 @@
+{
+  "source_inventory_version": "2.0",
+  "source_count": 4,
+  "sources": [
+    {
+      "source_id": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0001_diagnostics.md",
+      "source_file": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0001_diagnostics.md",
+      "source_type": "md"
+    },
+    {
+      "source_id": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0002_sample_marker_pdf.md",
+      "source_file": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0002_sample_marker_pdf.md",
+      "source_type": "md"
+    },
+    {
+      "source_id": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0003_sample_paddleocr_image.md",
+      "source_file": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0003_sample_paddleocr_image.md",
+      "source_type": "md"
+    },
+    {
+      "source_id": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0004_supply_chain_notes.md",
+      "source_file": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0004_supply_chain_notes.md",
+      "source_type": "md"
+    }
+  ]
+}

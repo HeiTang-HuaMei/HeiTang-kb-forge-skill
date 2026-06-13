@@ -1,0 +1,15 @@
+{
+  "schema_version": "campaign_3_4_0_multi_agent_workflow_spec_report.v1",
+  "generated_at": "2026-06-14T02:45:00+08:00",
+  "status": "passed",
+  "multi_agent_spec_ready": true,
+  "multi_agent_runtime_ready": false,
+  "multi_agent_executable": false,
+  "workflow_executed": false,
+  "source_artifacts": [
+    "docs/product/MULTI_AGENT_WORKFLOW_SPEC.md",
+    "docs/product/AGENT_ROLE_ASSIGNMENT_SPEC.json",
+    "docs/product/AGENT_HANDOFF_RULES_SPEC.json",
+    "docs/product/MULTI_AGENT_UI_FLOW_SPEC.json"
+  ]
+}

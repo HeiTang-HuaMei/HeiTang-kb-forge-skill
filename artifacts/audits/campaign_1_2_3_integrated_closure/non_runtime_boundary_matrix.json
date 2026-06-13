@@ -1,0 +1,62 @@
+{
+  "schema_version": "campaign_1_2_3_non_runtime_boundary_matrix.v1",
+  "status": "passed",
+  "items": [
+    {
+      "rule_id": "framework_only_is_not_business_completion",
+      "enforced": true,
+      "status": "passed"
+    },
+    {
+      "rule_id": "preflight_only_is_not_full_read_or_capture",
+      "enforced": true,
+      "status": "passed"
+    },
+    {
+      "rule_id": "metadata_only_is_not_runtime",
+      "enforced": true,
+      "status": "passed"
+    },
+    {
+      "rule_id": "reference_only_is_not_provider_ready",
+      "enforced": true,
+      "status": "passed"
+    },
+    {
+      "rule_id": "planned_not_active_is_not_started",
+      "enforced": true,
+      "status": "passed"
+    },
+    {
+      "rule_id": "closure_gate_is_not_final_product_acceptance",
+      "enforced": true,
+      "status": "passed"
+    },
+    {
+      "rule_id": "stage_test_is_not_final_full_gate",
+      "enforced": true,
+      "status": "passed"
+    },
+    {
+      "rule_id": "ui_handoff_is_not_campaign_4_ui_complete",
+      "enforced": true,
+      "status": "passed"
+    },
+    {
+      "rule_id": "bridge_handoff_is_not_campaign_5_bridge_complete",
+      "enforced": true,
+      "status": "passed"
+    },
+    {
+      "rule_id": "agent_package_is_not_agent_runtime_ready",
+      "enforced": true,
+      "status": "passed"
+    },
+    {
+      "rule_id": "memory_spec_is_not_redis_vector_runtime_ready",
+      "enforced": true,
+      "status": "passed"
+    }
+  ],
+  "errors": []
+}

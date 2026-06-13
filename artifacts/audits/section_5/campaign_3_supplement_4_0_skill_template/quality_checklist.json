@@ -1,0 +1,30 @@
+{
+  "schema_version": "quality_checklist.v1",
+  "items": [
+    {
+      "check_id": "has_source_trace",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "check_id": "has_evidence_map",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "check_id": "conflicts_resolved_before_validation",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "check_id": "unsupported_claims_are_not_core_rules",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "check_id": "publication_requires_user_confirmation",
+      "required": true,
+      "status": "passed"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": "agent_memory_backend_matrix.v1",
+  "status": "spec_ready",
+  "redis_roles": {
+    "short_term_memory_backend": "redis_candidate",
+    "session_state_backend": "redis_candidate",
+    "run_state_backend": "redis_candidate",
+    "runtime_ready": false
+  },
+  "vector_db_roles": {
+    "long_term_memory_backend": "vector_candidate",
+    "semantic_memory_backend": "vector_candidate",
+    "agent_recall_backend": "vector_candidate",
+    "runtime_ready": false
+  },
+  "fallback": {
+    "redis_missing": "local_jsonl_short_term_memory / display degraded",
+    "vector_missing": "keyword_search / structured_index fallback"
+  }
+}

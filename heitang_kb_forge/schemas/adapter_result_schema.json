@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "adapter_result_schema.json",
+  "title": "Document Backend Adapter Result",
+  "allOf": [
+    {"$ref": "adapter_capability_schema.json#/$defs/contract"},
+    {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "schema_version": {"const": "document_backend.result.v1"},
+        "status": {
+          "enum": ["success", "partial", "skipped", "failed", "empty", "unsupported"]
+        }
+      }
+    }
+  ],
+  "unevaluatedProperties": false
+}

@@ -1,0 +1,48 @@
+{
+  "schema_version": "audit_run_manifest.v1",
+  "run_id": "weknora_auto_wiki",
+  "type": "section_5_integration_decision",
+  "scope": "SECTION_5_ITEM_5_2_WEKNORA",
+  "status": "passed",
+  "started_at": "2026-06-12T16:18:00+08:00",
+  "completed_at": "2026-06-12T16:19:33+08:00",
+  "commands": [
+    {
+      "command": "git ls-remote https://github.com/tencent/weknora",
+      "exit_code": 0,
+      "status": "repository_accessible",
+      "purpose": "Verify registry URL before deciding vendor/runtime integration boundary."
+    },
+    {
+      "command": "python -m heitang_kb_forge.cli build-auto-wiki --knowledge-package docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/knowledge_package --output artifacts/audits/section_5/weknora_auto_wiki --query \"source trace knowledge graph\"",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "Run local Auto Wiki, Knowledge Graph, RAG trace, and visual trace report generation over a real accepted knowledge package."
+    }
+  ],
+  "artifacts": [
+    "auto_wiki_manifest.json",
+    "auto_wiki_pages.jsonl",
+    "knowledge_graph_snapshot.json",
+    "rag_trace_summary.json",
+    "visual_trace_manifest.json",
+    "weknora_capability_fusion_report.json",
+    "weknora_capability_fusion_report.md",
+    "weknora_integration_decision_report.json",
+    "weknora_integration_decision_report.md",
+    "weknora_ui_impact_note.json",
+    "weknora_ui_impact_note.md",
+    "run_summary.md"
+  ],
+  "campaign_state_after_run": {
+    "campaign_3_item_5_1": "advanced",
+    "campaign_3_item_5_2": "advanced",
+    "campaign_3_accepted": false,
+    "campaign_4_allowed": false,
+    "final_release_allowed": false
+  },
+  "final_target_not_downgraded": true,
+  "remaining_gap": "Section 5 items 5.3 through 5.13, UI workflow, Core Bridge acceptance, configuration, Full Gate, EXE, and final release remain incomplete.",
+  "next_required_e2e_step": "Process Section 5 item 5.3 AnySearchSkill only.",
+  "not_goal_complete": true
+}

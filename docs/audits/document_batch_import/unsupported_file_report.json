@@ -1,0 +1,13 @@
+{
+  "schema_version": "document_batch_import.v1.unsupported_file_report",
+  "status": "warning",
+  "unsupported_count": 1,
+  "files": [
+    {
+      "source_path": "docs/audits/document_batch_import/sample_input/004_unsupported.bin",
+      "relative_path": "004_unsupported.bin",
+      "extension": ".bin",
+      "reason": "unsupported_file_extension"
+    }
+  ]
+}

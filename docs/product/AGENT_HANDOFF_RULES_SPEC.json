@@ -1,0 +1,20 @@
+{
+  "schema_version": "agent_handoff_rules_spec.v1",
+  "status": "spec_ready",
+  "rules": [
+    {
+      "rule_id": "handoff_requires_source_trace",
+      "required": true
+    },
+    {
+      "rule_id": "handoff_requires_output_contract",
+      "required": true
+    },
+    {
+      "rule_id": "handoff_does_not_execute_agent",
+      "required": true
+    }
+  ],
+  "agent_id": "agent_package_db9dbcaecafc0ca7",
+  "workflow_executed": false
+}

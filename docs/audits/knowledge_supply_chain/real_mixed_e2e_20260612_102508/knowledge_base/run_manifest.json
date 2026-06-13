@@ -1,0 +1,10 @@
+{
+  "run_manifest_version": "1.2.1",
+  "run_id": "run_5b69bd1dee30",
+  "command": "build",
+  "input": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources",
+  "output": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/knowledge_base",
+  "status": "success",
+  "generated_at": "2026-06-12T02:29:22.943747+00:00",
+  "warnings": []
+}

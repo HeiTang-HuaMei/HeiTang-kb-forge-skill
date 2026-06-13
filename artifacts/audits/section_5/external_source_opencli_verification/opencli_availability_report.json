@@ -1,0 +1,11 @@
+{
+  "schema_version": "opencli_availability_report.v1",
+  "status": "passed",
+  "runtime_status": "available",
+  "opencli_bin": "_local_dependency_remediation/opencli/node_modules/.bin/opencli.cmd",
+  "version": "1.8.3",
+  "package": "@jackwener/opencli",
+  "source": "https://registry.npmjs.org/@jackwener/opencli",
+  "license": "Apache-2.0",
+  "error_message": ""
+}

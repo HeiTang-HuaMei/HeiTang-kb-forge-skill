@@ -1,0 +1,31 @@
+{
+  "schema_version": "campaign_4_ui_handoff_contract.v1",
+  "status": "handoff_contract_ready",
+  "agent_id": "agent_package_db9dbcaecafc0ca7",
+  "campaign_4_active": false,
+  "ui_workbench_complete": false,
+  "ui_handoff_is_campaign_4_completion": false,
+  "top_level_navigation": [
+    "Workspace",
+    "Import Materials",
+    "Knowledge Base",
+    "Skill / Agent",
+    "Multi-Agent Workflow",
+    "Export / Audit",
+    "Settings / Diagnostics"
+  ],
+  "campaign_4_must_consume": [
+    "KB card",
+    "Skill card",
+    "Agent card",
+    "Multi-Agent workflow card",
+    "Memory status card",
+    "Evidence / verification status card",
+    "Export card"
+  ],
+  "forbidden_claims": [
+    "agent_package_is_agent_runtime",
+    "memory_config_is_memory_runtime",
+    "ui_handoff_is_campaign_4_completion"
+  ]
+}

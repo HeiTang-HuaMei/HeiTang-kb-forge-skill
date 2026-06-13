@@ -1,0 +1,21 @@
+{
+  "schema_version": "external_source_framework_validation_report.v1",
+  "section": "5.3.0-P0",
+  "campaign": "Campaign 3",
+  "status": "passed",
+  "boundary_errors": [],
+  "p0_action_count": 13,
+  "p1_action_count": 14,
+  "readability_state_count": 10,
+  "chunk_type_count": 7,
+  "framework_contracts_implemented": true,
+  "generic_web_url_ingestion_implemented": false,
+  "opencli_runtime_integrated": false,
+  "ui_ready": false,
+  "bridge_execution_accepted": false,
+  "tests_require_real_llm_api_network": false,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "This advances only the Campaign 3 Supplement 3.0 P0 framework. Generic Web URL ingestion, platform preflight, OpenCLI verification, manual evidence processing, authenticated browser reading, video/OCR runtime, knowledge verification runtime, UI workflow acceptance, Core Bridge execution acceptance, Supplement 3.0 acceptance, Supplement 4.0, Campaign 4, Full Gate, EXE, and release remain incomplete.",
+  "next_required_e2e_step": "Run Campaign 3 Supplement 3.0 P0 Generic Web URL Ingestion only.",
+  "not_goal_complete": true
+}

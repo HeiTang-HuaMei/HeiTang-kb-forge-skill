@@ -1,0 +1,113 @@
+{
+  "schema_version": "integration_decision_report.v1",
+  "generated_at": "2026-06-13T01:44:35+08:00",
+  "section": "5.12",
+  "campaign": "Campaign 3",
+  "project_id": "rag_anything",
+  "project_name": "RAG-Anything",
+  "decision": "reference_only",
+  "integration_mode": "cross_modal_rag_schema_reference",
+  "verification_state": "verified_source_reference_only",
+  "repository_check": {
+    "url": "https://github.com/HKUDS/RAG-Anything",
+    "git_ls_remote_result": "accessible",
+    "git_ls_remote_head": "a8538efecc99719538960692745ef0eb90d1a2f9",
+    "github_api_full_name": "HKUDS/RAG-Anything",
+    "default_branch": "main",
+    "repository_archived": false,
+    "repository_disabled": false,
+    "repository_size_kb": 3883,
+    "latest_release": "v1.3.1",
+    "latest_release_published_at": "2026-05-21T07:28:55Z",
+    "license_spdx": "MIT",
+    "license_sha": "b3ba37ce442298d5bdec96e2e52a8a812a25f123",
+    "repository_cloned": false,
+    "external_code_copied": false,
+    "external_prompt_text_copied": false
+  },
+  "official_runtime_observation": {
+    "base_dependency": "lightrag-hku<1.5",
+    "parser_dependency": "mineru[core]",
+    "documented_modalities": [
+      "text",
+      "image",
+      "table",
+      "equation"
+    ],
+    "documented_capabilities": [
+      "multimodal_document_processing",
+      "multimodal_knowledge_graph",
+      "cross_modal_relationship_mapping",
+      "modality_aware_retrieval"
+    ],
+    "runtime_installed": false,
+    "runtime_executed": false,
+    "model_download_executed": false,
+    "provider_call_executed": false
+  },
+  "dedup_decision": {
+    "overlap_checked": true,
+    "overlaps_with": [
+      "WeKnora Auto Wiki, generic knowledge graph, and generic RAG trace",
+      "MMSkills multimodal Skill package and preview schema",
+      "existing knowledge package source trace and evidence map"
+    ],
+    "distinct_engineering_value": [
+      "modality-aware evidence-node contract",
+      "cross-modal relation trace contract",
+      "multimodal retrieval benchmark profile"
+    ],
+    "weknora_boundary": "WeKnora remains the local Auto Wiki, generic knowledge graph, and generic RAG trace capability.",
+    "mmskills_boundary": "MMSkills remains the multimodal Skill package, visual state card, and keyframe preview contract.",
+    "campaign_3_0_boundary": "External URL ingestion, video/source memory, visual evidence extraction, OpenCLI verification, and external-source correctness checks remain planned_not_active Campaign 3 Supplement 3.0 work."
+  },
+  "local_contract_evidence": {
+    "builder": "heitang_kb_forge/cross_modal_rag_schema/builder.py",
+    "build_command": "python -m heitang_kb_forge.cli build-cross-modal-rag-schema-library --output artifacts/audits/section_5/rag_anything_cross_modal_rag_schema/schema",
+    "validate_command": "python -m heitang_kb_forge.cli validate-cross-modal-rag-schema-library --library artifacts/audits/section_5/rag_anything_cross_modal_rag_schema/schema --output artifacts/audits/section_5/rag_anything_cross_modal_rag_schema/validation",
+    "manifest": "artifacts/audits/section_5/rag_anything_cross_modal_rag_schema/schema/cross_modal_rag_manifest.json",
+    "trace_schema": "artifacts/audits/section_5/rag_anything_cross_modal_rag_schema/schema/cross_modal_trace_schema.json",
+    "graph_schema": "artifacts/audits/section_5/rag_anything_cross_modal_rag_schema/schema/cross_modal_knowledge_graph_schema.json",
+    "benchmark_profile": "artifacts/audits/section_5/rag_anything_cross_modal_rag_schema/schema/benchmark_profile.json",
+    "validation": "artifacts/audits/section_5/rag_anything_cross_modal_rag_schema/validation/cross_modal_rag_validation_report.json",
+    "validation_status": "passed",
+    "boundary_error_count": 0
+  },
+  "runtime_contract": {
+    "local_schema_reference_implemented": true,
+    "rag_anything_runtime_integrated": false,
+    "lightrag_runtime_integrated": false,
+    "mineru_runtime_executed": false,
+    "llm_or_vlm_required": false,
+    "embedding_required": false,
+    "vector_database_required": false,
+    "network_required": false,
+    "existing_rag_main_chain_replaced": false,
+    "external_source_ingestion_implemented": false,
+    "opencli_verification_implemented": false,
+    "video_ingestion_implemented": false,
+    "knowledge_to_skill_template_generator_implemented": false
+  },
+  "why_reference_only": [
+    "The official repository identity, current HEAD, latest release, license, dependency shape, and documented multimodal scope were verified.",
+    "The distinct local value is limited to original schema, trace, relation, and benchmark contracts after checking overlap with existing HeiTang capabilities.",
+    "No RAG-Anything, LightRAG, MinerU, model, provider, embedding, vector database, or retrieval runtime was installed or executed.",
+    "No real runtime quality score, multimodal query, or executable UI action exists.",
+    "The correct decision is reference_only rather than real_integration, needs_strengthening, or stop_integration."
+  ],
+  "boundaries": [
+    "reference_only means verified source metadata plus local original schema and benchmark contracts only.",
+    "The current RAG main chain is not replaced.",
+    "Campaign 3 Supplement 3.0 external-source ingestion, OpenCLI verification, video ingestion, and correctness verification remain not active.",
+    "UI may display source, license, schema, benchmark, and reference-only state; it must not expose Run or ready state."
+  ],
+  "ui_impact_note": "artifacts/audits/section_5/rag_anything_cross_modal_rag_schema/rag_anything_ui_impact_note.json",
+  "campaign_3_accepted": false,
+  "campaign_3_3_0_active": false,
+  "campaign_3_4_0_active": false,
+  "campaign_4_allowed": false,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "Section 5 items 5.13-5.14, strengthening items 5.S1-5.S3, Campaign 3 Supplement 2.0 closure, Campaign 3.0, Campaign 3 Supplement 4.0, expanded final consistency, Campaign 4-8, and release remain incomplete.",
+  "next_required_e2e_step": "Process Section 5 item 5.13 mattpocock/skills only.",
+  "not_goal_complete": true
+}

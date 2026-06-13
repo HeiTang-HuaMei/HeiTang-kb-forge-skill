@@ -1,0 +1,27 @@
+{
+  "schema_version": "imported_skill_manifest.v1",
+  "imported_skill_id": "imported_skill_andrej_karpathy_methodology_reference",
+  "skill_name": "Imported Knowledge-to-Skill Methodology Reference",
+  "distinction": "imported_skill",
+  "source_registry_id": "andrej_karpathy_skills",
+  "source_url_or_registry_id": "future_reference_queue:andrej_karpathy_skills",
+  "source_known": true,
+  "source_status": "reference_only",
+  "implementation_mode": "not_integrated",
+  "import_mode": "metadata_contract_only",
+  "trust_state": "needs_review",
+  "execution_state": "not_executable",
+  "publication_state": "not_published",
+  "runtime_dependency_added": false,
+  "npm_install_required": false,
+  "copied_external_code": false,
+  "copied_external_prompts": false,
+  "mcp_or_plugin_execution": false,
+  "contribution_scope": [
+    "goal_driven_execution_methodology",
+    "quality_gate_reference",
+    "skill_review_discipline"
+  ],
+  "not_automatically_trusted": true,
+  "not_built_in_skill": true
+}

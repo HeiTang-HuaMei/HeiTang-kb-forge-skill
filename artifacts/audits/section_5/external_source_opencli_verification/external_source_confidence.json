@@ -1,0 +1,36 @@
+{
+  "schema_version": "external_source_confidence.v1",
+  "status": "passed",
+  "candidate_count": 3,
+  "overall_confidence": 0.829,
+  "verification_state": "verified",
+  "scores": [
+    {
+      "candidate_id": "opencli_candidate_2c87374a2b62b00a",
+      "evidence_id": "opencli_evidence_af5f7b13df13b3ab",
+      "source_url": "https://www.npmjs.com/package/@jackwener/opencli",
+      "confidence": 0.829,
+      "query_overlap": 1.0,
+      "claim_overlap": 0.222,
+      "authority_score": 0.9
+    },
+    {
+      "candidate_id": "opencli_candidate_750ebfe3d745208e",
+      "evidence_id": "opencli_evidence_6edb4ae33c870150",
+      "source_url": "https://www.npmjs.com/package/@thehappyboy/opencli-mcp-http",
+      "confidence": 0.807,
+      "query_overlap": 1.0,
+      "claim_overlap": 0.111,
+      "authority_score": 0.9
+    },
+    {
+      "candidate_id": "opencli_candidate_48fa0ed3fdf49d39",
+      "evidence_id": "opencli_evidence_0ecfe2826fef3aee",
+      "source_url": "https://www.npmjs.com/package/opencli-plugin-socialdatax",
+      "confidence": 0.807,
+      "query_overlap": 1.0,
+      "claim_overlap": 0.111,
+      "authority_score": 0.9
+    }
+  ]
+}

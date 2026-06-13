@@ -1,0 +1,33 @@
+{
+  "schema_version": "weknora_capability_fusion_report.v1",
+  "status": "passed",
+  "project_source": "weknora",
+  "integration_mode": "capability_fusion",
+  "vendor_runtime_integrated": false,
+  "external_code_copied": false,
+  "llm_required": false,
+  "network_required": false,
+  "external_runtime_required": false,
+  "generated_at": "2026-06-12T08:19:33.949804+00:00",
+  "knowledge_package": "docs\\audits\\knowledge_supply_chain\\office_table_e2e_20260612_105706\\knowledge_package",
+  "package_id": "pkg_knowledge_base",
+  "auto_wiki_page_count": 3,
+  "graph_entity_count": 23,
+  "graph_relation_count": 22,
+  "rag_trace_record_count": 5,
+  "visual_trace_available": true,
+  "source_trace_preserved": true,
+  "outputs": [
+    "auto_wiki_manifest.json",
+    "auto_wiki_pages.jsonl",
+    "knowledge_graph_snapshot.json",
+    "rag_trace_summary.json",
+    "visual_trace_manifest.json",
+    "weknora_capability_fusion_report.json",
+    "weknora_capability_fusion_report.md"
+  ],
+  "final_target_not_downgraded": true,
+  "remaining_gap": "This advances Section 5 item 5.2 WeKnora as local Auto Wiki, Knowledge Graph, and RAG trace capability fusion. It does not accept Campaign 3 or prove full UI, Core Bridge, configuration, Full Gate, EXE, or release readiness.",
+  "next_required_e2e_step": "Process Section 5 item 5.3 AnySearchSkill only after the WeKnora decision and UI impact evidence are accepted.",
+  "not_goal_complete": true
+}

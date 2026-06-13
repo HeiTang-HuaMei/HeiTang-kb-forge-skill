@@ -1,0 +1,17 @@
+{
+  "schema_version": "external_link_import_validation_report.v1",
+  "status": "passed",
+  "boundary_errors": [],
+  "missing_files": [],
+  "campaign_5_bridge_acceptance": false,
+  "campaign_4_active": false,
+  "campaign_5_active": false,
+  "ui_industrial_workbench_complete": false,
+  "local_core_bridge_complete": false,
+  "bridge_execution_accepted": false,
+  "external_link_import_ui_entry_only": true,
+  "external_link_import_bridge_allowlist_only": true,
+  "not_campaign_4_ui_redesign": true,
+  "not_campaign_5_bridge_acceptance": true,
+  "not_goal_complete": true
+}

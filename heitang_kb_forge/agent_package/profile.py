@@ -21,11 +21,28 @@ def render_profile_yaml(profile: AgentPackageProfile) -> str:
 
 def _read_skill_id(skill: Path) -> str:
     manifest = skill / "skill_manifest.yaml"
-    if not manifest.exists():
-        return skill.name
-    for line in manifest.read_text(encoding="utf-8").splitlines():
-        if line.startswith("skill_id:"):
-            return line.split(":", 1)[1].strip()
+    if manifest.exists():
+        for line in manifest.read_text(encoding="utf-8").splitlines():
+            if line.startswith("skill_id:"):
+                return line.split(":", 1)[1].strip()
+    pack_manifest = skill / "skill_pack_manifest.json"
+    if pack_manifest.exists():
+        try:
+            payload = json.loads(pack_manifest.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            payload = {}
+        suite_id = str(payload.get("suite_id") or "").strip()
+        if suite_id:
+            return suite_id
+    suite_manifest = skill / "suite.json"
+    if suite_manifest.exists():
+        try:
+            payload = json.loads(suite_manifest.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            payload = {}
+        suite_id = str(payload.get("suite_id") or "").strip()
+        if suite_id:
+            return suite_id
     return skill.name
 
 

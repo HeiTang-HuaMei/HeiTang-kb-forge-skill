@@ -1,0 +1,29 @@
+{
+  "schema_version": "external_source_unified_trace_validation_report.v1",
+  "section": "5.3.0-P0",
+  "campaign": "Campaign 3",
+  "status": "passed",
+  "business_status": "passed",
+  "boundary_errors": [],
+  "pipeline_count": 4,
+  "source_count": 13,
+  "evidence_count": 13,
+  "progress_event_count": 18,
+  "isolated_failure_count": 7,
+  "tests_require_real_llm_api_network": false,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "Unified Source Trace / Evidence Map, progress events, and failure isolation now cover the completed Generic Web URL, Platform Link Preflight, OpenCLI External Search Verification, and Manual Evidence Upload P0 inputs. External Link Import entry plus real Core Bridge allowlist registrations and no-shell tests, Authenticated Browser Connector, Video/OCR/Visual Evidence, Knowledge Verification Engine, Supplement 3.0 Acceptance Gate, Supplement 4.0, Campaign 4, Closure, Upload, Tag, CI, Full Gate, EXE, and Release remain incomplete.",
+  "next_required_e2e_step": "Run Campaign 3 Supplement 3.0 P0 External Link Import entry plus real Core Bridge allowlist registrations and no-shell tests only.",
+  "not_goal_complete": true,
+  "required_files": [
+    "unified_source_trace.json",
+    "unified_evidence_map.json",
+    "external_source_progress_events.jsonl",
+    "external_source_failure_isolation_report.json",
+    "unified_trace_validation_report.json",
+    "unified_trace_report.md",
+    "run_manifest.json",
+    "run_summary.md"
+  ],
+  "missing_files": []
+}

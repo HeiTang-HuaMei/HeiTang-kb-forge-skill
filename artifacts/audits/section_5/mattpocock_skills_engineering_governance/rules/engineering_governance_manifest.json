@@ -1,0 +1,90 @@
+{
+  "schema_version": "engineering_governance_manifest.v1",
+  "section": "5.13",
+  "campaign": "Campaign 3",
+  "status": "passed",
+  "project_id": "mattpocock_skills",
+  "project_name": "mattpocock/skills",
+  "library_name": "HeiTang Engineering Governance Rule Pack",
+  "integration_decision": "real_integration",
+  "integration_mode": "engineering_governance_rule_pack",
+  "source_verification": {
+    "repository_url": "https://github.com/mattpocock/skills",
+    "repository_head": "694fa30311e02c2639942308513555e61ee84a6f",
+    "default_branch": "main",
+    "repository_accessible": true,
+    "repository_archived": false,
+    "repository_disabled": false,
+    "repository_size_kb": 264,
+    "license_spdx": "MIT",
+    "license_file": "LICENSE",
+    "license_sha": "f1dd2c09108dde1a5f56097cee8461b3ea834499",
+    "repository_cloned": false,
+    "external_code_copied": false,
+    "external_prompt_text_copied": false,
+    "external_skill_files_copied": false,
+    "external_installer_executed": false
+  },
+  "dedup_boundary": {
+    "overlap_checked": true,
+    "existing_capability_anchors": [
+      "Project AGENTS execution discipline",
+      "Post-Codex Review Gate",
+      "Validation Gate Manifest",
+      "Project Memory Lock and pitfall prevention"
+    ],
+    "distinct_value": [
+      "pre-code alignment and domain-language checklist",
+      "red-green-refactor test-loop rule pack",
+      "finite review gate routing for P0/P1/P2 findings",
+      "AI collaboration handoff and concise-context rules"
+    ],
+    "does_not_replace": [
+      "Anything2Skill",
+      "SkillX",
+      "Anthropic skill-creator",
+      "P2.2 Skill Governance / Skill Suite"
+    ]
+  },
+  "runtime_boundary": {
+    "external_runtime_integrated": false,
+    "external_agent_skill_installed": false,
+    "external_installer_executed": false,
+    "business_runtime_created": false,
+    "agent_created_or_bound": false,
+    "campaign_3_3_0_implemented": false,
+    "campaign_3_4_0_implemented": false,
+    "workspace_global_rule_modified": false,
+    "local_rule_pack_only": true
+  },
+  "ui_contract": {
+    "business_ui_required": false,
+    "status_visible": true,
+    "development_rules_report_visible": true,
+    "local_ready": true,
+    "ready": false,
+    "executable_action": false,
+    "ui_visibility": "visible_status_only",
+    "business_workflow_entry": false
+  },
+  "rule_counts": {
+    "pre_code": 4,
+    "test_gate": 4,
+    "review_gate": 3,
+    "ai_collaboration": 3
+  },
+  "output_files": [
+    "engineering_governance_manifest.json",
+    "pre_code_gate_rules.json",
+    "test_gate_rules.json",
+    "review_gate_rules.json",
+    "ai_collaboration_rules.json",
+    "engineering_governance_validation_report.json",
+    "engineering_governance_report.md"
+  ],
+  "tests_require_real_llm_api_network": false,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "This advances Section 5 item 5.13 as local engineering governance rules only. It does not copy external Skill files, run external installers, create a business runtime, open Campaign 3 Supplements 3.0/4.0, accept Campaign 3, open Campaign 4, run Full Gate, package EXE, or release.",
+  "next_required_e2e_step": "Process Section 5 item 5.14 Sirchmunk only.",
+  "not_goal_complete": true
+}

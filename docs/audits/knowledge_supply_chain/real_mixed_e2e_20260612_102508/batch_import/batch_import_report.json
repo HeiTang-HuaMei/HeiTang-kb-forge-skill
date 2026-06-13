@@ -1,0 +1,66 @@
+{
+  "schema_version": "document_batch_import.v1.batch_import_report",
+  "status": "completed",
+  "input_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/input",
+  "total_files": 4,
+  "imported_count": 4,
+  "failed_count": 0,
+  "unsupported_count": 0,
+  "duplicate_count": 0,
+  "single_file_failure_isolated": true,
+  "llm_required": false,
+  "items": [
+    {
+      "item_id": "doc-0001",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/input/diagnostics.txt",
+      "relative_path": "diagnostics.txt",
+      "status": "imported",
+      "file_type": "text_document",
+      "recommended_backend": "builtin",
+      "duplicate_of": null,
+      "error": null
+    },
+    {
+      "item_id": "doc-0002",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/input/sample_marker_pdf.pdf",
+      "relative_path": "sample_marker_pdf.pdf",
+      "status": "imported",
+      "file_type": "pdf",
+      "recommended_backend": "docling",
+      "duplicate_of": null,
+      "error": null
+    },
+    {
+      "item_id": "doc-0003",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/input/sample_paddleocr_image.png",
+      "relative_path": "sample_paddleocr_image.png",
+      "status": "imported",
+      "file_type": "image_or_scanned_document",
+      "recommended_backend": "paddleocr",
+      "duplicate_of": null,
+      "error": null
+    },
+    {
+      "item_id": "doc-0004",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/input/supply_chain_notes.md",
+      "relative_path": "supply_chain_notes.md",
+      "status": "imported",
+      "file_type": "text_document",
+      "recommended_backend": "builtin",
+      "duplicate_of": null,
+      "error": null
+    }
+  ],
+  "output_files": [
+    "document_inventory.json",
+    "file_type_report.json",
+    "document_preflight.json",
+    "backend_recommendation.json",
+    "unsupported_file_report.json",
+    "unsupported_file_report.md",
+    "preflight_report.md",
+    "batch_import_report.json",
+    "batch_import_report.md",
+    "batch_import_log.jsonl"
+  ]
+}

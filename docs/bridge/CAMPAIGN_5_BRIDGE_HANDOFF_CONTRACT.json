@@ -1,0 +1,19 @@
+{
+  "schema_version": "campaign_5_bridge_handoff_contract.v1",
+  "status": "handoff_contract_ready",
+  "agent_id": "agent_package_db9dbcaecafc0ca7",
+  "campaign_5_active": false,
+  "bridge_execution_accepted": false,
+  "bridge_handoff_is_campaign_5_completion": false,
+  "current_existing_cli": [
+    "generate-agent",
+    "generate-bound-agent"
+  ],
+  "future_allowlist_candidates_active": false,
+  "required_boundaries": [
+    "Campaign 5 must not automatically inherit future_allowlist_candidate.",
+    "Every new allowlist action must have separate acceptance.",
+    "Agent runtime action must not masquerade as package generation action.",
+    "Memory backend action must not masquerade as memory isolation runtime."
+  ]
+}

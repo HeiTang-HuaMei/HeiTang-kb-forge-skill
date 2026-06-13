@@ -1,0 +1,13 @@
+{
+  "source_trace_version": "knowledge_lifecycle.v1",
+  "source_trace_preserved": true,
+  "package_dir": "docs\\audits\\knowledge_supply_chain\\office_table_e2e_20260612_105706\\knowledge_package",
+  "source_count": 3,
+  "chunk_count": 3,
+  "source_inventory_present": true,
+  "sources": [
+    "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+    "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md",
+    "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md"
+  ]
+}

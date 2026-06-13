@@ -1,0 +1,78 @@
+{
+  "schema_version": "audit_run_manifest.v1",
+  "run_id": "gbrain_memory_profile_kg_strengthening",
+  "generated_at": "2026-06-13T00:00:00+08:00",
+  "type": "section_5_strengthening_decision",
+  "scope": "SECTION_5_STRENGTHENING_5_S1_GBRAIN",
+  "status": "passed",
+  "integration_decision": "needs_strengthening",
+  "evidence_files": [
+    "pre_action_checkpoint.md",
+    "rollback_plan.md",
+    "rules/gbrain_strengthening_manifest.json",
+    "rules/memory_profile_rules.json",
+    "rules/knowledge_graph_gap_rules.json",
+    "rules/agent_memory_boundary_rules.json",
+    "rules/gbrain_strengthening_validation_report.json",
+    "rules/gbrain_strengthening_report.md",
+    "validation/gbrain_strengthening_validation_report.json",
+    "validation/gbrain_strengthening_validation_report.md",
+    "gbrain_integration_decision_report.json",
+    "gbrain_integration_decision_report.md",
+    "gbrain_ui_impact_note.json",
+    "gbrain_ui_impact_note.md",
+    "run_summary.md"
+  ],
+  "campaign_state_after_run": {
+    "campaign_3_item_5_S1": "advanced_strengthening_record_only",
+    "campaign_3_accepted": false,
+    "campaign_3_3_0_active": false,
+    "campaign_3_4_0_active": false,
+    "campaign_3_supplement_2_0_closure_gate_passed": false,
+    "campaign_4_allowed": false,
+    "next_section_5_item": "5.S2 Horizon"
+  },
+  "commands": [
+    {
+      "command": "git ls-remote --symref https://github.com/garrytan/gbrain.git HEAD",
+      "result": "accessible",
+      "exit_code": 0,
+      "log_path": "terminal",
+      "summary": "default branch master; HEAD 4ee530f3c545b880cecc47c4f877e0ed014896b4"
+    },
+    {
+      "command": "Invoke-WebRequest https://raw.githubusercontent.com/garrytan/gbrain/master/LICENSE",
+      "result": "accessible",
+      "exit_code": 0,
+      "log_path": "terminal",
+      "summary": "MIT license verified after correcting initial main-branch raw URL to master."
+    },
+    {
+      "command": "python -m pytest tests/test_gbrain_strengthening.py -q",
+      "result": "passed",
+      "exit_code": 0,
+      "log_path": "terminal",
+      "summary": "3 passed"
+    },
+    {
+      "command": "python -m heitang_kb_forge.cli build-gbrain-strengthening-record --output artifacts/audits/section_5/gbrain_memory_profile_kg_strengthening/rules",
+      "result": "passed",
+      "exit_code": 0,
+      "log_path": "terminal",
+      "summary": "Built local GBrain strengthening rules with decision needs_strengthening."
+    },
+    {
+      "command": "python -m heitang_kb_forge.cli validate-gbrain-strengthening-record --library artifacts/audits/section_5/gbrain_memory_profile_kg_strengthening/rules --output artifacts/audits/section_5/gbrain_memory_profile_kg_strengthening/validation",
+      "result": "passed",
+      "exit_code": 0,
+      "log_path": "terminal",
+      "summary": "Validation passed with 0 boundary errors."
+    }
+  ],
+  "retention": "milestone",
+  "keep_in_git": true,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "Strengthening items 5.S2-5.S3, Campaign 3 Supplement 2.0 closure, Campaign 3.0, Campaign 3 Supplement 4.0, expanded final consistency, Campaign 4-8, and release remain incomplete.",
+  "next_required_e2e_step": "Process Section 5 strengthening item 5.S2 Horizon only.",
+  "not_goal_complete": true
+}

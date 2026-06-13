@@ -26,7 +26,7 @@ Source outputs: [../../audits/s_a_contract_inclusion/](../../audits/s_a_contract
 - API, network, provider, and secret-dependent abilities require explicit user configuration.
 - n8n is not bundled.
 - WeKnora is not embedded.
-- AnySearchSkill API is not called.
+- The original S/A inclusion snapshot did not call AnySearchSkill. Current Section 5 item 5.3 evidence is indexed separately under `artifacts/audits/section_5/anysearchskill_provider_adapter/`.
 - LLM Wiki memory engine is not implemented.
 - planned_adapter and future_adapter entries are not ready.
 

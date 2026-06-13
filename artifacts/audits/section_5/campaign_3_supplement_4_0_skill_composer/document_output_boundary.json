@@ -1,0 +1,20 @@
+{
+  "schema_version": "document_output_boundary.v1",
+  "document_outputs_current_recognition": "existing_core_capability",
+  "formats": [
+    "Markdown",
+    "DOCX / Word",
+    "PDF",
+    "PPTX / PowerPoint"
+  ],
+  "core_command": "generate-documents",
+  "covered_by_skill_outputs": false,
+  "document_outputs_written_as_skill_outputs": false,
+  "not_audit_report_side_effect": true,
+  "presenton_status": "needs_verification",
+  "presenton_implementation_mode": "not_integrated",
+  "presenton_runtime_integrated": false,
+  "presenton_ppt_runtime_claimed": false,
+  "no_runtime_dependency_added": true,
+  "no_npm_install": true
+}

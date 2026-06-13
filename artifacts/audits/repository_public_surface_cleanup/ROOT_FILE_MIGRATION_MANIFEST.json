@@ -1,0 +1,30 @@
+{
+  "schema_version": "root_file_migration_manifest.v1",
+  "status": "passed",
+  "items": [
+    {
+      "path": "CHANGELOG.md",
+      "classification": "legacy_root_reports",
+      "recommended_action": "review_after_push_tag_safety_gate",
+      "safe_to_delete": false
+    },
+    {
+      "path": "final_fix_log.json",
+      "classification": "legacy_root_reports",
+      "recommended_action": "review_after_push_tag_safety_gate",
+      "safe_to_delete": false
+    },
+    {
+      "path": "final_v4_rc_gate_report.json",
+      "classification": "legacy_root_reports",
+      "recommended_action": "review_after_push_tag_safety_gate",
+      "safe_to_delete": false
+    },
+    {
+      "path": "v4_rc_final_gate_report.json",
+      "classification": "legacy_root_reports",
+      "recommended_action": "review_after_push_tag_safety_gate",
+      "safe_to_delete": false
+    }
+  ]
+}

@@ -52,20 +52,17 @@
       "project_id": "skill_prompt_generator",
       "project_name": "skill-prompt-generator",
       "contract_status": [
-        "benchmark_only",
-        "future_adapter"
+        "prompt_asset_library_enhancer",
+        "real_integration",
+        "runtime_not_bundled",
+        "license_gate_pending"
       ],
       "related_templates": [
         "template_manual_operation_skill"
       ],
       "blocked_reasons": [
-        "external_project_registry_only",
-        "benchmark_only_not_runtime",
-        "future_adapter_after_v4",
         "license_review_required",
         "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
         "ui_visibility_only"
       ],
       "can_execute_locally_before_v4": false
@@ -74,21 +71,17 @@
       "project_id": "jellyfish",
       "project_name": "Jellyfish",
       "contract_status": [
-        "template_reference",
-        "future_adapter"
+        "content_asset_schema_reference",
+        "reference_only",
+        "runtime_not_bundled"
       ],
       "related_templates": [
         "template_book_publisher_kb"
       ],
       "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
         "license_review_required",
         "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only",
-        "template_reference_only"
+        "ui_visibility_only"
       ],
       "can_execute_locally_before_v4": false
     },
@@ -96,21 +89,17 @@
       "project_id": "story_flicks",
       "project_name": "story-flicks",
       "contract_status": [
-        "template_reference",
-        "future_adapter"
+        "aigc_video_pipeline_schema_reference",
+        "reference_only",
+        "runtime_not_bundled"
       ],
       "related_templates": [
         "template_book_publisher_kb"
       ],
       "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
         "license_review_required",
         "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only",
-        "template_reference_only"
+        "ui_visibility_only"
       ],
       "can_execute_locally_before_v4": false
     },
@@ -118,25 +107,23 @@
       "project_id": "seedance2_skill",
       "project_name": "seedance2-skill",
       "contract_status": [
-        "provider_required",
+        "verified_video_skill_template_metadata",
+        "reference_only",
         "template_reference",
-        "future_adapter"
+        "provider_not_integrated",
+        "runtime_not_bundled"
       ],
       "related_templates": [
         "template_book_publisher_kb"
       ],
       "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
         "provider_required",
         "secret_required",
         "network_required",
         "license_review_required",
         "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only",
-        "template_reference_only"
+        "template_reference_only",
+        "ui_visibility_only"
       ],
       "can_execute_locally_before_v4": false
     },
@@ -144,19 +131,17 @@
       "project_id": "ai_marketing_skills",
       "project_name": "ai-marketing-skills",
       "contract_status": [
-        "template_reference"
+        "marketing_skill_pattern_library",
+        "real_integration",
+        "runtime_not_bundled"
       ],
       "related_templates": [
         "template_shopping_ops_agent"
       ],
       "blocked_reasons": [
-        "external_project_registry_only",
         "license_review_required",
         "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only",
-        "template_reference_only"
+        "ui_visibility_only"
       ],
       "can_execute_locally_before_v4": false
     }

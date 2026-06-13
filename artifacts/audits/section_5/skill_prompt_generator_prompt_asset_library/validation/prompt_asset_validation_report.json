@@ -1,0 +1,22 @@
+{
+  "prompt_asset_validation_version": "section_5_5_6_prompt_asset_library.v1",
+  "status": "passed",
+  "required_files": [
+    "prompt_asset_manifest.json",
+    "prompt_cards.jsonl",
+    "skill_factory_enhancement_report.json",
+    "prompt_asset_library_report.md",
+    "PROMPT_ASSET_INDEX.md"
+  ],
+  "missing_files": [],
+  "prompt_card_count": 3,
+  "card_errors": [],
+  "boundary_errors": [],
+  "external_code_or_prompts_copied": false,
+  "p2_2_skill_factory_replaced": false,
+  "tests_require_real_llm_api_network": false,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "Prompt Asset Library validation covers local prompt cards and boundaries only; it does not complete Campaign 3, full UI workflow, Full Gate, or EXE acceptance.",
+  "next_required_e2e_step": "Continue Section 5 item 5.7 ai-marketing-skills after governed 5.6 closeout.",
+  "not_goal_complete": true
+}

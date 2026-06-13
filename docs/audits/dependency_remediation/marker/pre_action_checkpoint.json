@@ -1,0 +1,47 @@
+{
+  "schema_version": "governance.pre_action_checkpoint.v1",
+  "action_id": "marker_local_runtime_20260612",
+  "created_at": "2026-06-12T09:05:00+08:00",
+  "goal": "Install and validate a real local Marker document conversion runtime.",
+  "reason": "Marker is the final required parser backend without dependency remediation and real smoke evidence.",
+  "affected_scope": [
+    "_local_dependency_remediation/marker",
+    ".heitang_cache/marker",
+    "docs/audits/dependency_remediation/marker",
+    "heitang_kb_forge/parser_backends/marker_adapter.py",
+    "tests/test_marker_backend_decision.py"
+  ],
+  "risk_class": "heavy_project_local_dependency_and_model_download",
+  "pre_action_state": {
+    "python_package": "missing",
+    "marker_cli": "missing",
+    "adapter_decision": "needs_strengthening",
+    "runtime_invocation": "intentionally blocked",
+    "global_environment_change": false
+  },
+  "source": {
+    "python_package": "PyPI: marker-pdf>=1,<2",
+    "official_repository": "https://github.com/datalab-to/marker",
+    "official_latest_release_observed": "1.10.2"
+  },
+  "license_risk": {
+    "code_license": "GPL-3.0",
+    "model_weights": "Separate commercial-use conditions documented by the upstream project",
+    "decision": "Allowed for local development smoke; EXE bundling remains blocked pending explicit license compatibility review."
+  },
+  "rollback_plan": [
+    "Remove _local_dependency_remediation/marker.",
+    "Remove only Marker model files created under the project-local .heitang_cache/marker path.",
+    "Revert only the Marker adapter and Marker-specific tests added by this action if runtime integration is abandoned.",
+    "Re-run check-marker-backend and smoke-marker-backend to confirm the rollback state."
+  ],
+  "validation_plan": [
+    "Record the installed marker-pdf version and console entry points.",
+    "Run marker_single --help.",
+    "Update the adapter to require and invoke the real CLI with CPU and project-local cache settings.",
+    "Run check-marker-backend.",
+    "Run smoke-marker-backend against a valid one-page PDF.",
+    "Require runtime_invoked=true and non-empty normalized text before passing."
+  ],
+  "next_resume_step": "Create a project-local virtual environment and install parser-marker."
+}

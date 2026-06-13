@@ -1,0 +1,9 @@
+{
+  "name": "core_fast_n8n_workflow_export",
+  "command": "python -m pytest tests/test_n8n_workflow_export.py tests/test_n8n_integration_decision.py tests/test_s_a_contract_inclusion.py tests/test_external_capability_registry.py tests/test_planned_adapter_boundaries.py -q",
+  "exit_code": 0,
+  "exit_code_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_n8n_workflow_export.log.exitcode",
+  "status": "passed",
+  "log_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_n8n_workflow_export.log",
+  "summary": "............................                                             [100%]\n28 passed in 3.23s"
+}

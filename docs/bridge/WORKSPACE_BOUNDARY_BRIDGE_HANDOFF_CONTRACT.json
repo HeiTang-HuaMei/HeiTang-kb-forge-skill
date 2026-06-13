@@ -1,0 +1,43 @@
+{
+  "schema_version": "workspace_boundary_bridge_handoff_contract.v1",
+  "contract_id": "workspace_boundary_bridge_handoff_contract",
+  "status": "handoff_contract_ready",
+  "campaign_5_bridge_complete": false,
+  "bridge_execution_accepted": false,
+  "future_bridge_action_added_to_current_allowlist": false,
+  "current_gate_adds_current_allowlist_actions": false,
+  "required_bridge_checks_for_future_campaign_5": [
+    "workspace_id_required",
+    "asset_id_required",
+    "path_boundary_check_required",
+    "cross_workspace_reference_must_be_explicit",
+    "denied_kb_ids_must_override_allowed_scopes",
+    "audit_log_required",
+    "open_any_path_forbidden"
+  ],
+  "future_allowlist_candidates": [
+    {
+      "action_id": "validate-workspace-boundary",
+      "registered_in_current_allowlist": false,
+      "activation_campaign": "Campaign 5 Chain-Level Local Core Bridge"
+    },
+    {
+      "action_id": "register-workspace-asset",
+      "registered_in_current_allowlist": false,
+      "activation_campaign": "Campaign 5 Chain-Level Local Core Bridge"
+    },
+    {
+      "action_id": "resolve-kb-access-scope",
+      "registered_in_current_allowlist": false,
+      "activation_campaign": "Campaign 5 Chain-Level Local Core Bridge"
+    }
+  ],
+  "forbidden_bridge_behaviors": [
+    "arbitrary_shell_execution",
+    "open_any_path",
+    "absolute_path_escape",
+    "parent_directory_escape",
+    "implicit_cross_workspace_read",
+    "future_action_enabled_before_campaign_5"
+  ]
+}

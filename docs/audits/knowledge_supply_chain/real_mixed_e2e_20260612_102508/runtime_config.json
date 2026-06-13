@@ -1,0 +1,38 @@
+﻿{
+    "schema_version":  "document_understanding_runtime_config.v1",
+    "working_directory":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill",
+    "routes":  {
+                   ".pdf":  "marker",
+                   ".png":  "paddleocr",
+                   ".md":  "builtin",
+                   ".txt":  "builtin"
+               },
+    "backends":  {
+                     "marker":  {
+                                    "python":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill\\_local_dependency_remediation\\marker\\Scripts\\python.exe",
+                                    "model_cache":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill\\_local_dependency_remediation\\marker\\model_cache",
+                                    "working_directory":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill",
+                                    "timeout_seconds":  900,
+                                    "environment":  {
+                                                        "TORCH_DEVICE":  "cpu"
+                                                    }
+                                },
+                     "paddleocr":  {
+                                       "python":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill\\_local_dependency_remediation\\paddleocr\\Scripts\\python.exe",
+                                       "working_directory":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill",
+                                       "timeout_seconds":  900,
+                                       "environment":  {
+                                                           "PADDLE_PDX_CACHE_HOME":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill\\_local_dependency_remediation\\paddleocr\\model_cache",
+                                                           "MODELSCOPE_CACHE":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill\\_local_dependency_remediation\\paddleocr\\model_cache\\modelscope",
+                                                           "HF_HOME":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill\\_local_dependency_remediation\\paddleocr\\model_cache\\huggingface",
+                                                           "HF_HUB_CACHE":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill\\_local_dependency_remediation\\paddleocr\\model_cache\\huggingface\\hub",
+                                                           "PADDLE_HOME":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill\\_local_dependency_remediation\\paddleocr\\model_cache\\paddle"
+                                                       }
+                                   },
+                     "builtin":  {
+                                     "python":  "D:\\D\\python\\python.exe",
+                                     "working_directory":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill",
+                                     "timeout_seconds":  120
+                                 }
+                 }
+}

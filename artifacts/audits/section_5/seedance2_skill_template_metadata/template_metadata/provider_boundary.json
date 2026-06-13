@@ -1,0 +1,28 @@
+{
+  "schema_version": "seedance_provider_boundary.v1",
+  "provider": "Volcano Engine Ark",
+  "official_documentation_discovered": true,
+  "direct_document_access_status": "network_timeout",
+  "exact_api_contract_verified": false,
+  "pricing_contract_verified": false,
+  "api_key_required": true,
+  "network_required": true,
+  "paid_service_boundary": true,
+  "provider_call_executed": false,
+  "api_key_collected": false,
+  "credential_persisted": false,
+  "provider_adapter_integrated": false,
+  "video_generation_runtime": false,
+  "media_upload_or_download": false,
+  "account_operation": false,
+  "provider_terms_review_complete": false,
+  "future_integration_requires": [
+    "explicit provider adapter scope",
+    "environment-only credential handling",
+    "cost and quota controls",
+    "provider terms and content-safety review",
+    "user-triggered execution",
+    "progress and cancellation",
+    "generated media provenance"
+  ]
+}

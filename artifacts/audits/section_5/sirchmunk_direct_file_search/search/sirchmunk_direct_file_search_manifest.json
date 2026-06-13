@@ -1,0 +1,112 @@
+{
+  "schema_version": "sirchmunk_direct_file_search_manifest.v1",
+  "section": "5.14",
+  "campaign": "Campaign 3",
+  "status": "passed",
+  "project_id": "sirchmunk",
+  "project_name": "Sirchmunk",
+  "integration_decision": "real_integration",
+  "integration_mode": "bounded_direct_file_search_provider",
+  "source_verification": {
+    "repository_url": "https://github.com/modelscope/sirchmunk",
+    "repository_head": "1e07ec11953673b601959fc82563e8264b9d5c6a",
+    "default_branch": "main",
+    "repository_accessible": true,
+    "repository_archived": false,
+    "repository_disabled": false,
+    "latest_release": "v0.0.7",
+    "latest_release_tag": "b1de3b0153d0c42d0683479f141480a8a8102d7d",
+    "license_spdx": "Apache-2.0",
+    "license_file": "LICENSE",
+    "repository_cloned": false,
+    "external_code_copied": false,
+    "external_prompt_text_copied": false,
+    "vendor_runtime_installed": false
+  },
+  "official_runtime_observation": {
+    "documented_positioning": [
+      "embedding_db_free_raw_data_search",
+      "indexless_retrieval",
+      "direct_file_search"
+    ],
+    "official_runtime_installed": false,
+    "official_runtime_executed": false,
+    "external_dependencies_installed": false,
+    "llm_api_key_required_by_official_quickstart": true,
+    "license_spdx": "Apache-2.0"
+  },
+  "dedup_boundary": {
+    "overlap_checked": true,
+    "distinct_from_anysearchskill": "This provider reads local user/workspace files only and does not call external search APIs.",
+    "distinct_from_rag_anything": "This provider does not implement cross-modal RAG, embeddings, vector DB, or vendor multimodal runtime.",
+    "distinct_from_weknora": "This provider does not implement Auto Wiki, Knowledge Graph, or agentic RAG.",
+    "distinct_value": [
+      "embedding-free direct local file search",
+      "path-boundary enforced source trace",
+      "source evidence map without index or vector database"
+    ]
+  },
+  "runtime_boundary": {
+    "local_direct_file_search_implemented": true,
+    "sirchmunk_runtime_integrated": false,
+    "llm_required": false,
+    "embedding_required": false,
+    "vector_database_required": false,
+    "index_build_required": false,
+    "network_required": false,
+    "external_source_ingestion_implemented": false,
+    "cross_modal_rag_implemented": false,
+    "auto_wiki_or_knowledge_graph_implemented": false,
+    "campaign_3_3_0_implemented": false,
+    "campaign_3_4_0_implemented": false
+  },
+  "security_boundary": {
+    "path_boundary_enforced": true,
+    "workspace_root": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/artifacts/audits/section_5/sirchmunk_direct_file_search/sample_workspace",
+    "searched_paths": [
+      "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/artifacts/audits/section_5/sirchmunk_direct_file_search/sample_workspace"
+    ],
+    "arbitrary_shell_execution": false,
+    "network_call_executed": false,
+    "secrets_required": false,
+    "unsafe_path_access": false
+  },
+  "ui_contract": {
+    "status_visible": true,
+    "direct_file_search_status_visible": true,
+    "source_trace_visible": true,
+    "local_ready": true,
+    "ready": false,
+    "executable_action": false,
+    "vendor_runtime_action_available": false,
+    "ui_visibility": "visible_status_only"
+  },
+  "search_summary": {
+    "query": "direct file search vector",
+    "workspace_root": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/artifacts/audits/section_5/sirchmunk_direct_file_search/sample_workspace",
+    "scanned_file_count": 1,
+    "supported_extensions": [
+      ".csv",
+      ".htm",
+      ".html",
+      ".json",
+      ".md",
+      ".txt"
+    ],
+    "result_count": 1,
+    "max_results": 5
+  },
+  "output_files": [
+    "sirchmunk_direct_file_search_manifest.json",
+    "direct_file_search_results.jsonl",
+    "direct_file_search_source_trace.json",
+    "direct_file_search_evidence_map.json",
+    "sirchmunk_direct_file_search_validation_report.json",
+    "sirchmunk_direct_file_search_report.md"
+  ],
+  "tests_require_real_llm_api_network": false,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "This advances Section 5 item 5.14 as a bounded local direct-file-search provider candidate. It does not install or execute Sirchmunk, run official LLM-backed retrieval, create a vector database, open Campaign 3 Supplement 3.0/4.0, accept Campaign 3, open Campaign 4, run Full Gate, package EXE, or release.",
+  "next_required_e2e_step": "Process Section 5 strengthening item 5.S1 GBrain only.",
+  "not_goal_complete": true
+}

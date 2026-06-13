@@ -75,6 +75,63 @@ def test_suite_validation_installability_governance_and_ready_pack(tmp_path):
     assert "Status: pass | Release ready: True" in governance_result.output
 
 
+def test_suite_governance_requires_explicit_first_run_baseline(tmp_path):
+    _, suite = _make_diff_suites(tmp_path)
+
+    governance = run_skill_suite_governance(suite)
+
+    assert governance["status"] == "review_required"
+    assert governance["release_ready"] is False
+    assert governance["checks"]["diff_comparison"]["baseline_provided"] is False
+    assert governance["checks"]["diff_comparison"]["baseline_accepted"] is False
+    assert (
+        governance["checks"]["diff_comparison"]["first_run_baseline_accepted"]
+        is False
+    )
+    assert "diff_baseline_not_provided" in governance["warnings"]
+
+
+def test_suite_governance_accepts_explicit_first_run_baseline_and_ready_pack(
+    tmp_path,
+):
+    _, suite = _make_diff_suites(tmp_path)
+
+    result = CliRunner().invoke(
+        app,
+        [
+            "skill-suite-governance-report",
+            "--suite",
+            str(suite),
+            "--accept-first-run-baseline",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    governance = _read_json(suite / "skill_suite_governance_report.json")
+    diff = _read_json(suite / "skill_suite_diff_report.json")
+    assert governance["status"] == "pass"
+    assert governance["release_ready"] is True
+    assert governance["checks"]["diff_comparison"]["baseline_provided"] is False
+    assert governance["checks"]["diff_comparison"]["baseline_accepted"] is True
+    assert (
+        governance["checks"]["diff_comparison"]["first_run_baseline_accepted"]
+        is True
+    )
+    assert governance["checks"]["diff_comparison"]["comparison_mode"] == (
+        "first_run_no_prior_suite"
+    )
+    assert governance["warnings"] == []
+    assert diff["status"] == "accepted_first_run_baseline"
+    assert diff["first_run_baseline_accepted"] is True
+    assert diff["baseline_provided"] is False
+
+    pack = tmp_path / "first_run_pack"
+    pack_manifest = export_skill_pack(suite, pack)
+    assert pack_manifest["status"] == "ready"
+    assert pack_manifest["suite_governance_status"] == "pass"
+    assert "Status: pass | Release ready: True" in result.output
+
+
 def test_suite_validation_blocks_tampered_routing_and_review_suite(tmp_path):
     _, suite = _make_diff_suites(tmp_path)
     (suite / "ROUTING.md").write_text("# Routing Rules\n", encoding="utf-8")

@@ -1,0 +1,170 @@
+{
+  "source_trace_version": "v4.2-p2.2-1",
+  "source_package_id": "pkg_knowledge_base",
+  "methodology_items": [
+    {
+      "item_id": "module_001_principles_04",
+      "source_evidence": [
+        "window_001"
+      ]
+    },
+    {
+      "item_id": "module_001_principles_10",
+      "source_evidence": [
+        "window_001"
+      ]
+    },
+    {
+      "item_id": "module_001_principles_11",
+      "source_evidence": [
+        "window_001"
+      ]
+    },
+    {
+      "item_id": "module_001_principles_12",
+      "source_evidence": [
+        "window_001"
+      ]
+    },
+    {
+      "item_id": "module_001_principles_16",
+      "source_evidence": [
+        "window_001"
+      ]
+    },
+    {
+      "item_id": "module_001_principles_17",
+      "source_evidence": [
+        "window_001"
+      ]
+    },
+    {
+      "item_id": "module_001_principles_18",
+      "source_evidence": [
+        "window_001"
+      ]
+    },
+    {
+      "item_id": "module_001_decision_rules_06",
+      "source_evidence": [
+        "window_001"
+      ]
+    },
+    {
+      "item_id": "module_001_workflows_05",
+      "source_evidence": [
+        "window_001"
+      ]
+    },
+    {
+      "item_id": "module_001_workflows_16",
+      "source_evidence": [
+        "window_001"
+      ]
+    },
+    {
+      "item_id": "module_001_workflows_17",
+      "source_evidence": [
+        "window_001"
+      ]
+    },
+    {
+      "item_id": "module_002_workflows_04",
+      "source_evidence": [
+        "window_002"
+      ]
+    },
+    {
+      "item_id": "module_003_principles_02",
+      "source_evidence": [
+        "window_003"
+      ]
+    },
+    {
+      "item_id": "module_003_principles_07",
+      "source_evidence": [
+        "window_003"
+      ]
+    },
+    {
+      "item_id": "module_003_decision_rules_03",
+      "source_evidence": [
+        "window_003"
+      ]
+    },
+    {
+      "item_id": "module_003_workflows_01",
+      "source_evidence": [
+        "window_003"
+      ]
+    },
+    {
+      "item_id": "module_003_workflows_04",
+      "source_evidence": [
+        "window_003"
+      ]
+    },
+    {
+      "item_id": "module_003_workflows_05",
+      "source_evidence": [
+        "window_003"
+      ]
+    },
+    {
+      "item_id": "module_003_workflows_07",
+      "source_evidence": [
+        "window_003"
+      ]
+    },
+    {
+      "item_id": "module_003_anti_patterns_06",
+      "source_evidence": [
+        "window_003"
+      ]
+    },
+    {
+      "item_id": "module_003_constraints_02",
+      "source_evidence": [
+        "window_003"
+      ]
+    },
+    {
+      "item_id": "module_003_applicability_boundary_07",
+      "source_evidence": [
+        "window_003"
+      ]
+    },
+    {
+      "item_id": "module_003_failure_modes_03",
+      "source_evidence": [
+        "window_003"
+      ]
+    },
+    {
+      "item_id": "module_003_failure_modes_06",
+      "source_evidence": [
+        "window_003"
+      ]
+    },
+    {
+      "item_id": "module_001_concept_01",
+      "source_evidence": [
+        "window_001"
+      ]
+    },
+    {
+      "item_id": "module_002_concept_01",
+      "source_evidence": [
+        "window_002"
+      ]
+    },
+    {
+      "item_id": "module_003_concept_01",
+      "source_evidence": [
+        "window_003"
+      ]
+    }
+  ],
+  "source_trace_preserved": true,
+  "tests_require_real_llm_api_network": false
+}

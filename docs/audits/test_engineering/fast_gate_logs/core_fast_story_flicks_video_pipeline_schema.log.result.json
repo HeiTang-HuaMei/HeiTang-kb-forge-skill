@@ -1,0 +1,9 @@
+{
+  "name": "core_fast_story_flicks_video_pipeline_schema",
+  "command": "python -m pytest tests/test_video_pipeline_schema.py tests/test_story_flicks_integration_decision.py tests/test_s_a_contract_inclusion.py tests/test_external_capability_registry.py tests/test_external_project_registry.py -q",
+  "exit_code": 0,
+  "exit_code_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_story_flicks_video_pipeline_schema.log.exitcode",
+  "status": "passed",
+  "log_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_story_flicks_video_pipeline_schema.log",
+  "summary": ".......................                                                  [100%]\n23 passed in 6.25s"
+}

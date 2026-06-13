@@ -1,0 +1,48 @@
+{
+  "schema_version": "visual_evidence_map.v1",
+  "generated_at": "2026-06-13T05:52:53.148298+00:00",
+  "evidence_count": 4,
+  "evidence": [
+    {
+      "source_id": "source_f180ebb3ae7645b5",
+      "evidence_id": "evidence_a489a2bbe322c6b3",
+      "chunk_id": "video_segment_a489a2bbe322c6b3",
+      "chunk_type": "video_segment",
+      "source_type": "subtitle_file",
+      "content_hash": "a489a2bbe322c6b35cd67caba4d64309d1e3176a55f9de8ef653db16bd2207c1",
+      "integration_mode": "video_visual_foundations",
+      "backlink": "https://video.example/watch/demo#t=1"
+    },
+    {
+      "source_id": "source_f180ebb3ae7645b5",
+      "evidence_id": "evidence_3ebe125afc916633",
+      "chunk_id": "video_segment_3ebe125afc916633",
+      "chunk_type": "video_segment",
+      "source_type": "subtitle_file",
+      "content_hash": "3ebe125afc91663317cf9d0c1f29887bd171d09c0c9e288f6ad3271221f164c4",
+      "integration_mode": "video_visual_foundations",
+      "backlink": "https://video.example/watch/demo#t=4"
+    },
+    {
+      "source_id": "source_f180ebb3ae7645b5",
+      "evidence_id": "evidence_3968318567617e9f",
+      "chunk_id": "image_ocr_3968318567617e9f",
+      "chunk_type": "image_ocr",
+      "source_type": "visual_image",
+      "content_hash": "3968318567617e9fe834c2fbd33a0644553809e8bd8b3e8f4fa23e9ff014b6b3",
+      "integration_mode": "video_visual_foundations",
+      "backlink": "https://video.example/watch/demo#image=0"
+    },
+    {
+      "source_id": "source_f180ebb3ae7645b5",
+      "evidence_id": "evidence_3968318567617e9f",
+      "chunk_id": "video_keyframe_ocr_3968318567617e9f",
+      "chunk_type": "video_keyframe_ocr",
+      "source_type": "video_keyframe_image",
+      "content_hash": "3968318567617e9fe834c2fbd33a0644553809e8bd8b3e8f4fa23e9ff014b6b3",
+      "integration_mode": "video_visual_foundations",
+      "backlink": "https://video.example/watch/demo#image=0"
+    }
+  ],
+  "knowledge_verification_engine_complete": false
+}

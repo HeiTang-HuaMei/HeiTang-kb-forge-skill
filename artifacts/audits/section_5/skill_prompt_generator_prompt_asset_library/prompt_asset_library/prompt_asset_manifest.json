@@ -1,0 +1,38 @@
+{
+  "prompt_asset_library_version": "section_5_5_6_prompt_asset_library.v1",
+  "library_name": "HeiTang Skill Factory Prompt Assets",
+  "source_suite_id": "suite_pkg-knowledge-base",
+  "source_package_id": "pkg_knowledge_base",
+  "source_skill_count": 3,
+  "prompt_card_count": 3,
+  "status": "passed",
+  "integration_mode": "prompt_asset_library_enhancer",
+  "external_project_reference": {
+    "project_id": "skill_prompt_generator",
+    "project_name": "skill-prompt-generator",
+    "github_url": "https://github.com/huangserva/skill-prompt-generator",
+    "git_ls_remote_checked": true,
+    "github_api_checked": true,
+    "license_gate": "pending_no_license_field_in_github_api",
+    "external_code_or_prompts_copied": false
+  },
+  "skill_factory_boundary": {
+    "enhancer_only": true,
+    "p2_2_skill_factory_replaced": false,
+    "skill_suite_modified": false,
+    "llm_required": false,
+    "provider_api_required": false
+  },
+  "output_files": [
+    "prompt_asset_manifest.json",
+    "prompt_cards.jsonl",
+    "skill_factory_enhancement_report.json",
+    "prompt_asset_library_report.md",
+    "PROMPT_ASSET_INDEX.md"
+  ],
+  "tests_require_real_llm_api_network": false,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "Prompt Asset Library enhances existing Skill Suite prompt assets locally, but external Skill import/decomposition/learning, owned Skill generation, multi-agent workflow, full UI workflow, Full Gate, and EXE remain incomplete.",
+  "next_required_e2e_step": "Continue Section 5 item 5.7 ai-marketing-skills after governed 5.6 closeout.",
+  "not_goal_complete": true
+}

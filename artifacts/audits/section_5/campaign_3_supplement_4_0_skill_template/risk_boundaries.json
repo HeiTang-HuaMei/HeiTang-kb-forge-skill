@@ -1,0 +1,21 @@
+{
+  "schema_version": "risk_boundaries.v1",
+  "negative_rules": [
+    "Do not present a draft Skill Template as published.",
+    "Do not present imported/reference-only Skills as built-in executable Skills.",
+    "Do not convert unresolved evidence conflicts into validated rules.",
+    "Do not present this Skill Template as Dedicated Skill composition.",
+    "Do not present this Skill Template as Agent Package generation or Agent runtime.",
+    "Do not present Campaign 4 UI handoff or Campaign 5 Bridge handoff as complete."
+  ],
+  "risk_items": [
+    {
+      "claim_id": "claim_ffd5341f40204412",
+      "status": "unsupported",
+      "repair_suggestion": "Add approved source evidence or mark the claim for human review."
+    }
+  ],
+  "unresolved_conflict_count": 0,
+  "manual_evidence_not_platform_fetch_success": true,
+  "visual_video_skill_not_whole_module": true
+}

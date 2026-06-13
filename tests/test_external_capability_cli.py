@@ -11,8 +11,8 @@ def test_external_capability_registry_cli_writes_reports(tmp_path):
     result = CliRunner().invoke(app, ["external-capability-registry", "--output", str(output)])
 
     assert result.exit_code == 0, result.output
-    assert _json(output / "external_capability_registry.json")["external_project_count"] == 23
-    assert _json(output / "s_a_contract_inclusion_matrix.json")["external_project_count"] == 23
+    assert _json(output / "external_capability_registry.json")["external_project_count"] == 24
+    assert _json(output / "s_a_contract_inclusion_matrix.json")["external_project_count"] == 24
     assert _json(output / "provider_boundary_report.json")["provider_network_api_ready"] is False
     assert (output / "external_capability_registry.md").exists()
 
@@ -28,8 +28,13 @@ def test_external_capability_inspect_cli_reads_one_project_without_runtime(tmp_p
     assert result.exit_code == 0, result.output
     payload = json.loads(result.output)
     assert payload["project_id"] == "anysearchskill"
-    assert payload["requires_api_key"] is True
+    assert payload["requires_api_key"] is False
     assert payload["requires_network"] is True
+    assert payload["contract_status"] == [
+        "provider_adapter",
+        "real_smoke_passed",
+        "needs_strengthening",
+    ]
     assert payload["can_execute_locally_before_v4"] is False
     assert _json(output / "external_capability_inspect.json")["project_id"] == "anysearchskill"
 
@@ -40,7 +45,7 @@ def test_external_capability_matrix_cli_writes_visibility_matrix(tmp_path):
     result = CliRunner().invoke(app, ["external-capability-matrix", "--output", str(output)])
 
     assert result.exit_code == 0, result.output
-    assert _json(output / "s_a_contract_inclusion_matrix.json")["external_project_count"] == 23
+    assert _json(output / "s_a_contract_inclusion_matrix.json")["external_project_count"] == 24
     assert _json(output / "workbench_capability_matrix.json")["page_count"] >= 8
     assert (output / "s_a_contract_inclusion_matrix.md").exists()
 

@@ -1,0 +1,7 @@
+{
+  "schema_version": "skill_template_conflict_report.v1",
+  "status": "passed",
+  "unresolved_conflict_count": 0,
+  "conflicting_claim_ids": [],
+  "conflicts_block_validation": true
+}

@@ -1,6 +1,6 @@
-# HeiTang KB Forge Skill
+# HeiTang Knowledge Workbench
 
-An offline-first Agent Knowledge Supply Chain Core for turning local source materials into standardized, traceable, searchable, auditable, and reusable knowledge assets.
+An offline-first Agent Knowledge Supply Chain Workbench for turning local source materials into standardized, traceable, searchable, auditable, and reusable knowledge assets.
 
 Current Core: v4.2.0
 
@@ -20,7 +20,7 @@ For quick understanding:
 
 ## What this project is
 
-HeiTang KB Forge Skill is the Core engine for a local-first Agent knowledge workflow. It ingests local files, turns them into evidence-carrying knowledge packages, and exposes the assets needed by RAG, verification, document generation, structured Skill packages, and local Agent workflows.
+HeiTang Knowledge Workbench is the Core engine for a local-first Agent knowledge workflow. It ingests local files, turns them into evidence-carrying knowledge packages, and exposes the assets needed by RAG, verification, document generation, structured Skill packages, and local Agent workflows.
 
 The repository name still contains `Skill` because the project started from a Skill-first package surface. The current Core is broader: it is a headless knowledge supply chain that can produce Skill packages, Agent packages, reports, artifacts, indexes, and Workbench contracts. The UI remains a presentation layer, not the Core product engine.
 

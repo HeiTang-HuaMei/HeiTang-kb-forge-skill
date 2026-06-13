@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "document_understanding_result_schema.json",
+  "title": "Document Understanding Result",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "adapter",
+    "status",
+    "source_trace",
+    "blocks",
+    "layout_map",
+    "table_map",
+    "figure_map",
+    "formula_map",
+    "confidence",
+    "warnings",
+    "errors",
+    "fallback_reason",
+    "repair_suggestion"
+  ],
+  "properties": {
+    "schema_version": {"const": "document_understanding.result.v1"},
+    "adapter": {"$ref": "adapter_capability_schema.json"},
+    "status": {
+      "enum": ["success", "partial", "skipped", "failed", "empty", "unsupported"]
+    },
+    "source_trace": {"type": "array", "items": {"type": "object"}},
+    "blocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "block_id",
+          "block_type",
+          "text",
+          "page",
+          "bbox",
+          "reading_order",
+          "confidence",
+          "source_trace",
+          "metadata"
+        ],
+        "properties": {
+          "block_id": {"type": "string"},
+          "block_type": {"type": "string"},
+          "text": {"type": "string"},
+          "page": {"type": ["integer", "null"]},
+          "bbox": {
+            "oneOf": [
+              {"type": "array", "items": {"type": "number"}},
+              {"type": "null"}
+            ]
+          },
+          "reading_order": {"type": ["integer", "null"]},
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+          "source_trace": {"type": "array", "items": {"type": "object"}},
+          "metadata": {"type": "object"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "layout_map": {"type": "object"},
+    "table_map": {"type": "object"},
+    "figure_map": {"type": "object"},
+    "formula_map": {"type": "object"},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "errors": {"type": "array", "items": {"$ref": "adapter_error_schema.json"}},
+    "fallback_reason": {"type": ["string", "null"]},
+    "repair_suggestion": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}

@@ -1,7 +1,7 @@
 {
   "taxonomy_id": "workbench_external_blocked_reason_taxonomy",
   "version": "s_a_contract_inclusion.1",
-  "blocked_reason_count": 16,
+  "blocked_reason_count": 17,
   "blocked_reasons": [
     {
       "blocked_reason": "external_project_registry_only",
@@ -9,29 +9,19 @@
       "local_ready_allowed": false,
       "p1_gate_impact": "none",
       "project_ids": [
-        "ai_marketing_skills",
         "andrej_karpathy_skills",
-        "anysearchskill",
         "deepeval",
         "docling",
-        "jellyfish",
         "last30days_skill",
         "llamaindex",
-        "llm_wiki_v2",
         "marker",
         "mineru",
-        "mmskills",
-        "n8n",
         "opendataloader",
         "paddleocr",
         "ragas",
         "rtk",
-        "seedance2_skill",
-        "skill_prompt_generator",
-        "story_flicks",
         "surya",
-        "unstructured",
-        "weknora"
+        "unstructured"
       ]
     },
     {
@@ -44,8 +34,7 @@
         "deepeval",
         "llamaindex",
         "ragas",
-        "rtk",
-        "skill_prompt_generator"
+        "rtk"
       ]
     },
     {
@@ -54,7 +43,6 @@
       "local_ready_allowed": false,
       "p1_gate_impact": "none",
       "project_ids": [
-        "anysearchskill",
         "marker",
         "mineru",
         "opendataloader",
@@ -79,16 +67,8 @@
       "p1_gate_impact": "none",
       "project_ids": [
         "deepeval",
-        "jellyfish",
         "last30days_skill",
-        "llm_wiki_v2",
-        "mmskills",
-        "n8n",
-        "ragas",
-        "seedance2_skill",
-        "skill_prompt_generator",
-        "story_flicks",
-        "weknora"
+        "ragas"
       ]
     },
     {
@@ -97,9 +77,7 @@
       "local_ready_allowed": false,
       "p1_gate_impact": "none",
       "project_ids": [
-        "anysearchskill",
         "last30days_skill",
-        "n8n",
         "seedance2_skill"
       ]
     },
@@ -109,7 +87,6 @@
       "local_ready_allowed": false,
       "p1_gate_impact": "none",
       "project_ids": [
-        "anysearchskill",
         "seedance2_skill"
       ]
     },
@@ -122,6 +99,15 @@
         "anysearchskill",
         "last30days_skill",
         "seedance2_skill"
+      ]
+    },
+    {
+      "blocked_reason": "ui_configuration_pending",
+      "definition": "Desktop UI provider configuration and execution workflow are not accepted yet.",
+      "local_ready_allowed": false,
+      "p1_gate_impact": "none",
+      "project_ids": [
+        "anysearchskill"
       ]
     },
     {
@@ -148,21 +134,22 @@
         "jellyfish",
         "last30days_skill",
         "llamaindex",
-        "llm_wiki_v2",
         "marker",
+        "mattpocock_skills",
         "mineru",
         "mmskills",
         "n8n",
         "opendataloader",
         "paddleocr",
+        "rag_anything",
         "ragas",
         "rtk",
         "seedance2_skill",
+        "sirchmunk",
         "skill_prompt_generator",
         "story_flicks",
         "surya",
-        "unstructured",
-        "weknora"
+        "unstructured"
       ]
     },
     {
@@ -179,21 +166,22 @@
         "jellyfish",
         "last30days_skill",
         "llamaindex",
-        "llm_wiki_v2",
         "marker",
+        "mattpocock_skills",
         "mineru",
         "mmskills",
         "n8n",
         "opendataloader",
         "paddleocr",
+        "rag_anything",
         "ragas",
         "rtk",
         "seedance2_skill",
+        "sirchmunk",
         "skill_prompt_generator",
         "story_flicks",
         "surya",
-        "unstructured",
-        "weknora"
+        "unstructured"
       ]
     },
     {
@@ -209,29 +197,19 @@
       "local_ready_allowed": false,
       "p1_gate_impact": "none",
       "project_ids": [
-        "ai_marketing_skills",
         "andrej_karpathy_skills",
-        "anysearchskill",
         "deepeval",
         "docling",
-        "jellyfish",
         "last30days_skill",
         "llamaindex",
-        "llm_wiki_v2",
         "marker",
         "mineru",
-        "mmskills",
-        "n8n",
         "opendataloader",
         "paddleocr",
         "ragas",
         "rtk",
-        "seedance2_skill",
-        "skill_prompt_generator",
-        "story_flicks",
         "surya",
-        "unstructured",
-        "weknora"
+        "unstructured"
       ]
     },
     {
@@ -240,29 +218,19 @@
       "local_ready_allowed": false,
       "p1_gate_impact": "none",
       "project_ids": [
-        "ai_marketing_skills",
         "andrej_karpathy_skills",
-        "anysearchskill",
         "deepeval",
         "docling",
-        "jellyfish",
         "last30days_skill",
         "llamaindex",
-        "llm_wiki_v2",
         "marker",
         "mineru",
-        "mmskills",
-        "n8n",
         "opendataloader",
         "paddleocr",
         "ragas",
         "rtk",
-        "seedance2_skill",
-        "skill_prompt_generator",
-        "story_flicks",
         "surya",
-        "unstructured",
-        "weknora"
+        "unstructured"
       ]
     },
     {
@@ -281,14 +249,17 @@
         "llamaindex",
         "llm_wiki_v2",
         "marker",
+        "mattpocock_skills",
         "mineru",
         "mmskills",
         "n8n",
         "opendataloader",
         "paddleocr",
+        "rag_anything",
         "ragas",
         "rtk",
         "seedance2_skill",
+        "sirchmunk",
         "skill_prompt_generator",
         "story_flicks",
         "surya",
@@ -302,10 +273,7 @@
       "local_ready_allowed": false,
       "p1_gate_impact": "none",
       "project_ids": [
-        "ai_marketing_skills",
-        "jellyfish",
-        "seedance2_skill",
-        "story_flicks"
+        "seedance2_skill"
       ]
     }
   ]

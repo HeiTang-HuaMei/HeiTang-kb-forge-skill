@@ -1,0 +1,115 @@
+{
+  "schema_version": "verification_source_trace.v1",
+  "generated_at": "2026-06-13T07:26:21.704726Z",
+  "source_count": 9,
+  "sources": [
+    {
+      "source_id": "source_3507a397b339fe0c",
+      "evidence_id": "manual_evidence_11f6e870b0e643fc",
+      "source_type": "manual_upload",
+      "source_url": "https://example.com/manual-evidence-source",
+      "backlink": "manual_evidence_manifest.json#manual_evidence_11f6e870b0e643fc",
+      "artifact_path": "artifacts/audits/section_5/external_source_manual_evidence/manual_evidence_blocks.jsonl",
+      "content_hash": "6d3a157090d6898c1f3ca507da4d270534d7a1bbc3cf5e8dfc1e723382f3de89",
+      "status": "accepted",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "source_id": "source_3507a397b339fe0c",
+      "evidence_id": "manual_evidence_356ff3bbe744c88f",
+      "source_type": "manual_upload",
+      "source_url": "https://example.com/manual-evidence-source",
+      "backlink": "manual_evidence_manifest.json#manual_evidence_356ff3bbe744c88f",
+      "artifact_path": "artifacts/audits/section_5/external_source_manual_evidence/manual_evidence_blocks.jsonl",
+      "content_hash": "043dfec1ce788497207672af5d3ad445bfcec4094f0995c9f31ef24529bc3f93",
+      "status": "accepted",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "source_id": "source_5982ec7be8523211",
+      "evidence_id": "opencli_evidence_af5f7b13df13b3ab",
+      "source_type": "public_registry_result",
+      "source_url": "https://www.npmjs.com/package/@jackwener/opencli",
+      "backlink": "https://www.npmjs.com/package/@jackwener/opencli",
+      "artifact_path": "artifacts/audits/section_5/external_source_opencli_verification/external_search_candidates.jsonl",
+      "content_hash": "208bdb8ff2f2af4137116f598d6487f4b8294b9878bcc721e5f62943146b9ca5",
+      "status": "accepted",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "source_id": "source_eaf540517ecd7269",
+      "evidence_id": "opencli_evidence_6edb4ae33c870150",
+      "source_type": "public_registry_result",
+      "source_url": "https://www.npmjs.com/package/@thehappyboy/opencli-mcp-http",
+      "backlink": "https://www.npmjs.com/package/@thehappyboy/opencli-mcp-http",
+      "artifact_path": "artifacts/audits/section_5/external_source_opencli_verification/external_search_candidates.jsonl",
+      "content_hash": "65cba82dec9cf6cb0bbcf4797e1203a8d22191d770b579fc2082b9c9790cb420",
+      "status": "accepted",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "source_id": "source_822706e3cbd6a9d7",
+      "evidence_id": "opencli_evidence_0ecfe2826fef3aee",
+      "source_type": "public_registry_result",
+      "source_url": "https://www.npmjs.com/package/opencli-plugin-socialdatax",
+      "backlink": "https://www.npmjs.com/package/opencli-plugin-socialdatax",
+      "artifact_path": "artifacts/audits/section_5/external_source_opencli_verification/external_search_candidates.jsonl",
+      "content_hash": "6ce7cdd8a81526c58c25bb67a035f7c3a15684f617278aef66880ada49fd4768",
+      "status": "accepted",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "source_id": "source_f180ebb3ae7645b5",
+      "evidence_id": "evidence_a489a2bbe322c6b3",
+      "source_type": "subtitle_file",
+      "source_url": "https://video.example/watch/demo",
+      "backlink": "https://video.example/watch/demo#t=1",
+      "artifact_path": "artifacts/audits/section_5/external_source_video_visual_foundations/multimodal_chunks.jsonl",
+      "content_hash": "a489a2bbe322c6b35cd67caba4d64309d1e3176a55f9de8ef653db16bd2207c1",
+      "status": "accepted",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "source_id": "source_f180ebb3ae7645b5",
+      "evidence_id": "evidence_3ebe125afc916633",
+      "source_type": "subtitle_file",
+      "source_url": "https://video.example/watch/demo",
+      "backlink": "https://video.example/watch/demo#t=4",
+      "artifact_path": "artifacts/audits/section_5/external_source_video_visual_foundations/multimodal_chunks.jsonl",
+      "content_hash": "3ebe125afc91663317cf9d0c1f29887bd171d09c0c9e288f6ad3271221f164c4",
+      "status": "accepted",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "source_id": "source_f180ebb3ae7645b5",
+      "evidence_id": "evidence_3968318567617e9f",
+      "source_type": "visual_image",
+      "source_url": "https://video.example/watch/demo",
+      "backlink": "https://video.example/watch/demo#image=0",
+      "artifact_path": "artifacts/audits/section_5/external_source_video_visual_foundations/multimodal_chunks.jsonl",
+      "content_hash": "3968318567617e9fe834c2fbd33a0644553809e8bd8b3e8f4fa23e9ff014b6b3",
+      "status": "accepted",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    },
+    {
+      "source_id": "source_f180ebb3ae7645b5",
+      "evidence_id": "evidence_3968318567617e9f",
+      "source_type": "video_keyframe_image",
+      "source_url": "https://video.example/watch/demo",
+      "backlink": "https://video.example/watch/demo#image=0",
+      "artifact_path": "artifacts/audits/section_5/external_source_video_visual_foundations/multimodal_chunks.jsonl",
+      "content_hash": "3968318567617e9fe834c2fbd33a0644553809e8bd8b3e8f4fa23e9ff014b6b3",
+      "status": "accepted",
+      "failure_reason": "",
+      "repair_suggestion": ""
+    }
+  ]
+}

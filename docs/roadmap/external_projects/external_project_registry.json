@@ -1,786 +1,1541 @@
 {
-  "registry_id": "pre_v4_external_project_registry_2026_06_09",
-  "scope": "Pre-v4 registry, roadmap, benchmark mapping, and governance only. No external project functionality is implemented by this registry.",
-  "core_repo": "kb-forge-skill",
-  "core_branch": "main",
-  "v4_0_started": false,
-  "tag_created": false,
-  "release_written": false,
-  "external_features_implemented": false,
-  "planned_adapters_marked_ready": false,
-  "rating_counts": {
-    "S": 7,
-    "A": 16,
-    "B": 4,
-    "needs_verification_status": 0
-  },
-  "projects": [
-    {
-      "project_id": "llm_wiki_v2",
-      "project_name": "LLM Wiki v2",
-      "github_url": "https://github.com/karpathy/llm-wiki",
-      "rating": "S",
-      "rating_reason": "Strong fit for living knowledge base, memory lifecycle, confidence, forgetting, and stale knowledge cleanup patterns.",
-      "current_repo_status": "mentioned_only",
-      "current_evidence_files": [],
-      "mapped_capabilities": ["living_knowledge_base", "memory_lifecycle", "confidence_score", "automatic_forgetting", "knowledge_decay", "strengthen_weaken_memory", "stale_knowledge_cleanup"],
-      "suitable_for_heitang": ["post-v4 memory lifecycle direction", "confidence and decay governance"],
-      "not_suitable_parts": ["do not implement the LLM Wiki memory engine before v4", "do not copy external project code"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.4",
-      "ui_impact": "medium",
-      "implementation_mode": "capability_fusion",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Only registry and roadmap mapping are allowed before v4.",
-      "recommended_next_action": "Keep as a post-v4 memory lifecycle benchmark."
-    },
-    {
-      "project_id": "weknora",
-      "project_name": "WeKnora",
-      "github_url": "https://github.com/tencent/weknora",
-      "rating": "S",
-      "rating_reason": "High-value benchmark for auto wiki, knowledge graph, document understanding, RAG trace, and agentic RAG.",
-      "current_repo_status": "mentioned_only",
-      "current_evidence_files": [],
-      "mapped_capabilities": ["auto_wiki", "knowledge_graph", "document_understanding", "rag_trace", "agentic_rag", "visual_trace"],
-      "suitable_for_heitang": ["post-v4 auto wiki direction", "knowledge graph and visual trace inspiration"],
-      "not_suitable_parts": ["do not embed WeKnora code before v4", "do not claim agentic RAG runtime integration"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.5",
-      "ui_impact": "large",
-      "implementation_mode": "capability_fusion",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Auto wiki and graph integration require post-v4 design and review.",
-      "recommended_next_action": "Map to post-v4 auto wiki and RAG evaluation planning."
-    },
-    {
-      "project_id": "n8n",
-      "project_name": "n8n",
-      "github_url": "https://github.com/n8n-io/n8n",
-      "rating": "S",
-      "rating_reason": "Strong ecosystem benchmark for workflow automation, webhook templates, workflow export, external triggers, and distribution.",
-      "current_repo_status": "mentioned_only",
-      "current_evidence_files": [],
-      "mapped_capabilities": ["workflow_automation", "webhook", "workflow_export", "external_trigger", "automation_template", "external_distribution"],
-      "suitable_for_heitang": ["post-v4 workflow export adapter", "automation templates"],
-      "not_suitable_parts": ["do not bundle n8n runtime", "do not execute n8n workflows before v4"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.2 / P3",
-      "ui_impact": "large",
-      "implementation_mode": "workflow_export",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": true,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "External runtime integration is out of scope before v4.",
-      "recommended_next_action": "Plan workflow export templates only; do not bundle the runtime."
-    },
-    {
-      "project_id": "andrej_karpathy_skills",
-      "project_name": "andrej-karpathy-skills",
-      "github_url": "https://github.com/multica-ai/andrej-karpathy-skills",
-      "rating": "S",
-      "rating_reason": "High-signal skill governance and coding-discipline benchmark already mapped by the external benchmark report.",
-      "current_repo_status": "benchmark_mapped",
-      "current_evidence_files": ["heitang_kb_forge/audit/external_benchmark.py", "tests/test_v36_external_benchmark.py"],
-      "mapped_capabilities": ["skill_governance", "goal_driven_execution", "skill_quality_gate", "target_runtime_profile", "agent_coding_discipline"],
-      "suitable_for_heitang": ["skill governance improvements", "target runtime profile policy"],
-      "not_suitable_parts": ["do not copy prompts or code", "do not mark as implemented from benchmark presence"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.9",
-      "ui_impact": "medium",
-      "implementation_mode": "capability_fusion",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "This pass only records the benchmark.",
-      "recommended_next_action": "Use as input for S/A contract inclusion after registry completion."
-    },
-    {
-      "project_id": "paddleocr",
-      "project_name": "PaddleOCR",
-      "github_url": "https://github.com/PaddlePaddle/PaddleOCR",
-      "rating": "S",
-      "rating_reason": "S-level parser/OCR foundation now backed by an optional local runtime adapter; remains opt-in and not default Core parsing.",
-      "current_repo_status": "planned_adapter",
-      "current_evidence_files": ["heitang_kb_forge/parser_backends/paddleocr_adapter.py", "heitang_kb_forge/parser_backends/runtime_acceptance.py", "tests/test_v28_parser_backends.py", "docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json"],
-      "mapped_capabilities": ["ocr_foundation", "text_detection", "text_recognition", "scanned_pdf_ocr"],
-      "suitable_for_heitang": ["optional OCR backend adapter", "parser backend benchmark"],
-      "not_suitable_parts": ["do not bundle PaddleOCR or models", "do not download models in tests"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.1",
-      "ui_impact": "medium",
-      "implementation_mode": "optional_runtime_adapter",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Optional local runtime adapter is implemented and P2.1 runtime acceptance is recorded, but it remains dependency-gated, not bundled, not default Core parsing, and not a UI-executable external project.",
-      "recommended_next_action": "Use when parser-paddleocr is locally installed and selected with parse-with-backend."
-    },
-    {
-      "project_id": "mineru",
-      "project_name": "MinerU",
-      "github_url": "https://github.com/opendatalab/MinerU",
-      "rating": "S",
-      "rating_reason": "S-level candidate for document structure understanding and complex layout parsing.",
-      "current_repo_status": "planned_adapter",
-      "current_evidence_files": ["docs/03_core_capabilities/PARSER_BACKEND_STRATEGY.md", "heitang_kb_forge/audit/external_benchmark.py"],
-      "mapped_capabilities": ["document_structure_understanding", "complex_layout_parsing", "table_formula_layout", "reading_order"],
-      "suitable_for_heitang": ["future complex document parser adapter", "layout-aware parser benchmark"],
-      "not_suitable_parts": ["do not add dependency before v4", "do not claim runtime integration"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.6",
-      "ui_impact": "medium",
-      "implementation_mode": "planned_adapter",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Adapter implementation and runtime review are post-v4.",
-      "recommended_next_action": "Keep planned adapter status and benchmark mapping."
-    },
-    {
-      "project_id": "docling",
-      "project_name": "Docling",
-      "github_url": "https://github.com/docling-project/docling",
-      "rating": "S",
-      "rating_reason": "S-level parser backend now backed by an optional local runtime adapter; remains opt-in and not default Core parsing.",
-      "current_repo_status": "planned_adapter",
-      "current_evidence_files": ["heitang_kb_forge/parser_backends/docling_adapter.py", "heitang_kb_forge/parser_backends/runtime_acceptance.py", "docs/03_core_capabilities/PARSER_BACKEND_STRATEGY.md", "tests/test_v28_parser_backends.py", "docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json"],
-      "mapped_capabilities": ["parser_backend_adapter", "structured_document_conversion", "complex_pdf_parsing"],
-      "suitable_for_heitang": ["optional parser backend adapter", "parser backend benchmark"],
-      "not_suitable_parts": ["do not bundle Docling", "do not make Docling mandatory"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.1",
-      "ui_impact": "medium",
-      "implementation_mode": "optional_runtime_adapter",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Optional local runtime adapter is implemented and P2.1 runtime acceptance is recorded, but it remains dependency-gated, not bundled, not default Core parsing, and not a UI-executable external project.",
-      "recommended_next_action": "Use when parser-docling is locally installed and selected with parse-with-backend."
-    },
-    {
-      "project_id": "anysearchskill",
-      "project_name": "AnySearchSkill",
-      "github_url": "https://github.com/anysearch-ai/anysearch-skill",
-      "rating": "A",
-      "rating_reason": "Useful external retrieval and freshness verification provider benchmark.",
-      "current_repo_status": "mentioned_only",
-      "current_evidence_files": [],
-      "mapped_capabilities": ["external_retrieval", "vertical_search", "batch_search", "source_attribution", "freshness_verification"],
-      "suitable_for_heitang": ["post-v4 external retrieval provider", "freshness verification"],
-      "not_suitable_parts": ["do not call AnySearchSkill API before v4", "do not store API keys"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.3",
-      "ui_impact": "medium",
-      "implementation_mode": "provider_adapter",
-      "requires_api_key": true,
-      "requires_network": true,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Provider and network access require explicit post-v4 configuration.",
-      "recommended_next_action": "Keep provider-required boundary for S/A contract inclusion."
-    },
-    {
-      "project_id": "last30days_skill",
-      "project_name": "last30days-skill",
-      "github_url": "https://github.com/mvanhorn/last30days-skill",
-      "rating": "A",
-      "rating_reason": "Useful trend radar and external signal monitoring benchmark already present in external benchmark mapping.",
-      "current_repo_status": "benchmark_mapped",
-      "current_evidence_files": ["heitang_kb_forge/audit/external_benchmark.py", "tests/test_v36_external_benchmark.py"],
-      "mapped_capabilities": ["trend_radar", "external_signal", "source_monitoring"],
-      "suitable_for_heitang": ["post-v4 source monitoring", "template library patterns"],
-      "not_suitable_parts": ["do not add network monitors before v4"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.3 / P3",
-      "ui_impact": "medium",
-      "implementation_mode": "provider_adapter",
-      "requires_api_key": false,
-      "requires_network": true,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Network-dependent signal monitoring is post-v4.",
-      "recommended_next_action": "Keep as external signal benchmark."
-    },
-    {
-      "project_id": "skill_prompt_generator",
-      "project_name": "skill-prompt-generator",
-      "github_url": "https://github.com/huangserva/skill-prompt-generator",
-      "rating": "A",
-      "rating_reason": "Good fit for prompt asset library and Skill factory enhancement patterns.",
-      "current_repo_status": "mentioned_only",
-      "current_evidence_files": [],
-      "mapped_capabilities": ["prompt_asset_library", "skill_factory_enhancement", "skill_generation_template"],
-      "suitable_for_heitang": ["post-v4 Skill factory templates", "prompt asset governance"],
-      "not_suitable_parts": ["do not copy external prompts"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.9",
-      "ui_impact": "small",
-      "implementation_mode": "template_library",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Template and prompt governance inclusion is post-v4.",
-      "recommended_next_action": "Map to Skill factory contract inclusion."
-    },
-    {
-      "project_id": "mmskills",
-      "project_name": "MMSkills",
-      "github_url": "https://github.com/DeepExperience/MMSkills",
-      "rating": "A",
-      "rating_reason": "Useful multimodal skill package and visual state card benchmark.",
-      "current_repo_status": "mentioned_only",
-      "current_evidence_files": [],
-      "mapped_capabilities": ["multimodal_skill_package", "visual_state_card", "multimodal_agent_context"],
-      "suitable_for_heitang": ["post-v4 multimodal skill package direction"],
-      "not_suitable_parts": ["do not add multimodal runtime before v4"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.8 / P3",
-      "ui_impact": "medium",
-      "implementation_mode": "capability_fusion",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Multimodal runtime work is post-v4.",
-      "recommended_next_action": "Keep as multimodal benchmark."
-    },
-    {
-      "project_id": "jellyfish",
-      "project_name": "Jellyfish",
-      "github_url": "https://github.com/Forget-C/Jellyfish",
-      "rating": "A",
-      "rating_reason": "Relevant to AIGC production pipeline, short drama workflow, and storyboard asset management.",
-      "current_repo_status": "mentioned_only",
-      "current_evidence_files": [],
-      "mapped_capabilities": ["aigc_production_pipeline", "short_drama_workflow", "storyboard_asset_management"],
-      "suitable_for_heitang": ["post-v4 AIGC production template direction"],
-      "not_suitable_parts": ["do not implement video workflow runtime before v4"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.8 / P3",
-      "ui_impact": "medium",
-      "implementation_mode": "template_library",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "AIGC pipeline templates are post-v4.",
-      "recommended_next_action": "Map to AIGC template library planning."
-    },
-    {
-      "project_id": "story_flicks",
-      "project_name": "story-flicks",
-      "github_url": "https://github.com/alecm20/story-flicks",
-      "rating": "A",
-      "rating_reason": "A/B benchmark for story-to-video and subtitle/audio/image asset chains.",
-      "current_repo_status": "mentioned_only",
-      "current_evidence_files": [],
-      "mapped_capabilities": ["story_to_video", "aigc_video_pipeline", "subtitle_audio_image_asset_chain"],
-      "suitable_for_heitang": ["post-v4 AIGC video template direction"],
-      "not_suitable_parts": ["do not implement video generation runtime before v4"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.8 / P3",
-      "ui_impact": "medium",
-      "implementation_mode": "template_library",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Video pipeline integration is post-v4.",
-      "recommended_next_action": "Keep as AIGC video benchmark."
-    },
-    {
-      "project_id": "seedance2_skill",
-      "project_name": "seedance2-skill",
-      "github_url": "https://github.com/dexhunter/seedance2-skill",
-      "rating": "A",
-      "rating_reason": "A/B verified video prompt skill/template reference for Seedance 2.0; provider usage remains post-v4 only.",
-      "current_repo_status": "mentioned_only",
-      "current_evidence_files": ["GitHub API repo metadata verified 2026-06-10: dexhunter/seedance2-skill"],
-      "mapped_capabilities": ["video_generation_skill", "aigc_video_skill_template"],
-      "suitable_for_heitang": ["post-v4 AIGC video template candidate"],
-      "not_suitable_parts": ["do not call video generation provider before verification"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.8 / P3",
-      "ui_impact": "medium",
-      "implementation_mode": "video_prompt_template_reference",
-      "requires_api_key": true,
-      "requires_network": true,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Verified public repository, but video provider usage requires API key, network access, provider policy review, and post-v4 implementation.",
-      "recommended_next_action": "Keep as post-v4 AIGC video prompt/template reference; do not call Seedance or any video provider before provider boundary implementation.",
-      "provider_key_required_when_integrating_video_provider": true
-    },
-    {
-      "project_id": "ai_marketing_skills",
-      "project_name": "ai-marketing-skills",
-      "github_url": "https://github.com/ericosiu/ai-marketing-skills",
-      "rating": "A",
-      "rating_reason": "Useful marketing, growth workflow, and content operations template benchmark.",
-      "current_repo_status": "mentioned_only",
-      "current_evidence_files": [],
-      "mapped_capabilities": ["marketing_agent_template", "growth_workflow_template", "content_operations_template"],
-      "suitable_for_heitang": ["post-v4 industry template library"],
-      "not_suitable_parts": ["do not copy external content templates"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.7",
-      "ui_impact": "small",
-      "implementation_mode": "template_library",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Industry template inclusion is post-v4.",
-      "recommended_next_action": "Map to template library governance."
-    },
-    {
-      "project_id": "rtk",
-      "project_name": "rtk",
-      "github_url": "https://github.com/rtk-ai/rtk",
-      "rating": "A",
-      "rating_reason": "A/B verified Rust CLI token-compression benchmark; useful as a benchmark only until product and runtime security decisions are made.",
-      "current_repo_status": "benchmark_mapped",
-      "current_evidence_files": ["heitang_kb_forge/audit/external_benchmark.py", "GitHub API repo metadata verified 2026-06-10: rtk-ai/rtk"],
-      "mapped_capabilities": ["memory_compression", "context_budget", "runtime_toolkit"],
-      "suitable_for_heitang": ["context budget and runtime toolkit benchmark"],
-      "not_suitable_parts": ["do not add runtime dependency before decision"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P3",
-      "ui_impact": "small",
-      "implementation_mode": "token_compression_cli_benchmark",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": true,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Verified public repository, but CLI proxy/runtime integration requires post-v4 product, license, and security review.",
-      "recommended_next_action": "Keep as P3 benchmark-only runtime/tooling reference; do not add binary, proxy, or runtime dependency before explicit decision."
-    },
-    {
-      "project_id": "opendataloader",
-      "project_name": "OpenDataLoader",
-      "github_url": "https://github.com/opendataloader-project/opendataloader-pdf",
-      "rating": "A",
-      "rating_reason": "A-level document loader and parser backend candidate already referenced by Core parser strategy.",
-      "current_repo_status": "planned_adapter",
-      "current_evidence_files": ["docs/03_core_capabilities/PARSER_BACKEND_STRATEGY.md", "README.md"],
-      "mapped_capabilities": ["document_loader", "parser_backend"],
-      "suitable_for_heitang": ["future document loader/parser backend adapter"],
-      "not_suitable_parts": ["do not add dependency before v4", "do not claim completed integration"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.6",
-      "ui_impact": "medium",
-      "implementation_mode": "planned_adapter",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Planned adapter only; implementation is post-v4.",
-      "recommended_next_action": "Keep in parser backend candidate set."
-    },
-    {
-      "project_id": "marker",
-      "project_name": "Marker",
-      "github_url": "https://github.com/datalab-to/marker",
-      "rating": "A",
-      "rating_reason": "A-level PDF parser and Markdown conversion candidate with optional disabled adapter evidence.",
-      "current_repo_status": "planned_adapter",
-      "current_evidence_files": ["heitang_kb_forge/parser_backends/marker_adapter.py", "heitang_kb_forge/audit/external_benchmark.py"],
-      "mapped_capabilities": ["pdf_parser", "markdown_conversion"],
-      "suitable_for_heitang": ["future parser backend adapter", "parser benchmark comparison"],
-      "not_suitable_parts": ["do not mark disabled adapter as implemented", "do not make Marker mandatory"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.6",
-      "ui_impact": "medium",
-      "implementation_mode": "planned_adapter",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Existing adapter is intentionally unavailable pending explicit integration.",
-      "recommended_next_action": "Keep optional disabled adapter boundary and review after v4."
-    },
-    {
-      "project_id": "surya",
-      "project_name": "Surya",
-      "github_url": "https://github.com/datalab-to/surya",
-      "rating": "A",
-      "rating_reason": "A-level specialized OCR layout backend candidate for post-v4 parser hardening.",
-      "current_repo_status": "planned_adapter",
-      "current_evidence_files": ["docs/roadmap/external_projects/external_project_registry.json"],
-      "mapped_capabilities": ["ocr_layout", "visual_layout_analysis"],
-      "suitable_for_heitang": ["future layout analysis benchmark"],
-      "not_suitable_parts": ["do not add OCR/layout dependency before verification"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.6",
-      "ui_impact": "medium",
-      "implementation_mode": "ocr_layout_backend",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Planned adapter only; OCR/layout backend implementation is post-v4.",
-      "recommended_next_action": "Keep as specialized OCR layout backend candidate for P2.6 adapter planning.",
-      "priority_in_parser_group": "specialized_backend"
-    },
-    {
-      "project_id": "unstructured",
-      "project_name": "Unstructured",
-      "github_url": "https://github.com/Unstructured-IO/unstructured",
-      "rating": "S",
-      "rating_reason": "S-level unified parser backend now backed by an optional local runtime adapter; remains opt-in and not default Core parsing.",
-      "current_repo_status": "planned_adapter",
-      "current_evidence_files": ["heitang_kb_forge/parser_backends/unstructured_adapter.py", "heitang_kb_forge/parser_backends/runtime_acceptance.py", "tests/test_v28_parser_backends.py", "docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json"],
-      "mapped_capabilities": ["unstructured_document_parser"],
-      "suitable_for_heitang": ["future parser backend comparison"],
-      "not_suitable_parts": ["do not claim UI surface as Core integration", "do not add dependency before verification"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.1",
-      "ui_impact": "medium",
-      "implementation_mode": "optional_runtime_adapter",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Optional local runtime adapter is implemented and P2.1 runtime acceptance is recorded, but it remains dependency-gated, not bundled, not default Core parsing, and not a UI-executable external project.",
-      "recommended_next_action": "Use as primary unified parser interface when parser-unstructured is locally installed and selected with parse-with-backend.",
-      "priority_in_parser_group": "primary_unified_interface"
-    },
-    {
-      "project_id": "llamaindex",
-      "project_name": "LlamaIndex",
-      "github_url": "https://github.com/run-llama/llama_index",
-      "rating": "A",
-      "rating_reason": "A-level RAG architecture, indexing abstraction, and retriever pattern benchmark already mapped.",
-      "current_repo_status": "benchmark_mapped",
-      "current_evidence_files": ["heitang_kb_forge/audit/external_benchmark.py", "heitang_kb_forge/retrieval/external_absorption.py"],
-      "mapped_capabilities": ["rag_architecture", "indexing_abstraction", "retriever_pattern"],
-      "suitable_for_heitang": ["RAG architecture benchmark", "retriever and index contract inspiration"],
-      "not_suitable_parts": ["do not add LlamaIndex runtime dependency"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.5",
-      "ui_impact": "small",
-      "implementation_mode": "benchmark_only",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Benchmark mapping only before v4.",
-      "recommended_next_action": "Keep patterns-only RAG benchmark mapping."
-    },
-    {
-      "project_id": "ragas",
-      "project_name": "RAGAS",
-      "github_url": "https://github.com/explodinggradients/ragas",
-      "rating": "A",
-      "rating_reason": "A-level benchmark for RAG evaluation, faithfulness, and context recall.",
-      "current_repo_status": "benchmark_mapped",
-      "current_evidence_files": ["heitang_kb_forge/audit/external_benchmark.py", "heitang_kb_forge/retrieval/external_absorption.py"],
-      "mapped_capabilities": ["rag_evaluation", "faithfulness", "context_recall"],
-      "suitable_for_heitang": ["post-v4 RAG evaluation direction", "quality metric benchmark"],
-      "not_suitable_parts": ["do not add evaluator runtime dependency before v4"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.5",
-      "ui_impact": "small",
-      "implementation_mode": "benchmark_only",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Evaluator integration is post-v4.",
-      "recommended_next_action": "Keep as RAG evaluation benchmark."
-    },
-    {
-      "project_id": "deepeval",
-      "project_name": "DeepEval",
-      "github_url": "https://github.com/confident-ai/deepeval",
-      "rating": "A",
-      "rating_reason": "A-level LLM/RAG regression evaluation benchmark that needs Core status verification.",
-      "current_repo_status": "docs_only",
-      "current_evidence_files": [],
-      "mapped_capabilities": ["llm_eval", "rag_eval", "regression_evaluation"],
-      "suitable_for_heitang": ["post-v4 evaluation benchmark", "regression evaluation direction"],
-      "not_suitable_parts": ["do not add external evaluator dependency before v4"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.5",
-      "ui_impact": "small",
-      "implementation_mode": "benchmark_only",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Evaluation integration is post-v4.",
-      "recommended_next_action": "Verify and compare against existing deterministic quality reports."
-    },
-    {
-      "project_id": "ai_money_maker_handbook",
-      "project_name": "ai-money-maker-handbook",
-      "github_url": "https://github.com/XiaomingX/ai-money-maker-handbook",
-      "rating": "B",
-      "rating_reason": "Useful business template and monetization scenario reference; lower priority than S/A capability infrastructure.",
-      "current_repo_status": "mentioned_only",
-      "current_evidence_files": [],
-      "mapped_capabilities": ["business_template", "monetization_case", "content_business_scenario"],
-      "suitable_for_heitang": ["post-v4 industry template examples"],
-      "not_suitable_parts": ["do not copy external content or business claims"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.7",
-      "ui_impact": "small",
-      "implementation_mode": "template_library",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "B-level template reference only before v4.",
-      "recommended_next_action": "Keep as template library reference."
-    },
-    {
-      "project_id": "vibe_coding_cn",
-      "project_name": "vibe-coding-cn",
-      "github_url": "https://github.com/tradecatlabs/vibe-coding-cn",
-      "rating": "B",
-      "rating_reason": "B-level methodology reference now verified as a methodology benchmark mapping.",
-      "current_repo_status": "benchmark_mapped",
-      "current_evidence_files": ["docs/roadmap/external_projects/external_project_registry.json"],
-      "mapped_capabilities": ["ai_coding_methodology", "agent_coding_learning_material"],
-      "suitable_for_heitang": ["post-v4 ecosystem reference"],
-      "not_suitable_parts": ["do not treat methodology content as Core implementation"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P3",
-      "ui_impact": "none",
-      "implementation_mode": "methodology_reference",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Methodology reference only; not Core implementation.",
-      "recommended_next_action": "Keep as post-v4 methodology reference and do not convert into Core runtime functionality."
-    },
-    {
-      "project_id": "ruflo",
-      "project_name": "Ruflo",
-      "github_url": "https://github.com/ruvnet/ruflo",
-      "rating": "B",
-      "rating_reason": "B/A verified external multi-agent orchestration benchmark; remains P3 benchmark-only until product and safety decision.",
-      "current_repo_status": "benchmark_mapped",
-      "current_evidence_files": ["GitHub API repo metadata verified 2026-06-10: ruvnet/ruflo"],
-      "mapped_capabilities": ["agent_orchestration", "automation_runtime", "workflow_coordination"],
-      "suitable_for_heitang": ["possible P3 ecosystem reference"],
-      "not_suitable_parts": ["do not add orchestration runtime", "do not claim compatibility before review"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P3",
-      "ui_impact": "medium",
-      "implementation_mode": "external_orchestration_benchmark",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": true,
-      "license_or_security_review_required": true,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "Verified public repository, but external orchestration/runtime integration requires post-v4 product, safety, and security decision.",
-      "recommended_next_action": "Keep as P3 external orchestration benchmark; require provider-key boundary if third-party models are integrated.",
-      "provider_key_required_when_integrating_third_party_models": true
-    },
-    {
-      "project_id": "growth_loop",
-      "project_name": "Growth-Loop",
-      "github_url": null,
-      "rating": "B",
-      "rating_reason": "B-level growth-loop concept/reference; no unique GitHub project identity was confirmed during the 2026-06-10 closure pass.",
-      "current_repo_status": "not_found",
-      "current_evidence_files": ["GitHub search/manual verification 2026-06-10: no unique Growth-Loop repository identity confirmed"],
-      "mapped_capabilities": ["growth_loop_template", "external_signal", "business_workflow"],
-      "suitable_for_heitang": ["possible P3 template/ecosystem reference"],
-      "not_suitable_parts": ["do not map an unverified project to implementation"],
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P3",
-      "ui_impact": "none",
-      "implementation_mode": "concept_reference_only",
-      "requires_api_key": false,
-      "requires_network": false,
-      "requires_external_runtime": false,
-      "license_or_security_review_required": false,
-      "can_be_ready_before_v4": false,
-      "reason_not_ready_before_v4": "No unique external project identity is available for review; keep as concept-only P3 reference.",
-      "recommended_next_action": "Do not map to a concrete external project unless a maintainer-approved GitHub URL is provided."
-    }
-  ],
-  "internal_capability_anchors": [
-    {
-      "anchor_id": "book_to_skill",
-      "anchor_name": "Book-to-Skill",
-      "rating": "S",
-      "current_status": "implemented",
-      "pre_v4_scope": "already_core_capability",
-      "post_v4_target": "P2.6",
-      "related_external_benchmarks": ["andrej_karpathy_skills", "skill_prompt_generator"]
-    },
-    {
-      "anchor_id": "package_to_skill",
-      "anchor_name": "Package-to-Skill",
-      "rating": "S",
-      "current_status": "implemented",
-      "pre_v4_scope": "already_core_capability",
-      "post_v4_target": "P2.6 / P2.9",
-      "related_external_benchmarks": ["andrej_karpathy_skills", "skill_prompt_generator"]
-    },
-    {
-      "anchor_id": "software_to_manual_to_skill",
-      "anchor_name": "Software-to-Manual-to-Skill",
-      "rating": "S",
-      "current_status": "contract_only / planned_capability",
-      "pre_v4_scope": "contract_mapping_only",
-      "post_v4_target": "P2.6",
-      "related_external_benchmarks": ["andrej_karpathy_skills", "skill_prompt_generator"]
-    },
-    {
-      "anchor_id": "aigc_book_content_pipeline",
-      "anchor_name": "AIGC Book Content Pipeline",
-      "rating": "S",
-      "current_status": "docs_only",
-      "pre_v4_scope": "docs_mapping_only",
-      "post_v4_target": "P2.7 / P2.8",
-      "related_external_benchmarks": ["jellyfish", "story_flicks", "ai_marketing_skills", "ai_money_maker_handbook"]
-    },
-    {
-      "anchor_id": "retrieval_and_verification",
-      "anchor_name": "Retrieval & Verification",
-      "rating": "S",
-      "current_status": "implemented",
-      "pre_v4_scope": "already_core_capability",
-      "post_v4_target": "P2.3 / P2.5",
-      "related_external_benchmarks": ["anysearchskill", "llamaindex", "ragas", "deepeval"]
-    },
-    {
-      "anchor_id": "memory_lifecycle",
-      "anchor_name": "Memory Lifecycle",
-      "rating": "S",
-      "current_status": "implemented baseline",
-      "pre_v4_scope": "already_core_capability",
-      "post_v4_target": "P2.4",
-      "related_external_benchmarks": ["llm_wiki_v2"]
-    },
-    {
-      "anchor_id": "auto_wiki_knowledge_graph",
-      "anchor_name": "Auto Wiki / Knowledge Graph",
-      "rating": "S",
-      "current_status": "future_capability",
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.5",
-      "related_external_benchmarks": ["weknora"]
-    },
-    {
-      "anchor_id": "workflow_automation_export",
-      "anchor_name": "Workflow Automation / Export",
-      "rating": "S",
-      "current_status": "future_adapter",
-      "pre_v4_scope": "registry_only",
-      "post_v4_target": "P2.2 / P3",
-      "related_external_benchmarks": ["n8n"]
-    }
-  ],
-  "post_v4_roadmap": [
-    {
-      "phase": "P2.1",
-      "title": "External Project Verification Baseline + Parser/OCR Multi-Backend Integration",
-      "primary_s_a_directions": ["registry and contract inclusion", "parser/OCR backend adapter"],
-      "scope": ["verification baseline closed", "Docling optional runtime adapter", "PaddleOCR optional runtime adapter", "Unstructured optional runtime adapter"]
-    },
-    {
-      "phase": "P2.2",
-      "title": "Skill Governance + Book-to-Skill Deepening",
-      "primary_s_a_directions": ["skill governance", "Book-to-Skill / Software-to-Manual-to-Skill"],
-      "scope": ["andrej-karpathy-skills", "skill-prompt-generator", "Book-to-Skill deepening"]
-    },
-    {
-      "phase": "P2.3",
-      "title": "Parser/OCR Backend Hardening",
-      "primary_s_a_directions": ["complex layout parsing", "specialized OCR/layout backend"],
-      "scope": ["MinerU", "Marker", "Surya", "OpenDataLoader", "acceptance hardening for optional runtime adapters"]
-    },
-    {
-      "phase": "P2.4",
-      "title": "Living Knowledge Base / Memory Lifecycle",
-      "primary_s_a_directions": ["memory lifecycle"],
-      "scope": ["LLM Wiki v2", "confidence", "forgetting", "knowledge decay"]
-    },
-    {
-      "phase": "P2.5",
-      "title": "Auto Wiki + RAG Evaluation",
-      "primary_s_a_directions": ["auto wiki / knowledge graph", "RAG evaluation"],
-      "scope": ["WeKnora", "LlamaIndex / RAGAS / DeepEval"]
-    },
-    {
-      "phase": "P2.6",
-      "title": "Industry Template Library + AIGC Book Pipeline",
-      "primary_s_a_directions": ["industry template library", "AIGC book content pipeline"],
-      "scope": ["ai-marketing-skills", "ai-money-maker-handbook", "AIGC Book Content Pipeline"]
-    },
-    {
-      "phase": "P2.7",
-      "title": "n8n Workflow Export Adapter",
-      "primary_s_a_directions": ["workflow export adapter"],
-      "scope": ["n8n", "workflow export", "webhook template", "no bundled runtime"]
-    },
-    {
-      "phase": "P2.8",
-      "title": "External Retrieval Provider",
-      "primary_s_a_directions": ["external retrieval provider", "external signal monitoring"],
-      "scope": ["AnySearchSkill", "last30days-skill", "provider_required", "network_required"]
-    },
-    {
-      "phase": "P2.9",
-      "title": "Multimodal / Short Drama / Video Skill Pipeline",
-      "primary_s_a_directions": ["multimodal skill package", "AIGC video pipeline"],
-      "scope": ["MMSkills", "Jellyfish", "story-flicks", "seedance2-skill"]
-    },
-    {
-      "phase": "P3.x",
-      "title": "Ecosystem & Automation Layer",
-      "primary_s_a_directions": ["ecosystem automation"],
-      "scope": ["deeper n8n integration", "external automation provider registry", "workflow canvas", "BYO cloud / sync"]
-    },
-    {
-      "phase": "P4.x",
-      "title": "SaaS / Team / Commercialization",
-      "primary_s_a_directions": ["commercialization"],
-      "scope": ["team workspace", "permission model", "hosted control plane", "plugin ecosystem", "commercial packaging"]
-    }
-  ]
+    "registry_id":  "pre_v4_external_project_registry_2026_06_09",
+    "scope":  "Pre-v4 registry, roadmap, benchmark mapping, and governance only. No external project functionality is implemented by this registry.",
+    "core_repo":  "kb-forge-skill",
+    "core_branch":  "main",
+    "v4_0_started":  false,
+    "tag_created":  false,
+    "release_written":  false,
+    "external_features_implemented":  true,
+    "planned_adapters_marked_ready":  false,
+    "rating_counts":  {
+                          "S":  8,
+                          "A":  18,
+                          "B":  4,
+                          "needs_verification_status":  0
+                      },
+    "future_reference_queue":  [
+                                   {
+                                       "project_id":  "andrej_karpathy_skills",
+                                       "project_name":  "andrej-karpathy-skills",
+                                       "reference_role":  "Knowledge-to-Skill methodology reference for Campaign 3 Supplement 4.0B",
+                                       "status":  "reference_only",
+                                       "implementation_mode":  "not_integrated",
+                                       "current_version_required":  true,
+                                       "runtime_dependency_added":  false,
+                                       "npm_install_required":  false,
+                                       "gpu_runtime_integration":  false,
+                                       "mcp_or_plugin_execution":  false,
+                                       "no_runtime_dependency_added":  true,
+                                       "no_npm_install":  true,
+                                       "no_gpu_runtime_integration":  true,
+                                       "no_mcp_plugin_execution":  true,
+                                       "boundary":  "Methodology reference only; no external code, prompts, Skill runtime, MCP execution, or plugin runtime is integrated."
+                                   },
+                                   {
+                                       "project_id":  "presenton",
+                                       "project_name":  "Presenton",
+                                       "reference_role":  "Document/PPT generation reference for future product research",
+                                       "status":  "needs_verification",
+                                       "implementation_mode":  "not_integrated",
+                                       "current_version_required":  false,
+                                       "runtime_dependency_added":  false,
+                                       "npm_install_required":  false,
+                                       "gpu_runtime_integration":  false,
+                                       "mcp_or_plugin_execution":  false,
+                                       "no_runtime_dependency_added":  true,
+                                       "no_npm_install":  true,
+                                       "no_gpu_runtime_integration":  true,
+                                       "no_mcp_plugin_execution":  true,
+                                       "boundary":  "Reference queue only; not integrated as PPT runtime and not used to replace existing generate-documents."
+                                   },
+                                   {
+                                       "project_id":  "codegraph",
+                                       "project_name":  "CodeGraph",
+                                       "reference_role":  "Codebase knowledge graph / developer knowledge map reference for post-4.0 planning",
+                                       "status":  "needs_verification",
+                                       "implementation_mode":  "not_integrated",
+                                       "current_version_required":  false,
+                                       "runtime_dependency_added":  false,
+                                       "npm_install_required":  false,
+                                       "gpu_runtime_integration":  false,
+                                       "mcp_or_plugin_execution":  false,
+                                       "no_runtime_dependency_added":  true,
+                                       "no_npm_install":  true,
+                                       "no_gpu_runtime_integration":  true,
+                                       "no_mcp_plugin_execution":  true,
+                                       "boundary":  "Reference queue only; no knowledge graph runtime, codebase indexer, or developer map integration is active."
+                                   },
+                                   {
+                                       "project_id":  "understand_anything",
+                                       "project_name":  "Understand Anything",
+                                       "reference_role":  "Interactive knowledge graph / Workbench UI reference for Campaign 4/5 planning",
+                                       "status":  "needs_verification",
+                                       "implementation_mode":  "not_integrated",
+                                       "current_version_required":  false,
+                                       "runtime_dependency_added":  false,
+                                       "npm_install_required":  false,
+                                       "gpu_runtime_integration":  false,
+                                       "mcp_or_plugin_execution":  false,
+                                       "no_runtime_dependency_added":  true,
+                                       "no_npm_install":  true,
+                                       "no_gpu_runtime_integration":  true,
+                                       "no_mcp_plugin_execution":  true,
+                                       "boundary":  "Reference queue only; no interactive knowledge graph runtime or Workbench UI integration is active."
+                                   },
+                                   {
+                                       "project_id":  "nvlabs_longlive",
+                                       "project_name":  "NVlabs/LongLive",
+                                       "reference_role":  "Long video generation infrastructure reference for future visual/video generation route",
+                                       "status":  "needs_verification",
+                                       "implementation_mode":  "not_integrated",
+                                       "current_version_required":  false,
+                                       "runtime_dependency_added":  false,
+                                       "npm_install_required":  false,
+                                       "gpu_runtime_integration":  false,
+                                       "mcp_or_plugin_execution":  false,
+                                       "no_runtime_dependency_added":  true,
+                                       "no_npm_install":  true,
+                                       "no_gpu_runtime_integration":  true,
+                                       "no_mcp_plugin_execution":  true,
+                                       "boundary":  "Reference queue only; no long-video generation runtime, model, GPU path, or media generation pipeline is integrated."
+                                   },
+                                   {
+                                       "project_id":  "claude_plugins_official",
+                                       "project_name":  "claude-plugins-official",
+                                       "reference_role":  "Plugin ecosystem / workflow integration reference for future Agent/plugin route",
+                                       "status":  "needs_verification",
+                                       "implementation_mode":  "not_integrated",
+                                       "current_version_required":  false,
+                                       "runtime_dependency_added":  false,
+                                       "npm_install_required":  false,
+                                       "gpu_runtime_integration":  false,
+                                       "mcp_or_plugin_execution":  false,
+                                       "no_runtime_dependency_added":  true,
+                                       "no_npm_install":  true,
+                                       "no_gpu_runtime_integration":  true,
+                                       "no_mcp_plugin_execution":  true,
+                                       "boundary":  "Reference queue only; no Claude plugin runtime, MCP/plugin execution, or workflow runtime integration is active."
+                                   },
+                                   {
+                                       "project_id":  "pi_mono",
+                                       "project_name":  "pi-mono",
+                                       "reference_role":  "Agent runtime / minimal coding harness reference for future Agent Runtime route",
+                                       "status":  "needs_verification",
+                                       "implementation_mode":  "not_integrated",
+                                       "current_version_required":  false,
+                                       "runtime_dependency_added":  false,
+                                       "npm_install_required":  false,
+                                       "gpu_runtime_integration":  false,
+                                       "mcp_or_plugin_execution":  false,
+                                       "no_runtime_dependency_added":  true,
+                                       "no_npm_install":  true,
+                                       "no_gpu_runtime_integration":  true,
+                                       "no_mcp_plugin_execution":  true,
+                                       "boundary":  "Reference queue only; no Agent runtime, coding harness, package execution, or MCP/plugin execution is integrated."
+                                   }
+                               ],
+    "projects":  [
+                     {
+                         "project_id":  "llm_wiki_v2",
+                         "project_name":  "LLM Wiki v2",
+                         "github_url":  "https://github.com/karpathy/llm-wiki",
+                         "rating":  "S",
+                         "rating_reason":  "Strong fit for living knowledge base, memory lifecycle, confidence, forgetting, and stale knowledge cleanup patterns.",
+                         "current_repo_status":  "real_workflow_evidence",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/knowledge_lifecycle/analyzer.py",
+                                                        "tests/test_knowledge_lifecycle.py",
+                                                        "artifacts/audits/section_5/llm_wiki_v2_knowledge_lifecycle/llm_wiki_v2_integration_decision_report.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "living_knowledge_base",
+                                                     "memory_lifecycle",
+                                                     "confidence_score",
+                                                     "automatic_forgetting",
+                                                     "knowledge_decay",
+                                                     "strengthen_weaken_memory",
+                                                     "stale_knowledge_cleanup"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "post-v4 memory lifecycle direction",
+                                                      "confidence and decay governance"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not implement the LLM Wiki memory engine before v4",
+                                                    "do not copy external project code"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.4",
+                         "ui_impact":  "medium",
+                         "implementation_mode":  "capability_fusion",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Only registry and roadmap mapping are allowed before v4.",
+                         "recommended_next_action":  "Keep as a post-v4 memory lifecycle benchmark."
+                     },
+                     {
+                         "project_id":  "weknora",
+                         "project_name":  "WeKnora",
+                         "github_url":  "https://github.com/tencent/weknora",
+                         "rating":  "S",
+                         "rating_reason":  "High-value benchmark for auto wiki, knowledge graph, document understanding, RAG trace, and agentic RAG.",
+                         "current_repo_status":  "real_workflow_evidence",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/auto_wiki/builder.py",
+                                                        "tests/test_auto_wiki.py",
+                                                        "artifacts/audits/section_5/weknora_auto_wiki/weknora_integration_decision_report.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "auto_wiki",
+                                                     "knowledge_graph",
+                                                     "document_understanding",
+                                                     "rag_trace",
+                                                     "agentic_rag",
+                                                     "visual_trace"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "post-v4 auto wiki direction",
+                                                      "knowledge graph and visual trace inspiration"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not embed WeKnora code before v4",
+                                                    "do not claim agentic RAG runtime integration"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.5",
+                         "ui_impact":  "large",
+                         "implementation_mode":  "capability_fusion",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Auto wiki and graph integration require post-v4 design and review.",
+                         "recommended_next_action":  "Map to post-v4 auto wiki and RAG evaluation planning."
+                     },
+                     {
+                         "project_id":  "n8n",
+                         "project_name":  "n8n",
+                         "github_url":  "https://github.com/n8n-io/n8n",
+                         "rating":  "S",
+                         "rating_reason":  "Strong ecosystem benchmark for workflow automation, webhook templates, workflow export, external triggers, and distribution.",
+                         "current_repo_status":  "real_workflow_evidence",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/external_automation/n8n.py",
+                                                        "tests/test_n8n_workflow_export.py",
+                                                        "artifacts/audits/section_5/n8n_workflow_export/export/n8n_export_validation.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "workflow_automation",
+                                                     "webhook",
+                                                     "workflow_export",
+                                                     "external_trigger",
+                                                     "automation_template",
+                                                     "external_distribution"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "post-v4 workflow export adapter",
+                                                      "automation templates"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not bundle n8n runtime",
+                                                    "do not claim workflow execution without a user-owned n8n instance",
+                                                    "do not embed credentials in exported workflows"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.2 / P3",
+                         "ui_impact":  "large",
+                         "implementation_mode":  "workflow_export",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  true,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "The workflow export adapter is available, but importing and executing the workflow requires a user-owned external n8n runtime.",
+                         "recommended_next_action":  "Expose workflow export through the later UI/Core Bridge campaign and validate import against a user-owned n8n instance without bundling it."
+                     },
+                     {
+                         "project_id":  "andrej_karpathy_skills",
+                         "project_name":  "andrej-karpathy-skills",
+                         "github_url":  "https://github.com/multica-ai/andrej-karpathy-skills",
+                         "rating":  "S",
+                         "rating_reason":  "High-signal skill governance and coding-discipline benchmark already mapped by the external benchmark report.",
+                         "current_repo_status":  "benchmark_mapped",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/audit/external_benchmark.py",
+                                                        "tests/test_v36_external_benchmark.py"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "skill_governance",
+                                                     "goal_driven_execution",
+                                                     "skill_quality_gate",
+                                                     "target_runtime_profile",
+                                                     "agent_coding_discipline"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "skill governance improvements",
+                                                      "target runtime profile policy"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not copy prompts or code",
+                                                    "do not mark as implemented from benchmark presence"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.9",
+                         "ui_impact":  "medium",
+                         "implementation_mode":  "capability_fusion",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "This pass only records the benchmark.",
+                         "recommended_next_action":  "Use as input for S/A contract inclusion after registry completion."
+                     },
+                     {
+                         "project_id":  "paddleocr",
+                         "project_name":  "PaddleOCR",
+                         "github_url":  "https://github.com/PaddlePaddle/PaddleOCR",
+                         "rating":  "S",
+                         "rating_reason":  "S-level parser/OCR foundation now backed by an optional local runtime adapter; remains opt-in and not default Core parsing.",
+                         "current_repo_status":  "planned_adapter",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/parser_backends/paddleocr_adapter.py",
+                                                        "heitang_kb_forge/parser_backends/runtime_acceptance.py",
+                                                        "tests/test_v28_parser_backends.py",
+                                                        "docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "ocr_foundation",
+                                                     "text_detection",
+                                                     "text_recognition",
+                                                     "scanned_pdf_ocr"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "optional OCR backend adapter",
+                                                      "parser backend benchmark"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not bundle PaddleOCR or models",
+                                                    "do not download models in tests"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.1",
+                         "ui_impact":  "medium",
+                         "implementation_mode":  "optional_runtime_adapter",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Optional local runtime adapter is implemented and P2.1 runtime acceptance is recorded, but it remains dependency-gated, not bundled, not default Core parsing, and not a UI-executable external project.",
+                         "recommended_next_action":  "Use when parser-paddleocr is locally installed and selected with parse-with-backend."
+                     },
+                     {
+                         "project_id":  "mineru",
+                         "project_name":  "MinerU",
+                         "github_url":  "https://github.com/opendatalab/MinerU",
+                         "rating":  "S",
+                         "rating_reason":  "S-level candidate for document structure understanding and complex layout parsing.",
+                         "current_repo_status":  "planned_adapter",
+                         "current_evidence_files":  [
+                                                        "docs/03_core_capabilities/PARSER_BACKEND_STRATEGY.md",
+                                                        "heitang_kb_forge/audit/external_benchmark.py"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "document_structure_understanding",
+                                                     "complex_layout_parsing",
+                                                     "table_formula_layout",
+                                                     "reading_order"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "future complex document parser adapter",
+                                                      "layout-aware parser benchmark"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not add dependency before v4",
+                                                    "do not claim runtime integration"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.6",
+                         "ui_impact":  "medium",
+                         "implementation_mode":  "planned_adapter",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Adapter implementation and runtime review are post-v4.",
+                         "recommended_next_action":  "Keep planned adapter status and benchmark mapping."
+                     },
+                     {
+                         "project_id":  "docling",
+                         "project_name":  "Docling",
+                         "github_url":  "https://github.com/docling-project/docling",
+                         "rating":  "S",
+                         "rating_reason":  "S-level parser backend now backed by an optional local runtime adapter; remains opt-in and not default Core parsing.",
+                         "current_repo_status":  "planned_adapter",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/parser_backends/docling_adapter.py",
+                                                        "heitang_kb_forge/parser_backends/runtime_acceptance.py",
+                                                        "docs/03_core_capabilities/PARSER_BACKEND_STRATEGY.md",
+                                                        "tests/test_v28_parser_backends.py",
+                                                        "docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "parser_backend_adapter",
+                                                     "structured_document_conversion",
+                                                     "complex_pdf_parsing"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "optional parser backend adapter",
+                                                      "parser backend benchmark"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not bundle Docling",
+                                                    "do not make Docling mandatory"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.1",
+                         "ui_impact":  "medium",
+                         "implementation_mode":  "optional_runtime_adapter",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Optional local runtime adapter is implemented and P2.1 runtime acceptance is recorded, but it remains dependency-gated, not bundled, not default Core parsing, and not a UI-executable external project.",
+                         "recommended_next_action":  "Use when parser-docling is locally installed and selected with parse-with-backend."
+                     },
+                     {
+                         "project_id":  "anysearchskill",
+                         "project_name":  "AnySearchSkill",
+                         "github_url":  "https://github.com/anysearch-ai/anysearch-skill",
+                         "rating":  "A",
+                         "rating_reason":  "Useful external retrieval and freshness verification provider benchmark.",
+                         "current_repo_status":  "real_workflow_evidence",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/external_retrieval/anysearch.py",
+                                                        "tests/test_anysearch_provider.py",
+                                                        "artifacts/audits/section_5/anysearchskill_provider_adapter/real_smoke/anysearch_provider_smoke.json",
+                                                        "artifacts/audits/section_5/anysearchskill_provider_adapter/real_smoke/source_trace.json",
+                                                        "artifacts/audits/section_5/anysearchskill_provider_adapter/real_run/anysearch_retrieval_result.json",
+                                                        "artifacts/audits/section_5/anysearchskill_provider_adapter/real_run/source_trace.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "external_retrieval",
+                                                     "vertical_search",
+                                                     "batch_search",
+                                                     "source_attribution",
+                                                     "freshness_verification"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "post-v4 external retrieval provider",
+                                                      "freshness verification"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not store API keys",
+                                                    "do not treat a network provider as a local or offline retrieval runtime",
+                                                    "do not mark the full External Source Center complete from a CLI smoke"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.3",
+                         "ui_impact":  "medium",
+                         "implementation_mode":  "provider_adapter",
+                         "requires_api_key":  false,
+                         "requires_network":  true,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "The provider adapter and anonymous real smoke are available, but network access, UI configuration, proxy/reverse-proxy live verification, and provider terms review remain explicit boundaries.",
+                         "recommended_next_action":  "Keep the integration decision at needs_strengthening until External Source Center configuration and live proxy/reverse-proxy diagnostics are accepted."
+                     },
+                     {
+                         "project_id":  "last30days_skill",
+                         "project_name":  "last30days-skill",
+                         "github_url":  "https://github.com/mvanhorn/last30days-skill",
+                         "rating":  "A",
+                         "rating_reason":  "Useful trend radar and external signal monitoring benchmark already present in external benchmark mapping.",
+                         "current_repo_status":  "benchmark_mapped",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/audit/external_benchmark.py",
+                                                        "tests/test_v36_external_benchmark.py"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "trend_radar",
+                                                     "external_signal",
+                                                     "source_monitoring"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "post-v4 source monitoring",
+                                                      "template library patterns"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not add network monitors before v4"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.3 / P3",
+                         "ui_impact":  "medium",
+                         "implementation_mode":  "provider_adapter",
+                         "requires_api_key":  false,
+                         "requires_network":  true,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Network-dependent signal monitoring is post-v4.",
+                         "recommended_next_action":  "Keep as external signal benchmark."
+                     },
+                     {
+                         "project_id":  "skill_prompt_generator",
+                         "project_name":  "skill-prompt-generator",
+                         "github_url":  "https://github.com/huangserva/skill-prompt-generator",
+                         "rating":  "A",
+                         "rating_reason":  "Good fit for prompt asset library and Skill factory enhancement patterns.",
+                         "current_repo_status":  "real_workflow_evidence",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/prompt_asset_library/builder.py",
+                                                        "tests/test_prompt_asset_library.py",
+                                                        "artifacts/audits/section_5/skill_prompt_generator_prompt_asset_library/prompt_asset_library/prompt_asset_manifest.json",
+                                                        "artifacts/audits/section_5/skill_prompt_generator_prompt_asset_library/validation/prompt_asset_validation_report.json",
+                                                        "artifacts/audits/section_5/skill_prompt_generator_prompt_asset_library/skill_prompt_generator_integration_decision_report.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "prompt_asset_library",
+                                                     "skill_factory_enhancement",
+                                                     "skill_generation_template"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "local Skill Factory prompt asset enhancer",
+                                                      "prompt asset governance"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not copy external prompts",
+                                                    "do not bundle the external repository",
+                                                    "do not replace P2.2 Skill Factory"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.9",
+                         "ui_impact":  "small",
+                         "implementation_mode":  "prompt_asset_library_enhancer",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "A local Prompt Asset Library enhancer is implemented and validated, but external prompt/code copying remains license-gated and full UI/Core Bridge acceptance is later in sequence.",
+                         "recommended_next_action":  "Expose the local prompt asset status and preview through later Skill Factory / Template Library UI workflow without claiming external runtime readiness."
+                     },
+                     {
+                         "project_id":  "mmskills",
+                         "project_name":  "MMSkills",
+                         "github_url":  "https://github.com/DeepExperience/MMSkills",
+                         "rating":  "A",
+                         "rating_reason":  "Useful multimodal skill package and visual state card benchmark.",
+                         "current_repo_status":  "reference_schema_evidence",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/multimodal_skill_package/builder.py",
+                                                        "tests/test_multimodal_skill_package.py",
+                                                        "artifacts/audits/section_5/mmskills_multimodal_skill_package/multimodal_skill_package/multimodal_skill_manifest.json",
+                                                        "artifacts/audits/section_5/mmskills_multimodal_skill_package/validation/multimodal_skill_validation_report.json",
+                                                        "artifacts/audits/section_5/mmskills_multimodal_skill_package/mmskills_integration_decision_report.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "multimodal_skill_package",
+                                                     "visual_state_card",
+                                                     "multimodal_agent_context"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "post-v4 multimodal skill package direction"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not add multimodal runtime before v4",
+                                                    "do not claim MMSkills repository clone or OSWorld runtime execution"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.8 / P3",
+                         "ui_impact":  "medium",
+                         "implementation_mode":  "schema_package_reference",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "A local schema/package reference exists, but MMSkills repository/runtime access is not integrated and UI/Core Bridge execution is not available.",
+                         "recommended_next_action":  "Keep runtime integration out of scope; use the local visual state card/keyframe package contract as Template Library and Artifact Management evidence."
+                     },
+                     {
+                         "project_id":  "jellyfish",
+                         "project_name":  "Jellyfish",
+                         "github_url":  "https://github.com/Forget-C/Jellyfish",
+                         "rating":  "A",
+                         "rating_reason":  "Relevant to content asset management, storyboard metadata, continuity tracking, and AIGC production planning; now represented by a local original Content Asset Schema reference without runtime bundling.",
+                         "current_repo_status":  "reference_schema_evidence",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/content_asset_schema/builder.py",
+                                                        "tests/test_content_asset_schema.py",
+                                                        "artifacts/audits/section_5/jellyfish_content_asset_schema/content_asset_schema/content_asset_manifest.json",
+                                                        "artifacts/audits/section_5/jellyfish_content_asset_schema/content_asset_schema/storyboard_metadata_schema.json",
+                                                        "artifacts/audits/section_5/jellyfish_content_asset_schema/validation/content_asset_validation_report.json",
+                                                        "artifacts/audits/section_5/jellyfish_content_asset_schema/jellyfish_integration_decision_report.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "content_asset_schema_reference",
+                                                     "storyboard_metadata_schema",
+                                                     "storyboard_asset_management",
+                                                     "asset_continuity",
+                                                     "production_checkpoint",
+                                                     "aigc_content_asset_planning"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "local Content Asset Schema reference",
+                                                      "Template Library preview",
+                                                      "Artifact Management preview",
+                                                      "Document Generation future slot"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not copy Jellyfish source, prompts, scripts, or repository contents",
+                                                    "do not bundle short-drama workbench runtime",
+                                                    "do not execute video generation, asset rendering, media upload/download, crawler, or account operations"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.8 / P3",
+                         "ui_impact":  "medium",
+                         "implementation_mode":  "content_asset_schema_reference",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Local Content Asset Schema reference evidence is implemented, but full Template Library / Artifact Management UI workflow and Campaign 4 acceptance are later sequence work.",
+                         "recommended_next_action":  "Keep as local original Content Asset Schema reference evidence and continue to Section 5 item 5.10 story-flicks."
+                     },
+                     {
+                         "project_id":  "story_flicks",
+                         "project_name":  "story-flicks",
+                         "github_url":  "https://github.com/alecm20/story-flicks",
+                         "rating":  "A",
+                         "rating_reason":  "A/B benchmark for story-to-video and subtitle/audio/image asset chains.",
+                         "current_repo_status":  "reference_schema_evidence",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/video_pipeline_schema/builder.py",
+                                                        "tests/test_video_pipeline_schema.py",
+                                                        "artifacts/audits/section_5/story_flicks_video_pipeline_schema/video_pipeline_schema/video_pipeline_manifest.json",
+                                                        "artifacts/audits/section_5/story_flicks_video_pipeline_schema/validation/video_pipeline_validation_report.json",
+                                                        "artifacts/audits/section_5/story_flicks_video_pipeline_schema/story_flicks_integration_decision_report.json",
+                                                        "artifacts/audits/section_5/story_flicks_video_pipeline_schema/story_flicks_ui_impact_note.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "story_to_video",
+                                                     "aigc_video_pipeline",
+                                                     "subtitle_audio_image_asset_chain"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "post-v4 AIGC video template direction"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not implement video generation runtime before v4"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.8 / P3",
+                         "ui_impact":  "medium",
+                         "implementation_mode":  "aigc_video_pipeline_schema_reference",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Local AIGC video pipeline schema reference evidence is implemented, but full Template Library / Artifact Management / Document Generation UI workflow and Campaign 4 acceptance are later sequence work.",
+                         "recommended_next_action":  "Keep as local original AIGC video pipeline schema reference evidence and continue to Section 5 item 5.11 seedance2-skill."
+                     },
+                     {
+                         "project_id":  "seedance2_skill",
+                         "project_name":  "seedance2-skill",
+                         "github_url":  "https://github.com/dexhunter/seedance2-skill",
+                         "rating":  "A",
+                         "rating_reason":  "Verified public MIT video prompt Skill reference represented as local non-executable template metadata; provider execution remains unavailable.",
+                         "current_repo_status":  "reference_schema_evidence",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/video_skill_template_metadata/builder.py",
+                                                        "tests/test_video_skill_template_metadata.py",
+                                                        "artifacts/audits/section_5/seedance2_skill_template_metadata/template_metadata/video_skill_template_metadata.json",
+                                                        "artifacts/audits/section_5/seedance2_skill_template_metadata/validation/video_skill_template_validation_report.json",
+                                                        "artifacts/audits/section_5/seedance2_skill_template_metadata/seedance2_skill_integration_decision_report.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "video_generation_skill",
+                                                     "aigc_video_skill_template",
+                                                     "verified_video_skill_template_metadata",
+                                                     "provider_boundary_metadata",
+                                                     "template_library_preview"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "verified video Skill template metadata",
+                                                      "Template Library reference preview",
+                                                      "provider requirement and license visibility"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not copy external SKILL.md or prompt text",
+                                                    "do not collect provider credentials",
+                                                    "do not call Seedance or another video provider",
+                                                    "do not claim video generation runtime"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.8 / P3",
+                         "ui_impact":  "medium",
+                         "implementation_mode":  "verified_video_skill_template_metadata",
+                         "requires_api_key":  true,
+                         "requires_network":  true,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Repository identity and MIT license are verified, but only local metadata is implemented. Exact provider API and pricing contracts were not verified because official documentation access timed out; API key, network, provider terms, cost controls, and a later authorized adapter would still be required.",
+                         "recommended_next_action":  "Keep as verified reference-only template metadata with no executable action; continue to Section 5 item 5.12 RAG-Anything.",
+                         "provider_key_required_when_integrating_video_provider":  true
+                     },
+                     {
+                         "project_id":  "rag_anything",
+                         "project_name":  "RAG-Anything",
+                         "github_url":  "https://github.com/HKUDS/RAG-Anything",
+                         "rating":  "A",
+                         "rating_reason":  "Useful multimodal RAG, cross-modal relationship, and benchmark reference represented locally without embedding the vendor runtime.",
+                         "current_repo_status":  "reference_schema_evidence",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/cross_modal_rag_schema/builder.py",
+                                                        "tests/test_cross_modal_rag_schema.py",
+                                                        "artifacts/audits/section_5/rag_anything_cross_modal_rag_schema/schema/cross_modal_rag_manifest.json",
+                                                        "artifacts/audits/section_5/rag_anything_cross_modal_rag_schema/validation/cross_modal_rag_validation_report.json",
+                                                        "artifacts/audits/section_5/rag_anything_cross_modal_rag_schema/rag_anything_integration_decision_report.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "cross_modal_rag_schema",
+                                                     "modality_aware_evidence_trace",
+                                                     "cross_modal_knowledge_graph_schema",
+                                                     "multimodal_retrieval_benchmark_profile"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "cross-modal trace and evidence schema reference",
+                                                      "multimodal retrieval benchmark profile",
+                                                      "future retrieval and reports status surface"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not bundle or execute the RAG-Anything runtime",
+                                                    "do not replace the existing RAG main chain",
+                                                    "do not require LightRAG, MinerU, LLM/VLM, embeddings, or vector storage for the local schema",
+                                                    "do not claim Campaign 3.0 external-source ingestion or verification"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.5 / P2.6",
+                         "ui_impact":  "medium",
+                         "implementation_mode":  "cross_modal_rag_schema_reference",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Only a local schema, trace contract, and benchmark profile are implemented. Vendor runtime, model/provider execution, retrieval quality acceptance, and full UI workflow are not integrated.",
+                         "recommended_next_action":  "Keep as reference-only cross-modal schema and benchmark evidence; continue to Section 5 item 5.13 mattpocock/skills."
+                     },
+                     {
+                         "project_id":  "mattpocock_skills",
+                         "project_name":  "mattpocock/skills",
+                         "github_url":  "https://github.com/mattpocock/skills",
+                         "rating":  "A",
+                         "rating_reason":  "Useful engineering Skill and AI collaboration governance benchmark represented locally as a project-original rule-pack without copying external Skill files or runtime.",
+                         "current_repo_status":  "real_workflow_evidence",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/engineering_governance_rules/builder.py",
+                                                        "tests/test_engineering_governance_rules.py",
+                                                        "artifacts/audits/section_5/mattpocock_skills_engineering_governance/rules/engineering_governance_manifest.json",
+                                                        "artifacts/audits/section_5/mattpocock_skills_engineering_governance/validation/engineering_governance_validation_report.json",
+                                                        "artifacts/audits/section_5/mattpocock_skills_engineering_governance/mattpocock_skills_integration_decision_report.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "engineering_governance_rule_pack",
+                                                     "pre_code_gate",
+                                                     "test_gate_rules",
+                                                     "review_gate_rules",
+                                                     "ai_collaboration_handoff"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "local governance and testing rule-pack",
+                                                      "development rules report status surface",
+                                                      "project memory and handoff strengthening"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not copy external Skill files, prompts, scripts, or code",
+                                                    "do not install or execute an external Skill runtime",
+                                                    "do not create, bind, or execute an Agent from this source",
+                                                    "do not redo Anything2Skill, SkillX, Anthropic skill-creator, or P2.2 Skill Governance unless DU/KB compatibility breaks"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.2 / governance",
+                         "ui_impact":  "small",
+                         "implementation_mode":  "engineering_governance_rule_pack",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "A local engineering governance rule-pack is implemented and validated, but it is not a business runtime and full UI/Core Bridge acceptance is later in sequence.",
+                         "recommended_next_action":  "Keep as local governance rule-pack evidence and continue to Section 5 item 5.14 Sirchmunk."
+                     },
+                     {
+                         "project_id":  "sirchmunk",
+                         "project_name":  "Sirchmunk",
+                         "github_url":  "https://github.com/modelscope/sirchmunk",
+                         "rating":  "A",
+                         "rating_reason":  "Useful embedding-free and index-free direct raw-data retrieval benchmark now represented by a local bounded direct-file-search provider candidate.",
+                         "current_repo_status":  "real_workflow_evidence",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/external_retrieval/sirchmunk.py",
+                                                        "tests/test_sirchmunk_direct_file_search.py",
+                                                        "artifacts/audits/section_5/sirchmunk_direct_file_search/search/sirchmunk_direct_file_search_manifest.json",
+                                                        "artifacts/audits/section_5/sirchmunk_direct_file_search/validation/sirchmunk_direct_file_search_validation_report.json",
+                                                        "artifacts/audits/section_5/sirchmunk_direct_file_search/sirchmunk_integration_decision_report.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "direct_file_search_provider",
+                                                     "embedding_free_retrieval",
+                                                     "index_free_raw_file_search",
+                                                     "source_trace",
+                                                     "workspace_path_boundary"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "local direct file search fallback",
+                                                      "source trace and evidence map without vector DB",
+                                                      "retrieval verification status surface"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not clone or execute the Sirchmunk vendor runtime",
+                                                    "do not require LLM API key, network, embedding, vector DB, or external dependencies",
+                                                    "do not replace AnySearchSkill, RAG-Anything, WeKnora, or the existing retrieval main chain",
+                                                    "do not allow unsafe paths outside the selected workspace"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.8 / local retrieval",
+                         "ui_impact":  "small",
+                         "implementation_mode":  "bounded_direct_file_search_provider",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "A local bounded direct-file-search provider candidate is implemented and validated, but full UI/Core Bridge acceptance is later in sequence and Sirchmunk vendor runtime is not bundled.",
+                         "recommended_next_action":  "Keep as local direct-file-search evidence and continue to Section 5 strengthening item 5.S1 GBrain."
+                     },
+                     {
+                         "project_id":  "ai_marketing_skills",
+                         "project_name":  "ai-marketing-skills",
+                         "github_url":  "https://github.com/ericosiu/ai-marketing-skills",
+                         "rating":  "A",
+                         "rating_reason":  "Useful marketing, growth workflow, and content operations benchmark now represented by a local original Marketing Skill Pattern Library.",
+                         "current_repo_status":  "real_workflow_evidence",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/marketing_skill_patterns/builder.py",
+                                                        "tests/test_marketing_skill_patterns.py",
+                                                        "artifacts/audits/section_5/ai_marketing_skills_pattern_library/marketing_pattern_library/marketing_pattern_manifest.json",
+                                                        "artifacts/audits/section_5/ai_marketing_skills_pattern_library/validation/marketing_pattern_validation_report.json",
+                                                        "artifacts/audits/section_5/ai_marketing_skills_pattern_library/ai_marketing_skills_integration_decision_report.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "marketing_skill_pattern_library",
+                                                     "marketing_agent_template",
+                                                     "growth_workflow_template",
+                                                     "content_operations_template",
+                                                     "template_library_preview"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "local marketing pattern library",
+                                                      "Template Library preview",
+                                                      "Skill Factory pattern selection"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not copy external content templates",
+                                                    "do not run crawler, paid media, account operations, or revenue automation"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.7",
+                         "ui_impact":  "small",
+                         "implementation_mode":  "marketing_skill_pattern_library",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Local pattern library evidence is implemented, but full Template Library UI workflow and Campaign 4 acceptance are later sequence work.",
+                         "recommended_next_action":  "Keep as local original Marketing Skill Pattern Library evidence and continue to Section 5 item 5.8 ai-money-maker-handbook."
+                     },
+                     {
+                         "project_id":  "rtk",
+                         "project_name":  "rtk",
+                         "github_url":  "https://github.com/rtk-ai/rtk",
+                         "rating":  "A",
+                         "rating_reason":  "A/B verified Rust CLI token-compression benchmark; useful as a benchmark only until product and runtime security decisions are made.",
+                         "current_repo_status":  "benchmark_mapped",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/audit/external_benchmark.py",
+                                                        "GitHub API repo metadata verified 2026-06-10: rtk-ai/rtk"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "memory_compression",
+                                                     "context_budget",
+                                                     "runtime_toolkit"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "context budget and runtime toolkit benchmark"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not add runtime dependency before decision"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P3",
+                         "ui_impact":  "small",
+                         "implementation_mode":  "token_compression_cli_benchmark",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  true,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Verified public repository, but CLI proxy/runtime integration requires post-v4 product, license, and security review.",
+                         "recommended_next_action":  "Keep as P3 benchmark-only runtime/tooling reference; do not add binary, proxy, or runtime dependency before explicit decision."
+                     },
+                     {
+                         "project_id":  "opendataloader",
+                         "project_name":  "OpenDataLoader",
+                         "github_url":  "https://github.com/opendataloader-project/opendataloader-pdf",
+                         "rating":  "A",
+                         "rating_reason":  "A-level document loader and parser backend candidate already referenced by Core parser strategy.",
+                         "current_repo_status":  "planned_adapter",
+                         "current_evidence_files":  [
+                                                        "docs/03_core_capabilities/PARSER_BACKEND_STRATEGY.md",
+                                                        "README.md"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "document_loader",
+                                                     "parser_backend"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "future document loader/parser backend adapter"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not add dependency before v4",
+                                                    "do not claim completed integration"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.6",
+                         "ui_impact":  "medium",
+                         "implementation_mode":  "planned_adapter",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Planned adapter only; implementation is post-v4.",
+                         "recommended_next_action":  "Keep in parser backend candidate set."
+                     },
+                     {
+                         "project_id":  "marker",
+                         "project_name":  "Marker",
+                         "github_url":  "https://github.com/datalab-to/marker",
+                         "rating":  "A",
+                         "rating_reason":  "A-level PDF parser and Markdown conversion candidate with optional disabled adapter evidence.",
+                         "current_repo_status":  "planned_adapter",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/parser_backends/marker_adapter.py",
+                                                        "heitang_kb_forge/audit/external_benchmark.py"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "pdf_parser",
+                                                     "markdown_conversion"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "future parser backend adapter",
+                                                      "parser benchmark comparison"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not mark disabled adapter as implemented",
+                                                    "do not make Marker mandatory"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.6",
+                         "ui_impact":  "medium",
+                         "implementation_mode":  "planned_adapter",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Existing adapter is intentionally unavailable pending explicit integration.",
+                         "recommended_next_action":  "Keep optional disabled adapter boundary and review after v4."
+                     },
+                     {
+                         "project_id":  "surya",
+                         "project_name":  "Surya",
+                         "github_url":  "https://github.com/datalab-to/surya",
+                         "rating":  "A",
+                         "rating_reason":  "A-level specialized OCR layout backend candidate for post-v4 parser hardening.",
+                         "current_repo_status":  "planned_adapter",
+                         "current_evidence_files":  [
+                                                        "docs/roadmap/external_projects/external_project_registry.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "ocr_layout",
+                                                     "visual_layout_analysis"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "future layout analysis benchmark"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not add OCR/layout dependency before verification"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.6",
+                         "ui_impact":  "medium",
+                         "implementation_mode":  "ocr_layout_backend",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Planned adapter only; OCR/layout backend implementation is post-v4.",
+                         "recommended_next_action":  "Keep as specialized OCR layout backend candidate for P2.6 adapter planning.",
+                         "priority_in_parser_group":  "specialized_backend"
+                     },
+                     {
+                         "project_id":  "unstructured",
+                         "project_name":  "Unstructured",
+                         "github_url":  "https://github.com/Unstructured-IO/unstructured",
+                         "rating":  "S",
+                         "rating_reason":  "S-level unified parser backend now backed by an optional local runtime adapter; remains opt-in and not default Core parsing.",
+                         "current_repo_status":  "planned_adapter",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/parser_backends/unstructured_adapter.py",
+                                                        "heitang_kb_forge/parser_backends/runtime_acceptance.py",
+                                                        "tests/test_v28_parser_backends.py",
+                                                        "docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "unstructured_document_parser"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "future parser backend comparison"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not claim UI surface as Core integration",
+                                                    "do not add dependency before verification"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.1",
+                         "ui_impact":  "medium",
+                         "implementation_mode":  "optional_runtime_adapter",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Optional local runtime adapter is implemented and P2.1 runtime acceptance is recorded, but it remains dependency-gated, not bundled, not default Core parsing, and not a UI-executable external project.",
+                         "recommended_next_action":  "Use as primary unified parser interface when parser-unstructured is locally installed and selected with parse-with-backend.",
+                         "priority_in_parser_group":  "primary_unified_interface"
+                     },
+                     {
+                         "project_id":  "llamaindex",
+                         "project_name":  "LlamaIndex",
+                         "github_url":  "https://github.com/run-llama/llama_index",
+                         "rating":  "A",
+                         "rating_reason":  "A-level RAG architecture, indexing abstraction, and retriever pattern benchmark already mapped.",
+                         "current_repo_status":  "benchmark_mapped",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/audit/external_benchmark.py",
+                                                        "heitang_kb_forge/retrieval/external_absorption.py"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "rag_architecture",
+                                                     "indexing_abstraction",
+                                                     "retriever_pattern"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "RAG architecture benchmark",
+                                                      "retriever and index contract inspiration"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not add LlamaIndex runtime dependency"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.5",
+                         "ui_impact":  "small",
+                         "implementation_mode":  "benchmark_only",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Benchmark mapping only before v4.",
+                         "recommended_next_action":  "Keep patterns-only RAG benchmark mapping."
+                     },
+                     {
+                         "project_id":  "ragas",
+                         "project_name":  "RAGAS",
+                         "github_url":  "https://github.com/explodinggradients/ragas",
+                         "rating":  "A",
+                         "rating_reason":  "A-level benchmark for RAG evaluation, faithfulness, and context recall.",
+                         "current_repo_status":  "benchmark_mapped",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/audit/external_benchmark.py",
+                                                        "heitang_kb_forge/retrieval/external_absorption.py"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "rag_evaluation",
+                                                     "faithfulness",
+                                                     "context_recall"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "post-v4 RAG evaluation direction",
+                                                      "quality metric benchmark"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not add evaluator runtime dependency before v4"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.5",
+                         "ui_impact":  "small",
+                         "implementation_mode":  "benchmark_only",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Evaluator integration is post-v4.",
+                         "recommended_next_action":  "Keep as RAG evaluation benchmark."
+                     },
+                     {
+                         "project_id":  "deepeval",
+                         "project_name":  "DeepEval",
+                         "github_url":  "https://github.com/confident-ai/deepeval",
+                         "rating":  "A",
+                         "rating_reason":  "A-level LLM/RAG regression evaluation benchmark that needs Core status verification.",
+                         "current_repo_status":  "docs_only",
+                         "current_evidence_files":  [
+
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "llm_eval",
+                                                     "rag_eval",
+                                                     "regression_evaluation"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "post-v4 evaluation benchmark",
+                                                      "regression evaluation direction"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not add external evaluator dependency before v4"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.5",
+                         "ui_impact":  "small",
+                         "implementation_mode":  "benchmark_only",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Evaluation integration is post-v4.",
+                         "recommended_next_action":  "Verify and compare against existing deterministic quality reports."
+                     },
+                     {
+                         "project_id":  "ai_money_maker_handbook",
+                         "project_name":  "ai-money-maker-handbook",
+                         "github_url":  "https://github.com/XiaomingX/ai-money-maker-handbook",
+                         "rating":  "B",
+                         "rating_reason":  "Useful business template and monetization scenario reference now represented by a local original Business Scenario Template Library with explicit no-money-automation boundaries.",
+                         "current_repo_status":  "real_workflow_evidence",
+                         "current_evidence_files":  [
+                                                        "heitang_kb_forge/business_scenario_templates/builder.py",
+                                                        "tests/test_business_scenario_templates.py",
+                                                        "artifacts/audits/section_5/ai_money_maker_handbook_business_scenario_library/business_scenario_library/business_scenario_manifest.json",
+                                                        "artifacts/audits/section_5/ai_money_maker_handbook_business_scenario_library/validation/business_scenario_validation_report.json",
+                                                        "artifacts/audits/section_5/ai_money_maker_handbook_business_scenario_library/ai_money_maker_handbook_integration_decision_report.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "business_scenario_template_library",
+                                                     "business_template",
+                                                     "monetization_case",
+                                                     "content_business_scenario",
+                                                     "template_library_preview"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "local business scenario template library",
+                                                      "Template Library preview",
+                                                      "Skill Factory template picker"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not copy external content or business claims",
+                                                    "do not run trading, payment, ad spend, crawler, account operations, or money automation",
+                                                    "do not claim revenue guarantees"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P2.7",
+                         "ui_impact":  "small",
+                         "implementation_mode":  "business_scenario_template_library",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Local scenario template library evidence is implemented, but full Template Library UI workflow and Campaign 4 acceptance are later sequence work.",
+                         "recommended_next_action":  "Keep as local original Business Scenario Template Library evidence and continue to Section 5 item 5.9 Jellyfish."
+                     },
+                     {
+                         "project_id":  "vibe_coding_cn",
+                         "project_name":  "vibe-coding-cn",
+                         "github_url":  "https://github.com/tradecatlabs/vibe-coding-cn",
+                         "rating":  "B",
+                         "rating_reason":  "B-level methodology reference now verified as a methodology benchmark mapping.",
+                         "current_repo_status":  "benchmark_mapped",
+                         "current_evidence_files":  [
+                                                        "docs/roadmap/external_projects/external_project_registry.json"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "ai_coding_methodology",
+                                                     "agent_coding_learning_material"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "post-v4 ecosystem reference"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not treat methodology content as Core implementation"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P3",
+                         "ui_impact":  "none",
+                         "implementation_mode":  "methodology_reference",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Methodology reference only; not Core implementation.",
+                         "recommended_next_action":  "Keep as post-v4 methodology reference and do not convert into Core runtime functionality."
+                     },
+                     {
+                         "project_id":  "ruflo",
+                         "project_name":  "Ruflo",
+                         "github_url":  "https://github.com/ruvnet/ruflo",
+                         "rating":  "B",
+                         "rating_reason":  "B/A verified external multi-agent orchestration benchmark; remains P3 benchmark-only until product and safety decision.",
+                         "current_repo_status":  "benchmark_mapped",
+                         "current_evidence_files":  [
+                                                        "GitHub API repo metadata verified 2026-06-10: ruvnet/ruflo"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "agent_orchestration",
+                                                     "automation_runtime",
+                                                     "workflow_coordination"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "possible P3 ecosystem reference"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not add orchestration runtime",
+                                                    "do not claim compatibility before review"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P3",
+                         "ui_impact":  "medium",
+                         "implementation_mode":  "external_orchestration_benchmark",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  true,
+                         "license_or_security_review_required":  true,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "Verified public repository, but external orchestration/runtime integration requires post-v4 product, safety, and security decision.",
+                         "recommended_next_action":  "Keep as P3 external orchestration benchmark; require provider-key boundary if third-party models are integrated.",
+                         "provider_key_required_when_integrating_third_party_models":  true
+                     },
+                     {
+                         "project_id":  "growth_loop",
+                         "project_name":  "Growth-Loop",
+                         "github_url":  null,
+                         "rating":  "B",
+                         "rating_reason":  "B-level growth-loop concept/reference; no unique GitHub project identity was confirmed during the 2026-06-10 closure pass.",
+                         "current_repo_status":  "not_found",
+                         "current_evidence_files":  [
+                                                        "GitHub search/manual verification 2026-06-10: no unique Growth-Loop repository identity confirmed"
+                                                    ],
+                         "mapped_capabilities":  [
+                                                     "growth_loop_template",
+                                                     "external_signal",
+                                                     "business_workflow"
+                                                 ],
+                         "suitable_for_heitang":  [
+                                                      "possible P3 template/ecosystem reference"
+                                                  ],
+                         "not_suitable_parts":  [
+                                                    "do not map an unverified project to implementation"
+                                                ],
+                         "pre_v4_scope":  "registry_only",
+                         "post_v4_target":  "P3",
+                         "ui_impact":  "none",
+                         "implementation_mode":  "concept_reference_only",
+                         "requires_api_key":  false,
+                         "requires_network":  false,
+                         "requires_external_runtime":  false,
+                         "license_or_security_review_required":  false,
+                         "can_be_ready_before_v4":  false,
+                         "reason_not_ready_before_v4":  "No unique external project identity is available for review; keep as concept-only P3 reference.",
+                         "recommended_next_action":  "Do not map to a concrete external project unless a maintainer-approved GitHub URL is provided."
+                     }
+                 ],
+    "internal_capability_anchors":  [
+                                        {
+                                            "anchor_id":  "book_to_skill",
+                                            "anchor_name":  "Book-to-Skill",
+                                            "rating":  "S",
+                                            "current_status":  "implemented",
+                                            "pre_v4_scope":  "already_core_capability",
+                                            "post_v4_target":  "P2.6",
+                                            "related_external_benchmarks":  [
+                                                                                "andrej_karpathy_skills",
+                                                                                "skill_prompt_generator"
+                                                                            ]
+                                        },
+                                        {
+                                            "anchor_id":  "package_to_skill",
+                                            "anchor_name":  "Package-to-Skill",
+                                            "rating":  "S",
+                                            "current_status":  "implemented",
+                                            "pre_v4_scope":  "already_core_capability",
+                                            "post_v4_target":  "P2.6 / P2.9",
+                                            "related_external_benchmarks":  [
+                                                                                "andrej_karpathy_skills",
+                                                                                "skill_prompt_generator"
+                                                                            ]
+                                        },
+                                        {
+                                            "anchor_id":  "software_to_manual_to_skill",
+                                            "anchor_name":  "Software-to-Manual-to-Skill",
+                                            "rating":  "S",
+                                            "current_status":  "contract_only / planned_capability",
+                                            "pre_v4_scope":  "contract_mapping_only",
+                                            "post_v4_target":  "P2.6",
+                                            "related_external_benchmarks":  [
+                                                                                "andrej_karpathy_skills",
+                                                                                "skill_prompt_generator"
+                                                                            ]
+                                        },
+                                        {
+                                            "anchor_id":  "aigc_book_content_pipeline",
+                                            "anchor_name":  "AIGC Book Content Pipeline",
+                                            "rating":  "S",
+                                            "current_status":  "docs_only",
+                                            "pre_v4_scope":  "docs_mapping_only",
+                                            "post_v4_target":  "P2.7 / P2.8",
+                                            "related_external_benchmarks":  [
+                                                                                "jellyfish",
+                                                                                "story_flicks",
+                                                                                "ai_marketing_skills",
+                                                                                "ai_money_maker_handbook"
+                                                                            ]
+                                        },
+                                        {
+                                            "anchor_id":  "retrieval_and_verification",
+                                            "anchor_name":  "Retrieval \u0026 Verification",
+                                            "rating":  "S",
+                                            "current_status":  "implemented",
+                                            "pre_v4_scope":  "already_core_capability",
+                                            "post_v4_target":  "P2.3 / P2.5",
+                                            "related_external_benchmarks":  [
+                                                                                "anysearchskill",
+                                                                                "llamaindex",
+                                                                                "ragas",
+                                                                                "deepeval"
+                                                                            ]
+                                        },
+                                        {
+                                            "anchor_id":  "memory_lifecycle",
+                                            "anchor_name":  "Memory Lifecycle",
+                                            "rating":  "S",
+                                            "current_status":  "implemented baseline",
+                                            "pre_v4_scope":  "already_core_capability",
+                                            "post_v4_target":  "P2.4",
+                                            "related_external_benchmarks":  [
+                                                                                "llm_wiki_v2"
+                                                                            ]
+                                        },
+                                        {
+                                            "anchor_id":  "auto_wiki_knowledge_graph",
+                                            "anchor_name":  "Auto Wiki / Knowledge Graph",
+                                            "rating":  "S",
+                                            "current_status":  "implemented baseline",
+                                            "pre_v4_scope":  "already_core_capability",
+                                            "post_v4_target":  "P2.5",
+                                            "related_external_benchmarks":  [
+                                                                                "weknora"
+                                                                            ]
+                                        },
+                                        {
+                                            "anchor_id":  "workflow_automation_export",
+                                            "anchor_name":  "Workflow Automation / Export",
+                                            "rating":  "S",
+                                            "current_status":  "implemented export baseline",
+                                            "pre_v4_scope":  "already_core_capability",
+                                            "post_v4_target":  "P2.2 / P3",
+                                            "related_external_benchmarks":  [
+                                                                                "n8n"
+                                                                            ]
+                                        }
+                                    ],
+    "post_v4_roadmap":  [
+                            {
+                                "phase":  "P2.1",
+                                "title":  "External Project Verification Baseline + Parser/OCR Multi-Backend Integration",
+                                "primary_s_a_directions":  [
+                                                               "registry and contract inclusion",
+                                                               "parser/OCR backend adapter"
+                                                           ],
+                                "scope":  [
+                                              "verification baseline closed",
+                                              "Docling optional runtime adapter",
+                                              "PaddleOCR optional runtime adapter",
+                                              "Unstructured optional runtime adapter"
+                                          ]
+                            },
+                            {
+                                "phase":  "P2.2",
+                                "title":  "Skill Governance + Book-to-Skill Deepening",
+                                "primary_s_a_directions":  [
+                                                               "skill governance",
+                                                               "Book-to-Skill / Software-to-Manual-to-Skill"
+                                                           ],
+                                "scope":  [
+                                              "andrej-karpathy-skills",
+                                              "skill-prompt-generator",
+                                              "Book-to-Skill deepening"
+                                          ]
+                            },
+                            {
+                                "phase":  "P2.3",
+                                "title":  "Parser/OCR Backend Hardening",
+                                "primary_s_a_directions":  [
+                                                               "complex layout parsing",
+                                                               "specialized OCR/layout backend"
+                                                           ],
+                                "scope":  [
+                                              "MinerU",
+                                              "Marker",
+                                              "Surya",
+                                              "OpenDataLoader",
+                                              "acceptance hardening for optional runtime adapters"
+                                          ]
+                            },
+                            {
+                                "phase":  "P2.4",
+                                "title":  "Living Knowledge Base / Memory Lifecycle",
+                                "primary_s_a_directions":  [
+                                                               "memory lifecycle"
+                                                           ],
+                                "scope":  [
+                                              "LLM Wiki v2",
+                                              "confidence",
+                                              "forgetting",
+                                              "knowledge decay"
+                                          ]
+                            },
+                            {
+                                "phase":  "P2.5",
+                                "title":  "Auto Wiki + RAG Evaluation",
+                                "primary_s_a_directions":  [
+                                                               "auto wiki / knowledge graph",
+                                                               "RAG evaluation"
+                                                           ],
+                                "scope":  [
+                                              "WeKnora",
+                                              "LlamaIndex / RAGAS / DeepEval"
+                                          ]
+                            },
+                            {
+                                "phase":  "P2.6",
+                                "title":  "Industry Template Library + AIGC Book Pipeline",
+                                "primary_s_a_directions":  [
+                                                               "industry template library",
+                                                               "AIGC book content pipeline"
+                                                           ],
+                                "scope":  [
+                                              "ai-marketing-skills",
+                                              "ai-money-maker-handbook",
+                                              "AIGC Book Content Pipeline"
+                                          ]
+                            },
+                            {
+                                "phase":  "P2.7",
+                                "title":  "n8n Workflow Export Adapter",
+                                "primary_s_a_directions":  [
+                                                               "workflow export adapter"
+                                                           ],
+                                "scope":  [
+                                              "n8n",
+                                              "workflow export",
+                                              "webhook template",
+                                              "no bundled runtime"
+                                          ]
+                            },
+                            {
+                                "phase":  "P2.8",
+                                "title":  "External Retrieval Provider",
+                                "primary_s_a_directions":  [
+                                                               "external retrieval provider",
+                                                               "external signal monitoring"
+                                                           ],
+                                "scope":  [
+                                              "AnySearchSkill",
+                                              "last30days-skill",
+                                              "provider_required",
+                                              "network_required"
+                                          ]
+                            },
+                            {
+                                "phase":  "P2.9",
+                                "title":  "Multimodal / Short Drama / Video Skill Pipeline",
+                                "primary_s_a_directions":  [
+                                                               "multimodal skill package",
+                                                               "AIGC video pipeline"
+                                                           ],
+                                "scope":  [
+                                              "MMSkills",
+                                              "Jellyfish",
+                                              "story-flicks",
+                                              "seedance2-skill"
+                                          ]
+                            },
+                            {
+                                "phase":  "P3.x",
+                                "title":  "Ecosystem \u0026 Automation Layer",
+                                "primary_s_a_directions":  [
+                                                               "ecosystem automation"
+                                                           ],
+                                "scope":  [
+                                              "deeper n8n integration",
+                                              "external automation provider registry",
+                                              "workflow canvas",
+                                              "BYO cloud / sync"
+                                          ]
+                            },
+                            {
+                                "phase":  "P4.x",
+                                "title":  "SaaS / Team / Commercialization",
+                                "primary_s_a_directions":  [
+                                                               "commercialization"
+                                                           ],
+                                "scope":  [
+                                              "team workspace",
+                                              "permission model",
+                                              "hosted control plane",
+                                              "plugin ecosystem",
+                                              "commercial packaging"
+                                          ]
+                            }
+                        ]
 }

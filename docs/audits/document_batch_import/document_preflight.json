@@ -1,0 +1,70 @@
+{
+  "schema_version": "document_batch_import.v1.preflight",
+  "status": "warning",
+  "files": [
+    {
+      "source_path": "docs/audits/document_batch_import/sample_input/001_text.md",
+      "relative_path": "001_text.md",
+      "extension": ".md",
+      "file_type": "text_document",
+      "status": "ready",
+      "is_scanned": false,
+      "contains_tables": false,
+      "contains_images": false,
+      "contains_formulas": false,
+      "multi_column_layout": false,
+      "mixed_layout_document": false,
+      "needs_ocr": false,
+      "duplicate_of": null,
+      "error": null
+    },
+    {
+      "source_path": "docs/audits/document_batch_import/sample_input/002_scan.pdf",
+      "relative_path": "002_scan.pdf",
+      "extension": ".pdf",
+      "file_type": "pdf",
+      "status": "ready",
+      "is_scanned": true,
+      "contains_tables": false,
+      "contains_images": false,
+      "contains_formulas": false,
+      "multi_column_layout": false,
+      "mixed_layout_document": false,
+      "needs_ocr": true,
+      "duplicate_of": null,
+      "error": null
+    },
+    {
+      "source_path": "docs/audits/document_batch_import/sample_input/003_copy.md",
+      "relative_path": "003_copy.md",
+      "extension": ".md",
+      "file_type": "text_document",
+      "status": "duplicate",
+      "is_scanned": false,
+      "contains_tables": false,
+      "contains_images": false,
+      "contains_formulas": false,
+      "multi_column_layout": false,
+      "mixed_layout_document": false,
+      "needs_ocr": false,
+      "duplicate_of": "001_text.md",
+      "error": null
+    },
+    {
+      "source_path": "docs/audits/document_batch_import/sample_input/004_unsupported.bin",
+      "relative_path": "004_unsupported.bin",
+      "extension": ".bin",
+      "file_type": "unsupported",
+      "status": "unsupported",
+      "is_scanned": false,
+      "contains_tables": false,
+      "contains_images": false,
+      "contains_formulas": false,
+      "multi_column_layout": false,
+      "mixed_layout_document": false,
+      "needs_ocr": false,
+      "duplicate_of": null,
+      "error": "unsupported_file_extension"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": "agent_role_assignment_spec.v1",
+  "status": "spec_ready",
+  "roles": [
+    {
+      "role_id": "primary_knowledge_worker",
+      "agent_id": "agent_package_db9dbcaecafc0ca7",
+      "allowed_mode": "single_agent_package",
+      "runtime_required": false
+    },
+    {
+      "role_id": "reviewer_agent_candidate",
+      "agent_id": "future_agent_candidate",
+      "allowed_mode": "multi_agent_spec_only",
+      "runtime_required": true,
+      "current_runtime_ready": false
+    }
+  ],
+  "multi_agent_runtime_ready": false
+}

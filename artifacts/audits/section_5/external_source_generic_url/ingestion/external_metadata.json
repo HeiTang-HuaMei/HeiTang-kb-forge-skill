@@ -1,0 +1,17 @@
+{
+  "schema_version": "external_source_metadata.v1",
+  "source_url": "http://127.0.0.1:3457/index.html",
+  "source_type": "public_html",
+  "platform": "generic_web",
+  "title": "HeiTang External Source Public Fixture",
+  "author": "HeiTang KB Forge",
+  "published_at": "2026-06-13",
+  "retrieved_at": "2026-06-13T00:00:00+08:00",
+  "content_hash": "ef4770d0f5801e0583adf9e2d251c42090a01889eab1fca31ee9edba4f664028",
+  "language": "en",
+  "domain": "127.0.0.1:3457",
+  "canonical_url": "http://127.0.0.1:3457/docs/external-source-fixture.html",
+  "backlink": "http://127.0.0.1:3457/docs/external-source-fixture.html",
+  "content_type": "text/html",
+  "extraction_method": "html_parser"
+}

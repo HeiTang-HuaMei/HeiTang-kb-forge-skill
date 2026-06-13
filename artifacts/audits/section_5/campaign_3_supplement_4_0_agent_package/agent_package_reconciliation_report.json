@@ -1,0 +1,32 @@
+{
+  "schema_version": "agent_package_reconciliation_report.v1",
+  "status": "passed",
+  "existing_capabilities": [
+    {
+      "path": "heitang_kb_forge/agent_package/",
+      "status": "reused"
+    },
+    {
+      "path": "heitang_kb_forge/knowledge_bound_factory/",
+      "status": "recognized"
+    },
+    {
+      "path": "heitang_kb_forge/agent_compat/",
+      "status": "recognized"
+    },
+    {
+      "command": "generate-agent",
+      "status": "recognized_as_package_generation"
+    },
+    {
+      "command": "generate-bound-agent",
+      "status": "recognized_as_kb_skill_package_generation"
+    },
+    {
+      "tests": "agent package and binding tests",
+      "status": "recognized"
+    }
+  ],
+  "new_agent_runtime_implemented": false,
+  "coze_style_platform_implemented": false
+}

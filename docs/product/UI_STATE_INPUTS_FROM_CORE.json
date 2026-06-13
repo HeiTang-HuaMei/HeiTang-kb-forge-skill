@@ -1,0 +1,98 @@
+{
+  "schema_version": "ui_state_inputs_from_core.v1",
+  "status": "handoff_contract_ready",
+  "core_states": [
+    {
+      "state_id": "agent_draft",
+      "value": false
+    },
+    {
+      "state_id": "agent_package_ready",
+      "value": true
+    },
+    {
+      "state_id": "agent_bound_to_kb",
+      "value": true
+    },
+    {
+      "state_id": "agent_bound_to_skill",
+      "value": true
+    },
+    {
+      "state_id": "agent_validated",
+      "value": true
+    },
+    {
+      "state_id": "agent_exportable",
+      "value": true
+    },
+    {
+      "state_id": "agent_runtime_not_integrated",
+      "value": true
+    },
+    {
+      "state_id": "agent_executable_not_ready",
+      "value": true
+    },
+    {
+      "state_id": "agent_needs_review",
+      "value": false
+    },
+    {
+      "state_id": "agent_executable",
+      "value": false
+    },
+    {
+      "state_id": "agent_runtime_ready",
+      "value": false
+    }
+  ],
+  "ui_states": {
+    "ready": [
+      "agent_package_ready",
+      "agent_bound_to_kb",
+      "agent_bound_to_skill"
+    ],
+    "display_only": [
+      "agent_runtime_not_integrated"
+    ],
+    "planned_not_active": [
+      "multi_agent_runtime_ready"
+    ],
+    "runtime_not_integrated": [
+      "agent_runtime_ready"
+    ],
+    "bridge_action_missing": [
+      "future_allowlist_candidate_active"
+    ],
+    "memory_backend_missing": [
+      "redis_runtime_ready",
+      "vector_runtime_ready"
+    ],
+    "needs_review": [
+      "agent_needs_review"
+    ],
+    "failed": [],
+    "skipped": [],
+    "blocked_by_dependency": [
+      "agent_executable"
+    ]
+  },
+  "forbidden_misinterpretations": [
+    "campaign_4_active",
+    "campaign_5_active",
+    "campaign_4_ui_complete",
+    "campaign_5_bridge_complete",
+    "ui_handoff_is_campaign_4_completion",
+    "bridge_handoff_is_campaign_5_completion",
+    "agent_runtime_ready",
+    "agent_executable",
+    "redis_runtime_ready",
+    "vector_runtime_ready",
+    "memory_isolation_runtime_ready",
+    "multi_agent_runtime_ready",
+    "multi_agent_executable",
+    "bridge_execution_accepted",
+    "future_allowlist_candidate_active"
+  ]
+}

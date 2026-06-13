@@ -1,0 +1,21 @@
+{
+  "schema_version": "preflight_only_matrix.v1",
+  "status": "passed",
+  "items": [
+    {
+      "item_id": "platform_link_preflight",
+      "campaign_section": "preflight_only",
+      "status": "preflight_only",
+      "description": "Platform detection/readability state only",
+      "evidence_path": "artifacts/audits/section_5/external_source_platform_preflight/run_manifest.json"
+    },
+    {
+      "item_id": "external_link_import_entry",
+      "campaign_section": "preflight_only",
+      "status": "preflight_only",
+      "description": "Controlled UI entry and allowlist safety only",
+      "evidence_path": "artifacts/audits/section_5/external_source_link_import_entry/run_manifest.json"
+    }
+  ],
+  "errors": []
+}

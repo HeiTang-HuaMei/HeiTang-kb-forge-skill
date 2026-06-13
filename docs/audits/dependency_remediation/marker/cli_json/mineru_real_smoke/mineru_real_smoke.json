@@ -1,0 +1,108 @@
+{
+  "children": [
+    {
+      "id": "/page/0/Page/6",
+      "block_type": "Page",
+      "html": "<content-ref src='/page/0/SectionHeader/0'></content-ref><content-ref src='/page/0/Text/1'></content-ref>",
+      "polygon": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          596.0,
+          0.0
+        ],
+        [
+          596.0,
+          842.0
+        ],
+        [
+          0.0,
+          842.0
+        ]
+      ],
+      "bbox": [
+        0.0,
+        0.0,
+        596.0,
+        842.0
+      ],
+      "children": [
+        {
+          "id": "/page/0/SectionHeader/0",
+          "block_type": "SectionHeader",
+          "html": "<h2>HeiTang KB Forge MinerU Real Smoke 2026</h2>",
+          "polygon": [
+            [
+              72.0,
+              82.53765869140625
+            ],
+            [
+              552.16796875,
+              82.2265625
+            ],
+            [
+              552.16796875,
+              106.53765869140625
+            ],
+            [
+              72.0,
+              106.89453125
+            ]
+          ],
+          "bbox": [
+            72.0,
+            82.2265625,
+            552.16796875,
+            106.89453125
+          ],
+          "children": null,
+          "section_hierarchy": {
+            "2": "/page/0/SectionHeader/0"
+          },
+          "images": {}
+        },
+        {
+          "id": "/page/0/Text/1",
+          "block_type": "Text",
+          "html": "<p block-type=\"Text\">Document understanding runtime verification.</p>",
+          "polygon": [
+            [
+              71.298828125,
+              130.3291015625
+            ],
+            [
+              353.66595458984375,
+              130.3291015625
+            ],
+            [
+              353.66595458984375,
+              144.64697265625
+            ],
+            [
+              71.298828125,
+              144.64697265625
+            ]
+          ],
+          "bbox": [
+            71.298828125,
+            130.3291015625,
+            353.66595458984375,
+            144.64697265625
+          ],
+          "children": null,
+          "section_hierarchy": {
+            "2": "/page/0/SectionHeader/0"
+          },
+          "images": {}
+        }
+      ],
+      "section_hierarchy": {
+        "2": "/page/0/SectionHeader/0"
+      },
+      "images": null
+    }
+  ],
+  "block_type": "Document"
+}

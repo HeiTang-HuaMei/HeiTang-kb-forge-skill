@@ -1,0 +1,15 @@
+{
+  "schema_version": "push_tag_safety_report.v1",
+  "status": "passed",
+  "push_allowed": true,
+  "tag_allowed": false,
+  "ci_check_allowed": false,
+  "campaign_4_entry_allowed": false,
+  "forbidden_tracked_files_check": "passed",
+  "secret_check": "passed",
+  "large_runtime_binary_check": "passed",
+  "gitignore_check": "passed",
+  "no_arbitrary_shell_execution": true,
+  "no_file_deletion_performed": true,
+  "errors": []
+}

@@ -1,0 +1,130 @@
+{
+  "schema_version": "gbrain_strengthening_manifest.v1",
+  "section": "5.S1",
+  "campaign": "Campaign 3",
+  "status": "passed",
+  "project_id": "gbrain",
+  "project_name": "GBrain",
+  "library_name": "HeiTang GBrain Memory/Profile/KG Strengthening",
+  "integration_decision": "needs_strengthening",
+  "integration_mode": "memory_profile_kg_strengthening_record",
+  "source_verification": {
+    "repository_url": "https://github.com/garrytan/gbrain",
+    "repository_head": "4ee530f3c545b880cecc47c4f877e0ed014896b4",
+    "default_branch": "master",
+    "repository_accessible": true,
+    "repository_archived": false,
+    "repository_disabled": false,
+    "license_spdx": "MIT",
+    "license_file": "LICENSE",
+    "license_sha": "35029511144443297cad2d26e4bac17d0e352f93",
+    "main_branch_raw_404_observed": true,
+    "master_branch_verified": true,
+    "repository_cloned": false,
+    "external_code_copied": false,
+    "external_prompt_text_copied": false,
+    "external_skill_files_copied": false,
+    "external_installer_executed": false
+  },
+  "official_runtime_observation": {
+    "documented_positioning": [
+      "agent_brain_layer",
+      "synthesis_layer",
+      "self_wiring_knowledge_graph",
+      "gap_analysis",
+      "mcp_connector"
+    ],
+    "documented_runtime_dependencies": [
+      "bun",
+      "pglite_or_postgres",
+      "pgvector_for_vector_search",
+      "mcp",
+      "optional_api_keys"
+    ],
+    "documented_commands_observed": [
+      "gbrain init --pglite",
+      "gbrain serve",
+      "gbrain search",
+      "gbrain think",
+      "gbrain capture"
+    ],
+    "runtime_installed": false,
+    "runtime_executed": false,
+    "database_created": false,
+    "mcp_registered": false,
+    "api_key_requested": false,
+    "network_ingestion_executed": false
+  },
+  "dedup_boundary": {
+    "overlap_checked": true,
+    "not_peer_project": true,
+    "strengthens_existing_domains": [
+      "knowledge_lifecycle",
+      "auto_wiki_knowledge_graph",
+      "agent_profile",
+      "source_trace",
+      "evidence_gap_analysis"
+    ],
+    "existing_capability_anchors": [
+      "5.1 LLM Wiki v2 local Knowledge Lifecycle",
+      "5.2 WeKnora local Auto Wiki / Knowledge Graph / RAG trace",
+      "existing Agent Package profile and local runtime bindings"
+    ],
+    "distinct_strengthening_value": [
+      "memory_profile_scope_contract",
+      "graph_gap_analysis_rules",
+      "agent_memory_boundary_rules"
+    ],
+    "does_not_replace": [
+      "LLM Wiki v2 capability fusion",
+      "WeKnora Auto Wiki and KG trace",
+      "AnySearchSkill provider adapter",
+      "RAG-Anything cross-modal schema reference",
+      "P2.2 Skill Governance / Skill Suite"
+    ]
+  },
+  "runtime_boundary": {
+    "local_strengthening_rules_implemented": true,
+    "gbrain_runtime_integrated": false,
+    "bun_dependency_installed": false,
+    "pglite_or_postgres_configured": false,
+    "pgvector_required": false,
+    "mcp_connector_enabled": false,
+    "external_skills_imported": false,
+    "agent_created_or_bound": false,
+    "external_source_ingestion_implemented": false,
+    "knowledge_to_skill_template_generator_implemented": false,
+    "campaign_3_3_0_implemented": false,
+    "campaign_3_4_0_implemented": false
+  },
+  "ui_contract": {
+    "status_visible": true,
+    "memory_profile_strengthening_visible": true,
+    "kg_gap_rules_visible": true,
+    "local_ready": true,
+    "ready": false,
+    "executable_action": false,
+    "gbrain_runtime_action_available": false,
+    "mcp_connector_action_available": false,
+    "database_setup_action_available": false,
+    "ui_visibility": "visible_status_only"
+  },
+  "rule_counts": {
+    "memory_profile": 3,
+    "knowledge_graph_gap": 3,
+    "agent_memory_boundary": 3
+  },
+  "output_files": [
+    "gbrain_strengthening_manifest.json",
+    "memory_profile_rules.json",
+    "knowledge_graph_gap_rules.json",
+    "agent_memory_boundary_rules.json",
+    "gbrain_strengthening_validation_report.json",
+    "gbrain_strengthening_report.md"
+  ],
+  "tests_require_real_llm_api_network": false,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "This advances Section 5 strengthening item 5.S1 as local memory/profile/KG strengthening evidence only. It does not install or execute GBrain, configure MCP, create PGLite/Postgres/pgvector storage, import skills, create or bind an Agent, accept Campaign 3, open Campaign 3 Supplements 3.0/4.0, open Campaign 4, run Full Gate, package EXE, or release.",
+  "next_required_e2e_step": "Process Section 5 strengthening item 5.S2 Horizon only.",
+  "not_goal_complete": true
+}

@@ -1,0 +1,79 @@
+{
+  "schema_version": "audit_run_manifest.v1",
+  "run_id": "sirchmunk_direct_file_search",
+  "generated_at": "2026-06-13T00:00:00+08:00",
+  "type": "section_5_integration_decision",
+  "scope": "SECTION_5_ITEM_5_14_SIRCHMUNK",
+  "status": "passed",
+  "integration_decision": "real_integration",
+  "evidence_files": [
+    "pre_action_checkpoint.md",
+    "rollback_plan.md",
+    "sample_workspace/notes.md",
+    "search/sirchmunk_direct_file_search_manifest.json",
+    "search/direct_file_search_results.jsonl",
+    "search/direct_file_search_source_trace.json",
+    "search/direct_file_search_evidence_map.json",
+    "search/sirchmunk_direct_file_search_validation_report.json",
+    "search/sirchmunk_direct_file_search_report.md",
+    "validation/sirchmunk_direct_file_search_validation_report.json",
+    "validation/sirchmunk_direct_file_search_validation_report.md",
+    "sirchmunk_integration_decision_report.json",
+    "sirchmunk_integration_decision_report.md",
+    "sirchmunk_ui_impact_note.json",
+    "sirchmunk_ui_impact_note.md",
+    "run_summary.md"
+  ],
+  "campaign_state_after_run": {
+    "campaign_3_item_5_14": "advanced_real_integration_direct_file_search_only",
+    "campaign_3_accepted": false,
+    "campaign_3_3_0_active": false,
+    "campaign_3_4_0_active": false,
+    "campaign_3_supplement_2_0_closure_gate_passed": false,
+    "campaign_4_allowed": false,
+    "next_section_5_item": "5.S1 GBrain"
+  },
+  "commands": [
+    {
+      "command": "git ls-remote https://github.com/modelscope/sirchmunk.git HEAD",
+      "result": "accessible",
+      "exit_code": 0,
+      "log_path": "terminal",
+      "summary": "HEAD 1e07ec11953673b601959fc82563e8264b9d5c6a"
+    },
+    {
+      "command": "git ls-remote --tags https://github.com/modelscope/sirchmunk.git v0.0.7",
+      "result": "accessible",
+      "exit_code": 0,
+      "log_path": "terminal",
+      "summary": "tag v0.0.7 b1de3b0153d0c42d0683479f141480a8a8102d7d"
+    },
+    {
+      "command": "python -m pytest tests/test_sirchmunk_direct_file_search.py -q",
+      "result": "passed",
+      "exit_code": 0,
+      "log_path": "terminal",
+      "summary": "4 passed"
+    },
+    {
+      "command": "python -m heitang_kb_forge.cli build-sirchmunk-direct-file-search --workspace artifacts/audits/section_5/sirchmunk_direct_file_search/sample_workspace --query \"direct file search vector\" --output artifacts/audits/section_5/sirchmunk_direct_file_search/search",
+      "result": "passed",
+      "exit_code": 0,
+      "log_path": "terminal",
+      "summary": "Built local direct-file-search evidence with 1 result."
+    },
+    {
+      "command": "python -m heitang_kb_forge.cli validate-sirchmunk-direct-file-search --library artifacts/audits/section_5/sirchmunk_direct_file_search/search --output artifacts/audits/section_5/sirchmunk_direct_file_search/validation",
+      "result": "passed",
+      "exit_code": 0,
+      "log_path": "terminal",
+      "summary": "Validation passed with 0 boundary errors."
+    }
+  ],
+  "retention": "milestone",
+  "keep_in_git": true,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "Strengthening items 5.S1-5.S3, Campaign 3 Supplement 2.0 closure, Campaign 3.0, Campaign 3 Supplement 4.0, expanded final consistency, Campaign 4-8, and release remain incomplete.",
+  "next_required_e2e_step": "Process Section 5 strengthening item 5.S1 GBrain only.",
+  "not_goal_complete": true
+}

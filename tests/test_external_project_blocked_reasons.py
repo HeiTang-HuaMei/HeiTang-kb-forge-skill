@@ -14,6 +14,7 @@ REQUIRED_REASONS = {
     "provider_required",
     "secret_required",
     "network_required",
+    "ui_configuration_pending",
     "external_runtime_required",
     "license_review_required",
     "security_review_required",
@@ -55,12 +56,27 @@ def test_provider_secret_network_reasons_cannot_be_local_ready():
 
 
 def test_template_reference_entries_are_template_only():
-    projects = {project["project_id"]: project for project in _json("external_capability_registry.json")["projects"]}
+    projects = _json("external_capability_registry.json")["projects"]
 
-    for project_id in ["jellyfish", "story_flicks", "ai_marketing_skills"]:
-        project = projects[project_id]
-        assert "template_reference" in project["contract_status"]
+    template_projects = [
+        project for project in projects if "template_reference" in project["contract_status"]
+    ]
+    assert template_projects
+    for project in template_projects:
         assert "template_reference_only" in project["blocked_reasons"]
+        assert project["executable_action"] is False
+
+
+def test_advanced_reference_and_library_entries_remain_non_executable():
+    projects = {
+        project["project_id"]: project
+        for project in _json("external_capability_registry.json")["projects"]
+    }
+
+    for project_id in ["jellyfish", "story_flicks", "seedance2_skill", "ai_marketing_skills"]:
+        project = projects[project_id]
+        assert project["implemented"] is True
+        assert project["ready"] is False
         assert project["executable_action"] is False
 
 

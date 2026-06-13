@@ -1,0 +1,113 @@
+{
+  "schema_version": "audit_run_manifest.v1",
+  "run_id": "story_flicks_video_pipeline_schema",
+  "generated_at": "2026-06-13T00:22:57+08:00",
+  "type": "section_5_integration_decision",
+  "scope": "SECTION_5_ITEM_5_10_STORY_FLICKS",
+  "status": "passed",
+  "integration_decision": "reference_only",
+  "evidence_files": [
+    "pre_action_checkpoint.md",
+    "rollback_plan.md",
+    "video_pipeline_schema/video_pipeline_manifest.json",
+    "video_pipeline_schema/video_pipeline_stages.jsonl",
+    "video_pipeline_schema/asset_handoff_schema.json",
+    "video_pipeline_schema/timeline_schema.json",
+    "video_pipeline_schema/video_pipeline_validation_report.json",
+    "video_pipeline_schema/video_pipeline_schema_report.md",
+    "video_pipeline_schema/VIDEO_PIPELINE_SCHEMA_INDEX.md",
+    "validation/video_pipeline_validation_report.json",
+    "validation/video_pipeline_validation_report.md",
+    "story_flicks_integration_decision_report.json",
+    "story_flicks_integration_decision_report.md",
+    "story_flicks_ui_impact_note.json",
+    "story_flicks_ui_impact_note.md",
+    "run_summary.md"
+  ],
+  "campaign_state_after_run": {
+    "campaign_3_item_5_1": "advanced",
+    "campaign_3_item_5_2": "advanced",
+    "campaign_3_item_5_3": "advanced_needs_strengthening",
+    "campaign_3_item_5_4": "advanced",
+    "campaign_3_item_5_5": "advanced_reference_only",
+    "campaign_3_item_5_6": "advanced",
+    "campaign_3_item_5_7": "advanced",
+    "campaign_3_item_5_8": "advanced",
+    "campaign_3_item_5_9": "advanced_reference_only",
+    "campaign_3_item_5_10": "advanced_reference_only",
+    "campaign_3_accepted": false,
+    "campaign_4_allowed": false,
+    "next_section_5_item": "5.11 seedance2-skill"
+  },
+  "commands": [
+    {
+      "command": "git ls-remote https://github.com/alecm20/story-flicks HEAD",
+      "result": "accessible",
+      "exit_code": 0,
+      "log_path": "inline",
+      "summary": "HEAD 4f208380150f9c066867360d7ce760cc3e3ba47e"
+    },
+    {
+      "command": "python -m heitang_kb_forge.cli build-video-pipeline-schema-library --output artifacts\\audits\\section_5\\story_flicks_video_pipeline_schema\\video_pipeline_schema --library-name \"HeiTang AIGC Video Pipeline Schema\"",
+      "result": "passed",
+      "exit_code": 0,
+      "log_path": "terminal",
+      "summary": "Generated 7 local original video pipeline stage contracts."
+    },
+    {
+      "command": "python -m heitang_kb_forge.cli validate-video-pipeline-schema-library --library artifacts\\audits\\section_5\\story_flicks_video_pipeline_schema\\video_pipeline_schema --output artifacts\\audits\\section_5\\story_flicks_video_pipeline_schema\\validation",
+      "result": "passed",
+      "exit_code": 0,
+      "log_path": "terminal",
+      "summary": "Validation passed with 0 stage errors and 0 boundary errors."
+    },
+    {
+      "command": "python -m heitang_kb_forge.cli external-capability-registry --output docs\\audits\\s_a_contract_inclusion",
+      "result": "passed",
+      "exit_code": 0,
+      "log_path": "terminal",
+      "summary": "Regenerated Core S/A external capability assets with story-flicks as reference schema evidence and preserved AnySearch ui_configuration_pending truth."
+    },
+    {
+      "command": "python -m heitang_kb_forge.test_governance.gates --phase development --changed-file heitang_kb_forge/video_pipeline_schema/builder.py --repo-root . --execute",
+      "result": "passed",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_story_flicks_video_pipeline_schema.log",
+      "summary": "Fast Gate passed with 23 focused tests."
+    },
+    {
+      "command": "flutter test test\\widget_test.dart --plain-name \"external capability assets preserve boundaries and current provider status\" -r expanded",
+      "result": "passed",
+      "exit_code": 0,
+      "log_path": "terminal",
+      "summary": "UI asset boundary test passed."
+    },
+    {
+      "command": "python -m heitang_kb_forge.test_governance.gates --phase development --changed-file docs/governance/PLAN_SEQUENCE_LOCK.md --repo-root . --execute",
+      "result": "passed",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_test_governance.log",
+      "summary": "Governance Fast Gate passed with 88 tests; docs truth gate passed with 13 tests."
+    },
+    {
+      "command": "flutter analyze",
+      "result": "passed",
+      "exit_code": 0,
+      "log_path": "terminal",
+      "summary": "No issues found."
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed",
+      "exit_code": 0,
+      "log_path": "terminal",
+      "summary": "Core and UI repositories passed; line-ending warnings only."
+    }
+  ],
+  "retention": "milestone",
+  "keep_in_git": true,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "Section 5 items 5.11 through 5.14, strengthening items 5.S1-5.S3, Campaign 3 final consistency gate, and all later campaigns remain incomplete; story-flicks is not a bundled story-to-video or media rendering runtime.",
+  "next_required_e2e_step": "Process Section 5 item 5.11 seedance2-skill only.",
+  "not_goal_complete": true
+}

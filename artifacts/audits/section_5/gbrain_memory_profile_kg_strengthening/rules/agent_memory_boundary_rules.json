@@ -1,0 +1,32 @@
+{
+  "schema_version": "gbrain_agent_memory_boundary_rules.v1",
+  "rules": [
+    {
+      "rule_id": "no_runtime_install",
+      "purpose": "Do not install Bun, GBrain, bundled skills, or GBrain dependencies for this strengthening item.",
+      "blocked_side_effects": [
+        "bun_install",
+        "gbrain_install",
+        "skillpack_import"
+      ]
+    },
+    {
+      "rule_id": "no_mcp_or_db_side_effect",
+      "purpose": "Do not register MCP servers, create PGLite/Postgres/pgvector stores, or modify local agent config.",
+      "blocked_side_effects": [
+        "mcp_registration",
+        "database_creation",
+        "agent_config_write"
+      ]
+    },
+    {
+      "rule_id": "no_agent_binding_side_effect",
+      "purpose": "Do not create, bind, or run an Agent from this strengthening record.",
+      "blocked_side_effects": [
+        "agent_creation",
+        "agent_binding",
+        "agent_execution"
+      ]
+    }
+  ]
+}

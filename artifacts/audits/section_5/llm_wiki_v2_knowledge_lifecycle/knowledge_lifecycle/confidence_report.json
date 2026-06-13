@@ -1,0 +1,48 @@
+{
+  "schema_version": "knowledge_confidence_report.v1",
+  "status": "passed",
+  "min_confidence": 0.65,
+  "average_confidence": 0.9,
+  "low_confidence_count": 0,
+  "items": [
+    {
+      "chunk_id": "23cd46a53974710d5a2a00b0",
+      "title": "Sheet: RoutingEvidence. Row 2. Capability: office_table_routing. Claim: HeiTang table routing must preserve source linea",
+      "source_file": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0001_001_table_claims.md",
+      "evidence_id": "ev_23cd46a53974710d5a2a00b0",
+      "confidence": 0.9,
+      "confidence_factors": {
+        "has_text": true,
+        "has_source_trace": true,
+        "has_evidence_id": true,
+        "quality_report_present": true
+      }
+    },
+    {
+      "chunk_id": "71c2aba2d55c92eef5f99660",
+      "title": "Row 2. Capability: office_table_routing. Claim: CSV routing uses builtin parser for table documents. Method: Run batch i",
+      "source_file": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0002_002_table_claims.md",
+      "evidence_id": "ev_71c2aba2d55c92eef5f99660",
+      "confidence": 0.9,
+      "confidence_factors": {
+        "has_text": true,
+        "has_source_trace": true,
+        "has_evidence_id": true,
+        "quality_report_present": true
+      }
+    },
+    {
+      "chunk_id": "6c9f55d32434bd1e56fd2d1a",
+      "title": "Evidence-led workflow",
+      "source_file": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding/normalized_sources/0003_003_methodology.md",
+      "evidence_id": "ev_6c9f55d32434bd1e56fd2d1a",
+      "confidence": 0.9,
+      "confidence_factors": {
+        "has_text": true,
+        "has_source_trace": true,
+        "has_evidence_id": true,
+        "quality_report_present": true
+      }
+    }
+  ]
+}

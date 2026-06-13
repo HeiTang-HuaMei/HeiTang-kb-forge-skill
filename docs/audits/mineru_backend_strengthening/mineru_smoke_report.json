@@ -1,0 +1,318 @@
+{
+  "schema_version": "mineru.smoke_report.v1",
+  "status": "blocked",
+  "backend_id": "mineru",
+  "source": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\heitang_mineru_smoke_jlgzqhzj\\mineru_smoke.pdf",
+  "run": {
+    "parser_backend_version": "2.8.0-alpha.1",
+    "backend_name": "mineru",
+    "backend_version": "optional",
+    "command": "parser-backend-smoke --backend mineru",
+    "status": "unavailable",
+    "source_count": 1,
+    "success_count": 0,
+    "warning_count": 2,
+    "kb_trust_status": "raw_parse_output",
+    "warnings": [
+      "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin."
+    ],
+    "records": [
+      {
+        "source_path": "C:/Users/ADMINI~1/AppData/Local/Temp/heitang_mineru_smoke_jlgzqhzj/mineru_smoke.pdf",
+        "source_type": "pdf",
+        "backend_name": "mineru",
+        "backend_version": "optional",
+        "command": "parser-backend-smoke --backend mineru",
+        "status": "unavailable",
+        "text": "",
+        "warnings": [
+          "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin."
+        ],
+        "confidence": 0.0,
+        "metadata": {
+          "adapter": "mineru",
+          "runtime_invoked": false,
+          "error_code": "optional_runtime_dependency_missing",
+          "fallback_result": "builtin_available",
+          "repair_suggestion": "Install parser-mineru, verify local MinerU model/runtime availability, or rerun with backend=builtin for supported text sources.",
+          "audit_trace": "parser_backend_record",
+          "backend_id": "mineru"
+        },
+        "adapter_result": {
+          "schema_version": "document_backend.result.v1",
+          "adapter_id": "mineru",
+          "adapter_name": "mineru",
+          "adapter_version": "optional",
+          "adapter_type": "document_understanding",
+          "integration_decision": "real_integration",
+          "dependency_name": "mineru",
+          "optional_extra": "parser-mineru",
+          "dependency_status": "missing",
+          "runtime_status": "skipped",
+          "supported_inputs": [
+            ".bmp",
+            ".docx",
+            ".jpeg",
+            ".jpg",
+            ".pdf",
+            ".png",
+            ".pptx",
+            ".tif",
+            ".tiff",
+            ".xlsx"
+          ],
+          "validated_inputs": [
+            ".pdf",
+            ".png"
+          ],
+          "supported_outputs": [
+            "normalized_text",
+            "markdown",
+            "layout_json"
+          ],
+          "ocr_support": "supported",
+          "layout_support": "supported",
+          "table_support": "partial",
+          "figure_support": "partial",
+          "formula_support": "partial",
+          "reading_order_support": "supported",
+          "confidence": 0.0,
+          "warnings": [
+            "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin."
+          ],
+          "errors": [
+            {
+              "code": "optional_runtime_dependency_missing",
+              "message": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin.",
+              "retryable": false,
+              "fallback_reason": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin.",
+              "fallback_result": "builtin_available",
+              "repair_suggestion": "Install parser-mineru, verify local MinerU model/runtime availability, or rerun with backend=builtin for supported text sources."
+            }
+          ],
+          "source_trace": [
+            {
+              "source_path": "C:/Users/ADMINI~1/AppData/Local/Temp/heitang_mineru_smoke_jlgzqhzj/mineru_smoke.pdf",
+              "source_type": "pdf",
+              "page": null,
+              "block_id": null,
+              "command": "parser-backend-smoke --backend mineru"
+            }
+          ],
+          "fallback_reason": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin.",
+          "fallback_result": "builtin_available",
+          "repair_suggestion": "Install parser-mineru, verify local MinerU model/runtime availability, or rerun with backend=builtin for supported text sources.",
+          "status": "skipped"
+        }
+      }
+    ],
+    "adapter_contract": {
+      "schema_version": "document_backend.capability.v1",
+      "adapter_id": "mineru",
+      "adapter_name": "mineru",
+      "adapter_version": "optional",
+      "adapter_type": "document_understanding",
+      "integration_decision": "real_integration",
+      "dependency_name": "mineru",
+      "optional_extra": "parser-mineru",
+      "dependency_status": "missing",
+      "runtime_status": "skipped",
+      "supported_inputs": [
+        ".bmp",
+        ".docx",
+        ".jpeg",
+        ".jpg",
+        ".pdf",
+        ".png",
+        ".pptx",
+        ".tif",
+        ".tiff",
+        ".xlsx"
+      ],
+      "validated_inputs": [
+        ".pdf",
+        ".png"
+      ],
+      "supported_outputs": [
+        "normalized_text",
+        "markdown",
+        "layout_json"
+      ],
+      "ocr_support": "supported",
+      "layout_support": "supported",
+      "table_support": "partial",
+      "figure_support": "partial",
+      "formula_support": "partial",
+      "reading_order_support": "supported",
+      "confidence": 0.0,
+      "warnings": [
+        "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin."
+      ],
+      "errors": [
+        {
+          "code": "optional_runtime_dependency_missing",
+          "message": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin.",
+          "retryable": false,
+          "fallback_reason": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin.",
+          "fallback_result": "builtin_available",
+          "repair_suggestion": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin."
+        }
+      ],
+      "source_trace": [],
+      "fallback_reason": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin.",
+      "fallback_result": "builtin_available",
+      "repair_suggestion": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin."
+    }
+  },
+  "adapter_smoke_report": {
+    "schema_version": "document_backend.smoke.v1",
+    "adapter": {
+      "schema_version": "document_backend.capability.v1",
+      "adapter_id": "mineru",
+      "adapter_name": "mineru",
+      "adapter_version": "optional",
+      "adapter_type": "document_understanding",
+      "integration_decision": "real_integration",
+      "dependency_name": "mineru",
+      "optional_extra": "parser-mineru",
+      "dependency_status": "missing",
+      "runtime_status": "skipped",
+      "supported_inputs": [
+        ".bmp",
+        ".docx",
+        ".jpeg",
+        ".jpg",
+        ".pdf",
+        ".png",
+        ".pptx",
+        ".tif",
+        ".tiff",
+        ".xlsx"
+      ],
+      "validated_inputs": [
+        ".pdf",
+        ".png"
+      ],
+      "supported_outputs": [
+        "normalized_text",
+        "markdown",
+        "layout_json"
+      ],
+      "ocr_support": "supported",
+      "layout_support": "supported",
+      "table_support": "partial",
+      "figure_support": "partial",
+      "formula_support": "partial",
+      "reading_order_support": "supported",
+      "confidence": 0.0,
+      "warnings": [
+        "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin."
+      ],
+      "errors": [
+        {
+          "code": "optional_runtime_dependency_missing",
+          "message": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin.",
+          "retryable": false,
+          "fallback_reason": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin.",
+          "fallback_result": "builtin_available",
+          "repair_suggestion": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin."
+        }
+      ],
+      "source_trace": [],
+      "fallback_reason": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin.",
+      "fallback_result": "builtin_available",
+      "repair_suggestion": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin."
+    },
+    "status": "skipped",
+    "result": {
+      "schema_version": "document_backend.result.v1",
+      "adapter_id": "mineru",
+      "adapter_name": "mineru",
+      "adapter_version": "optional",
+      "adapter_type": "document_understanding",
+      "integration_decision": "real_integration",
+      "dependency_name": "mineru",
+      "optional_extra": "parser-mineru",
+      "dependency_status": "missing",
+      "runtime_status": "skipped",
+      "supported_inputs": [
+        ".bmp",
+        ".docx",
+        ".jpeg",
+        ".jpg",
+        ".pdf",
+        ".png",
+        ".pptx",
+        ".tif",
+        ".tiff",
+        ".xlsx"
+      ],
+      "validated_inputs": [
+        ".pdf",
+        ".png"
+      ],
+      "supported_outputs": [
+        "normalized_text",
+        "markdown",
+        "layout_json"
+      ],
+      "ocr_support": "supported",
+      "layout_support": "supported",
+      "table_support": "partial",
+      "figure_support": "partial",
+      "formula_support": "partial",
+      "reading_order_support": "supported",
+      "confidence": 0.0,
+      "warnings": [
+        "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin."
+      ],
+      "errors": [
+        {
+          "code": "optional_runtime_dependency_missing",
+          "message": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin.",
+          "retryable": false,
+          "fallback_reason": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin.",
+          "fallback_result": "builtin_available",
+          "repair_suggestion": "Install parser-mineru, verify local MinerU model/runtime availability, or rerun with backend=builtin for supported text sources."
+        }
+      ],
+      "source_trace": [
+        {
+          "source_path": "C:/Users/ADMINI~1/AppData/Local/Temp/heitang_mineru_smoke_jlgzqhzj/mineru_smoke.pdf",
+          "source_type": "pdf",
+          "page": null,
+          "block_id": null,
+          "command": "parser-backend-smoke --backend mineru"
+        }
+      ],
+      "fallback_reason": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin.",
+      "fallback_result": "builtin_available",
+      "repair_suggestion": "Install parser-mineru, verify local MinerU model/runtime availability, or rerun with backend=builtin for supported text sources.",
+      "status": "skipped"
+    },
+    "warnings": [
+      "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin."
+    ],
+    "errors": [
+      {
+        "code": "optional_runtime_dependency_missing",
+        "message": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin.",
+        "retryable": false,
+        "fallback_reason": "Optional dependency 'mineru' is not installed. Install the parser-mineru extra or use backend=builtin.",
+        "fallback_result": "builtin_available",
+        "repair_suggestion": "Install parser-mineru, verify local MinerU model/runtime availability, or rerun with backend=builtin for supported text sources."
+      }
+    ],
+    "repair_suggestion": "Install parser-mineru, verify local MinerU model/runtime availability, or rerun with backend=builtin for supported text sources."
+  },
+  "fallback_result": "builtin_available",
+  "repair_suggestion": "Install parser-mineru, verify local MinerU model/runtime availability, or rerun with backend=builtin for supported text sources.",
+  "audit_trace": "parser-backend-smoke",
+  "adapter_id": "mineru",
+  "decision": "real_integration",
+  "pdf_supported": true,
+  "image_or_scanned_supported": true,
+  "layout_blocks_supported": true,
+  "reading_order_supported": true,
+  "markdown_json_normalization_supported": true
+}

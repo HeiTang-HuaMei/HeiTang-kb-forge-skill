@@ -1,0 +1,9 @@
+{
+  "name": "core_fast_seedance2_skill_template_metadata",
+  "command": "python -m pytest tests/test_video_skill_template_metadata.py tests/test_seedance2_skill_integration_decision.py tests/test_s_a_contract_inclusion.py tests/test_external_capability_registry.py tests/test_external_project_registry.py tests/test_external_project_blocked_reasons.py -q",
+  "exit_code": 0,
+  "exit_code_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_seedance2_skill_template_metadata.log.exitcode",
+  "status": "passed",
+  "log_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_seedance2_skill_template_metadata.log",
+  "summary": "...........................                                              [100%]\n27 passed in 4.56s"
+}

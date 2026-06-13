@@ -1,0 +1,38 @@
+{
+  "schema_version": "heitang_external_webhook.v1",
+  "adapter_id": "n8n_workflow_export",
+  "method": "POST",
+  "path": "heitang-kb-forge/events",
+  "content_type": "application/json",
+  "authentication": {
+    "mode": "user_configured_at_destination",
+    "credentials_embedded": false
+  },
+  "request": {
+    "required_fields": [
+      "event_type",
+      "run_id",
+      "occurred_at",
+      "workspace_id",
+      "status",
+      "artifact_refs"
+    ],
+    "event_types": [
+      "knowledge_package.ready",
+      "skill_suite.ready",
+      "agent_run.completed",
+      "verification.completed"
+    ],
+    "artifact_refs_type": "array[string]"
+  },
+  "response": {
+    "status_code": 202,
+    "body_fields": [
+      "accepted",
+      "event_type",
+      "run_id"
+    ]
+  },
+  "source_trace_required": true,
+  "n8n_runtime_bundled": false
+}

@@ -1,6 +1,7 @@
 from pathlib import Path
 from datetime import datetime, timezone
 from dataclasses import dataclass
+from contextlib import nullcontext
 import json
 import os
 import re
@@ -17,14 +18,45 @@ from heitang_kb_forge.agent_rag.scope import parse_scope
 from heitang_kb_forge.agent_tools.exporter import make_tool_exports
 from heitang_kb_forge.agent_tools.invoker import invoke_tool
 from heitang_kb_forge.agent_tools.registry import get_agent_tool, list_agent_tools
+from heitang_kb_forge.auto_wiki import write_auto_wiki_outputs
 from heitang_kb_forge.batch_jobs import build_job_outputs, retry_failed_items, write_job_outputs
 from heitang_kb_forge.batch_jobs.report import write_batch_summaries
+from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_2_0_closure_gate
+from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_3_0_acceptance_gate
+from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_3_0_entry_gate
+from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_4_0_entry_gate
+from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_4_0_entry_gate_validation
+from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_4_0_agent_package
+from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_4_0_agent_package_validation
+from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_4_0_acceptance_gate
+from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_4_0_acceptance_gate_validation
+from heitang_kb_forge.campaign_3_closure import write_campaign_3_final_consistency_gate
+from heitang_kb_forge.campaign_3_closure import write_campaign_3_final_consistency_gate_validation
+from heitang_kb_forge.campaign_3_closure import write_campaign_1_2_3_integrated_closure_gate
+from heitang_kb_forge.campaign_3_closure import write_campaign_1_2_3_integrated_closure_gate_validation
+from heitang_kb_forge.campaign_3_closure import write_campaign_1_2_3_closure_pack
+from heitang_kb_forge.campaign_3_closure import write_campaign_1_2_3_closure_pack_validation
+from heitang_kb_forge.campaign_3_closure import write_repository_public_surface_cleanup_gate
+from heitang_kb_forge.campaign_3_closure import write_repository_public_surface_cleanup_gate_validation
+from heitang_kb_forge.campaign_3_closure import write_campaign_1_3_stage_test_gate
+from heitang_kb_forge.campaign_3_closure import write_campaign_1_3_stage_test_gate_validation
+from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_4_0_product_handoff_bundle
+from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_4_0_product_handoff_bundle_validation
+from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_4_0_skill_composer
+from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_4_0_skill_composer_validation
+from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_4_0_skill_template
+from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_4_0_skill_template_validation
 from heitang_kb_forge.config.loader import load_config
 from heitang_kb_forge.contracts.checker import check_package_contract
 from heitang_kb_forge.contracts.report import make_contract_report
 from heitang_kb_forge.contracts.stable_checker import run_stable_check
 from heitang_kb_forge.document_generation import DOCUMENT_GENERATION_OUTPUT_FILES, generate_document_outputs
-from heitang_kb_forge.document_parsing import V39_DOCUMENT_PARSING_OUTPUT_FILES, write_document_parsing_outputs
+from heitang_kb_forge.document_parsing import (
+    V39_DOCUMENT_PARSING_OUTPUT_FILES,
+    batch_import_documents,
+    preflight_documents,
+    write_document_parsing_outputs,
+)
 from heitang_kb_forge.doctor import run_doctor
 from heitang_kb_forge.downstream.exporter import DOWNSTREAM_OUTPUT_FILES, make_downstream_exports
 from heitang_kb_forge.demo_e2e import run_demo_e2e
@@ -32,10 +64,65 @@ from heitang_kb_forge.embedding.exporter import EMBEDDING_OUTPUT_FILES, make_emb
 from heitang_kb_forge.eval.demo import DEMO_OUTPUT_FILES, make_demo_report
 from heitang_kb_forge.evidence_gate import EVIDENCE_GATE_OUTPUT_FILES, run_evidence_gate
 from heitang_kb_forge.evalset.exporter import RETRIEVAL_EVAL_OUTPUT_FILES, make_retrieval_eval_set
+from heitang_kb_forge.external_automation import export_n8n_workflow, validate_n8n_workflow
+from heitang_kb_forge.external_retrieval import (
+    build_sirchmunk_direct_file_search,
+    check_anysearch_provider,
+    run_anysearch_retrieval,
+    smoke_anysearch_provider,
+    write_sirchmunk_direct_file_search_validation,
+)
+from heitang_kb_forge.external_sources import (
+    build_external_source_framework,
+    build_external_source_unified_trace,
+    build_external_link_import_entry_audit,
+    check_opencli_external_verification,
+    clear_authenticated_browser_session,
+    detect_platform_link,
+    generate_correctness_report,
+    ingest_generic_web_url,
+    import_manual_evidence,
+    pause_authenticated_browser_session,
+    preflight_platform_links,
+    read_visible_browser_source,
+    resume_authenticated_browser_session,
+    start_authenticated_browser_session,
+    build_video_visual_evidence,
+    verify_external_source_with_opencli,
+    write_authenticated_browser_validation,
+    write_external_source_framework_validation,
+    write_external_source_unified_trace_validation,
+    write_external_link_import_entry_validation,
+    write_generic_web_url_validation,
+    write_knowledge_verification_validation,
+    write_manual_evidence_validation,
+    write_opencli_external_verification_validation,
+    write_platform_preflight_validation,
+    write_video_visual_validation,
+    verify_answer,
+    verify_claims as verify_external_claims,
+    verify_knowledge_base,
+)
 from heitang_kb_forge.exporters.jsonl_exporter import write_json, write_jsonl
 from heitang_kb_forge.final_audit import run_final_pre_v4_audit
 from heitang_kb_forge.governance import GOVERNANCE_OUTPUT_FILES, run_governance
 from heitang_kb_forge.golden_demo_acceptance import V311_GOLDEN_DEMO_OUTPUT_FILES, run_golden_demo_acceptance
+from heitang_kb_forge.gbrain_strengthening import (
+    build_gbrain_strengthening_record,
+    write_gbrain_strengthening_validation,
+)
+from heitang_kb_forge.horizon_strengthening import (
+    build_horizon_strengthening_record,
+    write_horizon_strengthening_validation,
+)
+from heitang_kb_forge.obsidian_vault_strengthening import (
+    build_obsidian_vault_strengthening_record,
+    write_obsidian_vault_strengthening_validation,
+)
+from heitang_kb_forge.pre_4_0_workspace_partition import (
+    write_pre_4_0_workspace_partition_foundation_gate,
+    write_pre_4_0_workspace_partition_validation,
+)
 from heitang_kb_forge.hardening.batch import make_batch_hardening_outputs
 from heitang_kb_forge.hardening.run_trace import make_run_manifest, new_run_id, now_iso, stage_record
 from heitang_kb_forge.incremental.reuse import INCREMENTAL_OUTPUT_FILES, make_incremental_report
@@ -46,8 +133,14 @@ from heitang_kb_forge.knowledge_runtime import (
     build_kb_index_outputs,
     query_kb_outputs,
 )
+from heitang_kb_forge.knowledge_supply_chain import (
+    attach_document_understanding_lineage,
+    build_knowledge_package as build_knowledge_package_from_base,
+    run_document_understanding as run_document_understanding_workflow,
+)
 from heitang_kb_forge.knowledge_bound_factory import generate_knowledge_bound_agent, generate_standalone_agent
 from heitang_kb_forge.multi_kb_orchestration import orchestrate_multi_kb_agents
+from heitang_kb_forge.knowledge_lifecycle import write_knowledge_lifecycle_outputs
 from heitang_kb_forge.memory_lifecycle import V39_MEMORY_LIFECYCLE_OUTPUT_FILES, write_memory_lifecycle_outputs
 from heitang_kb_forge.methodology import extract_methodology
 from heitang_kb_forge.local_agent_runtime import run_local_agent_runtime
@@ -92,6 +185,7 @@ from heitang_kb_forge.lifecycle.change_detector import (
 from heitang_kb_forge.lifecycle.source_registry import make_source_registry
 from heitang_kb_forge.eval_dashboard.recorder import make_eval_dashboard
 from heitang_kb_forge.exporters.report_exporter import write_report
+from heitang_kb_forge.exporters.workflow_report_exporter import export_workflow_report_bundle
 from heitang_kb_forge.llm.extractor import LLMOptions, OUTPUT_FILES, extract_llm_assets
 from heitang_kb_forge.llm.agent_package_generator import generate_llm_agent_package
 from heitang_kb_forge.llm.boundary_judge import judge_boundary_with_llm
@@ -116,6 +210,42 @@ from heitang_kb_forge.llm.quality import LLM_QUALITY_OUTPUT_FILES, make_llm_qual
 from heitang_kb_forge.ocr.report import make_performance_report, make_resume_report
 from heitang_kb_forge.multimodal.classifier import IMAGE_SUFFIXES
 from heitang_kb_forge.multimodal.builder import MultimodalOptions, build_multimodal_assets
+from heitang_kb_forge.multimodal_skill_package import (
+    write_multimodal_skill_package,
+    write_multimodal_skill_validation,
+)
+from heitang_kb_forge.prompt_asset_library import (
+    write_prompt_asset_library,
+    write_prompt_asset_validation,
+)
+from heitang_kb_forge.marketing_skill_patterns import (
+    write_marketing_skill_pattern_library,
+    write_marketing_skill_pattern_validation,
+)
+from heitang_kb_forge.business_scenario_templates import (
+    write_business_scenario_template_library,
+    write_business_scenario_template_validation,
+)
+from heitang_kb_forge.content_asset_schema import (
+    write_content_asset_schema_library,
+    write_content_asset_schema_validation,
+)
+from heitang_kb_forge.video_pipeline_schema import (
+    write_video_pipeline_schema_library,
+    write_video_pipeline_schema_validation,
+)
+from heitang_kb_forge.video_skill_template_metadata import (
+    write_video_skill_template_metadata,
+    write_video_skill_template_metadata_validation,
+)
+from heitang_kb_forge.cross_modal_rag_schema import (
+    write_cross_modal_rag_schema_library,
+    write_cross_modal_rag_schema_validation,
+)
+from heitang_kb_forge.engineering_governance_rules import (
+    write_engineering_governance_rules,
+    write_engineering_governance_validation,
+)
 from heitang_kb_forge.parsers.docx_parser import parse_docx
 from heitang_kb_forge.parsers.hardening import parse_epub, parse_html, parse_zip
 from heitang_kb_forge.parsers.image_parser import parse_image
@@ -152,29 +282,93 @@ from heitang_kb_forge.parser_backends.reports import (
     render_parse_compare_report,
     render_parse_quality_report,
 )
+from heitang_kb_forge.parser_backends.model_cache import backend_model_cache_environment
 from heitang_kb_forge.parser_backends.release_hardening import (
     inspect_backend_status,
     make_acceptance_summary_report,
     make_backend_status_schema,
     make_baseline_lock_report,
+    make_docling_backend_check,
+    make_docling_backend_smoke,
+    make_docling_convert_result_report,
+    make_docling_integration_decision_report,
     make_evidence_index,
+    make_fallback_parser_contract,
     make_failure_mode_report,
     make_fresh_clone_reproducibility_report,
+    make_marker_backend_check,
+    make_marker_backend_smoke,
+    make_marker_convert_result_report,
+    make_marker_dependency_remediation_report,
+    make_marker_integration_decision_report,
+    make_marker_ui_impact_note,
+    make_mineru_backend_check,
+    make_mineru_backend_smoke,
+    make_mineru_document_understanding_result_report,
+    make_mineru_integration_decision_report,
+    make_opendataloader_backend_check,
+    make_opendataloader_backend_smoke,
+    make_opendataloader_convert_result_report,
+    make_opendataloader_dependency_remediation_report,
+    make_opendataloader_integration_decision_report,
+    make_opendataloader_ui_impact_note,
+    make_paddleocr_backend_check,
+    make_paddleocr_backend_smoke,
+    make_paddleocr_integration_decision_report,
+    make_paddleocr_ocr_result_report,
     make_parser_backend_matrix,
     make_parser_backend_registry,
     make_parser_backend_smoke,
+    make_surya_backend_check,
+    make_surya_backend_smoke,
+    make_surya_dependency_remediation_report,
+    make_surya_integration_decision_report,
+    make_surya_ui_impact_note,
+    make_unstructured_backend_check,
+    make_unstructured_backend_smoke,
+    make_unstructured_dependency_remediation_report,
+    make_unstructured_integration_decision_report,
+    make_unstructured_ui_impact_note,
     render_acceptance_summary_report,
     render_backend_status_report,
     render_baseline_lock_report,
     render_capability_boundaries_report,
+    render_docling_convert_result_report,
+    render_docling_integration_decision_report,
+    render_docling_smoke_report,
     render_evidence_index,
+    render_fallback_parser_contract,
     render_failure_mode_report,
     render_fresh_clone_reproducibility_report,
     render_inspect_report,
     render_live_acceptance_replay_report,
+    render_marker_integration_decision_report,
+    render_marker_convert_result_report,
+    render_marker_dependency_remediation_report,
+    render_marker_smoke_report,
+    render_marker_ui_impact_note,
     render_matrix_report,
+    render_mineru_document_understanding_result_report,
+    render_mineru_integration_decision_report,
+    render_mineru_smoke_report,
+    render_opendataloader_convert_result_report,
+    render_opendataloader_dependency_remediation_report,
+    render_opendataloader_integration_decision_report,
+    render_opendataloader_smoke_report,
+    render_opendataloader_ui_impact_note,
+    render_paddleocr_integration_decision_report,
+    render_paddleocr_ocr_result_report,
+    render_paddleocr_smoke_report,
     render_registry_report,
     render_smoke_report,
+    render_surya_dependency_remediation_report,
+    render_surya_integration_decision_report,
+    render_surya_smoke_report,
+    render_surya_ui_impact_note,
+    render_unstructured_dependency_remediation_report,
+    render_unstructured_integration_decision_report,
+    render_unstructured_smoke_report,
+    render_unstructured_ui_impact_note,
 )
 from heitang_kb_forge.platform_distribution import check_platform_upload, export_platform_package, mock_publish_package
 from heitang_kb_forge.pre_v4_p0 import (
@@ -220,7 +414,7 @@ from heitang_kb_forge.retrieval.evidence_selection import select_evidence
 from heitang_kb_forge.retrieval.external_absorption import write_v38_external_absorption_map
 from heitang_kb_forge.retrieval.rerank import build_rerank_report, rerank_candidates
 from heitang_kb_forge.retrieval.index_builder import build_retrieval_index
-from heitang_kb_forge.verification import run_claim_verification
+from heitang_kb_forge.verification import run_claim_verification, verify_agent_output
 from heitang_kb_forge.refresh.checker import make_refresh_plan
 from heitang_kb_forge.risk.labeler import RISK_OUTPUT_FILES, make_risk_labels
 from heitang_kb_forge.runtime.agent_runtime import RUNTIME_OUTPUT_FILES, ask_package
@@ -637,6 +831,469 @@ def parser_backend_smoke_command(
         raise typer.Exit(1)
 
 
+@app.command("fallback-parser-contract")
+def fallback_parser_contract_command(
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Write the built-in fallback parser contract without claiming full DU capability."""
+    report = make_fallback_parser_contract()
+    if output is not None:
+        _write_dual_parser_backend_report(output, "fallback_parser_contract", report, render_fallback_parser_contract(report))
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(
+            "Fallback parser contract: "
+            f"{report['status']} | Stable surface: {', '.join(report['validated_stable_surface'])}"
+        )
+
+
+@app.command("check-paddleocr-backend")
+def check_paddleocr_backend_command(
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Write a PaddleOCR integration decision and current local dependency check."""
+    report = make_paddleocr_backend_check()
+    if output is not None:
+        _write_dual_parser_backend_report(
+            output,
+            "paddleocr_integration_decision_report",
+            report,
+            render_paddleocr_integration_decision_report(report),
+        )
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(
+            "PaddleOCR backend check: "
+            f"{report['decision']} | Current environment: {report['current_environment_status']}"
+        )
+    if report["decision"] != "real_integration":
+        raise typer.Exit(1)
+
+
+@app.command("smoke-paddleocr-backend")
+def smoke_paddleocr_backend_command(
+    input: Path | None = typer.Option(None, "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Run a PaddleOCR-only smoke with structured dependency-gated skipped results."""
+    report = make_paddleocr_backend_smoke(input)
+    if output is not None:
+        _write_dual_parser_backend_report(output, "paddleocr_smoke_report", report, render_paddleocr_smoke_report(report))
+        decision = make_paddleocr_integration_decision_report(smoke_report=report)
+        _write_dual_parser_backend_report(
+            output,
+            "paddleocr_integration_decision_report",
+            decision,
+            render_paddleocr_integration_decision_report(decision),
+        )
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(f"PaddleOCR backend smoke: {report['status']} | Source: {report.get('source')}")
+    if report["status"] == "fail":
+        raise typer.Exit(1)
+
+
+@app.command("check-mineru-backend")
+def check_mineru_backend_command(
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Write a MinerU integration decision and current local dependency check."""
+    report = make_mineru_backend_check()
+    if output is not None:
+        _write_dual_parser_backend_report(
+            output,
+            "mineru_integration_decision_report",
+            report,
+            render_mineru_integration_decision_report(report),
+        )
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(
+            "MinerU backend check: "
+            f"{report['decision']} | Current environment: {report['current_environment_status']}"
+        )
+    if report["decision"] != "real_integration":
+        raise typer.Exit(1)
+
+
+@app.command("smoke-mineru-backend")
+def smoke_mineru_backend_command(
+    input: Path | None = typer.Option(None, "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Run a MinerU-only smoke with structured dependency-gated skipped results."""
+    report = make_mineru_backend_smoke(input)
+    if output is not None:
+        _write_dual_parser_backend_report(output, "mineru_smoke_report", report, render_mineru_smoke_report(report))
+        decision = make_mineru_integration_decision_report(smoke_report=report)
+        _write_dual_parser_backend_report(
+            output,
+            "mineru_integration_decision_report",
+            decision,
+            render_mineru_integration_decision_report(decision),
+        )
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(f"MinerU backend smoke: {report['status']} | Source: {report.get('source')}")
+    if report["status"] == "fail":
+        raise typer.Exit(1)
+
+
+@app.command("check-docling-backend")
+def check_docling_backend_command(
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Write a Docling integration decision and current local dependency check."""
+    report = make_docling_backend_check()
+    if output is not None:
+        _write_dual_parser_backend_report(
+            output,
+            "docling_integration_decision_report",
+            report,
+            render_docling_integration_decision_report(report),
+        )
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(
+            "Docling backend check: "
+            f"{report['decision']} | Current environment: {report['current_environment_status']}"
+        )
+    if report["decision"] != "real_integration":
+        raise typer.Exit(1)
+
+
+@app.command("smoke-docling-backend")
+def smoke_docling_backend_command(
+    input: Path | None = typer.Option(None, "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Run a Docling-only smoke with structured dependency-gated skipped results."""
+    report = make_docling_backend_smoke(input)
+    if output is not None:
+        _write_dual_parser_backend_report(output, "docling_smoke_report", report, render_docling_smoke_report(report))
+        decision = make_docling_integration_decision_report(smoke_report=report)
+        _write_dual_parser_backend_report(
+            output,
+            "docling_integration_decision_report",
+            decision,
+            render_docling_integration_decision_report(decision),
+        )
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(f"Docling backend smoke: {report['status']} | Source: {report.get('source')}")
+    if report["status"] == "fail":
+        raise typer.Exit(1)
+
+
+@app.command("check-unstructured-backend")
+def check_unstructured_backend_command(
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Write an Unstructured integration decision and fallback parser contract."""
+    report = make_unstructured_backend_check()
+    if output is not None:
+        fallback = make_fallback_parser_contract()
+        _write_dual_parser_backend_report(output, "fallback_parser_contract", fallback, render_fallback_parser_contract(fallback))
+        _write_dual_parser_backend_report(
+            output,
+            "unstructured_integration_decision_report",
+            report,
+            render_unstructured_integration_decision_report(report),
+        )
+        remediation = make_unstructured_dependency_remediation_report()
+        _write_dual_parser_backend_report(
+            output,
+            "unstructured_dependency_remediation_report",
+            remediation,
+            render_unstructured_dependency_remediation_report(remediation),
+        )
+        ui_note = make_unstructured_ui_impact_note()
+        _write_dual_parser_backend_report(output, "unstructured_ui_impact_note", ui_note, render_unstructured_ui_impact_note(ui_note))
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(
+            "Unstructured backend check: "
+            f"{report['decision']} | Current environment: {report['current_environment_status']}"
+        )
+    if report["decision"] != "real_integration":
+        raise typer.Exit(1)
+
+
+@app.command("smoke-unstructured-backend")
+def smoke_unstructured_backend_command(
+    input: Path | None = typer.Option(None, "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Run an Unstructured-only smoke with structured dependency-gated skipped results."""
+    report = make_unstructured_backend_smoke(input)
+    if output is not None:
+        fallback = make_fallback_parser_contract()
+        _write_dual_parser_backend_report(output, "fallback_parser_contract", fallback, render_fallback_parser_contract(fallback))
+        _write_dual_parser_backend_report(output, "unstructured_smoke_report", report, render_unstructured_smoke_report(report))
+        decision = make_unstructured_integration_decision_report(smoke_report=report)
+        _write_dual_parser_backend_report(
+            output,
+            "unstructured_integration_decision_report",
+            decision,
+            render_unstructured_integration_decision_report(decision),
+        )
+        remediation = make_unstructured_dependency_remediation_report(smoke_report=report)
+        _write_dual_parser_backend_report(
+            output,
+            "unstructured_dependency_remediation_report",
+            remediation,
+            render_unstructured_dependency_remediation_report(remediation),
+        )
+        ui_note = make_unstructured_ui_impact_note()
+        _write_dual_parser_backend_report(output, "unstructured_ui_impact_note", ui_note, render_unstructured_ui_impact_note(ui_note))
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(f"Unstructured backend smoke: {report['status']} | Source: {report.get('source')}")
+    if report["status"] == "fail":
+        raise typer.Exit(1)
+
+
+@app.command("check-marker-backend")
+def check_marker_backend_command(
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    model_cache: Path | None = typer.Option(None, "--model-cache"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Check Marker with an explicit workspace-local model cache."""
+    with backend_model_cache_environment("marker", model_cache):
+        report = make_marker_backend_check()
+        remediation = make_marker_dependency_remediation_report()
+        ui_note = make_marker_ui_impact_note()
+        if output is not None:
+            _write_dual_parser_backend_report(
+                output,
+                "marker_integration_decision_report",
+                report,
+                render_marker_integration_decision_report(report),
+            )
+            _write_dual_parser_backend_report(
+                output,
+                "marker_dependency_remediation_report",
+                remediation,
+                render_marker_dependency_remediation_report(remediation),
+            )
+            _write_dual_parser_backend_report(
+                output,
+                "marker_ui_impact_note",
+                ui_note,
+                render_marker_ui_impact_note(ui_note),
+            )
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(
+            "Marker backend check: "
+            f"{report['decision']} | Current environment: {report['current_environment_status']}"
+        )
+
+
+@app.command("smoke-marker-backend")
+def smoke_marker_backend_command(
+    input: Path | None = typer.Option(None, "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    model_cache: Path | None = typer.Option(None, "--model-cache"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Run a real Marker smoke with an explicit workspace-local model cache."""
+    with backend_model_cache_environment("marker", model_cache):
+        report = make_marker_backend_smoke(input)
+        decision = make_marker_integration_decision_report(smoke_report=report)
+        remediation = make_marker_dependency_remediation_report(smoke_report=report)
+        ui_note = make_marker_ui_impact_note(smoke_report=report)
+        if output is not None:
+            _write_dual_parser_backend_report(output, "marker_smoke_report", report, render_marker_smoke_report(report))
+            _write_dual_parser_backend_report(
+                output,
+                "marker_integration_decision_report",
+                decision,
+                render_marker_integration_decision_report(decision),
+            )
+            _write_dual_parser_backend_report(
+                output,
+                "marker_dependency_remediation_report",
+                remediation,
+                render_marker_dependency_remediation_report(remediation),
+            )
+            _write_dual_parser_backend_report(
+                output,
+                "marker_ui_impact_note",
+                ui_note,
+                render_marker_ui_impact_note(ui_note),
+            )
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(f"Marker backend smoke: {report['status']} | Source: {report.get('source')}")
+    if report["status"] == "fail":
+        raise typer.Exit(1)
+
+
+@app.command("check-opendataloader-backend")
+def check_opendataloader_backend_command(
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Write an OpenDataLoader integration decision and current local dependency check."""
+    report = make_opendataloader_backend_check()
+    if output is not None:
+        _write_dual_parser_backend_report(
+            output,
+            "opendataloader_integration_decision_report",
+            report,
+            render_opendataloader_integration_decision_report(report),
+        )
+        remediation = make_opendataloader_dependency_remediation_report()
+        _write_dual_parser_backend_report(
+            output,
+            "opendataloader_dependency_remediation_report",
+            remediation,
+            render_opendataloader_dependency_remediation_report(remediation),
+        )
+        ui_note = make_opendataloader_ui_impact_note()
+        _write_dual_parser_backend_report(output, "opendataloader_ui_impact_note", ui_note, render_opendataloader_ui_impact_note(ui_note))
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(
+            "OpenDataLoader backend check: "
+            f"{report['decision']} | Current environment: {report['current_environment_status']}"
+        )
+    if report["decision"] != "real_integration":
+        raise typer.Exit(1)
+
+
+@app.command("smoke-opendataloader-backend")
+def smoke_opendataloader_backend_command(
+    input: Path | None = typer.Option(None, "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Run an OpenDataLoader-only smoke with structured dependency-gated skipped results."""
+    report = make_opendataloader_backend_smoke(input)
+    if output is not None:
+        _write_dual_parser_backend_report(
+            output,
+            "opendataloader_smoke_report",
+            report,
+            render_opendataloader_smoke_report(report),
+        )
+        decision = make_opendataloader_integration_decision_report(smoke_report=report)
+        _write_dual_parser_backend_report(
+            output,
+            "opendataloader_integration_decision_report",
+            decision,
+            render_opendataloader_integration_decision_report(decision),
+        )
+        remediation = make_opendataloader_dependency_remediation_report(smoke_report=report)
+        _write_dual_parser_backend_report(
+            output,
+            "opendataloader_dependency_remediation_report",
+            remediation,
+            render_opendataloader_dependency_remediation_report(remediation),
+        )
+        ui_note = make_opendataloader_ui_impact_note()
+        _write_dual_parser_backend_report(output, "opendataloader_ui_impact_note", ui_note, render_opendataloader_ui_impact_note(ui_note))
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(f"OpenDataLoader backend smoke: {report['status']} | Source: {report.get('source')}")
+    if report["status"] == "fail":
+        raise typer.Exit(1)
+
+
+@app.command("check-surya-backend")
+def check_surya_backend_command(
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    model_cache: Path | None = typer.Option(None, "--model-cache"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Write a Surya benchmark integration decision without promoting it to a primary parser."""
+    with backend_model_cache_environment("surya", model_cache):
+        report = make_surya_backend_check()
+        if output is not None:
+            _write_dual_parser_backend_report(
+                output,
+                "surya_integration_decision_report",
+                report,
+                render_surya_integration_decision_report(report),
+            )
+            remediation = make_surya_dependency_remediation_report()
+            _write_dual_parser_backend_report(
+                output,
+                "surya_dependency_remediation_report",
+                remediation,
+                render_surya_dependency_remediation_report(remediation),
+            )
+            ui_note = make_surya_ui_impact_note()
+            _write_dual_parser_backend_report(output, "surya_ui_impact_note", ui_note, render_surya_ui_impact_note(ui_note))
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(
+            "Surya backend check: "
+            f"{report['decision']} | Current environment: {report['current_environment_status']}"
+        )
+
+
+@app.command("smoke-surya-backend")
+def smoke_surya_backend_command(
+    input: Path | None = typer.Option(None, "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    model_cache: Path | None = typer.Option(None, "--model-cache"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Run a Surya benchmark smoke that preserves the needs_strengthening boundary."""
+    with backend_model_cache_environment("surya", model_cache):
+        report = make_surya_backend_smoke(input)
+        if output is not None:
+            _write_dual_parser_backend_report(output, "surya_smoke_report", report, render_surya_smoke_report(report))
+            decision = make_surya_integration_decision_report(smoke_report=report)
+            _write_dual_parser_backend_report(
+                output,
+                "surya_integration_decision_report",
+                decision,
+                render_surya_integration_decision_report(decision),
+            )
+            remediation = make_surya_dependency_remediation_report(smoke_report=report)
+            _write_dual_parser_backend_report(
+                output,
+                "surya_dependency_remediation_report",
+                remediation,
+                render_surya_dependency_remediation_report(remediation),
+            )
+            ui_note = make_surya_ui_impact_note()
+            _write_dual_parser_backend_report(output, "surya_ui_impact_note", ui_note, render_surya_ui_impact_note(ui_note))
+    if json_output or output is None:
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        typer.echo(f"Surya backend smoke: {report['status']} | Source: {report.get('source')}")
+    if report["status"] == "fail":
+        raise typer.Exit(1)
+
+
 @app.command("parser-backend-release-evidence")
 def parser_backend_release_evidence_command(
     output: Path = typer.Option(..., "--output", "-o"),
@@ -673,11 +1330,160 @@ def parse_with_backend_command(
     input: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
     output: Path = typer.Option(..., "--output", "-o"),
     backend: str = typer.Option("builtin", "--backend"),
+    model_cache: Path | None = typer.Option(None, "--model-cache"),
 ) -> None:
     """Parse sources with a selected backend and write normalized parser outputs."""
-    run = parse_sources_with_backend(input, backend, f"parse-with-backend --backend {backend}")
-    _write_parser_backend_run(output, run)
+    cache_context = (
+        backend_model_cache_environment(backend, model_cache)
+        if backend.strip().lower() in {"marker", "surya"}
+        else nullcontext()
+    )
+    with cache_context:
+        run = parse_sources_with_backend(input, backend, f"parse-with-backend --backend {backend}")
+        _write_parser_backend_run(output, run)
     typer.echo(f"Parser backend: {run.backend_name} | Status: {run.status} | Sources: {run.source_count}")
+
+
+@app.command("run-marker-convert")
+def run_marker_convert_command(
+    input: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    model_cache: Path | None = typer.Option(None, "--model-cache"),
+) -> None:
+    """Run Marker PDF conversion without LLM use and with a workspace-local model cache."""
+    with backend_model_cache_environment("marker", model_cache):
+        run = parse_sources_with_backend(input, "marker", "run-marker-convert")
+        _write_parser_backend_run(output, run)
+        report = make_marker_convert_result_report(run)
+        _write_dual_parser_backend_report(
+            output,
+            "marker_convert_result",
+            report,
+            render_marker_convert_result_report(report),
+        )
+        smoke = make_marker_backend_smoke(input)
+        _write_dual_parser_backend_report(output, "marker_smoke_report", smoke, render_marker_smoke_report(smoke))
+        decision = make_marker_integration_decision_report(smoke_report=smoke)
+        _write_dual_parser_backend_report(
+            output,
+            "marker_integration_decision_report",
+            decision,
+            render_marker_integration_decision_report(decision),
+        )
+        remediation = make_marker_dependency_remediation_report(smoke_report=smoke)
+        _write_dual_parser_backend_report(
+            output,
+            "marker_dependency_remediation_report",
+            remediation,
+            render_marker_dependency_remediation_report(remediation),
+        )
+        ui_note = make_marker_ui_impact_note(smoke_report=smoke)
+        _write_dual_parser_backend_report(output, "marker_ui_impact_note", ui_note, render_marker_ui_impact_note(ui_note))
+    typer.echo(f"Marker convert: {run.status} | Sources: {run.source_count}")
+
+
+@app.command("run-paddleocr-ocr")
+def run_paddleocr_ocr_command(
+    input: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Run the PaddleOCR OCR adapter for local images or scanned PDFs."""
+    run = parse_sources_with_backend(input, "paddleocr", "run-paddleocr-ocr")
+    _write_parser_backend_run(output, run)
+    report = make_paddleocr_ocr_result_report(run)
+    _write_dual_parser_backend_report(output, "paddleocr_ocr_result", report, render_paddleocr_ocr_result_report(report))
+    decision = make_paddleocr_integration_decision_report(run_report=report)
+    _write_dual_parser_backend_report(
+        output,
+        "paddleocr_integration_decision_report",
+        decision,
+        render_paddleocr_integration_decision_report(decision),
+    )
+    typer.echo(f"PaddleOCR OCR: {run.status} | Sources: {run.source_count}")
+
+
+@app.command("run-mineru-document-understanding")
+def run_mineru_document_understanding_command(
+    input: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Run the MinerU document understanding adapter for local PDFs or images."""
+    run = parse_sources_with_backend(input, "mineru", "run-mineru-document-understanding")
+    _write_parser_backend_run(output, run)
+    report = make_mineru_document_understanding_result_report(run)
+    _write_dual_parser_backend_report(
+        output,
+        "mineru_document_understanding_result",
+        report,
+        render_mineru_document_understanding_result_report(report),
+    )
+    decision = make_mineru_integration_decision_report(run_report=report)
+    _write_dual_parser_backend_report(
+        output,
+        "mineru_integration_decision_report",
+        decision,
+        render_mineru_integration_decision_report(decision),
+    )
+    typer.echo(f"MinerU document understanding: {run.status} | Sources: {run.source_count}")
+
+
+@app.command("run-docling-convert")
+def run_docling_convert_command(
+    input: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Run the Docling document conversion adapter."""
+    run = parse_sources_with_backend(input, "docling", "run-docling-convert")
+    _write_parser_backend_run(output, run)
+    report = make_docling_convert_result_report(run)
+    _write_dual_parser_backend_report(
+        output,
+        "docling_convert_result",
+        report,
+        render_docling_convert_result_report(report),
+    )
+    decision = make_docling_integration_decision_report(run_report=report)
+    _write_dual_parser_backend_report(
+        output,
+        "docling_integration_decision_report",
+        decision,
+        render_docling_integration_decision_report(decision),
+    )
+    typer.echo(f"Docling convert: {run.status} | Sources: {run.source_count}")
+
+
+@app.command("run-opendataloader-convert")
+def run_opendataloader_convert_command(
+    input: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Run the OpenDataLoader PDF conversion adapter."""
+    run = parse_sources_with_backend(input, "opendataloader", "run-opendataloader-convert")
+    _write_parser_backend_run(output, run)
+    report = make_opendataloader_convert_result_report(run)
+    _write_dual_parser_backend_report(
+        output,
+        "opendataloader_convert_result",
+        report,
+        render_opendataloader_convert_result_report(report),
+    )
+    decision = make_opendataloader_integration_decision_report(run_report=report)
+    _write_dual_parser_backend_report(
+        output,
+        "opendataloader_integration_decision_report",
+        decision,
+        render_opendataloader_integration_decision_report(decision),
+    )
+    remediation = make_opendataloader_dependency_remediation_report(run_report=report)
+    _write_dual_parser_backend_report(
+        output,
+        "opendataloader_dependency_remediation_report",
+        remediation,
+        render_opendataloader_dependency_remediation_report(remediation),
+    )
+    ui_note = make_opendataloader_ui_impact_note()
+    _write_dual_parser_backend_report(output, "opendataloader_ui_impact_note", ui_note, render_opendataloader_ui_impact_note(ui_note))
+    typer.echo(f"OpenDataLoader convert: {run.status} | Sources: {run.source_count}")
 
 
 @app.command("parse-compare")
@@ -1369,9 +2175,19 @@ def skill_suite_governance_report_command(
         dir_okay=True,
         readable=True,
     ),
+    accept_first_run_baseline: bool = typer.Option(
+        False,
+        "--accept-first-run-baseline",
+        help="Accept this suite as the first governed baseline when no old suite exists.",
+    ),
 ) -> None:
     """Build suite-level validation, diff, installability, and governance evidence."""
-    result = run_skill_suite_governance(suite, output, old_suite)
+    result = run_skill_suite_governance(
+        suite,
+        output,
+        old_suite,
+        accept_first_run_baseline=accept_first_run_baseline,
+    )
     typer.echo(f"Built Skill Suite governance report at {output or suite}")
     typer.echo(
         f"Status: {result['status']} | Release ready: {result['release_ready']}"
@@ -1957,6 +2773,241 @@ def provider_fallback_test_command(
     """Simulate provider failure scenarios and fallback behavior without network calls."""
     result = provider_fallback_test(output, scenario)
     typer.echo(f"Provider fallback test: {result['status']}")
+
+
+@app.command("preflight-documents")
+def preflight_documents_command(
+    input: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    default_backend: str = typer.Option("builtin", "--default-backend"),
+) -> None:
+    """Preflight local documents and write backend recommendations before parsing."""
+    report = preflight_documents(input, output, default_backend)
+    inventory = report["document_inventory"]
+    typer.echo(
+        "Document preflight: "
+        f"{report['status']} | Total: {inventory['total_files']} | Ready: {inventory['ready_count']}"
+    )
+
+
+@app.command("batch-import-documents")
+def batch_import_documents_command(
+    input: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    default_backend: str = typer.Option("builtin", "--default-backend"),
+) -> None:
+    """Batch import local documents into an auditable inventory/preflight bundle."""
+    report = batch_import_documents(input, output, default_backend)
+    typer.echo(
+        "Batch import documents: "
+        f"{report['status']} | Imported: {report['imported_count']} | Failed: {report['failed_count']}"
+    )
+
+
+@app.command("run-document-understanding")
+def run_document_understanding_command(
+    input: Path = typer.Option(..., "--input", "-i", exists=True, file_okay=True, dir_okay=True, readable=True),
+    preflight: Path = typer.Option(..., "--preflight", exists=True, file_okay=True, dir_okay=True, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    runtime_config: Path | None = typer.Option(
+        None,
+        "--runtime-config",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+    ),
+    progress: bool = typer.Option(False, "--progress"),
+    progress_jsonl: bool = typer.Option(True, "--progress-jsonl/--no-progress-jsonl"),
+    progress_log: Path | None = typer.Option(None, "--progress-log"),
+    continue_on_error: bool = typer.Option(True, "--continue-on-error/--no-continue-on-error"),
+    resume: bool = typer.Option(False, "--resume"),
+) -> None:
+    """Run preflight-routed Document Understanding across isolated local runtimes."""
+    report = run_document_understanding_workflow(
+        input,
+        preflight,
+        output,
+        runtime_config_path=runtime_config,
+        progress=progress,
+        progress_jsonl=progress_jsonl,
+        progress_log=progress_log,
+        continue_on_error=continue_on_error,
+        resume=resume,
+    )
+    typer.echo(
+        "Document Understanding: "
+        f"{report['status']} | Success: {report['success_count']} | "
+        f"Failed: {report['failed_count']} | Skipped: {report['skipped_count']}"
+    )
+    if report["status"] != "completed":
+        raise typer.Exit(1)
+
+
+@app.command("build-knowledge-base")
+def build_knowledge_base_command(
+    document_understanding: Path = typer.Option(
+        ...,
+        "--document-understanding",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        readable=True,
+    ),
+    output: Path = typer.Option(..., "--output", "-o"),
+    domain: str = typer.Option("general", "--domain"),
+    mode: str = typer.Option("reference", "--mode"),
+    progress: bool = typer.Option(False, "--progress"),
+    progress_jsonl: bool = typer.Option(True, "--progress-jsonl/--no-progress-jsonl"),
+    progress_log: Path | None = typer.Option(None, "--progress-log"),
+) -> None:
+    """Build a searchable knowledge base from accepted Document Understanding outputs."""
+    du_manifest_path = document_understanding / "document_understanding_manifest.json"
+    normalized_sources = document_understanding / "normalized_sources"
+    if not du_manifest_path.is_file() or not normalized_sources.is_dir():
+        raise typer.BadParameter("Document Understanding manifest or normalized_sources is missing.")
+    du_manifest = json.loads(du_manifest_path.read_text(encoding="utf-8-sig"))
+    if du_manifest.get("status") != "completed":
+        raise typer.BadParameter(
+            f"Document Understanding must be completed before KB build: {du_manifest.get('status')}"
+        )
+    progress_path = progress_log or (output / "progress_events.jsonl" if progress_jsonl else None)
+    chain_reporter = make_progress_reporter(
+        progress=progress,
+        progress_jsonl=progress_jsonl,
+        progress_log=progress_path,
+    )
+    if chain_reporter:
+        chain_reporter.configure_default_log(output)
+        chain_reporter.emit(
+            "knowledge_base_started",
+            "started",
+            "Knowledge base build started from Document Understanding outputs",
+            total_files=du_manifest.get("normalized_source_count"),
+            output_path=str(output),
+        )
+    manifest = _build_package(
+        normalized_sources,
+        output,
+        domain,
+        mode,
+        1200,
+        120,
+        validation_options=ValidationOptions(True),
+        hardening_options=HardeningOptions(run_manifest=True),
+        performance_options=PerformanceOptions(
+            enabled=True,
+            progress=progress,
+            progress_jsonl=progress_jsonl,
+            progress_log=progress_path,
+            profile="fast",
+        ),
+        contract_options=ContractOptions("v2", True, False),
+        retrieval_index_options=RetrievalIndexOptions(
+            True,
+            "Summarize this knowledge package.",
+        ),
+    )
+    lineage = attach_document_understanding_lineage(
+        output,
+        document_understanding,
+        chunk_count=manifest.chunk_count,
+        source_count=manifest.source_count,
+    )
+    retrieval_index_path = output / "retrieval_index.jsonl"
+    retrieval_count = (
+        len(
+            [
+                line
+                for line in retrieval_index_path.read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+        )
+        if retrieval_index_path.exists()
+        else 0
+    )
+    contract = check_package_contract(output)
+    report = {
+        "schema_version": "knowledge_base_build.v1",
+        "status": "pass"
+        if manifest.chunk_count > 0
+        and retrieval_count > 0
+        and lineage["status"] == "pass"
+        and contract.status != "fail"
+        else "fail",
+        "document_understanding_path": str(document_understanding).replace("\\", "/"),
+        "knowledge_base_path": str(output).replace("\\", "/"),
+        "source_count": manifest.source_count,
+        "chunk_count": manifest.chunk_count,
+        "retrieval_index_count": retrieval_count,
+        "document_understanding_status": du_manifest["status"],
+        "document_understanding_backend_counts": lineage["backend_counts"],
+        "contract_status": contract.status,
+        "progress_events_path": str(progress_path).replace("\\", "/") if progress_path else None,
+    }
+    write_json(output / "knowledge_base_build_report.json", report)
+    (output / "knowledge_base_build_report.md").write_text(
+        "# Knowledge Base Build Report\n\n"
+        f"- Status: `{report['status']}`\n"
+        f"- Document Understanding: `{report['document_understanding_status']}`\n"
+        f"- Sources: `{report['source_count']}`\n"
+        f"- Chunks: `{report['chunk_count']}`\n"
+        f"- Retrieval index records: `{report['retrieval_index_count']}`\n"
+        f"- Contract: `{report['contract_status']}`\n"
+        f"- Progress events: `{report['progress_events_path']}`\n",
+        encoding="utf-8",
+    )
+    if chain_reporter:
+        chain_reporter.emit(
+            "knowledge_base_done",
+            "success" if report["status"] == "pass" else "failed",
+            f"Knowledge base build {report['status']}",
+            total_files=manifest.source_count,
+            output_path=str(output),
+            metadata={
+                "chunk_count": manifest.chunk_count,
+                "retrieval_index_count": retrieval_count,
+            },
+        )
+    typer.echo(
+        "Knowledge base build: "
+        f"{report['status']} | Sources: {manifest.source_count} | "
+        f"Chunks: {manifest.chunk_count} | Index: {retrieval_count}"
+    )
+    if report["status"] != "pass":
+        raise typer.Exit(1)
+
+
+@app.command("build-knowledge-package")
+def build_knowledge_package_command(
+    knowledge_base: Path = typer.Option(
+        ...,
+        "--knowledge-base",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        readable=True,
+    ),
+    output: Path = typer.Option(..., "--output", "-o"),
+    progress: bool = typer.Option(False, "--progress"),
+    progress_jsonl: bool = typer.Option(True, "--progress-jsonl/--no-progress-jsonl"),
+    progress_log: Path | None = typer.Option(None, "--progress-log"),
+) -> None:
+    """Build a validated portable knowledge package from a completed knowledge base."""
+    report = build_knowledge_package_from_base(
+        knowledge_base,
+        output,
+        progress=progress,
+        progress_jsonl=progress_jsonl,
+        progress_log=progress_log,
+    )
+    typer.echo(
+        "Knowledge package build: "
+        f"{report['status']} | Artifacts: {report['artifact_file_count']} | "
+        f"Contract: {report['target_contract_status']}"
+    )
+    if report["status"] != "pass":
+        raise typer.Exit(1)
 
 
 @app.command("llm-cost-guard")
@@ -2664,14 +3715,38 @@ def diagnose_retrieval_failure_command(
 
 @app.command("verify-claims")
 def verify_claims_command(
-    package: Path = typer.Option(..., "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
+    package: Path | None = typer.Option(None, "--package", exists=True, file_okay=False, dir_okay=True, readable=True),
     output: Path = typer.Option(..., "--output", "-o"),
     verification_source: list[Path] = typer.Option([], "--verification-source", exists=True, file_okay=True, dir_okay=False, readable=True),
+    claim: list[str] = typer.Option([], "--claim"),
+    claim_file: list[Path] = typer.Option([], "--claim-file", exists=True, file_okay=True, dir_okay=False),
+    evidence_file: list[Path] = typer.Option([], "--evidence-file", exists=True, file_okay=True, dir_okay=False),
+    answer: str | None = typer.Option(None, "--answer"),
+    answer_file: Path | None = typer.Option(None, "--answer-file", exists=True, file_okay=True, dir_okay=False),
 ) -> None:
-    """Verify package claims against local package/user-provided evidence only."""
-    result = run_claim_verification(package, output, verification_source)
-    write_v38_external_absorption_map(output)
-    typer.echo(f"Claim verification: {result['status']} | Claims: {result['claim_count']}")
+    """Verify package claims or explicit external-source claims against approved local evidence."""
+    has_external_claim_input = any([claim, claim_file, evidence_file, answer, answer_file])
+    if package is not None and not has_external_claim_input:
+        result = run_claim_verification(package, output, verification_source)
+        write_v38_external_absorption_map(output)
+        typer.echo(f"Claim verification: {result['status']} | Claims: {result['claim_count']}")
+        return
+    if package is not None and has_external_claim_input:
+        typer.echo("--package cannot be combined with explicit external-source claim options.", err=True)
+        raise typer.Exit(2)
+    result = verify_external_claims(
+        output,
+        claim=claim,
+        claim_file=claim_file,
+        evidence_file=evidence_file,
+        answer=answer,
+        answer_file=answer_file,
+    )
+    typer.echo(
+        f"Knowledge verification status={result['status']} "
+        f"decision={result['integration_decision']}/{result['decision_qualifier']} "
+        f"claims={result['claim_count']} output={output}"
+    )
 
 
 @app.command("check-knowledge-accuracy")
@@ -2685,6 +3760,76 @@ def check_knowledge_accuracy_command(
     write_v38_external_absorption_map(output)
     score = result["accuracy"]["overall_accuracy_score"]
     typer.echo(f"Knowledge accuracy: {result['status']} | Score: {score}")
+
+
+@app.command("verify-agent-output")
+def verify_agent_output_command(
+    session: Path = typer.Option(..., "--session", exists=True, file_okay=True, dir_okay=False, readable=True),
+    output: Path = typer.Option(..., "--output", "-o"),
+    verification_source: list[Path] = typer.Option([], "--verification-source", exists=True, file_okay=True, dir_okay=False, readable=True),
+) -> None:
+    """Verify one local Agent runtime output against approved verification sources."""
+    try:
+        result = verify_agent_output(session, output, verification_source)
+    except ValueError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(2) from exc
+    typer.echo(
+        "Agent output verification: "
+        f"{result['status']} | Claims: {result['claim_count']} | "
+        f"Trusted: {result['trusted_claim_count']}"
+    )
+
+
+def _export_workflow_report_command(source: list[Path], output: Path, scope: str, run_id: str | None) -> None:
+    try:
+        manifest = export_workflow_report_bundle(source, output, scope=scope, run_id=run_id)
+    except ValueError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(2) from exc
+    typer.echo(
+        "Workflow report export: "
+        f"{manifest['status']} | Copied: {manifest['copied_file_count']} | "
+        f"Missing stages: {len(manifest['missing_required_stages'])}"
+    )
+    if manifest["status"] != "passed":
+        raise typer.Exit(1)
+
+
+@app.command("export-knowledge-report")
+def export_knowledge_report_command(
+    source: list[Path] = typer.Option(
+        ...,
+        "--source",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        readable=True,
+    ),
+    output: Path = typer.Option(..., "--output", "-o"),
+    scope: str = typer.Option("DU_KB_PACKAGE_SKILL_AGENT_VERIFICATION", "--scope"),
+    run_id: str | None = typer.Option(None, "--run-id"),
+) -> None:
+    """Export a governed, openable full workflow report bundle."""
+    _export_workflow_report_command(source, output, scope, run_id)
+
+
+@app.command("export-workflow-report")
+def export_workflow_report_command(
+    source: list[Path] = typer.Option(
+        ...,
+        "--source",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        readable=True,
+    ),
+    output: Path = typer.Option(..., "--output", "-o"),
+    scope: str = typer.Option("DU_KB_PACKAGE_SKILL_AGENT_VERIFICATION", "--scope"),
+    run_id: str | None = typer.Option(None, "--run-id"),
+) -> None:
+    """Alias for export-knowledge-report for Core Bridge workflow wiring."""
+    _export_workflow_report_command(source, output, scope, run_id)
 
 
 @app.command("init-workspace")
@@ -2749,6 +3894,1469 @@ def plan_memory_lifecycle_command(
     )
     write_v39_external_absorption_map(output)
     typer.echo(f"Built memory lifecycle plan at {output}")
+
+
+@app.command("plan-knowledge-lifecycle")
+def plan_knowledge_lifecycle_command(
+    knowledge_package: Path = typer.Option(..., "--knowledge-package"),
+    output: Path = typer.Option(..., "--output"),
+    max_age_days: int = typer.Option(180, "--max-age-days"),
+    min_confidence: float = typer.Option(0.65, "--min-confidence"),
+) -> None:
+    """Analyze knowledge package confidence, staleness, refresh, and retention."""
+    write_knowledge_lifecycle_outputs(
+        knowledge_package,
+        output,
+        max_age_days=max_age_days,
+        min_confidence=min_confidence,
+    )
+    typer.echo(f"Built knowledge lifecycle report at {output}")
+
+
+@app.command("build-auto-wiki")
+def build_auto_wiki_command(
+    knowledge_package: Path = typer.Option(..., "--knowledge-package"),
+    output: Path = typer.Option(..., "--output"),
+    query: str = typer.Option("Summarize this knowledge package.", "--query"),
+) -> None:
+    """Build local Auto Wiki, knowledge graph, RAG trace, and visual trace reports."""
+    write_auto_wiki_outputs(knowledge_package, output, query=query)
+    typer.echo(f"Built auto wiki report at {output}")
+
+
+@app.command("build-multimodal-skill-package")
+def build_multimodal_skill_package_command(
+    source_package: Path = typer.Option(..., "--source-package"),
+    output: Path = typer.Option(..., "--output"),
+    skill_name: str = typer.Option("HeiTang Multimodal Skill", "--skill-name"),
+) -> None:
+    """Build a local multimodal Skill package contract without MMSkills runtime."""
+    result = write_multimodal_skill_package(
+        source_package,
+        output,
+        skill_name=skill_name,
+    )
+    typer.echo(
+        f"Built multimodal skill package status={result['status']} "
+        f"state_cards={len(result['visual_state_cards'])} output={output}"
+    )
+
+
+@app.command("validate-multimodal-skill-package")
+def validate_multimodal_skill_package_command(
+    package: Path = typer.Option(..., "--package"),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate a local multimodal Skill package contract."""
+    result = write_multimodal_skill_validation(package, output)
+    typer.echo(
+        f"Multimodal skill validation status={result['status']} "
+        f"state_cards={result['state_card_count']} output={output}"
+    )
+
+
+@app.command("build-prompt-asset-library")
+def build_prompt_asset_library_command(
+    skill_suite: Path = typer.Option(..., "--skill-suite", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+    library_name: str = typer.Option("HeiTang Prompt Asset Library", "--library-name"),
+) -> None:
+    """Build local prompt assets that enhance, not replace, Skill Factory output."""
+    result = write_prompt_asset_library(
+        skill_suite,
+        output,
+        library_name=library_name,
+    )
+    typer.echo(
+        f"Built prompt asset library status={result['status']} "
+        f"prompt_cards={result['prompt_card_count']} output={output}"
+    )
+
+
+@app.command("validate-prompt-asset-library")
+def validate_prompt_asset_library_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate local Prompt Asset Library boundaries and prompt cards."""
+    result = write_prompt_asset_validation(library, output)
+    typer.echo(
+        f"Prompt asset validation status={result['status']} "
+        f"prompt_cards={result['prompt_card_count']} output={output}"
+    )
+
+
+@app.command("build-marketing-skill-pattern-library")
+def build_marketing_skill_pattern_library_command(
+    output: Path = typer.Option(..., "--output"),
+    library_name: str = typer.Option("HeiTang Marketing Skill Pattern Library", "--library-name"),
+) -> None:
+    """Build a local original Marketing Skill Pattern Library for Section 5.7."""
+    result = write_marketing_skill_pattern_library(
+        output,
+        library_name=library_name,
+    )
+    typer.echo(
+        f"Built marketing skill pattern library status={result['status']} "
+        f"patterns={result['pattern_count']} output={output}"
+    )
+
+
+@app.command("validate-marketing-skill-pattern-library")
+def validate_marketing_skill_pattern_library_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate local Marketing Skill Pattern Library boundaries and cards."""
+    result = write_marketing_skill_pattern_validation(library, output)
+    typer.echo(
+        f"Marketing pattern validation status={result['status']} "
+        f"patterns={result['pattern_count']} output={output}"
+    )
+
+
+@app.command("build-business-scenario-template-library")
+def build_business_scenario_template_library_command(
+    output: Path = typer.Option(..., "--output"),
+    library_name: str = typer.Option("HeiTang Business Scenario Template Library", "--library-name"),
+) -> None:
+    """Build a local original Business Scenario Template Library for Section 5.8."""
+    result = write_business_scenario_template_library(
+        output,
+        library_name=library_name,
+    )
+    typer.echo(
+        f"Built business scenario template library status={result['status']} "
+        f"scenarios={result['scenario_count']} output={output}"
+    )
+
+
+@app.command("validate-business-scenario-template-library")
+def validate_business_scenario_template_library_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate local Business Scenario Template Library boundaries and cards."""
+    result = write_business_scenario_template_validation(library, output)
+    typer.echo(
+        f"Business scenario validation status={result['status']} "
+        f"scenarios={result['scenario_count']} output={output}"
+    )
+
+
+@app.command("build-content-asset-schema-library")
+def build_content_asset_schema_library_command(
+    output: Path = typer.Option(..., "--output"),
+    library_name: str = typer.Option("HeiTang Content Asset Schema Library", "--library-name"),
+) -> None:
+    """Build a local original Content Asset Schema Library for Section 5.9."""
+    result = write_content_asset_schema_library(
+        output,
+        library_name=library_name,
+    )
+    typer.echo(
+        f"Built content asset schema library status={result['status']} "
+        f"asset_types={result['asset_type_count']} output={output}"
+    )
+
+
+@app.command("validate-content-asset-schema-library")
+def validate_content_asset_schema_library_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate local Content Asset Schema Library boundaries and asset cards."""
+    result = write_content_asset_schema_validation(library, output)
+    typer.echo(
+        f"Content asset schema validation status={result['status']} "
+        f"asset_types={result['asset_type_count']} output={output}"
+    )
+
+
+@app.command("build-video-pipeline-schema-library")
+def build_video_pipeline_schema_library_command(
+    output: Path = typer.Option(..., "--output"),
+    library_name: str = typer.Option("HeiTang AIGC Video Pipeline Schema", "--library-name"),
+) -> None:
+    """Build a local original AIGC video pipeline schema for Section 5.10."""
+    result = write_video_pipeline_schema_library(
+        output,
+        library_name=library_name,
+    )
+    typer.echo(
+        f"Built video pipeline schema status={result['status']} "
+        f"stages={result['stage_count']} output={output}"
+    )
+
+
+@app.command("validate-video-pipeline-schema-library")
+def validate_video_pipeline_schema_library_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate AIGC video pipeline schema boundaries and stage handoffs."""
+    result = write_video_pipeline_schema_validation(library, output)
+    typer.echo(
+        f"Video pipeline schema validation status={result['status']} "
+        f"stages={result['stage_count']} output={output}"
+    )
+
+
+@app.command("build-video-skill-template-metadata")
+def build_video_skill_template_metadata_command(
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Build verified non-executable video Skill template metadata for Section 5.11."""
+    result = write_video_skill_template_metadata(output)
+    typer.echo(
+        f"Built video Skill template metadata status={result['status']} "
+        f"decision={result['integration_decision']} output={output}"
+    )
+
+
+@app.command("validate-video-skill-template-metadata")
+def validate_video_skill_template_metadata_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate video Skill template metadata and provider/runtime boundaries."""
+    result = write_video_skill_template_metadata_validation(library, output)
+    typer.echo(
+        f"Video Skill template metadata validation status={result['status']} "
+        f"errors={len(result['boundary_errors'])} output={output}"
+    )
+
+
+@app.command("build-cross-modal-rag-schema-library")
+def build_cross_modal_rag_schema_library_command(
+    output: Path = typer.Option(..., "--output"),
+    library_name: str = typer.Option("HeiTang Cross-Modal RAG Schema Reference", "--library-name"),
+) -> None:
+    """Build a local cross-modal RAG schema reference for Section 5.12."""
+    result = write_cross_modal_rag_schema_library(output, library_name=library_name)
+    typer.echo(
+        f"Built cross-modal RAG schema status={result['status']} "
+        f"modalities={result['modality_count']} output={output}"
+    )
+
+
+@app.command("validate-cross-modal-rag-schema-library")
+def validate_cross_modal_rag_schema_library_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate cross-modal RAG schema and negative runtime boundaries."""
+    result = write_cross_modal_rag_schema_validation(library, output)
+    typer.echo(
+        f"Cross-modal RAG schema validation status={result['status']} "
+        f"errors={len(result['boundary_errors'])} output={output}"
+    )
+
+
+@app.command("build-engineering-governance-rules")
+def build_engineering_governance_rules_command(
+    output: Path = typer.Option(..., "--output"),
+    library_name: str = typer.Option("HeiTang Engineering Governance Rule Pack", "--library-name"),
+) -> None:
+    """Build local engineering governance rules for Section 5.13."""
+    result = write_engineering_governance_rules(output, library_name=library_name)
+    counts = result["rule_counts"]
+    typer.echo(
+        f"Built engineering governance rules status={result['status']} "
+        f"rules={sum(counts.values())} output={output}"
+    )
+
+
+@app.command("validate-engineering-governance-rules")
+def validate_engineering_governance_rules_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate local engineering governance rules and runtime boundaries."""
+    result = write_engineering_governance_validation(library, output)
+    typer.echo(
+        f"Engineering governance validation status={result['status']} "
+        f"errors={len(result['boundary_errors'])} output={output}"
+    )
+
+
+@app.command("build-sirchmunk-direct-file-search")
+def build_sirchmunk_direct_file_search_command(
+    workspace: Path = typer.Option(..., "--workspace", exists=True, file_okay=False, dir_okay=True),
+    query: str = typer.Option(..., "--query"),
+    output: Path = typer.Option(..., "--output"),
+    max_results: int = typer.Option(5, "--max-results", min=1, max=20),
+) -> None:
+    """Build bounded local direct-file-search evidence for Section 5.14."""
+    result = build_sirchmunk_direct_file_search(
+        output,
+        workspace=workspace,
+        query=query,
+        max_results=max_results,
+    )
+    typer.echo(
+        f"Built Sirchmunk direct-file-search status={result['status']} "
+        f"results={result['search_summary']['result_count']} output={output}"
+    )
+
+
+@app.command("validate-sirchmunk-direct-file-search")
+def validate_sirchmunk_direct_file_search_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate Sirchmunk direct-file-search evidence and negative runtime boundaries."""
+    result = write_sirchmunk_direct_file_search_validation(library, output)
+    typer.echo(
+        f"Sirchmunk direct-file-search validation status={result['status']} "
+        f"errors={len(result['boundary_errors'])} output={output}"
+    )
+
+
+@app.command("build-gbrain-strengthening-record")
+def build_gbrain_strengthening_record_command(
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Build local GBrain memory/profile/KG strengthening evidence for Section 5.S1."""
+    result = build_gbrain_strengthening_record(output)
+    typer.echo(
+        f"Built GBrain strengthening record status={result['status']} "
+        f"decision={result['integration_decision']} output={output}"
+    )
+
+
+@app.command("validate-gbrain-strengthening-record")
+def validate_gbrain_strengthening_record_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate GBrain strengthening evidence and negative runtime boundaries."""
+    result = write_gbrain_strengthening_validation(library, output)
+    typer.echo(
+        f"GBrain strengthening validation status={result['status']} "
+        f"errors={len(result['boundary_errors'])} output={output}"
+    )
+
+
+@app.command("build-horizon-strengthening-record")
+def build_horizon_strengthening_record_command(
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Build local Horizon Topic Intake strengthening evidence for Section 5.S2."""
+    result = build_horizon_strengthening_record(output)
+    typer.echo(
+        f"Built Horizon strengthening record status={result['status']} "
+        f"decision={result['integration_decision']} output={output}"
+    )
+
+
+@app.command("validate-horizon-strengthening-record")
+def validate_horizon_strengthening_record_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate Horizon strengthening evidence and negative runtime boundaries."""
+    result = write_horizon_strengthening_validation(library, output)
+    typer.echo(
+        f"Horizon strengthening validation status={result['status']} "
+        f"errors={len(result['boundary_errors'])} output={output}"
+    )
+
+
+@app.command("build-obsidian-vault-strengthening-record")
+def build_obsidian_vault_strengthening_record_command(
+    output: Path = typer.Option(..., "--output"),
+    vault: Path | None = typer.Option(None, "--vault", exists=True, file_okay=False, dir_okay=True),
+) -> None:
+    """Build local Obsidian-compatible Markdown vault strengthening evidence for Section 5.S3."""
+    result = build_obsidian_vault_strengthening_record(output, vault=vault)
+    typer.echo(
+        f"Built Obsidian-compatible vault strengthening record status={result['status']} "
+        f"decision={result['integration_decision']} output={output}"
+    )
+
+
+@app.command("validate-obsidian-vault-strengthening-record")
+def validate_obsidian_vault_strengthening_record_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate Obsidian-compatible vault evidence and negative runtime boundaries."""
+    result = write_obsidian_vault_strengthening_validation(library, output)
+    typer.echo(
+        f"Obsidian-compatible vault validation status={result['status']} "
+        f"errors={len(result['boundary_errors'])} output={output}"
+    )
+
+
+@app.command("campaign-3-supplement-2-0-closure-gate")
+def campaign_3_supplement_2_0_closure_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate Campaign 3 Supplement 2.0 item evidence before opening Supplement 3.0 entry."""
+    result = write_campaign_3_supplement_2_0_closure_gate(repo_root, output)
+    typer.echo(
+        f"Campaign 3 Supplement 2.0 closure gate status={result['status']} "
+        f"verdict={result['verdict']} output={output}"
+    )
+
+
+@app.command("campaign-3-supplement-3-0-entry-gate")
+def campaign_3_supplement_3_0_entry_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate Campaign 3 Supplement 3.0 prerequisites before P0 framework work."""
+    result = write_campaign_3_supplement_3_0_entry_gate(repo_root, output)
+    typer.echo(
+        f"Campaign 3 Supplement 3.0 entry gate status={result['status']} "
+        f"verdict={result['verdict']} output={output}"
+    )
+
+
+@app.command("campaign-3-supplement-3-0-acceptance-gate")
+def campaign_3_supplement_3_0_acceptance_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate Supplement 3.0 evidence before the governed Pre-4.0 stop point."""
+    result = write_campaign_3_supplement_3_0_acceptance_gate(repo_root, output)
+    typer.echo(
+        f"Campaign 3 Supplement 3.0 acceptance gate status={result['status']} "
+        f"verdict={result['verdict']} output={output}"
+    )
+
+
+@app.command("build-pre-4-0-workspace-partition-foundation-gate")
+def build_pre_4_0_workspace_partition_foundation_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/pre_4_0_workspace_partition"),
+        "--output",
+    ),
+) -> None:
+    """Build Pre-4.0 workspace partition and KB access-scope foundation contracts."""
+    result = write_pre_4_0_workspace_partition_foundation_gate(repo_root, output)
+    typer.echo(
+        f"Pre-4.0 workspace partition foundation gate status={result['status']} "
+        f"verdict={result['verdict']} output={output}"
+    )
+
+
+@app.command("validate-pre-4-0-workspace-partition-foundation-gate")
+def validate_pre_4_0_workspace_partition_foundation_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/pre_4_0_workspace_partition"),
+        "--output",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+) -> None:
+    """Validate Pre-4.0 workspace partition gate outputs without entering later campaigns."""
+    result = write_pre_4_0_workspace_partition_validation(repo_root, output)
+    typer.echo(
+        f"Pre-4.0 workspace partition validation status={result['status']} "
+        f"errors={result['error_count']} output={output}"
+    )
+
+
+@app.command("campaign-3-supplement-4-0-entry-gate")
+def campaign_3_supplement_4_0_entry_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/section_5/campaign_3_supplement_4_0_entry_gate"),
+        "--output",
+    ),
+) -> None:
+    """Build the bounded industrial-grade Supplement 4.0 entry reconciliation gate."""
+    result = write_campaign_3_supplement_4_0_entry_gate(repo_root, output)
+    typer.echo(
+        f"Campaign 3 Supplement 4.0 entry gate status={result['status']} "
+        f"verdict={result['verdict']} output={output}"
+    )
+
+
+@app.command("validate-campaign-3-supplement-4-0-entry-gate")
+def validate_campaign_3_supplement_4_0_entry_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/section_5/campaign_3_supplement_4_0_entry_gate"),
+        "--output",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+) -> None:
+    """Validate Supplement 4.0 entry outputs without entering business implementation."""
+    result = write_campaign_3_supplement_4_0_entry_gate_validation(repo_root, output)
+    typer.echo(
+        f"Campaign 3 Supplement 4.0 entry validation status={result['status']} "
+        f"errors={result['error_count']} output={output}"
+    )
+
+
+@app.command("campaign-3-supplement-4-0-generate-skill-template")
+def campaign_3_supplement_4_0_generate_skill_template_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/section_5/campaign_3_supplement_4_0_skill_template"),
+        "--output",
+    ),
+) -> None:
+    """Build the 4.0B source-traced Skill Template draft without entering later gates."""
+    result = write_campaign_3_supplement_4_0_skill_template(repo_root, output)
+    typer.echo(
+        f"Campaign 3 Supplement 4.0 skill template status={result['status']} "
+        f"decision={result['integration_decision']}/{result['decision_qualifier']} output={output}"
+    )
+
+
+@app.command("validate-campaign-3-supplement-4-0-skill-template")
+def validate_campaign_3_supplement_4_0_skill_template_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/section_5/campaign_3_supplement_4_0_skill_template"),
+        "--output",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+) -> None:
+    """Validate 4.0B Skill Template outputs without accepting Supplement 4.0."""
+    result = write_campaign_3_supplement_4_0_skill_template_validation(repo_root, output)
+    typer.echo(
+        f"Campaign 3 Supplement 4.0 skill template validation status={result['status']} "
+        f"errors={result['error_count']} output={output}"
+    )
+
+
+@app.command("campaign-3-supplement-4-0-compose-dedicated-skill")
+def campaign_3_supplement_4_0_compose_dedicated_skill_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/section_5/campaign_3_supplement_4_0_skill_composer"),
+        "--output",
+    ),
+) -> None:
+    """Build 4.0C Skill import and Dedicated Skill composition without entering 4.0D."""
+    result = write_campaign_3_supplement_4_0_skill_composer(repo_root, output)
+    typer.echo(
+        f"Campaign 3 Supplement 4.0 skill composer status={result['status']} "
+        f"decision={result['integration_decision']}/{result['decision_qualifier']} output={output}"
+    )
+
+
+@app.command("validate-campaign-3-supplement-4-0-dedicated-skill")
+def validate_campaign_3_supplement_4_0_dedicated_skill_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/section_5/campaign_3_supplement_4_0_skill_composer"),
+        "--output",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+) -> None:
+    """Validate 4.0C Dedicated Skill outputs without accepting Supplement 4.0."""
+    result = write_campaign_3_supplement_4_0_skill_composer_validation(repo_root, output)
+    typer.echo(
+        f"Campaign 3 Supplement 4.0 dedicated skill validation status={result['status']} "
+        f"errors={result['error_count']} output={output}"
+    )
+
+
+@app.command("campaign-3-supplement-4-0-build-agent-package")
+def campaign_3_supplement_4_0_build_agent_package_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/section_5/campaign_3_supplement_4_0_agent_package"),
+        "--output",
+    ),
+) -> None:
+    """Build 4.0D Skill-to-Agent Package evidence without enabling Agent Runtime."""
+    result = write_campaign_3_supplement_4_0_agent_package(repo_root, output)
+    typer.echo(
+        f"Campaign 3 Supplement 4.0 agent package status={result['status']} "
+        f"decision={result['integration_decision']}/{result['decision_qualifier']} output={output}"
+    )
+
+
+@app.command("validate-campaign-3-supplement-4-0-agent-package")
+def validate_campaign_3_supplement_4_0_agent_package_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/section_5/campaign_3_supplement_4_0_agent_package"),
+        "--output",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+) -> None:
+    """Validate 4.0D Agent Package outputs without accepting Supplement 4.0."""
+    result = write_campaign_3_supplement_4_0_agent_package_validation(repo_root, output)
+    typer.echo(
+        f"Campaign 3 Supplement 4.0 agent package validation status={result['status']} "
+        f"errors={result['error_count']} output={output}"
+    )
+
+
+@app.command("campaign-3-supplement-4-0-product-handoff-bundle")
+def campaign_3_supplement_4_0_product_handoff_bundle_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/section_5/campaign_3_supplement_4_0_product_handoff_bundle"),
+        "--output",
+    ),
+) -> None:
+    """Build 4.0D-I Product Handoff Contract Bundle without starting Campaign 4 or 5."""
+    result = write_campaign_3_supplement_4_0_product_handoff_bundle(repo_root, output)
+    typer.echo(
+        f"Campaign 3 Supplement 4.0 D-I handoff bundle status={result['status']} "
+        f"decision={result['integration_decision']}/{result['decision_qualifier']} output={output}"
+    )
+
+
+@app.command("validate-campaign-3-supplement-4-0-product-handoff-bundle")
+def validate_campaign_3_supplement_4_0_product_handoff_bundle_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/section_5/campaign_3_supplement_4_0_product_handoff_bundle"),
+        "--output",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+) -> None:
+    """Validate 4.0D-I Product Handoff Contract Bundle boundaries."""
+    result = write_campaign_3_supplement_4_0_product_handoff_bundle_validation(repo_root, output)
+    typer.echo(
+        f"Campaign 3 Supplement 4.0 D-I handoff bundle validation status={result['status']} "
+        f"errors={result['error_count']} output={output}"
+    )
+
+
+@app.command("campaign-3-supplement-4-0-acceptance-gate")
+def campaign_3_supplement_4_0_acceptance_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/campaign_3_4_0"),
+        "--output",
+    ),
+) -> None:
+    """Accept Supplement 4.0 only after A/B/C/D-I evidence passes."""
+    result = write_campaign_3_supplement_4_0_acceptance_gate(repo_root, output)
+    typer.echo(
+        f"Campaign 3 Supplement 4.0 acceptance gate status={result['status']} "
+        f"verdict={result['verdict']} output={output}"
+    )
+
+
+@app.command("validate-campaign-3-supplement-4-0-acceptance-gate")
+def validate_campaign_3_supplement_4_0_acceptance_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/campaign_3_4_0"),
+        "--output",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+) -> None:
+    """Validate Supplement 4.0 acceptance outputs without entering later gates."""
+    result = write_campaign_3_supplement_4_0_acceptance_gate_validation(repo_root, output)
+    typer.echo(
+        f"Campaign 3 Supplement 4.0 acceptance validation status={result['status']} "
+        f"errors={result['error_count']} output={output}"
+    )
+
+
+@app.command("campaign-3-final-consistency-gate")
+def campaign_3_final_consistency_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/campaign_3_final_consistency"),
+        "--output",
+    ),
+) -> None:
+    """Accept Campaign 3 only after all mainline, supplement, and boundary evidence passes."""
+    result = write_campaign_3_final_consistency_gate(repo_root, output)
+    typer.echo(
+        f"Campaign 3 Final Consistency Gate status={result['status']} "
+        f"verdict={result['verdict']} output={output}"
+    )
+
+
+@app.command("validate-campaign-3-final-consistency-gate")
+def validate_campaign_3_final_consistency_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/campaign_3_final_consistency"),
+        "--output",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+) -> None:
+    """Validate Campaign 3 Final Consistency Gate outputs without starting Stage Test."""
+    result = write_campaign_3_final_consistency_gate_validation(repo_root, output)
+    typer.echo(
+        f"Campaign 3 Final Consistency Gate validation status={result['status']} "
+        f"errors={result['error_count']} output={output}"
+    )
+
+
+@app.command("campaign-1-3-stage-test-gate")
+def campaign_1_3_stage_test_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/campaign_1_3_stage_test"),
+        "--output",
+    ),
+) -> None:
+    """Accept Campaign 1-3 Stage Test only after the governed fast stage tests pass."""
+    result = write_campaign_1_3_stage_test_gate(repo_root, output)
+    typer.echo(
+        f"Campaign 1-3 Stage Test Gate status={result['status']} "
+        f"verdict={result['verdict']} output={output}"
+    )
+
+
+@app.command("validate-campaign-1-3-stage-test-gate")
+def validate_campaign_1_3_stage_test_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/campaign_1_3_stage_test"),
+        "--output",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+) -> None:
+    """Validate Campaign 1-3 Stage Test outputs without entering Integrated Closure."""
+    result = write_campaign_1_3_stage_test_gate_validation(repo_root, output)
+    typer.echo(
+        f"Campaign 1-3 Stage Test Gate validation status={result['status']} "
+        f"errors={result['error_count']} output={output}"
+    )
+
+
+@app.command("campaign-1-2-3-integrated-closure-gate")
+def campaign_1_2_3_integrated_closure_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/campaign_1_2_3_integrated_closure"),
+        "--output",
+    ),
+) -> None:
+    """Accept Campaign 1-3 Integrated Closure without generating the Closure Pack."""
+    result = write_campaign_1_2_3_integrated_closure_gate(repo_root, output)
+    typer.echo(
+        f"Campaign 1-3 Integrated Closure Gate status={result['status']} "
+        f"verdict={result['verdict']} output={output}"
+    )
+
+
+@app.command("validate-campaign-1-2-3-integrated-closure-gate")
+def validate_campaign_1_2_3_integrated_closure_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/campaign_1_2_3_integrated_closure"),
+        "--output",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+) -> None:
+    """Validate Campaign 1-3 Integrated Closure outputs without generating the Closure Pack."""
+    result = write_campaign_1_2_3_integrated_closure_gate_validation(repo_root, output)
+    typer.echo(
+        f"Campaign 1-3 Integrated Closure Gate validation status={result['status']} "
+        f"errors={result['error_count']} output={output}"
+    )
+
+
+@app.command("generate-campaign-1-2-3-closure-pack")
+def generate_campaign_1_2_3_closure_pack_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/campaign_1_2_3_closure_pack"),
+        "--output",
+    ),
+) -> None:
+    """Generate the Campaign 1-3 Closure Pack without repository cleanup, push, tag, or CI."""
+    result = write_campaign_1_2_3_closure_pack(repo_root, output)
+    typer.echo(
+        f"Campaign 1-3 Closure Pack status={result['status']} "
+        f"verdict={result['verdict']} pack={result['pack_path']} output={output}"
+    )
+
+
+@app.command("validate-campaign-1-2-3-closure-pack")
+def validate_campaign_1_2_3_closure_pack_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/campaign_1_2_3_closure_pack"),
+        "--output",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+) -> None:
+    """Validate the Campaign 1-3 Closure Pack without repository cleanup, push, tag, or CI."""
+    result = write_campaign_1_2_3_closure_pack_validation(repo_root, output)
+    typer.echo(
+        f"Campaign 1-3 Closure Pack validation status={result['status']} "
+        f"errors={result['error_count']} output={output}"
+    )
+
+
+@app.command("repository-public-surface-cleanup-gate")
+def repository_public_surface_cleanup_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/repository_public_surface_cleanup"),
+        "--output",
+    ),
+) -> None:
+    """Run repository public surface inventory and push/tag safety checks without pushing or tagging."""
+    result = write_repository_public_surface_cleanup_gate(repo_root, output)
+    typer.echo(
+        f"Repository Public Surface Cleanup Gate status={result['status']} "
+        f"verdict={result['verdict']} output={output}"
+    )
+
+
+@app.command("validate-repository-public-surface-cleanup-gate")
+def validate_repository_public_surface_cleanup_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/repository_public_surface_cleanup"),
+        "--output",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+) -> None:
+    """Validate repository public surface inventory and push/tag safety outputs."""
+    result = write_repository_public_surface_cleanup_gate_validation(repo_root, output)
+    typer.echo(
+        f"Repository Public Surface Cleanup Gate validation status={result['status']} "
+        f"errors={result['error_count']} output={output}"
+    )
+
+
+@app.command("build-external-source-framework")
+def build_external_source_framework_command(
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Build Campaign 3.0 P0 External Source Memory & Verification framework evidence."""
+    result = build_external_source_framework(output)
+    typer.echo(
+        f"Built external-source framework status={result['status']} "
+        f"decision={result['integration_decision']}/{result['decision_qualifier']} output={output}"
+    )
+
+
+@app.command("validate-external-source-framework")
+def validate_external_source_framework_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate Campaign 3.0 P0 external-source framework boundaries."""
+    result = write_external_source_framework_validation(library, output)
+    typer.echo(
+        f"External-source framework validation status={result['status']} "
+        f"errors={len(result['boundary_errors'])} output={output}"
+    )
+
+
+@app.command("ingest-link")
+def ingest_link_command(
+    url: str = typer.Argument(...),
+    output: Path = typer.Option(..., "--output"),
+    timeout_seconds: int = typer.Option(30, "--timeout-seconds"),
+    respect_robots: bool = typer.Option(True, "--respect-robots/--ignore-robots"),
+) -> None:
+    """Ingest one generic public HTTP/HTML URL into source-traced chunks."""
+    result = ingest_generic_web_url(
+        output,
+        url=url,
+        timeout_seconds=timeout_seconds,
+        respect_robots=respect_robots,
+    )
+    typer.echo(
+        f"Generic Web URL ingestion status={result['status']} "
+        f"readability={result.get('readability_state')} output={output}"
+    )
+    typer.echo(
+        json.dumps(
+            {
+                "status": result["status"],
+                "readability_state": result.get("readability_state"),
+                "failure_reason": result.get("failure_reason", ""),
+                "repair_suggestion": result.get("repair_suggestion", ""),
+                "backlink": result.get("backlink", url),
+                "source_trace": str(output / "external_source_trace.json"),
+                "evidence_map": str(output / "external_evidence_map.json"),
+                "progress_events": str(output / "progress_events.jsonl"),
+                "output_path": str(output),
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+    )
+    if result["status"] == "failed":
+        raise typer.Exit(1)
+
+
+@app.command("validate-generic-web-url-ingestion")
+def validate_generic_web_url_ingestion_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate Campaign 3.0 P0 Generic Web URL Ingestion outputs."""
+    result = write_generic_web_url_validation(library, output)
+    typer.echo(
+        f"Generic Web URL ingestion validation status={result['status']} "
+        f"errors={len(result['boundary_errors'])} output={output}"
+    )
+
+
+@app.command("build-external-link-import-entry-audit")
+def build_external_link_import_entry_audit_command(
+    runtime_evidence: Path = typer.Option(
+        ..., "--runtime-evidence", exists=True, file_okay=False, dir_okay=True
+    ),
+    ui_root: Path = typer.Option(..., "--ui-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Audit the Campaign 3 P0 External Link Import UI entry and completed-P0 bridge allowlist."""
+    result = build_external_link_import_entry_audit(
+        output,
+        runtime_evidence=runtime_evidence,
+        ui_root=ui_root,
+    )
+    typer.echo(
+        f"External Link Import entry audit status={result['validation']['status']} "
+        f"decision={result['integration_decision']}/{result['decision_qualifier']} output={output}"
+    )
+
+
+@app.command("validate-external-link-import-entry")
+def validate_external_link_import_entry_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate External Link Import entry, allowlist, UI truth, and later-campaign boundaries."""
+    result = write_external_link_import_entry_validation(library, output)
+    typer.echo(
+        f"External Link Import entry validation status={result['status']} "
+        f"errors={len(result['boundary_errors'])} output={output}"
+    )
+    if result["status"] != "passed":
+        raise typer.Exit(1)
+
+
+@app.command("start-authenticated-browser-session")
+def start_authenticated_browser_session_command(
+    output: Path = typer.Option(..., "--output"),
+    source_url: str = typer.Option(..., "--source-url"),
+    title: str = typer.Option(..., "--title"),
+    consent: bool = typer.Option(False, "--consent"),
+    ttl_seconds: int = typer.Option(1800, "--ttl-seconds", min=1, max=86400),
+) -> None:
+    """Start a user-authorized local visible-content session without reading cookies."""
+    result = start_authenticated_browser_session(
+        output,
+        source_url=source_url,
+        title=title,
+        user_consent=consent,
+        ttl_seconds=ttl_seconds,
+    )
+    typer.echo(
+        f"Authenticated browser session status={result['status']} "
+        f"session_id={result['session_id']} output={output}"
+    )
+
+
+@app.command("read-visible-browser-source")
+def read_visible_browser_source_command(
+    session: Path = typer.Option(
+        ..., "--session", exists=True, file_okay=False, dir_okay=True
+    ),
+    text: str = typer.Option(..., "--text"),
+    source_url: str | None = typer.Option(None, "--source-url"),
+    title: str | None = typer.Option(None, "--title"),
+    partial: bool = typer.Option(False, "--partial"),
+) -> None:
+    """Import only the page content explicitly supplied from the user's visible browser view."""
+    result = read_visible_browser_source(
+        session,
+        visible_text=text,
+        source_url=source_url,
+        title=title,
+        partial=partial,
+    )
+    typer.echo(
+        f"Visible browser source status={result['status']} "
+        f"failure_reason={result['failure_reason']} output={session}"
+    )
+    if result["status"] not in {"visible_content_readable", "visible_content_partial"}:
+        raise typer.Exit(1)
+
+
+@app.command("pause-authenticated-browser-session")
+def pause_authenticated_browser_session_command(
+    session: Path = typer.Option(
+        ..., "--session", exists=True, file_okay=False, dir_okay=True
+    ),
+) -> None:
+    """Pause a user-authorized visible-content session."""
+    result = pause_authenticated_browser_session(session)
+    typer.echo(f"Authenticated browser session paused={result['paused']} output={session}")
+
+
+@app.command("resume-authenticated-browser-session")
+def resume_authenticated_browser_session_command(
+    session: Path = typer.Option(
+        ..., "--session", exists=True, file_okay=False, dir_okay=True
+    ),
+) -> None:
+    """Resume a non-expired user-authorized visible-content session."""
+    result = resume_authenticated_browser_session(session)
+    typer.echo(f"Authenticated browser session status={result['status']} output={session}")
+    if result["status"] != "user_authorized_session":
+        raise typer.Exit(1)
+
+
+@app.command("clear-authenticated-browser-session")
+def clear_authenticated_browser_session_command(
+    session: Path = typer.Option(
+        ..., "--session", exists=True, file_okay=False, dir_okay=True
+    ),
+) -> None:
+    """Revoke and clear local browser-session authorization without cookie access."""
+    result = clear_authenticated_browser_session(session)
+    typer.echo(f"Authenticated browser session status={result['status']} output={session}")
+
+
+@app.command("validate-authenticated-browser-session")
+def validate_authenticated_browser_session_command(
+    library: Path = typer.Option(
+        ..., "--library", exists=True, file_okay=False, dir_okay=True
+    ),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate visible-content evidence and the no-cookie/no-bypass boundary."""
+    result = write_authenticated_browser_validation(library, output)
+    typer.echo(
+        f"Authenticated browser validation status={result['status']} "
+        f"errors={len(result['boundary_errors'])} output={output}"
+    )
+    if result["status"] != "passed":
+        raise typer.Exit(1)
+
+
+@app.command("build-video-visual-evidence")
+def build_video_visual_evidence_command(
+    output: Path = typer.Option(..., "--output"),
+    subtitle: list[Path] = typer.Option([], "--subtitle", exists=True, file_okay=True, dir_okay=False),
+    image: list[Path] = typer.Option([], "--image", exists=True, file_okay=True, dir_okay=False),
+    keyframe: list[Path] = typer.Option([], "--keyframe", exists=True, file_okay=True, dir_okay=False),
+    video: list[Path] = typer.Option([], "--video", file_okay=True, dir_okay=False),
+    source_url: str = typer.Option("", "--source-url"),
+    title: str = typer.Option("", "--title"),
+    author: str = typer.Option("", "--author"),
+    platform: str = typer.Option("", "--platform"),
+) -> None:
+    """Build traceable subtitle/image/keyframe OCR evidence without overclaiming unavailable video runtimes."""
+    result = build_video_visual_evidence(
+        output,
+        subtitle_files=subtitle,
+        image_files=image,
+        keyframe_files=keyframe,
+        video_files=video,
+        source_url=source_url,
+        title=title,
+        author=author,
+        platform=platform,
+    )
+    typer.echo(
+        f"Video/visual evidence status={result['status']} "
+        f"decision={result['integration_decision']}/{result['decision_qualifier']} output={output}"
+    )
+
+
+@app.command("validate-video-visual-evidence")
+def validate_video_visual_evidence_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate Video-to-Knowledge and Visual Evidence foundations outputs."""
+    result = write_video_visual_validation(library, output)
+    typer.echo(
+        f"Video/visual evidence validation status={result['status']} "
+        f"errors={len(result['boundary_errors'])} output={output}"
+    )
+    if result["status"] != "passed":
+        raise typer.Exit(1)
+
+
+@app.command("verify-external-claims")
+def verify_external_claims_command(
+    output: Path = typer.Option(..., "--output"),
+    claim: list[str] = typer.Option([], "--claim"),
+    claim_file: list[Path] = typer.Option([], "--claim-file", exists=True, file_okay=True, dir_okay=False),
+    evidence_file: list[Path] = typer.Option([], "--evidence-file", exists=True, file_okay=True, dir_okay=False),
+    answer: str | None = typer.Option(None, "--answer"),
+    answer_file: Path | None = typer.Option(None, "--answer-file", exists=True, file_okay=True, dir_okay=False),
+) -> None:
+    """Verify explicit claims against approved external-source evidence files."""
+    result = verify_external_claims(
+        output,
+        claim=claim,
+        claim_file=claim_file,
+        evidence_file=evidence_file,
+        answer=answer,
+        answer_file=answer_file,
+    )
+    typer.echo(
+        f"Knowledge verification status={result['status']} "
+        f"decision={result['integration_decision']}/{result['decision_qualifier']} "
+        f"claims={result['claim_count']} output={output}"
+    )
+
+
+@app.command("verify-knowledge-base")
+def verify_knowledge_base_command(
+    output: Path = typer.Option(..., "--output"),
+    knowledge_file: list[Path] = typer.Option([], "--knowledge-file", exists=True, file_okay=True, dir_okay=False),
+    evidence_file: list[Path] = typer.Option([], "--evidence-file", exists=True, file_okay=True, dir_okay=False),
+) -> None:
+    """Verify knowledge-base text or chunk files against approved external-source evidence."""
+    result = verify_knowledge_base(output, knowledge_file=knowledge_file, evidence_file=evidence_file)
+    typer.echo(
+        f"Knowledge-base verification status={result['status']} "
+        f"claims={result['claim_count']} output={output}"
+    )
+
+
+@app.command("verify-answer")
+def verify_answer_command(
+    output: Path = typer.Option(..., "--output"),
+    answer: str | None = typer.Option(None, "--answer"),
+    answer_file: Path | None = typer.Option(None, "--answer-file", exists=True, file_okay=True, dir_okay=False),
+    evidence_file: list[Path] = typer.Option([], "--evidence-file", exists=True, file_okay=True, dir_okay=False),
+) -> None:
+    """Verify an answer's claims and grounding against approved external-source evidence."""
+    result = verify_answer(output, answer=answer, answer_file=answer_file, evidence_file=evidence_file)
+    typer.echo(
+        f"Answer grounding verification status={result['status']} "
+        f"claims={result['claim_count']} output={output}"
+    )
+
+
+@app.command("generate-correctness-report")
+def generate_correctness_report_command(
+    output: Path = typer.Option(..., "--output"),
+    claim_report: Path = typer.Option(..., "--claim-report", exists=True, file_okay=True, dir_okay=False),
+) -> None:
+    """Generate a correctness summary from a claim verification report."""
+    result = generate_correctness_report(output, claim_report=claim_report)
+    typer.echo(
+        f"Correctness report status={result['status']} "
+        f"overall_correctness={result['overall_correctness']} output={output}"
+    )
+
+
+@app.command("validate-knowledge-verification")
+def validate_knowledge_verification_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate Knowledge Verification Engine and dashboard foundation outputs."""
+    result = write_knowledge_verification_validation(library, output)
+    typer.echo(
+        f"Knowledge verification validation status={result['status']} "
+        f"errors={len(result['boundary_errors'])} output={output}"
+    )
+    if result["status"] != "passed":
+        raise typer.Exit(1)
+
+
+@app.command("detect-platform-link")
+def detect_platform_link_command(url: str = typer.Argument(...)) -> None:
+    """Detect the platform type for one external link without fetching content."""
+    result = detect_platform_link(url)
+    typer.echo(
+        f"platform={result['platform']} known={result['is_known_platform']} "
+        f"source_type={result['source_type']}"
+    )
+
+
+@app.command("preflight-platform-link")
+def preflight_platform_link_command(
+    url: list[str] = typer.Argument(...),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Preflight platform links into structured readability states without content extraction."""
+    result = preflight_platform_links(output, urls=url)
+    typer.echo(
+        f"Platform preflight status={result['status']} sources={result['source_count']} "
+        f"platforms={','.join(result['platforms_detected'])} output={output}"
+    )
+
+
+@app.command("validate-platform-preflight")
+def validate_platform_preflight_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate Campaign 3.0 P0 Platform Link Preflight outputs."""
+    result = write_platform_preflight_validation(library, output)
+    typer.echo(
+        f"Platform preflight validation status={result['status']} "
+        f"errors={len(result['boundary_errors'])} output={output}"
+    )
+
+
+@app.command("check-opencli-external-verification")
+def check_opencli_external_verification_command(
+    output: Path = typer.Option(..., "--output"),
+    opencli_bin: Path | None = typer.Option(None, "--opencli-bin"),
+) -> None:
+    """Check project-local OpenCLI availability for external-source verification."""
+    result = check_opencli_external_verification(output, opencli_bin=opencli_bin, repo_root=Path("."))
+    typer.echo(
+        f"OpenCLI verification check status={result['status']} "
+        f"runtime_status={result['runtime_status']} version={result.get('version', '')} output={output}"
+    )
+
+
+@app.command("verify-external-source")
+def verify_external_source_command(
+    query: str = typer.Argument(...),
+    output: Path = typer.Option(..., "--output"),
+    claim: str | None = typer.Option(None, "--claim"),
+    input_url: str | None = typer.Option(None, "--input-url"),
+    provider: str = typer.Option("npm", "--provider"),
+    limit: int = typer.Option(3, "--limit"),
+    opencli_bin: Path | None = typer.Option(None, "--opencli-bin"),
+    allow_network: bool = typer.Option(True, "--allow-network/--no-network"),
+) -> None:
+    """Use OpenCLI read-only public-source search and map candidates into evidence."""
+    result = verify_external_source_with_opencli(
+        output,
+        query=query,
+        claim=claim,
+        input_url=input_url,
+        opencli_bin=opencli_bin,
+        repo_root=Path("."),
+        provider=provider,
+        limit=limit,
+        allow_network=allow_network,
+    )
+    typer.echo(
+        f"OpenCLI external verification status={result['status']} "
+        f"verification={result['verification_status']} candidates={result['candidate_count']} output={output}"
+    )
+
+
+@app.command("validate-opencli-external-verification")
+def validate_opencli_external_verification_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate Campaign 3.0 P0 OpenCLI External Search Verification outputs."""
+    result = write_opencli_external_verification_validation(library, output)
+    typer.echo(
+        f"OpenCLI external verification validation status={result['status']} "
+        f"errors={len(result['boundary_errors'])} output={output}"
+    )
+
+
+@app.command("import-manual-evidence")
+def import_manual_evidence_command(
+    output: Path = typer.Option(..., "--output"),
+    text: str | None = typer.Option(None, "--text"),
+    input_file: list[Path] = typer.Option([], "--input-file"),
+    title: str | None = typer.Option(None, "--title"),
+    source_url: str | None = typer.Option(None, "--source-url"),
+    user_note: str | None = typer.Option(None, "--user-note"),
+    source_type: str = typer.Option("manual_upload", "--source-type"),
+    manual_input_type: str | None = typer.Option(None, "--manual-input-type"),
+) -> None:
+    """Import user-supplied manual evidence into traceable manual evidence blocks."""
+    result = import_manual_evidence(
+        output,
+        copied_text=text,
+        input_files=input_file,
+        title=title,
+        source_url=source_url,
+        source_type=source_type,
+        user_note=user_note,
+        manual_input_type=manual_input_type,
+    )
+    typer.echo(
+        f"Manual evidence import status={result['status']} sources={result['source_count']} "
+        f"blocks={result['block_count']} pending={result['isolated_pending_count']} output={output}"
+    )
+
+
+@app.command("validate-manual-evidence")
+def validate_manual_evidence_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate Campaign 3.0 P0 Manual Evidence Upload outputs."""
+    result = write_manual_evidence_validation(library, output)
+    typer.echo(
+        f"Manual evidence validation status={result['status']} "
+        f"errors={len(result['boundary_errors'])} output={output}"
+    )
+
+
+@app.command("build-external-source-unified-trace")
+def build_external_source_unified_trace_command(
+    output: Path = typer.Option(..., "--output"),
+    evidence_root: Path = typer.Option(Path("artifacts/audits/section_5"), "--evidence-root"),
+) -> None:
+    """Build unified external-source trace, evidence map, progress, and failure isolation."""
+    result = build_external_source_unified_trace(output, evidence_root=evidence_root)
+    typer.echo(
+        f"External-source unified trace status={result['status']} "
+        f"sources={result['source_count']} pipelines={result['pipeline_count']} output={output}"
+    )
+
+
+@app.command("validate-external-source-unified-trace")
+def validate_external_source_unified_trace_command(
+    library: Path = typer.Option(..., "--library", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(..., "--output"),
+) -> None:
+    """Validate unified external-source trace/evidence/progress/failure isolation outputs."""
+    result = write_external_source_unified_trace_validation(library, output)
+    typer.echo(
+        f"External-source unified trace validation status={result['status']} "
+        f"errors={len(result['boundary_errors'])} output={output}"
+    )
+
+
+@app.command("check-anysearch-provider")
+def check_anysearch_provider_command(
+    output: Path = typer.Option(..., "--output"),
+    config: Path | None = typer.Option(None, "--config"),
+) -> None:
+    """Validate the AnySearch provider configuration without calling the network."""
+    result = check_anysearch_provider(output, config)
+    typer.echo(
+        f"AnySearch check status={result['status']} "
+        f"runtime_status={result['runtime_status']} output={output}"
+    )
+
+
+@app.command("smoke-anysearch-provider")
+def smoke_anysearch_provider_command(
+    output: Path = typer.Option(..., "--output"),
+    config: Path | None = typer.Option(None, "--config"),
+    query: str = typer.Option("document understanding knowledge base", "--query"),
+    allow_network: bool = typer.Option(False, "--allow-network"),
+) -> None:
+    """Run an explicit AnySearch provider smoke with structured skipped and failure states."""
+    typer.echo(
+        "Running AnySearch smoke..."
+        if allow_network
+        else "Checking AnySearch smoke boundary without network..."
+    )
+    result = smoke_anysearch_provider(
+        output,
+        config_path=config,
+        allow_network=allow_network,
+        query=query,
+    )
+    typer.echo(
+        f"AnySearch smoke status={result['status']} "
+        f"smoke_status={result['smoke_status']} output={output}"
+    )
+
+
+@app.command("run-anysearch-retrieval")
+def run_anysearch_retrieval_command(
+    query: str = typer.Option(..., "--query"),
+    output: Path = typer.Option(..., "--output"),
+    config: Path | None = typer.Option(None, "--config"),
+    max_results: int = typer.Option(5, "--max-results", min=1, max=20),
+    allow_network: bool = typer.Option(False, "--allow-network"),
+) -> None:
+    """Run AnySearch retrieval and export normalized source trace."""
+    typer.echo(
+        "Running AnySearch retrieval..."
+        if allow_network
+        else "Checking AnySearch retrieval boundary without network..."
+    )
+    result = run_anysearch_retrieval(
+        output,
+        query=query,
+        max_results=max_results,
+        config_path=config,
+        allow_network=allow_network,
+    )
+    typer.echo(
+        f"AnySearch retrieval status={result['status']} "
+        f"result_count={result['result_count']} output={output}"
+    )
+
+
+@app.command("export-n8n-workflow")
+def export_n8n_workflow_command(
+    output: Path = typer.Option(..., "--output"),
+    workflow_name: str = typer.Option(
+        "HeiTang KB Forge Event Intake",
+        "--workflow-name",
+    ),
+    webhook_path: str = typer.Option(
+        "heitang-kb-forge/events",
+        "--webhook-path",
+    ),
+) -> None:
+    """Export an inactive, credential-free n8n workflow and webhook contract."""
+    result = export_n8n_workflow(
+        output,
+        workflow_name=workflow_name,
+        webhook_path=webhook_path,
+    )
+    typer.echo(
+        f"n8n workflow export status={result['status']} "
+        f"runtime_bundled=false output={output}"
+    )
+
+
+@app.command("validate-n8n-workflow")
+def validate_n8n_workflow_command(
+    workflow: Path = typer.Option(..., "--workflow", exists=True, file_okay=True),
+    output: Path = typer.Option(..., "--output"),
+    webhook_contract: Path | None = typer.Option(
+        None,
+        "--webhook-contract",
+        exists=True,
+        file_okay=True,
+    ),
+) -> None:
+    """Validate an n8n workflow export without starting n8n."""
+    result = validate_n8n_workflow(
+        workflow,
+        output=output,
+        webhook_contract=webhook_contract,
+    )
+    typer.echo(
+        f"n8n workflow validation status={result['status']} "
+        f"runtime_started=false output={output}"
+    )
+    if result["status"] != "passed":
+        raise typer.Exit(1)
 
 
 @app.command("estimate-token-budget")

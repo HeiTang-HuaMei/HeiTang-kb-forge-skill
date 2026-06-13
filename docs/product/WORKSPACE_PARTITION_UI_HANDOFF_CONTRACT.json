@@ -1,0 +1,20 @@
+{
+  "schema_version": "workspace_partition_ui_handoff_contract.v1",
+  "status": "handoff_contract_ready",
+  "campaign_4_ui_complete": false,
+  "campaign_4_active": false,
+  "ui_industrial_workbench_complete": false,
+  "display_modes": [
+    "workspace_status_card",
+    "asset_scope_badge",
+    "kb_access_scope_detail",
+    "legacy_default_workspace_notice",
+    "path_boundary_error_detail"
+  ],
+  "forbidden_ui_claims": [
+    "workspace_partition_contract_is_campaign_4_complete",
+    "kb_scope_contract_is_runtime_permission_enforcement",
+    "agent_binding_spec_is_agent_runtime_ready",
+    "bridge_handoff_contract_is_campaign_5_complete"
+  ]
+}

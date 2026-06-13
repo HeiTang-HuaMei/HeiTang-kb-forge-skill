@@ -1,0 +1,37 @@
+{
+  "schema_version": "governance.pre_action_checkpoint.v1",
+  "action_id": "opendataloader_portable_java_20260612",
+  "created_at": "2026-06-12T08:50:00+08:00",
+  "goal": "Provide the Java runtime required for OpenDataLoader real smoke.",
+  "reason": "opendataloader-pdf 2.4.7 is installed, but no Java executable is available.",
+  "affected_scope": [
+    "_local_dependency_remediation/opendataloader/java",
+    "docs/audits/dependency_remediation/opendataloader"
+  ],
+  "risk_class": "system_dependency_local_portable_install",
+  "pre_action_state": {
+    "python_package": "opendataloader-pdf 2.4.7",
+    "python_cli": "available",
+    "java": "missing",
+    "global_path_change": false
+  },
+  "source": {
+    "vendor": "Eclipse Adoptium",
+    "distribution": "Temurin",
+    "api": "https://api.adoptium.net/v3/assets/latest/21/hotspot",
+    "release_channel": "latest Java 21 LTS GA Windows x64 JRE"
+  },
+  "rollback_plan": [
+    "Remove _local_dependency_remediation/opendataloader/java.",
+    "Remove the downloaded JRE archive after evidence capture.",
+    "Do not modify machine PATH, registry, or installed-program state.",
+    "Re-run check-opendataloader-backend to confirm Java is no longer available."
+  ],
+  "validation_plan": [
+    "Verify the downloaded archive SHA-256 against Adoptium API metadata.",
+    "Run java -version from the extracted project-local runtime.",
+    "Run check-opendataloader-backend with the local Java and CLI directories on process PATH.",
+    "Run smoke-opendataloader-backend against a valid local PDF."
+  ],
+  "next_resume_step": "Query Adoptium release metadata, download, verify, and extract the portable JRE."
+}

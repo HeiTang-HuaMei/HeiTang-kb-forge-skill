@@ -8,18 +8,46 @@ ROOT = Path(__file__).resolve().parents[1]
 AUDIT_DIR = ROOT / "docs" / "audits" / "s_a_contract_inclusion"
 
 EXPECTED_STATUS = {
-    "llm_wiki_v2": ["future_adapter", "capability_anchor"],
-    "weknora": ["future_adapter", "capability_anchor"],
-    "n8n": ["future_adapter", "provider_required", "workflow_export"],
-    "anysearchskill": ["provider_required", "planned_adapter"],
+    "llm_wiki_v2": ["capability_fusion", "real_integration", "runtime_not_bundled"],
+    "weknora": ["capability_fusion", "real_integration", "runtime_not_bundled"],
+    "n8n": ["workflow_export_adapter", "export_validation_passed", "runtime_not_bundled"],
+    "anysearchskill": ["provider_adapter", "real_smoke_passed", "needs_strengthening"],
     "andrej_karpathy_skills": ["benchmark_only", "capability_anchor"],
     "last30days_skill": ["provider_required", "future_adapter"],
-    "skill_prompt_generator": ["benchmark_only", "future_adapter"],
-    "mmskills": ["future_adapter"],
-    "jellyfish": ["template_reference", "future_adapter"],
-    "story_flicks": ["template_reference", "future_adapter"],
-    "seedance2_skill": ["provider_required", "template_reference", "future_adapter"],
-    "ai_marketing_skills": ["template_reference"],
+    "skill_prompt_generator": [
+        "prompt_asset_library_enhancer",
+        "real_integration",
+        "runtime_not_bundled",
+        "license_gate_pending",
+    ],
+    "mmskills": ["schema_package_reference", "reference_only", "runtime_not_bundled"],
+    "jellyfish": ["content_asset_schema_reference", "reference_only", "runtime_not_bundled"],
+    "story_flicks": ["aigc_video_pipeline_schema_reference", "reference_only", "runtime_not_bundled"],
+    "seedance2_skill": [
+        "verified_video_skill_template_metadata",
+        "reference_only",
+        "template_reference",
+        "provider_not_integrated",
+        "runtime_not_bundled",
+    ],
+    "rag_anything": [
+        "cross_modal_rag_schema_reference",
+        "reference_only",
+        "runtime_not_bundled",
+    ],
+    "mattpocock_skills": [
+        "engineering_governance_rule_pack",
+        "real_integration",
+        "runtime_not_bundled",
+    ],
+    "sirchmunk": [
+        "bounded_direct_file_search_provider",
+        "real_integration",
+        "runtime_not_bundled",
+        "embedding_free",
+        "vector_db_not_required",
+    ],
+    "ai_marketing_skills": ["marketing_skill_pattern_library", "real_integration", "runtime_not_bundled"],
     "rtk": ["benchmark_only"],
     "opendataloader": ["planned_adapter"],
     "paddleocr": ["planned_adapter", "optional_runtime_adapter"],
@@ -61,13 +89,16 @@ def test_contract_statuses_match_s_a_inclusion_policy():
 def test_s_a_contract_matrix_exposes_workbench_pages_without_execution():
     matrix = _json("s_a_contract_inclusion_matrix.json")
 
-    assert matrix["external_project_count"] == 23
+    assert matrix["external_project_count"] == 26
     for entry in matrix["entries"]:
         assert entry["workbench_page_ids"]
         assert entry["workbench_pages"]
         assert entry["can_execute_locally_before_v4"] is False
         assert entry["p1_gate_impact"] == "none_not_p1_blocker"
-        assert entry["ui_visibility"] == "visible_boundary_only"
+        assert entry["ui_visibility"] in {
+            "visible_boundary_only",
+            "visible_status_only",
+        }
 
 
 def test_workbench_p1_gate_report_is_boundary_only():

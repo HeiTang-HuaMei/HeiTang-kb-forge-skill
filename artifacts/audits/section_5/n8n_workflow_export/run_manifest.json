@@ -1,0 +1,41 @@
+{
+  "schema_version": "audit_run_manifest.v1",
+  "run_id": "n8n_workflow_export",
+  "generated_at": "2026-06-12T20:33:02+08:00",
+  "type": "section_5_integration_decision",
+  "scope": "SECTION_5_ITEM_5_4_N8N",
+  "status": "passed",
+  "integration_decision": "real_integration",
+  "evidence_files": [
+    "pre_action_checkpoint.md",
+    "rollback_plan.md",
+    "post_action_report.json",
+    "export/n8n_workflow.json",
+    "export/webhook_contract.json",
+    "export/sample_event.json",
+    "export/external_automation_manifest.json",
+    "export/n8n_export_validation.json",
+    "export/n8n_export_report.md",
+    "validation/n8n_export_validation.json",
+    "n8n_integration_decision_report.json",
+    "n8n_integration_decision_report.md",
+    "n8n_ui_impact_note.json",
+    "n8n_ui_impact_note.md",
+    "run_summary.md"
+  ],
+  "campaign_state_after_run": {
+    "campaign_3_item_5_1": "advanced",
+    "campaign_3_item_5_2": "advanced",
+    "campaign_3_item_5_3": "advanced_needs_strengthening",
+    "campaign_3_item_5_4": "advanced",
+    "campaign_3_accepted": false,
+    "campaign_4_allowed": false,
+    "next_section_5_item": "5.5 MMSkills"
+  },
+  "retention": "milestone",
+  "keep_in_git": true,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "Section 5 items 5.5 through 5.13 and all later campaigns remain incomplete; n8n import and execution remain user-owned external runtime responsibilities.",
+  "next_required_e2e_step": "Process Section 5 item 5.5 MMSkills only.",
+  "not_goal_complete": true
+}

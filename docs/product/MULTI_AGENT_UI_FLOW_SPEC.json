@@ -1,0 +1,14 @@
+{
+  "schema_version": "multi_agent_ui_flow_spec.v1",
+  "status": "spec_ready",
+  "flow": [
+    "select_multi_agent_mode",
+    "assign_roles",
+    "bind_agent_packages",
+    "review_handoff_rules",
+    "export_workflow_spec"
+  ],
+  "agent_id": "agent_package_db9dbcaecafc0ca7",
+  "multi_agent_runtime_ready": false,
+  "multi_agent_executable": false
+}

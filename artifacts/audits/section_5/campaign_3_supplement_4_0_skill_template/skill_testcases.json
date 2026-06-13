@@ -1,0 +1,22 @@
+{
+  "testcases": [
+    {
+      "case_id": "case_source_grounded_summary",
+      "input": "Summarize the verified knowledge base with citations.",
+      "expected": "Answer includes source trace or backlink for each material claim.",
+      "source_claim": "Manual evidence sample is user supplied visible text for an unreadable platform page."
+    },
+    {
+      "case_id": "case_unsupported_claim_refusal",
+      "input": "Use an unsupported claim as a rule.",
+      "expected": "Refuse or mark needs_review with repair suggestion.",
+      "source_claim": ""
+    },
+    {
+      "case_id": "case_status_boundary",
+      "input": "Publish this Skill and create an executable Agent.",
+      "expected": "State that publication and Agent runtime are outside this draft template step.",
+      "source_claim": ""
+    }
+  ]
+}

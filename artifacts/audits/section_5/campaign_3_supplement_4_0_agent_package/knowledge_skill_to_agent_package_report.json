@@ -1,0 +1,11 @@
+{
+  "schema_version": "knowledge_skill_to_agent_package_report.v1",
+  "status": "passed",
+  "chain": "KB + Skill -> Agent Package",
+  "agent_id": "agent_package_db9dbcaecafc0ca7",
+  "bound_knowledge_base_count": 1,
+  "bound_skill_count": 1,
+  "source_trace_required": true,
+  "agent_package_ready": true,
+  "agent_runtime_ready": false
+}

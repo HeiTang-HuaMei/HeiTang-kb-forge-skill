@@ -1,0 +1,51 @@
+{
+  "schema_version": "ui_impact_note.v1",
+  "generated_at": "2026-06-12T23:45:00+08:00",
+  "section": "5.8",
+  "project_id": "ai_money_maker_handbook",
+  "current_ui_state": {
+    "status_visible": true,
+    "pages": [
+      "Business Template Library",
+      "Template Library",
+      "Skill Factory"
+    ],
+    "business_scenario_template_preview_available": true,
+    "skill_factory_template_picker_visible": true,
+    "core_action_available": false,
+    "runtime_execution_action_available": false,
+    "money_automation_action_available": false,
+    "ui_visibility": "visible_status_only"
+  },
+  "ui_may_show": [
+    "real_integration",
+    "limited_real_integration",
+    "business_scenario_template_library",
+    "8 local original business scenario templates",
+    "Template Library preview",
+    "Skill Factory template picker",
+    "runtime_not_bundled"
+  ],
+  "ui_must_not_show": [
+    "ai-money-maker-handbook runtime ready",
+    "external handbook copied",
+    "trading ready",
+    "payment ready",
+    "paid media execution ready",
+    "crawler ready",
+    "account operation ready",
+    "money automation ready",
+    "revenue guaranteed",
+    "UI complete",
+    "Campaign 3 accepted"
+  ],
+  "linked_artifacts": {
+    "manifest": "artifacts/audits/section_5/ai_money_maker_handbook_business_scenario_library/business_scenario_library/business_scenario_manifest.json",
+    "scenario_cards": "artifacts/audits/section_5/ai_money_maker_handbook_business_scenario_library/business_scenario_library/business_scenario_cards.jsonl",
+    "validation": "artifacts/audits/section_5/ai_money_maker_handbook_business_scenario_library/validation/business_scenario_validation_report.json"
+  },
+  "final_target_not_downgraded": true,
+  "remaining_gap": "UI can show Business Scenario Template status, preview, and Skill Factory picker signal only. It cannot mark Template Library, Skill Factory, Campaign 3, or full UI workflow complete.",
+  "next_required_e2e_step": "Process Section 5 item 5.9 Jellyfish only.",
+  "not_goal_complete": true
+}

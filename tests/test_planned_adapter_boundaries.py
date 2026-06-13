@@ -13,7 +13,7 @@ def _json(name: str) -> dict:
 def test_planned_adapter_registry_contains_no_ready_or_local_executable_entries():
     payload = _json("planned_adapter_registry.json")
 
-    assert payload["entry_count"] >= 8
+    assert payload["entry_count"] >= 7
     assert payload["ready_count"] == 0
     assert payload["can_execute_locally_before_v4_count"] == 0
     for entry in payload["entries"]:
@@ -28,13 +28,15 @@ def test_planned_adapter_registry_contains_no_ready_or_local_executable_entries(
 def test_future_adapter_registry_contains_no_ready_or_local_executable_entries():
     payload = _json("future_adapter_registry.json")
 
-    assert payload["entry_count"] >= 9
+    assert payload["entry_count"] >= 6
     assert payload["ready_count"] == 0
     assert payload["can_execute_locally_before_v4_count"] == 0
     for entry in payload["entries"]:
         assert "future_adapter" in entry["contract_status"]
         assert entry["can_execute_locally_before_v4"] is False
         assert "future_adapter_after_v4" in entry["blocked_reasons"]
+    assert "skill_prompt_generator" not in {entry["project_id"] for entry in payload["entries"]}
+    assert "mmskills" not in {entry["project_id"] for entry in payload["entries"]}
 
 
 def test_provider_boundary_report_keeps_provider_network_and_runtime_disabled():
@@ -43,11 +45,13 @@ def test_provider_boundary_report_keeps_provider_network_and_runtime_disabled():
 
     assert payload["provider_network_api_ready"] is False
     assert payload["n8n_bundled_runtime"] is False
-    assert payload["anysearchskill_api_callable"] is False
+    assert payload["anysearchskill_api_callable"] is True
+    assert payload["anysearchskill_real_smoke_passed"] is True
+    assert payload["n8n_workflow_export_ready"] is True
     assert payload["weknora_embedded"] is False
     assert payload["llm_wiki_memory_engine_implemented"] is False
     assert entries["n8n"]["requires_external_runtime"] is True
-    assert entries["anysearchskill"]["requires_api_key"] is True
+    assert entries["anysearchskill"]["requires_api_key"] is False
     assert entries["anysearchskill"]["requires_network"] is True
     assert entries["last30days_skill"]["requires_network"] is True
     for entry in entries.values():

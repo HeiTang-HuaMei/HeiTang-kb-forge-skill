@@ -1,0 +1,40 @@
+{
+  "schema_version": "external_source_chunk_schema.v1",
+  "chunk_types": [
+    "text",
+    "image_ocr",
+    "video_segment",
+    "video_keyframe_ocr",
+    "table_ocr",
+    "layout_block",
+    "mixed_multimodal"
+  ],
+  "required_fields": [
+    "chunk_id",
+    "chunk_type",
+    "source_type",
+    "source_url",
+    "platform",
+    "title",
+    "author",
+    "published_at",
+    "retrieved_at",
+    "content_hash",
+    "text",
+    "ocr_text",
+    "visual_summary",
+    "timestamp_start",
+    "timestamp_end",
+    "image_index",
+    "bbox",
+    "backlink",
+    "evidence_id",
+    "confidence"
+  ],
+  "trace_requirements": {
+    "web_backlink_required": true,
+    "video_timestamp_backlink_required": true,
+    "image_region_backlink_required": true,
+    "manual_evidence_manifest_required": true
+  }
+}

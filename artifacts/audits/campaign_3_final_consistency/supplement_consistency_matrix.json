@@ -1,0 +1,48 @@
+{
+  "schema_version": "campaign_3_supplement_consistency_matrix.v1",
+  "status": "passed",
+  "items": [
+    {
+      "item_id": "campaign_3_supplement_2_0_closure_gate",
+      "status": "passed",
+      "verdict": "accepted_for_transition_to_campaign_3_3_0_entry_gate",
+      "evidence": [
+        "artifacts/audits/section_5/campaign_3_supplement_2_0_closure_gate/run_manifest.json",
+        null
+      ],
+      "errors": []
+    },
+    {
+      "item_id": "campaign_3_supplement_3_0_acceptance_gate",
+      "status": "passed",
+      "verdict": "accepted_for_pre_4_0_workspace_partition_foundation_gate",
+      "evidence": [
+        "artifacts/audits/section_5/campaign_3_supplement_3_0_acceptance_gate/run_manifest.json",
+        null
+      ],
+      "errors": []
+    },
+    {
+      "item_id": "pre_4_0_workspace_partition_foundation_gate",
+      "status": "passed",
+      "verdict": "accepted_for_campaign_3_supplement_4_0_entry_gate",
+      "evidence": [
+        "artifacts/audits/pre_4_0_workspace_partition/run_manifest.json",
+        "artifacts/audits/pre_4_0_workspace_partition/validation_report.json"
+      ],
+      "errors": []
+    },
+    {
+      "item_id": "campaign_3_supplement_4_0_acceptance_gate",
+      "status": "passed",
+      "verdict": "accepted_for_campaign_3_final_consistency_gate",
+      "evidence": [
+        "artifacts/audits/campaign_3_4_0/run_manifest.json",
+        "artifacts/audits/campaign_3_4_0/validation_report.json"
+      ],
+      "errors": []
+    }
+  ],
+  "error_count": 0,
+  "errors": []
+}

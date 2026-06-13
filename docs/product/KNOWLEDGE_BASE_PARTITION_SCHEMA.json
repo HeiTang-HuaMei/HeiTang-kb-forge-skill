@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HeiTang Knowledge Base Partition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kb_id",
+    "workspace_id",
+    "kb_type",
+    "access_scope",
+    "bound_source_ids",
+    "allowed_workspace_ids",
+    "denied_workspace_ids",
+    "allowed_kb_scopes",
+    "denied_kb_ids",
+    "retrieval_policy",
+    "audit_scope",
+    "source_trace"
+  ],
+  "properties": {
+    "kb_id": {
+      "type": "string"
+    },
+    "workspace_id": {
+      "type": "string"
+    },
+    "kb_type": {
+      "type": "string",
+      "enum": [
+        "general",
+        "specialized",
+        "project",
+        "personal",
+        "skill_source",
+        "agent_bound",
+        "imported",
+        "archived"
+      ]
+    },
+    "access_scope": {
+      "type": "string",
+      "enum": [
+        "workspace_private",
+        "shared_read_only",
+        "cloned_copy",
+        "imported_copy",
+        "public_reference",
+        "agent_bound",
+        "archived_read_only"
+      ]
+    },
+    "bound_source_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "allowed_workspace_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "denied_workspace_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "allowed_kb_scopes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "workspace_private",
+          "shared_read_only",
+          "cloned_copy",
+          "imported_copy",
+          "public_reference",
+          "agent_bound",
+          "archived_read_only"
+        ]
+      }
+    },
+    "denied_kb_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "retrieval_policy": {
+      "type": "object",
+      "required": [
+        "default_mode",
+        "cross_workspace_reference_mode"
+      ],
+      "properties": {
+        "default_mode": {
+          "enum": [
+            "local_workspace_only"
+          ]
+        },
+        "cross_workspace_reference_mode": {
+          "enum": [
+            "explicit_reference_only"
+          ]
+        }
+      }
+    },
+    "audit_scope": {
+      "enum": [
+        "workspace",
+        "workspace_and_referenced_sources"
+      ]
+    },
+    "source_trace": {
+      "type": "object"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "adapter_smoke_report_schema.json",
+  "title": "Document Backend Adapter Smoke Report",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "adapter",
+    "status",
+    "result",
+    "warnings",
+    "errors",
+    "repair_suggestion"
+  ],
+  "properties": {
+    "schema_version": {"const": "document_backend.smoke.v1"},
+    "adapter": {"$ref": "adapter_capability_schema.json"},
+    "status": {"enum": ["pass", "warning", "skipped", "fail"]},
+    "result": {
+      "oneOf": [
+        {"$ref": "adapter_result_schema.json"},
+        {"type": "null"}
+      ]
+    },
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "errors": {"type": "array", "items": {"$ref": "adapter_error_schema.json"}},
+    "repair_suggestion": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}

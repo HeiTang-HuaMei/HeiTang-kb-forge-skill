@@ -1,0 +1,46 @@
+{
+  "schema_version": "audit_run_manifest.v1",
+  "run_id": "llm_wiki_v2_knowledge_lifecycle",
+  "type": "section_5_integration_decision",
+  "scope": "SECTION_5_ITEM_5_1_LLM_WIKI_V2",
+  "status": "passed",
+  "started_at": "2026-06-12T15:01:00+08:00",
+  "completed_at": "2026-06-12T15:01:33+08:00",
+  "commands": [
+    {
+      "command": "git ls-remote https://github.com/karpathy/llm-wiki",
+      "exit_code": 1,
+      "status": "repository_not_found",
+      "purpose": "Verify registry URL before deciding vendor/runtime integration boundary."
+    },
+    {
+      "command": "python -m heitang_kb_forge.cli plan-knowledge-lifecycle --knowledge-package docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/knowledge_package --output artifacts/audits/section_5/llm_wiki_v2_knowledge_lifecycle/knowledge_lifecycle --max-age-days 365 --min-confidence 0.65",
+      "exit_code": 0,
+      "status": "passed",
+      "purpose": "Run local Knowledge Lifecycle analysis over a real accepted knowledge package."
+    }
+  ],
+  "artifacts": [
+    "knowledge_lifecycle/knowledge_lifecycle_report.json",
+    "knowledge_lifecycle/confidence_report.json",
+    "knowledge_lifecycle/stale_evidence_report.json",
+    "knowledge_lifecycle/refresh_suggestions.json",
+    "knowledge_lifecycle/forgetting_retention_plan.json",
+    "knowledge_lifecycle/source_trace.json",
+    "llm_wiki_v2_integration_decision_report.json",
+    "llm_wiki_v2_integration_decision_report.md",
+    "llm_wiki_v2_ui_impact_note.json",
+    "llm_wiki_v2_ui_impact_note.md",
+    "run_summary.md"
+  ],
+  "campaign_state_after_run": {
+    "campaign_3_item_5_1": "advanced",
+    "campaign_3_accepted": false,
+    "campaign_4_allowed": false,
+    "final_release_allowed": false
+  },
+  "final_target_not_downgraded": true,
+  "remaining_gap": "Section 5 items 5.2 through 5.13, UI workflow, Core Bridge acceptance, configuration, Full Gate, EXE, and final release remain incomplete.",
+  "next_required_e2e_step": "Process Section 5 item 5.2 WeKnora only.",
+  "not_goal_complete": true
+}

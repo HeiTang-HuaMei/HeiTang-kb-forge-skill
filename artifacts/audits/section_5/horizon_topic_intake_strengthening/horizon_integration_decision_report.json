@@ -1,0 +1,95 @@
+{
+  "schema_version": "integration_decision_report.v1",
+  "generated_at": "2026-06-13T00:00:00+08:00",
+  "section": "5.S2",
+  "campaign": "Campaign 3",
+  "project_id": "horizon",
+  "project_name": "Horizon",
+  "decision": "real_integration",
+  "decision_qualifier": "topic_intake_pipeline_schema_only",
+  "integration_mode": "topic_intake_pipeline_schema_strengthening",
+  "verification_state": "verified_source_strengthening_record_only",
+  "repository_check": {
+    "url": "https://github.com/Thysrael/Horizon",
+    "git_ls_remote_result": "accessible",
+    "git_ls_remote_head": "7e0ffbbd069765b77af053e73ccc0cd6ccc2456f",
+    "default_branch": "main",
+    "license_spdx": "MIT",
+    "repository_cloned": false,
+    "external_code_copied": false,
+    "external_prompts_copied": false,
+    "external_workflow_copied": false,
+    "external_skill_files_copied": false,
+    "external_installer_executed": false
+  },
+  "dedup_decision": {
+    "overlap_checked": true,
+    "not_peer_project": true,
+    "strengthens_existing_domains": [
+      "marketing_skill_pattern_library",
+      "business_scenario_template_library",
+      "knowledge_output_flywheel_future_module",
+      "external_source_memory_future_plan"
+    ],
+    "distinct_strengthening_value": [
+      "source_scoring_schema",
+      "dedup_topic_merge_rules",
+      "daily_briefing_candidate_schema",
+      "content_intake_boundary_rules"
+    ],
+    "does_not_replace": [
+      "ai-marketing-skills Marketing Skill Pattern Library",
+      "ai-money-maker-handbook Business Scenario Template Library",
+      "AnySearchSkill external retrieval provider",
+      "Campaign 3 Supplement 3.0 External Source Memory & Verification"
+    ]
+  },
+  "local_contract_evidence": {
+    "builder": "heitang_kb_forge/horizon_strengthening/builder.py",
+    "build_command": "python -m heitang_kb_forge.cli build-horizon-strengthening-record --output artifacts/audits/section_5/horizon_topic_intake_strengthening/rules",
+    "validate_command": "python -m heitang_kb_forge.cli validate-horizon-strengthening-record --library artifacts/audits/section_5/horizon_topic_intake_strengthening/rules --output artifacts/audits/section_5/horizon_topic_intake_strengthening/validation",
+    "manifest": "artifacts/audits/section_5/horizon_topic_intake_strengthening/rules/horizon_strengthening_manifest.json",
+    "validation": "artifacts/audits/section_5/horizon_topic_intake_strengthening/validation/horizon_strengthening_validation_report.json",
+    "validation_status": "passed",
+    "boundary_error_count": 0,
+    "source_scoring_rule_count": 3,
+    "topic_dedup_rule_count": 3,
+    "content_intake_boundary_rule_count": 4
+  },
+  "runtime_contract": {
+    "local_topic_intake_schema_implemented": true,
+    "horizon_runtime_integrated": false,
+    "crawler_or_scraper_integrated": false,
+    "scheduled_fetcher_enabled": false,
+    "ai_scoring_runtime_enabled": false,
+    "api_key_required": false,
+    "delivery_channel_enabled": false,
+    "mcp_connector_enabled": false,
+    "external_source_ingestion_implemented": false,
+    "knowledge_to_skill_template_generator_implemented": false,
+    "campaign_3_3_0_implemented": false,
+    "campaign_3_4_0_implemented": false,
+    "ui_workflow_complete": false
+  },
+  "why_real_integration": [
+    "The current item creates a local original Topic Intake Pipeline schema with source scoring, deduplication, candidate queue, and boundary rules.",
+    "The schema strengthens existing marketing, business template, and knowledge-output flywheel domains without needing the Horizon runtime.",
+    "All runtime, crawler, scheduler, delivery, MCP, and API-key side effects are explicitly blocked and validated."
+  ],
+  "boundaries": [
+    "No Horizon repository clone, installer, official runtime, external code, external prompts, or workflow files are copied or executed.",
+    "No crawler, scheduled fetcher, AI scoring runtime, source monitor, delivery channel, MCP connector, API key, or network ingestion is configured.",
+    "Campaign 3 Supplement 3.0 remains planned_not_active and is not implemented by this strengthening schema.",
+    "Campaign 4 is still blocked by sequence."
+  ],
+  "ui_impact_note": "artifacts/audits/section_5/horizon_topic_intake_strengthening/horizon_ui_impact_note.json",
+  "campaign_3_accepted": false,
+  "campaign_3_3_0_active": false,
+  "campaign_3_4_0_active": false,
+  "campaign_3_supplement_2_0_closure_gate_passed": false,
+  "campaign_4_allowed": false,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "Strengthening item 5.S3, Campaign 3 Supplement 2.0 closure, Campaign 3.0, Campaign 3 Supplement 4.0, expanded final consistency, Campaign 4-8, and release remain incomplete.",
+  "next_required_e2e_step": "Process Section 5 strengthening item 5.S3 Obsidian-compatible Vault only.",
+  "not_goal_complete": true
+}

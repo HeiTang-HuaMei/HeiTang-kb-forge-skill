@@ -1,0 +1,34 @@
+{
+  "schema_version": "campaign_3_supplement_4_0_acceptance_matrix.v1",
+  "status": "passed",
+  "items": [
+    {
+      "control_id": "verified_knowledge_to_skill_passed",
+      "status": "passed"
+    },
+    {
+      "control_id": "skill_import_composer_passed",
+      "status": "passed"
+    },
+    {
+      "control_id": "agent_package_unification_passed",
+      "status": "passed"
+    },
+    {
+      "control_id": "product_handoff_bundle_passed",
+      "status": "passed"
+    },
+    {
+      "control_id": "contract_matrix_passed",
+      "status": "passed"
+    },
+    {
+      "control_id": "status_boundary_matrix_passed",
+      "status": "passed"
+    },
+    {
+      "control_id": "test_contract_passed",
+      "status": "passed"
+    }
+  ]
+}

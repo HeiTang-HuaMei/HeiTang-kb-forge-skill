@@ -1,0 +1,35 @@
+{
+  "schema_version": "framework_only_matrix.v1",
+  "status": "passed",
+  "items": [
+    {
+      "item_id": "external_source_framework",
+      "campaign_section": "framework_only",
+      "status": "framework_only",
+      "description": "External Source framework schemas and registry",
+      "evidence_path": "artifacts/audits/section_5/external_source_framework/run_manifest.json"
+    },
+    {
+      "item_id": "pre_4_0_workspace_partition_foundation",
+      "campaign_section": "framework_only",
+      "status": "framework_only",
+      "description": "Workspace partition and KB scope foundation contract",
+      "evidence_path": "artifacts/audits/pre_4_0_workspace_partition/run_manifest.json"
+    },
+    {
+      "item_id": "campaign_4_ui_handoff",
+      "campaign_section": "framework_only",
+      "status": "framework_only",
+      "description": "Campaign 4 UI handoff contract, not UI completion",
+      "evidence_path": "artifacts/audits/campaign_3_4_0/campaign_4_ui_handoff_report.json"
+    },
+    {
+      "item_id": "campaign_5_bridge_handoff",
+      "campaign_section": "framework_only",
+      "status": "framework_only",
+      "description": "Campaign 5 Bridge handoff contract, not Bridge completion",
+      "evidence_path": "artifacts/audits/campaign_3_4_0/campaign_5_bridge_handoff_report.json"
+    }
+  ],
+  "errors": []
+}

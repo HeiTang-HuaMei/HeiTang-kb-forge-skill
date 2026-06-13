@@ -1,0 +1,30 @@
+{
+  "schema_version": "cross_modal_trace_schema.v1",
+  "trace_id_format": "cmtrace_<stable_hash>",
+  "source_trace_required": true,
+  "evidence_map_required": true,
+  "required_fields": [
+    "trace_id",
+    "query_id",
+    "retrieval_rank",
+    "modality",
+    "evidence_id",
+    "source_path",
+    "chunk_or_asset_id",
+    "relation_ids",
+    "score_components"
+  ],
+  "optional_location_fields": [
+    "page_number",
+    "bbox",
+    "table_id",
+    "equation_id"
+  ],
+  "score_components": [
+    "text_relevance",
+    "modality_relevance",
+    "cross_modal_relation_weight",
+    "source_trace_completeness"
+  ],
+  "backlink_contract": "source_path plus local chunk, asset, page, or bounding-box locator"
+}

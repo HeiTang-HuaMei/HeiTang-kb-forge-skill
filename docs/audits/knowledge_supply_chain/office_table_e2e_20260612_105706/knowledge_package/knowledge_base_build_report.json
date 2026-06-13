@@ -1,0 +1,15 @@
+{
+  "schema_version": "knowledge_base_build.v1",
+  "status": "pass",
+  "document_understanding_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/document_understanding",
+  "knowledge_base_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/knowledge_base",
+  "source_count": 3,
+  "chunk_count": 3,
+  "retrieval_index_count": 33,
+  "document_understanding_status": "completed",
+  "document_understanding_backend_counts": {
+    "builtin": 3
+  },
+  "contract_status": "pass",
+  "progress_events_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/knowledge_base/progress_events.jsonl"
+}

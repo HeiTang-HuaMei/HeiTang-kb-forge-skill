@@ -1,0 +1,114 @@
+{
+  "schema_version": "run_manifest.v1",
+  "run_id": "campaign_3_supplement_4_0_product_handoff_bundle",
+  "type": "campaign_supplement_implementation_bundle",
+  "scope": "CAMPAIGN_3_SUPPLEMENT_4_0_D_I_PRODUCT_HANDOFF_CONTRACT_BUNDLE",
+  "status": "passed",
+  "integration_decision": "real_integration",
+  "decision_qualifier": "product_handoff_contract_bundle_only",
+  "implementation_level": "bounded industrial-grade implementation",
+  "generated_at": "2026-06-14T02:20:00+08:00",
+  "output_files": [
+    "artifacts\\audits\\section_5\\campaign_3_supplement_4_0_agent_package\\run_manifest.json",
+    "docs/product/AGENT_WORKSPACE_BINDING_SPEC.md",
+    "docs/product/AGENT_WORKSPACE_BINDING_SPEC.json",
+    "docs/product/AGENT_MEMORY_ISOLATION_SPEC.md",
+    "docs/product/AGENT_MEMORY_ISOLATION_SPEC.json",
+    "docs/product/AGENT_MEMORY_BACKEND_MATRIX.json",
+    "docs/product/AGENT_MEMORY_FALLBACK_POLICY.md",
+    "docs/product/AGENT_MODE_SPEC.md",
+    "docs/product/MULTI_AGENT_WORKFLOW_SPEC.md",
+    "docs/product/AGENT_ROLE_ASSIGNMENT_SPEC.json",
+    "docs/product/AGENT_HANDOFF_RULES_SPEC.json",
+    "docs/product/CAMPAIGN_4_UI_HANDOFF_CONTRACT.md",
+    "docs/product/CAMPAIGN_4_UI_HANDOFF_CONTRACT.json",
+    "docs/product/UI_TASK_CARD_INPUTS_FROM_CAMPAIGN_3.json",
+    "docs/product/AGENT_BUILDER_UI_REQUIREMENT_SPEC.md",
+    "docs/product/SKILL_AGENT_UI_FLOW_SPEC.json",
+    "docs/product/MULTI_AGENT_UI_FLOW_SPEC.json",
+    "docs/product/UI_STATE_INPUTS_FROM_CORE.json",
+    "docs/bridge/CAMPAIGN_5_BRIDGE_HANDOFF_CONTRACT.md",
+    "docs/bridge/CAMPAIGN_5_BRIDGE_HANDOFF_CONTRACT.json",
+    "docs/bridge/FUTURE_AGENT_BRIDGE_ACTION_CANDIDATES.json",
+    "docs/bridge/USER_TASK_TO_BRIDGE_FLOW_CANDIDATES.json",
+    "docs/bridge/BRIDGE_MISSING_ACTION_MATRIX.json",
+    "run_manifest.json",
+    "run_summary.md",
+    "stage_status_matrix.json",
+    "boundary_matrix.json",
+    "validation_report.json",
+    "checkpoint.json",
+    "progress_events.jsonl"
+  ],
+  "stage_status_matrix": {
+    "schema_version": "campaign_3_supplement_4_0_d_i_stage_status_matrix.v1",
+    "status": "passed",
+    "stages": [
+      {
+        "stage_id": "4_0d_agent_package",
+        "status": "passed",
+        "artifact_path": "artifacts\\audits\\section_5\\campaign_3_supplement_4_0_agent_package\\run_manifest.json"
+      },
+      {
+        "stage_id": "4_0e_workspace_binding",
+        "status": "passed",
+        "artifact_path": "docs/product/AGENT_WORKSPACE_BINDING_SPEC.json"
+      },
+      {
+        "stage_id": "4_0f_memory_isolation",
+        "status": "passed",
+        "artifact_path": "docs/product/AGENT_MEMORY_ISOLATION_SPEC.json"
+      },
+      {
+        "stage_id": "4_0g_single_multi_agent_mode",
+        "status": "passed",
+        "artifact_path": "docs/product/AGENT_MODE_SPEC.md"
+      },
+      {
+        "stage_id": "4_0h_campaign_4_ui_handoff",
+        "status": "passed",
+        "artifact_path": "docs/product/CAMPAIGN_4_UI_HANDOFF_CONTRACT.json"
+      },
+      {
+        "stage_id": "4_0i_campaign_5_bridge_handoff",
+        "status": "passed",
+        "artifact_path": "docs/bridge/CAMPAIGN_5_BRIDGE_HANDOFF_CONTRACT.json"
+      }
+    ]
+  },
+  "campaign_state_after_step": {
+    "campaign_3_supplement_4_0_b_passed": true,
+    "campaign_3_supplement_4_0c_passed": true,
+    "campaign_3_supplement_4_0d_passed": true,
+    "campaign_3_supplement_4_0e_passed": true,
+    "campaign_3_supplement_4_0f_passed": true,
+    "campaign_3_supplement_4_0g_passed": true,
+    "campaign_3_supplement_4_0h_passed": true,
+    "campaign_3_supplement_4_0i_passed": true,
+    "campaign_3_supplement_4_0_d_i_bundle_passed": true,
+    "campaign_3_supplement_4_0_business_implementation_complete": true,
+    "campaign_3_supplement_4_0_acceptance_gate_passed": false,
+    "campaign_3_final_consistency_gate_passed": false,
+    "agent_package_ready": true,
+    "agent_runtime_ready": false,
+    "agent_executable": false,
+    "memory_spec_ready": true,
+    "redis_runtime_ready": false,
+    "vector_runtime_ready": false,
+    "multi_agent_spec_ready": true,
+    "multi_agent_runtime_ready": false,
+    "campaign_4_ui_handoff_ready": true,
+    "campaign_4_active": false,
+    "campaign_4_ui_complete": false,
+    "campaign_5_bridge_handoff_ready": true,
+    "campaign_5_active": false,
+    "bridge_execution_accepted": false,
+    "full_gate_passed": false,
+    "exe_packaging_done": false,
+    "repository_push_succeeded": false,
+    "tag_created": false,
+    "ci_green": false
+  },
+  "next_safe_action": "Campaign 3 Supplement 4.0 Acceptance Gate only",
+  "not_goal_complete": true
+}

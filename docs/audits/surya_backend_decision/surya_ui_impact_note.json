@@ -1,0 +1,13 @@
+{
+  "schema_version": "surya.ui_impact_note.v1",
+  "adapter_id": "surya",
+  "ui_status": "needs_strengthening",
+  "desktop_bridge_actions": [
+    "check_surya_backend",
+    "smoke_surya_backend"
+  ],
+  "web_execution_enabled": false,
+  "web_blocked_reason": "web_local_cli_unsupported",
+  "truthfulness_note": "UI should present Surya as an OCR/layout benchmark/reference candidate, not as a primary parser or ready backend.",
+  "evidence_path": "docs/audits/surya_backend_decision/surya_integration_decision_report.json"
+}

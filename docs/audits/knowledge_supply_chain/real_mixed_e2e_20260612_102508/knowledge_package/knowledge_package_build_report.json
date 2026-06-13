@@ -1,0 +1,16 @@
+{
+  "schema_version": "knowledge_package_build.v1",
+  "status": "pass",
+  "generated_at": "2026-06-12T02:29:37.598087+00:00",
+  "knowledge_base_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/knowledge_base",
+  "knowledge_package_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/knowledge_package",
+  "copied_file_count": 31,
+  "artifact_file_count": 32,
+  "artifact_total_bytes": 74640,
+  "source_contract_status": "pass",
+  "target_contract_status": "pass",
+  "package_readiness": "ready",
+  "standard_files_present": true,
+  "progress_events_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/knowledge_package/progress_events.jsonl",
+  "exe_packaging_proven": false
+}

@@ -26,7 +26,7 @@
 - API、network、provider、secret 相关能力必须要求用户显式配置。
 - n8n 不打包 runtime。
 - WeKnora 不内嵌。
-- AnySearchSkill API 不调用。
+- 原始 S/A 纳入快照未调用 AnySearchSkill；当前 Section 5 item 5.3 证据单独登记在 `artifacts/audits/section_5/anysearchskill_provider_adapter/`。
 - LLM Wiki memory engine 不实现。
 - planned_adapter 和 future_adapter 都不是 ready。
 

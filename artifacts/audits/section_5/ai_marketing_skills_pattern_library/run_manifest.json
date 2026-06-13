@@ -1,0 +1,43 @@
+{
+  "schema_version": "audit_run_manifest.v1",
+  "run_id": "ai_marketing_skills_pattern_library",
+  "generated_at": "2026-06-12T22:49:57+08:00",
+  "type": "section_5_integration_decision",
+  "scope": "SECTION_5_ITEM_5_7_AI_MARKETING_SKILLS",
+  "status": "passed",
+  "integration_decision": "real_integration",
+  "evidence_files": [
+    "pre_action_checkpoint.md",
+    "rollback_plan.md",
+    "marketing_pattern_library/marketing_pattern_manifest.json",
+    "marketing_pattern_library/marketing_pattern_cards.jsonl",
+    "marketing_pattern_library/marketing_workflow_patterns.json",
+    "marketing_pattern_library/marketing_pattern_library_report.md",
+    "marketing_pattern_library/MARKETING_PATTERN_INDEX.md",
+    "validation/marketing_pattern_validation_report.json",
+    "validation/marketing_pattern_validation_report.md",
+    "ai_marketing_skills_integration_decision_report.json",
+    "ai_marketing_skills_integration_decision_report.md",
+    "ai_marketing_skills_ui_impact_note.json",
+    "ai_marketing_skills_ui_impact_note.md",
+    "run_summary.md"
+  ],
+  "campaign_state_after_run": {
+    "campaign_3_item_5_1": "advanced",
+    "campaign_3_item_5_2": "advanced",
+    "campaign_3_item_5_3": "advanced_needs_strengthening",
+    "campaign_3_item_5_4": "advanced",
+    "campaign_3_item_5_5": "advanced_reference_only",
+    "campaign_3_item_5_6": "advanced",
+    "campaign_3_item_5_7": "advanced",
+    "campaign_3_accepted": false,
+    "campaign_4_allowed": false,
+    "next_section_5_item": "5.8 ai-money-maker-handbook"
+  },
+  "retention": "milestone",
+  "keep_in_git": true,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "Section 5 items 5.8 through 5.14, strengthening items 5.S1-5.S3, Campaign 3 final consistency gate, and all later campaigns remain incomplete; ai-marketing-skills is not a bundled runtime.",
+  "next_required_e2e_step": "Process Section 5 item 5.8 ai-money-maker-handbook only.",
+  "not_goal_complete": true
+}

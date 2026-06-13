@@ -1,0 +1,66 @@
+{
+  "schema_version": "document_batch_import.v1.batch_import_report",
+  "status": "completed_with_issues",
+  "input_path": "docs/audits/document_batch_import/sample_input",
+  "total_files": 4,
+  "imported_count": 3,
+  "failed_count": 1,
+  "unsupported_count": 1,
+  "duplicate_count": 1,
+  "single_file_failure_isolated": true,
+  "llm_required": false,
+  "items": [
+    {
+      "item_id": "doc-0001",
+      "source_path": "docs/audits/document_batch_import/sample_input/001_text.md",
+      "relative_path": "001_text.md",
+      "status": "imported",
+      "file_type": "text_document",
+      "recommended_backend": "builtin",
+      "duplicate_of": null,
+      "error": null
+    },
+    {
+      "item_id": "doc-0002",
+      "source_path": "docs/audits/document_batch_import/sample_input/002_scan.pdf",
+      "relative_path": "002_scan.pdf",
+      "status": "imported",
+      "file_type": "pdf",
+      "recommended_backend": "paddleocr",
+      "duplicate_of": null,
+      "error": null
+    },
+    {
+      "item_id": "doc-0003",
+      "source_path": "docs/audits/document_batch_import/sample_input/003_copy.md",
+      "relative_path": "003_copy.md",
+      "status": "duplicate",
+      "file_type": "text_document",
+      "recommended_backend": "builtin",
+      "duplicate_of": "001_text.md",
+      "error": null
+    },
+    {
+      "item_id": "doc-0004",
+      "source_path": "docs/audits/document_batch_import/sample_input/004_unsupported.bin",
+      "relative_path": "004_unsupported.bin",
+      "status": "unsupported",
+      "file_type": "unsupported",
+      "recommended_backend": null,
+      "duplicate_of": null,
+      "error": "unsupported_file_extension"
+    }
+  ],
+  "output_files": [
+    "document_inventory.json",
+    "file_type_report.json",
+    "document_preflight.json",
+    "backend_recommendation.json",
+    "unsupported_file_report.json",
+    "unsupported_file_report.md",
+    "preflight_report.md",
+    "batch_import_report.json",
+    "batch_import_report.md",
+    "batch_import_log.jsonl"
+  ]
+}

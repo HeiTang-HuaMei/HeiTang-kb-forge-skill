@@ -1,0 +1,56 @@
+{
+  "schema_version": "campaign_3_external_reference_boundary_matrix.v1",
+  "status": "passed",
+  "items": [
+    {
+      "project_id": "andrej_karpathy_skills",
+      "status": "passed",
+      "integration_status": "reference_only",
+      "implementation_mode": "not_integrated",
+      "errors": []
+    },
+    {
+      "project_id": "claude_plugins_official",
+      "status": "passed",
+      "integration_status": "needs_verification",
+      "implementation_mode": "not_integrated",
+      "errors": []
+    },
+    {
+      "project_id": "codegraph",
+      "status": "passed",
+      "integration_status": "needs_verification",
+      "implementation_mode": "not_integrated",
+      "errors": []
+    },
+    {
+      "project_id": "nvlabs_longlive",
+      "status": "passed",
+      "integration_status": "needs_verification",
+      "implementation_mode": "not_integrated",
+      "errors": []
+    },
+    {
+      "project_id": "pi_mono",
+      "status": "passed",
+      "integration_status": "needs_verification",
+      "implementation_mode": "not_integrated",
+      "errors": []
+    },
+    {
+      "project_id": "presenton",
+      "status": "passed",
+      "integration_status": "needs_verification",
+      "implementation_mode": "not_integrated",
+      "errors": []
+    },
+    {
+      "project_id": "understand_anything",
+      "status": "passed",
+      "integration_status": "needs_verification",
+      "implementation_mode": "not_integrated",
+      "errors": []
+    }
+  ],
+  "errors": []
+}

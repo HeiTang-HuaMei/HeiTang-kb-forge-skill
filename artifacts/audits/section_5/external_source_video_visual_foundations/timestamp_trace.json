@@ -1,0 +1,23 @@
+{
+  "schema_version": "timestamp_trace.v1",
+  "generated_at": "2026-06-13T05:52:53.148298+00:00",
+  "segment_count": 2,
+  "segments": [
+    {
+      "chunk_id": "video_segment_a489a2bbe322c6b3",
+      "evidence_id": "evidence_a489a2bbe322c6b3",
+      "timestamp_start": "00:00:01.000",
+      "timestamp_end": "00:00:03.000",
+      "backlink": "https://video.example/watch/demo#t=1",
+      "content_hash": "a489a2bbe322c6b35cd67caba4d64309d1e3176a55f9de8ef653db16bd2207c1"
+    },
+    {
+      "chunk_id": "video_segment_3ebe125afc916633",
+      "evidence_id": "evidence_3ebe125afc916633",
+      "timestamp_start": "00:00:04.000",
+      "timestamp_end": "00:00:06.000",
+      "backlink": "https://video.example/watch/demo#t=4",
+      "content_hash": "3ebe125afc91663317cf9d0c1f29887bd171d09c0c9e288f6ad3271221f164c4"
+    }
+  ]
+}

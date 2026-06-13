@@ -1,0 +1,16 @@
+{
+  "schema_version": "video_visual_validation_report.v1",
+  "status": "passed",
+  "boundary_errors": [],
+  "missing_files": [],
+  "video_visual_foundations_complete": true,
+  "ffmpeg_available": false,
+  "automatic_keyframe_extraction_accepted": false,
+  "audio_transcription_runtime_integrated": false,
+  "knowledge_verification_engine_complete": false,
+  "campaign_4_active": false,
+  "campaign_5_active": false,
+  "bridge_execution_accepted": false,
+  "supplement_3_0_complete": false,
+  "not_goal_complete": true
+}

@@ -1,0 +1,48 @@
+{
+  "schema_version": "document_batch_import.v1.backend_recommendation",
+  "status": "pass",
+  "recommendations": [
+    {
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/input/001_table_claims.xlsx",
+      "relative_path": "001_table_claims.xlsx",
+      "selected_backend": "builtin",
+      "selected_backend_available": true,
+      "dependency_status": "bundled",
+      "runtime_status": "ready",
+      "integration_decision": "real_integration",
+      "fallback_backend": "builtin",
+      "recommendation_status": "available",
+      "review_required": false,
+      "reason": "table_document_builtin_parser",
+      "repair_suggestion": "Install the selected optional backend, choose backend=builtin for supported text sources, or mark for manual review."
+    },
+    {
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/input/002_table_claims.csv",
+      "relative_path": "002_table_claims.csv",
+      "selected_backend": "builtin",
+      "selected_backend_available": true,
+      "dependency_status": "bundled",
+      "runtime_status": "ready",
+      "integration_decision": "real_integration",
+      "fallback_backend": "builtin",
+      "recommendation_status": "available",
+      "review_required": false,
+      "reason": "table_document_builtin_parser",
+      "repair_suggestion": "Install the selected optional backend, choose backend=builtin for supported text sources, or mark for manual review."
+    },
+    {
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/office_table_e2e_20260612_105706/input/003_methodology.md",
+      "relative_path": "003_methodology.md",
+      "selected_backend": "builtin",
+      "selected_backend_available": true,
+      "dependency_status": "bundled",
+      "runtime_status": "ready",
+      "integration_decision": "real_integration",
+      "fallback_backend": "builtin",
+      "recommendation_status": "available",
+      "review_required": false,
+      "reason": "basic_text_or_default_document_path",
+      "repair_suggestion": "Install the selected optional backend, choose backend=builtin for supported text sources, or mark for manual review."
+    }
+  ]
+}

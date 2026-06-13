@@ -1,0 +1,78 @@
+{
+  "schema_version": "platform_link_detection_report.v1",
+  "status": "passed",
+  "source_count": 7,
+  "known_platform_count": 6,
+  "detections": [
+    {
+      "schema_version": "platform_link_detection.v1",
+      "source_url": "https://www.xiaohongshu.com/explore/abc",
+      "domain": "xiaohongshu.com",
+      "platform": "xiaohongshu",
+      "platform_label": "Xiaohongshu note",
+      "source_type": "platform_note",
+      "is_known_platform": true,
+      "is_platform_link": true
+    },
+    {
+      "schema_version": "platform_link_detection.v1",
+      "source_url": "https://v.douyin.com/abc",
+      "domain": "v.douyin.com",
+      "platform": "douyin",
+      "platform_label": "Douyin video",
+      "source_type": "platform_video",
+      "is_known_platform": true,
+      "is_platform_link": true
+    },
+    {
+      "schema_version": "platform_link_detection.v1",
+      "source_url": "https://www.zhihu.com/question/1/answer/2",
+      "domain": "zhihu.com",
+      "platform": "zhihu",
+      "platform_label": "Zhihu article or answer",
+      "source_type": "platform_article",
+      "is_known_platform": true,
+      "is_platform_link": true
+    },
+    {
+      "schema_version": "platform_link_detection.v1",
+      "source_url": "https://www.bilibili.com/video/BV123",
+      "domain": "bilibili.com",
+      "platform": "bilibili",
+      "platform_label": "Bilibili video",
+      "source_type": "platform_video",
+      "is_known_platform": true,
+      "is_platform_link": true
+    },
+    {
+      "schema_version": "platform_link_detection.v1",
+      "source_url": "https://mp.weixin.qq.com/s/example",
+      "domain": "mp.weixin.qq.com",
+      "platform": "wechat_public_article",
+      "platform_label": "WeChat public article",
+      "source_type": "platform_article",
+      "is_known_platform": true,
+      "is_platform_link": true
+    },
+    {
+      "schema_version": "platform_link_detection.v1",
+      "source_url": "https://weibo.com/123/abc",
+      "domain": "weibo.com",
+      "platform": "weibo",
+      "platform_label": "Weibo post",
+      "source_type": "platform_post",
+      "is_known_platform": true,
+      "is_platform_link": true
+    },
+    {
+      "schema_version": "platform_link_detection.v1",
+      "source_url": "https://example.com/post",
+      "domain": "example.com",
+      "platform": "other_or_unknown_platform",
+      "platform_label": "Other or unknown platform",
+      "source_type": "platform_or_public_web",
+      "is_known_platform": false,
+      "is_platform_link": true
+    }
+  ]
+}

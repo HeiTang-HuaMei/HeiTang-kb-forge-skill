@@ -50,9 +50,18 @@ parser-docling = [
 parser-marker = [
   "marker-pdf>=1,<2",
 ]
+parser-mineru = [
+  "mineru[core]>=2,<3",
+]
+parser-opendataloader = [
+  "opendataloader-pdf>=2,<3",
+]
 parser-paddleocr = [
   "paddleocr>=2.7,<4",
   "paddlepaddle>=3,<4",
+]
+parser-surya = [
+  "surya-ocr>=0.20,<1",
 ]
 parser-unstructured = [
   "unstructured[md]>=0.16,<1",
@@ -67,8 +76,11 @@ all = [
   "pdfplumber>=0.11,<1",
   "docling>=2,<3",
   "marker-pdf>=1,<2",
+  "mineru[core]>=2,<3",
+  "opendataloader-pdf>=2,<3",
   "paddleocr>=2.7,<4",
   "paddlepaddle>=3,<4",
+  "surya-ocr>=0.20,<1",
   "unstructured[md]>=0.16,<1",
 ]
 

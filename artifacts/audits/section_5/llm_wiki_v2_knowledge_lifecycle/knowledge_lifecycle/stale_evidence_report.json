@@ -1,0 +1,8 @@
+{
+  "schema_version": "stale_evidence_report.v1",
+  "status": "passed",
+  "max_age_days": 365,
+  "package_age_days": 0,
+  "stale_count": 0,
+  "items": []
+}

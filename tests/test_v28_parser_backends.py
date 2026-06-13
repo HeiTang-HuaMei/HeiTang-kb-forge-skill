@@ -58,7 +58,9 @@ def test_parser_backend_list_reports_builtin_docling_and_marker():
     assert "docling:" in result.output
     assert "marker:" in result.output
     assert "paddleocr:" in result.output
+    assert "opendataloader:" in result.output
     assert "unstructured:" in result.output
+    assert "surya:" in result.output
 
 
 def test_backend_registry_exposes_runtime_supported_extensions():
@@ -71,6 +73,9 @@ def test_backend_registry_exposes_runtime_supported_extensions():
     assert ".txt" in rows["unstructured"]["supported_extensions"]
     assert ".png" in rows["paddleocr"]["supported_extensions"]
     assert rows["marker"]["supported_extensions"] == [".pdf"]
+    assert rows["opendataloader"]["supported_extensions"] == [".pdf"]
+    assert ".pdf" in rows["surya"]["supported_extensions"]
+    assert ".png" in rows["surya"]["supported_extensions"]
 
 
 def test_parse_with_backend_builtin_writes_normalized_outputs(tmp_path):
@@ -382,7 +387,16 @@ def test_parser_backend_registry_matrix_inspect_and_smoke_cli_write_stable_outpu
     assert _json(registry_output / "parser_backend_registry.json")["schema_version"] == "p2.1.parser_backend_registry.v1"
     matrix_payload = _json(matrix_output / "parser_backend_matrix.json")
     assert matrix_payload["schema_version"] == "p2.1.parser_backend_matrix.v1"
-    assert {backend["backend_id"] for backend in matrix_payload["backends"]} == {"builtin", "docling", "paddleocr", "unstructured"}
+    assert {backend["backend_id"] for backend in matrix_payload["backends"]} == {
+        "builtin",
+        "docling",
+        "marker",
+        "mineru",
+        "opendataloader",
+        "paddleocr",
+        "surya",
+        "unstructured",
+    }
     assert all(backend["static_workbench_executable"] is False for backend in matrix_payload["backends"])
     assert _json(inspect_output / "parser_backend_inspect_builtin.json")["status"] == "available"
     assert _json(smoke_output / "parser_backend_smoke_builtin.json")["status"] == "pass"

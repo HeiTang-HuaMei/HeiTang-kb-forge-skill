@@ -1,0 +1,70 @@
+{
+  "schema_version": "document_batch_import.v1.preflight",
+  "status": "pass",
+  "files": [
+    {
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/input/diagnostics.txt",
+      "relative_path": "diagnostics.txt",
+      "extension": ".txt",
+      "file_type": "text_document",
+      "status": "ready",
+      "is_scanned": false,
+      "contains_tables": false,
+      "contains_images": false,
+      "contains_formulas": false,
+      "multi_column_layout": false,
+      "mixed_layout_document": false,
+      "needs_ocr": false,
+      "duplicate_of": null,
+      "error": null
+    },
+    {
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/input/sample_marker_pdf.pdf",
+      "relative_path": "sample_marker_pdf.pdf",
+      "extension": ".pdf",
+      "file_type": "pdf",
+      "status": "ready",
+      "is_scanned": false,
+      "contains_tables": false,
+      "contains_images": false,
+      "contains_formulas": false,
+      "multi_column_layout": false,
+      "mixed_layout_document": false,
+      "needs_ocr": false,
+      "duplicate_of": null,
+      "error": null
+    },
+    {
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/input/sample_paddleocr_image.png",
+      "relative_path": "sample_paddleocr_image.png",
+      "extension": ".png",
+      "file_type": "image_or_scanned_document",
+      "status": "ready",
+      "is_scanned": true,
+      "contains_tables": false,
+      "contains_images": true,
+      "contains_formulas": false,
+      "multi_column_layout": false,
+      "mixed_layout_document": false,
+      "needs_ocr": true,
+      "duplicate_of": null,
+      "error": null
+    },
+    {
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/input/supply_chain_notes.md",
+      "relative_path": "supply_chain_notes.md",
+      "extension": ".md",
+      "file_type": "text_document",
+      "status": "ready",
+      "is_scanned": false,
+      "contains_tables": false,
+      "contains_images": false,
+      "contains_formulas": false,
+      "multi_column_layout": false,
+      "mixed_layout_document": false,
+      "needs_ocr": false,
+      "duplicate_of": null,
+      "error": null
+    }
+  ]
+}

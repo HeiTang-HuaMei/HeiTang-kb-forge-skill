@@ -1,0 +1,87 @@
+{
+  "schema_version": "content_asset_schema_library.v1",
+  "section": "5.9",
+  "campaign": "Campaign 3",
+  "library_name": "HeiTang Content Asset Schema Library",
+  "status": "passed",
+  "integration_decision": "reference_only",
+  "integration_mode": "content_asset_schema_reference",
+  "asset_type_count": 6,
+  "asset_ids": [
+    "story_seed",
+    "character_card",
+    "scene_card",
+    "shot_card",
+    "continuity_note",
+    "production_checkpoint"
+  ],
+  "capability_domains": [
+    "asset_continuity",
+    "character_asset",
+    "content_planning",
+    "scene_asset",
+    "storyboard_metadata",
+    "workflow_governance"
+  ],
+  "external_project_reference": {
+    "project_id": "jellyfish",
+    "project_name": "Jellyfish",
+    "github_url": "https://github.com/Forget-C/Jellyfish",
+    "git_ls_remote_checked": true,
+    "git_head": "a9678194ddf2d9be3ccbe78d4287d87d5089e123",
+    "repository_cloned": false,
+    "external_code_or_content_copied": false,
+    "external_prompts_copied": false,
+    "external_skill_files_copied": false,
+    "external_runtime_integrated": false
+  },
+  "dedup_boundary": {
+    "overlap_checked": true,
+    "overlap_domains": [
+      "mmskills_multimodal_skill_package",
+      "ai_marketing_skills_content_operations",
+      "story_flicks_video_pipeline_future_slot"
+    ],
+    "distinct_engineering_value": [
+      "content_asset_type_cards",
+      "storyboard_metadata_schema",
+      "asset_continuity_and_checkpoint_contracts"
+    ],
+    "story_flicks_remains_next_video_pipeline_item": true
+  },
+  "runtime_boundary": {
+    "llm_required": false,
+    "api_key_required": false,
+    "network_required": false,
+    "external_runtime_required": false,
+    "repository_cloned": false,
+    "short_drama_workbench_runtime": false,
+    "video_generation_runtime": false,
+    "asset_rendering_runtime": false,
+    "media_download_or_upload": false,
+    "crawler_or_scraper": false,
+    "account_operation": false
+  },
+  "ui_contract": {
+    "template_library_preview_visible": true,
+    "artifact_management_preview_visible": true,
+    "document_generation_future_slot_visible": true,
+    "runtime_execution_action_available": false,
+    "video_generation_action_available": false,
+    "short_drama_workbench_action_available": false
+  },
+  "output_files": [
+    "content_asset_manifest.json",
+    "content_asset_cards.jsonl",
+    "storyboard_metadata_schema.json",
+    "content_asset_workflow_templates.json",
+    "content_asset_validation_report.json",
+    "content_asset_schema_report.md",
+    "CONTENT_ASSET_SCHEMA_INDEX.md"
+  ],
+  "tests_require_real_llm_api_network": false,
+  "final_target_not_downgraded": true,
+  "remaining_gap": "Section 5 item 5.9 is advanced as a local original Content Asset Schema reference. Section 5 items 5.10-5.14, strengthening items 5.S1-5.S3, Campaign 3 final consistency gate, Campaign 4 UI workflow, Core Bridge, configuration, Full Gate, EXE, and release remain incomplete.",
+  "next_required_e2e_step": "Process Section 5 item 5.10 story-flicks only.",
+  "not_goal_complete": true
+}

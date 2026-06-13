@@ -1,0 +1,23 @@
+{
+  "schema_version": "governance_plan_registration.v1",
+  "run_id": "campaign_4_9_replacement_plan_v3",
+  "status": "passed",
+  "verdict": "registered_planned_not_active",
+  "scope": "Future Campaigns 4-9 and Final Release governance only",
+  "current_phase": "Campaign 3 Supplement 3.0 External Source Memory & Verification",
+  "current_required_item": "Campaign 3 Supplement 3.0 Acceptance Gate",
+  "supplement_3_0_complete": false,
+  "pre_4_0_workspace_partition_complete": false,
+  "supplement_4_0_active": false,
+  "campaign_4_active": false,
+  "campaign_5_active": false,
+  "campaign_6_active": false,
+  "campaign_7_active": false,
+  "campaign_8_active": false,
+  "campaign_9_active": false,
+  "final_release_allowed": false,
+  "authoritative_plan": "docs/governance/CAMPAIGN_4_9_REPLACEMENT_PLAN.md",
+  "compatibility_pointer": "docs/governance/CAMPAIGN_4_5_REPLACEMENT_PLAN.md",
+  "test": "tests/test_campaign_4_9_replacement_plan.py",
+  "boundary": "Governance registration passed. No future campaign execution, UI redesign, Bridge allowlist change, Full Gate, EXE packaging, push, tag, or release was performed."
+}

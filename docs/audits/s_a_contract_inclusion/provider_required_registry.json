@@ -11,20 +11,15 @@
       "rating": "S",
       "github_url": "https://github.com/n8n-io/n8n",
       "contract_status": [
-        "future_adapter",
-        "provider_required",
-        "workflow_export"
+        "workflow_export_adapter",
+        "export_validation_passed",
+        "runtime_not_bundled"
       ],
-      "blocked_reason": "external_project_registry_only",
+      "blocked_reason": "external_runtime_required",
       "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
-        "provider_required",
         "external_runtime_required",
         "license_review_required",
         "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
         "ui_visibility_only"
       ],
       "requires_api_key": false,
@@ -32,7 +27,7 @@
       "requires_external_runtime": true,
       "can_execute_locally_before_v4": false,
       "post_v4_target": "P2.2 / P3",
-      "ui_visibility": "visible_boundary_only"
+      "ui_visibility": "visible_status_only"
     },
     {
       "project_id": "anysearchskill",
@@ -40,28 +35,24 @@
       "rating": "A",
       "github_url": "https://github.com/anysearch-ai/anysearch-skill",
       "contract_status": [
-        "provider_required",
-        "planned_adapter"
+        "provider_adapter",
+        "real_smoke_passed",
+        "needs_strengthening"
       ],
-      "blocked_reason": "external_project_registry_only",
+      "blocked_reason": "ui_configuration_pending",
       "blocked_reasons": [
-        "external_project_registry_only",
-        "planned_adapter_not_implemented",
-        "provider_required",
-        "secret_required",
+        "ui_configuration_pending",
         "network_required",
         "license_review_required",
         "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
         "ui_visibility_only"
       ],
-      "requires_api_key": true,
+      "requires_api_key": false,
       "requires_network": true,
       "requires_external_runtime": false,
       "can_execute_locally_before_v4": false,
       "post_v4_target": "P2.3",
-      "ui_visibility": "visible_boundary_only"
+      "ui_visibility": "visible_status_only"
     },
     {
       "project_id": "last30days_skill",
@@ -97,30 +88,28 @@
       "rating": "A",
       "github_url": "https://github.com/dexhunter/seedance2-skill",
       "contract_status": [
-        "provider_required",
+        "verified_video_skill_template_metadata",
+        "reference_only",
         "template_reference",
-        "future_adapter"
+        "provider_not_integrated",
+        "runtime_not_bundled"
       ],
-      "blocked_reason": "external_project_registry_only",
+      "blocked_reason": "provider_required",
       "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
         "provider_required",
         "secret_required",
         "network_required",
         "license_review_required",
         "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only",
-        "template_reference_only"
+        "template_reference_only",
+        "ui_visibility_only"
       ],
       "requires_api_key": true,
       "requires_network": true,
       "requires_external_runtime": false,
       "can_execute_locally_before_v4": false,
       "post_v4_target": "P2.8 / P3",
-      "ui_visibility": "visible_boundary_only"
+      "ui_visibility": "visible_status_only"
     },
     {
       "project_id": "rtk",

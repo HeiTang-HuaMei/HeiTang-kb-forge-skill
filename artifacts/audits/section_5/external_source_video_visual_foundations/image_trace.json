@@ -1,0 +1,29 @@
+{
+  "schema_version": "image_trace.v1",
+  "generated_at": "2026-06-13T05:52:53.148298+00:00",
+  "image_count": 2,
+  "images": [
+    {
+      "image_id": "visual_image_0001",
+      "image_index": 0,
+      "source_type": "visual_image",
+      "source_file_name": "frame_12s.png",
+      "source_path_hash": "d5082e5040776e2a3ebfc62c254c3e20e6fd497262e52c28dd8e8eec723208fa",
+      "source_url": "https://video.example/watch/demo",
+      "status": "accepted",
+      "content_hash": "3968318567617e9fe834c2fbd33a0644553809e8bd8b3e8f4fa23e9ff014b6b3",
+      "failure_reason": ""
+    },
+    {
+      "image_id": "video_keyframe_image_0001",
+      "image_index": 0,
+      "source_type": "video_keyframe_image",
+      "source_file_name": "frame_12s.png",
+      "source_path_hash": "d5082e5040776e2a3ebfc62c254c3e20e6fd497262e52c28dd8e8eec723208fa",
+      "source_url": "https://video.example/watch/demo",
+      "status": "accepted",
+      "content_hash": "3968318567617e9fe834c2fbd33a0644553809e8bd8b3e8f4fa23e9ff014b6b3",
+      "failure_reason": ""
+    }
+  ]
+}

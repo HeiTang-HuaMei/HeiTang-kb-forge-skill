@@ -1,0 +1,84 @@
+{
+  "schema_version": "platform_next_paths.v1",
+  "status": "passed",
+  "sources": [
+    {
+      "source_id": "platform_8da483163fa2aa75",
+      "platform": "xiaohongshu",
+      "readability_state": "auth_required",
+      "next_available_paths": [
+        "opencli_external_search_verification",
+        "authenticated_browser_visible_content",
+        "manual_evidence_upload"
+      ],
+      "failure_reason": "Xiaohongshu content often requires a user-visible authorized session; no login or anti-detection bypass is allowed."
+    },
+    {
+      "source_id": "platform_2a1a1ad801c783c7",
+      "platform": "douyin",
+      "readability_state": "video_without_transcript",
+      "next_available_paths": [
+        "opencli_external_search_verification",
+        "authenticated_browser_visible_content",
+        "manual_evidence_upload",
+        "video_to_knowledge_ingestion"
+      ],
+      "failure_reason": "Douyin links are video-first and do not provide a guaranteed public transcript through generic URL ingestion."
+    },
+    {
+      "source_id": "platform_32d092e89da4d6ac",
+      "platform": "zhihu",
+      "readability_state": "partial_readable",
+      "next_available_paths": [
+        "opencli_external_search_verification",
+        "authenticated_browser_visible_content",
+        "manual_evidence_upload"
+      ],
+      "failure_reason": "Zhihu content may be partially public but can require login, permission, or manual evidence for complete source capture."
+    },
+    {
+      "source_id": "platform_4ee9370d1b22f489",
+      "platform": "bilibili",
+      "readability_state": "video_without_transcript",
+      "next_available_paths": [
+        "opencli_external_search_verification",
+        "manual_evidence_upload",
+        "video_to_knowledge_ingestion"
+      ],
+      "failure_reason": "Bilibili links are video-first and require transcript, subtitle, or keyframe evidence before knowledge ingestion can be accepted."
+    },
+    {
+      "source_id": "platform_e9514928359e93fd",
+      "platform": "wechat_public_article",
+      "readability_state": "partial_readable",
+      "next_available_paths": [
+        "opencli_external_search_verification",
+        "manual_evidence_upload",
+        "authenticated_browser_visible_content"
+      ],
+      "failure_reason": "WeChat public article readability varies by permission, redirects, and platform controls; generic fetch is not accepted as platform extraction."
+    },
+    {
+      "source_id": "platform_e0abd3eb10ed7e11",
+      "platform": "weibo",
+      "readability_state": "login_required",
+      "next_available_paths": [
+        "opencli_external_search_verification",
+        "authenticated_browser_visible_content",
+        "manual_evidence_upload"
+      ],
+      "failure_reason": "Weibo posts often require login or visible user session for reliable reading; no login bypass is allowed."
+    },
+    {
+      "source_id": "platform_061128ccde4ce470",
+      "platform": "other_or_unknown_platform",
+      "readability_state": "needs_opencli_verification",
+      "next_available_paths": [
+        "generic_web_url_ingestion",
+        "opencli_external_search_verification",
+        "manual_evidence_upload"
+      ],
+      "failure_reason": "Unknown platform link requires external verification or manual evidence before ingestion."
+    }
+  ]
+}

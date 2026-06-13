@@ -1,0 +1,24 @@
+{
+  "schema_version": "external_source_preflight.v1",
+  "source_url": "http://127.0.0.1:3457/index.html",
+  "source_type": "public_web_url",
+  "platform": "generic_web",
+  "domain": "127.0.0.1:3457",
+  "url_depth": 0,
+  "max_pages": 1,
+  "same_domain_only": true,
+  "timeout_seconds": 30,
+  "respect_robots": true,
+  "user_triggered_only": true,
+  "public_readable": true,
+  "platform_preflight_required": false,
+  "status": "passed",
+  "readability_state": "public_readable",
+  "error_code": null,
+  "failure_reason": null,
+  "robots": {
+    "status": "unavailable_assumed_allowed",
+    "allowed": true,
+    "robots_url": "http://127.0.0.1:3457/robots.txt"
+  }
+}

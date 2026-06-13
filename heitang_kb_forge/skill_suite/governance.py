@@ -300,30 +300,39 @@ def run_skill_suite_governance(
     suite: Path,
     output: Path | None = None,
     old_suite: Path | None = None,
+    *,
+    accept_first_run_baseline: bool = False,
 ) -> dict:
+    if old_suite is not None and accept_first_run_baseline:
+        raise ValueError("old_suite and accept_first_run_baseline are mutually exclusive")
     target = output or suite
     validation = validate_skill_suite(suite, target)
     installability = check_skill_suite_installability(
         suite, target, validation=validation
     )
-    diff = (
-        diff_skill_suites(old_suite, suite, target)
-        if old_suite is not None
-        else {
+    if old_suite is not None:
+        diff = diff_skill_suites(old_suite, suite, target)
+    elif accept_first_run_baseline:
+        diff = _accept_first_run_baseline(suite, target)
+    else:
+        diff = {
             "status": "not_run",
             "baseline_provided": False,
+            "first_run_baseline_accepted": False,
+            "comparison_mode": "missing_baseline",
             "added_skill_ids": [],
             "removed_skill_ids": [],
             "changed_skills": [],
         }
-    )
     baseline_provided = diff["baseline_provided"] is True
+    first_run_baseline_accepted = diff.get("first_run_baseline_accepted") is True
+    baseline_accepted = baseline_provided or first_run_baseline_accepted
     release_ready = (
         validation["release_ready"] is True
         and installability["release_ready"] is True
-        and baseline_provided
+        and baseline_accepted
     )
-    warnings = [] if baseline_provided else ["diff_baseline_not_provided"]
+    warnings = [] if baseline_accepted else ["diff_baseline_not_provided"]
     result = {
         "skill_suite_governance_version": "v4.2-p2.2-1",
         "suite_id": validation["suite_id"],
@@ -341,6 +350,9 @@ def run_skill_suite_governance(
             "diff_comparison": {
                 "status": diff["status"],
                 "baseline_provided": baseline_provided,
+                "baseline_accepted": baseline_accepted,
+                "first_run_baseline_accepted": first_run_baseline_accepted,
+                "comparison_mode": diff.get("comparison_mode", "suite_to_suite"),
                 "added_skill_count": len(diff["added_skill_ids"]),
                 "removed_skill_count": len(diff["removed_skill_ids"]),
                 "changed_skill_count": len(diff["changed_skills"]),
@@ -363,6 +375,39 @@ def run_skill_suite_governance(
     (target / "GOVERNANCE_REPORT.md").write_text(
         _render_governance(result), encoding="utf-8"
     )
+    return result
+
+
+def _accept_first_run_baseline(suite: Path, output: Path) -> dict:
+    manifest = SkillSuiteManifest.model_validate(_read_json(suite / "suite.json"))
+    skill_ids = sorted(skill.skill_id for skill in manifest.skills)
+    result = {
+        "skill_suite_diff_version": "v4.2-p2.2-1",
+        "status": "accepted_first_run_baseline",
+        "comparison_mode": "first_run_no_prior_suite",
+        "baseline_provided": False,
+        "first_run_baseline_accepted": True,
+        "before_suite_id": None,
+        "after_suite_id": manifest.suite_id,
+        "added_skill_ids": skill_ids,
+        "removed_skill_ids": [],
+        "changed_skills": [],
+        "routing_changed": False,
+        "dependency_graph_changed": False,
+        "acceptance_reason": (
+            "This is the first governed Skill Suite for the current goal, "
+            "so no prior suite exists for diff comparison."
+        ),
+        "truth_statement": (
+            "No old suite was compared; the generated suite is accepted as the "
+            "initial baseline only because the caller explicitly requested "
+            "first-run baseline acceptance."
+        ),
+        "tests_require_real_llm_api_network": False,
+    }
+    output.mkdir(parents=True, exist_ok=True)
+    write_json(output / "skill_suite_diff_report.json", result)
+    (output / "DIFF_REPORT.md").write_text(_render_diff(result), encoding="utf-8")
     return result
 
 
@@ -438,6 +483,16 @@ def _render_installability(result: dict) -> str:
 
 
 def _render_diff(result: dict) -> str:
+    if result.get("comparison_mode") == "first_run_no_prior_suite":
+        return f"""# Skill Suite Diff Report
+
+- Status: `{result['status']}`
+- Comparison mode: `first_run_no_prior_suite`
+- Baseline provided: `false`
+- First-run baseline accepted: `true`
+- Initial skills: {', '.join(result['added_skill_ids']) if result['added_skill_ids'] else 'none'}
+- Truth statement: {result['truth_statement']}
+"""
     return f"""# Skill Suite Diff Report
 
 - Status: `{result['status']}`
@@ -457,6 +512,7 @@ def _render_governance(result: dict) -> str:
 - Release ready: `{str(result['release_ready']).lower()}`
 - Validation: `{result['checks']['validation']['status']}`
 - Diff baseline: `{str(result['checks']['diff_comparison']['baseline_provided']).lower()}`
+- First-run baseline accepted: `{str(result['checks']['diff_comparison']['first_run_baseline_accepted']).lower()}`
 - Installability: `{result['checks']['installability']['status']}`
 - Warnings: {', '.join(result['warnings']) if result['warnings'] else 'none'}
 """

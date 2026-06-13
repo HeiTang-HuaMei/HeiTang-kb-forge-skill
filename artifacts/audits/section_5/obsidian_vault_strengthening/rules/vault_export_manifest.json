@@ -1,0 +1,16 @@
+{
+  "schema_version": "local_markdown_vault_export_manifest.v1",
+  "status": "passed",
+  "source_vault": "artifacts\\audits\\section_5\\obsidian_vault_strengthening\\rules\\sample_vault",
+  "export_dir": "artifacts\\audits\\section_5\\obsidian_vault_strengthening\\rules\\export",
+  "exported_note_count": 2,
+  "exported_files": [
+    "Marketing/Content Plan.md",
+    "Research/AI Radar.md"
+  ],
+  "frontmatter_preserved": true,
+  "wikilinks_preserved": true,
+  "folder_structure_preserved": true,
+  "obsidian_runtime_required": false,
+  "obsidian_plugin_required": false
+}

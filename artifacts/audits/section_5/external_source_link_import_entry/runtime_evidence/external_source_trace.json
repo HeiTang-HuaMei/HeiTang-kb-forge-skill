@@ -1,0 +1,20 @@
+{
+  "schema_version": "external_source_trace.v1",
+  "source_trace_required": true,
+  "source_count": 1,
+  "sources": [
+    {
+      "source_id": "source_252bac811871104c",
+      "source_type": "public_html",
+      "source_url": "http://127.0.0.1:7964/index.html",
+      "canonical_url": "http://127.0.0.1:7964/index.html",
+      "retrieved_at": "2026-06-13T04:00:50.353111Z",
+      "content_hash": "60a442e06f318f552c0aafc15f4e92562b558e216421cd426d5be8af1a734855",
+      "backlink": "http://127.0.0.1:7964/index.html",
+      "trace_status": "public_readable",
+      "failure_reason": null,
+      "http_status": 200,
+      "content_type": "text/html"
+    }
+  ]
+}

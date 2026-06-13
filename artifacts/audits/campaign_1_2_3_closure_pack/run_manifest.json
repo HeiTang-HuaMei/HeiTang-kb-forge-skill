@@ -1,0 +1,40 @@
+{
+  "schema_version": "run_manifest.v1",
+  "run_id": "campaign_1_2_3_closure_pack",
+  "type": "campaign_closure_pack_generation",
+  "scope": "CAMPAIGN_1_2_3_CLOSURE_PACK",
+  "status": "passed",
+  "verdict": "closure_pack_generated_for_repository_cleanup_gate",
+  "generated_at": "2026-06-14T04:25:00+08:00",
+  "pack_path": "dist/HeiTang-Campaign-1-2-3-Integrated-Closure-Pack.zip",
+  "pack_sha256": "de5abaf58a5e3e6902f054ca9119c58727ea0105d0e4604623b31f0c591b6113",
+  "output_files": [
+    "run_manifest.json",
+    "run_summary.md",
+    "closure_pack_manifest.json",
+    "closure_pack_file_inventory.json",
+    "closure_pack_checksum.json",
+    "closure_pack_validation_report.json",
+    "checkpoint.json",
+    "progress_events.jsonl"
+  ],
+  "campaign_state_after_run": {
+    "campaign_1_3_integrated_closure_gate_passed": true,
+    "closure_pack_generated": true,
+    "repository_public_surface_cleanup_gate_passed": false,
+    "repository_push_succeeded": false,
+    "tag_created": false,
+    "ci_green": false,
+    "closure_checklist_green": false,
+    "campaign_1_3_review_handoff_gate_passed": false,
+    "campaign_4_entry_gate_allowed": false,
+    "campaign_4_active": false,
+    "campaign_5_active": false,
+    "full_gate_passed": false,
+    "exe_packaging_done": false,
+    "final_release_allowed": false,
+    "next_business_item": "Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate only"
+  },
+  "next_safe_action": "Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate only",
+  "not_goal_complete": true
+}

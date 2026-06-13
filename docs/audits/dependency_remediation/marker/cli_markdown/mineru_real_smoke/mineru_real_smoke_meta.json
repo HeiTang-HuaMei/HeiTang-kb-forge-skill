@@ -1,0 +1,60 @@
+{
+  "table_of_contents": [
+    {
+      "title": "HeiTang KB Forge MinerU Real Smoke 2026",
+      "heading_level": null,
+      "page_id": 0,
+      "polygon": [
+        [
+          72.0,
+          82.53765869140625
+        ],
+        [
+          552.16796875,
+          82.2265625
+        ],
+        [
+          552.16796875,
+          106.53765869140625
+        ],
+        [
+          72.0,
+          106.89453125
+        ]
+      ]
+    }
+  ],
+  "page_stats": [
+    {
+      "page_id": 0,
+      "text_extraction_method": "pdftext",
+      "block_counts": [
+        [
+          "Span",
+          3
+        ],
+        [
+          "Line",
+          2
+        ],
+        [
+          "SectionHeader",
+          1
+        ],
+        [
+          "Text",
+          1
+        ]
+      ],
+      "block_metadata": {
+        "llm_request_count": 0,
+        "llm_error_count": 0,
+        "llm_tokens_used": 0,
+        "previous_text": "",
+        "previous_type": "",
+        "previous_order": 0
+      }
+    }
+  ],
+  "debug_data_path": "debug_data\\mineru_real_smoke"
+}

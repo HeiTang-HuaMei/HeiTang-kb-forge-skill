@@ -1,0 +1,110 @@
+{
+  "schema_version": "campaign_3_supplement_3_0_acceptance_matrix.v1",
+  "generated_at": "2026-06-13T00:00:00+08:00",
+  "status": "passed",
+  "verdict": "accepted_for_pre_4_0_workspace_partition_foundation_gate",
+  "bundle_results": [
+    {
+      "run_id": "external_source_framework",
+      "scope": "CAMPAIGN_3_SUPPLEMENT_3_0_P0_EXTERNAL_SOURCE_MEMORY_VERIFICATION_FRAMEWORK",
+      "status": "passed",
+      "decision_qualifier": "framework_only"
+    },
+    {
+      "run_id": "external_source_generic_url",
+      "scope": "CAMPAIGN_3_SUPPLEMENT_3_0_P0_GENERIC_WEB_URL_INGESTION",
+      "status": "passed",
+      "decision_qualifier": "generic_web_url_ingestion_only"
+    },
+    {
+      "run_id": "external_source_platform_preflight",
+      "scope": "CAMPAIGN_3_SUPPLEMENT_3_0_P0_PLATFORM_LINK_PREFLIGHT",
+      "status": "passed",
+      "decision_qualifier": "platform_preflight_only"
+    },
+    {
+      "run_id": "external_source_opencli_verification",
+      "scope": "CAMPAIGN_3_SUPPLEMENT_3_0_P0_OPENCLI_EXTERNAL_SEARCH_VERIFICATION",
+      "status": "passed",
+      "decision_qualifier": "opencli_external_search_verification_only"
+    },
+    {
+      "run_id": "external_source_manual_evidence",
+      "scope": "CAMPAIGN_3_SUPPLEMENT_3_0_P0_MANUAL_EVIDENCE_UPLOAD",
+      "status": "passed",
+      "decision_qualifier": "manual_evidence_upload_only"
+    },
+    {
+      "run_id": "external_source_unified_trace",
+      "scope": "CAMPAIGN_3_SUPPLEMENT_3_0_P0_UNIFIED_TRACE_EVIDENCE_PROGRESS_FAILURE_ISOLATION",
+      "status": "passed",
+      "decision_qualifier": "unified_trace_evidence_progress_failure_isolation_only"
+    },
+    {
+      "run_id": "external_source_link_import_entry",
+      "scope": "CAMPAIGN_3_SUPPLEMENT_3_0_P0_EXTERNAL_LINK_IMPORT_ENTRY_CORE_BRIDGE",
+      "status": "passed",
+      "decision_qualifier": "external_link_import_entry_bridge_allowlist_only"
+    },
+    {
+      "run_id": "external_source_authenticated_browser_connector",
+      "scope": "CAMPAIGN_3_SUPPLEMENT_3_0_P1_AUTHENTICATED_BROWSER_CONNECTOR_ALPHA",
+      "status": "passed",
+      "decision_qualifier": "authenticated_browser_visible_content_connector_alpha"
+    },
+    {
+      "run_id": "external_source_video_visual_foundations",
+      "scope": "CAMPAIGN_3_SUPPLEMENT_3_0_P1_VIDEO_VISUAL_FOUNDATIONS",
+      "status": "passed",
+      "decision_qualifier": "video_visual_foundations_only"
+    },
+    {
+      "run_id": "external_source_knowledge_verification_foundations",
+      "scope": "CAMPAIGN_3_SUPPLEMENT_3_0_P1_KNOWLEDGE_VERIFICATION_FOUNDATIONS",
+      "status": "passed",
+      "decision_qualifier": "knowledge_verification_foundations_only"
+    }
+  ],
+  "capability_results": [
+    {
+      "check_id": "public_link_traceable_chunks",
+      "status": "passed"
+    },
+    {
+      "check_id": "truthful_platform_preflight_and_no_silent_failure",
+      "status": "passed"
+    },
+    {
+      "check_id": "opencli_confidence_evidence_and_graceful_degradation",
+      "status": "passed"
+    },
+    {
+      "check_id": "manual_evidence_unified_trace_without_fetch_overclaim",
+      "status": "passed"
+    },
+    {
+      "check_id": "unified_progress_and_failure_isolation",
+      "status": "passed"
+    },
+    {
+      "check_id": "external_link_entry_allowlist_no_shell_boundary",
+      "status": "passed"
+    },
+    {
+      "check_id": "authorized_visible_content_no_cookie_boundary",
+      "status": "passed"
+    },
+    {
+      "check_id": "video_visual_backlinks_and_ocr_failure_isolation",
+      "status": "passed"
+    },
+    {
+      "check_id": "knowledge_and_answer_verification_state_contract",
+      "status": "passed"
+    }
+  ],
+  "test_contract_status": "passed",
+  "failure_count": 0,
+  "next_business_item": "Pre-4.0 Workspace Partition & Knowledge Base Access Scope Foundation Gate",
+  "not_goal_complete": true
+}

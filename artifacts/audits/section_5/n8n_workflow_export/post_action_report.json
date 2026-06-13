@@ -1,0 +1,84 @@
+{
+  "schema_version": "post_action_report.v1",
+  "generated_at": "2026-06-12T20:33:02+08:00",
+  "scope": "SECTION_5_ITEM_5_4_N8N",
+  "status": "passed",
+  "checkpoint": "artifacts/audits/section_5/n8n_workflow_export/pre_action_checkpoint.md",
+  "rollback_plan": "artifacts/audits/section_5/n8n_workflow_export/rollback_plan.md",
+  "actions": [
+    "implemented deterministic n8n workflow exporter",
+    "implemented webhook contract and sample event",
+    "implemented offline export validator",
+    "rejected embedded credentials and dangerous command nodes",
+    "regenerated the external capability registry from current evidence",
+    "updated truthful UI status without enabling runtime execution"
+  ],
+  "validation_results": [
+    {
+      "command": "python -m pytest tests/test_n8n_workflow_export.py tests/test_n8n_integration_decision.py tests/test_s_a_contract_inclusion.py tests/test_external_capability_registry.py tests/test_planned_adapter_boundaries.py tests/test_external_project_registry.py -q",
+      "result": "33 passed",
+      "exit_code": 0
+    },
+    {
+      "command": "python -m pytest tests/test_plan_sequence_lock.py tests/test_goal_drift_guard.py tests/test_test_governance_manifest.py tests/test_campaign_stage_gate_policy.py -q",
+      "result": "33 passed",
+      "exit_code": 0
+    },
+    {
+      "command": "python -m pytest tests/test_final_docs_truthfulness.py tests/test_final_bilingual_docs_parity.py tests/test_final_docs_structure.py tests/test_release_checklist_docs.py tests/test_readme_scope.py tests/test_version_alignment.py tests/test_version_matrix_docs.py tests/test_project_control_index.py tests/test_document_output_governance.py -q",
+      "result": "28 passed",
+      "exit_code": 0
+    },
+    {
+      "command": "python -m heitang_kb_forge.test_governance.gates --phase development --changed-file heitang_kb_forge/external_automation/n8n.py --repo-root . --execute",
+      "result": "core_fast_n8n_workflow_export passed; 28 passed",
+      "exit_code": 0,
+      "log_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_n8n_workflow_export.log"
+    },
+    {
+      "command": "flutter test test\\widget_test.dart --plain-name \"external capability assets preserve boundaries and current provider status\" -r expanded",
+      "result": "All tests passed",
+      "exit_code": 0
+    },
+    {
+      "command": "flutter test test\\widget_test.dart --plain-name \"n8n export status maps to UI page without runtime execution claims\" -r expanded",
+      "result": "All tests passed",
+      "exit_code": 0
+    },
+    {
+      "command": "flutter analyze",
+      "result": "No issues found",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed with line-ending warnings only",
+      "exit_code": 0
+    }
+  ],
+  "system_global_changes": false,
+  "system_registry_changes": false,
+  "external_runtime_installed": false,
+  "external_runtime_started": false,
+  "network_called_by_exporter": false,
+  "credentials_persisted": false,
+  "rollback_required": false,
+  "pitfall_review": {
+    "historical_pitfall_reproduced": false,
+    "new_pitfall": "The external capability generator lagged behind manually updated UI assets and could overwrite current integration truth.",
+    "corrected_before_completion": true,
+    "global_pitfall_log_updated": false,
+    "global_pitfall_log_reason": "The current project AGENTS boundary prohibits editing Workspace global control documents without separate confirmation.",
+    "prevention_rule": "External project status must be generated from the source registry and generator tests must compare committed artifacts.",
+    "test_gate": "tests/test_s_a_contract_inclusion.py"
+  },
+  "ui_test_adjustment": {
+    "issue": "A full Workbench widget render for status-only n8n evidence repeatedly timed out and left flutter_tester processes.",
+    "resolution": "The n8n UI assertion now validates the same shipped UI registry asset and task page mapping deterministically without claiming runtime execution.",
+    "test_gate": "kb-forge-skill-ui/web/workbench/flutter_app/test/widget_test.dart"
+  },
+  "final_target_not_downgraded": true,
+  "remaining_gap": "User-owned n8n import smoke, UI/Core Bridge execution, later Section 5 items, Full Gate, EXE, and release remain incomplete.",
+  "next_required_e2e_step": "Advance only Section 5 item 5.5 MMSkills.",
+  "not_goal_complete": true
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": "campaign_1_2_3_status_matrix.v1",
+  "status": "passed",
+  "items": [
+    {
+      "campaign_id": "campaign_1",
+      "status": "accepted",
+      "evidence_path": "artifacts/audits/backend_remediation_acceptance_review/backend_remediation_acceptance_matrix.json"
+    },
+    {
+      "campaign_id": "campaign_2",
+      "status": "accepted",
+      "evidence_path": "artifacts/audits/knowledge_supply_chain_acceptance_review/campaign_2_acceptance_matrix.json"
+    },
+    {
+      "campaign_id": "campaign_3_final_consistency",
+      "status": "accepted_for_stage_test",
+      "evidence_path": "artifacts/audits/campaign_3_final_consistency/run_manifest.json"
+    },
+    {
+      "campaign_id": "campaign_1_3_stage_test",
+      "status": "passed",
+      "evidence_path": "artifacts/audits/campaign_1_3_stage_test/run_manifest.json"
+    }
+  ],
+  "errors": []
+}

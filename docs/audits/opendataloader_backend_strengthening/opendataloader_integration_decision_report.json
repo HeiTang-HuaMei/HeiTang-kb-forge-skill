@@ -1,0 +1,259 @@
+{
+  "schema_version": "opendataloader.integration_decision.v1",
+  "status": "pass",
+  "adapter_id": "opendataloader",
+  "decision": "real_integration",
+  "allowed_decisions": [
+    "real_integration",
+    "reference_only",
+    "needs_strengthening",
+    "stop_integration"
+  ],
+  "current_environment_status": "blocked_by_dependency",
+  "dependency_status": "missing",
+  "runtime_status": "skipped",
+  "dependency_available_currently": false,
+  "dependency_name": "opendataloader-pdf",
+  "optional_extra": "parser-opendataloader",
+  "supported_inputs": [
+    ".pdf"
+  ],
+  "validated_inputs": [
+    ".pdf"
+  ],
+  "supported_outputs": [
+    "normalized_text",
+    "markdown",
+    "json"
+  ],
+  "capabilities": {
+    "pdf_conversion": true,
+    "markdown_json_normalization": true,
+    "layout_blocks": "partial",
+    "tables": "partial",
+    "figures": "partial",
+    "reading_order": "partial",
+    "hybrid_mode_in_default_smoke": false,
+    "structured_skipped_when_missing": true
+  },
+  "commands": {
+    "check": "check-opendataloader-backend",
+    "smoke": "smoke-opendataloader-backend",
+    "run": "run-opendataloader-convert"
+  },
+  "artifacts": [
+    "opendataloader_smoke_report.json",
+    "opendataloader_smoke_report.md",
+    "opendataloader_dependency_remediation_report.json",
+    "opendataloader_dependency_remediation_report.md",
+    "opendataloader_integration_decision_report.json",
+    "opendataloader_integration_decision_report.md",
+    "opendataloader_convert_result.json",
+    "opendataloader_convert_result.md",
+    "opendataloader_ui_impact_note.md"
+  ],
+  "ui_bridge_actions": [
+    "check_opendataloader_backend",
+    "smoke_opendataloader_backend",
+    "run_opendataloader_convert"
+  ],
+  "fallback_result": "builtin_available",
+  "repair_suggestion": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin.",
+  "inspect_report": {
+    "schema_version": "p2.1.parser_backend_inspect.v1",
+    "status": "blocked_by_dependency",
+    "backend_id": "opendataloader",
+    "backend": {
+      "backend_id": "opendataloader",
+      "display_name": "OpenDataLoader local PDF conversion adapter",
+      "dependency_mode": "optional_extra",
+      "optional_extra": "parser-opendataloader",
+      "default_install_available": false,
+      "current_environment_available": false,
+      "dependency_available": true,
+      "runtime_invoked": true,
+      "sample_input_type": "PDF document source",
+      "validated_stable_surface": [
+        ".pdf"
+      ],
+      "adapter_supported_extensions": [
+        ".pdf"
+      ],
+      "known_limitations": [
+        "OpenDataLoader 3.6 strengthening adds dependency-gated CLI integration for PDF to Markdown/JSON conversion.",
+        "Default install does not bundle OpenDataLoader or Java 11+.",
+        "Hybrid/OCR server mode is excluded from the default smoke path and remains future hardening."
+      ],
+      "status": "real_runtime_integrated",
+      "workbench_state": [
+        "real_runtime_integrated",
+        "optional_dependency_gated",
+        "limited_surface"
+      ],
+      "evidence_path": "docs/audits/opendataloader_backend_strengthening/opendataloader_integration_decision_report.json",
+      "fallback_behavior": "If parser-opendataloader, Java, or the local CLI is missing, the report marks the backend unavailable/failed and preserves builtin fallback guidance.",
+      "static_workbench_executable": false,
+      "capability_contract": {
+        "schema_version": "document_backend.capability.v1",
+        "adapter_id": "opendataloader",
+        "adapter_name": "opendataloader",
+        "adapter_version": "optional",
+        "adapter_type": "document_understanding",
+        "integration_decision": "real_integration",
+        "dependency_name": "opendataloader-pdf",
+        "optional_extra": "parser-opendataloader",
+        "dependency_status": "missing",
+        "runtime_status": "skipped",
+        "supported_inputs": [
+          ".pdf"
+        ],
+        "validated_inputs": [
+          ".pdf"
+        ],
+        "supported_outputs": [
+          "normalized_text",
+          "markdown",
+          "json"
+        ],
+        "ocr_support": "unsupported",
+        "layout_support": "partial",
+        "table_support": "partial",
+        "figure_support": "partial",
+        "formula_support": "unknown",
+        "reading_order_support": "partial",
+        "confidence": 0.0,
+        "warnings": [
+          "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin."
+        ],
+        "errors": [
+          {
+            "code": "optional_runtime_dependency_missing",
+            "message": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin.",
+            "retryable": false,
+            "fallback_reason": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin.",
+            "fallback_result": "builtin_available",
+            "repair_suggestion": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin."
+          }
+        ],
+        "source_trace": [],
+        "fallback_reason": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin.",
+        "fallback_result": "builtin_available",
+        "repair_suggestion": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin."
+      }
+    },
+    "registry": {
+      "name": "opendataloader",
+      "version": "optional",
+      "available": false,
+      "status": "unavailable",
+      "contract_status": "skipped",
+      "description": "Optional OpenDataLoader PDF CLI adapter for local PDF to Markdown/JSON conversion.",
+      "supported_extensions": [
+        ".pdf"
+      ],
+      "reason": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin.",
+      "capability_contract": {
+        "schema_version": "document_backend.capability.v1",
+        "adapter_id": "opendataloader",
+        "adapter_name": "opendataloader",
+        "adapter_version": "optional",
+        "adapter_type": "document_understanding",
+        "integration_decision": "real_integration",
+        "dependency_name": "opendataloader-pdf",
+        "optional_extra": "parser-opendataloader",
+        "dependency_status": "missing",
+        "runtime_status": "skipped",
+        "supported_inputs": [
+          ".pdf"
+        ],
+        "validated_inputs": [
+          ".pdf"
+        ],
+        "supported_outputs": [
+          "normalized_text",
+          "markdown",
+          "json"
+        ],
+        "ocr_support": "unsupported",
+        "layout_support": "partial",
+        "table_support": "partial",
+        "figure_support": "partial",
+        "formula_support": "unknown",
+        "reading_order_support": "partial",
+        "confidence": 0.0,
+        "warnings": [
+          "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin."
+        ],
+        "errors": [
+          {
+            "code": "optional_runtime_dependency_missing",
+            "message": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin.",
+            "retryable": false,
+            "fallback_reason": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin.",
+            "fallback_result": "builtin_available",
+            "repair_suggestion": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin."
+          }
+        ],
+        "source_trace": [],
+        "fallback_reason": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin.",
+        "fallback_result": "builtin_available",
+        "repair_suggestion": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin."
+      }
+    },
+    "capability_contract": {
+      "schema_version": "document_backend.capability.v1",
+      "adapter_id": "opendataloader",
+      "adapter_name": "opendataloader",
+      "adapter_version": "optional",
+      "adapter_type": "document_understanding",
+      "integration_decision": "real_integration",
+      "dependency_name": "opendataloader-pdf",
+      "optional_extra": "parser-opendataloader",
+      "dependency_status": "missing",
+      "runtime_status": "skipped",
+      "supported_inputs": [
+        ".pdf"
+      ],
+      "validated_inputs": [
+        ".pdf"
+      ],
+      "supported_outputs": [
+        "normalized_text",
+        "markdown",
+        "json"
+      ],
+      "ocr_support": "unsupported",
+      "layout_support": "partial",
+      "table_support": "partial",
+      "figure_support": "partial",
+      "formula_support": "unknown",
+      "reading_order_support": "partial",
+      "confidence": 0.0,
+      "warnings": [
+        "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin."
+      ],
+      "errors": [
+        {
+          "code": "optional_runtime_dependency_missing",
+          "message": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin.",
+          "retryable": false,
+          "fallback_reason": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin.",
+          "fallback_result": "builtin_available",
+          "repair_suggestion": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin."
+        }
+      ],
+      "source_trace": [],
+      "fallback_reason": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin.",
+      "fallback_result": "builtin_available",
+      "repair_suggestion": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin."
+    },
+    "error_code": "optional_runtime_dependency_missing",
+    "human_readable_reason": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin.",
+    "fallback_result": "builtin_available",
+    "repair_suggestion": "Optional dependency 'opendataloader-pdf' or Java 11+ is not installed. Install the parser-opendataloader extra, ensure Java is on PATH, or use backend=builtin.",
+    "audit_trace": "parser-backend-inspect",
+    "workbench_visible_status": "blocked_by_dependency"
+  },
+  "smoke_status": "blocked",
+  "run_status": null
+}

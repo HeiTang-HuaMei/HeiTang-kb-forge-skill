@@ -1,6 +1,6 @@
-# HeiTang KB Forge Skill
+# HeiTang Knowledge Workbench
 
-一个 offline-first 的 Agent Knowledge Supply Chain Core，用来把本地资料转成标准化、可追溯、可检索、可审计、可复用的知识资产。
+一个 offline-first 的 Agent Knowledge Supply Chain Workbench，用来把本地资料转成标准化、可追溯、可检索、可审计、可复用的知识资产。
 
 当前 Core：v4.2.0
 
@@ -20,7 +20,7 @@
 
 ## What this project is
 
-HeiTang KB Forge Skill 是一个本地优先的 Agent 知识供应链 Core。它负责把本地文件、书稿、制度、运营资料、课程材料等输入，转成带证据、可追踪、可复用的 knowledge package，并继续服务于 RAG、验证、文档生成、结构化 Skill package 和本地 Agent workflow。
+HeiTang Knowledge Workbench 是一个本地优先的 Agent 知识供应链 Workbench。它负责把本地文件、书稿、制度、运营资料、课程材料等输入，转成带证据、可追踪、可复用的 knowledge package，并继续服务于 RAG、验证、文档生成、结构化 Skill package 和本地 Agent workflow。
 
 仓库名里保留 `Skill`，是因为项目最早从 Skill-first package surface 起步。当前 Core 已经更宽：它是 headless 的知识资产生产层，可以输出 Skill package、Agent package、reports、artifacts、indexes 和 Workbench contracts。UI 只是 presentation layer，不是 Core product engine。
 

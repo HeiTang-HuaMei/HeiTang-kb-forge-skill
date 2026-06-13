@@ -1,0 +1,78 @@
+{
+  "schema_version": "document_understanding_workflow.v1",
+  "status": "completed",
+  "generated_at": "2026-06-12T02:29:00.258213+00:00",
+  "input_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/input",
+  "preflight_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/batch_import",
+  "runtime_config_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/runtime_config.json",
+  "total_items": 4,
+  "success_count": 4,
+  "failed_count": 0,
+  "skipped_count": 0,
+  "normalized_source_count": 4,
+  "runtime_invoked_count": 4,
+  "progress_events_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/progress_events.jsonl",
+  "items": [
+    {
+      "item_id": "doc-0001",
+      "relative_path": "diagnostics.txt",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/input/diagnostics.txt",
+      "preflight_backend": "builtin",
+      "executed_backend": "builtin",
+      "route_source": "preflight_recommendation",
+      "status": "success",
+      "runtime_invoked": true,
+      "normalized_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0001_diagnostics.md",
+      "parser_result_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/backend_runs/doc-0001/parser_backend_result.json",
+      "error": null
+    },
+    {
+      "item_id": "doc-0002",
+      "relative_path": "sample_marker_pdf.pdf",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/input/sample_marker_pdf.pdf",
+      "preflight_backend": "docling",
+      "executed_backend": "marker",
+      "route_source": "runtime_config_override",
+      "status": "success",
+      "runtime_invoked": true,
+      "normalized_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0002_sample_marker_pdf.md",
+      "parser_result_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/backend_runs/doc-0002/parser_backend_result.json",
+      "error": null
+    },
+    {
+      "item_id": "doc-0003",
+      "relative_path": "sample_paddleocr_image.png",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/input/sample_paddleocr_image.png",
+      "preflight_backend": "paddleocr",
+      "executed_backend": "paddleocr",
+      "route_source": "preflight_recommendation",
+      "status": "success",
+      "runtime_invoked": true,
+      "normalized_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0003_sample_paddleocr_image.md",
+      "parser_result_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/backend_runs/doc-0003/parser_backend_result.json",
+      "error": null
+    },
+    {
+      "item_id": "doc-0004",
+      "relative_path": "supply_chain_notes.md",
+      "source_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/input/supply_chain_notes.md",
+      "preflight_backend": "builtin",
+      "executed_backend": "builtin",
+      "route_source": "preflight_recommendation",
+      "status": "success",
+      "runtime_invoked": true,
+      "normalized_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/normalized_sources/0004_supply_chain_notes.md",
+      "parser_result_path": "D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill/docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/document_understanding/backend_runs/doc-0004/parser_backend_result.json",
+      "error": null
+    }
+  ],
+  "output_files": [
+    "document_understanding_manifest.json",
+    "document_understanding_report.md",
+    "document_understanding_records.jsonl",
+    "runtime_configuration_report.json",
+    "normalized_sources/",
+    "backend_runs/",
+    "progress_events.jsonl"
+  ]
+}

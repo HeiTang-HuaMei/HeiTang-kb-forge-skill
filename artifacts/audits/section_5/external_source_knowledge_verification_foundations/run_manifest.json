@@ -1,0 +1,32 @@
+{
+  "schema_version": "audit_run_manifest.v1",
+  "run_id": "external_source_knowledge_verification_foundations",
+  "generated_at": "2026-06-13T07:26:21.704726Z",
+  "type": "section_5_supplement_3_0_p1_knowledge_verification_foundations",
+  "scope": "CAMPAIGN_3_SUPPLEMENT_3_0_P1_KNOWLEDGE_VERIFICATION_FOUNDATIONS",
+  "status": "passed",
+  "integration_decision": "real_integration",
+  "decision_qualifier": "knowledge_verification_foundations_only",
+  "evidence_files": [
+    "claim_verification_report.json",
+    "claim_verification_report.md",
+    "knowledge_correctness_report.json",
+    "knowledge_correctness_report.md",
+    "answer_grounding_report.json",
+    "answer_grounding_report.md",
+    "knowledge_verification_dashboard.json",
+    "verification_source_trace.json",
+    "verification_evidence_map.json",
+    "knowledge_verification_validation_report.json",
+    "progress_events.jsonl",
+    "run_manifest.json",
+    "run_summary.md"
+  ],
+  "next_business_item": "Campaign 3 Supplement 3.0 Acceptance Gate",
+  "supplement_3_0_complete": false,
+  "campaign_3_3_0_acceptance_gate_passed": false,
+  "campaign_4_active": false,
+  "campaign_5_active": false,
+  "bridge_execution_accepted": false,
+  "not_goal_complete": true
+}

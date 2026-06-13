@@ -61,7 +61,11 @@ def load_parse_run(path: Path) -> ParserBackendRun | None:
     from heitang_kb_forge.parser_backends.base import ParserBackendRecord, ParserBackendRun
 
     payload = json.loads(target.read_text(encoding="utf-8"))
-    records = [ParserBackendRecord(**record) for record in payload.get("records", [])]
+    records = []
+    for record in payload.get("records", []):
+        record_payload = {key: value for key, value in record.items() if key != "adapter_result"}
+        record_payload.setdefault("adapter_contract", payload.get("adapter_contract", {}))
+        records.append(ParserBackendRecord(**record_payload))
     return ParserBackendRun(
         backend_name=payload.get("backend_name", "unknown"),
         backend_version=payload.get("backend_version", "unknown"),
@@ -71,6 +75,11 @@ def load_parse_run(path: Path) -> ParserBackendRun | None:
         records=records,
         warnings=payload.get("warnings", []),
         kb_trust_status=payload.get("kb_trust_status", "raw_parse_output"),
+        error_code=payload.get("error_code"),
+        fallback_result=payload.get("fallback_result"),
+        repair_suggestion=payload.get("repair_suggestion"),
+        audit_trace=payload.get("audit_trace"),
+        adapter_contract=payload.get("adapter_contract", {}),
     )
 
 

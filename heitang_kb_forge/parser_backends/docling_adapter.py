@@ -12,6 +12,17 @@ class DoclingParserBackend(ParserBackend):
     version = "optional"
     description = "Optional Docling runtime adapter using DocumentConverter when docling is installed."
     supported_extensions = frozenset({".docx", ".html", ".htm", ".md", ".pdf", ".pptx", ".txt"})
+    adapter_type = "document_understanding"
+    optional_dependency = "docling"
+    optional_extra = "parser-docling"
+    integration_decision = "real_integration"
+    validated_extensions = frozenset({".md", ".txt"})
+    supported_outputs = ("normalized_text", "markdown")
+    layout_support = "unknown"
+    table_support = "unknown"
+    figure_support = "unknown"
+    formula_support = "unknown"
+    reading_order_support = "unknown"
 
     def is_available(self) -> tuple[bool, str | None]:
         if find_spec("docling") is None:

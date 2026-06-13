@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "adapter_error_schema.json",
+  "title": "Document Backend Adapter Error",
+  "type": "object",
+  "required": [
+    "code",
+    "message",
+    "retryable",
+    "fallback_reason",
+    "fallback_result",
+    "repair_suggestion"
+  ],
+  "properties": {
+    "code": {"type": "string", "minLength": 1},
+    "message": {"type": "string", "minLength": 1},
+    "retryable": {"type": "boolean"},
+    "fallback_reason": {"type": ["string", "null"]},
+    "fallback_result": {"type": ["string", "null"]},
+    "repair_suggestion": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}
