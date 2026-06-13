@@ -5,17 +5,17 @@
 - mode: long_task_guard
 - started_at: 2026-06-13T00:00:00+08:00
 - current_plan_section: Section 5 / Campaign 3
-- current_phase: Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate
-- completed_subitem: Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate
+- current_phase: Repository push
+- completed_subitem: Repository push succeeded
 - supplement_3_0_complete: true
 - supplement_4_0_complete: true
 - supplement_4_0_acceptance_gate_passed: true
 - campaign_3_final_consistency_gate_passed: true
 - blocked: false
-- current_required_item: Repository push only
-- explicit_next_internal_item_from_plan_sequence_lock: Repository push only
+- current_required_item: Tag creation only
+- explicit_next_internal_item_from_plan_sequence_lock: Tag creation only
 - sequence_lock_source: docs/governance/PLAN_SEQUENCE_LOCK.md
-- current_status: repository_public_surface_cleanup_gate_passed
+- current_status: repository_push_succeeded
 
 ## Completed Substeps
 
@@ -375,3 +375,4 @@ PLAN_SEQUENCE_LOCK contains an explicit Supplement 3.0 remaining order. No `miss
 - 212. Completed Campaign 1-3 Integrated Closure Gate in the current sequence. CLI build passed with verdict `accepted_for_closure_pack_generation`; CLI validation passed with 0 errors; focused Integrated Closure tests passed with 7 tests; selected JSON parse checks passed; `git diff --check` passed. Closure Pack generation is now the only next safe action; Repository Cleanup, push, tag, CI, Closure Checklist, Campaign 1-3 review/handoff, Campaign 4, Campaign 5, Full Gate, EXE, and Release remain blocked.
 - 213. Generated and validated the Campaign 1-3 Closure Pack in the current sequence. CLI build passed with verdict `closure_pack_generated_for_repository_cleanup_gate`; CLI validation passed with 0 errors; focused Closure Pack tests passed with 7 tests; JSON parse checks passed; `git diff --check` passed. Generated `dist/HeiTang-Campaign-1-2-3-Integrated-Closure-Pack.zip` with SHA-256 `de5abaf58a5e3e6902f054ca9119c58727ea0105d0e4604623b31f0c591b6113`. Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate is now the only next safe action; push, tag, CI, Campaign 4, Campaign 5, Full Gate, EXE, and Release remain blocked.
 - 214. Completed Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate in the current sequence. CLI build passed with verdict `accepted_for_repository_push`; CLI validation passed with 0 errors; focused repository cleanup/safety tests passed with 12 tests; JSON parse checks passed; `git diff --check` passed. The safety report confirms `push_allowed=true`, `tag_allowed=false`, `ci_check_allowed=false`, `campaign_4_entry_allowed=false`, no forbidden tracked files, no detected secrets, no large runtime binary issue, and no file deletion performed. Repository push is now the only next safe action; tag, CI, Closure Checklist, Campaign 1-3 review/handoff, Campaign 4, Campaign 5, Full Gate, EXE, and Release remain blocked.
+- 215. Completed repository push in the current sequence. Created commits `cc96ecfc3e16619d5e32b39146567276f8c0a7e5` and `76f5f17e5c74db52ce8638d6b049a232ad7a7d30`, then pushed `main` to `origin` successfully (`833bfb9..76f5f17 main -> main`). Tag creation is now the only next safe action; CI, Closure Checklist, Campaign 1-3 review/handoff, Campaign 4, Campaign 5, Full Gate, EXE, and Release remain blocked.
