@@ -53,6 +53,28 @@ Validation facts:
 
 This RC tag is a campaign baseline validation tag only. It is not a product version tag, not a formal release tag, not a GitHub Release, not a commercial stable release, not EXE delivery, and not Campaign 4 entry.
 
+## Stable Baseline Tag Failure Correction
+
+Recorded at: 2026-06-14T15:17:56+08:00
+
+The attempted stable campaign baseline tag `campaign-1-3-baseline` is recorded as a failed pre-cleanup baseline tag. It must not be treated as a final baseline, product release, GitHub Release, or Campaign 4 entry signal.
+
+Correction facts reported by the user:
+
+- `gh release view campaign-1-3-baseline` returned release not found.
+- `git push origin :refs/tags/campaign-1-3-baseline` succeeded.
+- `git tag -d campaign-1-3-baseline` succeeded.
+- `git ls-remote origin refs/tags/campaign-1-3-baseline` returned no output.
+- `git tag --list campaign-1-3-baseline` returned no output.
+
+Decision record:
+
+| tag | status | final baseline | product release | GitHub Release | local/remote state |
+| --- | --- | --- | --- | --- | --- |
+| `campaign-1-3-baseline` | `superseded_failed_pre_cleanup_baseline_tag` | `not_final_baseline` | `not_product_release` | `no_github_release` | `deleted_from_remote_and_local` |
+
+The failed pre-cleanup `campaign-1-3-baseline` tag must not be recreated in this correction step. Stable baseline reassessment is blocked until the next public repository cleanup/rename/restructure instruction is completed and a later campaign baseline RC validation chain is explicitly allowed.
+
 ## Safety Rules
 
 - Do not delete these historical tags in this correction step.
@@ -62,11 +84,13 @@ This RC tag is a campaign baseline validation tag only. It is not a product vers
 - Do not generate a Release for Campaign 1-3 baseline validation.
 - Release Check must trigger for `campaign-1-3-baseline-rc.*` and `campaign-1-3-baseline` tags; a CI-only green RC is not enough.
 - Do not enter Campaign 4 from tag creation alone.
+- Do not recreate `campaign-1-3-baseline` after the failed pre-cleanup deletion correction.
+- Do not create a GitHub Release for `campaign-1-3-baseline`.
 
 ## Current Next Safe Action
 
 ```text
-Closure Checklist Green verification only
+Wait for Clean Public Repository Rename & Restructure instruction
 ```
 
-The tag naming policy correction and campaign baseline RC CI/CL validation have passed through `campaign-1-3-baseline-rc.3`. Do not create any new `v3.0.x-integrated-closure` tag. Do not create a GitHub Release. Do not create the stable `campaign-1-3-baseline` tag until the ordered Closure Checklist is green. Campaign 4, Campaign 5, Full Gate, EXE packaging, and Release remain blocked until the ordered gates pass.
+The failed pre-cleanup stable baseline tag correction has been recorded only. Do not continue stable `campaign-1-3-baseline` tag closure, do not recreate `campaign-1-3-baseline`, do not create a GitHub Release, and do not enter Campaign 4. The run must stop and wait for the next Clean Public Repository Rename & Restructure instruction.

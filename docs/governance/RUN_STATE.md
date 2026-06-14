@@ -5,8 +5,8 @@
 - mode: long_task_guard
 - started_at: 2026-06-13T00:00:00+08:00
 - current_plan_section: Section 5 / Campaign 3
-- current_phase: Campaign 1-3 Integrated Review and New Conversation Handoff Gate
-- completed_subitem: Campaign 1-3 Integrated Review and New Conversation Handoff Gate passed
+- current_phase: Stable Campaign 1-3 Baseline Tag Failure Correction only
+- completed_subitem: campaign-1-3-baseline failed pre-cleanup tag deleted from remote and local
 - supplement_3_0_complete: true
 - supplement_4_0_complete: true
 - supplement_4_0_acceptance_gate_passed: true
@@ -21,13 +21,18 @@
 - release_check_green: true
 - closure_checklist_green: true
 - campaign_1_3_review_handoff_gate_passed: true
-- campaign_4_entry_gate_allowed: true
+- campaign_4_entry_gate_allowed: false
 - campaign_4_active: false
 - blocked: false
-- current_required_item: Open a new conversation and start Campaign 4 Entry Gate only
-- explicit_next_internal_item_from_plan_sequence_lock: Open a new conversation and start Campaign 4 Entry Gate only
+- campaign_1_3_baseline_tag_status: superseded_failed_pre_cleanup_baseline_tag
+- campaign_1_3_baseline_final_status: not_final_baseline
+- campaign_1_3_baseline_product_release_status: not_product_release
+- campaign_1_3_baseline_github_release_status: no_github_release
+- campaign_1_3_baseline_local_remote_state: deleted_from_remote_and_local
+- current_required_item: Wait for Clean Public Repository Rename & Restructure instruction
+- explicit_next_internal_item_from_plan_sequence_lock: Wait for Clean Public Repository Rename & Restructure instruction
 - sequence_lock_source: docs/governance/PLAN_SEQUENCE_LOCK.md
-- current_status: campaign_1_2_3_integrated_review_handoff_gate_passed
+- current_status: campaign_1_3_stable_baseline_failed_tag_deleted_recorded
 
 ## Completed Substeps
 
@@ -461,3 +466,4 @@ PLAN_SEQUENCE_LOCK contains an explicit Supplement 3.0 remaining order. No `miss
 - 271. Completed tag naming policy correction and Campaign 1-3 baseline RC CI/CL validation. No new `v3.0.x-integrated-closure` tag was created in this correction step. `v3.0.3-integrated-closure`, `v3.0.4-integrated-closure`, and `v3.0.5-integrated-closure` were verified with `gh release view` and have no GitHub Release association; they remain superseded CI validation tags only, not release, baseline, or product version tags. Corrected baseline validation tag `campaign-1-3-baseline-rc.3` points to commit `09590d8d4ff03310cd5c55b055631fa009350d4d`; CI run `27489725099` and Release Check run `27489725098` both concluded `success`, and no GitHub Release exists for the RC tag. Stable `campaign-1-3-baseline`, Campaign 1-3 review/handoff, Campaign 4, Campaign 5, Full Gate, EXE, Release, and GitHub Release creation remain blocked. Checkpoint is `tag_naming_policy_correction_campaign_baseline_rc3_ci_cl_green`; next safe action is `Closure Checklist Green verification only`.
 - 272. Completed Closure Checklist Green verification. CLI build passed with verdict `accepted_for_campaign_1_3_integrated_review_handoff_gate`; CLI validation passed with 0 errors. The gate confirms `campaign-1-3-baseline-rc.3` points to `09590d8d4ff03310cd5c55b055631fa009350d4d`, CI run `27489725099` and Release Check run `27489725098` are green, no GitHub Release is created, and stable `campaign-1-3-baseline` remains uncreated. Campaign 4 business implementation, Campaign 5, Full Gate, EXE, and Release remained blocked.
 - 273. Completed Campaign 1-3 Integrated Review and New Conversation Handoff Gate. CLI build passed with verdict `accepted_for_campaign_4_entry_gate_new_conversation`; CLI validation passed with 0 errors. Generated `docs/governance/CAMPAIGN_1_2_3_INTEGRATED_REVIEW_REPORT.md`, `docs/governance/CAMPAIGN_1_2_3_EXTERNAL_PROJECT_INTEGRATION_REVIEW.md`, `docs/governance/CAMPAIGN_1_2_3_CAPABILITY_REVIEW_MATRIX.md`, `artifacts/audits/current_run/new_conversation_handoff_prompt.md`, and `artifacts/audits/current_run/campaign_1_2_3_handoff_manifest.json`. Checkpoint is `campaign_1_2_3_integrated_review_handoff_gate_passed`; next safe action is `Open a new conversation and start Campaign 4 Entry Gate only`.
+- 274. Recorded the user-completed failed stable baseline tag correction only. `campaign-1-3-baseline` is now marked `superseded_failed_pre_cleanup_baseline_tag`, `not_final_baseline`, `not_product_release`, `no_github_release`, and `deleted_from_remote_and_local`. The user reported no GitHub Release exists, remote tag deletion succeeded, local tag deletion succeeded, remote tag lookup has no output, and local tag lookup has no output. Do not continue stable `campaign-1-3-baseline` tag closure, do not recreate the tag, do not create a GitHub Release, and do not enter Campaign 4. Next safe action is to wait for the next Clean Public Repository Rename & Restructure instruction.
