@@ -13,13 +13,19 @@
       {
         "item_id": "integrated_closure_gate_passed",
         "evidence_path": "artifacts/audits/campaign_1_2_3_integrated_closure/run_manifest.json",
-        "expected": "accepted_for_closure_pack_generation",
+        "expected": [
+          "accepted_for_closure_pack_generation"
+        ],
         "status": "passed"
       },
       {
-        "item_id": "current_checkpoint_integrated_closure",
+        "item_id": "current_checkpoint_integrated_closure_or_later_ordered_gate",
         "evidence_path": "artifacts/audits/current_run/checkpoint.json",
-        "expected": "campaign_1_2_3_integrated_closure_gate_passed",
+        "expected": [
+          "campaign_1_2_3_closure_pack_generated",
+          "campaign_1_2_3_integrated_closure_gate_passed",
+          "repository_public_surface_cleanup_gate_passed"
+        ],
         "status": "passed"
       }
     ],
@@ -115,15 +121,15 @@
         "status": "included"
       },
       {
-        "path": "artifacts/audits/current_run/checkpoint.json",
+        "path": "artifacts/audits/campaign_1_2_3_integrated_closure/checkpoint.json",
         "exists": true,
-        "size_bytes": 5121,
+        "size_bytes": 3017,
         "status": "included"
       },
       {
         "path": "docs/governance/RUN_STATE.md",
         "exists": true,
-        "size_bytes": 82795,
+        "size_bytes": 93880,
         "status": "included"
       },
       {
@@ -135,13 +141,13 @@
       {
         "path": "docs/governance/PLAN_SEQUENCE_LOCK.md",
         "exists": true,
-        "size_bytes": 40114,
+        "size_bytes": 41603,
         "status": "included"
       },
       {
         "path": "docs/governance/TARGET_ACCEPTANCE_MATRIX.md",
         "exists": true,
-        "size_bytes": 33925,
+        "size_bytes": 34051,
         "status": "included"
       },
       {

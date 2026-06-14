@@ -4,4 +4,23 @@
  M artifacts/audits/campaign_1_2_3_closure_pack/closure_pack_manifest.json
  M artifacts/audits/campaign_1_2_3_closure_pack/run_manifest.json
  M artifacts/audits/campaign_1_2_3_closure_pack/run_summary.md
+ M artifacts/audits/campaign_1_3_stage_test/campaign_1_3_stage_test_gate.json
+ M artifacts/audits/campaign_1_3_stage_test/stage_test_result_matrix.json
+ M artifacts/audits/repository_public_surface_cleanup/PUBLIC_SURFACE_FILE_INVENTORY.json
+ M artifacts/audits/repository_public_surface_cleanup/artifacts_surface_report.json
+ M artifacts/audits/repository_public_surface_cleanup/docs_surface_report.json
+ M artifacts/audits/repository_public_surface_cleanup/file_inventory.json
+ M artifacts/audits/repository_public_surface_cleanup/git_status_snapshot.txt
+ M artifacts/audits/repository_public_surface_cleanup/large_file_report.json
+ M artifacts/audits/section_5/campaign_3_supplement_4_0_agent_package/agent_package/agent_profile.yaml
+ M docs/audits/test_engineering/fast_gate_logs/core_fast_test_governance.log
+ M docs/audits/test_engineering/fast_gate_logs/core_fast_test_governance.log.exitcode
+ M docs/audits/test_engineering/fast_gate_logs/core_fast_test_governance.log.result.json
+ M docs/governance/PLAN_SEQUENCE_LOCK.md
  M docs/governance/RUN_STATE.md
+ M docs/governance/TARGET_ACCEPTANCE_MATRIX.md
+ M heitang_kb_forge/campaign_3_closure/closure_pack.py
+ M pyproject.toml
+ M tests/test_external_capability_cli.py
+ M tests/test_planned_adapter_boundaries.py
+ M tests/test_post_v4_external_roadmap.py

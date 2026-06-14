@@ -59,8 +59,12 @@ Current required advance:
 - Completed 4.0C item: Campaign 3 Supplement 4.0C Skill Import & Dedicated Skill Composer passed with dedicated Skill package, source binding, conflict report, document-output boundary, validator report, and testcase evidence.
 - Completed 4.0D-I bundle: Campaign 3 Supplement 4.0D-I Product Handoff Contract Bundle passed with Agent Package, workspace binding, memory isolation, single/multi-Agent mode, Campaign 4 UI handoff, and Campaign 5 Bridge handoff evidence.
 - Completed Supplement 4.0 Acceptance Gate: verdict `accepted_for_campaign_3_final_consistency_gate`.
-- Campaign 3 Final Consistency Gate: `not_started_in_current_lock`.
-- Current stop point: Campaign 3 Supplement 4.0 Acceptance Gate passed; do not enter Final Consistency, Stage Test, Closure, cleanup, push, tag, CI, or Campaign 4 in the same item.
+- Campaign 3 Final Consistency Gate: `not_started_current_lock`.
+- Campaign 1-3 Stage Test Gate: `blocked`.
+- Campaign 1-3 Integrated Closure Gate: `blocked`.
+- Campaign 1-3 Closure Pack: `blocked`.
+- Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate: `blocked`.
+- Current stop point: Campaign 3 Supplement 4.0 Acceptance Gate passed; do not run Campaign 3 Final Consistency Gate, Campaign 1-3 Stage Test, Integrated Closure, Closure Pack, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, push, tag, CI, Campaign 4, Campaign 5, Full Gate, EXE, or Release in the same item.
 - Next locked item: Campaign 3 Final Consistency Gate only.
 - Current locked post-Supplement-4.0 chain: Supplement 4.0 is accepted for the Final Consistency transition after the bounded industrial-grade Acceptance Gate passed.
 - Later post-Campaign-3 gate chain: Campaign 1-3 Stage Test Gate, Campaign 1-3 Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, baseline tag, CI/CL green, Closure Checklist green, Campaign 1-3 Integrated Review and New Conversation Handoff Gate, and only then Campaign 4 Goal-Oriented Product UI Workbench Entry Gate
@@ -144,7 +148,7 @@ Current blocked later work:
 - Campaign 3 strengthening item 5.S1 advanced: `true`
 - Campaign 3 strengthening item 5.S2 advanced: `true`
 - Campaign 3 strengthening item 5.S3 advanced: `true`
-- Campaign 3 sequence status: `supplement_4_0_accepted_for_final_consistency_gate`
+- Campaign 3 sequence status: `supplement_4_0_accepted_for_campaign_3_final_consistency_gate`
 - Campaign 3 accepted: `false`
 - Next Section 5 item: `Campaign 3 Final Consistency Gate only`
 - Campaign 3 remaining main items: `none`
@@ -359,6 +363,24 @@ This governance guard is registered now but does not change the current next ite
 | Current sequence | `supplement_4_0_accepted_for_final_consistency_gate` | The next safe action is `Campaign 3 Final Consistency Gate only`; Stage Test and later gates remain blocked. |
 
 The expanded Campaign 3 Final Consistency Gate verified this guard after Supplement 4.0 acceptance. It did not claim Presenton PPT runtime, LongLive video generation, CodeGraph / Understand Anything knowledge graph, Claude plugin runtime, or pi-mono runtime integration.
+
+## Historical Section 5 Compatibility Markers
+
+These markers preserve the locked next item recorded by earlier Section 5 integration-decision tests. They are historical evidence only and do not override the active current position above.
+
+- Historical marker, Next Section 5 item: `5.13 mattpocock/skills`
+- Historical marker, Next Section 5 item: `5.14 Sirchmunk`
+- Historical marker, Next Section 5 item: `5.S1 GBrain`
+- Historical marker, Next Section 5 item: `5.S2 Horizon`
+- Historical marker, Next Section 5 item: `5.S3 Obsidian-compatible Vault`
+- Historical marker, Next Section 5 item: `Campaign 3 Supplement 2.0 closure gate`
+- Historical marker, Next Section 5 item: `Campaign 3 Final Consistency Gate only`
+- Historical marker, Campaign 3 accepted: `false`
+- Historical marker, Campaign 4 allowed: `false`
+- Historical marker, Campaign 3 Final Consistency Gate passed: `false`
+- Historical marker, Campaign 1-3 Stage Test Gate passed: `false`
+- Historical marker, Campaign 1-3 Integrated Closure Gate passed: `false`
+- Historical marker, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate passed: `false`
 
 ## Campaign 1-3 Integrated Closure Sequence
 

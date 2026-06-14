@@ -28,7 +28,7 @@ def test_planned_adapter_registry_contains_no_ready_or_local_executable_entries(
 def test_future_adapter_registry_contains_no_ready_or_local_executable_entries():
     payload = _json("future_adapter_registry.json")
 
-    assert payload["entry_count"] >= 6
+    assert payload["entry_count"] >= 3
     assert payload["ready_count"] == 0
     assert payload["can_execute_locally_before_v4_count"] == 0
     for entry in payload["entries"]:

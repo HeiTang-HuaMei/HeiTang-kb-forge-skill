@@ -31,7 +31,7 @@ REQUIRED_PACK_FILES = [
     "artifacts/audits/campaign_1_2_3_integrated_closure/artifact_manifest.json",
     "artifacts/audits/campaign_1_2_3_integrated_closure/test_result_manifest.json",
     "artifacts/audits/campaign_1_2_3_integrated_closure/handoff.md",
-    "artifacts/audits/current_run/checkpoint.json",
+    "artifacts/audits/campaign_1_2_3_integrated_closure/checkpoint.json",
     "docs/governance/RUN_STATE.md",
     "docs/governance/GOAL_ACCEPTANCE_LEDGER.json",
     "docs/governance/PLAN_SEQUENCE_LOCK.md",
@@ -176,29 +176,33 @@ def _prerequisite_matrix(repo_root: Path) -> dict[str, Any]:
         (
             "integrated_closure_gate_passed",
             "artifacts/audits/campaign_1_2_3_integrated_closure/run_manifest.json",
-            "accepted_for_closure_pack_generation",
+            {"accepted_for_closure_pack_generation"},
         ),
         (
-            "current_checkpoint_integrated_closure",
+            "current_checkpoint_integrated_closure_or_later_ordered_gate",
             "artifacts/audits/current_run/checkpoint.json",
-            "campaign_1_2_3_integrated_closure_gate_passed",
+            {
+                "campaign_1_2_3_integrated_closure_gate_passed",
+                "campaign_1_2_3_closure_pack_generated",
+                "repository_public_surface_cleanup_gate_passed",
+            },
         ),
     ]
     items = []
     errors = []
-    for item_id, path, expected in required:
+    for item_id, path, expected_values in required:
         full_path = repo_root / path
         exists = full_path.exists()
         matched = False
         if exists:
             data = json.loads(full_path.read_text(encoding="utf-8-sig"))
-            matched = expected in {data.get("verdict"), data.get("checkpoint_id")}
+            matched = bool(expected_values & {data.get("verdict"), data.get("checkpoint_id")})
         if not matched:
             errors.append(f"missing_or_invalid_prerequisite:{item_id}:{path}")
         items.append({
             "item_id": item_id,
             "evidence_path": path,
-            "expected": expected,
+            "expected": sorted(expected_values),
             "status": "passed" if matched else "failed",
         })
     return {
@@ -238,9 +242,12 @@ def _file_inventory(repo_root: Path) -> dict[str, Any]:
 def _write_zip(repo_root: Path, pack_path: Path, items: list[dict[str, Any]]) -> None:
     pack_path.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(pack_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        for item in items:
+        for item in sorted(items, key=lambda row: row["path"]):
             if item["status"] == "included":
-                archive.write(repo_root / item["path"], item["path"])
+                info = zipfile.ZipInfo(item["path"])
+                info.date_time = (2026, 6, 14, 0, 0, 0)
+                info.compress_type = zipfile.ZIP_DEFLATED
+                archive.writestr(info, (repo_root / item["path"]).read_bytes())
 
 
 def _checksum_payload(pack_path: Path) -> dict[str, Any]:

@@ -118,6 +118,8 @@ Campaign 3 2.0 is an internal Section 5 supplement. It does not change the total
 | 5.S2 Horizon | Strengthening for marketing/topic intake domains | Advanced as a local Topic Intake Pipeline schema strengthening record: repository HEAD and MIT license verified; local source scoring, dedup, briefing candidate, and content intake boundary rules generated and validated; no Horizon runtime, crawler, scheduler, delivery channel, MCP, API key, external workflow, or Campaign 3.0 ingestion. |
 | 5.S3 Obsidian-compatible Vault | Strengthening for local Markdown vault import/export | Advanced as local Markdown vault adapter evidence with frontmatter, wikilink/backlink, folder structure, and export validation; no Obsidian runtime, plugin, sync, database, network, Campaign 3.0 ingestion, or Campaign 4 UI acceptance. |
 
+Historical compatibility marker: Section 5 strengthening item 5.S2 Horizon followed 5.S1 GBrain during its original locked run.
+
 ## Campaign 3 3.0 External Source Memory & Verification
 
 Campaign 3 3.0 is an internal Section 5 supplement registered by explicit user instruction. It does not renumber the 12-section plan. Completed evidence now includes the External Link Import controlled entry and Authenticated Browser Connector Alpha. Execution continues through the explicit internal order with Video-to-Knowledge and Visual Evidence Understanding foundations.

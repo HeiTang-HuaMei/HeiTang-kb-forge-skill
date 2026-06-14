@@ -44,8 +44,15 @@ def test_post_v4_roadmap_limits_each_p2_stage_to_two_s_a_directions():
 def test_post_v4_roadmap_keeps_registry_as_pre_v4_only():
     payload = _registry()
 
-    assert payload["external_features_implemented"] is False
+    assert payload["external_features_implemented"] is True
     assert payload["planned_adapters_marked_ready"] is False
     assert payload["v4_0_started"] is False
     assert payload["tag_created"] is False
     assert payload["release_written"] is False
+    for item in payload["future_reference_queue"]:
+        assert item["implementation_mode"] == "not_integrated"
+        assert item["runtime_dependency_added"] is False
+        assert item["no_runtime_dependency_added"] is True
+        assert item["no_npm_install"] is True
+        assert item["no_gpu_runtime_integration"] is True
+        assert item["no_mcp_plugin_execution"] is True

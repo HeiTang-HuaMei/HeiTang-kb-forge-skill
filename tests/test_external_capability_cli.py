@@ -11,8 +11,8 @@ def test_external_capability_registry_cli_writes_reports(tmp_path):
     result = CliRunner().invoke(app, ["external-capability-registry", "--output", str(output)])
 
     assert result.exit_code == 0, result.output
-    assert _json(output / "external_capability_registry.json")["external_project_count"] == 24
-    assert _json(output / "s_a_contract_inclusion_matrix.json")["external_project_count"] == 24
+    assert _json(output / "external_capability_registry.json")["external_project_count"] == 26
+    assert _json(output / "s_a_contract_inclusion_matrix.json")["external_project_count"] == 26
     assert _json(output / "provider_boundary_report.json")["provider_network_api_ready"] is False
     assert (output / "external_capability_registry.md").exists()
 
@@ -45,7 +45,7 @@ def test_external_capability_matrix_cli_writes_visibility_matrix(tmp_path):
     result = CliRunner().invoke(app, ["external-capability-matrix", "--output", str(output)])
 
     assert result.exit_code == 0, result.output
-    assert _json(output / "s_a_contract_inclusion_matrix.json")["external_project_count"] == 24
+    assert _json(output / "s_a_contract_inclusion_matrix.json")["external_project_count"] == 26
     assert _json(output / "workbench_capability_matrix.json")["page_count"] >= 8
     assert (output / "s_a_contract_inclusion_matrix.md").exists()
 
