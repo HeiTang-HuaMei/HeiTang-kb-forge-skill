@@ -487,7 +487,7 @@ class _WorkbenchSidebar extends StatelessWidget {
           final selected = index == selectedIndex;
 
           return InkWell(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             onTap: () => onPageChanged(index),
             child: ListTile(
               dense: true,
@@ -498,7 +498,8 @@ class _WorkbenchSidebar extends StatelessWidget {
                   selected ? Icons.circle : Icons.radio_button_unchecked,
                   size: 16),
               title: Text(page.title(localeCode, contracts),
-                  maxLines: 1, overflow: TextOverflow.ellipsis),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis),
               subtitle: Text(
                   view.assetTypes.isEmpty
                       ? page.id
@@ -506,7 +507,7 @@ class _WorkbenchSidebar extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+                  borderRadius: BorderRadius.circular(12)),
             ),
           );
         },

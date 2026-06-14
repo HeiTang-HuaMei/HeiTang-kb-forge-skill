@@ -28,6 +28,9 @@ void main() {
     expect(find.byKey(const Key('workbench-output-area')), findsOneWidget);
     expect(find.byKey(const Key('workbench-evidence-area')), findsOneWidget);
     expect(find.byKey(const Key('workbench-error-area')), findsOneWidget);
+    expect(find.text('任务阶段'), findsOneWidget);
+    expect(find.textContaining('结果 + 证据'), findsOneWidget);
+    expect(find.textContaining('真实 Core 结果返回前'), findsOneWidget);
     for (final stage in WorkbenchTaskStage.values) {
       expect(find.byKey(Key('task-card-${stage.id}')), findsOneWidget);
       expect(find.byKey(Key('task-progress-${stage.id}')), findsOneWidget);
