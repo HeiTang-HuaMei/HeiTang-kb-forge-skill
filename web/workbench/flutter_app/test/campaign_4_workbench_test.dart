@@ -46,7 +46,8 @@ void main() {
       expect(find.byKey(Key('task-card-${stage.id}')), findsOneWidget);
       expect(find.byKey(Key('task-progress-${stage.id}')), findsOneWidget);
     }
-    expect(find.text('completed'), findsOneWidget);
+    expect(find.text('等待开始'), findsWidgets);
+    expect(find.text('pending'), findsNothing);
     expect(find.textContaining('Agent Runtime complete'), findsNothing);
     expect(tester.takeException(), isNull);
   });

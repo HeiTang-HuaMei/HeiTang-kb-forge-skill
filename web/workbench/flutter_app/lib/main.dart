@@ -1582,6 +1582,10 @@ class _ProductPageOverview extends StatelessWidget {
     final copy = _ProductPageCopy.forPage(page.id, _zh);
     return Card(
       color: colors.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(color: colors.outlineVariant),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -1595,29 +1599,38 @@ class _ProductPageOverview extends StatelessWidget {
             const SizedBox(height: 8),
             Text(copy.body, style: Theme.of(context).textTheme.bodyLarge),
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                _ProductSignal(
-                  label: _zh ? '当前状态' : 'Current status',
-                  value: _zh ? '等待输入' : 'Waiting for input',
-                ),
-                _ProductSignal(
-                  label: _zh ? '下一步' : 'Next action',
-                  value: copy.nextAction,
-                ),
-                _ProductSignal(
-                  label: _zh ? '输出位置' : 'Output path',
-                  value: copy.outputPath(workspace),
-                ),
-                _ProductSignal(
-                  label: _zh ? '本地执行' : 'Local execution',
-                  value: isWebRuntime
-                      ? (_zh ? 'Web 中不可用' : 'Unavailable on Web')
-                      : (_zh ? '桌面可用' : 'Available on desktop'),
-                ),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final wide = constraints.maxWidth >= 920;
+                final workflow = _ProductFlowPanel(
+                  localeCode: localeCode,
+                  copy: copy,
+                  workspace: workspace,
+                );
+                final status = _ProductStatusPanel(
+                  localeCode: localeCode,
+                  copy: copy,
+                  workspace: workspace,
+                  isWebRuntime: isWebRuntime,
+                );
+                if (!wide) {
+                  return Column(
+                    children: [
+                      workflow,
+                      const SizedBox(height: 12),
+                      status,
+                    ],
+                  );
+                }
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 3, child: workflow),
+                    const SizedBox(width: 12),
+                    Expanded(flex: 2, child: status),
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -1632,12 +1645,16 @@ class _ProductPageCopy {
     required this.body,
     required this.nextAction,
     required this.outputSuffix,
+    required this.steps,
+    required this.previewTitle,
   });
 
   final String title;
   final String body;
   final String nextAction;
   final String outputSuffix;
+  final List<String> steps;
+  final String previewTitle;
 
   String outputPath(String workspace) => '$workspace/$outputSuffix';
 
@@ -1651,6 +1668,14 @@ class _ProductPageCopy {
               : 'Choose local material, confirm the parsing scope, then move into knowledge building.',
           nextAction: zh ? '选择本地文件或文件夹' : 'Choose a local file or folder',
           outputSuffix: 'workbench_runs/import_manifest',
+          previewTitle: zh ? '导入清单预览' : 'Import manifest preview',
+          steps: zh
+              ? ['选择资料', '确认解析范围', '生成导入清单']
+              : [
+                  'Choose material',
+                  'Confirm parsing scope',
+                  'Create import manifest'
+                ],
         );
       case 'knowledge-package-management':
         return _ProductPageCopy(
@@ -1660,6 +1685,14 @@ class _ProductPageCopy {
               : 'Split and organize parsed content into a reusable knowledge package draft.',
           nextAction: zh ? '检查解析结果' : 'Review parsed content',
           outputSuffix: 'workbench_runs/knowledge_package',
+          previewTitle: zh ? '知识包预览' : 'Knowledge package preview',
+          steps: zh
+              ? ['检查解析结果', '切分知识片段', '整理知识包草稿']
+              : [
+                  'Review parsed content',
+                  'Split knowledge chunks',
+                  'Organize package draft'
+                ],
         );
       case 'skill-factory':
         return _ProductPageCopy(
@@ -1669,6 +1702,14 @@ class _ProductPageCopy {
               : 'Extract methodology from the package and generate a governed Skill draft.',
           nextAction: zh ? '确认知识包草稿' : 'Confirm the package draft',
           outputSuffix: 'workbench_runs/skill_draft',
+          previewTitle: zh ? 'Skill 草稿预览' : 'Skill draft preview',
+          steps: zh
+              ? ['确认知识包', '提炼方法论', '生成 Skill 草稿']
+              : [
+                  'Confirm package',
+                  'Extract methodology',
+                  'Generate Skill draft'
+                ],
         );
       case 'agent-factory-runtime':
         return _ProductPageCopy(
@@ -1678,6 +1719,14 @@ class _ProductPageCopy {
               : 'Generate an Agent package draft; this prepares the package without claiming runtime completion.',
           nextAction: zh ? '生成包草稿' : 'Generate package draft',
           outputSuffix: 'workbench_runs/agent_package',
+          previewTitle: zh ? 'Agent 包预览' : 'Agent package preview',
+          steps: zh
+              ? ['选择 Skill 草稿', '生成包结构', '等待验证导出']
+              : [
+                  'Select Skill draft',
+                  'Generate package structure',
+                  'Wait for validation'
+                ],
         );
       case 'reports-audit':
         return _ProductPageCopy(
@@ -1687,6 +1736,14 @@ class _ProductPageCopy {
               : 'Check outputs, evidence, and recovery paths before export.',
           nextAction: zh ? '验证清单与报告' : 'Validate manifests and reports',
           outputSuffix: 'workbench_runs/validation_report',
+          previewTitle: zh ? '验证报告预览' : 'Validation report preview',
+          steps: zh
+              ? ['检查输出路径', '验证证据报告', '准备受控导出']
+              : [
+                  'Check output paths',
+                  'Validate evidence reports',
+                  'Prepare controlled export'
+                ],
         );
       default:
         return _ProductPageCopy(
@@ -1696,22 +1753,185 @@ class _ProductPageCopy {
               : 'Review workspace paths, local execution availability, and safety boundaries.',
           nextAction: zh ? '检查工作区路径' : 'Check workspace path',
           outputSuffix: 'workbench_runs/settings',
+          previewTitle: zh ? '工作区设置预览' : 'Workspace settings preview',
+          steps: zh
+              ? ['检查工作区', '确认本地执行', '保持安全边界']
+              : [
+                  'Check workspace',
+                  'Confirm local execution',
+                  'Keep safety boundaries'
+                ],
         );
     }
   }
 }
 
-class _ProductSignal extends StatelessWidget {
-  const _ProductSignal({required this.label, required this.value});
+class _ProductFlowPanel extends StatelessWidget {
+  const _ProductFlowPanel({
+    required this.localeCode,
+    required this.copy,
+    required this.workspace,
+  });
 
-  final String label;
-  final String value;
+  final String localeCode;
+  final _ProductPageCopy copy;
+  final String workspace;
+
+  bool get _zh => localeCode == 'zh-CN';
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Container(
-      width: 240,
+      key: const Key('product-flow-panel'),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(_zh ? '操作流程' : 'Operation Flow',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 12),
+          for (var index = 0; index < copy.steps.length; index++) ...[
+            _ProductFlowStep(index: index, label: copy.steps[index]),
+            if (index != copy.steps.length - 1) const SizedBox(height: 8),
+          ],
+          const SizedBox(height: 14),
+          _ProductSignal(
+            label: _zh ? '下一步' : 'Next action',
+            value: copy.nextAction,
+            wide: true,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProductFlowStep extends StatelessWidget {
+  const _ProductFlowStep({required this.index, required this.label});
+
+  final int index;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: colors.primary,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: SizedBox.square(
+            dimension: 26,
+            child: Center(
+              child: Text(
+                '${index + 1}',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: colors.onPrimary,
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  )),
+        ),
+      ],
+    );
+  }
+}
+
+class _ProductStatusPanel extends StatelessWidget {
+  const _ProductStatusPanel({
+    required this.localeCode,
+    required this.copy,
+    required this.workspace,
+    required this.isWebRuntime,
+  });
+
+  final String localeCode;
+  final _ProductPageCopy copy;
+  final String workspace;
+  final bool isWebRuntime;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      key: const Key('product-status-panel'),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(copy.previewTitle,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 12),
+          _ProductSignal(
+            label: _zh ? '当前状态' : 'Current status',
+            value: _zh ? '等待输入' : 'Waiting for input',
+            wide: true,
+          ),
+          _ProductSignal(
+            label: _zh ? '输出位置' : 'Output path',
+            value: copy.outputPath(workspace),
+            wide: true,
+          ),
+          _ProductSignal(
+            label: _zh ? '本地执行' : 'Local execution',
+            value: isWebRuntime
+                ? (_zh ? 'Web 中安全展示' : 'Web-safe view')
+                : (_zh ? '桌面本地可用' : 'Available on desktop'),
+            wide: true,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProductSignal extends StatelessWidget {
+  const _ProductSignal({
+    required this.label,
+    required this.value,
+    this.wide = false,
+  });
+
+  final String label;
+  final String value;
+  final bool wide;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      width: wide ? double.infinity : 240,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: colors.surface,

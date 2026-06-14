@@ -300,7 +300,7 @@ class _AdvancedTaskDetails extends StatelessWidget {
         _Section(
           key: const Key('workbench-progress-area'),
           title: _zh ? '任务进度区' : 'Task progress',
-          eyebrow: _zh ? '6 个阶段 · 默认 pending' : '6 stages · pending by default',
+          eyebrow: _zh ? '6 个阶段 · 默认等待开始' : '6 stages · pending by default',
           child: LayoutBuilder(
             builder: (context, constraints) {
               final columns = constraints.maxWidth >= 620 ? 2 : 1;
@@ -333,7 +333,7 @@ class _AdvancedTaskDetails extends StatelessWidget {
           child: _BoundaryCard(
             title: _zh ? '受控输出路径' : 'Controlled output paths',
             body: _zh
-                ? '只有真实 Core 结果返回后才能显示 completed。当前卡片为 pending，不生成假产物。'
+                ? '只有真实 Core 结果返回后才能显示已完成。当前卡片为等待开始，不生成假产物。'
                 : 'Completed is shown only after a real Core result. Current cards are pending and do not invent artifacts.',
             detail:
                 'example=${outputContract.forAction('knowledge_splitting')}',
@@ -365,7 +365,7 @@ class _AdvancedTaskDetails extends StatelessWidget {
                 runSpacing: 8,
                 children: [
                   for (final status in WorkbenchTaskStatus.values)
-                    _StatusPill(status: status),
+                    _StatusPill(status: status, localeCode: localeCode),
                 ],
               ),
               const SizedBox(height: 10),
@@ -502,7 +502,7 @@ class _ProductTaskCard extends StatelessWidget {
                         ?.copyWith(fontWeight: FontWeight.w800),
                   ),
                 ),
-                _StatusPill(status: task.status),
+                _StatusPill(status: task.status, localeCode: localeCode),
               ],
             ),
             const SizedBox(height: 10),
@@ -703,7 +703,9 @@ class _WorkbenchSummary extends StatelessWidget {
                 ),
                 _SummaryMetric(
                   label: _zh ? '默认状态' : 'Default state',
-                  value: 'pending',
+                  value: _zh
+                      ? _statusCopy(WorkbenchTaskStatus.pending, true)
+                      : WorkbenchTaskStatus.pending.value,
                 ),
                 _SummaryMetric(
                   label: _zh ? '完成规则' : 'Completion rule',
@@ -947,7 +949,7 @@ class _TaskCard extends StatelessWidget {
                         ?.copyWith(fontWeight: FontWeight.w700),
                   ),
                 ),
-                _StatusPill(status: task.status),
+                _StatusPill(status: task.status, localeCode: localeCode),
               ],
             ),
             const SizedBox(height: 14),
@@ -1166,9 +1168,12 @@ class _BoundaryCard extends StatelessWidget {
 }
 
 class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.status});
+  const _StatusPill({required this.status, required this.localeCode});
 
   final WorkbenchTaskStatus status;
+  final String localeCode;
+
+  bool get _zh => localeCode == 'zh-CN';
 
   @override
   Widget build(BuildContext context) {
@@ -1200,7 +1205,7 @@ class _StatusPill extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         child: Text(
-          status.value,
+          _statusCopy(status, _zh),
           style: Theme.of(context)
               .textTheme
               .labelSmall

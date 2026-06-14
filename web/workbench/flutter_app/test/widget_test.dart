@@ -506,6 +506,10 @@ void main() {
     await tester.tap(find.text('导入资料').first);
     await tester.pumpAndSettle();
 
+    expect(find.byKey(const Key('product-flow-panel')), findsOneWidget);
+    expect(find.byKey(const Key('product-status-panel')), findsOneWidget);
+    expect(find.text('操作流程'), findsOneWidget);
+    expect(find.text('导入清单预览'), findsOneWidget);
     expect(find.text('Parser Backend Matrix'), findsNothing);
     await openAdvancedBoundaryDetails(tester);
     expect(find.text('Parser Backend Matrix'), findsWidgets);
@@ -547,6 +551,8 @@ void main() {
 
     expect(find.text('Skill 生成'), findsWidgets);
     expect(find.text('把知识包转化为经过治理的 Skill 草稿。'), findsOneWidget);
+    expect(find.text('操作流程'), findsOneWidget);
+    expect(find.text('Skill 草稿预览'), findsOneWidget);
     expect(find.text('高级边界详情'), findsOneWidget);
     await openAdvancedBoundaryDetails(tester);
     expect(find.textContaining('Skill Governance Report'), findsWidgets);
@@ -569,6 +575,8 @@ void main() {
     await tester.tap(find.text('Agent Package').first);
     await tester.pumpAndSettle();
 
+    expect(find.text('Operation Flow'), findsOneWidget);
+    expect(find.text('Agent package preview'), findsOneWidget);
     expect(find.textContaining('run_agent'), findsNothing);
     expect(find.textContaining('kb_bound'), findsNothing);
     expect(find.text('Advanced Boundary Details'), findsOneWidget);
