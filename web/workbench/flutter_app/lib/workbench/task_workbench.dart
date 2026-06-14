@@ -8,6 +8,7 @@ class TaskWorkbenchSurface extends StatelessWidget {
     super.key,
     required this.localeCode,
     required this.workspace,
+    this.isWebRuntime = false,
     this.tasks,
     this.onRetry,
     this.onCancel,
@@ -15,6 +16,7 @@ class TaskWorkbenchSurface extends StatelessWidget {
 
   final String localeCode;
   final String workspace;
+  final bool isWebRuntime;
   final List<WorkbenchTaskSnapshot>? tasks;
   final ValueChanged<WorkbenchTaskSnapshot>? onRetry;
   final ValueChanged<WorkbenchTaskSnapshot>? onCancel;
@@ -26,7 +28,7 @@ class TaskWorkbenchSurface extends StatelessWidget {
     return LayoutBuilder(
       key: const Key('task-workbench-surface'),
       builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 1100;
+        final wide = constraints.maxWidth >= 900;
         final workflow = _GuidedWorkflow(
           localeCode: localeCode,
           workspace: workspace,
@@ -39,7 +41,7 @@ class TaskWorkbenchSurface extends StatelessWidget {
           tasks: snapshots,
           workspace: workspace,
         );
-        return Column(
+        final mainColumn = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _WorkbenchSummary(
@@ -48,23 +50,13 @@ class TaskWorkbenchSurface extends StatelessWidget {
               workspace: workspace,
             ),
             const SizedBox(height: 16),
-            if (wide)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(flex: 3, child: workflow),
-                  const SizedBox(width: 16),
-                  SizedBox(width: 330, child: sidePanel),
-                ],
-              )
-            else
-              Column(
-                children: [
-                  workflow,
-                  const SizedBox(height: 16),
-                  sidePanel,
-                ],
-              ),
+            _WorkbenchCommandPanel(
+              localeCode: localeCode,
+              workspace: workspace,
+              isWebRuntime: isWebRuntime,
+            ),
+            const SizedBox(height: 16),
+            workflow,
             const SizedBox(height: 18),
             _AdvancedTaskDetails(
               localeCode: localeCode,
@@ -73,6 +65,26 @@ class TaskWorkbenchSurface extends StatelessWidget {
               onRetry: onRetry,
               onCancel: onCancel,
             ),
+          ],
+        );
+
+        if (wide) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 3, child: mainColumn),
+              const SizedBox(width: 16),
+              SizedBox(width: 300, child: sidePanel),
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            mainColumn,
+            const SizedBox(height: 18),
+            sidePanel,
           ],
         );
       },
@@ -234,6 +246,208 @@ class _StepperNode extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.w800,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WorkbenchCommandPanel extends StatelessWidget {
+  const _WorkbenchCommandPanel({
+    required this.localeCode,
+    required this.workspace,
+    required this.isWebRuntime,
+  });
+
+  final String localeCode;
+  final String workspace;
+  final bool isWebRuntime;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      key: const Key('workbench-command-panel'),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _zh ? '本地资料输入台' : 'Local Material Console',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      _zh
+                          ? '先确认资料来源和输出目录，再推进知识供应链；没有真实结果不会展示完成。'
+                          : 'Confirm the material source and output directory before moving the knowledge chain forward; no real result means no completed state.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: colors.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              _ExecutionBadge(
+                localeCode: localeCode,
+                isWebRuntime: isWebRuntime,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: colors.outlineVariant),
+            ),
+            child: Text(
+              _zh ? '选择本地文件或文件夹' : 'Choose a local file or folder',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              FilledButton.icon(
+                onPressed: null,
+                icon: const Icon(Icons.folder_open_outlined),
+                label: Text(_zh ? '等待本地输入' : 'Waiting for local input'),
+              ),
+              OutlinedButton.icon(
+                onPressed: null,
+                icon: const Icon(Icons.playlist_add_check_outlined),
+                label: Text(_zh ? '生成导入清单' : 'Create import manifest'),
+              ),
+              _InlineOutputPath(
+                localeCode: localeCode,
+                path: '$workspace/workbench_runs/import_manifest',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ExecutionBadge extends StatelessWidget {
+  const _ExecutionBadge({
+    required this.localeCode,
+    required this.isWebRuntime,
+  });
+
+  final String localeCode;
+  final bool isWebRuntime;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: isWebRuntime
+            ? colors.secondaryContainer
+            : colors.primary.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isWebRuntime
+                ? Icons.public_off_outlined
+                : Icons.desktop_windows_outlined,
+            size: 18,
+            color: isWebRuntime ? colors.onSecondaryContainer : colors.primary,
+          ),
+          const SizedBox(width: 7),
+          Text(
+            isWebRuntime
+                ? (_zh ? 'Web 安全展示' : 'Web-safe view')
+                : (_zh ? '桌面可执行' : 'Desktop ready'),
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: isWebRuntime
+                      ? colors.onSecondaryContainer
+                      : colors.primary,
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InlineOutputPath extends StatelessWidget {
+  const _InlineOutputPath({
+    required this.localeCode,
+    required this.path,
+  });
+
+  final String localeCode;
+  final String path;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 420),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.drive_file_move_outline,
+              size: 18, color: colors.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              '${_zh ? '输出' : 'Output'}: $path',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
                   ),
             ),
           ),
@@ -792,16 +1006,48 @@ class _WorkbenchSidePanel extends StatelessWidget {
     final pendingCount = tasks
         .where((task) => task.status == WorkbenchTaskStatus.pending)
         .length;
+    final runningCount = tasks
+        .where((task) => task.status == WorkbenchTaskStatus.running)
+        .length;
+    final completedCount = tasks
+        .where((task) => task.status == WorkbenchTaskStatus.completed)
+        .length;
+    final failedCount = tasks
+        .where((task) =>
+            task.status == WorkbenchTaskStatus.failed ||
+            task.status == WorkbenchTaskStatus.retryable ||
+            task.status == WorkbenchTaskStatus.blocked)
+        .length;
+    final completion = tasks.isEmpty ? 0.0 : completedCount / tasks.length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        _SidePanelCard(
+          title: _zh ? '工作台概览' : 'Workbench Overview',
+          children: [
+            _ProgressDial(
+              localeCode: localeCode,
+              progress: completion,
+              centerText: '${(completion * 100).round()}%',
+              caption: _zh ? '真实完成度' : 'Real completion',
+            ),
+            const SizedBox(height: 12),
+            _SidePanelLine(
+                label: _zh ? '已完成阶段' : 'Completed stages',
+                value: '$completedCount/${tasks.length}'),
+          ],
+        ),
+        const SizedBox(height: 12),
         _SidePanelCard(
           title: _zh ? '队列状态' : 'Queue Status',
           children: [
             _SidePanelLine(
                 label: _zh ? '等待任务' : 'Waiting tasks', value: '$pendingCount'),
-            _SidePanelLine(label: _zh ? '运行任务' : 'Running tasks', value: '0'),
-            _SidePanelLine(label: _zh ? '失败任务' : 'Failed tasks', value: '0'),
+            _SidePanelLine(
+                label: _zh ? '运行任务' : 'Running tasks', value: '$runningCount'),
+            _SidePanelLine(
+                label: _zh ? '需处理任务' : 'Needs attention',
+                value: '$failedCount'),
           ],
         ),
         const SizedBox(height: 12),
@@ -830,6 +1076,61 @@ class _WorkbenchSidePanel extends StatelessWidget {
                 label: _zh ? '验证报告' : 'Validation report',
                 value: '$workspace/workbench_runs/validation_report'),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+class _ProgressDial extends StatelessWidget {
+  const _ProgressDial({
+    required this.localeCode,
+    required this.progress,
+    required this.centerText,
+    required this.caption,
+  });
+
+  final String localeCode;
+  final double progress;
+  final String centerText;
+  final String caption;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        SizedBox.square(
+          dimension: 86,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox.square(
+                dimension: 76,
+                child: CircularProgressIndicator(
+                  strokeWidth: 8,
+                  value: progress,
+                  backgroundColor: colors.surfaceContainerHighest,
+                ),
+              ),
+              Text(
+                centerText,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            caption,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
         ),
       ],
     );

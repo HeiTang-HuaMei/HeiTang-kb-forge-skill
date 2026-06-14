@@ -29,6 +29,11 @@ void main() {
     expect(find.text('生成 Skill'), findsWidgets);
     expect(find.text('生成 Agent 包'), findsWidgets);
     expect(find.text('验证与导出'), findsWidgets);
+    expect(find.byKey(const Key('workbench-command-panel')), findsOneWidget);
+    expect(find.text('本地资料输入台'), findsOneWidget);
+    expect(find.text('等待本地输入'), findsOneWidget);
+    expect(find.text('工作台概览'), findsOneWidget);
+    expect(find.text('真实完成度'), findsOneWidget);
     expect(find.byKey(const Key('workflow-stepper')), findsOneWidget);
     expect(find.byKey(const Key('workbench-advanced-task-details')),
         findsOneWidget);

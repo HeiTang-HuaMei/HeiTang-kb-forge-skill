@@ -900,6 +900,7 @@ class _PageSurface extends StatelessWidget {
             TaskWorkbenchSurface(
               localeCode: localeCode,
               workspace: coreWorkspace,
+              isWebRuntime: isWebRuntime,
             ),
             const SizedBox(height: 20),
           ],
