@@ -341,8 +341,8 @@ void main() {
         .pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
     await tester.pumpAndSettle();
 
-    expect(find.text('黑糖'), findsOneWidget);
-    expect(find.text('知识工作台'), findsOneWidget);
+    expect(find.text('HeiTang 黑糖'), findsOneWidget);
+    expect(find.textContaining('知识工作台'), findsOneWidget);
     expect(find.text('工作台'), findsWidgets);
     expect(pages, hasLength(7));
     expect(find.byType(NavigationRail), findsNothing);
@@ -377,7 +377,7 @@ void main() {
 
     expect(find.text('HeiTang'), findsWidgets);
     expect(find.text('Dashboard'), findsWidgets);
-    expect(find.text('Knowledge Workbench'), findsOneWidget);
+    expect(find.textContaining('Knowledge Workbench'), findsOneWidget);
     expect(find.byIcon(Icons.light_mode_outlined), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

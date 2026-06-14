@@ -366,6 +366,9 @@ class _DesktopWorkbench extends StatelessWidget {
     required this.coreWorkspace,
     required this.enableLocalCoreActions,
     required this.isWebRuntime,
+    required this.isDark,
+    required this.onThemeChanged,
+    required this.onLocaleChanged,
     required this.onPageChanged,
   });
 
@@ -386,6 +389,9 @@ class _DesktopWorkbench extends StatelessWidget {
   final String coreWorkspace;
   final bool enableLocalCoreActions;
   final bool isWebRuntime;
+  final bool isDark;
+  final ValueChanged<ThemeMode> onThemeChanged;
+  final ValueChanged<String> onLocaleChanged;
   final ValueChanged<int> onPageChanged;
 
   @override
@@ -423,6 +429,9 @@ class _DesktopWorkbench extends StatelessWidget {
             coreWorkspace: coreWorkspace,
             enableLocalCoreActions: enableLocalCoreActions,
             isWebRuntime: isWebRuntime,
+            isDark: isDark,
+            onThemeChanged: onThemeChanged,
+            onLocaleChanged: onLocaleChanged,
           ),
         ),
       ],
@@ -768,6 +777,9 @@ class _PhoneWorkbench extends StatelessWidget {
             coreWorkspace: coreWorkspace,
             enableLocalCoreActions: enableLocalCoreActions,
             isWebRuntime: isWebRuntime,
+            isDark: null,
+            onThemeChanged: null,
+            onLocaleChanged: null,
           ),
         ),
       ],
@@ -794,6 +806,9 @@ class _PageSurface extends StatelessWidget {
     required this.coreWorkspace,
     required this.enableLocalCoreActions,
     required this.isWebRuntime,
+    required this.isDark,
+    required this.onThemeChanged,
+    required this.onLocaleChanged,
   });
 
   final WorkbenchPage page;
@@ -813,6 +828,9 @@ class _PageSurface extends StatelessWidget {
   final String coreWorkspace;
   final bool enableLocalCoreActions;
   final bool isWebRuntime;
+  final bool? isDark;
+  final ValueChanged<ThemeMode>? onThemeChanged;
+  final ValueChanged<String>? onLocaleChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -873,6 +891,9 @@ class _PageSurface extends StatelessWidget {
             page: page,
             contracts: contracts,
             isWebRuntime: isWebRuntime,
+            isDark: isDark,
+            onThemeChanged: onThemeChanged,
+            onLocaleChanged: onLocaleChanged,
           ),
           const SizedBox(height: 18),
           if (isDashboard) ...[
@@ -1255,33 +1276,36 @@ class _WorkbenchScaffold extends StatelessWidget {
             constraints.maxWidth >= 720 && constraints.maxWidth < 1040;
 
         return Scaffold(
-          appBar: AppBar(
-            titleSpacing: 16,
-            title: _BrandHeader(localeCode: localeCode, compact: isPhone),
-            actions: [
-              IconButton(
-                tooltip: isDark ? 'Light mode' : 'Dark mode',
-                onPressed: () =>
-                    onThemeChanged(isDark ? ThemeMode.light : ThemeMode.dark),
-                icon: Icon(isDark
-                    ? Icons.light_mode_outlined
-                    : Icons.dark_mode_outlined),
-              ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.only(right: 12),
-                child: SegmentedButton<String>(
-                  showSelectedIcon: false,
-                  segments: const [
-                    ButtonSegment(value: 'zh-CN', label: Text('中')),
-                    ButtonSegment(value: 'en-US', label: Text('EN')),
+          appBar: isPhone
+              ? AppBar(
+                  titleSpacing: 16,
+                  title: _BrandHeader(localeCode: localeCode, compact: true),
+                  actions: [
+                    IconButton(
+                      tooltip: isDark ? 'Light mode' : 'Dark mode',
+                      onPressed: () => onThemeChanged(
+                          isDark ? ThemeMode.light : ThemeMode.dark),
+                      icon: Icon(isDark
+                          ? Icons.light_mode_outlined
+                          : Icons.dark_mode_outlined),
+                    ),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.only(right: 12),
+                      child: SegmentedButton<String>(
+                        showSelectedIcon: false,
+                        segments: const [
+                          ButtonSegment(value: 'zh-CN', label: Text('中')),
+                          ButtonSegment(value: 'en-US', label: Text('EN')),
+                        ],
+                        selected: {localeCode},
+                        onSelectionChanged: (value) =>
+                            onLocaleChanged(value.first),
+                      ),
+                    ),
                   ],
-                  selected: {localeCode},
-                  onSelectionChanged: (value) => onLocaleChanged(value.first),
-                ),
-              ),
-            ],
-          ),
+                )
+              : null,
           body: isPhone
               ? _PhoneWorkbench(
                   localeCode: localeCode,
@@ -1320,6 +1344,9 @@ class _WorkbenchScaffold extends StatelessWidget {
                   coreWorkspace: coreWorkspace,
                   enableLocalCoreActions: enableLocalCoreActions,
                   isWebRuntime: isWebRuntime,
+                  isDark: isDark,
+                  onThemeChanged: onThemeChanged,
+                  onLocaleChanged: onLocaleChanged,
                   onPageChanged: onPageChanged,
                 ),
         );
@@ -1341,12 +1368,18 @@ class _ProductTopBar extends StatelessWidget {
     required this.page,
     required this.contracts,
     required this.isWebRuntime,
+    required this.isDark,
+    required this.onThemeChanged,
+    required this.onLocaleChanged,
   });
 
   final String localeCode;
   final WorkbenchPage page;
   final WorkbenchContracts contracts;
   final bool isWebRuntime;
+  final bool? isDark;
+  final ValueChanged<ThemeMode>? onThemeChanged;
+  final ValueChanged<String>? onLocaleChanged;
 
   bool get _zh => localeCode == 'zh-CN';
 
@@ -1392,6 +1425,19 @@ class _ProductTopBar extends StatelessWidget {
               ? (_zh ? 'Web 安全展示' : 'Web-safe view')
               : (_zh ? '桌面本地执行' : 'Desktop local run'),
         ),
+        if (isDark != null && onThemeChanged != null)
+          _TopBarIconButton(
+            icon:
+                isDark! ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+            label: isDark! ? (_zh ? '浅色' : 'Light') : (_zh ? '深色' : 'Dark'),
+            onPressed: () =>
+                onThemeChanged!(isDark! ? ThemeMode.light : ThemeMode.dark),
+          ),
+        if (onLocaleChanged != null)
+          _TopBarLanguageToggle(
+            localeCode: localeCode,
+            onLocaleChanged: onLocaleChanged!,
+          ),
       ],
     );
 
@@ -1417,6 +1463,65 @@ class _ProductTopBar extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _TopBarIconButton extends StatelessWidget {
+  const _TopBarIconButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Tooltip(
+      message: label,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onPressed,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: colors.outlineVariant),
+          ),
+          child: Icon(icon, size: 18),
+        ),
+      ),
+    );
+  }
+}
+
+class _TopBarLanguageToggle extends StatelessWidget {
+  const _TopBarLanguageToggle({
+    required this.localeCode,
+    required this.onLocaleChanged,
+  });
+
+  final String localeCode;
+  final ValueChanged<String> onLocaleChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SegmentedButton<String>(
+      showSelectedIcon: false,
+      style: SegmentedButton.styleFrom(
+        visualDensity: VisualDensity.compact,
+      ),
+      segments: const [
+        ButtonSegment(value: 'zh-CN', label: Text('中')),
+        ButtonSegment(value: 'en-US', label: Text('EN')),
+      ],
+      selected: {localeCode},
+      onSelectionChanged: (value) => onLocaleChanged(value.first),
     );
   }
 }
