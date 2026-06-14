@@ -46,7 +46,7 @@
     "last_non_transient_failure": null
   },
   "resume_prompt_path": "artifacts/audits/current_run/resume_prompt.md",
-  "pack_sha256": "0b737a08b9fc1662a14b3f5317f4c7001acd56c8cefa5c94548b96f0afe69ebc",
+  "pack_sha256": "e4b3f591cc3d893dbe09910c7c1eb7f8f6a937ca12c6e89d1bd6247efda8a686",
   "not_goal_complete": true,
   "campaign_1_3_integrated_closure_gate_passed": true,
   "closure_pack_generated": true,

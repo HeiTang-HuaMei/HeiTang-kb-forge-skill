@@ -4041,7 +4041,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 10479,
+      "size_bytes": 10477,
       "file_class": "milestone_evidence"
     },
     {
@@ -4097,7 +4097,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 2589,
+      "size_bytes": 2587,
       "file_class": "milestone_evidence"
     },
     {
@@ -5153,7 +5153,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 549,
+      "size_bytes": 539,
       "file_class": "milestone_evidence"
     },
     {
@@ -21625,7 +21625,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 3,
+      "size_bytes": 6,
       "file_class": "active_docs"
     },
     {
@@ -21633,7 +21633,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 2421,
+      "size_bytes": 2489,
       "file_class": "active_docs"
     },
     {
@@ -22385,7 +22385,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 94543,
+      "size_bytes": 97981,
       "file_class": "active_docs"
     },
     {
