@@ -11,7 +11,8 @@ void main() {
       arguments: ['workspace-list', '--workspace', r'C:\workspace'],
     );
 
-    expect(bridge.buildCommand(request), ['python', 'workspace-list', '--workspace', r'C:\workspace']);
+    expect(bridge.buildCommand(request),
+        ['python', 'workspace-list', '--workspace', r'C:\workspace']);
   });
 
   test('allows skill governance report core command', () {
@@ -20,10 +21,23 @@ void main() {
       actionId: 'skill_governance_report',
       coreCli: 'python',
       workingDirectory: r'C:\repo',
-      arguments: ['skill-governance-report', '--skill', r'C:\workspace\skill', '--output', r'C:\workspace\out'],
+      arguments: [
+        'skill-governance-report',
+        '--skill',
+        r'C:\workspace\skill',
+        '--output',
+        r'C:\workspace\out'
+      ],
     );
 
-    expect(bridge.buildCommand(request), ['python', 'skill-governance-report', '--skill', r'C:\workspace\skill', '--output', r'C:\workspace\out']);
+    expect(bridge.buildCommand(request), [
+      'python',
+      'skill-governance-report',
+      '--skill',
+      r'C:\workspace\skill',
+      '--output',
+      r'C:\workspace\out'
+    ]);
   });
 
   test('allows methodology extraction core command', () {
@@ -32,10 +46,23 @@ void main() {
       actionId: 'extract_methodology',
       coreCli: 'python',
       workingDirectory: r'C:\repo',
-      arguments: ['extract-methodology', '--kb', r'C:\workspace\package', '--out', r'C:\workspace\out'],
+      arguments: [
+        'extract-methodology',
+        '--kb',
+        r'C:\workspace\package',
+        '--out',
+        r'C:\workspace\out'
+      ],
     );
 
-    expect(bridge.buildCommand(request), ['python', 'extract-methodology', '--kb', r'C:\workspace\package', '--out', r'C:\workspace\out']);
+    expect(bridge.buildCommand(request), [
+      'python',
+      'extract-methodology',
+      '--kb',
+      r'C:\workspace\package',
+      '--out',
+      r'C:\workspace\out'
+    ]);
   });
 
   test('rejects shell metacharacters and non-allowlisted commands', () {
@@ -47,10 +74,17 @@ void main() {
           actionId: 'package_build',
           coreCli: 'python',
           workingDirectory: r'C:\repo',
-          arguments: ['build', '--input', r'C:\input && del C:\x', '--output', r'C:\output'],
+          arguments: [
+            'build',
+            '--input',
+            r'C:\input && del C:\x',
+            '--output',
+            r'C:\output'
+          ],
         ),
       ),
-      throwsA(isA<CoreBridgeException>().having((error) => error.errorId, 'errorId', 'core_bridge_shell_syntax_rejected')),
+      throwsA(isA<CoreBridgeException>().having((error) => error.errorId,
+          'errorId', 'core_bridge_shell_syntax_rejected')),
     );
 
     expect(
@@ -62,7 +96,8 @@ void main() {
           arguments: ['cmd', '--package', r'C:\package'],
         ),
       ),
-      throwsA(isA<CoreBridgeException>().having((error) => error.errorId, 'errorId', 'core_bridge_command_not_allowed')),
+      throwsA(isA<CoreBridgeException>().having((error) => error.errorId,
+          'errorId', 'core_bridge_command_not_allowed')),
     );
   });
 
@@ -89,7 +124,14 @@ void main() {
         actionId: 'package_build',
         coreCli: 'python',
         workingDirectory: r'C:\repo',
-        arguments: ['build', '--input', r'C:\input', '--output', r'C:\output', '--sample-key=sk-live-secret'],
+        arguments: [
+          'build',
+          '--input',
+          r'C:\input',
+          '--output',
+          r'C:\output',
+          '--sample-key=sk-live-secret'
+        ],
       ),
     );
 
@@ -114,7 +156,8 @@ void main() {
       ),
     );
 
-    expect(result.status, 'fail');
+    expect(result.status, 'retryable');
+    expect(result.retryable, isTrue);
     expect(result.errorId, 'core_operation_timeout');
     expect(result.timedOut, isTrue);
     expect(result.exitCode, -1);
@@ -134,7 +177,8 @@ void main() {
       ),
     );
 
-    expect(result.status, 'fail');
+    expect(result.status, 'retryable');
+    expect(result.retryable, isTrue);
     expect(result.errorId, 'core_operation_failed');
     expect(result.exitCode, 2);
     expect(result.stderr, contains('<redacted>'));
@@ -150,11 +194,18 @@ void main() {
           actionId: 'build_package',
           coreCli: 'python',
           workingDirectory: r'C:\repo',
-          arguments: ['build', '--input', r'C:\input', '--output', r'C:\output'],
+          arguments: [
+            'build',
+            '--input',
+            r'C:\input',
+            '--output',
+            r'C:\output'
+          ],
         ),
         isWeb: true,
       ),
-      throwsA(isA<CoreBridgeException>().having((error) => error.errorId, 'errorId', 'core_bridge_web_unsupported')),
+      throwsA(isA<CoreBridgeException>().having(
+          (error) => error.errorId, 'errorId', 'core_bridge_web_unsupported')),
     );
   });
 }

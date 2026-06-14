@@ -1,10 +1,24 @@
 import 'dart:async';
 
+import 'core_bridge_contract.dart';
 import 'local_core_bridge_runner.dart';
 
 enum CoreBridgeCapability {
   desktopLocalCli,
   webUnsupported,
+}
+
+class CoreBridgeCancellationToken {
+  final Completer<void> _cancelled = Completer<void>();
+
+  bool get isCancelled => _cancelled.isCompleted;
+  Future<void> get whenCancelled => _cancelled.future;
+
+  void cancel() {
+    if (!_cancelled.isCompleted) {
+      _cancelled.complete();
+    }
+  }
 }
 
 class CoreBridgeRequest {
@@ -15,6 +29,11 @@ class CoreBridgeRequest {
     required this.arguments,
     this.timeout = const Duration(seconds: 120),
     this.environment = const <String, String>{},
+    this.outputPath,
+    this.allowedOutputRoot,
+    this.retryPolicy = const CoreBridgeRetryPolicy(),
+    this.cancellationToken,
+    this.attempt = 1,
   });
 
   final String actionId;
@@ -23,6 +42,43 @@ class CoreBridgeRequest {
   final List<String> arguments;
   final Duration timeout;
   final Map<String, String> environment;
+  final String? outputPath;
+  final String? allowedOutputRoot;
+  final CoreBridgeRetryPolicy retryPolicy;
+  final CoreBridgeCancellationToken? cancellationToken;
+  final int attempt;
+
+  CoreBridgeRequest withCancellation(CoreBridgeCancellationToken token) {
+    return CoreBridgeRequest(
+      actionId: actionId,
+      coreCli: coreCli,
+      workingDirectory: workingDirectory,
+      arguments: arguments,
+      timeout: timeout,
+      environment: environment,
+      outputPath: outputPath,
+      allowedOutputRoot: allowedOutputRoot,
+      retryPolicy: retryPolicy,
+      cancellationToken: token,
+      attempt: attempt,
+    );
+  }
+
+  CoreBridgeRequest withAttempt(int nextAttempt) {
+    return CoreBridgeRequest(
+      actionId: actionId,
+      coreCli: coreCli,
+      workingDirectory: workingDirectory,
+      arguments: arguments,
+      timeout: timeout,
+      environment: environment,
+      outputPath: outputPath,
+      allowedOutputRoot: allowedOutputRoot,
+      retryPolicy: retryPolicy,
+      cancellationToken: cancellationToken,
+      attempt: nextAttempt,
+    );
+  }
 }
 
 class CoreBridgeResult {
@@ -35,6 +91,10 @@ class CoreBridgeResult {
     required this.commandPreview,
     required this.errorId,
     required this.timedOut,
+    required this.cancelled,
+    required this.retryable,
+    required this.outputPath,
+    required this.attempt,
   });
 
   final String status;
@@ -45,6 +105,10 @@ class CoreBridgeResult {
   final List<String> commandPreview;
   final String errorId;
   final bool timedOut;
+  final bool cancelled;
+  final bool retryable;
+  final String? outputPath;
+  final int attempt;
 
   bool get passed => status == 'pass';
 }
@@ -103,7 +167,9 @@ class LocalCoreBridge {
     'build_skill_suite': <String>['build-skill-suite'],
     'validate_skill_suite': <String>['validate-skill-suite'],
     'diff_skill_suite': <String>['diff-skill-suite'],
-    'check_skill_suite_installability': <String>['check-skill-suite-installability'],
+    'check_skill_suite_installability': <String>[
+      'check-skill-suite-installability'
+    ],
     'skill_suite_governance_report': <String>['skill-suite-governance-report'],
     'export_skill_pack': <String>['export-skill-pack'],
     'template_skill_generation': <String>['workbench-action-dry-run'],
@@ -161,31 +227,76 @@ class LocalCoreBridge {
   };
 
   final Map<String, List<String>> allowedActions;
-  final Future<CoreBridgeProcessResult> Function(CoreBridgeRequest request) runner;
+  final Future<CoreBridgeProcessResult> Function(CoreBridgeRequest request)
+      runner;
 
-  CoreBridgeCapability capability({bool isWeb = false}) => isWeb ? CoreBridgeCapability.webUnsupported : CoreBridgeCapability.desktopLocalCli;
+  CoreBridgeCapability capability({bool isWeb = false}) => isWeb
+      ? CoreBridgeCapability.webUnsupported
+      : CoreBridgeCapability.desktopLocalCli;
 
   List<String> buildCommand(CoreBridgeRequest request, {bool isWeb = false}) {
     _validateRequest(request, isWeb: isWeb);
     return <String>[request.coreCli, ...request.arguments];
   }
 
-  Future<CoreBridgeResult> run(CoreBridgeRequest request, {bool isWeb = false}) async {
+  Future<CoreBridgeResult> run(CoreBridgeRequest request,
+      {bool isWeb = false}) async {
     try {
       final command = buildCommand(request, isWeb: isWeb);
-      final result = await runner(request).timeout(
+      final processFuture = runner(request).timeout(
         request.timeout,
-        onTimeout: () => const CoreBridgeProcessResult(exitCode: -1, stdout: '', stderr: 'Core operation timed out.', timedOut: true),
+        onTimeout: () => const CoreBridgeProcessResult(
+            exitCode: -1,
+            stdout: '',
+            stderr: 'Core operation timed out.',
+            timedOut: true),
       );
+      final token = request.cancellationToken;
+      final result = token == null
+          ? await processFuture
+          : await Future.any([
+              processFuture,
+              token.whenCancelled.then(
+                (_) => const CoreBridgeProcessResult(
+                  exitCode: -1,
+                  stdout: '',
+                  stderr: 'Core operation cancelled.',
+                  cancelled: true,
+                ),
+              ),
+            ]);
+      final cancelled = result.cancelled || (token?.isCancelled ?? false);
+      final passed = result.exitCode == 0 && !result.timedOut && !cancelled;
+      final retryable = !passed &&
+          !cancelled &&
+          request.attempt < request.retryPolicy.maxAttempts &&
+          ((result.timedOut && request.retryPolicy.retryOnTimeout) ||
+              (!result.timedOut && request.retryPolicy.retryOnProcessFailure));
       return CoreBridgeResult(
-        status: result.exitCode == 0 && !result.timedOut ? 'pass' : 'fail',
+        status: cancelled
+            ? 'cancelled'
+            : passed
+                ? 'pass'
+                : retryable
+                    ? 'retryable'
+                    : 'fail',
         actionId: request.actionId,
         exitCode: result.exitCode,
         stdout: redactSecrets(result.stdout),
         stderr: redactSecrets(result.stderr),
         commandPreview: redactCommand(command),
-        errorId: result.timedOut ? 'core_operation_timeout' : result.exitCode == 0 ? '' : 'core_operation_failed',
+        errorId: cancelled
+            ? 'core_operation_cancelled'
+            : result.timedOut
+                ? 'core_operation_timeout'
+                : result.exitCode == 0
+                    ? ''
+                    : 'core_operation_failed',
         timedOut: result.timedOut,
+        cancelled: cancelled,
+        retryable: retryable,
+        outputPath: request.outputPath,
+        attempt: request.attempt,
       );
     } on CoreBridgeException catch (error) {
       return CoreBridgeResult(
@@ -197,32 +308,89 @@ class LocalCoreBridge {
         commandPreview: const <String>[],
         errorId: error.errorId,
         timedOut: false,
+        cancelled: false,
+        retryable: false,
+        outputPath: request.outputPath,
+        attempt: request.attempt,
       );
     }
   }
 
   void _validateRequest(CoreBridgeRequest request, {required bool isWeb}) {
-    if (isWeb) {
-      throw const CoreBridgeException('core_bridge_web_unsupported', 'Local Core CLI operations are available only in desktop/local runtime.');
+    if (request.attempt < 1 ||
+        request.attempt > request.retryPolicy.maxAttempts) {
+      throw const CoreBridgeException('core_bridge_attempt_rejected',
+          'Core bridge attempt is outside the configured retry policy.');
     }
-    if (_containsShellSyntax(request.coreCli) || request.arguments.any(_containsShellSyntax)) {
-      throw const CoreBridgeException('core_bridge_shell_syntax_rejected', 'Shell metacharacters are not allowed in Core operation arguments.');
+    if (isWeb) {
+      throw const CoreBridgeException('core_bridge_web_unsupported',
+          'Local Core CLI operations are available only in desktop/local runtime.');
+    }
+    if (_containsShellSyntax(request.coreCli) ||
+        request.arguments.any(_containsShellSyntax)) {
+      throw const CoreBridgeException('core_bridge_shell_syntax_rejected',
+          'Shell metacharacters are not allowed in Core operation arguments.');
+    }
+    if (_isShellExecutable(request.coreCli)) {
+      throw const CoreBridgeException('core_bridge_shell_executable_rejected',
+          'Shell executables are not allowed as the Core bridge process.');
     }
     final allowedCommands = allowedActions[request.actionId];
     if (allowedCommands == null) {
-      throw CoreBridgeException('core_bridge_action_not_allowed', 'Action ${request.actionId} is not allowlisted for local Core execution.');
+      throw CoreBridgeException('core_bridge_action_not_allowed',
+          'Action ${request.actionId} is not allowlisted for local Core execution.');
     }
-    if (request.arguments.isEmpty || !allowedCommands.contains(request.arguments.first)) {
-      throw CoreBridgeException('core_bridge_command_not_allowed', 'Command ${request.arguments.isEmpty ? '<empty>' : request.arguments.first} is not allowed for ${request.actionId}.');
+    if (request.arguments.isEmpty ||
+        !allowedCommands.contains(request.arguments.first)) {
+      throw CoreBridgeException('core_bridge_command_not_allowed',
+          'Command ${request.arguments.isEmpty ? '<empty>' : request.arguments.first} is not allowed for ${request.actionId}.');
     }
-    if (request.environment.keys.any((key) => key.toUpperCase().contains('KEY') || key.toUpperCase().contains('SECRET') || key.toUpperCase().contains('TOKEN'))) {
-      throw const CoreBridgeException('core_bridge_secret_env_rejected', 'Provider secrets must stay outside UI bridge requests.');
+    if (request.environment.keys.any((key) =>
+        key.toUpperCase().contains('KEY') ||
+        key.toUpperCase().contains('SECRET') ||
+        key.toUpperCase().contains('TOKEN'))) {
+      throw const CoreBridgeException('core_bridge_secret_env_rejected',
+          'Provider secrets must stay outside UI bridge requests.');
+    }
+    if (request.outputPath != null) {
+      final root = request.allowedOutputRoot;
+      if (root == null || root.trim().isEmpty) {
+        throw const CoreBridgeException('core_bridge_output_root_required',
+            'A local output root is required for Core bridge outputs.');
+      }
+      if (!CoreOutputPathContract(root).contains(request.outputPath!)) {
+        throw const CoreBridgeException('core_bridge_output_path_rejected',
+            'Core bridge output must stay inside the configured workspace.');
+      }
+      if (!request.arguments.contains(request.outputPath)) {
+        throw const CoreBridgeException('core_bridge_output_argument_mismatch',
+            'The declared output path must be present in Core arguments.');
+      }
     }
   }
 
   static bool _containsShellSyntax(String value) {
     const blocked = <String>['&&', '||', ';', '|', '`', r'$(', '>', '<'];
     return blocked.any(value.contains);
+  }
+
+  static bool _isShellExecutable(String value) {
+    final executable =
+        value.trim().replaceAll('\\', '/').split('/').last.toLowerCase();
+    return const {
+      'cmd',
+      'cmd.exe',
+      'powershell',
+      'powershell.exe',
+      'pwsh',
+      'pwsh.exe',
+      'bash',
+      'bash.exe',
+      'sh',
+      'sh.exe',
+      'zsh',
+      'zsh.exe',
+    }.contains(executable);
   }
 }
 
@@ -232,12 +400,14 @@ class CoreBridgeProcessResult {
     required this.stdout,
     required this.stderr,
     this.timedOut = false,
+    this.cancelled = false,
   });
 
   final int exitCode;
   final String stdout;
   final String stderr;
   final bool timedOut;
+  final bool cancelled;
 }
 
 class CoreBridgeException implements Exception {
@@ -247,10 +417,13 @@ class CoreBridgeException implements Exception {
   final String message;
 }
 
-List<String> redactCommand(List<String> command) => command.map((part) => redactSecrets(part)).toList(growable: false);
+List<String> redactCommand(List<String> command) =>
+    command.map((part) => redactSecrets(part)).toList(growable: false);
 
 String redactSecrets(String value) {
   var redacted = value.replaceAll(RegExp(r'sk-[A-Za-z0-9_-]+'), '<redacted>');
-  redacted = redacted.replaceAll(RegExp(r'(api[_-]?key|token|secret)=\S+', caseSensitive: false), '<redacted>');
+  redacted = redacted.replaceAll(
+      RegExp(r'(api[_-]?key|token|secret)=\S+', caseSensitive: false),
+      '<redacted>');
   return redacted;
 }

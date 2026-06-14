@@ -28,15 +28,24 @@ class CoreActionPanel extends StatefulWidget {
 class _CoreActionPanelState extends State<CoreActionPanel> {
   CoreBridgeResult? result;
   bool running = false;
+  CoreBridgeCancellationToken? cancellationToken;
+  int attemptCount = 0;
 
   bool get _zh => widget.localeCode == 'zh-CN';
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final commandPreview = widget.request == null ? (widget.action.command.isEmpty ? 'not_runnable' : widget.action.command) : redactSecrets([widget.request!.coreCli, ...widget.request!.arguments].join(' '));
+    final commandPreview = widget.request == null
+        ? (widget.action.command.isEmpty
+            ? 'not_runnable'
+            : widget.action.command)
+        : redactSecrets(
+            [widget.request!.coreCli, ...widget.request!.arguments].join(' '));
     final blockedReason = _blockedReason;
-    final canRun = blockedReason == null && !running;
+    final canRun = blockedReason == null &&
+        !running &&
+        (result == null || result!.cancelled);
 
     return Card(
       child: Padding(
@@ -47,34 +56,81 @@ class _CoreActionPanelState extends State<CoreActionPanel> {
             Row(
               children: [
                 Expanded(
-                  child: Text(widget.action.label, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                  child: Text(widget.action.label,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w700)),
                 ),
                 _StatusPill(result: result),
               ],
             ),
             const SizedBox(height: 8),
-            Text(_zh ? '桌面本地 Core CLI 最小闭环。Web 运行时不会执行本地命令。' : 'Minimal desktop local Core CLI path. Web runtime does not execute local commands.'),
+            Text(_zh
+                ? '桌面本地 Core CLI 最小闭环。Web 运行时不会执行本地命令。'
+                : 'Minimal desktop local Core CLI path. Web runtime does not execute local commands.'),
             const SizedBox(height: 12),
-            Text(commandPreview, maxLines: 3, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodySmall),
+            Text(commandPreview,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall),
             if (blockedReason != null) ...[
               const SizedBox(height: 8),
-              Text('blocked_reason: $blockedReason', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colors.error, fontWeight: FontWeight.w700)),
+              Text('blocked_reason: $blockedReason',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colors.error, fontWeight: FontWeight.w700)),
             ],
             const SizedBox(height: 12),
             FilledButton.icon(
               onPressed: canRun ? _run : null,
-              icon: running ? const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.play_arrow),
-              label: Text(running ? (_zh ? '运行中' : 'Running') : (_zh ? '运行 Core 操作' : 'Run Core action')),
+              icon: running
+                  ? const SizedBox.square(
+                      dimension: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.play_arrow),
+              label: Text(running
+                  ? (_zh ? '运行中' : 'Running')
+                  : (_zh ? '运行 Core 操作' : 'Run Core action')),
             ),
+            if (running) ...[
+              const SizedBox(height: 8),
+              TextButton.icon(
+                key: const Key('core-action-cancel'),
+                onPressed: _cancel,
+                icon: const Icon(Icons.stop_circle_outlined),
+                label: Text(_zh ? '取消本地操作' : 'Cancel local action'),
+              ),
+            ],
             if (result != null) ...[
               const SizedBox(height: 12),
               Divider(color: colors.outlineVariant),
               const SizedBox(height: 8),
               _ResultLine(label: 'status', value: result!.status),
-              _ResultLine(label: 'error_id', value: result!.errorId.isEmpty ? '-' : result!.errorId),
-              _ResultLine(label: 'exit_code', value: '${result!.exitCode ?? '-'}'),
-              if (result!.stdout.isNotEmpty) _ResultLine(label: 'sanitized_stdout', value: result!.stdout),
-              if (result!.stderr.isNotEmpty) _ResultLine(label: 'sanitized_stderr', value: result!.stderr),
+              _ResultLine(
+                  label: 'error_id',
+                  value: result!.errorId.isEmpty ? '-' : result!.errorId),
+              _ResultLine(
+                  label: 'exit_code', value: '${result!.exitCode ?? '-'}'),
+              _ResultLine(label: 'retryable', value: '${result!.retryable}'),
+              _ResultLine(
+                  label: 'attempt',
+                  value:
+                      '${result!.attempt}/${widget.request!.retryPolicy.maxAttempts}'),
+              if (result!.outputPath != null)
+                _ResultLine(label: 'output_path', value: result!.outputPath!),
+              if (result!.stdout.isNotEmpty)
+                _ResultLine(label: 'sanitized_stdout', value: result!.stdout),
+              if (result!.stderr.isNotEmpty)
+                _ResultLine(label: 'sanitized_stderr', value: result!.stderr),
+              if (result!.retryable) ...[
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  key: const Key('core-action-retry'),
+                  onPressed: running ? null : () => _run(retry: true),
+                  icon: const Icon(Icons.refresh),
+                  label: Text(_zh ? '有限重试' : 'Retry'),
+                ),
+              ],
             ],
           ],
         ),
@@ -93,26 +149,46 @@ class _CoreActionPanelState extends State<CoreActionPanel> {
       return null;
     }
     if (!widget.action.desktopEnabled) {
-      return widget.action.desktopBlockedReason.isNotEmpty ? widget.action.desktopBlockedReason : widget.action.blockedReason.isNotEmpty ? widget.action.blockedReason : 'desktop_support_pending';
+      return widget.action.desktopBlockedReason.isNotEmpty
+          ? widget.action.desktopBlockedReason
+          : widget.action.blockedReason.isNotEmpty
+              ? widget.action.blockedReason
+              : 'desktop_support_pending';
     }
     return 'local_request_mapping_missing';
   }
 
-  Future<void> _run() async {
-    setState(() => running = true);
-    final request = widget.request;
-    if (request == null) {
-      setState(() => running = false);
+  Future<void> _run({bool retry = false}) async {
+    final baseRequest = widget.request;
+    if (baseRequest == null) {
       return;
     }
-    final nextResult = await widget.coreBridge.run(request, isWeb: widget.isWebRuntime);
+    final nextAttempt = retry ? attemptCount + 1 : 1;
+    if (nextAttempt > baseRequest.retryPolicy.maxAttempts) {
+      return;
+    }
+    final token = CoreBridgeCancellationToken();
+    setState(() {
+      running = true;
+      cancellationToken = token;
+      attemptCount = nextAttempt;
+    });
+    final nextResult = await widget.coreBridge.run(
+      baseRequest.withAttempt(nextAttempt).withCancellation(token),
+      isWeb: widget.isWebRuntime,
+    );
     if (!mounted) {
       return;
     }
     setState(() {
       result = nextResult;
       running = false;
+      cancellationToken = null;
     });
+  }
+
+  void _cancel() {
+    cancellationToken?.cancel();
   }
 }
 
@@ -125,9 +201,15 @@ class _StatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final status = result?.status ?? 'idle';
+    final isFailure =
+        status == 'fail' || status == 'retryable' || status == 'blocked';
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: status == 'pass' ? colors.primary : colors.surfaceContainerHighest,
+        color: status == 'pass'
+            ? colors.primary
+            : isFailure
+                ? colors.errorContainer
+                : colors.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Padding(
@@ -135,9 +217,13 @@ class _StatusPill extends StatelessWidget {
         child: Text(
           status,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: status == 'pass' ? colors.onPrimary : colors.onSurfaceVariant,
-            fontWeight: FontWeight.w700,
-          ),
+                color: status == 'pass'
+                    ? colors.onPrimary
+                    : isFailure
+                        ? colors.onErrorContainer
+                        : colors.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+              ),
         ),
       ),
     );
@@ -157,8 +243,12 @@ class _ResultLine extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 128, child: Text(label, style: Theme.of(context).textTheme.labelMedium)),
-          Expanded(child: Text(value, style: Theme.of(context).textTheme.bodySmall)),
+          SizedBox(
+              width: 128,
+              child:
+                  Text(label, style: Theme.of(context).textTheme.labelMedium)),
+          Expanded(
+              child: Text(value, style: Theme.of(context).textTheme.bodySmall)),
         ],
       ),
     );

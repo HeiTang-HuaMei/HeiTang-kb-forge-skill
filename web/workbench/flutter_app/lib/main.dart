@@ -9,6 +9,7 @@ import 'core_bridge/local_core_bridge.dart';
 import 'contracts/workbench_contracts.dart';
 import 'backend_evidence/parser_backend_dashboard.dart';
 import 'skill_factory/skill_factory_workflow.dart';
+import 'workbench/task_workbench.dart';
 
 void main() {
   runApp(const HeiTangWorkbenchApp());
@@ -24,142 +25,94 @@ const supportedLocaleCodes = <String>['zh-CN', 'en-US'];
 const pages = <WorkbenchPage>[
   WorkbenchPage(
       'dashboard',
-      'Dashboard',
-      '仪表盘',
-      'Operating snapshot across knowledge, review, jobs, agents, and exports.',
-      '知识、复核、任务、Agent 与导出的运营总览。'),
-  WorkbenchPage(
-      'workspace',
-      'Workspace',
-      '工作空间',
-      'Local workspace paths, health, storage, registry, backup, restore, and privacy boundary.',
-      '本地工作区路径、健康、存储、注册表、备份恢复与隐私边界。'),
-  WorkbenchPage(
-      'operation-gate',
-      'Operation Gate',
-      '运行门禁',
-      'P1 gate status, blocked reasons, and non-v4 boundary.',
-      'P1 门禁状态、阻塞原因与非 v4 边界。'),
-  WorkbenchPage(
-      'capability-matrix',
-      'Capability Matrix',
-      '能力矩阵',
-      'Core P1 capability areas and action/report/artifact coverage.',
-      'Core P1 能力域与 action/report/artifact 覆盖。'),
+      'Workbench',
+      '工作台',
+      'Task-card workflow across local input, progress, outputs, evidence, and recovery.',
+      '以任务卡组织本地输入、进度、输出、证据与恢复动作。',
+      memberPageIds: [
+        'dashboard',
+        'operation-gate',
+        'capability-matrix',
+        'task-job-center',
+      ]),
   WorkbenchPage(
       'import-parsing',
       'Import & Parsing',
       '导入与解析',
-      'Multi-format import, OCR, preprocessing, and parser quality.',
-      '多格式导入、OCR、预处理与解析质量。'),
+      'Local file import, parser boundaries, preprocessing, and quality evidence.',
+      '本地文件导入、解析边界、预处理与质量证据。',
+      memberPageIds: ['import-parsing']),
   WorkbenchPage(
       'knowledge-package-management',
-      'Knowledge Package Management',
-      '知识包管理',
-      'Browse trusted and draft knowledge packages with bound agents and policy state.',
-      '浏览可信与草稿知识包，以及绑定 Agent 和策略状态。'),
-  WorkbenchPage(
-      'retrieval-verification',
-      'Retrieval & Verification',
-      '检索与验证',
-      'Query rewriting, retrieval planning, evidence selection, and validation.',
-      '查询改写、检索规划、证据选择与知识准确性验证。'),
-  WorkbenchPage(
-      'vector-hub-provider-storage',
-      'Vector Hub / Provider / Storage',
-      '向量索引 / 提供方 / 存储',
-      'Provider validation, vector smoke, redaction, offline fallback, and storage profiles.',
-      '提供方验证、向量冒烟、脱敏、离线回退与存储配置。'),
-  WorkbenchPage(
-      'document-generation',
-      'Document generation',
-      '文档生成',
-      'Preview generated document drafts and citation readiness.',
-      '预览生成文档草稿与引用就绪状态。'),
+      'Knowledge Build',
+      '知识构建',
+      'Knowledge splitting, package drafts, retrieval evidence, and local validation boundaries.',
+      '知识切分、知识包草稿、检索证据与本地验证边界。',
+      memberPageIds: [
+        'knowledge-package-management',
+        'retrieval-verification',
+        'vector-hub-provider-storage',
+        'document-generation',
+      ]),
   WorkbenchPage(
       'skill-factory',
-      'Skill Factory',
-      '技能工厂',
+      'Skill Generation',
+      'Skill 生成',
       'Inspect the Knowledge Package to Methodology to Skill Suite evidence, governance reports, and export boundary.',
-      '查看知识包到方法论再到 Skill Suite 的证据、治理报告与导出边界。'),
+      '查看知识包到方法论再到 Skill Suite 的证据、治理报告与导出边界。',
+      memberPageIds: ['skill-factory']),
   WorkbenchPage(
       'agent-factory-runtime',
-      'Agent Factory & Runtime',
-      'Agent 工厂与运行',
-      'Manage standalone agents, KB-bound agents, model providers, and runtime traces.',
-      '管理独立 Agent、KB-bound Agent、模型提供方与运行追踪。'),
-  WorkbenchPage(
-      'memory-center',
-      'Memory Center',
-      '记忆中心',
-      'Inspect private agent memory and workflow-shared memory isolation.',
-      '查看 Agent 私有记忆与工作流共享记忆隔离。'),
-  WorkbenchPage(
-      'task-job-center',
-      'Task / Job Center',
-      '任务 / 作业中心',
-      'Stable task states, progress fields, retry, cancel, resume, reports, and artifacts.',
-      '稳定任务状态、进度字段、重试、取消、恢复、报告与产物。'),
-  WorkbenchPage(
-      'artifact-management',
-      'Artifact Management',
-      '产物管理',
-      'Review KB packages, chunks, indexes, generated docs, Skill/Agent packages, traces, and proofs.',
-      '查看知识包、分片、索引、生成文档、Skill/Agent 包、追踪与证明。'),
-  WorkbenchPage(
-      'error-repair-center',
-      'Error Repair Center',
-      '错误修复中心',
-      'Stable user-visible failure taxonomy and repair actions.',
-      '稳定的用户可见错误分类与修复动作。'),
+      'Agent Package',
+      'Agent 包生成',
+      'Generate Agent package drafts without claiming executable Agent or Memory Runtime.',
+      '生成 Agent 包草稿，不宣称可执行 Agent Runtime 或 Memory Runtime。',
+      memberPageIds: ['agent-factory-runtime']),
   WorkbenchPage(
       'reports-audit',
-      'Reports & Audit',
-      '报表与审计',
-      'Inspect registries, hardening, gates, proofs, and blockers.',
-      '查看注册表、加固、门禁、证明与阻塞项。'),
+      'Validation & Reports',
+      '验证与报告',
+      'Inspect manifests, reports, failure evidence, and Campaign 4/5 boundaries.',
+      '查看 manifest、报告、失败证据与 Campaign 4/5 边界。',
+      memberPageIds: [
+        'reports-audit',
+        'artifact-management',
+        'error-repair-center',
+        'governance',
+        'memory-center',
+      ]),
   WorkbenchPage(
-      'governance',
-      'Governance',
-      '治理与合规',
-      'Document ownership, stale/conflict controls, health, permissions, and review-required flows.',
-      '文档归属、过期/冲突控制、健康状态、权限与复核流程。'),
-  WorkbenchPage(
-      'template-library',
-      'Template Library',
-      '模板库',
-      'P1 Workbench templates for product, publishing, enterprise, education, commerce, and operations.',
-      '产品、出版、企业、教育、电商与运营场景的 P1 模板。'),
+      'workspace',
+      'Settings & Boundaries',
+      '设置与边界',
+      'Local workspace paths, Core availability, optional dependencies, and blocked runtime boundaries.',
+      '本地工作区路径、Core 可用性、可选依赖与被阻塞的运行时边界。',
+      memberPageIds: ['workspace', 'template-library']),
 ];
 
 class WorkbenchPage {
   const WorkbenchPage(this.id, this.enTitle, this.zhTitle, this.enDescription,
-      this.zhDescription);
+      this.zhDescription,
+      {this.memberPageIds = const <String>[]});
 
   final String id;
   final String enTitle;
   final String zhTitle;
   final String enDescription;
   final String zhDescription;
+  final List<String> memberPageIds;
 
-  String title(String localeCode, WorkbenchContracts contracts) {
+  List<String> get pageIds => memberPageIds.isEmpty ? [id] : memberPageIds;
+
+  String title(String localeCode, WorkbenchContracts _) {
     if (localeCode == 'zh-CN') {
       return zhTitle;
     }
-    return _contractView(contracts)?.label ?? enTitle;
+    return enTitle;
   }
 
   String description(String localeCode) =>
       localeCode == 'zh-CN' ? zhDescription : enDescription;
-
-  ContractView? _contractView(WorkbenchContracts contracts) {
-    for (final view in contracts.navigation.views) {
-      if (view.id == id) {
-        return view;
-      }
-    }
-    return null;
-  }
 }
 
 class HeiTangWorkbenchApp extends StatefulWidget {
@@ -700,17 +653,32 @@ class _PageSurface extends StatelessWidget {
     final cards = isSkillFactory
         ? const <_CardCopy>[]
         : _cardsFor(
-        page.id,
-        localeCode,
-        contracts,
-        workflowEvidence,
-        workflowV2Evidence,
-        externalCapabilities,
-        parserBackends,
-        skillGovernanceReport,
-        methodologyMap);
+            page.id,
+            localeCode,
+            contracts,
+            workflowEvidence,
+            workflowV2Evidence,
+            externalCapabilities,
+            parserBackends,
+            skillGovernanceReport,
+            methodologyMap);
     final corePanels = <Widget>[];
-    for (final action in coreActionsForPage(page.id, contracts)) {
+    final actionById = <String, ContractAction>{};
+    for (final pageId in page.pageIds) {
+      for (final action in coreActionsForPage(pageId, contracts)) {
+        actionById[action.id] = action;
+      }
+    }
+    final pageActions = actionById.values.where(
+      (action) =>
+          page.id != 'dashboard' &&
+          (page.id != 'agent-factory-runtime' ||
+              const {
+                'standalone_agent_generation',
+                'kb_bound_agent_generation',
+              }.contains(action.id)),
+    );
+    for (final action in pageActions) {
       final request = coreRequestForAction(
         action: action,
         coreCli: coreCli,
@@ -743,6 +711,13 @@ class _PageSurface extends StatelessWidget {
           Text(page.description(localeCode),
               style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: 20),
+          if (page.id == 'dashboard') ...[
+            TaskWorkbenchSurface(
+              localeCode: localeCode,
+              workspace: coreWorkspace,
+            ),
+            const SizedBox(height: 20),
+          ],
           if (isSkillFactory)
             SkillFactoryWorkflowSurface(
               localeCode: localeCode,
@@ -765,7 +740,7 @@ class _PageSurface extends StatelessWidget {
                 localeCode: localeCode,
               ),
             ),
-          if (_showsParserBackends(page.id)) ...[
+          if (page.pageIds.any(_showsParserBackends)) ...[
             const SizedBox(height: 20),
             ParserBackendEvidenceDashboard(
               matrix: parserBackends,
@@ -802,15 +777,30 @@ class _PageSurface extends StatelessWidget {
     Map<String, dynamic> methodologyMap,
   ) {
     final zh = localeCode == 'zh-CN';
-    final view = _contractViewFor(page, contracts);
-    final actions = _actionsForView(view, contracts);
-    final reports = _reportsForView(view, contracts);
-    final artifacts = _artifactsForView(view, contracts);
-    final common = view.assetTypes.isEmpty
+    final views = page.pageIds
+        .map((pageId) => _contractViewForId(pageId, contracts))
+        .toList(growable: false);
+    final actions = views
+        .expand((view) => _actionsForView(view, contracts))
+        .toList(growable: false);
+    final reports = views
+        .expand((view) => _reportsForView(view, contracts))
+        .toList(growable: false);
+    final artifacts = views
+        .expand((view) => _artifactsForView(view, contracts))
+        .toList(growable: false);
+    final common = views.expand((view) => view.assetTypes).isEmpty
         ? (zh ? '合同样例' : 'Contract sample')
-        : view.assetTypes.join(' · ');
-    final externalProjects =
-        externalCapabilities.projectsForCorePage(view.corePageId);
+        : views.expand((view) => view.assetTypes).join(' · ');
+    final externalProjects = views
+        .map((view) => view.corePageId)
+        .expand(externalCapabilities.projectsForCorePage)
+        .fold(<String, ExternalCapabilityProject>{}, (projects, project) {
+          projects[project.projectId] = project;
+          return projects;
+        })
+        .values
+        .toList(growable: false);
     final providerProjects = externalProjects
         .where((project) =>
             project.contractStatus.contains('provider_required') ||
@@ -874,73 +864,73 @@ class _PageSurface extends StatelessWidget {
           contracts.taskSchema.statuses.join(' · ')),
       _CardCopy(zh ? '门禁状态' : 'Gate status',
           '${contracts.gate.status} · not_v4_0_workbench_rc=${contracts.gate.notV4WorkbenchRc}'),
-      if (_showsWorkflowEvidence(id))
+      if (page.pageIds.any(_showsWorkflowEvidence))
         _CardCopy(zh ? 'P1-RWF-V1 状态' : 'P1-RWF-V1 status',
             '${workflowEvidence.status} · full_gate=${workflowEvidence.fullGateStatus}'),
-      if (_showsWorkflowEvidence(id))
+      if (page.pageIds.any(_showsWorkflowEvidence))
         _CardCopy(zh ? '命令漂移' : 'Command drift',
             'drift_count=${workflowEvidence.driftCount} · fixture_only_real=${workflowEvidence.fixtureOnlyCountedAsReal}'),
-      if (_showsWorkflowEvidence(id))
+      if (page.pageIds.any(_showsWorkflowEvidence))
         _CardCopy(zh ? '黄金工作流' : 'Golden workflows',
             '${workflowEvidence.workflowCount} · ${workflowEvidence.evidenceLevelCounts.entries.map((entry) => '${entry.key}:${entry.value}').join(' · ')}'),
-      if (_showsWorkflowEvidence(id))
+      if (page.pageIds.any(_showsWorkflowEvidence))
         _CardCopy(zh ? '剩余阻塞' : 'Remaining blockers',
             workflowEvidence.remainingBlockers.take(2).join(' · ')),
-      if (_showsV2Evidence(id))
+      if (page.pageIds.any(_showsV2Evidence))
         _CardCopy(zh ? 'P1-RWF-V2 状态' : 'P1-RWF-V2 status',
             '${workflowV2Evidence.status} · full_gate=${workflowV2Evidence.fullGateStatus}'),
-      if (_showsV2Evidence(id))
+      if (page.pageIds.any(_showsV2Evidence))
         _CardCopy(zh ? '57 action 矩阵' : '57 action matrix',
             '${workflowV2Evidence.passedActionCount}/${workflowV2Evidence.executionTargetCount} passed · failed=${workflowV2Evidence.failedActionCount}'),
-      if (_showsV2Evidence(id))
+      if (page.pageIds.any(_showsV2Evidence))
         _CardCopy(zh ? '产物 / 报告断言' : 'Artifact / report assertions',
             'artifact=${workflowV2Evidence.artifactAssertionStatus} · report=${workflowV2Evidence.reportAssertionStatus} · error=${workflowV2Evidence.errorBoundaryStatus}'),
-      if (_showsV2Evidence(id))
+      if (page.pageIds.any(_showsV2Evidence))
         _CardCopy(zh ? '用户路径闭环' : 'User path closure',
             '${workflowV2Evidence.userPathClosureStatus} · ${workflowV2Evidence.userPathPassedCount}/${workflowV2Evidence.userPathCount} paths'),
-      if (_showsV2Evidence(id))
+      if (page.pageIds.any(_showsV2Evidence))
         _CardCopy(zh ? 'UI 门禁' : 'UI gate',
             'ui_full_operation_pending=${workflowV2Evidence.uiFullOperationPending} · rc_candidate=${workflowV2Evidence.readyForV4RcCandidate} · ready_for_v4_rc=${workflowV2Evidence.readyForV4Rc}'),
-      if (_showsV2Evidence(id))
+      if (page.pageIds.any(_showsV2Evidence))
         _CardCopy(
             zh ? 'Provider/secret blocked' : 'Provider/secret blocked',
             workflowV2Evidence.blockedActions
                 .map((action) => '${action.actionId}:${action.classification}')
                 .take(2)
                 .join(' · ')),
-      if (_showsExternalCapabilities(id))
+      if (page.pageIds.any(_showsExternalCapabilities))
         _CardCopy(zh ? 'S/A 外部能力' : 'S/A external capabilities',
             'S=${externalCapabilities.sProjectCount} · A=${externalCapabilities.aProjectCount} · anchors=${externalCapabilities.internalCapabilityAnchorCount}'),
-      if (_showsExternalCapabilities(id))
+      if (page.pageIds.any(_showsExternalCapabilities))
         _CardCopy(zh ? 'Adapter 边界' : 'Adapter boundary',
             'planned=${externalCapabilities.plannedAdapterCount} · future=${externalCapabilities.futureAdapterCount} · ready=false'),
-      if (_showsExternalCapabilities(id))
+      if (page.pageIds.any(_showsExternalCapabilities))
         _CardCopy(zh ? 'Provider 边界' : 'Provider boundary',
             'provider_required=${externalCapabilities.providerRequiredCount} · local_ready=false'),
-      if (_showsParserBackends(id))
+      if (page.pageIds.any(_showsParserBackends))
         _CardCopy(zh ? 'Parser Backend Matrix' : 'Parser Backend Matrix',
             '${parserBackends.releaseVersion} · ${parserBackends.backends.length} backends · static_runtime=${parserBackends.staticWorkbenchRuntimeExecutionClaimed}'),
-      if (_showsParserBackends(id))
+      if (page.pageIds.any(_showsParserBackends))
         _CardCopy(
             zh ? 'Backend Status Detail' : 'Backend Status Detail',
             parserBackends.backends
                 .map((backend) => '${backend.backendId}:${backend.status}')
                 .join(' · ')),
-      if (_showsParserBackends(id))
+      if (page.pageIds.any(_showsParserBackends))
         _CardCopy(
             zh ? 'Backend Install Mode' : 'Backend Install Mode',
             parserBackends.backends
                 .map((backend) =>
                     '${backend.backendId}:${backend.optionalExtra ?? backend.dependencyMode}')
                 .join(' · ')),
-      if (_showsParserBackends(id))
+      if (page.pageIds.any(_showsParserBackends))
         _CardCopy(
             zh ? 'Backend Last Acceptance' : 'Backend Last Acceptance',
             parserBackends.backends
                 .map((backend) =>
                     '${backend.backendId}:dep=${backend.dependencyAvailable},run=${backend.runtimeInvoked}')
                 .join(' · ')),
-      if (_showsParserBackends(id))
+      if (page.pageIds.any(_showsParserBackends))
         _CardCopy(
             zh
                 ? 'Backend Capability Boundaries'
@@ -949,45 +939,42 @@ class _PageSurface extends StatelessWidget {
                 .map((backend) =>
                     '${backend.backendId}:${backend.validatedStableSurface.join('/')}')
                 .join(' · ')),
-      if (_showsParserBackends(id))
+      if (page.pageIds.any(_showsParserBackends))
         _CardCopy(
             zh ? 'Backend Known Limitations' : 'Backend Known Limitations',
             '${parserBackends.backend('unstructured')?.knownLimitations.first ?? 'limited_surface'} · default_heavy_deps=${parserBackends.defaultHeavyDependenciesBundled}'),
-      if (_showsParserBackends(id))
+      if (page.pageIds.any(_showsParserBackends))
         _CardCopy(zh ? 'Backend Evidence Link' : 'Backend Evidence Link',
             '${parserBackends.acceptanceReportPath} · ${parserBackends.knownLimitationReportPath}'),
       if (_showsParserBackends(id))
         _CardCopy(
             zh ? 'Optional Dependency Reason' : 'Optional Dependency Reason',
             'optional_gated=${parserBackends.optionalDependencyGatedCount} · no_static_execution=${parserBackends.backends.every((backend) => !backend.staticWorkbenchExecutable)}'),
-      if (_showsSkillGovernance(id))
+      if (page.pageIds.any(_showsSkillGovernance))
         _CardCopy(zh ? 'Skill Governance Report' : 'Skill Governance Report',
             '${skillGovernanceReport['skill_name'] ?? 'unknown'} · status=${skillGovernanceReport['status']} · release_ready=${skillGovernanceReport['release_ready']}'),
-      if (_showsSkillGovernance(id))
+      if (page.pageIds.any(_showsSkillGovernance))
         _CardCopy(zh ? 'Diff baseline' : 'Diff baseline',
             'diff=${diffCheck['status']} · baseline=${diffCheck['baseline_provided']} · changed=${diffCheck['changed_file_count']}'),
-      if (_showsSkillGovernance(id))
+      if (page.pageIds.any(_showsSkillGovernance))
         _CardCopy(
             zh ? 'Validation / installability' : 'Validation / installability',
             'validation=${validationCheck['status']} · installability=${installabilityCheck['status']} · token=${tokenBudgetCheck['status']}'),
-      if (_showsSkillGovernance(id))
+      if (page.pageIds.any(_showsSkillGovernance))
         _CardCopy(
             zh ? 'Workbench display evidence' : 'Workbench display evidence',
             'asset=${governanceUiContract['asset_id']} · display=${governanceUiContract['ready_for_workbench_display']} · static_only=true'),
-      if (_showsMethodology(id))
-        _CardCopy(
-            zh ? '方法论地图' : 'Methodology Map',
+      if (page.pageIds.any(_showsMethodology))
+        _CardCopy(zh ? '方法论地图' : 'Methodology Map',
             '${methodologyMap['source_package_id']} · modules=${methodologyMap['module_count']} · confidence=${methodologyMap['confidence']}'),
-      if (_showsMethodology(id))
+      if (page.pageIds.any(_showsMethodology))
         _CardCopy(zh ? 'Evidence Windows' : 'Evidence Windows',
             'count=${methodologyEvidence.length} · ${methodologyEvidence.take(3).join(' · ')}'),
-      if (_showsMethodology(id))
-        _CardCopy(
-            zh ? '方法论模块' : 'Methodology Module',
+      if (page.pageIds.any(_showsMethodology))
+        _CardCopy(zh ? '方法论模块' : 'Methodology Module',
             '${firstMethodologyModule['title']} · concepts=${(firstMethodologyModule['concepts'] as List?)?.length ?? 0} · principles=${(firstMethodologyModule['principles'] as List?)?.length ?? 0} · workflows=${(firstMethodologyModule['workflows'] as List?)?.length ?? 0}'),
-      if (_showsMethodology(id))
-        _CardCopy(
-            zh ? '来源追踪 / 风险' : 'Source Trace / Risk',
+      if (page.pageIds.any(_showsMethodology))
+        _CardCopy(zh ? '来源追踪 / 风险' : 'Source Trace / Risk',
             'trace=${methodologyEvidence.length} · unsupported=${unsupportedClaims['status']} · risks=${methodologyRisks.isEmpty ? 'none' : methodologyRisks.join('/')} · static_only=true'),
       if (externalProjects.isNotEmpty)
         _CardCopy(
@@ -1012,54 +999,54 @@ class _PageSurface extends StatelessWidget {
                 .map((project) => project.projectName)
                 .take(3)
                 .join(' · ')),
-      if (id == 'operation-gate')
+      if (page.pageIds.contains('operation-gate'))
         _CardCopy(zh ? 'S/A 不影响 P1' : 'S/A does not affect P1',
             'p1_gate_changed=${externalCapabilities.releaseBoundary['p1_gate_changed']} · v4_0_started=${externalCapabilities.releaseBoundary['v4_0_started']}'),
-      if (id == 'capability-matrix')
+      if (page.pageIds.contains('capability-matrix'))
         _CardCopy(
             zh ? 'Action 分类' : 'Action classification',
             workflowV2Evidence.actionResults
                 .map((action) => '${action.actionId}:${action.status}')
                 .take(2)
                 .join(' · ')),
-      if (id == 'capability-matrix')
+      if (page.pageIds.contains('capability-matrix'))
         _CardCopy(zh ? '能力域' : 'Capability areas',
             '${contracts.capabilities.areas.length}'),
-      if (id == 'task-job-center')
+      if (page.pageIds.contains('task-job-center'))
         _CardCopy(
             zh ? 'Task evidence' : 'Task evidence',
             workflowV2Evidence.actionResults
                 .map((action) => '${action.actionId}:${action.assertionStatus}')
                 .take(2)
                 .join(' · ')),
-      if (id == 'artifact-management')
+      if (page.pageIds.contains('artifact-management'))
         _CardCopy(
             zh ? 'Artifact evidence' : 'Artifact evidence',
             workflowV2Evidence.actionResults
                 .map((action) => '${action.actionId}:${action.artifactCount}')
                 .take(2)
                 .join(' · ')),
-      if (id == 'reports-audit')
+      if (page.pageIds.contains('reports-audit'))
         _CardCopy(
             zh ? 'Gate impact' : 'Gate impact',
             workflowV2Evidence.userPaths
                 .map((path) => '${path.userPathId}:${path.gateImpact}')
                 .take(1)
                 .join('')),
-      if (id == 'agent-factory-runtime')
+      if (page.pageIds.contains('agent-factory-runtime'))
         _CardCopy(zh ? 'Agent 模式' : 'Agent modes',
             contracts.agent.supportedModes.join(' · ')),
-      if (id == 'error-repair-center')
+      if (page.pageIds.contains('error-repair-center'))
         _CardCopy(zh ? '错误码' : 'Error codes',
             contracts.errors.errorStates.join(' · ')),
-      if (id == 'error-repair-center')
+      if (page.pageIds.contains('error-repair-center'))
         _CardCopy(
             zh ? 'Blocked reason' : 'Blocked reason',
             workflowV2Evidence.blockedActions
                 .map((action) => action.blockedReason)
                 .take(1)
                 .join('')),
-      if (id == 'template-library')
+      if (page.pageIds.contains('template-library'))
         _CardCopy(
             zh ? '模板' : 'Templates',
             contracts.templates.templates
@@ -1208,17 +1195,21 @@ class _CardCopy {
 
 ContractView _contractViewFor(
     WorkbenchPage page, WorkbenchContracts contracts) {
+  return _contractViewForId(page.id, contracts);
+}
+
+ContractView _contractViewForId(String pageId, WorkbenchContracts contracts) {
   for (final view in contracts.navigation.views) {
-    if (view.id == page.id) {
+    if (view.id == pageId) {
       return view;
     }
   }
   return ContractView(
-      id: page.id,
-      label: page.enTitle,
+      id: pageId,
+      label: pageId,
       assetTypes: const [],
-      corePageId: page.id,
-      zhLabel: page.zhTitle);
+      corePageId: pageId,
+      zhLabel: pageId);
 }
 
 List<ContractAction> _actionsForView(

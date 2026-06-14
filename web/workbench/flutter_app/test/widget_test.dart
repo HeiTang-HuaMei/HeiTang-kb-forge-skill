@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heitang_workbench/core_actions/core_action_panel.dart';
 import 'package:heitang_workbench/core_actions/workbench_actions.dart';
 import 'package:heitang_workbench/core_bridge/local_core_bridge.dart';
 import 'package:heitang_workbench/contracts/workbench_contracts.dart';
@@ -70,9 +71,8 @@ void main() {
 
   test('p2.2 methodology map asset preserves evidence and risk boundary',
       () async {
-    final methodology = jsonDecode(await rootBundle
-            .loadString('assets/fixtures/p2_2/methodology_map.json'))
-        as Map<String, dynamic>;
+    final methodology = jsonDecode(await rootBundle.loadString(
+        'assets/fixtures/p2_2/methodology_map.json')) as Map<String, dynamic>;
     final modules = methodology['methodology_modules'] as List<dynamic>;
     final first = modules.first as Map<String, dynamic>;
 
@@ -343,8 +343,8 @@ void main() {
 
     expect(find.text('黑糖 HeiTang'), findsOneWidget);
     expect(find.text('Knowledge Workbench'), findsOneWidget);
-    expect(find.text('仪表盘'), findsWidgets);
-    expect(pages, hasLength(18));
+    expect(find.text('工作台'), findsWidgets);
+    expect(pages, hasLength(7));
     expect(find.byType(NavigationRail), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -361,7 +361,7 @@ void main() {
     expect(find.text('Knowledge Workbench'), findsOneWidget);
     expect(find.text('页面'), findsOneWidget);
     expect(find.byType(DropdownButtonFormField<int>), findsOneWidget);
-    expect(find.text('仪表盘'), findsWidgets);
+    expect(find.text('工作台'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
@@ -377,7 +377,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('HeiTang'), findsOneWidget);
-    expect(find.text('Dashboard'), findsWidgets);
+    expect(find.text('Workbench'), findsWidgets);
     expect(find.byIcon(Icons.light_mode_outlined), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -390,15 +390,12 @@ void main() {
     await tester.pumpAndSettle();
 
     for (final title in [
-      '工作空间',
-      '向量索引 / 提供方 / 存储',
-      '技能工厂',
-      '任务 / 作业中心',
-      '产物管理',
-      '错误修复中心',
-      '运行门禁',
-      '能力矩阵',
-      '报表与审计'
+      '设置与边界',
+      '导入与解析',
+      '知识构建',
+      'Skill 生成',
+      'Agent 包生成',
+      '验证与报告',
     ]) {
       await tester.tap(find.text(title).first);
       await tester.pumpAndSettle();
@@ -417,7 +414,7 @@ void main() {
         workflowEvidence: sampleP1WorkflowEvidence));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('运行门禁').first);
+    await tester.tap(find.text('工作台').first);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('passed · full_gate=blocked'), findsWidgets);
@@ -439,7 +436,7 @@ void main() {
         workflowV2Evidence: sampleP1WorkflowV2Evidence));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('运行门禁').first);
+    await tester.tap(find.text('工作台').first);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('passed · full_gate=ready_for_v4_rc'),
@@ -478,7 +475,7 @@ void main() {
     expect(find.textContaining('local_ready=false'), findsWidgets);
     expect(find.text('运行 Core 操作'), findsNothing);
 
-    await tester.tap(find.text('记忆中心').first);
+    await tester.tap(find.text('验证与报告').first);
     await tester.pump();
     expect(find.textContaining('LLM Wiki v2'), findsWidgets);
     expect(
@@ -520,18 +517,17 @@ void main() {
     expect(find.textContaining('Execute parser'), findsNothing);
     expect(find.textContaining('运行解析后端'), findsNothing);
 
-    await tester.tap(find.text('运行门禁').first);
+    await tester.tap(find.text('工作台').first);
     await tester.pumpAndSettle();
     expect(find.text('Parser/OCR 后端证据面板'), findsOneWidget);
 
-    await tester.tap(find.text('能力矩阵').first);
+    await tester.tap(find.text('验证与报告').first);
     await tester.pumpAndSettle();
     expect(find.text('Backend Matrix Table'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets(
-      'renders the Skill Factory workflow without runtime claims',
+  testWidgets('renders the Skill Factory workflow without runtime claims',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1100));
     await tester.pumpWidget(HeiTangWorkbenchApp(
@@ -564,7 +560,7 @@ void main() {
 
     await tester.tap(find.text('EN'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Agent Factory & Runtime').first);
+    await tester.tap(find.text('Agent Package').first);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('run_agent'), findsWidgets);
@@ -596,13 +592,18 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('检索与验证').first);
+    await tester.tap(find.text('知识构建').first);
     await tester.pumpAndSettle();
     expect(find.text('Run RAG query'), findsOneWidget);
 
-    await tester.ensureVisible(find.text('运行 Core 操作'));
+    final ragPanel = find.widgetWithText(CoreActionPanel, 'Run RAG query');
+    final runButton = find.descendant(
+      of: ragPanel,
+      matching: find.text('运行 Core 操作'),
+    );
+    await tester.ensureVisible(runButton);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('运行 Core 操作'));
+    await tester.tap(runButton);
     await tester.pumpAndSettle();
 
     expect(requests, hasLength(1));
@@ -636,15 +637,17 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Agent 工厂与运行').first);
+    await tester.tap(find.text('知识构建').first);
     await tester.pumpAndSettle();
-    expect(find.text('Run Agent'), findsOneWidget);
-    expect(find.textContaining('blocked_reason: web_local_cli_unsupported'),
-        findsOneWidget);
+    final ragPanel = find.widgetWithText(CoreActionPanel, 'Run RAG query');
+    final runButton = find.descendant(
+      of: ragPanel,
+      matching: find.byType(FilledButton),
+    );
+    final button = tester.widget<FilledButton>(runButton);
 
-    await tester.tap(find.text('运行 Core 操作'), warnIfMissed: false);
-    await tester.pumpAndSettle();
-
+    expect(button.onPressed, isNull);
+    expect(find.textContaining('web_local_cli_unsupported'), findsWidgets);
     expect(runnerCalled, isFalse);
     expect(tester.takeException(), isNull);
   });
@@ -656,12 +659,12 @@ void main() {
         contracts: sampleWorkbenchContracts, isWebRuntime: false));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('向量索引 / 提供方 / 存储').first);
+    await tester.tap(find.text('知识构建').first);
     await tester.pumpAndSettle();
     expect(find.textContaining('blocked_reason: provider_required'),
         findsOneWidget);
 
-    await tester.tap(find.text('错误修复中心').first);
+    await tester.tap(find.text('验证与报告').first);
     await tester.pumpAndSettle();
     expect(
         find.textContaining('blocked_reason: secret_required'), findsOneWidget);

@@ -1,4 +1,5 @@
 import '../contracts/workbench_contracts.dart';
+import '../core_bridge/core_bridge_contract.dart';
 import '../core_bridge/local_core_bridge.dart';
 
 CoreBridgeRequest? coreRequestForAction({
@@ -7,12 +8,24 @@ CoreBridgeRequest? coreRequestForAction({
   required String workingDirectory,
   required String workspace,
 }) {
-  final deterministicSmoke = action.status == 'dry_run' && action.commandKind == 'ui_safe_wrapper' && action.desktopBlockedReason == 'mock_only';
-  final realLocalWorkflow = action.status == 'ready' && action.commandKind == 'core_cli' && action.desktopEnabled;
+  final deterministicSmoke = action.status == 'dry_run' &&
+      action.commandKind == 'ui_safe_wrapper' &&
+      action.desktopBlockedReason == 'mock_only';
+  final realLocalWorkflow = action.status == 'ready' &&
+      action.commandKind == 'core_cli' &&
+      action.desktopEnabled;
   if (!realLocalWorkflow && !deterministicSmoke) {
     return null;
   }
-  final arguments = argumentsForCoreCommand(action.command, actionId: action.id, workspace: workspace, workingDirectory: workingDirectory);
+  final outputContract = CoreOutputPathContract(workspace);
+  final outputPath = outputContract.forAction(action.id);
+  final arguments = argumentsForCoreCommand(
+    action.command,
+    actionId: action.id,
+    workspace: workspace,
+    workingDirectory: workingDirectory,
+    outputPath: outputPath,
+  );
   if (arguments == null) {
     return null;
   }
@@ -22,11 +35,23 @@ CoreBridgeRequest? coreRequestForAction({
     coreCli: coreCli,
     workingDirectory: workingDirectory,
     arguments: arguments,
+    outputPath: arguments.contains(outputPath) ? outputPath : null,
+    allowedOutputRoot: workspace,
   );
 }
 
-List<String>? argumentsForCoreCommand(String command, {required String actionId, required String workspace, required String workingDirectory}) {
-  final parts = command.trim().split(RegExp(r'\s+')).where((part) => part.isNotEmpty).toList(growable: false);
+List<String>? argumentsForCoreCommand(
+  String command, {
+  required String actionId,
+  required String workspace,
+  required String workingDirectory,
+  String? outputPath,
+}) {
+  final parts = command
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((part) => part.isNotEmpty)
+      .toList(growable: false);
   if (parts.isEmpty) {
     return null;
   }
@@ -41,7 +66,7 @@ List<String>? argumentsForCoreCommand(String command, {required String actionId,
     '<after>': '$workspace/skill_suite',
     '<input>': '$workspace/input',
     '<source>': '$workspace/source',
-    '<output>': '$workspace/workbench_runs/$actionId',
+    '<output>': outputPath ?? '$workspace/workbench_runs/$actionId',
     '<query>': 'Summarize this knowledge package.',
     '<task>': 'Summarize relevant evidence.',
     '<agent>': '$workspace/agents/local-agent',
