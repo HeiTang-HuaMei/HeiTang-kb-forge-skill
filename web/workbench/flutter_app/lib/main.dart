@@ -1525,18 +1525,25 @@ class _ProductTopBar extends StatelessWidget {
                 )),
       ],
     );
-    final chips = Wrap(
+    final actions = Wrap(
       alignment: WrapAlignment.end,
       spacing: 10,
       runSpacing: 10,
       children: [
-        _TopBarChip(
-          icon: Icons.search,
-          label: _zh ? '搜索知识、Skill、文档' : 'Search knowledge, Skill, docs',
-        ),
+        _TopBarSearchField(
+            label: _zh ? '搜索知识、Skill、文档' : 'Search knowledge, Skill, docs'),
         _TopBarChip(
           icon: Icons.terminal,
           label: _zh ? '终端' : 'Terminal',
+        ),
+        _TopBarChip(
+          icon: Icons.notifications_none_outlined,
+          label: _zh ? '通知' : 'Notifications',
+        ),
+        _TopBarIconButton(
+          icon: Icons.refresh_outlined,
+          label: _zh ? '刷新' : 'Refresh',
+          onPressed: () {},
         ),
         _TopBarChip(
           icon: isWebRuntime
@@ -1570,7 +1577,7 @@ class _ProductTopBar extends StatelessWidget {
             children: [
               titleBlock,
               const SizedBox(height: 12),
-              chips,
+              actions,
             ],
           );
         }
@@ -1580,10 +1587,61 @@ class _ProductTopBar extends StatelessWidget {
           children: [
             Expanded(child: titleBlock),
             const SizedBox(width: 18),
-            Flexible(child: chips),
+            Flexible(child: actions),
           ],
         );
       },
+    );
+  }
+}
+
+class _TopBarSearchField extends StatelessWidget {
+  const _TopBarSearchField({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      key: const Key('topbar-search-field'),
+      width: 260,
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.search, size: 17, color: colors.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: colors.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    )),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              'Ctrl K',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

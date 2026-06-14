@@ -345,6 +345,9 @@ void main() {
     expect(find.textContaining('知识工作台'), findsOneWidget);
     expect(find.text('工作台'), findsWidgets);
     expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
+    expect(find.byKey(const Key('topbar-search-field')), findsOneWidget);
+    expect(find.text('通知'), findsOneWidget);
+    expect(find.byIcon(Icons.refresh_outlined), findsOneWidget);
     expect(find.textContaining('系统状态: 正常运行'), findsOneWidget);
     expect(find.textContaining('版本: v1.0.0'), findsOneWidget);
     expect(pages, hasLength(7));
