@@ -92,6 +92,8 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
+    expect(find.text('Knowledge-to-Skill Suite 工作流'), findsNothing);
+    await _openAdvancedBoundaryDetails(tester);
     expect(find.text('Knowledge-to-Skill Suite 工作流'), findsOneWidget);
     expect(find.textContaining('release_candidate'), findsWidgets);
     expect(find.textContaining('Core 证据快照'), findsOneWidget);
@@ -152,11 +154,21 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
+    expect(find.text('Knowledge-to-Skill Suite 工作流'), findsNothing);
+    await _openAdvancedBoundaryDetails(tester);
     expect(find.text('Knowledge-to-Skill Suite 工作流'), findsOneWidget);
     expect(find.textContaining('Web 仅展示可审计产物'), findsOneWidget);
     expect(find.byKey(const ValueKey('workflow-tab-overview')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+}
+
+Future<void> _openAdvancedBoundaryDetails(WidgetTester tester) async {
+  final finder = find.byKey(const Key('advanced-boundary-details')).first;
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
+  await tester.tap(finder, warnIfMissed: false);
+  await tester.pumpAndSettle();
 }
 
 Future<void> _openTab(WidgetTester tester, String id) async {

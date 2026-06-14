@@ -67,16 +67,14 @@ class _CoreActionPanelState extends State<CoreActionPanel> {
             ),
             const SizedBox(height: 8),
             Text(_zh
-                ? '桌面本地 Core CLI 最小闭环。Web 运行时不会执行本地命令。'
-                : 'Minimal desktop local Core CLI path. Web runtime does not execute local commands.'),
-            const SizedBox(height: 12),
-            Text(commandPreview,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall),
+                ? '桌面应用可执行本地 Core；当前 Web 预览只展示安全状态，不会执行本地命令。'
+                : 'The desktop app can execute local Core actions; this Web preview only shows the safe state and does not run local commands.'),
             if (blockedReason != null) ...[
               const SizedBox(height: 8),
-              Text('blocked_reason: $blockedReason',
+              Text(
+                  _zh
+                      ? '当前环境不可执行本地命令。'
+                      : 'Local command execution is unavailable in this environment.',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colors.error, fontWeight: FontWeight.w700)),
             ],
@@ -105,23 +103,45 @@ class _CoreActionPanelState extends State<CoreActionPanel> {
               const SizedBox(height: 12),
               Divider(color: colors.outlineVariant),
               const SizedBox(height: 8),
-              _ResultLine(label: 'status', value: result!.status),
               _ResultLine(
-                  label: 'error_id',
-                  value: result!.errorId.isEmpty ? '-' : result!.errorId),
-              _ResultLine(
-                  label: 'exit_code', value: '${result!.exitCode ?? '-'}'),
-              _ResultLine(label: 'retryable', value: '${result!.retryable}'),
-              _ResultLine(
-                  label: 'attempt',
-                  value:
-                      '${result!.attempt}/${widget.request!.retryPolicy.maxAttempts}'),
+                  label: _zh ? '状态' : 'Status', value: result!.status),
               if (result!.outputPath != null)
-                _ResultLine(label: 'output_path', value: result!.outputPath!),
-              if (result!.stdout.isNotEmpty)
-                _ResultLine(label: 'sanitized_stdout', value: result!.stdout),
+                _ResultLine(
+                    label: _zh ? '输出位置' : 'Output path',
+                    value: result!.outputPath!),
+              if (result!.errorId.isNotEmpty)
+                _ResultLine(
+                    label: _zh ? '错误' : 'Error', value: result!.errorId),
               if (result!.stderr.isNotEmpty)
-                _ResultLine(label: 'sanitized_stderr', value: result!.stderr),
+                _ResultLine(
+                    label: _zh ? '说明' : 'Message', value: result!.stderr),
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: Text(_zh ? '高级边界详情' : 'Advanced Boundary Details'),
+                children: [
+                  _ResultLine(label: 'command', value: commandPreview),
+                  if (blockedReason != null)
+                    _ResultLine(label: 'blocked_reason', value: blockedReason),
+                  _ResultLine(
+                      label: 'error_id',
+                      value: result!.errorId.isEmpty ? '-' : result!.errorId),
+                  _ResultLine(
+                      label: 'exit_code',
+                      value: '${result!.exitCode ?? '-'}'),
+                  _ResultLine(
+                      label: 'retryable', value: '${result!.retryable}'),
+                  _ResultLine(
+                      label: 'attempt',
+                      value:
+                          '${result!.attempt}/${widget.request!.retryPolicy.maxAttempts}'),
+                  if (result!.stdout.isNotEmpty)
+                    _ResultLine(
+                        label: 'sanitized_stdout', value: result!.stdout),
+                  if (result!.stderr.isNotEmpty)
+                    _ResultLine(
+                        label: 'sanitized_stderr', value: result!.stderr),
+                ],
+              ),
               if (result!.retryable) ...[
                 const SizedBox(height: 8),
                 OutlinedButton.icon(

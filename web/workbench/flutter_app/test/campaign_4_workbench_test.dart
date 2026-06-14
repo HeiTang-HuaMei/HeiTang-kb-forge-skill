@@ -23,8 +23,18 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.text('知识供应链'), findsOneWidget);
+    expect(find.text('导入资料'), findsOneWidget);
+    expect(find.text('构建知识库'), findsOneWidget);
+    expect(find.text('生成 Skill'), findsOneWidget);
+    expect(find.text('生成 Agent 包'), findsOneWidget);
+    expect(find.text('验证与导出'), findsOneWidget);
+    expect(find.byKey(const Key('workbench-advanced-task-details')),
+        findsOneWidget);
+    await tester.tap(find.byKey(const Key('workbench-advanced-task-details')));
+    await tester.pumpAndSettle();
     expect(find.byKey(const Key('workbench-input-area')), findsOneWidget);
-    expect(find.byKey(const Key('workbench-progress-area')), findsOneWidget);
+    expect(find.byKey(const Key('workbench-progress-area')), findsWidgets);
     expect(find.byKey(const Key('workbench-output-area')), findsOneWidget);
     expect(find.byKey(const Key('workbench-evidence-area')), findsOneWidget);
     expect(find.byKey(const Key('workbench-error-area')), findsOneWidget);
@@ -53,7 +63,8 @@ void main() {
 
     expect(pages, hasLength(7));
     expect(find.text('工作台'), findsWidgets);
-    expect(find.text('Agent 包生成'), findsWidgets);
+    expect(find.text('Agent 包'), findsWidgets);
+    expect(find.text('设置'), findsWidgets);
     expect(find.text('Agent 工厂与运行'), findsNothing);
     expect(tester.takeException(), isNull);
   });

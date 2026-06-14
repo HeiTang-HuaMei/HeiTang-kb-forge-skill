@@ -342,7 +342,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('黑糖 HeiTang'), findsOneWidget);
-    expect(find.text('Knowledge Workbench'), findsOneWidget);
+    expect(find.text('知识工作台'), findsOneWidget);
     expect(find.text('工作台'), findsWidgets);
     expect(pages, hasLength(7));
     expect(find.byType(NavigationRail), findsNothing);
@@ -358,7 +358,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('黑糖 HeiTang'), findsOneWidget);
-    expect(find.text('Knowledge Workbench'), findsOneWidget);
+    expect(find.text('知识工作台'), findsOneWidget);
     expect(find.text('页面'), findsOneWidget);
     expect(find.byType(DropdownButtonFormField<int>), findsOneWidget);
     expect(find.text('工作台'), findsWidgets);
@@ -377,7 +377,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('HeiTang'), findsOneWidget);
-    expect(find.text('Workbench'), findsWidgets);
+    expect(find.text('Dashboard'), findsWidgets);
+    expect(find.text('Knowledge Workbench'), findsOneWidget);
     expect(find.byIcon(Icons.light_mode_outlined), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -390,12 +391,12 @@ void main() {
     await tester.pumpAndSettle();
 
     for (final title in [
-      '设置与边界',
-      '导入与解析',
-      '知识构建',
+      '设置',
+      '导入资料',
+      '知识库',
       'Skill 生成',
-      'Agent 包生成',
-      '验证与报告',
+      'Agent 包',
+      '验证与导出',
     ]) {
       await tester.tap(find.text(title).first);
       await tester.pumpAndSettle();
@@ -417,6 +418,8 @@ void main() {
     await tester.tap(find.text('工作台').first);
     await tester.pumpAndSettle();
 
+    expect(find.textContaining('passed · full_gate=blocked'), findsNothing);
+    await openAdvancedBoundaryDetails(tester);
     expect(find.textContaining('passed · full_gate=blocked'), findsWidgets);
     expect(find.textContaining('drift_count=0'), findsWidgets);
     expect(
@@ -439,6 +442,9 @@ void main() {
     await tester.tap(find.text('工作台').first);
     await tester.pumpAndSettle();
 
+    expect(find.textContaining('passed · full_gate=ready_for_v4_rc'),
+        findsNothing);
+    await openAdvancedBoundaryDetails(tester);
     expect(find.textContaining('passed · full_gate=ready_for_v4_rc'),
         findsWidgets);
     expect(find.textContaining('57/57 passed'), findsWidgets);
@@ -469,18 +475,20 @@ void main() {
     );
     await tester.pump();
 
+    expect(find.textContaining('S=1 · A=1'), findsNothing);
+    await openAdvancedBoundaryDetails(tester);
     expect(find.textContaining('S=1 · A=1'), findsWidgets);
     expect(find.textContaining('planned=1'), findsWidgets);
     expect(find.textContaining('ready=false'), findsWidgets);
     expect(find.textContaining('local_ready=false'), findsWidgets);
     expect(find.text('运行 Core 操作'), findsNothing);
 
-    await tester.tap(find.text('验证与报告').first);
+    await tester.tap(find.text('验证与导出').first);
     await tester.pump();
     expect(find.textContaining('LLM Wiki v2'), findsWidgets);
     expect(
         find.textContaining('future_adapter/capability_anchor'), findsWidgets);
-    expect(find.textContaining('显示边界'), findsWidgets);
+    expect(find.text('高级边界详情'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -496,9 +504,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('导入与解析').first);
+    await tester.tap(find.text('导入资料').first);
     await tester.pumpAndSettle();
 
+    expect(find.text('Parser Backend Matrix'), findsNothing);
+    await openAdvancedBoundaryDetails(tester);
     expect(find.text('Parser Backend Matrix'), findsWidgets);
     expect(find.text('Parser/OCR 后端证据面板'), findsOneWidget);
     expect(find.text('Backend Matrix Table'), findsOneWidget);
@@ -519,11 +529,9 @@ void main() {
 
     await tester.tap(find.text('工作台').first);
     await tester.pumpAndSettle();
-    expect(find.text('Parser/OCR 后端证据面板'), findsOneWidget);
 
-    await tester.tap(find.text('验证与报告').first);
+    await tester.tap(find.text('验证与导出').first);
     await tester.pumpAndSettle();
-    expect(find.text('Backend Matrix Table'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -538,12 +546,11 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('Knowledge-to-Skill Suite 工作流'), findsOneWidget);
-    expect(find.textContaining('release_candidate'), findsWidgets);
-    expect(find.textContaining('Core 证据快照'), findsOneWidget);
-    expect(find.text('知识包'), findsWidgets);
-    expect(find.text('方法论'), findsWidgets);
-    expect(find.text('Skill Suite'), findsWidgets);
+    expect(find.text('Skill 生成'), findsWidgets);
+    expect(find.text('把知识包转化为经过治理的 Skill 草稿。'), findsOneWidget);
+    expect(find.text('高级边界详情'), findsOneWidget);
+    await openAdvancedBoundaryDetails(tester);
+    expect(find.textContaining('Skill Governance Report'), findsWidgets);
     expect(find.textContaining('Execute local runtime'), findsNothing);
     expect(find.textContaining('运行本地 runtime'), findsNothing);
     expect(tester.takeException(), isNull);
@@ -563,8 +570,9 @@ void main() {
     await tester.tap(find.text('Agent Package').first);
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('run_agent'), findsWidgets);
-    expect(find.textContaining('kb_bound'), findsWidgets);
+    expect(find.textContaining('run_agent'), findsNothing);
+    expect(find.textContaining('kb_bound'), findsNothing);
+    expect(find.text('Advanced Boundary Details'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -592,8 +600,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('知识构建').first);
+    await tester.tap(find.text('知识库').first);
     await tester.pumpAndSettle();
+    await openAdvancedBoundaryDetails(tester);
     expect(find.text('Run RAG query'), findsOneWidget);
 
     final ragPanel = find.widgetWithText(CoreActionPanel, 'Run RAG query');
@@ -609,7 +618,7 @@ void main() {
     expect(requests, hasLength(1));
     expect(requests.single.actionId, 'rag_query');
     expect(requests.single.arguments.first, 'kb-query');
-    expect(find.textContaining('<redacted>'), findsWidgets);
+    expect(find.textContaining('<redacted>'), findsNothing);
     expect(find.textContaining('sk-test-secret'), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -634,8 +643,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('知识构建').first);
+    await tester.tap(find.text('知识库').first);
     await tester.pumpAndSettle();
+    await openAdvancedBoundaryDetails(tester);
     final ragPanel = find.widgetWithText(CoreActionPanel, 'Run RAG query');
     final runButton = find.descendant(
       of: ragPanel,
@@ -677,8 +687,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('知识构建').first);
+    await tester.tap(find.text('知识库').first);
     await tester.pumpAndSettle();
+    await openAdvancedBoundaryDetails(tester);
     final ragPanel = find.widgetWithText(CoreActionPanel, 'Run RAG query');
     final runButton = find.descendant(
       of: ragPanel,
@@ -687,27 +698,38 @@ void main() {
     final button = tester.widget<FilledButton>(runButton);
 
     expect(button.onPressed, isNull);
-    expect(find.textContaining('web_local_cli_unsupported'), findsWidgets);
+    expect(find.textContaining('web_local_cli_unsupported'), findsNothing);
+    expect(find.text('当前环境不可执行本地命令。'), findsWidgets);
     expect(runnerCalled, isFalse);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('shows disabled blocked_reason for provider and secret actions',
+  testWidgets('hides blocked reasons until advanced details are opened',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1100));
     await tester.pumpWidget(HeiTangWorkbenchApp(
         contracts: sampleWorkbenchContracts, isWebRuntime: false));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('知识构建').first);
+    await tester.tap(find.text('知识库').first);
     await tester.pumpAndSettle();
-    expect(find.textContaining('blocked_reason: provider_required'),
-        findsOneWidget);
+    expect(find.textContaining('blocked_reason'), findsNothing);
+    await openAdvancedBoundaryDetails(tester);
+    expect(find.textContaining('provider_required'), findsWidgets);
 
-    await tester.tap(find.text('验证与报告').first);
+    await tester.tap(find.text('验证与导出').first);
     await tester.pumpAndSettle();
-    expect(
-        find.textContaining('blocked_reason: secret_required'), findsOneWidget);
+    expect(find.textContaining('blocked_reason'), findsNothing);
+    await openAdvancedBoundaryDetails(tester);
+    expect(find.textContaining('secret_required'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
+}
+
+Future<void> openAdvancedBoundaryDetails(WidgetTester tester) async {
+  final details = find.byKey(const Key('advanced-boundary-details')).first;
+  await tester.ensureVisible(details);
+  await tester.pumpAndSettle();
+  await tester.tap(details, warnIfMissed: false);
+  await tester.pumpAndSettle();
 }

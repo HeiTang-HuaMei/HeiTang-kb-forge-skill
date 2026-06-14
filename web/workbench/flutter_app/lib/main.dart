@@ -25,10 +25,10 @@ const supportedLocaleCodes = <String>['zh-CN', 'en-US'];
 const pages = <WorkbenchPage>[
   WorkbenchPage(
       'dashboard',
-      'Workbench',
+      'Dashboard',
       '工作台',
-      'Task-card workflow across local input, progress, outputs, evidence, and recovery.',
-      '以任务卡组织本地输入、进度、输出、证据与恢复动作。',
+      'A guided local workbench for turning source material into a validated Agent package.',
+      '把本地资料加工为可验证 Agent 包的引导式工作台。',
       memberPageIds: [
         'dashboard',
         'operation-gate',
@@ -37,17 +37,17 @@ const pages = <WorkbenchPage>[
       ]),
   WorkbenchPage(
       'import-parsing',
-      'Import & Parsing',
-      '导入与解析',
-      'Local file import, parser boundaries, preprocessing, and quality evidence.',
-      '本地文件导入、解析边界、预处理与质量证据。',
+      'Import Materials',
+      '导入资料',
+      'Bring local files into the workspace and prepare them for parsing.',
+      '导入本地文件，并为解析处理做好准备。',
       memberPageIds: ['import-parsing']),
   WorkbenchPage(
       'knowledge-package-management',
-      'Knowledge Build',
-      '知识构建',
-      'Knowledge splitting, package drafts, retrieval evidence, and local validation boundaries.',
-      '知识切分、知识包草稿、检索证据与本地验证边界。',
+      'Knowledge Package',
+      '知识库',
+      'Organize parsed content into a reusable knowledge package.',
+      '把解析后的内容组织为可复用的知识包。',
       memberPageIds: [
         'knowledge-package-management',
         'retrieval-verification',
@@ -56,24 +56,24 @@ const pages = <WorkbenchPage>[
       ]),
   WorkbenchPage(
       'skill-factory',
-      'Skill Generation',
+      'Skill Builder',
       'Skill 生成',
-      'Inspect the Knowledge Package to Methodology to Skill Suite evidence, governance reports, and export boundary.',
-      '查看知识包到方法论再到 Skill Suite 的证据、治理报告与导出边界。',
+      'Convert the knowledge package into a governed Skill draft.',
+      '把知识包转化为经过治理的 Skill 草稿。',
       memberPageIds: ['skill-factory']),
   WorkbenchPage(
       'agent-factory-runtime',
       'Agent Package',
-      'Agent 包生成',
-      'Generate Agent package drafts without claiming executable Agent or Memory Runtime.',
-      '生成 Agent 包草稿，不宣称可执行 Agent Runtime 或 Memory Runtime。',
+      'Agent 包',
+      'Generate an Agent package draft without claiming runtime completion.',
+      '生成 Agent 包草稿，不宣称运行时已完成。',
       memberPageIds: ['agent-factory-runtime']),
   WorkbenchPage(
       'reports-audit',
-      'Validation & Reports',
-      '验证与报告',
-      'Inspect manifests, reports, failure evidence, and Campaign 4/5 boundaries.',
-      '查看 manifest、报告、失败证据与 Campaign 4/5 边界。',
+      'Validate & Export',
+      '验证与导出',
+      'Validate outputs and prepare controlled export evidence.',
+      '验证输出，并准备受控导出证据。',
       memberPageIds: [
         'reports-audit',
         'artifact-management',
@@ -83,10 +83,10 @@ const pages = <WorkbenchPage>[
       ]),
   WorkbenchPage(
       'workspace',
-      'Settings & Boundaries',
-      '设置与边界',
-      'Local workspace paths, Core availability, optional dependencies, and blocked runtime boundaries.',
-      '本地工作区路径、Core 可用性、可选依赖与被阻塞的运行时边界。',
+      'Settings',
+      '设置',
+      'Review local workspace paths and execution availability.',
+      '查看本地工作区路径与执行可用性。',
       memberPageIds: ['workspace', 'template-library']),
 ];
 
@@ -332,12 +332,6 @@ class _BrandHeader extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (!compact) ...[
-          const _MascotBadge(label: '猫'),
-          const SizedBox(width: 4),
-          const _MascotBadge(label: '虎'),
-          const SizedBox(width: 12),
-        ],
         Flexible(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,32 +339,13 @@ class _BrandHeader extends StatelessWidget {
             children: [
               Text(localeCode == 'zh-CN' ? '黑糖 HeiTang' : 'HeiTang',
                   style: Theme.of(context).textTheme.labelLarge),
-              Text('Knowledge Workbench',
+              Text(localeCode == 'zh-CN' ? '知识工作台' : 'Knowledge Workbench',
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.titleMedium),
             ],
           ),
         ),
       ],
-    );
-  }
-}
-
-class _MascotBadge extends StatelessWidget {
-  const _MascotBadge({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
-    final onColor = Theme.of(context).colorScheme.onPrimary;
-    return CircleAvatar(
-      radius: 15,
-      backgroundColor: color,
-      child: Text(label,
-          style: TextStyle(
-              color: onColor, fontSize: 12, fontWeight: FontWeight.w700)),
     );
   }
 }
@@ -473,17 +448,19 @@ class _WorkbenchSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    const sidebarBackground = Color(0xff12161a);
+    const selectedBackground = Color(0xff2d3339);
+    const primaryText = Color(0xfff7f7f5);
+    const secondaryText = Color(0xffaeb6bf);
 
     return Material(
-      color: colors.surface,
+      color: sidebarBackground,
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         itemCount: pages.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 4),
+        separatorBuilder: (context, index) => const SizedBox(height: 6),
         itemBuilder: (context, index) {
           final page = pages[index];
-          final view = _contractViewFor(page, contracts);
           final selected = index == selectedIndex;
 
           return InkWell(
@@ -492,20 +469,25 @@ class _WorkbenchSidebar extends StatelessWidget {
             child: ListTile(
               dense: true,
               selected: selected,
-              selectedColor: colors.onPrimary,
-              selectedTileColor: colors.primary,
+              selectedColor: primaryText,
+              selectedTileColor: selectedBackground,
               leading: Icon(
                   selected ? Icons.circle : Icons.radio_button_unchecked,
+                  color: selected ? primaryText : secondaryText,
                   size: 16),
               title: Text(page.title(localeCode, contracts),
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis),
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: selected ? primaryText : primaryText,
+                    fontWeight:
+                        selected ? FontWeight.w800 : FontWeight.w600,
+                  )),
               subtitle: Text(
-                  view.assetTypes.isEmpty
-                      ? page.id
-                      : view.assetTypes.join(' · '),
+                  page.id,
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis),
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: secondaryText)),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
             ),
@@ -651,9 +633,7 @@ class _PageSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSkillFactory = page.id == 'skill-factory';
-    final cards = isSkillFactory
-        ? const <_CardCopy>[]
-        : _cardsFor(
+    final cards = _cardsFor(
             page.id,
             localeCode,
             contracts,
@@ -719,48 +699,26 @@ class _PageSurface extends StatelessWidget {
             ),
             const SizedBox(height: 20),
           ],
-          if (isSkillFactory)
-            SkillFactoryWorkflowSurface(
+          if (page.id != 'dashboard') ...[
+            _ProductPageOverview(
               localeCode: localeCode,
-              workflow: skillSuiteWorkflow,
-            )
-          else
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: columns,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                mainAxisExtent: columns == 1 ? 204 : 188,
-              ),
-              itemCount: cards.length,
-              itemBuilder: (context, index) => _WorkbenchCard(
-                title: cards[index].title,
-                body: cards[index].body,
-                localeCode: localeCode,
-              ),
+              page: page,
+              workspace: coreWorkspace,
+              isWebRuntime: isWebRuntime,
             ),
-          if (page.pageIds.any(_showsParserBackends)) ...[
             const SizedBox(height: 20),
-            ParserBackendEvidenceDashboard(
-              matrix: parserBackends,
-              localeCode: localeCode,
-            ),
           ],
-          if (corePanels.isNotEmpty) ...[
-            const SizedBox(height: 20),
-            Text('Core Bridge',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w700)),
-            const SizedBox(height: 12),
-            for (var index = 0; index < corePanels.length; index++) ...[
-              if (index > 0) const SizedBox(height: 12),
-              corePanels[index],
-            ],
-          ],
+          _AdvancedBoundaryDetails(
+            localeCode: localeCode,
+            cards: cards,
+            columns: columns,
+            corePanels: corePanels,
+            parserBackends: page.id != 'dashboard' &&
+                    page.pageIds.any(_showsParserBackends)
+                ? parserBackends
+                : null,
+            skillFactoryWorkflow: isSkillFactory ? skillSuiteWorkflow : null,
+          ),
         ],
       ),
     );
@@ -1194,9 +1152,276 @@ class _CardCopy {
   final String body;
 }
 
-ContractView _contractViewFor(
-    WorkbenchPage page, WorkbenchContracts contracts) {
-  return _contractViewForId(page.id, contracts);
+class _ProductPageOverview extends StatelessWidget {
+  const _ProductPageOverview({
+    required this.localeCode,
+    required this.page,
+    required this.workspace,
+    required this.isWebRuntime,
+  });
+
+  final String localeCode;
+  final WorkbenchPage page;
+  final String workspace;
+  final bool isWebRuntime;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final copy = _ProductPageCopy.forPage(page.id, _zh);
+    return Card(
+      color: colors.surfaceContainerLow,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(copy.title,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            Text(copy.body, style: Theme.of(context).textTheme.bodyLarge),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _ProductSignal(
+                  label: _zh ? '当前状态' : 'Current status',
+                  value: _zh ? '等待输入' : 'Waiting for input',
+                ),
+                _ProductSignal(
+                  label: _zh ? '下一步' : 'Next action',
+                  value: copy.nextAction,
+                ),
+                _ProductSignal(
+                  label: _zh ? '输出位置' : 'Output path',
+                  value: copy.outputPath(workspace),
+                ),
+                _ProductSignal(
+                  label: _zh ? '本地执行' : 'Local execution',
+                  value: isWebRuntime
+                      ? (_zh ? 'Web 中不可用' : 'Unavailable on Web')
+                      : (_zh ? '桌面可用' : 'Available on desktop'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProductPageCopy {
+  const _ProductPageCopy({
+    required this.title,
+    required this.body,
+    required this.nextAction,
+    required this.outputSuffix,
+  });
+
+  final String title;
+  final String body;
+  final String nextAction;
+  final String outputSuffix;
+
+  String outputPath(String workspace) => '$workspace/$outputSuffix';
+
+  static _ProductPageCopy forPage(String id, bool zh) {
+    switch (id) {
+      case 'import-parsing':
+        return _ProductPageCopy(
+          title: zh ? '导入资料' : 'Import Materials',
+          body: zh
+              ? '选择本地资料，确认解析范围，再进入知识构建。'
+              : 'Choose local material, confirm the parsing scope, then move into knowledge building.',
+          nextAction: zh ? '选择本地文件或文件夹' : 'Choose a local file or folder',
+          outputSuffix: 'workbench_runs/import_manifest',
+        );
+      case 'knowledge-package-management':
+        return _ProductPageCopy(
+          title: zh ? '知识库' : 'Knowledge Package',
+          body: zh
+              ? '把解析内容切分、整理并形成可复用的知识包草稿。'
+              : 'Split and organize parsed content into a reusable knowledge package draft.',
+          nextAction: zh ? '检查解析结果' : 'Review parsed content',
+          outputSuffix: 'workbench_runs/knowledge_package',
+        );
+      case 'skill-factory':
+        return _ProductPageCopy(
+          title: zh ? 'Skill 生成' : 'Skill Builder',
+          body: zh
+              ? '从知识包提炼方法论，并生成可治理的 Skill 草稿。'
+              : 'Extract methodology from the package and generate a governed Skill draft.',
+          nextAction: zh ? '确认知识包草稿' : 'Confirm the package draft',
+          outputSuffix: 'workbench_runs/skill_draft',
+        );
+      case 'agent-factory-runtime':
+        return _ProductPageCopy(
+          title: zh ? 'Agent 包' : 'Agent Package',
+          body: zh
+              ? '生成 Agent 包草稿；这里只准备包，不宣称运行时已完成。'
+              : 'Generate an Agent package draft; this prepares the package without claiming runtime completion.',
+          nextAction: zh ? '生成包草稿' : 'Generate package draft',
+          outputSuffix: 'workbench_runs/agent_package',
+        );
+      case 'reports-audit':
+        return _ProductPageCopy(
+          title: zh ? '验证与导出' : 'Validate & Export',
+          body: zh
+              ? '检查输出、证据和失败恢复路径，再决定是否导出。'
+              : 'Check outputs, evidence, and recovery paths before export.',
+          nextAction: zh ? '验证清单与报告' : 'Validate manifests and reports',
+          outputSuffix: 'workbench_runs/validation_report',
+        );
+      default:
+        return _ProductPageCopy(
+          title: zh ? '设置' : 'Settings',
+          body: zh
+              ? '确认工作区、本地执行可用性和安全边界。'
+              : 'Review workspace paths, local execution availability, and safety boundaries.',
+          nextAction: zh ? '检查工作区路径' : 'Check workspace path',
+          outputSuffix: 'workbench_runs/settings',
+        );
+    }
+  }
+}
+
+class _ProductSignal extends StatelessWidget {
+  const _ProductSignal({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      width: 240,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  )),
+          const SizedBox(height: 6),
+          Text(value,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdvancedBoundaryDetails extends StatelessWidget {
+  const _AdvancedBoundaryDetails({
+    required this.localeCode,
+    required this.cards,
+    required this.columns,
+    required this.corePanels,
+    this.parserBackends,
+    this.skillFactoryWorkflow,
+  });
+
+  final String localeCode;
+  final List<_CardCopy> cards;
+  final int columns;
+  final List<Widget> corePanels;
+  final ParserBackendMatrix? parserBackends;
+  final Map<String, dynamic>? skillFactoryWorkflow;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return ExpansionTile(
+      key: const Key('advanced-boundary-details'),
+      tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      collapsedShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: colors.outlineVariant),
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: colors.outlineVariant),
+      ),
+      title: Text(_zh ? '高级边界详情' : 'Advanced Boundary Details',
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium
+              ?.copyWith(fontWeight: FontWeight.w800)),
+      subtitle: Text(_zh
+          ? '展开后查看契约、后端矩阵、Core 操作和审计证据。'
+          : 'Expand to inspect contracts, backend matrices, Core actions, and audit evidence.'),
+      children: [
+        if (skillFactoryWorkflow != null) ...[
+          SkillFactoryWorkflowSurface(
+            localeCode: localeCode,
+            workflow: skillFactoryWorkflow,
+          ),
+          const SizedBox(height: 20),
+        ],
+        if (cards.isNotEmpty)
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              mainAxisExtent: columns == 1 ? 204 : 188,
+            ),
+            itemCount: cards.length,
+            itemBuilder: (context, index) => _WorkbenchCard(
+              title: cards[index].title,
+              body: cards[index].body,
+              localeCode: localeCode,
+            ),
+          ),
+        if (parserBackends != null) ...[
+          if (cards.isNotEmpty) const SizedBox(height: 20),
+          ParserBackendEvidenceDashboard(
+            matrix: parserBackends!,
+            localeCode: localeCode,
+          ),
+        ],
+        if (corePanels.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          Text(_zh ? '本地 Core 执行详情' : 'Local Core Execution Details',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          for (var index = 0; index < corePanels.length; index++) ...[
+            if (index > 0) const SizedBox(height: 12),
+            corePanels[index],
+          ],
+        ],
+      ],
+    );
+  }
 }
 
 ContractView _contractViewForId(String pageId, WorkbenchContracts contracts) {

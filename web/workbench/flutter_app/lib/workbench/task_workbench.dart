@@ -19,8 +19,6 @@ class TaskWorkbenchSurface extends StatelessWidget {
   final ValueChanged<WorkbenchTaskSnapshot>? onRetry;
   final ValueChanged<WorkbenchTaskSnapshot>? onCancel;
 
-  bool get _zh => localeCode == 'zh-CN';
-
   @override
   Widget build(BuildContext context) {
     final snapshots = tasks ?? initialWorkbenchTasks(workspace);
@@ -35,6 +33,127 @@ class TaskWorkbenchSurface extends StatelessWidget {
           workspace: workspace,
         ),
         const SizedBox(height: 18),
+        _GuidedWorkflow(
+          localeCode: localeCode,
+          workspace: workspace,
+          tasks: snapshots,
+          onRetry: onRetry,
+          onCancel: onCancel,
+        ),
+        const SizedBox(height: 18),
+        _AdvancedTaskDetails(
+          localeCode: localeCode,
+          outputContract: outputContract,
+          tasks: snapshots,
+          onRetry: onRetry,
+          onCancel: onCancel,
+        ),
+      ],
+    );
+  }
+}
+
+class _GuidedWorkflow extends StatelessWidget {
+  const _GuidedWorkflow({
+    required this.localeCode,
+    required this.workspace,
+    required this.tasks,
+    this.onRetry,
+    this.onCancel,
+  });
+
+  final String localeCode;
+  final String workspace;
+  final List<WorkbenchTaskSnapshot> tasks;
+  final ValueChanged<WorkbenchTaskSnapshot>? onRetry;
+  final ValueChanged<WorkbenchTaskSnapshot>? onCancel;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    return _Section(
+      key: const Key('workbench-progress-area'),
+      title: _zh ? '知识供应链' : 'Knowledge Supply Chain',
+      eyebrow: _zh ? '五步引导工作流' : 'Five-step guided workflow',
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final columns = constraints.maxWidth >= 900
+              ? 3
+              : constraints.maxWidth >= 620
+                  ? 2
+                  : 1;
+          return GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _workflowSteps.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              crossAxisSpacing: 14,
+              mainAxisSpacing: 14,
+              mainAxisExtent: 320,
+            ),
+            itemBuilder: (context, index) {
+              final step = _workflowSteps[index];
+              final task = tasks[step.taskIndex];
+              return _ProductTaskCard(
+                step: step,
+                task: task,
+                index: index,
+                localeCode: localeCode,
+                workspace: workspace,
+                onRetry: onRetry,
+                onCancel: onCancel,
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _AdvancedTaskDetails extends StatelessWidget {
+  const _AdvancedTaskDetails({
+    required this.localeCode,
+    required this.outputContract,
+    required this.tasks,
+    this.onRetry,
+    this.onCancel,
+  });
+
+  final String localeCode;
+  final CoreOutputPathContract outputContract;
+  final List<WorkbenchTaskSnapshot> tasks;
+  final ValueChanged<WorkbenchTaskSnapshot>? onRetry;
+  final ValueChanged<WorkbenchTaskSnapshot>? onCancel;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return ExpansionTile(
+      key: const Key('workbench-advanced-task-details'),
+      tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      collapsedShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: colors.outlineVariant),
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: colors.outlineVariant),
+      ),
+      title: Text(_zh ? '高级边界详情' : 'Advanced Boundary Details',
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium
+              ?.copyWith(fontWeight: FontWeight.w800)),
+      subtitle: Text(_zh
+          ? '展开后查看六阶段模型、七种状态、输出路径和错误恢复边界。'
+          : 'Expand to inspect the six-stage model, seven states, output paths, and recovery boundaries.'),
+      children: [
         _Section(
           key: const Key('workbench-input-area'),
           title: _zh ? '输入区' : 'Input',
@@ -44,7 +163,7 @@ class TaskWorkbenchSurface extends StatelessWidget {
             body: _zh
                 ? '选择本地文件或目录后再启动允许的 Core 操作。默认不连接云服务，不读取 Provider secret。'
                 : 'Select a local file or folder before an allowlisted Core action. Cloud services and provider secrets are not used by default.',
-            detail: 'workspace=$workspace',
+            detail: 'workspace=${outputContract.workspace}',
           ),
         ),
         const SizedBox(height: 16),
@@ -58,7 +177,7 @@ class TaskWorkbenchSurface extends StatelessWidget {
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: snapshots.length,
+                itemCount: tasks.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: columns,
                   crossAxisSpacing: 12,
@@ -66,7 +185,7 @@ class TaskWorkbenchSurface extends StatelessWidget {
                   mainAxisExtent: 328,
                 ),
                 itemBuilder: (context, index) => _TaskCard(
-                  task: snapshots[index],
+                  task: tasks[index],
                   index: index,
                   localeCode: localeCode,
                   onRetry: onRetry,
@@ -130,6 +249,227 @@ class TaskWorkbenchSurface extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class _WorkflowStep {
+  const _WorkflowStep({
+    required this.zhTitle,
+    required this.enTitle,
+    required this.zhNextAction,
+    required this.enNextAction,
+    required this.outputActionId,
+    required this.taskIndex,
+  });
+
+  final String zhTitle;
+  final String enTitle;
+  final String zhNextAction;
+  final String enNextAction;
+  final String outputActionId;
+  final int taskIndex;
+
+  String title(bool zh) => zh ? zhTitle : enTitle;
+
+  String nextAction(bool zh) => zh ? zhNextAction : enNextAction;
+}
+
+const _workflowSteps = <_WorkflowStep>[
+  _WorkflowStep(
+    zhTitle: '导入资料',
+    enTitle: 'Import Materials',
+    zhNextAction: '选择本地文件或文件夹',
+    enNextAction: 'Choose a local file or folder',
+    outputActionId: 'file_import',
+    taskIndex: 0,
+  ),
+  _WorkflowStep(
+    zhTitle: '构建知识库',
+    enTitle: 'Build Knowledge Package',
+    zhNextAction: '检查解析结果并开始切分',
+    enNextAction: 'Review parsed content and start splitting',
+    outputActionId: 'knowledge_splitting',
+    taskIndex: 2,
+  ),
+  _WorkflowStep(
+    zhTitle: '生成 Skill',
+    enTitle: 'Generate Skill',
+    zhNextAction: '确认知识包草稿',
+    enNextAction: 'Confirm the knowledge package draft',
+    outputActionId: 'skill_generation',
+    taskIndex: 3,
+  ),
+  _WorkflowStep(
+    zhTitle: '生成 Agent 包',
+    enTitle: 'Generate Agent Package',
+    zhNextAction: '生成包草稿',
+    enNextAction: 'Generate the package draft',
+    outputActionId: 'agent_package_generation',
+    taskIndex: 4,
+  ),
+  _WorkflowStep(
+    zhTitle: '验证与导出',
+    enTitle: 'Validate & Export',
+    zhNextAction: '验证清单、报告与恢复路径',
+    enNextAction: 'Validate manifests, reports, and recovery paths',
+    outputActionId: 'validation',
+    taskIndex: 5,
+  ),
+];
+
+class _ProductTaskCard extends StatelessWidget {
+  const _ProductTaskCard({
+    required this.step,
+    required this.task,
+    required this.index,
+    required this.localeCode,
+    required this.workspace,
+    this.onRetry,
+    this.onCancel,
+  });
+
+  final _WorkflowStep step;
+  final WorkbenchTaskSnapshot task;
+  final int index;
+  final String localeCode;
+  final String workspace;
+  final ValueChanged<WorkbenchTaskSnapshot>? onRetry;
+  final ValueChanged<WorkbenchTaskSnapshot>? onCancel;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final outputContract = CoreOutputPathContract(workspace);
+    return Card(
+      key: Key('workflow-step-${index + 1}'),
+      color: colors.surfaceContainerLow,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _StageNumber(index: index),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    step.title(_zh),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w800),
+                  ),
+                ),
+                _StatusPill(status: task.status),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                key: Key('workflow-progress-${index + 1}'),
+                minHeight: 10,
+                value: task.progress,
+                backgroundColor: colors.surfaceContainerHighest,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${(task.progress * 100).round()}% · ${_statusCopy(task.status, _zh)}',
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 14),
+            _ProductTaskLine(
+              label: _zh ? '下一步' : 'Next action',
+              value: step.nextAction(_zh),
+            ),
+            _ProductTaskLine(
+              label: _zh ? '输出位置' : 'Output path',
+              value: outputContract.forAction(step.outputActionId),
+            ),
+            if (task.failureReason.isNotEmpty)
+              _ProductTaskLine(
+                label: _zh ? '错误' : 'Error',
+                value: task.failureReason,
+              ),
+            const Spacer(),
+            Row(
+              children: [
+                FilledButton(
+                  onPressed: task.status.canRetry && onRetry != null
+                      ? () => onRetry!(task)
+                      : null,
+                  child: Text(_zh ? '重试' : 'Retry'),
+                ),
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: task.status.canCancel && onCancel != null
+                      ? () => onCancel!(task)
+                      : null,
+                  child: Text(_zh ? '取消' : 'Cancel'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProductTaskLine extends StatelessWidget {
+  const _ProductTaskLine({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    fontWeight: FontWeight.w800,
+                  )),
+          const SizedBox(height: 2),
+          Text(value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall),
+        ],
+      ),
+    );
+  }
+}
+
+String _statusCopy(WorkbenchTaskStatus status, bool zh) {
+  switch (status) {
+    case WorkbenchTaskStatus.pending:
+      return zh ? '等待开始' : 'Waiting';
+    case WorkbenchTaskStatus.running:
+      return zh ? '进行中' : 'Running';
+    case WorkbenchTaskStatus.completed:
+      return zh ? '已完成' : 'Completed';
+    case WorkbenchTaskStatus.failed:
+      return zh ? '失败' : 'Failed';
+    case WorkbenchTaskStatus.retryable:
+      return zh ? '可重试' : 'Retryable';
+    case WorkbenchTaskStatus.cancelled:
+      return zh ? '已取消' : 'Cancelled';
+    case WorkbenchTaskStatus.blocked:
+      return zh ? '已阻塞' : 'Blocked';
   }
 }
 
