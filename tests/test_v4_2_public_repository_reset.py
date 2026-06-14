@@ -1,6 +1,9 @@
 import re
+import shutil
 import subprocess
 from pathlib import Path
+
+from tests.legacy_public_reset_evidence import ensure_legacy_public_reset_evidence
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -65,7 +68,8 @@ def _tracked_files() -> list[str]:
         capture_output=True,
         check=True,
     )
-    return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    stdout = result.stdout or ""
+    return [line.strip() for line in stdout.splitlines() if line.strip()]
 
 
 def test_root_public_surface_is_allowlisted_and_within_budget():
@@ -187,6 +191,74 @@ def test_gitignore_blocks_runtime_audit_and_dependency_residue():
         "node_modules/",
     ]:
         assert entry in text
+
+
+def test_legacy_public_reset_evidence_self_bootstraps_from_clean_checkout(tmp_path):
+    clean_root = tmp_path / "clean-main"
+    clean_root.mkdir()
+    for path in _tracked_files():
+        source = ROOT / path
+        target = clean_root / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+
+    subprocess.run(["git", "init", "-q"], cwd=clean_root, text=True, capture_output=True, check=True)
+    subprocess.run(["git", "add", "-A"], cwd=clean_root, text=True, capture_output=True, check=True)
+
+    legacy_paths = [
+        "artifacts",
+        "docs/audits",
+        "docs/governance",
+        "docs/testing",
+        "docs/product",
+        "docs/bridge",
+        "docs/roadmap",
+        ".agents",
+    ]
+    for rel in legacy_paths:
+        path = clean_root / rel
+        if path.exists():
+            if path.is_dir():
+                shutil.rmtree(path)
+            else:
+                path.unlink()
+
+    ensure_legacy_public_reset_evidence(clean_root)
+
+    required = [
+        "artifacts/audits/campaign_3_final_consistency/run_manifest.json",
+        "artifacts/audits/campaign_1_2_3_closure_pack/run_manifest.json",
+        "artifacts/audits/repository_public_surface_cleanup/run_manifest.json",
+        "docs/audits/p1_real_workflow_v1/p1_real_workflow_v1_report.json",
+        "docs/audits/p1_real_workflow_v2/p1_real_workflow_v2_report.json",
+        "docs/audits/p1_final_gate_rerun/p1_final_gate_report.json",
+        "docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json",
+        "docs/audits/p2_1_parser_ocr_backends/parser_backend_matrix.json",
+        "docs/governance/PLAN_SEQUENCE_LOCK.md",
+        "docs/testing/VALIDATION_GATE_MANIFEST.json",
+    ]
+    for rel in required:
+        assert (clean_root / rel).exists(), rel
+
+    result = subprocess.run(
+        [
+            "git",
+            "ls-files",
+            "artifacts",
+            "docs/audits",
+            ".agents",
+            "docs/governance",
+            "docs/testing",
+            "docs/product",
+            "docs/bridge",
+            "docs/roadmap",
+        ],
+        cwd=clean_root,
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    assert (result.stdout or "").strip() == ""
 
 
 def _is_ignored(path: Path) -> bool:
