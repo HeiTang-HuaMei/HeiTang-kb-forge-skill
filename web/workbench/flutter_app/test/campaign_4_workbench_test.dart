@@ -40,7 +40,7 @@ void main() {
     expect(find.byKey(const Key('workbench-error-area')), findsOneWidget);
     expect(find.text('任务阶段'), findsOneWidget);
     expect(find.textContaining('结果 + 证据'), findsOneWidget);
-    expect(find.textContaining('真实 Core 结果返回前'), findsOneWidget);
+    expect(find.textContaining('没有 Core 结果不会展示完成'), findsOneWidget);
     for (final stage in WorkbenchTaskStage.values) {
       expect(find.byKey(Key('task-card-${stage.id}')), findsOneWidget);
       expect(find.byKey(Key('task-progress-${stage.id}')), findsOneWidget);
@@ -66,6 +66,8 @@ void main() {
     expect(find.text('Agent 包'), findsWidgets);
     expect(find.text('设置'), findsWidgets);
     expect(find.text('Agent 工厂与运行'), findsNothing);
+    expect(find.text('import-parsing'), findsNothing);
+    expect(find.text('knowledge-package-management'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

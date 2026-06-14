@@ -329,22 +329,19 @@ class _BrandHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Flexible(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(localeCode == 'zh-CN' ? '黑糖 HeiTang' : 'HeiTang',
-                  style: Theme.of(context).textTheme.labelLarge),
-              Text(localeCode == 'zh-CN' ? '知识工作台' : 'Knowledge Workbench',
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium),
-            ],
-          ),
-        ),
+        Text(localeCode == 'zh-CN' ? '黑糖' : 'HeiTang',
+            style: Theme.of(context)
+                .textTheme
+                .labelLarge
+                ?.copyWith(fontWeight: FontWeight.w800)),
+        if (!compact)
+          Text(localeCode == 'zh-CN' ? '知识工作台' : 'Knowledge Workbench',
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleMedium),
       ],
     );
   }
@@ -455,46 +452,233 @@ class _WorkbenchSidebar extends StatelessWidget {
 
     return Material(
       color: sidebarBackground,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-        itemCount: pages.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 6),
-        itemBuilder: (context, index) {
-          final page = pages[index];
-          final selected = index == selectedIndex;
-
-          return InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: () => onPageChanged(index),
-            child: ListTile(
-              dense: true,
-              selected: selected,
-              selectedColor: primaryText,
-              selectedTileColor: selectedBackground,
-              leading: Icon(
-                  selected ? Icons.circle : Icons.radio_button_unchecked,
-                  color: selected ? primaryText : secondaryText,
-                  size: 16),
-              title: Text(page.title(localeCode, contracts),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: selected ? primaryText : primaryText,
-                    fontWeight:
-                        selected ? FontWeight.w800 : FontWeight.w600,
-                  )),
-              subtitle: Text(
-                  page.id,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: secondaryText)),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(14, 18, 14, 16),
+        children: [
+          _SidebarBrand(localeCode: localeCode),
+          const SizedBox(height: 18),
+          _SidebarGroupLabel(
+              label: localeCode == 'zh-CN' ? '工作区' : 'Workspace'),
+          _SidebarItem(
+            page: pages[0],
+            icon: Icons.dashboard_customize_outlined,
+            localeCode: localeCode,
+            contracts: contracts,
+            selected: selectedIndex == 0,
+            primaryText: primaryText,
+            secondaryText: secondaryText,
+            selectedBackground: selectedBackground,
+            onTap: () => onPageChanged(0),
+          ),
+          const SizedBox(height: 12),
+          _SidebarGroupLabel(
+              label: localeCode == 'zh-CN' ? '知识工程' : 'Knowledge Flow'),
+          for (var index = 1; index <= 5; index++)
+            _SidebarItem(
+              page: pages[index],
+              icon: _sidebarIconFor(pages[index].id),
+              localeCode: localeCode,
+              contracts: contracts,
+              selected: selectedIndex == index,
+              primaryText: primaryText,
+              secondaryText: secondaryText,
+              selectedBackground: selectedBackground,
+              onTap: () => onPageChanged(index),
             ),
-          );
-        },
+          const SizedBox(height: 12),
+          _SidebarGroupLabel(label: localeCode == 'zh-CN' ? '系统' : 'System'),
+          _SidebarItem(
+            page: pages[6],
+            icon: Icons.tune_outlined,
+            localeCode: localeCode,
+            contracts: contracts,
+            selected: selectedIndex == 6,
+            primaryText: primaryText,
+            secondaryText: secondaryText,
+            selectedBackground: selectedBackground,
+            onTap: () => onPageChanged(6),
+          ),
+          const SizedBox(height: 18),
+          _LocalFirstCard(localeCode: localeCode),
+        ],
       ),
     );
+  }
+}
+
+class _SidebarBrand extends StatelessWidget {
+  const _SidebarBrand({required this.localeCode});
+
+  final String localeCode;
+
+  @override
+  Widget build(BuildContext context) {
+    const primaryText = Color(0xfff7f7f5);
+    const secondaryText = Color(0xffaeb6bf);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(localeCode == 'zh-CN' ? 'HeiTang 黑糖' : 'HeiTang',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: primaryText,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.6,
+                  )),
+          const SizedBox(height: 4),
+          Text(
+              localeCode == 'zh-CN'
+                  ? '知识工作台  v1.0.0'
+                  : 'Knowledge Workbench  v1.0.0',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: secondaryText,
+                    fontWeight: FontWeight.w600,
+                  )),
+          const SizedBox(height: 18),
+          const Divider(color: Color(0xff30363d), height: 1),
+        ],
+      ),
+    );
+  }
+}
+
+class _SidebarGroupLabel extends StatelessWidget {
+  const _SidebarGroupLabel({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 6),
+      child: Text(label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: const Color(0xff8d98a5),
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+              )),
+    );
+  }
+}
+
+class _SidebarItem extends StatelessWidget {
+  const _SidebarItem({
+    required this.page,
+    required this.icon,
+    required this.localeCode,
+    required this.contracts,
+    required this.selected,
+    required this.primaryText,
+    required this.secondaryText,
+    required this.selectedBackground,
+    required this.onTap,
+  });
+
+  final WorkbenchPage page;
+  final IconData icon;
+  final String localeCode;
+  final WorkbenchContracts contracts;
+  final bool selected;
+  final Color primaryText;
+  final Color secondaryText;
+  final Color selectedBackground;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: selected ? selectedBackground : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Icon(icon,
+                  color: selected ? primaryText : secondaryText, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(page.title(localeCode, contracts),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: primaryText,
+                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                    )),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LocalFirstCard extends StatelessWidget {
+  const _LocalFirstCard({required this.localeCode});
+
+  final String localeCode;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xff242a30),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xff38414a)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.shield_outlined, color: Color(0xfff7f7f5), size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(localeCode == 'zh-CN' ? '本地优先' : 'Local first',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: const Color(0xfff7f7f5),
+                          fontWeight: FontWeight.w800,
+                        )),
+                const SizedBox(height: 4),
+                Text(
+                    localeCode == 'zh-CN'
+                        ? '默认不连接云服务'
+                        : 'Cloud is off by default',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: const Color(0xffaeb6bf),
+                        )),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+IconData _sidebarIconFor(String pageId) {
+  switch (pageId) {
+    case 'import-parsing':
+      return Icons.upload_file_outlined;
+    case 'knowledge-package-management':
+      return Icons.inventory_2_outlined;
+    case 'skill-factory':
+      return Icons.extension_outlined;
+    case 'agent-factory-runtime':
+      return Icons.archive_outlined;
+    case 'reports-audit':
+      return Icons.fact_check_outlined;
+    default:
+      return Icons.circle_outlined;
   }
 }
 
@@ -633,16 +817,17 @@ class _PageSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSkillFactory = page.id == 'skill-factory';
+    final isDashboard = page.id == 'dashboard';
     final cards = _cardsFor(
-            page.id,
-            localeCode,
-            contracts,
-            workflowEvidence,
-            workflowV2Evidence,
-            externalCapabilities,
-            parserBackends,
-            skillGovernanceReport,
-            methodologyMap);
+        page.id,
+        localeCode,
+        contracts,
+        workflowEvidence,
+        workflowV2Evidence,
+        externalCapabilities,
+        parserBackends,
+        skillGovernanceReport,
+        methodologyMap);
     final corePanels = <Widget>[];
     final actionById = <String, ContractAction>{};
     for (final pageId in page.pageIds) {
@@ -679,27 +864,25 @@ class _PageSurface extends StatelessWidget {
     }
 
     return SingleChildScrollView(
-      padding: EdgeInsets.all(columns == 1 ? 14 : 24),
+      padding: EdgeInsets.all(columns == 1 ? 14 : 22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(page.title(localeCode, contracts),
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineMedium
-                  ?.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
-          Text(page.description(localeCode),
-              style: Theme.of(context).textTheme.bodyLarge),
-          const SizedBox(height: 20),
-          if (page.id == 'dashboard') ...[
+          _ProductTopBar(
+            localeCode: localeCode,
+            page: page,
+            contracts: contracts,
+            isWebRuntime: isWebRuntime,
+          ),
+          const SizedBox(height: 18),
+          if (isDashboard) ...[
             TaskWorkbenchSurface(
               localeCode: localeCode,
               workspace: coreWorkspace,
             ),
             const SizedBox(height: 20),
           ],
-          if (page.id != 'dashboard') ...[
+          if (!isDashboard) ...[
             _ProductPageOverview(
               localeCode: localeCode,
               page: page,
@@ -713,10 +896,10 @@ class _PageSurface extends StatelessWidget {
             cards: cards,
             columns: columns,
             corePanels: corePanels,
-            parserBackends: page.id != 'dashboard' &&
-                    page.pageIds.any(_showsParserBackends)
-                ? parserBackends
-                : null,
+            parserBackends:
+                page.id != 'dashboard' && page.pageIds.any(_showsParserBackends)
+                    ? parserBackends
+                    : null,
             skillFactoryWorkflow: isSkillFactory ? skillSuiteWorkflow : null,
           ),
         ],
@@ -1150,6 +1333,127 @@ class _CardCopy {
 
   final String title;
   final String body;
+}
+
+class _ProductTopBar extends StatelessWidget {
+  const _ProductTopBar({
+    required this.localeCode,
+    required this.page,
+    required this.contracts,
+    required this.isWebRuntime,
+  });
+
+  final String localeCode;
+  final WorkbenchPage page;
+  final WorkbenchContracts contracts;
+  final bool isWebRuntime;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final titleBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(page.title(localeCode, contracts),
+            style: Theme.of(context)
+                .textTheme
+                .headlineMedium
+                ?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.8)),
+        const SizedBox(height: 6),
+        Text(page.description(localeCode),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                )),
+      ],
+    );
+    final chips = Wrap(
+      alignment: WrapAlignment.end,
+      spacing: 10,
+      runSpacing: 10,
+      children: [
+        _TopBarChip(
+          icon: Icons.search,
+          label: _zh ? '搜索知识、Skill、文档' : 'Search knowledge, Skill, docs',
+        ),
+        _TopBarChip(
+          icon: Icons.terminal,
+          label: _zh ? '终端' : 'Terminal',
+        ),
+        _TopBarChip(
+          icon: isWebRuntime
+              ? Icons.public_off_outlined
+              : Icons.desktop_windows_outlined,
+          label: isWebRuntime
+              ? (_zh ? 'Web 安全展示' : 'Web-safe view')
+              : (_zh ? '桌面本地执行' : 'Desktop local run'),
+        ),
+      ],
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 720) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              titleBlock,
+              const SizedBox(height: 12),
+              chips,
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: titleBlock),
+            const SizedBox(width: 18),
+            Flexible(child: chips),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _TopBarChip extends StatelessWidget {
+  const _TopBarChip({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 17),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    )),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _ProductPageOverview extends StatelessWidget {
