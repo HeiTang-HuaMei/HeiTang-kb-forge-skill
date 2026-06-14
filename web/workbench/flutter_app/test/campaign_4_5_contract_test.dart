@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heitang_workbench/core_bridge/core_bridge_contract.dart';
@@ -213,5 +214,87 @@ void main() {
     expect(result.status, 'fail');
     expect(result.retryable, isFalse);
     expect(result.attempt, 2);
+  });
+
+  test('missing cli produces a structured retryable start failure', () async {
+    const bridge = LocalCoreBridge();
+    final result = await bridge.run(
+      const CoreBridgeRequest(
+        actionId: 'package_build',
+        coreCli: '__missing_heitang_core_cli__',
+        workingDirectory: r'C:\repo',
+        arguments: [
+          'build',
+          '--input',
+          r'C:\workspace\input',
+          '--output',
+          r'C:\workspace\workbench_runs\package_build',
+        ],
+        outputPath: r'C:\workspace\workbench_runs\package_build',
+        allowedOutputRoot: r'C:\workspace',
+      ),
+    );
+
+    expect(result.status, 'retryable');
+    expect(result.retryable, isTrue);
+    expect(result.errorId, 'core_operation_start_failed');
+    expect(result.exitCode, -1);
+  });
+
+  test('invalid working directory produces a structured start failure',
+      () async {
+    const bridge = LocalCoreBridge();
+    final result = await bridge.run(
+      CoreBridgeRequest(
+        actionId: 'package_build',
+        coreCli: Platform.resolvedExecutable,
+        workingDirectory: r'C:\__missing_heitang_workspace__',
+        arguments: const [
+          'build',
+          '--input',
+          r'C:\workspace\input',
+          '--output',
+          r'C:\workspace\workbench_runs\package_build',
+        ],
+        outputPath: r'C:\workspace\workbench_runs\package_build',
+        allowedOutputRoot: r'C:\workspace',
+      ),
+    );
+
+    expect(result.status, 'retryable');
+    expect(result.retryable, isTrue);
+    expect(result.errorId, 'core_operation_start_failed');
+    expect(result.stderr, contains('Core operation failed to start'));
+  });
+
+  test('runner exception does not escape LocalCoreBridge.run', () async {
+    final bridge = LocalCoreBridge(
+      runner: (request) async {
+        throw StateError('boom token=sk-live-secret');
+      },
+    );
+
+    final result = await bridge.run(
+      const CoreBridgeRequest(
+        actionId: 'package_build',
+        coreCli: 'heitang-kb-forge',
+        workingDirectory: r'C:\repo',
+        arguments: [
+          'build',
+          '--input',
+          r'C:\workspace\input',
+          '--output',
+          r'C:\workspace\workbench_runs\package_build',
+        ],
+        outputPath: r'C:\workspace\workbench_runs\package_build',
+        allowedOutputRoot: r'C:\workspace',
+      ),
+    );
+
+    expect(result.status, 'retryable');
+    expect(result.retryable, isTrue);
+    expect(result.errorId, 'core_operation_start_failed');
+    expect(result.stderr, contains('<redacted>'));
+    expect(result.stderr, isNot(contains('sk-live-secret')));
   });
 }

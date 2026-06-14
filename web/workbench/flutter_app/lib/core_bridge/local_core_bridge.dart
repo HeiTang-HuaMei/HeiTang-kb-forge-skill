@@ -241,9 +241,10 @@ class LocalCoreBridge {
 
   Future<CoreBridgeResult> run(CoreBridgeRequest request,
       {bool isWeb = false}) async {
+    List<String>? command;
     try {
-      final command = buildCommand(request, isWeb: isWeb);
-      final processFuture = runner(request).timeout(
+      command = buildCommand(request, isWeb: isWeb);
+      final processFuture = _runSafely(request).timeout(
         request.timeout,
         onTimeout: () => const CoreBridgeProcessResult(
             exitCode: -1,
@@ -285,13 +286,7 @@ class LocalCoreBridge {
         stdout: redactSecrets(result.stdout),
         stderr: redactSecrets(result.stderr),
         commandPreview: redactCommand(command),
-        errorId: cancelled
-            ? 'core_operation_cancelled'
-            : result.timedOut
-                ? 'core_operation_timeout'
-                : result.exitCode == 0
-                    ? ''
-                    : 'core_operation_failed',
+        errorId: cancelled ? 'core_operation_cancelled' : _errorIdFor(result),
         timedOut: result.timedOut,
         cancelled: cancelled,
         retryable: retryable,
@@ -313,7 +308,50 @@ class LocalCoreBridge {
         outputPath: request.outputPath,
         attempt: request.attempt,
       );
+    } catch (error) {
+      return _exceptionResult(
+        request: request,
+        command: command,
+        error: error,
+      );
     }
+  }
+
+  Future<CoreBridgeProcessResult> _runSafely(CoreBridgeRequest request) async {
+    try {
+      return await runner(request);
+    } catch (error) {
+      return CoreBridgeProcessResult(
+        exitCode: -1,
+        stdout: '',
+        stderr: 'Core operation failed to start: $error',
+        startFailed: true,
+      );
+    }
+  }
+
+  CoreBridgeResult _exceptionResult({
+    required CoreBridgeRequest request,
+    required List<String>? command,
+    required Object error,
+  }) {
+    final retryable = request.attempt < request.retryPolicy.maxAttempts &&
+        request.retryPolicy.retryOnProcessFailure;
+    return CoreBridgeResult(
+      status: retryable ? 'retryable' : 'fail',
+      actionId: request.actionId,
+      exitCode: -1,
+      stdout: '',
+      stderr: redactSecrets('Core operation failed to start: $error'),
+      commandPreview:
+          command == null ? const <String>[] : redactCommand(command),
+      errorId: 'core_operation_start_failed',
+      timedOut: false,
+      cancelled: false,
+      retryable: retryable,
+      outputPath: request.outputPath,
+      attempt: request.attempt,
+    );
   }
 
   void _validateRequest(CoreBridgeRequest request, {required bool isWeb}) {
@@ -394,6 +432,19 @@ class LocalCoreBridge {
   }
 }
 
+String _errorIdFor(CoreBridgeProcessResult result) {
+  if (result.timedOut) {
+    return 'core_operation_timeout';
+  }
+  if (result.startFailed) {
+    return 'core_operation_start_failed';
+  }
+  if (result.exitCode == 0) {
+    return '';
+  }
+  return 'core_operation_failed';
+}
+
 class CoreBridgeProcessResult {
   const CoreBridgeProcessResult({
     required this.exitCode,
@@ -401,6 +452,7 @@ class CoreBridgeProcessResult {
     required this.stderr,
     this.timedOut = false,
     this.cancelled = false,
+    this.startFailed = false,
   });
 
   final int exitCode;
@@ -408,6 +460,7 @@ class CoreBridgeProcessResult {
   final String stderr;
   final bool timedOut;
   final bool cancelled;
+  final bool startFailed;
 }
 
 class CoreBridgeException implements Exception {

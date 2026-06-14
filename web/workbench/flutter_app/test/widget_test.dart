@@ -614,6 +614,46 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('core action clears running state after bridge startup failure',
+      (tester) async {
+    final bridge = LocalCoreBridge(
+      runner: (request) async {
+        throw StateError('missing cli token=sk-test-secret');
+      },
+    );
+
+    await tester.binding.setSurfaceSize(const Size(1440, 900));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        coreBridge: bridge,
+        coreCli: 'heitang-kb-forge',
+        coreWorkspace: 'fixture_workspace',
+        isWebRuntime: false,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('知识构建').first);
+    await tester.pumpAndSettle();
+    final ragPanel = find.widgetWithText(CoreActionPanel, 'Run RAG query');
+    final runButton = find.descendant(
+      of: ragPanel,
+      matching: find.text('运行 Core 操作'),
+    );
+    await tester.ensureVisible(runButton);
+    await tester.pumpAndSettle();
+    await tester.tap(runButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('运行中'), findsNothing);
+    expect(find.byKey(const Key('core-action-cancel')), findsNothing);
+    expect(find.textContaining('core_operation_start_failed'), findsOneWidget);
+    expect(find.textContaining('<redacted>'), findsWidgets);
+    expect(find.textContaining('sk-test-secret'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
       'disables local CLI actions on web runtime without calling the runner',
       (tester) async {

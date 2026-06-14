@@ -173,18 +173,45 @@ class _CoreActionPanelState extends State<CoreActionPanel> {
       cancellationToken = token;
       attemptCount = nextAttempt;
     });
-    final nextResult = await widget.coreBridge.run(
-      baseRequest.withAttempt(nextAttempt).withCancellation(token),
-      isWeb: widget.isWebRuntime,
-    );
-    if (!mounted) {
-      return;
+    CoreBridgeResult? nextResult;
+    try {
+      nextResult = await widget.coreBridge.run(
+        baseRequest.withAttempt(nextAttempt).withCancellation(token),
+        isWeb: widget.isWebRuntime,
+      );
+    } catch (error) {
+      final cancelled = token.isCancelled;
+      final retryable = nextAttempt < baseRequest.retryPolicy.maxAttempts &&
+          baseRequest.retryPolicy.retryOnProcessFailure &&
+          !cancelled;
+      nextResult = CoreBridgeResult(
+        status: cancelled
+            ? 'cancelled'
+            : retryable
+                ? 'retryable'
+                : 'fail',
+        actionId: baseRequest.actionId,
+        exitCode: -1,
+        stdout: '',
+        stderr: redactSecrets('Core bridge UI action failed: $error'),
+        commandPreview:
+            redactCommand([baseRequest.coreCli, ...baseRequest.arguments]),
+        errorId: 'core_action_panel_bridge_failed',
+        timedOut: false,
+        cancelled: cancelled,
+        retryable: retryable,
+        outputPath: baseRequest.outputPath,
+        attempt: nextAttempt,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          result = nextResult;
+          running = false;
+          cancellationToken = null;
+        });
+      }
     }
-    setState(() {
-      result = nextResult;
-      running = false;
-      cancellationToken = null;
-    });
   }
 
   void _cancel() {
