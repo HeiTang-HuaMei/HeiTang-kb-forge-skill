@@ -8,9 +8,9 @@
       "evidence_path": "artifacts/audits/campaign_1_3_stage_test/stage_test_result_matrix.json"
     },
     {
-      "test_id": "stage_gate_focused",
+      "test_id": "stage_gate_validation",
       "status": "passed",
-      "evidence_path": "artifacts/audits/current_run/campaign_1_3_stage_test_focused_pytest.log"
+      "evidence_path": "artifacts/audits/campaign_1_3_stage_test/validation_report.json"
     },
     {
       "test_id": "governance_sync",

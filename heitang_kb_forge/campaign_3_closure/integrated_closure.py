@@ -348,7 +348,7 @@ def _forbidden_misinterpretations() -> dict[str, Any]:
 def _test_result_manifest(repo_root: Path) -> dict[str, Any]:
     evidence = [
         ("stage_test", "artifacts/audits/campaign_1_3_stage_test/stage_test_result_matrix.json"),
-        ("stage_gate_focused", "artifacts/audits/current_run/campaign_1_3_stage_test_focused_pytest.log"),
+        ("stage_gate_validation", "artifacts/audits/campaign_1_3_stage_test/validation_report.json"),
         ("governance_sync", "docs/audits/test_engineering/fast_gate_logs/core_fast_test_governance.log.result.json"),
     ]
     errors = []

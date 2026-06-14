@@ -43,7 +43,7 @@ REQUIRED_AGENT_CAPABILITY_PATHS = [
     "tests/test_agent_package_generator.py",
     "tests/test_v31_knowledge_bound_factory_cli.py",
     "tests/test_agent_compat_checker.py",
-    "artifacts/audits/latest/agent_binding_20260612_122900/run_manifest.json",
+    "artifacts/audits/section_5/campaign_3_supplement_4_0_agent_package/run_manifest.json",
 ]
 
 BLOCKED_FUTURE_ITEMS = [

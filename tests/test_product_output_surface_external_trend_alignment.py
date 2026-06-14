@@ -148,7 +148,12 @@ def test_guard_forbids_external_runtime_overclaims_and_campaign_advancement():
     assert forbidden["push_tag_ci_executed"] is False
     assert "external_project_real_integration" in ledger_review["states_forbidden_in_this_task"]
     assert "presenton_ppt_runtime_integrated" in ledger_review["states_forbidden_in_this_task"]
-    assert "Campaign 3 Final Consistency Gate only" in ledger_review["next_e2e_gap"]
+    next_gap = ledger_review["next_e2e_gap"]
+    assert (
+        "Campaign 3 Final Consistency Gate only" in next_gap
+        or "Tag naming policy correction and campaign baseline CI validation only" in next_gap
+    )
+    assert "Campaign 4" in next_gap
 
 
 def test_validation_manifest_routes_product_output_guard_to_governance_fast_gate():

@@ -242,10 +242,10 @@
       ]
     },
     {
-      "item_id": "artifact_available:artifacts/audits/latest/agent_binding_20260612_122900/run_manifest.json",
+      "item_id": "artifact_available:artifacts/audits/section_5/campaign_3_supplement_4_0_agent_package/run_manifest.json",
       "status": "passed",
       "evidence": [
-        "artifacts/audits/latest/agent_binding_20260612_122900/run_manifest.json"
+        "artifacts/audits/section_5/campaign_3_supplement_4_0_agent_package/run_manifest.json"
       ],
       "parsed": true
     },

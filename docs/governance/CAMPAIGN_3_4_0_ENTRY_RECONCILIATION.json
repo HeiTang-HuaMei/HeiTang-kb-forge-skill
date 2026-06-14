@@ -102,7 +102,7 @@
     "tests/test_agent_package_generator.py",
     "tests/test_v31_knowledge_bound_factory_cli.py",
     "tests/test_agent_compat_checker.py",
-    "artifacts/audits/latest/agent_binding_20260612_122900/run_manifest.json",
+    "artifacts/audits/section_5/campaign_3_supplement_4_0_agent_package/run_manifest.json",
     "heitang_kb_forge/cli_runtime.py",
     "docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/knowledge_base/manifest.json",
     "docs/audits/knowledge_supply_chain/real_mixed_e2e_20260612_102508/knowledge_base/evidence_map.json",
