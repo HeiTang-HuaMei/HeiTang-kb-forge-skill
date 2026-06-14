@@ -1,18 +1,27 @@
 import '../contracts/workbench_contracts.dart';
 import '../core_bridge/local_core_bridge.dart';
+import '../settings/runtime_cache_settings.dart';
 
 CoreBridgeRequest? coreRequestForAction({
   required ContractAction action,
   required String coreCli,
   required String workingDirectory,
   required String workspace,
+  RuntimeCacheSettings? runtimeCacheSettings,
 }) {
-  final deterministicSmoke = action.status == 'dry_run' && action.commandKind == 'ui_safe_wrapper' && action.desktopBlockedReason == 'mock_only';
-  final realLocalWorkflow = action.status == 'ready' && action.commandKind == 'core_cli' && action.desktopEnabled;
+  final deterministicSmoke = action.status == 'dry_run' &&
+      action.commandKind == 'ui_safe_wrapper' &&
+      action.desktopBlockedReason == 'mock_only';
+  final realLocalWorkflow = action.status == 'ready' &&
+      action.commandKind == 'core_cli' &&
+      action.desktopEnabled;
   if (!realLocalWorkflow && !deterministicSmoke) {
     return null;
   }
-  final arguments = argumentsForCoreCommand(action.command, actionId: action.id, workspace: workspace, workingDirectory: workingDirectory);
+  final arguments = argumentsForCoreCommand(action.command,
+      actionId: action.id,
+      workspace: workspace,
+      workingDirectory: workingDirectory);
   if (arguments == null) {
     return null;
   }
@@ -22,11 +31,21 @@ CoreBridgeRequest? coreRequestForAction({
     coreCli: coreCli,
     workingDirectory: workingDirectory,
     arguments: arguments,
+    environment:
+        (runtimeCacheSettings ?? RuntimeCacheSettings.forWorkspace(workspace))
+            .environmentForAction(action.id),
   );
 }
 
-List<String>? argumentsForCoreCommand(String command, {required String actionId, required String workspace, required String workingDirectory}) {
-  final parts = command.trim().split(RegExp(r'\s+')).where((part) => part.isNotEmpty).toList(growable: false);
+List<String>? argumentsForCoreCommand(String command,
+    {required String actionId,
+    required String workspace,
+    required String workingDirectory}) {
+  final parts = command
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((part) => part.isNotEmpty)
+      .toList(growable: false);
   if (parts.isEmpty) {
     return null;
   }
@@ -40,6 +59,10 @@ List<String>? argumentsForCoreCommand(String command, {required String actionId,
     '<before>': '$workspace/skill_suite_before',
     '<after>': '$workspace/skill_suite',
     '<input>': '$workspace/input',
+    '<preflight>': '$workspace/workbench_runs/batch_import_documents',
+    '<du_output>': '$workspace/workbench_runs/run_document_understanding',
+    '<knowledge_base>': '$workspace/workbench_runs/build_knowledge_base',
+    '<runtime_config>': '$workspace/runtime_backend_config.json',
     '<source>': '$workspace/source',
     '<output>': '$workspace/workbench_runs/$actionId',
     '<query>': 'Summarize this knowledge package.',

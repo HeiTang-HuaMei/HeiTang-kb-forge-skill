@@ -8,7 +8,9 @@ import 'core_actions/workbench_actions.dart';
 import 'core_bridge/local_core_bridge.dart';
 import 'contracts/workbench_contracts.dart';
 import 'backend_evidence/parser_backend_dashboard.dart';
+import 'external_sources/external_link_import_panel.dart';
 import 'skill_factory/skill_factory_workflow.dart';
+import 'settings/runtime_cache_settings.dart';
 
 void main() {
   runApp(const HeiTangWorkbenchApp());
@@ -700,22 +702,25 @@ class _PageSurface extends StatelessWidget {
     final cards = isSkillFactory
         ? const <_CardCopy>[]
         : _cardsFor(
-        page.id,
-        localeCode,
-        contracts,
-        workflowEvidence,
-        workflowV2Evidence,
-        externalCapabilities,
-        parserBackends,
-        skillGovernanceReport,
-        methodologyMap);
+            page.id,
+            localeCode,
+            contracts,
+            workflowEvidence,
+            workflowV2Evidence,
+            externalCapabilities,
+            parserBackends,
+            skillGovernanceReport,
+            methodologyMap);
     final corePanels = <Widget>[];
+    final runtimeCacheSettings =
+        RuntimeCacheSettings.forWorkspace(coreWorkspace);
     for (final action in coreActionsForPage(page.id, contracts)) {
       final request = coreRequestForAction(
         action: action,
         coreCli: coreCli,
         workingDirectory: coreWorkingDirectory,
         workspace: coreWorkspace,
+        runtimeCacheSettings: runtimeCacheSettings,
       );
       corePanels.add(
         CoreActionPanel(
@@ -743,6 +748,25 @@ class _PageSurface extends StatelessWidget {
           Text(page.description(localeCode),
               style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: 20),
+          if (page.id == 'workspace') ...[
+            RuntimeCacheSettingsCard(
+              settings: runtimeCacheSettings,
+              localeCode: localeCode,
+            ),
+            const SizedBox(height: 20),
+          ],
+          if (page.id == 'import-parsing') ...[
+            ExternalLinkImportPanel(
+              coreBridge: coreBridge,
+              coreCli: coreCli,
+              workingDirectory: coreWorkingDirectory,
+              workspace: coreWorkspace,
+              enabled: enableLocalCoreActions,
+              isWebRuntime: isWebRuntime,
+              localeCode: localeCode,
+            ),
+            const SizedBox(height: 20),
+          ],
           if (isSkillFactory)
             SkillFactoryWorkflowSurface(
               localeCode: localeCode,
@@ -975,19 +999,16 @@ class _PageSurface extends StatelessWidget {
             zh ? 'Workbench display evidence' : 'Workbench display evidence',
             'asset=${governanceUiContract['asset_id']} · display=${governanceUiContract['ready_for_workbench_display']} · static_only=true'),
       if (_showsMethodology(id))
-        _CardCopy(
-            zh ? '方法论地图' : 'Methodology Map',
+        _CardCopy(zh ? '方法论地图' : 'Methodology Map',
             '${methodologyMap['source_package_id']} · modules=${methodologyMap['module_count']} · confidence=${methodologyMap['confidence']}'),
       if (_showsMethodology(id))
         _CardCopy(zh ? 'Evidence Windows' : 'Evidence Windows',
             'count=${methodologyEvidence.length} · ${methodologyEvidence.take(3).join(' · ')}'),
       if (_showsMethodology(id))
-        _CardCopy(
-            zh ? '方法论模块' : 'Methodology Module',
+        _CardCopy(zh ? '方法论模块' : 'Methodology Module',
             '${firstMethodologyModule['title']} · concepts=${(firstMethodologyModule['concepts'] as List?)?.length ?? 0} · principles=${(firstMethodologyModule['principles'] as List?)?.length ?? 0} · workflows=${(firstMethodologyModule['workflows'] as List?)?.length ?? 0}'),
       if (_showsMethodology(id))
-        _CardCopy(
-            zh ? '来源追踪 / 风险' : 'Source Trace / Risk',
+        _CardCopy(zh ? '来源追踪 / 风险' : 'Source Trace / Risk',
             'trace=${methodologyEvidence.length} · unsupported=${unsupportedClaims['status']} · risks=${methodologyRisks.isEmpty ? 'none' : methodologyRisks.join('/')} · static_only=true'),
       if (externalProjects.isNotEmpty)
         _CardCopy(

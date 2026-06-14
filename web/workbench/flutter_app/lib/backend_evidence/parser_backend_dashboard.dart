@@ -18,6 +18,12 @@ class ParserBackendEvidenceDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     final runtimeCount = matrix.realRuntimeIntegratedCount;
     final builtin = matrix.backend('builtin');
+    final docling = matrix.backend('docling');
+    final marker = matrix.backend('marker');
+    final mineru = matrix.backend('mineru');
+    final opendataloader = matrix.backend('opendataloader');
+    final paddleocr = matrix.backend('paddleocr');
+    final surya = matrix.backend('surya');
     final unstructured = matrix.backend('unstructured');
 
     return Column(
@@ -34,11 +40,11 @@ class ParserBackendEvidenceDashboard extends StatelessWidget {
           children: [
             _SummaryTile(
               icon: Icons.memory_outlined,
-              label: _zh ? 'Runtime Backends' : 'Runtime Backends',
+              label: _zh ? 'Core 集成适配器' : 'Core Integrated Adapters',
               value: '$runtimeCount integrated',
               note: _zh
-                  ? 'docling / paddleocr / unstructured'
-                  : 'docling / paddleocr / unstructured',
+                  ? 'docling / marker / mineru / opendataloader / paddleocr / unstructured'
+                  : 'docling / marker / mineru / opendataloader / paddleocr / unstructured',
             ),
             _SummaryTile(
               icon: Icons.restart_alt_outlined,
@@ -53,6 +59,62 @@ class ParserBackendEvidenceDashboard extends StatelessWidget {
               note: _zh
                   ? 'default install keeps heavy deps out'
                   : 'default install keeps heavy deps out',
+            ),
+            _SummaryTile(
+              icon: Icons.article_outlined,
+              label: _zh ? 'Docling 状态' : 'Docling Status',
+              value: docling?.lastAcceptanceStatus ?? 'not_ready',
+              note: docling == null
+                  ? 'parser-docling'
+                  : '${docling.installMode.label} · ${docling.validatedStableSurface.join(', ')}',
+            ),
+            _SummaryTile(
+              icon: Icons.rule_folder_outlined,
+              label: _zh ? 'Marker 状态' : 'Marker Status',
+              value: marker?.status ?? 'dependency_missing',
+              note: marker == null
+                  ? 'parser-marker'
+                  : marker.workbenchState.join(' / '),
+            ),
+            _SummaryTile(
+              icon: Icons.auto_awesome_mosaic_outlined,
+              label: _zh ? 'MinerU 状态' : 'MinerU Status',
+              value: mineru?.lastAcceptanceStatus ?? 'not_ready',
+              note: mineru == null
+                  ? 'parser-mineru'
+                  : '${mineru.installMode.label} · ${mineru.validatedStableSurface.join(', ')}',
+            ),
+            _SummaryTile(
+              icon: Icons.picture_as_pdf_outlined,
+              label: _zh ? 'OpenDataLoader 状态' : 'OpenDataLoader Status',
+              value: opendataloader?.lastAcceptanceStatus ?? 'not_ready',
+              note: opendataloader == null
+                  ? 'parser-opendataloader'
+                  : '${opendataloader.installMode.label} · ${opendataloader.validatedStableSurface.join(', ')}',
+            ),
+            _SummaryTile(
+              icon: Icons.document_scanner_outlined,
+              label: _zh ? 'PaddleOCR 状态' : 'PaddleOCR Status',
+              value: paddleocr?.lastAcceptanceStatus ?? 'not_ready',
+              note: paddleocr == null
+                  ? 'parser-paddleocr'
+                  : '${paddleocr.installMode.label} · ${paddleocr.validatedStableSurface.join(', ')}',
+            ),
+            _SummaryTile(
+              icon: Icons.compare_arrows_outlined,
+              label: _zh ? 'Surya 基准' : 'Surya Benchmark',
+              value: surya?.status ?? 'needs_strengthening',
+              note: surya == null
+                  ? 'benchmark/reference'
+                  : surya.workbenchState.join(' / '),
+            ),
+            _SummaryTile(
+              icon: Icons.text_snippet_outlined,
+              label: _zh ? 'Unstructured 状态' : 'Unstructured Status',
+              value: unstructured?.lastAcceptanceStatus ?? 'dependency_missing',
+              note: unstructured == null
+                  ? 'parser-unstructured · .md, .txt'
+                  : '${unstructured.installMode.label} · ${unstructured.validatedStableSurface.join(', ')}',
             ),
             _SummaryTile(
               icon: Icons.verified_outlined,
@@ -71,6 +133,14 @@ class ParserBackendEvidenceDashboard extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _Callout(
+          icon: Icons.restart_alt_outlined,
+          title: _zh ? 'Fallback Parser Contract' : 'Fallback Parser Contract',
+          body: _zh
+              ? 'Builtin fallback 只稳定声明基础 .md/.txt 文本文档；它不是完整 Document Understanding / OCR / layout 后端。'
+              : 'Builtin fallback only makes a stable basic .md/.txt text-document claim; it is not a full Document Understanding, OCR, or layout backend.',
+        ),
+        const SizedBox(height: 8),
+        _Callout(
           icon: Icons.desktop_windows_outlined,
           title: _zh ? 'Workbench 执行边界' : 'Workbench Execution Boundary',
           body: _zh
@@ -82,8 +152,8 @@ class ParserBackendEvidenceDashboard extends StatelessWidget {
           icon: Icons.inventory_2_outlined,
           title: _zh ? '默认依赖边界' : 'Default Dependency Boundary',
           body: _zh
-              ? 'Docling、PaddleOCR、Unstructured 均为 optional dependency gated，不打包进默认安装。'
-              : 'Docling, PaddleOCR, and Unstructured are optional dependency gated and are not bundled by default.',
+              ? 'Parser/OCR 可选后端依赖均为 optional dependency gated，不打包进默认安装。'
+              : 'Parser/OCR optional backend dependencies are gated and are not bundled by default.',
         ),
         const SizedBox(height: 16),
         _DashboardPanel(

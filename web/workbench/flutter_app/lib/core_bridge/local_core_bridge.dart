@@ -15,6 +15,7 @@ class CoreBridgeRequest {
     required this.arguments,
     this.timeout = const Duration(seconds: 120),
     this.environment = const <String, String>{},
+    this.allowedPathRoot,
   });
 
   final String actionId;
@@ -23,6 +24,7 @@ class CoreBridgeRequest {
   final List<String> arguments;
   final Duration timeout;
   final Map<String, String> environment;
+  final String? allowedPathRoot;
 }
 
 class CoreBridgeResult {
@@ -67,7 +69,45 @@ class LocalCoreBridge {
     'input_file_folder_glob': <String>['workbench-action-dry-run'],
     'source_validate': <String>['check-contract'],
     'source_inventory': <String>['workbench-action-dry-run'],
+    'ingest_external_link': <String>['ingest-link'],
+    'detect_platform_link': <String>['detect-platform-link'],
+    'preflight_platform_link': <String>['preflight-platform-link'],
+    'check_opencli_external_verification': <String>[
+      'check-opencli-external-verification'
+    ],
+    'verify_external_source': <String>['verify-external-source'],
+    'import_manual_evidence': <String>['import-manual-evidence'],
+    'build_external_source_unified_trace': <String>[
+      'build-external-source-unified-trace'
+    ],
+    'preflight_documents': <String>['preflight-documents'],
+    'batch_import_documents': <String>['batch-import-documents'],
+    'run_document_understanding': <String>['run-document-understanding'],
+    'build_knowledge_base': <String>['build-knowledge-base'],
+    'build_knowledge_package': <String>['build-knowledge-package'],
     'format_support_matrix': <String>['parser-backend-list'],
+    'fallback_parser_contract': <String>['fallback-parser-contract'],
+    'check_docling_backend': <String>['check-docling-backend'],
+    'smoke_docling_backend': <String>['smoke-docling-backend'],
+    'run_docling_convert': <String>['run-docling-convert'],
+    'check_unstructured_backend': <String>['check-unstructured-backend'],
+    'smoke_unstructured_backend': <String>['smoke-unstructured-backend'],
+    'check_marker_backend': <String>['check-marker-backend'],
+    'smoke_marker_backend': <String>['smoke-marker-backend'],
+    'run_marker_convert': <String>['run-marker-convert'],
+    'check_paddleocr_backend': <String>['check-paddleocr-backend'],
+    'smoke_paddleocr_backend': <String>['smoke-paddleocr-backend'],
+    'run_paddleocr_ocr': <String>['run-paddleocr-ocr'],
+    'check_mineru_backend': <String>['check-mineru-backend'],
+    'smoke_mineru_backend': <String>['smoke-mineru-backend'],
+    'run_mineru_document_understanding': <String>[
+      'run-mineru-document-understanding'
+    ],
+    'check_opendataloader_backend': <String>['check-opendataloader-backend'],
+    'smoke_opendataloader_backend': <String>['smoke-opendataloader-backend'],
+    'run_opendataloader_convert': <String>['run-opendataloader-convert'],
+    'check_surya_backend': <String>['check-surya-backend'],
+    'smoke_surya_backend': <String>['smoke-surya-backend'],
     'parser_preflight': <String>['parse-quality-gate'],
     'ocr_required_detection': <String>['full-ocr-acceptance'],
     'parse_repair_suggest': <String>['parse-reimport-corrected-text'],
@@ -103,7 +143,9 @@ class LocalCoreBridge {
     'build_skill_suite': <String>['build-skill-suite'],
     'validate_skill_suite': <String>['validate-skill-suite'],
     'diff_skill_suite': <String>['diff-skill-suite'],
-    'check_skill_suite_installability': <String>['check-skill-suite-installability'],
+    'check_skill_suite_installability': <String>[
+      'check-skill-suite-installability'
+    ],
     'skill_suite_governance_report': <String>['skill-suite-governance-report'],
     'export_skill_pack': <String>['export-skill-pack'],
     'template_skill_generation': <String>['workbench-action-dry-run'],
@@ -161,21 +203,29 @@ class LocalCoreBridge {
   };
 
   final Map<String, List<String>> allowedActions;
-  final Future<CoreBridgeProcessResult> Function(CoreBridgeRequest request) runner;
+  final Future<CoreBridgeProcessResult> Function(CoreBridgeRequest request)
+      runner;
 
-  CoreBridgeCapability capability({bool isWeb = false}) => isWeb ? CoreBridgeCapability.webUnsupported : CoreBridgeCapability.desktopLocalCli;
+  CoreBridgeCapability capability({bool isWeb = false}) => isWeb
+      ? CoreBridgeCapability.webUnsupported
+      : CoreBridgeCapability.desktopLocalCli;
 
   List<String> buildCommand(CoreBridgeRequest request, {bool isWeb = false}) {
     _validateRequest(request, isWeb: isWeb);
     return <String>[request.coreCli, ...request.arguments];
   }
 
-  Future<CoreBridgeResult> run(CoreBridgeRequest request, {bool isWeb = false}) async {
+  Future<CoreBridgeResult> run(CoreBridgeRequest request,
+      {bool isWeb = false}) async {
     try {
       final command = buildCommand(request, isWeb: isWeb);
       final result = await runner(request).timeout(
         request.timeout,
-        onTimeout: () => const CoreBridgeProcessResult(exitCode: -1, stdout: '', stderr: 'Core operation timed out.', timedOut: true),
+        onTimeout: () => const CoreBridgeProcessResult(
+            exitCode: -1,
+            stdout: '',
+            stderr: 'Core operation timed out.',
+            timedOut: true),
       );
       return CoreBridgeResult(
         status: result.exitCode == 0 && !result.timedOut ? 'pass' : 'fail',
@@ -184,7 +234,11 @@ class LocalCoreBridge {
         stdout: redactSecrets(result.stdout),
         stderr: redactSecrets(result.stderr),
         commandPreview: redactCommand(command),
-        errorId: result.timedOut ? 'core_operation_timeout' : result.exitCode == 0 ? '' : 'core_operation_failed',
+        errorId: result.timedOut
+            ? 'core_operation_timeout'
+            : result.exitCode == 0
+                ? ''
+                : 'core_operation_failed',
         timedOut: result.timedOut,
       );
     } on CoreBridgeException catch (error) {
@@ -203,26 +257,170 @@ class LocalCoreBridge {
 
   void _validateRequest(CoreBridgeRequest request, {required bool isWeb}) {
     if (isWeb) {
-      throw const CoreBridgeException('core_bridge_web_unsupported', 'Local Core CLI operations are available only in desktop/local runtime.');
+      throw const CoreBridgeException('core_bridge_web_unsupported',
+          'Local Core CLI operations are available only in desktop/local runtime.');
     }
-    if (_containsShellSyntax(request.coreCli) || request.arguments.any(_containsShellSyntax)) {
-      throw const CoreBridgeException('core_bridge_shell_syntax_rejected', 'Shell metacharacters are not allowed in Core operation arguments.');
+    if (_containsShellSyntax(request.coreCli) ||
+        request.arguments.any(_containsShellSyntax)) {
+      throw const CoreBridgeException('core_bridge_shell_syntax_rejected',
+          'Shell metacharacters are not allowed in Core operation arguments.');
+    }
+    if (_isShellExecutable(request.coreCli)) {
+      throw const CoreBridgeException('core_bridge_shell_executable_rejected',
+          'Shell executables are not allowed as the Core bridge process.');
     }
     final allowedCommands = allowedActions[request.actionId];
     if (allowedCommands == null) {
-      throw CoreBridgeException('core_bridge_action_not_allowed', 'Action ${request.actionId} is not allowlisted for local Core execution.');
+      throw CoreBridgeException('core_bridge_action_not_allowed',
+          'Action ${request.actionId} is not allowlisted for local Core execution.');
     }
-    if (request.arguments.isEmpty || !allowedCommands.contains(request.arguments.first)) {
-      throw CoreBridgeException('core_bridge_command_not_allowed', 'Command ${request.arguments.isEmpty ? '<empty>' : request.arguments.first} is not allowed for ${request.actionId}.');
+    if (request.arguments.isEmpty ||
+        !allowedCommands.contains(request.arguments.first)) {
+      throw CoreBridgeException('core_bridge_command_not_allowed',
+          'Command ${request.arguments.isEmpty ? '<empty>' : request.arguments.first} is not allowed for ${request.actionId}.');
     }
-    if (request.environment.keys.any((key) => key.toUpperCase().contains('KEY') || key.toUpperCase().contains('SECRET') || key.toUpperCase().contains('TOKEN'))) {
-      throw const CoreBridgeException('core_bridge_secret_env_rejected', 'Provider secrets must stay outside UI bridge requests.');
+    if (request.environment.keys.any((key) =>
+        key.toUpperCase().contains('KEY') ||
+        key.toUpperCase().contains('SECRET') ||
+        key.toUpperCase().contains('TOKEN'))) {
+      throw const CoreBridgeException('core_bridge_secret_env_rejected',
+          'Provider secrets must stay outside UI bridge requests.');
+    }
+    if (request.actionId == 'ingest_external_link') {
+      _validateExternalLinkImport(request);
     }
   }
 
   static bool _containsShellSyntax(String value) {
     const blocked = <String>['&&', '||', ';', '|', '`', r'$(', '>', '<'];
     return blocked.any(value.contains);
+  }
+
+  static bool _isShellExecutable(String value) {
+    final executable =
+        value.trim().replaceAll('\\', '/').split('/').last.toLowerCase();
+    return const <String>{
+      'cmd',
+      'cmd.exe',
+      'powershell',
+      'powershell.exe',
+      'pwsh',
+      'pwsh.exe',
+      'bash',
+      'bash.exe',
+      'sh',
+      'sh.exe',
+      'zsh',
+      'zsh.exe',
+    }.contains(executable);
+  }
+
+  static void _validateExternalLinkImport(CoreBridgeRequest request) {
+    final arguments = request.arguments;
+    if (arguments.length < 4 || arguments.first != 'ingest-link') {
+      throw const CoreBridgeException('external_link_import_arguments_invalid',
+          'External link import requires one URL and a controlled output path.');
+    }
+    final uri = Uri.tryParse(arguments[1]);
+    if (uri == null ||
+        !uri.hasAuthority ||
+        !const {'http', 'https'}.contains(uri.scheme.toLowerCase()) ||
+        uri.userInfo.isNotEmpty) {
+      throw const CoreBridgeException('external_link_import_url_rejected',
+          'Only credential-free public HTTP/HTTPS URLs are accepted.');
+    }
+    final outputIndex = arguments.indexOf('--output');
+    if (outputIndex < 0 ||
+        outputIndex + 1 >= arguments.length ||
+        arguments[outputIndex + 1].trim().isEmpty) {
+      throw const CoreBridgeException('external_link_import_output_required',
+          'External link import requires a controlled output path.');
+    }
+    _validateExternalLinkOutputBoundary(arguments, request.allowedPathRoot);
+    _validateExternalLinkTimeout(arguments);
+  }
+
+  static void _validateExternalLinkOutputBoundary(
+      List<String> arguments, String? allowedPathRoot) {
+    final outputIndex = arguments.indexOf('--output');
+    final outputPath = outputIndex >= 0 && outputIndex + 1 < arguments.length
+        ? arguments[outputIndex + 1]
+        : '';
+    if (allowedPathRoot == null || allowedPathRoot.trim().isEmpty) {
+      throw const CoreBridgeException(
+          'external_link_import_path_boundary_required',
+          'External link import requires an explicit workspace path boundary.');
+    }
+    if (!_isWithinPathBoundary(outputPath, allowedPathRoot)) {
+      throw const CoreBridgeException(
+          'external_link_import_path_boundary_rejected',
+          'External link import output must stay inside the configured workspace.');
+    }
+  }
+
+  static bool _isWithinPathBoundary(String candidate, String root) {
+    final normalizedRoot = _normalizePath(root);
+    final normalizedCandidate = _normalizePath(candidate);
+    if (normalizedRoot == '.') {
+      return !_isAbsolutePath(normalizedCandidate) &&
+          !normalizedCandidate.split('/').contains('..');
+    }
+    return normalizedCandidate == normalizedRoot ||
+        normalizedCandidate.startsWith('$normalizedRoot/');
+  }
+
+  static String _normalizePath(String value) {
+    final slashPath =
+        value.trim().replaceAll('\\', '/').replaceAll(RegExp('/+'), '/');
+    final prefix = slashPath.startsWith('/')
+        ? '/'
+        : RegExp(r'^[A-Za-z]:')
+                .firstMatch(slashPath)
+                ?.group(0)
+                ?.toLowerCase() ??
+            '';
+    final source = prefix.isEmpty
+        ? slashPath
+        : slashPath.substring(prefix == '/' ? 1 : prefix.length);
+    final parts = <String>[];
+    for (final part in source.split('/')) {
+      if (part.isEmpty || part == '.') {
+        continue;
+      }
+      if (part == '..') {
+        if (parts.isNotEmpty && parts.last != '..') {
+          parts.removeLast();
+        } else {
+          parts.add(part);
+        }
+      } else {
+        parts.add(part.toLowerCase());
+      }
+    }
+    if (prefix == '/') {
+      return '/${parts.join('/')}';
+    }
+    if (prefix.isNotEmpty) {
+      return '$prefix/${parts.join('/')}';
+    }
+    return parts.isEmpty ? '.' : parts.join('/');
+  }
+
+  static bool _isAbsolutePath(String value) {
+    return value.startsWith('/') || RegExp(r'^[a-z]:/').hasMatch(value);
+  }
+
+  static void _validateExternalLinkTimeout(List<String> arguments) {
+    final timeoutIndex = arguments.indexOf('--timeout-seconds');
+    if (timeoutIndex >= 0) {
+      final timeout = timeoutIndex + 1 < arguments.length
+          ? int.tryParse(arguments[timeoutIndex + 1])
+          : null;
+      if (timeout == null || timeout < 1 || timeout > 300) {
+        throw const CoreBridgeException('external_link_import_timeout_rejected',
+            'External link import timeout must be between 1 and 300 seconds.');
+      }
+    }
   }
 }
 
@@ -247,10 +445,13 @@ class CoreBridgeException implements Exception {
   final String message;
 }
 
-List<String> redactCommand(List<String> command) => command.map((part) => redactSecrets(part)).toList(growable: false);
+List<String> redactCommand(List<String> command) =>
+    command.map((part) => redactSecrets(part)).toList(growable: false);
 
 String redactSecrets(String value) {
   var redacted = value.replaceAll(RegExp(r'sk-[A-Za-z0-9_-]+'), '<redacted>');
-  redacted = redacted.replaceAll(RegExp(r'(api[_-]?key|token|secret)=\S+', caseSensitive: false), '<redacted>');
+  redacted = redacted.replaceAll(
+      RegExp(r'(api[_-]?key|token|secret)=\S+', caseSensitive: false),
+      '<redacted>');
   return redacted;
 }

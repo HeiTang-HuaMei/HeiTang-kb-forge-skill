@@ -1,8 +1,11 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:heitang_workbench/core_actions/page_action_mapping.dart';
+import 'package:heitang_workbench/core_actions/core_action_panel.dart';
 import 'package:heitang_workbench/core_actions/workbench_actions.dart';
 import 'package:heitang_workbench/core_bridge/local_core_bridge.dart';
 import 'package:heitang_workbench/contracts/workbench_contracts.dart';
@@ -70,9 +73,8 @@ void main() {
 
   test('p2.2 methodology map asset preserves evidence and risk boundary',
       () async {
-    final methodology = jsonDecode(await rootBundle
-            .loadString('assets/fixtures/p2_2/methodology_map.json'))
-        as Map<String, dynamic>;
+    final methodology = jsonDecode(await rootBundle.loadString(
+        'assets/fixtures/p2_2/methodology_map.json')) as Map<String, dynamic>;
     final modules = methodology['methodology_modules'] as List<dynamic>;
     final first = modules.first as Map<String, dynamic>;
 
@@ -86,6 +88,108 @@ void main() {
     expect(methodology['risk_flags'], contains('missing_execution_evidence'));
     expect(methodology['unsupported_claim_detection']['status'], 'pass');
     expect(methodology['tests_require_real_llm_api_network'], isFalse);
+  });
+
+  test(
+      'import parsing maps document backend actions to the desktop bridge only',
+      () {
+    final actions =
+        coreActionsForPage('import-parsing', sampleWorkbenchContracts);
+    const expectedCommands = <String, String>{
+      'preflight_documents': 'preflight-documents',
+      'batch_import_documents': 'batch-import-documents',
+      'run_document_understanding': 'run-document-understanding',
+      'fallback_parser_contract': 'fallback-parser-contract',
+      'check_marker_backend': 'check-marker-backend',
+      'smoke_marker_backend': 'smoke-marker-backend',
+      'run_marker_convert': 'run-marker-convert',
+      'check_docling_backend': 'check-docling-backend',
+      'smoke_docling_backend': 'smoke-docling-backend',
+      'run_docling_convert': 'run-docling-convert',
+      'check_unstructured_backend': 'check-unstructured-backend',
+      'smoke_unstructured_backend': 'smoke-unstructured-backend',
+      'check_mineru_backend': 'check-mineru-backend',
+      'smoke_mineru_backend': 'smoke-mineru-backend',
+      'run_mineru_document_understanding': 'run-mineru-document-understanding',
+      'check_opendataloader_backend': 'check-opendataloader-backend',
+      'smoke_opendataloader_backend': 'smoke-opendataloader-backend',
+      'run_opendataloader_convert': 'run-opendataloader-convert',
+      'check_paddleocr_backend': 'check-paddleocr-backend',
+      'smoke_paddleocr_backend': 'smoke-paddleocr-backend',
+      'run_paddleocr_ocr': 'run-paddleocr-ocr',
+    };
+    const bridge = LocalCoreBridge();
+
+    expect(
+        actions.map((action) => action.id), containsAll(expectedCommands.keys));
+    for (final action
+        in actions.where((item) => expectedCommands.containsKey(item.id))) {
+      expect(action.desktopEnabled, isTrue, reason: action.id);
+      expect(action.webEnabled, isFalse, reason: action.id);
+      expect(action.webBlockedReason, 'web_local_cli_unsupported',
+          reason: action.id);
+      final request = coreRequestForAction(
+        action: action,
+        coreCli: 'python',
+        workingDirectory: r'C:\repo',
+        workspace: r'C:\workspace',
+      );
+      expect(request, isNotNull, reason: action.id);
+      expect(request!.arguments.first, expectedCommands[action.id]);
+      expect(bridge.buildCommand(request)[1], expectedCommands[action.id]);
+      if (action.id.contains('marker')) {
+        expect(request.environment['MODEL_CACHE_DIR'],
+            r'C:\workspace\.heitang\runtime_cache\marker');
+        expect(request.environment['HEITANG_MARKER_MODEL_CACHE'],
+            r'C:\workspace\.heitang\runtime_cache\marker');
+      }
+      expect(
+        () => bridge.buildCommand(request, isWeb: true),
+        throwsA(isA<CoreBridgeException>().having((error) => error.errorId,
+            'errorId', 'core_bridge_web_unsupported')),
+        reason: action.id,
+      );
+    }
+    for (final action in actions.where((item) => item.id.contains('surya'))) {
+      expect(action.status, 'blocked', reason: action.id);
+      expect(action.desktopEnabled, isFalse, reason: action.id);
+      expect(action.desktopBlockedReason,
+          'surya_reference_benchmark_dependency_remediation_pending',
+          reason: action.id);
+      expect(
+        coreRequestForAction(
+          action: action,
+          coreCli: 'python',
+          workingDirectory: r'C:\repo',
+          workspace: r'C:\workspace',
+        ),
+        isNull,
+        reason: action.id,
+      );
+    }
+  });
+
+  test('knowledge workflow actions map DU to KB to package paths', () {
+    final actions = coreActionsForPage(
+        'knowledge-package-management', sampleWorkbenchContracts);
+    final byId = {for (final action in actions) action.id: action};
+    const bridge = LocalCoreBridge();
+
+    for (final entry in const <String, String>{
+      'build_knowledge_base': 'build-knowledge-base',
+      'build_knowledge_package': 'build-knowledge-package',
+    }.entries) {
+      final request = coreRequestForAction(
+        action: byId[entry.key]!,
+        coreCli: 'python',
+        workingDirectory: r'C:\repo',
+        workspace: r'C:\workspace',
+      );
+      expect(request, isNotNull);
+      expect(request!.arguments.first, entry.value);
+      expect(bridge.buildCommand(request)[1], entry.value);
+      expect(request.arguments, contains('--progress-jsonl'));
+    }
   });
 
   test('p1 real workflow v1 evidence parses and keeps gate blocked', () async {
@@ -208,7 +312,7 @@ void main() {
     expect(remainingBlockers['status'], 'blocked');
   });
 
-  test('external capability assets parse as boundary-only S/A contract data',
+  test('external capability assets preserve boundaries and current provider status',
       () async {
     final registry = ExternalCapabilityRegistry.fromJsonString(await rootBundle
         .loadString('assets/external/external_capability_registry.json'));
@@ -219,23 +323,137 @@ void main() {
       for (final project in registry.projects) project.projectId: project
     };
 
-    expect(registry.sProjectCount, 7);
-    expect(registry.aProjectCount, 16);
-    expect(registry.externalProjectCount, 23);
+    expect(registry.sProjectCount, 8);
+    expect(registry.aProjectCount, 18);
+    expect(registry.externalProjectCount, 26);
     expect(registry.internalCapabilityAnchorCount, 8);
     expect(registry.releaseBoundary['p1_gate_changed'], isFalse);
     expect(registry.releaseBoundary['v4_0_started'], isFalse);
-    expect(registry.releaseBoundary['external_features_implemented'], isFalse);
+    expect(registry.releaseBoundary['external_features_implemented'], isTrue);
     expect(
         registry.projects
             .every((project) => project.canExecuteLocallyBeforeV4 == false),
         isTrue);
     expect(projects['n8n']!.requiresExternalRuntime, isTrue);
-    expect(projects['anysearchskill']!.requiresApiKey, isTrue);
+    expect(projects['anysearchskill']!.requiresApiKey, isFalse);
     expect(projects['anysearchskill']!.requiresNetwork, isTrue);
-    expect(projects['llm_wiki_v2']!.contractStatus, contains('future_adapter'));
-    expect(projects['weknora']!.contractStatus, contains('future_adapter'));
-    expect(matrix['external_project_count'], 23);
+    expect(projects['anysearchskill']!.contractStatus,
+        containsAll(['provider_adapter', 'real_smoke_passed', 'needs_strengthening']));
+    expect(projects['anysearchskill']!.blockedReason,
+        'ui_configuration_pending');
+    expect(projects['llm_wiki_v2']!.contractStatus,
+        containsAll(['capability_fusion', 'real_integration']));
+    expect(projects['weknora']!.contractStatus,
+        containsAll(['capability_fusion', 'real_integration']));
+    expect(projects['n8n']!.contractStatus,
+        containsAll(['workflow_export_adapter', 'export_validation_passed']));
+    expect(projects['skill_prompt_generator']!.contractStatus,
+        containsAll(['prompt_asset_library_enhancer', 'real_integration']));
+    expect(projects['skill_prompt_generator']!.uiVisibility, 'visible_status_only');
+    expect(projects['skill_prompt_generator']!.canExecuteLocallyBeforeV4, isFalse);
+    expect(projects['mmskills']!.contractStatus,
+        containsAll(['schema_package_reference', 'reference_only']));
+    expect(projects['mmskills']!.uiVisibility, 'visible_status_only');
+    expect(projects['mmskills']!.canExecuteLocallyBeforeV4, isFalse);
+    expect(projects['jellyfish']!.contractStatus,
+        containsAll(['content_asset_schema_reference', 'reference_only', 'runtime_not_bundled']));
+    expect(projects['jellyfish']!.uiVisibility, 'visible_status_only');
+    expect(projects['jellyfish']!.ready, isFalse);
+    expect(projects['jellyfish']!.localReady, isTrue);
+    expect(projects['jellyfish']!.executableAction, isFalse);
+    expect(projects['jellyfish']!.canExecuteLocallyBeforeV4, isFalse);
+    expect(projects['jellyfish']!.requiresNetwork, isFalse);
+    expect(projects['jellyfish']!.requiresExternalRuntime, isFalse);
+    expect(projects['jellyfish']!.relatedWorkbenchPageIds,
+        containsAll(['template_library', 'artifact_management', 'document_generation']));
+    expect(projects['story_flicks']!.contractStatus,
+        containsAll(['aigc_video_pipeline_schema_reference', 'reference_only', 'runtime_not_bundled']));
+    expect(projects['story_flicks']!.uiVisibility, 'visible_status_only');
+    expect(projects['story_flicks']!.ready, isFalse);
+    expect(projects['story_flicks']!.localReady, isTrue);
+    expect(projects['story_flicks']!.executableAction, isFalse);
+    expect(projects['story_flicks']!.canExecuteLocallyBeforeV4, isFalse);
+    expect(projects['story_flicks']!.requiresNetwork, isFalse);
+    expect(projects['story_flicks']!.requiresExternalRuntime, isFalse);
+      expect(projects['story_flicks']!.relatedWorkbenchPageIds,
+          containsAll(['template_library', 'artifact_management', 'document_generation']));
+      expect(projects['seedance2_skill']!.contractStatus,
+          containsAll([
+            'verified_video_skill_template_metadata',
+            'reference_only',
+            'template_reference',
+            'provider_not_integrated',
+            'runtime_not_bundled'
+          ]));
+      expect(projects['seedance2_skill']!.uiVisibility, 'visible_status_only');
+      expect(projects['seedance2_skill']!.ready, isFalse);
+      expect(projects['seedance2_skill']!.localReady, isTrue);
+      expect(projects['seedance2_skill']!.executableAction, isFalse);
+      expect(projects['seedance2_skill']!.canExecuteLocallyBeforeV4, isFalse);
+      expect(projects['seedance2_skill']!.requiresApiKey, isTrue);
+      expect(projects['seedance2_skill']!.requiresNetwork, isTrue);
+      expect(projects['seedance2_skill']!.requiresExternalRuntime, isFalse);
+      expect(projects['seedance2_skill']!.relatedWorkbenchPageIds,
+          containsAll(['template_library', 'artifact_management', 'document_generation']));
+      expect(projects['rag_anything']!.contractStatus,
+          containsAll([
+            'cross_modal_rag_schema_reference',
+            'reference_only',
+            'runtime_not_bundled'
+          ]));
+      expect(projects['rag_anything']!.uiVisibility, 'visible_status_only');
+      expect(projects['rag_anything']!.ready, isFalse);
+      expect(projects['rag_anything']!.localReady, isTrue);
+      expect(projects['rag_anything']!.executableAction, isFalse);
+      expect(projects['rag_anything']!.canExecuteLocallyBeforeV4, isFalse);
+      expect(projects['rag_anything']!.requiresApiKey, isFalse);
+      expect(projects['rag_anything']!.requiresNetwork, isFalse);
+      expect(projects['rag_anything']!.requiresExternalRuntime, isFalse);
+      expect(projects['rag_anything']!.relatedWorkbenchPageIds,
+          containsAll(['retrieval_verification', 'reports_audit']));
+      expect(projects['mattpocock_skills']!.contractStatus,
+          containsAll([
+            'engineering_governance_rule_pack',
+            'real_integration',
+            'runtime_not_bundled'
+          ]));
+      expect(projects['mattpocock_skills']!.uiVisibility, 'visible_status_only');
+      expect(projects['mattpocock_skills']!.ready, isFalse);
+      expect(projects['mattpocock_skills']!.localReady, isTrue);
+      expect(projects['mattpocock_skills']!.executableAction, isFalse);
+      expect(projects['mattpocock_skills']!.canExecuteLocallyBeforeV4, isFalse);
+      expect(projects['mattpocock_skills']!.requiresApiKey, isFalse);
+      expect(projects['mattpocock_skills']!.requiresNetwork, isFalse);
+      expect(projects['mattpocock_skills']!.requiresExternalRuntime, isFalse);
+      expect(projects['mattpocock_skills']!.relatedWorkbenchPageIds,
+          containsAll(['governance', 'reports_audit']));
+      expect(projects['sirchmunk']!.contractStatus,
+          containsAll([
+            'bounded_direct_file_search_provider',
+            'real_integration',
+            'runtime_not_bundled',
+            'embedding_free',
+            'vector_db_not_required'
+          ]));
+      expect(projects['sirchmunk']!.uiVisibility, 'visible_status_only');
+      expect(projects['sirchmunk']!.ready, isFalse);
+      expect(projects['sirchmunk']!.localReady, isTrue);
+      expect(projects['sirchmunk']!.executableAction, isFalse);
+      expect(projects['sirchmunk']!.canExecuteLocallyBeforeV4, isFalse);
+      expect(projects['sirchmunk']!.requiresApiKey, isFalse);
+      expect(projects['sirchmunk']!.requiresNetwork, isFalse);
+      expect(projects['sirchmunk']!.requiresExternalRuntime, isFalse);
+      expect(projects['sirchmunk']!.relatedWorkbenchPageIds,
+          containsAll(['retrieval_verification', 'reports_audit']));
+      expect(projects['ai_marketing_skills']!.contractStatus,
+        containsAll(['marketing_skill_pattern_library', 'real_integration', 'runtime_not_bundled']));
+    expect(projects['ai_marketing_skills']!.uiVisibility, 'visible_status_only');
+    expect(projects['ai_marketing_skills']!.canExecuteLocallyBeforeV4, isFalse);
+    expect(projects['ai_marketing_skills']!.requiresNetwork, isFalse);
+    expect(projects['ai_marketing_skills']!.requiresExternalRuntime, isFalse);
+    expect(projects['ai_marketing_skills']!.relatedWorkbenchPageIds,
+        containsAll(['template_library', 'skill_factory']));
+    expect(matrix['external_project_count'], 26);
   });
 
   test('p2.1 parser backend matrix asset parses with release boundaries',
@@ -244,8 +462,13 @@ void main() {
         .loadString('assets/parser_backends/parser_backend_matrix.json'));
     final backendIds =
         matrix.backends.map((backend) => backend.backendId).toSet();
+    final builtin = matrix.backend('builtin')!;
     final docling = matrix.backend('docling')!;
+    final marker = matrix.backend('marker')!;
+    final mineru = matrix.backend('mineru')!;
+    final opendataloader = matrix.backend('opendataloader')!;
     final paddleocr = matrix.backend('paddleocr')!;
+    final surya = matrix.backend('surya')!;
     final unstructured = matrix.backend('unstructured')!;
 
     expect(matrix.schemaVersion, 'p2.1.parser_backend_matrix.v1');
@@ -254,20 +477,60 @@ void main() {
         '576a62075dc1ecbe00388bb0569fd1fc767be7cb');
     expect(matrix.defaultHeavyDependenciesBundled, isFalse);
     expect(matrix.staticWorkbenchRuntimeExecutionClaimed, isFalse);
-    expect(backendIds, {'builtin', 'docling', 'paddleocr', 'unstructured'});
+    expect(backendIds, {
+      'builtin',
+      'docling',
+      'marker',
+      'mineru',
+      'opendataloader',
+      'paddleocr',
+      'surya',
+      'unstructured'
+    });
     expect(
         matrix.backends
             .every((backend) => backend.staticWorkbenchExecutable == false),
         isTrue);
+    expect(builtin.validatedStableSurface, ['.md', '.txt']);
+    expect(builtin.evidence.evidencePath,
+        contains('fallback_parser_contract.json'));
+    expect(builtin.knownLimitations.join(' '),
+        contains('basic Markdown/TXT text documents'));
+    expect(builtin.knownLimitations.join(' '),
+        contains('Not a replacement for optional layout/OCR runtimes'));
     expect(docling.optionalExtra, 'parser-docling');
     expect(docling.installMode.label, 'parser-docling');
     expect(docling.evidence.status, 'pass');
     expect(docling.workbenchState,
         containsAll(['real_runtime_integrated', 'optional_dependency_gated']));
-    expect(paddleocr.validatedStableSurface, ['.png']);
+    expect(marker.status, 'real_runtime_integrated');
+    expect(marker.validatedStableSurface, ['.pdf']);
+    expect(marker.runtimeInvoked, isTrue);
+    expect(
+        marker.workbenchState,
+        containsAll([
+          'real_runtime_integrated',
+          'smoke_passed',
+          'license_gate_pending'
+        ]));
+    expect(mineru.optionalExtra, 'parser-mineru');
+    expect(mineru.validatedStableSurface, ['.pdf', '.png']);
+    expect(opendataloader.optionalExtra, 'parser-opendataloader');
+    expect(opendataloader.validatedStableSurface, ['.pdf']);
+    expect(opendataloader.evidence.status, 'pass');
+    expect(opendataloader.workbenchState,
+        containsAll(['real_runtime_integrated', 'smoke_passed']));
+    expect(paddleocr.validatedStableSurface, ['.pdf', '.png']);
+    expect(surya.optionalExtra, 'parser-surya');
+    expect(surya.status, 'future_hardening');
+    expect(surya.workbenchState,
+        containsAll(['needs_strengthening', 'reference_benchmark']));
+    expect(surya.evidence.status, 'blocked_by_dependency');
     expect(unstructured.validatedStableSurface, ['.md', '.txt']);
     expect(unstructured.isLimitedSurface, isTrue);
     expect(unstructured.capabilityBoundary.staticWorkbenchExecutable, isFalse);
+    expect(unstructured.evidence.evidencePath,
+        contains('unstructured_integration_decision_report.json'));
     expect(unstructured.knownLimitations.join(' '), contains('.md/.txt'));
     expect(unstructured.knownLimitations.join(' '),
         contains('not claimed stable in v4.1.0'));
@@ -346,6 +609,93 @@ void main() {
     expect(find.text('仪表盘'), findsWidgets);
     expect(pages, hasLength(18));
     expect(find.byType(NavigationRail), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('workspace reserves portable runtime and model cache paths',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 900));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        coreWorkspace: r'D:\HeiTangWorkspace',
+        initialSelectedIndex: 1,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('运行时缓存设置'), findsOneWidget);
+    expect(
+      find.textContaining(r'D:\HeiTangWorkspace\.heitang\runtime_cache\marker'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining(r'D:\HeiTangWorkspace\.heitang\runtime_cache\surya'),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('long Core action shows progress bar and event path',
+      (tester) async {
+    final completer = Completer<CoreBridgeProcessResult>();
+    final bridge = LocalCoreBridge(runner: (request) => completer.future);
+    const action = ContractAction(
+      id: 'run_document_understanding',
+      label: 'Run Document Understanding',
+      command: 'run-document-understanding',
+      requires: <String>['workspace'],
+      pageId: 'import_parsing',
+      status: 'ready',
+      commandKind: 'core_cli',
+      blockedReason: '',
+      desktopEnabled: true,
+      webEnabled: false,
+      desktopBlockedReason: '',
+      webBlockedReason: 'web_local_cli_unsupported',
+      reportIds: <String>[],
+      artifactIds: <String>[],
+      errorCodes: <String>[],
+    );
+    const request = CoreBridgeRequest(
+      actionId: 'run_document_understanding',
+      coreCli: 'python',
+      workingDirectory: r'C:\repo',
+      arguments: <String>[
+        'run-document-understanding',
+        '--output',
+        r'C:\workspace\workbench_runs\run_document_understanding',
+      ],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CoreActionPanel(
+            action: action,
+            request: request,
+            coreBridge: bridge,
+            isWebRuntime: false,
+            enabled: true,
+            localeCode: 'zh-CN',
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('运行 Core 操作'));
+    await tester.pump();
+
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    expect(find.textContaining('progress_events.jsonl'), findsOneWidget);
+
+    completer.complete(const CoreBridgeProcessResult(
+        exitCode: 0, stdout: 'completed', stderr: ''));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining(
+          r'C:\workspace\workbench_runs\run_document_understanding/progress_events.jsonl'),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 
@@ -473,7 +823,7 @@ void main() {
     await tester.pump();
 
     expect(find.textContaining('S=1 · A=1'), findsWidgets);
-    expect(find.textContaining('planned=1'), findsWidgets);
+    expect(find.textContaining('planned=0'), findsWidgets);
     expect(find.textContaining('ready=false'), findsWidgets);
     expect(find.textContaining('local_ready=false'), findsWidgets);
     expect(find.text('运行 Core 操作'), findsNothing);
@@ -485,6 +835,25 @@ void main() {
         find.textContaining('future_adapter/capability_anchor'), findsWidgets);
     expect(find.textContaining('显示边界'), findsWidgets);
     expect(tester.takeException(), isNull);
+  });
+
+  test('n8n export status maps to UI page without runtime execution claims',
+      () async {
+    final registry = ExternalCapabilityRegistry.fromJsonString(await rootBundle
+        .loadString('assets/external/external_capability_registry.json'));
+    final taskView = sampleWorkbenchContracts.navigation.views
+        .firstWhere((view) => view.id == 'task-job-center');
+    final taskProjects = registry.projectsForCorePage(taskView.corePageId);
+    final n8n = taskProjects.firstWhere((project) => project.projectId == 'n8n');
+    final statusLine = '${n8n.projectName}:${n8n.contractStatus.join('/')}';
+    final blockedReasonLine = '${n8n.projectId}:${n8n.blockedReason}';
+
+    expect(taskView.corePageId, 'task_job_center');
+    expect(statusLine,
+        'n8n:workflow_export_adapter/export_validation_passed/runtime_not_bundled');
+    expect(blockedReasonLine, 'n8n:external_runtime_required');
+    expect(n8n.requiresExternalRuntime, isTrue);
+    expect(statusLine, isNot(contains('workflow execution passed')));
   });
 
   testWidgets(
@@ -504,18 +873,35 @@ void main() {
 
     expect(find.text('Parser Backend Matrix'), findsWidgets);
     expect(find.text('Parser/OCR 后端证据面板'), findsOneWidget);
+    expect(find.text('Core 集成适配器'), findsOneWidget);
+    expect(find.text('Docling 状态'), findsOneWidget);
+    expect(find.text('Marker 状态'), findsOneWidget);
+    expect(find.text('OpenDataLoader 状态'), findsOneWidget);
+    expect(find.text('PaddleOCR 状态'), findsOneWidget);
+    expect(find.text('Surya 基准'), findsOneWidget);
+    expect(find.text('Unstructured 状态'), findsOneWidget);
     expect(find.text('Backend Matrix Table'), findsOneWidget);
     expect(find.text('Reports & Audit Evidence'), findsOneWidget);
-    expect(find.textContaining('v4.1.0 · 4 backends · static_runtime=false'),
+    expect(find.textContaining('v4.1.0 · 8 backends · static_runtime=false'),
         findsWidgets);
     expect(find.textContaining('docling:parser-docling'), findsWidgets);
+    expect(find.textContaining('marker:parser-marker'), findsWidgets);
+    expect(find.textContaining('mineru:parser-mineru'), findsWidgets);
+    expect(find.textContaining('opendataloader:parser-opendataloader'),
+        findsWidgets);
     expect(find.textContaining('paddleocr:parser-paddleocr'), findsWidgets);
+    expect(find.textContaining('surya:parser-surya'), findsWidgets);
+    expect(find.textContaining('parser-mineru · .pdf, .png'), findsWidgets);
+    expect(find.textContaining('parser-opendataloader · .pdf'), findsWidgets);
+    expect(find.textContaining('parser-paddleocr · .pdf, .png'), findsWidgets);
     expect(find.textContaining('unstructured:.md/.txt'), findsWidgets);
     expect(find.textContaining('default_heavy_deps=false'), findsWidgets);
     expect(find.textContaining('no_static_execution=true'), findsWidgets);
     expect(find.textContaining('Failure Mode Report'), findsOneWidget);
     expect(find.textContaining('Fresh Clone Reproducibility'), findsOneWidget);
     expect(find.textContaining('Static Web Workbench'), findsOneWidget);
+    expect(find.textContaining('Fallback Parser Contract'), findsWidgets);
+    expect(find.textContaining('不是完整 Document Understanding'), findsOneWidget);
     expect(find.textContaining('Run parser'), findsNothing);
     expect(find.textContaining('Execute parser'), findsNothing);
     expect(find.textContaining('运行解析后端'), findsNothing);
@@ -530,8 +916,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets(
-      'renders the Skill Factory workflow without runtime claims',
+  testWidgets('renders the Skill Factory workflow without runtime claims',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1100));
     await tester.pumpWidget(HeiTangWorkbenchApp(
@@ -658,6 +1043,8 @@ void main() {
 
     await tester.tap(find.text('向量索引 / 提供方 / 存储').first);
     await tester.pumpAndSettle();
+    expect(find.textContaining('anysearchskill:ui_configuration_pending'),
+        findsOneWidget);
     expect(find.textContaining('blocked_reason: provider_required'),
         findsOneWidget);
 

@@ -45,6 +45,7 @@
         ".zip"
       ],
       "known_limitations": [
+        "Fallback parser stable contract is limited to basic Markdown/TXT text documents.",
         "Best-effort OCR/image extraction still requires review.",
         "Not a replacement for optional layout/OCR runtimes."
       ],
@@ -52,7 +53,7 @@
       "workbench_state": [
         "builtin_passed"
       ],
-      "evidence_path": "tests/test_v28_parser_backends.py::test_parse_with_backend_builtin_writes_normalized_outputs",
+      "evidence_path": "docs/audits/unstructured_fallback_strengthening/fallback_parser_contract.json",
       "fallback_behavior": "Preserved default parser path; used when optional backend is missing or not selected.",
       "static_workbench_executable": false
     },
@@ -95,6 +96,112 @@
       "static_workbench_executable": false
     },
     {
+      "backend_id": "marker",
+      "display_name": "Marker local PDF document understanding adapter",
+      "dependency_mode": "optional_extra",
+      "optional_extra": "parser-marker",
+      "default_install_available": false,
+      "current_environment_available": true,
+      "dependency_available": true,
+      "runtime_invoked": true,
+      "sample_input_type": "PDF document source",
+      "validated_stable_surface": [
+        ".pdf"
+      ],
+      "adapter_supported_extensions": [
+        ".pdf"
+      ],
+      "known_limitations": [
+        "Marker models use a workspace-local cache and are not bundled in the default install.",
+        "The verified local path does not enable --use_llm and does not require an external API key.",
+        "Runtime smoke success does not prove portable EXE bundling or settle the separate licensing gate."
+      ],
+      "status": "real_runtime_integrated",
+      "workbench_state": [
+        "real_runtime_integrated",
+        "optional_dependency_gated",
+        "smoke_passed",
+        "license_gate_pending"
+      ],
+      "evidence_path": "docs/audits/dependency_remediation/marker/marker_integration_decision_report.json",
+      "fallback_behavior": "If marker-pdf or marker_single is missing, the UI reports blocked_by_dependency and preserves alternate verified backend guidance.",
+      "static_workbench_executable": false
+    },
+    {
+      "backend_id": "mineru",
+      "display_name": "MinerU local document understanding adapter",
+      "dependency_mode": "optional_extra",
+      "optional_extra": "parser-mineru",
+      "default_install_available": false,
+      "current_environment_available": false,
+      "dependency_available": true,
+      "runtime_invoked": true,
+      "sample_input_type": "PDF/image document understanding source",
+      "validated_stable_surface": [
+        ".pdf",
+        ".png"
+      ],
+      "adapter_supported_extensions": [
+        ".bmp",
+        ".docx",
+        ".jpeg",
+        ".jpg",
+        ".pdf",
+        ".png",
+        ".pptx",
+        ".tif",
+        ".tiff",
+        ".xlsx"
+      ],
+      "known_limitations": [
+        "MinerU 3.3 strengthening adds dependency-gated CLI integration and Markdown/JSON output normalization.",
+        "Default install does not bundle MinerU or local model files.",
+        "Table, figure, and formula metadata are normalized when MinerU emits them, but quality depends on the local MinerU runtime."
+      ],
+      "status": "real_runtime_integrated",
+      "workbench_state": [
+        "real_runtime_integrated",
+        "optional_dependency_gated",
+        "limited_surface",
+        "smoke_passed"
+      ],
+      "evidence_path": "docs/audits/mineru_backend_strengthening/mineru_integration_decision_report.json",
+      "fallback_behavior": "If parser-mineru or local MinerU model/runtime is missing, the report marks the backend unavailable/failed and preserves builtin fallback guidance.",
+      "static_workbench_executable": false
+    },
+    {
+      "backend_id": "opendataloader",
+      "display_name": "OpenDataLoader local PDF conversion adapter",
+      "dependency_mode": "optional_extra",
+      "optional_extra": "parser-opendataloader",
+      "default_install_available": false,
+      "current_environment_available": true,
+      "dependency_available": true,
+      "runtime_invoked": true,
+      "sample_input_type": "PDF document source",
+      "validated_stable_surface": [
+        ".pdf"
+      ],
+      "adapter_supported_extensions": [
+        ".pdf"
+      ],
+      "known_limitations": [
+        "OpenDataLoader 3.6 strengthening adds dependency-gated CLI integration for PDF to Markdown/JSON conversion.",
+        "Default install does not bundle OpenDataLoader or Java 11+.",
+        "Hybrid/OCR server mode is excluded from the default smoke path and remains future hardening."
+      ],
+      "status": "real_runtime_integrated",
+      "workbench_state": [
+        "real_runtime_integrated",
+        "optional_dependency_gated",
+        "limited_surface",
+        "smoke_passed"
+      ],
+      "evidence_path": "docs/audits/dependency_remediation/opendataloader/opendataloader_integration_decision_report.json",
+      "fallback_behavior": "If parser-opendataloader, Java, or the local CLI is missing, the report marks the backend unavailable/failed and preserves builtin fallback guidance.",
+      "static_workbench_executable": false
+    },
+    {
       "backend_id": "paddleocr",
       "display_name": "PaddleOCR local OCR runtime adapter",
       "dependency_mode": "optional_extra",
@@ -105,6 +212,7 @@
       "runtime_invoked": true,
       "sample_input_type": "PNG OCR image in live acceptance replay",
       "validated_stable_surface": [
+        ".pdf",
         ".png"
       ],
       "adapter_supported_extensions": [
@@ -125,10 +233,44 @@
       "workbench_state": [
         "real_runtime_integrated",
         "optional_dependency_gated",
-        "limited_surface"
+        "limited_surface",
+        "smoke_passed"
       ],
       "evidence_path": "docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json",
       "fallback_behavior": "If parser-paddleocr or local OCR model/runtime is missing, the report marks the backend unavailable/failed and preserves builtin fallback guidance.",
+      "static_workbench_executable": false
+    },
+    {
+      "backend_id": "surya",
+      "display_name": "Surya OCR/layout benchmark reference adapter",
+      "dependency_mode": "optional_extra",
+      "optional_extra": "parser-surya",
+      "default_install_available": false,
+      "current_environment_available": false,
+      "dependency_available": false,
+      "runtime_invoked": false,
+      "sample_input_type": "PDF/image OCR and layout benchmark source",
+      "validated_stable_surface": [],
+      "adapter_supported_extensions": [
+        ".jpeg",
+        ".jpg",
+        ".pdf",
+        ".png",
+        ".tif",
+        ".tiff"
+      ],
+      "known_limitations": [
+        "Surya is prioritized as an OCR/layout benchmark, not a primary parser backend.",
+        "Surya 2 requires surya-ocr plus a vllm or llama.cpp inference backend; default install does not bundle models or inference servers.",
+        "The adapter is intentionally blocked before runtime invocation until dependency remediation and benchmark smoke evidence are complete."
+      ],
+      "status": "future_hardening",
+      "workbench_state": [
+        "needs_strengthening",
+        "reference_benchmark"
+      ],
+      "evidence_path": "docs/audits/surya_backend_decision/surya_integration_decision_report.json",
+      "fallback_behavior": "Surya is reported as a benchmark/reference candidate; missing or installed dependency does not make it a primary parser backend yet.",
       "static_workbench_executable": false
     },
     {
@@ -160,7 +302,7 @@
         "optional_dependency_gated",
         "limited_surface"
       ],
-      "evidence_path": "docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json",
+      "evidence_path": "docs/audits/unstructured_fallback_strengthening/unstructured_integration_decision_report.json",
       "fallback_behavior": "If parser-unstructured is missing or runtime fails, the report marks the backend unavailable/failed and preserves builtin fallback guidance.",
       "static_workbench_executable": false
     }

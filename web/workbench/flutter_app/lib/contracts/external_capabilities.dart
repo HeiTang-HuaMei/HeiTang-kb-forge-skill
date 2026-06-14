@@ -72,6 +72,9 @@ class ExternalCapabilityProject {
     required this.postV4Target,
     required this.uiVisibility,
     required this.relatedWorkbenchPageIds,
+    required this.ready,
+    required this.localReady,
+    required this.executableAction,
   });
 
   final String projectId;
@@ -88,6 +91,9 @@ class ExternalCapabilityProject {
   final String postV4Target;
   final String uiVisibility;
   final List<String> relatedWorkbenchPageIds;
+  final bool ready;
+  final bool localReady;
+  final bool executableAction;
 
   factory ExternalCapabilityProject.fromJson(Map<String, dynamic> json) {
     return ExternalCapabilityProject(
@@ -105,6 +111,9 @@ class ExternalCapabilityProject {
       postV4Target: _string(json['post_v4_target']),
       uiVisibility: _string(json['ui_visibility']),
       relatedWorkbenchPageIds: _list(json['related_workbench_pages']).map((item) => _string(_map(item)['page_id'])).where((value) => value.isNotEmpty).toList(growable: false),
+      ready: _bool(json['ready']),
+      localReady: _bool(json['local_ready']),
+      executableAction: _bool(json['executable_action']),
     );
   }
 }
@@ -154,15 +163,23 @@ final sampleExternalCapabilityRegistry = ExternalCapabilityRegistry.fromJson({
       'project_name': 'AnySearchSkill',
       'rating': 'A',
       'github_url': 'https://github.com/anysearch-ai/anysearch-skill',
-      'contract_status': ['provider_required', 'planned_adapter'],
-      'blocked_reason': 'external_project_registry_only',
-      'blocked_reasons': ['external_project_registry_only', 'provider_required', 'network_required', 'secret_required'],
-      'requires_api_key': true,
+      'contract_status': [
+        'provider_adapter',
+        'real_smoke_passed',
+        'needs_strengthening'
+      ],
+      'blocked_reason': 'ui_configuration_pending',
+      'blocked_reasons': [
+        'network_required',
+        'ui_configuration_pending',
+        'provider_terms_review_pending'
+      ],
+      'requires_api_key': false,
       'requires_network': true,
       'requires_external_runtime': false,
       'can_execute_locally_before_v4': false,
       'post_v4_target': 'P2.3',
-      'ui_visibility': 'visible_boundary_only',
+      'ui_visibility': 'visible_status_only',
       'related_workbench_pages': [
         {'page_id': 'retrieval_verification'},
         {'page_id': 'vector_hub_provider_storage'},

@@ -1,14 +1,23 @@
 import '../contracts/workbench_contracts.dart';
 
-List<ContractAction> coreActionsForPage(String pageId, WorkbenchContracts contracts) {
+List<ContractAction> coreActionsForPage(
+    String pageId, WorkbenchContracts contracts) {
   final view = _viewForPage(pageId, contracts);
   if (view == null) {
     return const <ContractAction>[];
   }
-  final actions = contracts.actions.actions.where((action) => action.pageId == view.corePageId).toList();
+  final actions = contracts.actions.actions
+      .where((action) => action.pageId == view.corePageId)
+      .toList();
+  if (pageId == 'import-parsing' || pageId == 'knowledge-package-management') {
+    final existingIds = actions.map((action) => action.id).toSet();
+    actions.addAll(_paddleOcrActions.where((action) =>
+        action.pageId == view.corePageId && !existingIds.contains(action.id)));
+  }
   if (pageId == 'skill-factory') {
     final existingIds = actions.map((action) => action.id).toSet();
-    actions.addAll(_skillSuiteActions.where((action) => !existingIds.contains(action.id)));
+    actions.addAll(
+        _skillSuiteActions.where((action) => !existingIds.contains(action.id)));
   }
   return actions;
 }
@@ -21,6 +30,510 @@ ContractView? _viewForPage(String pageId, WorkbenchContracts contracts) {
   }
   return null;
 }
+
+const _paddleOcrActions = <ContractAction>[
+  ContractAction(
+    id: 'preflight_documents',
+    label: 'Preflight Documents',
+    command: 'preflight-documents --input <input> --output <output>',
+    requires: <String>['workspace', 'input'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>[
+      'document_preflight',
+      'backend_recommendation',
+      'preflight_report'
+    ],
+    artifactIds: <String>['document_inventory', 'file_type_report'],
+    errorCodes: <String>['unsupported_file_extension', 'read_failed'],
+  ),
+  ContractAction(
+    id: 'batch_import_documents',
+    label: 'Batch Import Documents',
+    command: 'batch-import-documents --input <input> --output <output>',
+    requires: <String>['workspace', 'input'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>[
+      'batch_import_report',
+      'document_preflight',
+      'backend_recommendation'
+    ],
+    artifactIds: <String>['document_inventory', 'batch_import_log'],
+    errorCodes: <String>['unsupported_file_extension', 'read_failed'],
+  ),
+  ContractAction(
+    id: 'run_document_understanding',
+    label: 'Run Document Understanding',
+    command:
+        'run-document-understanding --input <input> --preflight <preflight> --runtime-config <runtime_config> --output <output> --progress-jsonl',
+    requires: <String>['workspace', 'input', 'preflight', 'runtime_config'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>[
+      'document_understanding_manifest',
+      'runtime_configuration_report'
+    ],
+    artifactIds: <String>[
+      'document_understanding_records',
+      'normalized_sources',
+      'progress_events'
+    ],
+    errorCodes: <String>[
+      'backend_route_missing',
+      'backend_runtime_failed',
+      'normalized_output_empty'
+    ],
+  ),
+  ContractAction(
+    id: 'build_knowledge_base',
+    label: 'Build Knowledge Base from DU',
+    command:
+        'build-knowledge-base --document-understanding <du_output> --output <output> --progress-jsonl',
+    requires: <String>['workspace', 'document_understanding'],
+    pageId: 'knowledge_package_management',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>[
+      'knowledge_base_build_report',
+      'document_understanding_lineage'
+    ],
+    artifactIds: <String>['chunks', 'retrieval_index', 'progress_events'],
+    errorCodes: <String>[
+      'document_understanding_incomplete',
+      'knowledge_base_build_failed'
+    ],
+  ),
+  ContractAction(
+    id: 'build_knowledge_package',
+    label: 'Build Knowledge Package',
+    command:
+        'build-knowledge-package --knowledge-base <knowledge_base> --output <output> --progress-jsonl',
+    requires: <String>['workspace', 'knowledge_base'],
+    pageId: 'knowledge_package_management',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>[
+      'knowledge_package_build_report',
+      'package_validation_report',
+      'artifact_inventory'
+    ],
+    artifactIds: <String>['knowledge_package', 'progress_events'],
+    errorCodes: <String>[
+      'knowledge_base_contract_failed',
+      'knowledge_package_build_failed'
+    ],
+  ),
+  ContractAction(
+    id: 'fallback_parser_contract',
+    label: 'Fallback Parser Contract',
+    command: 'fallback-parser-contract --output <output>',
+    requires: <String>['workspace'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['fallback_parser_contract'],
+    artifactIds: <String>['fallback_parser_contract'],
+    errorCodes: <String>['unsupported_file_type'],
+  ),
+  ContractAction(
+    id: 'check_marker_backend',
+    label: 'Check Marker Backend Boundary',
+    command: 'check-marker-backend --output <output>',
+    requires: <String>['workspace'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['marker_integration_decision_report'],
+    artifactIds: <String>['marker_backend_decision'],
+    errorCodes: <String>['adapter_not_integrated'],
+  ),
+  ContractAction(
+    id: 'smoke_marker_backend',
+    label: 'Smoke Marker Backend Boundary',
+    command: 'smoke-marker-backend --input <input> --output <output>',
+    requires: <String>['workspace', 'input'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['marker_smoke_report'],
+    artifactIds: <String>['marker_smoke_artifacts'],
+    errorCodes: <String>['adapter_not_integrated'],
+  ),
+  ContractAction(
+    id: 'run_marker_convert',
+    label: 'Run Marker PDF Convert',
+    command: 'run-marker-convert --input <input> --output <output>',
+    requires: <String>['workspace', 'input'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>[
+      'marker_convert_result',
+      'marker_dependency_remediation_report',
+      'marker_integration_decision_report'
+    ],
+    artifactIds: <String>['marker_runtime_output'],
+    errorCodes: <String>[
+      'optional_runtime_dependency_missing',
+      'backend_runtime_exception'
+    ],
+  ),
+  ContractAction(
+    id: 'check_docling_backend',
+    label: 'Check Docling Backend',
+    command: 'check-docling-backend --output <output>',
+    requires: <String>['workspace'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['docling_integration_decision_report'],
+    artifactIds: <String>['docling_backend_check'],
+    errorCodes: <String>['optional_runtime_dependency_missing'],
+  ),
+  ContractAction(
+    id: 'smoke_docling_backend',
+    label: 'Smoke Docling Backend',
+    command: 'smoke-docling-backend --input <input> --output <output>',
+    requires: <String>['workspace', 'input'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['docling_smoke_report'],
+    artifactIds: <String>['docling_smoke_artifacts'],
+    errorCodes: <String>[
+      'optional_runtime_dependency_missing',
+      'backend_runtime_exception'
+    ],
+  ),
+  ContractAction(
+    id: 'run_docling_convert',
+    label: 'Run Docling Convert',
+    command: 'run-docling-convert --input <input> --output <output>',
+    requires: <String>['workspace', 'input'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['docling_convert_result'],
+    artifactIds: <String>['docling_convert_outputs'],
+    errorCodes: <String>[
+      'optional_runtime_dependency_missing',
+      'backend_runtime_exception'
+    ],
+  ),
+  ContractAction(
+    id: 'check_unstructured_backend',
+    label: 'Check Unstructured Backend',
+    command: 'check-unstructured-backend --output <output>',
+    requires: <String>['workspace'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['unstructured_integration_decision_report'],
+    artifactIds: <String>['unstructured_backend_check'],
+    errorCodes: <String>['optional_runtime_dependency_missing'],
+  ),
+  ContractAction(
+    id: 'smoke_unstructured_backend',
+    label: 'Smoke Unstructured Backend',
+    command: 'smoke-unstructured-backend --input <input> --output <output>',
+    requires: <String>['workspace', 'input'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['unstructured_smoke_report'],
+    artifactIds: <String>['unstructured_smoke_artifacts'],
+    errorCodes: <String>[
+      'optional_runtime_dependency_missing',
+      'backend_runtime_exception'
+    ],
+  ),
+  ContractAction(
+    id: 'check_mineru_backend',
+    label: 'Check MinerU Backend',
+    command: 'check-mineru-backend --output <output>',
+    requires: <String>['workspace'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['mineru_integration_decision_report'],
+    artifactIds: <String>['mineru_backend_check'],
+    errorCodes: <String>['optional_runtime_dependency_missing'],
+  ),
+  ContractAction(
+    id: 'smoke_mineru_backend',
+    label: 'Smoke MinerU Backend',
+    command: 'smoke-mineru-backend --input <input> --output <output>',
+    requires: <String>['workspace', 'input'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['mineru_smoke_report'],
+    artifactIds: <String>['mineru_smoke_artifacts'],
+    errorCodes: <String>[
+      'optional_runtime_dependency_missing',
+      'backend_runtime_exception'
+    ],
+  ),
+  ContractAction(
+    id: 'run_mineru_document_understanding',
+    label: 'Run MinerU Document Understanding',
+    command:
+        'run-mineru-document-understanding --input <input> --output <output>',
+    requires: <String>['workspace', 'input'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['mineru_document_understanding_result'],
+    artifactIds: <String>['mineru_document_understanding_outputs'],
+    errorCodes: <String>[
+      'optional_runtime_dependency_missing',
+      'backend_runtime_exception'
+    ],
+  ),
+  ContractAction(
+    id: 'check_opendataloader_backend',
+    label: 'Check OpenDataLoader Backend',
+    command: 'check-opendataloader-backend --output <output>',
+    requires: <String>['workspace'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['opendataloader_integration_decision_report'],
+    artifactIds: <String>['opendataloader_backend_check'],
+    errorCodes: <String>['optional_runtime_dependency_missing'],
+  ),
+  ContractAction(
+    id: 'smoke_opendataloader_backend',
+    label: 'Smoke OpenDataLoader Backend',
+    command: 'smoke-opendataloader-backend --input <input> --output <output>',
+    requires: <String>['workspace', 'input'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['opendataloader_smoke_report'],
+    artifactIds: <String>['opendataloader_smoke_artifacts'],
+    errorCodes: <String>[
+      'optional_runtime_dependency_missing',
+      'backend_runtime_exception'
+    ],
+  ),
+  ContractAction(
+    id: 'run_opendataloader_convert',
+    label: 'Run OpenDataLoader Convert',
+    command: 'run-opendataloader-convert --input <input> --output <output>',
+    requires: <String>['workspace', 'input'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['opendataloader_convert_result'],
+    artifactIds: <String>['opendataloader_convert_outputs'],
+    errorCodes: <String>[
+      'optional_runtime_dependency_missing',
+      'backend_runtime_exception'
+    ],
+  ),
+  ContractAction(
+    id: 'check_surya_backend',
+    label: 'Check Surya Benchmark Boundary',
+    command: 'check-surya-backend --output <output>',
+    requires: <String>['workspace'],
+    pageId: 'import_parsing',
+    status: 'blocked',
+    commandKind: 'core_cli',
+    blockedReason: 'surya_reference_benchmark_dependency_remediation_pending',
+    desktopEnabled: false,
+    webEnabled: false,
+    desktopBlockedReason:
+        'surya_reference_benchmark_dependency_remediation_pending',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['surya_integration_decision_report'],
+    artifactIds: <String>['surya_backend_decision'],
+    errorCodes: <String>['optional_runtime_dependency_missing'],
+  ),
+  ContractAction(
+    id: 'smoke_surya_backend',
+    label: 'Smoke Surya Benchmark Boundary',
+    command: 'smoke-surya-backend --input <input> --output <output>',
+    requires: <String>['workspace', 'input'],
+    pageId: 'import_parsing',
+    status: 'blocked',
+    commandKind: 'core_cli',
+    blockedReason: 'surya_reference_benchmark_dependency_remediation_pending',
+    desktopEnabled: false,
+    webEnabled: false,
+    desktopBlockedReason:
+        'surya_reference_benchmark_dependency_remediation_pending',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['surya_smoke_report'],
+    artifactIds: <String>['surya_smoke_artifacts'],
+    errorCodes: <String>[
+      'optional_runtime_dependency_missing',
+      'adapter_not_integrated',
+      'backend_runtime_exception'
+    ],
+  ),
+  ContractAction(
+    id: 'check_paddleocr_backend',
+    label: 'Check PaddleOCR Backend',
+    command: 'check-paddleocr-backend --output <output>',
+    requires: <String>['workspace'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['paddleocr_integration_decision_report'],
+    artifactIds: <String>['paddleocr_backend_check'],
+    errorCodes: <String>['optional_runtime_dependency_missing'],
+  ),
+  ContractAction(
+    id: 'smoke_paddleocr_backend',
+    label: 'Smoke PaddleOCR Backend',
+    command: 'smoke-paddleocr-backend --input <input> --output <output>',
+    requires: <String>['workspace', 'input'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['paddleocr_smoke_report'],
+    artifactIds: <String>['paddleocr_smoke_artifacts'],
+    errorCodes: <String>[
+      'optional_runtime_dependency_missing',
+      'backend_runtime_exception'
+    ],
+  ),
+  ContractAction(
+    id: 'run_paddleocr_ocr',
+    label: 'Run PaddleOCR OCR',
+    command: 'run-paddleocr-ocr --input <input> --output <output>',
+    requires: <String>['workspace', 'input'],
+    pageId: 'import_parsing',
+    status: 'ready',
+    commandKind: 'core_cli',
+    blockedReason: '',
+    desktopEnabled: true,
+    webEnabled: false,
+    desktopBlockedReason: '',
+    webBlockedReason: 'web_local_cli_unsupported',
+    reportIds: <String>['paddleocr_ocr_result'],
+    artifactIds: <String>['paddleocr_ocr_outputs'],
+    errorCodes: <String>[
+      'optional_runtime_dependency_missing',
+      'backend_runtime_exception'
+    ],
+  ),
+];
 
 const _skillSuiteActions = <ContractAction>[
   ContractAction(
@@ -77,7 +590,8 @@ const _skillSuiteActions = <ContractAction>[
   ContractAction(
     id: 'diff_skill_suite',
     label: 'Diff Skill Suite',
-    command: 'diff-skill-suite --before <before> --after <after> --output <output>',
+    command:
+        'diff-skill-suite --before <before> --after <after> --output <output>',
     requires: <String>['workspace', 'suite_baseline', 'skill_suite'],
     pageId: 'skill_factory',
     status: 'ready',
@@ -94,7 +608,8 @@ const _skillSuiteActions = <ContractAction>[
   ContractAction(
     id: 'check_skill_suite_installability',
     label: 'Check Skill Suite Installability',
-    command: 'check-skill-suite-installability --suite <suite> --output <output>',
+    command:
+        'check-skill-suite-installability --suite <suite> --output <output>',
     requires: <String>['workspace', 'skill_suite'],
     pageId: 'skill_factory',
     status: 'ready',
@@ -111,7 +626,8 @@ const _skillSuiteActions = <ContractAction>[
   ContractAction(
     id: 'skill_suite_governance_report',
     label: 'Skill Suite Governance Report',
-    command: 'skill-suite-governance-report --suite <suite> --old-suite <before> --output <output>',
+    command:
+        'skill-suite-governance-report --suite <suite> --old-suite <before> --output <output>',
     requires: <String>['workspace', 'suite_baseline', 'skill_suite'],
     pageId: 'skill_factory',
     status: 'ready',

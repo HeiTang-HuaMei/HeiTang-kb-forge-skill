@@ -291,6 +291,12 @@ final sampleParserBackendMatrix = ParserBackendMatrix.fromJson({
       'builtin_passed',
       ['builtin_passed'],
       'Preserved default parser path; used when optional backend is missing or not selected.',
+      knownLimitations: [
+        'Fallback parser stable contract is limited to basic Markdown/TXT text documents.',
+        'Not a replacement for optional layout/OCR runtimes.'
+      ],
+      evidencePath:
+          'docs/audits/unstructured_fallback_strengthening/fallback_parser_contract.json',
     ),
     _sampleBackend(
       'docling',
@@ -307,11 +313,67 @@ final sampleParserBackendMatrix = ParserBackendMatrix.fromJson({
       'If parser-docling is missing or runtime fails, builtin fallback guidance is preserved.',
     ),
     _sampleBackend(
+      'marker',
+      'Marker local PDF document understanding adapter',
+      'optional_extra',
+      'parser-marker',
+      ['.pdf'],
+      'real_runtime_integrated',
+      [
+        'real_runtime_integrated',
+        'optional_dependency_gated',
+        'smoke_passed',
+        'license_gate_pending'
+      ],
+      'If marker-pdf or marker_single is missing, alternate verified backend guidance is preserved.',
+      knownLimitations: [
+        'Marker models use a workspace-local cache and are not bundled in the default install.',
+        'Runtime smoke success does not prove EXE bundling or settle the separate licensing gate.'
+      ],
+      evidencePath:
+          'docs/audits/dependency_remediation/marker/marker_integration_decision_report.json',
+    ),
+    _sampleBackend(
+      'mineru',
+      'MinerU local document understanding adapter',
+      'optional_extra',
+      'parser-mineru',
+      ['.pdf', '.png'],
+      'real_runtime_integrated',
+      [
+        'real_runtime_integrated',
+        'optional_dependency_gated',
+        'limited_surface'
+      ],
+      'If parser-mineru or model/runtime is missing, builtin fallback guidance is preserved.',
+      knownLimitations: [
+        'MinerU supports PDF/image document understanding with Markdown/JSON normalization through the local optional runtime.'
+      ],
+    ),
+    _sampleBackend(
+      'opendataloader',
+      'OpenDataLoader local PDF conversion adapter',
+      'optional_extra',
+      'parser-opendataloader',
+      ['.pdf'],
+      'real_runtime_integrated',
+      [
+        'real_runtime_integrated',
+        'optional_dependency_gated',
+        'limited_surface',
+        'smoke_passed'
+      ],
+      'If parser-opendataloader, Java, or the local CLI is missing, builtin fallback guidance is preserved.',
+      knownLimitations: [
+        'OpenDataLoader supports PDF to Markdown/JSON conversion through the local optional CLI runtime.'
+      ],
+    ),
+    _sampleBackend(
       'paddleocr',
       'PaddleOCR local OCR runtime adapter',
       'optional_extra',
       'parser-paddleocr',
-      ['.png'],
+      ['.pdf', '.png'],
       'real_runtime_integrated',
       [
         'real_runtime_integrated',
@@ -319,6 +381,24 @@ final sampleParserBackendMatrix = ParserBackendMatrix.fromJson({
         'limited_surface'
       ],
       'If parser-paddleocr or model/runtime is missing, builtin fallback guidance is preserved.',
+      knownLimitations: [
+        'PaddleOCR supports image OCR and scanned PDF page OCR through the local optional runtime.'
+      ],
+    ),
+    _sampleBackend(
+      'surya',
+      'Surya OCR/layout benchmark reference adapter',
+      'optional_extra',
+      'parser-surya',
+      <String>[],
+      'future_hardening',
+      ['needs_strengthening', 'reference_benchmark'],
+      'Surya is reported as a benchmark/reference candidate and is not promoted as a primary parser backend.',
+      knownLimitations: [
+        'Surya is prioritized as an OCR/layout benchmark and requires surya-ocr plus a vllm or llama.cpp inference backend.'
+      ],
+      dependencyAvailable: false,
+      runtimeInvoked: false,
     ),
     _sampleBackend(
       'unstructured',
@@ -334,8 +414,11 @@ final sampleParserBackendMatrix = ParserBackendMatrix.fromJson({
       ],
       'If parser-unstructured is missing or runtime fails, builtin fallback guidance is preserved.',
       knownLimitations: [
-        'Stable P2.1 surface is explicitly limited to .md/.txt.'
+        'Stable P2.1 surface is explicitly limited to .md/.txt.',
+        'PDF/DOCX/image extras are future hardening and are not claimed stable in v4.1.0.'
       ],
+      evidencePath:
+          'docs/audits/unstructured_fallback_strengthening/unstructured_integration_decision_report.json',
     ),
   ],
 });
@@ -352,6 +435,10 @@ Map<String, Object?> _sampleBackend(
   List<String> knownLimitations = const [
     'Optional backend evidence is limited to the release acceptance surface.'
   ],
+  bool dependencyAvailable = true,
+  bool runtimeInvoked = true,
+  String evidencePath =
+      'docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json',
 }) {
   return {
     'backend_id': backendId,
@@ -360,18 +447,21 @@ Map<String, Object?> _sampleBackend(
     'optional_extra': optionalExtra,
     'default_install_available': backendId == 'builtin',
     'current_environment_available': backendId == 'builtin',
-    'dependency_available': true,
-    'runtime_invoked': true,
+    'dependency_available': dependencyAvailable,
+    'runtime_invoked': runtimeInvoked,
     'sample_input_type': backendId == 'paddleocr'
         ? 'PNG OCR image in live acceptance replay'
-        : 'Markdown/TXT document source in live acceptance replay',
+        : backendId == 'mineru'
+            ? 'PDF/image document understanding source'
+            : backendId == 'opendataloader'
+                ? 'PDF document source'
+                : 'Markdown/TXT document source in live acceptance replay',
     'validated_stable_surface': stableSurface,
     'adapter_supported_extensions': stableSurface,
     'known_limitations': knownLimitations,
     'status': status,
     'workbench_state': workbenchState,
-    'evidence_path':
-        'docs/audits/parser_runtime_acceptance/parser_runtime_acceptance_report.json',
+    'evidence_path': evidencePath,
     'fallback_behavior': fallbackBehavior,
     'static_workbench_executable': false,
   };
