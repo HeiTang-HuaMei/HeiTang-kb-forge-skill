@@ -34,6 +34,10 @@ void main() {
     expect(find.text('等待本地输入'), findsOneWidget);
     expect(find.text('工作台概览'), findsOneWidget);
     expect(find.text('真实完成度'), findsOneWidget);
+    expect(find.text('最近活动'), findsOneWidget);
+    expect(find.text('工作台操作'), findsOneWidget);
+    expect(find.text('完成门禁保持关闭'), findsOneWidget);
+    expect(find.text('查看输出路径'), findsOneWidget);
     expect(find.byKey(const Key('workflow-stepper')), findsOneWidget);
     expect(find.byKey(const Key('workbench-advanced-task-details')),
         findsOneWidget);

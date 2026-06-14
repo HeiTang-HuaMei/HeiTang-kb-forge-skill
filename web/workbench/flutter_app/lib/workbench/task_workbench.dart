@@ -1077,6 +1077,47 @@ class _WorkbenchSidePanel extends StatelessWidget {
                 value: '$workspace/workbench_runs/validation_report'),
           ],
         ),
+        const SizedBox(height: 12),
+        _SidePanelCard(
+          title: _zh ? '最近活动' : 'Recent Activity',
+          children: [
+            _ActivityLine(
+              icon: Icons.file_upload_outlined,
+              title: _zh ? '导入阶段等待资料' : 'Import is waiting for material',
+              detail: _zh ? '尚未收到本地输入' : 'No local input received yet',
+            ),
+            _ActivityLine(
+              icon: Icons.rule_folder_outlined,
+              title: _zh ? '完成门禁保持关闭' : 'Completion gate remains closed',
+              detail: _zh
+                  ? '没有真实 Core 结果不会展示完成'
+                  : 'No real Core result, no completion',
+            ),
+            _ActivityLine(
+              icon: Icons.shield_outlined,
+              title: _zh ? '本地优先边界生效' : 'Local-first boundary active',
+              detail: _zh ? '云服务默认关闭' : 'Cloud services are off by default',
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _SidePanelCard(
+          title: _zh ? '工作台操作' : 'Workbench Actions',
+          children: [
+            _SidePanelAction(
+              icon: Icons.compare_arrows_outlined,
+              label: _zh ? '查看输出路径' : 'Review output paths',
+            ),
+            _SidePanelAction(
+              icon: Icons.replay_outlined,
+              label: _zh ? '等待可重试任务' : 'Wait for retryable task',
+            ),
+            _SidePanelAction(
+              icon: Icons.fact_check_outlined,
+              label: _zh ? '打开高级边界详情' : 'Open advanced boundary details',
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -1203,6 +1244,87 @@ class _SidePanelLine extends StatelessWidget {
                     )),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ActivityLine extends StatelessWidget {
+  const _ActivityLine({
+    required this.icon,
+    required this.title,
+    required this.detail,
+  });
+
+  final IconData icon;
+  final String title;
+  final String detail;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 17, color: colors.onSurfaceVariant),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        )),
+                const SizedBox(height: 2),
+                Text(detail,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        )),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SidePanelAction extends StatelessWidget {
+  const _SidePanelAction({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: OutlinedButton.icon(
+        onPressed: null,
+        icon: Icon(icon, size: 17),
+        label: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(label, overflow: TextOverflow.ellipsis),
+        ),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: colors.onSurfaceVariant,
+          disabledForegroundColor: colors.onSurfaceVariant,
+          alignment: Alignment.centerLeft,
+          minimumSize: const Size.fromHeight(38),
+        ),
       ),
     );
   }
