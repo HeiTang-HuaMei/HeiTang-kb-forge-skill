@@ -41,12 +41,14 @@ def test_release_readiness_blocks_on_incomplete_quickstart_output(tmp_path):
     workspace.mkdir()
     docs = workspace / "docs"
     docs.mkdir()
+    governance = docs / "治理"
+    governance.mkdir()
     (workspace / "pyproject.toml").write_text('version = "3.12.0-alpha.1"\n', encoding="utf-8")
     (workspace / "skill.json").write_text('{"version":"3.12.0-alpha.1"}', encoding="utf-8")
-    (workspace / "README.md").write_text("HeiTang KB Forge Skill\n", encoding="utf-8")
-    (docs / "CAPABILITY_STATUS.md").write_text("Stable\n", encoding="utf-8")
-    (docs / "VERSION_MATRIX.md").write_text("v3.12.0-alpha.1\n", encoding="utf-8")
-    (docs / "RELEASE_CHECKLIST.md").write_text("Release checklist\n", encoding="utf-8")
+    (workspace / "README.md").write_text("HeiTang KB Forge Skill\n3.12.0-alpha.1\n", encoding="utf-8")
+    (governance / "目标验收矩阵.md").write_text("3.12.0-alpha.1\nStable\n", encoding="utf-8")
+    (governance / "历史版本说明.md").write_text("3.12.0-alpha.1\n", encoding="utf-8")
+    (docs / "发布流程.md").write_text("3.12.0-alpha.1\nRelease checklist\n", encoding="utf-8")
     (workspace / "tmp_quickstart_output").mkdir()
 
     result = CliRunner().invoke(app, ["release-readiness", "--workspace", str(workspace), "--output", str(output)])
@@ -109,11 +111,13 @@ def _minimal_release_workspace(tmp_path):
     workspace.mkdir()
     docs = workspace / "docs"
     docs.mkdir()
+    governance = docs / "治理"
+    governance.mkdir()
     (workspace / "pyproject.toml").write_text('version = "3.12.0-alpha.1"\n', encoding="utf-8")
     (workspace / "skill.json").write_text('{"version":"3.12.0-alpha.1"}', encoding="utf-8")
     (workspace / "README.md").write_text("HeiTang KB Forge Skill\n3.12.0-alpha.1\n", encoding="utf-8")
-    (docs / "CAPABILITY_STATUS.md").write_text("3.12.0-alpha.1\nStable\n", encoding="utf-8")
-    (docs / "VERSION_MATRIX.md").write_text("3.12.0-alpha.1\n", encoding="utf-8")
-    (docs / "RELEASE_CHECKLIST.md").write_text("3.12.0-alpha.1\n", encoding="utf-8")
+    (governance / "目标验收矩阵.md").write_text("3.12.0-alpha.1\nStable\n", encoding="utf-8")
+    (governance / "历史版本说明.md").write_text("3.12.0-alpha.1\n", encoding="utf-8")
+    (docs / "发布流程.md").write_text("3.12.0-alpha.1\n", encoding="utf-8")
     return workspace
 

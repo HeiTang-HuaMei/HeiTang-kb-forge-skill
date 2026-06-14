@@ -14,6 +14,28 @@ INPUT_FILES = {
     "compatibility_matrix": "compatibility_matrix.json",
 }
 
+REPO_DOC_GATES = {
+    "capability_status_missing": [
+        Path("docs/治理/目标验收矩阵.md"),
+        Path("docs/治理/Campaign_1_3_能力矩阵.md"),
+    ],
+    "version_matrix_missing": [
+        Path("docs/治理/历史版本说明.md"),
+    ],
+    "release_checklist_missing": [
+        Path("docs/发布流程.md"),
+        Path("docs/测试与验收.md"),
+    ],
+}
+
+VERSION_EVIDENCE_PATHS = [
+    Path("README.md"),
+    Path("README.zh-CN.md"),
+    Path("docs/治理/历史版本说明.md"),
+    Path("docs/发布流程.md"),
+    Path("docs/测试与验收.md"),
+]
+
 
 def evaluate_release_readiness(workspace: Path, output: Path) -> ReleaseReadinessResult:
     output.mkdir(parents=True, exist_ok=True)
@@ -75,12 +97,8 @@ def _repo_gate_failures(workspace: Path) -> list[str]:
     failures: list[str] = []
     if not _versions_aligned(workspace):
         failures.append("version_mismatch")
-    for name, path in {
-        "capability_status_missing": workspace / "docs" / "CAPABILITY_STATUS.md",
-        "version_matrix_missing": workspace / "docs" / "VERSION_MATRIX.md",
-        "release_checklist_missing": workspace / "docs" / "RELEASE_CHECKLIST.md",
-    }.items():
-        if not path.exists():
+    for name, paths in REPO_DOC_GATES.items():
+        if not any((workspace / path).exists() for path in paths):
             failures.append(name)
     readme = workspace / "README.md"
     if readme.exists():
@@ -117,19 +135,20 @@ def _versions_aligned(workspace: Path) -> bool:
     if len(versions) != 2 or any(not version for version in versions) or len(set(versions)) != 1:
         return False
     expected = versions[0]
-    for path in [
-        workspace / "README.md",
-        workspace / "README.zh-CN.md",
-        workspace / "docs" / "CAPABILITY_STATUS.md",
-        workspace / "docs" / "CAPABILITY_STATUS.zh-CN.md",
-        workspace / "docs" / "VERSION_MATRIX.md",
-        workspace / "docs" / "VERSION_MATRIX.zh-CN.md",
-        workspace / "docs" / "RELEASE_CHECKLIST.md",
-        workspace / "docs" / "RELEASE_CHECKLIST.zh-CN.md",
-    ]:
-        if path.exists() and expected not in path.read_text(encoding="utf-8", errors="ignore"):
+    for relative_path in VERSION_EVIDENCE_PATHS:
+        path = workspace / relative_path
+        if path.exists() and not _mentions_expected_version(path.read_text(encoding="utf-8", errors="ignore"), expected):
             return False
     return True
+
+
+def _mentions_expected_version(text: str, expected: str) -> bool:
+    variants = {expected, f"v{expected}"}
+    parts = expected.split(".")
+    if len(parts) >= 2 and all(part.isdigit() for part in parts[:2]):
+        major_minor = ".".join(parts[:2])
+        variants.update({major_minor, f"v{major_minor}"})
+    return any(variant in text for variant in variants)
 
 
 def _suspected_secret(workspace: Path) -> bool:
