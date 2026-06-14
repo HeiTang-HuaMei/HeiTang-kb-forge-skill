@@ -7,7 +7,7 @@
   "verdict": "closure_pack_generated_for_repository_cleanup_gate",
   "generated_at": "2026-06-14T04:25:00+08:00",
   "pack_path": "dist/HeiTang-Campaign-1-2-3-Integrated-Closure-Pack.zip",
-  "pack_sha256": "de5abaf58a5e3e6902f054ca9119c58727ea0105d0e4604623b31f0c591b6113",
+  "pack_sha256": "a880cad8ef6b3e9c4f0fdaf1e16b7fc2a5883af214fc4933335aa2a115b684f6",
   "output_files": [
     "run_manifest.json",
     "run_summary.md",

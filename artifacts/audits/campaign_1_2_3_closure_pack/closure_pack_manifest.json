@@ -117,13 +117,13 @@
       {
         "path": "artifacts/audits/current_run/checkpoint.json",
         "exists": true,
-        "size_bytes": 5101,
+        "size_bytes": 5121,
         "status": "included"
       },
       {
         "path": "docs/governance/RUN_STATE.md",
         "exists": true,
-        "size_bytes": 78047,
+        "size_bytes": 82795,
         "status": "included"
       },
       {

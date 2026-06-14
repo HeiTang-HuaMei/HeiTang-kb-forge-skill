@@ -9,11 +9,11 @@
     },
     {
       "path": "artifacts/audits/repository_public_surface_cleanup/PUBLIC_SURFACE_FILE_INVENTORY.json",
-      "size_bytes": 1182604
+      "size_bytes": 1182812
     },
     {
       "path": "artifacts/audits/repository_public_surface_cleanup/file_inventory.json",
-      "size_bytes": 1182604
+      "size_bytes": 1182812
     }
   ],
   "errors": []
