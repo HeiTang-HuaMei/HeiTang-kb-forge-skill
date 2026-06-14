@@ -1,9 +1,0 @@
-{
-  "name": "core_fast_anysearch_provider",
-  "command": "python -m pytest tests/test_anysearch_provider.py tests/test_anysearchskill_integration_decision.py tests/test_external_project_registry.py -q",
-  "exit_code": 0,
-  "exit_code_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_anysearch_provider.log.exitcode",
-  "status": "passed",
-  "log_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_anysearch_provider.log",
-  "summary": "................                                                         [100%]\n16 passed in 1.48s"
-}

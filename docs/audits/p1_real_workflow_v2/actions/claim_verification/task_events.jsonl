@@ -1,3 +1,0 @@
-{"task_id": "task_claim_verification", "action_id": "claim_verification", "status": "queued", "progress": 0, "current_step": "created"}
-{"task_id": "task_claim_verification", "action_id": "claim_verification", "status": "running", "progress": 50, "current_step": "executing_local_v2"}
-{"task_id": "task_claim_verification", "action_id": "claim_verification", "status": "succeeded", "progress": 100, "current_step": "evidence_written"}

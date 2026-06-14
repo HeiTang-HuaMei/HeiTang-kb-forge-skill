@@ -1,12 +1,9 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
-
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def test_optional_llm_config_redaction_never_records_values():
-    report = json.loads((PROOF / "optional_llm_config_redaction_report.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("optional_llm_config_redaction_report.json")
 
     assert report["status"] == "pass"
     assert "HEITANG_LLM_API_KEY" in report["env_names_recorded"]

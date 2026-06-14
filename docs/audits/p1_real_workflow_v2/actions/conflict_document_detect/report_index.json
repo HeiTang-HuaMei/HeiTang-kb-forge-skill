@@ -1,9 +1,0 @@
-{
-  "action_id": "conflict_document_detect",
-  "reports": [
-    {
-      "report_id": "report_conflict_document",
-      "path": "reports/report_conflict_document.json"
-    }
-  ]
-}

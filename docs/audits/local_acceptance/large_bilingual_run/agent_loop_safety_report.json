@@ -1,9 +1,0 @@
-{
-  "agent_loop_safety_report_version": "pre-v4-p0-1",
-  "status": "pass",
-  "max_steps": 6,
-  "timeout_seconds": 30,
-  "failure_count_limit": 2,
-  "infinite_loop_prevented": true,
-  "tests_require_real_llm_api_network": false
-}

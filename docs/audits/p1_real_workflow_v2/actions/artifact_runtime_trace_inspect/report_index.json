@@ -1,9 +1,0 @@
-{
-  "action_id": "artifact_runtime_trace_inspect",
-  "reports": [
-    {
-      "report_id": "report_artifact_runtime_trace",
-      "path": "reports/report_artifact_runtime_trace.json"
-    }
-  ]
-}

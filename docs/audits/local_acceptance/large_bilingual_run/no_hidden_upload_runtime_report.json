@@ -1,7 +1,0 @@
-{
-  "no_hidden_upload_runtime_report_version": "pre-v4-p0-1",
-  "status": "pass",
-  "hidden_upload_runtime_paths": [],
-  "network_disabled_by_default": true,
-  "tests_require_real_llm_api_network": false
-}

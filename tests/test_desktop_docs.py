@@ -17,14 +17,10 @@ def test_desktop_packaging_scripts_remain_available_without_legacy_docs():
 def test_current_docs_describe_ui_as_presentation_layer():
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     chinese = (ROOT / "README.zh-CN.md").read_text(encoding="utf-8")
-    roadmap = (ROOT / "docs" / "ROADMAP.md").read_text(encoding="utf-8")
-    p1 = (ROOT / "docs" / "10_roadmap" / "P1_UI_CORE_PARITY.md").read_text(encoding="utf-8")
+    roadmap = (ROOT / "docs" / "路线图.md").read_text(encoding="utf-8")
 
-    assert "presentation layer" in readme
-    assert "presentation layer" in chinese
-    assert "presentation layer" in roadmap
-    assert "ready_for_v4_rc=true" in p1
-    assert "historical P1-backed release" in p1
-    assert "v4.1.0" in p1
-    assert "rc.1 acceptance and hardening evidence" in p1
+    assert "Campaign 4 UI work is not active" in readme
+    assert "Campaign 4 UI 未启动" in chinese
+    assert "Campaign 4" in roadmap
+    assert "not_started" in roadmap
     assert "full Workbench" not in readme

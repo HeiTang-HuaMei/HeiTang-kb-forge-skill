@@ -1,12 +1,9 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
-
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def test_optional_llm_process_environment_isolation_is_not_user_blame():
-    report = json.loads((PROOF / "optional_llm_provider_acceptance_report.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("optional_llm_provider_acceptance_report.json")
 
     assert report["status"] == "needs_review"
     assert "process environment isolation" in report["skip_reason"]

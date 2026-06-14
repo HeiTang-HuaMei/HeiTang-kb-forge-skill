@@ -1,7 +1,0 @@
-{
-  "kb_agent_regeneration_report_version": "pre-v4-p0-1",
-  "status": "pass",
-  "agent_regeneration_after_kb_update": "proven_by_generate_agent_command_contract",
-  "package_id": "core_package",
-  "tests_require_real_llm_api_network": false
-}

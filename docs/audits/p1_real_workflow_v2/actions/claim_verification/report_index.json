@@ -1,9 +1,0 @@
-{
-  "action_id": "claim_verification",
-  "reports": [
-    {
-      "report_id": "report_claim_verification",
-      "path": "reports/report_claim_verification.json"
-    }
-  ]
-}

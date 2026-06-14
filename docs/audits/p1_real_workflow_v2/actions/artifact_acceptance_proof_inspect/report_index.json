@@ -1,9 +1,0 @@
-{
-  "action_id": "artifact_acceptance_proof_inspect",
-  "reports": [
-    {
-      "report_id": "report_artifact_acceptance_proof",
-      "path": "reports/report_artifact_acceptance_proof.json"
-    }
-  ]
-}

@@ -1,12 +1,9 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
-
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def test_ui_full_operation_after_core_p0_records_validation_and_blocker():
-    report = json.loads((PROOF / "ui_full_operation_acceptance_after_core_p0.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("ui_full_operation_acceptance_after_core_p0.json")
 
     assert report["status"] == "blocked"
     assert report["classification"] == "partial_desktop_core_bridge_contract"
@@ -29,7 +26,7 @@ def test_ui_full_operation_after_core_p0_records_validation_and_blocker():
 
 
 def test_existing_ui_readiness_report_is_not_misleading_after_ui_validation():
-    report = json.loads((PROOF / "ui_full_operation_readiness_report.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("ui_full_operation_readiness_report.json")
 
     assert report["status"] == "blocked"
     assert report["validation"]["flutter_analyze"] == "pass"

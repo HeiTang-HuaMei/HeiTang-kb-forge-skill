@@ -1,9 +1,0 @@
-{
-  "action_id": "artifact_generated_docs_inspect",
-  "reports": [
-    {
-      "report_id": "report_artifact_generated_docs",
-      "path": "reports/report_artifact_generated_docs.json"
-    }
-  ]
-}

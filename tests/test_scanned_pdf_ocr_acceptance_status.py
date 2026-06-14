@@ -1,14 +1,11 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
-
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def test_scanned_pdf_ocr_status_is_limited_not_false_pass():
-    report = json.loads((PROOF / "real_input_ocr_report.json").read_text(encoding="utf-8"))
-    parser = json.loads((PROOF / "real_input_pdf_parser_report.json").read_text(encoding="utf-8"))
-    full = json.loads((PROOF / "full_ocr_acceptance_report.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("real_input_ocr_report.json")
+    parser = load_baseline_report("real_input_pdf_parser_report.json")
+    full = load_baseline_report("full_ocr_acceptance_report.json")
 
     assert report["status"] == "needs_review"
     assert report["full_scanned_pdf_ocr_verified"] is False

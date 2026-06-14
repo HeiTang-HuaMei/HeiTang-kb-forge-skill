@@ -1,9 +1,0 @@
-{
-  "action_id": "workspace_cleanup_plan",
-  "reports": [
-    {
-      "report_id": "report_cleanup_recommendation",
-      "path": "reports/report_cleanup_recommendation.json"
-    }
-  ]
-}

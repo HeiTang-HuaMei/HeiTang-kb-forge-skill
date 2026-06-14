@@ -33,7 +33,7 @@ def test_tauri_regular_app_icon_uses_tiger_assets():
 
 
 def test_icon_guidelines_describe_tiger_cat_split():
-    docs = (ROOT / "docs" / "ICON_GUIDELINES.md").read_text(encoding="utf-8")
-    assert "Black tiger head" in docs
-    assert "Black cat head" in docs
-    assert "Platform Limitation" in docs
+    assert (ROOT / "assets" / "icon_sources" / "tiger_source.png").exists()
+    assert (ROOT / "assets" / "icon_sources" / "cat_source.png").exists()
+    config = (ROOT / "desktop" / "tauri" / "src-tauri" / "tauri.conf.json").read_text(encoding="utf-8")
+    assert "icons/icon.ico" in config

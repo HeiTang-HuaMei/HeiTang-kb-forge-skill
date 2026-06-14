@@ -1,9 +1,0 @@
-{
-  "action_id": "skill_diff",
-  "reports": [
-    {
-      "report_id": "report_skill_diff",
-      "path": "reports/report_skill_diff.json"
-    }
-  ]
-}

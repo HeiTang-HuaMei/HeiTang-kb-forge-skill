@@ -1,12 +1,9 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
-
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def test_conflicting_sources_keep_knowledge_accuracy_in_review():
-    report = json.loads((PROOF / "real_input_failure_report.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("real_input_failure_report.json")
     matching = [item for item in report["blockers"] if item["id"] == "knowledge_accuracy_warning_on_conflict_sources"]
 
     assert matching

@@ -1,9 +1,0 @@
-{
-  "action_id": "openability_check",
-  "reports": [
-    {
-      "report_id": "report_openability_check",
-      "path": "reports/report_openability_check.json"
-    }
-  ]
-}

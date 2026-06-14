@@ -1,12 +1,9 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
-
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def test_scanned_pdf_text_quality_report_is_non_empty_and_reviewed():
-    report = json.loads((PROOF / "scanned_pdf_text_quality_report.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("scanned_pdf_text_quality_report.json")
 
     assert report["status"] == "pass"
     assert report["extracted_character_count"] > 0

@@ -1,9 +1,0 @@
-{
-  "action_id": "memory_compression",
-  "reports": [
-    {
-      "report_id": "report_memory_compression",
-      "path": "reports/report_memory_compression.json"
-    }
-  ]
-}

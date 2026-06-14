@@ -1,12 +1,9 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
-
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def test_multi_format_parser_truth_matrix_does_not_overclaim_full_ocr():
-    report = json.loads((PROOF / "multi_format_parser_truth_matrix.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("multi_format_parser_truth_matrix.json")
 
     assert report["status"] == "needs_review"
     assert report["tests_require_real_llm_api_network"] is False

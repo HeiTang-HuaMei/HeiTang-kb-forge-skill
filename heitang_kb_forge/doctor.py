@@ -24,9 +24,9 @@ def run_doctor(output: Path) -> tuple[dict[str, Any], str]:
         _sqlite_check(),
         _write_permission_check(output),
         _version_alignment_check(),
-        _doc_exists_check("capability_status_exists", Path("docs/CAPABILITY_STATUS.md")),
-        _doc_exists_check("version_matrix_exists", Path("docs/VERSION_MATRIX.md")),
-        _doc_exists_check("release_checklist_exists", Path("docs/RELEASE_CHECKLIST.md")),
+        _doc_exists_check("capability_status_exists", Path("docs/CAPABILITY_STATUS.md"), Path("docs/产品定位.md")),
+        _doc_exists_check("version_matrix_exists", Path("docs/VERSION_MATRIX.md"), Path("docs/治理/历史版本说明.md")),
+        _doc_exists_check("release_checklist_exists", Path("docs/RELEASE_CHECKLIST.md"), Path("docs/发布流程.md")),
         _check("mock_provider_available", "pass", "Mock provider is available for offline tests.", "", required=True),
         _check("network_not_required", "pass", "Base doctor does not require network access.", "", required=True),
     ]
@@ -118,12 +118,14 @@ def _version_alignment_check() -> dict[str, Any]:
     )
 
 
-def _doc_exists_check(name: str, path: Path) -> dict[str, Any]:
+def _doc_exists_check(name: str, path: Path, *fallback_paths: Path) -> dict[str, Any]:
+    candidates = (path, *fallback_paths)
+    existing = next((candidate for candidate in candidates if candidate.exists()), None)
     return _check(
         name,
-        "pass" if path.exists() else "fail",
-        str(path),
-        f"Create {path}.",
+        "pass" if existing else "fail",
+        str(existing or path),
+        f"Create one of: {', '.join(str(candidate) for candidate in candidates)}.",
         required=True,
     )
 

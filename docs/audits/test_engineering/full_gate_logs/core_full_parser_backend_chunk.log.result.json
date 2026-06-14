@@ -1,9 +1,0 @@
-{
-  "name": "core_full_parser_backend_chunk",
-  "command": "python -m pytest tests/test_v28_parser_backends.py tests/test_external_project_registry.py tests/test_planned_adapter_boundaries.py tests/test_s_a_contract_inclusion.py tests/test_post_v4_external_roadmap.py -q",
-  "exit_code": 0,
-  "exit_code_path": "docs/audits/test_engineering/full_gate_logs/core_full_parser_backend_chunk.log.exitcode",
-  "status": "passed",
-  "log_path": "docs/audits/test_engineering/full_gate_logs/core_full_parser_backend_chunk.log",
-  "summary": "...............................................                          [100%]\n47 passed in 6.44s"
-}

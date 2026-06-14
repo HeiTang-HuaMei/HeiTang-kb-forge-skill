@@ -19,7 +19,7 @@ def test_v36_audit_outputs_remain_generatable_without_kept_root_artifacts(tmp_pa
 
 
 def test_v36_historical_docs_are_not_kept_on_main():
-    governance = (ROOT / "docs" / "DOCUMENTATION_GOVERNANCE.md").read_text(encoding="utf-8")
+    governance = (ROOT / "docs" / "治理" / "历史版本说明.md").read_text(encoding="utf-8")
 
     for relative in [
         "docs/ARCHITECTURE_GAP_AUDIT.md",
@@ -33,5 +33,5 @@ def test_v36_historical_docs_are_not_kept_on_main():
     ]:
         assert not (ROOT / relative).exists(), relative
 
-    assert "old `V*` version process notes" in governance
-    assert "root-level historical audit/report" in governance
+    assert "旧 Campaign 中间证据" in governance
+    assert "根目录旧 JSON" in governance

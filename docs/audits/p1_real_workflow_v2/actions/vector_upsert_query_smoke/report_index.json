@@ -1,9 +1,0 @@
-{
-  "action_id": "vector_upsert_query_smoke",
-  "reports": [
-    {
-      "report_id": "report_vector_smoke",
-      "path": "reports/report_vector_smoke.json"
-    }
-  ]
-}

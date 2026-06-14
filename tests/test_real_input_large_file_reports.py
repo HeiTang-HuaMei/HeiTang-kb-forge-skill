@@ -1,12 +1,9 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
-
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def _load(name: str) -> dict:
-    return json.loads((PROOF / name).read_text(encoding="utf-8"))
+    return load_baseline_report(name)
 
 
 def test_real_input_large_file_and_parser_reports_are_meaningful():

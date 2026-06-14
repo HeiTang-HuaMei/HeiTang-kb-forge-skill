@@ -1,9 +1,0 @@
-{
-  "action_id": "stale_document_detect",
-  "reports": [
-    {
-      "report_id": "report_stale_document",
-      "path": "reports/report_stale_document.json"
-    }
-  ]
-}

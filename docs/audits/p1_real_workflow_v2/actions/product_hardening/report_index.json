@@ -1,9 +1,0 @@
-{
-  "action_id": "product_hardening",
-  "reports": [
-    {
-      "report_id": "report_product_hardening",
-      "path": "reports/report_product_hardening.json"
-    }
-  ]
-}

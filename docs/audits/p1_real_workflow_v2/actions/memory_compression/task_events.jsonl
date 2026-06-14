@@ -1,3 +1,0 @@
-{"task_id": "task_memory_compression", "action_id": "memory_compression", "status": "queued", "progress": 0, "current_step": "created"}
-{"task_id": "task_memory_compression", "action_id": "memory_compression", "status": "running", "progress": 50, "current_step": "executing_local_v2"}
-{"task_id": "task_memory_compression", "action_id": "memory_compression", "status": "succeeded", "progress": 100, "current_step": "evidence_written"}

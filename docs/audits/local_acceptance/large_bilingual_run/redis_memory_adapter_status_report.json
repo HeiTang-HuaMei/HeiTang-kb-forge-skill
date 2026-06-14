@@ -1,9 +1,0 @@
-{
-  "redis_memory_adapter_status_report_version": "pre-v4-p0-1",
-  "status": "implemented_needs_live_acceptance",
-  "adapter_config_status": "implemented",
-  "client_available": false,
-  "service_verified": false,
-  "blocked_reason": "redis_client_or_service_not_available_in_ci",
-  "tests_require_real_llm_api_network": false
-}

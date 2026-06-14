@@ -1,12 +1,9 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
-
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def test_ui_full_operation_readiness_is_contract_viewer_only():
-    report = json.loads((PROOF / "ui_full_operation_readiness_report.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("ui_full_operation_readiness_report.json")
 
     assert report["status"] == "blocked"
     assert report["classification"] == "partial_desktop_core_bridge_contract"

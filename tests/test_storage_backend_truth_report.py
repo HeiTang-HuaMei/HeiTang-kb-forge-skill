@@ -1,12 +1,9 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
-
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def test_storage_backend_truth_report_marks_byo_cloud_needs_live_acceptance():
-    report = json.loads((PROOF / "storage_backend_truth_report.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("storage_backend_truth_report.json")
 
     assert report["status"] == "needs_review"
     assert report["tests_require_real_llm_api_network"] is False

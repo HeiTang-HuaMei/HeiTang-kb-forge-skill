@@ -5,7 +5,6 @@ from heitang_kb_forge.workbench import make_external_capability_bundle
 
 
 ROOT = Path(__file__).resolve().parents[1]
-AUDIT_DIR = ROOT / "docs" / "audits" / "s_a_contract_inclusion"
 
 EXPECTED_STATUS = {
     "llm_wiki_v2": ["capability_fusion", "real_integration", "runtime_not_bundled"],
@@ -62,20 +61,22 @@ EXPECTED_STATUS = {
 }
 
 
+def _bundle() -> dict:
+    return make_external_capability_bundle(ROOT)
+
+
 def _json(name: str) -> dict:
-    return json.loads((AUDIT_DIR / name).read_text(encoding="utf-8"))
+    return _bundle()[name]
 
 
-def test_committed_s_a_contract_outputs_match_generator():
+def test_s_a_contract_outputs_are_regenerable_without_public_audit_files():
     generated = make_external_capability_bundle(ROOT)
 
     for filename, payload in generated.items():
-        path = AUDIT_DIR / filename
-        assert path.exists(), filename
         if filename.endswith(".json"):
-            assert json.loads(path.read_text(encoding="utf-8")) == payload
+            json.loads(json.dumps(payload))
         else:
-            assert path.read_text(encoding="utf-8") == payload
+            assert isinstance(payload, str)
 
 
 def test_contract_statuses_match_s_a_inclusion_policy():

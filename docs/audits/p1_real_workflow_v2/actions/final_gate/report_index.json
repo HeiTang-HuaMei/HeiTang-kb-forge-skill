@@ -1,9 +1,0 @@
-{
-  "action_id": "final_gate",
-  "reports": [
-    {
-      "report_id": "report_final_gate",
-      "path": "reports/report_final_gate.json"
-    }
-  ]
-}

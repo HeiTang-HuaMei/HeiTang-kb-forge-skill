@@ -1,13 +1,13 @@
-import json
 from pathlib import Path
+
+from heitang_kb_forge.workbench.external_capabilities import make_external_capability_bundle
 
 
 ROOT = Path(__file__).resolve().parents[1]
-AUDIT_DIR = ROOT / "docs" / "audits" / "s_a_contract_inclusion"
 
 
 def _json(name: str) -> dict:
-    return json.loads((AUDIT_DIR / name).read_text(encoding="utf-8"))
+    return make_external_capability_bundle(ROOT)[name]
 
 
 def test_planned_adapter_registry_contains_no_ready_or_local_executable_entries():

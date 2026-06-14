@@ -1,12 +1,9 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
-
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def test_real_input_bilingual_behavior_report_tracks_language_limits():
-    report = json.loads((PROOF / "real_input_bilingual_behavior_report.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("real_input_bilingual_behavior_report.json")
 
     assert report["package_preserves_chinese_and_english_sources"] is True
     assert report["language_probes"]["zh"]["status"] == "answered"

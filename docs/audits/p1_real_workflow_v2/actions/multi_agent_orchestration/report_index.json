@@ -1,9 +1,0 @@
-{
-  "action_id": "multi_agent_orchestration",
-  "reports": [
-    {
-      "report_id": "report_multi_agent_orchestration",
-      "path": "reports/report_multi_agent_orchestration.json"
-    }
-  ]
-}

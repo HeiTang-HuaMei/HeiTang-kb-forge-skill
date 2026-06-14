@@ -2,11 +2,12 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-GOVERNANCE = ROOT / "docs" / "governance"
-PLAN = GOVERNANCE / "CAMPAIGN_3_SUPPLEMENT_4_0_KNOWLEDGE_TO_SKILL_TEMPLATE_GENERATOR_PLAN.md"
-SEQUENCE = GOVERNANCE / "PLAN_SEQUENCE_LOCK.md"
-MATRIX = GOVERNANCE / "TARGET_ACCEPTANCE_MATRIX.md"
-POLICY = GOVERNANCE / "CAMPAIGN_STAGE_GATE_POLICY.md"
+DOCS = ROOT / "docs"
+GOVERNANCE = DOCS / "治理"
+PLAN = DOCS / "Skill与Agent生成说明.md"
+SEQUENCE = DOCS / "路线图.md"
+MATRIX = GOVERNANCE / "目标验收矩阵.md"
+POLICY = GOVERNANCE / "当前运行状态.md"
 
 
 def _read(path: Path) -> str:
@@ -18,17 +19,19 @@ def test_supplement_4_0_replacement_is_registered_without_activation():
 
     for marker in [
         "Knowledge-to-Skill-to-Agent Package & Product Handoff Contract",
-        "replaces the older Campaign 3 Supplement 4.0 scope named `Knowledge-to-Skill Template Generator`",
+        "替代了早期只覆盖 `Knowledge-to-Skill Template Generator` 的窄范围",
         "Plan state: `accepted_for_campaign_3_final_consistency_gate`",
         "Current active phase: `Campaign 3 Supplement 4.0 Knowledge-to-Skill-to-Agent Package & Product Handoff Contract`",
             "Current completed item: `Campaign 3 Supplement 4.0 Acceptance Gate`",
         "Current business item: `Campaign 3 Final Consistency Gate only`",
-            "Supplement 3.0 Acceptance Gate, the Pre-4.0 gate, the bounded industrial-grade Entry Reconciliation Gate, 4.0B Verified Knowledge-to-Skill Template, 4.0C Skill Import & Dedicated Skill Composer, 4.0D-I Product Handoff Contract Bundle, and Supplement 4.0 Acceptance Gate have passed",
-            "Campaign 3 Final Consistency Gate is now the only next safe action",
-        "not Campaign 4 UI and not Campaign 5 Bridge",
-        "does not profile a real knowledge base",
-        "does not publish a Skill, create an Agent Package in 4.0B",
-        "4.0C has passed as a bounded industrial-grade Skill Import & Dedicated Skill Composer implementation",
+            "Supplement 3.0 Acceptance Gate、Pre-4.0 gate、bounded industrial-grade Entry Reconciliation Gate、4.0B Verified Knowledge-to-Skill Template、4.0C Skill Import & Dedicated Skill Composer、4.0D-I Product Handoff Contract Bundle、Supplement 4.0 Acceptance Gate 均已通过",
+            "Campaign 3 Final Consistency Gate 是 4.0 后唯一 next safe action",
+        "不是 Campaign 4 UI",
+        "不是 Campaign 5 Bridge",
+        "4.0B 不 profile real knowledge base",
+        "不发布 Skill",
+        "不在 4.0B 创建 Agent Package",
+        "4.0C 已作为 bounded industrial-grade Skill Import & Dedicated Skill Composer implementation 通过",
     ]:
         assert marker in text
 
@@ -38,26 +41,22 @@ def test_supplement_4_0_sequence_preserves_total_plan_and_macro_order():
 
     for marker in [
         "Campaign 3 Supplement 3.0 External Source Memory & Verification",
-        "Campaign 3 Supplement 3.0 Acceptance Gate",
-        "Campaign 3 Supplement 4.0 Entry Reconciliation Gate",
-        "Campaign 3 Supplement 4.0 Knowledge-to-Skill-to-Agent Package & Product Handoff Contract",
-        "Campaign 3 Supplement 4.0 Acceptance Gate",
         "Campaign 3 Final Consistency Gate",
-        "Campaign 1-3 Stage Test Gate",
-        "Campaign 1-3 Integrated Closure",
+        "Campaign 1-3 Stage Test Gate passed",
+        "Campaign 1-3 Integrated Closure passed",
         "Closure Pack",
         "Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate",
-        "Repository Push",
-        "CI Green",
+        "Repository push succeeded",
+        "GitHub CI Green",
         "Closure Checklist Green",
-        "Campaign 4 Goal-Oriented Product UI Workbench",
-        "Campaign 5 Chain-Level Local Core Bridge",
+        "Campaign 4 | Goal-Oriented Product UI Workbench",
+        "Campaign 5 | Chain-Level Local Core Bridge",
     ]:
         assert marker in combined
 
-    assert "Supplement 4.0 is an internal Section 5 / Campaign 3 product handoff contract" in combined
-    assert "Campaign 4 is the later Goal-Oriented Product UI Workbench" in combined
-    assert "Campaign 5 is the later Chain-Level Local Core Bridge" in combined
+    assert "Campaign 3 Supplement 4.0 的完整产品边界" in combined
+    assert "Campaign 4：目标导向 UI 工作台" in combined
+    assert "Campaign 5：链路级 Local Core Bridge" in combined
 
 
 def test_supplement_4_0_handoff_chain_extends_beyond_skill_template():
@@ -140,12 +139,10 @@ def test_supplement_4_0_ui_and_bridge_handoff_do_not_complete_campaigns_4_or_5()
     text = _read(PLAN)
 
     for marker in [
-        "docs/product/CAMPAIGN_4_UI_HANDOFF_CONTRACT.md",
-        "docs/product/UI_TASK_CARD_INPUTS_FROM_CAMPAIGN_3.json",
-        "docs/bridge/CAMPAIGN_5_BRIDGE_HANDOFF_CONTRACT.md",
-        "docs/bridge/FUTURE_AGENT_BRIDGE_ACTION_CANDIDATES.json",
+        "UI Handoff Contract",
+        "Bridge Handoff Contract",
         "future_allowlist_candidate",
-        "Campaign 5 must not automatically inherit `future_allowlist_candidate`",
+        "Campaign 5 allowlist",
         "Every new allowlist action must have separate acceptance",
         "UI Handoff Contract is not Campaign 4 UI completion",
         "Bridge Handoff Contract is not Campaign 5 Bridge completion",

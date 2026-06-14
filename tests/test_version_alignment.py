@@ -14,14 +14,10 @@ def test_project_versions_are_aligned():
     for relative in [
         "README.md",
         "README.zh-CN.md",
-        "docs/CAPABILITY_STATUS.md",
-        "docs/CAPABILITY_STATUS.zh-CN.md",
-        "docs/VERSION_MATRIX.md",
-        "docs/VERSION_MATRIX.zh-CN.md",
-        "docs/RELEASE_CHECKLIST.md",
-        "docs/RELEASE_CHECKLIST.zh-CN.md",
+        "docs/项目概览.md",
+        "docs/治理/历史版本说明.md",
     ]:
         assert VERSION in (ROOT / relative).read_text(encoding="utf-8")
-    assert "Current Core: v4.2.0" in (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "Current Core package version: `4.2.0`" in (ROOT / "README.md").read_text(encoding="utf-8")
 
 

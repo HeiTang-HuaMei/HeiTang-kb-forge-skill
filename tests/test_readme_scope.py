@@ -15,6 +15,6 @@ def test_readme_does_not_overstate_future_capabilities():
         ]
         for item in forbidden:
             assert item not in text
-        assert "offline-first" in text or "offline" in text
+        assert "offline-first" in text or "offline" in text or "本地优先" in text
         assert "evidence" in text or "证据" in text
 

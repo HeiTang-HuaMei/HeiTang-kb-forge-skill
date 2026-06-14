@@ -1,13 +1,10 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
-
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def test_real_input_privacy_redaction_excludes_forbidden_artifacts():
-    report = json.loads((PROOF / "real_input_privacy_redaction_report.json").read_text(encoding="utf-8"))
-    index = json.loads((PROOF / "real_input_artifact_index.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("real_input_privacy_redaction_report.json")
+    index = load_baseline_report("real_input_artifact_index.json")
 
     assert report["raw_inputs_excluded_from_commit"] is True
     assert report["full_extracted_chunks_excluded_from_commit"] is True

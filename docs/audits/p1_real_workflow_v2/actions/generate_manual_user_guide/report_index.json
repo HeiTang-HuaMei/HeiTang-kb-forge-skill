@@ -1,9 +1,0 @@
-{
-  "action_id": "generate_manual_user_guide",
-  "reports": [
-    {
-      "report_id": "report_manual_user_guide",
-      "path": "reports/report_manual_user_guide.json"
-    }
-  ]
-}

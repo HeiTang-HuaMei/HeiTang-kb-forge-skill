@@ -1,9 +1,0 @@
-{
-  "action_id": "vector_db_validate",
-  "reports": [
-    {
-      "report_id": "report_vector_db_readiness",
-      "path": "reports/report_vector_db_readiness.json"
-    }
-  ]
-}

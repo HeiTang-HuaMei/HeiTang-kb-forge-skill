@@ -1,12 +1,9 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
-
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def test_security_threat_model_gap_report_keeps_remaining_gaps_visible():
-    report = json.loads((PROOF / "security_threat_model_gap_report.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("security_threat_model_gap_report.json")
 
     assert report["status"] == "needs_review"
     assert report["tests_require_real_llm_api_network"] is False

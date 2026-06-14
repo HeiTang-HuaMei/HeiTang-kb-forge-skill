@@ -27,7 +27,8 @@ def test_final_gate_clears_rag_p0_after_local_vector_readiness_is_proven(tmp_pat
     assert result["ready_for_v4_rc"] is True
     assert gate["overall_status"] == "ready_for_v4_rc"
     assert not any(item["id"] == "rag_vector_index_industrial_readiness_unproven" for item in gate["p0_blockers"])
-    assert any(item["id"] == "scanned_pdf_full_ocr_not_proven" for item in gate["issue_checklist"])
+    assert gate["multi_format_parser_readiness"]["formats"]["scanned_pdf_full_ocr"]["status"] == "dependency_gated_optional"
+    assert "full scanned PDF OCR proven by default" in gate["multi_format_parser_readiness"]["must_not_claim"]
     assert gate["recommendation"] == "ready_for_v4_rc"
 
 

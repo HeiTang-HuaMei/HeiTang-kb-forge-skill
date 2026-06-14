@@ -1,9 +1,0 @@
-{
-  "action_id": "book_to_skill",
-  "reports": [
-    {
-      "report_id": "report_book_to_skill",
-      "path": "reports/report_book_to_skill.json"
-    }
-  ]
-}

@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_installation_and_quickstart_are_kept_in_readme_and_user_manual():
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    user_manual = (ROOT / "docs" / "USER_MANUAL.md").read_text(encoding="utf-8")
+    user_manual = (ROOT / "docs" / "快速开始.md").read_text(encoding="utf-8")
 
     for text in [readme, user_manual]:
         assert "python -m pip install -e" in text

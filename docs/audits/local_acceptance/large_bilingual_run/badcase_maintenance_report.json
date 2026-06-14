@@ -1,9 +1,0 @@
-{
-  "badcase_maintenance_report_version": "pre-v4-p0-20",
-  "status": "pass",
-  "bad_case_collection": [],
-  "quarterly_review_recommendation": true,
-  "update_schedule": "quarterly_or_on_source_change",
-  "regression_test_trigger_after_document_update": true,
-  "tests_require_real_llm_api_network": false
-}

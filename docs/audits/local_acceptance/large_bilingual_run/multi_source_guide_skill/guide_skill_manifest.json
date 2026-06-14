@@ -1,7 +1,0 @@
-{
-  "guide_skill_manifest_version": "pre-v4-p0-21",
-  "source_count": 3,
-  "citation_map": "source_citation_map.json",
-  "topic_cluster_report": "topic_cluster_report.json",
-  "tests_require_real_llm_api_network": false
-}

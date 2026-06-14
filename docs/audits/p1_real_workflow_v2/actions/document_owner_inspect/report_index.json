@@ -1,9 +1,0 @@
-{
-  "action_id": "document_owner_inspect",
-  "reports": [
-    {
-      "report_id": "report_document_owner",
-      "path": "reports/report_document_owner.json"
-    }
-  ]
-}

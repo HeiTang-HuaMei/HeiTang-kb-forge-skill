@@ -1,8 +1,0 @@
-{
-  "schema_version": "external_change_detection_report.v1",
-  "status": "not_compared",
-  "content_hash": "60a442e06f318f552c0aafc15f4e92562b558e216421cd426d5be8af1a734855",
-  "previous_content_hash": null,
-  "content_hash_changed": null,
-  "reason": "No previous external source snapshot was supplied."
-}

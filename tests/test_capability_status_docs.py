@@ -5,12 +5,26 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_capability_status_docs_define_all_levels():
-    for relative in ["docs/CAPABILITY_STATUS.md", "docs/CAPABILITY_STATUS.zh-CN.md"]:
-        text = (ROOT / relative).read_text(encoding="utf-8")
-        for heading in ["Stable", "Preview", "Experimental", "Roadmap", "Reserved", "Deprecated", "Out of Scope"]:
-            assert f"## {heading}" in text
-        stable = text.split("## Stable", 1)[1].split("## Preview", 1)[0]
-        assert "v2.6" not in stable
-        assert "official XHS" not in stable
-        assert "SaaS" not in stable
+    combined = "\n".join(
+        (ROOT / relative).read_text(encoding="utf-8")
+        for relative in [
+            "docs/项目概览.md",
+            "docs/产品定位.md",
+            "docs/治理/目标验收矩阵.md",
+            "docs/路线图.md",
+        ]
+    )
+    for marker in [
+        "Knowledge Package",
+        "Document Outputs",
+        "Skill Outputs",
+        "Agent Creation Package",
+        "completed_baseline",
+        "not_started",
+        "future target",
+    ]:
+        assert marker in combined
+    assert "v2.6" not in combined
+    assert "official XHS" not in combined
+    assert "SaaS implemented" not in combined
 

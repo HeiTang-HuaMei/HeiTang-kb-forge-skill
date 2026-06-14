@@ -1,7 +1,7 @@
+from tests.v4_2_baseline_evidence import load_baseline_report
 import io
 import json
 import urllib.error
-from pathlib import Path
 
 from heitang_kb_forge.llm.provider_profiles import ProviderProfile, load_provider_profiles, run_provider_profile_acceptance
 from heitang_kb_forge.pre_v4_p0 import run_live_llm_acceptance
@@ -9,7 +9,6 @@ from tests.p0_helpers import make_p0_package, read_json
 from heitang_kb_forge.pre_v4_p0 import run_pre_v4_p0_completion
 
 
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 PROFILE_TYPES = {"official_openai", "official_vendor", "openai_compatible_proxy", "local_model", "custom_http"}
 
 
@@ -197,10 +196,10 @@ def test_pre_v4_final_gate_uses_provider_profile_success_for_live_llm(tmp_path, 
 
 
 def test_static_pre_v4_llm_proof_uses_user_configured_provider_profile_design():
-    live = json.loads((PROOF / "live_llm_acceptance_report.json").read_text(encoding="utf-8"))
-    gate = json.loads((PROOF / "final_v4_rc_gate_report.json").read_text(encoding="utf-8"))
-    readiness = json.loads((PROOF / "llm_provider_and_per_agent_api_readiness_report.json").read_text(encoding="utf-8"))
-    optional = json.loads((PROOF / "optional_llm_provider_acceptance_report.json").read_text(encoding="utf-8"))
+    live = load_baseline_report("live_llm_acceptance_report.json")
+    gate = load_baseline_report("final_v4_rc_gate_report.json")
+    readiness = load_baseline_report("llm_provider_and_per_agent_api_readiness_report.json")
+    optional = load_baseline_report("optional_llm_provider_acceptance_report.json")
 
     assert set(live["allowed_provider_types"]) == PROFILE_TYPES
     assert set(readiness["supported_provider_profile_types"]) == PROFILE_TYPES

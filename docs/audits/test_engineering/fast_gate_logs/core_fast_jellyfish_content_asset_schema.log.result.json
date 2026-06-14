@@ -1,9 +1,0 @@
-{
-  "name": "core_fast_jellyfish_content_asset_schema",
-  "command": "python -m pytest tests/test_content_asset_schema.py tests/test_jellyfish_integration_decision.py tests/test_s_a_contract_inclusion.py tests/test_external_capability_registry.py tests/test_external_project_registry.py -q",
-  "exit_code": 0,
-  "exit_code_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_jellyfish_content_asset_schema.log.exitcode",
-  "status": "passed",
-  "log_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_jellyfish_content_asset_schema.log",
-  "summary": ".......................                                                  [100%]\n23 passed in 4.69s"
-}

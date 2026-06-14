@@ -1,9 +1,0 @@
-{
-  "name": "core_fast_ai_marketing_skills",
-  "command": "python -m pytest tests/test_marketing_skill_patterns.py tests/test_ai_marketing_skills_integration_decision.py tests/test_s_a_contract_inclusion.py tests/test_external_capability_registry.py tests/test_external_project_registry.py -q",
-  "exit_code": 0,
-  "exit_code_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_ai_marketing_skills.log.exitcode",
-  "status": "passed",
-  "log_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_ai_marketing_skills.log",
-  "summary": "......................                                                   [100%]\n22 passed in 1.49s"
-}

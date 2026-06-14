@@ -1,9 +1,0 @@
-{
-  "action_id": "ocr_required_detection",
-  "reports": [
-    {
-      "report_id": "report_ocr_required_detection",
-      "path": "reports/report_ocr_required_detection.json"
-    }
-  ]
-}

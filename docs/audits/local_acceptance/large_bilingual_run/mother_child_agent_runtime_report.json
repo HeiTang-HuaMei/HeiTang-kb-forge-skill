@@ -1,7 +1,0 @@
-{
-  "mother_child_agent_runtime_report_version": "pre-v4-p0-1",
-  "status": "pass",
-  "mother_child_routing": true,
-  "trace_of_routing_decisions": true,
-  "tests_require_real_llm_api_network": false
-}

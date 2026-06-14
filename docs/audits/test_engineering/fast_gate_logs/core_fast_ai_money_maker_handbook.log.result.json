@@ -1,9 +1,0 @@
-{
-  "name": "core_fast_ai_money_maker_handbook",
-  "command": "python -m pytest tests/test_business_scenario_templates.py tests/test_ai_money_maker_handbook_integration_decision.py tests/test_external_project_registry.py -q",
-  "exit_code": 0,
-  "exit_code_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_ai_money_maker_handbook.log.exitcode",
-  "status": "passed",
-  "log_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_ai_money_maker_handbook.log",
-  "summary": "..............                                                           [100%]\n14 passed in 1.86s"
-}

@@ -33,12 +33,10 @@ def test_desktop_dark_theme_variables_are_present():
 def test_current_docs_describe_ui_boundary_without_legacy_ui_docs():
     text = "\n".join(
         (ROOT / path).read_text(encoding="utf-8")
-        for path in ["README.md", "README.zh-CN.md", "docs/ROADMAP.md", "docs/10_roadmap/P1_UI_CORE_PARITY.md"]
+        for path in ["README.md", "README.zh-CN.md", "docs/路线图.md", "docs/治理/当前运行状态.md"]
     )
-    assert "UI information architecture is frozen" in text or "UI 信息架构已冻结" in text
-    assert "presentation layer" in text
-    assert "ready_for_v4_rc=true" in text
-    assert "historical P1-backed release" in text
-    assert "v4.1.0" in text
+    assert "Campaign 4 UI work is not active" in text or "Campaign 4 UI 未启动" in text
+    assert "Campaign 4 active：false" in text
+    assert "v4.2" in text
     assert "Web Console" not in text
     assert "web console" not in text

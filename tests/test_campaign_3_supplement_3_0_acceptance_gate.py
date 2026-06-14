@@ -18,9 +18,8 @@ RUN_DIR = (
     / "section_5"
     / "campaign_3_supplement_3_0_acceptance_gate"
 )
-AUDIT_MANIFEST = ROOT / "docs" / "audits" / "AUDIT_MANIFEST.json"
-AUDIT_INDEX = ROOT / "docs" / "audits" / "AUDIT_INDEX.md"
-VALIDATION_MANIFEST = ROOT / "docs" / "testing" / "VALIDATION_GATE_MANIFEST.json"
+PUBLIC_SUMMARY = ROOT / "docs" / "治理" / "Campaign_1_3_总结.md"
+TEST_POLICY = ROOT / "docs" / "测试与验收.md"
 
 
 def _json(path: Path) -> dict:
@@ -115,30 +114,9 @@ def test_generated_acceptance_artifact_preserves_stop_boundary():
     assert run["campaign_state_after_run"]["campaign_4_allowed"] is False
 
 
-def test_acceptance_gate_is_indexed_and_routed_to_fast_gate():
-    audit = _json(AUDIT_MANIFEST)
-    indexed = {
-        run["run_id"]: run
-        for run in audit["runs"]
-        if run["run_id"] == "campaign_3_supplement_3_0_acceptance_gate"
-    }
-    run = indexed["campaign_3_supplement_3_0_acceptance_gate"]
+def test_acceptance_gate_is_preserved_in_public_summary_not_audit_pile():
+    text = PUBLIC_SUMMARY.read_text(encoding="utf-8") + "\n" + TEST_POLICY.read_text(encoding="utf-8")
 
-    assert run["status"] == "passed"
-    assert run["verdict"] == "accepted_for_pre_4_0_workspace_partition_foundation_gate"
-    assert run["evidence_dir"] == (
-        "artifacts/audits/section_5/campaign_3_supplement_3_0_acceptance_gate"
-    )
-    assert "`campaign_3_supplement_3_0_acceptance_gate`" in AUDIT_INDEX.read_text(
-        encoding="utf-8"
-    )
-
-    validation = _json(VALIDATION_MANIFEST)
-    assert any(
-        gate["name"] == "core_fast_campaign_3_supplement_3_0_acceptance_gate"
-        for gate in validation["gates"]
-    )
-    assert any(
-        rule["name"] == "campaign_3_supplement_3_0_acceptance_gate"
-        for rule in validation["impact_rules"]
-    )
+    assert "外部信源记忆与验证基础层" in text
+    assert "运行时能力通过测试在临时目录中生成证据，不依赖 main 中旧审计堆" in text
+    assert "docs/audits/**" not in {path.as_posix() for path in ROOT.glob("docs/audits/**")}

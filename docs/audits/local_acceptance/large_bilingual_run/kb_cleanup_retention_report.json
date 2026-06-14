@@ -1,8 +1,0 @@
-{
-  "kb_cleanup_retention_report_version": "pre-v4-p0-1",
-  "status": "pass",
-  "non_destructive_default": true,
-  "archive_delete_recommendation": "recommendation_only",
-  "cleanup_retention_policy": "manual_review_before_delete",
-  "tests_require_real_llm_api_network": false
-}

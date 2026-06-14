@@ -1,9 +1,0 @@
-{
-  "full_ocr_page_coverage_report_version": "pre-v4-p0-1",
-  "status": "pass",
-  "total_pages": 120,
-  "attempted_pages": 120,
-  "completed_pages": 120,
-  "all_candidate_pages_attempted": true,
-  "tests_require_real_llm_api_network": false
-}

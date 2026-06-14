@@ -1,9 +1,0 @@
-{
-  "action_id": "skill_manifest_validate",
-  "reports": [
-    {
-      "report_id": "report_skill_validation",
-      "path": "reports/report_skill_validation.json"
-    }
-  ]
-}

@@ -1,1 +1,0 @@
-{"example_id": "example_source_grounded_summary", "input": "Summarize the verified source evidence.", "output": "Return a concise summary with source_trace and evidence_id references."}

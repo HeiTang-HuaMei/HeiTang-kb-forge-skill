@@ -36,6 +36,8 @@ def test_docs_do_not_claim_forbidden_future_features_as_implemented():
 
 
 def test_local_privacy_security_states_required_boundaries():
-    text = (ROOT / "docs" / "LOCAL_PRIVACY_SECURITY.md").read_text(encoding="utf-8")
-    for phrase in ["Local-first default", "No platform-hosted user data", "LLM optional only", "No hidden upload", "BYO cloud"]:
+    text = (ROOT / "docs" / "产品定位.md").read_text(encoding="utf-8") + "\n" + (
+        ROOT / "docs" / "使用指南.md"
+    ).read_text(encoding="utf-8")
+    for phrase in ["不默认上传用户资料", "不保存真实 API key", "不绕登录", "本地", "外部 provider"]:
         assert phrase in text

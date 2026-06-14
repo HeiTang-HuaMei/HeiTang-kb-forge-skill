@@ -1,3 +1,0 @@
-{"task_id": "task_rag_retrieval_verification_smoke", "workflow_id": "rag_retrieval_verification_smoke", "status": "queued", "progress": 0, "current_step": "created"}
-{"task_id": "task_rag_retrieval_verification_smoke", "workflow_id": "rag_retrieval_verification_smoke", "status": "running", "progress": 50, "current_step": "executing_local_v1"}
-{"task_id": "task_rag_retrieval_verification_smoke", "workflow_id": "rag_retrieval_verification_smoke", "status": "review_required", "progress": 100, "current_step": "evidence_written", "artifact_count": 3}

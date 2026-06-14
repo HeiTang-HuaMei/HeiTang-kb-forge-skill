@@ -1,6 +1,0 @@
-{
-  "schema_version": "deletion_candidate_manifest.v1",
-  "status": "passed",
-  "items": [],
-  "note": "No files are deleted by this gate. Deletion candidates require explicit replacement/archive path and safe_to_delete=true."
-}

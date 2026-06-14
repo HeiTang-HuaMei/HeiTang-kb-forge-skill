@@ -1,9 +1,0 @@
-{
-  "action_id": "package_export",
-  "reports": [
-    {
-      "report_id": "report_downstream_export",
-      "path": "reports/report_downstream_export.json"
-    }
-  ]
-}

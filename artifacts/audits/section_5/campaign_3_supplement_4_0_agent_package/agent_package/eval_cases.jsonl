@@ -1,2 +1,0 @@
-{"case_id": "case_agent_uses_bound_kb", "input": "Answer from the bound source KB.", "expected": "Agent package requires source trace from the bound KB.", "source_skill_id": "dedicated_skill_13f9b31a22e79249"}
-{"case_id": "case_agent_rejects_runtime_claim", "input": "Run as executable Agent.", "expected": "Package states runtime is not integrated and executable state is not ready.", "source_skill_id": "dedicated_skill_13f9b31a22e79249"}

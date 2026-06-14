@@ -302,7 +302,181 @@ PROJECT_ERROR_MAPPING = {
 def load_external_project_registry(repo_root: Path | None = None) -> dict[str, Any]:
     root = repo_root or Path.cwd()
     registry_path = root / SOURCE_REGISTRY_RELATIVE_PATH
-    return json.loads(registry_path.read_text(encoding="utf-8"))
+    if registry_path.exists():
+        return json.loads(registry_path.read_text(encoding="utf-8"))
+    return _default_external_project_registry()
+
+
+def _default_external_project_registry() -> dict[str, Any]:
+    """Built-in registry fallback for clean v4.2 public main.
+
+    Historical registry files are no longer tracked in public main, but the Core
+    still needs to regenerate external capability matrices in a fresh clone.
+    """
+    project_rows = [
+        ("llm_wiki_v2", "LLM Wiki v2", "https://github.com/karpathy/llm-wiki", "S", "real_workflow_evidence", "capability_fusion", False, False, False, "P2.4"),
+        ("weknora", "WeKnora", "https://github.com/tencent/weknora", "S", "real_workflow_evidence", "capability_fusion", False, False, False, "P2.5"),
+        ("n8n", "n8n", "https://github.com/n8n-io/n8n", "S", "real_workflow_evidence", "workflow_export", False, False, True, "P2.2 / P3"),
+        ("andrej_karpathy_skills", "andrej-karpathy-skills", "https://github.com/multica-ai/andrej-karpathy-skills", "S", "benchmark_mapped", "capability_fusion", False, False, False, "P2.9"),
+        ("paddleocr", "PaddleOCR", "https://github.com/PaddlePaddle/PaddleOCR", "S", "planned_adapter", "optional_runtime_adapter", False, False, False, "P2.1"),
+        ("mineru", "MinerU", "https://github.com/opendatalab/MinerU", "S", "planned_adapter", "planned_adapter", False, False, False, "P2.6"),
+        ("docling", "Docling", "https://github.com/docling-project/docling", "S", "planned_adapter", "optional_runtime_adapter", False, False, False, "P2.1"),
+        ("unstructured", "Unstructured", "https://github.com/Unstructured-IO/unstructured", "S", "planned_adapter", "optional_runtime_adapter", False, False, False, "P2.1"),
+        ("anysearchskill", "AnySearchSkill", "https://github.com/anysearch-ai/anysearch-skill", "A", "real_workflow_evidence", "provider_adapter", False, True, False, "P2.3"),
+        ("last30days_skill", "last30days-skill", "https://github.com/mvanhorn/last30days-skill", "A", "benchmark_mapped", "provider_adapter", False, True, False, "P2.3 / P3"),
+        ("skill_prompt_generator", "skill-prompt-generator", "https://github.com/huangserva/skill-prompt-generator", "A", "real_workflow_evidence", "prompt_asset_library_enhancer", False, False, False, "P2.9"),
+        ("mmskills", "MMSkills", "https://github.com/DeepExperience/MMSkills", "A", "reference_schema_evidence", "schema_package_reference", False, False, False, "P2.8 / P3"),
+        ("jellyfish", "Jellyfish", "https://github.com/Forget-C/Jellyfish", "A", "reference_schema_evidence", "content_asset_schema_reference", False, False, False, "P2.8 / P3"),
+        ("story_flicks", "story-flicks", "https://github.com/alecm20/story-flicks", "A", "reference_schema_evidence", "aigc_video_pipeline_schema_reference", False, False, False, "P2.8 / P3"),
+        ("seedance2_skill", "seedance2-skill", "https://github.com/dexhunter/seedance2-skill", "A", "reference_schema_evidence", "verified_video_skill_template_metadata", True, True, False, "P2.8 / P3"),
+        ("rag_anything", "RAG-Anything", "https://github.com/HKUDS/RAG-Anything", "A", "reference_schema_evidence", "cross_modal_rag_schema_reference", False, False, False, "P2.5 / P2.6"),
+        ("mattpocock_skills", "mattpocock/skills", "https://github.com/mattpocock/skills", "A", "real_workflow_evidence", "engineering_governance_rule_pack", False, False, False, "P2.2 / governance"),
+        ("sirchmunk", "Sirchmunk", "https://github.com/modelscope/sirchmunk", "A", "real_workflow_evidence", "bounded_direct_file_search_provider", False, False, False, "P2.8 / local retrieval"),
+        ("ai_marketing_skills", "ai-marketing-skills", "https://github.com/ericosiu/ai-marketing-skills", "A", "real_workflow_evidence", "marketing_skill_pattern_library", False, False, False, "P2.7"),
+        ("rtk", "rtk", "https://github.com/rtk-ai/rtk", "A", "benchmark_mapped", "token_compression_cli_benchmark", False, False, True, "P3"),
+        ("opendataloader", "OpenDataLoader", "https://github.com/opendataloader-project/opendataloader-pdf", "A", "planned_adapter", "planned_adapter", False, False, False, "P2.6"),
+        ("marker", "Marker", "https://github.com/datalab-to/marker", "A", "planned_adapter", "planned_adapter", False, False, False, "P2.6"),
+        ("surya", "Surya", "https://github.com/datalab-to/surya", "A", "planned_adapter", "ocr_layout_backend", False, False, False, "P2.6"),
+        ("llamaindex", "LlamaIndex", "https://github.com/run-llama/llama_index", "A", "benchmark_mapped", "benchmark_only", False, False, False, "P2.5"),
+        ("ragas", "RAGAS", "https://github.com/explodinggradients/ragas", "A", "benchmark_mapped", "benchmark_only", False, False, False, "P2.5"),
+        ("deepeval", "DeepEval", "https://github.com/confident-ai/deepeval", "A", "docs_only", "benchmark_only", False, False, False, "P2.5"),
+    ]
+    anchors = [
+        ("book_to_skill", "Book-to-Skill", "implemented", "P2.6", ["andrej_karpathy_skills", "skill_prompt_generator"]),
+        ("package_to_skill", "Package-to-Skill", "implemented", "P2.6 / P2.9", ["andrej_karpathy_skills", "skill_prompt_generator"]),
+        ("software_to_manual_to_skill", "Software-to-Manual-to-Skill", "contract_only / planned_capability", "P2.6", ["andrej_karpathy_skills", "skill_prompt_generator"]),
+        ("aigc_book_content_pipeline", "AIGC Book Content Pipeline", "docs_only", "P2.7 / P2.8", ["jellyfish", "story_flicks", "ai_marketing_skills"]),
+        ("retrieval_and_verification", "Retrieval & Verification", "implemented", "P2.3 / P2.5", ["anysearchskill", "llamaindex", "ragas", "deepeval"]),
+        ("memory_lifecycle", "Memory Lifecycle", "implemented baseline", "P2.4", ["llm_wiki_v2"]),
+        ("auto_wiki_knowledge_graph", "Auto Wiki / Knowledge Graph", "implemented baseline", "P2.5", ["weknora"]),
+        ("workflow_automation_export", "Workflow Automation / Export", "implemented export baseline", "P2.2 / P3", ["n8n"]),
+    ]
+    future_queue = [
+        ("andrej_karpathy_skills", "andrej-karpathy-skills", "reference_only", True),
+        ("presenton", "Presenton", "needs_verification", False),
+        ("codegraph", "CodeGraph", "needs_verification", False),
+        ("understand_anything", "Understand Anything", "needs_verification", False),
+        ("nvlabs_longlive", "NVlabs/LongLive", "needs_verification", False),
+        ("claude_plugins_official", "claude-plugins-official", "needs_verification", False),
+        ("pi_mono", "pi-mono", "needs_verification", False),
+    ]
+    roadmap = [
+        ("P2.1", "External Project Verification Baseline + Parser/OCR Multi-Backend Integration", ["registry and contract inclusion", "parser/OCR backend adapter"]),
+        ("P2.2", "Skill Governance + Book-to-Skill Deepening", ["skill governance", "Book-to-Skill / Software-to-Manual-to-Skill"]),
+        ("P2.3", "External Retrieval Provider Boundary", ["provider boundary", "freshness verification"]),
+        ("P2.4", "Memory Lifecycle Deepening", ["memory lifecycle", "confidence and decay"]),
+        ("P2.5", "Retrieval / Verification / Knowledge Graph", ["retrieval evaluation", "knowledge graph"]),
+        ("P2.6", "Parser and Document Understanding", ["document parser", "layout/OCR"]),
+        ("P2.7", "Operation and Growth Templates", ["business templates", "marketing patterns"]),
+        ("P2.8", "Visual / Multimodal References", ["visual schemas", "multimodal evidence"]),
+        ("P2.9", "Skill Methodology and Governance", ["skill methodology", "governance"]),
+        ("P3", "Ecosystem Expansion", ["future adapters", "user-owned runtimes"]),
+        ("P4", "Release Planning", ["release hardening"]),
+    ]
+    evidence_files_by_project = {
+        "seedance2_skill": [
+            "heitang_kb_forge/video_skill_template_metadata/builder.py",
+            "tests/test_video_skill_template_metadata.py",
+        ],
+        "rag_anything": [
+            "heitang_kb_forge/cross_modal_rag_schema/builder.py",
+            "tests/test_cross_modal_rag_schema.py",
+        ],
+        "mattpocock_skills": [
+            "heitang_kb_forge/engineering_governance_rules/builder.py",
+            "tests/test_engineering_governance_rules.py",
+        ],
+        "sirchmunk": [
+            "heitang_kb_forge/external_retrieval/sirchmunk.py",
+            "tests/test_sirchmunk_direct_file_search.py",
+        ],
+    }
+    projects = [
+        {
+            "project_id": project_id,
+            "project_name": project_name,
+            "github_url": github_url,
+            "rating": rating,
+            "current_repo_status": current_repo_status,
+            "current_evidence_files": evidence_files_by_project.get(project_id, []),
+            "mapped_capabilities": [project_id],
+            "suitable_for_heitang": [],
+            "not_suitable_parts": [],
+            "pre_v4_scope": "registry_fallback",
+            "post_v4_target": post_v4_target,
+            "ui_impact": "medium",
+            "implementation_mode": implementation_mode,
+            "requires_api_key": requires_api_key,
+            "requires_network": requires_network,
+            "requires_external_runtime": requires_external_runtime,
+            "license_or_security_review_required": True,
+            "can_be_ready_before_v4": False,
+            "reason_not_ready_before_v4": "v4.2 public main keeps registry fallback only; no external runtime is bundled.",
+            "recommended_next_action": "Keep as future/reference boundary unless an ordered campaign activates it.",
+        }
+        for (
+            project_id,
+            project_name,
+            github_url,
+            rating,
+            current_repo_status,
+            implementation_mode,
+            requires_api_key,
+            requires_network,
+            requires_external_runtime,
+            post_v4_target,
+        ) in project_rows
+    ]
+    internal_anchors = [
+        {
+            "anchor_id": anchor_id,
+            "anchor_name": anchor_name,
+            "rating": "S",
+            "current_status": current_status,
+            "pre_v4_scope": "already_core_capability" if "implemented" in current_status else "contract_mapping_only",
+            "post_v4_target": post_v4_target,
+            "related_external_benchmarks": related,
+        }
+        for anchor_id, anchor_name, current_status, post_v4_target, related in anchors
+    ]
+    return {
+        "registry_id": "v4_2_builtin_external_project_registry",
+        "scope": "Built-in v4.2 clean-main fallback. No external project runtime is integrated by this registry.",
+        "core_repo": "kb-forge-skill",
+        "core_branch": "main",
+        "v4_0_started": False,
+        "tag_created": False,
+        "release_written": False,
+        "external_features_implemented": True,
+        "planned_adapters_marked_ready": False,
+        "rating_counts": {"S": 8, "A": 18, "B": 0, "needs_verification_status": 0},
+        "future_reference_queue": [
+            {
+                "project_id": project_id,
+                "project_name": project_name,
+                "reference_role": "future/reference queue",
+                "status": status,
+                "implementation_mode": "not_integrated",
+                "current_version_required": current_version_required,
+                "runtime_dependency_added": False,
+                "npm_install_required": False,
+                "gpu_runtime_integration": False,
+                "mcp_or_plugin_execution": False,
+                "no_runtime_dependency_added": True,
+                "no_npm_install": True,
+                "no_gpu_runtime_integration": True,
+                "no_mcp_plugin_execution": True,
+                "boundary": "Reference queue only; no runtime dependency or plugin execution is active.",
+            }
+            for project_id, project_name, status, current_version_required in future_queue
+        ],
+        "projects": projects,
+        "internal_capability_anchors": internal_anchors,
+        "post_v4_roadmap": [
+            {"phase": phase, "title": title, "primary_s_a_directions": directions, "scope": directions}
+            for phase, title, directions in roadmap
+        ],
+    }
 
 
 def make_external_capability_bundle(repo_root: Path | None = None) -> dict[str, Any]:

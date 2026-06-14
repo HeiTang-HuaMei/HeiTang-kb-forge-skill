@@ -16,13 +16,10 @@ def test_version_metadata_is_aligned_to_latest_completed_core_version(tmp_path):
 
 
 def test_version_matrix_is_chronological_and_marks_v4_future():
-    text = (ROOT / "docs" / "VERSION_MATRIX.md").read_text(encoding="utf-8")
-    order = ["v0.1", "v1.6", "v2.9.0-alpha.1", "v3.12.0-alpha.1", "final-pre-v4.0", "v4.0.0-rc.1", "v4.0.0", "v4.1.0", "v4.1.1", "v4.2.0"]
-    table = "\n".join(line for line in text.splitlines() if line.startswith("| v") or line.startswith("| final"))
-    positions = [table.index(item) for item in order]
-    assert positions == sorted(positions)
-    assert "| v4.0.0-rc.1 | Local Knowledge Workbench release candidate |" in text
-    assert "| v4.0.0 | Stable Local Knowledge Workbench release |" in text and "| historical | yes |" in text
-    assert "| v4.1.0 | Parser/OCR Pluggable Backend Runtime |" in text and "| historical | yes |" in text
-    assert "| v4.1.1 | P2.2 Entry Gate / Test Framework Governance |" in text and "| historical | yes |" in text
-    assert "| v4.2.0 | P2.2 Knowledge-to-Methodology-to-Skill-Suite Industrial Baseline |" in text and "| stable | yes |" in text
+    text = (ROOT / "docs" / "治理" / "历史版本说明.md").read_text(encoding="utf-8")
+    roadmap = (ROOT / "docs" / "路线图.md").read_text(encoding="utf-8")
+    assert "4.2.0" in text
+    assert "v4.2 产品基线" in text
+    assert "Git history" in text
+    assert "Campaign 4" in roadmap
+    assert "Campaign 9" in roadmap

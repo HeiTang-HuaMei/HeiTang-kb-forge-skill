@@ -1,9 +1,0 @@
-{
-  "action_id": "source_validate",
-  "reports": [
-    {
-      "report_id": "report_source_validation",
-      "path": "reports/report_source_validation.json"
-    }
-  ]
-}

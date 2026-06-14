@@ -1,9 +1,0 @@
-{
-  "action_id": "workspace_storage_usage",
-  "reports": [
-    {
-      "report_id": "report_storage_usage",
-      "path": "reports/report_storage_usage.json"
-    }
-  ]
-}

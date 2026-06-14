@@ -1,14 +1,12 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
 from tests.final_audit_helpers import load_json, run_audit
 
 
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def test_rag_vector_index_report_proves_local_vector_hybrid_readiness():
-    report = json.loads((PROOF / "rag_vector_index_readiness_report.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("rag_vector_index_readiness_report.json")
 
     assert report["status"] == "pass"
     assert report["severity"] == "resolved"

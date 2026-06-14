@@ -1,9 +1,0 @@
-{
-  "schema_version": "skill_template_freshness_report.v1",
-  "status": "passed",
-  "freshness_counts": {
-    "fresh": 4,
-    "unknown": 1
-  },
-  "outdated_claims": []
-}

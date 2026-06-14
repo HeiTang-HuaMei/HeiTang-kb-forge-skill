@@ -1,7 +1,0 @@
-{
-  "unsafe_cleanup_prevention_report_version": "pre-v4-p0-1",
-  "status": "pass",
-  "destructive_cleanup_default": false,
-  "cleanup_is_recommendation_only": true,
-  "tests_require_real_llm_api_network": false
-}

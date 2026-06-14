@@ -1,9 +1,0 @@
-{
-  "action_id": "llm_provider_validate",
-  "reports": [
-    {
-      "report_id": "report_provider_readiness",
-      "path": "reports/report_provider_readiness.json"
-    }
-  ]
-}

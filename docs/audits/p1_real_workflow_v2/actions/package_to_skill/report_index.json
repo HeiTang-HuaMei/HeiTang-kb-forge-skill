@@ -1,9 +1,0 @@
-{
-  "action_id": "package_to_skill",
-  "reports": [
-    {
-      "report_id": "report_package_to_skill",
-      "path": "reports/report_package_to_skill.json"
-    }
-  ]
-}

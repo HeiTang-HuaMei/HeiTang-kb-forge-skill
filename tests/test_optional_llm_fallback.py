@@ -1,12 +1,9 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
-
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def test_optional_llm_fallback_keeps_core_usable_without_llm():
-    report = json.loads((PROOF / "optional_llm_fallback_report.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("optional_llm_fallback_report.json")
 
     assert report["status"] == "pass"
     assert report["core_workflow_usable_without_llm"] is True

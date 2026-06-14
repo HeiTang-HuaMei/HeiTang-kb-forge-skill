@@ -1,10 +1,13 @@
 import json
 from pathlib import Path
 
+from heitang_kb_forge.workbench.external_capabilities import (
+    load_external_project_registry,
+    make_external_capability_bundle,
+)
+
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_REGISTRY = ROOT / "docs" / "roadmap" / "external_projects" / "external_project_registry.json"
-CAPABILITY_REGISTRY = ROOT / "docs" / "audits" / "s_a_contract_inclusion" / "external_capability_registry.json"
 
 REQUIRED_FIELDS = {
     "project_id",
@@ -31,13 +34,17 @@ REQUIRED_FIELDS = {
 }
 
 
-def _json(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
+def _source_registry() -> dict:
+    return load_external_project_registry(ROOT)
+
+
+def _capability_registry() -> dict:
+    return make_external_capability_bundle(ROOT)["external_capability_registry.json"]
 
 
 def test_all_s_a_source_projects_are_in_external_capability_registry():
-    source = _json(SOURCE_REGISTRY)
-    payload = _json(CAPABILITY_REGISTRY)
+    source = _source_registry()
+    payload = _capability_registry()
     source_ids = {project["project_id"] for project in source["projects"] if project["rating"] in {"S", "A"}}
     included_ids = {project["project_id"] for project in payload["projects"]}
 
@@ -51,7 +58,7 @@ def test_all_s_a_source_projects_are_in_external_capability_registry():
 
 
 def test_external_capability_registry_entries_preserve_runtime_and_ui_boundaries():
-    payload = _json(CAPABILITY_REGISTRY)
+    payload = _capability_registry()
     integrated = {
         "llm_wiki_v2",
         "weknora",
@@ -105,7 +112,7 @@ def test_external_capability_registry_entries_preserve_runtime_and_ui_boundaries
 
 
 def test_mandatory_external_capability_urls_are_exact():
-    projects = {project["project_id"]: project for project in _json(CAPABILITY_REGISTRY)["projects"]}
+    projects = {project["project_id"]: project for project in _capability_registry()["projects"]}
 
     assert projects["llm_wiki_v2"]["github_url"] == "https://github.com/karpathy/llm-wiki"
     assert projects["weknora"]["github_url"] == "https://github.com/tencent/weknora"
@@ -196,7 +203,7 @@ def test_mandatory_external_capability_urls_are_exact():
 
 
 def test_internal_capability_anchors_are_present_with_book_to_skill():
-    anchors = {anchor["anchor_id"]: anchor for anchor in _json(CAPABILITY_REGISTRY)["internal_capability_anchors"]}
+    anchors = {anchor["anchor_id"]: anchor for anchor in _capability_registry()["internal_capability_anchors"]}
 
     assert len(anchors) == 8
     assert anchors["book_to_skill"]["anchor_name"] == "Book-to-Skill"
@@ -205,7 +212,7 @@ def test_internal_capability_anchors_are_present_with_book_to_skill():
 
 
 def test_external_capability_release_boundary_does_not_start_v4_or_change_gate():
-    boundary = _json(CAPABILITY_REGISTRY)["release_boundary"]
+    boundary = _capability_registry()["release_boundary"]
 
     assert boundary["p1_gate_changed"] is False
     assert boundary["v4_0_started"] is False

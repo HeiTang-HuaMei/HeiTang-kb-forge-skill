@@ -1,2 +1,0 @@
-Capability,Claim,Method,Evidence
-office_table_routing,CSV routing uses builtin parser for table documents,Run batch import then DU,CSV normalized output remains source traced

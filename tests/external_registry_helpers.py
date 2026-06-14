@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+from heitang_kb_forge.workbench.external_capabilities import make_external_capability_bundle
+
 
 def load_external_capability_registry(repo_root: Path) -> dict:
     ui_registry = (
@@ -13,6 +15,6 @@ def load_external_capability_registry(repo_root: Path) -> dict:
         / "external"
         / "external_capability_registry.json"
     )
-    core_registry = repo_root / "docs" / "audits" / "s_a_contract_inclusion" / "external_capability_registry.json"
-    path = ui_registry if ui_registry.exists() else core_registry
-    return json.loads(path.read_text(encoding="utf-8-sig"))
+    if ui_registry.exists():
+        return json.loads(ui_registry.read_text(encoding="utf-8-sig"))
+    return make_external_capability_bundle(repo_root)["external_capability_registry.json"]

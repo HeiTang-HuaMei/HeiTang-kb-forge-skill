@@ -1,9 +1,0 @@
-﻿{
-    "exit_code":  0,
-    "generated_at":  "2026-06-12T11:04:46+08:00",
-    "gate":  "core_fast_document_batch_import",
-    "schema_version":  "fast_gate_result.v1",
-    "command":  "python -m pytest tests/test_document_batch_import.py -q",
-    "status":  "pass",
-    "log_path":  "docs/audits/test_engineering/fast_gate_logs/core_fast_document_batch_import.log"
-}

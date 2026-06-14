@@ -1,3 +1,0 @@
-{"task_id": "task_book_to_skill", "action_id": "book_to_skill", "status": "queued", "progress": 0, "current_step": "created"}
-{"task_id": "task_book_to_skill", "action_id": "book_to_skill", "status": "running", "progress": 50, "current_step": "executing_local_v2"}
-{"task_id": "task_book_to_skill", "action_id": "book_to_skill", "status": "succeeded", "progress": 100, "current_step": "evidence_written"}

@@ -1,9 +1,0 @@
-{
-  "action_id": "run_agent",
-  "reports": [
-    {
-      "report_id": "report_agent_runtime",
-      "path": "reports/report_agent_runtime.json"
-    }
-  ]
-}

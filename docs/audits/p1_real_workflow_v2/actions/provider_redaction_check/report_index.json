@@ -1,9 +1,0 @@
-{
-  "action_id": "provider_redaction_check",
-  "reports": [
-    {
-      "report_id": "report_provider_redaction",
-      "path": "reports/report_provider_redaction.json"
-    }
-  ]
-}

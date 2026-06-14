@@ -1,12 +1,9 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
-
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def test_full_ocr_acceptance_report_proves_all_pages_without_upload_or_llm():
-    report = json.loads((PROOF / "full_ocr_acceptance_report.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("full_ocr_acceptance_report.json")
 
     assert report["status"] == "pass"
     assert report["all_ocr_candidate_pages_attempted"] is True

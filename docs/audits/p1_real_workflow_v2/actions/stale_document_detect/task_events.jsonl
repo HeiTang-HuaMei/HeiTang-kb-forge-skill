@@ -1,3 +1,0 @@
-{"task_id": "task_stale_document_detect", "action_id": "stale_document_detect", "status": "queued", "progress": 0, "current_step": "created"}
-{"task_id": "task_stale_document_detect", "action_id": "stale_document_detect", "status": "running", "progress": 50, "current_step": "executing_local_v2"}
-{"task_id": "task_stale_document_detect", "action_id": "stale_document_detect", "status": "succeeded", "progress": 100, "current_step": "evidence_written"}

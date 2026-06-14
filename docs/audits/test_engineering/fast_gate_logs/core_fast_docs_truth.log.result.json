@@ -1,9 +1,0 @@
-{
-  "name": "core_fast_docs_truth",
-  "command": "python -m pytest tests/test_final_docs_truthfulness.py tests/test_final_bilingual_docs_parity.py tests/test_final_docs_structure.py tests/test_release_checklist_docs.py tests/test_readme_scope.py tests/test_version_alignment.py tests/test_version_matrix_docs.py -q",
-  "exit_code": 0,
-  "exit_code_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_docs_truth.log.exitcode",
-  "status": "passed",
-  "log_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_docs_truth.log",
-  "summary": ".............                                                            [100%]\n13 passed in 2.00s"
-}

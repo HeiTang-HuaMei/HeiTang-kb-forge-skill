@@ -1,9 +1,0 @@
-{
-  "action_id": "standalone_agent_generation",
-  "reports": [
-    {
-      "report_id": "report_standalone_agent",
-      "path": "reports/report_standalone_agent.json"
-    }
-  ]
-}

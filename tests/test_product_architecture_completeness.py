@@ -1,14 +1,12 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
 from tests.final_audit_helpers import load_json, run_audit
 
 
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def test_product_architecture_completeness_report_covers_required_layers():
-    report = json.loads((PROOF / "product_architecture_completeness_report.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("product_architecture_completeness_report.json")
 
     assert report["status"] == "needs_review"
     assert report["tests_require_real_llm_api_network"] is False
@@ -36,7 +34,7 @@ def test_product_architecture_completeness_report_covers_required_layers():
 
 
 def test_product_architecture_gate_summary_exposes_required_gate_fields():
-    report = json.loads((PROOF / "product_architecture_completeness_report.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("product_architecture_completeness_report.json")
     summary = report["gate_summary"]
 
     for key in [

@@ -1,14 +1,9 @@
-import json
-from pathlib import Path
+from tests.v4_2_baseline_evidence import load_baseline_report
 
-
-PROOF = Path("docs/audits/local_acceptance/large_bilingual_run")
 
 
 def test_pre_v4_blocker_fix_report_is_honest_and_parseable():
-    path = PROOF / "pre_v4_real_acceptance_blocker_fix_report.json"
-    assert path.exists()
-    report = json.loads(path.read_text(encoding="utf-8"))
+    report = load_baseline_report("pre_v4_real_acceptance_blocker_fix_report.json")
 
     assert report["ready_for_v4_rc"] is False
     assert report["p0_remaining_count"] == 0
@@ -22,7 +17,7 @@ def test_pre_v4_blocker_fix_report_is_honest_and_parseable():
 
 
 def test_current_failure_report_no_longer_counts_final_gate_validation_as_p0():
-    report = json.loads((PROOF / "real_input_failure_report.json").read_text(encoding="utf-8"))
+    report = load_baseline_report("real_input_failure_report.json")
     blocker_ids = {item["id"] for item in report["blockers"]}
 
     assert "final_pre_v4_gate_still_blocked" not in blocker_ids

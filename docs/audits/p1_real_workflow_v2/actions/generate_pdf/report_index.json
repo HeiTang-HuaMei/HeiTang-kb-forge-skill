@@ -1,9 +1,0 @@
-{
-  "action_id": "generate_pdf",
-  "reports": [
-    {
-      "report_id": "report_generated_pdf",
-      "path": "reports/report_generated_pdf.json"
-    }
-  ]
-}

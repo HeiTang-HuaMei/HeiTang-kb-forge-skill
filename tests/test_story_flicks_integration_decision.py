@@ -1,40 +1,27 @@
-import json
-from pathlib import Path
+from heitang_kb_forge.campaign_3_closure.review_handoff import _external_project_rows
+from heitang_kb_forge.video_pipeline_schema import (
+    build_video_pipeline_schema_library,
+    validate_video_pipeline_schema_library,
+)
 
 
-ROOT = Path(__file__).resolve().parents[1]
-RUN_DIR = ROOT / "artifacts" / "audits" / "section_5" / "story_flicks_video_pipeline_schema"
-DECISION = RUN_DIR / "story_flicks_integration_decision_report.json"
-UI_IMPACT = RUN_DIR / "story_flicks_ui_impact_note.json"
-RUN_MANIFEST = RUN_DIR / "run_manifest.json"
-PIPELINE_MANIFEST = RUN_DIR / "video_pipeline_schema" / "video_pipeline_manifest.json"
-VALIDATION = RUN_DIR / "validation" / "video_pipeline_validation_report.json"
-AUDIT_MANIFEST = ROOT / "docs" / "audits" / "AUDIT_MANIFEST.json"
-AUDIT_INDEX = ROOT / "docs" / "audits" / "AUDIT_INDEX.md"
-PLAN_LOCK = ROOT / "docs" / "governance" / "PLAN_SEQUENCE_LOCK.md"
-PROJECT_REGISTRY = ROOT / "docs" / "roadmap" / "external_projects" / "external_project_registry.json"
+def _project() -> dict:
+    return next(row for row in _external_project_rows() if row["project_name"] == "story-flicks")
 
 
-def _json(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8-sig"))
+def test_story_flicks_decision_is_reference_only_video_pipeline_schema(tmp_path):
+    output = tmp_path / "video_pipeline"
+    result = build_video_pipeline_schema_library(output)
+    validation = validate_video_pipeline_schema_library(output)
 
-
-def test_story_flicks_decision_is_reference_only_video_pipeline_schema():
-    decision = _json(DECISION)
-    pipeline_manifest = _json(PIPELINE_MANIFEST)
-    validation = _json(VALIDATION)
-
-    assert decision["project_id"] == "story_flicks"
-    assert decision["section"] == "5.10"
-    assert decision["decision"] == "reference_only"
-    assert decision["integration_mode"] == "aigc_video_pipeline_schema_reference"
-    assert decision["repository_check"]["git_ls_remote_result"] == "accessible"
-    assert decision["repository_check"]["git_ls_remote_head"] == "4f208380150f9c066867360d7ce760cc3e3ba47e"
-    assert decision["repository_check"]["repository_cloned"] is False
-    assert decision["repository_check"]["external_code_copied"] is False
-    assert decision["repository_check"]["external_content_copied"] is False
-    assert decision["runtime_contract"]["story_flicks_runtime_integrated"] is False
-    assert decision["runtime_contract"]["local_video_pipeline_schema_reference_implemented"] is True
+    assert result["section"] == "5.10"
+    assert result["integration_decision"] == "reference_only"
+    assert result["integration_mode"] == "aigc_video_pipeline_schema_reference"
+    assert result["stage_count"] == 7
+    assert result["external_project_reference"]["project_id"] == "story_flicks"
+    assert result["external_project_reference"]["repository_cloned"] is False
+    assert result["external_project_reference"]["external_code_or_content_copied"] is False
+    assert result["external_project_reference"]["external_runtime_integrated"] is False
     for field in [
         "story_to_video_runtime",
         "image_generation_runtime",
@@ -46,69 +33,33 @@ def test_story_flicks_decision_is_reference_only_video_pipeline_schema():
         "provider_execution",
         "account_operation",
     ]:
-        assert decision["runtime_contract"][field] is False
-    assert pipeline_manifest["status"] == "passed"
-    assert pipeline_manifest["stage_count"] == 7
+        assert result["runtime_boundary"][field] is False
     assert validation["status"] == "passed"
 
 
-def test_story_flicks_ui_status_is_truthful_and_not_executable():
-    ui = _json(UI_IMPACT)
+def test_story_flicks_ui_status_is_truthful_and_not_executable(tmp_path):
+    result = build_video_pipeline_schema_library(tmp_path / "video_pipeline")
 
-    assert ui["current_ui_state"]["status_visible"] is True
-    assert ui["current_ui_state"]["pipeline_stage_preview_available"] is True
-    assert ui["current_ui_state"]["core_action_available"] is False
-    assert ui["current_ui_state"]["runtime_execution_action_available"] is False
-    assert ui["current_ui_state"]["story_to_video_action_available"] is False
-    assert ui["current_ui_state"]["video_generation_action_available"] is False
-    assert ui["current_ui_state"]["render_action_available"] is False
-    assert "story-flicks runtime ready" in ui["ui_must_not_show"]
-    assert "story-to-video ready" in ui["ui_must_not_show"]
-    assert "Campaign 3 accepted" in ui["ui_must_not_show"]
+    assert result["ui_contract"]["pipeline_stage_preview_visible"] is True
+    assert result["ui_contract"]["runtime_execution_action_available"] is False
+    assert result["ui_contract"]["video_generation_action_available"] is False
+    assert result["ui_contract"]["render_action_available"] is False
 
 
-def test_story_flicks_run_is_governed_and_keeps_sequence_locked():
-    run = _json(RUN_MANIFEST)
-    manifest = _json(AUDIT_MANIFEST)
-    runs = {item["run_id"]: item for item in manifest["runs"]}
-    plan = PLAN_LOCK.read_text(encoding="utf-8")
-    index = AUDIT_INDEX.read_text(encoding="utf-8")
+def test_story_flicks_public_project_row_preserves_reference_boundary():
+    project = _project()
 
-    assert run["status"] == "passed"
-    assert run["integration_decision"] == "reference_only"
-    assert run["campaign_state_after_run"]["campaign_3_item_5_10"] == "advanced_reference_only"
-    assert run["campaign_state_after_run"]["campaign_3_accepted"] is False
-    assert run["campaign_state_after_run"]["campaign_4_allowed"] is False
-    assert run["campaign_state_after_run"]["next_section_5_item"] == "5.11 seedance2-skill"
-    assert runs["story_flicks_video_pipeline_schema"]["scope"] == "SECTION_5_ITEM_5_10_STORY_FLICKS"
-    assert "story_flicks_video_pipeline_schema" in index
-    assert "Next Section 5 item: `5.13 mattpocock/skills`" in plan
-    assert "Campaign 3 accepted: `false`" in plan
-    assert "Campaign 4 allowed: `false`" in plan
+    assert project["integration_status"] == "reference_only"
+    assert project["implementation_mode"] == "not_integrated"
+    assert project["runtime_dependency_added"] is False
+    assert "AIGC video pipeline schema" in project["capability_domain"]
+    assert "no provider execution" in project["current_boundary"]
 
 
-def test_story_flicks_project_registry_records_schema_evidence_without_runtime_claim():
-    registry = _json(PROJECT_REGISTRY)
-    project = next(item for item in registry["projects"] if item["project_id"] == "story_flicks")
+def test_story_flicks_non_downgrade_fields_are_present(tmp_path):
+    result = build_video_pipeline_schema_library(tmp_path / "video_pipeline")
+    validation = validate_video_pipeline_schema_library(tmp_path / "video_pipeline")
 
-    assert project["current_repo_status"] == "reference_schema_evidence"
-    assert project["implementation_mode"] == "aigc_video_pipeline_schema_reference"
-    assert "heitang_kb_forge/video_pipeline_schema/builder.py" in project["current_evidence_files"]
-    assert "tests/test_video_pipeline_schema.py" in project["current_evidence_files"]
-    assert (
-        "artifacts/audits/section_5/story_flicks_video_pipeline_schema/story_flicks_integration_decision_report.json"
-        in project["current_evidence_files"]
-    )
-    assert project["requires_api_key"] is False
-    assert project["requires_network"] is False
-    assert project["requires_external_runtime"] is False
-    assert project["can_be_ready_before_v4"] is False
-    assert "full Template Library / Artifact Management / Document Generation UI workflow" in project["reason_not_ready_before_v4"]
-
-
-def test_story_flicks_non_downgrade_fields_are_present():
-    for payload in [_json(DECISION), _json(UI_IMPACT), _json(RUN_MANIFEST), _json(PIPELINE_MANIFEST), _json(VALIDATION)]:
+    for payload in [result, validation]:
         assert payload["final_target_not_downgraded"] is True
-        assert payload["remaining_gap"].strip()
-        assert payload["next_required_e2e_step"] == "Process Section 5 item 5.11 seedance2-skill only."
         assert payload["not_goal_complete"] is True

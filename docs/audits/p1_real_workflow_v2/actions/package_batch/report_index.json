@@ -1,9 +1,0 @@
-{
-  "action_id": "package_batch",
-  "reports": [
-    {
-      "report_id": "report_batch_summary",
-      "path": "reports/report_batch_summary.json"
-    }
-  ]
-}

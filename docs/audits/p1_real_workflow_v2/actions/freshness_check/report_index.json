@@ -1,9 +1,0 @@
-{
-  "action_id": "freshness_check",
-  "reports": [
-    {
-      "report_id": "report_freshness_check",
-      "path": "reports/report_freshness_check.json"
-    }
-  ]
-}

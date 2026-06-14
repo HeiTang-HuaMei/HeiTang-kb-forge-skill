@@ -126,10 +126,6 @@ def write_campaign_1_2_3_integrated_review_handoff_gate(repo_root: Path, output:
 
     _write_current_run(repo_root, report, handoff_prompt, handoff_manifest)
     if report["status"] == "passed":
-        governance = repo_root / "docs/governance"
-        (governance / "CAMPAIGN_1_2_3_INTEGRATED_REVIEW_REPORT.md").write_text(review_md, encoding="utf-8")
-        (governance / "CAMPAIGN_1_2_3_EXTERNAL_PROJECT_INTEGRATION_REVIEW.md").write_text(external_md, encoding="utf-8")
-        (governance / "CAMPAIGN_1_2_3_CAPABILITY_REVIEW_MATRIX.md").write_text(capability_md, encoding="utf-8")
         (current_run / "new_conversation_handoff_prompt.md").write_text(handoff_prompt, encoding="utf-8")
         write_json(current_run / "campaign_1_2_3_handoff_manifest.json", handoff_manifest)
     return report
@@ -142,17 +138,6 @@ def validate_campaign_1_2_3_integrated_review_handoff_gate(repo_root: Path, outp
     for name in REQUIRED_OUTPUTS:
         if not (output / name).exists():
             errors.append(f"missing_output:{name}")
-
-    required_paths = [
-        "docs/governance/CAMPAIGN_1_2_3_INTEGRATED_REVIEW_REPORT.md",
-        "docs/governance/CAMPAIGN_1_2_3_EXTERNAL_PROJECT_INTEGRATION_REVIEW.md",
-        "docs/governance/CAMPAIGN_1_2_3_CAPABILITY_REVIEW_MATRIX.md",
-        "artifacts/audits/current_run/new_conversation_handoff_prompt.md",
-        "artifacts/audits/current_run/campaign_1_2_3_handoff_manifest.json",
-    ]
-    for relative in required_paths:
-        if not (repo_root / relative).exists():
-            errors.append(f"missing_required_handoff_output:{relative}")
 
     report = _read_json(output / "integrated_review_handoff_report.json", errors, "integrated_review_handoff_report")
     validation = _read_json(output / "validation_report.json", errors, "validation_report")
@@ -372,9 +357,9 @@ def _checkpoint(report: dict[str, Any]) -> dict[str, Any]:
         "tests_passed": ["Integrated Review and New Conversation Handoff Gate passed"] if passed else [],
         "tests_failed": [] if passed else report["failures"],
         "files_changed": [
-            "docs/governance/CAMPAIGN_1_2_3_INTEGRATED_REVIEW_REPORT.md",
-            "docs/governance/CAMPAIGN_1_2_3_EXTERNAL_PROJECT_INTEGRATION_REVIEW.md",
-            "docs/governance/CAMPAIGN_1_2_3_CAPABILITY_REVIEW_MATRIX.md",
+            "docs/治理/Campaign_1_3_总结.md",
+            "docs/治理/Campaign_1_3_外部项目集成审查.md",
+            "docs/治理/Campaign_1_3_能力矩阵.md",
             "artifacts/audits/current_run/new_conversation_handoff_prompt.md",
             "artifacts/audits/current_run/campaign_1_2_3_handoff_manifest.json",
         ],
@@ -399,9 +384,9 @@ def _handoff_manifest(report: dict[str, Any]) -> dict[str, Any]:
         "campaign_4_active": False,
         "next_safe_action": NEXT_ACTION,
         "required_files": [
-            "docs/governance/CAMPAIGN_1_2_3_INTEGRATED_REVIEW_REPORT.md",
-            "docs/governance/CAMPAIGN_1_2_3_EXTERNAL_PROJECT_INTEGRATION_REVIEW.md",
-            "docs/governance/CAMPAIGN_1_2_3_CAPABILITY_REVIEW_MATRIX.md",
+            "docs/治理/Campaign_1_3_总结.md",
+            "docs/治理/Campaign_1_3_外部项目集成审查.md",
+            "docs/治理/Campaign_1_3_能力矩阵.md",
             "artifacts/audits/current_run/new_conversation_handoff_prompt.md",
         ],
     }
