@@ -344,6 +344,9 @@ void main() {
     expect(find.text('HeiTang 黑糖'), findsOneWidget);
     expect(find.textContaining('知识工作台'), findsOneWidget);
     expect(find.text('工作台'), findsWidgets);
+    expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
+    expect(find.textContaining('系统状态: 正常运行'), findsOneWidget);
+    expect(find.textContaining('版本: v1.0.0'), findsOneWidget);
     expect(pages, hasLength(7));
     expect(find.byType(NavigationRail), findsNothing);
     expect(tester.takeException(), isNull);
@@ -360,6 +363,7 @@ void main() {
     expect(find.text('黑糖'), findsOneWidget);
     expect(find.text('页面'), findsOneWidget);
     expect(find.byType(DropdownButtonFormField<int>), findsOneWidget);
+    expect(find.byKey(const Key('desktop-status-bar')), findsNothing);
     expect(find.text('工作台'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
