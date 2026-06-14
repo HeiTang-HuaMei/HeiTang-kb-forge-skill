@@ -19,8 +19,8 @@ This matrix maps the user-uploaded 12-section target plan to current evidence st
 | 2. 执行总规则 | `partially_complete` | Governance files, ledger, document output governance, Full Access rules, Plan Sequence Lock, and Campaign Stage Gate policy exist. | Continue enforcing stage gates, no push/tag/release before final acceptance. |
 | 3. 第一战役：还需加强项目 | `accepted` | `artifacts/audits/backend_remediation_acceptance_review/backend_remediation_acceptance_matrix.json` verdict is `accepted`. | Preserve truthful backend boundaries; Surya remains benchmark/reference `needs_strengthening`, not a ready parser. |
 | 4. 第二战役：批量导入与知识库构建 | `accepted` | `artifacts/audits/knowledge_supply_chain_acceptance_review/campaign_2_acceptance_matrix.json` verdict is `accepted`. | Preserve chain evidence; report export is one accepted stage, not a substitute for the whole campaign. |
-| 5. 第三战役：未接入项目逐个处理 | `supplement_4_0_accepted_for_final_consistency_gate` | Campaign 3 mainline, strengthening records, Supplement 2.0, Supplement 3.0, Pre-4.0, Supplement 4.0, and Product Output Surface guard evidence exist. Campaign 3 Supplement 4.0 Acceptance Gate passed. | Continue only with Campaign 3 Final Consistency Gate; Stage Test, Integrated Closure, Closure Pack, Repository Cleanup, push, tag, CI, and Campaign 4-9 remain blocked. |
-| 6. 第四战役：Goal-Oriented Product UI Workbench | `not_allowed_yet` | Replacement plan v3.0 registered in `CAMPAIGN_4_9_REPLACEMENT_PLAN.md`; no UI redesign or Campaign 4 execution has started, and Campaign 3 plus closure/repository-cleanup/push/tag/CI/review-handoff gates are incomplete. | Do not enter Campaign 4 until Campaign 3 complete, Stage Test Gate passed, Integrated Closure Gate passed, Closure Pack generated, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate passed, repository push succeeded, baseline tag created, CI/CL green, Closure Checklist green, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate passed. |
+| 5. 第三战役：未接入项目逐个处理 | `accepted_for_campaign_4_entry_handoff` | Campaign 3 mainline, strengthening records, Supplement 2.0, Supplement 3.0, Pre-4.0, Supplement 4.0, Final Consistency, Stage Test, Integrated Closure, Closure Pack, Repository Cleanup, push, baseline RC tag CI/CL, Closure Checklist, and Campaign 1-3 Review/Handoff evidence passed. | Stop this conversation after Review/Handoff. Next safe action is to open a new conversation and start Campaign 4 Entry Gate only. |
+| 6. 第四战役：Goal-Oriented Product UI Workbench | `allowed_next_not_active` | Replacement plan v3.0 registered in `CAMPAIGN_4_9_REPLACEMENT_PLAN.md`; Campaign 1-3 handoff evidence now allows Campaign 4 Entry Gate in a new conversation only. No UI redesign or Campaign 4 business implementation has started here. | Start only Campaign 4 Entry Gate in a new conversation; do not mark Campaign 4 UI implementation complete without direct Campaign 4 evidence. |
 | 7. 第五战役：Chain-Level Local Core Bridge | `not_allowed_yet` | Replacement plan v3.0 registered in `CAMPAIGN_4_9_REPLACEMENT_PLAN.md`; Bridge actions exist, but chain-level user task execution acceptance is not proven and Campaign 4 is not accepted. | Complete only after Campaign 4 Goal-Oriented Product UI Workbench acceptance; user tasks must map to allowlisted bridge flows without arbitrary shell execution. |
 | 8. 第六战役：Agent Runtime & Memory Platform | `not_allowed_yet` | Agent Package evidence exists, but Agent runtime execution, memory fallback, memory isolation, and run audit acceptance are not proven. | Complete only after Campaign 5 Bridge acceptance; Agent Package, memory spec, Redis config, and Vector DB config are not runtime/memory acceptance. |
 | 9. 第七战役：Configuration System | `not_allowed_yet` | Configuration remains status/evidence incomplete for full UI-to-runtime acceptance. | Complete API/proxy, DB, Redis, vector DB, workspace path, Agent runtime config, Agent memory backend config, OpenCLI config, diagnostics, and disabled-LLM behavior later in sequence. |
@@ -186,15 +186,15 @@ This chain starts only after the Pre-4.0 Workspace Partition Foundation Gate, Ca
 
 | Control | Current state | Acceptance note |
 | --- | --- | --- |
-| Campaign 3 Final Consistency Gate | `next_required` | The only next safe action after Campaign 3 Supplement 4.0 Acceptance Gate. |
-| Campaign 1-3 Stage Test Gate | `blocked_by_sequence` | Must wait for Campaign 3 Final Consistency Gate to pass. |
-| Campaign 1-3 Integrated Closure Gate | `blocked_by_sequence` | Must wait for Campaign 1-3 Stage Test Gate to pass. |
-| Closure Pack | `not_generated` | May be generated only after Integrated Closure Gate passes. |
-| Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate | `not_started` | May run only after Closure Pack generation and must inventory before cleanup. |
-| Repository push | `not_started` | May run only after repository cleanup and push safety checks pass. |
-| Closure tag | `not_created` | May be created only after repository push succeeds. |
-| CI verification | `not_checked` | Campaign 4 Entry Gate waits for tag-related CI green after push and tag. |
-| Campaign 1-3 Integrated Review and New Conversation Handoff Gate | `not_started` | May generate the three Campaign 1-3 review reports, `new_conversation_handoff_prompt.md`, and `campaign_1_2_3_handoff_manifest.json` only after Stage Test, Integrated Closure, Closure Pack, Repository Cleanup, push, tag, CI Green, and Closure Checklist Green pass. |
+| Campaign 3 Final Consistency Gate | `passed` | Accepted for Campaign 1-3 Stage Test Gate. |
+| Campaign 1-3 Stage Test Gate | `passed` | Accepted for Campaign 1-3 Integrated Closure Gate. |
+| Campaign 1-3 Integrated Closure Gate | `passed` | Accepted for Closure Pack generation. |
+| Closure Pack | `generated` | Closure Pack generated and validated before repository cleanup. |
+| Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate | `passed` | Public surface cleanup and push-tag safety checks passed. |
+| Repository push | `passed` | `origin/main` verified at `09590d8d4ff03310cd5c55b055631fa009350d4d`. |
+| Campaign baseline RC tag | `passed_ci_cl_green` | `campaign-1-3-baseline-rc.3` CI run `27489725099` and Release Check run `27489725098` both succeeded; no GitHub Release was created. |
+| Closure Checklist Green | `passed` | `artifacts/audits/campaign_1_3_closure_checklist/run_manifest.json`. |
+| Campaign 1-3 Integrated Review and New Conversation Handoff Gate | `passed` | Generated the three Campaign 1-3 review reports, `new_conversation_handoff_prompt.md`, and `campaign_1_2_3_handoff_manifest.json`; next safe action is new conversation Campaign 4 Entry Gate only. |
 
 Detailed authority: `docs/governance/CAMPAIGN_1_2_3_INTEGRATED_CLOSURE_POLICY.md`.
 
@@ -204,14 +204,14 @@ The old future Campaign 4/5-only definitions are superseded by `docs/governance/
 
 | Campaign | Replacement definition | Current state | Boundary |
 | --- | --- | --- | --- |
-| Campaign 4 | Goal-Oriented Product UI Workbench | `not_allowed_yet` | Must wait for Campaign 3 complete, Campaign 1-3 Stage Test Gate, Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, baseline tag, CI/CL green, Closure Checklist green, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate. |
+| Campaign 4 | Goal-Oriented Product UI Workbench | `allowed_next_not_active` | Campaign 4 Entry Gate may start only in a new conversation; Campaign 4 business implementation remains not started. |
 | Campaign 5 | Chain-Level Local Core Bridge | `not_allowed_yet` | Must wait for Campaign 4 acceptance and must execute user-task flows through allowlisted bridge actions, not raw Core buttons. |
 | Campaign 6 | Agent Runtime & Memory Platform | `not_allowed_yet` | Must wait for Campaign 5 acceptance; Agent Package, memory spec, Redis config, and Vector DB config are not runtime/memory acceptance. |
 | Campaign 7 | Configuration System | `not_allowed_yet` | Must wait for Campaign 6 acceptance and must cover API/proxy, DB, Redis, vector DB, workspace path, Agent runtime, Agent memory backend, and OpenCLI diagnostics. |
 | Campaign 8 | Full Testing / Full Review | `not_allowed_yet` | Must wait for Campaign 7 acceptance; focused tests and Fast Gate do not count as Full Testing / Full Review. |
 | Campaign 9 | EXE Packaging | `not_allowed_yet` | Must wait for Campaign 8 acceptance; packaging script or build directory does not count as installer/portable install-run acceptance. |
 
-Before CI/CL green, Closure Checklist green, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate, the following remain forbidden: Campaigns 4-9, Final Release, TasteSkill, Product Design Plugin, UI redesign, and future Campaign Bridge allowlist changes.
+After CI/CL green, Closure Checklist green, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate, only Campaign 4 Entry Gate is allowed next, and only in a new conversation. Campaign 4 business implementation, Campaigns 5-9, Final Release, TasteSkill, Product Design Plugin, UI redesign beyond the Entry Gate, and future Campaign Bridge allowlist changes remain forbidden until their own gates open.
 
 Campaign 4 must be goal-oriented with no more than seven top-level navigation entries. It must not flatten every technical module into the main navigation, and it must not expose every Core action as a UI button.
 

@@ -5,17 +5,29 @@
 - mode: long_task_guard
 - started_at: 2026-06-13T00:00:00+08:00
 - current_plan_section: Section 5 / Campaign 3
-- current_phase: Campaign 3 Supplement 4.0 Acceptance Gate
-- completed_subitem: Campaign 3 Supplement 4.0 Acceptance Gate passed
+- current_phase: Campaign 1-3 Integrated Review and New Conversation Handoff Gate
+- completed_subitem: Campaign 1-3 Integrated Review and New Conversation Handoff Gate passed
 - supplement_3_0_complete: true
 - supplement_4_0_complete: true
 - supplement_4_0_acceptance_gate_passed: true
-- campaign_3_final_consistency_gate_passed: false
+- campaign_3_final_consistency_gate_passed: true
+- campaign_1_3_stage_test_gate_passed: true
+- campaign_1_3_integrated_closure_gate_passed: true
+- closure_pack_generated: true
+- repository_public_surface_cleanup_gate_passed: true
+- repository_push_succeeded: true
+- campaign_baseline_rc_tag: campaign-1-3-baseline-rc.3
+- ci_green: true
+- release_check_green: true
+- closure_checklist_green: true
+- campaign_1_3_review_handoff_gate_passed: true
+- campaign_4_entry_gate_allowed: true
+- campaign_4_active: false
 - blocked: false
-- current_required_item: Campaign 3 Final Consistency Gate only
-- explicit_next_internal_item_from_plan_sequence_lock: Campaign 3 Final Consistency Gate only
+- current_required_item: Open a new conversation and start Campaign 4 Entry Gate only
+- explicit_next_internal_item_from_plan_sequence_lock: Open a new conversation and start Campaign 4 Entry Gate only
 - sequence_lock_source: docs/governance/PLAN_SEQUENCE_LOCK.md
-- current_status: campaign_3_supplement_4_0_acceptance_gate_passed
+- current_status: campaign_1_2_3_integrated_review_handoff_gate_passed
 
 ## Completed Substeps
 
@@ -446,3 +458,6 @@ PLAN_SEQUENCE_LOCK contains an explicit Supplement 3.0 remaining order. No `miss
 - 268. Committed clean-checkout CI repair as `18d0632` and pushed `main` to `origin` (`d609859..18d0632`). Staged forbidden path, large file, high-confidence secret, and staged diff checks passed before commit. Current checkpoint is `campaign_1_3_baseline_rc_1_clean_checkout_repair_pushed`; next safe action is to create `campaign-1-3-baseline-rc.2` for campaign baseline CI validation only. Stable `campaign-1-3-baseline`, Closure Checklist, Campaign 1-3 review/handoff, Campaign 4, Campaign 5, Full Gate, EXE, Release, and GitHub Release creation remain blocked.
 - 269. Created and pushed corrected Campaign 1-3 baseline validation tag `campaign-1-3-baseline-rc.2` for commit `f1860122e7b077111aa33d3b04f10deb1348298d`. A combined PowerShell command misparsed `git rev-parse campaign-1-3-baseline-rc.2^{}` after the successful tag push, but a standalone quoted verification confirmed the tag dereferences to the intended commit. Current checkpoint is `campaign_1_3_baseline_rc_2_tag_pushed_ci_discovery_pending`; next safe action is to discover and verify `campaign-1-3-baseline-rc.2` CI / Release Check only. This is not a product version tag, not a GitHub Release, not a stable baseline tag, and not Campaign 4 entry.
 - 270. `campaign-1-3-baseline-rc.2` CI run `27489566147` completed successfully, but no Release Check run was triggered for the rc2 tag because `.github/workflows/release-check.yml` only matched `v*` tags. This is a CI/CL gate configuration gap, not a green CI/CL chain. Closure Checklist, Campaign 1-3 review/handoff, stable `campaign-1-3-baseline`, Campaign 4, Campaign 5, Full Gate, EXE, Release, and GitHub Release creation remain blocked. Next safe action is to repair the Release Check tag trigger and validate again with the next campaign baseline RC tag only.
+- 271. Completed tag naming policy correction and Campaign 1-3 baseline RC CI/CL validation. No new `v3.0.x-integrated-closure` tag was created in this correction step. `v3.0.3-integrated-closure`, `v3.0.4-integrated-closure`, and `v3.0.5-integrated-closure` were verified with `gh release view` and have no GitHub Release association; they remain superseded CI validation tags only, not release, baseline, or product version tags. Corrected baseline validation tag `campaign-1-3-baseline-rc.3` points to commit `09590d8d4ff03310cd5c55b055631fa009350d4d`; CI run `27489725099` and Release Check run `27489725098` both concluded `success`, and no GitHub Release exists for the RC tag. Stable `campaign-1-3-baseline`, Campaign 1-3 review/handoff, Campaign 4, Campaign 5, Full Gate, EXE, Release, and GitHub Release creation remain blocked. Checkpoint is `tag_naming_policy_correction_campaign_baseline_rc3_ci_cl_green`; next safe action is `Closure Checklist Green verification only`.
+- 272. Completed Closure Checklist Green verification. CLI build passed with verdict `accepted_for_campaign_1_3_integrated_review_handoff_gate`; CLI validation passed with 0 errors. The gate confirms `campaign-1-3-baseline-rc.3` points to `09590d8d4ff03310cd5c55b055631fa009350d4d`, CI run `27489725099` and Release Check run `27489725098` are green, no GitHub Release is created, and stable `campaign-1-3-baseline` remains uncreated. Campaign 4 business implementation, Campaign 5, Full Gate, EXE, and Release remained blocked.
+- 273. Completed Campaign 1-3 Integrated Review and New Conversation Handoff Gate. CLI build passed with verdict `accepted_for_campaign_4_entry_gate_new_conversation`; CLI validation passed with 0 errors. Generated `docs/governance/CAMPAIGN_1_2_3_INTEGRATED_REVIEW_REPORT.md`, `docs/governance/CAMPAIGN_1_2_3_EXTERNAL_PROJECT_INTEGRATION_REVIEW.md`, `docs/governance/CAMPAIGN_1_2_3_CAPABILITY_REVIEW_MATRIX.md`, `artifacts/audits/current_run/new_conversation_handoff_prompt.md`, and `artifacts/audits/current_run/campaign_1_2_3_handoff_manifest.json`. Checkpoint is `campaign_1_2_3_integrated_review_handoff_gate_passed`; next safe action is `Open a new conversation and start Campaign 4 Entry Gate only`.

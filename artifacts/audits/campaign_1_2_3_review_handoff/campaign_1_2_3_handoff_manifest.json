@@ -1,0 +1,18 @@
+{
+  "schema_version": "campaign_1_2_3_handoff_manifest.v1",
+  "generated_at": "2026-06-14T14:40:00+08:00",
+  "status": "passed",
+  "final_commit_hash": "09590d8d4ff03310cd5c55b055631fa009350d4d",
+  "tag_name": "campaign-1-3-baseline-rc.3",
+  "ci_run_id": 27489725099,
+  "release_check_run_id": 27489725098,
+  "github_release_created": false,
+  "campaign_4_active": false,
+  "next_safe_action": "Open a new conversation and start Campaign 4 Entry Gate only",
+  "required_files": [
+    "docs/governance/CAMPAIGN_1_2_3_INTEGRATED_REVIEW_REPORT.md",
+    "docs/governance/CAMPAIGN_1_2_3_EXTERNAL_PROJECT_INTEGRATION_REVIEW.md",
+    "docs/governance/CAMPAIGN_1_2_3_CAPABILITY_REVIEW_MATRIX.md",
+    "artifacts/audits/current_run/new_conversation_handoff_prompt.md"
+  ]
+}

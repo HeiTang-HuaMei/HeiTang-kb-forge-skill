@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,6 +16,13 @@ CURRENT_RUN = ROOT / "artifacts" / "audits" / "current_run"
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def _current_checkpoint() -> dict:
+    checkpoint = CURRENT_RUN / "checkpoint.json"
+    if not checkpoint.exists():
+        return {}
+    return json.loads(checkpoint.read_text(encoding="utf-8-sig"))
 
 
 def test_integrated_closure_policy_exists_and_separates_4_0_from_campaign_4():
@@ -121,7 +129,7 @@ def test_forbidden_misinterpretations_cover_user_correction():
         assert marker in text
 
 
-def test_post_ci_review_and_new_conversation_handoff_gate_is_registered_but_not_executed_now():
+def test_post_ci_review_and_new_conversation_handoff_gate_respects_current_stage():
     combined = "\n".join(
         [
             _read(POLICY),
@@ -144,14 +152,22 @@ def test_post_ci_review_and_new_conversation_handoff_gate_is_registered_but_not_
     ]:
         assert marker in combined
 
-    for future_output in [
+    final_outputs = [
         GOVERNANCE / "CAMPAIGN_1_2_3_INTEGRATED_REVIEW_REPORT.md",
         GOVERNANCE / "CAMPAIGN_1_2_3_EXTERNAL_PROJECT_INTEGRATION_REVIEW.md",
         GOVERNANCE / "CAMPAIGN_1_2_3_CAPABILITY_REVIEW_MATRIX.md",
         CURRENT_RUN / "new_conversation_handoff_prompt.md",
         CURRENT_RUN / "campaign_1_2_3_handoff_manifest.json",
-    ]:
-        assert not future_output.exists(), f"{future_output} must wait for post-CI handoff gate"
+    ]
+    checkpoint = _current_checkpoint()
+    if checkpoint.get("checkpoint_id") == "campaign_1_2_3_integrated_review_handoff_gate_passed":
+        for final_output in final_outputs:
+            assert final_output.exists(), f"{final_output} must exist after review/handoff gate"
+        assert checkpoint["next_safe_action"] == "Open a new conversation and start Campaign 4 Entry Gate only"
+        assert checkpoint["campaign_4_active"] is False
+    else:
+        for future_output in final_outputs:
+            assert not future_output.exists(), f"{future_output} must wait for post-CI handoff gate"
 
 
 def test_post_ci_review_contract_covers_external_projects_capabilities_and_release_facts():

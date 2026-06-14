@@ -1,0 +1,85 @@
+{
+  "schema_version": "tag_naming_policy_correction_report.v1",
+  "generated_at": "2026-06-14T13:52:14+08:00",
+  "current_item": "Tag naming policy correction and campaign baseline CI validation only",
+  "verdict": "passed_for_closure_checklist_green_verification",
+  "decision": {
+    "stop_v3_integrated_closure_tags": true,
+    "v3_0_x_integrated_closure_tags_are_superseded_ci_validation_only": true,
+    "campaign_baseline_rc_pattern": "campaign-1-3-baseline-rc.N",
+    "stable_campaign_baseline_tag_after_closure_checklist": "campaign-1-3-baseline",
+    "product_version_tags_reserved_for_real_releases": [
+      "v4.2.x",
+      "v4.3.x"
+    ]
+  },
+  "superseded_tags": [
+    {
+      "tag": "v3.0.3-integrated-closure",
+      "release_association": "none_found_by_gh_release_view",
+      "decision": "keep_as_superseded_ci_validation_tag"
+    },
+    {
+      "tag": "v3.0.4-integrated-closure",
+      "release_association": "none_found_by_gh_release_view",
+      "decision": "keep_as_superseded_ci_validation_tag"
+    },
+    {
+      "tag": "v3.0.5-integrated-closure",
+      "release_association": "none_found_by_gh_release_view",
+      "decision": "keep_as_superseded_ci_validation_tag"
+    }
+  ],
+  "campaign_baseline_rc_validation": {
+    "active_rc_tag": "campaign-1-3-baseline-rc.3",
+    "tag_object_hash": "cc43b366f0158beb566990ef6ddd3fd467ea92fe",
+    "tag_commit_hash": "09590d8d4ff03310cd5c55b055631fa009350d4d",
+    "github_release_association": "none_found_by_gh_release_view",
+    "ci": {
+      "run_id": 27489725099,
+      "workflow_name": "CI",
+      "head_branch": "campaign-1-3-baseline-rc.3",
+      "head_sha": "09590d8d4ff03310cd5c55b055631fa009350d4d",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/HeiTang-HuaMei/HeiTang-kb-forge-skill/actions/runs/27489725099"
+    },
+    "release_check": {
+      "run_id": 27489725098,
+      "workflow_name": "Release Check",
+      "head_branch": "campaign-1-3-baseline-rc.3",
+      "head_sha": "09590d8d4ff03310cd5c55b055631fa009350d4d",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/HeiTang-HuaMei/HeiTang-kb-forge-skill/actions/runs/27489725098"
+    },
+    "previous_rc_tags": [
+      {
+        "tag": "campaign-1-3-baseline-rc.1",
+        "result": "ci_failed_clean_checkout"
+      },
+      {
+        "tag": "campaign-1-3-baseline-rc.2",
+        "result": "ci_passed_release_check_not_triggered"
+      }
+    ]
+  },
+  "forbidden_claims": {
+    "github_release_created": false,
+    "stable_campaign_baseline_tag_created": false,
+    "product_version_tag_created": false,
+    "formal_release_tag_created": false,
+    "commercial_release_completed": false,
+    "campaign_4_active": false,
+    "campaign_5_active": false,
+    "full_gate_passed": false,
+    "exe_packaging_done": false,
+    "release_done": false
+  },
+  "audit_sources": [
+    "docs/governance/TAG_NAMING_DECISION_REPORT.md",
+    "artifacts/audits/current_run/ci_success_run_27489725099.json",
+    "artifacts/audits/current_run/release_check_success_run_27489725098.json"
+  ],
+  "next_safe_action": "Closure Checklist Green verification only"
+}

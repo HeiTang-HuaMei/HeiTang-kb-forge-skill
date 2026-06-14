@@ -78,6 +78,18 @@ from .repository_surface_cleanup import (
     write_repository_public_surface_cleanup_gate,
     write_repository_public_surface_cleanup_gate_validation,
 )
+from .closure_checklist import (
+    build_closure_checklist_green_gate,
+    validate_closure_checklist_green_gate,
+    write_closure_checklist_green_gate,
+    write_closure_checklist_green_gate_validation,
+)
+from .review_handoff import (
+    build_campaign_1_2_3_integrated_review_handoff_gate,
+    validate_campaign_1_2_3_integrated_review_handoff_gate,
+    write_campaign_1_2_3_integrated_review_handoff_gate,
+    write_campaign_1_2_3_integrated_review_handoff_gate_validation,
+)
 
 __all__ = [
     "CAMPAIGN_3_SUPPLEMENT_2_0_ITEMS",
@@ -92,6 +104,8 @@ __all__ = [
     "build_campaign_1_2_3_integrated_closure_gate",
     "build_campaign_1_2_3_closure_pack",
     "build_campaign_1_3_stage_test_gate",
+    "build_closure_checklist_green_gate",
+    "build_campaign_1_2_3_integrated_review_handoff_gate",
     "build_repository_public_surface_cleanup_gate",
     "build_campaign_3_supplement_4_0_product_handoff_bundle",
     "build_campaign_3_supplement_4_0_skill_composer",
@@ -103,6 +117,8 @@ __all__ = [
     "validate_campaign_1_2_3_integrated_closure_gate",
     "validate_campaign_1_2_3_closure_pack",
     "validate_campaign_1_3_stage_test_gate",
+    "validate_closure_checklist_green_gate",
+    "validate_campaign_1_2_3_integrated_review_handoff_gate",
     "validate_repository_public_surface_cleanup_gate",
     "validate_campaign_3_supplement_4_0_product_handoff_bundle",
     "validate_campaign_3_supplement_4_0_skill_composer",
@@ -124,6 +140,10 @@ __all__ = [
     "write_campaign_1_2_3_closure_pack_validation",
     "write_campaign_1_3_stage_test_gate",
     "write_campaign_1_3_stage_test_gate_validation",
+    "write_closure_checklist_green_gate",
+    "write_closure_checklist_green_gate_validation",
+    "write_campaign_1_2_3_integrated_review_handoff_gate",
+    "write_campaign_1_2_3_integrated_review_handoff_gate_validation",
     "write_repository_public_surface_cleanup_gate",
     "write_repository_public_surface_cleanup_gate_validation",
     "write_campaign_3_supplement_4_0_product_handoff_bundle",

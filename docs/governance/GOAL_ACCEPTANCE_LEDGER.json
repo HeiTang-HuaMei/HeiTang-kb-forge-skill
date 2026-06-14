@@ -14,24 +14,27 @@
     "done"
   ],
   "last_goal_drift_review": {
-    "reviewed_at": "2026-06-14T12:12:14+08:00",
+    "reviewed_at": "2026-06-14T14:40:00+08:00",
     "task_focus": [
-      "tag_naming_policy_correction",
-      "campaign_1_3_baseline_rc_tag_policy",
-      "superseded_v3_integrated_closure_tags_recorded",
-      "campaign_baseline_ci_validation_only"
+      "closure_checklist_green_verification",
+      "campaign_1_3_integrated_review_handoff_gate",
+      "campaign_1_3_review_reports",
+      "new_conversation_handoff_prompt"
     ],
     "advanced_in_this_task": [
-      "tag_naming_policy_corrected",
-      "tag_naming_decision_report_generated",
-      "v3_integrated_closure_tags_marked_superseded_ci_validation_only"
+      "closure_checklist_green",
+      "campaign_1_3_integrated_review_handoff_gate_passed",
+      "campaign_1_2_3_integrated_review_report_generated",
+      "campaign_1_2_3_external_project_integration_review_generated",
+      "campaign_1_2_3_capability_review_matrix_generated",
+      "new_conversation_handoff_prompt_generated",
+      "campaign_1_2_3_handoff_manifest_generated"
     ],
     "not_advanced_in_this_task": [
       "github_release_created",
       "campaign_1_3_baseline_stable_tag_created",
-      "closure_checklist_green",
-      "campaign_1_3_integrated_review_handoff_gate_passed",
-      "campaign_4_ui_industrial_workbench",
+      "campaign_4_business_implementation",
+      "campaign_4_ui_acceptance",
       "campaign_5_chain_level_local_core_bridge",
       "campaign_6_agent_runtime_memory_platform",
       "campaign_7_configuration_system",
@@ -42,50 +45,41 @@
       "release"
     ],
     "states_forbidden_in_this_task": [
-      "campaign_3_final_consistency_gate_passed",
-      "campaign_3_accepted",
-      "external_project_real_integration",
       "presenton_ppt_runtime_integrated",
       "longlive_video_generation_integrated",
       "codegraph_knowledge_graph_integrated",
       "understand_anything_knowledge_graph_integrated",
       "claude_plugin_runtime_integrated",
       "pi_mono_runtime_integrated",
+      "bridge_execution_accepted",
+      "ui_industrial_workbench_complete",
+      "local_core_bridge_complete",
+      "github_release_created",
+      "product_version_tag_created",
+      "campaign_1_3_baseline_stable_tag_created",
+      "agent_runtime_ready",
+      "multi_agent_runtime_ready",
+      "agent_memory_runtime_ready",
+      "campaign_4_ui_complete",
+      "campaign_5_bridge_complete",
       "skill_template_published",
       "composed_skill_published",
-      "agent_package_generated_by_4_0c",
-      "agent_package_generated_by_4_0_b",
-      "campaign_1_3_stage_test_gate_passed",
-      "campaign_1_3_integrated_closure_gate_passed",
-      "closure_pack_generated",
-      "repository_public_surface_cleanup_gate_passed",
-      "repository_push_succeeded",
-      "campaign_1_3_closure_tag_created",
-      "campaign_1_3_closure_ci_green",
-      "closure_checklist_green",
-      "campaign_1_3_review_handoff_gate_passed",
       "campaign_4_active",
       "campaign_5_active",
       "campaign_6_active",
       "campaign_7_active",
       "campaign_8_active",
       "campaign_9_active",
-      "bridge_execution_accepted",
-      "ui_industrial_workbench_complete",
-      "local_core_bridge_complete",
-      "agent_runtime_ready",
-      "multi_agent_runtime_ready",
-      "agent_memory_runtime_ready",
+      "agent_runtime_memory_accepted",
       "full_gate_passed",
       "done",
+      "ui_complete",
+      "configuration_accepted",
       "exe_packaging_done",
-      "final_release_allowed",
-      "campaign_1_3_baseline_stable_tag_created",
-      "github_release_created",
-      "product_version_tag_created"
+      "final_release_allowed"
     ],
     "goal_downgrade_detected": false,
-    "next_e2e_gap": "Tag naming policy correction is active. v3.0.x-integrated-closure tags are superseded CI validation tags only. The only next safe action is Tag naming policy correction and campaign baseline CI validation only; use campaign-1-3-baseline-rc.N for validation, do not generate a Release, and do not enter Campaign 4."
+    "next_e2e_gap": "Campaign 1-3 Integrated Review and New Conversation Handoff Gate passed after Closure Checklist Green. The next safe action is Open a new conversation and start Campaign 4 Entry Gate only; Campaign 4 business implementation, GitHub Release, stable campaign baseline tag, Full Gate, EXE, and final release remain blocked."
   },
   "campaign_acceptance_reviews": {
     "campaign_1_acceptance_review": {
@@ -795,40 +789,12 @@
       "final_release_allowed": false
     },
     "repository_public_surface_cleanup_rename_push_tag_safety_gate": {
-      "status": "not_started",
-      "plan_state": "future_gate_registered_not_active",
-      "scope": "Post-Integrated-Closure public repository surface cleanup, rename compatibility, push safety, tag safety, and CI sequencing gate",
-      "next_business_item": "Run Campaign 1-3 Stage Test Gate only.",
-      "activation_prerequisites": [
-        "Campaign 3 Supplement 4.0 Knowledge-to-Skill Template Generator completed",
-        "Campaign 3 Supplement 4.0 Acceptance Gate passed",
-        "Campaign 3 Final Consistency Gate passed",
-        "Campaign 1-3 Stage / Functional Test Gate passed",
-        "Campaign 1-3 Integrated Closure Gate passed",
-        "Closure Pack generated"
-      ],
-      "required_order": [
-        "read-only repository public surface inventory",
-        "classification of active docs, milestone evidence, legacy root reports, temporary current_run, obsolete duplicate docs",
-        "gitignore safety verification",
-        "HeiTang Knowledge Workbench public naming compatibility with heitang_kb_forge import namespace preserved",
-        "forbidden tracked files, secret, and large runtime binary checks",
-        "repository push only after safety report passes",
-        "tag only after push succeeds",
-        "tag-related CI green before Campaign 4 Entry"
-      ],
+      "status": "passed",
+      "verdict": "accepted_for_repository_push",
       "evidence": [
-        "docs/governance/REPOSITORY_PUBLIC_SURFACE_CLEANUP_RENAME_PUSH_TAG_SAFETY_GATE_PLAN.md",
-        "tests/test_repository_public_surface_cleanup_gate_plan.py",
-        ".gitignore"
+        "artifacts/audits/repository_public_surface_cleanup/run_manifest.json"
       ],
-      "boundary": "Future gate registration only. Current task does not inventory, clean, delete, move, rename, push, tag, run CI, enter Campaign 4, or mark release readiness.",
-      "cleanup_executed": false,
-      "rename_executed": false,
-      "push_executed": false,
-      "tag_created": false,
-      "ci_green": false,
-      "campaign_4_active": false
+      "boundary": "Cleanup and push-tag safety passed; no release, no Campaign 4 business implementation, and no forbidden tracked runtime directories were accepted."
     },
     "product_output_surface_external_trend_alignment_gate": {
       "status": "registered_for_campaign_3_final_consistency",
@@ -877,58 +843,36 @@
       "campaign_3_final_consistency_gate_passed": false
     },
     "campaign_3_final_consistency_gate": {
-      "status": "next_required",
-      "verdict": "not_run_in_current_lock",
-      "scope": "Section 5 / Campaign 3 final consistency only",
-      "next_business_item": "Campaign 3 Final Consistency Gate only",
-      "campaign_3_final_consistency_gate_passed": false,
-      "campaign_3_accepted": false,
-      "campaign_1_3_stage_test_gate_passed": false,
-      "campaign_1_3_integrated_closure_gate_passed": false,
-      "closure_pack_generated": false,
-      "repository_public_surface_cleanup_gate_passed": false,
-      "repository_push_succeeded": false,
-      "tag_created": false,
-      "ci_green": false,
-      "closure_checklist_green": false,
-      "campaign_4_active": false,
-      "campaign_5_active": false,
+      "status": "passed",
+      "verdict": "accepted_for_campaign_1_3_stage_test_gate",
       "evidence": [
-        "artifacts/audits/campaign_3_final_consistency/run_manifest.json",
-        "artifacts/audits/campaign_3_final_consistency/campaign_3_final_consistency_gate.json",
-        "artifacts/audits/campaign_3_final_consistency/campaign_3_final_consistency_matrix.json",
-        "artifacts/audits/campaign_3_final_consistency/validation_report.json",
-        "tests/test_campaign_3_final_consistency_gate.py"
+        "artifacts/audits/campaign_3_final_consistency/run_manifest.json"
       ],
-      "boundary": "Campaign 3 Final Consistency Gate is the only next safe action after Supplement 4.0 Acceptance Gate. It has not run in the current lock; Stage Test, Integrated Closure, Closure Pack, Repository Cleanup, push, tag, CI, Campaign 4, Campaign 5, EXE, and release remain blocked."
+      "boundary": "Final Consistency accepted Campaign 3 only for transition to Stage Test; it did not start Campaign 4."
     },
     "campaign_1_3_stage_test_gate": {
-      "status": "blocked_by_sequence",
-      "plan_state": "waiting_for_campaign_3_final_consistency_gate",
-      "verdict": "not_run_in_current_lock",
-      "campaign_3_final_consistency_gate_passed": false,
-      "campaign_3_accepted": false,
-      "campaign_1_3_stage_test_gate_passed": false,
-      "campaign_1_3_integrated_closure_gate_passed": false,
-      "next_business_item": "Campaign 3 Final Consistency Gate only",
-      "evidence": [],
-      "boundary": "Stage Test remains blocked until Campaign 3 Final Consistency Gate passes in its own locked item."
+      "status": "passed",
+      "verdict": "accepted_for_campaign_1_3_integrated_closure_gate",
+      "evidence": [
+        "artifacts/audits/campaign_1_3_stage_test/run_manifest.json"
+      ],
+      "boundary": "Stage Test passed as a closure-chain gate only and did not open Campaign 4."
     },
     "campaign_1_3_integrated_closure_chain": {
-      "status": "blocked_by_sequence",
-      "plan_state": "waiting_for_campaign_3_final_consistency_gate",
-      "next_business_item": "Campaign 3 Final Consistency Gate only",
-      "campaign_1_3_stage_test_gate_passed": false,
-      "campaign_1_3_integrated_closure_gate_passed": false,
-      "closure_pack_generated": false,
-      "repository_public_surface_cleanup_gate_passed": false,
-      "repository_push_succeeded": false,
-      "tag_created": false,
-      "ci_green": false,
-      "closure_checklist_green": false,
-      "campaign_1_3_review_handoff_gate_passed": false,
-      "boundary": "Integrated Closure remains blocked until Campaign 3 Final Consistency Gate and Campaign 1-3 Stage Test Gate pass.",
-      "evidence": []
+      "status": "review_handoff_passed",
+      "verdict": "accepted_for_campaign_4_entry_gate_new_conversation",
+      "evidence": [
+        "artifacts/audits/campaign_1_3_closure_checklist/run_manifest.json",
+        "artifacts/audits/campaign_1_3_closure_checklist/closure_checklist_report.json",
+        "artifacts/audits/campaign_1_2_3_review_handoff/run_manifest.json",
+        "artifacts/audits/campaign_1_2_3_review_handoff/integrated_review_handoff_report.json",
+        "docs/governance/CAMPAIGN_1_2_3_INTEGRATED_REVIEW_REPORT.md",
+        "docs/governance/CAMPAIGN_1_2_3_EXTERNAL_PROJECT_INTEGRATION_REVIEW.md",
+        "docs/governance/CAMPAIGN_1_2_3_CAPABILITY_REVIEW_MATRIX.md",
+        "artifacts/audits/current_run/new_conversation_handoff_prompt.md",
+        "artifacts/audits/current_run/campaign_1_2_3_handoff_manifest.json"
+      ],
+      "boundary": "Campaign 1-3 closure chain reached Review/Handoff passed using campaign-1-3-baseline-rc.3 CI/CL evidence. This allows only a new conversation Campaign 4 Entry Gate; it is not a GitHub Release, not stable campaign-1-3-baseline, not a product version tag, not Campaign 4 business implementation, and not final release."
     }
   },
   "capabilities": [
@@ -1316,13 +1260,12 @@
       "not_goal_complete": true
     }
   ],
-  "current_task_advances": "Tag naming policy correction and campaign baseline CI validation only",
+  "current_task_advances": "Closure Checklist Green verification and Campaign 1-3 Integrated Review/New Conversation Handoff Gate only",
   "current_task_does_not_advance": [
     "github_release",
     "campaign_1_3_baseline_stable_tag",
-    "closure_checklist_green",
-    "campaign_1_3_integrated_review_handoff_gate",
-    "campaign_4_ui_industrial_workbench",
+    "campaign_4_business_implementation",
+    "campaign_4_ui_industrial_workbench_acceptance",
     "campaign_5_chain_level_local_core_bridge",
     "campaign_6_agent_runtime_memory_platform",
     "campaign_7_configuration_system",
@@ -1332,43 +1275,62 @@
     "exe_packaging",
     "release"
   ],
-  "next_e2e_gap": "Tag naming policy correction is active. v3.0.x-integrated-closure tags are superseded CI validation tags only. The only next safe action is Tag naming policy correction and campaign baseline CI validation only; use campaign-1-3-baseline-rc.N for validation, do not generate a Release, and do not enter Campaign 4.",
+  "next_e2e_gap": "Campaign 1-3 Integrated Review and New Conversation Handoff Gate passed after Closure Checklist Green. The next safe action is Open a new conversation and start Campaign 4 Entry Gate only; Campaign 4 business implementation, GitHub Release, stable campaign baseline tag, Full Gate, EXE, and final release remain blocked.",
   "campaign_1_3_integrated_closure_chain": {
-    "status": "baseline_ci_validation_in_progress",
-    "plan_state": "tag_naming_policy_correction_active",
-    "next_business_item": "Tag naming policy correction and campaign baseline CI validation only",
-    "campaign_1_3_stage_test_gate_passed": false,
-    "campaign_1_3_integrated_closure_gate_passed": false,
-    "closure_pack_generated": false,
-    "repository_public_surface_cleanup_gate_passed": false,
-    "repository_push_succeeded": false,
-    "tag_created": false,
-    "ci_green": false,
-    "closure_checklist_green": false,
-    "campaign_1_3_review_handoff_gate_passed": false,
-    "boundary": "Current task corrects tag naming and validates Campaign 1-3 baseline CI only. Historical v3.0.x-integrated-closure tags are superseded CI validation tags, not release, baseline, or product version tags.",
-    "evidence": [],
-    "campaign_3_final_consistency_gate_passed": false,
-    "campaign_3_accepted": false,
+    "status": "review_handoff_passed",
+    "plan_state": "campaign_1_3_review_handoff_gate_passed",
+    "next_business_item": "Open a new conversation and start Campaign 4 Entry Gate only",
+    "campaign_1_3_stage_test_gate_passed": true,
+    "campaign_1_3_integrated_closure_gate_passed": true,
+    "closure_pack_generated": true,
+    "repository_public_surface_cleanup_gate_passed": true,
+    "repository_push_succeeded": true,
+    "tag_created": true,
+    "tag_name": "campaign-1-3-baseline-rc.3",
+    "tag_commit_hash": "09590d8d4ff03310cd5c55b055631fa009350d4d",
+    "ci_green": true,
+    "ci_run_id": 27489725099,
+    "release_check_green": true,
+    "release_check_run_id": 27489725098,
+    "closure_checklist_green": true,
+    "campaign_1_3_review_handoff_gate_passed": true,
+    "boundary": "Campaign 1-3 closure chain reached Review/Handoff passed using campaign-1-3-baseline-rc.3 CI/CL evidence. This allows only a new conversation Campaign 4 Entry Gate; it is not a GitHub Release, not stable campaign-1-3-baseline, not a product version tag, not Campaign 4 business implementation, and not final release.",
+    "evidence": [
+      "artifacts/audits/campaign_1_3_closure_checklist/run_manifest.json",
+      "artifacts/audits/campaign_1_3_closure_checklist/closure_checklist_report.json",
+      "artifacts/audits/campaign_1_2_3_review_handoff/run_manifest.json",
+      "artifacts/audits/campaign_1_2_3_review_handoff/integrated_review_handoff_report.json",
+      "docs/governance/CAMPAIGN_1_2_3_INTEGRATED_REVIEW_REPORT.md",
+      "docs/governance/CAMPAIGN_1_2_3_EXTERNAL_PROJECT_INTEGRATION_REVIEW.md",
+      "docs/governance/CAMPAIGN_1_2_3_CAPABILITY_REVIEW_MATRIX.md",
+      "artifacts/audits/current_run/new_conversation_handoff_prompt.md",
+      "artifacts/audits/current_run/campaign_1_2_3_handoff_manifest.json"
+    ],
+    "campaign_3_final_consistency_gate_passed": true,
+    "campaign_3_accepted": true,
     "campaign_baseline_rc_tag_policy_active": true,
     "superseded_v3_integrated_closure_tags": [
       "v3.0.3-integrated-closure",
       "v3.0.4-integrated-closure",
       "v3.0.5-integrated-closure"
     ],
+    "stable_campaign_baseline_tag_created": false,
     "github_release_created": false,
-    "campaign_4_active": false
+    "campaign_4_active": false,
+    "campaign_4_entry_gate_allowed": true
   },
   "campaign_1_3_stage_test_gate": {
-    "status": "blocked_by_sequence",
-    "plan_state": "waiting_for_campaign_3_final_consistency_gate",
-    "verdict": "not_run_in_current_lock",
-    "campaign_3_final_consistency_gate_passed": false,
-    "campaign_3_accepted": false,
-    "campaign_1_3_stage_test_gate_passed": false,
-    "campaign_1_3_integrated_closure_gate_passed": false,
-    "next_business_item": "Campaign 3 Final Consistency Gate only",
-    "evidence": [],
-    "boundary": "Stage Test remains blocked until Campaign 3 Final Consistency Gate passes in its own locked item."
+    "status": "passed",
+    "plan_state": "passed_in_current_closure_chain",
+    "verdict": "accepted_for_campaign_1_3_integrated_closure_gate",
+    "campaign_3_final_consistency_gate_passed": true,
+    "campaign_3_accepted": true,
+    "campaign_1_3_stage_test_gate_passed": true,
+    "campaign_1_3_integrated_closure_gate_passed": true,
+    "next_business_item": "Campaign 1-3 Integrated Closure Gate passed; chain completed through Review/Handoff",
+    "evidence": [
+      "artifacts/audits/campaign_1_3_stage_test/run_manifest.json"
+    ],
+    "boundary": "Stage Test passed inside the ordered closure chain; it does not by itself open Campaign 4."
   }
 }

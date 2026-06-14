@@ -667,25 +667,25 @@
       "run_id": "campaign_3_final_consistency_gate",
       "type": "campaign_final_consistency_gate",
       "scope": "CAMPAIGN_3_FINAL_CONSISTENCY_GATE",
-      "status": "historical_downstream_not_counted",
-      "verdict": "next_required_not_started_in_current_lock",
+      "status": "passed",
+      "verdict": "accepted_for_campaign_1_3_stage_test_gate",
       "evidence_dir": "artifacts/audits/campaign_3_final_consistency",
       "promoted_to_milestone": false,
       "retention": "milestone",
       "keep_in_git": true,
       "run_manifest": "artifacts/audits/campaign_3_final_consistency/run_manifest.json",
       "run_summary": "artifacts/audits/campaign_3_final_consistency/run_summary.md",
-      "summary": "Historical Campaign 3 Final Consistency artifacts may exist in the workspace, but they are not counted in the current locked state after the latest user correction. Campaign 3 Final Consistency Gate remains the only next safe action; Stage Test, Integrated Closure, Closure Pack, cleanup, push, tag, CI, Campaigns 4-9, EXE, and release remain blocked."
+      "summary": "Campaign 3 Final Consistency Gate passed in the ordered closure chain and accepted only transition to Stage Test; Campaign 4 remained inactive."
     },
     {
       "run_id": "campaign_1_3_stage_test_gate",
       "type": "campaign_stage_test_gate",
       "scope": "CAMPAIGN_1_3_STAGE_TEST_GATE",
-      "status": "blocked_by_sequence",
-      "verdict": "not_run_in_current_locked_state",
+      "status": "passed",
+      "verdict": "accepted_for_campaign_1_3_integrated_closure_gate",
       "evidence_path": "artifacts/audits/campaign_1_3_stage_test",
       "category": "milestone",
-      "summary": "Stage Test remains blocked until Campaign 3 Final Consistency Gate passes in the current sequence.",
+      "summary": "Campaign 1-3 Stage Test Gate passed in sequence and accepted only transition to Integrated Closure; Campaign 4 remained inactive.",
       "evidence_dir": "artifacts/audits/campaign_1_3_stage_test",
       "retention": "milestone",
       "keep_in_git": true,
@@ -696,15 +696,43 @@
       "run_id": "campaign_1_2_3_integrated_closure_gate",
       "type": "campaign_integrated_closure_gate",
       "scope": "CAMPAIGN_1_2_3_INTEGRATED_CLOSURE_GATE",
-      "status": "blocked_by_sequence",
-      "verdict": "not_run_in_current_locked_state",
+      "status": "passed",
+      "verdict": "accepted_for_closure_pack_generation",
       "evidence_dir": "artifacts/audits/campaign_1_2_3_integrated_closure",
       "promoted_to_milestone": false,
       "retention": "milestone",
       "keep_in_git": true,
       "run_manifest": "artifacts/audits/campaign_1_2_3_integrated_closure/run_manifest.json",
       "run_summary": "artifacts/audits/campaign_1_2_3_integrated_closure/run_summary.md",
-      "summary": "Integrated Closure remains blocked until Campaign 1-3 Stage Test Gate passes in sequence."
+      "summary": "Campaign 1-3 Integrated Closure Gate passed in sequence and accepted only Closure Pack generation; Campaign 4 remained inactive."
+    },
+    {
+      "run_id": "campaign_1_3_closure_checklist_green",
+      "type": "closure_checklist_green_verification",
+      "scope": "CAMPAIGN_1_3_CLOSURE_CHECKLIST_GREEN",
+      "status": "passed",
+      "verdict": "accepted_for_campaign_1_3_integrated_review_handoff_gate",
+      "evidence_dir": "artifacts/audits/campaign_1_3_closure_checklist",
+      "promoted_to_milestone": false,
+      "retention": "milestone",
+      "keep_in_git": true,
+      "run_manifest": "artifacts/audits/campaign_1_3_closure_checklist/run_manifest.json",
+      "run_summary": "artifacts/audits/campaign_1_3_closure_checklist/run_summary.md",
+      "summary": "Closure Checklist Green passed after repository push, campaign baseline RC tag, CI, Release Check, no-release, and tag naming policy evidence. It did not create a GitHub Release or stable campaign baseline tag and did not start Campaign 4."
+    },
+    {
+      "run_id": "campaign_1_2_3_integrated_review_handoff_gate",
+      "type": "campaign_integrated_review_handoff_gate",
+      "scope": "CAMPAIGN_1_2_3_INTEGRATED_REVIEW_HANDOFF_GATE",
+      "status": "passed",
+      "verdict": "accepted_for_campaign_4_entry_gate_new_conversation",
+      "evidence_dir": "artifacts/audits/campaign_1_2_3_review_handoff",
+      "promoted_to_milestone": false,
+      "retention": "milestone",
+      "keep_in_git": true,
+      "run_manifest": "artifacts/audits/campaign_1_2_3_review_handoff/run_manifest.json",
+      "run_summary": "artifacts/audits/campaign_1_2_3_review_handoff/run_summary.md",
+      "summary": "Campaign 1-3 Integrated Review and New Conversation Handoff Gate passed. It generated the Campaign 1-3 review reports and handoff prompt, allows only a new conversation Campaign 4 Entry Gate, and keeps Campaign 4 business implementation inactive."
     }
   ],
   "new_run_template": {
@@ -716,19 +744,19 @@
   },
   "items": [
     {
-      "run_id": "campaign_1_3_stage_test_gate",
-      "type": "campaign_stage_test_gate",
-      "scope": "CAMPAIGN_1_3_STAGE_TEST_GATE",
-      "status": "blocked_by_sequence",
-      "verdict": "not_run_in_current_locked_state",
-      "evidence_path": "artifacts/audits/campaign_1_3_stage_test",
+      "run_id": "campaign_1_2_3_integrated_review_handoff_gate",
+      "type": "campaign_integrated_review_handoff_gate",
+      "scope": "CAMPAIGN_1_2_3_INTEGRATED_REVIEW_HANDOFF_GATE",
+      "status": "passed",
+      "verdict": "accepted_for_campaign_4_entry_gate_new_conversation",
+      "evidence_path": "artifacts/audits/campaign_1_2_3_review_handoff",
       "category": "milestone",
-      "summary": "Stage Test remains blocked until Campaign 3 Final Consistency Gate passes in the current sequence.",
-      "evidence_dir": "artifacts/audits/campaign_1_3_stage_test",
+      "summary": "Campaign 1-3 review/handoff passed; next safe action is new conversation Campaign 4 Entry Gate only.",
+      "evidence_dir": "artifacts/audits/campaign_1_2_3_review_handoff",
       "retention": "milestone",
       "keep_in_git": true,
-      "run_manifest": "artifacts/audits/campaign_1_3_stage_test/run_manifest.json",
-      "run_summary": "artifacts/audits/campaign_1_3_stage_test/run_summary.md"
+      "run_manifest": "artifacts/audits/campaign_1_2_3_review_handoff/run_manifest.json",
+      "run_summary": "artifacts/audits/campaign_1_2_3_review_handoff/run_summary.md"
     }
   ]
 }

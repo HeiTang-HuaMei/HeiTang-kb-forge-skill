@@ -1,6 +1,6 @@
 # Tag Naming Decision Report
 
-Generated at: 2026-06-14T12:12:14+08:00
+Generated at: 2026-06-14T13:52:14+08:00
 
 ## Decision
 
@@ -34,6 +34,25 @@ The following tags are recorded as superseded CI validation tags caused by histo
 
 `gh release list --limit 50` only showed product releases `v4.2.0`, `v4.1.1`, and `v4.1.0` during this check. No GitHub Release was found for the listed `v3.0.x-integrated-closure` tags.
 
+## Campaign Baseline RC Validation
+
+The corrected Campaign 1-3 baseline validation tag currently used for CI/CL evidence is:
+
+```text
+campaign-1-3-baseline-rc.3
+```
+
+Validation facts:
+
+- `campaign-1-3-baseline-rc.1` was created under the corrected naming policy, but clean-checkout CI failed.
+- `campaign-1-3-baseline-rc.2` was created after repair and CI passed, but Release Check did not trigger, so it was not a green CI/CL chain.
+- `campaign-1-3-baseline-rc.3` points to commit `09590d8d4ff03310cd5c55b055631fa009350d4d`.
+- CI run `27489725099` for `campaign-1-3-baseline-rc.3` completed with `conclusion=success`.
+- Release Check run `27489725098` for `campaign-1-3-baseline-rc.3` completed with `conclusion=success`.
+- `gh release view campaign-1-3-baseline-rc.3` returned no GitHub Release.
+
+This RC tag is a campaign baseline validation tag only. It is not a product version tag, not a formal release tag, not a GitHub Release, not a commercial stable release, not EXE delivery, and not Campaign 4 entry.
+
 ## Safety Rules
 
 - Do not delete these historical tags in this correction step.
@@ -47,7 +66,7 @@ The following tags are recorded as superseded CI validation tags caused by histo
 ## Current Next Safe Action
 
 ```text
-Tag naming policy correction and campaign baseline CI validation only
+Closure Checklist Green verification only
 ```
 
-Campaign 4, Campaign 5, Full Gate, EXE packaging, and Release remain blocked until the ordered gates pass.
+The tag naming policy correction and campaign baseline RC CI/CL validation have passed through `campaign-1-3-baseline-rc.3`. Do not create any new `v3.0.x-integrated-closure` tag. Do not create a GitHub Release. Do not create the stable `campaign-1-3-baseline` tag until the ordered Closure Checklist is green. Campaign 4, Campaign 5, Full Gate, EXE packaging, and Release remain blocked until the ordered gates pass.

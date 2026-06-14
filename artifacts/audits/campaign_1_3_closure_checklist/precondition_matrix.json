@@ -1,0 +1,102 @@
+{
+  "schema_version": "closure_checklist_precondition_matrix.v1",
+  "status": "passed",
+  "items": [
+    {
+      "item_id": "campaign_3_final_consistency_gate_passed",
+      "status": "passed",
+      "evidence_path": "artifacts/audits/campaign_3_final_consistency/run_manifest.json",
+      "expected": {
+        "status": "passed",
+        "verdict": "accepted_for_campaign_1_3_stage_test_gate"
+      },
+      "actual": {
+        "status": "passed",
+        "verdict": "accepted_for_campaign_1_3_stage_test_gate"
+      }
+    },
+    {
+      "item_id": "campaign_1_3_stage_test_gate_passed",
+      "status": "passed",
+      "evidence_path": "artifacts/audits/campaign_1_3_stage_test/run_manifest.json",
+      "expected": {
+        "status": "passed",
+        "verdict": "accepted_for_campaign_1_3_integrated_closure_gate"
+      },
+      "actual": {
+        "status": "passed",
+        "verdict": "accepted_for_campaign_1_3_integrated_closure_gate"
+      }
+    },
+    {
+      "item_id": "campaign_1_2_3_integrated_closure_gate_passed",
+      "status": "passed",
+      "evidence_path": "artifacts/audits/campaign_1_2_3_integrated_closure/run_manifest.json",
+      "expected": {
+        "status": "passed",
+        "verdict": "accepted_for_closure_pack_generation"
+      },
+      "actual": {
+        "status": "passed",
+        "verdict": "accepted_for_closure_pack_generation"
+      }
+    },
+    {
+      "item_id": "closure_pack_generated",
+      "status": "passed",
+      "evidence_path": "artifacts/audits/campaign_1_2_3_closure_pack/run_manifest.json",
+      "expected": {
+        "status": "passed",
+        "verdict": "closure_pack_generated_for_repository_cleanup_gate"
+      },
+      "actual": {
+        "status": "passed",
+        "verdict": "closure_pack_generated_for_repository_cleanup_gate"
+      }
+    },
+    {
+      "item_id": "repository_public_surface_cleanup_gate_passed",
+      "status": "passed",
+      "evidence_path": "artifacts/audits/repository_public_surface_cleanup/run_manifest.json",
+      "expected": {
+        "status": "passed",
+        "verdict": "accepted_for_repository_push"
+      },
+      "actual": {
+        "status": "passed",
+        "verdict": "accepted_for_repository_push"
+      }
+    },
+    {
+      "item_id": "push_tag_safety_passed",
+      "status": "passed",
+      "evidence_path": "artifacts/audits/repository_public_surface_cleanup/PUSH_TAG_SAFETY_REPORT.json",
+      "expected": {
+        "status": "passed",
+        "push_allowed": true
+      },
+      "actual": {
+        "status": "passed",
+        "push_allowed": true
+      }
+    },
+    {
+      "item_id": "closure_pack_checksum_matches",
+      "status": "passed",
+      "evidence_path": "dist/HeiTang-Campaign-1-2-3-Integrated-Closure-Pack.zip",
+      "expected": "closure pack exists and sha256 matches closure_pack_checksum.json",
+      "actual": "605ea8de9c80d345692b710c3fd78deaafc29412e8697b1b01a1e77eb3c37fe4"
+    },
+    {
+      "item_id": "repository_push_succeeded",
+      "status": "passed",
+      "evidence_path": "git rev-parse HEAD; git rev-parse origin/main",
+      "expected": "09590d8d4ff03310cd5c55b055631fa009350d4d",
+      "actual": {
+        "head": "09590d8d4ff03310cd5c55b055631fa009350d4d",
+        "origin_main": "09590d8d4ff03310cd5c55b055631fa009350d4d"
+      }
+    }
+  ],
+  "errors": []
+}

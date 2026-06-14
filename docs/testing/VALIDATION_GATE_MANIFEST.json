@@ -873,6 +873,34 @@
         "closure_pack_generation_lock",
         "post_campaign_3_closure_chain"
       ]
+    },
+    {
+      "name": "core_fast_campaign_1_3_closure_checklist_gate",
+      "command": "python -m pytest tests/test_campaign_1_3_closure_checklist_gate.py -q",
+      "log_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_campaign_1_3_closure_checklist_gate.log",
+      "level": "fast",
+      "repository": "core",
+      "exit_code_required": true,
+      "release_blocking": false,
+      "impacted_surfaces": [
+        "campaign_1_3_closure_checklist_green",
+        "campaign_baseline_rc_ci_cl",
+        "no_release_overclaim"
+      ]
+    },
+    {
+      "name": "core_fast_campaign_1_2_3_integrated_review_handoff_gate",
+      "command": "python -m pytest tests/test_campaign_1_2_3_integrated_review_handoff_gate.py -q",
+      "log_path": "docs/audits/test_engineering/fast_gate_logs/core_fast_campaign_1_2_3_integrated_review_handoff_gate.log",
+      "level": "fast",
+      "repository": "core",
+      "exit_code_required": true,
+      "release_blocking": false,
+      "impacted_surfaces": [
+        "campaign_1_3_review_handoff_gate",
+        "new_conversation_handoff_contract",
+        "campaign_4_entry_gate_only"
+      ]
     }
   ],
   "impact_rules": [

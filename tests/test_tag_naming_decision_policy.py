@@ -28,6 +28,10 @@ def test_tag_naming_decision_report_records_superseded_validation_tags():
         "Do not delete these historical tags",
         "Do not attach GitHub Releases to them.",
         "Do not use them as formal baseline tags.",
+        "campaign-1-3-baseline-rc.3",
+        "CI run `27489725099`",
+        "Release Check run `27489725098`",
+        "This RC tag is a campaign baseline validation tag only.",
     ]:
         assert marker in text
 

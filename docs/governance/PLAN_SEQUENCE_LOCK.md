@@ -59,17 +59,21 @@ Current required advance:
 - Completed 4.0C item: Campaign 3 Supplement 4.0C Skill Import & Dedicated Skill Composer passed with dedicated Skill package, source binding, conflict report, document-output boundary, validator report, and testcase evidence.
 - Completed 4.0D-I bundle: Campaign 3 Supplement 4.0D-I Product Handoff Contract Bundle passed with Agent Package, workspace binding, memory isolation, single/multi-Agent mode, Campaign 4 UI handoff, and Campaign 5 Bridge handoff evidence.
 - Completed Supplement 4.0 Acceptance Gate: verdict `accepted_for_campaign_3_final_consistency_gate`.
-- Campaign 3 Final Consistency Gate: `not_started_current_lock`.
-- Campaign 1-3 Stage Test Gate: `blocked`.
-- Campaign 1-3 Integrated Closure Gate: `blocked`.
-- Campaign 1-3 Closure Pack: `blocked`.
-- Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate: `blocked`.
-- Current stop point: Campaign 3 Supplement 4.0 Acceptance Gate passed; do not run Campaign 3 Final Consistency Gate, Campaign 1-3 Stage Test, Integrated Closure, Closure Pack, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, push, tag, CI, Campaign 4, Campaign 5, Full Gate, EXE, or Release in the same item.
-- Next locked item: Campaign 3 Final Consistency Gate only.
-- Current locked post-Supplement-4.0 chain: Supplement 4.0 is accepted for the Final Consistency transition after the bounded industrial-grade Acceptance Gate passed.
+- Campaign 3 Final Consistency Gate: `passed`.
+- Campaign 1-3 Stage Test Gate: `passed`.
+- Campaign 1-3 Integrated Closure Gate: `passed`.
+- Campaign 1-3 Closure Pack: `generated`.
+- Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate: `passed`.
+- Repository push: `passed`.
+- Campaign baseline RC tag: `campaign-1-3-baseline-rc.3` with CI/CL green.
+- Closure Checklist Green: `passed`.
+- Campaign 1-3 Integrated Review and New Conversation Handoff Gate: `passed`.
+- Current stop point: Campaign 1-3 Integrated Review and New Conversation Handoff Gate passed; do not start Campaign 4 business implementation in this conversation and do not create a GitHub Release, stable campaign baseline tag, Full Gate, EXE, or final release.
+- Next locked item: `Open a new conversation and start Campaign 4 Entry Gate only`.
+- Current locked post-Supplement-4.0 chain: completed through Campaign 1-3 Review/Handoff with Campaign 4 still inactive.
 - Later post-Campaign-3 gate chain: Campaign 1-3 Stage Test Gate, Campaign 1-3 Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, baseline tag, CI/CL green, Closure Checklist green, Campaign 1-3 Integrated Review and New Conversation Handoff Gate, and only then Campaign 4 Goal-Oriented Product UI Workbench Entry Gate
 - Current completed Section 5 items: `5.1 LLM Wiki v2`, `5.2 WeKnora`, `5.3 AnySearchSkill`, `5.4 n8n`, `5.5 MMSkills`, `5.6 skill-prompt-generator`, `5.7 ai-marketing-skills`, `5.8 ai-money-maker-handbook`, `5.9 Jellyfish`, `5.10 story-flicks`, `5.11 seedance2-skill`, `5.12 RAG-Anything`, `5.13 mattpocock/skills`, `5.14 Sirchmunk`, `5.S1 GBrain`, `5.S2 Horizon`, `5.S3 Obsidian-compatible Vault`
-- Next business item: `Campaign 3 Final Consistency Gate only`
+- Next business item: `Open a new conversation and start Campaign 4 Entry Gate only`
 
 Reason:
 

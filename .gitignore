@@ -32,6 +32,8 @@ progress_events.jsonl
 !artifacts/audits/repository_public_surface_cleanup/progress_events.jsonl
 !artifacts/audits/repository_public_surface_cleanup/staged_diff_check.log
 !artifacts/audits/repository_public_surface_cleanup/staged_diff_check_final.log
+!artifacts/audits/campaign_1_3_closure_checklist/progress_events.jsonl
+!artifacts/audits/campaign_1_2_3_review_handoff/progress_events.jsonl
 !artifacts/audits/campaign_3_final_consistency/progress_events.jsonl
 !artifacts/audits/section_5/external_source_generic_url/ingestion/external_chunks.jsonl
 !artifacts/audits/section_5/external_source_opencli_verification/external_search_candidates.jsonl

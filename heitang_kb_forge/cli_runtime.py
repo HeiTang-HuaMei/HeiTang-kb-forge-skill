@@ -36,6 +36,10 @@ from heitang_kb_forge.campaign_3_closure import write_campaign_1_2_3_integrated_
 from heitang_kb_forge.campaign_3_closure import write_campaign_1_2_3_integrated_closure_gate_validation
 from heitang_kb_forge.campaign_3_closure import write_campaign_1_2_3_closure_pack
 from heitang_kb_forge.campaign_3_closure import write_campaign_1_2_3_closure_pack_validation
+from heitang_kb_forge.campaign_3_closure import write_campaign_1_2_3_integrated_review_handoff_gate
+from heitang_kb_forge.campaign_3_closure import write_campaign_1_2_3_integrated_review_handoff_gate_validation
+from heitang_kb_forge.campaign_3_closure import write_closure_checklist_green_gate
+from heitang_kb_forge.campaign_3_closure import write_closure_checklist_green_gate_validation
 from heitang_kb_forge.campaign_3_closure import write_repository_public_surface_cleanup_gate
 from heitang_kb_forge.campaign_3_closure import write_repository_public_surface_cleanup_gate_validation
 from heitang_kb_forge.campaign_3_closure import write_campaign_1_3_stage_test_gate
@@ -4744,6 +4748,76 @@ def validate_repository_public_surface_cleanup_gate_command(
     result = write_repository_public_surface_cleanup_gate_validation(repo_root, output)
     typer.echo(
         f"Repository Public Surface Cleanup Gate validation status={result['status']} "
+        f"errors={result['error_count']} output={output}"
+    )
+
+
+@app.command("closure-checklist-green-gate")
+def closure_checklist_green_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/campaign_1_3_closure_checklist"),
+        "--output",
+    ),
+) -> None:
+    """Verify Closure Checklist Green after push, baseline RC tag, CI, and Release Check evidence."""
+    result = write_closure_checklist_green_gate(repo_root, output)
+    typer.echo(
+        f"Closure Checklist Green Gate status={result['status']} "
+        f"verdict={result['verdict']} output={output}"
+    )
+
+
+@app.command("validate-closure-checklist-green-gate")
+def validate_closure_checklist_green_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/campaign_1_3_closure_checklist"),
+        "--output",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+) -> None:
+    """Validate Closure Checklist Green outputs without starting Campaign 4."""
+    result = write_closure_checklist_green_gate_validation(repo_root, output)
+    typer.echo(
+        f"Closure Checklist Green Gate validation status={result['status']} "
+        f"errors={result['error_count']} output={output}"
+    )
+
+
+@app.command("campaign-1-2-3-integrated-review-handoff-gate")
+def campaign_1_2_3_integrated_review_handoff_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/campaign_1_2_3_review_handoff"),
+        "--output",
+    ),
+) -> None:
+    """Generate Campaign 1-3 review reports and new-conversation handoff after Closure Checklist Green."""
+    result = write_campaign_1_2_3_integrated_review_handoff_gate(repo_root, output)
+    typer.echo(
+        f"Campaign 1-3 Integrated Review/Handoff Gate status={result['status']} "
+        f"verdict={result['verdict']} output={output}"
+    )
+
+
+@app.command("validate-campaign-1-2-3-integrated-review-handoff-gate")
+def validate_campaign_1_2_3_integrated_review_handoff_gate_command(
+    repo_root: Path = typer.Option(Path("."), "--repo-root", exists=True, file_okay=False, dir_okay=True),
+    output: Path = typer.Option(
+        Path("artifacts/audits/campaign_1_2_3_review_handoff"),
+        "--output",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+    ),
+) -> None:
+    """Validate Campaign 1-3 review/handoff outputs and keep Campaign 4 inactive."""
+    result = write_campaign_1_2_3_integrated_review_handoff_gate_validation(repo_root, output)
+    typer.echo(
+        f"Campaign 1-3 Integrated Review/Handoff Gate validation status={result['status']} "
         f"errors={result['error_count']} output={output}"
     )
 

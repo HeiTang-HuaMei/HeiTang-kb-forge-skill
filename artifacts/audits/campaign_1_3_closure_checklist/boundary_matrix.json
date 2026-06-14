@@ -1,0 +1,61 @@
+{
+  "schema_version": "closure_checklist_boundary_matrix.v1",
+  "status": "passed",
+  "items": [
+    {
+      "item_id": "rc_tag_is_not_product_version_tag",
+      "expected": true,
+      "actual": true,
+      "status": "passed"
+    },
+    {
+      "item_id": "rc_tag_is_not_github_release",
+      "expected": true,
+      "actual": true,
+      "status": "passed"
+    },
+    {
+      "item_id": "ci_green_is_not_commercial_release",
+      "expected": true,
+      "actual": true,
+      "status": "passed"
+    },
+    {
+      "item_id": "closure_checklist_is_not_campaign_4_implementation",
+      "expected": true,
+      "actual": true,
+      "status": "passed"
+    },
+    {
+      "item_id": "campaign_4_active",
+      "expected": false,
+      "actual": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "campaign_5_active",
+      "expected": false,
+      "actual": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "full_gate_passed",
+      "expected": false,
+      "actual": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "exe_packaging_done",
+      "expected": false,
+      "actual": false,
+      "status": "passed"
+    },
+    {
+      "item_id": "final_release_allowed",
+      "expected": false,
+      "actual": false,
+      "status": "passed"
+    }
+  ],
+  "errors": []
+}
