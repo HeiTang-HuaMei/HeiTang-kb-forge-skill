@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -319,15 +320,24 @@ def _json_parse_matrix(repo_root: Path) -> dict[str, Any]:
 
 
 def _diff_check_matrix(repo_root: Path) -> dict[str, Any]:
-    log_path = repo_root / "artifacts/audits/current_run/campaign_1_3_stage_test_git_diff_check.log"
-    if not log_path.exists():
-        return {
-            "schema_version": "campaign_1_3_stage_test_git_diff_check_matrix.v1",
-            "status": "failed",
-            "log_path": str(log_path.relative_to(repo_root)).replace("\\", "/"),
-            "errors": ["missing_git_diff_check_log"],
-        }
-    text = _read_text(log_path)
+    candidate_logs = [
+        repo_root / "artifacts/audits/campaign_1_3_stage_test/git_diff_check.log",
+        repo_root / "artifacts/audits/current_run/campaign_1_3_stage_test_git_diff_check.log",
+    ]
+    log_path = next((path for path in candidate_logs if path.exists()), candidate_logs[0])
+    if log_path.exists():
+        text = _read_text(log_path)
+    else:
+        completed = subprocess.run(
+            ["git", "diff", "--check"],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        text = (completed.stdout or "") + (completed.stderr or "")
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        log_path.write_text(text, encoding="utf-8")
     errors = []
     for line in text.splitlines():
         stripped = line.strip()

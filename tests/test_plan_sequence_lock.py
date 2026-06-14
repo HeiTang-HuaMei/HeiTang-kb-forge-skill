@@ -300,7 +300,7 @@ def test_post_3_0_closure_chain_requires_supplement_4_0_before_campaign_4():
         "Campaign 1-3 Integrated Closure Gate",
         "Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate",
         "Repository push",
-        "Tag creation",
+        "Campaign baseline RC tag creation",
         "CI/CL green",
         "Campaign 1-3 Integrated Review and New Conversation Handoff Gate",
         "Campaign 4 Goal-Oriented Product UI Workbench Entry Gate",

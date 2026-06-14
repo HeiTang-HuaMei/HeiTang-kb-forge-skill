@@ -24,7 +24,7 @@ def test_repository_public_surface_gate_is_future_only_and_after_closure_pack():
         "Closure Pack generated",
         "Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate",
         "repository push",
-        "tag creation",
+        "campaign baseline RC tag creation",
         "CI green verification",
         "Campaign 4 Goal-Oriented Product UI Workbench Entry Gate",
     ]:
@@ -34,7 +34,7 @@ def test_repository_public_surface_gate_is_future_only_and_after_closure_pack():
         "Closure Pack generation\n"
         "10. Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate\n"
         "11. Repository push\n"
-        "12. Tag creation"
+        "12. Campaign baseline RC tag creation"
     )
     assert locked_order in combined
 
@@ -86,8 +86,8 @@ def test_repository_public_surface_gate_blocks_forbidden_tracked_files_before_pu
         "cookies",
         "credentials",
         "large runtime binaries",
-        "Tag creation may run only after repository push succeeds",
-        "CI/CL verification may run only after tag creation",
+        "Campaign baseline CI validation tag creation may run only after repository push succeeds",
+        "CI/CL verification may run only after a campaign baseline RC tag is created",
     ]:
         assert marker in combined
 

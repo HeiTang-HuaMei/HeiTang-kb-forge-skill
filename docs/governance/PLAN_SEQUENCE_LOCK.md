@@ -183,7 +183,7 @@ Current blocked later work:
 - Campaign 1-3 Closure Pack generated: `false`
 - Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate passed: `false`
 - Repository push succeeded: `false`
-- Campaign 1-3 closure tag created: `false`
+- Campaign 1-3 campaign baseline tag created: `false`
 - Campaign 1-3 closure CI green: `false`
 - Expanded Campaign 3 final consistency gate required after Supplement 4.0: `next_required`
 - Campaign 4 allowed: `false`
@@ -194,7 +194,7 @@ Current blocked later work:
 - Campaign 9 allowed: `false`
 - Final Release allowed: `false`
 
-`Campaign 3 active` means Section 5 item-by-item processing started. Campaign 3 is not accepted in the current locked state until the expanded Campaign 3 Final Consistency Gate passes in its own item. Campaign 4 still cannot open until Campaign 3 Final Consistency Gate, Campaign 1-3 Stage Test Gate, Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, tag creation, CI/CL green, Closure Checklist green, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate pass.
+`Campaign 3 active` means Section 5 item-by-item processing started. Campaign 3 is not accepted in the current locked state until the expanded Campaign 3 Final Consistency Gate passes in its own item. Campaign 4 still cannot open until Campaign 3 Final Consistency Gate, Campaign 1-3 Stage Test Gate, Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, campaign baseline RC tag creation, CI/CL green, Closure Checklist green, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate pass.
 
 ## Campaign 3 Supplement 2.0 Sequence
 
@@ -268,7 +268,7 @@ Locked order after Supplement 2.0:
 21. Closure Pack generation
 22. Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate
 23. Repository push
-24. Tag creation
+24. Campaign baseline RC tag creation
 25. CI green verification
 26. Closure Checklist green verification
 27. Campaign 1-3 Integrated Review and New Conversation Handoff Gate
@@ -308,7 +308,7 @@ Authority:
 - State: `accepted_for_campaign_3_final_consistency_gate`
 - Product layer: Knowledge-to-Skill-to-Agent Package & Product Handoff Contract
 - Activation prerequisite: Pre-4.0 Workspace Partition & Knowledge Base Access Scope Foundation Gate passed
-- Transition prerequisite: Supplement 4.0 acceptance, the Campaign 3 Final Consistency Gate, the Campaign 1-3 Stage Test Gate, the Campaign 1-3 Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, tag creation, CI/CL green, Closure Checklist green, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate must all pass before Campaign 4 Goal-Oriented Product UI Workbench Entry Gate
+- Transition prerequisite: Supplement 4.0 acceptance, the Campaign 3 Final Consistency Gate, the Campaign 1-3 Stage Test Gate, the Campaign 1-3 Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, campaign baseline RC tag creation, CI/CL green, Closure Checklist green, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate must all pass before Campaign 4 Goal-Oriented Product UI Workbench Entry Gate
 
 Locked order:
 
@@ -331,7 +331,7 @@ Locked order:
 16. Closure Pack generation
 17. Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate
 18. Repository push
-19. Tag creation
+19. Campaign baseline RC tag creation
 20. CI green verification
 21. Closure Checklist green verification
 22. Campaign 1-3 Integrated Review and New Conversation Handoff Gate
@@ -403,7 +403,7 @@ Locked order:
 9. Closure Pack generation
 10. Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate
 11. Repository push
-12. Tag creation
+12. Campaign baseline RC tag creation
 13. CI green verification
 14. Closure Checklist green verification
 15. Campaign 1-3 Integrated Review and New Conversation Handoff Gate
@@ -416,7 +416,7 @@ Failure at any test, closure, pack, repository cleanup, push, tag, CI, Closure C
 The same Entry Gate, Acceptance Gate, and Transition Gate mechanism applies after Campaign 3:
 
 - Campaign 4 cannot become active while Campaign 3 is `in_progress`.
-- Campaign 4 cannot become active from Campaign 3 2.0 or 3.0 completion alone; the Pre-4.0 Workspace Partition Foundation Gate, Campaign 3 Supplement 4.0, the Campaign 3 Final Consistency Gate, Campaign 1-3 Stage Test Gate, Campaign 1-3 Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, tag creation, CI/CL green, Closure Checklist green, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate are also required.
+- Campaign 4 cannot become active from Campaign 3 2.0 or 3.0 completion alone; the Pre-4.0 Workspace Partition Foundation Gate, Campaign 3 Supplement 4.0, the Campaign 3 Final Consistency Gate, Campaign 1-3 Stage Test Gate, Campaign 1-3 Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, campaign baseline RC tag creation, CI/CL green, Closure Checklist green, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate are also required.
 - Campaign 1-3 Stage Test Gate cannot start immediately after Supplement 3.0; it waits for Supplement 4.0 and the Campaign 3 Final Consistency Gate.
 - Campaign 4 is `Goal-Oriented Product UI Workbench`, not the old flat UI industrial page list.
 - Campaign 5 cannot become active from UI action entries or status cards.

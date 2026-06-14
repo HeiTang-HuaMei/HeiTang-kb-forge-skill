@@ -59,8 +59,8 @@ The following evidence cannot substitute for campaign acceptance:
 | Campaign 1-3 Integrated Closure Gate active | Campaign 1-3 Stage Test Gate passed | Stage Test Gate failed, was skipped, or is only partially run |
 | Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate active | Closure Pack generated after Integrated Closure Gate passed | Closure Pack missing, tests failed, closure failed, JSON parse failed, `git diff --check` failed, or secret boundaries are dirty |
 | Repository push | Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate passed | Cleanup inventory missing, forbidden tracked files found, secret scan failed, large runtime binary check failed, rename compatibility not recorded, or push target/credentials are missing |
-| Closure tag creation | Repository push succeeded | Push failed, push evidence is absent, or tag safety report failed |
-| Campaign 4 active | Campaign 3 accepted, Campaign 1-3 closure tag exists, tag-related CI/CL is green, Closure Checklist is green, Campaign 1-3 Integrated Review and New Conversation Handoff Gate passes, and the Campaign 4 Goal-Oriented Product UI Workbench Entry Gate passes | Campaign 3 is in progress, Supplement 4.0 is incomplete, Stage Test/Closure/Repository Cleanup/Push/Tag/CI/Closure Checklist/Review-Handoff is missing or failed, only per-project decisions exist, or the run tries UI redesign before CI/CL green |
+| Campaign baseline RC tag creation | Repository push succeeded | Push failed, push evidence is absent, tag safety report failed, or the attempted tag uses the superseded `v3.0.x-integrated-closure` naming pattern |
+| Campaign 4 active | Campaign 3 accepted, Campaign 1-3 campaign baseline tag exists, tag-related CI/CL is green, Closure Checklist is green, Campaign 1-3 Integrated Review and New Conversation Handoff Gate passes, and the Campaign 4 Goal-Oriented Product UI Workbench Entry Gate passes | Campaign 3 is in progress, Supplement 4.0 is incomplete, Stage Test/Closure/Repository Cleanup/Push/Tag/CI/Closure Checklist/Review-Handoff is missing or failed, only per-project decisions exist, or the run tries UI redesign before CI/CL green |
 | Campaign 5 active | Campaign 4 accepted and `goal_oriented_ui_workbench_accepted = true` | Only UI action entries, status cards, static previews, old page lists, or flat technical menus exist |
 | Campaign 6 active | Campaign 5 accepted and `bridge_execution_accepted = true` | Only bridge allowlist or action mapping exists, or only Agent Package exists without runtime/memory acceptance |
 | Campaign 7 active | Campaign 6 accepted and `agent_runtime_memory_accepted = true` | Only Agent Package, runtime schema, or memory spec exists |
@@ -115,7 +115,7 @@ Entry Gate:
 - Campaign 3 Supplement 4.0 may start only after the Pre-4.0 Workspace Partition Foundation Gate passes.
 - Campaign 1-3 Stage Test Gate may start only after Supplement 4.0 acceptance and the Campaign 3 Final Consistency Gate pass.
 - Campaign 1-3 Integrated Closure Gate may start only after Stage Test Gate is green.
-- Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, tag creation, CI/CL green verification, Closure Checklist green verification, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate must run in that order before Campaign 4 Goal-Oriented Product UI Workbench Entry Gate.
+- Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, campaign baseline RC tag creation, CI/CL green verification, Closure Checklist green verification, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate must run in that order before Campaign 4 Goal-Oriented Product UI Workbench Entry Gate.
 
 Acceptance Gate:
 - Items 5.1 through 5.14 are processed one project at a time.
@@ -145,10 +145,10 @@ Acceptance Gate:
 - The same expanded Campaign 3 final consistency gate must also cover Product Output Surface and External Trend Alignment before Campaign 3 can be accepted.
 - After the Campaign 3 Supplement 4.0 Acceptance Gate, business implementation stops and the next safe action is `Campaign 3 Final Consistency Gate only.`
 - After the Campaign 3 Final Consistency Gate passes in its own locked item, the next safe action becomes `Run Campaign 1-3 Stage Test Gate only.`
-- Campaign 1-3 Stage Test Gate, Campaign 1-3 Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, tag creation, CI/CL green verification, Closure Checklist green verification, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate are mandatory before Campaign 4 Goal-Oriented Product UI Workbench Entry Gate.
+- Campaign 1-3 Stage Test Gate, Campaign 1-3 Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, campaign baseline RC tag creation, CI/CL green verification, Closure Checklist green verification, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate are mandatory before Campaign 4 Goal-Oriented Product UI Workbench Entry Gate.
 
 Transition Gate:
-- Campaign 4 cannot open until every Section 5 item, the 5.S1-5.S3 strengthening records, the Supplement 2.0 closure gate, Supplement 3.0 acceptance, the Pre-4.0 Workspace Partition Foundation Gate, Supplement 4.0 acceptance, the expanded Campaign 3 final consistency gate, Campaign 1-3 Stage Test Gate, Campaign 1-3 Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, closure tag creation, tag-related CI/CL green verification, Closure Checklist green verification, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate are accepted or explicitly deferred by user-approved plan change.
+- Campaign 4 cannot open until every Section 5 item, the 5.S1-5.S3 strengthening records, the Supplement 2.0 closure gate, Supplement 3.0 acceptance, the Pre-4.0 Workspace Partition Foundation Gate, Supplement 4.0 acceptance, the expanded Campaign 3 final consistency gate, Campaign 1-3 Stage Test Gate, Campaign 1-3 Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, campaign baseline RC tag creation, tag-related CI/CL green verification, Closure Checklist green verification, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate are accepted or explicitly deferred by user-approved plan change.
 - Campaign 3 Supplement 4.0 is not Campaign 4. Campaign 4 is not `4.0`.
 - Any test, closure, repository cleanup, push, tag, or CI failure must stop and write checkpoint plus `resume_prompt`; Campaign 4 remains blocked.
 - Before CI/CL green, Closure Checklist green, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate, Campaigns 4-9, Final Release, TasteSkill, Product Design Plugin, UI redesign, and future Campaign Bridge allowlist changes remain blocked.
@@ -157,7 +157,7 @@ Transition Gate:
 
 Entry Gate:
 - Campaign 3 is accepted.
-- Campaign 1-3 Stage Test Gate, Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, tag creation, and CI/CL green are complete.
+- Campaign 1-3 Stage Test Gate, Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, campaign baseline RC tag creation, and CI/CL green are complete.
 - The replacement plan in `CAMPAIGN_4_9_REPLACEMENT_PLAN.md` is registered.
 
 Acceptance Gate:
@@ -308,7 +308,7 @@ Transition Gate:
 - Campaign 1-3 Closure Pack: `not_generated`
 - Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate: `not_started`
 - Repository push: `not_started`
-- Campaign 1-3 closure tag: `not_created`
+- Campaign 1-3 campaign baseline tag: `not_created`
 - Campaign 1-3 closure CI: `not_checked`
 - Campaign 3 accepted: `false`
 - Campaigns 4-9 status: `blocked_by_sequence`

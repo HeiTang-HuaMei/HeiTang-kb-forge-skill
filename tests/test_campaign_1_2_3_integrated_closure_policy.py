@@ -53,7 +53,7 @@ def test_post_3_0_sequence_keeps_supplement_4_0_before_stage_closure_and_campaig
         "Campaign 1-3 Integrated Closure Gate",
         "Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate",
         "Repository push",
-        "Tag creation",
+        "Campaign baseline RC tag creation",
         "CI green",
         "Campaign 1-3 Integrated Review and New Conversation Handoff Gate",
         "Campaign 4 Goal-Oriented Product UI Workbench Entry Gate",
@@ -78,7 +78,7 @@ def test_failures_stop_before_upload_tag_ci_and_campaign_4():
         "do not tag",
             "do not verify CI/CL as green",
         "do not enter Campaign 4",
-            "Any failure in tests, Integrated Closure Gate, Closure Pack generation, repository cleanup, push, tag creation, or CI verification must stop",
+            "Any failure in tests, Integrated Closure Gate, Closure Pack generation, repository cleanup, push, campaign baseline RC tag creation, or CI verification must stop",
         "`resume_prompt`",
     ]:
         assert marker in text
@@ -89,10 +89,10 @@ def test_campaign_4_requires_full_closure_upload_tag_and_ci_green_chain():
 
     for marker in [
         "Campaign 4 prerequisite: Stage Test Gate passed, Integrated Closure Gate passed, Closure Pack generated, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate passed, repository push succeeded, tag created, CI/CL green, Closure Checklist green, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate passed",
-        "Campaign 4 may open only after Supplement 4.0 acceptance, Campaign 3 Final Consistency Gate, Campaign 1-3 Stage Test Gate, Campaign 1-3 Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, tag creation, CI/CL green verification, Closure Checklist green verification, and the Campaign 1-3 Integrated Review and New Conversation Handoff Gate all pass",
+        "Campaign 4 may open only after Supplement 4.0 acceptance, Campaign 3 Final Consistency Gate, Campaign 1-3 Stage Test Gate, Campaign 1-3 Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, campaign baseline RC tag creation, CI/CL green verification, Closure Checklist green verification, and the Campaign 1-3 Integrated Review and New Conversation Handoff Gate all pass",
         "Campaign 4 cannot become active from Campaign 3 2.0 or 3.0 completion alone",
         "repository push succeeds",
-        "closure tag is created",
+        "a campaign baseline RC tag is created",
         "tag-related CI/CL is green",
         "Closure Checklist green",
     ]:

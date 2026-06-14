@@ -14,29 +14,23 @@
     "done"
   ],
   "last_goal_drift_review": {
-    "reviewed_at": "2026-06-14T07:10:00+08:00",
+    "reviewed_at": "2026-06-14T12:12:14+08:00",
     "task_focus": [
-      "campaign_3_supplement_4_0_acceptance_gate",
-      "supplement_4_0_boundary_validation",
-      "product_output_surface_guard_registered",
-      "next_campaign_3_final_consistency_lock"
+      "tag_naming_policy_correction",
+      "campaign_1_3_baseline_rc_tag_policy",
+      "superseded_v3_integrated_closure_tags_recorded",
+      "campaign_baseline_ci_validation_only"
     ],
     "advanced_in_this_task": [
-      "campaign_3_supplement_4_0_acceptance_gate_passed",
-      "supplement_4_0_accepted_for_final_consistency_transition",
-      "next_safe_action_locked_to_campaign_3_final_consistency_gate_only"
+      "tag_naming_policy_corrected",
+      "tag_naming_decision_report_generated",
+      "v3_integrated_closure_tags_marked_superseded_ci_validation_only"
     ],
     "not_advanced_in_this_task": [
-      "campaign_3_final_consistency_gate",
-      "campaign_1_3_stage_test_gate",
-      "campaign_1_3_integrated_closure_gate",
-      "closure_pack",
-      "repository_public_surface_cleanup_gate",
-      "repository_push",
-      "tag",
-      "ci_green",
+      "github_release_created",
+      "campaign_1_3_baseline_stable_tag_created",
       "closure_checklist_green",
-      "campaign_1_3_integrated_review_handoff_gate",
+      "campaign_1_3_integrated_review_handoff_gate_passed",
       "campaign_4_ui_industrial_workbench",
       "campaign_5_chain_level_local_core_bridge",
       "campaign_6_agent_runtime_memory_platform",
@@ -45,7 +39,7 @@
       "campaign_9_exe_packaging",
       "full_gate",
       "exe_packaging",
-      "push_tag_release"
+      "release"
     ],
     "states_forbidden_in_this_task": [
       "campaign_3_final_consistency_gate_passed",
@@ -85,10 +79,13 @@
       "full_gate_passed",
       "done",
       "exe_packaging_done",
-      "final_release_allowed"
+      "final_release_allowed",
+      "campaign_1_3_baseline_stable_tag_created",
+      "github_release_created",
+      "product_version_tag_created"
     ],
     "goal_downgrade_detected": false,
-    "next_e2e_gap": "Campaign 3 Supplement 4.0 Acceptance Gate passed with verdict accepted_for_campaign_3_final_consistency_gate. The only next safe action is Campaign 3 Final Consistency Gate only; Stage Test, Integrated Closure, Closure Pack, Repository Cleanup, push, tag, CI, Closure Checklist, Campaigns 4-9, Full Gate, EXE, final review reports, new conversation handoff prompt generation, and release remain blocked."
+    "next_e2e_gap": "Tag naming policy correction is active. v3.0.x-integrated-closure tags are superseded CI validation tags only. The only next safe action is Tag naming policy correction and campaign baseline CI validation only; use campaign-1-3-baseline-rc.N for validation, do not generate a Release, and do not enter Campaign 4."
   },
   "campaign_acceptance_reviews": {
     "campaign_1_acceptance_review": {
@@ -1319,14 +1316,10 @@
       "not_goal_complete": true
     }
   ],
-  "current_task_advances": "Campaign 3 Supplement 4.0 Acceptance Gate",
+  "current_task_advances": "Tag naming policy correction and campaign baseline CI validation only",
   "current_task_does_not_advance": [
-    "campaign_1_3_integrated_closure_gate",
-    "closure_pack",
-    "repository_public_surface_cleanup_gate",
-    "repository_push",
-    "tag",
-    "ci_green",
+    "github_release",
+    "campaign_1_3_baseline_stable_tag",
     "closure_checklist_green",
     "campaign_1_3_integrated_review_handoff_gate",
     "campaign_4_ui_industrial_workbench",
@@ -1337,13 +1330,13 @@
     "campaign_9_exe_packaging",
     "full_gate",
     "exe_packaging",
-    "push_tag_release"
+    "release"
   ],
-  "next_e2e_gap": "Campaign 3 Supplement 4.0 Acceptance Gate passed with verdict accepted_for_campaign_3_final_consistency_gate. The only next safe action is Campaign 3 Final Consistency Gate only; Stage Test, Integrated Closure, Closure Pack, Repository Cleanup, push, tag, CI, Closure Checklist, Campaigns 4-9, Full Gate, EXE, final review reports, new conversation handoff prompt generation, and release remain blocked.",
+  "next_e2e_gap": "Tag naming policy correction is active. v3.0.x-integrated-closure tags are superseded CI validation tags only. The only next safe action is Tag naming policy correction and campaign baseline CI validation only; use campaign-1-3-baseline-rc.N for validation, do not generate a Release, and do not enter Campaign 4.",
   "campaign_1_3_integrated_closure_chain": {
-    "status": "blocked_by_sequence",
-    "plan_state": "waiting_for_campaign_3_final_consistency_gate",
-    "next_business_item": "Campaign 3 Final Consistency Gate only",
+    "status": "baseline_ci_validation_in_progress",
+    "plan_state": "tag_naming_policy_correction_active",
+    "next_business_item": "Tag naming policy correction and campaign baseline CI validation only",
     "campaign_1_3_stage_test_gate_passed": false,
     "campaign_1_3_integrated_closure_gate_passed": false,
     "closure_pack_generated": false,
@@ -1353,10 +1346,18 @@
     "ci_green": false,
     "closure_checklist_green": false,
     "campaign_1_3_review_handoff_gate_passed": false,
-    "boundary": "Integrated Closure remains blocked until Campaign 3 Final Consistency Gate and Campaign 1-3 Stage Test Gate pass.",
+    "boundary": "Current task corrects tag naming and validates Campaign 1-3 baseline CI only. Historical v3.0.x-integrated-closure tags are superseded CI validation tags, not release, baseline, or product version tags.",
     "evidence": [],
     "campaign_3_final_consistency_gate_passed": false,
-    "campaign_3_accepted": false
+    "campaign_3_accepted": false,
+    "campaign_baseline_rc_tag_policy_active": true,
+    "superseded_v3_integrated_closure_tags": [
+      "v3.0.3-integrated-closure",
+      "v3.0.4-integrated-closure",
+      "v3.0.5-integrated-closure"
+    ],
+    "github_release_created": false,
+    "campaign_4_active": false
   },
   "campaign_1_3_stage_test_gate": {
     "status": "blocked_by_sequence",

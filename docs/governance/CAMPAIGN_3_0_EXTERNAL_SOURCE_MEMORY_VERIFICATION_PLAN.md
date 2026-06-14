@@ -633,7 +633,7 @@ Campaign 3.0 may be accepted only when:
 12. Existing local document ingestion and evidence pipelines pass regression tests.
 13. Governance, focused tests, relevant UI tests, and `git diff --check` pass.
 
-After Campaign 3.0 acceptance, the Pre-4.0 Workspace Partition & Knowledge Base Access Scope Foundation Gate passed as a foundation contract before Campaign 3 Supplement 4.0. After Supplement 4.0 acceptance, the expanded Campaign 3 Final Consistency Gate passed and accepted Campaign 3 only for the ordered Stage Test transition. Campaign 4 may open only after Campaign 1-3 Stage Test Gate, Campaign 1-3 Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, tag creation, CI/CL green verification, Closure Checklist, and Campaign 1-3 review handoff all pass.
+After Campaign 3.0 acceptance, the Pre-4.0 Workspace Partition & Knowledge Base Access Scope Foundation Gate passed as a foundation contract before Campaign 3 Supplement 4.0. After Supplement 4.0 acceptance, the expanded Campaign 3 Final Consistency Gate passed and accepted Campaign 3 only for the ordered Stage Test transition. Campaign 4 may open only after Campaign 1-3 Stage Test Gate, Campaign 1-3 Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, campaign baseline RC tag creation, CI/CL green verification, Closure Checklist, and Campaign 1-3 review handoff all pass.
 
 ## Non-Completion Guard
 

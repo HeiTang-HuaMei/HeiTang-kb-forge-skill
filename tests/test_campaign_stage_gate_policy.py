@@ -93,12 +93,12 @@ def test_campaign_stage_gate_policy_defines_normative_transition_predicates():
         "Campaign 3 active",
         "Campaign 1 accepted and Campaign 2 accepted",
         "Campaign 4 active",
-        "Campaign 3 accepted, Campaign 1-3 closure tag exists, tag-related CI/CL is green",
+        "Campaign 3 accepted, Campaign 1-3 campaign baseline tag exists, tag-related CI/CL is green",
         "Campaign 1-3 Stage Test Gate active",
         "Campaign 1-3 Integrated Closure Gate active",
         "Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate active",
         "Repository push",
-        "Closure tag creation",
+        "Campaign baseline RC tag creation",
         "Campaign 5 active",
         "`goal_oriented_ui_workbench_accepted = true`",
         "Campaign 6 active",
@@ -187,7 +187,7 @@ def test_current_gate_status_tracks_campaign_3_in_progress_not_accepted():
     assert "Campaign 1-3 Integrated Closure Gate: `blocked_by_sequence`" in combined
     assert "Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate: `not_started`" in combined
     assert "Repository push: `not_started`" in combined
-    assert "Campaign 1-3 closure tag: `not_created`" in combined
+    assert "Campaign 1-3 campaign baseline tag: `not_created`" in combined
     assert "Campaign 1-3 closure CI: `not_checked`" in combined
     assert "Campaign 3 accepted: `false`" in combined
     assert "Campaigns 4-9 status: `blocked_by_sequence`" in combined
@@ -286,7 +286,7 @@ def test_target_acceptance_matrix_keeps_strong_gates_for_later_campaigns():
         "Campaign 1-3 Integrated Closure Gate passes",
         "Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate",
         "repository push succeeds",
-        "closure tag is created",
+        "a campaign baseline RC tag is created",
         "tag-related CI/CL is green",
         "Full goal-oriented desktop UI workbench with product-line task cards",
         "Real user-task bridge flow execution with path validation, timeout, structured error, audit log, recovery path, and no arbitrary shell execution",
@@ -324,12 +324,12 @@ def test_campaign_stage_gate_policy_requires_closure_upload_tag_ci_before_campai
     for marker in [
         "Campaign 1-3 Stage Test Gate may start only after Supplement 4.0 acceptance and the Campaign 3 Final Consistency Gate pass",
         "Campaign 1-3 Integrated Closure Gate may start only after Stage Test Gate is green",
-        "Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, tag creation, CI/CL green verification, Closure Checklist green verification, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate must run in that order before Campaign 4 Goal-Oriented Product UI Workbench Entry Gate",
+        "Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, campaign baseline RC tag creation, CI/CL green verification, Closure Checklist green verification, and Campaign 1-3 Integrated Review and New Conversation Handoff Gate must run in that order before Campaign 4 Goal-Oriented Product UI Workbench Entry Gate",
         "Campaign 4 cannot open until every Section 5 item",
         "Closure Pack generation",
         "Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate",
         "repository push",
-        "closure tag creation",
+        "campaign baseline RC tag creation",
         "tag-related CI/CL green verification",
         "Closure Checklist green verification",
         "Campaign 1-3 Integrated Review and New Conversation Handoff Gate",

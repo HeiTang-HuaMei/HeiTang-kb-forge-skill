@@ -303,7 +303,7 @@ def _unfinished_items() -> dict[str, Any]:
         "Closure Pack generation",
         "Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate",
         "repository push",
-        "closure tag",
+        "campaign baseline RC tag",
         "tag-related CI/CL green",
         "Closure Checklist green",
         "Campaign 1-3 Integrated Review and New Conversation Handoff Gate",

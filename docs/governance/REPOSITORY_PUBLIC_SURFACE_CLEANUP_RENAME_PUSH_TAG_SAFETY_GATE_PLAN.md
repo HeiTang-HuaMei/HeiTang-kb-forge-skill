@@ -201,6 +201,8 @@ Push may run only after the safety report confirms:
 
 Tag may run only after push succeeds.
 
+Campaign 1-3 baseline CI validation must use `campaign-1-3-baseline-rc.N` tags. Do not create new `v3.0.x-integrated-closure` tags; historical `v3.0.x-integrated-closure` tags are superseded CI validation tags only, not release tags, not baseline tags, and not product version tags. The final stable campaign baseline tag may be `campaign-1-3-baseline` only after CI / Release Check and Closure Checklist are green. Product version tags remain reserved for real product releases such as `v4.2.x` or `v4.3.x`.
+
 Campaign 4 Entry may open only after tag-related CI/CL is green, Closure Checklist is green, and the Campaign 1-3 Integrated Review and New Conversation Handoff Gate writes:
 
 ```text

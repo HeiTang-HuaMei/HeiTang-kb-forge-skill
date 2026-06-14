@@ -39,7 +39,7 @@ Campaign 3 Supplement 3.0 completed
 -> Closure Pack generated
 -> Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate
 -> repository push succeeded
--> tag created
+-> campaign baseline RC tag created
 -> CI/CL green
 -> Closure Checklist green
 -> Campaign 1-3 Integrated Review and New Conversation Handoff Gate
@@ -190,17 +190,26 @@ Push may run only after the Repository Public Surface Cleanup / Rename / Push-Ta
 }
 ```
 
-Tag creation may run only after repository push succeeds. The preferred tag is:
+Campaign baseline CI validation tag creation may run only after repository push succeeds. The validation tag series is:
 
 ```text
-v3.0.0-integrated-closure
+campaign-1-3-baseline-rc.1
+campaign-1-3-baseline-rc.2
 ```
 
-The tag is not a final release, not a commercial stable release, not EXE delivery, and not Campaign 4 completion.
+Do not create any new `v3.0.x-integrated-closure` tag for Campaign 1-3 baseline validation. Historical `v3.0.x-integrated-closure` tags are superseded CI validation tags only; they are not formal release tags, baseline tags, product version tags, EXE delivery, or Campaign 4 completion. Product version tags remain reserved for real product releases such as `v4.2.x` or `v4.3.x`.
 
-CI/CL verification may run only after tag creation. Campaign 4 Goal-Oriented Product UI Workbench Entry Gate may open only when latest tag-related required CI/CL workflows complete with `conclusion = success`.
+After the CI / Release Check chain is green for an RC tag and the ordered closure checklist passes, the final stable campaign baseline tag may be:
 
-Campaign 4 may open only after Supplement 4.0 acceptance, Campaign 3 Final Consistency Gate, Campaign 1-3 Stage Test Gate, Campaign 1-3 Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, tag creation, CI/CL green verification, Closure Checklist green verification, and the Campaign 1-3 Integrated Review and New Conversation Handoff Gate all pass.
+```text
+campaign-1-3-baseline
+```
+
+The campaign baseline tags are not final releases, not commercial stable releases, not product version releases, not EXE delivery, and not Campaign 4 completion.
+
+CI/CL verification may run only after a campaign baseline RC tag is created. Campaign 4 Goal-Oriented Product UI Workbench Entry Gate may open only when the latest campaign baseline tag-related required CI/CL workflows complete with `conclusion = success`.
+
+Campaign 4 may open only after Supplement 4.0 acceptance, Campaign 3 Final Consistency Gate, Campaign 1-3 Stage Test Gate, Campaign 1-3 Integrated Closure Gate, Closure Pack generation, Repository Public Surface Cleanup / Rename / Push-Tag Safety Gate, repository push, campaign baseline RC tag creation, CI/CL green verification, Closure Checklist green verification, and the Campaign 1-3 Integrated Review and New Conversation Handoff Gate all pass.
 
 Before CI/CL green and Closure Checklist green, do not enter Campaigns 4-9 or Final Release, do not add TasteSkill or Product Design Plugin as active scope, do not perform UI redesign, and do not change future Campaign Bridge allowlists.
 
@@ -318,7 +327,7 @@ Forbidden for this gate:
 
 ## Failure Stop Rule
 
-Any failure in tests, Integrated Closure Gate, Closure Pack generation, repository cleanup, push, tag creation, or CI verification must stop the transition. The run must write checkpoint and resume evidence, and Campaign 4 must remain blocked.
+Any failure in tests, Integrated Closure Gate, Closure Pack generation, repository cleanup, push, campaign baseline RC tag creation, or CI verification must stop the transition. The run must write checkpoint and resume evidence, and Campaign 4 must remain blocked.
 
 Required failure fields:
 

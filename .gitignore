@@ -25,6 +25,22 @@ artifacts/audits/daily/
 *.log
 *.jsonl
 progress_events.jsonl
+# Milestone gate evidence that must survive clean CI checkouts.
+!artifacts/audits/campaign_1_3_stage_test/progress_events.jsonl
+!artifacts/audits/campaign_1_2_3_integrated_closure/progress_events.jsonl
+!artifacts/audits/campaign_1_2_3_closure_pack/progress_events.jsonl
+!artifacts/audits/repository_public_surface_cleanup/progress_events.jsonl
+!artifacts/audits/repository_public_surface_cleanup/staged_diff_check.log
+!artifacts/audits/repository_public_surface_cleanup/staged_diff_check_final.log
+!artifacts/audits/campaign_3_final_consistency/progress_events.jsonl
+!artifacts/audits/campaign_3_4_0/progress_events.jsonl
+!artifacts/audits/section_5/campaign_3_supplement_4_0_skill_template/progress_events.jsonl
+!artifacts/audits/section_5/campaign_3_supplement_4_0_skill_template/skill_examples.jsonl
+!artifacts/audits/section_5/campaign_3_supplement_4_0_skill_composer/progress_events.jsonl
+!artifacts/audits/section_5/campaign_3_supplement_4_0_skill_composer/dedicated_skill_package/evaluation_cases.jsonl
+!artifacts/audits/section_5/campaign_3_supplement_4_0_agent_package/progress_events.jsonl
+!artifacts/audits/section_5/campaign_3_supplement_4_0_agent_package/agent_package/eval_cases.jsonl
+!artifacts/audits/section_5/campaign_3_supplement_4_0_product_handoff_bundle/progress_events.jsonl
 _runtime_cache/
 _local_dependency_remediation/*/.venv/
 _local_dependency_remediation/*/model_cache/
