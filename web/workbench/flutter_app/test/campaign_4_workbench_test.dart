@@ -24,11 +24,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('知识供应链'), findsOneWidget);
-    expect(find.text('导入资料'), findsOneWidget);
-    expect(find.text('构建知识库'), findsOneWidget);
-    expect(find.text('生成 Skill'), findsOneWidget);
-    expect(find.text('生成 Agent 包'), findsOneWidget);
-    expect(find.text('验证与导出'), findsOneWidget);
+    expect(find.text('导入资料'), findsWidgets);
+    expect(find.text('构建知识库'), findsWidgets);
+    expect(find.text('生成 Skill'), findsWidgets);
+    expect(find.text('生成 Agent 包'), findsWidgets);
+    expect(find.text('验证与导出'), findsWidgets);
+    expect(find.byKey(const Key('workflow-stepper')), findsOneWidget);
     expect(find.byKey(const Key('workbench-advanced-task-details')),
         findsOneWidget);
     await tester.tap(find.byKey(const Key('workbench-advanced-task-details')));

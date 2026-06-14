@@ -105,32 +105,139 @@ class _GuidedWorkflow extends StatelessWidget {
       eyebrow: _zh ? '五步引导工作流' : 'Five-step guided workflow',
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final columns = constraints.maxWidth >= 720 ? 2 : 1;
-          return GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _workflowSteps.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: columns,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              mainAxisExtent: 270,
-            ),
-            itemBuilder: (context, index) {
-              final step = _workflowSteps[index];
-              final task = tasks[step.taskIndex];
-              return _ProductTaskCard(
-                step: step,
-                task: task,
-                index: index,
+          final columns = constraints.maxWidth >= 1180
+              ? 3
+              : constraints.maxWidth >= 720
+                  ? 2
+                  : 1;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _WorkflowStepper(
                 localeCode: localeCode,
-                workspace: workspace,
-                onRetry: onRetry,
-                onCancel: onCancel,
-              );
-            },
+                tasks: tasks,
+              ),
+              const SizedBox(height: 12),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _workflowSteps.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: columns,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  mainAxisExtent: 218,
+                ),
+                itemBuilder: (context, index) {
+                  final step = _workflowSteps[index];
+                  final task = tasks[step.taskIndex];
+                  return _ProductTaskCard(
+                    step: step,
+                    task: task,
+                    index: index,
+                    localeCode: localeCode,
+                    workspace: workspace,
+                    onRetry: onRetry,
+                    onCancel: onCancel,
+                  );
+                },
+              ),
+            ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _WorkflowStepper extends StatelessWidget {
+  const _WorkflowStepper({
+    required this.localeCode,
+    required this.tasks,
+  });
+
+  final String localeCode;
+  final List<WorkbenchTaskSnapshot> tasks;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      key: const Key('workflow-stepper'),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 760;
+          return Wrap(
+            spacing: compact ? 8 : 10,
+            runSpacing: 8,
+            children: [
+              for (var index = 0; index < _workflowSteps.length; index++)
+                _StepperNode(
+                  index: index,
+                  title: _workflowSteps[index].title(_zh),
+                  status: tasks[_workflowSteps[index].taskIndex].status,
+                  compact: compact,
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _StepperNode extends StatelessWidget {
+  const _StepperNode({
+    required this.index,
+    required this.title,
+    required this.status,
+    required this.compact,
+  });
+
+  final int index;
+  final String title;
+  final WorkbenchTaskStatus status;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final active = status != WorkbenchTaskStatus.pending;
+    return Container(
+      width: compact ? 148 : 172,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      decoration: BoxDecoration(
+        color: active
+            ? colors.primary.withValues(alpha: 0.08)
+            : colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: active ? colors.primary : colors.outlineVariant,
+        ),
+      ),
+      child: Row(
+        children: [
+          _StageNumber(index: index),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -365,15 +472,17 @@ class _ProductTaskCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final outputContract = CoreOutputPathContract(workspace);
+    final canShowActions = (task.status.canRetry && onRetry != null) ||
+        (task.status.canCancel && onCancel != null);
     return Card(
       key: Key('workflow-step-${index + 1}'),
-      color: colors.surfaceContainerLow,
+      color: index == 0 ? colors.surface : colors.surfaceContainerLow,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: colors.outlineVariant),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -396,23 +505,38 @@ class _ProductTaskCard extends StatelessWidget {
                 _StatusPill(status: task.status),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             ClipRRect(
               borderRadius: BorderRadius.circular(999),
               child: LinearProgressIndicator(
                 key: Key('workflow-progress-${index + 1}'),
-                minHeight: 10,
+                minHeight: 7,
                 value: task.progress,
                 backgroundColor: colors.surfaceContainerHighest,
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              '${(task.progress * 100).round()}% · ${_statusCopy(task.status, _zh)}',
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: colors.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
+            const SizedBox(height: 7),
+            Row(
+              children: [
+                Text(
+                  '${(task.progress * 100).round()}%',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    _statusCopy(task.status, _zh),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
+                ),
+              ],
             ),
             const SizedBox(height: 10),
             _ProductTaskLine(
@@ -423,25 +547,25 @@ class _ProductTaskCard extends StatelessWidget {
               label: _zh ? '输出位置' : 'Output path',
               value: outputContract.forAction(step.outputActionId),
             ),
-            const Spacer(),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                FilledButton.tonal(
-                  onPressed: task.status.canRetry && onRetry != null
-                      ? () => onRetry!(task)
-                      : null,
-                  child: Text(_zh ? '重试' : 'Retry'),
-                ),
-                TextButton(
-                  onPressed: task.status.canCancel && onCancel != null
-                      ? () => onCancel!(task)
-                      : null,
-                  child: Text(_zh ? '取消' : 'Cancel'),
-                ),
-              ],
-            ),
+            if (canShowActions) ...[
+              const Spacer(),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (task.status.canRetry && onRetry != null)
+                    FilledButton.tonal(
+                      onPressed: () => onRetry!(task),
+                      child: Text(_zh ? '重试' : 'Retry'),
+                    ),
+                  if (task.status.canCancel && onCancel != null)
+                    TextButton(
+                      onPressed: () => onCancel!(task),
+                      child: Text(_zh ? '取消' : 'Cancel'),
+                    ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
