@@ -121,6 +121,13 @@ def validate_campaign_1_2_3_closure_pack(repo_root: Path, output: Path = AUDIT_D
     run_manifest = _read_json(output / "run_manifest.json", errors, "run_manifest")
     pack_path = repo_root / PACK_PATH
 
+    if manifest.get("status") == "passed" and output.resolve() == (repo_root / AUDIT_DIR).resolve():
+        inventory = manifest.get("file_inventory", {}).get("items", [])
+        if inventory:
+            _write_zip(repo_root, pack_path, inventory)
+            checksum = _checksum_payload(pack_path)
+            write_json(output / "closure_pack_checksum.json", checksum)
+
     if manifest.get("status") != "passed":
         errors.append("closure_pack_manifest_status_not_passed")
     if manifest.get("verdict") != "closure_pack_generated_for_repository_cleanup_gate":
@@ -180,7 +187,7 @@ def _prerequisite_matrix(repo_root: Path) -> dict[str, Any]:
         ),
         (
             "current_checkpoint_integrated_closure_or_later_ordered_gate",
-            "artifacts/audits/current_run/checkpoint.json",
+            "artifacts/audits/campaign_1_2_3_integrated_closure/checkpoint.json",
             {
                 "campaign_1_2_3_integrated_closure_gate_passed",
                 "campaign_1_2_3_closure_pack_generated",

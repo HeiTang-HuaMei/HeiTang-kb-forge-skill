@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+from tests.external_registry_helpers import load_external_capability_registry
+
 
 ROOT = Path(__file__).resolve().parents[1]
 RUN_DIR = ROOT / "artifacts" / "audits" / "section_5" / "skill_prompt_generator_prompt_asset_library"
@@ -12,17 +14,6 @@ VALIDATION = RUN_DIR / "validation" / "prompt_asset_validation_report.json"
 AUDIT_MANIFEST = ROOT / "docs" / "audits" / "AUDIT_MANIFEST.json"
 AUDIT_INDEX = ROOT / "docs" / "audits" / "AUDIT_INDEX.md"
 PLAN_LOCK = ROOT / "docs" / "governance" / "PLAN_SEQUENCE_LOCK.md"
-UI_REGISTRY = (
-    ROOT.parent
-    / "kb-forge-skill-ui"
-    / "web"
-    / "workbench"
-    / "flutter_app"
-    / "assets"
-    / "external"
-    / "external_capability_registry.json"
-)
-
 
 def _json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8-sig"))
@@ -52,7 +43,7 @@ def test_skill_prompt_generator_decision_is_local_enhancer_not_external_runtime(
 
 def test_skill_prompt_generator_ui_status_is_truthful_and_not_executable():
     ui = _json(UI_IMPACT)
-    registry = _json(UI_REGISTRY)
+    registry = load_external_capability_registry(ROOT)
     project = next(item for item in registry["projects"] if item["project_id"] == "skill_prompt_generator")
 
     assert ui["current_ui_state"]["status_visible"] is True

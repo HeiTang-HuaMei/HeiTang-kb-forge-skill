@@ -33,7 +33,7 @@ JSON_PARSE_TARGETS = [
     "docs/testing/VALIDATION_GATE_MANIFEST.json",
     "docs/audits/AUDIT_MANIFEST.json",
     "docs/governance/PRODUCT_OUTPUT_SURFACE_AND_EXTERNAL_TREND_ALIGNMENT_GATE.json",
-    "artifacts/audits/current_run/checkpoint.json",
+    "artifacts/audits/campaign_3_final_consistency/checkpoint.json",
     "artifacts/audits/campaign_3_final_consistency/run_manifest.json",
     "artifacts/audits/campaign_3_final_consistency/validation_report.json",
 ]

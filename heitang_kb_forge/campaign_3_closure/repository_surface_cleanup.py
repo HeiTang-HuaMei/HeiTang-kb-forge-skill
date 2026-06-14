@@ -495,7 +495,7 @@ def _prerequisite_matrix(repo_root: Path) -> dict[str, Any]:
         ),
         (
             "current_checkpoint_closure_pack_or_cleanup_gate",
-            "artifacts/audits/current_run/checkpoint.json",
+            "artifacts/audits/campaign_1_2_3_closure_pack/checkpoint.json",
             {
                 "campaign_1_2_3_closure_pack_generated",
                 "repository_public_surface_cleanup_gate_passed",

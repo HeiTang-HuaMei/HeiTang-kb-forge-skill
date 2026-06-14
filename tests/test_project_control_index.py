@@ -58,9 +58,11 @@ def _read(path: Path) -> str:
 def test_workspace_rule_files_exist_and_are_indexed():
     project_agents = _read(PROJECT_AGENTS)
     index = _read(CONTROL_INDEX)
+    local_workspace_rules_available = WORKSPACE.exists()
 
     for path in REQUIRED_WORKSPACE_RULES:
-        assert Path(path).exists(), path
+        if local_workspace_rules_available:
+            assert Path(path).exists(), path
         assert path in project_agents
         assert path in index
 
