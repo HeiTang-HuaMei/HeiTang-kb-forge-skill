@@ -3080,6 +3080,7 @@ pyproject.toml
 scripts/smoke_agent_flow.ps1
 scripts/smoke_quickstart.ps1
 skill.json
+tests/external_registry_helpers.py
 tests/final_audit_helpers.py
 tests/multi_source_helpers.py
 tests/p0_helpers.py

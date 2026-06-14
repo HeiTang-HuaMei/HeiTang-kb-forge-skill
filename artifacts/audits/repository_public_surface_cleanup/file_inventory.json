@@ -3084,6 +3084,7 @@
     "scripts/smoke_agent_flow.ps1",
     "scripts/smoke_quickstart.ps1",
     "skill.json",
+    "tests/external_registry_helpers.py",
     "tests/final_audit_helpers.py",
     "tests/multi_source_helpers.py",
     "tests/p0_helpers.py",
@@ -3699,12 +3700,14 @@
     "v39_external_absorption_map.json",
     "v4_rc_final_gate_report.json"
   ],
-  "untracked_files": [],
-  "tracked_file_count": 3696,
-  "untracked_file_count": 0,
+  "untracked_files": [
+    "docs/audits/test_engineering/fast_gate_logs/core_fast_test_governance.runner.json"
+  ],
+  "tracked_file_count": 3697,
+  "untracked_file_count": 1,
   "class_counts": {
-    "active_docs": 1791,
-    "milestone_evidence": 1901,
+    "active_docs": 1792,
+    "milestone_evidence": 1902,
     "legacy_root_reports": 4
   },
   "items": [
@@ -3849,7 +3852,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 3869,
+      "size_bytes": 3870,
       "file_class": "milestone_evidence"
     },
     {
@@ -3857,7 +3860,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 6481,
+      "size_bytes": 6504,
       "file_class": "milestone_evidence"
     },
     {
@@ -4041,7 +4044,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 10477,
+      "size_bytes": 10494,
       "file_class": "milestone_evidence"
     },
     {
@@ -4585,7 +4588,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 1758,
+      "size_bytes": 976,
       "file_class": "milestone_evidence"
     },
     {
@@ -5153,7 +5156,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 539,
+      "size_bytes": 549,
       "file_class": "milestone_evidence"
     },
     {
@@ -21625,7 +21628,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 6,
+      "size_bytes": 3,
       "file_class": "active_docs"
     },
     {
@@ -21633,7 +21636,15 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 2489,
+      "size_bytes": 2474,
+      "file_class": "active_docs"
+    },
+    {
+      "path": "docs/audits/test_engineering/fast_gate_logs/core_fast_test_governance.runner.json",
+      "tracked": false,
+      "untracked": true,
+      "exists": true,
+      "size_bytes": 5122,
       "file_class": "active_docs"
     },
     {
@@ -22385,7 +22396,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 97981,
+      "size_bytes": 103471,
       "file_class": "active_docs"
     },
     {
@@ -24017,7 +24028,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 17379,
+      "size_bytes": 17777,
       "file_class": "milestone_evidence"
     },
     {
@@ -24041,7 +24052,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 31894,
+      "size_bytes": 31910,
       "file_class": "milestone_evidence"
     },
     {
@@ -24049,7 +24060,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 22739,
+      "size_bytes": 22756,
       "file_class": "milestone_evidence"
     },
     {
@@ -28365,6 +28376,14 @@
       "file_class": "active_docs"
     },
     {
+      "path": "tests/external_registry_helpers.py",
+      "tracked": true,
+      "untracked": false,
+      "exists": true,
+      "size_bytes": 573,
+      "file_class": "milestone_evidence"
+    },
+    {
       "path": "tests/final_audit_helpers.py",
       "tracked": true,
       "untracked": false,
@@ -28713,7 +28732,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 5325,
+      "size_bytes": 5240,
       "file_class": "milestone_evidence"
     },
     {
@@ -28745,7 +28764,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 4899,
+      "size_bytes": 4814,
       "file_class": "milestone_evidence"
     },
     {
@@ -30409,7 +30428,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 4359,
+      "size_bytes": 4274,
       "file_class": "milestone_evidence"
     },
     {
@@ -30553,7 +30572,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 4884,
+      "size_bytes": 4799,
       "file_class": "milestone_evidence"
     },
     {
@@ -31041,7 +31060,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 10396,
+      "size_bytes": 10501,
       "file_class": "milestone_evidence"
     },
     {
@@ -31689,7 +31708,7 @@
       "tracked": true,
       "untracked": false,
       "exists": true,
-      "size_bytes": 4767,
+      "size_bytes": 4682,
       "file_class": "milestone_evidence"
     },
     {
