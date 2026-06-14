@@ -5,6 +5,8 @@ on:
   push:
     tags:
       - "v*"
+      - "campaign-1-3-baseline"
+      - "campaign-1-3-baseline-rc.*"
 
 jobs:
   release-check:

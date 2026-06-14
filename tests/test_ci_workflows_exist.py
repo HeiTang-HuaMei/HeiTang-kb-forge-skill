@@ -9,6 +9,8 @@ def test_ci_and_release_check_workflows_are_local_and_offline_safe():
     release = (ROOT / ".github" / "workflows" / "release-check.yml").read_text(encoding="utf-8")
     assert 'python -m pip install -e ".[dev]"' in ci
     assert "python -m pytest" in ci
+    assert '"campaign-1-3-baseline"' in release
+    assert '"campaign-1-3-baseline-rc.*"' in release
     assert "doctor --output ./tmp_doctor" in release
     assert "tmp_quickstart_output/manifest.json" in release
     assert "quality-gate --workspace ./tmp_release_workspace" in release
