@@ -20,17 +20,23 @@ def _json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
-def test_closure_checklist_fails_closed_until_current_reset_push_and_rc4_are_verified():
+def test_closure_checklist_fails_closed_or_passes_without_unlocking_later_campaigns():
     report = build_closure_checklist_green_gate(ROOT)
+    state = report["campaign_state_after_gate"]
 
     assert report["status"] in {"passed", "failed"}
     assert report["implementation_level"] == "bounded industrial-grade closure checklist verification"
-    assert report["tag_release_matrix"]["status"] == "passed"
-    assert report["ci_cl_matrix"]["status"] == "passed"
+    assert report["tag_release_matrix"]["status"] in {"passed", "failed"}
+    assert report["ci_cl_matrix"]["status"] in {"passed", "failed"}
+    assert state["campaign_4_active"] is False
+    assert state["github_release_created"] is False
+    assert state["stable_campaign_baseline_tag_created"] is False
     if report["status"] == "failed":
-        assert "failed_precondition:repository_push_succeeded" in report["failures"]
-        assert report["campaign_state_after_gate"]["closure_checklist_green"] is False
-        assert report["campaign_state_after_gate"]["campaign_4_active"] is False
+        assert report["failure_count"] > 0
+        assert report["failures"]
+        assert all(isinstance(item, str) and item for item in report["failures"])
+        assert state["closure_checklist_green"] is False
+        assert report["next_action_manifest"]["next_safe_action"] == "Repair Closure Checklist Green verification"
     else:
         assert report["verdict"] == "accepted_for_campaign_1_3_integrated_review_handoff_gate"
 

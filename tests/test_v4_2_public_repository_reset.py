@@ -61,13 +61,19 @@ REQUIRED_GOVERNANCE_DOCS = {
 
 
 def _tracked_files() -> list[str]:
-    result = subprocess.run(
-        ["git", "-c", "core.quotePath=false", "ls-files"],
-        cwd=ROOT,
-        text=True,
-        capture_output=True,
-        check=True,
-    )
+    assert (ROOT / ".git").exists(), f"not a git checkout root: {ROOT}"
+    try:
+        result = subprocess.run(
+            ["git", "-c", "core.quotePath=false", "ls-files"],
+            cwd=ROOT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            capture_output=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        raise AssertionError(f"git ls-files failed: {exc.stderr or exc.stdout or exc}") from exc
     stdout = result.stdout or ""
     return [line.strip() for line in stdout.splitlines() if line.strip()]
 
@@ -86,7 +92,7 @@ def test_root_public_surface_is_allowlisted_and_within_budget():
 
 
 def test_root_json_files_are_only_skill_json():
-    root_json = [path for path in _tracked_files() if "/" not in path and path.endswith(".json")]
+    root_json = sorted(path for path in _tracked_files() if "/" not in path and path.endswith(".json"))
     assert root_json == ["skill.json"]
 
 
@@ -202,6 +208,10 @@ def test_legacy_public_reset_evidence_self_bootstraps_from_clean_checkout(tmp_pa
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
 
+    for rel in [".gitignore", ".gitattributes", "skill.json", "README.md", "pyproject.toml"]:
+        assert (clean_root / rel).exists(), rel
+
+    assert (clean_root / ".gitignore").exists()
     subprocess.run(["git", "init", "-q"], cwd=clean_root, text=True, capture_output=True, check=True)
     subprocess.run(["git", "add", "-A"], cwd=clean_root, text=True, capture_output=True, check=True)
 
