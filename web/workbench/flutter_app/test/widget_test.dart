@@ -564,6 +564,10 @@ void main() {
     expect(find.text('Skill 草稿预览'), findsOneWidget);
     expect(find.text('高级边界详情'), findsOneWidget);
     await openAdvancedBoundaryDetails(tester);
+    expect(find.text('边界摘要'), findsOneWidget);
+    expect(find.text('契约证据'), findsOneWidget);
+    expect(find.text('只读边界证据'), findsWidgets);
+    expect(find.text('显示边界'), findsNothing);
     expect(find.textContaining('Skill Governance Report'), findsWidgets);
     expect(find.textContaining('Execute local runtime'), findsNothing);
     expect(find.textContaining('运行本地 runtime'), findsNothing);

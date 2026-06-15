@@ -2268,7 +2268,23 @@ class _AdvancedBoundaryDetails extends StatelessWidget {
           ? '展开后查看契约、后端矩阵、Core 操作和审计证据。'
           : 'Expand to inspect contracts, backend matrices, Core actions, and audit evidence.'),
       children: [
+        _AdvancedBoundarySummary(
+          localeCode: localeCode,
+          contractCount: cards.length,
+          coreActionCount: corePanels.length,
+          hasParserBackends: parserBackends != null,
+          hasSkillWorkflow: skillFactoryWorkflow != null,
+        ),
+        const SizedBox(height: 16),
         if (skillFactoryWorkflow != null) ...[
+          _AdvancedBoundarySectionHeader(
+            icon: Icons.account_tree_outlined,
+            title: _zh ? 'Skill 工作流证据' : 'Skill Workflow Evidence',
+            body: _zh
+                ? '展示工作流快照，不宣称运行时完成。'
+                : 'Shows the workflow snapshot without claiming runtime completion.',
+          ),
+          const SizedBox(height: 12),
           SkillFactoryWorkflowSurface(
             localeCode: localeCode,
             workflow: skillFactoryWorkflow,
@@ -2276,24 +2292,45 @@ class _AdvancedBoundaryDetails extends StatelessWidget {
           const SizedBox(height: 20),
         ],
         if (cards.isNotEmpty)
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: columns,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              mainAxisExtent: columns == 1 ? 204 : 188,
-            ),
-            itemCount: cards.length,
-            itemBuilder: (context, index) => _WorkbenchCard(
-              title: cards[index].title,
-              body: cards[index].body,
-              localeCode: localeCode,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _AdvancedBoundarySectionHeader(
+                icon: Icons.rule_folder_outlined,
+                title: _zh ? '契约证据' : 'Contract Evidence',
+                body: _zh
+                    ? '保留 Core 契约、门禁、产物和报告字段，只在高级详情中展示。'
+                    : 'Keeps Core contract, gate, artifact, and report fields inside advanced details.',
+              ),
+              const SizedBox(height: 12),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: columns,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  mainAxisExtent: columns == 1 ? 196 : 180,
+                ),
+                itemCount: cards.length,
+                itemBuilder: (context, index) => _WorkbenchCard(
+                  title: cards[index].title,
+                  body: cards[index].body,
+                  localeCode: localeCode,
+                ),
+              ),
+            ],
           ),
         if (parserBackends != null) ...[
           if (cards.isNotEmpty) const SizedBox(height: 20),
+          _AdvancedBoundarySectionHeader(
+            icon: Icons.storage_outlined,
+            title: _zh ? '后端矩阵证据' : 'Backend Matrix Evidence',
+            body: _zh
+                ? '展示解析后端能力边界，不启用重型默认依赖。'
+                : 'Shows parser backend boundaries without enabling heavy default dependencies.',
+          ),
+          const SizedBox(height: 12),
           ParserBackendEvidenceDashboard(
             matrix: parserBackends!,
             localeCode: localeCode,
@@ -2301,17 +2338,190 @@ class _AdvancedBoundaryDetails extends StatelessWidget {
         ],
         if (corePanels.isNotEmpty) ...[
           const SizedBox(height: 20),
-          Text(_zh ? '本地 Core 执行详情' : 'Local Core Execution Details',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w700)),
+          _AdvancedBoundarySectionHeader(
+            icon: Icons.terminal_outlined,
+            title: _zh ? '本地 Core 执行详情' : 'Local Core Execution Details',
+            body: _zh
+                ? '仅展示允许列表内的本地 Core 操作；Web 中保持安全禁用。'
+                : 'Shows allowlisted local Core actions only; they remain safely disabled on Web.',
+          ),
           const SizedBox(height: 12),
           for (var index = 0; index < corePanels.length; index++) ...[
             if (index > 0) const SizedBox(height: 12),
             corePanels[index],
           ],
         ],
+      ],
+    );
+  }
+}
+
+class _AdvancedBoundarySummary extends StatelessWidget {
+  const _AdvancedBoundarySummary({
+    required this.localeCode,
+    required this.contractCount,
+    required this.coreActionCount,
+    required this.hasParserBackends,
+    required this.hasSkillWorkflow,
+  });
+
+  final String localeCode;
+  final int contractCount;
+  final int coreActionCount;
+  final bool hasParserBackends;
+  final bool hasSkillWorkflow;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.privacy_tip_outlined, color: colors.primary),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  _zh ? '边界摘要' : 'Boundary Summary',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _AdvancedBoundaryChip(
+                label: _zh ? '契约字段' : 'Contract fields',
+                value: '$contractCount',
+              ),
+              _AdvancedBoundaryChip(
+                label: _zh ? 'Core 操作' : 'Core actions',
+                value: '$coreActionCount',
+              ),
+              _AdvancedBoundaryChip(
+                label: _zh ? '后端矩阵' : 'Backend matrix',
+                value: hasParserBackends
+                    ? (_zh ? '可查看' : 'available')
+                    : (_zh ? '无' : 'none'),
+              ),
+              _AdvancedBoundaryChip(
+                label: _zh ? 'Skill 工作流' : 'Skill workflow',
+                value: hasSkillWorkflow
+                    ? (_zh ? '可查看' : 'available')
+                    : (_zh ? '无' : 'none'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdvancedBoundaryChip extends StatelessWidget {
+  const _AdvancedBoundaryChip({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdvancedBoundarySectionHeader extends StatelessWidget {
+  const _AdvancedBoundarySectionHeader({
+    required this.icon,
+    required this.title,
+    required this.body,
+  });
+
+  final IconData icon;
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: colors.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: colors.outlineVariant),
+          ),
+          child: Icon(icon, size: 18, color: colors.onSurfaceVariant),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                body,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -2479,8 +2689,10 @@ class _WorkbenchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Card(
+      color: colors.surface,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -2499,15 +2711,25 @@ class _WorkbenchCard extends StatelessWidget {
                   style: textTheme.bodyMedium),
             ),
             const SizedBox(height: 8),
-            FilledButton(
-                onPressed: () {},
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(0, 32),
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  textStyle: textTheme.labelMedium,
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: colors.outlineVariant),
                 ),
-                child: Text(localeCode == 'zh-CN' ? '显示边界' : 'Show boundary')),
+                child: Text(
+                  localeCode == 'zh-CN' ? '只读边界证据' : 'Read-only evidence',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
