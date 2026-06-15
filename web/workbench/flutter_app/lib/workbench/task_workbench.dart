@@ -317,21 +317,42 @@ class _WorkbenchCommandPanel extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: colors.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: colors.outlineVariant),
-            ),
-            child: Text(
-              _zh ? '选择本地文件或文件夹' : 'Choose a local file or folder',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: colors.onSurfaceVariant,
-                    fontWeight: FontWeight.w800,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final tileWidth = constraints.maxWidth >= 760
+                  ? (constraints.maxWidth - 24) / 3
+                  : constraints.maxWidth;
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  _ConsoleInfoTile(
+                    width: tileWidth,
+                    icon: Icons.folder_copy_outlined,
+                    label: _zh ? '资料来源' : 'Material source',
+                    title: _zh ? '选择本地文件或文件夹' : 'Choose local files',
+                    body:
+                        _zh ? '等待桌面端提供真实路径' : 'Waiting for a real desktop path',
                   ),
-            ),
+                  _ConsoleInfoTile(
+                    width: tileWidth,
+                    icon: Icons.drive_file_move_outline,
+                    label: _zh ? '输出目标' : 'Output target',
+                    title: _zh ? '导入清单' : 'Import manifest',
+                    body: '$workspace/workbench_runs/import_manifest',
+                  ),
+                  _ConsoleInfoTile(
+                    width: tileWidth,
+                    icon: Icons.verified_user_outlined,
+                    label: _zh ? '导入门禁' : 'Import gate',
+                    title: _zh ? '等待真实输入' : 'Waiting for input',
+                    body: _zh
+                        ? '无 Core 结果不会展示完成'
+                        : 'No Core result, no completed state',
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -356,6 +377,89 @@ class _WorkbenchCommandPanel extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ConsoleInfoTile extends StatelessWidget {
+  const _ConsoleInfoTile({
+    required this.width,
+    required this.icon,
+    required this.label,
+    required this.title,
+    required this.body,
+  });
+
+  final double width;
+  final IconData icon;
+  final String label;
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return SizedBox(
+      width: width,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: colors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: colors.outlineVariant),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: colors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: colors.outlineVariant),
+                  ),
+                  child: Icon(icon, size: 19, color: colors.onSurfaceVariant),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.3,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              body,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }

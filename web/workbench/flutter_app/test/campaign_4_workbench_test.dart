@@ -31,6 +31,9 @@ void main() {
     expect(find.text('验证与导出'), findsWidgets);
     expect(find.byKey(const Key('workbench-command-panel')), findsOneWidget);
     expect(find.text('本地资料输入台'), findsOneWidget);
+    expect(find.text('资料来源'), findsOneWidget);
+    expect(find.text('输出目标'), findsOneWidget);
+    expect(find.text('导入门禁'), findsOneWidget);
     expect(find.text('等待本地输入'), findsOneWidget);
     expect(find.text('工作台概览'), findsOneWidget);
     expect(find.text('真实完成度'), findsOneWidget);
