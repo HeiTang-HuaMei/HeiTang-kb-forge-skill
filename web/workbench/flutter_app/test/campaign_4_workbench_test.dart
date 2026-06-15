@@ -37,7 +37,14 @@ void main() {
     expect(find.text('资料来源'), findsOneWidget);
     expect(find.text('输出目标'), findsOneWidget);
     expect(find.text('导入门禁'), findsOneWidget);
+    expect(
+        find.byKey(const Key('material-source-console-card')), findsOneWidget);
+    expect(find.byKey(const Key('output-target-console-card')), findsOneWidget);
+    expect(find.byKey(const Key('import-gate-console-card')), findsOneWidget);
+    expect(find.byKey(const Key('material-format-strip')), findsOneWidget);
+    expect(find.text('PDF'), findsWidgets);
     expect(find.text('等待本地输入'), findsOneWidget);
+    expect(find.text('门禁未开放'), findsOneWidget);
     expect(find.text('工作台概览'), findsOneWidget);
     expect(find.text('真实完成度'), findsOneWidget);
     expect(find.text('运行状态'), findsOneWidget);
@@ -51,6 +58,8 @@ void main() {
     expect(find.byKey(const Key('workflow-stepper')), findsOneWidget);
     expect(find.byKey(const Key('workbench-advanced-task-details')),
         findsOneWidget);
+    await tester.ensureVisible(
+        find.byKey(const Key('workbench-advanced-task-details')));
     await tester.tap(find.byKey(const Key('workbench-advanced-task-details')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('workbench-input-area')), findsOneWidget);

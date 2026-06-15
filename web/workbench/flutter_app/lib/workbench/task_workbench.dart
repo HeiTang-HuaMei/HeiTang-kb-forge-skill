@@ -319,36 +319,66 @@ class _WorkbenchCommandPanel extends StatelessWidget {
           const SizedBox(height: 16),
           LayoutBuilder(
             builder: (context, constraints) {
-              final tileWidth = constraints.maxWidth >= 760
-                  ? (constraints.maxWidth - 24) / 3
-                  : constraints.maxWidth;
-              return Wrap(
-                spacing: 12,
-                runSpacing: 12,
+              final wide = constraints.maxWidth >= 820;
+              final sourceCard = _ConsoleActionCard(
+                key: const Key('material-source-console-card'),
+                icon: Icons.folder_copy_outlined,
+                label: _zh ? '资料来源' : 'Material source',
+                title: _zh ? '选择本地文件或文件夹' : 'Choose local files',
+                body: _zh
+                    ? '等待桌面端提供真实路径。当前页面只展示安全输入边界，不伪造完成结果。'
+                    : 'Waiting for a real desktop path. This page shows the safe input boundary and never fabricates completion.',
+                actionIcon: Icons.folder_open_outlined,
+                actionLabel: _zh ? '等待本地输入' : 'Waiting for local input',
+                emphasized: true,
+              );
+              final targetCard = _ConsoleActionCard(
+                key: const Key('output-target-console-card'),
+                icon: Icons.drive_file_move_outline,
+                label: _zh ? '输出目标' : 'Output target',
+                title: _zh ? '导入清单' : 'Import manifest',
+                body: '$workspace/workbench_runs/import_manifest',
+                actionIcon: Icons.playlist_add_check_outlined,
+                actionLabel: _zh ? '生成导入清单' : 'Create import manifest',
+              );
+              final gateCard = _ConsoleActionCard(
+                key: const Key('import-gate-console-card'),
+                icon: Icons.verified_user_outlined,
+                label: _zh ? '导入门禁' : 'Import gate',
+                title: _zh ? '等待真实输入' : 'Waiting for input',
+                body: _zh
+                    ? '无 Core 结果不会展示完成'
+                    : 'No Core result, no completed state',
+                actionIcon: Icons.lock_outline,
+                actionLabel: _zh ? '门禁未开放' : 'Gate closed',
+              );
+
+              if (!wide) {
+                return Column(
+                  children: [
+                    sourceCard,
+                    const SizedBox(height: 12),
+                    targetCard,
+                    const SizedBox(height: 12),
+                    gateCard,
+                  ],
+                );
+              }
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _ConsoleInfoTile(
-                    width: tileWidth,
-                    icon: Icons.folder_copy_outlined,
-                    label: _zh ? '资料来源' : 'Material source',
-                    title: _zh ? '选择本地文件或文件夹' : 'Choose local files',
-                    body:
-                        _zh ? '等待桌面端提供真实路径' : 'Waiting for a real desktop path',
-                  ),
-                  _ConsoleInfoTile(
-                    width: tileWidth,
-                    icon: Icons.drive_file_move_outline,
-                    label: _zh ? '输出目标' : 'Output target',
-                    title: _zh ? '导入清单' : 'Import manifest',
-                    body: '$workspace/workbench_runs/import_manifest',
-                  ),
-                  _ConsoleInfoTile(
-                    width: tileWidth,
-                    icon: Icons.verified_user_outlined,
-                    label: _zh ? '导入门禁' : 'Import gate',
-                    title: _zh ? '等待真实输入' : 'Waiting for input',
-                    body: _zh
-                        ? '无 Core 结果不会展示完成'
-                        : 'No Core result, no completed state',
+                  Expanded(flex: 3, child: sourceCard),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      children: [
+                        targetCard,
+                        const SizedBox(height: 12),
+                        gateCard,
+                      ],
+                    ),
                   ),
                 ],
               );
@@ -360,16 +390,6 @@ class _WorkbenchCommandPanel extends StatelessWidget {
             runSpacing: 10,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              FilledButton.icon(
-                onPressed: null,
-                icon: const Icon(Icons.folder_open_outlined),
-                label: Text(_zh ? '等待本地输入' : 'Waiting for local input'),
-              ),
-              OutlinedButton.icon(
-                onPressed: null,
-                icon: const Icon(Icons.playlist_add_check_outlined),
-                label: Text(_zh ? '生成导入清单' : 'Create import manifest'),
-              ),
               _InlineOutputPath(
                 localeCode: localeCode,
                 path: '$workspace/workbench_runs/import_manifest',
@@ -382,84 +402,166 @@ class _WorkbenchCommandPanel extends StatelessWidget {
   }
 }
 
-class _ConsoleInfoTile extends StatelessWidget {
-  const _ConsoleInfoTile({
-    required this.width,
+class _ConsoleActionCard extends StatelessWidget {
+  const _ConsoleActionCard({
+    super.key,
     required this.icon,
     required this.label,
     required this.title,
     required this.body,
+    required this.actionIcon,
+    required this.actionLabel,
+    this.emphasized = false,
   });
 
-  final double width;
   final IconData icon;
   final String label;
   final String title;
   final String body;
+  final IconData actionIcon;
+  final String actionLabel;
+  final bool emphasized;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return SizedBox(
-      width: width,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: colors.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colors.outlineVariant),
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: emphasized
+            ? colors.primary.withValues(alpha: 0.05)
+            : colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: emphasized
+              ? colors.primary.withValues(alpha: 0.24)
+              : colors.outlineVariant,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: colors.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: colors.outlineVariant),
-                  ),
-                  child: Icon(icon, size: 19, color: colors.onSurfaceVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: emphasized
+                      ? colors.primary.withValues(alpha: 0.12)
+                      : colors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: colors.outlineVariant),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: colors.onSurfaceVariant,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.3,
-                        ),
-                  ),
+                child: Icon(icon,
+                    size: 19,
+                    color:
+                        emphasized ? colors.primary : colors.onSurfaceVariant),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.3,
+                      ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
-                  ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              body,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colors.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            body,
+            maxLines: emphasized ? 3 : 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          if (emphasized) ...[
+            const SizedBox(height: 14),
+            const _MaterialFormatStrip(),
           ],
+          const SizedBox(height: 14),
+          OutlinedButton.icon(
+            onPressed: null,
+            icon: Icon(actionIcon),
+            label: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                actionLabel,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              disabledForegroundColor: colors.onSurfaceVariant,
+              minimumSize: const Size.fromHeight(40),
+              alignment: Alignment.centerLeft,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MaterialFormatStrip extends StatelessWidget {
+  const _MaterialFormatStrip();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final formats = ['PDF', 'DOCX', 'PPTX', 'XLSX', 'MD', 'HTML'];
+    return Container(
+      key: const Key('material-format-strip'),
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: colors.outlineVariant,
+          strokeAlign: BorderSide.strokeAlignInside,
         ),
+      ),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Icon(Icons.upload_file_outlined,
+              size: 18, color: colors.onSurfaceVariant),
+          for (final format in formats)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+              decoration: BoxDecoration(
+                color: colors.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: colors.outlineVariant),
+              ),
+              child: Text(
+                format,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+            ),
+        ],
       ),
     );
   }
