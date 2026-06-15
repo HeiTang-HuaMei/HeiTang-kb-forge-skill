@@ -49,15 +49,15 @@ class TaskWorkbenchSurface extends StatelessWidget {
               totalTasks: snapshots.length,
               workspace: workspace,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             _WorkbenchCommandPanel(
               localeCode: localeCode,
               workspace: workspace,
               isWebRuntime: isWebRuntime,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             workflow,
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             _AdvancedTaskDetails(
               localeCode: localeCode,
               outputContract: outputContract,
@@ -73,8 +73,8 @@ class TaskWorkbenchSurface extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(flex: 3, child: mainColumn),
-              const SizedBox(width: 16),
-              SizedBox(width: 300, child: sidePanel),
+              const SizedBox(width: 12),
+              SizedBox(width: 316, child: sidePanel),
             ],
           );
         }
@@ -83,7 +83,7 @@ class TaskWorkbenchSurface extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             mainColumn,
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             sidePanel,
           ],
         );
@@ -129,16 +129,16 @@ class _GuidedWorkflow extends StatelessWidget {
                 localeCode: localeCode,
                 tasks: tasks,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _workflowSteps.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: columns,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  mainAxisExtent: 292,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  mainAxisExtent: 250,
                 ),
                 itemBuilder: (context, index) {
                   final step = _workflowSteps[index];
@@ -178,18 +178,18 @@ class _WorkflowStepper extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return Container(
       key: const Key('workflow-stepper'),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: colors.outlineVariant),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final compact = constraints.maxWidth < 760;
           return Wrap(
-            spacing: compact ? 8 : 10,
-            runSpacing: 8,
+            spacing: compact ? 6 : 8,
+            runSpacing: 6,
             children: [
               for (var index = 0; index < _workflowSteps.length; index++)
                 _StepperNode(
@@ -224,13 +224,13 @@ class _StepperNode extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final active = status != WorkbenchTaskStatus.pending;
     return Container(
-      width: compact ? 148 : 172,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      width: compact ? 142 : 164,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
       decoration: BoxDecoration(
         color: active
             ? colors.primary.withValues(alpha: 0.08)
             : colors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(
           color: active ? colors.primary : colors.outlineVariant,
         ),
@@ -238,7 +238,7 @@ class _StepperNode extends StatelessWidget {
       child: Row(
         children: [
           _StageNumber(index: index),
-          const SizedBox(width: 8),
+          const SizedBox(width: 7),
           Expanded(
             child: Text(
               title,
@@ -273,10 +273,10 @@ class _WorkbenchCommandPanel extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return Container(
       key: const Key('workbench-command-panel'),
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: colors.outlineVariant),
       ),
       child: Column(
@@ -296,7 +296,7 @@ class _WorkbenchCommandPanel extends StatelessWidget {
                           .titleLarge
                           ?.copyWith(fontWeight: FontWeight.w900),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     Text(
                       _zh
                           ? '先确认资料来源和输出目录，再推进知识供应链；没有真实结果不会展示完成。'
@@ -316,7 +316,7 @@ class _WorkbenchCommandPanel extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           LayoutBuilder(
             builder: (context, constraints) {
               final wide = constraints.maxWidth >= 820;
@@ -369,13 +369,13 @@ class _WorkbenchCommandPanel extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(flex: 3, child: sourceCard),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     flex: 2,
                     child: Column(
                       children: [
                         targetCard,
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 10),
                         gateCard,
                       ],
                     ),
@@ -384,7 +384,7 @@ class _WorkbenchCommandPanel extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Wrap(
             spacing: 10,
             runSpacing: 10,
@@ -426,12 +426,12 @@ class _ConsoleActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: emphasized
             ? colors.primary.withValues(alpha: 0.05)
             : colors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: emphasized
               ? colors.primary.withValues(alpha: 0.24)
@@ -444,13 +444,13 @@ class _ConsoleActionCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 34,
-                height: 34,
+                width: 30,
+                height: 30,
                 decoration: BoxDecoration(
                   color: emphasized
                       ? colors.primary.withValues(alpha: 0.12)
                       : colors.surface,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: colors.outlineVariant),
                 ),
                 child: Icon(icon,
@@ -473,7 +473,7 @@ class _ConsoleActionCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Text(
             title,
             maxLines: 1,
@@ -482,7 +482,7 @@ class _ConsoleActionCard extends StatelessWidget {
                   fontWeight: FontWeight.w900,
                 ),
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 4),
           Text(
             body,
             maxLines: emphasized ? 3 : 2,
@@ -493,10 +493,10 @@ class _ConsoleActionCard extends StatelessWidget {
                 ),
           ),
           if (emphasized) ...[
-            const SizedBox(height: 14),
+            const SizedBox(height: 8),
             const _MaterialFormatStrip(),
           ],
-          const SizedBox(height: 14),
+          const SizedBox(height: 8),
           OutlinedButton.icon(
             onPressed: null,
             icon: Icon(actionIcon),
@@ -509,7 +509,7 @@ class _ConsoleActionCard extends StatelessWidget {
             ),
             style: OutlinedButton.styleFrom(
               disabledForegroundColor: colors.onSurfaceVariant,
-              minimumSize: const Size.fromHeight(40),
+              minimumSize: const Size.fromHeight(34),
               alignment: Alignment.centerLeft,
             ),
           ),
@@ -547,7 +547,7 @@ class _MaterialFormatStrip extends StatelessWidget {
               size: 18, color: colors.onSurfaceVariant),
           for (final format in formats)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
               decoration: BoxDecoration(
                 color: colors.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(10),
@@ -587,7 +587,7 @@ class _ExecutionBadge extends StatelessWidget {
         color: isWebRuntime
             ? colors.secondaryContainer
             : colors.primary.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: colors.outlineVariant),
       ),
       child: Row(
@@ -688,7 +688,7 @@ class _AdvancedTaskDetails extends StatelessWidget {
       tilePadding: const EdgeInsets.symmetric(horizontal: 16),
       childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       collapsedShape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         side: BorderSide(color: colors.outlineVariant),
       ),
       shape: RoundedRectangleBorder(
@@ -850,10 +850,10 @@ const _workflowSteps = <_WorkflowStep>[
     taskIndex: 3,
   ),
   _WorkflowStep(
-    zhTitle: '生成 Agent 包',
-    enTitle: 'Generate Agent Package',
-    zhNextAction: '生成包草稿',
-    enNextAction: 'Generate the package draft',
+    zhTitle: '创建 Agent',
+    enTitle: 'Create Agent',
+    zhNextAction: '配置 Agent 并预览包产物',
+    enNextAction: 'Configure the Agent and preview package artifact',
     outputActionId: 'agent_package_generation',
     taskIndex: 4,
   ),
@@ -907,7 +907,7 @@ class _ProductTaskCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
             decoration: BoxDecoration(
               color: index == 0
                   ? colors.primary.withValues(alpha: 0.06)
@@ -918,7 +918,7 @@ class _ProductTaskCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _StageNumber(index: index),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -932,7 +932,7 @@ class _ProductTaskCard extends StatelessWidget {
                             .titleMedium
                             ?.copyWith(fontWeight: FontWeight.w900),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         _zh
                             ? '工作流阶段 ${index + 1}'
@@ -954,7 +954,7 @@ class _ProductTaskCard extends StatelessWidget {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -964,14 +964,14 @@ class _ProductTaskCard extends StatelessWidget {
                     progress: task.progress,
                     status: task.status,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   _WorkflowCardMeta(
                     key: Key('workflow-next-action-${index + 1}'),
                     icon: Icons.arrow_forward_outlined,
                     label: _zh ? '下一步' : 'Next action',
                     value: step.nextAction(_zh),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   _WorkflowOutputPill(
                     key: Key('workflow-output-pill-${index + 1}'),
                     label: _zh ? '输出位置' : 'Output path',
@@ -1024,10 +1024,10 @@ class _TaskProgressSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(9),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: colors.outlineVariant),
       ),
       child: Column(
@@ -1055,11 +1055,11 @@ class _TaskProgressSummary extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
             child: LinearProgressIndicator(
-              minHeight: 7,
+              minHeight: 5,
               value: progress,
               backgroundColor: colors.surfaceContainerHighest,
             ),
@@ -1086,25 +1086,25 @@ class _WorkflowCardMeta extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: colors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: colors.outlineVariant),
       ),
       child: Row(
         children: [
           Container(
-            width: 28,
-            height: 28,
+            width: 24,
+            height: 24,
             decoration: BoxDecoration(
               color: colors.surface,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(6),
               border: Border.all(color: colors.outlineVariant),
             ),
             child: Icon(icon, size: 16, color: colors.onSurfaceVariant),
           ),
-          const SizedBox(width: 9),
+          const SizedBox(width: 7),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1144,10 +1144,10 @@ class _WorkflowOutputPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: colors.primary.withValues(alpha: 0.18)),
       ),
       child: Row(
@@ -1218,10 +1218,10 @@ class _WorkbenchSummary extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.primary.withValues(alpha: 0.04),
         border: Border.all(color: colors.primary.withValues(alpha: 0.18)),
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1231,23 +1231,23 @@ class _WorkbenchSummary extends StatelessWidget {
                 DecoratedBox(
                   decoration: BoxDecoration(
                     color: colors.primary,
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
                         color: colors.primary.withValues(alpha: 0.18),
-                        blurRadius: 22,
-                        offset: const Offset(0, 10),
+                        blurRadius: 12,
+                        offset: const Offset(0, 5),
                       ),
                     ],
                   ),
                   child: const SizedBox(
-                    width: 58,
-                    height: 58,
+                    width: 42,
+                    height: 42,
                     child: Icon(Icons.account_tree_outlined,
-                        color: Colors.white, size: 30),
+                        color: Colors.white, size: 23),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1267,17 +1267,17 @@ class _WorkbenchSummary extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 6),
                       Text(
                         _zh
                             ? '本地 Agent 知识供应链'
                             : 'Local Agent Knowledge Supply Chain',
                         style: Theme.of(context)
                             .textTheme
-                            .headlineSmall
+                            .titleLarge
                             ?.copyWith(fontWeight: FontWeight.w900),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       Text(
                         _zh
                             ? '从资料导入到验证导出，所有阶段默认等待真实输入；没有 Core 结果不会展示完成。'
@@ -1291,10 +1291,10 @@ class _WorkbenchSummary extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 10),
             Wrap(
-              spacing: 10,
-              runSpacing: 10,
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 _SummaryMetric(
                   label: _zh ? '任务阶段' : 'Task stages',
@@ -1321,7 +1321,7 @@ class _WorkbenchSummary extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 8),
             _HeroWorkflowStrip(localeCode: localeCode),
           ],
         ),
@@ -1340,10 +1340,10 @@ class _HeroBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: colors.outlineVariant),
       ),
       child: Row(
@@ -1375,25 +1375,25 @@ class _HeroWorkflowStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final labels = _zh
-        ? ['导入资料', '构建知识库', '生成 Skill', '生成 Agent 包', '验证与导出']
+        ? ['导入资料', '构建知识库', '生成 Skill', '创建 Agent', '验证与导出']
         : [
             'Import Materials',
             'Build Knowledge Package',
             'Generate Skill',
-            'Generate Agent Package',
+            'Create Agent',
             'Validate & Export',
           ];
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: colors.outlineVariant),
       ),
       child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
+        spacing: 6,
+        runSpacing: 6,
         children: [
           for (var index = 0; index < labels.length; index++)
             _HeroWorkflowStep(index: index, label: labels[index]),
@@ -1413,17 +1413,17 @@ class _HeroWorkflowStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: colors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 20,
-            height: 20,
+            width: 18,
+            height: 18,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: colors.onSurface,
@@ -1467,11 +1467,11 @@ class _SummaryMetric extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Container(
-      width: wide ? 280 : 142,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      width: wide ? 258 : 132,
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: colors.outlineVariant),
       ),
       child: Column(
@@ -1486,11 +1486,11 @@ class _SummaryMetric extends StatelessWidget {
                   letterSpacing: 0.4,
                 ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 5),
           Row(
             children: [
-              Icon(icon, size: 18, color: colors.primary),
-              const SizedBox(width: 8),
+              Icon(icon, size: 16, color: colors.primary),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   value,
@@ -2398,7 +2398,7 @@ String _stageLabel(WorkbenchTaskStage stage, bool zh) {
     case WorkbenchTaskStage.skillGeneration:
       return zh ? 'Skill 生成' : 'Skill generation';
     case WorkbenchTaskStage.agentPackageGeneration:
-      return zh ? 'Agent 包生成' : 'Agent package generation';
+      return zh ? 'Agent 配置与包产物' : 'Agent configuration and package artifact';
     case WorkbenchTaskStage.validation:
       return zh ? '验证' : 'Validation';
   }

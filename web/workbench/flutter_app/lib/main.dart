@@ -22,8 +22,8 @@ const pages = <WorkbenchPage>[
       'dashboard',
       'Dashboard',
       '工作台',
-      'A guided local workbench for turning source material into a validated Agent package.',
-      '把本地资料加工为可验证 Agent 包的引导式工作台。',
+      'A guided local workbench for turning source material into a validated Agent.',
+      '把本地资料加工为可验证 Agent 的引导式工作台。',
       memberPageIds: [
         'dashboard',
         'operation-gate',
@@ -58,10 +58,10 @@ const pages = <WorkbenchPage>[
       memberPageIds: ['skill-factory']),
   WorkbenchPage(
       'agent-factory-runtime',
-      'Agent Package',
-      'Agent 包',
-      'Generate an Agent package draft without claiming runtime completion.',
-      '生成 Agent 包草稿，不宣称运行时已完成。',
+      'Agent',
+      'Agent',
+      'Create an Agent configuration and export artifact without claiming runtime completion.',
+      '创建 Agent 配置与导出产物，不宣称运行时已完成。',
       memberPageIds: ['agent-factory-runtime']),
   WorkbenchPage(
       'reports-audit',
@@ -847,7 +847,7 @@ IconData _sidebarIconFor(String pageId) {
     case 'skill-factory':
       return Icons.extension_outlined;
     case 'agent-factory-runtime':
-      return Icons.archive_outlined;
+      return Icons.smart_toy_outlined;
     case 'reports-audit':
       return Icons.fact_check_outlined;
     default:
@@ -1784,7 +1784,7 @@ class _TopBarChip extends StatelessWidget {
   }
 }
 
-class _ProductPageOverview extends StatelessWidget {
+class _ProductPageOverview extends StatefulWidget {
   const _ProductPageOverview({
     required this.localeCode,
     required this.page,
@@ -1797,108 +1797,81 @@ class _ProductPageOverview extends StatelessWidget {
   final String workspace;
   final bool isWebRuntime;
 
-  bool get _zh => localeCode == 'zh-CN';
+  @override
+  State<_ProductPageOverview> createState() => _ProductPageOverviewState();
+}
+
+class _ProductPageOverviewState extends State<_ProductPageOverview> {
+  int selectedTab = 0;
+
+  bool get _zh => widget.localeCode == 'zh-CN';
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final copy = _ProductPageCopy.forPage(page.id, _zh);
-    return Card(
-      color: colors.primary.withValues(alpha: 0.035),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(22),
-        side: BorderSide(color: colors.primary.withValues(alpha: 0.16)),
+    final copy = _ProductPageCopy.forPage(widget.page.id, _zh);
+    final activeTab = copy.tabs[selectedTab.clamp(0, copy.tabs.length - 1)];
+    return Container(
+      key: Key('dense-page-workbench-${widget.page.id}'),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: colors.outlineVariant),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(22),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 54,
-                  height: 54,
-                  decoration: BoxDecoration(
-                    color: colors.primary,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Icon(copy.icon, color: colors.onPrimary, size: 28),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _ProductPageBadge(
-                            icon: Icons.view_agenda_outlined,
-                            label: _zh ? '引导模块' : 'Guided module',
-                          ),
-                          _ProductPageBadge(
-                            icon: Icons.shield_outlined,
-                            label: isWebRuntime
-                                ? (_zh ? 'Web 安全展示' : 'Web-safe view')
-                                : (_zh ? '桌面本地执行' : 'Desktop local run'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Text(copy.title,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.w900)),
-                      const SizedBox(height: 8),
-                      Text(
-                        copy.body,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: colors.onSurfaceVariant,
-                              fontWeight: FontWeight.w600,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            _DensePageHeader(
+              localeCode: widget.localeCode,
+              copy: copy,
+              isWebRuntime: widget.isWebRuntime,
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
+            _DenseTabStrip(
+              tabs: copy.tabs,
+              selectedIndex: selectedTab,
+              onSelected: (index) => setState(() => selectedTab = index),
+            ),
+            const SizedBox(height: 12),
             LayoutBuilder(
               builder: (context, constraints) {
-                final wide = constraints.maxWidth >= 920;
-                final workflow = _ProductFlowPanel(
-                  localeCode: localeCode,
-                  copy: copy,
-                  workspace: workspace,
+                final wide = constraints.maxWidth >= 980;
+                final main = _DenseTabBody(
+                  localeCode: widget.localeCode,
+                  tab: activeTab,
                 );
-                final status = _ProductStatusPanel(
-                  localeCode: localeCode,
+                final rail = _DensePageRail(
+                  localeCode: widget.localeCode,
                   copy: copy,
-                  workspace: workspace,
-                  isWebRuntime: isWebRuntime,
+                  workspace: widget.workspace,
+                  isWebRuntime: widget.isWebRuntime,
                 );
                 if (!wide) {
                   return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      workflow,
+                      main,
                       const SizedBox(height: 12),
-                      status,
+                      rail,
                     ],
                   );
                 }
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(flex: 3, child: workflow),
+                    Expanded(flex: 7, child: main),
                     const SizedBox(width: 12),
-                    Expanded(flex: 2, child: status),
+                    SizedBox(width: 328, child: rail),
                   ],
                 );
               },
+            ),
+            const SizedBox(height: 12),
+            _ActionCapabilityMatrix(
+              localeCode: widget.localeCode,
+              actions: copy.actions,
             ),
           ],
         ),
@@ -1939,24 +1912,114 @@ class _ProductPageBadge extends StatelessWidget {
   }
 }
 
+enum _ActionCapability {
+  enabledReal,
+  disabledBoundary,
+  displayOnly,
+  omitted,
+}
+
+extension _ActionCapabilityCopy on _ActionCapability {
+  String label(bool zh) {
+    switch (this) {
+      case _ActionCapability.enabledReal:
+        return zh ? '已接入' : 'Enabled';
+      case _ActionCapability.disabledBoundary:
+        return zh ? '边界禁用' : 'Boundary disabled';
+      case _ActionCapability.displayOnly:
+        return zh ? '仅展示' : 'Display only';
+      case _ActionCapability.omitted:
+        return zh ? '不显示' : 'Omitted';
+    }
+  }
+
+  Color color(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    switch (this) {
+      case _ActionCapability.enabledReal:
+        return Colors.green.shade700;
+      case _ActionCapability.disabledBoundary:
+        return colors.error;
+      case _ActionCapability.displayOnly:
+        return colors.primary;
+      case _ActionCapability.omitted:
+        return colors.onSurfaceVariant;
+    }
+  }
+}
+
+class _CapabilityAction {
+  const _CapabilityAction({
+    required this.zhLabel,
+    required this.enLabel,
+    required this.capability,
+    required this.zhReason,
+    required this.enReason,
+  });
+
+  final String zhLabel;
+  final String enLabel;
+  final _ActionCapability capability;
+  final String zhReason;
+  final String enReason;
+
+  String label(bool zh) => zh ? zhLabel : enLabel;
+  String reason(bool zh) => zh ? zhReason : enReason;
+}
+
+class _DensePageTab {
+  const _DensePageTab({
+    required this.zhTitle,
+    required this.enTitle,
+    required this.zhSubtitle,
+    required this.enSubtitle,
+    required this.icon,
+    required this.columns,
+    required this.rows,
+    required this.metrics,
+  });
+
+  final String zhTitle;
+  final String enTitle;
+  final String zhSubtitle;
+  final String enSubtitle;
+  final IconData icon;
+  final List<String> columns;
+  final List<List<String>> rows;
+  final List<_DenseMetric> metrics;
+
+  String title(bool zh) => zh ? zhTitle : enTitle;
+  String subtitle(bool zh) => zh ? zhSubtitle : enSubtitle;
+}
+
+class _DenseMetric {
+  const _DenseMetric(this.zhLabel, this.enLabel, this.value);
+
+  final String zhLabel;
+  final String enLabel;
+  final String value;
+
+  String label(bool zh) => zh ? zhLabel : enLabel;
+}
+
 class _ProductPageCopy {
   const _ProductPageCopy({
     required this.title,
     required this.body,
-    required this.nextAction,
+    required this.statusLabel,
     required this.outputSuffix,
-    required this.steps,
-    required this.previewTitle,
     required this.icon,
+    required this.tabs,
+    required this.actions,
   });
 
   final String title;
   final String body;
-  final String nextAction;
+  final String statusLabel;
   final String outputSuffix;
-  final List<String> steps;
-  final String previewTitle;
   final IconData icon;
+  final List<_DensePageTab> tabs;
+  final List<_CapabilityAction> actions;
 
   String outputPath(String workspace) => '$workspace/$outputSuffix';
 
@@ -1966,124 +2029,977 @@ class _ProductPageCopy {
         return _ProductPageCopy(
           title: zh ? '导入资料' : 'Import Materials',
           body: zh
-              ? '选择本地资料，确认解析范围，再进入知识构建。'
-              : 'Choose local material, confirm the parsing scope, then move into knowledge building.',
-          nextAction: zh ? '选择本地文件或文件夹' : 'Choose a local file or folder',
+              ? '以本地文件队列、解析设置和失败恢复为中心，不伪造导入完成。'
+              : 'Center the page on local file intake, parser settings, and recovery without fabricated import completion.',
+          statusLabel: zh ? '等待本地输入' : 'Waiting for local input',
           outputSuffix: 'workbench_runs/import_manifest',
-          previewTitle: zh ? '导入清单预览' : 'Import manifest preview',
           icon: Icons.upload_file_outlined,
-          steps: zh
-              ? ['选择资料', '确认解析范围', '生成导入清单']
-              : [
-                  'Choose material',
-                  'Confirm parsing scope',
-                  'Create import manifest'
-                ],
+          tabs: _importTabs(zh),
+          actions: _importActions(),
         );
       case 'knowledge-package-management':
         return _ProductPageCopy(
           title: zh ? '知识库' : 'Knowledge Package',
           body: zh
-              ? '把解析内容切分、整理并形成可复用的知识包草稿。'
-              : 'Split and organize parsed content into a reusable knowledge package draft.',
-          nextAction: zh ? '检查解析结果' : 'Review parsed content',
+              ? '以知识包、文档库、检索验证和输出目标组成紧凑工作台。'
+              : 'Expose packages, document library, retrieval verification, and output targets as a compact workbench.',
+          statusLabel: zh ? '等待解析内容' : 'Waiting for parsed content',
           outputSuffix: 'workbench_runs/knowledge_package',
-          previewTitle: zh ? '知识包预览' : 'Knowledge package preview',
           icon: Icons.inventory_2_outlined,
-          steps: zh
-              ? ['检查解析结果', '切分知识片段', '整理知识包草稿']
-              : [
-                  'Review parsed content',
-                  'Split knowledge chunks',
-                  'Organize package draft'
-                ],
+          tabs: _knowledgeTabs(zh),
+          actions: _knowledgeActions(),
         );
       case 'skill-factory':
         return _ProductPageCopy(
           title: zh ? 'Skill 生成' : 'Skill Builder',
           body: zh
-              ? '从知识包提炼方法论，并生成可治理的 Skill 草稿。'
-              : 'Extract methodology from the package and generate a governed Skill draft.',
-          nextAction: zh ? '确认知识包草稿' : 'Confirm the package draft',
+              ? '以元数据、知识源、输出结构和验证报告组织 Skill 草稿生成。'
+              : 'Organize Skill draft generation around metadata, knowledge source, output structure, and validation reports.',
+          statusLabel: zh ? '等待知识包草稿' : 'Waiting for package draft',
           outputSuffix: 'workbench_runs/skill_draft',
-          previewTitle: zh ? 'Skill 草稿预览' : 'Skill draft preview',
           icon: Icons.auto_awesome_motion_outlined,
-          steps: zh
-              ? ['确认知识包', '提炼方法论', '生成 Skill 草稿']
-              : [
-                  'Confirm package',
-                  'Extract methodology',
-                  'Generate Skill draft'
-                ],
+          tabs: _skillTabs(zh),
+          actions: _skillActions(),
         );
       case 'agent-factory-runtime':
         return _ProductPageCopy(
-          title: zh ? 'Agent 包' : 'Agent Package',
+          title: 'Agent',
           body: zh
-              ? '生成 Agent 包草稿；这里只准备包，不宣称运行时已完成。'
-              : 'Generate an Agent package draft; this prepares the package without claiming runtime completion.',
-          nextAction: zh ? '生成包草稿' : 'Generate package draft',
+              ? '配置 Agent、绑定知识与 Skill，并预览包导出产物；不展示运行时完成。'
+              : 'Configure an Agent, bind knowledge and Skills, and preview package export artifacts without runtime completion claims.',
+          statusLabel: zh ? '等待 Skill 草稿' : 'Waiting for Skill draft',
           outputSuffix: 'workbench_runs/agent_package',
-          previewTitle: zh ? 'Agent 包预览' : 'Agent package preview',
           icon: Icons.developer_board_outlined,
-          steps: zh
-              ? ['选择 Skill 草稿', '生成包结构', '等待验证导出']
-              : [
-                  'Select Skill draft',
-                  'Generate package structure',
-                  'Wait for validation'
-                ],
+          tabs: _agentTabs(zh),
+          actions: _agentActions(),
         );
       case 'reports-audit':
         return _ProductPageCopy(
           title: zh ? '验证与导出' : 'Validate & Export',
           body: zh
-              ? '检查输出、证据和失败恢复路径，再决定是否导出。'
-              : 'Check outputs, evidence, and recovery paths before export.',
-          nextAction: zh ? '验证清单与报告' : 'Validate manifests and reports',
+              ? '作为最终门禁查看清单、报告、证据和受控导出边界。'
+              : 'Use the final gate to review manifests, reports, evidence, and controlled export boundaries.',
+          statusLabel: zh ? '等待草稿输出' : 'Waiting for draft outputs',
           outputSuffix: 'workbench_runs/validation_report',
-          previewTitle: zh ? '验证报告预览' : 'Validation report preview',
           icon: Icons.fact_check_outlined,
-          steps: zh
-              ? ['检查输出路径', '验证证据报告', '准备受控导出']
-              : [
-                  'Check output paths',
-                  'Validate evidence reports',
-                  'Prepare controlled export'
-                ],
+          tabs: _validateTabs(zh),
+          actions: _validateActions(),
         );
       default:
         return _ProductPageCopy(
           title: zh ? '设置' : 'Settings',
           body: zh
-              ? '确认工作区、本地执行可用性和安全边界。'
-              : 'Review workspace paths, local execution availability, and safety boundaries.',
-          nextAction: zh ? '检查工作区路径' : 'Check workspace path',
+              ? '集中查看工作区路径、本地执行、语言主题和安全边界。'
+              : 'Review workspace paths, local execution, language/theme, and safety boundaries in one place.',
+          statusLabel: zh ? '本地优先' : 'Local first',
           outputSuffix: 'workbench_runs/settings',
-          previewTitle: zh ? '工作区设置预览' : 'Workspace settings preview',
           icon: Icons.settings_outlined,
-          steps: zh
-              ? ['检查工作区', '确认本地执行', '保持安全边界']
-              : [
-                  'Check workspace',
-                  'Confirm local execution',
-                  'Keep safety boundaries'
-                ],
+          tabs: _settingsTabs(zh),
+          actions: _settingsActions(),
         );
     }
   }
 }
 
-class _ProductFlowPanel extends StatelessWidget {
-  const _ProductFlowPanel({
+List<_DensePageTab> _importTabs(bool zh) => [
+      _DensePageTab(
+        zhTitle: '导入队列',
+        enTitle: 'Import Queue',
+        zhSubtitle: '展示本地资料等待状态，不伪造上传完成。',
+        enSubtitle:
+            'Shows local material waiting states without fabricated upload completion.',
+        icon: Icons.upload_file_outlined,
+        columns: zh
+            ? ['资料', '类型', '状态', '下一步']
+            : ['Material', 'Type', 'Status', 'Next'],
+        rows: zh
+            ? [
+                ['等待本地文件', 'PDF/DOCX/PPTX', '待输入', '选择真实路径'],
+                ['导入清单', 'manifest', '未生成', '等待 Core 结果'],
+                ['解析报告', 'report', '未生成', '先完成导入'],
+              ]
+            : [
+                [
+                  'Waiting for local files',
+                  'PDF/DOCX/PPTX',
+                  'Pending input',
+                  'Choose real path'
+                ],
+                [
+                  'Import manifest',
+                  'manifest',
+                  'Not generated',
+                  'Wait for Core result'
+                ],
+                [
+                  'Parsing report',
+                  'report',
+                  'Not generated',
+                  'Complete import first'
+                ],
+              ],
+        metrics: [
+          _DenseMetric(
+              zh ? '支持格式' : 'Supported', zh ? '支持格式' : 'Supported', '6'),
+          _DenseMetric(zh ? '真实完成' : 'Real completion',
+              zh ? '真实完成' : 'Real completion', '0%'),
+          _DenseMetric(zh ? '失败项' : 'Failures', zh ? '失败项' : 'Failures', '0'),
+        ],
+      ),
+      _DensePageTab(
+        zhTitle: '解析设置',
+        enTitle: 'Parsing Settings',
+        zhSubtitle: '解析策略和切分预览保持展示态。',
+        enSubtitle:
+            'Parser strategy and splitting preview remain display-only.',
+        icon: Icons.tune_outlined,
+        columns: zh ? ['设置', '当前值', '能力'] : ['Setting', 'Value', 'Capability'],
+        rows: zh
+            ? [
+                ['解析范围', '等待资料', 'display_only'],
+                ['切分策略', '中等粒度', 'display_only'],
+                ['重型后端', '默认不启用', 'disabled_boundary'],
+              ]
+            : [
+                ['Parsing scope', 'Waiting for material', 'display_only'],
+                ['Split strategy', 'Medium granularity', 'display_only'],
+                ['Heavy backend', 'Off by default', 'disabled_boundary'],
+              ],
+        metrics: const [
+          _DenseMetric('默认云服务', 'Cloud default', 'off'),
+          _DenseMetric('CLI', 'CLI', 'safe boundary'),
+        ],
+      ),
+    ];
+
+List<_CapabilityAction> _importActions() => const [
+      _CapabilityAction(
+        zhLabel: '选择本地资料',
+        enLabel: 'Choose local material',
+        capability: _ActionCapability.disabledBoundary,
+        zhReason: 'Web 预览不能读取本地文件；桌面端真实路径接入后才可启用。',
+        enReason:
+            'The Web preview cannot read local files; enable only after a real desktop path is available.',
+      ),
+      _CapabilityAction(
+        zhLabel: '生成导入清单',
+        enLabel: 'Create import manifest',
+        capability: _ActionCapability.disabledBoundary,
+        zhReason: '需要真实输入和已接受 Core 操作结果。',
+        enReason: 'Requires real input and an accepted Core operation result.',
+      ),
+      _CapabilityAction(
+        zhLabel: '查看输出路径',
+        enLabel: 'View output path',
+        capability: _ActionCapability.displayOnly,
+        zhReason: '输出路径契约可展示，但不代表文件已生成。',
+        enReason:
+            'The output path contract can be displayed, but it does not mean the file exists.',
+      ),
+    ];
+
+List<_DensePageTab> _knowledgeTabs(bool zh) => [
+      _DensePageTab(
+        zhTitle: '知识包',
+        enTitle: 'Packages',
+        zhSubtitle: '知识包草稿、质量门禁和版本状态。',
+        enSubtitle: 'Package drafts, quality gates, and version state.',
+        icon: Icons.inventory_2_outlined,
+        columns: zh
+            ? ['名称', '版本', '来源', '状态']
+            : ['Name', 'Version', 'Sources', 'Status'],
+        rows: zh
+            ? [
+                ['等待构建的知识包', 'draft', '0', '待输入'],
+                ['导入资料集合', 'manifest', '0', '未验证'],
+                ['输出索引', 'local', '0', '未生成'],
+              ]
+            : [
+                ['Package waiting for build', 'draft', '0', 'Pending input'],
+                ['Imported material set', 'manifest', '0', 'Not validated'],
+                ['Output index', 'local', '0', 'Not generated'],
+              ],
+        metrics: const [
+          _DenseMetric('chunks', 'chunks', '0'),
+          _DenseMetric('quality', 'quality', 'pending'),
+        ],
+      ),
+      _DensePageTab(
+        zhTitle: '文档库',
+        enTitle: 'Document Library',
+        zhSubtitle: '作为知识库内的二级页展示文档状态。',
+        enSubtitle:
+            'Document status appears as a secondary page inside Knowledge Package.',
+        icon: Icons.article_outlined,
+        columns: zh
+            ? ['文档', '解析', 'chunks', '问题']
+            : ['Document', 'Parsing', 'chunks', 'Issues'],
+        rows: zh
+            ? [
+                ['等待导入文档', '未开始', '0', '无'],
+                ['解析产物', '待生成', '0', '无证据'],
+              ]
+            : [
+                ['Waiting for documents', 'Not started', '0', 'None'],
+                ['Parsed artifact', 'Pending generation', '0', 'No evidence'],
+              ],
+        metrics: const [
+          _DenseMetric('docs', 'docs', '0'),
+          _DenseMetric('parsed', 'parsed', '0'),
+        ],
+      ),
+      _DensePageTab(
+        zhTitle: '检索与验证',
+        enTitle: 'Retrieval & Verification',
+        zhSubtitle: '检索验证是二级工作区，不新增一级导航。',
+        enSubtitle:
+            'Retrieval verification is a secondary workspace, not another primary nav item.',
+        icon: Icons.manage_search_outlined,
+        columns: zh
+            ? ['查询', '证据', '状态', '边界']
+            : ['Query', 'Evidence', 'Status', 'Boundary'],
+        rows: zh
+            ? [
+                ['等待查询', '0', '未搜索', 'display_only'],
+                ['证据选择', '0', '未验证', 'disabled_boundary'],
+              ]
+            : [
+                ['Waiting for query', '0', 'Not searched', 'display_only'],
+                [
+                  'Evidence selection',
+                  '0',
+                  'Not validated',
+                  'disabled_boundary'
+                ],
+              ],
+        metrics: const [
+          _DenseMetric('accuracy', 'accuracy', 'pending'),
+          _DenseMetric('contradictions', 'contradictions', '0'),
+        ],
+      ),
+      _DensePageTab(
+        zhTitle: '输出目标',
+        enTitle: 'Output Targets',
+        zhSubtitle: '本地索引、向量库和对象存储均保持边界声明。',
+        enSubtitle:
+            'Local index, vector store, and object storage remain boundary declarations.',
+        icon: Icons.account_tree_outlined,
+        columns:
+            zh ? ['目标', '路径/说明', '状态'] : ['Target', 'Path / note', 'Status'],
+        rows: zh
+            ? [
+                ['本地索引', './workbench_runs/knowledge_package', '未生成'],
+                ['向量库', 'provider required', 'disabled_boundary'],
+                ['对象存储', 'cloud off by default', 'disabled_boundary'],
+              ]
+            : [
+                [
+                  'Local index',
+                  './workbench_runs/knowledge_package',
+                  'Not generated'
+                ],
+                ['Vector store', 'provider required', 'disabled_boundary'],
+                ['Object storage', 'cloud off by default', 'disabled_boundary'],
+              ],
+        metrics: const [
+          _DenseMetric('providers', 'providers', 'off'),
+          _DenseMetric('storage', 'storage', 'local'),
+        ],
+      ),
+    ];
+
+List<_CapabilityAction> _knowledgeActions() => const [
+      _CapabilityAction(
+        zhLabel: '构建知识包草稿',
+        enLabel: 'Build package draft',
+        capability: _ActionCapability.disabledBoundary,
+        zhReason: '需要解析内容和 Core 返回结果。',
+        enReason: 'Requires parsed content and a Core result.',
+      ),
+      _CapabilityAction(
+        zhLabel: '查看文档库',
+        enLabel: 'View document library',
+        capability: _ActionCapability.displayOnly,
+        zhReason: '二级页可浏览等待状态。',
+        enReason: 'The secondary page can display waiting state.',
+      ),
+      _CapabilityAction(
+        zhLabel: '运行检索',
+        enLabel: 'Run retrieval',
+        capability: _ActionCapability.disabledBoundary,
+        zhReason: '未连接真实查询输入和 Core 检索结果。',
+        enReason: 'No real query input or Core retrieval result is connected.',
+      ),
+    ];
+
+List<_DensePageTab> _skillTabs(bool zh) => [
+      _DensePageTab(
+        zhTitle: '生成器',
+        enTitle: 'Builder',
+        zhSubtitle: '紧凑展示元数据、来源和输出结构。',
+        enSubtitle: 'Compact metadata, source, and output structure.',
+        icon: Icons.auto_awesome_motion_outlined,
+        columns: zh
+            ? ['模块', '当前值', '能力']
+            : ['Module', 'Current value', 'Capability'],
+        rows: zh
+            ? [
+                ['Skill 元数据', '等待知识包', 'display_only'],
+                ['知识源', '知识包草稿', 'disabled_boundary'],
+                ['输出结构', 'SKILL.md / prompts / manifests', 'display_only'],
+                ['验证', '等待报告', 'disabled_boundary'],
+              ]
+            : [
+                ['Skill metadata', 'Waiting for package', 'display_only'],
+                ['Knowledge source', 'Package draft', 'disabled_boundary'],
+                [
+                  'Output structure',
+                  'SKILL.md / prompts / manifests',
+                  'display_only'
+                ],
+                ['Validation', 'Waiting for report', 'disabled_boundary'],
+              ],
+        metrics: const [
+          _DenseMetric('runtime claim', 'runtime claim', 'none'),
+          _DenseMetric('report', 'report', 'pending'),
+        ],
+      ),
+      _DensePageTab(
+        zhTitle: '输出预览',
+        enTitle: 'Output Preview',
+        zhSubtitle: '文件树是预览，不代表已经生成。',
+        enSubtitle: 'The file tree is a preview, not generated output.',
+        icon: Icons.folder_zip_outlined,
+        columns: zh ? ['路径', '类型', '状态'] : ['Path', 'Type', 'Status'],
+        rows: zh
+            ? [
+                ['SKILL.md', '文档', '预览'],
+                ['prompts/', '目录', '预览'],
+                ['manifests/', '目录', '预览'],
+                ['reports/', '目录', '等待验证'],
+              ]
+            : [
+                ['SKILL.md', 'Document', 'Preview'],
+                ['prompts/', 'Directory', 'Preview'],
+                ['manifests/', 'Directory', 'Preview'],
+                ['reports/', 'Directory', 'Waiting for validation'],
+              ],
+        metrics: const [
+          _DenseMetric('files', 'files', '4'),
+          _DenseMetric('generated', 'generated', '0'),
+        ],
+      ),
+      _DensePageTab(
+        zhTitle: '生成报告',
+        enTitle: 'Generation Report',
+        zhSubtitle: '报告指标必须来自证据，当前保持等待。',
+        enSubtitle:
+            'Report metrics must come from evidence; currently waiting.',
+        icon: Icons.assessment_outlined,
+        columns: zh ? ['指标', '状态', '说明'] : ['Metric', 'Status', 'Note'],
+        rows: zh
+            ? [
+                ['覆盖率', '等待', '无真实报告'],
+                ['可安装性', '等待', '无真实报告'],
+                ['事实锚定', '等待', '无真实报告'],
+              ]
+            : [
+                ['Coverage', 'Waiting', 'No real report'],
+                ['Installability', 'Waiting', 'No real report'],
+                ['Grounding', 'Waiting', 'No real report'],
+              ],
+        metrics: const [
+          _DenseMetric('warnings', 'warnings', '0'),
+          _DenseMetric('blocked', 'blocked', 'input'),
+        ],
+      ),
+    ];
+
+List<_CapabilityAction> _skillActions() => const [
+      _CapabilityAction(
+        zhLabel: '生成 Skill 草稿',
+        enLabel: 'Generate Skill draft',
+        capability: _ActionCapability.disabledBoundary,
+        zhReason: '需要真实知识包草稿和 accepted Core action。',
+        enReason: 'Requires a real package draft and accepted Core action.',
+      ),
+      _CapabilityAction(
+        zhLabel: '查看输出树',
+        enLabel: 'View output tree',
+        capability: _ActionCapability.displayOnly,
+        zhReason: '文件树为预览，不代表已生成。',
+        enReason:
+            'The file tree is a preview and does not mean files were generated.',
+      ),
+      _CapabilityAction(
+        zhLabel: 'Skill Governance Report',
+        enLabel: 'Skill Governance Report',
+        capability: _ActionCapability.enabledReal,
+        zhReason: '已有 Campaign 4/5 展示契约和 fixture 证据。',
+        enReason:
+            'Backed by accepted Campaign 4/5 display contract and fixture evidence.',
+      ),
+    ];
+
+List<_DensePageTab> _agentTabs(bool zh) => [
+      _DensePageTab(
+        zhTitle: 'Agent 概览',
+        enTitle: 'Agent Overview',
+        zhSubtitle: 'Agent 域总览，包只是导出产物之一。',
+        enSubtitle: 'Agent domain overview; package is one export artifact.',
+        icon: Icons.smart_toy_outlined,
+        columns: zh ? ['项目', '输入', '状态'] : ['Item', 'Input', 'Status'],
+        rows: zh
+            ? [
+                ['Agent 名称', '等待配置', '待输入'],
+                ['目标知识库', '等待知识包', '边界禁用'],
+                ['绑定 Skill', '等待 Skill 草稿', '边界禁用'],
+                ['包导出产物', 'manifest', '预览'],
+              ]
+            : [
+                ['Agent name', 'Waiting for configuration', 'Pending input'],
+                [
+                  'Target knowledge package',
+                  'Waiting for package',
+                  'Boundary disabled'
+                ],
+                ['Bound Skill', 'Waiting for Skill draft', 'Boundary disabled'],
+                ['Package export artifact', 'manifest', 'Preview'],
+              ],
+        metrics: [
+          _DenseMetric(zh ? '运行时' : 'runtime', 'runtime',
+              zh ? '未实现' : 'not implemented'),
+          _DenseMetric(zh ? '包产物' : 'package artifact', 'package artifact',
+              zh ? '预览' : 'preview'),
+        ],
+      ),
+      _DensePageTab(
+        zhTitle: '创建与编辑',
+        enTitle: 'Create / Edit Agent',
+        zhSubtitle: '仅配置 Agent 草稿，不启动自主执行。',
+        enSubtitle:
+            'Configure an Agent draft only; autonomous execution is not started.',
+        icon: Icons.edit_note_outlined,
+        columns: zh
+            ? ['配置项', '当前值', '能力']
+            : ['Field', 'Current value', 'Capability'],
+        rows: zh
+            ? [
+                ['名称与描述', '等待输入', '边界禁用'],
+                ['目标任务', '等待输入', '边界禁用'],
+                ['配置预览', '草稿结构', '仅展示'],
+              ]
+            : [
+                [
+                  'Name and description',
+                  'Waiting for input',
+                  'Boundary disabled'
+                ],
+                ['Target task', 'Waiting for input', 'Boundary disabled'],
+                ['Configuration preview', 'Draft structure', 'Display only'],
+              ],
+        metrics: [
+          _DenseMetric(zh ? '简单模式' : 'simple mode', 'simple mode',
+              zh ? '预览' : 'preview'),
+          _DenseMetric(zh ? '高级模式' : 'advanced mode', 'advanced mode',
+              zh ? '预览' : 'preview'),
+        ],
+      ),
+      _DensePageTab(
+        zhTitle: '模式与绑定',
+        enTitle: 'Modes and Bindings',
+        zhSubtitle: '简单/高级模式、知识包与 Skill 绑定保持草稿边界。',
+        enSubtitle:
+            'Simple/advanced modes, package binding, and Skill binding stay draft-bound.',
+        icon: Icons.hub_outlined,
+        columns:
+            zh ? ['区域', '支持状态', '边界'] : ['Area', 'Support state', 'Boundary'],
+        rows: zh
+            ? [
+                ['Simple Mode', '配置预览', '仅展示'],
+                ['Advanced Mode', '配置预览', '仅展示'],
+                ['知识库绑定', '等待知识包', '边界禁用'],
+                ['Skill 绑定', '等待 Skill 草稿', '边界禁用'],
+              ]
+            : [
+                ['Simple Mode', 'Configuration preview', 'Display only'],
+                ['Advanced Mode', 'Configuration preview', 'Display only'],
+                [
+                  'Knowledge binding',
+                  'Waiting for package',
+                  'Boundary disabled'
+                ],
+                [
+                  'Skill binding',
+                  'Waiting for Skill draft',
+                  'Boundary disabled'
+                ],
+              ],
+        metrics: [
+          _DenseMetric(zh ? '绑定' : 'bindings', 'bindings', '0'),
+          _DenseMetric(zh ? '真实执行' : 'real execution', 'real execution', '0'),
+        ],
+      ),
+      _DensePageTab(
+        zhTitle: '工具与权限',
+        enTitle: 'Tools and Permissions',
+        zhSubtitle: '工具、MCP、模型和权限是 Agent 配置的一部分。',
+        enSubtitle:
+            'Tools, MCP, models, and permissions belong to Agent configuration.',
+        icon: Icons.admin_panel_settings_outlined,
+        columns: zh
+            ? ['配置域', '状态', '能力']
+            : ['Configuration domain', 'Status', 'Capability'],
+        rows: zh
+            ? [
+                ['Tool 绑定', '等待配置', '边界禁用'],
+                ['MCP 绑定', '等待配置', '边界禁用'],
+                ['模型配置', '预览', '仅展示'],
+                ['权限策略', '预览', '仅展示'],
+              ]
+            : [
+                [
+                  'Tool binding',
+                  'Waiting for configuration',
+                  'Boundary disabled'
+                ],
+                [
+                  'MCP binding',
+                  'Waiting for configuration',
+                  'Boundary disabled'
+                ],
+                ['Model configuration', 'Preview', 'Display only'],
+                ['Permission policy', 'Preview', 'Display only'],
+              ],
+        metrics: [
+          _DenseMetric(zh ? '云沙箱' : 'cloud sandbox', 'cloud sandbox',
+              zh ? '未实现' : 'not implemented'),
+          _DenseMetric(zh ? '模型路由' : 'model router', 'model router',
+              zh ? '未实现' : 'not implemented'),
+        ],
+      ),
+      _DensePageTab(
+        zhTitle: '工作区与未来运行时',
+        enTitle: 'Workspace and Future Runtime',
+        zhSubtitle: '工作区分区保留在 Agent 架构中，执行隔离后续实现。',
+        enSubtitle:
+            'Workspace partitions remain in Agent architecture; execution isolation is later work.',
+        icon: Icons.account_tree_outlined,
+        columns: zh
+            ? ['长期域', '当前处理', '能力']
+            : ['Long-term area', 'Current handling', 'Capability'],
+        rows: zh
+            ? [
+                ['Workspace Partitions', '架构占位', '仅展示'],
+                ['Agent Teams', '后续 Campaign', '不显示'],
+                ['Subagent Policies', '后续 Campaign', '不显示'],
+                ['Memory and Compaction', '后续 Campaign', '不显示'],
+                ['Computer Use and Sandbox', '后续 Campaign', '不显示'],
+                ['A2A Interoperability', '后续 Campaign', '不显示'],
+                ['Runtime and Observability', '后续 Campaign', '不显示'],
+              ]
+            : [
+                [
+                  'Workspace Partitions',
+                  'Architecture placeholder',
+                  'Display only'
+                ],
+                ['Agent Teams', 'Later campaign', 'Omitted'],
+                ['Subagent Policies', 'Later campaign', 'Omitted'],
+                ['Memory and Compaction', 'Later campaign', 'Omitted'],
+                ['Computer Use and Sandbox', 'Later campaign', 'Omitted'],
+                ['A2A Interoperability', 'Later campaign', 'Omitted'],
+                ['Runtime and Observability', 'Later campaign', 'Omitted'],
+              ],
+        metrics: [
+          _DenseMetric(zh ? '运行时' : 'runtime', 'runtime',
+              zh ? '未实现' : 'not implemented'),
+          _DenseMetric(zh ? '记忆运行时' : 'memory runtime', 'memory runtime',
+              zh ? '未实现' : 'not implemented'),
+        ],
+      ),
+      _DensePageTab(
+        zhTitle: '包与导出',
+        enTitle: 'Package / Export',
+        zhSubtitle: 'Agent 包是导出产物，交给验证与导出门禁。',
+        enSubtitle:
+            'Agent package is an export artifact handed to Validate & Export.',
+        icon: Icons.archive_outlined,
+        columns: zh ? ['文件', '用途', '状态'] : ['File', 'Purpose', 'Status'],
+        rows: zh
+            ? [
+                ['agent.yaml', 'Agent 清单', '预览'],
+                ['skills/', 'Skill 引用', '等待'],
+                ['workspace_partitions/', '分区声明', '仅展示'],
+                ['reports/', '验证报告', '等待'],
+              ]
+            : [
+                ['agent.yaml', 'Agent manifest', 'Preview'],
+                ['skills/', 'Skill reference', 'Waiting'],
+                [
+                  'workspace_partitions/',
+                  'Partition declaration',
+                  'Display only'
+                ],
+                ['reports/', 'Validation report', 'Waiting'],
+              ],
+        metrics: [
+          _DenseMetric(zh ? '交接' : 'handoff', 'handoff',
+              zh ? '验证与导出' : 'Validate & Export'),
+        ],
+      ),
+    ];
+
+List<_CapabilityAction> _agentActions() => const [
+      _CapabilityAction(
+        zhLabel: '创建 Agent 草稿',
+        enLabel: 'Create Agent draft',
+        capability: _ActionCapability.disabledBoundary,
+        zhReason: '需要真实知识包和 Skill 草稿；不实现 Agent Runtime。',
+        enReason:
+            'Requires a real package and Skill draft; Agent Runtime is not implemented.',
+      ),
+      _CapabilityAction(
+        zhLabel: '预览 Agent 配置',
+        enLabel: 'Preview Agent configuration',
+        capability: _ActionCapability.displayOnly,
+        zhReason: '配置结构可展示，但不代表 Agent 已创建或可运行。',
+        enReason:
+            'Configuration structure can be displayed, but it does not mean the Agent was created or can run.',
+      ),
+      _CapabilityAction(
+        zhLabel: '预览包导出产物',
+        enLabel: 'Preview package export artifact',
+        capability: _ActionCapability.displayOnly,
+        zhReason: 'Agent 包只是导出预览，等待验证门禁。',
+        enReason:
+            'Agent package is an export preview waiting for the validation gate.',
+      ),
+      _CapabilityAction(
+        zhLabel: '运行 Agent',
+        enLabel: 'Run Agent',
+        capability: _ActionCapability.omitted,
+        zhReason: 'Campaign 4/5 禁止 Agent Runtime 完成声明。',
+        enReason: 'Campaign 4/5 forbids Agent Runtime completion claims.',
+      ),
+    ];
+
+List<_DensePageTab> _validateTabs(bool zh) => [
+      _DensePageTab(
+        zhTitle: '验证门禁',
+        enTitle: 'Validation Gate',
+        zhSubtitle: '最终检查清单、报告和恢复路径。',
+        enSubtitle: 'Final review of manifests, reports, and recovery paths.',
+        icon: Icons.fact_check_outlined,
+        columns: zh ? ['检查项', '状态', '证据'] : ['Check', 'Status', 'Evidence'],
+        rows: zh
+            ? [
+                ['输出路径', '等待', '无真实产物'],
+                ['报告', '等待', '无真实报告'],
+                ['恢复路径', '等待', '无失败样本'],
+              ]
+            : [
+                ['Output path', 'Waiting', 'No real artifact'],
+                ['Reports', 'Waiting', 'No real report'],
+                ['Recovery path', 'Waiting', 'No failure sample'],
+              ],
+        metrics: const [
+          _DenseMetric('release', 'release', 'not claimed'),
+          _DenseMetric('EXE', 'EXE', 'not claimed'),
+        ],
+      ),
+      _DensePageTab(
+        zhTitle: '报告与审计',
+        enTitle: 'Reports & Audit',
+        zhSubtitle: '报告作为二级页展示，不占用一级导航。',
+        enSubtitle:
+            'Reports appear as a secondary page, not another primary nav item.',
+        icon: Icons.receipt_long_outlined,
+        columns: zh ? ['报告', '状态', '边界'] : ['Report', 'Status', 'Boundary'],
+        rows: zh
+            ? [
+                ['validation_report', '等待', 'display_only'],
+                ['governance_report', 'fixture 可展示', 'enabled_real'],
+                ['release_report', '不显示', 'omitted'],
+              ]
+            : [
+                ['validation_report', 'Waiting', 'display_only'],
+                ['governance_report', 'Fixture displayable', 'enabled_real'],
+                ['release_report', 'Hidden', 'omitted'],
+              ],
+        metrics: const [
+          _DenseMetric('reports', 'reports', '2'),
+          _DenseMetric('release', 'release', '0'),
+        ],
+      ),
+      _DensePageTab(
+        zhTitle: '受控导出',
+        enTitle: 'Controlled Export',
+        zhSubtitle: '导出等待验证，不创建 Release。',
+        enSubtitle:
+            'Export waits for validation and does not create a Release.',
+        icon: Icons.archive_outlined,
+        columns: zh ? ['目标', '状态', '原因'] : ['Target', 'Status', 'Reason'],
+        rows: zh
+            ? [
+                ['工作台包', '等待', '需要验证'],
+                ['GitHub Release', 'omitted', '禁止创建'],
+                ['产品版本 tag', 'omitted', '禁止创建'],
+              ]
+            : [
+                ['Workbench package', 'Waiting', 'Needs validation'],
+                ['GitHub Release', 'omitted', 'Forbidden'],
+                ['Product version tag', 'omitted', 'Forbidden'],
+              ],
+        metrics: const [
+          _DenseMetric('exported', 'exported', '0'),
+          _DenseMetric('tags', 'tags', '0'),
+        ],
+      ),
+    ];
+
+List<_CapabilityAction> _validateActions() => const [
+      _CapabilityAction(
+        zhLabel: '验证清单与报告',
+        enLabel: 'Validate manifests and reports',
+        capability: _ActionCapability.disabledBoundary,
+        zhReason: '需要真实输出产物。',
+        enReason: 'Requires real output artifacts.',
+      ),
+      _CapabilityAction(
+        zhLabel: '查看审计报告',
+        enLabel: 'View audit reports',
+        capability: _ActionCapability.displayOnly,
+        zhReason: '可展示 fixture/契约证据。',
+        enReason: 'Can display fixture/contract evidence.',
+      ),
+      _CapabilityAction(
+        zhLabel: '创建 Release',
+        enLabel: 'Create Release',
+        capability: _ActionCapability.omitted,
+        zhReason: 'Campaign 4/5 明确禁止。',
+        enReason: 'Explicitly forbidden in Campaign 4/5.',
+      ),
+    ];
+
+List<_DensePageTab> _settingsTabs(bool zh) => [
+      _DensePageTab(
+        zhTitle: '工作区',
+        enTitle: 'Workspace',
+        zhSubtitle: '路径和本地执行状态集中展示。',
+        enSubtitle: 'Paths and local execution state in one place.',
+        icon: Icons.folder_outlined,
+        columns:
+            zh ? ['设置', '当前值', '状态'] : ['Setting', 'Current value', 'Status'],
+        rows: zh
+            ? [
+                ['工作区', '.', 'display_only'],
+                ['输出目录', './workbench_runs', 'display_only'],
+                ['Core CLI', 'heitang-kb-forge', 'disabled_boundary'],
+              ]
+            : [
+                ['Workspace', '.', 'display_only'],
+                ['Output directory', './workbench_runs', 'display_only'],
+                ['Core CLI', 'heitang-kb-forge', 'disabled_boundary'],
+              ],
+        metrics: const [
+          _DenseMetric('cloud', 'cloud', 'off'),
+          _DenseMetric('local first', 'local first', 'on'),
+        ],
+      ),
+      _DensePageTab(
+        zhTitle: '语言与主题',
+        enTitle: 'Language & Theme',
+        zhSubtitle: '保持单语言显示，不叠加双语标签。',
+        enSubtitle:
+            'Keep single-language display without stacked bilingual labels.',
+        icon: Icons.language_outlined,
+        columns: zh ? ['项目', '状态', '说明'] : ['Item', 'Status', 'Note'],
+        rows: zh
+            ? [
+                ['中文模式', '可用', '只显示中文正常文案'],
+                ['英文模式', '可用', '只显示英文正常文案'],
+                ['技术名词', '例外', 'Skill / Agent / Core / Web'],
+              ]
+            : [
+                ['Chinese mode', 'Available', 'Chinese normal copy only'],
+                ['English mode', 'Available', 'English normal copy only'],
+                ['Technical terms', 'Exception', 'Skill / Agent / Core / Web'],
+              ],
+        metrics: const [
+          _DenseMetric('primary nav', 'primary nav', '7'),
+        ],
+      ),
+      _DensePageTab(
+        zhTitle: '安全边界',
+        enTitle: 'Safety Boundary',
+        zhSubtitle: '本地优先、云默认关闭、敏感信息不外发。',
+        enSubtitle:
+            'Local-first, cloud off by default, no sensitive data transmission.',
+        icon: Icons.shield_outlined,
+        columns: zh ? ['边界', '状态', '能力'] : ['Boundary', 'Status', 'Capability'],
+        rows: zh
+            ? [
+                ['云服务', '默认关闭', 'display_only'],
+                ['本地 Core', 'Web 禁用', 'disabled_boundary'],
+                ['外部 provider', '需显式配置', 'disabled_boundary'],
+              ]
+            : [
+                ['Cloud services', 'Off by default', 'display_only'],
+                ['Local Core', 'Disabled on Web', 'disabled_boundary'],
+                [
+                  'External provider',
+                  'Explicit config required',
+                  'disabled_boundary'
+                ],
+              ],
+        metrics: const [
+          _DenseMetric('secrets', 'secrets', 'not collected'),
+        ],
+      ),
+    ];
+
+List<_CapabilityAction> _settingsActions() => const [
+      _CapabilityAction(
+        zhLabel: '检查工作区路径',
+        enLabel: 'Check workspace path',
+        capability: _ActionCapability.displayOnly,
+        zhReason: '当前页面展示路径配置，不执行文件系统变更。',
+        enReason:
+            'This page displays path configuration and does not change the filesystem.',
+      ),
+      _CapabilityAction(
+        zhLabel: '切换语言',
+        enLabel: 'Switch language',
+        capability: _ActionCapability.enabledReal,
+        zhReason: '现有 UI 状态支持中英切换。',
+        enReason: 'Existing UI state supports Chinese/English switching.',
+      ),
+      _CapabilityAction(
+        zhLabel: '配置外部 provider',
+        enLabel: 'Configure external provider',
+        capability: _ActionCapability.disabledBoundary,
+        zhReason: 'Campaign 4/5 不默认添加云依赖。',
+        enReason: 'Campaign 4/5 does not add cloud dependency by default.',
+      ),
+    ];
+
+class _DensePageHeader extends StatelessWidget {
+  const _DensePageHeader({
     required this.localeCode,
     required this.copy,
-    required this.workspace,
+    required this.isWebRuntime,
   });
 
   final String localeCode;
   final _ProductPageCopy copy;
-  final String workspace;
+  final bool isWebRuntime;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: colors.primary,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(copy.icon, color: colors.onPrimary, size: 23),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  _ProductPageBadge(
+                    icon: Icons.view_agenda_outlined,
+                    label: _zh ? '页面工作台' : 'Page workbench',
+                  ),
+                  _ProductPageBadge(
+                    icon: Icons.shield_outlined,
+                    label: isWebRuntime
+                        ? (_zh ? 'Web 安全展示' : 'Web-safe view')
+                        : (_zh ? '桌面本地执行' : 'Desktop local run'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 7),
+              Text(copy.title,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w900)),
+              const SizedBox(height: 4),
+              Text(
+                copy.body,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colors.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DenseTabStrip extends StatelessWidget {
+  const _DenseTabStrip({
+    required this.tabs,
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+
+  final List<_DensePageTab> tabs;
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final zh = Localizations.localeOf(context).languageCode == 'zh';
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (var index = 0; index < tabs.length; index++)
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: ChoiceChip(
+                selected: selectedIndex == index,
+                label: Text(tabs[index].title(zh)),
+                avatar: Icon(tabs[index].icon, size: 16),
+                onSelected: (_) => onSelected(index),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DenseTabBody extends StatelessWidget {
+  const _DenseTabBody({
+    required this.localeCode,
+    required this.tab,
+  });
+
+  final String localeCode;
+  final _DensePageTab tab;
 
   bool get _zh => localeCode == 'zh-CN';
 
@@ -2091,83 +3007,206 @@ class _ProductFlowPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Container(
-      key: const Key('product-flow-panel'),
-      padding: const EdgeInsets.all(16),
+      key: Key('dense-tab-${tab.enTitle.toLowerCase().replaceAll(' ', '-')}'),
       decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
+        color: colors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: colors.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(_zh ? '操作流程' : 'Operation Flow',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w900)),
-          const SizedBox(height: 12),
-          for (var index = 0; index < copy.steps.length; index++) ...[
-            _ProductFlowStep(index: index, label: copy.steps[index]),
-            if (index != copy.steps.length - 1) const SizedBox(height: 8),
-          ],
-          const SizedBox(height: 14),
-          _ProductSignal(
-            label: _zh ? '下一步' : 'Next action',
-            value: copy.nextAction,
-            wide: true,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+            child: Row(
+              children: [
+                Icon(tab.icon, size: 18, color: colors.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(tab.title(_zh),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w900)),
+                      Text(tab.subtitle(_zh),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: colors.onSurfaceVariant,
+                                  )),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
+          const Divider(height: 1),
+          _DenseDataTable(columns: tab.columns, rows: tab.rows, zh: _zh),
+          if (tab.metrics.isNotEmpty) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final metric in tab.metrics)
+                    _DenseMetricChip(
+                        label: metric.label(_zh), value: metric.value, zh: _zh),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 }
 
-class _ProductFlowStep extends StatelessWidget {
-  const _ProductFlowStep({required this.index, required this.label});
+class _DenseDataTable extends StatelessWidget {
+  const _DenseDataTable({
+    required this.columns,
+    required this.rows,
+    required this.zh,
+  });
 
-  final int index;
-  final String label;
+  final List<String> columns;
+  final List<List<String>> rows;
+  final bool zh;
+
+  String _displayValue(String value) {
+    switch (value) {
+      case 'enabled_real':
+        return _ActionCapability.enabledReal.label(zh);
+      case 'disabled_boundary':
+        return _ActionCapability.disabledBoundary.label(zh);
+      case 'display_only':
+        return _ActionCapability.displayOnly.label(zh);
+      case 'omitted':
+        return _ActionCapability.omitted.label(zh);
+      case 'provider required':
+        return zh ? '需要 provider' : value;
+      case 'cloud off by default':
+        return zh ? '云默认关闭' : value;
+      case 'out of scope':
+        return zh ? '超出范围' : value;
+      default:
+        return value;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return Row(
-      children: [
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: colors.primary,
-            borderRadius: BorderRadius.circular(999),
-          ),
-          child: SizedBox.square(
-            dimension: 26,
-            child: Center(
-              child: Text(
-                '${index + 1}',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: colors.onPrimary,
-                      fontWeight: FontWeight.w900,
-                    ),
-              ),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        headingRowHeight: 36,
+        dataRowMinHeight: 38,
+        dataRowMaxHeight: 42,
+        columnSpacing: 22,
+        horizontalMargin: 12,
+        headingTextStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: colors.onSurfaceVariant,
+              fontWeight: FontWeight.w900,
             ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
+        dataTextStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+        columns: [
+          for (final column in columns) DataColumn(label: Text(column)),
+        ],
+        rows: [
+          for (final row in rows)
+            DataRow(
+              cells: [
+                for (final value in row)
+                  DataCell(Text(
+                    _displayValue(value),
+                    overflow: TextOverflow.ellipsis,
                   )),
-        ),
-      ],
+              ],
+            ),
+        ],
+      ),
     );
   }
 }
 
-class _ProductStatusPanel extends StatelessWidget {
-  const _ProductStatusPanel({
+class _DenseMetricChip extends StatelessWidget {
+  const _DenseMetricChip({
+    required this.label,
+    required this.value,
+    required this.zh,
+  });
+
+  final String label;
+  final String value;
+  final bool zh;
+
+  String _displayValue() {
+    if (!zh) return value;
+    switch (value) {
+      case 'pending':
+        return '等待';
+      case 'off':
+        return '关闭';
+      case 'on':
+        return '开启';
+      case 'local':
+        return '本地';
+      case 'safe boundary':
+        return '安全边界';
+      case 'not implemented':
+        return '未实现';
+      case 'not claimed':
+        return '未声明';
+      case 'not collected':
+        return '不收集';
+      case 'none':
+        return '无';
+      case 'input':
+        return '等待输入';
+      case 'Validate & Export':
+        return '验证与导出';
+      default:
+        return value;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    fontWeight: FontWeight.w800,
+                  )),
+          const SizedBox(width: 6),
+          Text(_displayValue(),
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  )),
+        ],
+      ),
+    );
+  }
+}
+
+class _DensePageRail extends StatelessWidget {
+  const _DensePageRail({
     required this.localeCode,
     required this.copy,
     required this.workspace,
@@ -2186,24 +3225,24 @@ class _ProductStatusPanel extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return Container(
       key: const Key('product-status-panel'),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: colors.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(copy.previewTitle,
+          Text(_zh ? '状态与输出' : 'Status and Output',
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
                   ?.copyWith(fontWeight: FontWeight.w900)),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           _ProductSignal(
             label: _zh ? '当前状态' : 'Current status',
-            value: _zh ? '等待输入' : 'Waiting for input',
+            value: copy.statusLabel,
             wide: true,
           ),
           _ProductSignal(
@@ -2216,6 +3255,11 @@ class _ProductStatusPanel extends StatelessWidget {
             value: isWebRuntime
                 ? (_zh ? 'Web 中安全展示' : 'Web-safe view')
                 : (_zh ? '桌面本地可用' : 'Available on desktop'),
+            wide: true,
+          ),
+          _ProductSignal(
+            label: _zh ? '完成规则' : 'Completion rule',
+            value: _zh ? '必须有真实结果和证据' : 'Requires real result and evidence',
             wide: true,
           ),
         ],
@@ -2240,10 +3284,11 @@ class _ProductSignal extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return Container(
       width: wide ? double.infinity : 240,
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(9),
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: colors.outlineVariant),
       ),
       child: Column(
@@ -2264,6 +3309,113 @@ class _ProductSignal extends StatelessWidget {
                   .bodyMedium
                   ?.copyWith(fontWeight: FontWeight.w700)),
         ],
+      ),
+    );
+  }
+}
+
+class _ActionCapabilityMatrix extends StatelessWidget {
+  const _ActionCapabilityMatrix({
+    required this.localeCode,
+    required this.actions,
+  });
+
+  final String localeCode;
+  final List<_CapabilityAction> actions;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final visibleActions = actions
+        .where((action) => action.capability != _ActionCapability.omitted);
+    return Container(
+      key: const Key('action-capability-matrix'),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(_zh ? '动作能力边界' : 'Action Capability Boundary',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final action in visibleActions)
+                _ActionCapabilityPill(localeCode: localeCode, action: action),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionCapabilityPill extends StatelessWidget {
+  const _ActionCapabilityPill({
+    required this.localeCode,
+    required this.action,
+  });
+
+  final String localeCode;
+  final _CapabilityAction action;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final capabilityColor = action.capability.color(context);
+    return Tooltip(
+      message: action.reason(_zh),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: capabilityColor.withValues(alpha: 0.42)),
+          color: capabilityColor.withValues(alpha: 0.06),
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 300),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                action.capability == _ActionCapability.enabledReal
+                    ? Icons.play_circle_outline
+                    : action.capability == _ActionCapability.disabledBoundary
+                        ? Icons.block_outlined
+                        : Icons.visibility_outlined,
+                size: 15,
+                color: capabilityColor,
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(action.label(_zh),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelMedium
+                        ?.copyWith(fontWeight: FontWeight.w900)),
+              ),
+              const SizedBox(width: 6),
+              Text(action.capability.label(_zh),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: capabilityColor,
+                        fontWeight: FontWeight.w900,
+                      )),
+            ],
+          ),
+        ),
       ),
     );
   }

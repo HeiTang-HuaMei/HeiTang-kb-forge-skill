@@ -30,7 +30,7 @@ void main() {
     expect(find.text('导入资料'), findsWidgets);
     expect(find.text('构建知识库'), findsWidgets);
     expect(find.text('生成 Skill'), findsWidgets);
-    expect(find.text('生成 Agent 包'), findsWidgets);
+    expect(find.text('创建 Agent'), findsWidgets);
     expect(find.text('验证与导出'), findsWidgets);
     expect(find.byKey(const Key('workbench-command-panel')), findsOneWidget);
     expect(find.text('本地资料输入台'), findsOneWidget);
@@ -98,11 +98,127 @@ void main() {
 
     expect(pages, hasLength(7));
     expect(find.text('工作台'), findsWidgets);
-    expect(find.text('Agent 包'), findsWidgets);
+    expect(find.text('Agent'), findsWidgets);
+    expect(find.text('Agent 包'), findsNothing);
     expect(find.text('设置'), findsWidgets);
     expect(find.text('Agent 工厂与运行'), findsNothing);
+    expect(find.text('agent-factory-runtime'), findsNothing);
     expect(find.text('import-parsing'), findsNothing);
     expect(find.text('knowledge-package-management'), findsNothing);
+    expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'page-level redesign exposes secondary tabs and capability matrix',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1000));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        enableLocalCoreActions: false,
+        initialSelectedIndex: 2,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+        find.byKey(
+            const Key('dense-page-workbench-knowledge-package-management')),
+        findsOneWidget);
+    expect(find.text('文档库'), findsOneWidget);
+    expect(find.text('检索与验证'), findsOneWidget);
+    expect(find.text('输出目标'), findsWidgets);
+    expect(find.byKey(const Key('action-capability-matrix')), findsOneWidget);
+    expect(find.text('构建知识包草稿'), findsOneWidget);
+    expect(find.text('运行检索'), findsOneWidget);
+    expect(find.text('边界禁用'), findsWidgets);
+    expect(find.text('仅展示'), findsWidgets);
+    expect(find.text('disabled_boundary'), findsNothing);
+    expect(find.text('display_only'), findsNothing);
+    expect(find.text('Document Library'), findsNothing);
+    expect(find.text('Retrieval & Verification'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'skill builder uses dense builder surfaces without fake generation',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1000));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        enableLocalCoreActions: false,
+        initialSelectedIndex: 3,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('dense-page-workbench-skill-factory')),
+        findsOneWidget);
+    expect(find.text('生成器'), findsWidgets);
+    expect(find.text('输出预览'), findsOneWidget);
+    expect(find.text('生成报告'), findsOneWidget);
+    expect(find.text('生成 Skill 草稿'), findsOneWidget);
+    expect(find.text('Skill Governance Report'), findsOneWidget);
+    expect(find.text('已接入'), findsOneWidget);
+    expect(find.text('enabled_real'), findsNothing);
+    expect(find.text('generated'), findsNothing);
+    expect(find.textContaining('生成完成'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('agent page is an Agent workspace, not primary Agent Package',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1000));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        enableLocalCoreActions: false,
+        initialSelectedIndex: 4,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('dense-page-workbench-agent-factory-runtime')),
+        findsOneWidget);
+    expect(find.text('Agent'), findsWidgets);
+    expect(find.text('Agent 概览'), findsWidgets);
+    expect(find.text('创建与编辑'), findsOneWidget);
+    expect(find.text('模式与绑定'), findsOneWidget);
+    expect(find.text('工具与权限'), findsOneWidget);
+    expect(find.text('创建 Agent 草稿'), findsOneWidget);
+    expect(find.text('预览 Agent 配置'), findsOneWidget);
+    expect(find.text('预览包导出产物'), findsOneWidget);
+    expect(find.text('Agent 包'), findsNothing);
+    expect(find.text('agent-factory-runtime'), findsNothing);
+    expect(find.textContaining('Agent Runtime complete'), findsNothing);
+    expect(find.textContaining('自主执行'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('english mode switches the whole page language only',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1000));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        enableLocalCoreActions: false,
+        initialSelectedIndex: 2,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('EN').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Knowledge Package'), findsWidgets);
+    expect(find.text('Document Library'), findsOneWidget);
+    expect(find.text('Retrieval & Verification'), findsOneWidget);
+    expect(find.text('Build package draft'), findsOneWidget);
+    expect(find.text('知识库'), findsNothing);
+    expect(find.text('文档库'), findsNothing);
+    expect(find.text('检索与验证'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
