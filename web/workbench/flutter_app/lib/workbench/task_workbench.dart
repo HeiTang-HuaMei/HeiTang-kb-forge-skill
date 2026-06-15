@@ -138,7 +138,7 @@ class _GuidedWorkflow extends StatelessWidget {
                   crossAxisCount: columns,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  mainAxisExtent: 218,
+                  mainAxisExtent: 276,
                 ),
                 itemBuilder: (context, index) {
                   final step = _workflowSteps[index];
@@ -691,97 +691,169 @@ class _ProductTaskCard extends StatelessWidget {
     return Card(
       key: Key('workflow-step-${index + 1}'),
       color: index == 0 ? colors.surface : colors.surfaceContainerLow,
+      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: colors.outlineVariant),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+            decoration: BoxDecoration(
+              color: index == 0
+                  ? colors.primary.withValues(alpha: 0.06)
+                  : colors.surfaceContainerLow,
+              border: Border(bottom: BorderSide(color: colors.outlineVariant)),
+            ),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _StageNumber(index: index),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    step.title(_zh),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w800),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        step.title(_zh),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _zh
+                            ? '工作流阶段 ${index + 1}'
+                            : 'Workflow stage ${index + 1}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ],
                   ),
                 ),
+                const SizedBox(width: 8),
                 _StatusPill(status: task.status, localeCode: localeCode),
               ],
             ),
-            const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(999),
-              child: LinearProgressIndicator(
-                key: Key('workflow-progress-${index + 1}'),
-                minHeight: 7,
-                value: task.progress,
-                backgroundColor: colors.surfaceContainerHighest,
-              ),
-            ),
-            const SizedBox(height: 7),
-            Row(
-              children: [
-                Text(
-                  '${(task.progress * 100).round()}%',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    _statusCopy(task.status, _zh),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: colors.onSurfaceVariant,
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            _ProductTaskLine(
-              label: _zh ? '下一步' : 'Next action',
-              value: step.nextAction(_zh),
-            ),
-            _ProductTaskLine(
-              label: _zh ? '输出位置' : 'Output path',
-              value: outputContract.forAction(step.outputActionId),
-            ),
-            if (canShowActions) ...[
-              const Spacer(),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (task.status.canRetry && onRetry != null)
-                    FilledButton.tonal(
-                      onPressed: () => onRetry!(task),
-                      child: Text(_zh ? '重试' : 'Retry'),
+                  _TaskProgressSummary(
+                    key: Key('workflow-progress-${index + 1}'),
+                    localeCode: localeCode,
+                    progress: task.progress,
+                    status: task.status,
+                  ),
+                  const SizedBox(height: 10),
+                  _ProductTaskLine(
+                    label: _zh ? '下一步' : 'Next action',
+                    value: step.nextAction(_zh),
+                  ),
+                  _ProductTaskLine(
+                    label: _zh ? '输出位置' : 'Output path',
+                    value: outputContract.forAction(step.outputActionId),
+                  ),
+                  if (canShowActions) ...[
+                    const Spacer(),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        if (task.status.canRetry && onRetry != null)
+                          FilledButton.tonal(
+                            onPressed: () => onRetry!(task),
+                            child: Text(_zh ? '重试' : 'Retry'),
+                          ),
+                        if (task.status.canCancel && onCancel != null)
+                          TextButton(
+                            onPressed: () => onCancel!(task),
+                            child: Text(_zh ? '取消' : 'Cancel'),
+                          ),
+                      ],
                     ),
-                  if (task.status.canCancel && onCancel != null)
-                    TextButton(
-                      onPressed: () => onCancel!(task),
-                      child: Text(_zh ? '取消' : 'Cancel'),
-                    ),
+                  ],
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TaskProgressSummary extends StatelessWidget {
+  const _TaskProgressSummary({
+    super.key,
+    required this.localeCode,
+    required this.progress,
+    required this.status,
+  });
+
+  final String localeCode;
+  final double progress;
+  final WorkbenchTaskStatus status;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(13),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                '${(progress * 100).round()}%',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _statusCopy(status, _zh),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: colors.onSurfaceVariant,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
             ],
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              minHeight: 7,
+              value: progress,
+              backgroundColor: colors.surfaceContainerHighest,
+            ),
+          ),
+        ],
       ),
     );
   }
