@@ -714,25 +714,39 @@ class _SidebarItem extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
           decoration: BoxDecoration(
             color: selected ? selectedBackground : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
+            border: selected
+                ? Border.all(color: const Color(0xff46515c))
+                : Border.all(color: Colors.transparent),
           ),
           child: Row(
             children: [
-              Icon(icon,
-                  color: selected ? primaryText : secondaryText, size: 20),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? const Color(0xff3a424b)
+                      : const Color(0xff1a1f24),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(icon,
+                    color: selected ? primaryText : secondaryText, size: 18),
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(page.title(localeCode, contracts),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: primaryText,
+                      color: selected ? primaryText : secondaryText,
                       fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
                     )),
               ),
@@ -754,32 +768,67 @@ class _LocalFirstCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xff242a30),
-        borderRadius: BorderRadius.circular(14),
+        color: const Color(0xff20262c),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xff38414a)),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.shield_outlined, color: Color(0xfff7f7f5), size: 22),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.shield_outlined,
+                  color: Color(0xfff7f7f5), size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(localeCode == 'zh-CN' ? '本地优先' : 'Local first',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: const Color(0xfff7f7f5),
+                              fontWeight: FontWeight.w900,
+                            )),
+                    const SizedBox(height: 4),
+                    Text(
+                        localeCode == 'zh-CN'
+                            ? '默认不连接云服务'
+                            : 'Cloud is off by default',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: const Color(0xffaeb6bf),
+                            )),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: const Color(0xff12161a),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: const Color(0xff38414a)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(localeCode == 'zh-CN' ? '本地优先' : 'Local first',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: const Color(0xfff7f7f5),
-                          fontWeight: FontWeight.w800,
-                        )),
-                const SizedBox(height: 4),
-                Text(
-                    localeCode == 'zh-CN'
-                        ? '默认不连接云服务'
-                        : 'Cloud is off by default',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: const Color(0xffaeb6bf),
-                        )),
+                const Icon(Icons.lock_outline,
+                    color: Color(0xffaeb6bf), size: 14),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                      localeCode == 'zh-CN'
+                          ? '安全边界已启用'
+                          : 'Safety boundary active',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: const Color(0xffaeb6bf),
+                            fontWeight: FontWeight.w800,
+                          )),
+                ),
               ],
             ),
           ),

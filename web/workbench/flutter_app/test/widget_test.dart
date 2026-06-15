@@ -344,6 +344,7 @@ void main() {
     expect(find.text('黑糖'), findsOneWidget);
     expect(find.text('HeiTang 黑糖'), findsNothing);
     expect(find.textContaining('知识工作台'), findsOneWidget);
+    expect(find.text('安全边界已启用'), findsOneWidget);
     expect(find.text('工作台'), findsWidgets);
     expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
     expect(find.byKey(const Key('topbar-search-field')), findsOneWidget);
