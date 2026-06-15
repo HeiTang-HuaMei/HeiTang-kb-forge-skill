@@ -517,8 +517,12 @@ void main() {
 
     expect(find.byKey(const Key('dense-page-workbench-import-parsing')),
         findsOneWidget);
-    expect(find.byKey(const Key('product-status-panel')), findsOneWidget);
-    expect(find.byKey(const Key('action-capability-matrix')), findsOneWidget);
+    expect(find.byKey(const Key('product-status-panel')), findsNothing);
+    expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
+    expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);
+    expect(find.byKey(const Key('import-queue')), findsOneWidget);
+    expect(find.byKey(const Key('parser-settings')), findsOneWidget);
+    expect(find.byKey(const Key('manifest-preview')), findsOneWidget);
     expect(find.text('导入队列'), findsWidgets);
     expect(find.text('解析设置'), findsOneWidget);
     expect(find.text('Parser Backend Matrix'), findsNothing);
@@ -561,12 +565,14 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('Skill 生成'), findsWidgets);
-    expect(find.text('页面工作台'), findsOneWidget);
-    expect(find.text('桌面本地执行'), findsWidgets);
-    expect(find.text('生成器'), findsWidgets);
-    expect(find.text('输出预览'), findsOneWidget);
-    expect(find.text('生成报告'), findsOneWidget);
-    expect(find.byKey(const Key('action-capability-matrix')), findsOneWidget);
+    expect(
+        find.byKey(const Key('skill-metadata-source-config')), findsOneWidget);
+    expect(find.byKey(const Key('skill-output-preview')), findsOneWidget);
+    expect(find.byKey(const Key('skill-validation-summary')), findsOneWidget);
+    expect(find.text('元数据与来源配置'), findsOneWidget);
+    expect(find.text('输出结构预览'), findsOneWidget);
+    expect(find.text('验证摘要'), findsOneWidget);
+    expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
     expect(find.text('高级边界详情'), findsOneWidget);
     await openAdvancedBoundaryDetails(tester);
     expect(find.text('边界摘要'), findsOneWidget);
@@ -593,14 +599,24 @@ void main() {
     await tester.tap(find.text('Agent').first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Agent Overview'), findsWidgets);
     expect(find.text('Create / Edit Agent'), findsOneWidget);
-    expect(find.text('Modes and Bindings'), findsOneWidget);
-    expect(find.text('Tools and Permissions'), findsOneWidget);
-    expect(find.text('Action Capability Boundary'), findsOneWidget);
+    expect(find.text('Create Agent'), findsWidgets);
+    expect(find.text('Simple Mode'), findsOneWidget);
+    expect(find.text('Advanced Mode'), findsOneWidget);
+    expect(find.text('Bindings'), findsOneWidget);
+    expect(find.text('Preview / Export'), findsOneWidget);
+    expect(find.byKey(const Key('agent-create-edit-form')), findsOneWidget);
     expect(find.text('Create Agent draft'), findsOneWidget);
-    expect(find.text('Preview Agent configuration'), findsOneWidget);
-    expect(find.text('Preview package export artifact'), findsOneWidget);
+    await tester.tap(find.text('Advanced Mode'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('agent-advanced-mode')), findsOneWidget);
+    await tester.tap(find.text('Bindings'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('agent-bindings')), findsOneWidget);
+    await tester.tap(find.text('Preview / Export'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('agent-preview-export')), findsOneWidget);
+    expect(find.text('Action Capability Boundary'), findsNothing);
     expect(find.text('Agent Package'), findsNothing);
     expect(find.text('agent-factory-runtime'), findsNothing);
     expect(find.textContaining('run_agent'), findsNothing);

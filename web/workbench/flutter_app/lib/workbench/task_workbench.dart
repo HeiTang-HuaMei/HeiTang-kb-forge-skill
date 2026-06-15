@@ -29,13 +29,6 @@ class TaskWorkbenchSurface extends StatelessWidget {
       key: const Key('task-workbench-surface'),
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 900;
-        final workflow = _GuidedWorkflow(
-          localeCode: localeCode,
-          workspace: workspace,
-          tasks: snapshots,
-          onRetry: onRetry,
-          onCancel: onCancel,
-        );
         final sidePanel = _WorkbenchSidePanel(
           localeCode: localeCode,
           tasks: snapshots,
@@ -44,19 +37,12 @@ class TaskWorkbenchSurface extends StatelessWidget {
         final mainColumn = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _WorkbenchSummary(
-              localeCode: localeCode,
-              totalTasks: snapshots.length,
-              workspace: workspace,
-            ),
-            const SizedBox(height: 10),
-            _WorkbenchCommandPanel(
+            _CurrentTaskPanel(
               localeCode: localeCode,
               workspace: workspace,
+              tasks: snapshots,
               isWebRuntime: isWebRuntime,
             ),
-            const SizedBox(height: 10),
-            workflow,
             const SizedBox(height: 12),
             _AdvancedTaskDetails(
               localeCode: localeCode,
@@ -92,178 +78,17 @@ class TaskWorkbenchSurface extends StatelessWidget {
   }
 }
 
-class _GuidedWorkflow extends StatelessWidget {
-  const _GuidedWorkflow({
+class _CurrentTaskPanel extends StatelessWidget {
+  const _CurrentTaskPanel({
     required this.localeCode,
     required this.workspace,
     required this.tasks,
-    this.onRetry,
-    this.onCancel,
-  });
-
-  final String localeCode;
-  final String workspace;
-  final List<WorkbenchTaskSnapshot> tasks;
-  final ValueChanged<WorkbenchTaskSnapshot>? onRetry;
-  final ValueChanged<WorkbenchTaskSnapshot>? onCancel;
-
-  bool get _zh => localeCode == 'zh-CN';
-
-  @override
-  Widget build(BuildContext context) {
-    return _Section(
-      key: const Key('workbench-progress-area'),
-      title: _zh ? '知识供应链' : 'Knowledge Supply Chain',
-      eyebrow: _zh ? '五步引导工作流' : 'Five-step guided workflow',
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final columns = constraints.maxWidth >= 1180
-              ? 3
-              : constraints.maxWidth >= 720
-                  ? 2
-                  : 1;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _WorkflowStepper(
-                localeCode: localeCode,
-                tasks: tasks,
-              ),
-              const SizedBox(height: 8),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _workflowSteps.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: columns,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  mainAxisExtent: 250,
-                ),
-                itemBuilder: (context, index) {
-                  final step = _workflowSteps[index];
-                  final task = tasks[step.taskIndex];
-                  return _ProductTaskCard(
-                    step: step,
-                    task: task,
-                    index: index,
-                    localeCode: localeCode,
-                    workspace: workspace,
-                    onRetry: onRetry,
-                    onCancel: onCancel,
-                  );
-                },
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _WorkflowStepper extends StatelessWidget {
-  const _WorkflowStepper({
-    required this.localeCode,
-    required this.tasks,
-  });
-
-  final String localeCode;
-  final List<WorkbenchTaskSnapshot> tasks;
-
-  bool get _zh => localeCode == 'zh-CN';
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      key: const Key('workflow-stepper'),
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: colors.outlineVariant),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final compact = constraints.maxWidth < 760;
-          return Wrap(
-            spacing: compact ? 6 : 8,
-            runSpacing: 6,
-            children: [
-              for (var index = 0; index < _workflowSteps.length; index++)
-                _StepperNode(
-                  index: index,
-                  title: _workflowSteps[index].title(_zh),
-                  status: tasks[_workflowSteps[index].taskIndex].status,
-                  compact: compact,
-                ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _StepperNode extends StatelessWidget {
-  const _StepperNode({
-    required this.index,
-    required this.title,
-    required this.status,
-    required this.compact,
-  });
-
-  final int index;
-  final String title;
-  final WorkbenchTaskStatus status;
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final active = status != WorkbenchTaskStatus.pending;
-    return Container(
-      width: compact ? 142 : 164,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
-      decoration: BoxDecoration(
-        color: active
-            ? colors.primary.withValues(alpha: 0.08)
-            : colors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: active ? colors.primary : colors.outlineVariant,
-        ),
-      ),
-      child: Row(
-        children: [
-          _StageNumber(index: index),
-          const SizedBox(width: 7),
-          Expanded(
-            child: Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _WorkbenchCommandPanel extends StatelessWidget {
-  const _WorkbenchCommandPanel({
-    required this.localeCode,
-    required this.workspace,
     required this.isWebRuntime,
   });
 
   final String localeCode;
   final String workspace;
+  final List<WorkbenchTaskSnapshot> tasks;
   final bool isWebRuntime;
 
   bool get _zh => localeCode == 'zh-CN';
@@ -271,8 +96,13 @@ class _WorkbenchCommandPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final current = tasks.firstWhere(
+      (task) => task.status != WorkbenchTaskStatus.completed,
+      orElse: () => tasks.first,
+    );
+    final outputContract = CoreOutputPathContract(workspace);
     return Container(
-      key: const Key('workbench-command-panel'),
+      key: const Key('dashboard-current-task-panel'),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: colors.surface,
@@ -285,12 +115,34 @@ class _WorkbenchCommandPanel extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: colors.primary,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.dashboard_customize_outlined,
+                    color: Colors.white, size: 23),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Wrap(spacing: 8, runSpacing: 8, children: [
+                      _HeroBadge(
+                        label: _zh ? '当前任务' : 'Current task',
+                        icon: Icons.adjust_outlined,
+                      ),
+                      _HeroBadge(
+                        label: _zh ? '本地优先' : 'Local first',
+                        icon: Icons.shield_outlined,
+                      ),
+                    ]),
+                    const SizedBox(height: 6),
                     Text(
-                      _zh ? '本地资料输入台' : 'Local Material Console',
+                      _zh ? '导入资料' : 'Import Materials',
                       style: Theme.of(context)
                           .textTheme
                           .titleLarge
@@ -299,8 +151,8 @@ class _WorkbenchCommandPanel extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       _zh
-                          ? '先确认资料来源和输出目录，再推进知识供应链；没有真实结果不会展示完成。'
-                          : 'Confirm the material source and output directory before moving the knowledge chain forward; no real result means no completed state.',
+                          ? '先选择本地资料来源；没有真实输入和 Core 结果不会展示完成。'
+                          : 'Choose a local material source first; no real input or Core result means no completed state.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: colors.onSurfaceVariant,
                             fontWeight: FontWeight.w600,
@@ -311,115 +163,65 @@ class _WorkbenchCommandPanel extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               _ExecutionBadge(
-                localeCode: localeCode,
-                isWebRuntime: isWebRuntime,
-              ),
+                  localeCode: localeCode, isWebRuntime: isWebRuntime),
             ],
           ),
-          const SizedBox(height: 10),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final wide = constraints.maxWidth >= 820;
-              final sourceCard = _ConsoleActionCard(
-                key: const Key('material-source-console-card'),
-                icon: Icons.folder_copy_outlined,
-                label: _zh ? '资料来源' : 'Material source',
-                title: _zh ? '选择本地文件或文件夹' : 'Choose local files',
-                body: _zh
-                    ? '等待桌面端提供真实路径。当前页面只展示安全输入边界，不伪造完成结果。'
-                    : 'Waiting for a real desktop path. This page shows the safe input boundary and never fabricates completion.',
-                actionIcon: Icons.folder_open_outlined,
-                actionLabel: _zh ? '等待本地输入' : 'Waiting for local input',
-                emphasized: true,
-              );
-              final targetCard = _ConsoleActionCard(
-                key: const Key('output-target-console-card'),
-                icon: Icons.drive_file_move_outline,
-                label: _zh ? '输出目标' : 'Output target',
-                title: _zh ? '导入清单' : 'Import manifest',
-                body: '$workspace/workbench_runs/import_manifest',
-                actionIcon: Icons.playlist_add_check_outlined,
-                actionLabel: _zh ? '生成导入清单' : 'Create import manifest',
-              );
-              final gateCard = _ConsoleActionCard(
-                key: const Key('import-gate-console-card'),
-                icon: Icons.verified_user_outlined,
-                label: _zh ? '导入门禁' : 'Import gate',
-                title: _zh ? '等待真实输入' : 'Waiting for input',
-                body: _zh
-                    ? '无 Core 结果不会展示完成'
-                    : 'No Core result, no completed state',
-                actionIcon: Icons.lock_outline,
-                actionLabel: _zh ? '门禁未开放' : 'Gate closed',
-              );
-
-              if (!wide) {
-                return Column(
-                  children: [
-                    sourceCard,
-                    const SizedBox(height: 12),
-                    targetCard,
-                    const SizedBox(height: 12),
-                    gateCard,
-                  ],
-                );
-              }
-
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(flex: 3, child: sourceCard),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    flex: 2,
-                    child: Column(
-                      children: [
-                        targetCard,
-                        const SizedBox(height: 10),
-                        gateCard,
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              _InlineOutputPath(
-                localeCode: localeCode,
-                path: '$workspace/workbench_runs/import_manifest',
-              ),
-            ],
-          ),
+          const SizedBox(height: 12),
+          LayoutBuilder(builder: (context, constraints) {
+            final wide = constraints.maxWidth >= 820;
+            final primary = _DashboardTaskBlock(
+              title: _zh ? '下一步' : 'Next action',
+              value: _zh ? '选择本地文件或文件夹' : 'Choose a local file or folder',
+              icon: Icons.folder_open_outlined,
+              emphasized: true,
+            );
+            final progress = _DashboardTaskBlock(
+              title: _zh ? '当前状态' : 'Current status',
+              value: _statusCopy(current.status, _zh),
+              icon: Icons.hourglass_empty_outlined,
+            );
+            final output = _DashboardTaskBlock(
+              title: _zh ? '输出位置' : 'Output path',
+              value: outputContract.forAction('file_import'),
+              icon: Icons.drive_file_move_outline,
+            );
+            if (!wide) {
+              return Column(children: [
+                primary,
+                const SizedBox(height: 10),
+                progress,
+                const SizedBox(height: 10),
+                output,
+              ]);
+            }
+            return Row(children: [
+              Expanded(flex: 5, child: primary),
+              const SizedBox(width: 10),
+              Expanded(flex: 3, child: progress),
+              const SizedBox(width: 10),
+              Expanded(flex: 4, child: output),
+            ]);
+          }),
+          const SizedBox(height: 12),
+          _DashboardCompactActivity(
+              localeCode: localeCode, workspace: workspace),
         ],
       ),
     );
   }
 }
 
-class _ConsoleActionCard extends StatelessWidget {
-  const _ConsoleActionCard({
-    super.key,
-    required this.icon,
-    required this.label,
+class _DashboardTaskBlock extends StatelessWidget {
+  const _DashboardTaskBlock({
     required this.title,
-    required this.body,
-    required this.actionIcon,
-    required this.actionLabel,
+    required this.value,
+    required this.icon,
     this.emphasized = false,
   });
 
-  final IconData icon;
-  final String label;
   final String title;
-  final String body;
-  final IconData actionIcon;
-  final String actionLabel;
+  final String value;
+  final IconData icon;
   final bool emphasized;
 
   @override
@@ -429,88 +231,36 @@ class _ConsoleActionCard extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: emphasized
-            ? colors.primary.withValues(alpha: 0.05)
+            ? colors.primary.withValues(alpha: 0.06)
             : colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: emphasized
-              ? colors.primary.withValues(alpha: 0.24)
+              ? colors.primary.withValues(alpha: 0.28)
               : colors.outlineVariant,
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: emphasized
-                      ? colors.primary.withValues(alpha: 0.12)
-                      : colors.surface,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: colors.outlineVariant),
-                ),
-                child: Icon(icon,
-                    size: 19,
-                    color:
-                        emphasized ? colors.primary : colors.onSurfaceVariant),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.3,
-                      ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            body,
-            maxLines: emphasized ? 3 : 2,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colors.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-          if (emphasized) ...[
-            const SizedBox(height: 8),
-            const _MaterialFormatStrip(),
-          ],
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: null,
-            icon: Icon(actionIcon),
-            label: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                actionLabel,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            style: OutlinedButton.styleFrom(
-              disabledForegroundColor: colors.onSurfaceVariant,
-              minimumSize: const Size.fromHeight(34),
-              alignment: Alignment.centerLeft,
+          Icon(icon, size: 20, color: colors.primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          fontWeight: FontWeight.w800,
+                        )),
+                const SizedBox(height: 3),
+                Text(value,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        )),
+              ],
             ),
           ),
         ],
@@ -519,46 +269,102 @@ class _ConsoleActionCard extends StatelessWidget {
   }
 }
 
-class _MaterialFormatStrip extends StatelessWidget {
-  const _MaterialFormatStrip();
+class _DashboardCompactActivity extends StatelessWidget {
+  const _DashboardCompactActivity({
+    required this.localeCode,
+    required this.workspace,
+  });
+
+  final String localeCode;
+  final String workspace;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      final wide = constraints.maxWidth >= 820;
+      final outputs = _DashboardMiniList(
+        title: _zh ? '最近输出' : 'Recent Outputs',
+        rows: [
+          [
+            _zh ? '导入清单' : 'Import manifest',
+            '$workspace/workbench_runs/import_manifest'
+          ],
+          [
+            _zh ? '验证报告' : 'Validation report',
+            '$workspace/workbench_runs/validation_report'
+          ],
+        ],
+      );
+      final activity = _DashboardMiniList(
+        title: _zh ? '最近活动' : 'Recent Activity',
+        rows: [
+          [
+            _zh ? '导入阶段' : 'Import stage',
+            _zh ? '等待资料' : 'Waiting for material'
+          ],
+          [_zh ? '完成门禁' : 'Completion gate', _zh ? '保持关闭' : 'Closed'],
+        ],
+      );
+      if (!wide) {
+        return Column(
+            children: [outputs, const SizedBox(height: 10), activity]);
+      }
+      return Row(children: [
+        Expanded(child: outputs),
+        const SizedBox(width: 10),
+        Expanded(child: activity),
+      ]);
+    });
+  }
+}
+
+class _DashboardMiniList extends StatelessWidget {
+  const _DashboardMiniList({required this.title, required this.rows});
+
+  final String title;
+  final List<List<String>> rows;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final formats = ['PDF', 'DOCX', 'PPTX', 'XLSX', 'MD', 'HTML'];
     return Container(
-      key: const Key('material-format-strip'),
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: colors.outlineVariant,
-          strokeAlign: BorderSide.strokeAlignInside,
-        ),
+        color: colors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: colors.outlineVariant),
       ),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        crossAxisAlignment: WrapCrossAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.upload_file_outlined,
-              size: 18, color: colors.onSurfaceVariant),
-          for (final format in formats)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-              decoration: BoxDecoration(
-                color: colors.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: colors.outlineVariant),
-              ),
-              child: Text(
-                format,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: colors.onSurfaceVariant,
-                      fontWeight: FontWeight.w900,
-                    ),
+          Text(title,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 8),
+          for (final row in rows)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children: [
+                  Expanded(
+                      child: Text(row[0],
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelMedium
+                              ?.copyWith(fontWeight: FontWeight.w800))),
+                  const SizedBox(width: 8),
+                  Expanded(
+                      child: Text(row[1],
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: colors.onSurfaceVariant,
+                                  ))),
+                ],
               ),
             ),
         ],
@@ -611,51 +417,6 @@ class _ExecutionBadge extends StatelessWidget {
                       : colors.primary,
                   fontWeight: FontWeight.w900,
                 ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InlineOutputPath extends StatelessWidget {
-  const _InlineOutputPath({
-    required this.localeCode,
-    required this.path,
-  });
-
-  final String localeCode;
-  final String path;
-
-  bool get _zh => localeCode == 'zh-CN';
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 420),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.outlineVariant),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.drive_file_move_outline,
-              size: 18, color: colors.onSurfaceVariant),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              '${_zh ? '输出' : 'Output'}: $path',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colors.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
           ),
         ],
       ),
@@ -802,383 +563,6 @@ class _AdvancedTaskDetails extends StatelessWidget {
   }
 }
 
-class _WorkflowStep {
-  const _WorkflowStep({
-    required this.zhTitle,
-    required this.enTitle,
-    required this.zhNextAction,
-    required this.enNextAction,
-    required this.outputActionId,
-    required this.taskIndex,
-  });
-
-  final String zhTitle;
-  final String enTitle;
-  final String zhNextAction;
-  final String enNextAction;
-  final String outputActionId;
-  final int taskIndex;
-
-  String title(bool zh) => zh ? zhTitle : enTitle;
-
-  String nextAction(bool zh) => zh ? zhNextAction : enNextAction;
-}
-
-const _workflowSteps = <_WorkflowStep>[
-  _WorkflowStep(
-    zhTitle: '导入资料',
-    enTitle: 'Import Materials',
-    zhNextAction: '选择本地文件或文件夹',
-    enNextAction: 'Choose a local file or folder',
-    outputActionId: 'file_import',
-    taskIndex: 0,
-  ),
-  _WorkflowStep(
-    zhTitle: '构建知识库',
-    enTitle: 'Build Knowledge Package',
-    zhNextAction: '检查解析结果并开始切分',
-    enNextAction: 'Review parsed content and start splitting',
-    outputActionId: 'knowledge_splitting',
-    taskIndex: 2,
-  ),
-  _WorkflowStep(
-    zhTitle: '生成 Skill',
-    enTitle: 'Generate Skill',
-    zhNextAction: '确认知识包草稿',
-    enNextAction: 'Confirm the knowledge package draft',
-    outputActionId: 'skill_generation',
-    taskIndex: 3,
-  ),
-  _WorkflowStep(
-    zhTitle: '创建 Agent',
-    enTitle: 'Create Agent',
-    zhNextAction: '配置 Agent 并预览包产物',
-    enNextAction: 'Configure the Agent and preview package artifact',
-    outputActionId: 'agent_package_generation',
-    taskIndex: 4,
-  ),
-  _WorkflowStep(
-    zhTitle: '验证与导出',
-    enTitle: 'Validate & Export',
-    zhNextAction: '验证清单、报告与恢复路径',
-    enNextAction: 'Validate manifests, reports, and recovery paths',
-    outputActionId: 'validation',
-    taskIndex: 5,
-  ),
-];
-
-class _ProductTaskCard extends StatelessWidget {
-  const _ProductTaskCard({
-    required this.step,
-    required this.task,
-    required this.index,
-    required this.localeCode,
-    required this.workspace,
-    this.onRetry,
-    this.onCancel,
-  });
-
-  final _WorkflowStep step;
-  final WorkbenchTaskSnapshot task;
-  final int index;
-  final String localeCode;
-  final String workspace;
-  final ValueChanged<WorkbenchTaskSnapshot>? onRetry;
-  final ValueChanged<WorkbenchTaskSnapshot>? onCancel;
-
-  bool get _zh => localeCode == 'zh-CN';
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final outputContract = CoreOutputPathContract(workspace);
-    final outputPath = outputContract.forAction(step.outputActionId);
-    final canShowActions = (task.status.canRetry && onRetry != null) ||
-        (task.status.canCancel && onCancel != null);
-    return Card(
-      key: Key('workflow-step-${index + 1}'),
-      color: index == 0 ? colors.surface : colors.surfaceContainerLow,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: colors.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 8),
-            decoration: BoxDecoration(
-              color: index == 0
-                  ? colors.primary.withValues(alpha: 0.06)
-                  : colors.surfaceContainerLow,
-              border: Border(bottom: BorderSide(color: colors.outlineVariant)),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _StageNumber(index: index),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        step.title(_zh),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w900),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _zh
-                            ? '工作流阶段 ${index + 1}'
-                            : 'Workflow stage ${index + 1}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: colors.onSurfaceVariant,
-                              fontWeight: FontWeight.w700,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                _StatusPill(status: task.status, localeCode: localeCode),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _TaskProgressSummary(
-                    key: Key('workflow-progress-${index + 1}'),
-                    localeCode: localeCode,
-                    progress: task.progress,
-                    status: task.status,
-                  ),
-                  const SizedBox(height: 8),
-                  _WorkflowCardMeta(
-                    key: Key('workflow-next-action-${index + 1}'),
-                    icon: Icons.arrow_forward_outlined,
-                    label: _zh ? '下一步' : 'Next action',
-                    value: step.nextAction(_zh),
-                  ),
-                  const SizedBox(height: 6),
-                  _WorkflowOutputPill(
-                    key: Key('workflow-output-pill-${index + 1}'),
-                    label: _zh ? '输出位置' : 'Output path',
-                    value: outputPath,
-                  ),
-                  if (canShowActions) ...[
-                    const Spacer(),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        if (task.status.canRetry && onRetry != null)
-                          FilledButton.tonal(
-                            onPressed: () => onRetry!(task),
-                            child: Text(_zh ? '重试' : 'Retry'),
-                          ),
-                        if (task.status.canCancel && onCancel != null)
-                          TextButton(
-                            onPressed: () => onCancel!(task),
-                            child: Text(_zh ? '取消' : 'Cancel'),
-                          ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TaskProgressSummary extends StatelessWidget {
-  const _TaskProgressSummary({
-    super.key,
-    required this.localeCode,
-    required this.progress,
-    required this.status,
-  });
-
-  final String localeCode;
-  final double progress;
-  final WorkbenchTaskStatus status;
-
-  bool get _zh => localeCode == 'zh-CN';
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(9),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: colors.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                '${(progress * 100).round()}%',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  _statusCopy(status, _zh),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: colors.onSurfaceVariant,
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              minHeight: 5,
-              value: progress,
-              backgroundColor: colors.surfaceContainerHighest,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _WorkflowCardMeta extends StatelessWidget {
-  const _WorkflowCardMeta({
-    super.key,
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: colors.outlineVariant),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: colors.outlineVariant),
-            ),
-            child: Icon(icon, size: 16, color: colors.onSurfaceVariant),
-          ),
-          const SizedBox(width: 7),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: colors.onSurfaceVariant,
-                          fontWeight: FontWeight.w800,
-                        )),
-                const SizedBox(height: 2),
-                Text(value,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        )),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _WorkflowOutputPill extends StatelessWidget {
-  const _WorkflowOutputPill({
-    super.key,
-    required this.label,
-    required this.value,
-  });
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: colors.primary.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: colors.primary.withValues(alpha: 0.18)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.folder_open_outlined, size: 16, color: colors.primary),
-          const SizedBox(width: 7),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: colors.primary,
-                  fontWeight: FontWeight.w900,
-                ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: colors.onSurfaceVariant,
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 String _statusCopy(WorkbenchTaskStatus status, bool zh) {
   switch (status) {
     case WorkbenchTaskStatus.pending:
@@ -1195,138 +579,6 @@ String _statusCopy(WorkbenchTaskStatus status, bool zh) {
       return zh ? '已取消' : 'Cancelled';
     case WorkbenchTaskStatus.blocked:
       return zh ? '已阻塞' : 'Blocked';
-  }
-}
-
-class _WorkbenchSummary extends StatelessWidget {
-  const _WorkbenchSummary({
-    required this.localeCode,
-    required this.totalTasks,
-    required this.workspace,
-  });
-
-  final String localeCode;
-  final int totalTasks;
-  final String workspace;
-
-  bool get _zh => localeCode == 'zh-CN';
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.primary.withValues(alpha: 0.04),
-        border: Border.all(color: colors.primary.withValues(alpha: 0.18)),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: colors.primary,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colors.primary.withValues(alpha: 0.18),
-                        blurRadius: 12,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: const SizedBox(
-                    width: 42,
-                    height: 42,
-                    child: Icon(Icons.account_tree_outlined,
-                        color: Colors.white, size: 23),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _HeroBadge(
-                            label:
-                                _zh ? 'Campaign 4 工作台' : 'Campaign 4 Workbench',
-                            icon: Icons.view_quilt_outlined,
-                          ),
-                          _HeroBadge(
-                            label: _zh ? '本地优先' : 'Local first',
-                            icon: Icons.shield_outlined,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        _zh
-                            ? '本地 Agent 知识供应链'
-                            : 'Local Agent Knowledge Supply Chain',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(fontWeight: FontWeight.w900),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _zh
-                            ? '从资料导入到验证导出，所有阶段默认等待真实输入；没有 Core 结果不会展示完成。'
-                            : 'Move from import to validation with every stage waiting for real input; no Core result means no completed state.',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: colors.onSurfaceVariant,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _SummaryMetric(
-                  label: _zh ? '任务阶段' : 'Task stages',
-                  value: '$totalTasks',
-                  icon: Icons.account_tree_outlined,
-                ),
-                _SummaryMetric(
-                  label: _zh ? '默认状态' : 'Default state',
-                  value: _zh
-                      ? _statusCopy(WorkbenchTaskStatus.pending, true)
-                      : WorkbenchTaskStatus.pending.value,
-                  icon: Icons.hourglass_empty_outlined,
-                ),
-                _SummaryMetric(
-                  label: _zh ? '完成规则' : 'Completion rule',
-                  value: _zh ? '结果 + 证据' : 'result + evidence',
-                  icon: Icons.verified_outlined,
-                ),
-                _SummaryMetric(
-                  label: _zh ? '工作区' : 'Workspace',
-                  value: workspace,
-                  icon: Icons.folder_outlined,
-                  wide: true,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            _HeroWorkflowStrip(localeCode: localeCode),
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -1357,151 +609,6 @@ class _HeroBadge extends StatelessWidget {
                   color: colors.onSurfaceVariant,
                   fontWeight: FontWeight.w900,
                 ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HeroWorkflowStrip extends StatelessWidget {
-  const _HeroWorkflowStrip({required this.localeCode});
-
-  final String localeCode;
-
-  bool get _zh => localeCode == 'zh-CN';
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final labels = _zh
-        ? ['导入资料', '构建知识库', '生成 Skill', '创建 Agent', '验证与导出']
-        : [
-            'Import Materials',
-            'Build Knowledge Package',
-            'Generate Skill',
-            'Create Agent',
-            'Validate & Export',
-          ];
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: colors.outlineVariant),
-      ),
-      child: Wrap(
-        spacing: 6,
-        runSpacing: 6,
-        children: [
-          for (var index = 0; index < labels.length; index++)
-            _HeroWorkflowStep(index: index, label: labels[index]),
-        ],
-      ),
-    );
-  }
-}
-
-class _HeroWorkflowStep extends StatelessWidget {
-  const _HeroWorkflowStep({required this.index, required this.label});
-
-  final int index;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 18,
-            height: 18,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: colors.onSurface,
-              shape: BoxShape.circle,
-            ),
-            child: Text(
-              '${index + 1}',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: colors.surface,
-                    fontWeight: FontWeight.w900,
-                  ),
-            ),
-          ),
-          const SizedBox(width: 7),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SummaryMetric extends StatelessWidget {
-  const _SummaryMetric({
-    required this.label,
-    required this.value,
-    required this.icon,
-    this.wide = false,
-  });
-
-  final String label;
-  final String value;
-  final IconData icon;
-  final bool wide;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      width: wide ? 258 : 132,
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: colors.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: colors.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.4,
-                ),
-          ),
-          const SizedBox(height: 5),
-          Row(
-            children: [
-              Icon(icon, size: 16, color: colors.primary),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                ),
-              ),
-            ],
           ),
         ],
       ),
