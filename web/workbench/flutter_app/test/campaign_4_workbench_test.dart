@@ -58,6 +58,8 @@ void main() {
     expect(find.text('查看输出路径'), findsOneWidget);
     expect(find.text('工作流阶段 1'), findsOneWidget);
     expect(find.text('工作流阶段 5'), findsOneWidget);
+    expect(find.byKey(const Key('workflow-next-action-1')), findsOneWidget);
+    expect(find.byKey(const Key('workflow-output-pill-1')), findsOneWidget);
     expect(find.byKey(const Key('workflow-stepper')), findsOneWidget);
     expect(find.byKey(const Key('workbench-advanced-task-details')),
         findsOneWidget);

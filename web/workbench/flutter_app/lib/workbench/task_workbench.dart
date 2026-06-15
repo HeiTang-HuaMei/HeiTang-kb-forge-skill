@@ -138,7 +138,7 @@ class _GuidedWorkflow extends StatelessWidget {
                   crossAxisCount: columns,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  mainAxisExtent: 276,
+                  mainAxisExtent: 292,
                 ),
                 itemBuilder: (context, index) {
                   final step = _workflowSteps[index];
@@ -892,6 +892,7 @@ class _ProductTaskCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final outputContract = CoreOutputPathContract(workspace);
+    final outputPath = outputContract.forAction(step.outputActionId);
     final canShowActions = (task.status.canRetry && onRetry != null) ||
         (task.status.canCancel && onCancel != null);
     return Card(
@@ -963,14 +964,18 @@ class _ProductTaskCard extends StatelessWidget {
                     progress: task.progress,
                     status: task.status,
                   ),
-                  const SizedBox(height: 10),
-                  _ProductTaskLine(
+                  const SizedBox(height: 12),
+                  _WorkflowCardMeta(
+                    key: Key('workflow-next-action-${index + 1}'),
+                    icon: Icons.arrow_forward_outlined,
                     label: _zh ? '下一步' : 'Next action',
                     value: step.nextAction(_zh),
                   ),
-                  _ProductTaskLine(
+                  const SizedBox(height: 8),
+                  _WorkflowOutputPill(
+                    key: Key('workflow-output-pill-${index + 1}'),
                     label: _zh ? '输出位置' : 'Output path',
-                    value: outputContract.forAction(step.outputActionId),
+                    value: outputPath,
                   ),
                   if (canShowActions) ...[
                     const Spacer(),
@@ -1065,8 +1070,72 @@ class _TaskProgressSummary extends StatelessWidget {
   }
 }
 
-class _ProductTaskLine extends StatelessWidget {
-  const _ProductTaskLine({required this.label, required this.value});
+class _WorkflowCardMeta extends StatelessWidget {
+  const _WorkflowCardMeta({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(13),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: colors.outlineVariant),
+            ),
+            child: Icon(icon, size: 16, color: colors.onSurfaceVariant),
+          ),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          fontWeight: FontWeight.w800,
+                        )),
+                const SizedBox(height: 2),
+                Text(value,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        )),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WorkflowOutputPill extends StatelessWidget {
+  const _WorkflowOutputPill({
+    super.key,
+    required this.label,
+    required this.value,
+  });
 
   final String label;
   final String value;
@@ -1074,21 +1143,36 @@ class _ProductTaskLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: colors.primary.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.18)),
+      ),
+      child: Row(
         children: [
-          Text(label,
+          Icon(Icons.folder_open_outlined, size: 16, color: colors.primary),
+          const SizedBox(width: 7),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: colors.primary,
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: colors.onSurfaceVariant,
                     fontWeight: FontWeight.w800,
-                  )),
-          const SizedBox(height: 2),
-          Text(value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall),
+                  ),
+            ),
+          ),
         ],
       ),
     );
