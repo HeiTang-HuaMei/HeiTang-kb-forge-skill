@@ -23,6 +23,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.text('Campaign 4 工作台'), findsOneWidget);
+    expect(find.text('本地优先'), findsOneWidget);
+    expect(find.text('本地 Agent 知识供应链'), findsOneWidget);
     expect(find.text('知识供应链'), findsOneWidget);
     expect(find.text('导入资料'), findsWidgets);
     expect(find.text('构建知识库'), findsWidgets);

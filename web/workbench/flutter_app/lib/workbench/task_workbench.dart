@@ -1030,12 +1030,12 @@ class _WorkbenchSummary extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border.all(color: colors.outlineVariant),
-        borderRadius: BorderRadius.circular(18),
+        color: colors.primary.withValues(alpha: 0.04),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.18)),
+        borderRadius: BorderRadius.circular(22),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1045,27 +1045,50 @@ class _WorkbenchSummary extends StatelessWidget {
                 DecoratedBox(
                   decoration: BoxDecoration(
                     color: colors.primary,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colors.primary.withValues(alpha: 0.18),
+                        blurRadius: 22,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
                   ),
                   child: const SizedBox(
-                    width: 52,
-                    height: 52,
+                    width: 58,
+                    height: 58,
                     child: Icon(Icons.account_tree_outlined,
-                        color: Colors.white, size: 28),
+                        color: Colors.white, size: 30),
                   ),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _HeroBadge(
+                            label:
+                                _zh ? 'Campaign 4 工作台' : 'Campaign 4 Workbench',
+                            icon: Icons.view_quilt_outlined,
+                          ),
+                          _HeroBadge(
+                            label: _zh ? '本地优先' : 'Local first',
+                            icon: Icons.shield_outlined,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
                       Text(
                         _zh
                             ? '本地 Agent 知识供应链'
                             : 'Local Agent Knowledge Supply Chain',
                         style: Theme.of(context)
                             .textTheme
-                            .titleLarge
+                            .headlineSmall
                             ?.copyWith(fontWeight: FontWeight.w900),
                       ),
                       const SizedBox(height: 6),
@@ -1082,7 +1105,7 @@ class _WorkbenchSummary extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
             Wrap(
               spacing: 10,
               runSpacing: 10,
@@ -1090,26 +1113,152 @@ class _WorkbenchSummary extends StatelessWidget {
                 _SummaryMetric(
                   label: _zh ? '任务阶段' : 'Task stages',
                   value: '$totalTasks',
+                  icon: Icons.account_tree_outlined,
                 ),
                 _SummaryMetric(
                   label: _zh ? '默认状态' : 'Default state',
                   value: _zh
                       ? _statusCopy(WorkbenchTaskStatus.pending, true)
                       : WorkbenchTaskStatus.pending.value,
+                  icon: Icons.hourglass_empty_outlined,
                 ),
                 _SummaryMetric(
                   label: _zh ? '完成规则' : 'Completion rule',
                   value: _zh ? '结果 + 证据' : 'result + evidence',
+                  icon: Icons.verified_outlined,
                 ),
                 _SummaryMetric(
                   label: _zh ? '工作区' : 'Workspace',
                   value: workspace,
+                  icon: Icons.folder_outlined,
                   wide: true,
                 ),
               ],
             ),
+            const SizedBox(height: 14),
+            _HeroWorkflowStrip(localeCode: localeCode),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _HeroBadge extends StatelessWidget {
+  const _HeroBadge({required this.label, required this.icon});
+
+  final String label;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: colors.primary),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroWorkflowStrip extends StatelessWidget {
+  const _HeroWorkflowStrip({required this.localeCode});
+
+  final String localeCode;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final labels = _zh
+        ? ['导入资料', '构建知识库', '生成 Skill', '生成 Agent 包', '验证与导出']
+        : [
+            'Import Materials',
+            'Build Knowledge Package',
+            'Generate Skill',
+            'Generate Agent Package',
+            'Validate & Export',
+          ];
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (var index = 0; index < labels.length; index++)
+            _HeroWorkflowStep(index: index, label: labels[index]),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroWorkflowStep extends StatelessWidget {
+  const _HeroWorkflowStep({required this.index, required this.label});
+
+  final int index;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 20,
+            height: 20,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: colors.onSurface,
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              '${index + 1}',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colors.surface,
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+          ),
+          const SizedBox(width: 7),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+        ],
       ),
     );
   }
@@ -1119,11 +1268,13 @@ class _SummaryMetric extends StatelessWidget {
   const _SummaryMetric({
     required this.label,
     required this.value,
+    required this.icon,
     this.wide = false,
   });
 
   final String label;
   final String value;
+  final IconData icon;
   final bool wide;
 
   @override
@@ -1133,8 +1284,8 @@ class _SummaryMetric extends StatelessWidget {
       width: wide ? 280 : 142,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: colors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(13),
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(15),
         border: Border.all(color: colors.outlineVariant),
       ),
       child: Column(
@@ -1149,14 +1300,22 @@ class _SummaryMetric extends StatelessWidget {
                   letterSpacing: 0.4,
                 ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(icon, size: 18, color: colors.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
+              ),
+            ],
           ),
         ],
       ),
