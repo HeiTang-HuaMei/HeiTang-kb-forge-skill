@@ -1457,6 +1457,7 @@ class _WorkbenchSidePanel extends StatelessWidget {
         .length;
     final completion = tasks.isEmpty ? 0.0 : completedCount / tasks.length;
     return Column(
+      key: const Key('workbench-side-panel'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _SidePanelCard(
@@ -1527,12 +1528,14 @@ class _WorkbenchSidePanel extends StatelessWidget {
           title: _zh ? '最近输出' : 'Recent Outputs',
           icon: Icons.folder_open_outlined,
           children: [
-            _SidePanelLine(
-                label: _zh ? '导入清单' : 'Import manifest',
-                value: '$workspace/workbench_runs/import_manifest'),
-            _SidePanelLine(
-                label: _zh ? '验证报告' : 'Validation report',
-                value: '$workspace/workbench_runs/validation_report'),
+            _OutputPathLine(
+              label: _zh ? '导入清单' : 'Import manifest',
+              path: '$workspace/workbench_runs/import_manifest',
+            ),
+            _OutputPathLine(
+              label: _zh ? '验证报告' : 'Validation report',
+              path: '$workspace/workbench_runs/validation_report',
+            ),
           ],
         ),
         const SizedBox(height: 12),
@@ -1541,11 +1544,13 @@ class _WorkbenchSidePanel extends StatelessWidget {
           icon: Icons.timeline_outlined,
           children: [
             _ActivityLine(
+              time: _zh ? '现在' : 'Now',
               icon: Icons.file_upload_outlined,
               title: _zh ? '导入阶段等待资料' : 'Import is waiting for material',
               detail: _zh ? '尚未收到本地输入' : 'No local input received yet',
             ),
             _ActivityLine(
+              time: _zh ? '门禁' : 'Gate',
               icon: Icons.rule_folder_outlined,
               title: _zh ? '完成门禁保持关闭' : 'Completion gate remains closed',
               detail: _zh
@@ -1553,6 +1558,7 @@ class _WorkbenchSidePanel extends StatelessWidget {
                   : 'No real Core result, no completion',
             ),
             _ActivityLine(
+              time: _zh ? '安全' : 'Safe',
               icon: Icons.shield_outlined,
               title: _zh ? '本地优先边界生效' : 'Local-first boundary active',
               detail: _zh ? '云服务默认关闭' : 'Cloud services are off by default',
@@ -1828,13 +1834,79 @@ class _SidePanelLine extends StatelessWidget {
   }
 }
 
+class _OutputPathLine extends StatelessWidget {
+  const _OutputPathLine({required this.label, required this.path});
+
+  final String label;
+  final String path;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      key: Key('side-output-$label'),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: colors.outlineVariant),
+            ),
+            child: Icon(Icons.folder_open_outlined,
+                size: 16, color: colors.onSurfaceVariant),
+          ),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  path,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ActivityLine extends StatelessWidget {
   const _ActivityLine({
+    required this.time,
     required this.icon,
     required this.title,
     required this.detail,
   });
 
+  final String time;
   final IconData icon;
   final String title;
   final String detail;
@@ -1847,6 +1919,19 @@ class _ActivityLine extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(
+            width: 36,
+            child: Text(
+              time,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+          ),
+          const SizedBox(width: 8),
           Container(
             width: 30,
             height: 30,

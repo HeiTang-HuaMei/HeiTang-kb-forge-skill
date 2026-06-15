@@ -45,11 +45,14 @@ void main() {
     expect(find.text('PDF'), findsWidgets);
     expect(find.text('等待本地输入'), findsOneWidget);
     expect(find.text('门禁未开放'), findsOneWidget);
+    expect(find.byKey(const Key('workbench-side-panel')), findsOneWidget);
     expect(find.text('工作台概览'), findsOneWidget);
     expect(find.text('真实完成度'), findsOneWidget);
     expect(find.text('运行状态'), findsOneWidget);
     expect(find.text('输出与活动'), findsOneWidget);
+    expect(find.byKey(const Key('side-output-导入清单')), findsOneWidget);
     expect(find.text('最近活动'), findsOneWidget);
+    expect(find.text('现在'), findsOneWidget);
     expect(find.text('工作台操作'), findsOneWidget);
     expect(find.text('完成门禁保持关闭'), findsOneWidget);
     expect(find.text('查看输出路径'), findsOneWidget);
