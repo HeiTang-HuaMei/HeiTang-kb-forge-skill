@@ -15,11 +15,6 @@ void main() {
   runApp(const HeiTangWorkbenchApp());
 }
 
-const brandAssets = <String>[
-  'assets/brand/black_cat_head.svg',
-  'assets/brand/black_tiger_head.svg',
-];
-
 const supportedLocaleCodes = <String>['zh-CN', 'en-US'];
 
 const pages = <WorkbenchPage>[
@@ -649,7 +644,7 @@ class _SidebarBrand extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(localeCode == 'zh-CN' ? 'HeiTang 黑糖' : 'HeiTang',
+          Text(localeCode == 'zh-CN' ? '黑糖' : 'HeiTang',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: primaryText,
                     fontWeight: FontWeight.w900,
