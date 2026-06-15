@@ -1200,6 +1200,8 @@ class _WorkbenchSidePanel extends StatelessWidget {
       children: [
         _SidePanelCard(
           title: _zh ? '工作台概览' : 'Workbench Overview',
+          icon: Icons.dashboard_customize_outlined,
+          emphasized: true,
           children: [
             _ProgressDial(
               localeCode: localeCode,
@@ -1213,22 +1215,38 @@ class _WorkbenchSidePanel extends StatelessWidget {
                 value: '$completedCount/${tasks.length}'),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
+        _SidePanelSectionLabel(label: _zh ? '运行状态' : 'Run Status'),
+        const SizedBox(height: 8),
         _SidePanelCard(
           title: _zh ? '队列状态' : 'Queue Status',
+          icon: Icons.pending_actions_outlined,
           children: [
-            _SidePanelLine(
-                label: _zh ? '等待任务' : 'Waiting tasks', value: '$pendingCount'),
-            _SidePanelLine(
-                label: _zh ? '运行任务' : 'Running tasks', value: '$runningCount'),
-            _SidePanelLine(
-                label: _zh ? '需处理任务' : 'Needs attention',
-                value: '$failedCount'),
+            _QueueStatusGrid(
+              items: [
+                _QueueStatusItem(
+                  label: _zh ? '等待' : 'Waiting',
+                  value: '$pendingCount',
+                  icon: Icons.hourglass_empty_outlined,
+                ),
+                _QueueStatusItem(
+                  label: _zh ? '运行' : 'Running',
+                  value: '$runningCount',
+                  icon: Icons.play_circle_outline,
+                ),
+                _QueueStatusItem(
+                  label: _zh ? '需处理' : 'Attention',
+                  value: '$failedCount',
+                  icon: Icons.error_outline,
+                ),
+              ],
+            ),
           ],
         ),
         const SizedBox(height: 12),
         _SidePanelCard(
           title: _zh ? '本地执行' : 'Local Execution',
+          icon: Icons.desktop_windows_outlined,
           children: [
             _SidePanelLine(
                 label: _zh ? 'Web 模式' : 'Web mode',
@@ -1241,9 +1259,12 @@ class _WorkbenchSidePanel extends StatelessWidget {
                 value: _zh ? '未完成' : 'Not complete'),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
+        _SidePanelSectionLabel(label: _zh ? '输出与活动' : 'Outputs and Activity'),
+        const SizedBox(height: 8),
         _SidePanelCard(
           title: _zh ? '最近输出' : 'Recent Outputs',
+          icon: Icons.folder_open_outlined,
           children: [
             _SidePanelLine(
                 label: _zh ? '导入清单' : 'Import manifest',
@@ -1256,6 +1277,7 @@ class _WorkbenchSidePanel extends StatelessWidget {
         const SizedBox(height: 12),
         _SidePanelCard(
           title: _zh ? '最近活动' : 'Recent Activity',
+          icon: Icons.timeline_outlined,
           children: [
             _ActivityLine(
               icon: Icons.file_upload_outlined,
@@ -1279,6 +1301,7 @@ class _WorkbenchSidePanel extends StatelessWidget {
         const SizedBox(height: 12),
         _SidePanelCard(
           title: _zh ? '工作台操作' : 'Workbench Actions',
+          icon: Icons.tune_outlined,
           children: [
             _SidePanelAction(
               icon: Icons.compare_arrows_outlined,
@@ -1295,6 +1318,25 @@ class _WorkbenchSidePanel extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _SidePanelSectionLabel extends StatelessWidget {
+  const _SidePanelSectionLabel({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Text(
+      label,
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: colors.onSurfaceVariant,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0.8,
+          ),
     );
   }
 }
@@ -1355,35 +1397,135 @@ class _ProgressDial extends StatelessWidget {
 }
 
 class _SidePanelCard extends StatelessWidget {
-  const _SidePanelCard({required this.title, required this.children});
+  const _SidePanelCard({
+    required this.title,
+    required this.children,
+    this.icon,
+    this.emphasized = false,
+  });
 
   final String title;
   final List<Widget> children;
+  final IconData? icon;
+  final bool emphasized;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Card(
-      color: colors.surface,
+      color:
+          emphasized ? colors.primary.withValues(alpha: 0.05) : colors.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: colors.outlineVariant),
+        borderRadius: BorderRadius.circular(emphasized ? 18 : 16),
+        side: BorderSide(
+          color: emphasized
+              ? colors.primary.withValues(alpha: 0.28)
+              : colors.outlineVariant,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w900)),
+            Row(
+              children: [
+                if (icon != null) ...[
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: emphasized
+                          ? colors.primary.withValues(alpha: 0.12)
+                          : colors.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(11),
+                      border: Border.all(color: colors.outlineVariant),
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 18,
+                      color:
+                          emphasized ? colors.primary : colors.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                ],
+                Expanded(
+                  child: Text(title,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w900)),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             ...children,
           ],
         ),
       ),
+    );
+  }
+}
+
+class _QueueStatusItem {
+  const _QueueStatusItem({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  final String label;
+  final String value;
+  final IconData icon;
+}
+
+class _QueueStatusGrid extends StatelessWidget {
+  const _QueueStatusGrid({required this.items});
+
+  final List<_QueueStatusItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final item in items)
+          Container(
+            width: 78,
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: colors.outlineVariant),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(item.icon, size: 18, color: colors.onSurfaceVariant),
+                const SizedBox(height: 8),
+                Text(
+                  item.value,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  item.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }
