@@ -1760,24 +1760,69 @@ class _ProductPageOverview extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final copy = _ProductPageCopy.forPage(page.id, _zh);
     return Card(
-      color: colors.surfaceContainerLow,
+      color: colors.primary.withValues(alpha: 0.035),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: BorderSide(color: colors.outlineVariant),
+        borderRadius: BorderRadius.circular(22),
+        side: BorderSide(color: colors.primary.withValues(alpha: 0.16)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(22),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(copy.title,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w800)),
-            const SizedBox(height: 8),
-            Text(copy.body, style: Theme.of(context).textTheme.bodyLarge),
-            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    color: colors.primary,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Icon(copy.icon, color: colors.onPrimary, size: 28),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _ProductPageBadge(
+                            icon: Icons.view_agenda_outlined,
+                            label: _zh ? '引导模块' : 'Guided module',
+                          ),
+                          _ProductPageBadge(
+                            icon: Icons.shield_outlined,
+                            label: isWebRuntime
+                                ? (_zh ? 'Web 安全展示' : 'Web-safe view')
+                                : (_zh ? '桌面本地执行' : 'Desktop local run'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(copy.title,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 8),
+                      Text(
+                        copy.body,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: colors.onSurfaceVariant,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
             LayoutBuilder(
               builder: (context, constraints) {
                 final wide = constraints.maxWidth >= 920;
@@ -1818,6 +1863,38 @@ class _ProductPageOverview extends StatelessWidget {
   }
 }
 
+class _ProductPageBadge extends StatelessWidget {
+  const _ProductPageBadge({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: colors.primary),
+          const SizedBox(width: 6),
+          Text(label,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    fontWeight: FontWeight.w900,
+                  )),
+        ],
+      ),
+    );
+  }
+}
+
 class _ProductPageCopy {
   const _ProductPageCopy({
     required this.title,
@@ -1826,6 +1903,7 @@ class _ProductPageCopy {
     required this.outputSuffix,
     required this.steps,
     required this.previewTitle,
+    required this.icon,
   });
 
   final String title;
@@ -1834,6 +1912,7 @@ class _ProductPageCopy {
   final String outputSuffix;
   final List<String> steps;
   final String previewTitle;
+  final IconData icon;
 
   String outputPath(String workspace) => '$workspace/$outputSuffix';
 
@@ -1848,6 +1927,7 @@ class _ProductPageCopy {
           nextAction: zh ? '选择本地文件或文件夹' : 'Choose a local file or folder',
           outputSuffix: 'workbench_runs/import_manifest',
           previewTitle: zh ? '导入清单预览' : 'Import manifest preview',
+          icon: Icons.upload_file_outlined,
           steps: zh
               ? ['选择资料', '确认解析范围', '生成导入清单']
               : [
@@ -1865,6 +1945,7 @@ class _ProductPageCopy {
           nextAction: zh ? '检查解析结果' : 'Review parsed content',
           outputSuffix: 'workbench_runs/knowledge_package',
           previewTitle: zh ? '知识包预览' : 'Knowledge package preview',
+          icon: Icons.inventory_2_outlined,
           steps: zh
               ? ['检查解析结果', '切分知识片段', '整理知识包草稿']
               : [
@@ -1882,6 +1963,7 @@ class _ProductPageCopy {
           nextAction: zh ? '确认知识包草稿' : 'Confirm the package draft',
           outputSuffix: 'workbench_runs/skill_draft',
           previewTitle: zh ? 'Skill 草稿预览' : 'Skill draft preview',
+          icon: Icons.auto_awesome_motion_outlined,
           steps: zh
               ? ['确认知识包', '提炼方法论', '生成 Skill 草稿']
               : [
@@ -1899,6 +1981,7 @@ class _ProductPageCopy {
           nextAction: zh ? '生成包草稿' : 'Generate package draft',
           outputSuffix: 'workbench_runs/agent_package',
           previewTitle: zh ? 'Agent 包预览' : 'Agent package preview',
+          icon: Icons.developer_board_outlined,
           steps: zh
               ? ['选择 Skill 草稿', '生成包结构', '等待验证导出']
               : [
@@ -1916,6 +1999,7 @@ class _ProductPageCopy {
           nextAction: zh ? '验证清单与报告' : 'Validate manifests and reports',
           outputSuffix: 'workbench_runs/validation_report',
           previewTitle: zh ? '验证报告预览' : 'Validation report preview',
+          icon: Icons.fact_check_outlined,
           steps: zh
               ? ['检查输出路径', '验证证据报告', '准备受控导出']
               : [
@@ -1933,6 +2017,7 @@ class _ProductPageCopy {
           nextAction: zh ? '检查工作区路径' : 'Check workspace path',
           outputSuffix: 'workbench_runs/settings',
           previewTitle: zh ? '工作区设置预览' : 'Workspace settings preview',
+          icon: Icons.settings_outlined,
           steps: zh
               ? ['检查工作区', '确认本地执行', '保持安全边界']
               : [

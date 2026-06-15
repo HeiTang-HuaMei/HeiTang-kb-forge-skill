@@ -558,6 +558,8 @@ void main() {
 
     expect(find.text('Skill 生成'), findsWidgets);
     expect(find.text('把知识包转化为经过治理的 Skill 草稿。'), findsOneWidget);
+    expect(find.text('引导模块'), findsOneWidget);
+    expect(find.text('桌面本地执行'), findsWidgets);
     expect(find.text('操作流程'), findsOneWidget);
     expect(find.text('Skill 草稿预览'), findsOneWidget);
     expect(find.text('高级边界详情'), findsOneWidget);
