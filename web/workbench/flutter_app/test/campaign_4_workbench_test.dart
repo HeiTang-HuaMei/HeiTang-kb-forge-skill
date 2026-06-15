@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heitang_workbench/contracts/sample_contracts.dart';
 import 'package:heitang_workbench/main.dart';
-import 'package:heitang_workbench/workbench/task_model.dart';
 import 'package:heitang_workbench/workbench/task_workbench.dart';
 
 void main() {
@@ -28,10 +27,10 @@ void main() {
     expect(find.text('当前任务'), findsOneWidget);
     expect(find.text('本地优先'), findsOneWidget);
     expect(find.text('导入资料'), findsWidgets);
-    expect(find.text('下一步'), findsOneWidget);
+    expect(find.text('一个主操作'), findsOneWidget);
     expect(find.text('选择本地文件或文件夹'), findsOneWidget);
-    expect(find.text('当前状态'), findsOneWidget);
-    expect(find.text('输出位置'), findsOneWidget);
+    expect(find.text('当前阶段状态'), findsOneWidget);
+    expect(find.text('预期产物'), findsOneWidget);
     expect(find.byKey(const Key('workbench-side-panel')), findsOneWidget);
     expect(find.text('工作台概览'), findsOneWidget);
     expect(find.text('真实完成度'), findsOneWidget);
@@ -43,24 +42,11 @@ void main() {
     expect(find.byKey(const Key('workbench-command-panel')), findsNothing);
     expect(find.byKey(const Key('workflow-stepper')), findsNothing);
     expect(find.text('工作流阶段 1'), findsNothing);
-    expect(find.byKey(const Key('workbench-advanced-task-details')),
-        findsOneWidget);
-    await tester.ensureVisible(
-        find.byKey(const Key('workbench-advanced-task-details')));
-    await tester.tap(find.byKey(const Key('workbench-advanced-task-details')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('workbench-input-area')), findsOneWidget);
-    expect(find.byKey(const Key('workbench-progress-area')), findsWidgets);
-    expect(find.byKey(const Key('workbench-output-area')), findsOneWidget);
-    expect(find.byKey(const Key('workbench-evidence-area')), findsOneWidget);
-    expect(find.byKey(const Key('workbench-error-area')), findsOneWidget);
-    expect(find.text('任务进度区'), findsOneWidget);
-    expect(find.textContaining('6 个阶段'), findsOneWidget);
-    expect(find.textContaining('只有真实 Core 结果返回后才能显示已完成'), findsOneWidget);
-    for (final stage in WorkbenchTaskStage.values) {
-      expect(find.byKey(Key('task-card-${stage.id}')), findsOneWidget);
-      expect(find.byKey(Key('task-progress-${stage.id}')), findsOneWidget);
-    }
+    expect(
+        find.byKey(const Key('workbench-advanced-task-details')), findsNothing);
+    expect(find.text('产物交接链'), findsOneWidget);
+    expect(find.textContaining('承接: 新来源'), findsOneWidget);
+    expect(find.textContaining('下一阶段: 解析资料'), findsWidgets);
     expect(find.text('等待开始'), findsWidgets);
     expect(find.text('pending'), findsNothing);
     expect(find.textContaining('Agent Runtime complete'), findsNothing);
@@ -148,7 +134,7 @@ void main() {
         find.byKey(const Key('skill-metadata-source-config')), findsOneWidget);
     expect(find.byKey(const Key('skill-output-preview')), findsOneWidget);
     expect(find.byKey(const Key('skill-validation-summary')), findsOneWidget);
-    expect(find.text('元数据与来源配置'), findsOneWidget);
+    expect(find.text('选择知识包与生成配置'), findsOneWidget);
     expect(find.text('输出结构预览'), findsOneWidget);
     expect(find.text('验证摘要'), findsOneWidget);
     expect(find.text('生成 Skill 草稿'), findsOneWidget);
@@ -177,21 +163,25 @@ void main() {
     expect(find.text('Agent'), findsWidgets);
     expect(find.byKey(const Key('agent-create-edit-form')), findsOneWidget);
     expect(find.text('创建 Agent'), findsOneWidget);
+    expect(find.text('配置模式'), findsOneWidget);
+    expect(find.text('绑定'), findsOneWidget);
+    expect(find.text('预览验证'), findsOneWidget);
+    expect(find.text('保存导出'), findsOneWidget);
+    expect(find.text('创建 Agent 草稿'), findsOneWidget);
+    await tester.tap(find.text('配置模式'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('agent-mode-selection')), findsOneWidget);
     expect(find.text('简单模式'), findsOneWidget);
     expect(find.text('高级模式'), findsOneWidget);
-    expect(find.text('绑定'), findsOneWidget);
-    expect(find.text('预览与导出'), findsOneWidget);
-    expect(find.text('创建 Agent 草稿'), findsOneWidget);
-    await tester.tap(find.text('简单模式'));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-simple-mode')), findsOneWidget);
-    await tester.tap(find.text('高级模式'));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-advanced-mode')), findsOneWidget);
     await tester.tap(find.text('绑定'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-bindings')), findsOneWidget);
-    await tester.tap(find.text('预览与导出'));
+    await tester.tap(find.text('预览验证'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('agent-preview-validation')), findsOneWidget);
+    final saveExport = find.text('保存导出');
+    await tester.ensureVisible(saveExport);
+    await tester.tap(saveExport);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-preview-export')), findsOneWidget);
     expect(find.text('Agent 包'), findsNothing);

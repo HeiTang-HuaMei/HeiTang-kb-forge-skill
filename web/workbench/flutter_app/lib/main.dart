@@ -998,10 +998,21 @@ class _PageSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSkillFactory = page.id == 'skill-factory';
     final isDashboard = page.id == 'dashboard';
+    final diagnosticPage = page.id == 'workspace'
+        ? WorkbenchPage(
+            'workspace',
+            page.enTitle,
+            page.zhTitle,
+            page.enDescription,
+            page.zhDescription,
+            memberPageIds:
+                pages.expand((item) => item.pageIds).toSet().toList(),
+          )
+        : page;
     final cards = _cardsFor(
-        page.id,
+        diagnosticPage.id,
+        diagnosticPage,
         localeCode,
         contracts,
         workflowEvidence,
@@ -1012,7 +1023,7 @@ class _PageSurface extends StatelessWidget {
         methodologyMap);
     final corePanels = <Widget>[];
     final actionById = <String, ContractAction>{};
-    for (final pageId in page.pageIds) {
+    for (final pageId in diagnosticPage.pageIds) {
       for (final action in coreActionsForPage(pageId, contracts)) {
         actionById[action.id] = action;
       }
@@ -1044,6 +1055,18 @@ class _PageSurface extends StatelessWidget {
         ),
       );
     }
+    final diagnostics = _DeveloperDiagnosticsDetails(
+      localeCode: localeCode,
+      cards: cards,
+      columns: columns,
+      corePanels: corePanels,
+      parserBackends: diagnosticPage.pageIds.any(_showsParserBackends)
+          ? parserBackends
+          : null,
+      skillFactoryWorkflow: diagnosticPage.pageIds.any(_showsSkillGovernance)
+          ? skillSuiteWorkflow
+          : null,
+    );
 
     return SingleChildScrollView(
       padding: EdgeInsets.all(columns == 1 ? 14 : 22),
@@ -1074,20 +1097,10 @@ class _PageSurface extends StatelessWidget {
               page: page,
               workspace: coreWorkspace,
               isWebRuntime: isWebRuntime,
+              diagnostics: diagnostics,
             ),
             const SizedBox(height: 20),
           ],
-          _AdvancedBoundaryDetails(
-            localeCode: localeCode,
-            cards: cards,
-            columns: columns,
-            corePanels: corePanels,
-            parserBackends:
-                page.id != 'dashboard' && page.pageIds.any(_showsParserBackends)
-                    ? parserBackends
-                    : null,
-            skillFactoryWorkflow: isSkillFactory ? skillSuiteWorkflow : null,
-          ),
         ],
       ),
     );
@@ -1095,6 +1108,7 @@ class _PageSurface extends StatelessWidget {
 
   List<_CardCopy> _cardsFor(
     String id,
+    WorkbenchPage page,
     String localeCode,
     WorkbenchContracts contracts,
     P1WorkflowEvidence workflowEvidence,
@@ -1790,12 +1804,14 @@ class _ProductPageOverview extends StatefulWidget {
     required this.page,
     required this.workspace,
     required this.isWebRuntime,
+    required this.diagnostics,
   });
 
   final String localeCode;
   final WorkbenchPage page;
   final String workspace;
   final bool isWebRuntime;
+  final Widget diagnostics;
 
   @override
   State<_ProductPageOverview> createState() => _ProductPageOverviewState();
@@ -1811,7 +1827,7 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
       'knowledge-package-management': 3,
       'agent-factory-runtime': 5,
       'reports-audit': 3,
-      'workspace': 3,
+      'workspace': 4,
     };
     final maxTab = (tabCounts[page] ?? 1) - 1;
     if (selectedTab > maxTab) selectedTab = 0;
@@ -1851,6 +1867,7 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
             selectedTab: selectedTab,
             onTabSelected: (index) => setState(() => selectedTab = index),
             isWebRuntime: widget.isWebRuntime,
+            diagnostics: widget.diagnostics,
           ),
       },
     );
@@ -2232,8 +2249,8 @@ class _ImportProductWorkflow extends StatelessWidget {
           icon: Icons.upload_file_outlined,
           title: _zh ? '导入资料' : 'Import Materials',
           description: _zh
-              ? '先建立真实文件队列，再解析、切分并生成导入清单。'
-              : 'Build a real file queue before parsing, splitting, and manifest output.',
+              ? '从本地文件或网页链接建立来源清单，生成导入清单后交给解析资料。'
+              : 'Create a source inventory from local files or a web page URL, then hand the import manifest to parsing.',
           trailing: _StatePill(
             label: isWebRuntime
                 ? (_zh ? 'Web 预览' : 'Web preview')
@@ -2248,22 +2265,22 @@ class _ImportProductWorkflow extends StatelessWidget {
             keyName: 'import-intake-surface',
             accent: true,
             icon: Icons.folder_open_outlined,
-            title: _zh ? '文件 / 文件夹输入' : 'File / Folder Intake',
+            title: _zh ? '来源模式' : 'Source Modes',
             subtitle: _zh
-                ? 'Web 预览不读取本地文件；桌面端接入真实路径后启用。'
-                : 'Web preview does not read local files; desktop path enables intake.',
+                ? '支持两种入口：本地文件或文件夹、网页链接。格式是说明文字，不是可点击筛选器。'
+                : 'Two entry paths are available: local files/folders and a web page URL. Formats are helper text, not filters.',
             children: [
-              Wrap(spacing: 8, runSpacing: 8, children: [
-                for (final format in [
-                  'PDF',
-                  'DOCX',
-                  'PPTX',
-                  'XLSX',
-                  'MD',
-                  'HTML'
-                ])
-                  _StatePill(label: format),
-              ]),
+              _FieldRow(
+                  label: _zh ? '本地文件或文件夹' : 'Local files or folder',
+                  value: _zh
+                      ? '已验证格式：PDF、DOCX、PPTX、XLSX、Markdown、TXT、CSV'
+                      : 'Verified formats: PDF, DOCX, PPTX, XLSX, Markdown, TXT, CSV'),
+              const SizedBox(height: 8),
+              _FieldRow(
+                  label: _zh ? '网页链接' : 'Web page URL',
+                  value: _zh
+                      ? '粘贴单个公开网页链接；不声明登录网站、递归抓取、批量 URL 或动态浏览器抽取。'
+                      : 'Paste one public web page URL; no authenticated sites, recursive crawling, batch URLs, or dynamic browser extraction are claimed.'),
               const SizedBox(height: 10),
               _DisabledAction(
                 label: _zh ? '选择本地文件或文件夹' : 'Choose local file or folder',
@@ -2279,27 +2296,36 @@ class _ImportProductWorkflow extends StatelessWidget {
             children: [
               _ProductTable(
                 columns: _zh
-                    ? ['资料', '类型', '解析', '状态', '下一步']
-                    : ['Material', 'Type', 'Parsing', 'Status', 'Next'],
+                    ? ['来源', '来源类型', '解析准备', '当前状态', '下一步', '输出产物']
+                    : [
+                        'Source',
+                        'Source type',
+                        'Parsing readiness',
+                        'Status',
+                        'Next',
+                        'Output artifact'
+                      ],
                 rows: _zh
                     ? [
-                        ['等待本地文件', '-', '未开始', '待输入', '选择真实路径'],
-                        ['导入清单', 'manifest', '未生成', '等待', '创建导入清单'],
+                        ['等待本地文件', '本地文件或文件夹', '未就绪', '待输入', '选择真实路径', '来源清单'],
+                        ['等待网页链接', '网页链接', '未就绪', '待输入', '粘贴单个公开 URL', '导入清单'],
                       ]
                     : [
                         [
                           'Waiting for local files',
-                          '-',
-                          'Not started',
+                          'Local files or folder',
+                          'Not ready',
                           'Pending',
-                          'Choose real path'
+                          'Choose real path',
+                          'Source inventory'
                         ],
                         [
-                          'Import manifest',
-                          'manifest',
-                          'Not generated',
-                          'Waiting',
-                          'Create manifest'
+                          'Waiting for web URL',
+                          'Web page URL',
+                          'Not ready',
+                          'Pending',
+                          'Paste one public URL',
+                          'Import manifest'
                         ],
                       ],
               ),
@@ -2311,16 +2337,20 @@ class _ImportProductWorkflow extends StatelessWidget {
             title: _zh ? '解析设置' : 'Parser Settings',
             children: [
               _FieldRow(
-                  label: _zh ? '解析范围' : 'Parsing scope',
-                  value: _zh ? '等待资料' : 'Waiting for material'),
+                  label: _zh ? '上游承接物' : 'Upstream input',
+                  value: _zh
+                      ? '来源清单和导入清单'
+                      : 'Source inventory and import manifest'),
               const SizedBox(height: 8),
               _FieldRow(
-                  label: _zh ? '切分策略' : 'Split strategy',
-                  value: _zh ? '中等粒度预览' : 'Medium granularity preview'),
+                  label: _zh ? '当前操作' : 'Current operation',
+                  value: _zh ? '准备解析资料' : 'Prepare material parsing'),
               const SizedBox(height: 8),
               _FieldRow(
-                  label: _zh ? '失败处理' : 'Failure handling',
-                  value: _zh ? '失败项可重试' : 'Failed items can retry'),
+                  label: _zh ? '失败 / 重试 / 阻塞' : 'Failure / retry / blocked',
+                  value: _zh
+                      ? '失败项进入解析恢复信息'
+                      : 'Failures become parsing recovery information'),
             ],
           );
           final manifest = _ProductPanel(
@@ -2333,14 +2363,14 @@ class _ImportProductWorkflow extends StatelessWidget {
                 columns: _zh ? ['字段', '值'] : ['Field', 'Value'],
                 rows: _zh
                     ? [
-                        ['文件数量', '0'],
-                        ['解析报告', '未生成'],
-                        ['完成状态', '等待真实结果'],
+                        ['上游承接物', '新来源'],
+                        ['本阶段产物', 'import manifest / source inventory'],
+                        ['下一阶段', '解析资料'],
                       ]
                     : [
-                        ['File count', '0'],
-                        ['Parsing report', 'Not generated'],
-                        ['Completion state', 'Waiting for real result'],
+                        ['Upstream input', 'New source'],
+                        ['Stage output', 'import manifest / source inventory'],
+                        ['Next stage', 'Parse Materials'],
                       ],
               ),
             ],
@@ -2408,8 +2438,8 @@ class _KnowledgeProductWorkflow extends StatelessWidget {
           icon: Icons.inventory_2_outlined,
           title: _zh ? '知识库' : 'Knowledge Package',
           description: _zh
-              ? '管理知识包、文档解析结果和检索验证流程。'
-              : 'Manage packages, parsed documents, and retrieval verification.',
+              ? '承接解析内容，构建知识包、文档切片清单和质量报告，并交给 Skill。'
+              : 'Consume parsed content, build a package, document/chunk inventory, and quality report, then hand off to Skill.',
         ),
         const SizedBox(height: 12),
         _PageTabs(
@@ -2478,8 +2508,18 @@ class _KnowledgePackageListView extends StatelessWidget {
           _FieldRow(label: zh ? '版本状态' : 'Version state', value: 'draft'),
           const SizedBox(height: 8),
           _FieldRow(
+              label: zh ? '上游承接物' : 'Upstream input',
+              value: zh
+                  ? '解析内容 / 解析报告 / 恢复信息'
+                  : 'Parsed content / parsing report / recovery info'),
+          const SizedBox(height: 8),
+          _FieldRow(
               label: zh ? '质量门禁' : 'Quality gate',
               value: zh ? '等待真实结果' : 'Waiting for real result'),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? '下游交接' : 'Downstream handoff',
+              value: zh ? '生成 Skill' : 'Generate Skill'),
           const SizedBox(height: 8),
           _DisabledAction(
             label: zh ? '构建知识包草稿' : 'Build package draft',
@@ -2522,8 +2562,8 @@ class _DocumentLibraryView extends StatelessWidget {
                 : ['Document', 'Source', 'Parsing', 'chunks', 'Issues'],
             rows: zh
                 ? [
-                    ['等待导入文档', '本地', '未开始', '0', '无'],
-                    ['解析产物', '导入清单', '待生成', '0', '无证据'],
+                    ['等待导入文档', '本地或网页链接', '未开始', '0', '无'],
+                    ['解析产物', '解析资料', '待生成', '0', '无证据'],
                   ]
                 : [
                     [
@@ -2652,8 +2692,8 @@ class _SkillBuilderProductWorkflow extends StatelessWidget {
         icon: Icons.extension_outlined,
         title: _zh ? 'Skill 生成' : 'Skill Builder',
         description: _zh
-            ? '配置元数据、知识源和输出结构，生成前保持草稿边界。'
-            : 'Configure metadata, source, and output structure while staying draft-bound.',
+            ? '选择知识包，配置生成方式和元数据，验证后生成 Skill 草稿并交给 Agent。'
+            : 'Select a Knowledge Package, configure generation and metadata, validate, then hand the Skill draft to Agent.',
       ),
       const SizedBox(height: 12),
       LayoutBuilder(builder: (context, constraints) {
@@ -2661,19 +2701,24 @@ class _SkillBuilderProductWorkflow extends StatelessWidget {
         final config = _ProductPanel(
           keyName: 'skill-metadata-source-config',
           icon: Icons.edit_note_outlined,
-          title: _zh ? '元数据与来源配置' : 'Metadata and Source Configuration',
+          title: _zh ? '选择知识包与生成配置' : 'Package Selection and Generation Config',
           children: [
             _FieldRow(
-                label: _zh ? 'Skill 名称' : 'Skill name',
-                value: _zh ? '等待输入' : 'Waiting for input'),
+                label: _zh ? '上游承接物' : 'Upstream input',
+                value: _zh
+                    ? '现有知识包或刚生成的知识包'
+                    : 'Existing or newly built Knowledge Package'),
             const SizedBox(height: 8),
             _FieldRow(
-                label: _zh ? '知识源' : 'Knowledge source',
-                value: _zh ? '等待知识包草稿' : 'Waiting for package draft'),
+                label: _zh ? '配置生成方式' : 'Generation mode',
+                value:
+                    _zh ? '知识包到 Skill 草稿' : 'Knowledge Package to Skill draft'),
             const SizedBox(height: 8),
             _FieldRow(
-                label: _zh ? '生成模式' : 'Generation mode',
-                value: _zh ? '知识包到 Skill' : 'Package to Skill'),
+                label: _zh ? 'Skill 元数据' : 'Skill metadata',
+                value: _zh
+                    ? '名称、说明、适用任务等待输入'
+                    : 'Name, description, and target task waiting for input'),
           ],
         );
         final output = _ProductPanel(
@@ -2690,12 +2735,14 @@ class _SkillBuilderProductWorkflow extends StatelessWidget {
                       ['prompts/', '提示词', '预览'],
                       ['manifests/', '清单', '预览'],
                       ['reports/', '验证报告', '等待'],
+                      ['handoff/', '交给 Agent', '等待'],
                     ]
                   : [
                       ['SKILL.md', 'Documentation', 'Preview'],
                       ['prompts/', 'Prompts', 'Preview'],
                       ['manifests/', 'Manifests', 'Preview'],
                       ['reports/', 'Validation report', 'Waiting'],
+                      ['handoff/', 'Handoff to Agent', 'Waiting'],
                     ],
             ),
           ],
@@ -2712,6 +2759,10 @@ class _SkillBuilderProductWorkflow extends StatelessWidget {
             _FieldRow(
                 label: _zh ? '可安装性' : 'Installability',
                 value: _zh ? '等待报告' : 'Waiting for report'),
+            const SizedBox(height: 8),
+            _FieldRow(
+                label: _zh ? '下一阶段' : 'Next stage',
+                value: _zh ? '创建 Agent' : 'Create Agent'),
             const SizedBox(height: 8),
             Wrap(spacing: 8, runSpacing: 8, children: [
               _DisabledAction(
@@ -2767,13 +2818,13 @@ class _AgentProductWorkflow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['创建 Agent', '简单模式', '高级模式', '绑定', '预览与导出']
+        ? ['创建 Agent', '配置模式', '绑定', '预览验证', '保存导出']
         : [
             'Create Agent',
-            'Simple Mode',
-            'Advanced Mode',
+            'Configuration Mode',
             'Bindings',
-            'Preview / Export'
+            'Preview and Validate',
+            'Save and Export'
           ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
@@ -2788,9 +2839,9 @@ class _AgentProductWorkflow extends StatelessWidget {
           tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
       const SizedBox(height: 12),
       switch (selectedTab) {
-        1 => _AgentModeView(zh: _zh, advanced: false),
-        2 => _AgentModeView(zh: _zh, advanced: true),
-        3 => _AgentBindingsView(zh: _zh),
+        1 => _AgentModeSelectionView(zh: _zh),
+        2 => _AgentBindingsView(zh: _zh),
+        3 => _AgentPreviewValidationView(zh: _zh),
         4 => _AgentExportView(zh: _zh, workspace: workspace),
         _ => _AgentCreateView(zh: _zh),
       },
@@ -2809,6 +2860,12 @@ class _AgentCreateView extends StatelessWidget {
       icon: Icons.edit_note_outlined,
       title: zh ? '创建 / 编辑 Agent' : 'Create / Edit Agent',
       children: [
+        _FieldRow(
+            label: zh ? '入口路径' : 'Entry path',
+            value: zh
+                ? '供应链预填，或空白 Agent / 模板创建'
+                : 'Supply-chain prefill, blank Agent, or template creation'),
+        const SizedBox(height: 8),
         _FieldRow(
             label: zh ? '名称' : 'Name',
             value: zh ? '等待输入' : 'Waiting for input'),
@@ -2833,47 +2890,56 @@ class _AgentCreateView extends StatelessWidget {
   }
 }
 
-class _AgentModeView extends StatelessWidget {
-  const _AgentModeView({required this.zh, required this.advanced});
+class _AgentModeSelectionView extends StatelessWidget {
+  const _AgentModeSelectionView({required this.zh});
   final bool zh;
-  final bool advanced;
 
   @override
   Widget build(BuildContext context) {
     return _ProductPanel(
-      keyName: advanced ? 'agent-advanced-mode' : 'agent-simple-mode',
-      icon: advanced ? Icons.tune_outlined : Icons.bolt_outlined,
-      title: advanced
-          ? (zh ? '高级模式' : 'Advanced Mode')
-          : (zh ? '简单模式' : 'Simple Mode'),
-      subtitle: advanced
-          ? (zh
-              ? '展示允许的模型、工具、权限和分区字段。'
-              : 'Shows allowed model, tool, permission, and partition fields.')
-          : (zh
-              ? '最少字段创建可验证 Agent 草稿。'
-              : 'Minimal fields for a verifiable Agent draft.'),
+      keyName: 'agent-mode-selection',
+      icon: Icons.tune_outlined,
+      title: zh ? '选择配置模式' : 'Choose Configuration Mode',
+      subtitle: zh
+          ? '简单模式和高级模式是互斥配置选项，不是独立工作流阶段。'
+          : 'Simple and Advanced modes are mutually exclusive configuration choices, not separate workflow stages.',
       children: [
+        _ProductTable(
+          columns: zh ? ['模式', '用途', '能力'] : ['Mode', 'Use', 'Capability'],
+          rows: zh
+              ? [
+                  ['简单模式', '最少字段创建可验证 Agent 草稿', '仅展示'],
+                  ['高级模式', '配置模型、工具、权限和工作区分区字段', '仅展示'],
+                ]
+              : [
+                  [
+                    'Simple Mode',
+                    'Minimal fields for a verifiable Agent draft',
+                    'Display only'
+                  ],
+                  [
+                    'Advanced Mode',
+                    'Configure model, tool, permission, and workspace partition fields',
+                    'Display only'
+                  ],
+                ],
+        ),
+        const SizedBox(height: 8),
         _FieldRow(
             label: zh ? '模型配置' : 'Model configuration',
             value: zh ? '预览' : 'Preview'),
         const SizedBox(height: 8),
-        if (advanced) ...[
-          _FieldRow(
-              label: zh ? 'Tool / MCP' : 'Tool / MCP',
-              value: zh ? '等待配置' : 'Waiting for configuration'),
-          const SizedBox(height: 8),
-          _FieldRow(
-              label: zh ? '权限策略' : 'Permission policy',
-              value: zh ? '预览' : 'Preview'),
-          const SizedBox(height: 8),
-          _FieldRow(
-              label: zh ? '工作区分区' : 'Workspace Partitions',
-              value: zh ? '分区声明预览' : 'Partition declaration preview'),
-        ] else
-          _FieldRow(
-              label: zh ? '输出语气' : 'Output style',
-              value: zh ? '默认' : 'Default'),
+        _FieldRow(
+            label: zh ? 'Tool / MCP' : 'Tool / MCP',
+            value: zh ? '等待配置' : 'Waiting for configuration'),
+        const SizedBox(height: 8),
+        _FieldRow(
+            label: zh ? '权限策略' : 'Permission policy',
+            value: zh ? '预览' : 'Preview'),
+        const SizedBox(height: 8),
+        _FieldRow(
+            label: zh ? '工作区分区' : 'Workspace Partitions',
+            value: zh ? '分区声明预览' : 'Partition declaration preview'),
       ],
     );
   }
@@ -2895,8 +2961,8 @@ class _AgentBindingsView extends StatelessWidget {
           columns: zh ? ['绑定项', '来源', '状态'] : ['Binding', 'Source', 'Status'],
           rows: zh
               ? [
-                  ['目标知识包', '知识库', '等待草稿'],
-                  ['Skill 1', 'Skill 生成', '等待草稿'],
+                  ['知识包', '知识库', '可选 / 等待草稿'],
+                  ['Skill 1', 'Skill 生成', '可选 / 等待草稿'],
                   ['Skill 2', 'Skill 生成', '可选'],
                 ]
               : [
@@ -2905,6 +2971,35 @@ class _AgentBindingsView extends StatelessWidget {
                   ['Skill 2', 'Skill Builder', 'Optional'],
                 ],
         ),
+      ],
+    );
+  }
+}
+
+class _AgentPreviewValidationView extends StatelessWidget {
+  const _AgentPreviewValidationView({required this.zh});
+  final bool zh;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProductPanel(
+      keyName: 'agent-preview-validation',
+      icon: Icons.rule_outlined,
+      title: zh ? '预览与验证' : 'Preview and Validate',
+      children: [
+        _FieldRow(
+            label: zh ? '配置预览' : 'Configuration preview',
+            value: zh ? '等待 Agent 草稿' : 'Waiting for Agent draft'),
+        const SizedBox(height: 8),
+        _FieldRow(
+            label: zh ? '验证状态' : 'Validation status',
+            value: zh ? '等待报告' : 'Waiting for report'),
+        const SizedBox(height: 8),
+        _FieldRow(
+            label: zh ? '失败 / 重试 / 阻塞' : 'Failure / retry / blocked',
+            value: zh
+                ? '失败项交给验证与导出处理'
+                : 'Failures are handled in Validate & Export'),
       ],
     );
   }
@@ -2920,7 +3015,9 @@ class _AgentExportView extends StatelessWidget {
     return _ProductPanel(
       keyName: 'agent-preview-export',
       icon: Icons.archive_outlined,
-      title: zh ? '预览与包导出' : 'Preview and Package Export',
+      title: zh
+          ? '保存版本与导出 Agent package'
+          : 'Save Version and Export Agent package',
       subtitle: '$workspace/workbench_runs/agent_package',
       children: [
         _ProductTable(
@@ -2931,6 +3028,7 @@ class _AgentExportView extends StatelessWidget {
                   ['skills/', 'Skill 引用', '等待'],
                   ['workspace_partitions/', '分区声明', '仅展示'],
                   ['reports/', '验证报告', '等待'],
+                  ['version.json', '版本记录', '等待保存'],
                 ]
               : [
                   ['agent.yaml', 'Agent manifest', 'Preview'],
@@ -2941,6 +3039,7 @@ class _AgentExportView extends StatelessWidget {
                     'Display only'
                   ],
                   ['reports/', 'Validation report', 'Waiting'],
+                  ['version.json', 'Version record', 'Waiting to save'],
                 ],
         ),
       ],
@@ -2973,8 +3072,8 @@ class _ValidateExportProductWorkflow extends StatelessWidget {
         icon: Icons.fact_check_outlined,
         title: _zh ? '验证与导出' : 'Validate & Export',
         description: _zh
-            ? '检查输出、报告和证据，再准备受控导出。'
-            : 'Check outputs, reports, and evidence before controlled export.',
+            ? '接收全部产物，执行验证，处理失败项，再确认受控导出内容。'
+            : 'Receive all artifacts, run validation, handle failures, then confirm controlled export contents.',
       ),
       const SizedBox(height: 12),
       _PageTabs(
@@ -3005,14 +3104,16 @@ class _ValidationChecklistView extends StatelessWidget {
           columns: zh ? ['检查项', '状态', '证据'] : ['Check', 'Status', 'Evidence'],
           rows: zh
               ? [
-                  ['输出路径', '等待', '无真实产物'],
-                  ['报告', '等待', '无真实报告'],
-                  ['恢复路径', '等待', '无失败样本'],
+                  ['接收产物', '等待', '无真实产物'],
+                  ['执行验证', '等待', '无真实报告'],
+                  ['处理失败项', '等待', '无失败样本'],
+                  ['确认导出内容', '等待', '未导出'],
                 ]
               : [
-                  ['Output path', 'Waiting', 'No real artifact'],
-                  ['Reports', 'Waiting', 'No real report'],
-                  ['Recovery path', 'Waiting', 'No failure sample'],
+                  ['Incoming artifacts', 'Waiting', 'No real artifact'],
+                  ['Run validation', 'Waiting', 'No real report'],
+                  ['Handle failures', 'Waiting', 'No failure sample'],
+                  ['Confirm export contents', 'Waiting', 'Not exported'],
                 ],
         ),
       ],
@@ -3111,6 +3212,7 @@ class _SettingsProductWorkflow extends StatelessWidget {
     required this.selectedTab,
     required this.onTabSelected,
     required this.isWebRuntime,
+    required this.diagnostics,
   });
 
   final String localeCode;
@@ -3118,14 +3220,20 @@ class _SettingsProductWorkflow extends StatelessWidget {
   final int selectedTab;
   final ValueChanged<int> onTabSelected;
   final bool isWebRuntime;
+  final Widget diagnostics;
 
   bool get _zh => localeCode == 'zh-CN';
 
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['工作区', '语言与主题', '安全']
-        : ['Workspace', 'Language and Theme', 'Safety'];
+        ? ['工作区', '语言与主题', '安全', '开发者诊断']
+        : [
+            'Workspace',
+            'Language and Theme',
+            'Safety',
+            'Developer Diagnostics'
+          ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.settings_outlined,
@@ -3138,58 +3246,61 @@ class _SettingsProductWorkflow extends StatelessWidget {
       _PageTabs(
           tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
       const SizedBox(height: 12),
-      _ProductPanel(
-        keyName: 'settings-groups',
-        icon: selectedTab == 1
-            ? Icons.language_outlined
-            : selectedTab == 2
-                ? Icons.shield_outlined
-                : Icons.folder_outlined,
-        title: tabs[selectedTab],
-        children: selectedTab == 1
-            ? [
-                _FieldRow(
-                    label: _zh ? '当前语言' : 'Current language',
-                    value: _zh ? '中文' : 'English'),
-                const SizedBox(height: 8),
-                _FieldRow(
-                    label: _zh ? '主题' : 'Theme',
-                    value: _zh ? '跟随切换' : 'Switchable'),
-              ]
-            : selectedTab == 2
-                ? [
-                    _FieldRow(
-                        label: _zh ? '云服务' : 'Cloud services',
-                        value: _zh ? '默认关闭' : 'Off by default'),
-                    const SizedBox(height: 8),
-                    _FieldRow(
-                        label: _zh ? '敏感信息' : 'Sensitive data',
-                        value: _zh ? '不收集' : 'Not collected'),
-                    const SizedBox(height: 8),
-                    _FieldRow(
-                        label: _zh ? '本地执行' : 'Local execution',
-                        value: isWebRuntime
-                            ? (_zh ? 'Web 安全展示' : 'Web-safe view')
-                            : (_zh ? '桌面可用' : 'Desktop available')),
-                  ]
-                : [
-                    _FieldRow(
-                        label: _zh ? '工作区' : 'Workspace', value: workspace),
-                    const SizedBox(height: 8),
-                    _FieldRow(
-                        label: _zh ? '输出目录' : 'Output directory',
-                        value: './workbench_runs'),
-                    const SizedBox(height: 8),
-                    const _FieldRow(
-                        label: 'Core CLI', value: 'heitang-kb-forge'),
-                  ],
-      ),
+      if (selectedTab == 3)
+        diagnostics
+      else
+        _ProductPanel(
+          keyName: 'settings-groups',
+          icon: selectedTab == 1
+              ? Icons.language_outlined
+              : selectedTab == 2
+                  ? Icons.shield_outlined
+                  : Icons.folder_outlined,
+          title: tabs[selectedTab],
+          children: selectedTab == 1
+              ? [
+                  _FieldRow(
+                      label: _zh ? '当前语言' : 'Current language',
+                      value: _zh ? '中文' : 'English'),
+                  const SizedBox(height: 8),
+                  _FieldRow(
+                      label: _zh ? '主题' : 'Theme',
+                      value: _zh ? '跟随切换' : 'Switchable'),
+                ]
+              : selectedTab == 2
+                  ? [
+                      _FieldRow(
+                          label: _zh ? '云服务' : 'Cloud services',
+                          value: _zh ? '默认关闭' : 'Off by default'),
+                      const SizedBox(height: 8),
+                      _FieldRow(
+                          label: _zh ? '敏感信息' : 'Sensitive data',
+                          value: _zh ? '不收集' : 'Not collected'),
+                      const SizedBox(height: 8),
+                      _FieldRow(
+                          label: _zh ? '本地执行' : 'Local execution',
+                          value: isWebRuntime
+                              ? (_zh ? 'Web 安全展示' : 'Web-safe view')
+                              : (_zh ? '桌面可用' : 'Desktop available')),
+                    ]
+                  : [
+                      _FieldRow(
+                          label: _zh ? '工作区' : 'Workspace', value: workspace),
+                      const SizedBox(height: 8),
+                      _FieldRow(
+                          label: _zh ? '输出目录' : 'Output directory',
+                          value: './workbench_runs'),
+                      const SizedBox(height: 8),
+                      const _FieldRow(
+                          label: 'Core CLI', value: 'heitang-kb-forge'),
+                    ],
+        ),
     ]);
   }
 }
 
-class _AdvancedBoundaryDetails extends StatelessWidget {
-  const _AdvancedBoundaryDetails({
+class _DeveloperDiagnosticsDetails extends StatelessWidget {
+  const _DeveloperDiagnosticsDetails({
     required this.localeCode,
     required this.cards,
     required this.columns,
@@ -3211,7 +3322,7 @@ class _AdvancedBoundaryDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return ExpansionTile(
-      key: const Key('advanced-boundary-details'),
+      key: const Key('developer-diagnostics-details'),
       tilePadding: const EdgeInsets.symmetric(horizontal: 16),
       childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       collapsedShape: RoundedRectangleBorder(
@@ -3222,14 +3333,14 @@ class _AdvancedBoundaryDetails extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: colors.outlineVariant),
       ),
-      title: Text(_zh ? '高级边界详情' : 'Advanced Boundary Details',
+      title: Text(_zh ? '开发者诊断' : 'Developer Diagnostics',
           style: Theme.of(context)
               .textTheme
               .titleMedium
               ?.copyWith(fontWeight: FontWeight.w800)),
       subtitle: Text(_zh
-          ? '展开后查看契约、后端矩阵、Core 操作和审计证据。'
-          : 'Expand to inspect contracts, backend matrices, Core actions, and audit evidence.'),
+          ? '默认折叠；仅用于只读技术证据、契约、后端矩阵和 Core 操作。'
+          : 'Collapsed by default; read-only technical evidence, contracts, backend matrices, and Core actions only.'),
       children: [
         _AdvancedBoundarySummary(
           localeCode: localeCode,

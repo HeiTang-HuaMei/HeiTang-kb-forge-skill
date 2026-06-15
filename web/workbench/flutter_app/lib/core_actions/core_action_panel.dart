@@ -103,8 +103,7 @@ class _CoreActionPanelState extends State<CoreActionPanel> {
               const SizedBox(height: 12),
               Divider(color: colors.outlineVariant),
               const SizedBox(height: 8),
-              _ResultLine(
-                  label: _zh ? '状态' : 'Status', value: result!.status),
+              _ResultLine(label: _zh ? '状态' : 'Status', value: result!.status),
               if (result!.outputPath != null)
                 _ResultLine(
                     label: _zh ? '输出位置' : 'Output path',
@@ -117,7 +116,7 @@ class _CoreActionPanelState extends State<CoreActionPanel> {
                     label: _zh ? '说明' : 'Message', value: result!.stderr),
               ExpansionTile(
                 tilePadding: EdgeInsets.zero,
-                title: Text(_zh ? '高级边界详情' : 'Advanced Boundary Details'),
+                title: Text(_zh ? '技术详情' : 'Technical Details'),
                 children: [
                   _ResultLine(label: 'command', value: commandPreview),
                   if (blockedReason != null)
@@ -126,8 +125,7 @@ class _CoreActionPanelState extends State<CoreActionPanel> {
                       label: 'error_id',
                       value: result!.errorId.isEmpty ? '-' : result!.errorId),
                   _ResultLine(
-                      label: 'exit_code',
-                      value: '${result!.exitCode ?? '-'}'),
+                      label: 'exit_code', value: '${result!.exitCode ?? '-'}'),
                   _ResultLine(
                       label: 'retryable', value: '${result!.retryable}'),
                   _ResultLine(

@@ -409,7 +409,7 @@ void main() {
       await tester.tap(find.text(title).first);
       await tester.pumpAndSettle();
       expect(find.text(title), findsWidgets);
-      expect(find.textContaining('Core'), findsWidgets);
+      expect(find.textContaining('blocked_reason'), findsNothing);
       expect(tester.takeException(), isNull);
     }
   });
@@ -427,7 +427,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('passed · full_gate=blocked'), findsNothing);
-    await openAdvancedBoundaryDetails(tester);
+    await openDeveloperDiagnostics(tester);
     expect(find.textContaining('passed · full_gate=blocked'), findsWidgets);
     expect(find.textContaining('drift_count=0'), findsWidgets);
     expect(
@@ -452,7 +452,7 @@ void main() {
 
     expect(find.textContaining('passed · full_gate=ready_for_v4_rc'),
         findsNothing);
-    await openAdvancedBoundaryDetails(tester);
+    await openDeveloperDiagnostics(tester);
     expect(find.textContaining('passed · full_gate=ready_for_v4_rc'),
         findsWidgets);
     expect(find.textContaining('57/57 passed'), findsWidgets);
@@ -484,19 +484,19 @@ void main() {
     await tester.pump();
 
     expect(find.textContaining('S=1 · A=1'), findsNothing);
-    await openAdvancedBoundaryDetails(tester);
+    await openDeveloperDiagnostics(tester);
     expect(find.textContaining('S=1 · A=1'), findsWidgets);
     expect(find.textContaining('planned=1'), findsWidgets);
     expect(find.textContaining('ready=false'), findsWidgets);
     expect(find.textContaining('local_ready=false'), findsWidgets);
-    expect(find.text('运行 Core 操作'), findsNothing);
+    expect(find.text('运行 Core 操作'), findsWidgets);
 
     await tester.tap(find.text('验证与导出').first);
     await tester.pump();
-    expect(find.textContaining('LLM Wiki v2'), findsWidgets);
+    expect(find.textContaining('LLM Wiki v2'), findsNothing);
     expect(
-        find.textContaining('future_adapter/capability_anchor'), findsWidgets);
-    expect(find.text('高级边界详情'), findsOneWidget);
+        find.textContaining('future_adapter/capability_anchor'), findsNothing);
+    expect(find.text('开发者诊断'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -526,7 +526,7 @@ void main() {
     expect(find.text('导入队列'), findsWidgets);
     expect(find.text('解析设置'), findsOneWidget);
     expect(find.text('Parser Backend Matrix'), findsNothing);
-    await openAdvancedBoundaryDetails(tester);
+    await openDeveloperDiagnostics(tester);
     expect(find.text('Parser Backend Matrix'), findsWidgets);
     expect(find.text('Parser/OCR 后端证据面板'), findsOneWidget);
     expect(find.text('Backend Matrix Table'), findsOneWidget);
@@ -537,7 +537,7 @@ void main() {
     expect(find.textContaining('paddleocr:parser-paddleocr'), findsWidgets);
     expect(find.textContaining('unstructured:.md/.txt'), findsWidgets);
     expect(find.textContaining('default_heavy_deps=false'), findsWidgets);
-    expect(find.textContaining('no_static_execution=true'), findsWidgets);
+    expect(find.textContaining('static_runtime=false'), findsWidgets);
     expect(find.textContaining('Failure Mode Report'), findsOneWidget);
     expect(find.textContaining('Fresh Clone Reproducibility'), findsOneWidget);
     expect(find.textContaining('Static Web Workbench'), findsOneWidget);
@@ -569,12 +569,12 @@ void main() {
         find.byKey(const Key('skill-metadata-source-config')), findsOneWidget);
     expect(find.byKey(const Key('skill-output-preview')), findsOneWidget);
     expect(find.byKey(const Key('skill-validation-summary')), findsOneWidget);
-    expect(find.text('元数据与来源配置'), findsOneWidget);
+    expect(find.text('选择知识包与生成配置'), findsOneWidget);
     expect(find.text('输出结构预览'), findsOneWidget);
     expect(find.text('验证摘要'), findsOneWidget);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
-    expect(find.text('高级边界详情'), findsOneWidget);
-    await openAdvancedBoundaryDetails(tester);
+    expect(find.text('开发者诊断'), findsNothing);
+    await openDeveloperDiagnostics(tester);
     expect(find.text('边界摘要'), findsOneWidget);
     expect(find.text('契约证据'), findsOneWidget);
     expect(find.text('只读边界证据'), findsWidgets);
@@ -601,19 +601,26 @@ void main() {
 
     expect(find.text('Create / Edit Agent'), findsOneWidget);
     expect(find.text('Create Agent'), findsWidgets);
-    expect(find.text('Simple Mode'), findsOneWidget);
-    expect(find.text('Advanced Mode'), findsOneWidget);
+    expect(find.text('Configuration Mode'), findsOneWidget);
     expect(find.text('Bindings'), findsOneWidget);
-    expect(find.text('Preview / Export'), findsOneWidget);
+    expect(find.text('Preview and Validate'), findsOneWidget);
+    expect(find.text('Save and Export'), findsOneWidget);
     expect(find.byKey(const Key('agent-create-edit-form')), findsOneWidget);
     expect(find.text('Create Agent draft'), findsOneWidget);
-    await tester.tap(find.text('Advanced Mode'));
+    await tester.tap(find.text('Configuration Mode'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-advanced-mode')), findsOneWidget);
+    expect(find.byKey(const Key('agent-mode-selection')), findsOneWidget);
+    expect(find.text('Simple Mode'), findsOneWidget);
+    expect(find.text('Advanced Mode'), findsOneWidget);
     await tester.tap(find.text('Bindings'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-bindings')), findsOneWidget);
-    await tester.tap(find.text('Preview / Export'));
+    await tester.tap(find.text('Preview and Validate'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('agent-preview-validation')), findsOneWidget);
+    final saveExport = find.text('Save and Export');
+    await tester.ensureVisible(saveExport);
+    await tester.tap(saveExport);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-preview-export')), findsOneWidget);
     expect(find.text('Action Capability Boundary'), findsNothing);
@@ -621,7 +628,7 @@ void main() {
     expect(find.text('agent-factory-runtime'), findsNothing);
     expect(find.textContaining('run_agent'), findsNothing);
     expect(find.textContaining('kb_bound'), findsNothing);
-    expect(find.text('Advanced Boundary Details'), findsOneWidget);
+    expect(find.text('Developer Diagnostics'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -651,7 +658,7 @@ void main() {
 
     await tester.tap(find.text('知识库').first);
     await tester.pumpAndSettle();
-    await openAdvancedBoundaryDetails(tester);
+    await openDeveloperDiagnostics(tester);
     expect(find.text('Run RAG query'), findsOneWidget);
 
     final ragPanel = find.widgetWithText(CoreActionPanel, 'Run RAG query');
@@ -694,7 +701,7 @@ void main() {
 
     await tester.tap(find.text('知识库').first);
     await tester.pumpAndSettle();
-    await openAdvancedBoundaryDetails(tester);
+    await openDeveloperDiagnostics(tester);
     final ragPanel = find.widgetWithText(CoreActionPanel, 'Run RAG query');
     final runButton = find.descendant(
       of: ragPanel,
@@ -738,7 +745,7 @@ void main() {
 
     await tester.tap(find.text('知识库').first);
     await tester.pumpAndSettle();
-    await openAdvancedBoundaryDetails(tester);
+    await openDeveloperDiagnostics(tester);
     final ragPanel = find.widgetWithText(CoreActionPanel, 'Run RAG query');
     final runButton = find.descendant(
       of: ragPanel,
@@ -763,20 +770,43 @@ void main() {
     await tester.tap(find.text('知识库').first);
     await tester.pumpAndSettle();
     expect(find.textContaining('blocked_reason'), findsNothing);
-    await openAdvancedBoundaryDetails(tester);
+    await openDeveloperDiagnostics(tester);
     expect(find.textContaining('provider_required'), findsWidgets);
 
     await tester.tap(find.text('验证与导出').first);
     await tester.pumpAndSettle();
     expect(find.textContaining('blocked_reason'), findsNothing);
-    await openAdvancedBoundaryDetails(tester);
+    await openDeveloperDiagnostics(tester);
     expect(find.textContaining('secret_required'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 }
 
-Future<void> openAdvancedBoundaryDetails(WidgetTester tester) async {
-  final details = find.byKey(const Key('advanced-boundary-details')).first;
+Future<void> openDeveloperDiagnostics(WidgetTester tester) async {
+  if (find.byType(DropdownButtonFormField<int>).evaluate().isNotEmpty) {
+    await tester.tap(find.byType(DropdownButtonFormField<int>));
+    await tester.pumpAndSettle();
+    final settingsItem = find.text('设置').evaluate().isNotEmpty
+        ? find.text('设置').last
+        : find.text('Settings').last;
+    await tester.tap(settingsItem);
+    await tester.pumpAndSettle();
+  } else {
+    final settings = find.text('设置').evaluate().isNotEmpty
+        ? find.text('设置').first
+        : find.text('Settings').first;
+    await tester.tap(settings);
+    await tester.pumpAndSettle();
+  }
+
+  final diagnosticsTab = find.text('开发者诊断').evaluate().isNotEmpty
+      ? find.text('开发者诊断').first
+      : find.text('Developer Diagnostics').first;
+  await tester.ensureVisible(diagnosticsTab);
+  await tester.tap(diagnosticsTab, warnIfMissed: false);
+  await tester.pumpAndSettle();
+
+  final details = find.byKey(const Key('developer-diagnostics-details')).first;
   await tester.ensureVisible(details);
   await tester.pumpAndSettle();
   await tester.tap(details, warnIfMissed: false);

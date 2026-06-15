@@ -70,7 +70,8 @@ void main() {
         contains('--before <before> --after <after>'));
 
     const bridge = LocalCoreBridge();
-    for (final action in actions.where((item) => expectedIds.contains(item.id))) {
+    for (final action
+        in actions.where((item) => expectedIds.contains(item.id))) {
       final request = coreRequestForAction(
         action: action,
         coreCli: 'python',
@@ -93,7 +94,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Knowledge-to-Skill Suite 工作流'), findsNothing);
-    await _openAdvancedBoundaryDetails(tester);
+    await _openDeveloperDiagnostics(tester);
     expect(find.text('Knowledge-to-Skill Suite 工作流'), findsOneWidget);
     expect(find.textContaining('release_candidate'), findsWidgets);
     expect(find.textContaining('Core 证据快照'), findsOneWidget);
@@ -108,7 +109,8 @@ void main() {
 
     await _openTab(tester, 'evidence');
     expect(find.text('Evidence-led operations'), findsOneWidget);
-    expect(find.textContaining('operations.md#review-boundary'), findsOneWidget);
+    expect(
+        find.textContaining('operations.md#review-boundary'), findsOneWidget);
     expect(find.textContaining('confidence=0.94'), findsOneWidget);
 
     await _openTab(tester, 'methodology');
@@ -155,7 +157,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Knowledge-to-Skill Suite 工作流'), findsNothing);
-    await _openAdvancedBoundaryDetails(tester);
+    await _openDeveloperDiagnostics(tester);
     expect(find.text('Knowledge-to-Skill Suite 工作流'), findsOneWidget);
     expect(find.textContaining('Web 仅展示可审计产物'), findsOneWidget);
     expect(find.byKey(const ValueKey('workflow-tab-overview')), findsOneWidget);
@@ -163,8 +165,31 @@ void main() {
   });
 }
 
-Future<void> _openAdvancedBoundaryDetails(WidgetTester tester) async {
-  final finder = find.byKey(const Key('advanced-boundary-details')).first;
+Future<void> _openDeveloperDiagnostics(WidgetTester tester) async {
+  if (find.byType(DropdownButtonFormField<int>).evaluate().isNotEmpty) {
+    await tester.tap(find.byType(DropdownButtonFormField<int>));
+    await tester.pumpAndSettle();
+    final settingsItem = find.text('设置').evaluate().isNotEmpty
+        ? find.text('设置').last
+        : find.text('Settings').last;
+    await tester.tap(settingsItem);
+    await tester.pumpAndSettle();
+  } else {
+    final settings = find.text('设置').evaluate().isNotEmpty
+        ? find.text('设置').first
+        : find.text('Settings').first;
+    await tester.tap(settings);
+    await tester.pumpAndSettle();
+  }
+
+  final diagnosticsTab = find.text('开发者诊断').evaluate().isNotEmpty
+      ? find.text('开发者诊断').first
+      : find.text('Developer Diagnostics').first;
+  await tester.ensureVisible(diagnosticsTab);
+  await tester.tap(diagnosticsTab, warnIfMissed: false);
+  await tester.pumpAndSettle();
+
+  final finder = find.byKey(const Key('developer-diagnostics-details')).first;
   await tester.ensureVisible(finder);
   await tester.pumpAndSettle();
   await tester.tap(finder, warnIfMissed: false);
