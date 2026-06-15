@@ -2,7 +2,7 @@
 
 ## 定位
 
-本文件登记 Campaign 6 Agent Runtime / Memory 及相关后续 Campaign 的外部参考候选。所有项目默认是 `reference_only` 或 `needs_verification`，不得直接接入，不得声明已集成，不得写成已完成 runtime。
+本文件登记 Campaign 6 Agent Foundation 及 Post-9 Agent runtime / Memory 相关外部参考候选。所有项目默认是 `reference_only` 或 `needs_verification`，不得直接接入，不得声明已集成，不得写成已完成 runtime。
 
 真实接入必须另开 verification gate，核验 license、安装方式、依赖体积、安全风险、API/运行依赖、活跃度、官方性、CI 成本、Windows 可运行性和 EXE 体积影响。
 
@@ -10,7 +10,7 @@
 
 | 候选 | 用户提供地址或名称 | 用途 | 建议级别 | 状态 | 禁止 |
 | --- | --- | --- | --- | --- | --- |
-| GBrain | `https://github.com/garrytan/gbrain` | Campaign 6 Agent Runtime / Memory / graph-style reasoning 参考 | A / runtime-memory reference candidate | `needs_verification` | 不得直接接入；不得写成已完成 memory runtime |
+| GBrain | `https://github.com/garrytan/gbrain` | Post-9 Agent Runtime / Memory / graph-style reasoning 参考 | A / runtime-memory reference candidate | `needs_verification` | 不得直接接入；不得写成已完成 memory runtime |
 | CodeGraph | CodeGraph | 代码知识图谱、项目结构理解、Campaign 5/8 审查辅助 | A / architecture reference candidate | `reference_only` | 不得作为 Campaign 4 runtime 依赖 |
 | claude-plugins-official | claude-plugins-official | 插件化工作流、工具链集成参考 | A / plugin workflow reference candidate | `reference_only` | 不得声明与 Claude 插件系统兼容或已接入 |
 | `andrej-karpathy-skills` | andrej-karpathy-skills | Skill 规则组织、MD-based assistant rules 参考 | S / core methodology reference candidate | `reference_only` | 不得直接复制规则体系 |
@@ -39,9 +39,9 @@
 
 未通过 verification gate 的项目不得写成 `integrated`、`ready`、`complete` 或 `runtime dependency`。
 
-## Campaign 6 Runtime 边界
+## Campaign 6 Agent Foundation 边界
 
-Campaign 6 才允许进入 Agent Runtime / Memory。Campaign 4/5 中不得提前声明：
+Campaign 6 进入 Agent Foundation，不进入完整 Agent Runtime / Memory。Campaign 4/5 中不得提前声明：
 
 - Agent Runtime complete。
 - Memory Runtime complete。
@@ -49,7 +49,18 @@ Campaign 6 才允许进入 Agent Runtime / Memory。Campaign 4/5 中不得提前
 - Multi-Agent executable complete。
 - external runtime integrated。
 
-Agent package 只是 package/spec/handoff，不等于 executable runtime。
+Campaign 6 必须完成 Agent 创建、编辑、复制、版本管理、简易模式、复杂模式、知识库绑定、多 Skill 绑定、基础模型配置、基础工具配置、基础权限配置、工作分区声明、Agent spec / manifest、保存、验证、预览和 Agent package 导出。
+
+Agent package 只是 Agent 的导出产物，不等于一级功能区，也不等于 executable runtime。Campaign 6 删除行为只允许 archive 或 recoverable soft deletion，不得实现不可逆物理删除。
+
+Campaign 6 Entry Gate 必须冻结：
+
+- simple-mode field matrix。
+- advanced-mode field matrix。
+- Agent schema。
+- 每个可见动作的 capability classification：`enabled_real`、`disabled_boundary`、`display_only` 或 `omitted`。
+
+Agent Teams、Subagent、Memory Runtime、Compaction、Model Router runtime、Computer Use、Sandbox、A2A 和真实运行隔离均后置到 Post-9 或独立 future gate。
 
 ## EXE 体积边界
 

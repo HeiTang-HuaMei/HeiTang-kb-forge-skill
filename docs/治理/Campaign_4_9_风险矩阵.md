@@ -13,6 +13,7 @@
 | GitHub tag 被误当 Release | tag 存在后宣称 Release complete | tag 和 GitHub Release 分开验收 | `gh release view` 非阻断检查 | 若 release 被误创，停止上报 |
 | UI runtime overclaim | UI 显示 Bridge/Runtime/EXE 已完成 | Campaign 4 只做 UI workbench boundary | UI 文案审查、状态审查 | 停止，改回 planned / blocked |
 | UI 仓库 dirty diff 混入 | 将既有 `kb-forge-skill-ui` dirty diff 当 Campaign 4 实现 | Entry Gate 前只读审查，不修改 UI 仓库 | `git -C ..\kb-forge-skill-ui status --short` | 停止，单独开 UI 审查 |
+| future 功能堆叠 | 当前 UI 堆出 Teams/Subagent/Computer Use/Sandbox/A2A 等不可用功能 | future 能力优先 `omitted`，必要时只写最小 boundary | capability classification 审查 | 停止，改为 omitted 或 disabled_boundary |
 | EXE 体积失控 | Campaign 4-8 引入重型 runtime 或素材 | optional / dependency-gated，size budget 前置 | dependency inventory、asset manifest | 停止，移除默认依赖 |
 
 ## 重复踩坑记忆区
@@ -45,9 +46,13 @@
 | Campaign | 风险 | 防范规则 | 验收检查 | 失败后停止动作 |
 | --- | --- | --- | --- | --- |
 | Campaign 5 | 将孤立 CLI 调用写成 Core Bridge complete | Bridge 必须覆盖稳定任务链路，不允许 arbitrary shell execution | Bridge flow tests、allowlist review | 停止在 Campaign 5 |
-| Campaign 6 | 将 Agent package 写成 executable runtime | Agent Runtime / Memory 必须有真实 runtime 和 isolation 证据 | runtime tests、memory isolation tests | 停止在 Campaign 6 |
+| Campaign 6 | 将 Agent package 写成一级功能区或 executable runtime | Agent 是一级功能区；Agent package 只是导出产物；不宣称 runtime complete | Agent Foundation capability review、no-overclaim audit | 停止在 Campaign 6 |
+| Campaign 6 | Agent Foundation 切得过细，完成后仍只是更复杂的 Agent 包生成器 | Campaign 6 必须闭环创建、模式、KB/Skill 绑定、基础模型/工具/权限/工作分区配置、验证、保存、预览、导出 | Campaign 6 acceptance matrix | 停止在 Campaign 6，不得推给 Campaign 7 |
+| Campaign 6 | 实现不可逆物理删除 | 只允许 archive 或 recoverable soft deletion | deletion behavior tests、rollback review | 停止在 Campaign 6，移除物理删除 |
+| Campaign 7 | 将 Agent 核心字段推迟到配置工程化阶段首次加入 | Campaign 7 只能工程化 Campaign 6 已定义配置 | profile lifecycle tests、field provenance review | 停止在 Campaign 7，退回 Campaign 6 |
 | Campaign 7 | 将硬编码配置写成配置系统 | 配置必须 Profile 化并验证 secret boundary | configuration tests、secret boundary tests | 停止在 Campaign 7 |
 | Campaign 8 | 用 Fast Gate 代替 Full Review | Full Review 必须含 clean clone、Windows runner、UI-Core、docs consistency | full gate evidence | 停止在 Campaign 8 |
+| Campaign 8 | 在 Full Review 中补做缺失的大型 Campaign 6/7 能力 | Campaign 8 只修缺陷和一致性；大型缺失必须退回 owning Campaign | capability gap review、handoff evidence | Fail review，退回所属 Campaign |
 
 ## Campaign 9 EXE 体积风险
 

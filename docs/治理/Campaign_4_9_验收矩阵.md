@@ -41,9 +41,9 @@ skill.json
 | --- | --- | --- | --- | --- |
 | Campaign 4 | UI inventory、导航收敛方案、task-card flow 方案、UI dirty diff 审查 | UI focused tests、状态与进度条验证、无 runtime overclaim | UI handoff，不宣称 Bridge/Runtime/EXE complete | 截图、静态按钮页、计划文档 |
 | Campaign 5 | Campaign 4 handoff accepted、Bridge allowlist 明确 | Core Bridge flow tests、no arbitrary shell execution | Bridge handoff，不宣称 Agent Runtime complete | 单个 CLI 调用 |
-| Campaign 6 | Campaign 5 handoff accepted、runtime scope 明确 | Agent Runtime / Memory tests、isolation tests | Runtime handoff，不宣称 Configuration complete | Agent package spec |
-| Campaign 7 | Campaign 6 handoff accepted、profile schema 明确 | configuration profile tests、secret boundary tests | Config handoff，不宣称 Full Review complete | 硬编码配置 |
-| Campaign 8 | Campaign 7 handoff accepted、full gate plan 明确 | local full pytest、clean clone/worktree pytest、Windows runner parity、UI-Core consistency、docs consistency | Full Review handoff，不宣称 EXE complete | Fast Gate、局部 smoke |
+| Campaign 6 | Campaign 4 Page-Level UI Redesign owner visual acceptance、Campaign 4+5 UI-Bridge Realignment Gate accepted、Campaign 5 handoff accepted、simple/advanced field matrix frozen、Agent schema frozen、visible action capability classification frozen | Agent create/edit/copy/version tests、simple/advanced mode tests、KB and multi-Skill binding tests、basic model/tool/permission/work-partition config tests、validation/save/preview/export Agent package tests、soft deletion/archive tests、no runtime overclaim | Agent Foundation handoff，不宣称 Memory Runtime、Teams/Subagent、Sandbox、A2A 或 EXE complete | Agent package spec alone cannot substitute for Agent Foundation acceptance、未来功能展示页、不可逆物理删除 |
+| Campaign 7 | Campaign 6 handoff accepted、profile lifecycle scope 明确、不得新增 Agent 核心字段 | profile persistence tests、source precedence tests、load/merge tests、migration/backward compatibility tests、secret-safe injection tests、diagnostics tests、runtime availability check tests、reusable profile tests | Config engineering handoff，不宣称 Full Review complete | 首次加入模型/工具/权限/工作分区/模式核心字段、硬编码配置 |
+| Campaign 8 | Campaign 7 handoff accepted、full gate plan 明确、缺失能力退回所属 Campaign 规则确认 | local full pytest、clean clone/worktree pytest、Windows runner parity、UI-Core consistency、docs consistency、Campaign 6/7 capability consistency、no-overclaim audit | Full Review handoff，不宣称 EXE complete | Fast Gate、局部 smoke、补做缺失的大型 Campaign 6/7 能力 |
 | Campaign 9 | Campaign 8 handoff accepted、size budget、package plan | portable package、installer 评估、asset manifest、checksum、dependency inventory、optional dependency exclusion list、launch smoke、clean machine smoke | Release handoff，不自动创建 GitHub Release | 临时压缩包 |
 
 ## Evidence Gate 规则
@@ -81,6 +81,10 @@ skill.json
 
 遇到 429、CI failure、Release Check failure、clean checkout mismatch、Windows runner parity mismatch 时必须停止并记录，不得继续扩展范围。
 
+## Campaign 8 缺失能力处理规则
+
+Campaign 8 可以修复缺陷、一致性问题、测试缺口和文档不一致，但不得实现缺失的大型 Campaign 6/7 能力。若 Full Review 发现 Campaign 6 或 Campaign 7 的主要验收能力缺失，Campaign 8 必须失败，并将问题退回对应 owning Campaign 的 Acceptance / Review Gate。
+
 ## Commit / Push 验收
 
 验证通过后，只提交并推送 8 个允许的 Campaign 4-9 中文计划文档的新增或更新。
@@ -95,5 +99,6 @@ skill.json
 - `docs/治理/Campaign_4_页面与任务卡规划.md`
 - `docs/治理/Campaign_4_状态与进度条规范.md`
 - `docs/治理/Campaign_6_外部运行时参考队列.md`
+- `docs/治理/Campaign_4_5_Superseding_Governance_Note_2026-06-15.md`
 
 禁止提交 `artifacts/audits/current_run/*`、`docs/audits/*`、`docs/governance/*`、`docs/product/*`、`docs/bridge/*`、`docs/testing/*`、`docs/roadmap/*`、`.agents/*` 或 root-level JSON other than `skill.json`。

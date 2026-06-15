@@ -35,11 +35,11 @@ Campaign 4 顶层导航不超过 7 个入口。建议规划为：
 | 导入与解析 | 输入材料到可解析内容 | 文件导入、parsing、OCR optional boundary |
 | 知识构建 | 知识切分和知识包 | knowledge splitting、package draft、validation |
 | Skill 生成 | Knowledge 到 Skill | Skill generation、Skill Suite draft |
-| Agent 包生成 | Agent Creation Package | Agent package generation，不显示 runtime ready |
+| Agent | Agent Foundation / Agent Package Export | Agent 是一级功能区；当前真实能力只呈现 Agent package generation / export，不显示 runtime ready |
 | 验证与报告 | evidence / report | validation、报告、失败矩阵 |
 | 设置与运行边界 | 配置和能力边界 | optional dependency、runtime blocked reason、future bridge status |
 
-以上只是 Campaign 4 UI workbench 导航规划，不代表 Bridge、Agent Runtime、Memory Runtime、EXE 或 Release 已完成。
+以上只是 Campaign 4 UI workbench 导航规划，不代表 Bridge、Agent Runtime、Memory Runtime、EXE 或 Release 已完成。Agent package 只是 Agent 功能区当前可呈现的导出产物，不是一级产品概念本身。
 
 ## Task-card 驱动流程
 

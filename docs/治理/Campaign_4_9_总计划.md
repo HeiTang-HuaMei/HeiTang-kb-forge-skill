@@ -27,9 +27,9 @@ Campaign 4-9 不得推翻 Campaign 1-3 成果：v4.2 clean public repository res
 | --- | --- | --- |
 | Campaign 4 | 完整 UI Workbench | 只做 UI workbench planning / UI implementation boundary；未来主要改动在 `kb-forge-skill-ui` |
 | Campaign 5 | 稳定 Core Bridge | 不在 Campaign 4 宣称 Bridge complete |
-| Campaign 6 | Skill / Agent / Memory 复用 | 不在 Campaign 4/5 宣称 Agent Runtime 或 Memory Runtime complete |
-| Campaign 7 | Profile 化配置系统 | 不把硬编码配置写成最终配置系统 |
-| Campaign 8 | clean clone / Windows runner / UI-Core / docs consistency 全面审查 | 不用局部 smoke 代替 Full Review |
+| Campaign 6 | Agent Foundation 完整闭环 | Agent 是一级功能区；Agent package 只是导出产物；必须闭环创建、模式、绑定、基础配置、验证、保存、预览和导出 |
+| Campaign 7 | Configuration System Engineering | 只工程化 Campaign 6 已定义配置；不得首次加入模型、工具、权限、工作分区或模式核心字段 |
+| Campaign 8 | clean clone / Windows runner / UI-Core / docs consistency 全面审查 | 不用局部 smoke 代替 Full Review；不得补做缺失的大型 Campaign 6/7 能力 |
 | Campaign 9 | 可下载、可运行、可校验的 Windows EXE 包 | 不提前宣称 EXE packaging 或 GitHub Release complete |
 | Final Release | Campaign 9 acceptance 后发布 | 不在 Campaign 9 前创建 GitHub Release |
 
@@ -37,13 +37,51 @@ Campaign 4-9 不得推翻 Campaign 1-3 成果：v4.2 clean public repository res
 
 1. Campaign 4：Goal-Oriented Product UI Workbench。
 2. Campaign 5：Chain-Level Local Core Bridge。
-3. Campaign 6：Agent Runtime / Memory。
-4. Campaign 7：Configuration。
+3. Campaign 6：Agent Foundation。
+4. Campaign 7：Configuration System Engineering。
 5. Campaign 8：Full Testing / Full Review。
 6. Campaign 9：EXE Packaging。
 7. Final Release：Campaign 9 acceptance 后才允许开始。
 
 当前 Campaign 未通过，不得进入下一个 Campaign。CI、Release Check、clean checkout mismatch 或 429 失败后必须停止，不得自动继续修到下个阶段。
+
+## Owner 批准后的 Campaign 6+ 纠偏锁
+
+Campaign 6 只有在以下条件全部满足后才允许开启：
+
+1. Campaign 4 Page-Level UI Redesign 获得 owner visual acceptance。
+2. Campaign 4+5 UI-Bridge Realignment Gate accepted。
+3. Campaign 6 Entry Gate 冻结 simple-mode field matrix、advanced-mode field matrix、Agent schema。
+4. Campaign 6 Entry Gate 为每个可见动作冻结 capability classification：`enabled_real`、`disabled_boundary`、`display_only` 或 `omitted`。
+
+Campaign 6 必须一次完成 Agent Foundation 完整用户链路：
+
+```text
+创建 Agent
+→ 选择简易模式或复杂模式
+→ 绑定知识库和多个 Skill
+→ 配置模型、工具、权限和工作分区
+→ 验证
+→ 保存 / 版本管理
+→ 预览
+→ 导出 Agent package
+```
+
+Campaign 6 必须包含 Agent 创建、编辑、复制、版本管理、简易模式、复杂模式、知识库绑定、多 Skill 绑定、基础模型配置、基础工具配置、基础权限配置、工作分区声明、Agent spec / manifest、保存、验证、预览和导出。Agent package 只是 Agent 的导出产物，不得作为一级功能区名称。
+
+Campaign 6 删除行为只允许 archive 或 recoverable soft deletion。不得实现不可逆物理删除。
+
+Campaign 7 只承接配置系统工程化：Profile 文件化、配置来源优先级、加载与合并、迁移和向后兼容、Secret 安全注入、配置诊断、Runtime availability check、批量复用 Agent Profile。Campaign 7 不得首次加入模型配置、工具配置、权限配置、工作分区、简易模式或复杂模式核心字段。
+
+工作分区边界：
+
+- Campaign 6：工作分区模型、权限声明、路径绑定。
+- Campaign 7：配置加载、迁移、诊断、复用。
+- Post-9：真实运行隔离、Sandbox 和跨 Agent 共享执行。
+
+Campaign 8 允许修复缺陷和一致性问题，但不得实现缺失的大型 Campaign 6/7 能力。若 Full Review 发现大型能力缺失，必须失败并退回所属 Campaign。
+
+Agent Teams、Subagent 策略、Memory Runtime、Compaction、Model Router runtime、Computer Use、Sandbox、A2A 和真实跨 Agent 执行均后置到 Post-9 或独立 future gate。当前 UI 中 future 能力优先 `omitted`，不得堆叠成一页不可用功能。
 
 ## 长任务保障
 
@@ -118,7 +156,7 @@ Campaign 9 必须包含 portable package 方案、installer 方案评估、asset
 | Presenton | PPT 生成、后续输出格式扩展参考 | `reference_only` | 不进入 Campaign 4 核心路径 |
 | NVlabs/LongLive | 长视频生成、高性能模型工程参考 | `future_reference_only` | 不进入 EXE 默认依赖或 Campaign 4-7 主路径 |
 | claude-plugins-official | 插件化工作流、工具链集成参考 | `reference_only` | 不声明与 Claude 插件系统兼容或已接入 |
-| GBrain | Campaign 6 Agent Runtime / Memory / graph-style reasoning 参考 | `needs_verification` | 不得直接接入或写成 memory runtime complete |
+| GBrain | Post-9 Agent runtime / Memory / graph-style reasoning 参考 | `needs_verification` | 不得直接接入或写成 memory runtime complete |
 | HeiTang-governance-skill | Campaign 4-9 治理方法论参考 | `reference_only` | 不得作为 runtime dependency 或复制目录结构 |
 
 ## HeiTang Governance Skill 借鉴边界
