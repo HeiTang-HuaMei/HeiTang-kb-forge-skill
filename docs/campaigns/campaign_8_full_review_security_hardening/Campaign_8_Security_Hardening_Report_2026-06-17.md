@@ -2,7 +2,7 @@
 
 Date: 2026-06-17
 
-Status: campaign8_security_hardening_local_pass_pending_commit_push_ci
+Status: campaign8_security_hardening_accepted_pushed_ci_green
 
 ## Security Regression Matrix
 
@@ -16,6 +16,8 @@ Status: campaign8_security_hardening_local_pass_pending_commit_push_ci
 | Provider / secret redaction | provider registry, optional LLM config, vector DB redaction tests | pass |
 | network opt-in boundary | external/manual evidence and AnySearch provider boundary tests | pass |
 | Computer Use runtime | not enabled | pass |
+| Core remote CI | `05b72ad`, run `27644362304` | pass |
+| UI remote CI | `6b935d6`, run `27645182917` | pass |
 
 ## Security Findings
 

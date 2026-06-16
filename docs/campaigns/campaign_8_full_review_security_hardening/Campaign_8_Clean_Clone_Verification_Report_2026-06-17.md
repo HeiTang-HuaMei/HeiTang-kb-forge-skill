@@ -2,7 +2,7 @@
 
 Date: 2026-06-17
 
-Status: campaign8_clean_clone_local_pass_pending_commit_push_ci
+Status: campaign8_clean_clone_accepted_pushed_ci_green
 
 ## Clean Clone Evidence
 
@@ -16,4 +16,4 @@ Clean clone was performed under `output/campaign8_clean_clone/` using the local 
 
 ## Limits
 
-This is a local clean clone verification, not a separate clean-machine hardware run. Windows runner parity remains covered by remote CI after Campaign 8 push.
+This is a local clean clone verification, not a separate clean-machine hardware run. Windows runner parity is covered by remote CI: Core run `27644362304` and UI run `27645182917` passed.

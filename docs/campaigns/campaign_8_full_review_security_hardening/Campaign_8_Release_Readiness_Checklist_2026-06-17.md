@@ -2,7 +2,7 @@
 
 Date: 2026-06-17
 
-Status: campaign8_release_readiness_local_pass_pending_commit_push_ci
+Status: campaign8_release_readiness_accepted_pushed_ci_green_tagged_rc1
 
 | Checklist Item | Status |
 | --- | --- |
@@ -17,7 +17,9 @@ Status: campaign8_release_readiness_local_pass_pending_commit_push_ci
 | Campaign 9 not started | pass |
 | Computer Use runtime disabled | pass |
 | GitHub Release not created | pass |
+| Core remote CI | pass, run `27644362304` |
+| UI remote CI | pass, run `27645182917` |
 
 ## RC Policy
 
-After Campaign 8 commit/push and remote CI green, tag `v4.3.0-rc1` may be created. GitHub Release must not be created.
+After this final Campaign 8 evidence anchor receives Core remote CI green, tag `v4.3.0-rc1` is created and pushed. GitHub Release must not be created.

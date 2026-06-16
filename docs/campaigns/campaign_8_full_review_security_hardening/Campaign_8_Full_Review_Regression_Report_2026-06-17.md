@@ -2,7 +2,7 @@
 
 Date: 2026-06-17
 
-Status: campaign8_local_regression_pass_pending_commit_push_ci
+Status: campaign8_full_review_security_hardening_accepted_pushed_ci_green_tagged_rc1
 
 ## Scope
 
@@ -20,6 +20,8 @@ Campaign 8 performed full product regression and consistency hardening only. No 
 | UI Flutter build web | built `build\web` |
 | Clean clone focused verification | install pass; `9 passed` |
 | Core/UI `git diff --check` | pass with CRLF warnings only |
+| Core remote CI | `05b72ad`, run `27644362304`, success |
+| UI remote CI | `6b935d6`, run `27645182917`, success |
 
 ## Regression Fixes
 
@@ -27,4 +29,4 @@ Campaign 8 found a UI/Core contract drift in `external_capability_registry.json`
 
 ## Boundaries
 
-Campaign 8 did not enter EXE packaging. Campaign 9 is not started by this report.
+Campaign 8 did not enter EXE packaging. Campaign 9 is not started by this report. The `v4.3.0-rc1` tag is created only after this final evidence anchor receives Core remote CI green; no GitHub Release is created.
