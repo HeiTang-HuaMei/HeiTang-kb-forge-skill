@@ -175,6 +175,7 @@ from heitang_kb_forge.workbench import (
     workflow_artifact_index,
     workflow_status,
     write_external_capability_bundle,
+    write_campaign5_workbench_bridge_reports,
     write_p1_workbench_bundle,
 )
 from heitang_kb_forge.workbench_contracts import generate_workbench_contracts
@@ -2602,6 +2603,15 @@ def workbench_local_user_path_command(
         raise typer.BadParameter("Only --scenario golden_local is supported in P1-RWF-V1")
     result = run_p1_golden_workflows(workspace, output)
     typer.echo(f"P1 local user path: {result['p1_real_workflow_v1_status']}")
+
+
+@app.command("campaign5-workbench-bridge-acceptance")
+def campaign5_workbench_bridge_acceptance_command(
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Write Campaign 5 Workbench Bridge production-grade acceptance evidence."""
+    result = write_campaign5_workbench_bridge_reports(output)
+    typer.echo(f"Campaign 5 Workbench Bridge: {result['final_status']} | Output: {output}")
 
 
 @app.command("workspace-init")

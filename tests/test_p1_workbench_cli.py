@@ -31,6 +31,9 @@ def test_p1_workbench_action_inspect_and_dry_run_cli(tmp_path):
     assert dry_run_result.exit_code == 0, dry_run_result.output
     dry_run = _json(output / "workbench_action_dry_run.json")
     assert dry_run["executes_real_operation"] is False
+    assert dry_run["trace_id"] == "dry_run_inspect_dashboard_status"
+    assert dry_run["product_status"] == "queued"
+    assert dry_run["contract_command"] == dry_run["would_run_command"]
     assert dry_run["output_reports"] == ["report_p1_gate_summary", "report_system_health"]
 
 

@@ -101,11 +101,16 @@ def test_p1_real_workflow_v2_cli_plan_single_action_and_status(tmp_path):
     status = action_result_status(action_output / "query_rewrite")
     assert status["action_id"] == "query_rewrite"
     assert status["status"] == "passed"
+    assert status["product_status"] == "succeeded"
     assert status["assertion_status"] == "passed"
+    assert status["log_id"] == "task_query_rewrite"
+    assert status["user_reason"]
+    assert status["retry_suggestion"] == "No retry is required."
 
     cli_status = runner.invoke(app, ["workbench-action-result-status", "--run-dir", str(action_output / "query_rewrite")])
     assert cli_status.exit_code == 0, cli_status.output
     assert json.loads(cli_status.output)["action_id"] == "query_rewrite"
+    assert json.loads(cli_status.output)["product_status"] == "succeeded"
 
 
 def _json(path):

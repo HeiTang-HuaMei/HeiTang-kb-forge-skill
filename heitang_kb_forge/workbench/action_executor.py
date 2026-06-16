@@ -154,17 +154,25 @@ def run_p1_ready_actions(workspace: Path, output: Path) -> dict:
 def action_result_status(run_dir: Path) -> dict:
     result = _read_json(run_dir / "action_result.json")
     assertion = _read_json(run_dir / "assertion_result.json")
+    error_observation = _read_json(run_dir / "error_observation.json")
     artifacts = _read_json(run_dir / "artifact_index.json").get("artifacts", [])
     reports = _read_json(run_dir / "report_index.json").get("reports", [])
     task_count = len([line for line in (run_dir / "task_events.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]) if (run_dir / "task_events.jsonl").exists() else 0
+    status = result.get("status", "missing")
+    error_id = _result_error_id(result, error_observation)
     return {
         "action_id": result.get("action_id"),
-        "status": result.get("status", "missing"),
+        "status": status,
+        "product_status": _product_status(status),
         "evidence_level": result.get("evidence_level", "missing"),
         "assertion_status": assertion.get("status", "missing"),
         "artifact_count": len(artifacts),
         "report_count": len(reports),
         "task_event_count": task_count,
+        "log_id": f"task_{result.get('action_id', 'missing')}",
+        "error_id": error_id,
+        "user_reason": _user_reason(result, error_observation, error_id),
+        "retry_suggestion": _retry_suggestion(result, error_id),
     }
 
 
@@ -339,6 +347,45 @@ def _failed_error_observation(action, invoke_result) -> dict:
         "stderr_summary": (invoke_result.output or "")[:500],
         "repair_suggestion": error_repair("non_zero_exit")["repair"],
     }
+
+
+def _product_status(status: str) -> str:
+    return {
+        "passed": "succeeded",
+        "failed": "failed",
+        "blocked": "blocked",
+        "review_required": "degraded",
+    }.get(status, "blocked")
+
+
+def _result_error_id(result: dict, error_observation: dict) -> str:
+    if result.get("status") == "passed":
+        return ""
+    if result.get("status") == "blocked":
+        return "core_action_blocked"
+    return error_observation.get("error_code") or "core_action_failed"
+
+
+def _user_reason(result: dict, error_observation: dict, error_id: str) -> str:
+    if result.get("status") == "passed":
+        return "Action succeeded and evidence indexes are available."
+    if result.get("blocked_reason"):
+        return result["blocked_reason"]
+    if error_observation.get("blocked_reason"):
+        return error_observation["blocked_reason"]
+    if error_observation.get("stderr_summary"):
+        return "Core action failed; sanitized command output is available in the run log."
+    return error_id or "No action result is available."
+
+
+def _retry_suggestion(result: dict, error_id: str) -> str:
+    if result.get("status") == "passed":
+        return "No retry is required."
+    if result.get("status") == "blocked":
+        return "Resolve the blocked boundary before retrying."
+    if error_id == "non_zero_exit":
+        return error_repair("non_zero_exit")["repair"]
+    return "Review the sanitized action report and retry only through the allowlisted bridge."
 
 
 def _command_output_manifest(command_output: Path) -> dict:

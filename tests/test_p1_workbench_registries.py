@@ -50,6 +50,7 @@ def test_p1_workbench_task_schema_contains_job_center_fields():
         "failed",
         "blocked",
         "cancelled",
+        "degraded",
         "timed_out",
         "review_required",
     }

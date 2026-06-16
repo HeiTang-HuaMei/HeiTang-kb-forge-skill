@@ -41,6 +41,11 @@ from heitang_kb_forge.workbench.external_capabilities import (
     make_external_capability_bundle,
     write_external_capability_bundle,
 )
+from heitang_kb_forge.workbench.campaign5_bridge_acceptance import (
+    CAMPAIGN5_REPORT_FILES,
+    build_campaign5_workbench_bridge_evidence,
+    write_campaign5_workbench_bridge_reports,
+)
 
 __all__ = [
     "P1_WORKBENCH_OUTPUT_FILES",
@@ -55,8 +60,10 @@ __all__ = [
     "P1_RWF_V2_REPORT_FILES",
     "P1_RWF_V2_USER_PATHS",
     "S_A_CONTRACT_OUTPUT_FILES",
+    "CAMPAIGN5_REPORT_FILES",
     "action_result_status",
     "build_full_ready_action_matrix",
+    "build_campaign5_workbench_bridge_evidence",
     "error_repair",
     "inspect_external_capability",
     "make_external_capability_bundle",
@@ -70,6 +77,7 @@ __all__ = [
     "workflow_artifact_index",
     "workflow_status",
     "write_external_capability_bundle",
+    "write_campaign5_workbench_bridge_reports",
     "write_p1_final_gate_rerun",
     "write_p1_workbench_bundle",
 ]

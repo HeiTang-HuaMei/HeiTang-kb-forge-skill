@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 ActionStatus = Literal["ready", "dry_run", "planned_adapter", "ui_pending", "blocked"]
 CommandKind = Literal["core_cli", "ui_safe_wrapper", "planned_adapter", "not_runnable"]
-TaskStatus = Literal["queued", "running", "succeeded", "failed", "blocked", "cancelled", "timed_out", "review_required"]
+TaskStatus = Literal["queued", "running", "succeeded", "failed", "blocked", "cancelled", "degraded", "timed_out", "review_required"]
 
 
 class WorkbenchModel(BaseModel):
