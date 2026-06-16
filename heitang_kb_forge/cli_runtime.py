@@ -50,6 +50,11 @@ from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_4_0_
 from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_4_0_skill_composer_validation
 from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_4_0_skill_template
 from heitang_kb_forge.campaign_3_closure import write_campaign_3_supplement_4_0_skill_template_validation
+from heitang_kb_forge.campaign6_agent_runtime import (
+    run_campaign6_6a_acceptance,
+    run_campaign6_6b_acceptance,
+    run_campaign6_tool_adapter_gate,
+)
 from heitang_kb_forge.config.loader import load_config
 from heitang_kb_forge.contracts.checker import check_package_contract
 from heitang_kb_forge.contracts.report import make_contract_report
@@ -2612,6 +2617,33 @@ def campaign5_workbench_bridge_acceptance_command(
     """Write Campaign 5 Workbench Bridge production-grade acceptance evidence."""
     result = write_campaign5_workbench_bridge_reports(output)
     typer.echo(f"Campaign 5 Workbench Bridge: {result['final_status']} | Output: {output}")
+
+
+@app.command("campaign6a-single-agent-runtime-acceptance")
+def campaign6a_single_agent_runtime_acceptance_command(
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Run Campaign 6A Single Agent Runtime production-grade acceptance."""
+    result = run_campaign6_6a_acceptance(output)
+    typer.echo(f"Campaign 6A Single Agent Runtime: {result['status']} | Output: {output}")
+
+
+@app.command("campaign6b-advanced-agent-runtime-acceptance")
+def campaign6b_advanced_agent_runtime_acceptance_command(
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Run Campaign 6B Advanced Agent Runtime production-grade acceptance."""
+    result = run_campaign6_6b_acceptance(output)
+    typer.echo(f"Campaign 6B Advanced Agent Runtime: {result['status']} | Output: {output}")
+
+
+@app.command("campaign6-tool-adapter-configuration-gate")
+def campaign6_tool_adapter_configuration_gate_command(
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Run Campaign 6 Tool Adapter Configuration Gate."""
+    result = run_campaign6_tool_adapter_gate(output)
+    typer.echo(f"Campaign 6 Tool Adapter Configuration Gate: {result['status']} | Output: {output}")
 
 
 @app.command("workspace-init")
