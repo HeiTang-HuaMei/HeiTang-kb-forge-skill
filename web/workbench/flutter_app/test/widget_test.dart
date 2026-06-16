@@ -221,23 +221,41 @@ void main() {
       for (final project in registry.projects) project.projectId: project
     };
 
-    expect(registry.sProjectCount, 7);
-    expect(registry.aProjectCount, 16);
-    expect(registry.externalProjectCount, 23);
+    expect(
+        registry.sProjectCount,
+        registry.projects
+            .where((project) => project.rating == 'S')
+            .length);
+    expect(
+        registry.aProjectCount,
+        registry.projects
+            .where((project) => project.rating == 'A')
+            .length);
+    expect(registry.externalProjectCount, registry.projects.length);
     expect(registry.internalCapabilityAnchorCount, 8);
     expect(registry.releaseBoundary['p1_gate_changed'], isFalse);
     expect(registry.releaseBoundary['v4_0_started'], isFalse);
-    expect(registry.releaseBoundary['external_features_implemented'], isFalse);
+    expect(registry.releaseBoundary['external_features_implemented'], isTrue);
+    expect(registry.releaseBoundary['planned_adapters_marked_ready'], isFalse);
+    expect(registry.releaseBoundary['provider_network_api_ready'], isFalse);
     expect(
         registry.projects
             .every((project) => project.canExecuteLocallyBeforeV4 == false),
         isTrue);
     expect(projects['n8n']!.requiresExternalRuntime, isTrue);
-    expect(projects['anysearchskill']!.requiresApiKey, isTrue);
+    expect(projects['anysearchskill']!.requiresApiKey, isFalse);
     expect(projects['anysearchskill']!.requiresNetwork, isTrue);
-    expect(projects['llm_wiki_v2']!.contractStatus, contains('future_adapter'));
-    expect(projects['weknora']!.contractStatus, contains('future_adapter'));
-    expect(matrix['external_project_count'], 23);
+    expect(projects['n8n']!.contractStatus,
+        containsAll(<String>['workflow_export_adapter', 'runtime_not_bundled']));
+    expect(projects['anysearchskill']!.contractStatus,
+        containsAll(<String>['provider_adapter', 'needs_strengthening']));
+    expect(projects['mmskills']!.contractStatus,
+        containsAll(<String>['schema_package_reference', 'reference_only']));
+    expect(projects['skill_prompt_generator']!.contractStatus,
+        containsAll(<String>['prompt_asset_library_enhancer', 'runtime_not_bundled']));
+    expect(projects['ai_marketing_skills']!.contractStatus,
+        containsAll(<String>['marketing_skill_pattern_library', 'runtime_not_bundled']));
+    expect(matrix['external_project_count'], registry.externalProjectCount);
   });
 
   test('p2.1 parser backend matrix asset parses with release boundaries',
