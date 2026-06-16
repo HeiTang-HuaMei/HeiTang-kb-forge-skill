@@ -6603,7 +6603,11 @@ class _RetrievalVerificationViewState
                     ['查询改写', retrievalPrepared ? '完成' : '等待', '保留原问题边界'],
                     ['检索规划', retrievalPrepared ? '混合检索' : '等待', '向量 + 关键词'],
                     ['证据选择', retrievalPrepared ? '3 选 2' : '等待', '只引用本地证据'],
-                    ['交叉验证', retrievalPrepared ? '1 条需复核' : '等待', '外部比对可 opt-in 执行'],
+                    [
+                      '交叉验证',
+                      retrievalPrepared ? '1 条需复核' : '等待',
+                      '外部比对可 opt-in 执行'
+                    ],
                   ]
                 : [
                     [
@@ -6677,8 +6681,8 @@ class _RetrievalVerificationProductWorkflow extends StatelessWidget {
         icon: Icons.manage_search_outlined,
         title: _zh ? '检索与验证' : 'Retrieval & Verification',
         description: _zh
-            ? '查询改写、检索规划、证据选择、重排与本地证据验证；外部比对必须等待 External Source Verification Gate。'
-            : 'Query rewriting, retrieval planning, evidence selection, rerank, and local-evidence verification; external comparison waits for the External Source Verification Gate.',
+            ? '查询改写、检索规划、证据选择、重排、本地证据验证与已授权外部比对。'
+            : 'Query rewriting, retrieval planning, evidence selection, rerank, local-evidence verification, and authorized external comparison.',
       ),
       const SizedBox(height: _DesktopGrid.gutter),
       _RetrievalVerificationView(zh: _zh),
@@ -7128,12 +7132,12 @@ class _AgentInputMappingViewState extends State<_AgentInputMappingView> {
             rows: zh
                 ? [
                     ['创建 / 保存 Agent', '后续阶段', 'Campaign 6'],
-                    ['Provider 绑定', '待接入', 'Provider Runtime Gate'],
+                    ['Provider 绑定', '已验收', '安全 Provider 状态'],
                     ['运行时 / 记忆 / 协作', '后续阶段', 'Post-9'],
                   ]
                 : [
                     ['Create / save Agent', 'Later phase', 'Campaign 6'],
-                    ['Provider binding', 'Pending', 'Provider Runtime Gate'],
+                    ['Provider binding', 'Accepted', 'Secure provider status'],
                     [
                       'Runtime / memory / collaboration',
                       'Later phase',
