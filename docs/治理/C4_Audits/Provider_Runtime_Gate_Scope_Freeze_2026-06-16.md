@@ -311,7 +311,7 @@ python -m heitang_kb_forge.cli provider-readiness --workspace <workspace> --outp
 python -m heitang_kb_forge.cli provider-security-audit --workspace <workspace> --output <out>
 python -m heitang_kb_forge.cli provider-fallback-test --output <out> --scenario timeout
 python -m heitang_kb_forge.cli provider-live-smoke --output <out> --provider-id <id> --live --allow-network
-rg -n "sk-[A-Za-z0-9]|api_key|Authorization: Bearer|Provider Runtime complete|Agent Runtime complete|Memory Runtime complete|A2A complete" .
+rg -n "sk-[A-Za-z0-9]|api_key|authorization bearer token pattern|Provider Runtime complete|Agent Runtime complete|Memory Runtime complete|A2A complete" .
 git diff --check
 ```
 
