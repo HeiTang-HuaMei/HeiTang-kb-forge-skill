@@ -1,0 +1,256 @@
+{
+  "schema_id": "campaign6_agent_runtime_status",
+  "schema_version": "2026-06-17",
+  "final_target": "campaign6a_6b_tool_adapter_production_grade_accepted_pushed_ci_green",
+  "overall_status": "campaign6a_6b_tool_adapter_production_grade_accepted_ui_bound",
+  "scope": {
+    "campaign_6a_started": true,
+    "campaign_6b_started": true,
+    "tool_adapter_configuration_gate_started": true,
+    "campaign_7_started": false,
+    "campaign_8_started": false,
+    "campaign_9_started": false,
+    "computer_use_runtime_enabled": false,
+    "arbitrary_shell_allowed": false,
+    "tag_or_release_allowed": false
+  },
+  "phase_status": [
+    {
+      "phase_id": "campaign6a_single_agent_runtime",
+      "ui_state": "enabled_real",
+      "runtime_status": "pass",
+      "evidence_path": "campaign6a_acceptance_report.json",
+      "user_status": "Single Agent Runtime accepted"
+    },
+    {
+      "phase_id": "campaign6b_advanced_agent_runtime",
+      "ui_state": "enabled_real",
+      "runtime_status": "pass",
+      "evidence_path": "campaign6b_acceptance_report.json",
+      "user_status": "Advanced Agent Runtime accepted"
+    },
+    {
+      "phase_id": "campaign6_tool_adapter_configuration_gate",
+      "ui_state": "enabled_real",
+      "runtime_status": "pass",
+      "evidence_path": "campaign6_tool_adapter_configuration_report.json",
+      "user_status": "Tool Adapter Configuration Gate accepted"
+    },
+    {
+      "phase_id": "computer_use_boundary",
+      "ui_state": "disabled_boundary",
+      "runtime_status": "disabled_boundary",
+      "evidence_path": "computer_use_boundary_threat_model.json",
+      "user_status": "Computer Use boundary only"
+    }
+  ],
+  "agent_types_6a": [
+    {
+      "agent_type": "knowledge_qa_agent",
+      "display_name": "Knowledge QA Agent",
+      "ui_state": "enabled_real",
+      "runtime_status": "succeeded",
+      "real_runtime_paths": [
+        "agent_rag.retrieve_from_package",
+        "agent_rag.answer_from_records"
+      ],
+      "degraded_modes": [
+        "no_evidence",
+        "provider_unavailable"
+      ],
+      "ui_status_fields": [
+        "retrieval",
+        "citations",
+        "confidence",
+        "low_confidence",
+        "evidence_trace"
+      ],
+      "rollback_strategy": "no_mutation_read_only"
+    },
+    {
+      "agent_type": "document_processing_agent",
+      "display_name": "Document Processing Agent",
+      "ui_state": "enabled_real",
+      "runtime_status": "partial_success",
+      "real_runtime_paths": [
+        "document_parsing.batch_import_documents",
+        "document_parsing.write_document_parsing_outputs",
+        "document_generation.generate_document_outputs"
+      ],
+      "degraded_modes": [
+        "unsupported_file",
+        "ocr_unavailable"
+      ],
+      "ui_status_fields": [
+        "batch_status",
+        "failed_file_recovery",
+        "artifact_archive",
+        "partial_success"
+      ],
+      "rollback_strategy": "artifact_manifest_revert_where_supported"
+    },
+    {
+      "agent_type": "skill_builder_agent",
+      "display_name": "Skill Builder Agent",
+      "ui_state": "enabled_real",
+      "runtime_status": "succeeded",
+      "real_runtime_paths": [
+        "skill.generate_skill_package",
+        "skill.validate_structured_skill_package",
+        "skill.run_skill_governance_report"
+      ],
+      "degraded_modes": [
+        "validation_failure"
+      ],
+      "ui_status_fields": [
+        "template",
+        "validation",
+        "governance_report",
+        "package_roundtrip"
+      ],
+      "rollback_strategy": "block_invalid_package_before_acceptance"
+    },
+    {
+      "agent_type": "workbench_operator_agent",
+      "display_name": "Workbench Operator Agent",
+      "ui_state": "enabled_real",
+      "runtime_status": "succeeded",
+      "real_runtime_paths": [
+        "workbench.make_p1_workbench_dry_run",
+        "workbench.run_p1_ready_action",
+        "workbench.action_result_status"
+      ],
+      "degraded_modes": [
+        "unknown_action",
+        "rollback_unavailable"
+      ],
+      "ui_status_fields": [
+        "dry_run",
+        "execute",
+        "status",
+        "cancel",
+        "rollback"
+      ],
+      "rollback_strategy": "rollback_where_action_contract_supports_it"
+    },
+    {
+      "agent_type": "external_verification_agent",
+      "display_name": "External Verification Agent",
+      "ui_state": "enabled_real",
+      "runtime_status": "succeeded",
+      "real_runtime_paths": [
+        "external_sources.verify_claims"
+      ],
+      "degraded_modes": [
+        "unavailable_source",
+        "untrusted_source"
+      ],
+      "ui_status_fields": [
+        "source_trust",
+        "freshness",
+        "contradiction",
+        "citation_trace"
+      ],
+      "rollback_strategy": "no_external_mutation"
+    }
+  ],
+  "advanced_capabilities_6b": [
+    {
+      "capability_id": "long_term_memory",
+      "ui_state": "enabled_real",
+      "runtime_status": "pass",
+      "coverage": [
+        "write",
+        "read",
+        "expiration",
+        "deletion",
+        "audit",
+        "redaction",
+        "workspace_binding",
+        "inspect_delete"
+      ]
+    },
+    {
+      "capability_id": "multi_agent_workflow",
+      "ui_state": "enabled_real",
+      "runtime_status": "pass",
+      "coverage": [
+        "scheduler",
+        "handoff",
+        "dependency_management",
+        "partial_failure",
+        "conflict_handling",
+        "rollback"
+      ]
+    },
+    {
+      "capability_id": "a2a",
+      "ui_state": "enabled_real",
+      "runtime_status": "pass",
+      "coverage": [
+        "message_contract",
+        "permissions",
+        "evidence_refs",
+        "ordering",
+        "idempotency",
+        "denied_message_audit"
+      ]
+    },
+    {
+      "capability_id": "agent_teams",
+      "ui_state": "enabled_real",
+      "runtime_status": "pass",
+      "coverage": [
+        "team_definition",
+        "roles",
+        "tool_permissions",
+        "shared_private_context_boundary",
+        "per_agent_isolation"
+      ]
+    },
+    {
+      "capability_id": "multi_agent_security",
+      "ui_state": "enabled_real",
+      "runtime_status": "pass",
+      "coverage": [
+        "no_cross_agent_secret_leak",
+        "no_permission_escalation",
+        "no_arbitrary_shell",
+        "cross_agent_audit_trace"
+      ]
+    },
+    {
+      "capability_id": "computer_use_boundary",
+      "ui_state": "disabled_boundary",
+      "runtime_status": "disabled_boundary",
+      "coverage": [
+        "threat_model",
+        "future_acceptance_checklist"
+      ]
+    }
+  ],
+  "tool_adapter_gate": {
+    "ui_state": "enabled_real",
+    "provider_runtime_reimplemented": false,
+    "unregistered_third_party_api_integrated": false,
+    "official_channel_tool_adapter_gate_required": true,
+    "secret_plaintext_written": false,
+    "api_config_schema_fields": [
+      "base_url_env",
+      "token_env",
+      "auth_type",
+      "timeout",
+      "retry",
+      "rate_limit",
+      "permission_policy",
+      "redaction"
+    ]
+  },
+  "security_boundaries": {
+    "no_secret_plaintext": true,
+    "no_arbitrary_shell": true,
+    "no_agent_self_authorized_tool": true,
+    "no_cross_agent_secret_or_workspace_access": true,
+    "no_campaign_7_8_9": true
+  }
+}

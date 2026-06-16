@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 import 'core_actions/core_action_panel.dart';
 import 'core_actions/page_action_mapping.dart';
@@ -98,8 +101,8 @@ const pages = <WorkbenchPage>[
       'agent-factory-runtime',
       'Agent Factory',
       'Agent 工厂',
-      'Display Agent Creation Package inputs, preview, and export boundaries without claiming runtime completion.',
-      '展示 Agent Creation Package 输入、预览与导出边界，不宣称运行时已完成。',
+      'Display Campaign 6 Agent Runtime execution status, evidence, degraded modes, and Tool Adapter boundaries.',
+      '展示 Campaign 6 Agent Runtime 执行状态、证据、降级模式与 Tool Adapter 边界。',
       memberPageIds: ['agent-factory-runtime']),
   WorkbenchPage(
       'reports-audit',
@@ -159,6 +162,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
     this.workflowV2Evidence,
     this.externalCapabilities,
     this.parserBackends,
+    this.campaign6AgentRuntimeStatus,
     this.skillGovernanceReport,
     this.methodologyMap,
     this.skillSuiteWorkflow,
@@ -176,6 +180,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
   final P1WorkflowEvidence? workflowV2Evidence;
   final ExternalCapabilityRegistry? externalCapabilities;
   final ParserBackendMatrix? parserBackends;
+  final Map<String, dynamic>? campaign6AgentRuntimeStatus;
   final Map<String, dynamic>? skillGovernanceReport;
   final Map<String, dynamic>? methodologyMap;
   final Map<String, dynamic>? skillSuiteWorkflow;
@@ -230,6 +235,16 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
           .loadFromAsset('assets/parser_backends/parser_backend_matrix.json')
           .catchError((_) => sampleParserBackendMatrix)
       : Future<ParserBackendMatrix>.value(widget.parserBackends);
+  late final Future<
+      Map<String, dynamic>> _campaign6AgentRuntimeStatusFuture = widget
+              .campaign6AgentRuntimeStatus ==
+          null
+      ? rootBundle
+          .loadString(
+              'assets/contracts/campaign6_agent_runtime_status_2026_06_17.json')
+          .then((source) => jsonDecode(source) as Map<String, dynamic>)
+          .catchError((_) => sampleCampaign6AgentRuntimeStatus)
+      : Future<Map<String, dynamic>>.value(widget.campaign6AgentRuntimeStatus);
   late final Future<Map<String, dynamic>> _skillGovernanceReportFuture =
       Future<Map<String, dynamic>>.value(
           widget.skillGovernanceReport ?? sampleSkillGovernanceReport);
@@ -280,42 +295,50 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
                 initialData: widget.parserBackends ?? sampleParserBackendMatrix,
                 builder: (context, parserSnapshot) =>
                     FutureBuilder<Map<String, dynamic>>(
-                  future: _skillGovernanceReportFuture,
-                  initialData: widget.skillGovernanceReport ??
-                      sampleSkillGovernanceReport,
-                  builder: (context, skillGovernanceSnapshot) =>
-                      _WorkbenchScaffold(
-                    contracts:
-                        contractsSnapshot.data ?? sampleWorkbenchContracts,
-                    workflowEvidence:
-                        evidenceSnapshot.data ?? sampleP1WorkflowEvidence,
-                    workflowV2Evidence:
-                        v2Snapshot.data ?? sampleP1WorkflowV2Evidence,
-                    externalCapabilities: externalSnapshot.data ??
-                        sampleExternalCapabilityRegistry,
-                    parserBackends:
-                        parserSnapshot.data ?? sampleParserBackendMatrix,
-                    skillGovernanceReport: skillGovernanceSnapshot.data ??
+                  future: _campaign6AgentRuntimeStatusFuture,
+                  initialData: widget.campaign6AgentRuntimeStatus ??
+                      sampleCampaign6AgentRuntimeStatus,
+                  builder: (context, campaign6Snapshot) =>
+                      FutureBuilder<Map<String, dynamic>>(
+                    future: _skillGovernanceReportFuture,
+                    initialData: widget.skillGovernanceReport ??
                         sampleSkillGovernanceReport,
-                    methodologyMap:
-                        widget.methodologyMap ?? sampleMethodologyMap,
-                    skillSuiteWorkflow: widget.skillSuiteWorkflow,
-                    localeCode: localeCode,
-                    themeMode: themeMode,
-                    selectedIndex: selectedIndex,
-                    isDark: isDark,
-                    coreBridge: widget.coreBridge,
-                    coreCli: widget.coreCli,
-                    coreWorkingDirectory: widget.coreWorkingDirectory,
-                    coreWorkspace: widget.coreWorkspace,
-                    enableLocalCoreActions: widget.enableLocalCoreActions,
-                    isWebRuntime: widget.isWebRuntime,
-                    onThemeChanged: (value) =>
-                        setState(() => themeMode = value),
-                    onLocaleChanged: (value) =>
-                        setState(() => localeCode = value),
-                    onPageChanged: (index) =>
-                        setState(() => selectedIndex = index),
+                    builder: (context, skillGovernanceSnapshot) =>
+                        _WorkbenchScaffold(
+                      contracts:
+                          contractsSnapshot.data ?? sampleWorkbenchContracts,
+                      workflowEvidence:
+                          evidenceSnapshot.data ?? sampleP1WorkflowEvidence,
+                      workflowV2Evidence:
+                          v2Snapshot.data ?? sampleP1WorkflowV2Evidence,
+                      externalCapabilities: externalSnapshot.data ??
+                          sampleExternalCapabilityRegistry,
+                      parserBackends:
+                          parserSnapshot.data ?? sampleParserBackendMatrix,
+                      campaign6AgentRuntimeStatus: campaign6Snapshot.data ??
+                          sampleCampaign6AgentRuntimeStatus,
+                      skillGovernanceReport: skillGovernanceSnapshot.data ??
+                          sampleSkillGovernanceReport,
+                      methodologyMap:
+                          widget.methodologyMap ?? sampleMethodologyMap,
+                      skillSuiteWorkflow: widget.skillSuiteWorkflow,
+                      localeCode: localeCode,
+                      themeMode: themeMode,
+                      selectedIndex: selectedIndex,
+                      isDark: isDark,
+                      coreBridge: widget.coreBridge,
+                      coreCli: widget.coreCli,
+                      coreWorkingDirectory: widget.coreWorkingDirectory,
+                      coreWorkspace: widget.coreWorkspace,
+                      enableLocalCoreActions: widget.enableLocalCoreActions,
+                      isWebRuntime: widget.isWebRuntime,
+                      onThemeChanged: (value) =>
+                          setState(() => themeMode = value),
+                      onLocaleChanged: (value) =>
+                          setState(() => localeCode = value),
+                      onPageChanged: (index) =>
+                          setState(() => selectedIndex = index),
+                    ),
                   ),
                 ),
               ),
@@ -385,6 +408,7 @@ class _DesktopWorkbench extends StatelessWidget {
     required this.workflowV2Evidence,
     required this.externalCapabilities,
     required this.parserBackends,
+    required this.campaign6AgentRuntimeStatus,
     required this.skillGovernanceReport,
     required this.methodologyMap,
     required this.skillSuiteWorkflow,
@@ -409,6 +433,7 @@ class _DesktopWorkbench extends StatelessWidget {
   final P1WorkflowEvidence workflowV2Evidence;
   final ExternalCapabilityRegistry externalCapabilities;
   final ParserBackendMatrix parserBackends;
+  final Map<String, dynamic> campaign6AgentRuntimeStatus;
   final Map<String, dynamic> skillGovernanceReport;
   final Map<String, dynamic> methodologyMap;
   final Map<String, dynamic>? skillSuiteWorkflow;
@@ -454,6 +479,7 @@ class _DesktopWorkbench extends StatelessWidget {
                   workflowV2Evidence: workflowV2Evidence,
                   externalCapabilities: externalCapabilities,
                   parserBackends: parserBackends,
+                  campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
                   skillGovernanceReport: skillGovernanceReport,
                   methodologyMap: methodologyMap,
                   skillSuiteWorkflow: skillSuiteWorkflow,
@@ -982,6 +1008,7 @@ class _PageSurface extends StatelessWidget {
     required this.workflowV2Evidence,
     required this.externalCapabilities,
     required this.parserBackends,
+    required this.campaign6AgentRuntimeStatus,
     required this.skillGovernanceReport,
     required this.methodologyMap,
     required this.skillSuiteWorkflow,
@@ -1006,6 +1033,7 @@ class _PageSurface extends StatelessWidget {
   final P1WorkflowEvidence workflowV2Evidence;
   final ExternalCapabilityRegistry externalCapabilities;
   final ParserBackendMatrix parserBackends;
+  final Map<String, dynamic> campaign6AgentRuntimeStatus;
   final Map<String, dynamic> skillGovernanceReport;
   final Map<String, dynamic> methodologyMap;
   final Map<String, dynamic>? skillSuiteWorkflow;
@@ -1145,6 +1173,7 @@ class _PageSurface extends StatelessWidget {
                       localeCode: localeCode,
                       page: page,
                       workspace: coreWorkspace,
+                      campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
                       isWebRuntime: isWebRuntime,
                       diagnostics: diagnostics,
                     ),
@@ -1459,6 +1488,7 @@ class _WorkbenchScaffold extends StatelessWidget {
     required this.workflowV2Evidence,
     required this.externalCapabilities,
     required this.parserBackends,
+    required this.campaign6AgentRuntimeStatus,
     required this.skillGovernanceReport,
     required this.methodologyMap,
     required this.skillSuiteWorkflow,
@@ -1482,6 +1512,7 @@ class _WorkbenchScaffold extends StatelessWidget {
   final P1WorkflowEvidence workflowV2Evidence;
   final ExternalCapabilityRegistry externalCapabilities;
   final ParserBackendMatrix parserBackends;
+  final Map<String, dynamic> campaign6AgentRuntimeStatus;
   final Map<String, dynamic> skillGovernanceReport;
   final Map<String, dynamic> methodologyMap;
   final Map<String, dynamic>? skillSuiteWorkflow;
@@ -1510,6 +1541,7 @@ class _WorkbenchScaffold extends StatelessWidget {
           workflowV2Evidence: workflowV2Evidence,
           externalCapabilities: externalCapabilities,
           parserBackends: parserBackends,
+          campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
           skillGovernanceReport: skillGovernanceReport,
           methodologyMap: methodologyMap,
           skillSuiteWorkflow: skillSuiteWorkflow,
@@ -2948,6 +2980,7 @@ class _ProductPageOverview extends StatefulWidget {
     required this.localeCode,
     required this.page,
     required this.workspace,
+    required this.campaign6AgentRuntimeStatus,
     required this.isWebRuntime,
     required this.diagnostics,
   });
@@ -2955,6 +2988,7 @@ class _ProductPageOverview extends StatefulWidget {
   final String localeCode;
   final WorkbenchPage page;
   final String workspace;
+  final Map<String, dynamic> campaign6AgentRuntimeStatus;
   final bool isWebRuntime;
   final Widget diagnostics;
 
@@ -3021,6 +3055,7 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
         'agent-factory-runtime' => _AgentProductWorkflow(
             localeCode: widget.localeCode,
             workspace: widget.workspace,
+            campaign6AgentRuntimeStatus: widget.campaign6AgentRuntimeStatus,
             selectedTab: selectedTab,
             onTabSelected: (index) => setState(() => selectedTab = index),
           ),
@@ -6969,12 +7004,14 @@ class _AgentProductWorkflow extends StatelessWidget {
   const _AgentProductWorkflow({
     required this.localeCode,
     required this.workspace,
+    required this.campaign6AgentRuntimeStatus,
     required this.selectedTab,
     required this.onTabSelected,
   });
 
   final String localeCode;
   final String workspace;
+  final Map<String, dynamic> campaign6AgentRuntimeStatus;
   final int selectedTab;
   final ValueChanged<int> onTabSelected;
 
@@ -6983,39 +7020,50 @@ class _AgentProductWorkflow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['输入映射', '配置预览', 'Package 预览', '导出边界']
+        ? ['执行总览', '单 Agent', '多 Agent / Memory', 'Tool Adapter']
         : [
-            'Input Mapping',
-            'Configuration Preview',
-            'Package Preview',
-            'Export Boundary'
+            'Execution Overview',
+            'Single Agents',
+            'Multi-Agent / Memory',
+            'Tool Adapter'
           ];
+    final phases = _campaign6List(campaign6AgentRuntimeStatus['phase_status']);
+    final agents =
+        _campaign6List(campaign6AgentRuntimeStatus['agent_types_6a']);
+    final advanced =
+        _campaign6List(campaign6AgentRuntimeStatus['advanced_capabilities_6b']);
+    final toolAdapter =
+        _campaign6Map(campaign6AgentRuntimeStatus['tool_adapter_gate']);
+    final acceptedPhases = phases
+        .where((item) => item['runtime_status'] == 'pass')
+        .length
+        .toString();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.smart_toy_outlined,
-        title: _zh ? 'Agent 工厂' : 'Agent Factory',
+        title: _zh ? 'Agent Runtime' : 'Agent Runtime',
         description: _zh
-            ? '展示现有 Agent Creation Package 的输入映射、配置预览、包预览与导出边界；不实现 Campaign 6 Agent Foundation。'
-            : 'Display existing Agent Creation Package input mapping, configuration preview, package preview, and export boundary; Campaign 6 Agent Foundation is not implemented.',
+            ? '展示 Campaign 6A / 6B / Tool Adapter Configuration Gate 的已验收运行状态、证据、降级和边界。'
+            : 'Shows accepted Campaign 6A / 6B / Tool Adapter Configuration Gate runtime status, evidence, degraded modes, and boundaries.',
       ),
       const SizedBox(height: _DesktopGrid.gutter),
       _MetricStrip(
         items: [
           _MetricDatum(
-              label: _zh ? 'Package 输入' : 'Package inputs',
-              value: '3',
-              detail: _zh ? '知识库/Skill/模板' : 'KB/Skill/template',
-              icon: Icons.input_outlined),
+              label: _zh ? '6A Agent' : '6A Agents',
+              value: agents.length.toString(),
+              detail: _zh ? '五类真实 workflow' : 'real workflows',
+              icon: Icons.psychology_alt_outlined),
           _MetricDatum(
-              label: _zh ? '模式' : 'Modes',
-              value: '2',
-              detail: _zh ? '简单/高级预览' : 'simple/advanced',
-              icon: Icons.tune_outlined),
+              label: _zh ? '6B 能力' : '6B Areas',
+              value: advanced.length.toString(),
+              detail: _zh ? 'Memory / A2A / Teams' : 'Memory / A2A / Teams',
+              icon: Icons.hub_outlined),
           _MetricDatum(
-              label: _zh ? '保存 Agent' : 'Save Agent',
-              value: _zh ? '后续阶段' : 'Later phase',
-              detail: 'Campaign 6',
-              icon: Icons.block_outlined),
+              label: _zh ? 'Gate' : 'Gates',
+              value: acceptedPhases,
+              detail: toolAdapter['ui_state']?.toString() ?? 'enabled_real',
+              icon: Icons.fact_check_outlined),
         ],
       ),
       const SizedBox(height: _DesktopGrid.gutter),
@@ -7023,12 +7071,267 @@ class _AgentProductWorkflow extends StatelessWidget {
           tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
       const SizedBox(height: _DesktopGrid.gutter),
       switch (selectedTab) {
-        1 => _AgentConfigPreviewView(zh: _zh),
-        2 => _AgentPackagePreviewView(zh: _zh),
-        3 => _AgentExportBoundaryView(zh: _zh, workspace: workspace),
-        _ => _AgentInputMappingView(zh: _zh),
+        1 => _Campaign6SingleAgentStatusView(zh: _zh, agents: agents),
+        2 =>
+          _Campaign6AdvancedRuntimeStatusView(zh: _zh, capabilities: advanced),
+        3 => _Campaign6ToolAdapterStatusView(
+            zh: _zh, toolAdapter: toolAdapter, workspace: workspace),
+        _ => _Campaign6RuntimeOverviewView(
+            zh: _zh,
+            phases: phases,
+            security: _campaign6Map(
+                campaign6AgentRuntimeStatus['security_boundaries']),
+          ),
       },
     ]);
+  }
+}
+
+List<Map<String, dynamic>> _campaign6List(Object? value) {
+  if (value is! List) {
+    return const <Map<String, dynamic>>[];
+  }
+  return value
+      .whereType<Map>()
+      .map((item) => Map<String, dynamic>.from(item))
+      .toList(growable: false);
+}
+
+Map<String, dynamic> _campaign6Map(Object? value) {
+  if (value is! Map) {
+    return const <String, dynamic>{};
+  }
+  return Map<String, dynamic>.from(value);
+}
+
+class _Campaign6RuntimeOverviewView extends StatelessWidget {
+  const _Campaign6RuntimeOverviewView({
+    required this.zh,
+    required this.phases,
+    required this.security,
+  });
+
+  final bool zh;
+  final List<Map<String, dynamic>> phases;
+  final Map<String, dynamic> security;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      final wide = constraints.maxWidth >= 900;
+      final phasePanel = _ProductPanel(
+        keyName: 'campaign6-runtime-overview',
+        icon: Icons.route_outlined,
+        title: zh ? 'Campaign 6 执行总览' : 'Campaign 6 Execution Overview',
+        subtitle: zh
+            ? '6A -> 6B -> Tool Adapter Configuration Gate'
+            : '6A -> 6B -> Tool Adapter Configuration Gate',
+        children: [
+          _ProductTable(
+            columns: zh
+                ? ['阶段', 'UI 状态', '运行状态', '证据']
+                : ['Phase', 'UI state', 'Runtime', 'Evidence'],
+            rows: phases
+                .map((phase) => [
+                      phase['phase_id']?.toString() ?? '-',
+                      phase['ui_state']?.toString() ?? '-',
+                      phase['runtime_status']?.toString() ?? '-',
+                      phase['evidence_path']?.toString() ?? '-',
+                    ])
+                .toList(growable: false),
+          ),
+        ],
+      );
+      final securityPanel = _ProductPanel(
+        keyName: 'campaign6-security-boundaries',
+        icon: Icons.security_outlined,
+        title: zh ? '安全边界' : 'Security Boundaries',
+        gap: security['no_campaign_7_8_9'] != true,
+        children: [
+          _ProductTable(
+            columns: zh ? ['边界', '状态'] : ['Boundary', 'Status'],
+            rows: [
+              ['no_secret_plaintext', '${security['no_secret_plaintext']}'],
+              ['no_arbitrary_shell', '${security['no_arbitrary_shell']}'],
+              [
+                'no_agent_self_authorized_tool',
+                '${security['no_agent_self_authorized_tool']}'
+              ],
+              [
+                'no_cross_agent_secret_or_workspace_access',
+                '${security['no_cross_agent_secret_or_workspace_access']}'
+              ],
+              ['no_campaign_7_8_9', '${security['no_campaign_7_8_9']}'],
+            ],
+          ),
+        ],
+      );
+      if (!wide) {
+        return Column(children: [
+          phasePanel,
+          const SizedBox(height: _DesktopGrid.gutter),
+          securityPanel,
+        ]);
+      }
+      return _EqualHeightRow(
+        height: 430,
+        flexes: const [7, 4],
+        children: [phasePanel, securityPanel],
+      );
+    });
+  }
+}
+
+class _Campaign6SingleAgentStatusView extends StatelessWidget {
+  const _Campaign6SingleAgentStatusView({
+    required this.zh,
+    required this.agents,
+  });
+
+  final bool zh;
+  final List<Map<String, dynamic>> agents;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProductPanel(
+      keyName: 'campaign6-single-agent-status',
+      icon: Icons.psychology_alt_outlined,
+      title: zh ? '6A 单 Agent Runtime' : '6A Single Agent Runtime',
+      subtitle: zh
+          ? '每类 Agent 绑定真实 Tool / Skill / RAG / Bridge'
+          : 'Each Agent type binds real Tool / Skill / RAG / Bridge paths',
+      children: [
+        _ProductTable(
+          columns: zh
+              ? ['Agent', 'UI 状态', '运行状态', '降级 / 回滚']
+              : ['Agent', 'UI state', 'Runtime', 'Degraded / rollback'],
+          rows: agents.map((agent) {
+            final modes = (agent['degraded_modes'] as List<dynamic>? ?? [])
+                .map((item) => item.toString())
+                .join(', ');
+            return [
+              agent['display_name']?.toString() ??
+                  agent['agent_type']?.toString() ??
+                  '-',
+              agent['ui_state']?.toString() ?? '-',
+              agent['runtime_status']?.toString() ?? '-',
+              modes.isEmpty
+                  ? agent['rollback_strategy']?.toString() ?? '-'
+                  : '$modes | ${agent['rollback_strategy']}',
+            ];
+          }).toList(growable: false),
+        ),
+        const SizedBox(height: _DesktopGrid.gutter),
+        _FieldRow(
+          label: zh ? '验收规则' : 'Acceptance rule',
+          value: zh
+              ? '不允许 hardcoded demo、display_only 或 mock/offline 冒充 accepted'
+              : 'No hardcoded demo, display_only, or mock/offline accepted as runtime',
+        ),
+      ],
+    );
+  }
+}
+
+class _Campaign6AdvancedRuntimeStatusView extends StatelessWidget {
+  const _Campaign6AdvancedRuntimeStatusView({
+    required this.zh,
+    required this.capabilities,
+  });
+
+  final bool zh;
+  final List<Map<String, dynamic>> capabilities;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProductPanel(
+      keyName: 'campaign6-advanced-runtime-status',
+      icon: Icons.hub_outlined,
+      title: zh ? '6B Advanced Agent Runtime' : '6B Advanced Agent Runtime',
+      subtitle: zh
+          ? 'Long-term Memory、Multi-Agent、A2A、Teams 与安全回归'
+          : 'Long-term Memory, Multi-Agent, A2A, Teams, and security regression',
+      children: [
+        _ProductTable(
+          columns: zh
+              ? ['能力', 'UI 状态', '运行状态', '覆盖']
+              : ['Capability', 'UI state', 'Runtime', 'Coverage'],
+          rows: capabilities.map((capability) {
+            final coverage = (capability['coverage'] as List<dynamic>? ?? [])
+                .map((item) => item.toString())
+                .join(', ');
+            return [
+              capability['capability_id']?.toString() ?? '-',
+              capability['ui_state']?.toString() ?? '-',
+              capability['runtime_status']?.toString() ?? '-',
+              coverage,
+            ];
+          }).toList(growable: false),
+        ),
+        const SizedBox(height: _DesktopGrid.gutter),
+        _FieldRow(
+          label: zh ? 'Computer Use' : 'Computer Use',
+          value: 'disabled_boundary',
+        ),
+      ],
+    );
+  }
+}
+
+class _Campaign6ToolAdapterStatusView extends StatelessWidget {
+  const _Campaign6ToolAdapterStatusView({
+    required this.zh,
+    required this.toolAdapter,
+    required this.workspace,
+  });
+
+  final bool zh;
+  final Map<String, dynamic> toolAdapter;
+  final String workspace;
+
+  @override
+  Widget build(BuildContext context) {
+    final fields = (toolAdapter['api_config_schema_fields'] as List<dynamic>? ??
+            const <dynamic>[])
+        .map((item) => item.toString())
+        .toList(growable: false);
+    return _ProductPanel(
+      keyName: 'campaign6-tool-adapter-status',
+      icon: Icons.settings_ethernet_outlined,
+      title: zh
+          ? 'Tool Adapter Configuration Gate'
+          : 'Tool Adapter Configuration Gate',
+      subtitle: '$workspace/workbench_runs/campaign6_tool_adapter',
+      children: [
+        _ProductTable(
+          columns: zh ? ['规则', '状态'] : ['Rule', 'Status'],
+          rows: [
+            ['ui_state', toolAdapter['ui_state']?.toString() ?? '-'],
+            [
+              'provider_runtime_reimplemented',
+              '${toolAdapter['provider_runtime_reimplemented']}'
+            ],
+            [
+              'unregistered_third_party_api_integrated',
+              '${toolAdapter['unregistered_third_party_api_integrated']}'
+            ],
+            [
+              'official_channel_tool_adapter_gate_required',
+              '${toolAdapter['official_channel_tool_adapter_gate_required']}'
+            ],
+            [
+              'secret_plaintext_written',
+              '${toolAdapter['secret_plaintext_written']}'
+            ],
+          ],
+        ),
+        const SizedBox(height: _DesktopGrid.gutter),
+        _FieldRow(
+          label: zh ? 'API config schema' : 'API config schema',
+          value: fields.join(', '),
+        ),
+      ],
+    );
   }
 }
 
@@ -8673,6 +8976,148 @@ bool _showsSkillGovernance(String pageId) {
 bool _showsMethodology(String pageId) {
   return pageId == 'skill-factory';
 }
+
+const sampleCampaign6AgentRuntimeStatus = <String, dynamic>{
+  'schema_id': 'campaign6_agent_runtime_status',
+  'schema_version': '2026-06-17',
+  'overall_status':
+      'campaign6a_6b_tool_adapter_production_grade_accepted_ui_bound',
+  'phase_status': <Map<String, dynamic>>[
+    {
+      'phase_id': 'campaign6a_single_agent_runtime',
+      'ui_state': 'enabled_real',
+      'runtime_status': 'pass',
+      'evidence_path': 'campaign6a_acceptance_report.json',
+    },
+    {
+      'phase_id': 'campaign6b_advanced_agent_runtime',
+      'ui_state': 'enabled_real',
+      'runtime_status': 'pass',
+      'evidence_path': 'campaign6b_acceptance_report.json',
+    },
+    {
+      'phase_id': 'campaign6_tool_adapter_configuration_gate',
+      'ui_state': 'enabled_real',
+      'runtime_status': 'pass',
+      'evidence_path': 'campaign6_tool_adapter_configuration_report.json',
+    },
+    {
+      'phase_id': 'computer_use_boundary',
+      'ui_state': 'disabled_boundary',
+      'runtime_status': 'disabled_boundary',
+      'evidence_path': 'computer_use_boundary_threat_model.json',
+    },
+  ],
+  'agent_types_6a': <Map<String, dynamic>>[
+    {
+      'agent_type': 'knowledge_qa_agent',
+      'display_name': 'Knowledge QA Agent',
+      'ui_state': 'enabled_real',
+      'runtime_status': 'succeeded',
+      'degraded_modes': <String>['no_evidence', 'provider_unavailable'],
+      'rollback_strategy': 'no_mutation_read_only',
+    },
+    {
+      'agent_type': 'document_processing_agent',
+      'display_name': 'Document Processing Agent',
+      'ui_state': 'enabled_real',
+      'runtime_status': 'partial_success',
+      'degraded_modes': <String>['unsupported_file', 'ocr_unavailable'],
+      'rollback_strategy': 'artifact_manifest_revert_where_supported',
+    },
+    {
+      'agent_type': 'skill_builder_agent',
+      'display_name': 'Skill Builder Agent',
+      'ui_state': 'enabled_real',
+      'runtime_status': 'succeeded',
+      'degraded_modes': <String>['validation_failure'],
+      'rollback_strategy': 'block_invalid_package_before_acceptance',
+    },
+    {
+      'agent_type': 'workbench_operator_agent',
+      'display_name': 'Workbench Operator Agent',
+      'ui_state': 'enabled_real',
+      'runtime_status': 'succeeded',
+      'degraded_modes': <String>['unknown_action', 'rollback_unavailable'],
+      'rollback_strategy': 'rollback_where_action_contract_supports_it',
+    },
+    {
+      'agent_type': 'external_verification_agent',
+      'display_name': 'External Verification Agent',
+      'ui_state': 'enabled_real',
+      'runtime_status': 'succeeded',
+      'degraded_modes': <String>['unavailable_source', 'untrusted_source'],
+      'rollback_strategy': 'no_external_mutation',
+    },
+  ],
+  'advanced_capabilities_6b': <Map<String, dynamic>>[
+    {
+      'capability_id': 'long_term_memory',
+      'ui_state': 'enabled_real',
+      'runtime_status': 'pass',
+      'coverage': <String>['write', 'read', 'expiration', 'deletion', 'audit'],
+    },
+    {
+      'capability_id': 'multi_agent_workflow',
+      'ui_state': 'enabled_real',
+      'runtime_status': 'pass',
+      'coverage': <String>[
+        'scheduler',
+        'handoff',
+        'conflict_handling',
+        'rollback'
+      ],
+    },
+    {
+      'capability_id': 'a2a',
+      'ui_state': 'enabled_real',
+      'runtime_status': 'pass',
+      'coverage': <String>['message_contract', 'permissions', 'evidence_refs'],
+    },
+    {
+      'capability_id': 'agent_teams',
+      'ui_state': 'enabled_real',
+      'runtime_status': 'pass',
+      'coverage': <String>['roles', 'tool_permissions', 'per_agent_isolation'],
+    },
+    {
+      'capability_id': 'multi_agent_security',
+      'ui_state': 'enabled_real',
+      'runtime_status': 'pass',
+      'coverage': <String>['no_permission_escalation', 'no_arbitrary_shell'],
+    },
+    {
+      'capability_id': 'computer_use_boundary',
+      'ui_state': 'disabled_boundary',
+      'runtime_status': 'disabled_boundary',
+      'coverage': <String>['threat_model'],
+    },
+  ],
+  'tool_adapter_gate': {
+    'ui_state': 'enabled_real',
+    'provider_runtime_reimplemented': false,
+    'unregistered_third_party_api_integrated': false,
+    'official_channel_tool_adapter_gate_required': true,
+    'secret_plaintext_written': false,
+    'api_config_schema_fields': <String>[
+      'base_url_env',
+      'token_env',
+      'auth_type',
+      'timeout',
+      'retry',
+      'rate_limit',
+      'permission_policy',
+      'redaction',
+    ],
+  },
+  'security_boundaries': {
+    'no_secret_plaintext': true,
+    'no_arbitrary_shell': true,
+    'no_agent_self_authorized_tool': true,
+    'no_cross_agent_secret_or_workspace_access': true,
+    'no_campaign_7_8_9': true,
+  },
+};
 
 const sampleSkillGovernanceReport = <String, dynamic>{
   'skill_governance_report_version': 'v4.2-p2.2-1',

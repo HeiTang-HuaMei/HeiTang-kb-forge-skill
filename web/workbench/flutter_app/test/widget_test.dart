@@ -645,25 +645,32 @@ void main() {
     await tester.tap(find.text('Agent Factory').first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Agent Creation Package Input Mapping'), findsOneWidget);
-    expect(find.text('Input Mapping'), findsOneWidget);
-    expect(find.text('Configuration Preview'), findsOneWidget);
-    expect(find.text('Package Preview'), findsOneWidget);
-    expect(find.text('Export Boundary'), findsOneWidget);
-    expect(find.byKey(const Key('agent-input-mapping')), findsOneWidget);
-    expect(find.text('Preview package input mapping'), findsOneWidget);
-    await tester.tap(find.text('Configuration Preview'));
+    expect(find.text('Agent Runtime'), findsWidgets);
+    expect(find.text('Execution Overview'), findsOneWidget);
+    expect(find.text('Single Agents'), findsOneWidget);
+    expect(find.text('Multi-Agent / Memory'), findsOneWidget);
+    expect(find.text('Tool Adapter'), findsOneWidget);
+    expect(find.byKey(const Key('campaign6-runtime-overview')), findsOneWidget);
+    expect(find.text('campaign6a_single_agent_runtime'), findsOneWidget);
+    await tester.tap(find.text('Single Agents'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-config-preview')), findsOneWidget);
-    expect(find.text('role / objective'), findsOneWidget);
-    await tester.tap(find.text('Package Preview'));
+    expect(
+        find.byKey(const Key('campaign6-single-agent-status')), findsOneWidget);
+    expect(find.text('Knowledge QA Agent'), findsOneWidget);
+    expect(find.text('External Verification Agent'), findsOneWidget);
+    await tester.tap(find.text('Multi-Agent / Memory'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-package-preview')), findsOneWidget);
-    final exportBoundary = find.text('Export Boundary');
-    await tester.ensureVisible(exportBoundary);
-    await tester.tap(exportBoundary);
+    expect(find.byKey(const Key('campaign6-advanced-runtime-status')),
+        findsOneWidget);
+    expect(find.text('long_term_memory'), findsOneWidget);
+    expect(find.text('agent_teams'), findsOneWidget);
+    final toolAdapter = find.text('Tool Adapter');
+    await tester.ensureVisible(toolAdapter);
+    await tester.tap(toolAdapter);
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-export-boundary')), findsOneWidget);
+    expect(
+        find.byKey(const Key('campaign6-tool-adapter-status')), findsOneWidget);
+    expect(find.text('provider_runtime_reimplemented'), findsOneWidget);
     expect(find.text('Action Capability Boundary'), findsNothing);
     expect(find.text('Agent Package'), findsNothing);
     expect(find.text('Create Agent draft'), findsNothing);

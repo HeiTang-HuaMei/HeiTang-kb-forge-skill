@@ -333,37 +333,44 @@ void main() {
 
     expect(find.byKey(const Key('dense-page-workbench-agent-factory-runtime')),
         findsOneWidget);
-    expect(find.text('Agent 工厂'), findsWidgets);
-    expect(find.byKey(const Key('agent-input-mapping')), findsOneWidget);
-    expect(find.text('输入映射'), findsOneWidget);
-    expect(find.text('配置预览'), findsOneWidget);
-    expect(find.text('Package 预览'), findsOneWidget);
-    expect(find.text('导出边界'), findsOneWidget);
-    expect(find.text('Agent Creation Package 输入映射'), findsOneWidget);
-    await tester.tap(find.text('配置预览'));
+    expect(find.text('Agent Runtime'), findsWidgets);
+    expect(find.byKey(const Key('campaign6-runtime-overview')), findsOneWidget);
+    expect(find.text('执行总览'), findsOneWidget);
+    expect(find.text('单 Agent'), findsOneWidget);
+    expect(find.text('多 Agent / Memory'), findsOneWidget);
+    expect(find.text('Tool Adapter'), findsOneWidget);
+    expect(find.text('campaign6a_single_agent_runtime'), findsOneWidget);
+    await tester.tap(find.text('单 Agent'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-config-preview')), findsOneWidget);
-    expect(find.text('role / objective'), findsOneWidget);
-    await tester.tap(find.text('Package 预览'));
+    expect(
+        find.byKey(const Key('campaign6-single-agent-status')), findsOneWidget);
+    expect(find.text('Knowledge QA Agent'), findsOneWidget);
+    expect(find.text('Document Processing Agent'), findsOneWidget);
+    expect(find.text('Workbench Operator Agent'), findsOneWidget);
+    await tester.tap(find.text('多 Agent / Memory'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-package-preview')), findsOneWidget);
-    final exportBoundary = find.text('导出边界');
-    await tester.ensureVisible(exportBoundary);
-    await tester.tap(exportBoundary);
+    expect(find.byKey(const Key('campaign6-advanced-runtime-status')),
+        findsOneWidget);
+    expect(find.text('long_term_memory'), findsOneWidget);
+    expect(find.text('a2a'), findsOneWidget);
+    expect(find.text('computer_use_boundary'), findsOneWidget);
+    expect(find.text('disabled_boundary'), findsWidgets);
+    final toolAdapter = find.text('Tool Adapter');
+    await tester.ensureVisible(toolAdapter);
+    await tester.tap(toolAdapter);
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-export-boundary')), findsOneWidget);
-    expect(find.text('预览 package'), findsOneWidget);
+    expect(
+        find.byKey(const Key('campaign6-tool-adapter-status')), findsOneWidget);
+    expect(find.text('provider_runtime_reimplemented'), findsOneWidget);
+    expect(find.text('official_channel_tool_adapter_gate_required'),
+        findsOneWidget);
     expect(find.text('enabled_real'), findsWidgets);
     expect(find.text('Agent 包'), findsNothing);
     expect(find.text('创建 Agent 草稿'), findsNothing);
     expect(find.text('保存版本与导出 Agent package'), findsNothing);
-    expect(find.text('版本管理'), findsOneWidget);
     expect(find.text('Workspace and Future Runtime'), findsNothing);
-    expect(find.text('Agent Teams'), findsNothing);
     expect(find.text('Subagent'), findsNothing);
-    expect(find.text('Computer Use'), findsNothing);
     expect(find.text('Sandbox'), findsNothing);
-    expect(find.text('A2A'), findsNothing);
     expect(find.text('agent-factory-runtime'), findsNothing);
     expect(find.textContaining('Agent Runtime complete'), findsNothing);
     expect(find.textContaining('自主执行'), findsNothing);
