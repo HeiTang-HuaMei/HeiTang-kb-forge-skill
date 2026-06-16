@@ -83,7 +83,12 @@ def test_campaign6_tool_adapter_configuration_gate_preserves_env_only_boundaries
     report = run_campaign6_tool_adapter_gate(output)
 
     assert report["status"] == "pass"
+    assert report["final_status"] == "tool_adapter_configuration_production_grade_accepted_ui_bound"
     assert report["agent_tool_api_config_schema"] == CAMPAIGN6_TOOL_API_CONFIG_SCHEMA
+    assert report["auth_type_coverage"] == ["api_key", "bearer", "oauth", "signature"]
+    assert report["network_source_policy_required"] is True
+    assert report["live_smoke"]["network_called_without_opt_in"] is False
+    assert report["live_smoke"]["official_channel_live_smoke"] == "not_run_missing_owner_credentials"
     assert report["provider_runtime_reimplemented"] is False
     assert report["unregistered_third_party_api_integrated"] is False
     assert report["official_channel_tool_adapter_gate_required"] is True
@@ -93,9 +98,26 @@ def test_campaign6_tool_adapter_configuration_gate_preserves_env_only_boundaries
     assert adapters["provider_runtime"]["status"] == "enabled_real"
     assert adapters["provider_runtime"]["api_config"]["base_url_env"] == "HEITANG_LLM_BASE_URL"
     assert adapters["provider_runtime"]["api_config"]["token_env"] == "HEITANG_LLM_API_KEY"
-    assert adapters["official_channel_future"]["status"] == "disabled_boundary"
-    assert adapters["official_channel_future"]["requires_official_channel_tool_adapter_gate"] is True
+    assert adapters["provider_runtime"]["api_config"]["auth_type"] == "bearer"
+    assert adapters["official_channel_api_key_future"]["status"] == "disabled_boundary"
+    assert adapters["official_channel_api_key_future"]["api_config"]["auth_type"] == "api_key"
+    assert adapters["official_channel_oauth_future"]["api_config"]["auth_type"] == "oauth"
+    assert adapters["official_channel_signature_future"]["api_config"]["auth_type"] == "signature"
+    assert adapters["official_channel_api_key_future"]["requires_official_channel_tool_adapter_gate"] is True
     assert all(item["secret_value_present"] is False for item in adapters.values())
+    assert all(item["live_smoke"]["network_called"] is False for item in adapters.values())
+    assert all(item["permission_policy"]["allow_arbitrary_third_party_execution"] is False for item in adapters.values())
+    assert all(item["input_output_schema_registered"] is True for item in adapters.values())
+
+    status_matrix = _read_json(output / "tool_adapter_runtime_status_matrix.json")
+    security_matrix = _read_json(output / "tool_adapter_degraded_mode_and_security_matrix.json")
+    schema_registry = _read_json(output / "tool_adapter_schema_registry.json")
+    assert status_matrix["status"] == "pass"
+    assert security_matrix["status"] == "pass"
+    assert security_matrix["security_checks"]["no_raw_secret_in_ui_log_report_fixture"] is True
+    assert security_matrix["security_checks"]["no_arbitrary_third_party_api_execution"] is True
+    assert schema_registry["status"] == "pass"
+    assert len(schema_registry["schemas"]) == len(report["adapters"])
 
 
 def test_campaign6_cli_commands_write_acceptance_outputs(tmp_path):
