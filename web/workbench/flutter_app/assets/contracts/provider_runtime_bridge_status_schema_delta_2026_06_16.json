@@ -1,0 +1,321 @@
+{
+  "schema_id": "provider_runtime_bridge_status_schema_delta",
+  "schema_version": "2026-06-16.3",
+  "gate": "provider_runtime_production_grade_completion_and_ui_binding_gate",
+  "date": "2026-06-16",
+  "source_acceptance_report": "../../../Provider_Runtime_Final_Live_Smoke_Reacceptance_Report_2026-06-16.md",
+  "formal_acceptance_result": "provider_runtime_formal_acceptance_partial_needs_bridge_status_schema",
+  "delta_result": "provider_runtime_production_grade_accepted_ui_bound",
+  "final_live_smoke_result": "provider_runtime_final_live_smoke_reacceptance_passed_pending_ui_binding",
+  "production_grade_result": "provider_runtime_production_grade_accepted_ui_bound",
+  "scope": {
+    "runtime_rewrite": false,
+    "new_provider_connected": false,
+    "new_dependency_added": false,
+    "yellow_marker_removed": true,
+    "provider_runtime_marker_only": true,
+    "campaign_6_or_later_started": false
+  },
+  "accepted_status_schema": {
+    "bridge_status_values": [
+      "accepted",
+      "warning_boundary",
+      "blocked",
+      "partial",
+      "failed"
+    ],
+    "ui_state_values": [
+      "enabled_real",
+      "enabled_real_degraded",
+      "disabled_boundary",
+      "display_only",
+      "omitted"
+    ],
+    "accepted_semantics": "Evidence is sufficient for the named local command or Provider Runtime live-smoke path. It does not claim Agent Runtime, Memory Runtime, A2A, or Campaign 6+ completion.",
+    "warning_boundary_semantics": "Command completed with intentional warning semantics such as cost guard or no-network live-smoke boundary.",
+    "blocked_semantics": "Execution must stop because a secret, network opt-in, or configuration prerequisite is missing or unsafe.",
+    "partial_semantics": "Existing command evidence is reusable but does not prove the full live runtime path.",
+    "failed_semantics": "Contract, security, or command evidence is missing or explicitly failed."
+  },
+  "ui_marker_policy": {
+    "provider_yellow_marker_removal_allowed": true,
+    "current_ui_state": "disabled_boundary",
+    "post_delta_ui_state": "enabled_real",
+    "provider_runtime_only": true,
+    "non_provider_yellow_markers_unchanged": true,
+    "removal_requires": [
+      "Owner accepts this bridge status schema delta",
+      "Provider Runtime Final Live Smoke Reacceptance passes",
+      "UI binding receives accepted provider status evidence without secrets",
+      "Owner explicitly authorizes UI yellow marker removal"
+    ]
+  },
+  "bridge_consumption_contract": {
+    "provider_actions_must_not_request_secrets": true,
+    "network_calls_require_explicit_opt_in": true,
+    "live_smoke_is_not_agent_runtime": true,
+    "raw_secret_display_allowed": false,
+    "ui_enabled_real_requires_final_provider_acceptance": true,
+    "secret_ui_remains_masked_display_only": true,
+    "existing_ui_provider_state": "disabled_boundary",
+    "post_binding_provider_state": "enabled_real",
+    "existing_bridge_boundary": "Provider Runtime acceptance is env-only and opt-in. Raw secrets must stay outside UI bridge requests.",
+    "rollback_disable_switch": "Unset provider env or network opt-in; UI must show degraded/offline local continuation instead of silently failing."
+  },
+  "production_runtime_availability": {
+    "provider": "official_openai",
+    "models_probe": {
+      "status": "pass",
+      "http_status": 200
+    },
+    "chat_completions_probe": {
+      "status": "pass",
+      "http_status": 200
+    },
+    "responses_probe": {
+      "status": "pass",
+      "http_status": 200
+    },
+    "response_text_committed": false,
+    "response_hash_committed": true,
+    "api_key_source": "secure_env_only",
+    "raw_secret_display_allowed": false
+  },
+  "user_facing_status_matrix": [
+    {
+      "status": "connected",
+      "ui_state": "enabled_real",
+      "bridge_status": "accepted",
+      "user_message": "Provider connected; external Provider calls may run only with explicit opt-in.",
+      "local_degraded_mode": false,
+      "log_required": true
+    },
+    {
+      "status": "unavailable",
+      "ui_state": "enabled_real_degraded",
+      "bridge_status": "warning_boundary",
+      "user_message": "Provider unavailable; local Knowledge Base, retrieval over local evidence, and document workflows continue.",
+      "local_degraded_mode": true,
+      "log_required": true
+    },
+    {
+      "status": "missing_key",
+      "ui_state": "disabled_boundary",
+      "bridge_status": "blocked",
+      "user_message": "Provider key is missing from secure environment variables; plaintext keys are never shown.",
+      "local_degraded_mode": true,
+      "log_required": true
+    },
+    {
+      "status": "timeout",
+      "ui_state": "enabled_real_degraded",
+      "bridge_status": "warning_boundary",
+      "user_message": "Provider request timed out; retry is allowed within policy and local workflows continue.",
+      "local_degraded_mode": true,
+      "log_required": true
+    },
+    {
+      "status": "fallback_used",
+      "ui_state": "display_only",
+      "bridge_status": "accepted",
+      "user_message": "Fallback was used; show fallback reason and avoid presenting mock/offline output as production Provider output.",
+      "local_degraded_mode": true,
+      "log_required": true
+    },
+    {
+      "status": "cost_blocked",
+      "ui_state": "disabled_boundary",
+      "bridge_status": "warning_boundary",
+      "user_message": "External Provider call blocked by cost/token guard; local workflows continue.",
+      "local_degraded_mode": true,
+      "log_required": true
+    }
+  ],
+  "runtime_behavior_matrix": [
+    {
+      "behavior_id": "provider_config_schema_validation",
+      "required_item": "Provider config schema validation",
+      "existing_command_evidence": "provider-config-validate",
+      "command_output_status": "pass",
+      "bridge_status": "accepted",
+      "ui_state": "display_only",
+      "evidence_path": "kb-forge-skill/artifacts/audits/provider_runtime_formal_acceptance_2026-06-16/outputs/provider_config_validate_default/provider_config_validate_result.json",
+      "semantics": "Default provider templates validate with no inline secret.",
+      "removal_rule": "Can support UI readiness display, but cannot remove Provider yellow marker alone."
+    },
+    {
+      "behavior_id": "provider_registry_profile_readiness",
+      "required_item": "Provider registry / profile readiness",
+      "existing_command_evidence": "provider-registry-export, provider-list, provider-health, provider-readiness",
+      "command_output_status": "pass",
+      "bridge_status": "accepted",
+      "ui_state": "display_only",
+      "evidence_path": "kb-forge-skill/artifacts/audits/provider_runtime_formal_acceptance_2026-06-16/outputs/provider_health/provider_health_result.json",
+      "semantics": "Provider templates and profile readiness are present; clean workspace falls back to disabled mock readiness.",
+      "removal_rule": "Can support UI readiness display, but cannot enable external provider actions."
+    },
+    {
+      "behavior_id": "secret_redaction_leak_prevention",
+      "required_item": "Secret redaction / leak prevention",
+      "existing_command_evidence": "provider-security-audit, audit-redaction-check",
+      "command_output_status": "pass",
+      "bridge_status": "accepted",
+      "ui_state": "display_only",
+      "evidence_path": "kb-forge-skill/artifacts/audits/provider_runtime_formal_acceptance_2026-06-16/outputs/audit_redaction_check/audit_redaction_check_result.json",
+      "semantics": "Env-only provider config passes and inline secret fixture fails closed; redaction output is masked.",
+      "removal_rule": "Can support security boundary display; raw secrets still must not enter UI or bridge requests."
+    },
+    {
+      "behavior_id": "missing_key_behavior",
+      "required_item": "Missing key behavior",
+      "existing_command_evidence": "provider-live-smoke --live --allow-network with missing key fixture",
+      "command_output_status": "fail",
+      "bridge_status": "blocked",
+      "ui_state": "disabled_boundary",
+      "evidence_path": "kb-forge-skill/artifacts/audits/provider_runtime_formal_acceptance_2026-06-16/outputs/provider_live_smoke_optin_missing_key/provider_live_smoke_result.json",
+      "semantics": "Missing base URL or API key blocks execution with network_called=false.",
+      "removal_rule": "Yellow marker remains until accepted credentials and opt-in live smoke policy are approved."
+    },
+    {
+      "behavior_id": "invalid_key_behavior",
+      "required_item": "Invalid key behavior",
+      "existing_command_evidence": "provider-fallback-test --scenario invalid_key",
+      "command_output_status": "pass",
+      "bridge_status": "partial",
+      "ui_state": "disabled_boundary",
+      "evidence_path": "kb-forge-skill/artifacts/audits/provider_runtime_formal_acceptance_2026-06-16/outputs/fallback_invalid_key/provider_fallback_test_result.json",
+      "semantics": "Invalid-key fallback is simulated with network_called=false; no real invalid credential integration was run.",
+      "removal_rule": "Cannot remove yellow marker without final acceptance of simulation scope or real invalid-key evidence."
+    },
+    {
+      "behavior_id": "timeout_behavior",
+      "required_item": "Timeout behavior",
+      "existing_command_evidence": "provider-fallback-test --scenario timeout",
+      "command_output_status": "pass",
+      "bridge_status": "partial",
+      "ui_state": "disabled_boundary",
+      "evidence_path": "kb-forge-skill/artifacts/audits/provider_runtime_formal_acceptance_2026-06-16/outputs/fallback_timeout/provider_fallback_test_result.json",
+      "semantics": "Timeout fallback is simulated with network_called=false; full request timeout runtime evidence is not present.",
+      "removal_rule": "Cannot remove yellow marker without final acceptance of simulation scope or real timeout evidence."
+    },
+    {
+      "behavior_id": "provider_unavailable_behavior",
+      "required_item": "Provider unavailable behavior",
+      "existing_command_evidence": "provider-fallback-test --scenario provider_error",
+      "command_output_status": "pass",
+      "bridge_status": "partial",
+      "ui_state": "disabled_boundary",
+      "evidence_path": "kb-forge-skill/artifacts/audits/provider_runtime_formal_acceptance_2026-06-16/outputs/fallback_provider_error/provider_fallback_test_result.json",
+      "semantics": "Provider-error fallback is simulated; unavailable real endpoint behavior was not exercised.",
+      "removal_rule": "Cannot remove yellow marker without final acceptance of simulation scope or real unavailable-provider evidence."
+    },
+    {
+      "behavior_id": "fallback_behavior",
+      "required_item": "Fallback behavior",
+      "existing_command_evidence": "provider-fallback-test scenarios timeout/provider_error/rate_limit/invalid_key/unsupported_model",
+      "command_output_status": "pass",
+      "bridge_status": "accepted",
+      "ui_state": "display_only",
+      "evidence_path": "kb-forge-skill/artifacts/audits/provider_runtime_formal_acceptance_2026-06-16/outputs/fallback_rate_limit/provider_fallback_test_result.json",
+      "semantics": "Fallback simulations pass for the existing command set; this does not prove full live runtime fallback.",
+      "removal_rule": "Can support fallback matrix display; cannot enable Provider Runtime without final acceptance."
+    },
+    {
+      "behavior_id": "cancellation_behavior",
+      "required_item": "Cancellation behavior",
+      "existing_command_evidence": "provider-fallback-test --scenario cancelled",
+      "command_output_status": "pass",
+      "bridge_status": "accepted",
+      "ui_state": "display_only",
+      "evidence_path": "kb-forge-skill/artifacts/audits/provider_runtime_completion_2026-06-16/outputs/fallback_cancelled/provider_fallback_test_result.json",
+      "semantics": "Cancellation is represented as provider_operation_cancelled with cancelled=true, retryable=false, fallback_used=false, and network_called=false.",
+      "removal_rule": "Can support cancellation behavior display; cannot remove Provider yellow marker without approved live smoke and final acceptance."
+    },
+    {
+      "behavior_id": "cost_token_guard_behavior",
+      "required_item": "Cost / token guard behavior",
+      "existing_command_evidence": "llm-cost-guard",
+      "command_output_status": "warning",
+      "bridge_status": "warning_boundary",
+      "ui_state": "display_only",
+      "evidence_path": "kb-forge-skill/artifacts/audits/provider_runtime_formal_acceptance_2026-06-16/outputs/llm_cost_guard/llm_cost_guard_result.json",
+      "semantics": "Over-limit and unknown-pricing inputs produce warning semantics, not a false pass.",
+      "removal_rule": "Can support cost guard display; cannot enable live provider execution."
+    },
+    {
+      "behavior_id": "live_smoke_opt_in_boundary",
+      "required_item": "Live smoke opt-in boundary",
+      "existing_command_evidence": "provider-live-smoke --provider-id official_openai --live --allow-network, live-llm-acceptance",
+      "command_output_status": "pass",
+      "bridge_status": "accepted",
+      "ui_state": "enabled_real",
+      "evidence_path": "kb-forge-skill/artifacts/audits/provider_runtime_final_live_smoke_reacceptance_2026-06-16/outputs/live_llm_acceptance_official_openai/live_llm_acceptance_report.json",
+      "semantics": "Owner-approved opt-in live provider smoke passed with env-only configuration, HTTP 200, response hash committed, response text not committed, and no API key leak.",
+      "removal_rule": "Provider Runtime yellow marker may be removed by the UI binding gate only. Other yellow markers remain unchanged."
+    },
+    {
+      "behavior_id": "provider_runtime_final_live_smoke_reacceptance",
+      "required_item": "Approved real live provider smoke",
+      "existing_command_evidence": "provider-live-smoke --provider-id official_openai --live --allow-network, live-llm-acceptance, audit-redaction-check",
+      "command_output_status": "pass",
+      "bridge_status": "accepted",
+      "ui_state": "enabled_real",
+      "evidence_path": "Provider_Runtime_Final_Live_Smoke_Reacceptance_Report_2026-06-16.md",
+      "semantics": "Final live smoke blocker is cleared for Provider Runtime. Secret/API key UI remains masked/display-only.",
+      "removal_rule": "Allows only Provider Runtime marker update from disabled_boundary to enabled_real."
+    },
+    {
+      "behavior_id": "production_runtime_availability",
+      "required_item": "Production-grade runtime availability",
+      "existing_command_evidence": "live-llm-acceptance",
+      "command_output_status": "pass",
+      "bridge_status": "accepted",
+      "ui_state": "enabled_real",
+      "evidence_path": "kb-forge-skill/artifacts/audits/provider_runtime_final_live_smoke_reacceptance_2026-06-16/outputs/live_llm_acceptance_official_openai/live_llm_acceptance_report.json",
+      "semantics": "/models, /chat/completions, and /responses probes passed with HTTP 200; response text is not committed and raw secrets are not displayed.",
+      "removal_rule": "Allows Provider Runtime to remain enabled_real while requiring explicit network opt-in and masked secrets."
+    },
+    {
+      "behavior_id": "degraded_mode_and_fallback",
+      "required_item": "Local degraded mode and fallback",
+      "existing_command_evidence": "provider-fallback-test, llm-cost-guard, local KB/document workflows",
+      "command_output_status": "pass_or_warning_boundary",
+      "bridge_status": "accepted",
+      "ui_state": "display_only",
+      "evidence_path": "Provider_Runtime_Degraded_Mode_and_Fallback_Matrix_2026-06-16.md",
+      "semantics": "When provider is unavailable, missing, timed out, fallback-used, or cost-blocked, user-facing UI must keep local KB/document/offline workflows available with clear error, retry guidance, and log id.",
+      "removal_rule": "Does not remove any non-Provider yellow marker."
+    },
+    {
+      "behavior_id": "ui_bridge_status_contract",
+      "required_item": "UI/Bridge status contract evidence",
+      "existing_command_evidence": "p1_core_contract_fixture.json and local_core_bridge.dart",
+      "command_output_status": "schema_delta_added",
+      "bridge_status": "accepted",
+      "ui_state": "enabled_real",
+      "evidence_path": "kb-forge-skill-ui/web/workbench/flutter_app/assets/contracts/provider_runtime_bridge_status_schema_delta_2026_06_16.json",
+      "semantics": "This fixture freezes UI/Bridge interpretation of accepted provider evidence while keeping raw secrets outside UI requests.",
+      "removal_rule": "Provider Runtime marker is updated; non-Provider yellow markers remain unchanged."
+    },
+    {
+      "behavior_id": "overclaim_scan",
+      "required_item": "Overclaim scan",
+      "existing_command_evidence": "rg scans over reports, fixture, and UI provider markers",
+      "command_output_status": "pass",
+      "bridge_status": "accepted",
+      "ui_state": "display_only",
+      "evidence_path": "Provider_Runtime_Formal_Acceptance_Report_2026-06-16.md",
+      "semantics": "Provider Runtime acceptance, Agent Runtime, Memory Runtime, Collaboration, and A2A are not claimed complete.",
+      "removal_rule": "No UI marker change is authorized by this scan."
+    }
+  ],
+  "final_reacceptance_requirements": {
+    "schema_delta_owner_review_required": false,
+    "real_live_smoke_missing": false,
+    "legacy_pytest_config_blocker_present": false,
+    "provider_runtime_formal_acceptance_rerun_required": false,
+    "provider_runtime_ui_binding_marker_update_status": "provider_runtime_ui_binding_marker_update_passed",
+    "provider_runtime_production_grade_status": "provider_runtime_production_grade_accepted_ui_bound",
+    "next_gate": "owner_review_provider_runtime_production_grade_completion"
+  }
+}

@@ -67,8 +67,8 @@ class _CoreActionPanelState extends State<CoreActionPanel> {
             ),
             const SizedBox(height: 8),
             Text(_zh
-                ? '桌面应用可执行本地 Core；当前 Web 预览只展示安全状态，不会执行本地命令。'
-                : 'The desktop app can execute local Core actions; this Web preview only shows the safe state and does not run local commands.'),
+                ? '桌面应用可执行本地 Core；Flutter Web 应用中本地命令保持禁用。'
+                : 'The desktop app can execute local Core actions; local commands stay disabled in the Flutter Web app.'),
             if (blockedReason != null) ...[
               const SizedBox(height: 8),
               Text(

@@ -343,22 +343,24 @@ void main() {
 
     expect(find.text('黑糖'), findsOneWidget);
     expect(find.text('HeiTang 黑糖'), findsNothing);
-    expect(find.textContaining('知识工作台'), findsOneWidget);
+    expect(find.textContaining('知识工作台'), findsWidgets);
+    expect(find.byKey(const Key('desktop-window-title-bar')), findsNothing);
+    expect(find.byKey(const Key('desktop-topbar-single-row')), findsOneWidget);
+    expect(find.byKey(const Key('desktop-window-controls')), findsOneWidget);
     expect(find.text('安全边界已启用'), findsOneWidget);
-    expect(find.text('工作台'), findsWidgets);
+    expect(find.text('仪表盘'), findsWidgets);
     expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
     expect(find.byKey(const Key('topbar-search-field')), findsOneWidget);
     expect(find.text('通知'), findsOneWidget);
     expect(find.byIcon(Icons.refresh_outlined), findsOneWidget);
     expect(find.textContaining('系统状态: 正常运行'), findsOneWidget);
     expect(find.textContaining('版本: v1.0.0'), findsOneWidget);
-    expect(pages, hasLength(7));
+    expect(pages, hasLength(10));
     expect(find.byType(NavigationRail), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets(
-      'renders mobile HeiTang workbench shell without Flutter exceptions',
+  testWidgets('renders narrow desktop-target shell without Flutter exceptions',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
     await tester
@@ -366,10 +368,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('黑糖'), findsOneWidget);
-    expect(find.text('页面'), findsOneWidget);
-    expect(find.byType(DropdownButtonFormField<int>), findsOneWidget);
-    expect(find.byKey(const Key('desktop-status-bar')), findsNothing);
-    expect(find.text('工作台'), findsWidgets);
+    expect(find.text('页面'), findsNothing);
+    expect(find.byType(DropdownButtonFormField<int>), findsNothing);
+    expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
+    expect(find.text('仪表盘'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
@@ -386,7 +388,10 @@ void main() {
 
     expect(find.text('HeiTang'), findsWidgets);
     expect(find.text('Dashboard'), findsWidgets);
-    expect(find.textContaining('Knowledge Workbench'), findsOneWidget);
+    expect(find.textContaining('Knowledge Workbench'), findsWidgets);
+    expect(find.byKey(const Key('desktop-window-title-bar')), findsNothing);
+    expect(find.byKey(const Key('desktop-topbar-single-row')), findsOneWidget);
+    expect(find.byKey(const Key('desktop-window-controls')), findsOneWidget);
     expect(find.byIcon(Icons.light_mode_outlined), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -399,12 +404,15 @@ void main() {
     await tester.pumpAndSettle();
 
     for (final title in [
-      '设置',
-      '导入资料',
+      '导入与解析',
+      '文档库',
       '知识库',
-      'Skill 生成',
-      'Agent',
-      '验证与导出',
+      '检索与验证',
+      '文档生成',
+      'Skill 工厂',
+      'Agent 工厂',
+      '审计与报告',
+      '设置',
     ]) {
       await tester.tap(find.text(title).first);
       await tester.pumpAndSettle();
@@ -423,7 +431,7 @@ void main() {
         workflowEvidence: sampleP1WorkflowEvidence));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('工作台').first);
+    await tester.tap(find.text('仪表盘').first);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('passed · full_gate=blocked'), findsNothing);
@@ -447,7 +455,7 @@ void main() {
         workflowV2Evidence: sampleP1WorkflowV2Evidence));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('工作台').first);
+    await tester.tap(find.text('仪表盘').first);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('passed · full_gate=ready_for_v4_rc'),
@@ -491,7 +499,7 @@ void main() {
     expect(find.textContaining('local_ready=false'), findsWidgets);
     expect(find.text('运行 Core 操作'), findsWidgets);
 
-    await tester.tap(find.text('验证与导出').first);
+    await tester.tap(find.text('审计与报告').first);
     await tester.pump();
     expect(find.textContaining('LLM Wiki v2'), findsNothing);
     expect(
@@ -512,7 +520,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('导入资料').first);
+    await tester.tap(find.text('导入与解析').first);
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('dense-page-workbench-import-parsing')),
@@ -523,8 +531,8 @@ void main() {
     expect(find.byKey(const Key('import-queue')), findsOneWidget);
     expect(find.byKey(const Key('parser-settings')), findsOneWidget);
     expect(find.byKey(const Key('manifest-preview')), findsOneWidget);
-    expect(find.text('导入队列'), findsWidgets);
-    expect(find.text('解析设置'), findsOneWidget);
+    expect(find.text('文件队列与进度'), findsWidgets);
+    expect(find.text('解析器 / OCR / 分块'), findsOneWidget);
     expect(find.text('Parser Backend Matrix'), findsNothing);
     await openDeveloperDiagnostics(tester);
     expect(find.text('Parser Backend Matrix'), findsWidgets);
@@ -545,10 +553,10 @@ void main() {
     expect(find.textContaining('Execute parser'), findsNothing);
     expect(find.textContaining('运行解析后端'), findsNothing);
 
-    await tester.tap(find.text('工作台').first);
+    await tester.tap(find.text('仪表盘').first);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('验证与导出').first);
+    await tester.tap(find.text('审计与报告').first);
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
@@ -564,14 +572,14 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('Skill 生成'), findsWidgets);
+    expect(find.text('Skill 工厂'), findsWidgets);
     expect(
         find.byKey(const Key('skill-metadata-source-config')), findsOneWidget);
     expect(find.byKey(const Key('skill-output-preview')), findsOneWidget);
     expect(find.byKey(const Key('skill-validation-summary')), findsOneWidget);
-    expect(find.text('选择知识包与生成配置'), findsOneWidget);
-    expect(find.text('输出结构预览'), findsOneWidget);
-    expect(find.text('验证摘要'), findsOneWidget);
+    expect(find.text('Skill 元数据与来源配置'), findsOneWidget);
+    expect(find.text('Skill 包结构预览'), findsOneWidget);
+    expect(find.text('治理报告与验证'), findsOneWidget);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
     expect(find.text('开发者诊断'), findsNothing);
     await openDeveloperDiagnostics(tester);
@@ -596,35 +604,32 @@ void main() {
 
     await tester.tap(find.text('EN'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Agent').first);
+    await tester.tap(find.text('Agent Factory').first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Create / Edit Agent'), findsOneWidget);
-    expect(find.text('Create Agent'), findsWidgets);
-    expect(find.text('Configuration Mode'), findsOneWidget);
-    expect(find.text('Bindings'), findsOneWidget);
-    expect(find.text('Preview and Validate'), findsOneWidget);
-    expect(find.text('Save and Export'), findsOneWidget);
-    expect(find.byKey(const Key('agent-create-edit-form')), findsOneWidget);
-    expect(find.text('Create Agent draft'), findsOneWidget);
-    await tester.tap(find.text('Configuration Mode'));
+    expect(find.text('Agent Creation Package Input Mapping'), findsOneWidget);
+    expect(find.text('Input Mapping'), findsOneWidget);
+    expect(find.text('Configuration Preview'), findsOneWidget);
+    expect(find.text('Package Preview'), findsOneWidget);
+    expect(find.text('Export Boundary'), findsOneWidget);
+    expect(find.byKey(const Key('agent-input-mapping')), findsOneWidget);
+    expect(find.text('Preview package input mapping'), findsOneWidget);
+    await tester.tap(find.text('Configuration Preview'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-mode-selection')), findsOneWidget);
-    expect(find.text('Simple Mode'), findsOneWidget);
-    expect(find.text('Advanced Mode'), findsOneWidget);
-    await tester.tap(find.text('Bindings'));
+    expect(find.byKey(const Key('agent-config-preview')), findsOneWidget);
+    expect(find.text('role / objective'), findsOneWidget);
+    await tester.tap(find.text('Package Preview'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-bindings')), findsOneWidget);
-    await tester.tap(find.text('Preview and Validate'));
+    expect(find.byKey(const Key('agent-package-preview')), findsOneWidget);
+    final exportBoundary = find.text('Export Boundary');
+    await tester.ensureVisible(exportBoundary);
+    await tester.tap(exportBoundary);
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-preview-validation')), findsOneWidget);
-    final saveExport = find.text('Save and Export');
-    await tester.ensureVisible(saveExport);
-    await tester.tap(saveExport);
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-preview-export')), findsOneWidget);
+    expect(find.byKey(const Key('agent-export-boundary')), findsOneWidget);
     expect(find.text('Action Capability Boundary'), findsNothing);
     expect(find.text('Agent Package'), findsNothing);
+    expect(find.text('Create Agent draft'), findsNothing);
+    expect(find.text('Save Version and Export Agent package'), findsNothing);
     expect(find.text('agent-factory-runtime'), findsNothing);
     expect(find.textContaining('run_agent'), findsNothing);
     expect(find.textContaining('kb_bound'), findsNothing);
@@ -773,7 +778,7 @@ void main() {
     await openDeveloperDiagnostics(tester);
     expect(find.textContaining('provider_required'), findsWidgets);
 
-    await tester.tap(find.text('验证与导出').first);
+    await tester.tap(find.text('审计与报告').first);
     await tester.pumpAndSettle();
     expect(find.textContaining('blocked_reason'), findsNothing);
     await openDeveloperDiagnostics(tester);

@@ -53,7 +53,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('top-level navigation is limited to seven entries',
+  testWidgets('desktop navigation follows the real product chain',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1000));
     await tester.pumpWidget(
@@ -64,59 +64,112 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(pages, hasLength(7));
-    expect(find.text('工作台'), findsWidgets);
-    expect(find.text('Agent'), findsWidgets);
+    expect(pages, hasLength(10));
+    expect(
+      pages.map((page) => page.zhTitle),
+      [
+        '仪表盘',
+        '导入与解析',
+        '文档库',
+        '知识库',
+        '检索与验证',
+        '文档生成',
+        'Skill 工厂',
+        'Agent 工厂',
+        '审计与报告',
+        '设置',
+      ],
+    );
+    expect(find.text('仪表盘'), findsWidgets);
+    expect(find.text('导入与解析'), findsWidgets);
+    expect(find.text('Agent 工厂'), findsWidgets);
     expect(find.text('Agent 包'), findsNothing);
-    expect(find.text('设置'), findsWidgets);
     expect(find.text('Agent 工厂与运行'), findsNothing);
+    expect(find.text('运行与编排'), findsNothing);
+    expect(find.text('记忆中心'), findsNothing);
     expect(find.text('agent-factory-runtime'), findsNothing);
-    expect(find.text('import-parsing'), findsNothing);
     expect(find.text('knowledge-package-management'), findsNothing);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets(
-      'knowledge page exposes package, document, and retrieval workflows',
+  testWidgets('provider runtime marker is accepted while other gaps remain',
       (tester) async {
-    await tester.binding.setSurfaceSize(const Size(1440, 1000));
+    await tester.binding.setSurfaceSize(const Size(1440, 1400));
     await tester.pumpWidget(
       HeiTangWorkbenchApp(
         contracts: sampleWorkbenchContracts,
         enableLocalCoreActions: false,
-        initialSelectedIndex: 2,
       ),
     );
     await tester.pumpAndSettle();
 
-    expect(
-        find.byKey(
-            const Key('dense-page-workbench-knowledge-package-management')),
-        findsOneWidget);
-    expect(find.byKey(const Key('knowledge-package-list')), findsOneWidget);
-    expect(find.text('文档库'), findsOneWidget);
-    expect(find.text('检索验证'), findsOneWidget);
-    expect(find.text('输出目标'), findsNothing);
-    expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
-    expect(find.byKey(const Key('product-status-panel')), findsNothing);
-    expect(find.text('构建知识包草稿'), findsOneWidget);
-    await tester.tap(find.text('文档库'));
+    expect(find.text('Provider Runtime'), findsOneWidget);
+    expect(find.text('enabled_real'), findsWidgets);
+    expect(find.text('live smoke accepted'), findsWidgets);
+    expect(find.text('外部事实验证'), findsOneWidget);
+    expect(find.text('enabled_real_degraded'), findsNothing);
+    expect(find.text('Knowledge Quality Gate'), findsOneWidget);
+    expect(find.text('Document Export'), findsOneWidget);
+    expect(find.text('Skill Governance'), findsOneWidget);
+    expect(find.text('Agent Creation Package'), findsWidgets);
+
+    await tester.tap(find.text('设置').first);
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('document-library')), findsOneWidget);
-    await tester.tap(find.text('检索验证'));
+    await tester.tap(find.text('Provider 与存储'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('retrieval-workflow')), findsOneWidget);
-    expect(find.text('运行检索验证'), findsOneWidget);
-    expect(find.text('disabled_boundary'), findsNothing);
-    expect(find.text('display_only'), findsNothing);
-    expect(find.text('Document Library'), findsNothing);
-    expect(find.text('Retrieval & Verification'), findsNothing);
+
+    expect(find.text('LLM Provider'), findsWidgets);
+    expect(find.text('live smoke 通过'), findsWidgets);
+    expect(find.text('API Key'), findsWidgets);
+    expect(find.text('sk-************'), findsWidgets);
+    expect(find.text('掩码展示'), findsWidgets);
+    expect(find.text('Provider 运行状态'), findsOneWidget);
+    for (final status in [
+      'connected',
+      'unavailable',
+      'missing_key',
+      'timeout',
+      'fallback_used',
+      'cost_blocked',
+    ]) {
+      expect(find.text(status), findsOneWidget);
+    }
+    expect(find.textContaining('sk-test-secret'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('desktop business pages hide the old state strip',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1200));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        enableLocalCoreActions: false,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    for (var index = 0; index < pages.length; index++) {
+      final title = pages[index].zhTitle;
+      if (index > 0) {
+        await tester.tap(find.text(title).first);
+        await tester.pumpAndSettle();
+      }
+
+      expect(
+          find.byKey(Key('page-state-strip-${pages[index].id}')), findsNothing);
+      expect(find.textContaining('正常态'), findsNothing);
+      expect(find.textContaining('空态'), findsNothing);
+      expect(find.textContaining('加载态'), findsNothing);
+      expect(find.textContaining('错误态'), findsNothing);
+      expect(find.textContaining('可用操作'), findsNothing);
+      expect(tester.takeException(), isNull);
+    }
+  });
+
   testWidgets(
-      'skill builder uses page-specific builder surfaces without fake generation',
+      'knowledge page exposes knowledge base, document, and retrieval workflows',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1000));
     await tester.pumpWidget(
@@ -128,21 +181,141 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(
+        find.byKey(
+            const Key('dense-page-workbench-knowledge-package-management')),
+        findsOneWidget);
+    expect(find.text('知识库'), findsWidgets);
+    expect(find.text('向量索引'), findsOneWidget);
+    expect(find.text('存储边界'), findsOneWidget);
+    expect(find.byKey(const Key('knowledge-package-list')), findsOneWidget);
+    expect(find.text('质量记录'), findsOneWidget);
+    expect(find.text('输出目标'), findsNothing);
+    expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
+    expect(find.byKey(const Key('product-status-panel')), findsNothing);
+    expect(find.text('构建知识库草稿预览'), findsOneWidget);
+    await tester.tap(find.text('质量记录'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('knowledge-quality-records')), findsOneWidget);
+    expect(find.text('质量与验证记录'), findsOneWidget);
+    expect(find.textContaining('实时外部比对均已验收'), findsOneWidget);
+    await tester.tap(find.text('检索与验证').first);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('retrieval-workflow')), findsOneWidget);
+    expect(find.text('运行检索验证预览'), findsOneWidget);
+    expect(find.text('Document Library'), findsNothing);
+    expect(find.text('Retrieval & Verification'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('documents are a first-class top-level workbench entry',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1000));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        enableLocalCoreActions: false,
+        initialSelectedIndex: 5,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('dense-page-workbench-document-generation')),
+        findsOneWidget);
+    expect(find.text('文档生成'), findsWidgets);
+    expect(find.byKey(const Key('document-generation-tasks')), findsOneWidget);
+    expect(find.text('生成队列'), findsOneWidget);
+    expect(find.byKey(const Key('document-central-preview')), findsOneWidget);
+    await tester.tap(find.text('文档模板').last);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('document-template-library')), findsOneWidget);
+    expect(find.text('文档模板归文档生成'), findsOneWidget);
+    await tester.tap(find.text('导出预览'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('document-export-preview')), findsOneWidget);
+    expect(find.text('PDF'), findsWidgets);
+    expect(find.text('PPTX'), findsWidgets);
+    expect(find.text('enabled_real'), findsWidgets);
+    expect(find.textContaining('Release complete'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'skill builder uses page-specific builder surfaces without fake generation',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1000));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        enableLocalCoreActions: false,
+        initialSelectedIndex: 6,
+      ),
+    );
+    await tester.pumpAndSettle();
+
     expect(find.byKey(const Key('dense-page-workbench-skill-factory')),
         findsOneWidget);
     expect(
         find.byKey(const Key('skill-metadata-source-config')), findsOneWidget);
     expect(find.byKey(const Key('skill-output-preview')), findsOneWidget);
     expect(find.byKey(const Key('skill-validation-summary')), findsOneWidget);
-    expect(find.text('选择知识包与生成配置'), findsOneWidget);
-    expect(find.text('输出结构预览'), findsOneWidget);
-    expect(find.text('验证摘要'), findsOneWidget);
-    expect(find.text('生成 Skill 草稿'), findsOneWidget);
+    expect(find.text('Skill 元数据与来源配置'), findsOneWidget);
+    expect(find.text('Skill 包结构预览'), findsOneWidget);
+    expect(find.text('治理报告与验证'), findsOneWidget);
+    expect(find.text('生成 Skill 草稿预览'), findsOneWidget);
     expect(find.text('Skill Governance Report'), findsOneWidget);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
-    expect(find.text('enabled_real'), findsNothing);
+    expect(find.text('Skill 模板驱动'), findsOneWidget);
     expect(find.text('generated'), findsNothing);
     expect(find.textContaining('生成完成'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('validation report reflects owner visual acceptance passed',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1000));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        enableLocalCoreActions: false,
+        initialSelectedIndex: 8,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('报告证据'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('report-evidence-list')), findsOneWidget);
+    await tester.tap(find.text('打开验证报告预览'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Owner 视觉验收已通过'), findsWidgets);
+    expect(find.textContaining('仍需 Owner 视觉验收'), findsNothing);
+    expect(find.textContaining('Owner 视觉复查'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('settings owns providers and storage without template management',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1000));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        enableLocalCoreActions: false,
+        initialSelectedIndex: 9,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Provider 与存储'), findsOneWidget);
+    expect(find.text('模板管理'), findsNothing);
+    expect(find.byKey(const Key('settings-provider-storage')), findsNothing);
+    await tester.tap(find.text('Provider 与存储'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('settings-provider-storage')), findsOneWidget);
+    expect(find.text('待接入'), findsWidgets);
+    expect(find.textContaining('sk-************'), findsOneWidget);
+    expect(find.textContaining('sk-test-secret'), findsNothing);
+    expect(find.text('模板库'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -153,38 +326,38 @@ void main() {
       HeiTangWorkbenchApp(
         contracts: sampleWorkbenchContracts,
         enableLocalCoreActions: false,
-        initialSelectedIndex: 4,
+        initialSelectedIndex: 7,
       ),
     );
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('dense-page-workbench-agent-factory-runtime')),
         findsOneWidget);
-    expect(find.text('Agent'), findsWidgets);
-    expect(find.byKey(const Key('agent-create-edit-form')), findsOneWidget);
-    expect(find.text('创建 Agent'), findsOneWidget);
-    expect(find.text('配置模式'), findsOneWidget);
-    expect(find.text('绑定'), findsOneWidget);
-    expect(find.text('预览验证'), findsOneWidget);
-    expect(find.text('保存导出'), findsOneWidget);
-    expect(find.text('创建 Agent 草稿'), findsOneWidget);
-    await tester.tap(find.text('配置模式'));
+    expect(find.text('Agent 工厂'), findsWidgets);
+    expect(find.byKey(const Key('agent-input-mapping')), findsOneWidget);
+    expect(find.text('输入映射'), findsOneWidget);
+    expect(find.text('配置预览'), findsOneWidget);
+    expect(find.text('Package 预览'), findsOneWidget);
+    expect(find.text('导出边界'), findsOneWidget);
+    expect(find.text('Agent Creation Package 输入映射'), findsOneWidget);
+    await tester.tap(find.text('配置预览'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-mode-selection')), findsOneWidget);
-    expect(find.text('简单模式'), findsOneWidget);
-    expect(find.text('高级模式'), findsOneWidget);
-    await tester.tap(find.text('绑定'));
+    expect(find.byKey(const Key('agent-config-preview')), findsOneWidget);
+    expect(find.text('role / objective'), findsOneWidget);
+    await tester.tap(find.text('Package 预览'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-bindings')), findsOneWidget);
-    await tester.tap(find.text('预览验证'));
+    expect(find.byKey(const Key('agent-package-preview')), findsOneWidget);
+    final exportBoundary = find.text('导出边界');
+    await tester.ensureVisible(exportBoundary);
+    await tester.tap(exportBoundary);
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-preview-validation')), findsOneWidget);
-    final saveExport = find.text('保存导出');
-    await tester.ensureVisible(saveExport);
-    await tester.tap(saveExport);
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-preview-export')), findsOneWidget);
+    expect(find.byKey(const Key('agent-export-boundary')), findsOneWidget);
+    expect(find.text('预览 package'), findsOneWidget);
+    expect(find.text('enabled_real'), findsWidgets);
     expect(find.text('Agent 包'), findsNothing);
+    expect(find.text('创建 Agent 草稿'), findsNothing);
+    expect(find.text('保存版本与导出 Agent package'), findsNothing);
+    expect(find.text('版本管理'), findsOneWidget);
     expect(find.text('Workspace and Future Runtime'), findsNothing);
     expect(find.text('Agent Teams'), findsNothing);
     expect(find.text('Subagent'), findsNothing);
@@ -204,7 +377,7 @@ void main() {
       HeiTangWorkbenchApp(
         contracts: sampleWorkbenchContracts,
         enableLocalCoreActions: false,
-        initialSelectedIndex: 2,
+        initialSelectedIndex: 3,
       ),
     );
     await tester.pumpAndSettle();
@@ -212,10 +385,11 @@ void main() {
     await tester.tap(find.text('EN').first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Knowledge Package'), findsWidgets);
-    expect(find.text('Document Library'), findsOneWidget);
-    expect(find.text('Retrieval Verification'), findsOneWidget);
-    expect(find.text('Build package draft'), findsOneWidget);
+    expect(find.text('Knowledge Base'), findsWidgets);
+    expect(find.text('Vector Index'), findsOneWidget);
+    await tester.tap(find.text('Knowledge Base').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Build Knowledge Base draft preview'), findsOneWidget);
     expect(find.text('知识库'), findsNothing);
     expect(find.text('文档库'), findsNothing);
     expect(find.text('检索与验证'), findsNothing);
@@ -243,6 +417,67 @@ void main() {
     ]) {
       expect(find.textContaining(claim), findsNothing);
     }
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('desktop shell exposes independent window controls',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1000));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        enableLocalCoreActions: false,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('desktop-window-title-bar')), findsNothing);
+    expect(find.byKey(const Key('desktop-topbar-single-row')), findsOneWidget);
+    expect(find.byKey(const Key('desktop-window-controls')), findsOneWidget);
+    expect(find.byKey(const Key('window-control-minimize')), findsOneWidget);
+    expect(find.byKey(const Key('window-control-maximize')), findsOneWidget);
+    expect(find.byKey(const Key('window-control-close')), findsOneWidget);
+    expect(find.text('黑糖'), findsOneWidget);
+
+    final topbarRect =
+        tester.getRect(find.byKey(const Key('desktop-topbar-single-row')));
+    final searchRect =
+        tester.getRect(find.byKey(const Key('topbar-search-field')));
+    expect((topbarRect.center.dy - searchRect.center.dy).abs(),
+        lessThanOrEqualTo(1));
+
+    for (final key in [
+      'window-control-minimize',
+      'window-control-maximize',
+      'window-control-close',
+    ]) {
+      final controlRect = tester.getRect(find.byKey(Key(key)));
+      expect((controlRect.center.dy - searchRect.center.dy).abs(),
+          lessThanOrEqualTo(3));
+    }
+
+    await tester.tap(find.byKey(const Key('window-control-minimize')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
+    expect(find.byKey(const Key('page-scroll-dashboard')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('window-control-maximize')));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.filter_none_outlined), findsOneWidget);
+    expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
+
+    await tester.binding.setSurfaceSize(const Size(1920, 1000));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
+    expect(find.byKey(const Key('page-scroll-dashboard')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('window-control-maximize')));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.crop_square_outlined), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('window-control-close')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('desktop-window-controls')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

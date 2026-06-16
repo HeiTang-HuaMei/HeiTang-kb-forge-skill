@@ -1,0 +1,100 @@
+{
+  "schema_id": "campaign4_remaining_capability_status",
+  "schema_version": "2026-06-16.3",
+  "gate": "campaign4_degraded_capabilities_finalization_long_run",
+  "date": "2026-06-16",
+  "scope": {
+    "campaign_4_remaining_yellow_gaps_only": true,
+    "campaign_5_started": false,
+    "campaign_6_started": false,
+    "campaign_7_started": false,
+    "campaign_8_started": false,
+    "campaign_9_started": false,
+    "agent_runtime_started": false,
+    "memory_runtime_started": false,
+    "a2a_started": false,
+    "non_provider_secret_ui_changed": false
+  },
+  "ui_state_values": [
+    "enabled_real",
+    "enabled_real_degraded",
+    "disabled_boundary",
+    "display_only",
+    "omitted"
+  ],
+  "capabilities": [
+    {
+      "capability_id": "external_source_verification",
+      "capability_name": "External Source Verification",
+      "production_grade_status": "external_source_verification_production_grade_accepted_ui_bound",
+      "ui_state": "enabled_real",
+      "core_runtime_path": "ingest-link with real public HTTP fetch, verify-external-claims, validate-generic-web-url-ingestion, validate-knowledge-verification, provider-live-smoke official_openai",
+      "accepted_surface": "Live public source fetch, source trace, evidence map, claim verification, freshness/contradiction evidence, and accepted Provider Runtime opt-in boundary.",
+      "degraded_surface": "If network opt-in or public source access is unavailable, local/manual evidence verification remains available with explicit degraded status.",
+      "evidence_path": "kb-forge-skill/artifacts/audits/campaign4_degraded_capabilities_finalization_2026-06-16/outputs/external_live_example_claim_verification/claim_verification_report.json",
+      "rollback_disable_switch": "Remove external verification source files or disable live external network opt-in; local KB workflows continue.",
+      "yellow_marker_removed": true
+    },
+    {
+      "capability_id": "ocr_parser_chunking",
+      "capability_name": "OCR / Parser / Chunking",
+      "production_grade_status": "ocr_parser_chunking_production_grade_accepted_ui_bound",
+      "ui_state": "enabled_real",
+      "core_runtime_path": "preflight-documents, batch-import-documents, parse-with-backend --backend builtin, smoke-paddleocr-backend, run-paddleocr-ocr, parser-backend-inspect paddleocr",
+      "accepted_surface": "Builtin parser, document preflight, batch import, chunking, parser quality, and real PaddleOCR image OCR runtime invocation.",
+      "degraded_surface": "If optional PaddleOCR dependency or model cache is removed, backend=builtin remains available and OCR-required files become review-required.",
+      "evidence_path": "kb-forge-skill/artifacts/audits/campaign4_degraded_capabilities_finalization_2026-06-16/outputs/paddleocr_run/paddleocr_ocr_result.json",
+      "rollback_disable_switch": "Disable or uninstall parser-paddleocr and use backend=builtin; unsupported/OCR-required files remain review-required.",
+      "yellow_marker_removed": true
+    },
+    {
+      "capability_id": "knowledge_quality_gate",
+      "capability_name": "Knowledge Quality Gate",
+      "production_grade_status": "knowledge_quality_gate_production_grade_accepted_ui_bound",
+      "ui_state": "enabled_real",
+      "core_runtime_path": "quality-gate, parse-quality-gate, evidence-gate, eval-retrieval, verify-claims, check-knowledge-accuracy",
+      "accepted_surface": "Local deterministic quality, evidence, retrieval, claim verification, contradiction, freshness, and review-required signaling.",
+      "degraded_surface": "Low confidence or conflicting evidence remains review-required instead of silently passing.",
+      "evidence_path": "kb-forge-skill/artifacts/audits/campaign4_remaining_capabilities_production_grade_2026-06-16/outputs/retrieval_quality/retrieval_quality_report.json",
+      "rollback_disable_switch": "Disable external verification sources; local quality gate still runs on package evidence.",
+      "yellow_marker_removed": true
+    },
+    {
+      "capability_id": "document_export",
+      "capability_name": "Document Export",
+      "production_grade_status": "document_export_production_grade_accepted_ui_bound",
+      "ui_state": "enabled_real",
+      "core_runtime_path": "generate-documents --formats md,docx,pdf,pptx",
+      "accepted_surface": "Markdown, DOCX, PDF, and PPTX artifacts plus generation trace, quality report, and export validation report.",
+      "degraded_surface": "Export validation failures remain visible with retry guidance; no release publishing is implied.",
+      "evidence_path": "kb-forge-skill/artifacts/audits/campaign4_remaining_capabilities_production_grade_2026-06-16/outputs/document_export/export_validation_report.json",
+      "rollback_disable_switch": "Disable a requested output format and continue with other local formats.",
+      "yellow_marker_removed": true
+    },
+    {
+      "capability_id": "skill_governance",
+      "capability_name": "Skill Governance",
+      "production_grade_status": "skill_governance_production_grade_accepted_ui_bound",
+      "ui_state": "enabled_real",
+      "core_runtime_path": "generate-skill, skill-governance-report",
+      "accepted_surface": "Skill package generation, validation, installability, privacy boundary, KB/Agent compatibility, and governance report.",
+      "degraded_surface": "Untrusted KB input remains explicitly gated or requires allow-untrusted evidence.",
+      "evidence_path": "kb-forge-skill/artifacts/audits/campaign4_remaining_capabilities_production_grade_2026-06-16/outputs/skill_governance/skill_governance_report.json",
+      "rollback_disable_switch": "Keep advanced composition display-only while generated Skill package and governance report remain usable.",
+      "yellow_marker_removed": true
+    },
+    {
+      "capability_id": "agent_creation_package",
+      "capability_name": "Agent Creation Package",
+      "production_grade_status": "agent_creation_package_production_grade_accepted_ui_bound",
+      "ui_state": "enabled_real",
+      "core_runtime_path": "generate-agent --mode kb_bound, generate-bound-agent",
+      "accepted_surface": "Agent Creation Package files, manifest, KB/Skill bindings, compat check, safety boundary, role, soul, and system prompt.",
+      "degraded_surface": "Agent CRUD, save/version management, Agent Runtime, Memory, Collaboration, and A2A remain omitted.",
+      "evidence_path": "kb-forge-skill/artifacts/audits/campaign4_remaining_capabilities_production_grade_2026-06-16/outputs/agent_creation_package/agent_manifest.json",
+      "rollback_disable_switch": "Export package draft only; do not expose Agent runtime execution or version save.",
+      "yellow_marker_removed": true
+    }
+  ],
+  "overall_status": "campaign4_remaining_capabilities_production_grade_accepted_ui_bound"
+}

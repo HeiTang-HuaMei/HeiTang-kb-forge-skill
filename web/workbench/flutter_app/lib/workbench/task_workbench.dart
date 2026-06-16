@@ -103,62 +103,80 @@ class _CurrentTaskPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: colors.primary,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.dashboard_customize_outlined,
-                    color: Colors.white, size: 23),
+          LayoutBuilder(builder: (context, constraints) {
+            final compact = constraints.maxWidth < 560;
+            final icon = Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: colors.primary,
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Wrap(spacing: 8, runSpacing: 8, children: [
-                      _HeroBadge(
-                        label: _zh ? '当前任务' : 'Current task',
-                        icon: Icons.adjust_outlined,
-                      ),
-                      _HeroBadge(
-                        label: _zh ? '本地优先' : 'Local first',
-                        icon: Icons.shield_outlined,
-                      ),
-                    ]),
-                    const SizedBox(height: 6),
-                    Text(
-                      _zh
-                          ? '导入资料 → 解析资料 → 构建知识库'
-                          : 'Import Materials -> Parse Materials -> Build Knowledge Package',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(fontWeight: FontWeight.w900),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _zh
-                          ? '一个产物驱动的知识供应链：每一阶段接收上游产物，生成本阶段产物，再交给下一阶段。'
-                          : 'One artifact-driven knowledge supply chain: each stage consumes an upstream artifact, produces its output, then hands off downstream.',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colors.onSurfaceVariant,
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                  ],
+              child: const Icon(Icons.dashboard_customize_outlined,
+                  color: Colors.white, size: 23),
+            );
+            final copy = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(spacing: 8, runSpacing: 8, children: [
+                  _HeroBadge(
+                    label: _zh ? '当前任务' : 'Current task',
+                    icon: Icons.adjust_outlined,
+                  ),
+                  _HeroBadge(
+                    label: _zh ? '本地优先' : 'Local first',
+                    icon: Icons.shield_outlined,
+                  ),
+                ]),
+                const SizedBox(height: 6),
+                Text(
+                  _zh
+                      ? '导入资料 → 解析资料 → 构建知识库'
+                      : 'Import Materials -> Parse Materials -> Build Knowledge Base',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w900),
                 ),
-              ),
-              const SizedBox(width: 12),
-              _ExecutionBadge(
-                  localeCode: localeCode, isWebRuntime: isWebRuntime),
-            ],
-          ),
+                const SizedBox(height: 4),
+                Text(
+                  _zh
+                      ? '一个产物驱动的知识供应链：每一阶段接收上游产物，生成本阶段产物，再交给下一阶段。'
+                      : 'One artifact-driven knowledge supply chain: each stage consumes an upstream artifact, produces its output, then hands off downstream.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: colors.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ],
+            );
+            if (compact) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    icon,
+                    const SizedBox(width: 12),
+                    Expanded(child: copy),
+                  ]),
+                  const SizedBox(height: 10),
+                  _ExecutionBadge(
+                      localeCode: localeCode, isWebRuntime: isWebRuntime),
+                ],
+              );
+            }
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                icon,
+                const SizedBox(width: 12),
+                Expanded(child: copy),
+                const SizedBox(width: 12),
+                _ExecutionBadge(
+                    localeCode: localeCode, isWebRuntime: isWebRuntime),
+              ],
+            );
+          }),
           const SizedBox(height: 12),
           LayoutBuilder(builder: (context, constraints) {
             final wide = constraints.maxWidth >= 820;
@@ -381,9 +399,14 @@ class _DashboardChainSummary extends StatelessWidget {
         ? [
             ['导入资料', '新来源', '导入清单 / 来源清单', '解析资料'],
             ['解析资料', '导入清单', '解析内容 / 解析报告', '构建知识库'],
-            ['构建知识库', '解析内容', '知识包 / 文档切片清单', '生成 Skill'],
-            ['生成 Skill', '知识包', 'Skill 草稿 / 验证报告', '创建 Agent'],
-            ['创建 Agent', '知识包 + Skill', 'Agent 配置 / 包预览', '验证与导出'],
+            ['构建知识库', '解析内容', '知识库 / 文档切片清单', '生成 Skill'],
+            ['生成 Skill', '知识库', 'Skill 草稿 / 验证报告', 'Agent Creation Package 映射'],
+            [
+              'Agent Creation Package',
+              '知识库 + Skill',
+              '输入映射 / 包预览 / 导出草稿',
+              '验证与导出'
+            ],
             ['验证与导出', '全部产物', '报告 / 受控导出摘要', '完成交接'],
           ]
         : [
@@ -397,24 +420,24 @@ class _DashboardChainSummary extends StatelessWidget {
               'Parse Materials',
               'Import manifest',
               'Parsed content / parsing report',
-              'Build Knowledge Package'
+              'Build Knowledge Base'
             ],
             [
-              'Build Knowledge Package',
+              'Build Knowledge Base',
               'Parsed content',
-              'Knowledge package / chunk inventory',
+              'Knowledge Base / chunk inventory',
               'Generate Skill'
             ],
             [
               'Generate Skill',
-              'Knowledge package',
+              'Knowledge Base',
               'Skill draft / validation report',
-              'Create Agent'
+              'Agent Creation Package mapping'
             ],
             [
-              'Create Agent',
-              'Package + Skills',
-              'Agent config / package preview',
+              'Agent Creation Package',
+              'Knowledge Base + Skills',
+              'Input mapping / package preview / export draft',
               'Validate & Export'
             ],
             [
@@ -464,7 +487,7 @@ class _ExecutionBadge extends StatelessWidget {
         children: [
           Icon(
             isWebRuntime
-                ? Icons.public_off_outlined
+                ? Icons.public_outlined
                 : Icons.desktop_windows_outlined,
             size: 18,
             color: isWebRuntime ? colors.onSecondaryContainer : colors.primary,
@@ -472,7 +495,7 @@ class _ExecutionBadge extends StatelessWidget {
           const SizedBox(width: 7),
           Text(
             isWebRuntime
-                ? (_zh ? 'Web 安全展示' : 'Web-safe view')
+                ? (_zh ? 'Flutter Web 运行' : 'Flutter Web running')
                 : (_zh ? '桌面可执行' : 'Desktop ready'),
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   color: isWebRuntime

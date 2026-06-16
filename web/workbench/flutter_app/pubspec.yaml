@@ -23,6 +23,8 @@ flutter:
     - assets/brand/black_cat_head.svg
     - assets/brand/black_tiger_head.svg
     - assets/contracts/p1_core_contract_fixture.json
+    - assets/contracts/provider_runtime_bridge_status_schema_delta_2026_06_16.json
+    - assets/contracts/campaign4_remaining_capability_status_2026_06_16.json
     - assets/workflows/p1_real_workflow_v1_evidence.json
     - assets/workflows/p1_real_workflow_v2_evidence.json
     - assets/workflows/p1_real_workflow_v2/full_ready_action_execution_matrix.json

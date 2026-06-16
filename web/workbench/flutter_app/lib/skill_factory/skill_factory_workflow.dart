@@ -274,7 +274,7 @@ class _WorkflowContent extends StatelessWidget {
               width: width,
               child: _MetricSection(
                 icon: Icons.inventory_2_outlined,
-                title: zh ? '知识包' : 'Knowledge Package',
+                title: zh ? '知识库' : 'Knowledge Base',
                 status: '${package['status']}',
                 rows: {
                   zh ? '来源' : 'Sources': '${package['source_count']}',
@@ -508,7 +508,7 @@ class _PipelineStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final zh = localeCode == 'zh-CN';
     final stages = <(IconData, String)>[
-      (Icons.inventory_2_outlined, zh ? '知识包' : 'Knowledge Package'),
+      (Icons.inventory_2_outlined, zh ? '知识库' : 'Knowledge Base'),
       (Icons.fact_check_outlined, zh ? '证据' : 'Evidence'),
       (Icons.account_tree_outlined, zh ? '方法论' : 'Methodology'),
       (Icons.playlist_add_check_outlined, zh ? '候选' : 'Candidates'),

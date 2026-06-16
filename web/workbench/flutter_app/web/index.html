@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <base href="$FLUTTER_BASE_HREF">
+    <base href="./">
     <meta charset="utf-8">
     <meta content="IE=Edge" http-equiv="X-UA-Compatible">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,8 +9,93 @@
     <meta name="description" content="HeiTang Knowledge Workbench Flutter web scaffold">
     <link rel="manifest" href="manifest.json">
     <title>HeiTang Knowledge Workbench</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: #f4f4f2;
+        color: #171717;
+        font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+      }
+
+      #direct-open-guard {
+        display: none;
+        min-height: 100vh;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .guard-card {
+        background: #ffffff;
+        border: 1px solid #d6d6d2;
+        border-radius: 8px;
+        max-width: 720px;
+        padding: 22px;
+      }
+
+      .guard-card h1 {
+        font-size: 24px;
+        margin: 0 0 8px;
+      }
+
+      .guard-card p {
+        color: #51565c;
+        font-weight: 650;
+        line-height: 1.6;
+        margin: 0 0 10px;
+      }
+
+      .guard-card code {
+        background: #f4f4f2;
+        border: 1px solid #dededb;
+        border-radius: 6px;
+        display: block;
+        margin-top: 10px;
+        padding: 10px;
+        white-space: pre-wrap;
+      }
+    </style>
   </head>
   <body>
-    <script src="flutter_bootstrap.js" async></script>
+    <div id="direct-open-guard" aria-live="polite">
+      <div class="guard-card">
+        <h1>Flutter Web build entry not found</h1>
+        <p>
+          This source template cannot run the HeiTang Workbench by itself. Use
+          Flutter development server or serve the generated build directory.
+        </p>
+        <code>flutter run -d chrome
+flutter build web
+python -m http.server 4174 --bind 127.0.0.1 --directory build/web</code>
+      </div>
+    </div>
+    <script>
+      (function () {
+        var guard = document.getElementById("direct-open-guard");
+        var loaded = false;
+
+        function showDirectOpenGuard() {
+          if (!loaded && guard) {
+            guard.style.display = "grid";
+          }
+        }
+
+        var script = document.createElement("script");
+        script.src = "flutter_bootstrap.js";
+        script.async = true;
+        script.onload = function () {
+          loaded = true;
+        };
+        script.onerror = showDirectOpenGuard;
+        document.body.appendChild(script);
+
+        window.setTimeout(function () {
+          if (!loaded && !document.querySelector("flt-glass-pane")) {
+            showDirectOpenGuard();
+          }
+        }, 6000);
+      })();
+    </script>
   </body>
 </html>

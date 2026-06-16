@@ -98,7 +98,7 @@ void main() {
     expect(find.text('Knowledge-to-Skill Suite 工作流'), findsOneWidget);
     expect(find.textContaining('release_candidate'), findsWidgets);
     expect(find.textContaining('Core 证据快照'), findsOneWidget);
-    expect(find.text('知识包'), findsWidgets);
+    expect(find.text('知识库'), findsWidgets);
     expect(find.text('证据'), findsWidgets);
     expect(find.text('方法论'), findsWidgets);
     expect(find.text('候选'), findsWidgets);
@@ -146,8 +146,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('renders the Skill Factory workflow on mobile', (tester) async {
-    await tester.binding.setSurfaceSize(const Size(390, 844));
+  testWidgets('renders the Skill Factory workflow in the desktop target shell',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1100));
     await tester.pumpWidget(HeiTangWorkbenchApp(
       contracts: sampleWorkbenchContracts,
       skillSuiteWorkflow: sampleSkillSuiteWorkflow,
