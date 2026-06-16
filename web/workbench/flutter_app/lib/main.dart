@@ -163,6 +163,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
     this.externalCapabilities,
     this.parserBackends,
     this.campaign6AgentRuntimeStatus,
+    this.campaign7ConfigurationStatus,
     this.skillGovernanceReport,
     this.methodologyMap,
     this.skillSuiteWorkflow,
@@ -181,6 +182,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
   final ExternalCapabilityRegistry? externalCapabilities;
   final ParserBackendMatrix? parserBackends;
   final Map<String, dynamic>? campaign6AgentRuntimeStatus;
+  final Map<String, dynamic>? campaign7ConfigurationStatus;
   final Map<String, dynamic>? skillGovernanceReport;
   final Map<String, dynamic>? methodologyMap;
   final Map<String, dynamic>? skillSuiteWorkflow;
@@ -245,6 +247,15 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
           .then((source) => jsonDecode(source) as Map<String, dynamic>)
           .catchError((_) => sampleCampaign6AgentRuntimeStatus)
       : Future<Map<String, dynamic>>.value(widget.campaign6AgentRuntimeStatus);
+  late final Future<Map<String, dynamic>> _campaign7ConfigurationStatusFuture =
+      widget.campaign7ConfigurationStatus == null
+          ? rootBundle
+              .loadString(
+                  'assets/contracts/campaign7_configuration_system_status_2026_06_17.json')
+              .then((source) => jsonDecode(source) as Map<String, dynamic>)
+              .catchError((_) => sampleCampaign7ConfigurationStatus)
+          : Future<Map<String, dynamic>>.value(
+              widget.campaign7ConfigurationStatus);
   late final Future<Map<String, dynamic>> _skillGovernanceReportFuture =
       Future<Map<String, dynamic>>.value(
           widget.skillGovernanceReport ?? sampleSkillGovernanceReport);
@@ -300,44 +311,52 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
                       sampleCampaign6AgentRuntimeStatus,
                   builder: (context, campaign6Snapshot) =>
                       FutureBuilder<Map<String, dynamic>>(
-                    future: _skillGovernanceReportFuture,
-                    initialData: widget.skillGovernanceReport ??
-                        sampleSkillGovernanceReport,
-                    builder: (context, skillGovernanceSnapshot) =>
-                        _WorkbenchScaffold(
-                      contracts:
-                          contractsSnapshot.data ?? sampleWorkbenchContracts,
-                      workflowEvidence:
-                          evidenceSnapshot.data ?? sampleP1WorkflowEvidence,
-                      workflowV2Evidence:
-                          v2Snapshot.data ?? sampleP1WorkflowV2Evidence,
-                      externalCapabilities: externalSnapshot.data ??
-                          sampleExternalCapabilityRegistry,
-                      parserBackends:
-                          parserSnapshot.data ?? sampleParserBackendMatrix,
-                      campaign6AgentRuntimeStatus: campaign6Snapshot.data ??
-                          sampleCampaign6AgentRuntimeStatus,
-                      skillGovernanceReport: skillGovernanceSnapshot.data ??
+                    future: _campaign7ConfigurationStatusFuture,
+                    initialData: widget.campaign7ConfigurationStatus ??
+                        sampleCampaign7ConfigurationStatus,
+                    builder: (context, campaign7Snapshot) =>
+                        FutureBuilder<Map<String, dynamic>>(
+                      future: _skillGovernanceReportFuture,
+                      initialData: widget.skillGovernanceReport ??
                           sampleSkillGovernanceReport,
-                      methodologyMap:
-                          widget.methodologyMap ?? sampleMethodologyMap,
-                      skillSuiteWorkflow: widget.skillSuiteWorkflow,
-                      localeCode: localeCode,
-                      themeMode: themeMode,
-                      selectedIndex: selectedIndex,
-                      isDark: isDark,
-                      coreBridge: widget.coreBridge,
-                      coreCli: widget.coreCli,
-                      coreWorkingDirectory: widget.coreWorkingDirectory,
-                      coreWorkspace: widget.coreWorkspace,
-                      enableLocalCoreActions: widget.enableLocalCoreActions,
-                      isWebRuntime: widget.isWebRuntime,
-                      onThemeChanged: (value) =>
-                          setState(() => themeMode = value),
-                      onLocaleChanged: (value) =>
-                          setState(() => localeCode = value),
-                      onPageChanged: (index) =>
-                          setState(() => selectedIndex = index),
+                      builder: (context, skillGovernanceSnapshot) =>
+                          _WorkbenchScaffold(
+                        contracts:
+                            contractsSnapshot.data ?? sampleWorkbenchContracts,
+                        workflowEvidence:
+                            evidenceSnapshot.data ?? sampleP1WorkflowEvidence,
+                        workflowV2Evidence:
+                            v2Snapshot.data ?? sampleP1WorkflowV2Evidence,
+                        externalCapabilities: externalSnapshot.data ??
+                            sampleExternalCapabilityRegistry,
+                        parserBackends:
+                            parserSnapshot.data ?? sampleParserBackendMatrix,
+                        campaign6AgentRuntimeStatus: campaign6Snapshot.data ??
+                            sampleCampaign6AgentRuntimeStatus,
+                        campaign7ConfigurationStatus: campaign7Snapshot.data ??
+                            sampleCampaign7ConfigurationStatus,
+                        skillGovernanceReport: skillGovernanceSnapshot.data ??
+                            sampleSkillGovernanceReport,
+                        methodologyMap:
+                            widget.methodologyMap ?? sampleMethodologyMap,
+                        skillSuiteWorkflow: widget.skillSuiteWorkflow,
+                        localeCode: localeCode,
+                        themeMode: themeMode,
+                        selectedIndex: selectedIndex,
+                        isDark: isDark,
+                        coreBridge: widget.coreBridge,
+                        coreCli: widget.coreCli,
+                        coreWorkingDirectory: widget.coreWorkingDirectory,
+                        coreWorkspace: widget.coreWorkspace,
+                        enableLocalCoreActions: widget.enableLocalCoreActions,
+                        isWebRuntime: widget.isWebRuntime,
+                        onThemeChanged: (value) =>
+                            setState(() => themeMode = value),
+                        onLocaleChanged: (value) =>
+                            setState(() => localeCode = value),
+                        onPageChanged: (index) =>
+                            setState(() => selectedIndex = index),
+                      ),
                     ),
                   ),
                 ),
@@ -409,6 +428,7 @@ class _DesktopWorkbench extends StatelessWidget {
     required this.externalCapabilities,
     required this.parserBackends,
     required this.campaign6AgentRuntimeStatus,
+    required this.campaign7ConfigurationStatus,
     required this.skillGovernanceReport,
     required this.methodologyMap,
     required this.skillSuiteWorkflow,
@@ -434,6 +454,7 @@ class _DesktopWorkbench extends StatelessWidget {
   final ExternalCapabilityRegistry externalCapabilities;
   final ParserBackendMatrix parserBackends;
   final Map<String, dynamic> campaign6AgentRuntimeStatus;
+  final Map<String, dynamic> campaign7ConfigurationStatus;
   final Map<String, dynamic> skillGovernanceReport;
   final Map<String, dynamic> methodologyMap;
   final Map<String, dynamic>? skillSuiteWorkflow;
@@ -480,6 +501,7 @@ class _DesktopWorkbench extends StatelessWidget {
                   externalCapabilities: externalCapabilities,
                   parserBackends: parserBackends,
                   campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
+                  campaign7ConfigurationStatus: campaign7ConfigurationStatus,
                   skillGovernanceReport: skillGovernanceReport,
                   methodologyMap: methodologyMap,
                   skillSuiteWorkflow: skillSuiteWorkflow,
@@ -1009,6 +1031,7 @@ class _PageSurface extends StatelessWidget {
     required this.externalCapabilities,
     required this.parserBackends,
     required this.campaign6AgentRuntimeStatus,
+    required this.campaign7ConfigurationStatus,
     required this.skillGovernanceReport,
     required this.methodologyMap,
     required this.skillSuiteWorkflow,
@@ -1034,6 +1057,7 @@ class _PageSurface extends StatelessWidget {
   final ExternalCapabilityRegistry externalCapabilities;
   final ParserBackendMatrix parserBackends;
   final Map<String, dynamic> campaign6AgentRuntimeStatus;
+  final Map<String, dynamic> campaign7ConfigurationStatus;
   final Map<String, dynamic> skillGovernanceReport;
   final Map<String, dynamic> methodologyMap;
   final Map<String, dynamic>? skillSuiteWorkflow;
@@ -1174,6 +1198,8 @@ class _PageSurface extends StatelessWidget {
                       page: page,
                       workspace: coreWorkspace,
                       campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
+                      campaign7ConfigurationStatus:
+                          campaign7ConfigurationStatus,
                       isWebRuntime: isWebRuntime,
                       diagnostics: diagnostics,
                     ),
@@ -1489,6 +1515,7 @@ class _WorkbenchScaffold extends StatelessWidget {
     required this.externalCapabilities,
     required this.parserBackends,
     required this.campaign6AgentRuntimeStatus,
+    required this.campaign7ConfigurationStatus,
     required this.skillGovernanceReport,
     required this.methodologyMap,
     required this.skillSuiteWorkflow,
@@ -1513,6 +1540,7 @@ class _WorkbenchScaffold extends StatelessWidget {
   final ExternalCapabilityRegistry externalCapabilities;
   final ParserBackendMatrix parserBackends;
   final Map<String, dynamic> campaign6AgentRuntimeStatus;
+  final Map<String, dynamic> campaign7ConfigurationStatus;
   final Map<String, dynamic> skillGovernanceReport;
   final Map<String, dynamic> methodologyMap;
   final Map<String, dynamic>? skillSuiteWorkflow;
@@ -1542,6 +1570,7 @@ class _WorkbenchScaffold extends StatelessWidget {
           externalCapabilities: externalCapabilities,
           parserBackends: parserBackends,
           campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
+          campaign7ConfigurationStatus: campaign7ConfigurationStatus,
           skillGovernanceReport: skillGovernanceReport,
           methodologyMap: methodologyMap,
           skillSuiteWorkflow: skillSuiteWorkflow,
@@ -2981,6 +3010,7 @@ class _ProductPageOverview extends StatefulWidget {
     required this.page,
     required this.workspace,
     required this.campaign6AgentRuntimeStatus,
+    required this.campaign7ConfigurationStatus,
     required this.isWebRuntime,
     required this.diagnostics,
   });
@@ -2989,6 +3019,7 @@ class _ProductPageOverview extends StatefulWidget {
   final WorkbenchPage page;
   final String workspace;
   final Map<String, dynamic> campaign6AgentRuntimeStatus;
+  final Map<String, dynamic> campaign7ConfigurationStatus;
   final bool isWebRuntime;
   final Widget diagnostics;
 
@@ -3018,7 +3049,7 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
       'document-generation': 3,
       'agent-factory-runtime': 4,
       'reports-audit': 3,
-      'workspace': 5,
+      'workspace': 6,
     };
     final maxTab = (tabCounts[page] ?? 1) - 1;
     if (selectedTab > maxTab) selectedTab = 0;
@@ -3071,6 +3102,7 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
             selectedTab: selectedTab,
             onTabSelected: (index) => setState(() => selectedTab = index),
             isWebRuntime: widget.isWebRuntime,
+            campaign7ConfigurationStatus: widget.campaign7ConfigurationStatus,
             diagnostics: widget.diagnostics,
           ),
       },
@@ -7104,6 +7136,17 @@ Map<String, dynamic> _campaign6Map(Object? value) {
   return Map<String, dynamic>.from(value);
 }
 
+String _campaignText(Object? value) {
+  return value?.toString() ?? '-';
+}
+
+List<String> _campaignStringList(Object? value) {
+  if (value is! List) {
+    return const <String>[];
+  }
+  return value.map((item) => item.toString()).toList(growable: false);
+}
+
 class _Campaign6RuntimeOverviewView extends StatelessWidget {
   const _Campaign6RuntimeOverviewView({
     required this.zh,
@@ -8135,6 +8178,7 @@ class _SettingsProductWorkflow extends StatelessWidget {
     required this.selectedTab,
     required this.onTabSelected,
     required this.isWebRuntime,
+    required this.campaign7ConfigurationStatus,
     required this.diagnostics,
   });
 
@@ -8143,6 +8187,7 @@ class _SettingsProductWorkflow extends StatelessWidget {
   final int selectedTab;
   final ValueChanged<int> onTabSelected;
   final bool isWebRuntime;
+  final Map<String, dynamic> campaign7ConfigurationStatus;
   final Widget diagnostics;
 
   bool get _zh => localeCode == 'zh-CN';
@@ -8150,10 +8195,11 @@ class _SettingsProductWorkflow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['工作区', 'Provider 与存储', '模型与语言', '安全', '开发者诊断']
+        ? ['工作区', 'Provider 与存储', '配置系统', '模型与语言', '安全', '开发者诊断']
         : [
             'Workspace',
             'Providers and Storage',
+            'Configuration System',
             'Models and Language',
             'Safety',
             'Developer Diagnostics'
@@ -8170,10 +8216,15 @@ class _SettingsProductWorkflow extends StatelessWidget {
       _PageTabs(
           tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
       const SizedBox(height: _DesktopGrid.gutter),
-      if (selectedTab == 4)
+      if (selectedTab == 5)
         diagnostics
       else if (selectedTab == 1)
         _SettingsProvidersStorageView(zh: _zh, workspace: workspace)
+      else if (selectedTab == 2)
+        _SettingsConfigurationSystemView(
+          zh: _zh,
+          campaign7ConfigurationStatus: campaign7ConfigurationStatus,
+        )
       else if (selectedTab == 0)
         _SettingsWorkspaceView(
           zh: _zh,
@@ -8183,13 +8234,13 @@ class _SettingsProductWorkflow extends StatelessWidget {
       else
         _ProductPanel(
           keyName: 'settings-groups',
-          icon: selectedTab == 2
+          icon: selectedTab == 3
               ? Icons.memory_outlined
-              : selectedTab == 3
+              : selectedTab == 4
                   ? Icons.shield_outlined
                   : Icons.folder_outlined,
           title: tabs[selectedTab],
-          children: selectedTab == 2
+          children: selectedTab == 3
               ? [
                   _ProductTable(
                     columns: _zh
@@ -8238,7 +8289,7 @@ class _SettingsProductWorkflow extends StatelessWidget {
                       label: _zh ? '主题' : 'Theme',
                       value: _zh ? '跟随切换' : 'Switchable'),
                 ]
-              : selectedTab == 3
+              : selectedTab == 4
                   ? [
                       _FieldRow(
                           label: _zh ? '云服务' : 'Cloud services',
@@ -8413,6 +8464,171 @@ class _SettingsProvidersStorageView extends StatelessWidget {
         flexes: const [7, 5],
         children: [providers, detail],
       );
+    });
+  }
+}
+
+class _SettingsConfigurationSystemView extends StatelessWidget {
+  const _SettingsConfigurationSystemView({
+    required this.zh,
+    required this.campaign7ConfigurationStatus,
+  });
+
+  final bool zh;
+  final Map<String, dynamic> campaign7ConfigurationStatus;
+
+  @override
+  Widget build(BuildContext context) {
+    final schema = _campaign6Map(campaign7ConfigurationStatus['config_schema']);
+    final diagnostics =
+        _campaign6Map(campaign7ConfigurationStatus['diagnostics']);
+    final security =
+        _campaign6Map(campaign7ConfigurationStatus['security_boundaries']);
+    final statusRows =
+        _campaign6List(campaign7ConfigurationStatus['status_matrix'])
+            .map((item) => [
+                  _campaignText(item['capability']),
+                  _campaignText(item['status']),
+                  _campaignText(item['ui_state']),
+                ])
+            .toList(growable: false);
+    final degradedRows =
+        _campaign6List(campaign7ConfigurationStatus['degraded_modes'])
+            .map((item) => [
+                  _campaignText(item['condition']),
+                  _campaignText(item['runtime_status']),
+                  _campaignText(item['user_message']),
+                ])
+            .toList(growable: false);
+    final securityRows = security.entries
+        .map((entry) => [
+              entry.key,
+              entry.value == true ? 'pass' : 'fail',
+            ])
+        .toList(growable: false);
+    final sourcePrecedence =
+        _campaignStringList(schema['source_precedence']).join(' > ');
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final wide = constraints.maxWidth >= 980;
+      final overview = _ProductPanel(
+        keyName: 'settings-configuration-system',
+        icon: Icons.rule_folder_outlined,
+        title: zh ? 'Campaign 7 配置系统' : 'Campaign 7 Configuration System',
+        gap: true,
+        children: [
+          _MetricStrip(
+            items: [
+              _MetricDatum(
+                  label: zh ? '总状态' : 'Overall',
+                  value: _campaignText(
+                      campaign7ConfigurationStatus['overall_status']),
+                  detail: zh ? '已绑定 UI' : 'UI-bound',
+                  icon: Icons.fact_check_outlined),
+              _MetricDatum(
+                  label: zh ? 'Schema' : 'Schema',
+                  value: _campaignText(schema['schema_version']),
+                  detail: zh ? '统一配置' : 'unified config',
+                  icon: Icons.schema_outlined),
+              _MetricDatum(
+                  label: zh ? 'UI' : 'UI',
+                  value: _campaignText(_campaign6Map(
+                      campaign7ConfigurationStatus['ui_settings'])['ui_state']),
+                  detail: zh ? 'Settings 绑定' : 'Settings binding',
+                  icon: Icons.settings_outlined),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? '配置来源优先级' : 'Config source precedence',
+              value: sourcePrecedence),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? 'Secret 展示' : 'Secret display',
+              value: _campaignText(
+                  _campaign6Map(campaign7ConfigurationStatus['ui_settings'])[
+                      'masked_secret_display'])),
+          const SizedBox(height: 8),
+          _ProductTable(
+            columns: zh
+                ? ['能力', '状态', 'UI 状态']
+                : ['Capability', 'Status', 'UI state'],
+            rows: statusRows,
+          ),
+        ],
+      );
+      final diagnosticsPanel = _ProductPanel(
+        keyName: 'settings-configuration-diagnostics',
+        icon: Icons.health_and_safety_outlined,
+        title: zh ? '诊断与降级' : 'Diagnostics and Degraded Modes',
+        gap: true,
+        children: [
+          _ProductTable(
+            columns: zh ? ['运行面', '状态'] : ['Runtime surface', 'Status'],
+            rows: [
+              [
+                'provider_runtime',
+                _campaignText(diagnostics['provider_runtime'])
+              ],
+              ['agent_runtime', _campaignText(diagnostics['agent_runtime'])],
+              [
+                'tool_adapter_registry',
+                _campaignText(diagnostics['tool_adapter_registry'])
+              ],
+              ['rag', _campaignText(diagnostics['rag'])],
+              ['workspace', _campaignText(diagnostics['workspace'])],
+              ['ui_settings', _campaignText(diagnostics['ui_settings'])],
+            ],
+          ),
+          const SizedBox(height: 8),
+          _ProductTable(
+            columns: zh
+                ? ['降级条件', '运行状态', '用户提示']
+                : ['Condition', 'Runtime status', 'User prompt'],
+            rows: degradedRows,
+          ),
+        ],
+      );
+      final securityPanel = _ProductPanel(
+        keyName: 'settings-configuration-security',
+        icon: Icons.verified_user_outlined,
+        title: zh ? '安全边界' : 'Security Boundary',
+        gap: true,
+        children: [
+          _ProductTable(
+            columns: zh ? ['检查', '结果'] : ['Check', 'Result'],
+            rows: securityRows,
+          ),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? 'Provider Runtime' : 'Provider Runtime',
+              value: _campaignText(
+                  _campaign6Map(schema['runtime_reuse'])['provider_runtime'])),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? 'Agent Runtime' : 'Agent Runtime',
+              value: _campaignText(
+                  _campaign6Map(schema['runtime_reuse'])['agent_runtime'])),
+        ],
+      );
+      if (!wide) {
+        return Column(children: [
+          overview,
+          const SizedBox(height: _DesktopGrid.gutter),
+          diagnosticsPanel,
+          const SizedBox(height: _DesktopGrid.gutter),
+          securityPanel,
+        ]);
+      }
+      return Column(children: [
+        _EqualHeightRow(
+          height: 430,
+          flexes: const [7, 5],
+          children: [overview, diagnosticsPanel],
+        ),
+        const SizedBox(height: _DesktopGrid.gutter),
+        securityPanel,
+      ]);
     });
   }
 }
@@ -8999,6 +9215,168 @@ bool _showsSkillGovernance(String pageId) {
 bool _showsMethodology(String pageId) {
   return pageId == 'skill-factory';
 }
+
+const sampleCampaign7ConfigurationStatus = <String, dynamic>{
+  'schema_id': 'campaign7_configuration_system_status',
+  'schema_version': '2026-06-17',
+  'overall_status':
+      'campaign7_configuration_system_production_grade_accepted_ui_bound',
+  'final_target':
+      'campaign7_configuration_system_production_grade_accepted_pushed_ci_green',
+  'scope': {
+    'campaign_7_started': true,
+    'campaign_8_started': false,
+    'campaign_9_started': false,
+    'provider_runtime_reimplemented': false,
+    'agent_runtime_reimplemented': false,
+    'arbitrary_shell_allowed': false,
+    'computer_use_runtime_enabled': false,
+    'tag_or_release_allowed': false,
+    'secret_plaintext_written': false,
+  },
+  'config_schema': {
+    'schema_version': 'campaign7.config.v1',
+    'ui_state': 'enabled_real',
+    'sections': <String>[
+      'provider_profiles',
+      'agent_profiles',
+      'tool_adapters',
+      'skills',
+      'rag',
+      'workspace',
+      'ui_settings',
+    ],
+    'source_precedence': <String>['default', 'workspace', 'user', 'env'],
+    'runtime_reuse': {
+      'provider_runtime': 'accepted_env_only_provider_runtime',
+      'agent_runtime': 'campaign6_agent_runtime',
+      'tool_runtime': 'campaign6_registered_tool_adapter_gate',
+      'workbench_bridge': 'campaign5_allowlisted_workbench_bridge',
+    },
+  },
+  'status_matrix': <Map<String, dynamic>>[
+    {
+      'capability': 'unified_config_schema',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+    },
+    {
+      'capability': 'provider_profile_persistence',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+    },
+    {
+      'capability': 'agent_profile_persistence',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+    },
+    {
+      'capability': 'tool_adapter_config_persistence',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+    },
+    {
+      'capability': 'skill_rag_workspace_binding_config',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+    },
+    {
+      'capability': 'override_precedence',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+    },
+    {
+      'capability': 'env_only_secret_injection',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+    },
+    {
+      'capability': 'masked_ui_secret_display',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+    },
+    {
+      'capability': 'config_validation',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+    },
+    {
+      'capability': 'config_migration',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+    },
+    {
+      'capability': 'config_rollback',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+    },
+    {
+      'capability': 'config_diagnostics',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+    },
+    {
+      'capability': 'config_import_export',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+    },
+    {
+      'capability': 'degraded_status_mapping',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+    },
+    {
+      'capability': 'ui_settings_binding',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+    },
+  ],
+  'diagnostics': {
+    'status': 'pass',
+    'provider_runtime': 'available',
+    'agent_runtime': 'available',
+    'tool_adapter_registry': 'available',
+    'rag': 'available',
+    'workspace': 'available',
+    'ui_settings': 'available',
+  },
+  'degraded_modes': <Map<String, dynamic>>[
+    {
+      'condition': 'missing_env_secret',
+      'runtime_status': 'blocked',
+      'user_message': 'Prompt env/secret-store setup; never echo plaintext.',
+    },
+    {
+      'condition': 'rollback_restore',
+      'runtime_status': 'degraded',
+      'user_message': 'Restore last valid snapshot and preserve audit log.',
+    },
+    {
+      'condition': 'tool_adapter_disabled',
+      'runtime_status': 'disabled_boundary',
+      'user_message': 'Do not execute disabled or unregistered adapters.',
+    },
+  ],
+  'security_boundaries': {
+    'no_plaintext_secret': true,
+    'secret_env_names_only': true,
+    'ui_secret_masked': true,
+    'no_arbitrary_shell': true,
+    'computer_use_disabled': true,
+    'no_provider_runtime_rewrite': true,
+    'no_agent_runtime_rewrite': true,
+  },
+  'ui_settings': {
+    'ui_state': 'enabled_real',
+    'masked_secret_display': 'sk-************',
+    'profile_lifecycle_status': 'pass',
+    'validation_status': 'pass',
+    'migration_status': 'pass',
+    'rollback_status': 'pass',
+    'diagnostics_status': 'pass',
+    'import_export_status': 'pass',
+  },
+};
 
 const sampleCampaign6AgentRuntimeStatus = <String, dynamic>{
   'schema_id': 'campaign6_agent_runtime_status',

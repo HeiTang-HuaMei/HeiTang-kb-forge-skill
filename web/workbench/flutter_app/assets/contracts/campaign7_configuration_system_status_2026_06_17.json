@@ -1,0 +1,188 @@
+{
+  "schema_id": "campaign7_configuration_system_status",
+  "schema_version": "2026-06-17",
+  "overall_status": "campaign7_configuration_system_production_grade_accepted_ui_bound",
+  "final_target": "campaign7_configuration_system_production_grade_accepted_pushed_ci_green",
+  "scope": {
+    "campaign_7_started": true,
+    "campaign_8_started": false,
+    "campaign_9_started": false,
+    "provider_runtime_reimplemented": false,
+    "agent_runtime_reimplemented": false,
+    "arbitrary_shell_allowed": false,
+    "computer_use_runtime_enabled": false,
+    "tag_or_release_allowed": false,
+    "secret_plaintext_written": false
+  },
+  "config_schema": {
+    "schema_version": "campaign7.config.v1",
+    "ui_state": "enabled_real",
+    "sections": [
+      "provider_profiles",
+      "agent_profiles",
+      "tool_adapters",
+      "skills",
+      "rag",
+      "workspace",
+      "ui_settings"
+    ],
+    "source_precedence": [
+      "default",
+      "workspace",
+      "user",
+      "env"
+    ],
+    "runtime_reuse": {
+      "provider_runtime": "accepted_env_only_provider_runtime",
+      "agent_runtime": "campaign6_agent_runtime",
+      "tool_runtime": "campaign6_registered_tool_adapter_gate",
+      "workbench_bridge": "campaign5_allowlisted_workbench_bridge"
+    }
+  },
+  "status_matrix": [
+    {
+      "capability": "unified_config_schema",
+      "status": "pass",
+      "ui_state": "enabled_real"
+    },
+    {
+      "capability": "provider_profile_persistence",
+      "status": "pass",
+      "ui_state": "enabled_real"
+    },
+    {
+      "capability": "agent_profile_persistence",
+      "status": "pass",
+      "ui_state": "enabled_real"
+    },
+    {
+      "capability": "tool_adapter_config_persistence",
+      "status": "pass",
+      "ui_state": "enabled_real"
+    },
+    {
+      "capability": "skill_rag_workspace_binding_config",
+      "status": "pass",
+      "ui_state": "enabled_real"
+    },
+    {
+      "capability": "override_precedence",
+      "status": "pass",
+      "ui_state": "enabled_real"
+    },
+    {
+      "capability": "env_only_secret_injection",
+      "status": "pass",
+      "ui_state": "enabled_real"
+    },
+    {
+      "capability": "masked_ui_secret_display",
+      "status": "pass",
+      "ui_state": "enabled_real"
+    },
+    {
+      "capability": "config_validation",
+      "status": "pass",
+      "ui_state": "enabled_real"
+    },
+    {
+      "capability": "config_migration",
+      "status": "pass",
+      "ui_state": "enabled_real"
+    },
+    {
+      "capability": "config_rollback",
+      "status": "pass",
+      "ui_state": "enabled_real"
+    },
+    {
+      "capability": "config_diagnostics",
+      "status": "pass",
+      "ui_state": "enabled_real"
+    },
+    {
+      "capability": "config_import_export",
+      "status": "pass",
+      "ui_state": "enabled_real"
+    },
+    {
+      "capability": "degraded_status_mapping",
+      "status": "pass",
+      "ui_state": "enabled_real"
+    },
+    {
+      "capability": "ui_settings_binding",
+      "status": "pass",
+      "ui_state": "enabled_real"
+    }
+  ],
+  "diagnostics": {
+    "status": "pass",
+    "provider_runtime": "available",
+    "agent_runtime": "available",
+    "tool_adapter_registry": "available",
+    "rag": "available",
+    "workspace": "available",
+    "ui_settings": "available",
+    "repair_suggestions": [
+      "Set missing env names in the secret store, not in UI fields.",
+      "Use rollback to restore the last valid config snapshot after validation failure."
+    ]
+  },
+  "degraded_modes": [
+    {
+      "condition": "missing_env_secret",
+      "runtime_status": "blocked",
+      "user_message": "Prompt env/secret-store setup; never echo plaintext."
+    },
+    {
+      "condition": "invalid_schema",
+      "runtime_status": "blocked",
+      "user_message": "Show field-specific validation error and repair suggestion."
+    },
+    {
+      "condition": "migration_incompatible",
+      "runtime_status": "blocked",
+      "user_message": "Keep previous profile active and write migration diagnostics."
+    },
+    {
+      "condition": "rollback_restore",
+      "runtime_status": "degraded",
+      "user_message": "Restore last valid snapshot and preserve audit log."
+    },
+    {
+      "condition": "provider_unavailable",
+      "runtime_status": "degraded",
+      "user_message": "Keep local capabilities available and mark provider unavailable."
+    },
+    {
+      "condition": "tool_adapter_disabled",
+      "runtime_status": "disabled_boundary",
+      "user_message": "Do not execute disabled or unregistered adapters."
+    },
+    {
+      "condition": "workspace_unavailable",
+      "runtime_status": "blocked",
+      "user_message": "Require workspace path repair before writing artifacts."
+    }
+  ],
+  "security_boundaries": {
+    "no_plaintext_secret": true,
+    "secret_env_names_only": true,
+    "ui_secret_masked": true,
+    "no_arbitrary_shell": true,
+    "computer_use_disabled": true,
+    "no_provider_runtime_rewrite": true,
+    "no_agent_runtime_rewrite": true
+  },
+  "ui_settings": {
+    "ui_state": "enabled_real",
+    "masked_secret_display": "sk-************",
+    "profile_lifecycle_status": "pass",
+    "validation_status": "pass",
+    "migration_status": "pass",
+    "rollback_status": "pass",
+    "diagnostics_status": "pass",
+    "import_export_status": "pass"
+  }
+}
