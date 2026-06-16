@@ -211,6 +211,51 @@ def test_flutter_scaffold_does_not_import_core_modules():
         assert all(forbidden not in line for line in import_lines)
 
 
+def test_campaign9_desktop_delivery_status_is_ui_bound_without_release_overclaim():
+    flutter_root = WORKBENCH / "flutter_app"
+    asset_path = (
+        flutter_root
+        / "assets"
+        / "contracts"
+        / "campaign9_desktop_delivery_status_2026_06_17.json"
+    )
+    status = json.loads(asset_path.read_text(encoding="utf-8"))
+    pubspec = (flutter_root / "pubspec.yaml").read_text(encoding="utf-8")
+    main = (flutter_root / "lib" / "main.dart").read_text(encoding="utf-8")
+
+    assert status["schema_id"] == "campaign9_desktop_delivery_status"
+    assert (
+        status["overall_status"]
+        == "campaign9_windows_exe_packaging_local_smoke_passed_ui_bound"
+    )
+    assert (
+        status["final_target_status"]
+        == "campaign9_windows_exe_packaging_accepted_pushed_ci_green_tagged_rc2_pending_release_decision"
+    )
+    assert status["release_candidate_tag"] == "v4.3.0-rc2"
+    assert status["package_version_baseline"] == "4.2.0"
+    assert status["github_release_created"] is False
+    assert status["stable_release_tag_authorized"] is False
+    assert status["campaign_scope"]["computer_use_runtime_enabled"] is False
+    assert status["campaign_scope"]["arbitrary_shell_allowed"] is False
+    assert status["campaign_scope"]["tauri_accepted_path"] is False
+    assert status["delivery_path"]["accepted_packaging_path"] == "flutter_windows_runner"
+    assert status["package"]["build_status"] == "pass"
+    assert status["package"]["exe"] == "heitang_workbench.exe"
+    assert status["desktop_shell_smoke"]["status"] == "pass"
+    assert all(
+        step["result"] == "pass" for step in status["desktop_shell_smoke"]["steps"]
+    )
+    assert len(status["checksum"]["exe_sha256"]) == 64
+    assert all(status["security_boundaries"].values())
+    assert "campaign9_desktop_delivery_status_2026_06_17.json" in pubspec
+    assert "campaign9DesktopDeliveryStatus" in main
+    assert "settings-desktop-delivery" in main
+    assert "_SettingsDesktopDeliveryView" in main
+    assert "GitHub Release creation requires separate Owner authorization" in main
+    assert "stable release" not in status["overall_status"].lower()
+
+
 def test_workbench_changed_surface_is_limited_to_allowed_paths():
     contracts = json.loads((WORKBENCH / "contracts.json").read_text(encoding="utf-8"))
     allowed = set(contracts["allowed_paths"])

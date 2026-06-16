@@ -164,6 +164,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
     this.parserBackends,
     this.campaign6AgentRuntimeStatus,
     this.campaign7ConfigurationStatus,
+    this.campaign9DesktopDeliveryStatus,
     this.skillGovernanceReport,
     this.methodologyMap,
     this.skillSuiteWorkflow,
@@ -183,6 +184,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
   final ParserBackendMatrix? parserBackends;
   final Map<String, dynamic>? campaign6AgentRuntimeStatus;
   final Map<String, dynamic>? campaign7ConfigurationStatus;
+  final Map<String, dynamic>? campaign9DesktopDeliveryStatus;
   final Map<String, dynamic>? skillGovernanceReport;
   final Map<String, dynamic>? methodologyMap;
   final Map<String, dynamic>? skillSuiteWorkflow;
@@ -256,6 +258,16 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
               .catchError((_) => sampleCampaign7ConfigurationStatus)
           : Future<Map<String, dynamic>>.value(
               widget.campaign7ConfigurationStatus);
+  late final Future<Map<String, dynamic>>
+      _campaign9DesktopDeliveryStatusFuture =
+      widget.campaign9DesktopDeliveryStatus == null
+          ? rootBundle
+              .loadString(
+                  'assets/contracts/campaign9_desktop_delivery_status_2026_06_17.json')
+              .then((source) => jsonDecode(source) as Map<String, dynamic>)
+              .catchError((_) => sampleCampaign9DesktopDeliveryStatus)
+          : Future<Map<String, dynamic>>.value(
+              widget.campaign9DesktopDeliveryStatus);
   late final Future<Map<String, dynamic>> _skillGovernanceReportFuture =
       Future<Map<String, dynamic>>.value(
           widget.skillGovernanceReport ?? sampleSkillGovernanceReport);
@@ -316,46 +328,56 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
                         sampleCampaign7ConfigurationStatus,
                     builder: (context, campaign7Snapshot) =>
                         FutureBuilder<Map<String, dynamic>>(
-                      future: _skillGovernanceReportFuture,
-                      initialData: widget.skillGovernanceReport ??
-                          sampleSkillGovernanceReport,
-                      builder: (context, skillGovernanceSnapshot) =>
-                          _WorkbenchScaffold(
-                        contracts:
-                            contractsSnapshot.data ?? sampleWorkbenchContracts,
-                        workflowEvidence:
-                            evidenceSnapshot.data ?? sampleP1WorkflowEvidence,
-                        workflowV2Evidence:
-                            v2Snapshot.data ?? sampleP1WorkflowV2Evidence,
-                        externalCapabilities: externalSnapshot.data ??
-                            sampleExternalCapabilityRegistry,
-                        parserBackends:
-                            parserSnapshot.data ?? sampleParserBackendMatrix,
-                        campaign6AgentRuntimeStatus: campaign6Snapshot.data ??
-                            sampleCampaign6AgentRuntimeStatus,
-                        campaign7ConfigurationStatus: campaign7Snapshot.data ??
-                            sampleCampaign7ConfigurationStatus,
-                        skillGovernanceReport: skillGovernanceSnapshot.data ??
+                      future: _campaign9DesktopDeliveryStatusFuture,
+                      initialData: widget.campaign9DesktopDeliveryStatus ??
+                          sampleCampaign9DesktopDeliveryStatus,
+                      builder: (context, campaign9Snapshot) =>
+                          FutureBuilder<Map<String, dynamic>>(
+                        future: _skillGovernanceReportFuture,
+                        initialData: widget.skillGovernanceReport ??
                             sampleSkillGovernanceReport,
-                        methodologyMap:
-                            widget.methodologyMap ?? sampleMethodologyMap,
-                        skillSuiteWorkflow: widget.skillSuiteWorkflow,
-                        localeCode: localeCode,
-                        themeMode: themeMode,
-                        selectedIndex: selectedIndex,
-                        isDark: isDark,
-                        coreBridge: widget.coreBridge,
-                        coreCli: widget.coreCli,
-                        coreWorkingDirectory: widget.coreWorkingDirectory,
-                        coreWorkspace: widget.coreWorkspace,
-                        enableLocalCoreActions: widget.enableLocalCoreActions,
-                        isWebRuntime: widget.isWebRuntime,
-                        onThemeChanged: (value) =>
-                            setState(() => themeMode = value),
-                        onLocaleChanged: (value) =>
-                            setState(() => localeCode = value),
-                        onPageChanged: (index) =>
-                            setState(() => selectedIndex = index),
+                        builder: (context, skillGovernanceSnapshot) =>
+                            _WorkbenchScaffold(
+                          contracts: contractsSnapshot.data ??
+                              sampleWorkbenchContracts,
+                          workflowEvidence:
+                              evidenceSnapshot.data ?? sampleP1WorkflowEvidence,
+                          workflowV2Evidence:
+                              v2Snapshot.data ?? sampleP1WorkflowV2Evidence,
+                          externalCapabilities: externalSnapshot.data ??
+                              sampleExternalCapabilityRegistry,
+                          parserBackends:
+                              parserSnapshot.data ?? sampleParserBackendMatrix,
+                          campaign6AgentRuntimeStatus: campaign6Snapshot.data ??
+                              sampleCampaign6AgentRuntimeStatus,
+                          campaign7ConfigurationStatus:
+                              campaign7Snapshot.data ??
+                                  sampleCampaign7ConfigurationStatus,
+                          campaign9DesktopDeliveryStatus:
+                              campaign9Snapshot.data ??
+                                  sampleCampaign9DesktopDeliveryStatus,
+                          skillGovernanceReport: skillGovernanceSnapshot.data ??
+                              sampleSkillGovernanceReport,
+                          methodologyMap:
+                              widget.methodologyMap ?? sampleMethodologyMap,
+                          skillSuiteWorkflow: widget.skillSuiteWorkflow,
+                          localeCode: localeCode,
+                          themeMode: themeMode,
+                          selectedIndex: selectedIndex,
+                          isDark: isDark,
+                          coreBridge: widget.coreBridge,
+                          coreCli: widget.coreCli,
+                          coreWorkingDirectory: widget.coreWorkingDirectory,
+                          coreWorkspace: widget.coreWorkspace,
+                          enableLocalCoreActions: widget.enableLocalCoreActions,
+                          isWebRuntime: widget.isWebRuntime,
+                          onThemeChanged: (value) =>
+                              setState(() => themeMode = value),
+                          onLocaleChanged: (value) =>
+                              setState(() => localeCode = value),
+                          onPageChanged: (index) =>
+                              setState(() => selectedIndex = index),
+                        ),
                       ),
                     ),
                   ),
@@ -429,6 +451,7 @@ class _DesktopWorkbench extends StatelessWidget {
     required this.parserBackends,
     required this.campaign6AgentRuntimeStatus,
     required this.campaign7ConfigurationStatus,
+    required this.campaign9DesktopDeliveryStatus,
     required this.skillGovernanceReport,
     required this.methodologyMap,
     required this.skillSuiteWorkflow,
@@ -455,6 +478,7 @@ class _DesktopWorkbench extends StatelessWidget {
   final ParserBackendMatrix parserBackends;
   final Map<String, dynamic> campaign6AgentRuntimeStatus;
   final Map<String, dynamic> campaign7ConfigurationStatus;
+  final Map<String, dynamic> campaign9DesktopDeliveryStatus;
   final Map<String, dynamic> skillGovernanceReport;
   final Map<String, dynamic> methodologyMap;
   final Map<String, dynamic>? skillSuiteWorkflow;
@@ -502,6 +526,8 @@ class _DesktopWorkbench extends StatelessWidget {
                   parserBackends: parserBackends,
                   campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
                   campaign7ConfigurationStatus: campaign7ConfigurationStatus,
+                  campaign9DesktopDeliveryStatus:
+                      campaign9DesktopDeliveryStatus,
                   skillGovernanceReport: skillGovernanceReport,
                   methodologyMap: methodologyMap,
                   skillSuiteWorkflow: skillSuiteWorkflow,
@@ -1032,6 +1058,7 @@ class _PageSurface extends StatelessWidget {
     required this.parserBackends,
     required this.campaign6AgentRuntimeStatus,
     required this.campaign7ConfigurationStatus,
+    required this.campaign9DesktopDeliveryStatus,
     required this.skillGovernanceReport,
     required this.methodologyMap,
     required this.skillSuiteWorkflow,
@@ -1058,6 +1085,7 @@ class _PageSurface extends StatelessWidget {
   final ParserBackendMatrix parserBackends;
   final Map<String, dynamic> campaign6AgentRuntimeStatus;
   final Map<String, dynamic> campaign7ConfigurationStatus;
+  final Map<String, dynamic> campaign9DesktopDeliveryStatus;
   final Map<String, dynamic> skillGovernanceReport;
   final Map<String, dynamic> methodologyMap;
   final Map<String, dynamic>? skillSuiteWorkflow;
@@ -1200,6 +1228,8 @@ class _PageSurface extends StatelessWidget {
                       campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
                       campaign7ConfigurationStatus:
                           campaign7ConfigurationStatus,
+                      campaign9DesktopDeliveryStatus:
+                          campaign9DesktopDeliveryStatus,
                       isWebRuntime: isWebRuntime,
                       diagnostics: diagnostics,
                     ),
@@ -1516,6 +1546,7 @@ class _WorkbenchScaffold extends StatelessWidget {
     required this.parserBackends,
     required this.campaign6AgentRuntimeStatus,
     required this.campaign7ConfigurationStatus,
+    required this.campaign9DesktopDeliveryStatus,
     required this.skillGovernanceReport,
     required this.methodologyMap,
     required this.skillSuiteWorkflow,
@@ -1541,6 +1572,7 @@ class _WorkbenchScaffold extends StatelessWidget {
   final ParserBackendMatrix parserBackends;
   final Map<String, dynamic> campaign6AgentRuntimeStatus;
   final Map<String, dynamic> campaign7ConfigurationStatus;
+  final Map<String, dynamic> campaign9DesktopDeliveryStatus;
   final Map<String, dynamic> skillGovernanceReport;
   final Map<String, dynamic> methodologyMap;
   final Map<String, dynamic>? skillSuiteWorkflow;
@@ -1571,6 +1603,7 @@ class _WorkbenchScaffold extends StatelessWidget {
           parserBackends: parserBackends,
           campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
           campaign7ConfigurationStatus: campaign7ConfigurationStatus,
+          campaign9DesktopDeliveryStatus: campaign9DesktopDeliveryStatus,
           skillGovernanceReport: skillGovernanceReport,
           methodologyMap: methodologyMap,
           skillSuiteWorkflow: skillSuiteWorkflow,
@@ -3011,6 +3044,7 @@ class _ProductPageOverview extends StatefulWidget {
     required this.workspace,
     required this.campaign6AgentRuntimeStatus,
     required this.campaign7ConfigurationStatus,
+    required this.campaign9DesktopDeliveryStatus,
     required this.isWebRuntime,
     required this.diagnostics,
   });
@@ -3020,6 +3054,7 @@ class _ProductPageOverview extends StatefulWidget {
   final String workspace;
   final Map<String, dynamic> campaign6AgentRuntimeStatus;
   final Map<String, dynamic> campaign7ConfigurationStatus;
+  final Map<String, dynamic> campaign9DesktopDeliveryStatus;
   final bool isWebRuntime;
   final Widget diagnostics;
 
@@ -3049,7 +3084,7 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
       'document-generation': 3,
       'agent-factory-runtime': 4,
       'reports-audit': 3,
-      'workspace': 6,
+      'workspace': 7,
     };
     final maxTab = (tabCounts[page] ?? 1) - 1;
     if (selectedTab > maxTab) selectedTab = 0;
@@ -3103,6 +3138,8 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
             onTabSelected: (index) => setState(() => selectedTab = index),
             isWebRuntime: widget.isWebRuntime,
             campaign7ConfigurationStatus: widget.campaign7ConfigurationStatus,
+            campaign9DesktopDeliveryStatus:
+                widget.campaign9DesktopDeliveryStatus,
             diagnostics: widget.diagnostics,
           ),
       },
@@ -8179,6 +8216,7 @@ class _SettingsProductWorkflow extends StatelessWidget {
     required this.onTabSelected,
     required this.isWebRuntime,
     required this.campaign7ConfigurationStatus,
+    required this.campaign9DesktopDeliveryStatus,
     required this.diagnostics,
   });
 
@@ -8188,6 +8226,7 @@ class _SettingsProductWorkflow extends StatelessWidget {
   final ValueChanged<int> onTabSelected;
   final bool isWebRuntime;
   final Map<String, dynamic> campaign7ConfigurationStatus;
+  final Map<String, dynamic> campaign9DesktopDeliveryStatus;
   final Widget diagnostics;
 
   bool get _zh => localeCode == 'zh-CN';
@@ -8195,13 +8234,14 @@ class _SettingsProductWorkflow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['工作区', 'Provider 与存储', '配置系统', '模型与语言', '安全', '开发者诊断']
+        ? ['工作区', 'Provider 与存储', '配置系统', '模型与语言', '安全', '桌面交付', '开发者诊断']
         : [
             'Workspace',
             'Providers and Storage',
             'Configuration System',
             'Models and Language',
             'Safety',
+            'Desktop Delivery',
             'Developer Diagnostics'
           ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -8216,7 +8256,7 @@ class _SettingsProductWorkflow extends StatelessWidget {
       _PageTabs(
           tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
       const SizedBox(height: _DesktopGrid.gutter),
-      if (selectedTab == 5)
+      if (selectedTab == 6)
         diagnostics
       else if (selectedTab == 1)
         _SettingsProvidersStorageView(zh: _zh, workspace: workspace)
@@ -8224,6 +8264,11 @@ class _SettingsProductWorkflow extends StatelessWidget {
         _SettingsConfigurationSystemView(
           zh: _zh,
           campaign7ConfigurationStatus: campaign7ConfigurationStatus,
+        )
+      else if (selectedTab == 5)
+        _SettingsDesktopDeliveryView(
+          zh: _zh,
+          campaign9DesktopDeliveryStatus: campaign9DesktopDeliveryStatus,
         )
       else if (selectedTab == 0)
         _SettingsWorkspaceView(
@@ -8628,6 +8673,200 @@ class _SettingsConfigurationSystemView extends StatelessWidget {
         ),
         const SizedBox(height: _DesktopGrid.gutter),
         securityPanel,
+      ]);
+    });
+  }
+}
+
+class _SettingsDesktopDeliveryView extends StatelessWidget {
+  const _SettingsDesktopDeliveryView({
+    required this.zh,
+    required this.campaign9DesktopDeliveryStatus,
+  });
+
+  final bool zh;
+  final Map<String, dynamic> campaign9DesktopDeliveryStatus;
+
+  @override
+  Widget build(BuildContext context) {
+    final delivery =
+        _campaign6Map(campaign9DesktopDeliveryStatus['delivery_path']);
+    final packageInfo =
+        _campaign6Map(campaign9DesktopDeliveryStatus['package']);
+    final checksum = _campaign6Map(campaign9DesktopDeliveryStatus['checksum']);
+    final smoke =
+        _campaign6Map(campaign9DesktopDeliveryStatus['desktop_shell_smoke']);
+    final pathRules =
+        _campaign6Map(campaign9DesktopDeliveryStatus['path_rules']);
+    final security =
+        _campaign6Map(campaign9DesktopDeliveryStatus['security_boundaries']);
+    final validationRows =
+        _campaign6List(campaign9DesktopDeliveryStatus['validation_matrix'])
+            .map((item) => [
+                  _campaignText(item['capability']),
+                  _campaignText(item['status']),
+                  _campaignText(item['ui_state']),
+                  _campaignText(item['evidence']),
+                ])
+            .toList(growable: false);
+    final smokeRows = _campaign6List(smoke['steps'])
+        .map((item) => [
+              _campaignText(item['step']),
+              _campaignText(item['result']),
+            ])
+        .toList(growable: false);
+    final degradedRows =
+        _campaign6List(campaign9DesktopDeliveryStatus['degraded_modes'])
+            .map((item) => [
+                  _campaignText(item['condition']),
+                  _campaignText(item['runtime_status']),
+                  _campaignText(item['user_message']),
+                ])
+            .toList(growable: false);
+    final securityRows = security.entries
+        .map((entry) => [
+              entry.key,
+              entry.value == true ? 'pass' : 'fail',
+            ])
+        .toList(growable: false);
+    final pathRows = pathRules.entries
+        .map((entry) => [entry.key, _campaignText(entry.value)])
+        .toList(growable: false);
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final wide = constraints.maxWidth >= 980;
+      final overview = _ProductPanel(
+        keyName: 'settings-desktop-delivery',
+        icon: Icons.desktop_windows_outlined,
+        title: zh ? 'Campaign 9 桌面交付' : 'Campaign 9 Desktop Delivery',
+        gap: true,
+        children: [
+          _MetricStrip(
+            items: [
+              _MetricDatum(
+                  label: zh ? '本地状态' : 'Local status',
+                  value: _campaignText(
+                      campaign9DesktopDeliveryStatus['overall_status']),
+                  detail: zh ? 'UI 已绑定' : 'UI-bound',
+                  icon: Icons.fact_check_outlined),
+              _MetricDatum(
+                  label: zh ? '候选标签' : 'Candidate tag',
+                  value: _campaignText(
+                      campaign9DesktopDeliveryStatus['release_candidate_tag']),
+                  detail: zh ? '等待 CI green 后推送' : 'push after CI green',
+                  icon: Icons.local_offer_outlined),
+              _MetricDatum(
+                  label: zh ? '包版本' : 'Package version',
+                  value: _campaignText(campaign9DesktopDeliveryStatus[
+                      'package_version_baseline']),
+                  detail: zh ? '未做版本迁移' : 'no version migration',
+                  icon: Icons.inventory_2_outlined),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _ProductTable(
+            columns: zh
+                ? ['能力', '状态', 'UI 状态', '证据']
+                : ['Capability', 'Status', 'UI state', 'Evidence'],
+            rows: validationRows,
+          ),
+        ],
+      );
+      final packagePanel = _ProductPanel(
+        keyName: 'settings-desktop-package',
+        icon: Icons.inventory_outlined,
+        title: zh ? 'Windows 包与校验' : 'Windows Package and Checksum',
+        gap: true,
+        children: [
+          _FieldRow(
+              label: zh ? '交付路径' : 'Delivery path',
+              value: _campaignText(delivery['accepted_packaging_path'])),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? 'EXE' : 'EXE',
+              value: _campaignText(packageInfo['exe'])),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? '文件数量 / 大小' : 'Files / size',
+              value:
+                  '${_campaignText(packageInfo['file_count'])} / ${_campaignText(packageInfo['total_size_bytes'])} bytes'),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: 'SHA-256', value: _campaignText(checksum['exe_sha256'])),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? 'Tauri 边界' : 'Tauri boundary',
+              value: _campaignText(delivery['legacy_tauri_status'])),
+        ],
+      );
+      final smokePanel = _ProductPanel(
+        keyName: 'settings-desktop-smoke',
+        icon: Icons.monitor_heart_outlined,
+        title: zh ? '真实桌面冒烟' : 'Real Desktop Smoke',
+        gap: true,
+        children: [
+          _FieldRow(
+              label: zh ? '冒烟状态' : 'Smoke status',
+              value: _campaignText(smoke['status'])),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? '证据路径' : 'Evidence path',
+              value: _campaignText(smoke['evidence_path'])),
+          const SizedBox(height: 8),
+          _ProductTable(
+            columns: zh ? ['步骤', '结果'] : ['Step', 'Result'],
+            rows: smokeRows,
+          ),
+        ],
+      );
+      final boundaryPanel = _ProductPanel(
+        keyName: 'settings-desktop-boundary',
+        icon: Icons.verified_user_outlined,
+        title: zh ? '路径、降级与安全边界' : 'Paths, Degraded Modes, and Security',
+        gap: true,
+        children: [
+          _ProductTable(
+            columns: zh ? ['路径规则', '说明'] : ['Path rule', 'Description'],
+            rows: pathRows,
+          ),
+          const SizedBox(height: 8),
+          _ProductTable(
+            columns: zh
+                ? ['降级条件', '运行状态', '用户提示']
+                : ['Condition', 'Runtime status', 'User prompt'],
+            rows: degradedRows,
+          ),
+          const SizedBox(height: 8),
+          _ProductTable(
+            columns: zh ? ['安全检查', '结果'] : ['Security check', 'Result'],
+            rows: securityRows,
+          ),
+        ],
+      );
+
+      if (!wide) {
+        return Column(children: [
+          overview,
+          const SizedBox(height: _DesktopGrid.gutter),
+          packagePanel,
+          const SizedBox(height: _DesktopGrid.gutter),
+          smokePanel,
+          const SizedBox(height: _DesktopGrid.gutter),
+          boundaryPanel,
+        ]);
+      }
+      return Column(children: [
+        _EqualHeightRow(
+          height: 470,
+          flexes: const [7, 5],
+          children: [overview, packagePanel],
+        ),
+        const SizedBox(height: _DesktopGrid.gutter),
+        _EqualHeightRow(
+          height: 520,
+          flexes: const [5, 7],
+          children: [smokePanel, boundaryPanel],
+        ),
       ]);
     });
   }
@@ -9375,6 +9614,193 @@ const sampleCampaign7ConfigurationStatus = <String, dynamic>{
     'rollback_status': 'pass',
     'diagnostics_status': 'pass',
     'import_export_status': 'pass',
+  },
+};
+
+const sampleCampaign9DesktopDeliveryStatus = <String, dynamic>{
+  'schema_id': 'campaign9_desktop_delivery_status',
+  'schema_version': '2026-06-17',
+  'overall_status':
+      'campaign9_windows_exe_packaging_local_smoke_passed_ui_bound',
+  'final_target_status':
+      'campaign9_windows_exe_packaging_accepted_pushed_ci_green_tagged_rc2_pending_release_decision',
+  'release_candidate_tag': 'v4.3.0-rc2',
+  'package_version_baseline': '4.2.0',
+  'github_release_created': false,
+  'stable_release_tag_authorized': false,
+  'campaign_scope': {
+    'campaign_7_restarted': false,
+    'campaign_8_restarted': false,
+    'campaign_9_started': true,
+    'campaign_7_8_9_boundary_preserved': true,
+    'computer_use_runtime_enabled': false,
+    'arbitrary_shell_allowed': false,
+    'github_release_created': false,
+    'tauri_accepted_path': false,
+  },
+  'delivery_path': {
+    'accepted_packaging_path': 'flutter_windows_runner',
+    'legacy_tauri_status':
+        'legacy_optional_scaffold_not_campaign9_accepted_path',
+    'production_build_command': 'flutter build windows',
+    'desktop_shell_runtime': 'Flutter Windows runner',
+    'web_build_supported': true,
+    'development_path_dependency_required': false,
+  },
+  'package': {
+    'platform': 'windows',
+    'build_status': 'pass',
+    'release_dir': 'build/windows/x64/runner/Release',
+    'exe': 'heitang_workbench.exe',
+    'file_count': 49,
+    'total_size_bytes': 31723100,
+    'required_files_present': {
+      'exe': true,
+      'flutter_windows_dll': true,
+      'data_dir': true,
+      'flutter_assets': true,
+      'icu': true,
+    },
+  },
+  'checksum': {
+    'status': 'pass',
+    'manifest_path':
+        'output/campaign9_desktop_smoke/release_bundle_manifest.json',
+    'exe_sha256':
+        'd8e58accd56571fc08cfec3178b77ef7e1c3a58c5930c7d9d37718b1253e9d87',
+  },
+  'desktop_shell_smoke': {
+    'status': 'pass',
+    'evidence_path': 'output/campaign9_desktop_smoke/desktop_shell_smoke.json',
+    'steps': <Map<String, dynamic>>[
+      {'step': 'launch', 'result': 'pass'},
+      {'step': 'minimize', 'result': 'pass'},
+      {'step': 'restore_after_minimize', 'result': 'pass'},
+      {'step': 'maximize', 'result': 'pass'},
+      {'step': 'restore_after_maximize', 'result': 'pass'},
+      {'step': 'resize', 'result': 'pass'},
+      {'step': 'close', 'result': 'pass'},
+    ],
+  },
+  'validation_matrix': <Map<String, dynamic>>[
+    {
+      'capability': 'windows_package_build',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+      'evidence': 'campaign9_flutter_build_windows.log',
+    },
+    {
+      'capability': 'desktop_shell_real_smoke',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+      'evidence': 'output/campaign9_desktop_smoke/desktop_shell_smoke.json',
+    },
+    {
+      'capability': 'release_bundle_manifest',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+      'evidence': 'output/campaign9_desktop_smoke/release_bundle_manifest.json',
+    },
+    {
+      'capability': 'provider_secret_handling',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+      'evidence': 'env_only_no_secret_bundle_boundary',
+    },
+    {
+      'capability': 'config_workspace_log_cache_paths',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+      'evidence': 'campaign7_configuration_system_reuse',
+    },
+    {
+      'capability': 'github_release_creation',
+      'status': 'not_created',
+      'ui_state': 'disabled_boundary',
+      'evidence': 'owner_authorization_required',
+    },
+    {
+      'capability': 'computer_use_runtime',
+      'status': 'disabled_boundary',
+      'ui_state': 'disabled_boundary',
+      'evidence': 'campaign6_boundary_preserved',
+    },
+  ],
+  'path_rules': {
+    'config_path':
+        'Campaign 7 config precedence persists default/workspace/user/env values.',
+    'workspace_path':
+        'Workspace selection remains user-controlled and must not require a development checkout.',
+    'logs_path':
+        'Packaged app logs use local application log storage and never write raw credentials.',
+    'cache_path':
+        'Packaged app cache is local, clearable, and non-authoritative.',
+    'secret_path':
+        'Provider and tool credentials remain env/secret-store only and are never bundled.',
+  },
+  'degraded_modes': <Map<String, dynamic>>[
+    {
+      'condition': 'missing_provider_env',
+      'runtime_status': 'degraded',
+      'user_message':
+          'Provider-backed actions stay disabled until env/secret-store setup is repaired.',
+    },
+    {
+      'condition': 'workspace_path_unavailable',
+      'runtime_status': 'blocked',
+      'user_message':
+          'Prompt for a valid workspace path before starting local workflows.',
+    },
+    {
+      'condition': 'bundle_file_missing',
+      'runtime_status': 'blocked',
+      'user_message':
+          'Do not mark the package accepted until required runtime files are restored.',
+    },
+    {
+      'condition': 'desktop_shell_smoke_failure',
+      'runtime_status': 'blocked',
+      'user_message':
+          'Keep Campaign 9 stopped and repair the shell behavior before tagging.',
+    },
+    {
+      'condition': 'github_release_requested',
+      'runtime_status': 'blocked_pending_owner',
+      'user_message':
+          'GitHub Release creation requires separate Owner authorization.',
+    },
+  ],
+  'rollback_matrix': <Map<String, dynamic>>[
+    {
+      'area': 'package_artifact',
+      'rollback':
+          'Discard the candidate bundle and rebuild from the accepted commit.',
+    },
+    {
+      'area': 'config_profile',
+      'rollback': 'Use Campaign 7 rollback snapshots and preserve diagnostics.',
+    },
+    {
+      'area': 'workspace_state',
+      'rollback':
+          'Do not mutate workspace data during package smoke; restore from user backup if a later workflow mutates data.',
+    },
+    {
+      'area': 'tag_policy',
+      'rollback':
+          'Do not move or force-push tags; create a new authorized candidate only after Owner review.',
+    },
+  ],
+  'security_boundaries': {
+    'no_plaintext_secret_bundled': true,
+    'no_secret_in_ui_log_report_fixture': true,
+    'env_only_provider_secret_reuse': true,
+    'no_arbitrary_shell': true,
+    'computer_use_disabled': true,
+    'no_github_release_created': true,
+    'no_stable_release_without_owner': true,
+    'no_campaign_7_8_9_scope_violation': true,
+    'legacy_tauri_not_accepted_path': true,
   },
 };
 

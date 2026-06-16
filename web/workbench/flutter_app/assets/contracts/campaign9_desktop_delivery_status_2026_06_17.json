@@ -1,0 +1,189 @@
+{
+  "schema_id": "campaign9_desktop_delivery_status",
+  "schema_version": "2026-06-17",
+  "overall_status": "campaign9_windows_exe_packaging_local_smoke_passed_ui_bound",
+  "final_target_status": "campaign9_windows_exe_packaging_accepted_pushed_ci_green_tagged_rc2_pending_release_decision",
+  "release_candidate_tag": "v4.3.0-rc2",
+  "package_version_baseline": "4.2.0",
+  "github_release_created": false,
+  "stable_release_tag_authorized": false,
+  "campaign_scope": {
+    "campaign_7_restarted": false,
+    "campaign_8_restarted": false,
+    "campaign_9_started": true,
+    "campaign_7_8_9_boundary_preserved": true,
+    "computer_use_runtime_enabled": false,
+    "arbitrary_shell_allowed": false,
+    "github_release_created": false,
+    "tauri_accepted_path": false
+  },
+  "delivery_path": {
+    "accepted_packaging_path": "flutter_windows_runner",
+    "legacy_tauri_status": "legacy_optional_scaffold_not_campaign9_accepted_path",
+    "production_build_command": "flutter build windows",
+    "desktop_shell_runtime": "Flutter Windows runner",
+    "web_build_supported": true,
+    "development_path_dependency_required": false
+  },
+  "package": {
+    "platform": "windows",
+    "build_status": "pass",
+    "release_dir": "build/windows/x64/runner/Release",
+    "exe": "heitang_workbench.exe",
+    "file_count": 49,
+    "total_size_bytes": 31723100,
+    "required_files_present": {
+      "exe": true,
+      "flutter_windows_dll": true,
+      "data_dir": true,
+      "flutter_assets": true,
+      "icu": true
+    }
+  },
+  "checksum": {
+    "status": "pass",
+    "manifest_path": "output/campaign9_desktop_smoke/release_bundle_manifest.json",
+    "exe_sha256": "d8e58accd56571fc08cfec3178b77ef7e1c3a58c5930c7d9d37718b1253e9d87"
+  },
+  "desktop_shell_smoke": {
+    "status": "pass",
+    "evidence_path": "output/campaign9_desktop_smoke/desktop_shell_smoke.json",
+    "steps": [
+      {
+        "step": "launch",
+        "result": "pass"
+      },
+      {
+        "step": "minimize",
+        "result": "pass"
+      },
+      {
+        "step": "restore_after_minimize",
+        "result": "pass"
+      },
+      {
+        "step": "maximize",
+        "result": "pass"
+      },
+      {
+        "step": "restore_after_maximize",
+        "result": "pass"
+      },
+      {
+        "step": "resize",
+        "result": "pass"
+      },
+      {
+        "step": "close",
+        "result": "pass"
+      }
+    ]
+  },
+  "validation_matrix": [
+    {
+      "capability": "windows_package_build",
+      "status": "pass",
+      "ui_state": "enabled_real",
+      "evidence": "campaign9_flutter_build_windows.log"
+    },
+    {
+      "capability": "desktop_shell_real_smoke",
+      "status": "pass",
+      "ui_state": "enabled_real",
+      "evidence": "output/campaign9_desktop_smoke/desktop_shell_smoke.json"
+    },
+    {
+      "capability": "release_bundle_manifest",
+      "status": "pass",
+      "ui_state": "enabled_real",
+      "evidence": "output/campaign9_desktop_smoke/release_bundle_manifest.json"
+    },
+    {
+      "capability": "provider_secret_handling",
+      "status": "pass",
+      "ui_state": "enabled_real",
+      "evidence": "env_only_no_secret_bundle_boundary"
+    },
+    {
+      "capability": "config_workspace_log_cache_paths",
+      "status": "pass",
+      "ui_state": "enabled_real",
+      "evidence": "campaign7_configuration_system_reuse"
+    },
+    {
+      "capability": "github_release_creation",
+      "status": "not_created",
+      "ui_state": "disabled_boundary",
+      "evidence": "owner_authorization_required"
+    },
+    {
+      "capability": "computer_use_runtime",
+      "status": "disabled_boundary",
+      "ui_state": "disabled_boundary",
+      "evidence": "campaign6_boundary_preserved"
+    }
+  ],
+  "path_rules": {
+    "config_path": "Campaign 7 config precedence persists default/workspace/user/env values.",
+    "workspace_path": "Workspace selection remains user-controlled and must not require a development checkout.",
+    "logs_path": "Packaged app logs use local application log storage and never write raw credentials.",
+    "cache_path": "Packaged app cache is local, clearable, and non-authoritative.",
+    "secret_path": "Provider and tool credentials remain env/secret-store only and are never bundled."
+  },
+  "degraded_modes": [
+    {
+      "condition": "missing_provider_env",
+      "runtime_status": "degraded",
+      "user_message": "Provider-backed actions stay disabled until env/secret-store setup is repaired."
+    },
+    {
+      "condition": "workspace_path_unavailable",
+      "runtime_status": "blocked",
+      "user_message": "Prompt for a valid workspace path before starting local workflows."
+    },
+    {
+      "condition": "bundle_file_missing",
+      "runtime_status": "blocked",
+      "user_message": "Do not mark the package accepted until required runtime files are restored."
+    },
+    {
+      "condition": "desktop_shell_smoke_failure",
+      "runtime_status": "blocked",
+      "user_message": "Keep Campaign 9 stopped and repair the shell behavior before tagging."
+    },
+    {
+      "condition": "github_release_requested",
+      "runtime_status": "blocked_pending_owner",
+      "user_message": "GitHub Release creation requires separate Owner authorization."
+    }
+  ],
+  "rollback_matrix": [
+    {
+      "area": "package_artifact",
+      "rollback": "Discard the candidate bundle and rebuild from the accepted commit."
+    },
+    {
+      "area": "config_profile",
+      "rollback": "Use Campaign 7 rollback snapshots and preserve diagnostics."
+    },
+    {
+      "area": "workspace_state",
+      "rollback": "Do not mutate workspace data during package smoke; restore from user backup if a later workflow mutates data."
+    },
+    {
+      "area": "tag_policy",
+      "rollback": "Do not move or force-push tags; create a new authorized candidate only after Owner review."
+    }
+  ],
+  "security_boundaries": {
+    "no_plaintext_secret_bundled": true,
+    "no_secret_in_ui_log_report_fixture": true,
+    "env_only_provider_secret_reuse": true,
+    "no_arbitrary_shell": true,
+    "computer_use_disabled": true,
+    "no_github_release_created": true,
+    "no_stable_release_without_owner": true,
+    "no_campaign_7_8_9_scope_violation": true,
+    "legacy_tauri_not_accepted_path": true
+  }
+}
