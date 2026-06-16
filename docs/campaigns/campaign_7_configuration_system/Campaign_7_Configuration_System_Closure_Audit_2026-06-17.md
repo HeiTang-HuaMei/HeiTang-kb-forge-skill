@@ -2,13 +2,13 @@
 
 Date: 2026-06-17
 
-Audit status: campaign7_configuration_system_closure_local_pass_pending_commit_push_ci
+Audit status: campaign7_configuration_system_production_grade_accepted_pushed_ci_green
 
 ## Closure Summary
 
-Campaign 7 implementation and local acceptance evidence are present for configuration system engineering. Final closure remains pending until Campaign 7 Core/UI changes are committed, pushed, and remote CI is green.
+Campaign 7 implementation and acceptance evidence are complete for configuration system engineering. Campaign 7 Core/UI changes were committed, pushed, and verified by remote CI green.
 
-This audit does not authorize Campaign 8 start yet.
+This audit authorizes Campaign 8 start. Campaign 9 is not started by this audit.
 
 ## Evidence Inventory
 
@@ -28,6 +28,8 @@ This audit does not authorize Campaign 8 start yet.
 | scoped no-secret scan | pass |
 | scoped overclaim scan | pass |
 | Core/UI `git diff --check` | pass with CRLF warnings only |
+| Core remote CI | pass, run `27642172875` |
+| UI remote CI | pass, run `27642169303` |
 
 ## Boundary Audit
 
@@ -42,10 +44,8 @@ This audit does not authorize Campaign 8 start yet.
 | Campaign 9 | not started |
 | tag/release | not created |
 
-## Remaining Closure Gates
+## Closure Decision
 
-Before Campaign 7 may be marked `campaign7_configuration_system_production_grade_accepted_pushed_ci_green`:
-- Core/UI changes must be committed and pushed.
-- Remote CI must be green.
+Final Campaign 7 status: `campaign7_configuration_system_production_grade_accepted_pushed_ci_green`.
 
-Current decision: continue Campaign 7 validation and CI stabilization. Do not enter Campaign 8 yet.
+Current decision: enter Campaign 8 Full Review / Regression / Security Hardening. Do not enter Campaign 9 yet.

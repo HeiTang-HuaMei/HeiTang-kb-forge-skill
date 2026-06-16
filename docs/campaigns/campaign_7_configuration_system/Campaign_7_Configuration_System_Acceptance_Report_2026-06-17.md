@@ -2,11 +2,11 @@
 
 Date: 2026-06-17
 
-Acceptance status: campaign7_configuration_system_local_acceptance_pass_pending_commit_push_ci
+Acceptance status: campaign7_configuration_system_production_grade_accepted_pushed_ci_green
 
 ## Acceptance Decision
 
-Campaign 7 has local production-grade acceptance evidence for the configuration system engineering scope. Final accepted status is pending commit, push, and remote CI green.
+Campaign 7 has production-grade acceptance evidence for the configuration system engineering scope. Core/UI changes were committed, pushed, and verified by remote CI green.
 
 This report does not claim Campaign 8 Full Review or Campaign 9 desktop packaging completion.
 
@@ -58,10 +58,11 @@ This report does not claim Campaign 8 Full Review or Campaign 9 desktop packagin
 | scoped overclaim scan | pass |
 | Core/UI `git diff --check` | pass with CRLF warnings only |
 
-## Pending Gates
+## Remote CI Evidence
 
-The following must complete before final Campaign 7 accepted status:
-- Core/UI commit and push.
-- Remote CI green for Campaign 7 commits.
+| Repository | Commit | Run | Result |
+| --- | --- | --- | --- |
+| Core `main` | `1b95dcc` | `27642172875` | success |
+| UI `feature/workbench-ui-prototype` | `0e6bde3` | `27642169303` | success |
 
-Pending final status: `campaign7_configuration_system_production_grade_accepted_pushed_ci_green`.
+Final status: `campaign7_configuration_system_production_grade_accepted_pushed_ci_green`.

@@ -2,7 +2,7 @@
 
 Date: 2026-06-17
 
-Matrix status: local_pass_pending_remote_ci
+Matrix status: campaign7_configuration_system_production_grade_accepted_pushed_ci_green
 
 | Capability | Runtime status | UI state | Evidence |
 | --- | --- | --- | --- |
@@ -44,3 +44,10 @@ Matrix status: local_pass_pending_remote_ci
 | arbitrary shell allowed | false |
 | tag/release allowed | false |
 | raw secret written | false |
+
+## CI Matrix
+
+| Repository | Commit | Run | Result |
+| --- | --- | --- | --- |
+| Core `main` | `1b95dcc` | `27642172875` | success |
+| UI `feature/workbench-ui-prototype` | `0e6bde3` | `27642169303` | success |
