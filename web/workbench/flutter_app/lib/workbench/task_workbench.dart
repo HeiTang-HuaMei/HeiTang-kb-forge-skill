@@ -88,7 +88,7 @@ class _CurrentTaskPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final current = tasks.firstWhere(
-      (task) => task.status != WorkbenchTaskStatus.completed,
+      (task) => !task.status.countsAsSucceeded,
       orElse: () => tasks.first,
     );
     final outputContract = CoreOutputPathContract(workspace);
@@ -514,8 +514,12 @@ String _statusCopy(WorkbenchTaskStatus status, bool zh) {
   switch (status) {
     case WorkbenchTaskStatus.pending:
       return zh ? '等待开始' : 'Waiting';
+    case WorkbenchTaskStatus.queued:
+      return zh ? '已排队' : 'Queued';
     case WorkbenchTaskStatus.running:
       return zh ? '进行中' : 'Running';
+    case WorkbenchTaskStatus.succeeded:
+      return zh ? '已成功' : 'Succeeded';
     case WorkbenchTaskStatus.completed:
       return zh ? '已完成' : 'Completed';
     case WorkbenchTaskStatus.failed:
@@ -526,6 +530,8 @@ String _statusCopy(WorkbenchTaskStatus status, bool zh) {
       return zh ? '已取消' : 'Cancelled';
     case WorkbenchTaskStatus.blocked:
       return zh ? '已阻塞' : 'Blocked';
+    case WorkbenchTaskStatus.degraded:
+      return zh ? '降级可用' : 'Degraded';
   }
 }
 
@@ -579,19 +585,21 @@ class _WorkbenchSidePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pendingCount = tasks
-        .where((task) => task.status == WorkbenchTaskStatus.pending)
+        .where((task) =>
+            task.status == WorkbenchTaskStatus.pending ||
+            task.status == WorkbenchTaskStatus.queued)
         .length;
     final runningCount = tasks
         .where((task) => task.status == WorkbenchTaskStatus.running)
         .length;
-    final completedCount = tasks
-        .where((task) => task.status == WorkbenchTaskStatus.completed)
-        .length;
+    final completedCount =
+        tasks.where((task) => task.status.countsAsSucceeded).length;
     final failedCount = tasks
         .where((task) =>
             task.status == WorkbenchTaskStatus.failed ||
             task.status == WorkbenchTaskStatus.retryable ||
-            task.status == WorkbenchTaskStatus.blocked)
+            task.status == WorkbenchTaskStatus.blocked ||
+            task.status == WorkbenchTaskStatus.degraded)
         .length;
     final completion = tasks.isEmpty ? 0.0 : completedCount / tasks.length;
     return Column(

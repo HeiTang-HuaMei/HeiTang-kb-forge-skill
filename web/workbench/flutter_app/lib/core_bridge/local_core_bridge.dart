@@ -111,6 +111,60 @@ class CoreBridgeResult {
   final int attempt;
 
   bool get passed => status == 'pass';
+
+  String get productStatus {
+    if (cancelled) {
+      return 'cancelled';
+    }
+    if (status == 'pass') {
+      return 'succeeded';
+    }
+    if (status == 'blocked') {
+      return 'blocked';
+    }
+    if (timedOut || retryable) {
+      return 'degraded';
+    }
+    return 'failed';
+  }
+
+  String get userReason {
+    if (passed) {
+      return 'Action succeeded and evidence can be inspected.';
+    }
+    if (cancelled) {
+      return 'The local action was cancelled before completion.';
+    }
+    if (errorId == 'core_bridge_web_unsupported') {
+      return 'Local Core actions are disabled in Flutter Web preview.';
+    }
+    if (errorId == 'core_bridge_secret_env_rejected') {
+      return 'Provider secrets must stay outside UI bridge requests.';
+    }
+    if (errorId == 'core_bridge_output_path_rejected') {
+      return 'Core bridge output must stay inside the configured workspace.';
+    }
+    if (timedOut) {
+      return 'The local Core action timed out.';
+    }
+    if (stderr.isNotEmpty) {
+      return stderr;
+    }
+    return errorId.isEmpty ? 'Core action did not complete.' : errorId;
+  }
+
+  String get retrySuggestion {
+    if (passed) {
+      return 'No retry is required.';
+    }
+    if (status == 'blocked') {
+      return 'Resolve the boundary condition before retrying.';
+    }
+    if (retryable) {
+      return 'Use bounded retry from the same allowlisted action.';
+    }
+    return 'Inspect the sanitized result and start a new action if needed.';
+  }
 }
 
 class LocalCoreBridge {
@@ -181,15 +235,10 @@ class LocalCoreBridge {
     'agent_profile_inspect': <String>['workbench-action-dry-run'],
     'standalone_agent_generation': <String>['generate-agent'],
     'kb_bound_agent_generation': <String>['generate-agent'],
-    'run_agent': <String>['run-local-agent'],
     'agent_checkpoint_retry': <String>['workbench-action-dry-run'],
     'child_agent_access': <String>['workbench-action-dry-run'],
-    'multi_agent_orchestration': <String>['orchestrate-multi-kb'],
     'session_memory_inspect': <String>['workbench-action-dry-run'],
-    'summary_memory_lifecycle': <String>['plan-memory-lifecycle'],
     'memory_isolation': <String>['workbench-action-dry-run'],
-    'memory_compression': <String>['estimate-token-budget'],
-    'memory_cleanup': <String>['plan-memory-lifecycle'],
     'no_all_history_injection': <String>['workbench-action-dry-run'],
     'do_not_ingest_policy': <String>['workbench-action-dry-run'],
     'document_owner_inspect': <String>['govern'],
@@ -220,8 +269,6 @@ class LocalCoreBridge {
     'artifact_generated_docs_inspect': <String>['generate-documents'],
     'artifact_skill_package_inspect': <String>['validate-skill-package'],
     'artifact_agent_package_inspect': <String>['generate-agent'],
-    'artifact_runtime_trace_inspect': <String>['run-local-agent'],
-    'artifact_memory_files_inspect': <String>['workbench-action-dry-run'],
     'artifact_config_profiles_inspect': <String>['workbench-action-dry-run'],
     'artifact_acceptance_proof_inspect': <String>['run-golden-demo-acceptance'],
   };

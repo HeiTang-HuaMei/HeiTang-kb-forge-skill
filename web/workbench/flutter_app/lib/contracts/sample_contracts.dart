@@ -151,6 +151,7 @@ final WorkbenchContracts sampleWorkbenchContracts =
         'failed',
         'blocked',
         'cancelled',
+        'degraded',
         'timed_out',
         'review_required'
       ],

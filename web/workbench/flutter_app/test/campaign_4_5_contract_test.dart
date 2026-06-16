@@ -7,22 +7,27 @@ import 'package:heitang_workbench/core_bridge/local_core_bridge.dart';
 import 'package:heitang_workbench/workbench/task_model.dart';
 
 void main() {
-  test('task status model contains every Campaign 4 state', () {
+  test('task status model contains every Campaign 5 bridge state', () {
     expect(
       WorkbenchTaskStatus.values.map((status) => status.value),
       [
+        'queued',
         'pending',
         'running',
+        'succeeded',
         'completed',
         'failed',
         'retryable',
         'cancelled',
         'blocked',
+        'degraded',
       ],
     );
     expect(WorkbenchTaskStatus.running.canCancel, isTrue);
     expect(WorkbenchTaskStatus.retryable.canRetry, isTrue);
     expect(WorkbenchTaskStatus.cancelled.canRetry, isTrue);
+    expect(WorkbenchTaskStatus.degraded.canRetry, isTrue);
+    expect(WorkbenchTaskStatus.succeeded.countsAsSucceeded, isTrue);
   });
 
   test('initial workflow has six pending stages and no fake completion', () {
@@ -67,6 +72,33 @@ void main() {
       evidencePath: r'C:\workspace\workbench_runs\validation\report.json',
     );
     expect(completed.status, WorkbenchTaskStatus.completed);
+  });
+
+  test('succeeded state requires output and evidence', () {
+    expect(
+      () => WorkbenchTaskSnapshot(
+        stage: WorkbenchTaskStage.validation,
+        status: WorkbenchTaskStatus.succeeded,
+        progress: 1,
+        currentStep: 'done',
+        inputRequired: 'draft_outputs',
+        outputTarget: r'C:\workspace\workbench_runs\validation',
+        nextSafeAction: 'Review report.',
+      ),
+      throwsArgumentError,
+    );
+
+    final succeeded = WorkbenchTaskSnapshot(
+      stage: WorkbenchTaskStage.validation,
+      status: WorkbenchTaskStatus.succeeded,
+      progress: 1,
+      currentStep: 'done',
+      inputRequired: 'draft_outputs',
+      outputTarget: r'C:\workspace\workbench_runs\validation',
+      nextSafeAction: 'Review report.',
+      evidencePath: r'C:\workspace\workbench_runs\validation\report.json',
+    );
+    expect(succeeded.status.countsAsSucceeded, isTrue);
   });
 
   test('output contract keeps action paths inside the workspace', () {
@@ -150,9 +182,43 @@ void main() {
     release.complete();
 
     expect(result.status, 'cancelled');
+    expect(result.productStatus, 'cancelled');
+    expect(result.userReason, contains('cancelled'));
     expect(result.cancelled, isTrue);
     expect(result.retryable, isFalse);
     expect(result.errorId, 'core_operation_cancelled');
+  });
+
+  test('Campaign 6 and Post-9 runtime actions are not bridge allowlisted', () {
+    const bridge = LocalCoreBridge();
+    const forbidden = <String, String>{
+      'run_agent': 'run-local-agent',
+      'multi_agent_orchestration': 'orchestrate-multi-kb',
+      'summary_memory_lifecycle': 'plan-memory-lifecycle',
+      'memory_compression': 'estimate-token-budget',
+      'memory_cleanup': 'plan-memory-lifecycle',
+      'artifact_runtime_trace_inspect': 'run-local-agent',
+      'artifact_memory_files_inspect': 'workbench-action-dry-run',
+    };
+
+    for (final entry in forbidden.entries) {
+      expect(
+        () => bridge.buildCommand(CoreBridgeRequest(
+          actionId: entry.key,
+          coreCli: 'heitang-kb-forge',
+          workingDirectory: r'C:\repo',
+          arguments: [entry.value, '--output', r'C:\workspace\out'],
+        )),
+        throwsA(
+          isA<CoreBridgeException>().having(
+            (error) => error.errorId,
+            'errorId',
+            'core_bridge_action_not_allowed',
+          ),
+        ),
+        reason: entry.key,
+      );
+    }
   });
 
   test('process failure is explicitly retryable within policy', () async {
@@ -181,6 +247,7 @@ void main() {
     );
 
     expect(result.status, 'retryable');
+    expect(result.productStatus, 'degraded');
     expect(result.retryable, isTrue);
     expect(result.errorId, 'core_operation_failed');
   });
@@ -212,6 +279,7 @@ void main() {
     );
 
     expect(result.status, 'fail');
+    expect(result.productStatus, 'failed');
     expect(result.retryable, isFalse);
     expect(result.attempt, 2);
   });

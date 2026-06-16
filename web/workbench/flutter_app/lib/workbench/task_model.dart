@@ -1,13 +1,16 @@
 import '../core_bridge/core_bridge_contract.dart';
 
 enum WorkbenchTaskStatus {
+  queued,
   pending,
   running,
+  succeeded,
   completed,
   failed,
   retryable,
   cancelled,
   blocked,
+  degraded,
 }
 
 extension WorkbenchTaskStatusValue on WorkbenchTaskStatus {
@@ -15,9 +18,14 @@ extension WorkbenchTaskStatusValue on WorkbenchTaskStatus {
 
   bool get canRetry =>
       this == WorkbenchTaskStatus.retryable ||
-      this == WorkbenchTaskStatus.cancelled;
+      this == WorkbenchTaskStatus.cancelled ||
+      this == WorkbenchTaskStatus.degraded;
 
   bool get canCancel => this == WorkbenchTaskStatus.running;
+
+  bool get countsAsSucceeded =>
+      this == WorkbenchTaskStatus.succeeded ||
+      this == WorkbenchTaskStatus.completed;
 }
 
 enum WorkbenchTaskStage {
@@ -64,10 +72,10 @@ class WorkbenchTaskSnapshot {
       throw ArgumentError.value(
           progress, 'progress', 'must be between 0 and 1');
     }
-    if (status == WorkbenchTaskStatus.completed &&
+    if (status.countsAsSucceeded &&
         (progress != 1 || evidencePath.isEmpty || outputTarget.isEmpty)) {
       throw ArgumentError(
-        'completed tasks require 100% progress, an output target, and evidence',
+        'succeeded tasks require 100% progress, an output target, and evidence',
       );
     }
     return WorkbenchTaskSnapshot._(

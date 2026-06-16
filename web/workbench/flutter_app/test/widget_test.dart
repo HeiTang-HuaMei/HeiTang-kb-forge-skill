@@ -37,8 +37,10 @@ void main() {
         contains('skill_governance_report_json'));
     expect(contracts.assets.assets.map((asset) => asset.id),
         contains('methodology_map_json'));
-    expect(contracts.taskSchema.statuses,
-        containsAll(['queued', 'running', 'blocked', 'review_required']));
+    expect(
+        contracts.taskSchema.statuses,
+        containsAll(
+            ['queued', 'running', 'blocked', 'degraded', 'review_required']));
     expect(contracts.templates.templates, hasLength(6));
     expect(contracts.gate.status, 'blocked');
     expect(contracts.gate.notV4WorkbenchRc, isTrue);
@@ -303,7 +305,27 @@ void main() {
     expect(smokeActions, hasLength(36));
     expect(blockedActions, isNotEmpty);
 
-    for (final action in [...realLocalActions, ...smokeActions]) {
+    const futureRuntimeActions = <String>{
+      'run_agent',
+      'multi_agent_orchestration',
+      'summary_memory_lifecycle',
+      'memory_compression',
+      'memory_cleanup',
+      'artifact_runtime_trace_inspect',
+      'artifact_memory_files_inspect',
+    };
+    final productExecutableActions = [
+      ...realLocalActions,
+      ...smokeActions,
+    ].where((action) => !futureRuntimeActions.contains(action.id)).toList();
+    final futureBoundaryActions = contracts.actions.actions
+        .where((action) => futureRuntimeActions.contains(action.id))
+        .toList();
+
+    expect(productExecutableActions, isNotEmpty);
+    expect(futureBoundaryActions, hasLength(futureRuntimeActions.length));
+
+    for (final action in productExecutableActions) {
       final request = coreRequestForAction(
         action: action,
         coreCli: 'heitang-kb-forge',
@@ -314,6 +336,22 @@ void main() {
       final command = bridge.buildCommand(request!);
       expect(command.first, 'heitang-kb-forge', reason: action.id);
       expect(command[1], request.arguments.first, reason: action.id);
+    }
+
+    for (final action in futureBoundaryActions) {
+      final request = coreRequestForAction(
+        action: action,
+        coreCli: 'heitang-kb-forge',
+        workingDirectory: r'C:\repo',
+        workspace: r'C:\workspace',
+      );
+      if (request != null) {
+        expect(
+          () => bridge.buildCommand(request),
+          throwsA(isA<CoreBridgeException>()),
+          reason: action.id,
+        );
+      }
     }
 
     for (final action in blockedActions) {

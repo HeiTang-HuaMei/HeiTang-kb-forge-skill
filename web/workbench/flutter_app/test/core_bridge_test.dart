@@ -136,6 +136,9 @@ void main() {
     );
 
     expect(result.status, 'pass');
+    expect(result.productStatus, 'succeeded');
+    expect(result.userReason, contains('succeeded'));
+    expect(result.retrySuggestion, 'No retry is required.');
     expect(result.stdout, contains('<redacted>'));
     expect(result.commandPreview.join(' '), contains('<redacted>'));
     expect(result.commandPreview.join(' '), isNot(contains('sk-live-secret')));
@@ -157,6 +160,9 @@ void main() {
     );
 
     expect(result.status, 'retryable');
+    expect(result.productStatus, 'degraded');
+    expect(result.userReason, contains('timed out'));
+    expect(result.retrySuggestion, contains('bounded retry'));
     expect(result.retryable, isTrue);
     expect(result.errorId, 'core_operation_timeout');
     expect(result.timedOut, isTrue);
@@ -178,6 +184,8 @@ void main() {
     );
 
     expect(result.status, 'retryable');
+    expect(result.productStatus, 'degraded');
+    expect(result.userReason, contains('<redacted>'));
     expect(result.retryable, isTrue);
     expect(result.errorId, 'core_operation_failed');
     expect(result.exitCode, 2);
