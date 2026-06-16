@@ -7306,6 +7306,7 @@ class _Campaign6ToolAdapterStatusView extends StatelessWidget {
         _ProductTable(
           columns: zh ? ['规则', '状态'] : ['Rule', 'Status'],
           rows: [
+            ['final_status', toolAdapter['final_status']?.toString() ?? '-'],
             ['ui_state', toolAdapter['ui_state']?.toString() ?? '-'],
             [
               'provider_runtime_reimplemented',
@@ -7323,12 +7324,34 @@ class _Campaign6ToolAdapterStatusView extends StatelessWidget {
               'secret_plaintext_written',
               '${toolAdapter['secret_plaintext_written']}'
             ],
+            [
+              'live_smoke_status',
+              toolAdapter['live_smoke_status']?.toString() ?? '-'
+            ],
+            [
+              'official_channel_live_smoke',
+              toolAdapter['official_channel_live_smoke']?.toString() ?? '-'
+            ],
           ],
         ),
         const SizedBox(height: _DesktopGrid.gutter),
         _FieldRow(
           label: zh ? 'API config schema' : 'API config schema',
           value: fields.join(', '),
+        ),
+        const SizedBox(height: _DesktopGrid.gutter),
+        _ProductTable(
+          columns: zh
+              ? ['Adapter', 'UI 状态', 'Auth', 'Live smoke']
+              : ['Adapter', 'UI state', 'Auth', 'Live smoke'],
+          rows: _campaign6List(toolAdapter['adapters']).map((adapter) {
+            return [
+              adapter['adapter_id']?.toString() ?? '-',
+              adapter['ui_state']?.toString() ?? '-',
+              adapter['auth_type']?.toString() ?? '-',
+              adapter['live_smoke_status']?.toString() ?? '-',
+            ];
+          }).toList(growable: false),
         ),
       ],
     );
@@ -9095,10 +9118,16 @@ const sampleCampaign6AgentRuntimeStatus = <String, dynamic>{
   ],
   'tool_adapter_gate': {
     'ui_state': 'enabled_real',
+    'final_status':
+        'tool_adapter_configuration_production_grade_accepted_ui_bound',
     'provider_runtime_reimplemented': false,
     'unregistered_third_party_api_integrated': false,
     'official_channel_tool_adapter_gate_required': true,
     'secret_plaintext_written': false,
+    'network_source_policy_required': true,
+    'live_smoke_status': 'pass',
+    'official_channel_live_smoke': 'not_run_missing_owner_credentials',
+    'auth_type_coverage': <String>['api_key', 'bearer', 'oauth', 'signature'],
     'api_config_schema_fields': <String>[
       'base_url_env',
       'token_env',
@@ -9108,6 +9137,44 @@ const sampleCampaign6AgentRuntimeStatus = <String, dynamic>{
       'rate_limit',
       'permission_policy',
       'redaction',
+    ],
+    'adapters': <Map<String, dynamic>>[
+      {
+        'adapter_id': 'provider_runtime',
+        'ui_state': 'enabled_real',
+        'auth_type': 'bearer',
+        'live_smoke_status': 'configured_no_network_by_default',
+      },
+      {
+        'adapter_id': 'workbench_bridge',
+        'ui_state': 'enabled_real',
+        'auth_type': 'none',
+        'live_smoke_status': 'local_dry_run_pass',
+      },
+      {
+        'adapter_id': 'external_source_verification',
+        'ui_state': 'enabled_real',
+        'auth_type': 'none',
+        'live_smoke_status': 'local_manual_evidence_pass',
+      },
+      {
+        'adapter_id': 'official_channel_api_key_future',
+        'ui_state': 'disabled_boundary',
+        'auth_type': 'api_key',
+        'live_smoke_status': 'not_run_missing_credentials',
+      },
+      {
+        'adapter_id': 'official_channel_oauth_future',
+        'ui_state': 'disabled_boundary',
+        'auth_type': 'oauth',
+        'live_smoke_status': 'not_run_missing_oauth',
+      },
+      {
+        'adapter_id': 'official_channel_signature_future',
+        'ui_state': 'disabled_boundary',
+        'auth_type': 'signature',
+        'live_smoke_status': 'not_run_missing_signature_key',
+      },
     ],
   },
   'security_boundaries': {

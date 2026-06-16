@@ -82,6 +82,11 @@ void main() {
     };
     final adapter = schema['tool_adapter_gate'] as Map<String, dynamic>;
     final security = schema['security_boundaries'] as Map<String, dynamic>;
+    final adapters =
+        (adapter['adapters'] as List<dynamic>).cast<Map<String, dynamic>>();
+    final adapterById = {
+      for (final item in adapters) item['adapter_id'] as String: item
+    };
 
     expect(
         byId.keys,
@@ -94,10 +99,18 @@ void main() {
           'computer_use_boundary',
         }));
     expect(byId['computer_use_boundary']!['ui_state'], 'disabled_boundary');
+    expect(adapter['final_status'],
+        'tool_adapter_configuration_production_grade_accepted_ui_bound');
     expect(adapter['provider_runtime_reimplemented'], isFalse);
     expect(adapter['unregistered_third_party_api_integrated'], isFalse);
     expect(adapter['official_channel_tool_adapter_gate_required'], isTrue);
     expect(adapter['secret_plaintext_written'], isFalse);
+    expect(adapter['network_source_policy_required'], isTrue);
+    expect(adapter['live_smoke_status'], 'pass');
+    expect(adapter['official_channel_live_smoke'],
+        'not_run_missing_owner_credentials');
+    expect(adapter['auth_type_coverage'],
+        containsAll(<String>['api_key', 'bearer', 'oauth', 'signature']));
     expect(
         adapter['api_config_schema_fields'],
         containsAll(<String>[
@@ -110,6 +123,14 @@ void main() {
           'permission_policy',
           'redaction',
         ]));
+    expect(adapterById['provider_runtime']!['auth_type'], 'bearer');
+    expect(adapterById['official_channel_api_key_future']!['auth_type'],
+        'api_key');
+    expect(adapterById['official_channel_oauth_future']!['auth_type'], 'oauth');
+    expect(adapterById['official_channel_signature_future']!['auth_type'],
+        'signature');
+    expect(adapterById['official_channel_api_key_future']!['ui_state'],
+        'disabled_boundary');
     expect(security.values, everyElement(isTrue));
   });
 

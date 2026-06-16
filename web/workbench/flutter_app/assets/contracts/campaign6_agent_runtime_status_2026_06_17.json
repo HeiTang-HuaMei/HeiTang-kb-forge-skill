@@ -231,10 +231,20 @@
   ],
   "tool_adapter_gate": {
     "ui_state": "enabled_real",
+    "final_status": "tool_adapter_configuration_production_grade_accepted_ui_bound",
     "provider_runtime_reimplemented": false,
     "unregistered_third_party_api_integrated": false,
     "official_channel_tool_adapter_gate_required": true,
     "secret_plaintext_written": false,
+    "network_source_policy_required": true,
+    "live_smoke_status": "pass",
+    "official_channel_live_smoke": "not_run_missing_owner_credentials",
+    "auth_type_coverage": [
+      "api_key",
+      "bearer",
+      "oauth",
+      "signature"
+    ],
     "api_config_schema_fields": [
       "base_url_env",
       "token_env",
@@ -244,6 +254,68 @@
       "rate_limit",
       "permission_policy",
       "redaction"
+    ],
+    "adapters": [
+      {
+        "adapter_id": "provider_runtime",
+        "ui_state": "enabled_real",
+        "auth_type": "bearer",
+        "base_url_env": "HEITANG_LLM_BASE_URL",
+        "token_env": "HEITANG_LLM_API_KEY",
+        "input_schema": "provider_runtime_health_input.v1",
+        "output_schema": "provider_runtime_health_output.v1",
+        "live_smoke_status": "configured_no_network_by_default"
+      },
+      {
+        "adapter_id": "workbench_bridge",
+        "ui_state": "enabled_real",
+        "auth_type": "none",
+        "base_url_env": "",
+        "token_env": "",
+        "input_schema": "workbench_action_input.v1",
+        "output_schema": "workbench_action_result.v1",
+        "live_smoke_status": "local_dry_run_pass"
+      },
+      {
+        "adapter_id": "external_source_verification",
+        "ui_state": "enabled_real",
+        "auth_type": "none",
+        "base_url_env": "",
+        "token_env": "",
+        "input_schema": "external_verification_claim_input.v1",
+        "output_schema": "external_verification_trace_output.v1",
+        "live_smoke_status": "local_manual_evidence_pass"
+      },
+      {
+        "adapter_id": "official_channel_api_key_future",
+        "ui_state": "disabled_boundary",
+        "auth_type": "api_key",
+        "base_url_env": "OFFICIAL_CHANNEL_BASE_URL",
+        "token_env": "OFFICIAL_CHANNEL_API_KEY",
+        "input_schema": "official_channel_request_input.v1",
+        "output_schema": "official_channel_response_output.v1",
+        "live_smoke_status": "not_run_missing_credentials"
+      },
+      {
+        "adapter_id": "official_channel_oauth_future",
+        "ui_state": "disabled_boundary",
+        "auth_type": "oauth",
+        "base_url_env": "OFFICIAL_CHANNEL_BASE_URL",
+        "token_env": "OFFICIAL_CHANNEL_OAUTH_TOKEN",
+        "input_schema": "official_channel_oauth_input.v1",
+        "output_schema": "official_channel_oauth_output.v1",
+        "live_smoke_status": "not_run_missing_oauth"
+      },
+      {
+        "adapter_id": "official_channel_signature_future",
+        "ui_state": "disabled_boundary",
+        "auth_type": "signature",
+        "base_url_env": "OFFICIAL_CHANNEL_BASE_URL",
+        "token_env": "OFFICIAL_CHANNEL_SIGNATURE_KEY",
+        "input_schema": "official_channel_signature_input.v1",
+        "output_schema": "official_channel_signature_output.v1",
+        "live_smoke_status": "not_run_missing_signature_key"
+      }
     ]
   },
   "security_boundaries": {

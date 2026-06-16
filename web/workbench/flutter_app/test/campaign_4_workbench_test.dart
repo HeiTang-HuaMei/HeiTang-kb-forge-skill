@@ -364,6 +364,13 @@ void main() {
     expect(find.text('provider_runtime_reimplemented'), findsOneWidget);
     expect(find.text('official_channel_tool_adapter_gate_required'),
         findsOneWidget);
+    expect(
+        find.text(
+            'tool_adapter_configuration_production_grade_accepted_ui_bound'),
+        findsOneWidget);
+    expect(find.text('not_run_missing_owner_credentials'), findsOneWidget);
+    expect(find.text('official_channel_oauth_future'), findsOneWidget);
+    expect(find.text('signature'), findsOneWidget);
     expect(find.text('enabled_real'), findsWidgets);
     expect(find.text('Agent 包'), findsNothing);
     expect(find.text('创建 Agent 草稿'), findsNothing);
