@@ -2,10 +2,10 @@
   "matrix_id": "s_a_contract_inclusion_matrix",
   "version": "s_a_contract_inclusion.1",
   "source_registry": "docs/roadmap/external_projects/external_project_registry.json",
-  "external_project_count": 23,
+  "external_project_count": 26,
   "rating_counts": {
-    "S": 7,
-    "A": 16
+    "S": 8,
+    "A": 18
   },
   "entries": [
     {
@@ -13,17 +13,12 @@
       "project_name": "LLM Wiki v2",
       "rating": "S",
       "contract_status": [
-        "future_adapter",
-        "capability_anchor"
+        "capability_fusion",
+        "real_integration",
+        "runtime_not_bundled"
       ],
       "mapped_capabilities": [
-        "living_knowledge_base",
-        "memory_lifecycle",
-        "confidence_score",
-        "automatic_forgetting",
-        "knowledge_decay",
-        "strengthen_weaken_memory",
-        "stale_knowledge_cleanup"
+        "llm_wiki_v2"
       ],
       "workbench_page_ids": [
         "memory_center",
@@ -33,36 +28,26 @@
         "Memory Center",
         "Governance"
       ],
-      "blocked_reason": "external_project_registry_only",
+      "blocked_reason": "ui_visibility_only",
       "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
-        "license_review_required",
-        "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
         "ui_visibility_only"
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.4",
-      "ui_visibility": "visible_boundary_only"
+      "ui_visibility": "visible_status_only"
     },
     {
       "project_id": "weknora",
       "project_name": "WeKnora",
       "rating": "S",
       "contract_status": [
-        "future_adapter",
-        "capability_anchor"
+        "capability_fusion",
+        "real_integration",
+        "runtime_not_bundled"
       ],
       "mapped_capabilities": [
-        "auto_wiki",
-        "knowledge_graph",
-        "document_understanding",
-        "rag_trace",
-        "agentic_rag",
-        "visual_trace"
+        "weknora"
       ],
       "workbench_page_ids": [
         "retrieval_verification",
@@ -72,37 +57,26 @@
         "Retrieval & Verification",
         "Reports & Audit"
       ],
-      "blocked_reason": "external_project_registry_only",
+      "blocked_reason": "ui_visibility_only",
       "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
-        "license_review_required",
-        "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
         "ui_visibility_only"
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.5",
-      "ui_visibility": "visible_boundary_only"
+      "ui_visibility": "visible_status_only"
     },
     {
       "project_id": "n8n",
       "project_name": "n8n",
       "rating": "S",
       "contract_status": [
-        "future_adapter",
-        "provider_required",
-        "workflow_export"
+        "workflow_export_adapter",
+        "export_validation_passed",
+        "runtime_not_bundled"
       ],
       "mapped_capabilities": [
-        "workflow_automation",
-        "webhook",
-        "workflow_export",
-        "external_trigger",
-        "automation_template",
-        "external_distribution"
+        "n8n"
       ],
       "workbench_page_ids": [
         "task_job_center",
@@ -112,22 +86,17 @@
         "Task / Job Center",
         "Template Library"
       ],
-      "blocked_reason": "external_project_registry_only",
+      "blocked_reason": "external_runtime_required",
       "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
-        "provider_required",
         "external_runtime_required",
         "license_review_required",
         "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
         "ui_visibility_only"
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.2 / P3",
-      "ui_visibility": "visible_boundary_only"
+      "ui_visibility": "visible_status_only"
     },
     {
       "project_id": "andrej_karpathy_skills",
@@ -138,11 +107,7 @@
         "capability_anchor"
       ],
       "mapped_capabilities": [
-        "skill_governance",
-        "goal_driven_execution",
-        "skill_quality_gate",
-        "target_runtime_profile",
-        "agent_coding_discipline"
+        "andrej_karpathy_skills"
       ],
       "workbench_page_ids": [
         "skill_factory",
@@ -172,13 +137,11 @@
       "project_name": "PaddleOCR",
       "rating": "S",
       "contract_status": [
-        "planned_adapter"
+        "planned_adapter",
+        "optional_runtime_adapter"
       ],
       "mapped_capabilities": [
-        "ocr_foundation",
-        "text_detection",
-        "text_recognition",
-        "scanned_pdf_ocr"
+        "paddleocr"
       ],
       "workbench_page_ids": [
         "import_parsing",
@@ -191,7 +154,7 @@
       "blocked_reason": "external_project_registry_only",
       "blocked_reasons": [
         "external_project_registry_only",
-        "planned_adapter_not_implemented",
+        "optional_runtime_dependency_missing",
         "license_review_required",
         "security_review_required",
         "not_p1_blocker",
@@ -200,7 +163,7 @@
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
-      "post_v4_target": "P2.6",
+      "post_v4_target": "P2.1",
       "ui_visibility": "visible_boundary_only"
     },
     {
@@ -211,10 +174,7 @@
         "planned_adapter"
       ],
       "mapped_capabilities": [
-        "document_structure_understanding",
-        "complex_layout_parsing",
-        "table_formula_layout",
-        "reading_order"
+        "mineru"
       ],
       "workbench_page_ids": [
         "import_parsing",
@@ -244,12 +204,11 @@
       "project_name": "Docling",
       "rating": "S",
       "contract_status": [
-        "planned_adapter"
+        "planned_adapter",
+        "optional_runtime_adapter"
       ],
       "mapped_capabilities": [
-        "parser_backend_adapter",
-        "structured_document_conversion",
-        "complex_pdf_parsing"
+        "docling"
       ],
       "workbench_page_ids": [
         "import_parsing",
@@ -262,7 +221,7 @@
       "blocked_reason": "external_project_registry_only",
       "blocked_reasons": [
         "external_project_registry_only",
-        "planned_adapter_not_implemented",
+        "optional_runtime_dependency_missing",
         "license_review_required",
         "security_review_required",
         "not_p1_blocker",
@@ -271,7 +230,41 @@
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
-      "post_v4_target": "P2.6",
+      "post_v4_target": "P2.1",
+      "ui_visibility": "visible_boundary_only"
+    },
+    {
+      "project_id": "unstructured",
+      "project_name": "Unstructured",
+      "rating": "S",
+      "contract_status": [
+        "planned_adapter",
+        "optional_runtime_adapter"
+      ],
+      "mapped_capabilities": [
+        "unstructured"
+      ],
+      "workbench_page_ids": [
+        "import_parsing",
+        "vector_hub_provider_storage"
+      ],
+      "workbench_pages": [
+        "Import & Parsing",
+        "Vector Hub / Provider / Storage"
+      ],
+      "blocked_reason": "external_project_registry_only",
+      "blocked_reasons": [
+        "external_project_registry_only",
+        "optional_runtime_dependency_missing",
+        "license_review_required",
+        "security_review_required",
+        "not_p1_blocker",
+        "post_v4_target",
+        "ui_visibility_only"
+      ],
+      "can_execute_locally_before_v4": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.1",
       "ui_visibility": "visible_boundary_only"
     },
     {
@@ -279,15 +272,12 @@
       "project_name": "AnySearchSkill",
       "rating": "A",
       "contract_status": [
-        "provider_required",
-        "planned_adapter"
+        "provider_adapter",
+        "real_smoke_passed",
+        "needs_strengthening"
       ],
       "mapped_capabilities": [
-        "external_retrieval",
-        "vertical_search",
-        "batch_search",
-        "source_attribution",
-        "freshness_verification"
+        "anysearchskill"
       ],
       "workbench_page_ids": [
         "retrieval_verification",
@@ -297,23 +287,18 @@
         "Retrieval & Verification",
         "Vector Hub / Provider / Storage"
       ],
-      "blocked_reason": "external_project_registry_only",
+      "blocked_reason": "ui_configuration_pending",
       "blocked_reasons": [
-        "external_project_registry_only",
-        "planned_adapter_not_implemented",
-        "provider_required",
-        "secret_required",
+        "ui_configuration_pending",
         "network_required",
         "license_review_required",
         "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
         "ui_visibility_only"
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.3",
-      "ui_visibility": "visible_boundary_only"
+      "ui_visibility": "visible_status_only"
     },
     {
       "project_id": "last30days_skill",
@@ -324,9 +309,7 @@
         "future_adapter"
       ],
       "mapped_capabilities": [
-        "trend_radar",
-        "external_signal",
-        "source_monitoring"
+        "last30days_skill"
       ],
       "workbench_page_ids": [
         "retrieval_verification",
@@ -358,13 +341,13 @@
       "project_name": "skill-prompt-generator",
       "rating": "A",
       "contract_status": [
-        "benchmark_only",
-        "future_adapter"
+        "prompt_asset_library_enhancer",
+        "real_integration",
+        "runtime_not_bundled",
+        "license_gate_pending"
       ],
       "mapped_capabilities": [
-        "prompt_asset_library",
-        "skill_factory_enhancement",
-        "skill_generation_template"
+        "skill_prompt_generator"
       ],
       "workbench_page_ids": [
         "skill_factory",
@@ -374,33 +357,28 @@
         "Skill Factory",
         "Template Library"
       ],
-      "blocked_reason": "external_project_registry_only",
+      "blocked_reason": "license_review_required",
       "blocked_reasons": [
-        "external_project_registry_only",
-        "benchmark_only_not_runtime",
-        "future_adapter_after_v4",
         "license_review_required",
         "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
         "ui_visibility_only"
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.9",
-      "ui_visibility": "visible_boundary_only"
+      "ui_visibility": "visible_status_only"
     },
     {
       "project_id": "mmskills",
       "project_name": "MMSkills",
       "rating": "A",
       "contract_status": [
-        "future_adapter"
+        "schema_package_reference",
+        "reference_only",
+        "runtime_not_bundled"
       ],
       "mapped_capabilities": [
-        "multimodal_skill_package",
-        "visual_state_card",
-        "multimodal_agent_context"
+        "mmskills"
       ],
       "workbench_page_ids": [
         "template_library",
@@ -410,33 +388,28 @@
         "Template Library",
         "Artifact Management"
       ],
-      "blocked_reason": "external_project_registry_only",
+      "blocked_reason": "license_review_required",
       "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
         "license_review_required",
         "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
         "ui_visibility_only"
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.8 / P3",
-      "ui_visibility": "visible_boundary_only"
+      "ui_visibility": "visible_status_only"
     },
     {
       "project_id": "jellyfish",
       "project_name": "Jellyfish",
       "rating": "A",
       "contract_status": [
-        "template_reference",
-        "future_adapter"
+        "content_asset_schema_reference",
+        "reference_only",
+        "runtime_not_bundled"
       ],
       "mapped_capabilities": [
-        "aigc_production_pipeline",
-        "short_drama_workflow",
-        "storyboard_asset_management"
+        "jellyfish"
       ],
       "workbench_page_ids": [
         "template_library",
@@ -448,34 +421,28 @@
         "Artifact Management",
         "Document Generation"
       ],
-      "blocked_reason": "external_project_registry_only",
+      "blocked_reason": "license_review_required",
       "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
         "license_review_required",
         "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only",
-        "template_reference_only"
+        "ui_visibility_only"
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.8 / P3",
-      "ui_visibility": "visible_boundary_only"
+      "ui_visibility": "visible_status_only"
     },
     {
       "project_id": "story_flicks",
       "project_name": "story-flicks",
       "rating": "A",
       "contract_status": [
-        "template_reference",
-        "future_adapter"
+        "aigc_video_pipeline_schema_reference",
+        "reference_only",
+        "runtime_not_bundled"
       ],
       "mapped_capabilities": [
-        "story_to_video",
-        "aigc_video_pipeline",
-        "subtitle_audio_image_asset_chain"
+        "story_flicks"
       ],
       "workbench_page_ids": [
         "template_library",
@@ -487,33 +454,30 @@
         "Artifact Management",
         "Document Generation"
       ],
-      "blocked_reason": "external_project_registry_only",
+      "blocked_reason": "license_review_required",
       "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
         "license_review_required",
         "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only",
-        "template_reference_only"
+        "ui_visibility_only"
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.8 / P3",
-      "ui_visibility": "visible_boundary_only"
+      "ui_visibility": "visible_status_only"
     },
     {
       "project_id": "seedance2_skill",
       "project_name": "seedance2-skill",
       "rating": "A",
       "contract_status": [
-        "needs_verification",
-        "future_adapter"
+        "verified_video_skill_template_metadata",
+        "reference_only",
+        "template_reference",
+        "provider_not_integrated",
+        "runtime_not_bundled"
       ],
       "mapped_capabilities": [
-        "video_generation_skill",
-        "aigc_video_skill_template"
+        "seedance2_skill"
       ],
       "workbench_page_ids": [
         "template_library",
@@ -525,69 +489,156 @@
         "Artifact Management",
         "Document Generation"
       ],
-      "blocked_reason": "external_project_registry_only",
+      "blocked_reason": "provider_required",
       "blocked_reasons": [
-        "external_project_registry_only",
-        "future_adapter_after_v4",
+        "provider_required",
         "secret_required",
         "network_required",
         "license_review_required",
         "security_review_required",
-        "needs_verification",
-        "not_p1_blocker",
-        "post_v4_target",
+        "template_reference_only",
         "ui_visibility_only"
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.8 / P3",
-      "ui_visibility": "visible_boundary_only"
+      "ui_visibility": "visible_status_only"
+    },
+    {
+      "project_id": "rag_anything",
+      "project_name": "RAG-Anything",
+      "rating": "A",
+      "contract_status": [
+        "cross_modal_rag_schema_reference",
+        "reference_only",
+        "runtime_not_bundled"
+      ],
+      "mapped_capabilities": [
+        "rag_anything"
+      ],
+      "workbench_page_ids": [
+        "retrieval_verification",
+        "reports_audit"
+      ],
+      "workbench_pages": [
+        "Retrieval & Verification",
+        "Reports & Audit"
+      ],
+      "blocked_reason": "license_review_required",
+      "blocked_reasons": [
+        "license_review_required",
+        "security_review_required",
+        "ui_visibility_only"
+      ],
+      "can_execute_locally_before_v4": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.5 / P2.6",
+      "ui_visibility": "visible_status_only"
+    },
+    {
+      "project_id": "mattpocock_skills",
+      "project_name": "mattpocock/skills",
+      "rating": "A",
+      "contract_status": [
+        "engineering_governance_rule_pack",
+        "real_integration",
+        "runtime_not_bundled"
+      ],
+      "mapped_capabilities": [
+        "mattpocock_skills"
+      ],
+      "workbench_page_ids": [
+        "governance",
+        "reports_audit"
+      ],
+      "workbench_pages": [
+        "Governance",
+        "Reports & Audit"
+      ],
+      "blocked_reason": "license_review_required",
+      "blocked_reasons": [
+        "license_review_required",
+        "security_review_required",
+        "ui_visibility_only"
+      ],
+      "can_execute_locally_before_v4": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.2 / governance",
+      "ui_visibility": "visible_status_only"
+    },
+    {
+      "project_id": "sirchmunk",
+      "project_name": "Sirchmunk",
+      "rating": "A",
+      "contract_status": [
+        "bounded_direct_file_search_provider",
+        "real_integration",
+        "runtime_not_bundled",
+        "embedding_free",
+        "vector_db_not_required"
+      ],
+      "mapped_capabilities": [
+        "sirchmunk"
+      ],
+      "workbench_page_ids": [
+        "retrieval_verification",
+        "reports_audit"
+      ],
+      "workbench_pages": [
+        "Retrieval & Verification",
+        "Reports & Audit"
+      ],
+      "blocked_reason": "license_review_required",
+      "blocked_reasons": [
+        "license_review_required",
+        "security_review_required",
+        "ui_visibility_only"
+      ],
+      "can_execute_locally_before_v4": false,
+      "p1_gate_impact": "none_not_p1_blocker",
+      "post_v4_target": "P2.8 / local retrieval",
+      "ui_visibility": "visible_status_only"
     },
     {
       "project_id": "ai_marketing_skills",
       "project_name": "ai-marketing-skills",
       "rating": "A",
       "contract_status": [
-        "template_reference"
+        "marketing_skill_pattern_library",
+        "real_integration",
+        "runtime_not_bundled"
       ],
       "mapped_capabilities": [
-        "marketing_agent_template",
-        "growth_workflow_template",
-        "content_operations_template"
+        "ai_marketing_skills"
       ],
       "workbench_page_ids": [
-        "template_library"
+        "template_library",
+        "skill_factory"
       ],
       "workbench_pages": [
-        "Template Library"
+        "Template Library",
+        "Skill Factory"
       ],
-      "blocked_reason": "external_project_registry_only",
+      "blocked_reason": "license_review_required",
       "blocked_reasons": [
-        "external_project_registry_only",
         "license_review_required",
         "security_review_required",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only",
-        "template_reference_only"
+        "ui_visibility_only"
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
       "post_v4_target": "P2.7",
-      "ui_visibility": "visible_boundary_only"
+      "ui_visibility": "visible_status_only"
     },
     {
       "project_id": "rtk",
       "project_name": "rtk",
       "rating": "A",
       "contract_status": [
-        "benchmark_only",
-        "needs_verification"
+        "benchmark_only"
       ],
       "mapped_capabilities": [
-        "memory_compression",
-        "context_budget",
-        "runtime_toolkit"
+        "rtk"
       ],
       "workbench_page_ids": [
         "memory_center",
@@ -604,14 +655,13 @@
         "external_runtime_required",
         "license_review_required",
         "security_review_required",
-        "needs_verification",
         "not_p1_blocker",
         "post_v4_target",
         "ui_visibility_only"
       ],
       "can_execute_locally_before_v4": false,
       "p1_gate_impact": "none_not_p1_blocker",
-      "post_v4_target": "needs_decision",
+      "post_v4_target": "P3",
       "ui_visibility": "visible_boundary_only"
     },
     {
@@ -622,8 +672,7 @@
         "planned_adapter"
       ],
       "mapped_capabilities": [
-        "document_loader",
-        "parser_backend"
+        "opendataloader"
       ],
       "workbench_page_ids": [
         "import_parsing",
@@ -656,8 +705,7 @@
         "planned_adapter"
       ],
       "mapped_capabilities": [
-        "pdf_parser",
-        "markdown_conversion"
+        "marker"
       ],
       "workbench_page_ids": [
         "import_parsing",
@@ -687,12 +735,10 @@
       "project_name": "Surya",
       "rating": "A",
       "contract_status": [
-        "planned_adapter",
-        "needs_verification"
+        "planned_adapter"
       ],
       "mapped_capabilities": [
-        "ocr_layout",
-        "visual_layout_analysis"
+        "surya"
       ],
       "workbench_page_ids": [
         "import_parsing",
@@ -708,42 +754,6 @@
         "planned_adapter_not_implemented",
         "license_review_required",
         "security_review_required",
-        "needs_verification",
-        "not_p1_blocker",
-        "post_v4_target",
-        "ui_visibility_only"
-      ],
-      "can_execute_locally_before_v4": false,
-      "p1_gate_impact": "none_not_p1_blocker",
-      "post_v4_target": "P2.6",
-      "ui_visibility": "visible_boundary_only"
-    },
-    {
-      "project_id": "unstructured",
-      "project_name": "Unstructured",
-      "rating": "A",
-      "contract_status": [
-        "planned_adapter",
-        "needs_verification"
-      ],
-      "mapped_capabilities": [
-        "unstructured_document_parser"
-      ],
-      "workbench_page_ids": [
-        "import_parsing",
-        "vector_hub_provider_storage"
-      ],
-      "workbench_pages": [
-        "Import & Parsing",
-        "Vector Hub / Provider / Storage"
-      ],
-      "blocked_reason": "external_project_registry_only",
-      "blocked_reasons": [
-        "external_project_registry_only",
-        "planned_adapter_not_implemented",
-        "license_review_required",
-        "security_review_required",
-        "needs_verification",
         "not_p1_blocker",
         "post_v4_target",
         "ui_visibility_only"
@@ -761,9 +771,7 @@
         "benchmark_only"
       ],
       "mapped_capabilities": [
-        "rag_architecture",
-        "indexing_abstraction",
-        "retriever_pattern"
+        "llamaindex"
       ],
       "workbench_page_ids": [
         "retrieval_verification",
@@ -797,9 +805,7 @@
         "future_adapter"
       ],
       "mapped_capabilities": [
-        "rag_evaluation",
-        "faithfulness",
-        "context_recall"
+        "ragas"
       ],
       "workbench_page_ids": [
         "retrieval_verification",
@@ -834,9 +840,7 @@
         "future_adapter"
       ],
       "mapped_capabilities": [
-        "llm_eval",
-        "rag_eval",
-        "regression_evaluation"
+        "deepeval"
       ],
       "workbench_page_ids": [
         "retrieval_verification",
@@ -866,7 +870,7 @@
   "gate_boundary": {
     "p1_gate_changed": false,
     "v4_0_started": false,
-    "external_features_implemented": false,
+    "external_features_implemented": true,
     "planned_adapters_marked_ready": false
   }
 }

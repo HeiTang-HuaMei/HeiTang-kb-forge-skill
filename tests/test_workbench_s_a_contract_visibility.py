@@ -70,10 +70,17 @@ def test_special_project_boundaries_are_not_silent():
     assert projects["n8n"]["can_execute_locally_before_v4"] is False
     assert "external_runtime_required" in projects["n8n"]["blocked_reasons"]
     assert projects["anysearchskill"]["can_execute_locally_before_v4"] is False
-    assert "provider_required" in projects["anysearchskill"]["blocked_reasons"]
+    assert "provider_adapter" in projects["anysearchskill"]["contract_status"]
+    assert "needs_strengthening" in projects["anysearchskill"]["contract_status"]
+    assert "ui_configuration_pending" in projects["anysearchskill"]["blocked_reasons"]
     assert "network_required" in projects["anysearchskill"]["blocked_reasons"]
-    assert "secret_required" in projects["anysearchskill"]["blocked_reasons"]
+    assert projects["anysearchskill"]["requires_api_key"] is False
+    assert projects["anysearchskill"]["requires_network"] is True
     assert projects["llm_wiki_v2"]["can_execute_locally_before_v4"] is False
-    assert "future_adapter_after_v4" in projects["llm_wiki_v2"]["blocked_reasons"]
+    assert projects["llm_wiki_v2"]["executable_action"] is False
+    assert "runtime_not_bundled" in projects["llm_wiki_v2"]["contract_status"]
+    assert "ui_visibility_only" in projects["llm_wiki_v2"]["blocked_reasons"]
     assert projects["weknora"]["can_execute_locally_before_v4"] is False
-    assert "future_adapter_after_v4" in projects["weknora"]["blocked_reasons"]
+    assert projects["weknora"]["executable_action"] is False
+    assert "runtime_not_bundled" in projects["weknora"]["contract_status"]
+    assert "ui_visibility_only" in projects["weknora"]["blocked_reasons"]

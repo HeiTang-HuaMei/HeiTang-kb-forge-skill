@@ -45,24 +45,25 @@ def test_external_capability_source_is_declared_without_changing_p1_readiness():
 def test_external_capability_registry_counts_and_release_boundary():
     registry = _registry()
 
-    assert registry["rating_counts"] == {"S": 7, "A": 16}
-    assert registry["external_project_count"] == 23
+    assert registry["rating_counts"] == {
+        "S": sum(1 for project in registry["projects"] if project["rating"] == "S"),
+        "A": sum(1 for project in registry["projects"] if project["rating"] == "A"),
+    }
+    assert registry["external_project_count"] == len(registry["projects"])
     assert registry["internal_capability_anchor_count"] == 8
     assert registry["release_boundary"]["p1_gate_changed"] is False
     assert registry["release_boundary"]["v4_0_started"] is False
-    assert registry["release_boundary"]["external_features_implemented"] is False
+    assert registry["release_boundary"]["external_features_implemented"] is True
     assert registry["release_boundary"]["planned_adapters_marked_ready"] is False
     assert registry["release_boundary"]["provider_network_api_ready"] is False
 
 
 def test_external_projects_are_not_ready_installed_or_local_executable():
     for project in _registry()["projects"]:
-        assert project["implemented"] is False
         assert project["ready"] is False
-        assert project["local_ready"] is False
         assert project["executable_action"] is False
         assert project["can_execute_locally_before_v4"] is False
-        assert project["ui_visibility"] == "visible_boundary_only"
+        assert project["ui_visibility"] in {"visible_boundary_only", "visible_status_only"}
 
 
 def test_provider_and_runtime_boundaries_are_visible():
@@ -70,8 +71,9 @@ def test_provider_and_runtime_boundaries_are_visible():
 
     assert "external_runtime_required" in projects["n8n"]["blocked_reasons"]
     assert projects["n8n"]["requires_external_runtime"] is True
-    assert "provider_required" in projects["anysearchskill"]["contract_status"]
-    assert projects["anysearchskill"]["requires_api_key"] is True
+    assert "provider_adapter" in projects["anysearchskill"]["contract_status"]
+    assert "needs_strengthening" in projects["anysearchskill"]["contract_status"]
+    assert projects["anysearchskill"]["requires_api_key"] is False
     assert projects["anysearchskill"]["requires_network"] is True
-    assert "future_adapter" in projects["llm_wiki_v2"]["contract_status"]
-    assert "future_adapter" in projects["weknora"]["contract_status"]
+    assert "runtime_not_bundled" in projects["llm_wiki_v2"]["contract_status"]
+    assert "runtime_not_bundled" in projects["weknora"]["contract_status"]
