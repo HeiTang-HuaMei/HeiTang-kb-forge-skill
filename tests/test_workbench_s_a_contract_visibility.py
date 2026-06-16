@@ -55,10 +55,10 @@ def test_flutter_surface_mentions_boundary_not_run_or_installed_claims():
     bridge = (WORKBENCH / "flutter_app" / "lib" / "core_bridge" / "local_core_bridge.dart").read_text(encoding="utf-8")
 
     assert "assets/external/external_capability_registry.json" in main
-    assert "Show boundary" in main
     assert "S/A external capabilities" in main
     assert "ready=false" in main
     assert "local_ready=false" in main
+    assert "Safety boundary active" in main
     assert "anysearchskill" not in bridge.lower()
     assert "weknora" not in bridge.lower()
     assert "n8n" not in bridge.lower()

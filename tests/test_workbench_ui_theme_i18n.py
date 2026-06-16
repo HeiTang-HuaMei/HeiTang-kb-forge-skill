@@ -82,8 +82,10 @@ def test_workbench_supports_chinese_and_english_i18n_switching():
     assert "supportedLocaleCodes" in flutter_main
     assert "const Locale('zh', 'CN')" in flutter_main
     assert "const Locale('en', 'US')" in flutter_main
-    assert "SegmentedButton<String>" in flutter_main
-    assert "localeCode == 'zh-CN' ? '显示边界' : 'Show boundary'" in flutter_main
+    assert "_TopBarLanguageToggle" in flutter_main
+    assert "topbar-language-toggle" in flutter_main
+    assert "onLocaleChanged('zh-CN')" in flutter_main
+    assert "onLocaleChanged('en-US')" in flutter_main
 
 
 def test_workbench_brand_and_mascot_assets_exist():
@@ -96,8 +98,8 @@ def test_workbench_brand_and_mascot_assets_exist():
     assert "black_tiger_head.svg" in index
     assert "black_cat_head.svg" in pubspec
     assert "black_tiger_head.svg" in pubspec
-    assert "black_cat_head.svg" in flutter_main
-    assert "black_tiger_head.svg" in flutter_main
+    assert "HeiTang" in flutter_main
+    assert "黑糖" in flutter_main
     assert (WORKBENCH / "flutter_app" / "assets" / "brand" / "black_cat_head.svg").exists()
     assert (WORKBENCH / "flutter_app" / "assets" / "brand" / "black_tiger_head.svg").exists()
 

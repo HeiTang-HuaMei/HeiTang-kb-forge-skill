@@ -24,9 +24,24 @@ DEDICATED_ROUTES = {
     "capability-matrix",
 }
 
+FUTURE_RUNTIME_BOUNDARY_ACTIONS = {
+    "run_agent",
+    "multi_agent_orchestration",
+    "summary_memory_lifecycle",
+    "memory_compression",
+    "memory_cleanup",
+    "artifact_runtime_trace_inspect",
+    "artifact_memory_files_inspect",
+}
+
 
 def load_fixture():
     return json.loads(FIXTURE.read_text(encoding="utf-8"))
+
+
+def flutter_pages_block() -> str:
+    flutter_main = (WORKBENCH / "flutter_app" / "lib" / "main.dart").read_text(encoding="utf-8")
+    return flutter_main.split("const pages = <WorkbenchPage>[", 1)[1].split("class WorkbenchPage", 1)[0]
 
 
 def test_p1_core_contract_fixture_declares_source_and_counts():
@@ -124,7 +139,7 @@ def test_dedicated_p1_routes_have_sidebar_and_renderers():
     assert DEDICATED_ROUTES <= route_ids
     for route in DEDICATED_ROUTES:
         assert f'id: "{route}"' in app or f'"{route}"' in app
-        assert re.search(rf"WorkbenchPage\(\s*'{re.escape(route)}'", flutter_main)
+        assert f"'{route}'" in flutter_pages_block()
 
     assert '"operation-gate": renderOperationGate' in app
     assert '"capability-matrix": renderCapabilityMatrix' in app
@@ -188,7 +203,7 @@ def test_web_and_flutter_surface_consume_blocked_reasons_and_action_ids():
     assert "web_local_cli_unsupported" in app
     assert "if (action.desktop_enabled)" not in app
     assert "web_local_cli_unsupported" in panel
-    assert "blocked_reason:" in panel
+    assert "label: 'blocked_reason'" in panel
     assert "realLocalWorkflow" in request_builder
     assert "commandKind == 'core_cli'" in request_builder
     assert "deterministicSmoke" in request_builder
@@ -215,8 +230,12 @@ def test_flutter_bridge_allowlist_covers_real_local_and_deterministic_smoke_acti
     assert len(ready_actions) == 57
     assert len(smoke_actions) == 36
     for action in ready_actions + smoke_actions:
+        if action["action_id"] in FUTURE_RUNTIME_BOUNDARY_ACTIONS:
+            continue
         command_name = action["command"].split()[0]
         assert f"'{action['action_id']}': <String>['{command_name}']" in bridge
+    for action_id in FUTURE_RUNTIME_BOUNDARY_ACTIONS:
+        assert f"'{action_id}':" not in bridge
 
 
 def test_core_ui_acceptance_report_matches_fixture_classification():

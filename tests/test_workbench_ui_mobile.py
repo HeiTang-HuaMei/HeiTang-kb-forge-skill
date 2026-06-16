@@ -40,18 +40,19 @@ def test_workbench_mobile_spec_is_responsive_web_with_platform_scaffolds():
     assert "Windows 桌面 scaffold" in chinese_spec
 
 
-def test_flutter_scaffold_contains_adaptive_mobile_layout_not_simple_scaling():
+def test_flutter_scaffold_contains_fixed_desktop_shell_not_mobile_scaling():
     flutter_main = (WORKBENCH / "flutter_app" / "lib" / "main.dart").read_text(encoding="utf-8")
 
-    assert "constraints.maxWidth < 720" in flutter_main
-    assert "constraints.maxWidth >= 720 && constraints.maxWidth < 1040" in flutter_main
-    assert "_PhoneWorkbench" in flutter_main
+    assert "initialWindowWidth = 1440" in flutter_main
+    assert "initialWindowHeight = 900" in flutter_main
+    assert "_DesktopWindowPreviewShell" in flutter_main
     assert "_DesktopWorkbench" in flutter_main
-    assert "DropdownButtonFormField<int>" in flutter_main
+    assert "desktop-window-preview-frame" in flutter_main
+    assert "desktop-topbar-single-row" in flutter_main
     assert "_WorkbenchSidebar" in flutter_main
-    assert "ListView.separated" in flutter_main
+    assert "ListView(" in flutter_main
     assert "NavigationRail" not in flutter_main
-    assert "columns: 1" in flutter_main
+    assert "columns: 3" in flutter_main
 
 
 def test_web_pwa_and_flutter_platform_targets_are_scaffolded():
