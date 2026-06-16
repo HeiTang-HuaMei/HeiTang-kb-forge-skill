@@ -27,19 +27,19 @@ Campaign 4 Entry Gate 前必须盘点：
 
 ## 顶层导航规划
 
-Campaign 4 顶层导航不超过 7 个入口。建议规划为：
+Campaign 4 顶层导航固定为 7 个一级入口，与产品能力基线一致：
 
 | 入口 | 目的 | 包含内容 |
 | --- | --- | --- |
-| 工作台首页 | 任务总览和下一步 | 当前任务、阻塞项、最近输出 |
-| 导入与解析 | 输入材料到可解析内容 | 文件导入、parsing、OCR optional boundary |
-| 知识构建 | 知识切分和知识包 | knowledge splitting、package draft、validation |
-| Skill 生成 | Knowledge 到 Skill | Skill generation、Skill Suite draft |
-| Agent | Agent Foundation / Agent Package Export | Agent 是一级功能区；当前真实能力只呈现 Agent package generation / export，不显示 runtime ready |
-| 验证与报告 | evidence / report | validation、报告、失败矩阵 |
-| 设置与运行边界 | 配置和能力边界 | optional dependency、runtime blocked reason、future bridge status |
+| 工作台 | 任务总览和下一步 | 当前任务、阻塞项、最近输出、验证提醒 |
+| 知识库 | KB 创建、管理、类型、版本和输出 | 空白、上传材料、网页链接、模板、复制、KB detail、retrieval、storage |
+| 文档 | 一等文档生成系统 | Markdown、DOCX、PDF、PPTX、报告、手册、教案、自定义模板 |
+| Skill | Skill 创建、导入、定制、融合、验证 | KB to Skill、imported Skill、multi-Skill、KB plus Skill、templates、blank、advanced |
+| Agent | Agent 创建和管理 | Blank、template、KB/Skill bindings、simple/advanced、model、tools、permissions、workspace、memory declaration、preview、export |
+| 验证与导出 | 质量、证据、外部验证、导出认证、报告 | evidence gate、freshness、contradiction、export packages、audit |
+| 设置与模板 | 工作区、provider、storage、privacy、secret、template libraries、developer diagnostics | LLM providers、local model interface、storage interface、template management、safety boundary、开发者诊断 |
 
-以上只是 Campaign 4 UI workbench 导航规划，不代表 Bridge、Agent Runtime、Memory Runtime、EXE 或 Release 已完成。Agent package 只是 Agent 功能区当前可呈现的导出产物，不是一级产品概念本身。
+导入资料不得继续作为一级导航；它只是知识库创建入口。以上只是 Campaign 4 UI workbench 导航规划，不代表 Bridge、Provider Runtime、Agent Runtime、Memory Runtime、EXE 或 Release 已完成。Agent package 只是 Agent 功能区当前可呈现的导出产物，不是一级产品概念本身。
 
 ## Task-card 驱动流程
 
@@ -55,7 +55,7 @@ Campaign 4 顶层导航不超过 7 个入口。建议规划为：
 - 产物或报告位置。
 - 底层能力边界。
 
-任务卡不得展示 fake completed states。没有真实底层能力时必须显示 pending、blocked 或 planned，不得显示 completed。
+任务卡不得展示 fake completed states。没有真实底层能力时必须显示 pending、blocked 或 planned，不得显示 completed。未完成能力必须隐藏或禁用，不得伪装可用。
 
 ## 视觉层级
 
@@ -74,8 +74,10 @@ Campaign 4 页面必须有清晰视觉层级：
 | 进度 | 描述 | 不得宣称 |
 | --- | --- | --- |
 | 文件导入 | 从用户材料进入工作区 | 不宣称解析完成 |
+| 网页导入 | 用户控制的网页链接进入知识库创建流程 | 不宣称外部事实核验或 unrestricted crawling |
 | parsing | 解析、清洗、结构化 | 不宣称知识完成 |
 | knowledge splitting | 切分、索引、知识包草稿 | 不宣称 Skill 完成 |
+| document generation | 报告、手册、教案或自定义模板草稿 | 不宣称模板目录全部完成 |
 | Skill generation | Skill Template / Skill Suite 草稿生成 | 不宣称 Agent Runtime 完成 |
 | Agent package generation | Agent Creation Package 草稿 | 不宣称 executable runtime |
 | validation | manifest、report、failure matrix | 不宣称 Full Review 或 Release complete |
@@ -92,7 +94,7 @@ Campaign 4 页面必须有清晰视觉层级：
 - cancelled
 - blocked
 
-`completed` 只允许用于当前 Campaign 已实现且通过验收的任务。Campaign 4 UI 中未实现的 Bridge、Runtime、Memory、Multi-Agent executable、EXE、Release 必须显示 planned、pending 或 blocked，不得显示 completed。
+`completed` 只允许用于当前 Campaign 已实现且通过验收的任务。Campaign 4 UI 中未实现的 Bridge、Provider Runtime、Runtime、Memory、Multi-Agent executable、EXE、Release 必须隐藏、禁用或显示 planned/pending/blocked，不得显示 completed。
 
 ## 美化与交互要求
 
@@ -118,6 +120,7 @@ Campaign 4 页面必须有清晰视觉层级：
 Campaign 4 页面和任务卡不得宣称：
 
 - Bridge complete。
+- Provider Runtime complete。
 - Agent Runtime complete。
 - Memory Runtime complete。
 - Multi-Agent executable complete。

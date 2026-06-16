@@ -183,13 +183,30 @@ def provider_live_smoke(output: Path, provider_id: str = "custom_http", live: bo
 
 def provider_fallback_test(output: Path, scenario: str = "timeout") -> dict:
     output.mkdir(parents=True, exist_ok=True)
-    supported = {"timeout", "provider_error", "rate_limit", "invalid_key", "unsupported_model"}
+    behavior = {
+        "timeout": ("provider_timeout", "timeout", True, True, False),
+        "provider_error": ("provider_unavailable", "provider_unavailable", True, True, False),
+        "rate_limit": ("provider_rate_limited", "rate_limit", True, True, False),
+        "invalid_key": ("provider_invalid_key", "invalid_credential", True, False, False),
+        "unsupported_model": ("provider_unsupported_model", "unsupported_model", True, False, False),
+        "cancelled": ("provider_operation_cancelled", "cancellation", False, False, True),
+    }
+    supported = set(behavior)
+    error_code, failure_class, fallback_used, retryable, cancelled = behavior.get(
+        scenario,
+        ("provider_unknown_scenario", "unknown", False, False, False),
+    )
     result = {
         "provider_fallback_test_version": "2.6.0",
         "generated_at": _now(),
         "scenario": scenario,
         "status": "pass" if scenario in supported else "warning",
-        "fallback_used": scenario in supported,
+        "fallback_used": fallback_used,
+        "retryable": retryable,
+        "cancelled": cancelled,
+        "error_code": error_code,
+        "failure_class": failure_class,
+        "accepted_as_runtime_contract": scenario in supported,
         "network_called": False,
         "warnings": [] if scenario in supported else ["Unknown fallback scenario; no live provider was called."],
     }
@@ -287,7 +304,7 @@ def _render_live_smoke_report(result: dict) -> str:
 
 
 def _render_fallback_report(result: dict) -> str:
-    return f"# Provider Fallback Test\n\n- Status: {result['status']}\n- Scenario: {result['scenario']}\n- Fallback used: {result['fallback_used']}\n- Network called: {result['network_called']}\n"
+    return f"# Provider Fallback Test\n\n- Status: {result['status']}\n- Scenario: {result['scenario']}\n- Fallback used: {result['fallback_used']}\n- Retryable: {result['retryable']}\n- Cancelled: {result['cancelled']}\n- Error code: {result['error_code']}\n- Network called: {result['network_called']}\n"
 
 
 def _render_cost_report(result: dict) -> str:

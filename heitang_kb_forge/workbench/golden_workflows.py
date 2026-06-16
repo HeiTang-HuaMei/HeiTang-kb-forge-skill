@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 from time import perf_counter
@@ -269,6 +270,7 @@ def _write_workflow_artifacts(run_dir: Path, workspace: Path, spec: dict) -> lis
     if spec["actions"] == ["generate-md", "generate-docx", "generate-pdf", "generate-pptx"]:
         package = workspace / "artifacts" / "demo_kb_package"
         docs_output = artifacts_dir / "generated_documents"
+        _reset_generated_directory(docs_output)
         generate_document_outputs(
             package,
             docs_output,
@@ -346,7 +348,11 @@ def _redact_document_generation_outputs(output: Path, workspace: Path) -> None:
     }
     for path in output.iterdir():
         if path.suffix.lower() == ".json":
-            payload = json.loads(path.read_text(encoding="utf-8"))
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                _redact_text_file(path, replacements)
+                continue
             write_json(path, _redact_paths(payload, replacements))
             continue
         if path.suffix.lower() not in {".json", ".md"}:
@@ -355,6 +361,19 @@ def _redact_document_generation_outputs(output: Path, workspace: Path) -> None:
         for old, new in replacements.items():
             text = text.replace(old, new)
         path.write_text(text, encoding="utf-8")
+
+
+def _reset_generated_directory(path: Path) -> None:
+    if path.exists():
+        shutil.rmtree(path)
+    path.mkdir(parents=True, exist_ok=True)
+
+
+def _redact_text_file(path: Path, replacements: dict[str, str]) -> None:
+    text = path.read_text(encoding="utf-8")
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    path.write_text(text, encoding="utf-8")
 
 
 def _redact_paths(value, replacements: dict[str, str]):

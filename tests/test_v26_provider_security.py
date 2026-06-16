@@ -77,6 +77,34 @@ def test_provider_security_audit_fails_for_inline_secret(tmp_path):
     assert result["findings"][0]["severity"] == "critical"
 
 
+def test_provider_security_audit_accepts_utf8_bom_registry(tmp_path):
+    workspace = tmp_path / "workspace"
+    registry = workspace / "registries"
+    output = tmp_path / "out"
+    registry.mkdir(parents=True)
+    (registry / "provider_registry.json").write_text(
+        json.dumps(
+            {
+                "providers": [
+                    {
+                        "provider_id": "mock_default",
+                        "provider_type": "mock",
+                        "api_key_env": "OPENAI_API_KEY",
+                        "network_required": False,
+                        "enabled": True,
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8-sig",
+    )
+
+    result = run_provider_security_audit(workspace, output)
+
+    assert result["status"] == "pass"
+    assert result["stores_real_api_keys"] is False
+
+
 def test_llm_live_smoke_mock_provider_is_callable_without_network(tmp_path):
     output = tmp_path / "live"
 
@@ -186,3 +214,39 @@ def test_v26_provider_governance_cli_outputs_are_offline_and_redacted(tmp_path):
     assert redaction["secret_leaked"] is False
     assert redaction["redacted_sample"] == "[REDACTED]"
     assert quality["network_called"] is False
+
+
+def test_provider_runtime_failure_matrix_covers_cancel_timeout_invalid_and_unavailable(tmp_path):
+    runner = CliRunner()
+    expected = {
+        "timeout": ("provider_timeout", "timeout", True, True, False),
+        "provider_error": ("provider_unavailable", "provider_unavailable", True, True, False),
+        "invalid_key": ("provider_invalid_key", "invalid_credential", True, False, False),
+        "cancelled": ("provider_operation_cancelled", "cancellation", False, False, True),
+    }
+
+    for scenario, (error_code, failure_class, fallback_used, retryable, cancelled) in expected.items():
+        output = tmp_path / scenario
+        result = runner.invoke(
+            app,
+            [
+                "provider-fallback-test",
+                "--output",
+                str(output),
+                "--scenario",
+                scenario,
+            ],
+        )
+
+        assert result.exit_code == 0, result.output
+        payload = json.loads((output / "provider_fallback_test_result.json").read_text(encoding="utf-8"))
+        report = (output / "provider_fallback_test_report.md").read_text(encoding="utf-8")
+        assert payload["status"] == "pass"
+        assert payload["error_code"] == error_code
+        assert payload["failure_class"] == failure_class
+        assert payload["fallback_used"] is fallback_used
+        assert payload["retryable"] is retryable
+        assert payload["cancelled"] is cancelled
+        assert payload["accepted_as_runtime_contract"] is True
+        assert payload["network_called"] is False
+        assert error_code in report

@@ -11,7 +11,7 @@ Campaign 4-9 从以下稳定基线之后开始规划：
 | CI | passed |
 | Release Check | passed |
 | GitHub Release | not_created |
-| Campaign 4 | not_started |
+| Campaign 4 | 历史技术验收存在，但 Owner Visual Acceptance 未通过，当前等待重新授权 Entry Gate |
 
 不得修改 `campaign-1-3-baseline`，不得创建新的 rc tag、stable tag、product version tag 或 GitHub Release。
 
@@ -21,11 +21,12 @@ Campaign 4-9 从以下稳定基线之后开始规划：
 | --- | --- | --- | --- | --- |
 | 1 | Campaign 4 | Goal-Oriented Product UI Workbench | Entry Gate passed | Bridge complete、Agent Runtime complete、EXE complete、Release complete |
 | 2 | Campaign 5 | Chain-Level Local Core Bridge | Campaign 4 Review / Handoff Gate passed | Agent Runtime complete、Memory Runtime complete |
-| 3 | Campaign 6 | Agent Foundation | Campaign 4 Page-Level UI Redesign owner visual acceptance、Campaign 4+5 UI-Bridge Realignment Gate accepted、Campaign 5 Review / Handoff Gate passed | Agent Runtime complete、Memory Runtime complete、Teams/Subagent complete、Sandbox complete、EXE complete |
-| 4 | Campaign 7 | Configuration System Engineering | Campaign 6 Review / Handoff Gate passed | 首次加入 Agent 核心配置字段、Full Review complete、EXE complete |
-| 5 | Campaign 8 | Full Testing / Full Review | Campaign 7 Review / Handoff Gate passed | Packaging complete、Release complete |
-| 6 | Campaign 9 | EXE Packaging | Campaign 8 Review / Handoff Gate passed | GitHub Release complete |
-| 7 | Final Release | GitHub Release after Campaign 9 acceptance | Campaign 9 Acceptance Gate passed | 无 |
+| 3 | Provider Runtime Gate | Independent Provider Runtime before Campaign 6 | Campaign 5 Review / Handoff Gate passed | Campaign 6 started、Campaign 7 config complete、Agent Runtime complete、Memory Runtime complete |
+| 4 | Campaign 6 | Agent Foundation | Campaign 4 Page-Level UI Redesign owner visual acceptance、Campaign 4+5 UI-Bridge Realignment Gate accepted、Campaign 5 Review / Handoff Gate passed、Provider Runtime Gate accepted | Agent Runtime complete、Memory Runtime complete、Teams/Subagent complete、Sandbox complete、EXE complete |
+| 5 | Campaign 7 | Configuration System Engineering | Campaign 6 Review / Handoff Gate passed | 首次加入 Agent 核心配置字段、首次实现 live provider execution、Full Review complete、EXE complete |
+| 6 | Campaign 8 | Full Testing / Full Review | Campaign 7 Review / Handoff Gate passed | Packaging complete、Release complete |
+| 7 | Campaign 9 | EXE Packaging | Campaign 8 Review / Handoff Gate passed | GitHub Release complete |
+| 8 | Final Release | GitHub Release after Campaign 9 acceptance | Campaign 9 Acceptance Gate passed | 无 |
 
 当前 Campaign 未通过，不得进入下一个 Campaign。不得用计划文档、截图、局部 smoke、单条 green command 或 ignored generated evidence 代替实现验收。
 
@@ -35,14 +36,17 @@ Campaign 6 不得因为 Campaign 4+5 acceptance report 中出现 `accepted_for_c
 
 1. Campaign 4 Page-Level UI Redesign receives owner visual acceptance。
 2. Campaign 4+5 UI-Bridge Realignment Gate is accepted。
-3. Campaign 6 Entry Gate 冻结 simple-mode field matrix。
-4. Campaign 6 Entry Gate 冻结 advanced-mode field matrix。
-5. Campaign 6 Entry Gate 冻结 Agent schema。
-6. Campaign 6 Entry Gate 为每个可见动作冻结 capability classification：`enabled_real`、`disabled_boundary`、`display_only` 或 `omitted`。
+3. Provider Runtime Gate accepted，并确认真实 Provider Runtime 没有塞进 Campaign 7。
+4. Campaign 6 Entry Gate 冻结 simple-mode field matrix。
+5. Campaign 6 Entry Gate 冻结 advanced-mode field matrix。
+6. Campaign 6 Entry Gate 冻结 Agent schema。
+7. Campaign 6 Entry Gate 为每个可见动作冻结 capability classification：`enabled_real`、`disabled_boundary`、`display_only` 或 `omitted`。
 
 Campaign 6 内的删除行为只能是 archive 或 recoverable soft deletion，不得实现 irreversible physical deletion。
 
 Campaign 6 必须闭环 Agent 定义所需的基础配置：模型、工具、权限、工作分区、简易模式字段、复杂模式字段、验证、保存、版本管理、预览和 Agent package 导出。不得把这些核心字段推迟到 Campaign 7 首次加入。
+
+Provider Runtime Gate 独立前置到 Campaign 6 之前完成：真实外部 LLM API E2E、provider/model stage selection runtime、live smoke acceptance、redaction、cost guard、failure handling、network consent、secret boundary。Campaign 7 不得首次实现真实 Provider Runtime。
 
 Campaign 7 只做配置系统工程化：Profile 文件化、配置来源优先级、加载、覆盖、合并、迁移、向后兼容、Secret 安全注入、诊断、Runtime availability check 和批量复用 Agent Profile。
 

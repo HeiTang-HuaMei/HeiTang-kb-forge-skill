@@ -358,7 +358,10 @@ def _command_output_manifest(command_output: Path) -> dict:
             }
         )
         if omitted:
-            path.unlink()
+            try:
+                path.unlink()
+            except PermissionError:
+                files[-1]["delete_error"] = "permission_denied_file_in_use"
     return {"command_output": "<command_output>", "file_count": len(files), "files": files}
 
 

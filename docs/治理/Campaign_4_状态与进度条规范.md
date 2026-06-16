@@ -4,7 +4,7 @@
 
 Campaign 4 必须使用真实状态驱动 UI。状态和进度条用于帮助用户理解当前任务、失败原因和下一安全动作，不得用于展示未完成能力。
 
-Campaign 4 仍然是 UI Workbench boundary，不代表 Bridge、Agent Runtime、Memory Runtime、Multi-Agent executable、EXE packaging 或 GitHub Release 已完成。
+Campaign 4 仍然是 UI Workbench boundary，不代表 Bridge、Provider Runtime、Agent Runtime、Memory Runtime、Multi-Agent executable、EXE packaging 或 GitHub Release 已完成。
 
 ## 状态枚举
 
@@ -27,11 +27,13 @@ Campaign 4 必须规划以下进度条：
 | 进度条 | 起点 | 终点 | 证据 | 不得 overclaim |
 | --- | --- | --- | --- | --- |
 | 文件导入 | 用户选择文件或目录 | 文件进入工作区并生成导入记录 | import report / manifest | 不宣称 parsing 完成 |
+| 网页链接导入 | 用户输入或选择网页链接并显式允许网络访问 | 网页链接进入知识库创建流程并生成来源记录 | web-link import record / source manifest | 不宣称外部事实核验、Provider Runtime 或 unrestricted crawling |
 | parsing | 导入记录可用 | 解析记录生成 | parsing report | 不宣称 knowledge package 完成 |
 | knowledge splitting | 解析记录可用 | 分片和知识包草稿完成 | chunk / package report | 不宣称 Skill 完成 |
+| document generation | 知识包或证据草稿可用 | 报告、手册、教案或自定义模板草稿生成 | document generation report | 不宣称模板目录全部完成或导出 runtime 完成 |
 | Skill generation | 知识包草稿可用 | Skill draft / Skill Suite draft 生成 | skill report | 不宣称 Agent Runtime 完成 |
-| Agent package generation | Skill draft 可用 | Agent Creation Package draft 生成 | agent package manifest | 不宣称 executable runtime |
-| validation | draft outputs 可用 | validation report / failure matrix 生成 | validation report | 不宣称 Full Review 或 Release complete |
+| Agent package generation | Skill draft 或允许的 Agent package 输入可用 | Agent Creation Package draft 生成 | agent package manifest | 不宣称 executable runtime 或 Campaign 6 Agent Foundation 完成 |
+| validation and export | draft outputs 可用 | validation report / failure matrix / export package 生成 | validation report / export manifest | 不宣称 Full Review、Provider Runtime 或 Release complete |
 
 ## 任务卡字段
 
@@ -92,6 +94,7 @@ Campaign 4 UI 文案必须保持能力边界：
 - Agent package 不等于 executable runtime。
 - Multi-Agent spec 不等于 executable orchestration。
 - Bridge handoff 不等于 Bridge complete。
+- Provider Runtime Gate 未通过前不得显示 Provider Runtime complete。
 - UI handoff 不等于 Campaign 4 UI implementation complete。
 - EXE packaging 未进入 Campaign 9 前不得显示 ready。
 - GitHub tag 不等于 GitHub Release。

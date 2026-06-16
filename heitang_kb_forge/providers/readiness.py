@@ -9,7 +9,7 @@ def make_provider_readiness(workspace: Path, output: Path) -> dict:
     registry = workspace / "registries" / "provider_registry.json"
     providers = []
     if registry.exists():
-        data = json.loads(registry.read_text(encoding="utf-8"))
+        data = json.loads(registry.read_text(encoding="utf-8-sig"))
         providers = data.get("providers", [])
     if not providers:
         providers = [{"provider_id": "mock_default", "provider_type": "mock", "status": "disabled"}]

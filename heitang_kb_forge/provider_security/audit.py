@@ -34,7 +34,7 @@ def _load_providers(workspace: Path) -> list[dict]:
     registry = workspace / "registries" / "provider_registry.json"
     if not registry.exists():
         return [{"provider_id": "mock_default", "provider_type": "mock", "api_key_env": None, "network_required": False}]
-    payload = json.loads(registry.read_text(encoding="utf-8"))
+    payload = json.loads(registry.read_text(encoding="utf-8-sig"))
     return payload.get("providers", [])
 
 
