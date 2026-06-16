@@ -23,11 +23,6 @@ desktop/tauri/src-tauri/target/
 _local_acceptance_config/
 artifacts/
 docs/audits/
-!docs/audits/
-docs/audits/*
-!docs/audits/campaign6_agent_runtime_closure/
-docs/audits/campaign6_agent_runtime_closure/*
-!docs/audits/campaign6_agent_runtime_closure/Campaign_6_Agent_Runtime_Production_Grade_Closure_Audit_2026-06-17.md
 docs/bridge/
 docs/governance/
 docs/product/
