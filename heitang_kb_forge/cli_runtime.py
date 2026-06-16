@@ -55,6 +55,7 @@ from heitang_kb_forge.campaign6_agent_runtime import (
     run_campaign6_6b_acceptance,
     run_campaign6_tool_adapter_gate,
 )
+from heitang_kb_forge.campaign7_config_system import run_campaign7_acceptance
 from heitang_kb_forge.config.loader import load_config
 from heitang_kb_forge.contracts.checker import check_package_contract
 from heitang_kb_forge.contracts.report import make_contract_report
@@ -2644,6 +2645,15 @@ def campaign6_tool_adapter_configuration_gate_command(
     """Run Campaign 6 Tool Adapter Configuration Gate."""
     result = run_campaign6_tool_adapter_gate(output)
     typer.echo(f"Campaign 6 Tool Adapter Configuration Gate: {result['status']} | Output: {output}")
+
+
+@app.command("campaign7-configuration-system-acceptance")
+def campaign7_configuration_system_acceptance_command(
+    output: Path = typer.Option(..., "--output", "-o"),
+) -> None:
+    """Run Campaign 7 Configuration System production-grade acceptance."""
+    result = run_campaign7_acceptance(output)
+    typer.echo(f"Campaign 7 Configuration System: {result['status']} | Output: {output}")
 
 
 @app.command("workspace-init")
