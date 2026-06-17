@@ -1,0 +1,2 @@
+{"id":"msg_000001","from":"codex","type":"review","reply_to":null,"body":"review bus ready","ts":"2026-06-17T03:30:22Z","commit":"66fad1191cab99c1e6045e3c1ccdb628d9d500fb","target":"git_ref_review_bus_setup_gate","status":"ready"}
+{"id":"msg_000002","from":"codex","type":"done","reply_to":"msg_000001","body":"review bus ready; Windows ref tree normalization complete","ts":"2026-06-17T03:37:22Z","commit":"5e80f73bc8fa414289f480252df91030faf0d112","target":"git_ref_review_bus_setup_gate","status":"passed"}
