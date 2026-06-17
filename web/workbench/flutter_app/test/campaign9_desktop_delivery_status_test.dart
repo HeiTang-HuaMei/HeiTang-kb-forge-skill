@@ -32,7 +32,7 @@ void main() {
     expect(schema['overall_status'],
         'campaign9_windows_exe_packaging_rc6_runtime_truth_blocker_repaired_ui_bound_pending_owner_retest');
     expect(schema['final_target_status'],
-        'v4.3.0-rc6_runtime_truth_blockers_repaired_real_exe_verified_pending_push_ci_tag_owner_retest');
+        'v4.3.0-rc6_runtime_truth_blockers_repaired_real_exe_verified_pushed_ci_green_tagged_pending_owner_retest');
     expect(schema['release_candidate_tag'], 'v4.3.0-rc6');
     expect(schema['package_version_baseline'], '4.2.0');
     expect(packageInfo['build_status'], 'pass');

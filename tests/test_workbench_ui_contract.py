@@ -230,7 +230,7 @@ def test_campaign9_desktop_delivery_status_is_ui_bound_without_release_overclaim
     )
     assert (
         status["final_target_status"]
-        == "v4.3.0-rc6_runtime_truth_blockers_repaired_real_exe_verified_pending_push_ci_tag_owner_retest"
+        == "v4.3.0-rc6_runtime_truth_blockers_repaired_real_exe_verified_pushed_ci_green_tagged_pending_owner_retest"
     )
     assert status["release_candidate_tag"] == "v4.3.0-rc6"
     assert status["package_version_baseline"] == "4.2.0"
