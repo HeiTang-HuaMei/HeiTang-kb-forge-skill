@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:heitang_workbench/core_actions/core_action_panel.dart';
 import 'package:heitang_workbench/core_actions/workbench_actions.dart';
 import 'package:heitang_workbench/core_bridge/local_core_bridge.dart';
 import 'package:heitang_workbench/contracts/workbench_contracts.dart';
@@ -404,7 +403,7 @@ void main() {
     expect(find.textContaining('知识工作台'), findsWidgets);
     expect(find.byKey(const Key('desktop-window-title-bar')), findsNothing);
     expect(find.byKey(const Key('desktop-topbar-single-row')), findsOneWidget);
-    expect(find.byKey(const Key('desktop-window-controls')), findsOneWidget);
+    expect(find.byKey(const Key('desktop-window-controls')), findsNothing);
     expect(find.text('安全边界已启用'), findsOneWidget);
     expect(find.text('仪表盘'), findsWidgets);
     expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
@@ -449,7 +448,7 @@ void main() {
     expect(find.textContaining('Knowledge Workbench'), findsWidgets);
     expect(find.byKey(const Key('desktop-window-title-bar')), findsNothing);
     expect(find.byKey(const Key('desktop-topbar-single-row')), findsOneWidget);
-    expect(find.byKey(const Key('desktop-window-controls')), findsOneWidget);
+    expect(find.byKey(const Key('desktop-window-controls')), findsNothing);
     expect(find.byIcon(Icons.light_mode_outlined), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -729,9 +728,9 @@ void main() {
     await tester.tap(find.text('知识库').first);
     await tester.pumpAndSettle();
     await openDeveloperDiagnostics(tester);
-    expect(find.text('Run RAG query'), findsOneWidget);
+    expect(find.text('Run RAG query'), findsWidgets);
 
-    final ragPanel = find.widgetWithText(CoreActionPanel, 'Run RAG query');
+    final ragPanel = find.byKey(const Key('diagnostic-core-action-rag_query'));
     final runButton = find.descendant(
       of: ragPanel,
       matching: find.text('运行 Core 操作'),
@@ -772,7 +771,7 @@ void main() {
     await tester.tap(find.text('知识库').first);
     await tester.pumpAndSettle();
     await openDeveloperDiagnostics(tester);
-    final ragPanel = find.widgetWithText(CoreActionPanel, 'Run RAG query');
+    final ragPanel = find.byKey(const Key('diagnostic-core-action-rag_query'));
     final runButton = find.descendant(
       of: ragPanel,
       matching: find.text('运行 Core 操作'),
@@ -816,7 +815,7 @@ void main() {
     await tester.tap(find.text('知识库').first);
     await tester.pumpAndSettle();
     await openDeveloperDiagnostics(tester);
-    final ragPanel = find.widgetWithText(CoreActionPanel, 'Run RAG query');
+    final ragPanel = find.byKey(const Key('diagnostic-core-action-rag_query'));
     final runButton = find.descendant(
       of: ragPanel,
       matching: find.byType(FilledButton),
@@ -824,7 +823,7 @@ void main() {
     final button = tester.widget<FilledButton>(runButton);
 
     expect(button.onPressed, isNull);
-    expect(find.textContaining('web_local_cli_unsupported'), findsNothing);
+    expect(find.textContaining('web_local_cli_unsupported'), findsWidgets);
     expect(find.text('当前环境不可执行本地命令。'), findsWidgets);
     expect(runnerCalled, isFalse);
     expect(tester.takeException(), isNull);

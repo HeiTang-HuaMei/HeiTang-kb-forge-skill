@@ -33,7 +33,7 @@ abstract final class _DesktopGrid {
   static const double footerSafeArea = 24;
 }
 
-enum _DesktopWindowPreviewState { restored, maximized, minimized, closed }
+enum _DesktopWindowPreviewState { restored, maximized }
 
 const supportedLocaleCodes = <String>['zh-CN', 'en-US'];
 
@@ -645,47 +645,6 @@ class _DesktopStatusBar extends StatelessWidget {
   }
 }
 
-class _WindowControlButton extends StatelessWidget {
-  const _WindowControlButton({
-    required this.keyName,
-    required this.icon,
-    required this.tooltip,
-    required this.onTap,
-    this.danger = false,
-  });
-
-  final String keyName;
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onTap;
-  final bool danger;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final foreground = danger ? colors.error : colors.onSurfaceVariant;
-    final hover = danger
-        ? colors.error.withValues(alpha: 0.12)
-        : colors.surfaceContainerHighest;
-    return Tooltip(
-      message: tooltip,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          hoverColor: hover,
-          child: SizedBox(
-            key: Key(keyName),
-            width: 46,
-            height: 36,
-            child: Icon(icon, size: 17, color: foreground),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _StatusBarItem extends StatelessWidget {
   const _StatusBarItem({
     required this.icon,
@@ -1214,6 +1173,10 @@ class _PageSurfaceState extends State<_PageSurface> {
         actionById[action.id] = action;
       }
     }
+    final rc5RuntimeActions = _rc5RuntimeActionsForPage(page.id);
+    for (final action in rc5RuntimeActions) {
+      actionById[action.id] = action;
+    }
     final pageActions = actionById.values.where(
       (action) =>
           page.id != 'dashboard' &&
@@ -1232,6 +1195,7 @@ class _PageSurfaceState extends State<_PageSurface> {
       );
       corePanels.add(
         CoreActionPanel(
+          key: Key('diagnostic-core-action-${action.id}'),
           action: action,
           request: request,
           coreBridge: coreBridge,
@@ -1241,6 +1205,22 @@ class _PageSurfaceState extends State<_PageSurface> {
         ),
       );
     }
+    final primaryRuntimeActions = <ContractAction>[
+      ...rc5RuntimeActions,
+      ...pageActions.where((action) =>
+          !rc5RuntimeActions.any((rc5Action) => rc5Action.id == action.id)),
+    ];
+    final primaryRuntimePanel = _PrimaryRuntimeActionSurface(
+      localeCode: localeCode,
+      page: page,
+      actions: primaryRuntimeActions,
+      coreBridge: coreBridge,
+      coreCli: coreCli,
+      coreWorkingDirectory: coreWorkingDirectory,
+      coreWorkspace: coreWorkspace,
+      enableLocalCoreActions: enableLocalCoreActions,
+      isWebRuntime: isWebRuntime,
+    );
     final diagnostics = _DeveloperDiagnosticsDetails(
       localeCode: localeCode,
       cards: cards,
@@ -1315,6 +1295,7 @@ class _PageSurfaceState extends State<_PageSurface> {
                       campaign9DesktopDeliveryStatus:
                           campaign9DesktopDeliveryStatus,
                       isWebRuntime: isWebRuntime,
+                      primaryRuntimePanel: primaryRuntimePanel,
                       diagnostics: diagnostics,
                     ),
                     const SizedBox(height: _DesktopGrid.sectionGap),
@@ -1907,75 +1888,9 @@ class _ProductTopBar extends StatelessWidget {
                 onPressed: () =>
                     onThemeChanged!(isDark! ? ThemeMode.light : ThemeMode.dark),
               ),
-            const SizedBox(width: 6),
-            _DesktopWindowControlGroup(
-              localeCode: localeCode,
-              windowState: windowState,
-              onWindowStateChanged: onWindowStateChanged,
-            ),
           ],
         );
       },
-    );
-  }
-}
-
-class _DesktopWindowControlGroup extends StatelessWidget {
-  const _DesktopWindowControlGroup({
-    required this.localeCode,
-    required this.windowState,
-    required this.onWindowStateChanged,
-  });
-
-  final String localeCode;
-  final _DesktopWindowPreviewState windowState;
-  final ValueChanged<_DesktopWindowPreviewState> onWindowStateChanged;
-
-  bool get _zh => localeCode == 'zh-CN';
-
-  @override
-  Widget build(BuildContext context) {
-    final maximizedPreview =
-        windowState == _DesktopWindowPreviewState.maximized;
-    return Row(
-      key: const Key('desktop-window-controls'),
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _WindowControlButton(
-          keyName: 'window-control-minimize',
-          icon: Icons.remove,
-          tooltip: _zh
-              ? '最小化，EXE 构建绑定真实窗口行为'
-              : 'Minimize, bound to real window behavior in EXE',
-          onTap: () =>
-              onWindowStateChanged(_DesktopWindowPreviewState.minimized),
-        ),
-        _WindowControlButton(
-          keyName: 'window-control-maximize',
-          icon: maximizedPreview
-              ? Icons.filter_none_outlined
-              : Icons.crop_square_outlined,
-          tooltip: maximizedPreview
-              ? (_zh
-                  ? '还原，Web 预览为视觉模拟'
-                  : 'Restore, visual simulation in Web preview')
-              : (_zh
-                  ? '最大化，Web 预览为视觉模拟'
-                  : 'Maximize, visual simulation in Web preview'),
-          onTap: () => onWindowStateChanged(maximizedPreview
-              ? _DesktopWindowPreviewState.restored
-              : _DesktopWindowPreviewState.maximized),
-        ),
-        _WindowControlButton(
-          keyName: 'window-control-close',
-          icon: Icons.close,
-          tooltip: _zh
-              ? '关闭，EXE 构建绑定真实窗口行为'
-              : 'Close, bound to real window behavior in EXE',
-          danger: true,
-          onTap: () => onWindowStateChanged(_DesktopWindowPreviewState.closed),
-        ),
-      ],
     );
   }
 }
@@ -3175,6 +3090,7 @@ class _ProductPageOverview extends StatefulWidget {
     required this.campaign7ConfigurationStatus,
     required this.campaign9DesktopDeliveryStatus,
     required this.isWebRuntime,
+    required this.primaryRuntimePanel,
     required this.diagnostics,
   });
 
@@ -3185,6 +3101,7 @@ class _ProductPageOverview extends StatefulWidget {
   final Map<String, dynamic> campaign7ConfigurationStatus;
   final Map<String, dynamic> campaign9DesktopDeliveryStatus;
   final bool isWebRuntime;
+  final Widget primaryRuntimePanel;
   final Widget diagnostics;
 
   @override
@@ -3219,59 +3136,67 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
     if (selectedTab > maxTab) selectedTab = 0;
     return _ProductWorkspaceFrame(
       key: Key('dense-page-workbench-${widget.page.id}'),
-      child: switch (page) {
-        'import-parsing' => _ImportProductWorkflow(
-            localeCode: widget.localeCode,
-            workspace: widget.workspace,
-            isWebRuntime: widget.isWebRuntime,
-          ),
-        'document-library' => _DocumentLibraryProductWorkflow(
-            localeCode: widget.localeCode,
-          ),
-        'knowledge-package-management' => _KnowledgeProductWorkflow(
-            localeCode: widget.localeCode,
-            workspace: widget.workspace,
-            selectedTab: selectedTab,
-            onTabSelected: (index) => setState(() => selectedTab = index),
-          ),
-        'retrieval-verification' => _RetrievalVerificationProductWorkflow(
-            localeCode: widget.localeCode,
-          ),
-        'document-generation' => _DocumentProductWorkflow(
-            localeCode: widget.localeCode,
-            workspace: widget.workspace,
-            selectedTab: selectedTab,
-            onTabSelected: (index) => setState(() => selectedTab = index),
-          ),
-        'skill-factory' => _SkillBuilderProductWorkflow(
-            localeCode: widget.localeCode,
-            workspace: widget.workspace,
-          ),
-        'agent-factory-runtime' => _AgentProductWorkflow(
-            localeCode: widget.localeCode,
-            workspace: widget.workspace,
-            campaign6AgentRuntimeStatus: widget.campaign6AgentRuntimeStatus,
-            selectedTab: selectedTab,
-            onTabSelected: (index) => setState(() => selectedTab = index),
-          ),
-        'reports-audit' => _ValidateExportProductWorkflow(
-            localeCode: widget.localeCode,
-            workspace: widget.workspace,
-            selectedTab: selectedTab,
-            onTabSelected: (index) => setState(() => selectedTab = index),
-          ),
-        _ => _SettingsProductWorkflow(
-            localeCode: widget.localeCode,
-            workspace: widget.workspace,
-            selectedTab: selectedTab,
-            onTabSelected: (index) => setState(() => selectedTab = index),
-            isWebRuntime: widget.isWebRuntime,
-            campaign7ConfigurationStatus: widget.campaign7ConfigurationStatus,
-            campaign9DesktopDeliveryStatus:
-                widget.campaign9DesktopDeliveryStatus,
-            diagnostics: widget.diagnostics,
-          ),
-      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          switch (page) {
+            'import-parsing' => _ImportProductWorkflow(
+                localeCode: widget.localeCode,
+                workspace: widget.workspace,
+                isWebRuntime: widget.isWebRuntime,
+              ),
+            'document-library' => _DocumentLibraryProductWorkflow(
+                localeCode: widget.localeCode,
+              ),
+            'knowledge-package-management' => _KnowledgeProductWorkflow(
+                localeCode: widget.localeCode,
+                workspace: widget.workspace,
+                selectedTab: selectedTab,
+                onTabSelected: (index) => setState(() => selectedTab = index),
+              ),
+            'retrieval-verification' => _RetrievalVerificationProductWorkflow(
+                localeCode: widget.localeCode,
+              ),
+            'document-generation' => _DocumentProductWorkflow(
+                localeCode: widget.localeCode,
+                workspace: widget.workspace,
+                selectedTab: selectedTab,
+                onTabSelected: (index) => setState(() => selectedTab = index),
+              ),
+            'skill-factory' => _SkillBuilderProductWorkflow(
+                localeCode: widget.localeCode,
+                workspace: widget.workspace,
+              ),
+            'agent-factory-runtime' => _AgentProductWorkflow(
+                localeCode: widget.localeCode,
+                workspace: widget.workspace,
+                campaign6AgentRuntimeStatus: widget.campaign6AgentRuntimeStatus,
+                selectedTab: selectedTab,
+                onTabSelected: (index) => setState(() => selectedTab = index),
+              ),
+            'reports-audit' => _ValidateExportProductWorkflow(
+                localeCode: widget.localeCode,
+                workspace: widget.workspace,
+                selectedTab: selectedTab,
+                onTabSelected: (index) => setState(() => selectedTab = index),
+              ),
+            _ => _SettingsProductWorkflow(
+                localeCode: widget.localeCode,
+                workspace: widget.workspace,
+                selectedTab: selectedTab,
+                onTabSelected: (index) => setState(() => selectedTab = index),
+                isWebRuntime: widget.isWebRuntime,
+                campaign7ConfigurationStatus:
+                    widget.campaign7ConfigurationStatus,
+                campaign9DesktopDeliveryStatus:
+                    widget.campaign9DesktopDeliveryStatus,
+                diagnostics: widget.diagnostics,
+              ),
+          },
+          const SizedBox(height: _DesktopGrid.gutter),
+          widget.primaryRuntimePanel,
+        ],
+      ),
     );
   }
 }
@@ -3292,6 +3217,399 @@ class _ProductWorkspaceFrame extends StatelessWidget {
       child: child,
     );
   }
+}
+
+class _PrimaryRuntimeActionSurface extends StatelessWidget {
+  const _PrimaryRuntimeActionSurface({
+    required this.localeCode,
+    required this.page,
+    required this.actions,
+    required this.coreBridge,
+    required this.coreCli,
+    required this.coreWorkingDirectory,
+    required this.coreWorkspace,
+    required this.enableLocalCoreActions,
+    required this.isWebRuntime,
+  });
+
+  final String localeCode;
+  final WorkbenchPage page;
+  final List<ContractAction> actions;
+  final LocalCoreBridge coreBridge;
+  final String coreCli;
+  final String coreWorkingDirectory;
+  final String coreWorkspace;
+  final bool enableLocalCoreActions;
+  final bool isWebRuntime;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryActions = actions
+        .where((action) =>
+            action.status == 'ready' &&
+            action.commandKind == 'core_cli' &&
+            action.desktopEnabled)
+        .take(4)
+        .toList(growable: false);
+    if (page.id == 'dashboard' || primaryActions.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return _ProductPanel(
+      keyName: 'rc5-primary-runtime-actions-${page.id}',
+      icon: Icons.play_circle_outline,
+      title: _zh ? '真实运行链路' : 'Real Runtime Chain',
+      subtitle: _zh
+          ? '只执行 allowlist 内 Core 操作；Web 预览保持禁用，输出限制在工作区。'
+          : 'Runs allowlisted Core actions only; Web preview stays disabled and outputs remain inside the workspace.',
+      children: [
+        _ProductTable(
+          columns: _zh
+              ? ['入口', '命令', '状态', '边界']
+              : ['Entry', 'Command', 'Status', 'Boundary'],
+          rows: primaryActions
+              .map((action) => [
+                    action.label,
+                    action.command.split(RegExp(r'\s+')).first,
+                    'enabled_real',
+                    isWebRuntime
+                        ? 'web_local_cli_unsupported'
+                        : 'allowlisted_core_bridge',
+                  ])
+              .toList(growable: false),
+        ),
+        const SizedBox(height: _DesktopGrid.gutter),
+        for (var index = 0; index < primaryActions.length; index++) ...[
+          if (index > 0) const SizedBox(height: _DesktopGrid.gutter),
+          CoreActionPanel(
+            key: Key(
+                'primary-core-action-${page.id}-${primaryActions[index].id}'),
+            action: primaryActions[index],
+            request: coreRequestForAction(
+              action: primaryActions[index],
+              coreCli: coreCli,
+              workingDirectory: coreWorkingDirectory,
+              workspace: coreWorkspace,
+            ),
+            coreBridge: coreBridge,
+            isWebRuntime: isWebRuntime,
+            enabled: enableLocalCoreActions,
+            localeCode: localeCode,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+List<ContractAction> _rc5RuntimeActionsForPage(String pageId) {
+  switch (pageId) {
+    case 'import-parsing':
+      return const <ContractAction>[
+        ContractAction(
+          id: 'document_preflight',
+          label: 'Document Preflight',
+          command: 'preflight-documents --input <input> --output <output>',
+          requires: <String>['input', 'workspace'],
+          pageId: 'import_parsing',
+          status: 'ready',
+          commandKind: 'core_cli',
+          blockedReason: '',
+          desktopEnabled: true,
+          webEnabled: false,
+          desktopBlockedReason: '',
+          webBlockedReason: 'web_local_cli_unsupported',
+          reportIds: <String>['document_preflight_report'],
+          artifactIds: <String>['document_inventory'],
+          errorCodes: <String>['document_preflight_failed'],
+        ),
+        ContractAction(
+          id: 'batch_import_documents',
+          label: 'Batch Import Documents',
+          command: 'batch-import-documents --input <input> --output <output>',
+          requires: <String>['input', 'workspace'],
+          pageId: 'import_parsing',
+          status: 'ready',
+          commandKind: 'core_cli',
+          blockedReason: '',
+          desktopEnabled: true,
+          webEnabled: false,
+          desktopBlockedReason: '',
+          webBlockedReason: 'web_local_cli_unsupported',
+          reportIds: <String>['batch_import_report'],
+          artifactIds: <String>['source_manifest'],
+          errorCodes: <String>['batch_import_failed'],
+        ),
+      ];
+    case 'document-library':
+      return const <ContractAction>[
+        ContractAction(
+          id: 'document_preflight',
+          label: 'Document Preflight',
+          command: 'preflight-documents --input <input> --output <output>',
+          requires: <String>['input', 'workspace'],
+          pageId: 'document_library',
+          status: 'ready',
+          commandKind: 'core_cli',
+          blockedReason: '',
+          desktopEnabled: true,
+          webEnabled: false,
+          desktopBlockedReason: '',
+          webBlockedReason: 'web_local_cli_unsupported',
+          reportIds: <String>['document_preflight_report'],
+          artifactIds: <String>['document_inventory'],
+          errorCodes: <String>['document_preflight_failed'],
+        ),
+        ContractAction(
+          id: 'batch_import_documents',
+          label: 'Batch Import Documents',
+          command: 'batch-import-documents --input <input> --output <output>',
+          requires: <String>['input', 'workspace'],
+          pageId: 'document_library',
+          status: 'ready',
+          commandKind: 'core_cli',
+          blockedReason: '',
+          desktopEnabled: true,
+          webEnabled: false,
+          desktopBlockedReason: '',
+          webBlockedReason: 'web_local_cli_unsupported',
+          reportIds: <String>['batch_import_report'],
+          artifactIds: <String>['source_manifest'],
+          errorCodes: <String>['batch_import_failed'],
+        ),
+      ];
+    case 'knowledge-package-management':
+      return const <ContractAction>[
+        ContractAction(
+          id: 'knowledge_base_build',
+          label: 'Build Knowledge Base',
+          command:
+              'build-knowledge-base --document-understanding <source> --output <output>',
+          requires: <String>['document_understanding', 'workspace'],
+          pageId: 'knowledge_package_management',
+          status: 'ready',
+          commandKind: 'core_cli',
+          blockedReason: '',
+          desktopEnabled: true,
+          webEnabled: false,
+          desktopBlockedReason: '',
+          webBlockedReason: 'web_local_cli_unsupported',
+          reportIds: <String>['knowledge_base_build_report'],
+          artifactIds: <String>['kb_manifest'],
+          errorCodes: <String>['knowledge_base_build_failed'],
+        ),
+        ContractAction(
+          id: 'knowledge_package_build',
+          label: 'Build Knowledge Package',
+          command:
+              'build-knowledge-package --knowledge-base <package> --output <output>',
+          requires: <String>['knowledge_base', 'workspace'],
+          pageId: 'knowledge_package_management',
+          status: 'ready',
+          commandKind: 'core_cli',
+          blockedReason: '',
+          desktopEnabled: true,
+          webEnabled: false,
+          desktopBlockedReason: '',
+          webBlockedReason: 'web_local_cli_unsupported',
+          reportIds: <String>['knowledge_package_build_report'],
+          artifactIds: <String>['portable_kb_package'],
+          errorCodes: <String>['knowledge_package_build_failed'],
+        ),
+      ];
+    case 'retrieval-verification':
+      return const <ContractAction>[
+        ContractAction(
+          id: 'rag_query',
+          label: 'Run RAG Query',
+          command:
+              'kb-query --package <package> --query <query> --output <output>',
+          requires: <String>['package', 'query', 'workspace'],
+          pageId: 'retrieval_verification',
+          status: 'ready',
+          commandKind: 'core_cli',
+          blockedReason: '',
+          desktopEnabled: true,
+          webEnabled: false,
+          desktopBlockedReason: '',
+          webBlockedReason: 'web_local_cli_unsupported',
+          reportIds: <String>['rag_query_report'],
+          artifactIds: <String>['citation_trace'],
+          errorCodes: <String>['rag_query_failed'],
+        ),
+        ContractAction(
+          id: 'evidence_selection',
+          label: 'Select Evidence',
+          command:
+              'select-evidence --package <package> --query <query> --output <output>',
+          requires: <String>['package', 'query', 'workspace'],
+          pageId: 'retrieval_verification',
+          status: 'ready',
+          commandKind: 'core_cli',
+          blockedReason: '',
+          desktopEnabled: true,
+          webEnabled: false,
+          desktopBlockedReason: '',
+          webBlockedReason: 'web_local_cli_unsupported',
+          reportIds: <String>['evidence_selection_report'],
+          artifactIds: <String>['evidence_trace'],
+          errorCodes: <String>['evidence_selection_failed'],
+        ),
+      ];
+    case 'document-generation':
+      return const <ContractAction>[
+        ContractAction(
+          id: 'generate_markdown',
+          label: 'Generate Markdown',
+          command: 'generate-md --package <package> --output <output>',
+          requires: <String>['package', 'workspace'],
+          pageId: 'document_generation',
+          status: 'ready',
+          commandKind: 'core_cli',
+          blockedReason: '',
+          desktopEnabled: true,
+          webEnabled: false,
+          desktopBlockedReason: '',
+          webBlockedReason: 'web_local_cli_unsupported',
+          reportIds: <String>['markdown_generation_report'],
+          artifactIds: <String>['markdown_document'],
+          errorCodes: <String>['document_generation_failed'],
+        ),
+        ContractAction(
+          id: 'generate_manual_user_guide',
+          label: 'Generate Document Bundle',
+          command: 'generate-documents --package <package> --output <output>',
+          requires: <String>['package', 'workspace'],
+          pageId: 'document_generation',
+          status: 'ready',
+          commandKind: 'core_cli',
+          blockedReason: '',
+          desktopEnabled: true,
+          webEnabled: false,
+          desktopBlockedReason: '',
+          webBlockedReason: 'web_local_cli_unsupported',
+          reportIds: <String>['document_bundle_report'],
+          artifactIds: <String>['generated_documents'],
+          errorCodes: <String>['document_bundle_failed'],
+        ),
+      ];
+    case 'skill-factory':
+      return const <ContractAction>[
+        ContractAction(
+          id: 'package_to_skill',
+          label: 'Generate Skill Package',
+          command: 'generate-skill --package <package> --output <output>',
+          requires: <String>['package', 'workspace'],
+          pageId: 'skill_factory',
+          status: 'ready',
+          commandKind: 'core_cli',
+          blockedReason: '',
+          desktopEnabled: true,
+          webEnabled: false,
+          desktopBlockedReason: '',
+          webBlockedReason: 'web_local_cli_unsupported',
+          reportIds: <String>['skill_generation_report'],
+          artifactIds: <String>['skill_package'],
+          errorCodes: <String>['skill_generation_failed'],
+        ),
+        ContractAction(
+          id: 'skill_governance_report',
+          label: 'Skill Governance Report',
+          command: 'skill-governance-report --skill <skill> --output <output>',
+          requires: <String>['skill', 'workspace'],
+          pageId: 'skill_factory',
+          status: 'ready',
+          commandKind: 'core_cli',
+          blockedReason: '',
+          desktopEnabled: true,
+          webEnabled: false,
+          desktopBlockedReason: '',
+          webBlockedReason: 'web_local_cli_unsupported',
+          reportIds: <String>['skill_governance_report'],
+          artifactIds: <String>['governance_report'],
+          errorCodes: <String>['skill_governance_failed'],
+        ),
+      ];
+    case 'agent-factory-runtime':
+      return const <ContractAction>[
+        ContractAction(
+          id: 'standalone_agent_generation',
+          label: 'Generate Standalone Agent',
+          command: 'generate-agent --mode standalone --output <output>',
+          requires: <String>['workspace'],
+          pageId: 'agent_factory_runtime',
+          status: 'ready',
+          commandKind: 'core_cli',
+          blockedReason: '',
+          desktopEnabled: true,
+          webEnabled: false,
+          desktopBlockedReason: '',
+          webBlockedReason: 'web_local_cli_unsupported',
+          reportIds: <String>['agent_generation_report'],
+          artifactIds: <String>['agent_package'],
+          errorCodes: <String>['agent_generation_failed'],
+        ),
+        ContractAction(
+          id: 'kb_bound_agent_generation',
+          label: 'Generate KB-bound Agent',
+          command:
+              'generate-agent --mode kb_bound --package <package> --skill <skill> --output <output>',
+          requires: <String>['package', 'skill', 'workspace'],
+          pageId: 'agent_factory_runtime',
+          status: 'ready',
+          commandKind: 'core_cli',
+          blockedReason: '',
+          desktopEnabled: true,
+          webEnabled: false,
+          desktopBlockedReason: '',
+          webBlockedReason: 'web_local_cli_unsupported',
+          reportIds: <String>['kb_bound_agent_generation_report'],
+          artifactIds: <String>['agent_package'],
+          errorCodes: <String>['agent_generation_failed'],
+        ),
+      ];
+    case 'workspace':
+      return const <ContractAction>[
+        ContractAction(
+          id: 'provider_config_validate',
+          label: 'Validate Provider Config',
+          command:
+              'provider-config-validate --config <config> --output <output>',
+          requires: <String>['config_profile', 'workspace'],
+          pageId: 'workspace',
+          status: 'ready',
+          commandKind: 'core_cli',
+          blockedReason: '',
+          desktopEnabled: true,
+          webEnabled: false,
+          desktopBlockedReason: '',
+          webBlockedReason: 'web_local_cli_unsupported',
+          reportIds: <String>['provider_config_validation_report'],
+          artifactIds: <String>['masked_provider_profile'],
+          errorCodes: <String>['provider_config_invalid'],
+        ),
+        ContractAction(
+          id: 'provider_readiness',
+          label: 'Provider Readiness',
+          command:
+              'provider-readiness --workspace <workspace> --output <output>',
+          requires: <String>['workspace'],
+          pageId: 'workspace',
+          status: 'ready',
+          commandKind: 'core_cli',
+          blockedReason: '',
+          desktopEnabled: true,
+          webEnabled: false,
+          desktopBlockedReason: '',
+          webBlockedReason: 'web_local_cli_unsupported',
+          reportIds: <String>['provider_readiness_report'],
+          artifactIds: <String>['provider_status'],
+          errorCodes: <String>['provider_readiness_failed'],
+        ),
+      ];
+  }
+  return const <ContractAction>[];
 }
 
 class _ProductHeader extends StatelessWidget {
@@ -8454,16 +8772,16 @@ class _ReportsEvidenceViewState extends State<_ReportsEvidenceView> {
               label: zh ? '摘要' : 'Summary',
               value: reportSelected
                   ? (zh
-                      ? '4 项检查已打开，rc4 等待 Owner 复验'
-                      : '4 checks opened; rc4 is pending Owner retest')
+                      ? '4 项检查已打开，rc5 等待 Owner 复验'
+                      : '4 checks opened; rc5 is pending Owner retest')
                   : (zh ? '等待报告产物' : 'Waiting for report artifact')),
           const SizedBox(height: 8),
           _FieldRow(
               label: zh ? '门禁影响' : 'Gate impact',
               value: reportSelected
                   ? (zh
-                      ? 'rc4 修复证据待 Owner 复验，不创建 Release'
-                      : 'rc4 repair evidence awaits Owner retest; no Release is created')
+                      ? 'rc5 全量能力修复证据待 Owner 复验，不创建 Release'
+                      : 'rc5 full capability repair evidence awaits Owner retest; no Release is created')
                   : (zh ? '未通过' : 'Not passed')),
         ],
       );
@@ -9962,10 +10280,10 @@ const sampleCampaign9DesktopDeliveryStatus = <String, dynamic>{
   'schema_id': 'campaign9_desktop_delivery_status',
   'schema_version': '2026-06-17',
   'overall_status':
-      'campaign9_windows_exe_packaging_rc4_owner_acceptance_failure_repair_ui_bound_pending_owner_retest',
+      'campaign9_windows_exe_packaging_rc5_full_capability_audit_repaired_ui_bound_pending_owner_retest',
   'final_target_status':
-      'v4.3.0-rc4_owner_acceptance_failure_repair_pushed_ci_green_tagged_pending_owner_retest',
-  'release_candidate_tag': 'v4.3.0-rc4',
+      'v4.3.0-rc5_full_capability_audit_repaired_pushed_ci_green_tagged_pending_owner_retest',
+  'release_candidate_tag': 'v4.3.0-rc5',
   'package_version_baseline': '4.2.0',
   'github_release_created': false,
   'stable_release_tag_authorized': false,
@@ -9994,7 +10312,7 @@ const sampleCampaign9DesktopDeliveryStatus = <String, dynamic>{
     'release_dir': 'build/windows/x64/runner/Release',
     'exe': 'heitang_workbench.exe',
     'file_count': 49,
-    'total_size_bytes': 31723100,
+    'total_size_bytes': 31756336,
     'required_files_present': {
       'exe': true,
       'flutter_windows_dll': true,
@@ -10006,14 +10324,14 @@ const sampleCampaign9DesktopDeliveryStatus = <String, dynamic>{
   'checksum': {
     'status': 'pass',
     'manifest_path':
-        'output/campaign9_desktop_smoke/release_bundle_manifest.json',
+        'output/rc5_full_capability_repair/release_bundle_manifest.json',
     'exe_sha256':
         'd8e58accd56571fc08cfec3178b77ef7e1c3a58c5930c7d9d37718b1253e9d87',
   },
   'desktop_shell_smoke': {
     'status': 'pass',
     'evidence_path':
-        'output/rc4_owner_acceptance_repair/desktop_shell_smoke.json',
+        'output/rc5_full_capability_repair/exe_smoke/rc5_exe_launch_smoke.json',
     'steps': <Map<String, dynamic>>[
       {'step': 'launch', 'result': 'pass'},
       {'step': 'minimize', 'result': 'pass'},
@@ -10035,13 +10353,28 @@ const sampleCampaign9DesktopDeliveryStatus = <String, dynamic>{
       'capability': 'desktop_shell_real_smoke',
       'status': 'pass',
       'ui_state': 'enabled_real',
-      'evidence': 'output/rc4_owner_acceptance_repair/desktop_shell_smoke.json',
+      'evidence':
+          'output/rc5_full_capability_repair/exe_smoke/rc5_exe_launch_smoke.json',
+    },
+    {
+      'capability': 'full_capability_runtime_chain',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+      'evidence':
+          'kb-forge-skill/output/rc5_real_runtime_chain_20260617_153029/rc5_real_runtime_chain_result.json',
+    },
+    {
+      'capability': 'page_button_tab_audit',
+      'status': 'pass',
+      'ui_state': 'enabled_real',
+      'evidence': 'v4.3.0-rc5_Button_Page_Tab_Issue_Register_2026-06-17.md',
     },
     {
       'capability': 'release_bundle_manifest',
       'status': 'pass',
       'ui_state': 'enabled_real',
-      'evidence': 'output/campaign9_desktop_smoke/release_bundle_manifest.json',
+      'evidence':
+          'output/rc5_full_capability_repair/release_bundle_manifest.json',
     },
     {
       'capability': 'provider_secret_handling',

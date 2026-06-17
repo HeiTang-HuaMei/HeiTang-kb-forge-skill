@@ -183,6 +183,9 @@ class LocalCoreBridge {
     'workspace_storage_usage': <String>['report-storage'],
     'workspace_cleanup_plan': <String>['plan-cleanup'],
     'input_file_folder_glob': <String>['workbench-action-dry-run'],
+    'document_preflight': <String>['preflight-documents'],
+    'batch_import_documents': <String>['batch-import-documents'],
+    'document_understanding': <String>['run-document-understanding'],
     'source_validate': <String>['check-contract'],
     'source_inventory': <String>['workbench-action-dry-run'],
     'format_support_matrix': <String>['parser-backend-list'],
@@ -191,6 +194,8 @@ class LocalCoreBridge {
     'parse_repair_suggest': <String>['parse-reimport-corrected-text'],
     'pdf_token_reduction': <String>['report-pdf-token-reduction'],
     'package_build': <String>['build'],
+    'knowledge_base_build': <String>['build-knowledge-base'],
+    'knowledge_package_build': <String>['build-knowledge-package'],
     'package_batch': <String>['batch-run'],
     'package_pipeline': <String>['pipeline'],
     'package_validation': <String>['check-contract'],
@@ -271,6 +276,8 @@ class LocalCoreBridge {
     'artifact_agent_package_inspect': <String>['generate-agent'],
     'artifact_config_profiles_inspect': <String>['workbench-action-dry-run'],
     'artifact_acceptance_proof_inspect': <String>['run-golden-demo-acceptance'],
+    'provider_config_validate': <String>['provider-config-validate'],
+    'provider_readiness': <String>['provider-readiness'],
   };
 
   final Map<String, List<String>> allowedActions;

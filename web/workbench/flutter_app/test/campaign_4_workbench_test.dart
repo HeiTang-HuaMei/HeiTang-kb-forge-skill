@@ -263,7 +263,7 @@ void main() {
     expect(find.text('Skill 包结构预览'), findsOneWidget);
     expect(find.text('治理报告与验证'), findsOneWidget);
     expect(find.text('生成 Skill 草稿预览'), findsOneWidget);
-    expect(find.text('Skill Governance Report'), findsOneWidget);
+    expect(find.text('Skill Governance Report'), findsWidgets);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
     expect(find.text('Skill 模板驱动'), findsOneWidget);
     expect(find.text('generated'), findsNothing);
@@ -271,7 +271,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('validation report reflects rc4 owner retest pending',
+  testWidgets('validation report reflects rc5 owner retest pending',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1000));
     await tester.pumpWidget(
@@ -288,7 +288,7 @@ void main() {
     expect(find.byKey(const Key('report-evidence-list')), findsOneWidget);
     await tester.tap(find.text('打开验证报告预览'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('rc4 等待 Owner 复验'), findsWidgets);
+    expect(find.textContaining('rc5 等待 Owner 复验'), findsWidgets);
     expect(find.textContaining('Owner 视觉验收已通过'), findsNothing);
     expect(find.textContaining('Release'), findsWidgets);
     expect(tester.takeException(), isNull);
@@ -434,7 +434,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('desktop shell exposes independent window controls',
+  testWidgets('desktop shell does not duplicate native window controls',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1000));
     await tester.pumpWidget(
@@ -447,10 +447,10 @@ void main() {
 
     expect(find.byKey(const Key('desktop-window-title-bar')), findsNothing);
     expect(find.byKey(const Key('desktop-topbar-single-row')), findsOneWidget);
-    expect(find.byKey(const Key('desktop-window-controls')), findsOneWidget);
-    expect(find.byKey(const Key('window-control-minimize')), findsOneWidget);
-    expect(find.byKey(const Key('window-control-maximize')), findsOneWidget);
-    expect(find.byKey(const Key('window-control-close')), findsOneWidget);
+    expect(find.byKey(const Key('desktop-window-controls')), findsNothing);
+    expect(find.byKey(const Key('window-control-minimize')), findsNothing);
+    expect(find.byKey(const Key('window-control-maximize')), findsNothing);
+    expect(find.byKey(const Key('window-control-close')), findsNothing);
     expect(find.text('黑糖'), findsOneWidget);
 
     final topbarRect =
@@ -460,38 +460,10 @@ void main() {
     expect((topbarRect.center.dy - searchRect.center.dy).abs(),
         lessThanOrEqualTo(1));
 
-    for (final key in [
-      'window-control-minimize',
-      'window-control-maximize',
-      'window-control-close',
-    ]) {
-      final controlRect = tester.getRect(find.byKey(Key(key)));
-      expect((controlRect.center.dy - searchRect.center.dy).abs(),
-          lessThanOrEqualTo(3));
-    }
-
-    await tester.tap(find.byKey(const Key('window-control-minimize')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
-    expect(find.byKey(const Key('page-scroll-dashboard')), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('window-control-maximize')));
-    await tester.pumpAndSettle();
-    expect(find.byIcon(Icons.filter_none_outlined), findsOneWidget);
-    expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
-
     await tester.binding.setSurfaceSize(const Size(1920, 1000));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
     expect(find.byKey(const Key('page-scroll-dashboard')), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('window-control-maximize')));
-    await tester.pumpAndSettle();
-    expect(find.byIcon(Icons.crop_square_outlined), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('window-control-close')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('desktop-window-controls')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

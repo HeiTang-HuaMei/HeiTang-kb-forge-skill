@@ -126,7 +126,7 @@ void main() {
     await tester.ensureVisible(desktopTab);
     await tester.tap(desktopTab, warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.text('v4.3.0-rc4'), findsWidgets);
+    expect(find.text('v4.3.0-rc5'), findsWidgets);
     expect(find.textContaining('pending_owner_retest'), findsWidgets);
     expect(find.textContaining('GitHub Release'), findsWidgets);
     expect(find.textContaining('v4.3.0 stable'), findsNothing);

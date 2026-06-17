@@ -7,6 +7,7 @@ CoreBridgeRequest? coreRequestForAction({
   required String coreCli,
   required String workingDirectory,
   required String workspace,
+  Map<String, String> placeholderOverrides = const <String, String>{},
 }) {
   final deterministicSmoke = action.status == 'dry_run' &&
       action.commandKind == 'ui_safe_wrapper' &&
@@ -25,6 +26,7 @@ CoreBridgeRequest? coreRequestForAction({
     workspace: workspace,
     workingDirectory: workingDirectory,
     outputPath: outputPath,
+    placeholderOverrides: placeholderOverrides,
   );
   if (arguments == null) {
     return null;
@@ -46,6 +48,7 @@ List<String>? argumentsForCoreCommand(
   required String workspace,
   required String workingDirectory,
   String? outputPath,
+  Map<String, String> placeholderOverrides = const <String, String>{},
 }) {
   final parts = command
       .trim()
@@ -77,7 +80,7 @@ List<String>? argumentsForCoreCommand(
     '<config>': '$workspace/config.yaml',
     '<repo>': workingDirectory,
     '<name>': 'contract-reviewer',
-  };
+  }..addAll(placeholderOverrides);
   final arguments = <String>[];
   for (final part in parts) {
     final replacement = values[part];
