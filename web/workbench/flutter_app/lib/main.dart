@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -11,6 +12,7 @@ import 'core_actions/workbench_actions.dart';
 import 'core_bridge/local_core_bridge.dart';
 import 'contracts/workbench_contracts.dart';
 import 'backend_evidence/parser_backend_dashboard.dart';
+import 'rc6_runtime/rc6_runtime_controller.dart';
 import 'skill_factory/skill_factory_workflow.dart';
 
 void main() {
@@ -30,7 +32,7 @@ abstract final class _DesktopGrid {
   static const double panelMinHeight = 126;
   static const double metricHeight = 114;
   static const double rowBreakpoint = 1120;
-  static const double footerSafeArea = 24;
+  static const double footerSafeArea = 84;
 }
 
 enum _DesktopWindowPreviewState { restored, maximized }
@@ -155,6 +157,19 @@ class WorkbenchPage {
       localeCode == 'zh-CN' ? zhDescription : enDescription;
 }
 
+class _Rc6RuntimeScope extends InheritedNotifier<Rc6RuntimeController> {
+  const _Rc6RuntimeScope({
+    required Rc6RuntimeController controller,
+    required super.child,
+  }) : super(notifier: controller);
+
+  static Rc6RuntimeController? of(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<_Rc6RuntimeScope>()
+        ?.notifier;
+  }
+}
+
 class HeiTangWorkbenchApp extends StatefulWidget {
   const HeiTangWorkbenchApp({
     super.key,
@@ -205,6 +220,7 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
   String localeCode = 'zh-CN';
   ThemeMode themeMode = ThemeMode.light;
   late int selectedIndex = widget.initialSelectedIndex;
+  late Rc6RuntimeController _rc6RuntimeController;
   late final Future<WorkbenchContracts> _contractsFuture =
       widget.contracts == null
           ? const WorkbenchContractLoader()
@@ -276,6 +292,43 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
   bool get isDark => themeMode == ThemeMode.dark;
 
   @override
+  void initState() {
+    super.initState();
+    _rc6RuntimeController = _createRc6RuntimeController();
+    unawaited(_rc6RuntimeController.initialize());
+  }
+
+  @override
+  void didUpdateWidget(covariant HeiTangWorkbenchApp oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.coreBridge != widget.coreBridge ||
+        oldWidget.coreCli != widget.coreCli ||
+        oldWidget.coreWorkingDirectory != widget.coreWorkingDirectory ||
+        oldWidget.coreWorkspace != widget.coreWorkspace ||
+        oldWidget.isWebRuntime != widget.isWebRuntime) {
+      _rc6RuntimeController.dispose();
+      _rc6RuntimeController = _createRc6RuntimeController();
+      unawaited(_rc6RuntimeController.initialize());
+    }
+  }
+
+  @override
+  void dispose() {
+    _rc6RuntimeController.dispose();
+    super.dispose();
+  }
+
+  Rc6RuntimeController _createRc6RuntimeController() {
+    return Rc6RuntimeController(
+      coreBridge: widget.coreBridge,
+      coreCli: widget.coreCli,
+      coreWorkingDirectory: widget.coreWorkingDirectory,
+      configuredWorkspace: widget.coreWorkspace,
+      isWebRuntime: widget.isWebRuntime,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final currentPage = pages[selectedIndex];
     final appTitle =
@@ -338,46 +391,52 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
                         initialData: widget.skillGovernanceReport ??
                             sampleSkillGovernanceReport,
                         builder: (context, skillGovernanceSnapshot) =>
-                            _WorkbenchScaffold(
-                          contracts: contractsSnapshot.data ??
-                              sampleWorkbenchContracts,
-                          workflowEvidence:
-                              evidenceSnapshot.data ?? sampleP1WorkflowEvidence,
-                          workflowV2Evidence:
-                              v2Snapshot.data ?? sampleP1WorkflowV2Evidence,
-                          externalCapabilities: externalSnapshot.data ??
-                              sampleExternalCapabilityRegistry,
-                          parserBackends:
-                              parserSnapshot.data ?? sampleParserBackendMatrix,
-                          campaign6AgentRuntimeStatus: campaign6Snapshot.data ??
-                              sampleCampaign6AgentRuntimeStatus,
-                          campaign7ConfigurationStatus:
-                              campaign7Snapshot.data ??
-                                  sampleCampaign7ConfigurationStatus,
-                          campaign9DesktopDeliveryStatus:
-                              campaign9Snapshot.data ??
-                                  sampleCampaign9DesktopDeliveryStatus,
-                          skillGovernanceReport: skillGovernanceSnapshot.data ??
-                              sampleSkillGovernanceReport,
-                          methodologyMap:
-                              widget.methodologyMap ?? sampleMethodologyMap,
-                          skillSuiteWorkflow: widget.skillSuiteWorkflow,
-                          localeCode: localeCode,
-                          themeMode: themeMode,
-                          selectedIndex: selectedIndex,
-                          isDark: isDark,
-                          coreBridge: widget.coreBridge,
-                          coreCli: widget.coreCli,
-                          coreWorkingDirectory: widget.coreWorkingDirectory,
-                          coreWorkspace: widget.coreWorkspace,
-                          enableLocalCoreActions: widget.enableLocalCoreActions,
-                          isWebRuntime: widget.isWebRuntime,
-                          onThemeChanged: (value) =>
-                              setState(() => themeMode = value),
-                          onLocaleChanged: (value) =>
-                              setState(() => localeCode = value),
-                          onPageChanged: (index) =>
-                              setState(() => selectedIndex = index),
+                            _Rc6RuntimeScope(
+                          controller: _rc6RuntimeController,
+                          child: _WorkbenchScaffold(
+                            contracts: contractsSnapshot.data ??
+                                sampleWorkbenchContracts,
+                            workflowEvidence: evidenceSnapshot.data ??
+                                sampleP1WorkflowEvidence,
+                            workflowV2Evidence:
+                                v2Snapshot.data ?? sampleP1WorkflowV2Evidence,
+                            externalCapabilities: externalSnapshot.data ??
+                                sampleExternalCapabilityRegistry,
+                            parserBackends: parserSnapshot.data ??
+                                sampleParserBackendMatrix,
+                            campaign6AgentRuntimeStatus:
+                                campaign6Snapshot.data ??
+                                    sampleCampaign6AgentRuntimeStatus,
+                            campaign7ConfigurationStatus:
+                                campaign7Snapshot.data ??
+                                    sampleCampaign7ConfigurationStatus,
+                            campaign9DesktopDeliveryStatus:
+                                campaign9Snapshot.data ??
+                                    sampleCampaign9DesktopDeliveryStatus,
+                            skillGovernanceReport:
+                                skillGovernanceSnapshot.data ??
+                                    sampleSkillGovernanceReport,
+                            methodologyMap:
+                                widget.methodologyMap ?? sampleMethodologyMap,
+                            skillSuiteWorkflow: widget.skillSuiteWorkflow,
+                            localeCode: localeCode,
+                            themeMode: themeMode,
+                            selectedIndex: selectedIndex,
+                            isDark: isDark,
+                            coreBridge: widget.coreBridge,
+                            coreCli: widget.coreCli,
+                            coreWorkingDirectory: widget.coreWorkingDirectory,
+                            coreWorkspace: widget.coreWorkspace,
+                            enableLocalCoreActions:
+                                widget.enableLocalCoreActions,
+                            isWebRuntime: widget.isWebRuntime,
+                            onThemeChanged: (value) =>
+                                setState(() => themeMode = value),
+                            onLocaleChanged: (value) =>
+                                setState(() => localeCode = value),
+                            onPageChanged: (index) =>
+                                setState(() => selectedIndex = index),
+                          ),
                         ),
                       ),
                     ),
@@ -2651,80 +2710,331 @@ class _TopBarSearchField extends StatefulWidget {
 
 class _TopBarSearchFieldState extends State<_TopBarSearchField> {
   bool focused = false;
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final zh = Localizations.localeOf(context).languageCode == 'zh';
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final runtime = rc6?.state;
     final borderColor = focused ? colors.primary : colors.outlineVariant;
+    final statusText = switch (runtime?.searchStatus) {
+      Rc6SearchStatus.loading => zh ? '搜索中' : 'Searching',
+      Rc6SearchStatus.success => zh ? '真实结果' : 'Results',
+      Rc6SearchStatus.empty => zh ? '无结果' : 'Empty',
+      Rc6SearchStatus.error => zh ? '错误' : 'Error',
+      _ => 'Enter',
+    };
     return Semantics(
-      button: true,
+      textField: true,
       label: widget.label,
-      child: InkWell(
+      child: Container(
         key: const Key('topbar-search-field'),
-        borderRadius: BorderRadius.circular(8),
-        onTap: () => setState(() => focused = true),
-        child: Container(
-          constraints: const BoxConstraints(minWidth: 120),
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: borderColor, width: focused ? 1.4 : 1),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.search,
-                  size: 17,
-                  color: focused ? colors.primary : colors.onSurfaceVariant),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                    focused
-                        ? (zh
-                            ? '搜索入口已聚焦 · 当前为 display_only 索引范围'
-                            : 'Search focused · display_only index scope')
-                        : widget.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          fontSize: 13,
-                          color: focused
-                              ? colors.primary
-                              : colors.onSurfaceVariant,
-                          fontWeight: FontWeight.w700,
-                          height: 1.16,
-                        )),
-              ),
-              if (!widget.compact || focused) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: focused
-                        ? colors.primary.withValues(alpha: 0.1)
-                        : colors.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    focused ? 'display_only' : 'Ctrl K',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          fontSize: 12,
-                          color: focused
-                              ? colors.primary
-                              : colors.onSurfaceVariant,
-                          fontWeight: FontWeight.w900,
-                          height: 1.05,
-                        ),
-                  ),
+        constraints: const BoxConstraints(minWidth: 120),
+        height: 40,
+        padding: const EdgeInsets.only(left: 12, right: 6),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: borderColor, width: focused ? 1.4 : 1),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.search,
+                size: 17,
+                color: focused ? colors.primary : colors.onSurfaceVariant),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                key: const Key('topbar-real-search-input'),
+                enabled: rc6 != null,
+                onTap: () => setState(() => focused = true),
+                onSubmitted: (value) => rc6?.search(value),
+                decoration: InputDecoration(
+                  hintText: runtime?.hasKnowledgeBase == true
+                      ? widget.label
+                      : (zh
+                          ? '先导入并构建知识库后搜索'
+                          : 'Import and build a KB before search'),
+                  border: InputBorder.none,
+                  isDense: true,
                 ),
-              ],
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontSize: 13,
+                      color: colors.onSurface,
+                      fontWeight: FontWeight.w700,
+                      height: 1.16,
+                    ),
+              ),
+            ),
+            if (!widget.compact || focused) ...[
+              const SizedBox(width: 6),
+              TextButton(
+                key: const Key('topbar-real-search-submit'),
+                onPressed: runtime?.running == true
+                    ? null
+                    : () => rc6?.search(_controller.text),
+                child: Text(statusText),
+              ),
             ],
-          ),
+          ],
         ),
       ),
+    );
+  }
+}
+
+class _Rc6RuntimeStatusPanel extends StatelessWidget {
+  const _Rc6RuntimeStatusPanel({required this.zh});
+
+  final bool zh;
+
+  @override
+  Widget build(BuildContext context) {
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final state = rc6?.state ?? Rc6RuntimeState.initial();
+    final tone = state.lastError.isNotEmpty
+        ? _StatusTone.danger
+        : state.running
+            ? _StatusTone.neutral
+            : state.phase == Rc6RuntimePhase.agentGenerated
+                ? _StatusTone.success
+                : _StatusTone.warning;
+    final chainQuery = state.searchQuery.isEmpty
+        ? 'heitang-rc6-hard-needle'
+        : state.searchQuery;
+    return _ProductPanel(
+      keyName: 'rc6-runtime-truth-panel',
+      icon: Icons.verified_outlined,
+      title: zh ? 'rc6 真实文件链路' : 'rc6 Real File Runtime Chain',
+      subtitle: state.workspacePath.isEmpty ? '-' : state.workspacePath,
+      accent: state.phase == Rc6RuntimePhase.agentGenerated,
+      gap: state.phase == Rc6RuntimePhase.blocked ||
+          state.phase == Rc6RuntimePhase.failed,
+      children: [
+        _RuntimeFeedbackBanner(
+          title: state.running
+              ? (zh ? '正在执行真实 Core 链路' : 'Running real Core chain')
+              : state.lastMessage,
+          detail: state.lastResult == null
+              ? (zh
+                  ? '导入、知识库、搜索、文档、Skill、Agent 共用同一真实工作区。'
+                  : 'Import, KB, search, document, Skill, and Agent share one real workspace.')
+              : 'exit=${state.lastResult!.exitCode} status=${state.lastResult!.status}',
+          tone: tone,
+          icon: state.running ? Icons.hourglass_top : Icons.fact_check_outlined,
+        ),
+        const SizedBox(height: _DesktopGrid.gutter),
+        _Rc6RuntimeArtifactGrid(zh: zh, state: state),
+        const SizedBox(height: _DesktopGrid.gutter),
+        _EqualActionRow(children: [
+          _PrimaryProductAction(
+            label: zh ? '选择文件' : 'Choose file',
+            icon: Icons.folder_open_outlined,
+            onPressed: state.running || rc6 == null
+                ? null
+                : () => rc6.pickAndImportFile(),
+          ),
+          _PrimaryProductAction(
+            label: zh ? '构建知识库' : 'Build KB',
+            icon: Icons.inventory_2_outlined,
+            onPressed: state.running || rc6 == null
+                ? null
+                : () => rc6.buildKnowledgeBase(),
+          ),
+          _PrimaryProductAction(
+            label: zh ? '运行完整链路' : 'Run full chain',
+            icon: Icons.play_circle_outline,
+            onPressed: state.running || rc6 == null
+                ? null
+                : () => rc6.runMinimumE2E(query: chainQuery),
+          ),
+        ]),
+        const SizedBox(height: _DesktopGrid.gutter),
+        _EqualActionRow(children: [
+          _PrimaryProductAction(
+            label: zh ? '搜索当前关键词' : 'Search current query',
+            icon: Icons.search_outlined,
+            onPressed: state.running || rc6 == null
+                ? null
+                : () => rc6.search(chainQuery),
+          ),
+          _PrimaryProductAction(
+            label: zh ? '生成 Markdown' : 'Generate Markdown',
+            icon: Icons.description_outlined,
+            onPressed: state.running || rc6 == null
+                ? null
+                : () => rc6.generateMarkdown(),
+          ),
+          _PrimaryProductAction(
+            label: zh ? '生成 Skill' : 'Generate Skill',
+            icon: Icons.extension_outlined,
+            onPressed:
+                state.running || rc6 == null ? null : () => rc6.generateSkill(),
+          ),
+          _PrimaryProductAction(
+            label: zh ? '生成 Agent' : 'Generate Agent',
+            icon: Icons.smart_toy_outlined,
+            onPressed:
+                state.running || rc6 == null ? null : () => rc6.generateAgent(),
+          ),
+        ]),
+      ],
+    );
+  }
+}
+
+class _Rc6RuntimeArtifactGrid extends StatelessWidget {
+  const _Rc6RuntimeArtifactGrid({
+    required this.zh,
+    required this.state,
+  });
+
+  final bool zh;
+  final Rc6RuntimeState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = [
+      _Rc6ArtifactDatum(
+        label: zh ? '文件导入' : 'Import',
+        status: state.hasImportedFile ? 'enabled_real' : 'waiting_for_input',
+        artifact:
+            state.sourceManifestPath.isEmpty ? '-' : state.sourceManifestPath,
+      ),
+      _Rc6ArtifactDatum(
+        label: zh ? '知识库' : 'KB',
+        status: state.hasKnowledgeBase ? 'enabled_real' : 'waiting_for_input',
+        artifact: state.kbManifestPath.isEmpty
+            ? '-'
+            : '${state.chunkCount} chunks | ${state.kbManifestPath}',
+      ),
+      _Rc6ArtifactDatum(
+        label: zh ? '检索' : 'Search',
+        status: state.searchStatus == Rc6SearchStatus.success
+            ? 'enabled_real'
+            : state.searchStatus.name,
+        artifact: state.queryResultPath.isEmpty ? '-' : state.queryResultPath,
+      ),
+      _Rc6ArtifactDatum(
+        label: zh ? 'Markdown' : 'Markdown',
+        status: state.hasMarkdown ? 'enabled_real' : 'waiting_for_input',
+        artifact: state.generatedMarkdownPath.isEmpty
+            ? '-'
+            : state.generatedMarkdownPath,
+      ),
+      _Rc6ArtifactDatum(
+        label: zh ? 'Skill' : 'Skill',
+        status: state.hasSkill ? 'enabled_real' : 'waiting_for_input',
+        artifact: state.skillPath.isEmpty ? '-' : state.skillPath,
+      ),
+      _Rc6ArtifactDatum(
+        label: zh ? 'Agent' : 'Agent',
+        status: state.hasAgent ? 'enabled_real' : 'waiting_for_input',
+        artifact: state.agentPath.isEmpty ? '-' : state.agentPath,
+      ),
+    ];
+    return LayoutBuilder(builder: (context, constraints) {
+      final columns = constraints.maxWidth >= 1180 ? 3 : 2;
+      return Wrap(
+        spacing: _DesktopGrid.gutter,
+        runSpacing: _DesktopGrid.gutter,
+        children: [
+          for (final row in rows)
+            SizedBox(
+              width: (constraints.maxWidth -
+                      (_DesktopGrid.gutter * (columns - 1))) /
+                  columns,
+              child: _Rc6ArtifactTile(row: row),
+            ),
+        ],
+      );
+    });
+  }
+}
+
+class _Rc6ArtifactDatum {
+  const _Rc6ArtifactDatum({
+    required this.label,
+    required this.status,
+    required this.artifact,
+  });
+
+  final String label;
+  final String status;
+  final String artifact;
+}
+
+class _Rc6ArtifactTile extends StatelessWidget {
+  const _Rc6ArtifactTile({required this.row});
+
+  final _Rc6ArtifactDatum row;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final ready = row.status == 'enabled_real';
+    return Container(
+      constraints: const BoxConstraints(minHeight: 86),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: ready
+            ? colors.primaryContainer.withValues(alpha: 0.28)
+            : colors.surfaceContainerHighest.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: ready ? colors.primary : colors.outlineVariant,
+        ),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Icon(
+            ready ? Icons.check_circle_outline : Icons.pending_outlined,
+            size: 16,
+            color: ready ? colors.primary : colors.onSurfaceVariant,
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              row.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    height: 1.1,
+                  ),
+            ),
+          ),
+        ]),
+        const SizedBox(height: 5),
+        Text(
+          row.status,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: ready ? colors.primary : colors.onSurfaceVariant,
+              ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          row.artifact,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
+                height: 1.12,
+              ),
+        ),
+      ]),
     );
   }
 }
@@ -3936,54 +4246,60 @@ class _FillProductPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return Container(
-      key: keyName == null ? null : Key(keyName!),
-      width: double.infinity,
-      height: double.infinity,
-      padding: const EdgeInsets.all(_DesktopGrid.panelPadding),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(_DesktopGrid.panelRadius),
-        border: Border.all(color: colors.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              if (icon != null) ...[
-                Icon(icon, size: 18, color: colors.primary),
-                const SizedBox(width: 8),
+    return LayoutBuilder(builder: (context, constraints) {
+      return Container(
+        key: keyName == null ? null : Key(keyName!),
+        width: double.infinity,
+        height: constraints.maxHeight.isFinite ? double.infinity : null,
+        padding: const EdgeInsets.all(_DesktopGrid.panelPadding),
+        decoration: BoxDecoration(
+          color: colors.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(_DesktopGrid.panelRadius),
+          border: Border.all(color: colors.outlineVariant),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                if (icon != null) ...[
+                  Icon(icon, size: 18, color: colors.primary),
+                  const SizedBox(width: 8),
+                ],
+                Expanded(
+                  child: Text(title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                                height: 1.12,
+                              )),
+                ),
               ],
-              Expanded(
-                child: Text(title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          height: 1.12,
-                        )),
-              ),
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 3),
+              Text(subtitle!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontSize: 13,
+                        color: colors.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                        height: 1.16,
+                      )),
             ],
-          ),
-          if (subtitle != null) ...[
-            const SizedBox(height: 3),
-            Text(subtitle!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontSize: 13,
-                      color: colors.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                      height: 1.16,
-                    )),
+            const SizedBox(height: _DesktopGrid.gutter),
+            if (constraints.maxHeight.isFinite)
+              Expanded(child: child)
+            else
+              child,
           ],
-          const SizedBox(height: _DesktopGrid.gutter),
-          Expanded(child: child),
-        ],
-      ),
-    );
+        ),
+      );
+    });
   }
 }
 
@@ -4048,41 +4364,76 @@ class _ProductTable extends StatelessWidget {
           ),
         );
       }
+      final minCellWidth = columns.length >= 6 ? 136.0 : 116.0;
+      final tableWidth =
+          (columns.length * minCellWidth).clamp(constraints.maxWidth, 1200.0);
+      final borderColor = colors.outlineVariant.withValues(alpha: 0.7);
       return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minWidth: constraints.maxWidth,
-            maxWidth: columns.length >= 6
-                ? constraints.maxWidth + 260
-                : double.infinity,
-          ),
-          child: DataTable(
-            headingRowHeight: 34,
-            dataRowMinHeight: 42,
-            dataRowMaxHeight: 46,
-            columnSpacing: 26,
-            horizontalMargin: 10,
-            headingTextStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontSize: 13,
-                  color: colors.onSurfaceVariant,
-                  fontWeight: FontWeight.w900,
-                  height: 1.15,
+          constraints: BoxConstraints(minWidth: tableWidth.toDouble()),
+          child: Table(
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            columnWidths: {
+              for (var index = 0; index < columns.length; index++)
+                index: const FlexColumnWidth(),
+            },
+            children: [
+              TableRow(
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerHighest.withValues(alpha: 0.38),
+                  border: Border(bottom: BorderSide(color: borderColor)),
                 ),
-            dataTextStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  height: 1.16,
+                children: [
+                  for (final column in columns)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 9),
+                      child: Text(
+                        column,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        softWrap: true,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              fontSize: 13,
+                              color: colors.onSurfaceVariant,
+                              fontWeight: FontWeight.w900,
+                              height: 1.15,
+                            ),
+                      ),
+                    ),
+                ],
+              ),
+              for (var rowIndex = 0; rowIndex < rows.length; rowIndex++)
+                TableRow(
+                  decoration: BoxDecoration(
+                    color: rowIndex.isEven
+                        ? colors.surface
+                        : colors.surfaceContainerHighest
+                            .withValues(alpha: 0.18),
+                    border: Border(bottom: BorderSide(color: borderColor)),
+                  ),
+                  children: [
+                    for (var index = 0; index < columns.length; index++)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 10),
+                        child: DefaultTextStyle.merge(
+                          style:
+                              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.22,
+                                  ),
+                          child: _CapabilityTableCell(
+                            value: index < rows[rowIndex].length
+                                ? rows[rowIndex][index]
+                                : '',
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-            columns: [
-              for (final column in columns) DataColumn(label: Text(column))
-            ],
-            rows: [
-              for (final row in rows)
-                DataRow(cells: [
-                  for (final value in row)
-                    DataCell(_CapabilityTableCell(value: value)),
-                ]),
             ],
           ),
         ),
@@ -4185,9 +4536,9 @@ class _CapabilityTableCell extends StatelessWidget {
       waitDuration: const Duration(milliseconds: 500),
       child: Text(
         value,
-        maxLines: 1,
+        maxLines: 3,
         overflow: TextOverflow.ellipsis,
-        softWrap: false,
+        softWrap: true,
       ),
     );
   }
@@ -4441,7 +4792,7 @@ class _PrimaryProductAction extends StatelessWidget {
   });
 
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final IconData icon;
 
   @override
@@ -5307,8 +5658,11 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
 
   @override
   Widget build(BuildContext context) {
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     final hasSources = stagedSources > 0;
-    final hasManifest = preparedManifests > 0;
+    final hasManifest = preparedManifests > 0 || runtime.hasImportedFile;
+    final hasRealImport = runtime.hasImportedFile;
     final steps = _zh
         ? ['选择来源', '解析器', 'OCR', '分块', '执行', '校验']
         : ['Source', 'Parser', 'OCR', 'Chunking', 'Run', 'Validate'];
@@ -5328,6 +5682,8 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
             icon: Icons.shield_outlined,
           ),
         ),
+        const SizedBox(height: _DesktopGrid.gutter),
+        _Rc6RuntimeStatusPanel(zh: _zh),
         const SizedBox(height: _DesktopGrid.gutter),
         _MetricStrip(
           items: [
@@ -5358,18 +5714,18 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
         const SizedBox(height: _DesktopGrid.gutter),
         if (hasSources || hasManifest) ...[
           _RuntimeFeedbackBanner(
-            title: hasManifest
-                ? (_zh ? '导入清单预览已更新' : 'Import manifest preview updated')
-                : (_zh ? '示例来源已暂存' : 'Sample source staged'),
-            detail: hasManifest
-                ? (_zh
-                    ? '当前仅生成 UI 预览状态，未写出真实 source_manifest.json；真实文件选择器保持 disabled_boundary。'
-                    : 'This updates UI preview state only and does not write source_manifest.json; the real file picker remains disabled_boundary.')
+            title: hasRealImport
+                ? (_zh ? '真实导入清单已生成' : 'Real import manifest created')
+                : hasManifest
+                    ? (_zh ? '导入清单预览已更新' : 'Import manifest preview updated')
+                    : (_zh ? '示例来源已暂存' : 'Sample source staged'),
+            detail: hasRealImport
+                ? runtime.sourceManifestPath
                 : (_zh
-                    ? '点击有明确反馈；该入口是 display_only 示例，不冒充真实文件导入。'
-                    : 'The click has visible feedback; this is a display_only sample and is not treated as real file import.'),
-            tone: hasManifest ? _StatusTone.warning : _StatusTone.neutral,
-            icon: hasManifest ? Icons.description_outlined : Icons.info_outline,
+                    ? '请选择真实文件以生成 source_manifest.json；预览状态不作为验收。'
+                    : 'Choose a real file to write source_manifest.json; preview state is not accepted.'),
+            tone: hasRealImport ? _StatusTone.success : _StatusTone.warning,
+            icon: hasRealImport ? Icons.verified_outlined : Icons.info_outline,
           ),
           const SizedBox(height: _DesktopGrid.gutter),
         ],
@@ -5394,8 +5750,8 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                         [
                           '文件',
                           'PDF/DOCX/PPTX/XLSX/MD/TXT/CSV',
-                          'display_only',
-                          '真实文件选择器 disabled_boundary'
+                          rc6 == null ? 'disabled_boundary' : 'enabled_real',
+                          rc6 == null ? '需要桌面 EXE' : '真实文件选择器'
                         ],
                         ['文件夹', '批量来源清单', 'display_only', '预览队列'],
                         [
@@ -5409,8 +5765,8 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                         [
                           'Files',
                           'PDF/DOCX/PPTX/XLSX/MD/TXT/CSV',
-                          'display_only',
-                          'Real picker is disabled_boundary'
+                          rc6 == null ? 'disabled_boundary' : 'enabled_real',
+                          rc6 == null ? 'Desktop EXE required' : 'Real picker'
                         ],
                         [
                           'Folder',
@@ -5429,31 +5785,28 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
               const SizedBox(height: _DesktopGrid.gutter),
               _EqualActionRow(children: [
                 _PrimaryProductAction(
-                  label: _zh ? '加入本地示例来源' : 'Stage local sample source',
-                  icon: Icons.add_to_drive_outlined,
-                  onPressed: () => setState(() => stagedSources++),
+                  label: _zh ? '选择真实文件导入' : 'Choose real file to import',
+                  icon: Icons.folder_open_outlined,
+                  onPressed: runtime.running || rc6 == null
+                      ? null
+                      : () => rc6.pickAndImportFile(),
                 ),
                 _DisplayAction(
-                  label: _zh ? '加入网页链接示例' : 'Stage web-link sample',
-                  icon: Icons.link_outlined,
-                  onPressed: () => setState(() => stagedSources++),
-                ),
-                _DisabledAction(
-                  label: _zh ? '打开真实文件选择器' : 'Open real file picker',
-                  reason:
-                      _zh ? '需要桌面端真实路径能力。' : 'Requires a real desktop path.',
-                  icon: Icons.folder_open_outlined,
+                  label: _zh ? '运行 rc6 示例链路' : 'Run rc6 sample chain',
+                  icon: Icons.play_circle_outline,
+                  onPressed: runtime.running || rc6 == null
+                      ? null
+                      : () => rc6.runMinimumE2E(),
                 ),
               ]),
               const SizedBox(height: _DesktopGrid.gutter),
               _MiniProgressBar(value: hasManifest ? 0.68 : 0.12),
               const SizedBox(height: 8),
               _PrimaryProductAction(
-                label: _zh ? '生成导入清单预览' : 'Prepare import manifest preview',
-                onPressed: () => setState(() {
-                  if (stagedSources == 0) stagedSources = 1;
-                  preparedManifests++;
-                }),
+                label: _zh ? '重跑真实导入预检' : 'Rerun real import preflight',
+                onPressed: runtime.running || rc6 == null
+                    ? null
+                    : () => rc6.runMinimumE2E(),
                 icon: Icons.add_to_drive_outlined,
               ),
             ],
@@ -5478,10 +5831,10 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                 rows: _zh
                     ? [
                         [
-                          hasSources ? '产品手册 v2.3.pdf' : '等待本地文件',
+                          hasRealImport ? runtime.selectedFilePath : '等待本地文件',
                           '文件',
                           hasManifest ? '100%' : '0%',
-                          hasSources ? '已暂存' : '待输入',
+                          hasRealImport ? '已导入' : '待输入',
                           hasManifest ? '无需恢复' : '待生成清单',
                           'source_manifest.json'
                         ],
@@ -5504,12 +5857,12 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                       ]
                     : [
                         [
-                          hasSources
-                              ? 'product-manual-v2.3.pdf'
+                          hasRealImport
+                              ? runtime.selectedFilePath
                               : 'Waiting for local files',
                           'File',
                           hasManifest ? '100%' : '0%',
-                          hasSources ? 'Staged' : 'Pending',
+                          hasRealImport ? 'Imported' : 'Pending',
                           hasManifest ? 'No recovery' : 'Prepare manifest',
                           'source_manifest.json'
                         ],
@@ -5588,12 +5941,12 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                     ? [
                         [
                           'source_manifest.json',
-                          hasManifest ? '已准备' : '等待',
+                          hasRealImport ? '已生成' : '等待',
                           '来源清单'
                         ],
                         [
                           'parse_report.json',
-                          hasManifest ? '解析中' : '等待',
+                          runtime.parseReportPath.isNotEmpty ? '已生成' : '等待',
                           '解析报告'
                         ],
                         [
@@ -5606,12 +5959,14 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                     : [
                         [
                           'source_manifest.json',
-                          hasManifest ? 'Ready' : 'Waiting',
+                          hasRealImport ? 'Written' : 'Waiting',
                           'Source inventory'
                         ],
                         [
                           'parse_report.json',
-                          hasManifest ? 'Parsing' : 'Waiting',
+                          runtime.parseReportPath.isNotEmpty
+                              ? 'Written'
+                              : 'Waiting',
                           'Parsing report'
                         ],
                         [
@@ -5815,6 +6170,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
 
   @override
   Widget build(BuildContext context) {
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 1040;
       final extraWide = constraints.maxWidth >= 1180;
@@ -5841,10 +6198,10 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                     ? [
                         [
                           '行业分析报告',
-                          '企业知识库',
+                          runtime.hasKnowledgeBase ? 'rc6 真实知识库' : '等待知识库',
                           '报告模板',
                           'P1',
-                          draftQueued ? '预览已排队' : '待选择',
+                          runtime.hasMarkdown ? '已生成 Markdown' : '待选择',
                         ],
                         [
                           '产品手册更新',
@@ -5858,10 +6215,14 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                     : [
                         [
                           'Industry analysis report',
-                          'Enterprise KB',
+                          runtime.hasKnowledgeBase
+                              ? 'rc6 real KB'
+                              : 'Waiting KB',
                           'Report template',
                           'P1',
-                          draftQueued ? 'Preview queued' : 'Pending selection',
+                          runtime.hasMarkdown
+                              ? 'Markdown generated'
+                              : 'Pending selection',
                         ],
                         [
                           'Product manual update',
@@ -5887,12 +6248,17 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                 onPressed: () => setState(() => draftQueued = true),
               ),
               _DisplayAction(
-                label: zh ? '生成文档预览' : 'Prepare document preview',
+                label: zh ? '生成真实 Markdown' : 'Generate real Markdown',
                 icon: Icons.preview_outlined,
-                onPressed: () => setState(() {
-                  draftQueued = true;
-                  previewReady = true;
-                }),
+                onPressed: runtime.running || rc6 == null
+                    ? null
+                    : () {
+                        setState(() {
+                          draftQueued = true;
+                          previewReady = true;
+                        });
+                        rc6.generateMarkdown();
+                      },
               ),
             ]),
           ),
@@ -5904,7 +6270,15 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
         title: zh ? '中央文档预览' : 'Central Document Preview',
         minHeight: 366,
         children: [
-          _DocumentPreviewPanel(zh: zh, ready: previewReady),
+          _DocumentPreviewPanel(
+              zh: zh, ready: previewReady || runtime.hasMarkdown),
+          if (runtime.generatedMarkdownPath.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _FieldRow(
+              label: zh ? '真实 Markdown 路径' : 'Real Markdown path',
+              value: runtime.generatedMarkdownPath,
+            ),
+          ],
         ],
       );
       final config = _FillProductPanel(
@@ -5916,13 +6290,21 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
             columns: zh ? ['配置', '值', '分类'] : ['Setting', 'Value', 'Class'],
             rows: zh
                 ? [
-                    ['输出格式', 'Markdown / DOCX / PDF / PPTX', 'display_only'],
+                    [
+                      '输出格式',
+                      'Markdown',
+                      runtime.hasMarkdown ? 'enabled_real' : 'waiting_for_input'
+                    ],
                     ['证据引用', '包含引用与页码', 'display_only'],
                     ['排序', '优先级 + 更新时间', 'display_only'],
                     ['暂停 / 重试 / 取消', '队列操作', 'display_only'],
                   ]
                 : [
-                    ['Output', 'Markdown / DOCX / PDF / PPTX', 'display_only'],
+                    [
+                      'Output',
+                      'Markdown',
+                      runtime.hasMarkdown ? 'enabled_real' : 'waiting_for_input'
+                    ],
                     [
                       'Citations',
                       'References and pages included',
@@ -5982,7 +6364,9 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
             _MetricDatum(
                 label: 'Markdown',
                 value: '可用',
-                detail: zh ? '结构导出' : 'structured',
+                detail: runtime.hasMarkdown
+                    ? (zh ? '真实文件' : 'real file')
+                    : (zh ? '待生成' : 'pending'),
                 icon: Icons.notes_outlined),
             _MetricDatum(
                 label: 'DOCX',
@@ -6352,6 +6736,8 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
 
   @override
   Widget build(BuildContext context) {
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 900;
       final list = _FillProductPanel(
@@ -6398,13 +6784,17 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                       rows: zh
                           ? [
                               [
-                                packageDraftBuilt ? 'HeiTang 产品手册' : '等待构建的知识库',
-                                'v2.3.0',
-                                '文档库 / 本地文件',
-                                packageDraftBuilt ? '18,742' : '0',
-                                qualityReportPrepared ? '92.4' : '等待评分',
-                                packageDraftBuilt ? '已发布' : '草稿',
-                                qualityReportPrepared ? '通过' : '待验证'
+                                runtime.hasKnowledgeBase
+                                    ? 'rc6 真实知识库'
+                                    : '等待构建的知识库',
+                                runtime.hasKnowledgeBase ? 'rc6' : 'draft',
+                                runtime.hasImportedFile ? '文档库 / 本地文件' : '等待导入',
+                                runtime.chunkCount.toString(),
+                                runtime.qualityReportPath.isNotEmpty
+                                    ? '已生成'
+                                    : '等待评分',
+                                runtime.hasKnowledgeBase ? '本地可用' : '草稿',
+                                runtime.hasKnowledgeBase ? '通过' : '待验证'
                               ],
                               [
                                 '企业制度知识库',
@@ -6427,17 +6817,21 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                             ]
                           : [
                               [
-                                packageDraftBuilt
-                                    ? 'HeiTang product manual'
+                                runtime.hasKnowledgeBase
+                                    ? 'rc6 real knowledge base'
                                     : 'Base waiting for build',
-                                'v2.3.0',
-                                'Library / local files',
-                                packageDraftBuilt ? '18,742' : '0',
-                                qualityReportPrepared
-                                    ? '82 / 100'
+                                runtime.hasKnowledgeBase ? 'rc6' : 'draft',
+                                runtime.hasImportedFile
+                                    ? 'Library / local files'
+                                    : 'Waiting import',
+                                runtime.chunkCount.toString(),
+                                runtime.qualityReportPath.isNotEmpty
+                                    ? 'Generated'
                                     : 'Waiting score',
-                                packageDraftBuilt ? 'Published' : 'Draft',
-                                qualityReportPrepared ? 'Passed' : 'Pending'
+                                runtime.hasKnowledgeBase
+                                    ? 'Local ready'
+                                    : 'Draft',
+                                runtime.hasKnowledgeBase ? 'Passed' : 'Pending'
                               ],
                               [
                                 'Enterprise policy base',
@@ -6469,12 +6863,12 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
               items: [
                 _MetricDatum(
                     label: zh ? '来源文档' : 'Sources',
-                    value: packageDraftBuilt ? '3' : '0',
+                    value: runtime.sourceCount.toString(),
                     detail: zh ? '已登记' : 'registered',
                     icon: Icons.article_outlined),
                 _MetricDatum(
                     label: 'chunks',
-                    value: packageDraftBuilt ? '67,835' : '0',
+                    value: runtime.chunkCount.toString(),
                     detail: zh ? '本地索引' : 'local index',
                     icon: Icons.segment_outlined),
                 _MetricDatum(
@@ -6499,12 +6893,15 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                 items: [
                   _MetricDatum(
                       label: zh ? '质量分' : 'Quality',
-                      value: qualityReportPrepared ? '92.4' : '-',
+                      value:
+                          runtime.qualityReportPath.isNotEmpty ? 'ready' : '-',
                       detail: '/100',
                       icon: Icons.verified_outlined),
                   _MetricDatum(
                       label: zh ? '版本' : 'Version',
-                      value: packageDraftBuilt ? 'v2.3' : (zh ? '草稿' : 'Draft'),
+                      value: runtime.hasKnowledgeBase
+                          ? 'rc6'
+                          : (zh ? '草稿' : 'Draft'),
                       detail: zh ? '可追踪' : 'traceable',
                       icon: Icons.history_outlined),
                 ],
@@ -6515,11 +6912,12 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                 children: [
                   _FieldRow(
                       label: zh ? '版本状态' : 'Version state',
-                      value: packageDraftBuilt ? 'draft-preview' : 'draft'),
+                      value:
+                          runtime.hasKnowledgeBase ? 'enabled_real' : 'draft'),
                   _FieldRow(
                       label: zh ? '质量门禁' : 'Quality gate',
-                      value: qualityReportPrepared
-                          ? (zh ? '预览报告已生成' : 'Preview report prepared')
+                      value: runtime.qualityReportPath.isNotEmpty
+                          ? runtime.qualityReportPath
                           : (zh ? '等待真实结果' : 'Waiting for real result')),
                 ],
               ),
@@ -6554,53 +6952,67 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                     ? [
                         [
                           'source sync',
-                          packageDraftBuilt ? '完成' : '等待',
-                          'source_manifest'
+                          runtime.sourceManifestPath.isNotEmpty ? '完成' : '等待',
+                          runtime.sourceManifestPath.isEmpty
+                              ? 'source_manifest'
+                              : runtime.sourceManifestPath
                         ],
                         [
                           'chunk build',
-                          packageDraftBuilt ? '完成' : '等待',
-                          'parse_report'
+                          runtime.chunksPath.isNotEmpty ? '完成' : '等待',
+                          runtime.chunksPath.isEmpty
+                              ? 'chunks.jsonl'
+                              : runtime.chunksPath
                         ],
                         [
                           'quality gate',
-                          qualityReportPrepared ? '通过' : '等待',
-                          'quality_report'
+                          runtime.qualityReportPath.isNotEmpty ? '通过' : '等待',
+                          runtime.qualityReportPath.isEmpty
+                              ? 'quality_report'
+                              : runtime.qualityReportPath
                         ],
                       ]
                     : [
                         [
                           'source sync',
-                          packageDraftBuilt ? 'Done' : 'Waiting',
-                          'source_manifest'
+                          runtime.sourceManifestPath.isNotEmpty
+                              ? 'Done'
+                              : 'Waiting',
+                          runtime.sourceManifestPath.isEmpty
+                              ? 'source_manifest'
+                              : runtime.sourceManifestPath
                         ],
                         [
                           'chunk build',
-                          packageDraftBuilt ? 'Done' : 'Waiting',
-                          'parse_report'
+                          runtime.chunksPath.isNotEmpty ? 'Done' : 'Waiting',
+                          runtime.chunksPath.isEmpty
+                              ? 'chunks.jsonl'
+                              : runtime.chunksPath
                         ],
                         [
                           'quality gate',
-                          qualityReportPrepared ? 'Passed' : 'Waiting',
-                          'quality_report'
+                          runtime.qualityReportPath.isNotEmpty
+                              ? 'Passed'
+                              : 'Waiting',
+                          runtime.qualityReportPath.isEmpty
+                              ? 'quality_report'
+                              : runtime.qualityReportPath
                         ],
                       ],
               ),
               const SizedBox(height: 8),
               _EqualActionRow(children: [
                 _PrimaryProductAction(
-                  label:
-                      zh ? '构建知识库草稿预览' : 'Build Knowledge Base draft preview',
+                  label: zh ? '构建真实知识库' : 'Build real Knowledge Base',
                   icon: Icons.build_outlined,
-                  onPressed: () => setState(() => packageDraftBuilt = true),
+                  onPressed: runtime.running || rc6 == null
+                      ? null
+                      : () => rc6.buildKnowledgeBase(),
                 ),
                 _DisplayAction(
-                  label: zh ? '生成质量报告预览' : 'Prepare quality report preview',
+                  label: zh ? '查看质量产物路径' : 'Inspect quality artifact path',
                   icon: Icons.rule_outlined,
-                  onPressed: () => setState(() {
-                    packageDraftBuilt = true;
-                    qualityReportPrepared = true;
-                  }),
+                  onPressed: () => setState(() => qualityReportPrepared = true),
                 ),
               ]),
             ],
@@ -6871,8 +7283,13 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
 
   @override
   Widget build(BuildContext context) {
+    final runtime =
+        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
+    final hasRealDocument = runtime.hasImportedFile;
+    final parsed = runtime.parseReportPath.isNotEmpty;
+    final chunkCount = runtime.chunkCount;
     return LayoutBuilder(builder: (context, constraints) {
-      final wide = constraints.maxWidth >= _DesktopGrid.rowBreakpoint;
+      final wide = constraints.maxWidth >= 1500;
       final docs = _FillProductPanel(
         keyName: 'document-library',
         icon: Icons.article_outlined,
@@ -6893,6 +7310,22 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                     icon: Icons.filter_alt_outlined),
               ]),
               const SizedBox(height: _DesktopGrid.gutter),
+              _RuntimeFeedbackBanner(
+                title: hasRealDocument
+                    ? (zh ? '真实文档已进入文档库' : 'Real document is in library')
+                    : (zh ? '等待导入真实文档' : 'Waiting for real document import'),
+                detail: hasRealDocument
+                    ? runtime.sourceManifestPath
+                    : (zh
+                        ? '请从导入与解析页选择真实文件；示例行保持 display_only 或 disabled_boundary。'
+                        : 'Choose a real file from Import & Parsing; sample rows remain display_only or disabled_boundary.'),
+                tone:
+                    hasRealDocument ? _StatusTone.success : _StatusTone.warning,
+                icon: hasRealDocument
+                    ? Icons.verified_outlined
+                    : Icons.upload_file_outlined,
+              ),
+              const SizedBox(height: _DesktopGrid.gutter),
               Expanded(
                 child: _BoundedScrollRegion(
                   child: _LocalScrollBox(
@@ -6910,72 +7343,78 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                       rows: zh
                           ? [
                               [
-                                indexed ? '产品手册 v2.3.pdf' : '等待导入文档',
-                                '产品',
+                                hasRealDocument
+                                    ? runtime.selectedFilePath
+                                    : '等待导入真实文档',
+                                'rc6',
                                 '本地文件',
-                                indexed ? '已解析' : '未开始',
-                                'v2.3',
-                                indexed ? '18' : '0'
+                                parsed ? '已解析' : '等待解析',
+                                'persisted',
+                                chunkCount.toString()
                               ],
                               [
                                 '合同评审样例.docx',
                                 '合规',
                                 '本地文件',
-                                indexed ? '可查看' : '待生成',
+                                'display_only',
                                 'v1.4',
-                                indexed ? '9' : '0'
+                                '0'
                               ],
                               [
                                 '公开政策网页',
                                 '网页链接',
                                 'URL 来源',
-                                indexed ? '来源已登记' : '待登记',
-                                'snapshot',
-                                indexed ? '3' : '0'
+                                'disabled_boundary',
+                                'network opt-in',
+                                '0'
                               ],
                               [
                                 '知识库验证报告草稿.md',
                                 '报告',
                                 '生成产物',
-                                indexed ? '可预览' : '待生成',
+                                runtime.hasMarkdown
+                                    ? '真实产物'
+                                    : 'waiting_for_input',
                                 'draft',
-                                indexed ? '12' : '0'
+                                runtime.hasMarkdown ? '1' : '0'
                               ],
                             ]
                           : [
                               [
-                                indexed
-                                    ? 'product-manual-v2.3.pdf'
-                                    : 'Waiting for documents',
-                                'Product',
+                                hasRealDocument
+                                    ? runtime.selectedFilePath
+                                    : 'Waiting for real document',
+                                'rc6',
                                 'Local file',
-                                indexed ? 'Parsed' : 'Not started',
-                                'v2.3',
-                                indexed ? '18' : '0'
+                                parsed ? 'Parsed' : 'Waiting parse',
+                                'persisted',
+                                chunkCount.toString()
                               ],
                               [
                                 'contract-review-sample.docx',
                                 'Compliance',
                                 'Local file',
-                                indexed ? 'Viewable' : 'Pending generation',
+                                'display_only',
                                 'v1.4',
-                                indexed ? '9' : '0'
+                                '0'
                               ],
                               [
                                 'Public policy page',
                                 'Web link',
                                 'URL source',
-                                indexed ? 'Source recorded' : 'Pending',
-                                'snapshot',
-                                indexed ? '3' : '0'
+                                'disabled_boundary',
+                                'network opt-in',
+                                '0'
                               ],
                               [
                                 'kb-validation-draft.md',
                                 'Report',
                                 'Generated artifact',
-                                indexed ? 'Previewable' : 'Pending',
+                                runtime.hasMarkdown
+                                    ? 'Real artifact'
+                                    : 'waiting_for_input',
                                 'draft',
-                                indexed ? '12' : '0'
+                                runtime.hasMarkdown ? '1' : '0'
                               ],
                             ],
                     ),
@@ -7003,13 +7442,15 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                 items: [
                   _MetricDatum(
                       label: zh ? '页数' : 'Pages',
-                      value: indexed ? '32' : '-',
-                      detail: zh ? '可预览' : 'preview',
+                      value: hasRealDocument ? '1' : '-',
+                      detail: zh ? '真实来源' : 'real source',
                       icon: Icons.menu_book_outlined),
                   _MetricDatum(
                       label: 'chunks',
-                      value: indexed ? '18' : '0',
-                      detail: zh ? '已切分' : 'split',
+                      value: chunkCount.toString(),
+                      detail: parsed
+                          ? (zh ? '已切分' : 'split')
+                          : (zh ? '等待' : 'waiting'),
                       icon: Icons.segment_outlined),
                 ],
               ),
@@ -7022,17 +7463,17 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                       children: [
                         _FieldRow(
                             label: zh ? '元数据' : 'Metadata',
-                            value: indexed
+                            value: hasRealDocument
                                 ? (zh
-                                    ? '来源、类型、页数、时间戳可查看'
-                                    : 'Source, type, pages, and timestamp visible')
+                                    ? runtime.sourceManifestPath
+                                    : runtime.sourceManifestPath)
                                 : (zh ? '等待真实文件' : 'Waiting for real file')),
                         _FieldRow(
                             label: zh ? '解析摘要' : 'Parse summary',
-                            value: indexed
+                            value: parsed
                                 ? (zh
-                                    ? '18 个 chunks，0 个阻塞项，2 个待确认项'
-                                    : '18 chunks, 0 blockers, 2 review items')
+                                    ? '$chunkCount 个 chunks，解析报告已生成'
+                                    : '$chunkCount chunks, parse report generated')
                                 : (zh ? '尚无解析结果' : 'No parse result yet')),
                         _FieldRow(
                             label: zh ? '下游使用' : 'Downstream use',
@@ -7121,11 +7562,11 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
       );
       if (!wide) {
         return Column(children: [
-          docs,
+          SizedBox(height: 620, child: docs),
           const SizedBox(height: _DesktopGrid.gutter),
-          preview,
+          SizedBox(height: 500, child: preview),
           const SizedBox(height: _DesktopGrid.gutter),
-          detail
+          SizedBox(height: 460, child: detail)
         ]);
       }
       return _EqualHeightRow(
@@ -7173,21 +7614,42 @@ class _RetrievalVerificationView extends StatefulWidget {
 class _RetrievalVerificationViewState
     extends State<_RetrievalVerificationView> {
   bool retrievalPrepared = false;
+  final TextEditingController _queryController =
+      TextEditingController(text: 'heitang-rc6-needle');
 
   bool get zh => widget.zh;
 
   @override
+  void dispose() {
+    _queryController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
+    final realResults = runtime.searchResults;
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 900;
       final extraWide = constraints.maxWidth >= 1180;
-      final feedback = retrievalPrepared
+      final feedback = runtime.searchStatus != Rc6SearchStatus.idle
           ? _RuntimeFeedbackBanner(
-              title: zh ? '检索验证预览已运行' : 'Retrieval verification preview ran',
-              detail: zh
-                  ? '当前反馈来自本地 UI 证据预览；外部事实验证仍需网络 opt-in，不在本页静默执行。'
-                  : 'This feedback comes from the local UI evidence preview; external fact checking still requires network opt-in and is not run silently.',
-              tone: _StatusTone.warning,
+              title: runtime.searchStatus == Rc6SearchStatus.success
+                  ? (zh ? '真实检索已返回结果' : 'Real retrieval returned results')
+                  : runtime.searchStatus == Rc6SearchStatus.empty
+                      ? (zh ? '真实检索无结果' : 'Real retrieval returned no results')
+                      : runtime.searchStatus == Rc6SearchStatus.error
+                          ? (zh ? '检索失败' : 'Search failed')
+                          : (zh ? '检索中' : 'Searching'),
+              detail: runtime.queryResultPath.isEmpty
+                  ? runtime.lastMessage
+                  : runtime.queryResultPath,
+              tone: runtime.searchStatus == Rc6SearchStatus.success
+                  ? _StatusTone.success
+                  : runtime.searchStatus == Rc6SearchStatus.error
+                      ? _StatusTone.danger
+                      : _StatusTone.warning,
               icon: Icons.manage_search_outlined,
             )
           : null;
@@ -7202,78 +7664,59 @@ class _RetrievalVerificationViewState
         children: [
           _FieldRow(
               label: zh ? '查询' : 'Query',
-              value: retrievalPrepared
-                  ? (zh
-                      ? '示例问题：资料中的关键决策是什么？'
-                      : 'Sample query: what decisions are in the material?')
+              value: runtime.searchQuery.isNotEmpty
+                  ? runtime.searchQuery
                   : (zh ? '等待输入' : 'Waiting for input')),
+          const SizedBox(height: 8),
+          TextField(
+            key: const Key('retrieval-real-query-input'),
+            controller: _queryController,
+            enabled: !runtime.running,
+            onSubmitted: (value) => rc6?.search(value),
+            decoration: InputDecoration(
+              labelText: zh ? '真实搜索关键词' : 'Real search keyword',
+              border: const OutlineInputBorder(),
+              isDense: true,
+            ),
+          ),
           const SizedBox(height: 8),
           _WorkflowSteps(
             steps: zh
                 ? ['查询改写', '检索规划', '混合检索', '重排', '证据验证']
                 : ['Rewrite', 'Planning', 'Hybrid', 'Rerank', 'Verify'],
-            activeIndex: retrievalPrepared ? 4 : 2,
+            activeIndex:
+                runtime.searchStatus == Rc6SearchStatus.success ? 4 : 2,
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _ProductTable(
             columns: zh
                 ? ['证据', '来源', '评分', '选择', '验证']
                 : ['Evidence', 'Source', 'Score', 'Selected', 'Validation'],
-            rows: zh
+            rows: realResults.isEmpty
                 ? [
                     [
-                      retrievalPrepared ? '新能源汽车补贴政策通知' : '等待检索结果',
-                      '政策文件',
-                      retrievalPrepared ? '0.88' : '-',
-                      retrievalPrepared ? '已选' : '未搜索',
-                      retrievalPrepared ? '本地证据' : '未验证'
-                    ],
-                    [
-                      retrievalPrepared ? '地方消费实施方案' : '证据选择',
-                      '地方政策',
-                      retrievalPrepared ? '0.76' : '-',
-                      retrievalPrepared ? '待确认' : '未验证',
-                      retrievalPrepared ? '需人工复核' : '未验证'
-                    ],
-                    [
-                      retrievalPrepared ? '产业发展报告' : '重排候选',
-                      '报告',
-                      retrievalPrepared ? '0.62' : '-',
-                      retrievalPrepared ? '未选' : '未验证',
-                      retrievalPrepared ? '覆盖不足' : '未验证'
-                    ],
+                      zh ? '等待真实检索结果' : 'Waiting for real result',
+                      runtime.hasKnowledgeBase
+                          ? (zh ? '本地知识库' : 'Local KB')
+                          : (zh ? '未构建' : 'Not built'),
+                      '-',
+                      runtime.searchStatus == Rc6SearchStatus.empty
+                          ? (zh ? '无结果' : 'Empty')
+                          : (zh ? '未搜索' : 'Not searched'),
+                      runtime.lastError.isEmpty ? '-' : runtime.lastError,
+                    ]
                   ]
-                : [
-                    [
-                      retrievalPrepared
-                          ? 'New energy subsidy policy notice'
-                          : 'Waiting for retrieval result',
-                      'Policy file',
-                      retrievalPrepared ? '0.88' : '-',
-                      retrievalPrepared ? 'Selected' : 'Not searched',
-                      retrievalPrepared ? 'Local evidence' : 'Not validated'
-                    ],
-                    [
-                      retrievalPrepared
-                          ? 'Local consumption plan'
-                          : 'Evidence selection',
-                      'Local policy',
-                      retrievalPrepared ? '0.76' : '-',
-                      retrievalPrepared
-                          ? 'Needs human confirmation'
-                          : 'Not validated',
-                      retrievalPrepared ? 'Review required' : 'Not validated'
-                    ],
-                    [
-                      retrievalPrepared
-                          ? 'Industry report'
-                          : 'Rerank candidate',
-                      'Report',
-                      retrievalPrepared ? '0.62' : '-',
-                      retrievalPrepared ? 'Not selected' : 'Not validated',
-                      retrievalPrepared ? 'Coverage low' : 'Not validated'
-                    ],
-                  ],
+                : realResults
+                    .map((result) => [
+                          result.excerpt.isEmpty
+                              ? result.title
+                              : result.excerpt,
+                          result.citation,
+                          result.score.isEmpty ? '-' : result.score,
+                          zh ? '已选' : 'Selected',
+                          zh ? '本地证据' : 'Local evidence',
+                        ])
+                    .toList(growable: false),
           ),
         ],
       );
@@ -7288,22 +7731,28 @@ class _RetrievalVerificationViewState
             items: [
               _MetricDatum(
                   label: zh ? '准确率' : 'Accuracy',
-                  value: retrievalPrepared ? '92.7%' : '-',
+                  value: runtime.searchStatus == Rc6SearchStatus.success
+                      ? 'local'
+                      : '-',
                   detail: zh ? '本地证据' : 'local',
                   icon: Icons.verified_outlined),
               _MetricDatum(
                   label: zh ? '忠实度' : 'Faithfulness',
-                  value: retrievalPrepared ? '0.93' : '-',
+                  value: runtime.searchStatus == Rc6SearchStatus.success
+                      ? 'cited'
+                      : '-',
                   detail: zh ? '引用一致' : 'cited',
                   icon: Icons.link_outlined),
               _MetricDatum(
                   label: zh ? '覆盖率' : 'Coverage',
-                  value: retrievalPrepared ? '87.4%' : '-',
+                  value: realResults.length.toString(),
                   detail: zh ? '来源覆盖' : 'covered',
                   icon: Icons.pie_chart_outline),
               _MetricDatum(
                   label: zh ? '矛盾项' : 'Contradictions',
-                  value: retrievalPrepared ? '0' : '-',
+                  value: runtime.searchStatus == Rc6SearchStatus.success
+                      ? '0'
+                      : '-',
                   detail: zh ? '本地检查' : 'local',
                   icon: Icons.warning_amber_outlined),
             ],
@@ -7311,8 +7760,13 @@ class _RetrievalVerificationViewState
           const SizedBox(height: _DesktopGrid.gutter),
           _EqualActionRow(children: [
             _PrimaryProductAction(
-              label: zh ? '运行检索验证预览' : 'Run retrieval verification preview',
-              onPressed: () => setState(() => retrievalPrepared = true),
+              label: zh ? '运行真实检索' : 'Run real retrieval',
+              onPressed: runtime.running || rc6 == null
+                  ? null
+                  : () {
+                      setState(() => retrievalPrepared = true);
+                      rc6.search(_queryController.text);
+                    },
               icon: Icons.play_arrow_outlined,
             ),
             _DisabledAction(
@@ -7413,15 +7867,27 @@ class _RetrievalVerificationViewState
   }
 }
 
-class _RetrievalVerificationProductWorkflow extends StatelessWidget {
+class _RetrievalVerificationProductWorkflow extends StatefulWidget {
   const _RetrievalVerificationProductWorkflow({required this.localeCode});
 
   final String localeCode;
 
-  bool get _zh => localeCode == 'zh-CN';
+  @override
+  State<_RetrievalVerificationProductWorkflow> createState() =>
+      _RetrievalVerificationProductWorkflowState();
+}
+
+class _RetrievalVerificationProductWorkflowState
+    extends State<_RetrievalVerificationProductWorkflow> {
+  int selectedTab = 0;
+
+  bool get _zh => widget.localeCode == 'zh-CN';
 
   @override
   Widget build(BuildContext context) {
+    final tabs = _zh
+        ? ['查询控制台', '证据结果', '外部边界']
+        : ['Query Console', 'Evidence Results', 'External Boundary'];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.manage_search_outlined,
@@ -7431,8 +7897,117 @@ class _RetrievalVerificationProductWorkflow extends StatelessWidget {
             : 'Query rewriting, retrieval planning, evidence selection, rerank, local-evidence verification, and authorized external comparison.',
       ),
       const SizedBox(height: _DesktopGrid.gutter),
-      _RetrievalVerificationView(zh: _zh),
+      _PageTabs(
+        tabs: tabs,
+        selectedIndex: selectedTab,
+        onSelected: (index) => setState(() => selectedTab = index),
+      ),
+      const SizedBox(height: _DesktopGrid.gutter),
+      if (selectedTab == 1)
+        _RetrievalEvidenceResultsView(zh: _zh)
+      else if (selectedTab == 2)
+        _RetrievalExternalBoundaryView(zh: _zh)
+      else
+        _RetrievalVerificationView(zh: _zh),
     ]);
+  }
+}
+
+class _RetrievalEvidenceResultsView extends StatelessWidget {
+  const _RetrievalEvidenceResultsView({required this.zh});
+
+  final bool zh;
+
+  @override
+  Widget build(BuildContext context) {
+    final runtime =
+        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
+    final rows = runtime.searchResults.isEmpty
+        ? [
+            [
+              zh ? '等待真实搜索' : 'Waiting for real search',
+              runtime.hasKnowledgeBase
+                  ? (zh ? '本地知识库可用' : 'Local KB ready')
+                  : (zh ? '请先构建知识库' : 'Build KB first'),
+              runtime.searchStatus == Rc6SearchStatus.empty
+                  ? (zh ? '无结果' : 'No result')
+                  : runtime.searchStatus.name,
+              runtime.queryResultPath.isEmpty ? '-' : runtime.queryResultPath,
+            ]
+          ]
+        : runtime.searchResults
+            .map((result) => [
+                  result.title,
+                  result.excerpt,
+                  result.score.isEmpty ? '-' : result.score,
+                  result.citation,
+                ])
+            .toList(growable: false);
+    return _ProductPanel(
+      keyName: 'retrieval-evidence-results',
+      icon: Icons.fact_check_outlined,
+      title: zh ? '真实证据结果' : 'Real Evidence Results',
+      subtitle: runtime.queryResultPath.isEmpty ? '-' : runtime.queryResultPath,
+      children: [
+        _ProductTable(
+          columns: zh
+              ? ['结果', '摘录', '评分', '引用']
+              : ['Result', 'Excerpt', 'Score', 'Citation'],
+          rows: rows,
+        ),
+        const SizedBox(height: _DesktopGrid.gutter),
+        _FieldRow(
+          label: zh ? '搜索状态' : 'Search status',
+          value: runtime.searchStatus.name,
+        ),
+      ],
+    );
+  }
+}
+
+class _RetrievalExternalBoundaryView extends StatelessWidget {
+  const _RetrievalExternalBoundaryView({required this.zh});
+
+  final bool zh;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProductPanel(
+      keyName: 'retrieval-external-boundary',
+      icon: Icons.public_off_outlined,
+      title: zh ? '外部验证边界' : 'External Verification Boundary',
+      gap: true,
+      children: [
+        _ProductTable(
+          columns: zh ? ['能力', '分类', '说明'] : ['Capability', 'Class', 'Note'],
+          rows: zh
+              ? [
+                  ['本地检索', 'enabled_real', '来自 rc6 本地知识库'],
+                  [
+                    '外部事实验证',
+                    'disabled_boundary',
+                    '需要显式网络 opt-in 和 Tool Adapter'
+                  ],
+                  ['未授权联网 Provider', 'disabled_boundary', '不得冒充真实搜索'],
+                  ['Computer Use', 'disabled_boundary', '本轮不启用'],
+                ]
+              : [
+                  ['Local retrieval', 'enabled_real', 'From rc6 local KB'],
+                  [
+                    'External fact checking',
+                    'disabled_boundary',
+                    'Requires explicit network opt-in and Tool Adapter'
+                  ],
+                  [
+                    'Unauthorized network provider',
+                    'disabled_boundary',
+                    'Must not masquerade as real search'
+                  ],
+                  ['Computer Use', 'disabled_boundary', 'Not enabled here'],
+                ],
+        ),
+      ],
+    );
   }
 }
 
@@ -7455,11 +8030,17 @@ class _SkillBuilderProductWorkflowState
   bool configReady = false;
   bool outputPreviewReady = false;
   bool validationReady = false;
+  int selectedTab = 0;
 
   bool get _zh => widget.localeCode == 'zh-CN';
 
   @override
   Widget build(BuildContext context) {
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
+    final tabs = _zh
+        ? ['来源配置', '包结构', '治理报告']
+        : ['Source Config', 'Package Structure', 'Governance Report'];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.extension_outlined,
@@ -7467,6 +8048,12 @@ class _SkillBuilderProductWorkflowState
         description: _zh
             ? '选择知识库，配置生成方式和元数据，验证后生成 Skill 草稿，用于 Agent Creation Package 映射/预览/导出。'
             : 'Select a Knowledge Base, configure generation and metadata, validate, then use the Skill draft for Agent Creation Package mapping, preview, and export.',
+      ),
+      const SizedBox(height: _DesktopGrid.gutter),
+      _PageTabs(
+        tabs: tabs,
+        selectedIndex: selectedTab,
+        onSelected: (index) => setState(() => selectedTab = index),
       ),
       const SizedBox(height: _DesktopGrid.gutter),
       _MetricStrip(
@@ -7483,8 +8070,9 @@ class _SkillBuilderProductWorkflowState
               icon: Icons.dashboard_customize_outlined),
           _MetricDatum(
               label: _zh ? '治理报告' : 'Governance',
-              value: validationReady ? 'pass' : 'ready',
-              detail: _zh ? '只读证据' : 'read-only',
+              value: runtime.hasSkill ? 'pass' : 'ready',
+              detail:
+                  runtime.hasSkill ? 'enabled_real' : (_zh ? '待生成' : 'pending'),
               icon: Icons.rule_folder_outlined),
         ],
       ),
@@ -7498,17 +8086,18 @@ class _SkillBuilderProductWorkflowState
                       ? 'Skill 包结构预览已刷新'
                       : 'Skill package structure preview refreshed')
                   : (_zh ? 'Skill 配置预览已准备' : 'Skill config preview prepared'),
-          detail: _zh
-              ? '当前页面展示治理/包结构预览；未写出真实 Skill package 文件时相关入口标为 display_only。'
-              : 'This page shows governance/package previews; entries are display_only until a real Skill package file is written.',
-          tone: _StatusTone.warning,
+          detail: runtime.hasSkill
+              ? runtime.skillPath
+              : (_zh
+                  ? '请先构建知识库，再生成真实 Skill package。'
+                  : 'Build a KB first, then generate a real Skill package.'),
+          tone: runtime.hasSkill ? _StatusTone.success : _StatusTone.warning,
           icon: Icons.extension_outlined,
         ),
         const SizedBox(height: _DesktopGrid.gutter),
       ],
       LayoutBuilder(builder: (context, constraints) {
         final wide = constraints.maxWidth >= 920;
-        final extraWide = constraints.maxWidth >= 1180;
         final config = _ProductPanel(
           keyName: 'skill-metadata-source-config',
           icon: Icons.edit_note_outlined,
@@ -7519,8 +8108,16 @@ class _SkillBuilderProductWorkflowState
                   _zh ? ['入口', '来源', '状态'] : ['Entrypoint', 'Source', 'Status'],
               rows: _zh
                   ? [
-                      ['书籍 / 文档转 Skill', '文档库', 'display_only'],
-                      ['知识库转 Skill', '知识库', 'display_only'],
+                      [
+                        '书籍 / 文档转 Skill',
+                        '文档库',
+                        runtime.hasSkill ? 'enabled_real' : 'waiting_for_input'
+                      ],
+                      [
+                        '知识库转 Skill',
+                        '知识库',
+                        runtime.hasSkill ? 'enabled_real' : 'waiting_for_input'
+                      ],
                       ['Skill 模板驱动', 'Skill 模板', 'display_only'],
                       ['组合 / 空白 / 高级定制', '预留入口', 'display_only'],
                     ]
@@ -7528,12 +8125,12 @@ class _SkillBuilderProductWorkflowState
                       [
                         'Book / doc to Skill',
                         'Document Library',
-                        'display_only'
+                        runtime.hasSkill ? 'enabled_real' : 'waiting_for_input'
                       ],
                       [
                         'Knowledge Base to Skill',
                         'Knowledge Base',
-                        'display_only'
+                        runtime.hasSkill ? 'enabled_real' : 'waiting_for_input'
                       ],
                       [
                         'Template-driven Skill',
@@ -7550,9 +8147,9 @@ class _SkillBuilderProductWorkflowState
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? '上游承接物' : 'Upstream input',
-                value: _zh
-                    ? '现有知识库或刚生成的知识库'
-                    : 'Existing or newly built Knowledge Base'),
+                value: runtime.kbManifestPath.isNotEmpty
+                    ? runtime.kbManifestPath
+                    : (_zh ? '等待真实知识库' : 'Waiting for real Knowledge Base')),
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? '配置生成方式' : 'Generation mode',
@@ -7591,10 +8188,10 @@ class _SkillBuilderProductWorkflowState
               zh: _zh,
               rows: _zh
                   ? [
-                      ['contract-reviewer-v1.0.0/', ''],
-                      ['SKILL.md', outputPreviewReady ? '5.2 KB' : '-'],
+                      ['rc6-runtime-truth-skill/', ''],
+                      ['SKILL.md', runtime.hasSkill ? '已生成' : '-'],
                       ['manifests/', ''],
-                      ['skill.yaml', outputPreviewReady ? '2.1 KB' : '-'],
+                      ['skill_manifest.yaml', runtime.hasSkill ? '已生成' : '-'],
                       ['prompts/', ''],
                       [
                         'review_contract.prompt.md',
@@ -7607,10 +8204,13 @@ class _SkillBuilderProductWorkflowState
                       ],
                     ]
                   : [
-                      ['contract-reviewer-v1.0.0/', ''],
-                      ['SKILL.md', outputPreviewReady ? '5.2 KB' : '-'],
+                      ['rc6-runtime-truth-skill/', ''],
+                      ['SKILL.md', runtime.hasSkill ? 'written' : '-'],
                       ['manifests/', ''],
-                      ['skill.yaml', outputPreviewReady ? '2.1 KB' : '-'],
+                      [
+                        'skill_manifest.yaml',
+                        runtime.hasSkill ? 'written' : '-'
+                      ],
                       ['prompts/', ''],
                       [
                         'review_contract.prompt.md',
@@ -7625,12 +8225,17 @@ class _SkillBuilderProductWorkflowState
             ),
             const SizedBox(height: _DesktopGrid.gutter),
             _DisplayAction(
-              label: _zh ? '刷新输出结构预览' : 'Refresh output preview',
+              label: _zh ? '生成真实 Skill 草稿' : 'Generate real Skill draft',
               icon: Icons.folder_zip_outlined,
-              onPressed: () => setState(() {
-                configReady = true;
-                outputPreviewReady = true;
-              }),
+              onPressed: runtime.running || rc6 == null
+                  ? null
+                  : () {
+                      setState(() {
+                        configReady = true;
+                        outputPreviewReady = true;
+                      });
+                      rc6.generateSkill();
+                    },
             ),
           ],
         );
@@ -7643,13 +8248,13 @@ class _SkillBuilderProductWorkflowState
               items: [
                 _MetricDatum(
                     label: _zh ? '覆盖率' : 'Coverage',
-                    value: validationReady ? '91.3%' : '-',
-                    detail: _zh ? '预估' : 'estimated',
+                    value: runtime.hasSkill ? 'real' : '-',
+                    detail: _zh ? '本地产物' : 'local artifact',
                     icon: Icons.pie_chart_outline),
                 _MetricDatum(
                     label: _zh ? '可安装性' : 'Installability',
-                    value: validationReady ? '98.7%' : '-',
-                    detail: _zh ? '预览' : 'preview',
+                    value: runtime.hasSkill ? 'ready' : '-',
+                    detail: _zh ? '已写出' : 'written',
                     icon: Icons.verified_outlined),
               ],
             ),
@@ -7657,13 +8262,15 @@ class _SkillBuilderProductWorkflowState
             _FieldRow(
                 label: _zh ? '覆盖率' : 'Coverage',
                 value: validationReady
-                    ? '86%'
+                    ? (runtime.hasSkill ? 'real package' : '86%')
                     : (_zh ? '等待报告' : 'Waiting for report')),
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? '可安装性' : 'Installability',
                 value: validationReady
-                    ? (_zh ? '通过预览检查' : 'Preview check passed')
+                    ? (runtime.hasSkill
+                        ? runtime.skillPath
+                        : (_zh ? '通过预览检查' : 'Preview check passed'))
                     : (_zh ? '等待报告' : 'Waiting for report')),
             const SizedBox(height: 8),
             _FieldRow(
@@ -7675,11 +8282,16 @@ class _SkillBuilderProductWorkflowState
             _EqualActionRow(children: [
               _PrimaryProductAction(
                 label: _zh ? '生成 Skill 草稿预览' : 'Prepare Skill draft preview',
-                onPressed: () => setState(() {
-                  configReady = true;
-                  outputPreviewReady = true;
-                  validationReady = true;
-                }),
+                onPressed: runtime.running || rc6 == null
+                    ? null
+                    : () {
+                        setState(() {
+                          configReady = true;
+                          outputPreviewReady = true;
+                          validationReady = true;
+                        });
+                        rc6.generateSkill();
+                      },
                 icon: Icons.auto_awesome_outlined,
               ),
               const _DisplayAction(
@@ -7697,32 +8309,11 @@ class _SkillBuilderProductWorkflowState
             validation
           ]);
         }
-        if (extraWide) {
-          return _EqualHeightRow(
-            height: 646,
-            flexes: const [7, 4],
-            children: [
-              _ProductColumn(children: [
-                config,
-                const SizedBox(height: _DesktopGrid.gutter),
-                validation,
-              ]),
-              output,
-            ],
-          );
-        }
-        return _EqualHeightRow(
-          height: 646,
-          flexes: const [6, 5],
-          children: [
-            _ProductColumn(children: [
-              config,
-              const SizedBox(height: _DesktopGrid.gutter),
-              validation
-            ]),
-            output,
-          ],
-        );
+        return switch (selectedTab) {
+          1 => output,
+          2 => validation,
+          _ => config,
+        };
       }),
     ]);
   }
@@ -7762,6 +8353,8 @@ class _AgentProductWorkflow extends StatelessWidget {
         _campaign6List(campaign6AgentRuntimeStatus['advanced_capabilities_6b']);
     final toolAdapter =
         _campaign6Map(campaign6AgentRuntimeStatus['tool_adapter_gate']);
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     final acceptedPhases = phases
         .where((item) => item['runtime_status'] == 'pass')
         .length
@@ -7792,8 +8385,17 @@ class _AgentProductWorkflow extends StatelessWidget {
               value: acceptedPhases,
               detail: toolAdapter['ui_state']?.toString() ?? 'enabled_real',
               icon: Icons.fact_check_outlined),
+          _MetricDatum(
+              label: _zh ? 'Agent 草稿' : 'Agent draft',
+              value: runtime.hasAgent ? 'real' : '0',
+              detail: runtime.hasAgent
+                  ? 'enabled_real'
+                  : (_zh ? '等待真实生成' : 'waiting real generation'),
+              icon: Icons.smart_toy_outlined),
         ],
       ),
+      const SizedBox(height: _DesktopGrid.gutter),
+      _Rc6RuntimeStatusPanel(zh: _zh),
       const SizedBox(height: _DesktopGrid.gutter),
       _PageTabs(
           tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
@@ -8772,16 +9374,16 @@ class _ReportsEvidenceViewState extends State<_ReportsEvidenceView> {
               label: zh ? '摘要' : 'Summary',
               value: reportSelected
                   ? (zh
-                      ? '4 项检查已打开，rc5 等待 Owner 复验'
-                      : '4 checks opened; rc5 is pending Owner retest')
+                      ? '4 项检查已打开，rc6 等待 Owner 复验'
+                      : '4 checks opened; rc6 is pending Owner retest')
                   : (zh ? '等待报告产物' : 'Waiting for report artifact')),
           const SizedBox(height: 8),
           _FieldRow(
               label: zh ? '门禁影响' : 'Gate impact',
               value: reportSelected
                   ? (zh
-                      ? 'rc5 全量能力修复证据待 Owner 复验，不创建 Release'
-                      : 'rc5 full capability repair evidence awaits Owner retest; no Release is created')
+                      ? 'rc6 真实运行链路修复证据待 Owner 复验，不创建 Release'
+                      : 'rc6 runtime truth repair evidence awaits Owner retest; no Release is created')
                   : (zh ? '未通过' : 'Not passed')),
         ],
       );
@@ -9412,7 +10014,7 @@ class _SettingsDesktopDeliveryView extends StatelessWidget {
                   label: zh ? '候选标签' : 'Candidate tag',
                   value: _campaignText(
                       campaign9DesktopDeliveryStatus['release_candidate_tag']),
-                  detail: zh ? '等待 CI green 后推送' : 'push after CI green',
+                  detail: zh ? '等待 push / CI / tag' : 'pending push / CI / tag',
                   icon: Icons.local_offer_outlined),
               _MetricDatum(
                   label: zh ? '包版本' : 'Package version',
@@ -10280,10 +10882,10 @@ const sampleCampaign9DesktopDeliveryStatus = <String, dynamic>{
   'schema_id': 'campaign9_desktop_delivery_status',
   'schema_version': '2026-06-17',
   'overall_status':
-      'campaign9_windows_exe_packaging_rc5_full_capability_audit_repaired_ui_bound_pending_owner_retest',
+      'campaign9_windows_exe_packaging_rc6_runtime_truth_blocker_repaired_ui_bound_pending_owner_retest',
   'final_target_status':
-      'v4.3.0-rc5_full_capability_audit_repaired_pushed_ci_green_tagged_pending_owner_retest',
-  'release_candidate_tag': 'v4.3.0-rc5',
+      'v4.3.0-rc6_runtime_truth_blockers_repaired_real_exe_verified_pending_push_ci_tag_owner_retest',
+  'release_candidate_tag': 'v4.3.0-rc6',
   'package_version_baseline': '4.2.0',
   'github_release_created': false,
   'stable_release_tag_authorized': false,
@@ -10324,14 +10926,14 @@ const sampleCampaign9DesktopDeliveryStatus = <String, dynamic>{
   'checksum': {
     'status': 'pass',
     'manifest_path':
-        'output/rc5_full_capability_repair/release_bundle_manifest.json',
+        'output/rc6_runtime_truth_repair/release_bundle_manifest.json',
     'exe_sha256':
         'd8e58accd56571fc08cfec3178b77ef7e1c3a58c5930c7d9d37718b1253e9d87',
   },
   'desktop_shell_smoke': {
     'status': 'pass',
     'evidence_path':
-        'output/rc5_full_capability_repair/exe_smoke/rc5_exe_launch_smoke.json',
+        'output/rc6_runtime_truth_repair/exe_smoke/rc6_exe_launch_smoke.json',
     'steps': <Map<String, dynamic>>[
       {'step': 'launch', 'result': 'pass'},
       {'step': 'minimize', 'result': 'pass'},
@@ -10354,27 +10956,28 @@ const sampleCampaign9DesktopDeliveryStatus = <String, dynamic>{
       'status': 'pass',
       'ui_state': 'enabled_real',
       'evidence':
-          'output/rc5_full_capability_repair/exe_smoke/rc5_exe_launch_smoke.json',
+          'output/rc6_runtime_truth_repair/exe_smoke/rc6_exe_launch_smoke.json',
     },
     {
       'capability': 'full_capability_runtime_chain',
       'status': 'pass',
       'ui_state': 'enabled_real',
       'evidence':
-          'kb-forge-skill/output/rc5_real_runtime_chain_20260617_153029/rc5_real_runtime_chain_result.json',
+          'kb-forge-skill/output/rc6_validation_chain/rc6_core_chain_probe.log',
     },
     {
       'capability': 'page_button_tab_audit',
       'status': 'pass',
       'ui_state': 'enabled_real',
-      'evidence': 'v4.3.0-rc5_Button_Page_Tab_Issue_Register_2026-06-17.md',
+      'evidence':
+          'v4.3.0-rc6_Tab_Button_Page_Switch_Verification_Matrix_2026-06-17.md',
     },
     {
       'capability': 'release_bundle_manifest',
       'status': 'pass',
       'ui_state': 'enabled_real',
       'evidence':
-          'output/rc5_full_capability_repair/release_bundle_manifest.json',
+          'output/rc6_runtime_truth_repair/release_bundle_manifest.json',
     },
     {
       'capability': 'provider_secret_handling',

@@ -61,17 +61,16 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-import-parsing')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('加入本地示例来源'), warnIfMissed: false);
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('runtime-feedback-banner')), findsOneWidget);
-    expect(find.textContaining('display_only'), findsWidgets);
+    expect(find.byKey(const Key('rc6-runtime-truth-panel')), findsOneWidget);
+    expect(find.text('选择文件'), findsWidgets);
+    expect(find.text('运行完整链路'), findsWidgets);
 
     await tester
         .ensureVisible(find.byKey(const Key('sidebar-retrieval-verification')));
     await tester.tap(find.byKey(const Key('sidebar-retrieval-verification')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('运行检索验证预览'), warnIfMissed: false);
+    await tester.tap(find.text('运行真实检索'), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.text('执行外部事实验证'), findsOneWidget);
     expect(find.textContaining('opt-in'), findsWidgets);
@@ -93,9 +92,7 @@ void main() {
     await tester.ensureVisible(skillPreviewButton);
     await tester.tap(skillPreviewButton, warnIfMissed: false);
     await tester.pumpAndSettle();
-    await tester
-        .ensureVisible(find.byKey(const Key('runtime-feedback-banner')));
-    expect(find.textContaining('未写出真实 Skill package'), findsWidgets);
+    expect(find.textContaining('请先构建知识库'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
@@ -126,7 +123,7 @@ void main() {
     await tester.ensureVisible(desktopTab);
     await tester.tap(desktopTab, warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.text('v4.3.0-rc5'), findsWidgets);
+    expect(find.text('v4.3.0-rc6'), findsWidgets);
     expect(find.textContaining('pending_owner_retest'), findsWidgets);
     expect(find.textContaining('GitHub Release'), findsWidgets);
     expect(find.textContaining('v4.3.0 stable'), findsNothing);

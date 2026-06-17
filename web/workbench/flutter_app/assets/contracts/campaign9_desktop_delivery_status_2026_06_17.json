@@ -1,9 +1,9 @@
 {
   "schema_id": "campaign9_desktop_delivery_status",
   "schema_version": "2026-06-17",
-  "overall_status": "campaign9_windows_exe_packaging_rc5_full_capability_audit_repaired_ui_bound_pending_owner_retest",
-  "final_target_status": "v4.3.0-rc5_full_capability_audit_repaired_pushed_ci_green_tagged_pending_owner_retest",
-  "release_candidate_tag": "v4.3.0-rc5",
+  "overall_status": "campaign9_windows_exe_packaging_rc6_runtime_truth_blocker_repaired_ui_bound_pending_owner_retest",
+  "final_target_status": "v4.3.0-rc6_runtime_truth_blockers_repaired_real_exe_verified_pending_push_ci_tag_owner_retest",
+  "release_candidate_tag": "v4.3.0-rc6",
   "package_version_baseline": "4.2.0",
   "github_release_created": false,
   "stable_release_tag_authorized": false,
@@ -42,12 +42,12 @@
   },
   "checksum": {
     "status": "pass",
-    "manifest_path": "output/rc5_full_capability_repair/release_bundle_manifest.json",
+    "manifest_path": "output/rc6_runtime_truth_repair/release_bundle_manifest.json",
     "exe_sha256": "d8e58accd56571fc08cfec3178b77ef7e1c3a58c5930c7d9d37718b1253e9d87"
   },
   "desktop_shell_smoke": {
     "status": "pass",
-    "evidence_path": "output/rc5_full_capability_repair/exe_smoke/rc5_exe_launch_smoke.json",
+    "evidence_path": "output/rc6_runtime_truth_repair/exe_smoke/rc6_exe_launch_smoke.json",
     "steps": [
       {
         "step": "launch",
@@ -90,25 +90,25 @@
       "capability": "desktop_shell_real_smoke",
       "status": "pass",
       "ui_state": "enabled_real",
-      "evidence": "output/rc5_full_capability_repair/exe_smoke/rc5_exe_launch_smoke.json"
+      "evidence": "output/rc6_runtime_truth_repair/exe_smoke/rc6_exe_launch_smoke.json"
     },
     {
       "capability": "full_capability_runtime_chain",
       "status": "pass",
       "ui_state": "enabled_real",
-      "evidence": "kb-forge-skill/output/rc5_real_runtime_chain_20260617_153029/rc5_real_runtime_chain_result.json"
+      "evidence": "kb-forge-skill/output/rc6_validation_chain/rc6_core_chain_probe.log"
     },
     {
       "capability": "page_button_tab_audit",
       "status": "pass",
       "ui_state": "enabled_real",
-      "evidence": "v4.3.0-rc5_Button_Page_Tab_Issue_Register_2026-06-17.md"
+      "evidence": "v4.3.0-rc6_Tab_Button_Page_Switch_Verification_Matrix_2026-06-17.md"
     },
     {
       "capability": "release_bundle_manifest",
       "status": "pass",
       "ui_state": "enabled_real",
-      "evidence": "output/rc5_full_capability_repair/release_bundle_manifest.json"
+      "evidence": "output/rc6_runtime_truth_repair/release_bundle_manifest.json"
     },
     {
       "capability": "provider_secret_handling",

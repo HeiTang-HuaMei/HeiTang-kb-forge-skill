@@ -632,10 +632,17 @@ void main() {
     expect(find.text('Skill 工厂'), findsWidgets);
     expect(
         find.byKey(const Key('skill-metadata-source-config')), findsOneWidget);
-    expect(find.byKey(const Key('skill-output-preview')), findsOneWidget);
-    expect(find.byKey(const Key('skill-validation-summary')), findsOneWidget);
+    expect(find.text('来源配置'), findsOneWidget);
+    expect(find.text('包结构'), findsOneWidget);
+    expect(find.text('治理报告'), findsWidgets);
     expect(find.text('Skill 元数据与来源配置'), findsOneWidget);
+    await tester.tap(find.text('包结构').first, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('skill-output-preview')), findsOneWidget);
     expect(find.text('Skill 包结构预览'), findsOneWidget);
+    await tester.tap(find.text('治理报告').first, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('skill-validation-summary')), findsOneWidget);
     expect(find.text('治理报告与验证'), findsOneWidget);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
     expect(find.text('开发者诊断'), findsNothing);
@@ -671,13 +678,17 @@ void main() {
     expect(find.text('Tool Adapter'), findsOneWidget);
     expect(find.byKey(const Key('campaign6-runtime-overview')), findsOneWidget);
     expect(find.text('campaign6a_single_agent_runtime'), findsOneWidget);
-    await tester.tap(find.text('Single Agents'));
+    final singleAgentTab = find.text('Single Agents').first;
+    await tester.ensureVisible(singleAgentTab);
+    await tester.tap(singleAgentTab, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(
         find.byKey(const Key('campaign6-single-agent-status')), findsOneWidget);
     expect(find.text('Knowledge QA Agent'), findsOneWidget);
     expect(find.text('External Verification Agent'), findsOneWidget);
-    await tester.tap(find.text('Multi-Agent / Memory'));
+    final multiAgentTab = find.text('Multi-Agent / Memory').first;
+    await tester.ensureVisible(multiAgentTab);
+    await tester.tap(multiAgentTab, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('campaign6-advanced-runtime-status')),
         findsOneWidget);
@@ -685,7 +696,7 @@ void main() {
     expect(find.text('agent_teams'), findsOneWidget);
     final toolAdapter = find.text('Tool Adapter');
     await tester.ensureVisible(toolAdapter);
-    await tester.tap(toolAdapter);
+    await tester.tap(toolAdapter, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(
         find.byKey(const Key('campaign6-tool-adapter-status')), findsOneWidget);

@@ -106,7 +106,9 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-agent-factory-runtime')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('多 Agent / Memory').first, warnIfMissed: false);
+    final memoryTab = find.text('多 Agent / Memory').first;
+    await tester.ensureVisible(memoryTab);
+    await tester.tap(memoryTab, warnIfMissed: false);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Computer Use'), findsWidgets);
