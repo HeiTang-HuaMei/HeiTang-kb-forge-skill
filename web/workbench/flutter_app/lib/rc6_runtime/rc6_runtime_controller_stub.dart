@@ -39,6 +39,7 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> buildKnowledgeBase() async => initialize();
   Future<void> search(String query) async => initialize();
   Future<void> generateMarkdown() async => initialize();
+  Future<void> exportMarkdownDocument() async => initialize();
   Future<void> generateSkill() async => initialize();
   Future<void> generateAgent() async => initialize();
   Future<void> runMultiAgentDiscussion() async => initialize();
@@ -46,6 +47,11 @@ class Rc6RuntimeController extends ChangeNotifier {
           {String query = '赚钱 小生意'}) async =>
       initialize();
   Future<void> runOwnerInputFolderE2E({String query = '赚钱 小生意'}) async =>
+      initialize();
+  Future<void> runDocumentFlowE2E(String folderPath,
+          {String query = '赚钱 小生意'}) async =>
+      initialize();
+  Future<void> runOwnerInputDocumentFlowE2E({String query = '赚钱 小生意'}) async =>
       initialize();
   Future<void> runMinimumE2E({String query = 'heitang-rc6-needle'}) async =>
       initialize();
@@ -97,6 +103,8 @@ class Rc6RuntimeState {
     required this.queryResultPath,
     required this.generatedMarkdownPath,
     required this.readingNotesPath,
+    required this.exportedDocumentPath,
+    required this.exportManifestPath,
     required this.skillPath,
     required this.agentPath,
     required this.multiAgentDiscussionPath,
@@ -126,6 +134,8 @@ class Rc6RuntimeState {
         queryResultPath: '',
         generatedMarkdownPath: '',
         readingNotesPath: '',
+        exportedDocumentPath: '',
+        exportManifestPath: '',
         skillPath: '',
         agentPath: '',
         multiAgentDiscussionPath: '',
@@ -154,6 +164,8 @@ class Rc6RuntimeState {
   final String queryResultPath;
   final String generatedMarkdownPath;
   final String readingNotesPath;
+  final String exportedDocumentPath;
+  final String exportManifestPath;
   final String skillPath;
   final String agentPath;
   final String multiAgentDiscussionPath;
@@ -171,6 +183,7 @@ class Rc6RuntimeState {
   bool get hasKnowledgeBase => kbManifestPath.isNotEmpty && chunkCount > 0;
   bool get hasMarkdown => generatedMarkdownPath.isNotEmpty;
   bool get hasReadingNotes => readingNotesPath.isNotEmpty;
+  bool get hasExportedDocument => exportedDocumentPath.isNotEmpty;
   bool get hasSkill => skillPath.isNotEmpty;
   bool get hasAgent => agentPath.isNotEmpty;
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
@@ -190,6 +203,8 @@ class Rc6RuntimeState {
     String? queryResultPath,
     String? generatedMarkdownPath,
     String? readingNotesPath,
+    String? exportedDocumentPath,
+    String? exportManifestPath,
     String? skillPath,
     String? agentPath,
     String? multiAgentDiscussionPath,
@@ -219,6 +234,8 @@ class Rc6RuntimeState {
       generatedMarkdownPath:
           generatedMarkdownPath ?? this.generatedMarkdownPath,
       readingNotesPath: readingNotesPath ?? this.readingNotesPath,
+      exportedDocumentPath: exportedDocumentPath ?? this.exportedDocumentPath,
+      exportManifestPath: exportManifestPath ?? this.exportManifestPath,
       skillPath: skillPath ?? this.skillPath,
       agentPath: agentPath ?? this.agentPath,
       multiAgentDiscussionPath:

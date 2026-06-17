@@ -56,7 +56,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('rc6 retrieval tabs switch visible content and keep boundaries',
+  testWidgets('rc8 retrieval keeps evidence, scoring, and authorization in one console',
       (tester) async {
     await pumpWorkbench(tester);
 
@@ -66,22 +66,12 @@ void main() {
         warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('retrieval-workflow')), findsOneWidget);
-
-    await tester.tap(find.text('证据结果').first, warnIfMissed: false);
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('retrieval-evidence-results')), findsOneWidget);
-    expect(
-        find.descendant(
-            of: find.byKey(const Key('page-tab-1')),
-            matching: find.byIcon(Icons.check)),
-        findsOneWidget);
-
-    await tester.tap(find.text('外部边界').first, warnIfMissed: false);
-    await tester.pumpAndSettle();
-    expect(
-        find.byKey(const Key('retrieval-external-boundary')), findsOneWidget);
-    expect(find.textContaining('Computer Use'), findsWidgets);
-    expect(find.textContaining('disabled_boundary'), findsWidgets);
+    expect(find.text('所选知识库'), findsOneWidget);
+    expect(find.text('证据片段'), findsOneWidget);
+    expect(find.text('人工纠偏'), findsOneWidget);
+    expect(find.text('授权后执行外部事实验证'), findsOneWidget);
+    expect(find.text('证据结果'), findsNothing);
+    expect(find.text('外部边界'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -343,6 +333,88 @@ void main() {
         File('${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
             .readAsStringSync(),
         contains('真实输入命中赚钱小生意'));
+  });
+
+  test('rc8 document flow stops at real Markdown export without Skill or Agent',
+      () async {
+    final workspace = await createWorkspace();
+    final input =
+        Directory('${workspace.path}${Platform.pathSeparator}input_src')
+          ..createSync(recursive: true);
+    File('${input.path}${Platform.pathSeparator}alpha.txt')
+        .writeAsStringSync('alpha text 赚钱 小生意');
+
+    final requests = <CoreBridgeRequest>[];
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          requests.add(request);
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          switch (request.actionId) {
+            case 'batch_import_documents':
+              File('${output.path}${Platform.pathSeparator}batch_import_report.json')
+                  .writeAsStringSync('{"imported_count":1}');
+            case 'document_understanding':
+              File('${output.path}${Platform.pathSeparator}document_understanding_manifest.json')
+                  .writeAsStringSync('{"status":"completed"}');
+            case 'knowledge_base_build':
+              File('${output.path}${Platform.pathSeparator}manifest.json')
+                  .writeAsStringSync('{}');
+              File('${output.path}${Platform.pathSeparator}quality_report.json')
+                  .writeAsStringSync('{}');
+              File('${output.path}${Platform.pathSeparator}knowledge_base_build_report.json')
+                  .writeAsStringSync('{"source_count":1}');
+              File('${output.path}${Platform.pathSeparator}chunks.jsonl')
+                  .writeAsStringSync(
+                      '{"text":"赚钱 小生意","source_path":"alpha.txt","citation":"alpha.txt#chunk=1"}\n');
+              File('${output.path}${Platform.pathSeparator}cards.jsonl')
+                  .writeAsStringSync('{"title":"赚钱小生意","summary":"真实主题"}\n');
+              File('${output.path}${Platform.pathSeparator}qa_pairs.jsonl')
+                  .writeAsStringSync(
+                      '{"question":"主题是什么?","answer":"赚钱小生意"}\n');
+            case 'rag_query':
+              File('${output.path}${Platform.pathSeparator}kb_query_result.json')
+                  .writeAsStringSync(
+                      '{"query":"赚钱 小生意","selected_count":1,"selected":[{"text":"真实输入命中赚钱小生意","source_path":"alpha.txt","citation":"alpha.txt#chunk=1"}]}');
+            case 'generate_markdown':
+              File('${output.path}${Platform.pathSeparator}generated.md')
+                  .writeAsStringSync('# generated from real input');
+          }
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.runDocumentFlowE2E(input.path);
+
+    expect(requests.map((request) => request.actionId), [
+      'batch_import_documents',
+      'document_understanding',
+      'knowledge_base_build',
+      'rag_query',
+      'generate_markdown',
+    ]);
+    expect(controller.state.hasReadingNotes, isTrue);
+    expect(controller.state.hasExportedDocument, isTrue);
+    expect(controller.state.hasSkill, isFalse);
+    expect(controller.state.hasAgent, isFalse);
+    expect(
+        File(
+                '${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}reading_notes_export.md')
+            .readAsStringSync(),
+        contains('真实输入文件夹读书笔记'));
+    expect(
+        File(
+                '${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}export_manifest.json')
+            .readAsStringSync(),
+        contains('rc8_document_export.v1'));
   });
 
   test('rc6 owner input folder chain uses the fixed Owner input directory',

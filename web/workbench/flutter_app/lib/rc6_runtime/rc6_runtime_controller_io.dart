@@ -45,7 +45,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     await _loadExistingArtifacts();
     notifyListeners();
-    if (_autoRunOwnerInputOnLaunch()) {
+    if (_autoRunOwnerInputDocumentFlowOnLaunch()) {
+      state = state.copyWith(
+        lastMessage: '启动参数请求运行 Owner input 文档链路。',
+        lastError: '',
+      );
+      notifyListeners();
+      await runOwnerInputDocumentFlowE2E();
+    } else if (_autoRunOwnerInputOnLaunch()) {
       state = state.copyWith(
         lastMessage: '启动参数请求运行 Owner input 完整链路。',
         lastError: '',
@@ -447,6 +454,55 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> exportMarkdownDocument() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    final docDir = Directory(_join(workspace.path, 'doc'));
+    final generated = File(_join(docDir.path, 'generated.md'));
+    final notes = File(_join(docDir.path, 'reading_notes.md'));
+    if (!await generated.exists() && !await notes.exists()) {
+      _fail('请先在文档生成页生成 Markdown 草稿。');
+      return;
+    }
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在导出 Markdown 文档...',
+      lastError: '',
+    );
+    notifyListeners();
+    final exportDir = Directory(_join(workspace.path, 'export'));
+    await _clearWorkspacePath(exportDir.path);
+    await exportDir.create(recursive: true);
+    final source = await notes.exists() ? notes : generated;
+    final exported = File(_join(exportDir.path, 'reading_notes_export.md'));
+    await source.copy(exported.path);
+    final manifest = {
+      'schema_version': 'rc8_document_export.v1',
+      'status': 'pass',
+      'format': 'markdown',
+      'source': source.path,
+      'output': exported.path,
+      'size_bytes': await exported.length(),
+      'workspace': workspace.path,
+    };
+    await File(_join(exportDir.path, 'export_manifest.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(manifest),
+      encoding: utf8,
+    );
+    state = state.copyWith(
+      running: false,
+      phase: Rc6RuntimePhase.documentGenerated,
+      exportedDocumentPath: exported.path,
+      exportManifestPath: _join(exportDir.path, 'export_manifest.json'),
+      lastMessage: 'Markdown 文档已导出。',
+      lastError: '',
+    );
+    await _loadExistingArtifacts();
+    notifyListeners();
+  }
+
   Future<void> generateSkill() async {
     if (!_canRunDesktop()) {
       return;
@@ -563,6 +619,31 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
   }
 
+  Future<void> runDocumentFlowE2E(String folderPath,
+      {String query = '赚钱 小生意'}) async {
+    await importFolderPath(folderPath);
+    if (state.lastResult?.passed != true) return;
+    await parseAndChunkSources();
+    if (state.lastResult?.passed != true) return;
+    await buildKnowledgeBase();
+    if (state.lastResult?.passed != true) return;
+    await search(query);
+    if (state.lastResult?.passed != true ||
+        state.searchStatus != Rc6SearchStatus.success) {
+      return;
+    }
+    await generateMarkdown();
+    if (state.lastResult?.passed != true) return;
+    await exportMarkdownDocument();
+  }
+
+  Future<void> runOwnerInputDocumentFlowE2E({String query = '赚钱 小生意'}) async {
+    await runDocumentFlowE2E(
+      r'D:\HeiTang-Codex-WorkSpace\input',
+      query: query,
+    );
+  }
+
   Future<void> runMinimumE2E({String query = 'heitang-rc6-needle'}) async {
     if (!_canRunDesktop()) {
       return;
@@ -649,6 +730,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       qualityReportPath: '',
       queryResultPath: '',
       generatedMarkdownPath: '',
+      exportedDocumentPath: '',
+      exportManifestPath: '',
       skillPath: '',
       agentPath: '',
       readingNotesPath: '',
@@ -707,6 +790,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     final queryPath = _join(workspace.path, 'query', 'kb_query_result.json');
     final markdownPath = _join(workspace.path, 'doc', 'generated.md');
     final readingNotesPath = _join(workspace.path, 'doc', 'reading_notes.md');
+    final exportedDocumentPath =
+        _join(workspace.path, 'export', 'reading_notes_export.md');
+    final exportManifestPath =
+        _join(workspace.path, 'export', 'export_manifest.json');
     final skillPath = _join(
         _join(workspace.path, 'skill', 'knowledge_qa_skill'),
         'skill_manifest.yaml');
@@ -780,6 +867,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       readingNotesPath: await File(readingNotesPath).exists()
           ? readingNotesPath
           : state.readingNotesPath,
+      exportedDocumentPath: await File(exportedDocumentPath).exists()
+          ? exportedDocumentPath
+          : state.exportedDocumentPath,
+      exportManifestPath: await File(exportManifestPath).exists()
+          ? exportManifestPath
+          : state.exportManifestPath,
       skillPath: await File(skillPath).exists()
           ? _join(workspace.path, 'skill')
           : state.skillPath,
@@ -1139,6 +1232,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     return value == '1' || value?.toLowerCase() == 'true';
   }
 
+  bool _autoRunOwnerInputDocumentFlowOnLaunch() {
+    final value = Platform.environment['HEITANG_RC8_DOCUMENT_FLOW_E2E'];
+    return value == '1' || value?.toLowerCase() == 'true';
+  }
+
   Directory _requireWorkspace() {
     final workspace = _workspaceDir;
     if (workspace == null) {
@@ -1371,6 +1469,8 @@ class Rc6RuntimeState {
     required this.queryResultPath,
     required this.generatedMarkdownPath,
     required this.readingNotesPath,
+    required this.exportedDocumentPath,
+    required this.exportManifestPath,
     required this.skillPath,
     required this.agentPath,
     required this.multiAgentDiscussionPath,
@@ -1400,6 +1500,8 @@ class Rc6RuntimeState {
         queryResultPath: '',
         generatedMarkdownPath: '',
         readingNotesPath: '',
+        exportedDocumentPath: '',
+        exportManifestPath: '',
         skillPath: '',
         agentPath: '',
         multiAgentDiscussionPath: '',
@@ -1428,6 +1530,8 @@ class Rc6RuntimeState {
   final String queryResultPath;
   final String generatedMarkdownPath;
   final String readingNotesPath;
+  final String exportedDocumentPath;
+  final String exportManifestPath;
   final String skillPath;
   final String agentPath;
   final String multiAgentDiscussionPath;
@@ -1445,6 +1549,7 @@ class Rc6RuntimeState {
   bool get hasKnowledgeBase => kbManifestPath.isNotEmpty && chunkCount > 0;
   bool get hasMarkdown => generatedMarkdownPath.isNotEmpty;
   bool get hasReadingNotes => readingNotesPath.isNotEmpty;
+  bool get hasExportedDocument => exportedDocumentPath.isNotEmpty;
   bool get hasSkill => skillPath.isNotEmpty;
   bool get hasAgent => agentPath.isNotEmpty;
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
@@ -1464,6 +1569,8 @@ class Rc6RuntimeState {
     String? queryResultPath,
     String? generatedMarkdownPath,
     String? readingNotesPath,
+    String? exportedDocumentPath,
+    String? exportManifestPath,
     String? skillPath,
     String? agentPath,
     String? multiAgentDiscussionPath,
@@ -1493,6 +1600,8 @@ class Rc6RuntimeState {
       generatedMarkdownPath:
           generatedMarkdownPath ?? this.generatedMarkdownPath,
       readingNotesPath: readingNotesPath ?? this.readingNotesPath,
+      exportedDocumentPath: exportedDocumentPath ?? this.exportedDocumentPath,
+      exportManifestPath: exportManifestPath ?? this.exportManifestPath,
       skillPath: skillPath ?? this.skillPath,
       agentPath: agentPath ?? this.agentPath,
       multiAgentDiscussionPath:

@@ -104,22 +104,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Provider Runtime'), findsOneWidget);
-    expect(find.text('enabled_real'), findsWidgets);
-    expect(find.text('live smoke accepted'), findsWidgets);
-    expect(find.text('外部事实验证'), findsOneWidget);
-    expect(find.text('enabled_real_degraded'), findsNothing);
-    expect(find.text('Knowledge Quality Gate'), findsOneWidget);
-    expect(find.text('Document Export'), findsOneWidget);
-    expect(find.text('Skill Governance'), findsOneWidget);
-    expect(find.text('Agent Creation Package'), findsWidgets);
-
     await tester.tap(find.text('设置').first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Provider 与存储'));
     await tester.pumpAndSettle();
 
+    expect(find.text('enabled_real'), findsWidgets);
     expect(find.text('LLM Provider'), findsWidgets);
+    expect(find.text('Provider 运行状态'), findsOneWidget);
     expect(find.text('live smoke 通过'), findsWidgets);
     expect(find.text('API Key'), findsWidgets);
     expect(find.text('************'), findsWidgets);
@@ -193,7 +185,7 @@ void main() {
     expect(find.text('输出目标'), findsNothing);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
     expect(find.byKey(const Key('product-status-panel')), findsNothing);
-    expect(find.text('构建真实知识库'), findsOneWidget);
+    expect(find.text('开始构建知识库'), findsOneWidget);
     await tester.tap(find.text('质量记录'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('knowledge-quality-records')), findsOneWidget);
@@ -224,7 +216,7 @@ void main() {
         findsOneWidget);
     expect(find.text('文档生成'), findsWidgets);
     expect(find.byKey(const Key('document-generation-tasks')), findsOneWidget);
-    expect(find.text('生成队列'), findsOneWidget);
+    expect(find.text('生成任务'), findsWidgets);
     expect(find.byKey(const Key('document-central-preview')), findsOneWidget);
     await tester.tap(find.text('文档模板').last);
     await tester.pumpAndSettle();
@@ -236,7 +228,7 @@ void main() {
     expect(find.text('PDF'), findsWidgets);
     expect(find.text('PPTX'), findsWidgets);
     expect(find.textContaining('display_only'), findsNothing);
-    expect(find.text('需格式适配'), findsWidgets);
+    expect(find.textContaining('格式适配'), findsWidgets);
     expect(find.textContaining('Release complete'), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -423,7 +415,7 @@ void main() {
     expect(find.text('Vector Index'), findsOneWidget);
     await tester.tap(find.text('Knowledge Base').last);
     await tester.pumpAndSettle();
-    expect(find.text('Build real Knowledge Base'), findsOneWidget);
+    expect(find.text('Build Knowledge Base'), findsOneWidget);
     expect(find.text('知识库'), findsNothing);
     expect(find.text('文档库'), findsNothing);
     expect(find.text('检索与验证'), findsNothing);
