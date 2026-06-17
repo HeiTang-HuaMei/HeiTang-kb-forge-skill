@@ -221,16 +221,10 @@ void main() {
       for (final project in registry.projects) project.projectId: project
     };
 
-    expect(
-        registry.sProjectCount,
-        registry.projects
-            .where((project) => project.rating == 'S')
-            .length);
-    expect(
-        registry.aProjectCount,
-        registry.projects
-            .where((project) => project.rating == 'A')
-            .length);
+    expect(registry.sProjectCount,
+        registry.projects.where((project) => project.rating == 'S').length);
+    expect(registry.aProjectCount,
+        registry.projects.where((project) => project.rating == 'A').length);
     expect(registry.externalProjectCount, registry.projects.length);
     expect(registry.internalCapabilityAnchorCount, 8);
     expect(registry.releaseBoundary['p1_gate_changed'], isFalse);
@@ -245,16 +239,24 @@ void main() {
     expect(projects['n8n']!.requiresExternalRuntime, isTrue);
     expect(projects['anysearchskill']!.requiresApiKey, isFalse);
     expect(projects['anysearchskill']!.requiresNetwork, isTrue);
-    expect(projects['n8n']!.contractStatus,
-        containsAll(<String>['workflow_export_adapter', 'runtime_not_bundled']));
+    expect(
+        projects['n8n']!.contractStatus,
+        containsAll(
+            <String>['workflow_export_adapter', 'runtime_not_bundled']));
     expect(projects['anysearchskill']!.contractStatus,
         containsAll(<String>['provider_adapter', 'needs_strengthening']));
     expect(projects['mmskills']!.contractStatus,
         containsAll(<String>['schema_package_reference', 'reference_only']));
-    expect(projects['skill_prompt_generator']!.contractStatus,
-        containsAll(<String>['prompt_asset_library_enhancer', 'runtime_not_bundled']));
-    expect(projects['ai_marketing_skills']!.contractStatus,
-        containsAll(<String>['marketing_skill_pattern_library', 'runtime_not_bundled']));
+    expect(
+        projects['skill_prompt_generator']!.contractStatus,
+        containsAll(
+            <String>['prompt_asset_library_enhancer', 'runtime_not_bundled']));
+    expect(
+        projects['ai_marketing_skills']!.contractStatus,
+        containsAll(<String>[
+          'marketing_skill_pattern_library',
+          'runtime_not_bundled'
+        ]));
     expect(matrix['external_project_count'], registry.externalProjectCount);
   });
 
@@ -407,7 +409,7 @@ void main() {
     expect(find.text('仪表盘'), findsWidgets);
     expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
     expect(find.byKey(const Key('topbar-search-field')), findsOneWidget);
-    expect(find.text('通知'), findsOneWidget);
+    expect(find.text('通知'), findsNothing);
     expect(find.byIcon(Icons.refresh_outlined), findsOneWidget);
     expect(find.textContaining('系统状态: 正常运行'), findsOneWidget);
     expect(find.textContaining('版本: v1.0.0'), findsOneWidget);

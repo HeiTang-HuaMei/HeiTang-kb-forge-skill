@@ -235,7 +235,7 @@ void main() {
     expect(find.byKey(const Key('document-export-preview')), findsOneWidget);
     expect(find.text('PDF'), findsWidgets);
     expect(find.text('PPTX'), findsWidgets);
-    expect(find.text('enabled_real'), findsWidgets);
+    expect(find.textContaining('display_only'), findsWidgets);
     expect(find.textContaining('Release complete'), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -271,7 +271,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('validation report reflects owner visual acceptance passed',
+  testWidgets('validation report reflects rc4 owner retest pending',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1000));
     await tester.pumpWidget(
@@ -288,9 +288,9 @@ void main() {
     expect(find.byKey(const Key('report-evidence-list')), findsOneWidget);
     await tester.tap(find.text('打开验证报告预览'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('Owner 视觉验收已通过'), findsWidgets);
-    expect(find.textContaining('仍需 Owner 视觉验收'), findsNothing);
-    expect(find.textContaining('Owner 视觉复查'), findsNothing);
+    expect(find.textContaining('rc4 等待 Owner 复验'), findsWidgets);
+    expect(find.textContaining('Owner 视觉验收已通过'), findsNothing);
+    expect(find.textContaining('Release'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
@@ -312,7 +312,7 @@ void main() {
     await tester.tap(find.text('Provider 与存储'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('settings-provider-storage')), findsOneWidget);
-    expect(find.text('待接入'), findsWidgets);
+    expect(find.textContaining('disabled_boundary'), findsWidgets);
     expect(find.textContaining('sk-************'), findsOneWidget);
     expect(find.textContaining('sk-test-secret'), findsNothing);
     expect(find.text('模板库'), findsNothing);

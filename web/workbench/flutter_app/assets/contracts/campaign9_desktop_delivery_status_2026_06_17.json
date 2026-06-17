@@ -1,9 +1,9 @@
 {
   "schema_id": "campaign9_desktop_delivery_status",
   "schema_version": "2026-06-17",
-  "overall_status": "campaign9_windows_exe_packaging_rc3_usability_repair_passed_ui_bound",
-  "final_target_status": "campaign9_windows_exe_packaging_rc3_usability_repair_accepted_pushed_ci_green_tagged_rc3_pending_release_decision",
-  "release_candidate_tag": "v4.3.0-rc3",
+  "overall_status": "campaign9_windows_exe_packaging_rc4_owner_acceptance_failure_repair_ui_bound_pending_owner_retest",
+  "final_target_status": "v4.3.0-rc4_owner_acceptance_failure_repair_pushed_ci_green_tagged_pending_owner_retest",
+  "release_candidate_tag": "v4.3.0-rc4",
   "package_version_baseline": "4.2.0",
   "github_release_created": false,
   "stable_release_tag_authorized": false,
@@ -47,7 +47,7 @@
   },
   "desktop_shell_smoke": {
     "status": "pass",
-    "evidence_path": "output/rc3_manual_smoke/desktop_shell_smoke.json",
+    "evidence_path": "output/rc4_owner_acceptance_repair/desktop_shell_smoke.json",
     "steps": [
       {
         "step": "launch",
@@ -90,7 +90,7 @@
       "capability": "desktop_shell_real_smoke",
       "status": "pass",
       "ui_state": "enabled_real",
-      "evidence": "output/rc3_manual_smoke/desktop_shell_smoke.json"
+      "evidence": "output/rc4_owner_acceptance_repair/desktop_shell_smoke.json"
     },
     {
       "capability": "release_bundle_manifest",

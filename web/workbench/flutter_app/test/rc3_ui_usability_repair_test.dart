@@ -104,7 +104,7 @@ void main() {
     await tester.ensureVisible(desktopTab);
     await tester.tap(desktopTab, warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.text('v4.3.0-rc3'), findsWidgets);
+    expect(find.text('v4.3.0-rc4'), findsWidgets);
     expect(find.text('v4.3.0-rc2'), findsNothing);
     expect(tester.takeException(), isNull);
   });
