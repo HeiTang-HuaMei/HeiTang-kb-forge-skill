@@ -20,7 +20,8 @@ void main() {
 abstract final class _DesktopGrid {
   static const double initialWindowWidth = 1440;
   static const double initialWindowHeight = 900;
-  static const double minWindowWidth = 1180;
+  static const double minWindowWidth = 820;
+  static const double compactSidebarWidth = 188;
   static const double gutter = 8;
   static const double sectionGap = 10;
   static const double panelPadding = 10;
@@ -498,63 +499,68 @@ class _DesktopWorkbench extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const sidebarWidth = 268.0;
+    return LayoutBuilder(builder: (context, constraints) {
+      final sidebarWidth = constraints.maxWidth < 1220
+          ? _DesktopGrid.compactSidebarWidth
+          : 268.0;
 
-    return Row(
-      children: [
-        SizedBox(
-          width: sidebarWidth,
-          child: _WorkbenchSidebar(
-            localeCode: localeCode,
-            contracts: contracts,
-            selectedIndex: selectedIndex,
-            onPageChanged: onPageChanged,
+      return Row(
+        children: [
+          SizedBox(
+            width: sidebarWidth,
+            child: _WorkbenchSidebar(
+              localeCode: localeCode,
+              contracts: contracts,
+              selectedIndex: selectedIndex,
+              onPageChanged: onPageChanged,
+            ),
           ),
-        ),
-        const VerticalDivider(width: 1),
-        Expanded(
-          child: Column(
-            children: [
-              Expanded(
-                child: _PageSurface(
-                  page: pages[selectedIndex],
-                  localeCode: localeCode,
-                  contracts: contracts,
-                  workflowEvidence: workflowEvidence,
-                  workflowV2Evidence: workflowV2Evidence,
-                  externalCapabilities: externalCapabilities,
-                  parserBackends: parserBackends,
-                  campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
-                  campaign7ConfigurationStatus: campaign7ConfigurationStatus,
-                  campaign9DesktopDeliveryStatus:
-                      campaign9DesktopDeliveryStatus,
-                  skillGovernanceReport: skillGovernanceReport,
-                  methodologyMap: methodologyMap,
-                  skillSuiteWorkflow: skillSuiteWorkflow,
-                  columns: 3,
-                  coreBridge: coreBridge,
-                  coreCli: coreCli,
-                  coreWorkingDirectory: coreWorkingDirectory,
-                  coreWorkspace: coreWorkspace,
-                  enableLocalCoreActions: enableLocalCoreActions,
-                  isWebRuntime: isWebRuntime,
-                  isDark: isDark,
-                  windowState: windowState,
-                  onWindowStateChanged: onWindowStateChanged,
-                  onThemeChanged: onThemeChanged,
-                  onLocaleChanged: onLocaleChanged,
+          const VerticalDivider(width: 1),
+          Expanded(
+            child: Column(
+              children: [
+                Expanded(
+                  child: _PageSurface(
+                    key: ValueKey('page-surface-$selectedIndex'),
+                    page: pages[selectedIndex],
+                    localeCode: localeCode,
+                    contracts: contracts,
+                    workflowEvidence: workflowEvidence,
+                    workflowV2Evidence: workflowV2Evidence,
+                    externalCapabilities: externalCapabilities,
+                    parserBackends: parserBackends,
+                    campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
+                    campaign7ConfigurationStatus: campaign7ConfigurationStatus,
+                    campaign9DesktopDeliveryStatus:
+                        campaign9DesktopDeliveryStatus,
+                    skillGovernanceReport: skillGovernanceReport,
+                    methodologyMap: methodologyMap,
+                    skillSuiteWorkflow: skillSuiteWorkflow,
+                    columns: 3,
+                    coreBridge: coreBridge,
+                    coreCli: coreCli,
+                    coreWorkingDirectory: coreWorkingDirectory,
+                    coreWorkspace: coreWorkspace,
+                    enableLocalCoreActions: enableLocalCoreActions,
+                    isWebRuntime: isWebRuntime,
+                    isDark: isDark,
+                    windowState: windowState,
+                    onWindowStateChanged: onWindowStateChanged,
+                    onThemeChanged: onThemeChanged,
+                    onLocaleChanged: onLocaleChanged,
+                  ),
                 ),
-              ),
-              _DesktopStatusBar(
-                localeCode: localeCode,
-                workspace: coreWorkspace,
-                isWebRuntime: isWebRuntime,
-              ),
-            ],
+                _DesktopStatusBar(
+                  localeCode: localeCode,
+                  workspace: coreWorkspace,
+                  isWebRuntime: isWebRuntime,
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 }
 
@@ -574,56 +580,66 @@ class _DesktopStatusBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return Container(
-      key: const Key('desktop-status-bar'),
-      height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 22),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border(top: BorderSide(color: colors.outlineVariant)),
-      ),
-      child: Row(
-        children: [
-          _StatusBarItem(
-            icon: Icons.circle,
-            iconColor: Colors.green,
-            label: _zh ? '系统状态' : 'System',
-            value: _zh ? '正常运行' : 'Running',
-          ),
-          const SizedBox(width: 24),
-          Expanded(
-            child: _StatusBarItem(
-              icon: Icons.folder_open_outlined,
-              label: _zh ? '位置' : 'Location',
-              value: workspace,
-              overflow: TextOverflow.ellipsis,
+    return LayoutBuilder(builder: (context, constraints) {
+      final compact = constraints.maxWidth < 720;
+      final showVersion = constraints.maxWidth >= 760;
+      final showUpdates = constraints.maxWidth >= 900;
+      final gap = compact ? 10.0 : 24.0;
+      return Container(
+        key: const Key('desktop-status-bar'),
+        height: 44,
+        padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 22),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          border: Border(top: BorderSide(color: colors.outlineVariant)),
+        ),
+        child: Row(
+          children: [
+            _StatusBarItem(
+              icon: Icons.circle,
+              iconColor: Colors.green,
+              label: _zh ? '系统状态' : 'System',
+              value: _zh ? '正常运行' : 'Running',
             ),
-          ),
-          const SizedBox(width: 24),
-          _StatusBarItem(
-            icon: isWebRuntime
-                ? Icons.public_outlined
-                : Icons.desktop_windows_outlined,
-            label: _zh ? '模式' : 'Mode',
-            value: isWebRuntime
-                ? (_zh ? '预览模式' : 'Preview mode')
-                : (_zh ? '桌面本地执行' : 'Desktop local'),
-          ),
-          const SizedBox(width: 24),
-          _StatusBarItem(
-            icon: Icons.info_outline,
-            label: _zh ? '版本' : 'Version',
-            value: 'v1.0.0',
-          ),
-          const SizedBox(width: 24),
-          _StatusBarItem(
-            icon: Icons.sync_outlined,
-            label: _zh ? '检查更新' : 'Check updates',
-            value: '',
-          ),
-        ],
-      ),
-    );
+            SizedBox(width: gap),
+            Expanded(
+              child: _StatusBarItem(
+                icon: Icons.folder_open_outlined,
+                label: _zh ? '位置' : 'Location',
+                value: workspace,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            SizedBox(width: gap),
+            _StatusBarItem(
+              icon: isWebRuntime
+                  ? Icons.public_outlined
+                  : Icons.desktop_windows_outlined,
+              label: _zh ? '模式' : 'Mode',
+              value: isWebRuntime
+                  ? (_zh ? '预览模式' : 'Preview mode')
+                  : (_zh ? '桌面本地执行' : 'Desktop local'),
+            ),
+            if (showVersion) ...[
+              SizedBox(width: gap),
+              _StatusBarItem(
+                icon: Icons.info_outline,
+                label: _zh ? '版本' : 'Version',
+                value: 'v1.0.0',
+              ),
+            ],
+            if (showUpdates) ...[
+              SizedBox(width: gap),
+              _StatusBarItem(
+                icon: Icons.sync_outlined,
+                label: _zh ? '检查更新' : 'Check updates',
+                value: '',
+              ),
+            ],
+          ],
+        ),
+      );
+    });
   }
 }
 
@@ -731,10 +747,10 @@ class _WorkbenchSidebar extends StatelessWidget {
     return Material(
       color: sidebarBackground,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(14, 18, 14, 16),
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
         children: [
           _SidebarBrand(localeCode: localeCode),
-          const SizedBox(height: 18),
+          const SizedBox(height: 10),
           _SidebarGroupLabel(
               label: localeCode == 'zh-CN' ? '工作区' : 'Workspace'),
           _SidebarItem(
@@ -805,7 +821,7 @@ class _WorkbenchSidebar extends StatelessWidget {
             selectedBackground: selectedBackground,
             onTap: () => onPageChanged(9),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 10),
           _LocalFirstCard(localeCode: localeCode),
         ],
       ),
@@ -832,7 +848,7 @@ class _SidebarBrand extends StatelessWidget {
                     color: primaryText,
                     fontWeight: FontWeight.w900,
                   )),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
               localeCode == 'zh-CN'
                   ? '知识工作台  v1.0.0'
@@ -841,7 +857,7 @@ class _SidebarBrand extends StatelessWidget {
                     color: secondaryText,
                     fontWeight: FontWeight.w600,
                   )),
-          const SizedBox(height: 18),
+          const SizedBox(height: 10),
           const Divider(color: Color(0xff30363d), height: 1),
         ],
       ),
@@ -857,7 +873,7 @@ class _SidebarGroupLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 6),
+      padding: const EdgeInsets.fromLTRB(8, 5, 8, 4),
       child: Text(label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: const Color(0xff8d98a5),
@@ -894,12 +910,12 @@ class _SidebarItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 3),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
           decoration: BoxDecoration(
             color: selected ? selectedBackground : Colors.transparent,
             borderRadius: BorderRadius.circular(14),
@@ -911,8 +927,8 @@ class _SidebarItem extends StatelessWidget {
             children: [
               AnimatedContainer(
                 duration: const Duration(milliseconds: 160),
-                width: 30,
-                height: 30,
+                width: 28,
+                height: 28,
                 decoration: BoxDecoration(
                   color: selected
                       ? const Color(0xff3a424b)
@@ -948,7 +964,7 @@ class _LocalFirstCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: const Color(0xff20262c),
         borderRadius: BorderRadius.circular(16),
@@ -972,7 +988,7 @@ class _LocalFirstCard extends StatelessWidget {
                               color: const Color(0xfff7f7f5),
                               fontWeight: FontWeight.w900,
                             )),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                         localeCode == 'zh-CN'
                             ? '默认不连接云服务'
@@ -985,9 +1001,9 @@ class _LocalFirstCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: _DesktopGrid.gutter),
+          const SizedBox(height: 6),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
             decoration: BoxDecoration(
               color: const Color(0xff12161a),
               borderRadius: BorderRadius.circular(999),
@@ -1047,8 +1063,9 @@ IconData _sidebarIconFor(String pageId) {
   }
 }
 
-class _PageSurface extends StatelessWidget {
+class _PageSurface extends StatefulWidget {
   const _PageSurface({
+    super.key,
     required this.page,
     required this.localeCode,
     required this.contracts,
@@ -1103,7 +1120,59 @@ class _PageSurface extends StatelessWidget {
   final ValueChanged<String>? onLocaleChanged;
 
   @override
+  State<_PageSurface> createState() => _PageSurfaceState();
+}
+
+class _PageSurfaceState extends State<_PageSurface> {
+  final ScrollController _scrollController =
+      ScrollController(keepScrollOffset: false);
+
+  @override
+  void didUpdateWidget(covariant _PageSurface oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.page.id != widget.page.id) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _scrollController.hasClients) {
+          _scrollController.jumpTo(0);
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final page = widget.page;
+    final localeCode = widget.localeCode;
+    final contracts = widget.contracts;
+    final workflowEvidence = widget.workflowEvidence;
+    final workflowV2Evidence = widget.workflowV2Evidence;
+    final externalCapabilities = widget.externalCapabilities;
+    final parserBackends = widget.parserBackends;
+    final campaign6AgentRuntimeStatus = widget.campaign6AgentRuntimeStatus;
+    final campaign7ConfigurationStatus = widget.campaign7ConfigurationStatus;
+    final campaign9DesktopDeliveryStatus =
+        widget.campaign9DesktopDeliveryStatus;
+    final skillGovernanceReport = widget.skillGovernanceReport;
+    final methodologyMap = widget.methodologyMap;
+    final skillSuiteWorkflow = widget.skillSuiteWorkflow;
+    final columns = widget.columns;
+    final coreBridge = widget.coreBridge;
+    final coreCli = widget.coreCli;
+    final coreWorkingDirectory = widget.coreWorkingDirectory;
+    final coreWorkspace = widget.coreWorkspace;
+    final enableLocalCoreActions = widget.enableLocalCoreActions;
+    final isWebRuntime = widget.isWebRuntime;
+    final isDark = widget.isDark;
+    final windowState = widget.windowState;
+    final onWindowStateChanged = widget.onWindowStateChanged;
+    final onThemeChanged = widget.onThemeChanged;
+    final onLocaleChanged = widget.onLocaleChanged;
     final isDashboard = page.id == 'dashboard';
     final diagnosticPage = page.id == 'workspace'
         ? WorkbenchPage(
@@ -1179,9 +1248,13 @@ class _PageSurface extends StatelessWidget {
       final availableWidth = constraints.maxWidth - horizontalPadding * 2;
       final contentWidth = availableWidth > _DesktopGrid.maxPageWidth
           ? _DesktopGrid.maxPageWidth
-          : availableWidth;
+          : availableWidth < 0
+              ? 0.0
+              : availableWidth;
       return Scrollbar(
+        controller: _scrollController,
         child: SingleChildScrollView(
+          controller: _scrollController,
           key: ValueKey('page-scroll-${page.id}'),
           primary: false,
           padding: const EdgeInsets.all(horizontalPadding),
@@ -1189,7 +1262,7 @@ class _PageSurface extends StatelessWidget {
             alignment: Alignment.topCenter,
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                minWidth: contentWidth,
+                minWidth: 0,
                 maxWidth: contentWidth,
                 minHeight: constraints.maxHeight - horizontalPadding * 2,
               ),
@@ -1654,16 +1727,10 @@ class _DesktopWindowPreviewShellState
       final viewportHeight = constraints.maxHeight.isFinite
           ? constraints.maxHeight
           : _DesktopGrid.initialWindowHeight;
-      final width = maximized
-          ? (viewportWidth < _DesktopGrid.minWindowWidth
-              ? _DesktopGrid.minWindowWidth
-              : viewportWidth)
-          : _DesktopGrid.initialWindowWidth;
-      final height = maximized
-          ? (viewportHeight < 760 ? 760.0 : viewportHeight)
-          : _DesktopGrid.initialWindowHeight;
-      final stageWidth = viewportWidth > width ? viewportWidth : width;
-      final stageHeight = viewportHeight > height ? viewportHeight : height;
+      final width = viewportWidth < _DesktopGrid.minWindowWidth
+          ? _DesktopGrid.minWindowWidth
+          : viewportWidth;
+      final height = viewportHeight < 560 ? 560.0 : viewportHeight;
       final frame = widget.childBuilder(
         windowState,
         (state) => setState(() => windowState = state),
@@ -1672,37 +1739,32 @@ class _DesktopWindowPreviewShellState
         color: colors.surfaceContainerHighest,
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: SingleChildScrollView(
-            child: SizedBox(
-              width: stageWidth,
-              height: stageHeight,
-              child: Align(
-                alignment: Alignment.center,
-                child: AnimatedContainer(
-                  key: const Key('desktop-window-preview-frame'),
-                  duration: const Duration(milliseconds: 160),
-                  curve: Curves.easeOutCubic,
-                  width: width,
-                  height: height,
-                  constraints: const BoxConstraints(
-                    minWidth: _DesktopGrid.minWindowWidth,
-                    minHeight: 760,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colors.surface,
-                    border: Border.all(color: colors.outlineVariant),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.12),
-                        blurRadius: maximized ? 0 : 28,
-                        offset: const Offset(0, 14),
-                      ),
-                    ],
-                  ),
-                  clipBehavior: Clip.hardEdge,
-                  child: frame,
-                ),
+          child: SizedBox(
+            width: width,
+            height: height,
+            child: AnimatedContainer(
+              key: const Key('desktop-window-preview-frame'),
+              duration: const Duration(milliseconds: 160),
+              curve: Curves.easeOutCubic,
+              width: width,
+              height: height,
+              constraints: const BoxConstraints(
+                minWidth: _DesktopGrid.minWindowWidth,
+                minHeight: 560,
               ),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                border: Border.all(color: colors.outlineVariant),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: maximized ? 0 : 0.08),
+                    blurRadius: maximized ? 0 : 16,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              clipBehavior: Clip.hardEdge,
+              child: frame,
             ),
           ),
         ),
@@ -1748,13 +1810,18 @@ class _ProductTopBar extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return LayoutBuilder(
       builder: (context, constraints) {
+        final compact = constraints.maxWidth < 860;
+        final showTitle = showTitleBlock && constraints.maxWidth >= 900;
+        final showUtilityChips = constraints.maxWidth >= 1040;
+        final showWorkspaceChip = constraints.maxWidth >= 1180;
+        final showLanguageToggle = constraints.maxWidth >= 680;
         return Row(
           key: const Key('desktop-topbar-single-row'),
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            if (showTitleBlock) ...[
+            if (showTitle) ...[
               SizedBox(
-                width: 312,
+                width: compact ? 220 : 312,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1784,38 +1851,43 @@ class _ProductTopBar extends StatelessWidget {
             Expanded(
               child: _TopBarSearchField(
                 label: _zh ? '搜索知识、Skill、文档' : 'Search knowledge, Skill, docs',
+                compact: constraints.maxWidth < 900,
               ),
             ),
-            const SizedBox(width: 6),
-            _TopBarChip(
-              icon: Icons.terminal,
-              label: _zh ? '终端' : 'Terminal',
-            ),
-            const SizedBox(width: 6),
-            _TopBarChip(
-              icon: Icons.notifications_none_outlined,
-              label: _zh ? '通知' : 'Notifications',
-            ),
+            if (showUtilityChips) ...[
+              const SizedBox(width: 6),
+              _TopBarChip(
+                icon: Icons.terminal,
+                label: _zh ? '终端' : 'Terminal',
+              ),
+              const SizedBox(width: 6),
+              _TopBarChip(
+                icon: Icons.notifications_none_outlined,
+                label: _zh ? '通知' : 'Notifications',
+              ),
+            ],
             const SizedBox(width: 6),
             _TopBarIconButton(
               icon: Icons.refresh_outlined,
               label: _zh ? '刷新' : 'Refresh',
               onPressed: () {},
             ),
-            const SizedBox(width: 6),
-            _TopBarChip(
-              icon: Icons.space_dashboard_outlined,
-              label: _zh ? '桌面工作区' : 'Desktop workspace',
-              compact: true,
-            ),
-            const SizedBox(width: 6),
-            if (onLocaleChanged != null)
+            if (showWorkspaceChip) ...[
+              const SizedBox(width: 6),
+              _TopBarChip(
+                icon: Icons.space_dashboard_outlined,
+                label: _zh ? '桌面工作区' : 'Desktop workspace',
+                compact: true,
+              ),
+            ],
+            if (showLanguageToggle) const SizedBox(width: 6),
+            if (showLanguageToggle && onLocaleChanged != null)
               _TopBarLanguageToggle(
                 localeCode: localeCode,
                 onLocaleChanged: onLocaleChanged!,
               ),
-            const SizedBox(width: 6),
-            if (isDark != null && onThemeChanged != null)
+            if (!compact) const SizedBox(width: 6),
+            if (!compact && isDark != null && onThemeChanged != null)
               _TopBarIconButton(
                 icon: isDark!
                     ? Icons.light_mode_outlined
@@ -2041,12 +2113,20 @@ class _DashboardMetricGrid extends StatelessWidget {
       ),
     ];
     return LayoutBuilder(builder: (context, constraints) {
+      final width = constraints.maxWidth;
+      final columns = width >= 1180
+          ? 5
+          : width >= 900
+              ? 3
+              : width >= 620
+                  ? 2
+                  : 1;
       return GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: metrics.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 5,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns,
           mainAxisSpacing: _DesktopGrid.gutter,
           crossAxisSpacing: _DesktopGrid.gutter,
           mainAxisExtent: 150,
@@ -2630,9 +2710,10 @@ class _DashboardActivityTimeline extends StatelessWidget {
 }
 
 class _TopBarSearchField extends StatelessWidget {
-  const _TopBarSearchField({required this.label});
+  const _TopBarSearchField({required this.label, this.compact = false});
 
   final String label;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -2662,23 +2743,25 @@ class _TopBarSearchField extends StatelessWidget {
                       height: 1.16,
                     )),
           ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-            decoration: BoxDecoration(
-              color: colors.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(6),
+          if (!compact) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              decoration: BoxDecoration(
+                color: colors.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                'Ctrl K',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      fontSize: 12,
+                      color: colors.onSurfaceVariant,
+                      fontWeight: FontWeight.w900,
+                      height: 1.05,
+                    ),
+              ),
             ),
-            child: Text(
-              'Ctrl K',
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontSize: 12,
-                    color: colors.onSurfaceVariant,
-                    fontWeight: FontWeight.w900,
-                    height: 1.05,
-                  ),
-            ),
-          ),
+          ],
         ],
       ),
     );
@@ -2773,12 +2856,12 @@ class _EqualHeightRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      if (constraints.maxWidth < 620) {
+      if (constraints.maxWidth < _DesktopGrid.rowBreakpoint) {
         return Column(
           children: [
             for (var index = 0; index < children.length; index++) ...[
               if (index > 0) const SizedBox(height: _DesktopGrid.gutter),
-              children[index],
+              SizedBox(height: height, child: children[index]),
             ],
           ],
         );
@@ -3413,7 +3496,7 @@ class _ProductPanel extends StatelessWidget {
                 ),
                 if (gap) ...[
                   const SizedBox(width: 8),
-                  const _CapabilityGapMarker(compact: true),
+                  const _CapabilityStatusMarker(compact: true),
                 ],
               ],
             ),
@@ -3554,7 +3637,7 @@ class _ProductTable extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return LayoutBuilder(builder: (context, constraints) {
       if (constraints.maxWidth < 360) {
-        return Column(
+        final narrowTable = Column(
           children: [
             for (var rowIndex = 0; rowIndex < rows.length; rowIndex++) ...[
               if (rowIndex > 0) const SizedBox(height: 8),
@@ -3589,6 +3672,16 @@ class _ProductTable extends StatelessWidget {
               ),
             ],
           ],
+        );
+        if (!constraints.maxHeight.isFinite) {
+          return narrowTable;
+        }
+        return Scrollbar(
+          thumbVisibility: false,
+          child: SingleChildScrollView(
+            primary: false,
+            child: _ScrollSafePadding(child: narrowTable),
+          ),
         );
       }
       return SingleChildScrollView(
@@ -3716,10 +3809,11 @@ class _CapabilityTableCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (_isCapabilityGapText(value)) {
+    final statusKind = _capabilityStatusKind(value);
+    if (statusKind != _CapabilityStatusKind.available) {
       return Align(
         alignment: Alignment.centerLeft,
-        child: _CapabilityGapMarker(label: value),
+        child: _CapabilityStatusMarker(label: value, kind: statusKind),
       );
     }
     return Tooltip(
@@ -3735,19 +3829,34 @@ class _CapabilityTableCell extends StatelessWidget {
   }
 }
 
-class _CapabilityGapMarker extends StatelessWidget {
-  const _CapabilityGapMarker({
+enum _CapabilityStatusKind { available, displayOnly, disabledBoundary }
+
+class _CapabilityStatusMarker extends StatelessWidget {
+  const _CapabilityStatusMarker({
     this.label,
     this.compact = false,
+    this.kind,
   });
 
   final String? label;
   final bool compact;
+  final _CapabilityStatusKind? kind;
 
   @override
   Widget build(BuildContext context) {
-    final color = Colors.amber.shade700;
-    final text = _capabilityGapLabel(
+    final resolvedKind = kind ?? _capabilityStatusKind(label ?? '');
+    final colors = Theme.of(context).colorScheme;
+    final color = switch (resolvedKind) {
+      _CapabilityStatusKind.displayOnly => colors.onSurfaceVariant,
+      _CapabilityStatusKind.disabledBoundary => Colors.amber.shade700,
+      _CapabilityStatusKind.available => Colors.green.shade700,
+    };
+    final icon = switch (resolvedKind) {
+      _CapabilityStatusKind.displayOnly => Icons.visibility_outlined,
+      _CapabilityStatusKind.disabledBoundary => Icons.warning_amber_outlined,
+      _CapabilityStatusKind.available => Icons.check_circle_outline,
+    };
+    final text = _capabilityStatusLabel(
       label,
       Localizations.localeOf(context).languageCode == 'zh',
     );
@@ -3764,8 +3873,7 @@ class _CapabilityGapMarker extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.warning_amber_outlined,
-              size: compact ? 13 : 14, color: color),
+          Icon(icon, size: compact ? 13 : 14, color: color),
           const SizedBox(width: 5),
           Flexible(
             child: Text(
@@ -3786,10 +3894,18 @@ class _CapabilityGapMarker extends StatelessWidget {
   }
 }
 
-bool _isCapabilityGapText(String value) {
+_CapabilityStatusKind _capabilityStatusKind(String value) {
   final lower = value.toLowerCase();
-  return lower.contains('disabled_boundary') ||
-      lower.contains('display_only') ||
+  if (lower.contains('enabled_real')) {
+    return _CapabilityStatusKind.available;
+  }
+  if (lower.contains('display_only') ||
+      lower.contains('preview only') ||
+      lower.contains('read-only') ||
+      value.contains('只读')) {
+    return _CapabilityStatusKind.displayOnly;
+  }
+  if (lower.contains('disabled_boundary') ||
       lower.contains('omitted') ||
       lower.contains('campaign 6') ||
       lower.contains('provider runtime gate') ||
@@ -3809,10 +3925,13 @@ bool _isCapabilityGapText(String value) {
       value.contains('不实现') ||
       value.contains('未授权') ||
       value.contains('边界') ||
-      value.contains('禁用');
+      value.contains('禁用')) {
+    return _CapabilityStatusKind.disabledBoundary;
+  }
+  return _CapabilityStatusKind.available;
 }
 
-String _capabilityGapLabel(String? value, bool zh) {
+String _capabilityStatusLabel(String? value, bool zh) {
   if (value == null) {
     return zh ? '待补齐' : 'Needs work';
   }
@@ -4055,11 +4174,13 @@ class _CenteredOutputFormatGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      final columns = constraints.maxWidth >= 540
+      final columns = constraints.maxWidth >= 1180
           ? items.length
-          : constraints.maxWidth >= 460
+          : constraints.maxWidth >= 720
               ? 3
-              : 1;
+              : constraints.maxWidth >= 420
+                  ? 2
+                  : 1;
       final rowCount = (items.length / columns).ceil();
       final cardHeight = columns == items.length ? 168.0 : 160.0;
       final gridHeight =
@@ -9621,10 +9742,10 @@ const sampleCampaign9DesktopDeliveryStatus = <String, dynamic>{
   'schema_id': 'campaign9_desktop_delivery_status',
   'schema_version': '2026-06-17',
   'overall_status':
-      'campaign9_windows_exe_packaging_local_smoke_passed_ui_bound',
+      'campaign9_windows_exe_packaging_rc3_usability_repair_passed_ui_bound',
   'final_target_status':
-      'campaign9_windows_exe_packaging_accepted_pushed_ci_green_tagged_rc2_pending_release_decision',
-  'release_candidate_tag': 'v4.3.0-rc2',
+      'campaign9_windows_exe_packaging_rc3_usability_repair_accepted_pushed_ci_green_tagged_rc3_pending_release_decision',
+  'release_candidate_tag': 'v4.3.0-rc3',
   'package_version_baseline': '4.2.0',
   'github_release_created': false,
   'stable_release_tag_authorized': false,
@@ -9671,7 +9792,7 @@ const sampleCampaign9DesktopDeliveryStatus = <String, dynamic>{
   },
   'desktop_shell_smoke': {
     'status': 'pass',
-    'evidence_path': 'output/campaign9_desktop_smoke/desktop_shell_smoke.json',
+    'evidence_path': 'output/rc3_manual_smoke/desktop_shell_smoke.json',
     'steps': <Map<String, dynamic>>[
       {'step': 'launch', 'result': 'pass'},
       {'step': 'minimize', 'result': 'pass'},
@@ -9693,7 +9814,7 @@ const sampleCampaign9DesktopDeliveryStatus = <String, dynamic>{
       'capability': 'desktop_shell_real_smoke',
       'status': 'pass',
       'ui_state': 'enabled_real',
-      'evidence': 'output/campaign9_desktop_smoke/desktop_shell_smoke.json',
+      'evidence': 'output/rc3_manual_smoke/desktop_shell_smoke.json',
     },
     {
       'capability': 'release_bundle_manifest',

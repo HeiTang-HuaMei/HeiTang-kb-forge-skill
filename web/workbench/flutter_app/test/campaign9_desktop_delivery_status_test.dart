@@ -30,10 +30,10 @@ void main() {
 
     expect(schema['schema_id'], 'campaign9_desktop_delivery_status');
     expect(schema['overall_status'],
-        'campaign9_windows_exe_packaging_local_smoke_passed_ui_bound');
+        'campaign9_windows_exe_packaging_rc3_usability_repair_passed_ui_bound');
     expect(schema['final_target_status'],
-        'campaign9_windows_exe_packaging_accepted_pushed_ci_green_tagged_rc2_pending_release_decision');
-    expect(schema['release_candidate_tag'], 'v4.3.0-rc2');
+        'campaign9_windows_exe_packaging_rc3_usability_repair_accepted_pushed_ci_green_tagged_rc3_pending_release_decision');
+    expect(schema['release_candidate_tag'], 'v4.3.0-rc3');
     expect(schema['package_version_baseline'], '4.2.0');
     expect(packageInfo['build_status'], 'pass');
     expect(packageInfo['exe'], 'heitang_workbench.exe');
@@ -120,7 +120,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('settings-desktop-delivery')), findsOneWidget);
-    expect(find.text('v4.3.0-rc2'), findsWidgets);
+    expect(find.text('v4.3.0-rc3'), findsWidgets);
     expect(find.text('heitang_workbench.exe'), findsWidgets);
     expect(find.textContaining('GitHub Release'), findsWidgets);
     expect(find.textContaining('v4.3.0'), findsWidgets);

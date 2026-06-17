@@ -1,9 +1,9 @@
 {
   "schema_id": "campaign9_desktop_delivery_status",
   "schema_version": "2026-06-17",
-  "overall_status": "campaign9_windows_exe_packaging_local_smoke_passed_ui_bound",
-  "final_target_status": "campaign9_windows_exe_packaging_accepted_pushed_ci_green_tagged_rc2_pending_release_decision",
-  "release_candidate_tag": "v4.3.0-rc2",
+  "overall_status": "campaign9_windows_exe_packaging_rc3_usability_repair_passed_ui_bound",
+  "final_target_status": "campaign9_windows_exe_packaging_rc3_usability_repair_accepted_pushed_ci_green_tagged_rc3_pending_release_decision",
+  "release_candidate_tag": "v4.3.0-rc3",
   "package_version_baseline": "4.2.0",
   "github_release_created": false,
   "stable_release_tag_authorized": false,
@@ -47,7 +47,7 @@
   },
   "desktop_shell_smoke": {
     "status": "pass",
-    "evidence_path": "output/campaign9_desktop_smoke/desktop_shell_smoke.json",
+    "evidence_path": "output/rc3_manual_smoke/desktop_shell_smoke.json",
     "steps": [
       {
         "step": "launch",
@@ -90,7 +90,7 @@
       "capability": "desktop_shell_real_smoke",
       "status": "pass",
       "ui_state": "enabled_real",
-      "evidence": "output/campaign9_desktop_smoke/desktop_shell_smoke.json"
+      "evidence": "output/rc3_manual_smoke/desktop_shell_smoke.json"
     },
     {
       "capability": "release_bundle_manifest",
