@@ -226,13 +226,13 @@ def test_campaign9_desktop_delivery_status_is_ui_bound_without_release_overclaim
     assert status["schema_id"] == "campaign9_desktop_delivery_status"
     assert (
         status["overall_status"]
-        == "campaign9_windows_exe_packaging_rc3_usability_repair_passed_ui_bound"
+        == "campaign9_windows_exe_packaging_rc4_owner_acceptance_failure_repair_ui_bound_pending_owner_retest"
     )
     assert (
         status["final_target_status"]
-        == "campaign9_windows_exe_packaging_rc3_usability_repair_accepted_pushed_ci_green_tagged_rc3_pending_release_decision"
+        == "v4.3.0-rc4_owner_acceptance_failure_repair_pushed_ci_green_tagged_pending_owner_retest"
     )
-    assert status["release_candidate_tag"] == "v4.3.0-rc3"
+    assert status["release_candidate_tag"] == "v4.3.0-rc4"
     assert status["package_version_baseline"] == "4.2.0"
     assert status["github_release_created"] is False
     assert status["stable_release_tag_authorized"] is False
