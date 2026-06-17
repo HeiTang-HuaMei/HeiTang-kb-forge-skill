@@ -174,3 +174,14 @@ def test_no_force_push_command_usage(monkeypatch):
 
     flattened = [" ".join(args) for args, _input in fake.commands]
     assert not any("--force" in command or "+refs/" in command for command in flattened)
+
+
+def test_tree_entry_uses_lf_filename(monkeypatch):
+    fake = FakeGit(jsonl="")
+    monkeypatch.setattr(agent_chat, "run_git", fake)
+
+    agent_chat.send_message(sender="codex", message_type="review", reply_to=None, body="ready")
+
+    mktree_inputs = [input_text for args, input_text in fake.commands if args == ["mktree"]]
+    assert mktree_inputs == [f"100644 blob {'b' * 40}\t{agent_chat.CHAT_FILE}\n"]
+    assert "\r" not in mktree_inputs[0]

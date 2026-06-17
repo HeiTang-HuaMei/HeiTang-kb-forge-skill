@@ -42,16 +42,22 @@ def run_git(
     input_text: str | None = None,
     check: bool = True,
 ) -> subprocess.CompletedProcess[str]:
+    raw_input = input_text.encode("utf-8") if input_text is not None else None
     result = subprocess.run(
         ["git", *args],
-        input=input_text,
-        text=True,
+        input=raw_input,
         capture_output=True,
     )
+    completed = subprocess.CompletedProcess(
+        result.args,
+        result.returncode,
+        stdout=result.stdout.decode("utf-8", errors="replace"),
+        stderr=result.stderr.decode("utf-8", errors="replace"),
+    )
     if check and result.returncode != 0:
-        detail = (result.stderr or result.stdout or "").strip()
+        detail = (completed.stderr or completed.stdout or "").strip()
         raise AgentChatError(f"git {' '.join(args)} failed: {detail}")
-    return result
+    return completed
 
 
 def resolve_ref(ref: str = CHAT_REF) -> str | None:
@@ -65,10 +71,33 @@ def read_ref_jsonl(ref: str | None = CHAT_REF) -> str:
     if ref is None or resolve_ref(ref) is None:
         return ""
     result = run_git(["show", f"{ref}:{CHAT_FILE}"], check=False)
+    if result.returncode == 0:
+        return result.stdout
+
+    legacy_text = read_legacy_chat_file(ref)
+    if legacy_text is not None:
+        return legacy_text
+
+    detail = (result.stderr or result.stdout or "").strip()
+    raise AgentChatError(f"{ref} exists but {CHAT_FILE} cannot be read: {detail}")
+
+
+def read_legacy_chat_file(ref: str) -> str | None:
+    result = run_git(["ls-tree", "-z", ref], check=False)
     if result.returncode != 0:
-        detail = (result.stderr or result.stdout or "").strip()
-        raise AgentChatError(f"{ref} exists but {CHAT_FILE} cannot be read: {detail}")
-    return result.stdout
+        return None
+    for entry in result.stdout.split("\0"):
+        if not entry:
+            continue
+        meta, _, name = entry.partition("\t")
+        parts = meta.split()
+        if len(parts) < 3:
+            continue
+        blob_oid = parts[2]
+        if name.rstrip("\r") == CHAT_FILE:
+            blob = run_git(["cat-file", "-p", blob_oid])
+            return blob.stdout
+    return None
 
 
 def parse_jsonl(text: str) -> tuple[list[dict[str, Any]], list[str]]:
