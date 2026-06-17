@@ -639,7 +639,7 @@ void main() {
     await tester.tap(find.text('包结构').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('skill-output-preview')), findsOneWidget);
-    expect(find.text('Skill 包结构预览'), findsOneWidget);
+    expect(find.text('Skill 包结构'), findsOneWidget);
     await tester.tap(find.text('治理报告').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('skill-validation-summary')), findsOneWidget);
@@ -672,32 +672,43 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Agent Runtime'), findsWidgets);
-    expect(find.text('Execution Overview'), findsOneWidget);
-    expect(find.text('Single Agents'), findsOneWidget);
-    expect(find.text('Multi-Agent / Memory'), findsOneWidget);
-    expect(find.text('Tool Adapter'), findsOneWidget);
-    expect(find.byKey(const Key('campaign6-runtime-overview')), findsOneWidget);
-    expect(find.text('campaign6a_single_agent_runtime'), findsOneWidget);
-    final singleAgentTab = find.text('Single Agents').first;
-    await tester.ensureVisible(singleAgentTab);
-    await tester.tap(singleAgentTab, warnIfMissed: false);
+    expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
+    expect(find.text('Create Agent'), findsWidgets);
+    expect(find.text('Generate Agent'), findsWidgets);
+    expect(find.text('Choose real folder to import'), findsNothing);
+    expect(find.text('Build Knowledge Base'), findsNothing);
+    expect(find.text('Generate Skill'), findsNothing);
+    expect(find.text('Run real retrieval'), findsNothing);
+    expect(find.text('Execution Overview'), findsNothing);
+
+    final discussionTab = find.text('Bindings & Discussion').first;
+    await tester.ensureVisible(discussionTab);
+    await tester.tap(discussionTab, warnIfMissed: false);
     await tester.pumpAndSettle();
+    expect(find.byKey(const Key('multi-agent-discussion-product-flow')),
+        findsOneWidget);
+    expect(find.text('Start discussion'), findsOneWidget);
+
+    final auditTab = find.text('Runtime Audit').first;
+    await tester.ensureVisible(auditTab);
+    await tester.tap(auditTab, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('campaign6-runtime-overview')), findsOneWidget);
+    expect(find.text('Campaign 6 Execution Overview'), findsOneWidget);
+    expect(find.text('campaign6a_single_agent_runtime'), findsOneWidget);
     expect(
         find.byKey(const Key('campaign6-single-agent-status')), findsOneWidget);
     expect(find.text('Knowledge QA Agent'), findsOneWidget);
     expect(find.text('External Verification Agent'), findsOneWidget);
-    final multiAgentTab = find.text('Multi-Agent / Memory').first;
-    await tester.ensureVisible(multiAgentTab);
-    await tester.tap(multiAgentTab, warnIfMissed: false);
+
+    final boundaryTab = find.text('Safety Boundary').first;
+    await tester.ensureVisible(boundaryTab);
+    await tester.tap(boundaryTab, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('campaign6-advanced-runtime-status')),
         findsOneWidget);
     expect(find.text('long_term_memory'), findsOneWidget);
     expect(find.text('agent_teams'), findsOneWidget);
-    final toolAdapter = find.text('Tool Adapter');
-    await tester.ensureVisible(toolAdapter);
-    await tester.tap(toolAdapter, warnIfMissed: false);
-    await tester.pumpAndSettle();
     expect(
         find.byKey(const Key('campaign6-tool-adapter-status')), findsOneWidget);
     expect(find.text('provider_runtime_reimplemented'), findsOneWidget);
@@ -834,7 +845,6 @@ void main() {
     final button = tester.widget<FilledButton>(runButton);
 
     expect(button.onPressed, isNull);
-    expect(find.textContaining('web_local_cli_unsupported'), findsWidgets);
     expect(find.text('当前环境不可执行本地命令。'), findsWidgets);
     expect(runnerCalled, isFalse);
     expect(tester.takeException(), isNull);

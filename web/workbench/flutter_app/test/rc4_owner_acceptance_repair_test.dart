@@ -32,7 +32,7 @@ void main() {
 
       for (final entry in <MapEntry<Key, Key>>[
         const MapEntry(Key('sidebar-agent-factory-runtime'),
-            Key('campaign6-runtime-overview')),
+            Key('agent-create-product-flow')),
         const MapEntry(
             Key('sidebar-reports-audit'), Key('validation-checklist')),
         const MapEntry(
@@ -55,15 +55,18 @@ void main() {
 
     await tester.tap(find.byKey(const Key('topbar-search-field')));
     await tester.pumpAndSettle();
-    expect(find.textContaining('display_only'), findsWidgets);
+    expect(find.byKey(const Key('topbar-real-search-input')), findsOneWidget);
+    expect(find.textContaining('display_only'), findsNothing);
 
     await tester.ensureVisible(find.byKey(const Key('sidebar-import-parsing')));
     await tester.tap(find.byKey(const Key('sidebar-import-parsing')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('rc6-runtime-truth-panel')), findsOneWidget);
-    expect(find.text('选择文件'), findsWidgets);
-    expect(find.text('运行完整链路'), findsWidgets);
+    expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);
+    expect(find.text('选择真实文件导入'), findsWidgets);
+    expect(find.text('选择真实文件夹导入'), findsWidgets);
+    expect(find.text('导入 Owner input 文件夹'), findsWidgets);
+    expect(find.text('运行完整链路'), findsNothing);
 
     await tester
         .ensureVisible(find.byKey(const Key('sidebar-retrieval-verification')));
@@ -72,7 +75,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('运行真实检索'), warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.text('执行外部事实验证'), findsOneWidget);
+    expect(find.text('执行外部事实验证'), findsWidgets);
     expect(find.textContaining('opt-in'), findsWidgets);
 
     await tester
@@ -80,24 +83,23 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-document-generation')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('排队生成任务'), warnIfMissed: false);
+    await tester.tap(find.text('生成读书笔记'), warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.textContaining('没有真实导出文件'), findsWidgets);
+    expect(find.textContaining('等待生成'), findsWidgets);
 
     await tester.ensureVisible(find.byKey(const Key('sidebar-skill-factory')));
     await tester.tap(find.byKey(const Key('sidebar-skill-factory')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    final skillPreviewButton = find.text('准备 Skill 配置预览').first;
-    await tester.ensureVisible(skillPreviewButton);
-    await tester.tap(skillPreviewButton, warnIfMissed: false);
+    final skillButton = find.text('生成 Skill').first;
+    await tester.ensureVisible(skillButton);
+    await tester.tap(skillButton, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.textContaining('请先构建知识库'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('rc4 status labels do not overstate preview-only surfaces',
-      (tester) async {
+  testWidgets('rc7 main-flow status labels are product owned', (tester) async {
     await pumpWorkbench(tester, const Size(1366, 768));
 
     await tester
@@ -105,15 +107,17 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-document-generation')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.textContaining('display_only'), findsWidgets);
-    expect(find.textContaining('无真实文件产物则不标 accepted'), findsWidgets);
+    expect(find.textContaining('display_only'), findsNothing);
+    expect(find.text('生成读书笔记'), findsWidgets);
+    expect(find.text('重新生成 Markdown'), findsWidgets);
 
     await tester.ensureVisible(find.byKey(const Key('sidebar-skill-factory')));
     await tester.tap(find.byKey(const Key('sidebar-skill-factory')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.text('书籍 / 文档转 Skill'), findsOneWidget);
-    expect(find.textContaining('display_only'), findsWidgets);
+    expect(find.text('生成 Skill'), findsWidgets);
+    expect(find.textContaining('display_only'), findsNothing);
 
     await tester.ensureVisible(find.byKey(const Key('sidebar-workspace')));
     await tester.tap(find.byKey(const Key('sidebar-workspace')),

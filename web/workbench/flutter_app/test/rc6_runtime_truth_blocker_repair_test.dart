@@ -38,7 +38,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('rc6 document library binds to real runtime state',
+  testWidgets('rc7 document library shows product-owned document state',
       (tester) async {
     await pumpWorkbench(tester);
 
@@ -50,8 +50,9 @@ void main() {
 
     expect(find.byKey(const Key('document-library')), findsOneWidget);
     expect(find.text('等待导入真实文档'), findsOneWidget);
-    expect(find.textContaining('display_only'), findsWidgets);
-    expect(find.textContaining('示例行保持'), findsOneWidget);
+    expect(find.textContaining('display_only'), findsNothing);
+    expect(find.textContaining('示例行保持'), findsNothing);
+    expect(find.text('刷新文档列表'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -84,7 +85,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('rc6 skill and agent pages expose real runtime surfaces',
+  testWidgets('rc7 skill and agent pages keep capabilities on owned pages',
       (tester) async {
     await pumpWorkbench(tester);
 
@@ -109,10 +110,17 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-agent-factory-runtime')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('rc6-runtime-truth-panel')), findsWidgets);
-    expect(find.text('搜索当前关键词'), findsWidgets);
+    expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
+    expect(find.text('选择文件夹'), findsNothing);
+    expect(find.text('运行 Owner input 链路'), findsNothing);
+    expect(find.text('搜索当前关键词'), findsNothing);
     expect(find.text('生成 Agent'), findsWidgets);
-    expect(find.text('Agent 草稿'), findsWidgets);
+    expect(find.text('绑定与讨论'), findsOneWidget);
+    await tester.tap(find.text('绑定与讨论').first, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('multi-agent-discussion-product-flow')),
+        findsOneWidget);
+    expect(find.text('启动联合讨论'), findsOneWidget);
     expect(find.textContaining('arbitrary shell'), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -203,5 +211,209 @@ void main() {
     expect(controller.state.searchStatus, Rc6SearchStatus.success);
     expect(controller.state.searchResults.single.excerpt,
         contains('heitang-rc6-needle'));
+  });
+
+  test(
+      'rc6 real input folder chain uses allowlisted Core actions and artifacts',
+      () async {
+    final workspace = await createWorkspace();
+    final input =
+        Directory('${workspace.path}${Platform.pathSeparator}input_src')
+          ..createSync(recursive: true);
+    File('${input.path}${Platform.pathSeparator}alpha.pdf')
+        .writeAsStringSync('alpha pdf text 赚钱 小生意');
+    File(
+        '${input.path}${Platform.pathSeparator}nested${Platform.pathSeparator}beta.txt')
+      ..createSync(recursive: true)
+      ..writeAsStringSync('beta text');
+
+    final requests = <CoreBridgeRequest>[];
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          requests.add(request);
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          switch (request.actionId) {
+            case 'batch_import_documents':
+              File('${output.path}${Platform.pathSeparator}batch_import_report.json')
+                  .writeAsStringSync(
+                      const JsonEncoder.withIndent('  ').convert({
+                'status': 'completed',
+                'imported_count': 2,
+              }));
+            case 'document_understanding':
+              expect(request.arguments, contains('--runtime-config'));
+              final duManifest = {
+                'status': 'completed',
+                'success_count': 2,
+                'failed_count': 0,
+                'normalized_source_count': 2,
+              };
+              File('${output.path}${Platform.pathSeparator}document_understanding_manifest.json')
+                  .writeAsStringSync(
+                      const JsonEncoder.withIndent('  ').convert(duManifest));
+              File('${output.path}${Platform.pathSeparator}document_understanding_records.jsonl')
+                  .writeAsStringSync(
+                      '{"backend":"builtin","text_length":20}\n');
+              Directory(
+                      '${output.path}${Platform.pathSeparator}normalized_sources')
+                  .createSync();
+            case 'knowledge_base_build':
+              File('${output.path}${Platform.pathSeparator}manifest.json')
+                  .writeAsStringSync('{}');
+              File('${output.path}${Platform.pathSeparator}quality_report.json')
+                  .writeAsStringSync('{}');
+              File('${output.path}${Platform.pathSeparator}knowledge_base_build_report.json')
+                  .writeAsStringSync('{"source_count":2}');
+              File('${output.path}${Platform.pathSeparator}chunks.jsonl')
+                  .writeAsStringSync(
+                      '{"text":"赚钱 小生意","source_path":"alpha.pdf","citation":"alpha.pdf#chunk=1"}\n');
+              File('${output.path}${Platform.pathSeparator}cards.jsonl')
+                  .writeAsStringSync('{"title":"赚钱小生意","summary":"真实主题"}\n');
+              File('${output.path}${Platform.pathSeparator}qa_pairs.jsonl')
+                  .writeAsStringSync(
+                      '{"question":"主题是什么?","answer":"赚钱小生意"}\n');
+            case 'rag_query':
+              File('${output.path}${Platform.pathSeparator}kb_query_result.json')
+                  .writeAsStringSync(
+                      const JsonEncoder.withIndent('  ').convert({
+                'query': '赚钱 小生意',
+                'selected_count': 1,
+                'records': [
+                  {
+                    'source_path': 'alpha.pdf',
+                    'text': '真实输入命中赚钱小生意',
+                    'citation': 'alpha.pdf#chunk=1',
+                    'score': 2,
+                  }
+                ],
+              }));
+            case 'generate_markdown':
+              File('${output.path}${Platform.pathSeparator}generated.md')
+                  .writeAsStringSync('# generated from real input');
+            case 'package_to_skill':
+              File('${output.path}${Platform.pathSeparator}SKILL.md')
+                  .writeAsStringSync('# skill');
+              File('${output.path}${Platform.pathSeparator}skill_manifest.yaml')
+                  .writeAsStringSync('name: skill');
+            case 'kb_bound_agent_generation':
+              File('${output.path}${Platform.pathSeparator}agent_manifest.json')
+                  .writeAsStringSync('{"name":"agent"}');
+              File('${output.path}${Platform.pathSeparator}agent_profile.yaml')
+                  .writeAsStringSync('name: agent');
+          }
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.runRealInputFolderE2E(input.path);
+
+    expect(requests.map((request) => request.actionId), [
+      'batch_import_documents',
+      'document_understanding',
+      'knowledge_base_build',
+      'rag_query',
+      'generate_markdown',
+      'package_to_skill',
+      'kb_bound_agent_generation',
+    ]);
+    expect(controller.state.sourceCount, 2);
+    expect(controller.state.chunkCount, 1);
+    expect(controller.state.cardsPath, isNotEmpty);
+    expect(controller.state.qaPairsPath, isNotEmpty);
+    expect(controller.state.hasReadingNotes, isTrue);
+    expect(controller.state.hasMultiAgentDiscussion, isTrue);
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}doc${Platform.pathSeparator}reading_notes.md')
+            .readAsStringSync(),
+        contains('真实输入文件夹读书笔记'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
+            .readAsStringSync(),
+        contains('每个 Agent 的观点'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
+            .readAsStringSync(),
+        contains('真实输入命中赚钱小生意'));
+  });
+
+  test('rc6 owner input folder chain uses the fixed Owner input directory',
+      () async {
+    final workspace = await createWorkspace();
+    final requests = <CoreBridgeRequest>[];
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          requests.add(request);
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          switch (request.actionId) {
+            case 'batch_import_documents':
+              File('${output.path}${Platform.pathSeparator}batch_import_report.json')
+                  .writeAsStringSync('{"imported_count":6}');
+            case 'document_understanding':
+              File('${output.path}${Platform.pathSeparator}document_understanding_manifest.json')
+                  .writeAsStringSync('{"status":"completed"}');
+            case 'knowledge_base_build':
+              File('${output.path}${Platform.pathSeparator}manifest.json')
+                  .writeAsStringSync('{}');
+              File('${output.path}${Platform.pathSeparator}quality_report.json')
+                  .writeAsStringSync('{}');
+              File('${output.path}${Platform.pathSeparator}chunks.jsonl')
+                  .writeAsStringSync(
+                      '{"text":"赚钱 小生意","source_path":"owner.pdf"}\n');
+              File('${output.path}${Platform.pathSeparator}cards.jsonl')
+                  .writeAsStringSync('{"title":"Owner input"}\n');
+              File('${output.path}${Platform.pathSeparator}qa_pairs.jsonl')
+                  .writeAsStringSync('{"question":"q","answer":"a"}\n');
+            case 'rag_query':
+              File('${output.path}${Platform.pathSeparator}kb_query_result.json')
+                  .writeAsStringSync(
+                      '{"query":"赚钱 小生意","selected_count":1,"selected":[{"text":"owner hit","source_path":"owner.pdf"}]}');
+            case 'generate_markdown':
+              File('${output.path}${Platform.pathSeparator}generated.md')
+                  .writeAsStringSync('# owner input');
+            case 'package_to_skill':
+              File('${output.path}${Platform.pathSeparator}SKILL.md')
+                  .writeAsStringSync('# skill');
+              File('${output.path}${Platform.pathSeparator}skill_manifest.yaml')
+                  .writeAsStringSync('name: skill');
+            case 'kb_bound_agent_generation':
+              File('${output.path}${Platform.pathSeparator}agent_manifest.json')
+                  .writeAsStringSync('{"name":"agent"}');
+              File('${output.path}${Platform.pathSeparator}agent_profile.yaml')
+                  .writeAsStringSync('name: agent');
+          }
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.runOwnerInputFolderE2E();
+
+    final ownerInput = Directory(r'D:\HeiTang-Codex-WorkSpace\input');
+    if (ownerInput.existsSync()) {
+      expect(requests.first.actionId, 'batch_import_documents');
+      expect(controller.state.sourceCount, greaterThan(0));
+      expect(controller.state.selectedFilePath,
+          '${workspace.path}${Platform.pathSeparator}input');
+    } else {
+      expect(controller.state.lastError,
+          contains(r'D:\HeiTang-Codex-WorkSpace\input'));
+    }
   });
 }

@@ -83,9 +83,9 @@ void main() {
     expect(find.text('Agent Runtime'), findsWidgets);
     expect(find.text('enabled_real'), findsWidgets);
 
-    final memoryTab = find.text('多 Agent / Memory');
-    await tester.ensureVisible(memoryTab);
-    await tester.tap(memoryTab, warnIfMissed: false);
+    final boundaryTab = find.text('安全边界').first;
+    await tester.ensureVisible(boundaryTab);
+    await tester.tap(boundaryTab, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.text('Computer Use'), findsWidgets);
     expect(find.text('disabled_boundary'), findsWidgets);
@@ -98,7 +98,7 @@ void main() {
     await tester.ensureVisible(providerTab);
     await tester.tap(providerTab, warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.text('sk-************'), findsWidgets);
+    expect(find.text('************'), findsWidgets);
 
     final desktopTab = find.text('桌面交付').first;
     await tester.ensureVisible(desktopTab);

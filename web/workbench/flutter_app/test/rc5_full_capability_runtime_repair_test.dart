@@ -23,25 +23,23 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('rc5 exposes real runtime chains on declared main pages',
+  testWidgets('rc7 maps real runtime capabilities to product-owned pages',
       (tester) async {
     await pumpWorkbench(tester);
 
     const expectedSurfaces = <MapEntry<Key, Key>>[
-      MapEntry(Key('sidebar-import-parsing'),
-          Key('rc5-primary-runtime-actions-import-parsing')),
+      MapEntry(Key('sidebar-import-parsing'), Key('import-intake-surface')),
       MapEntry(Key('sidebar-knowledge-package-management'),
-          Key('rc5-primary-runtime-actions-knowledge-package-management')),
-      MapEntry(Key('sidebar-retrieval-verification'),
-          Key('rc5-primary-runtime-actions-retrieval-verification')),
-      MapEntry(Key('sidebar-document-generation'),
-          Key('rc5-primary-runtime-actions-document-generation')),
-      MapEntry(Key('sidebar-skill-factory'),
-          Key('rc5-primary-runtime-actions-skill-factory')),
+          Key('knowledge-package-list')),
+      MapEntry(
+          Key('sidebar-retrieval-verification'), Key('retrieval-workflow')),
+      MapEntry(
+          Key('sidebar-document-generation'), Key('document-generation-tasks')),
+      MapEntry(
+          Key('sidebar-skill-factory'), Key('skill-metadata-source-config')),
       MapEntry(Key('sidebar-agent-factory-runtime'),
-          Key('rc5-primary-runtime-actions-agent-factory-runtime')),
-      MapEntry(Key('sidebar-workspace'),
-          Key('rc5-primary-runtime-actions-workspace')),
+          Key('agent-create-product-flow')),
+      MapEntry(Key('sidebar-workspace'), Key('settings-workspace-overview')),
     ];
 
     for (final entry in expectedSurfaces) {
@@ -49,9 +47,9 @@ void main() {
       await tester.tap(find.byKey(entry.key), warnIfMissed: false);
       await tester.pumpAndSettle();
       expect(find.byKey(entry.value), findsOneWidget, reason: '${entry.key}');
-      expect(find.text('真实运行链路'), findsWidgets, reason: '${entry.key}');
-      expect(find.text('运行 Core 操作'), findsWidgets, reason: '${entry.key}');
-      expect(find.textContaining('allowlisted_core_bridge'), findsWidgets,
+      expect(find.text('真实运行链路'), findsNothing, reason: '${entry.key}');
+      expect(find.text('运行 Core 操作'), findsNothing, reason: '${entry.key}');
+      expect(find.textContaining('allowlisted_core_bridge'), findsNothing,
           reason: '${entry.key}');
     }
     expect(tester.takeException(), isNull);
@@ -106,9 +104,9 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-agent-factory-runtime')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    final memoryTab = find.text('多 Agent / Memory').first;
-    await tester.ensureVisible(memoryTab);
-    await tester.tap(memoryTab, warnIfMissed: false);
+    final boundaryTab = find.text('安全边界').first;
+    await tester.ensureVisible(boundaryTab);
+    await tester.tap(boundaryTab, warnIfMissed: false);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Computer Use'), findsWidgets);
