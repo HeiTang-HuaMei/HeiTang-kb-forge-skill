@@ -46,8 +46,8 @@ const pages = <WorkbenchPage>[
       'dashboard',
       'Dashboard',
       '首页',
-      'Workbench overview, recent work, health, artifacts, and activity timeline.',
-      '工作台概览、最近任务、健康状态、产物与活动时间线。',
+      'Workbench overview, recent work, health, artifacts, and next actions.',
+      '工作台概览、最近任务、健康状态、产物与下一步行动。',
       memberPageIds: [
         'dashboard',
         'operation-gate',
@@ -2172,7 +2172,7 @@ String _dashboardNextStep(Rc6RuntimeState runtime, bool zh) {
   }
   if (!runtime.hasMarkdown) return zh ? '生成文档' : 'generate doc';
   if (!runtime.hasExportedDocument) return zh ? '导出文件' : 'export file';
-  return zh ? '等待复验' : 'ready for retest';
+  return zh ? '产物可复用' : 'artifacts reusable';
 }
 
 class _DashboardMetricData {
@@ -2689,7 +2689,7 @@ class _DashboardReportSummary extends StatelessWidget {
     return _ProductPanel(
       keyName: 'dashboard-report-summary',
       icon: Icons.analytics_outlined,
-      title: _zh ? '报告摘要' : 'Report Summary',
+      title: _zh ? '知识供应链进度' : 'Knowledge Supply Chain',
       children: [
         _ProductTable(
           columns: _zh
@@ -2709,7 +2709,7 @@ class _DashboardReportSummary extends StatelessWidget {
                     'chunks / cards / qa_pairs / manifest',
                     '检索验证'
                   ],
-                  ['文档生成', '可操作', 'Markdown 草稿与导出文件', 'Owner 复验'],
+                  ['文档生成', '可操作', 'Markdown 草稿与导出文件', '进入产物中心'],
                 ]
               : [
                   [
@@ -2728,7 +2728,7 @@ class _DashboardReportSummary extends StatelessWidget {
                     'Document generation',
                     'Actionable',
                     'Markdown draft and export file',
-                    'Owner retest'
+                    'Open artifacts'
                   ],
                 ],
         ),
@@ -2822,7 +2822,7 @@ class _DashboardAuthorizationCard extends StatelessWidget {
     return _ProductPanel(
       keyName: 'dashboard-authorization',
       icon: Icons.admin_panel_settings_outlined,
-      title: _zh ? '授权配置' : 'Authorization',
+      title: _zh ? '配置状态' : 'Configuration Status',
       gap: true,
       children: [
         _ProductTable(
@@ -2831,25 +2831,25 @@ class _DashboardAuthorizationCard extends StatelessWidget {
               : ['Capability', 'Handling', 'User action'],
           rows: _zh
               ? [
-                  ['外部事实验证', '授权后启用', '在设置中配置联网 Provider'],
-                  ['外部向量库 / Redis', '授权后启用', '保存配置并测试连接'],
-                  ['高风险系统能力', '不开放', '无普通用户入口'],
+                  ['外部事实验证', '需要配置', '在运行设置中配置联网 Provider'],
+                  ['Redis 记忆缓存', '可选配置', '保存配置并测试连接'],
+                  ['Qdrant 向量库', '可选配置', '保存配置并测试连接'],
                 ]
               : [
                   [
                     'External fact checking',
-                    'Enable after authorization',
+                    'Needs configuration',
                     'Configure network Provider in Settings'
                   ],
                   [
-                    'External vector DB / Redis',
-                    'Enable after authorization',
+                    'Redis memory cache',
+                    'Optional configuration',
                     'Save config and test connection'
                   ],
                   [
-                    'High-risk system capabilities',
-                    'Not opened',
-                    'No standard user entry'
+                    'Qdrant vector DB',
+                    'Optional configuration',
+                    'Save config and test connection'
                   ],
                 ],
         ),
@@ -4930,6 +4930,24 @@ String _capabilityStatusLabel(String? value, bool zh) {
   return value;
 }
 
+String _settingsHealthLabel(Object? value, bool zh) {
+  final text = value?.toString() ?? '';
+  if (text.isEmpty) return zh ? '需要配置' : 'Needs configuration';
+  final lower = text.toLowerCase();
+  if (lower == 'available' ||
+      lower == 'pass' ||
+      lower == 'configured' ||
+      lower == 'connected') {
+    return zh ? '可用' : 'Available';
+  }
+  if (lower.contains('missing') ||
+      lower.contains('not connected') ||
+      lower.contains('not authorized')) {
+    return zh ? '需要配置或测试' : 'Needs configuration or test';
+  }
+  return _capabilityStatusLabel(text, zh);
+}
+
 class _StatePill extends StatelessWidget {
   const _StatePill({
     required this.label,
@@ -6781,7 +6799,7 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
     final exportReady = runtime.hasMarkdown
         ? (zh ? '可导出' : 'Ready')
         : (zh ? '需要文档' : 'Needs document');
-    final realCoreExport = zh ? '本地 Core 导出' : 'Local Core export';
+    final localExporter = zh ? '本地导出器' : 'Local exporter';
     Future<void> openGenerationDialog() async {
       final result = await showDialog<_DocumentGenerationConfig>(
         context: context,
@@ -7092,12 +7110,12 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
             _MetricDatum(
                 label: 'DOCX',
                 value: exportReady,
-                detail: realCoreExport,
+                detail: localExporter,
                 icon: Icons.description_outlined),
             _MetricDatum(
                 label: 'PDF/PPTX',
                 value: exportReady,
-                detail: realCoreExport,
+                detail: localExporter,
                 icon: Icons.picture_as_pdf_outlined),
             _MetricDatum(
                 label: 'JSON/CSV',
@@ -7520,24 +7538,9 @@ class _DocumentExportPreviewViewState
                       '本地结构化',
                       'knowledge_export.csv'
                     ],
-                    [
-                      'DOCX',
-                      exportStatus,
-                      '本地 Core 生成',
-                      artifactForFormat('docx')
-                    ],
-                    [
-                      'PDF',
-                      exportStatus,
-                      '本地 Core 生成',
-                      artifactForFormat('pdf')
-                    ],
-                    [
-                      'PPTX',
-                      exportStatus,
-                      '本地 Core 生成',
-                      artifactForFormat('pptx')
-                    ],
+                    ['DOCX', exportStatus, '本地导出器', artifactForFormat('docx')],
+                    ['PDF', exportStatus, '本地导出器', artifactForFormat('pdf')],
+                    ['PPTX', exportStatus, '本地导出器', artifactForFormat('pptx')],
                   ]
                 : [
                     [
@@ -7567,19 +7570,19 @@ class _DocumentExportPreviewViewState
                     [
                       'DOCX',
                       exportStatus,
-                      'Local Core generation',
+                      'Local exporter',
                       artifactForFormat('docx')
                     ],
                     [
                       'PDF',
                       exportStatus,
-                      'Local Core generation',
+                      'Local exporter',
                       artifactForFormat('pdf')
                     ],
                     [
                       'PPTX',
                       exportStatus,
-                      'Local Core generation',
+                      'Local exporter',
                       artifactForFormat('pptx')
                     ],
                   ],
@@ -13453,25 +13456,56 @@ class _SettingsConfigurationSystemView extends StatelessWidget {
       final diagnosticsPanel = _ProductPanel(
         keyName: 'settings-configuration-diagnostics',
         icon: Icons.health_and_safety_outlined,
-        title: zh ? '配置检查' : 'Configuration Checks',
+        title: zh ? '配置健康' : 'Configuration Health',
         gap: true,
         children: [
           _ProductTable(
-            columns: zh ? ['配置面', '状态'] : ['Configuration area', 'Status'],
-            rows: [
-              [
-                'provider_runtime',
-                _campaignText(diagnostics['provider_runtime'])
-              ],
-              ['agent_runtime', _campaignText(diagnostics['agent_runtime'])],
-              [
-                'tool_adapter_registry',
-                _campaignText(diagnostics['tool_adapter_registry'])
-              ],
-              ['rag', _campaignText(diagnostics['rag'])],
-              ['workspace', _campaignText(diagnostics['workspace'])],
-              ['ui_settings', _campaignText(diagnostics['ui_settings'])],
-            ],
+            columns: zh ? ['配置项', '状态'] : ['Configuration item', 'Status'],
+            rows: zh
+                ? [
+                    [
+                      '模型 Provider',
+                      _settingsHealthLabel(diagnostics['provider_runtime'], zh)
+                    ],
+                    [
+                      'Agent 工作台配置',
+                      _settingsHealthLabel(diagnostics['agent_runtime'], zh)
+                    ],
+                    [
+                      '知识库 / RAG 配置',
+                      _settingsHealthLabel(diagnostics['rag'], zh)
+                    ],
+                    [
+                      '工作区路径',
+                      _settingsHealthLabel(diagnostics['workspace'], zh)
+                    ],
+                    [
+                      '界面设置',
+                      _settingsHealthLabel(diagnostics['ui_settings'], zh)
+                    ],
+                  ]
+                : [
+                    [
+                      'Model Provider',
+                      _settingsHealthLabel(diagnostics['provider_runtime'], zh)
+                    ],
+                    [
+                      'Agent Workbench config',
+                      _settingsHealthLabel(diagnostics['agent_runtime'], zh)
+                    ],
+                    [
+                      'Knowledge Base / RAG config',
+                      _settingsHealthLabel(diagnostics['rag'], zh)
+                    ],
+                    [
+                      'Workspace path',
+                      _settingsHealthLabel(diagnostics['workspace'], zh)
+                    ],
+                    [
+                      'UI settings',
+                      _settingsHealthLabel(diagnostics['ui_settings'], zh)
+                    ],
+                  ],
           ),
           const SizedBox(height: 8),
           _ProductTable(
@@ -13494,12 +13528,12 @@ class _SettingsConfigurationSystemView extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           _FieldRow(
-              label: zh ? 'Provider Runtime' : 'Provider Runtime',
+              label: zh ? '模型 Provider 复用' : 'Model Provider reuse',
               value: _campaignText(
                   _campaign6Map(schema['runtime_reuse'])['provider_runtime'])),
           const SizedBox(height: 8),
           _FieldRow(
-              label: zh ? 'Agent Runtime' : 'Agent Runtime',
+              label: zh ? 'Agent 工作台复用' : 'Agent Workbench reuse',
               value: _campaignText(
                   _campaign6Map(schema['runtime_reuse'])['agent_runtime'])),
         ],
@@ -13595,7 +13629,7 @@ class _SettingsDesktopDeliveryView extends StatelessWidget {
                   label: zh ? '本地状态' : 'Local status',
                   value: _campaignText(
                       campaign9DesktopDeliveryStatus['overall_status']),
-                  detail: zh ? '等待 Owner 复验' : 'pending Owner retest',
+                  detail: zh ? '等待人工复查' : 'pending manual review',
                   icon: Icons.fact_check_outlined),
               _MetricDatum(
                   label: zh ? '候选标签' : 'Candidate tag',

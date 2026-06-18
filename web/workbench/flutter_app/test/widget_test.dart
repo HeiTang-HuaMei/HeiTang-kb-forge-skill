@@ -536,6 +536,9 @@ void main() {
     await tester.tap(find.text('首页').first);
     await tester.pumpAndSettle();
 
+    expect(find.text('知识供应链进度'), findsOneWidget);
+    expect(find.text('配置状态'), findsWidgets);
+    expect(find.text('报告摘要'), findsNothing);
     expect(find.textContaining('passed · full_gate=ready_for_v4_rc'),
         findsNothing);
     expect(find.textContaining('57/57 passed'), findsNothing);
@@ -549,6 +552,7 @@ void main() {
     expect(
         find.textContaining('provider_redaction_check:blocked_secret_required'),
         findsNothing);
+    expect(find.textContaining('Owner 复验'), findsNothing);
     expect(find.textContaining('开发者诊断'), findsNothing);
     expect(tester.takeException(), isNull);
   });
