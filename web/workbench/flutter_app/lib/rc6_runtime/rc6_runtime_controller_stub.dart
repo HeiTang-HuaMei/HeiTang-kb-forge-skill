@@ -161,8 +161,14 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> pickAndImportExternalSkill() async => initialize();
   Future<void> importExternalSkillPath(String path) async => initialize();
   Future<void> completeSkillProductOperations() async => initialize();
-  Future<void> generateAgent() async => initialize();
-  Future<void> completeAgentProductOperations() async => initialize();
+  Future<void> generateAgent({
+    Rc6AgentGenerationConfig config = const Rc6AgentGenerationConfig(),
+  }) async =>
+      initialize();
+  Future<void> completeAgentProductOperations({
+    Rc6AgentGenerationConfig config = const Rc6AgentGenerationConfig(),
+  }) async =>
+      initialize();
   Future<void> runAgentDialogue({String prompt = '请基于当前知识库总结核心要点。'}) async =>
       initialize();
   Future<void> runMultiAgentDiscussion() async => initialize();
@@ -243,6 +249,20 @@ class Rc6SkillGenerationConfig {
   final String skillType;
   final String targetPlatform;
   final String personalizationGoal;
+}
+
+class Rc6AgentGenerationConfig {
+  const Rc6AgentGenerationConfig({
+    this.creationMode = 'simple',
+    this.agentType = 'knowledge_qa',
+    this.modelConfigId = 'local-default-or-configured-provider',
+    this.outputFormat = 'markdown',
+  });
+
+  final String creationMode;
+  final String agentType;
+  final String modelConfigId;
+  final String outputFormat;
 }
 
 class Rc6StorageTestResult {

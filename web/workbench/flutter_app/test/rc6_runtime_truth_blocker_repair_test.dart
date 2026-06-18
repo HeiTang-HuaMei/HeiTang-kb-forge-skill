@@ -1410,6 +1410,84 @@ void main() {
         ));
   });
 
+  test('agent generation persists creation mode type and output config',
+      () async {
+    final workspace = await createWorkspace();
+    final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    File('${kbDir.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{"schema_version":"test_kb.v1"}');
+    final skillDir =
+        Directory('${workspace.path}${Platform.pathSeparator}skill')
+          ..createSync(recursive: true);
+    final primarySkill =
+        Directory('${skillDir.path}${Platform.pathSeparator}knowledge_qa_skill')
+          ..createSync(recursive: true);
+    File('${primarySkill.path}${Platform.pathSeparator}SKILL.md')
+        .writeAsStringSync('# skill');
+
+    final requests = <CoreBridgeRequest>[];
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          requests.add(request);
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          File('${output.path}${Platform.pathSeparator}agent_manifest.json')
+              .writeAsStringSync('{"name":"agent"}');
+          File('${output.path}${Platform.pathSeparator}agent_profile.yaml')
+              .writeAsStringSync('name: agent');
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.generateAgent(
+      config: const Rc6AgentGenerationConfig(
+        creationMode: 'advanced',
+        agentType: 'product_analysis',
+        outputFormat: 'json',
+      ),
+    );
+
+    expect(requests.single.actionId, 'kb_bound_agent_generation');
+    expect(requests.single.arguments, contains('advanced_kb_bound'));
+    expect(requests.single.arguments, contains('产品分析 Agent'));
+    final agentRoot = '${workspace.path}${Platform.pathSeparator}agent';
+    expect(
+        File('$agentRoot${Platform.pathSeparator}knowledge_qa_agent${Platform.pathSeparator}agent_manifest.json')
+            .readAsStringSync(),
+        allOf(
+          contains('prd_v2_selected_agent_manifest.v1'),
+          contains('"creation_mode": "advanced"'),
+          contains('"agent_type": "product_analysis"'),
+          contains('"output_format": "json"'),
+        ));
+    expect(
+        File('$agentRoot${Platform.pathSeparator}agent_generation_manifest.json')
+            .readAsStringSync(),
+        allOf(
+          contains('"selected_generation_config"'),
+          contains('"creation_mode": "advanced"'),
+          contains('"agent_type": "product_analysis"'),
+          contains('"output_format": "json"'),
+        ));
+    expect(
+        File('$agentRoot${Platform.pathSeparator}product_config${Platform.pathSeparator}advanced_agent_config.json')
+            .readAsStringSync(),
+        allOf(
+          contains('"selected_generation_config"'),
+          contains('"creation_mode": "advanced"'),
+          contains('"output_format": "json"'),
+        ));
+  });
+
   test('rc6 owner input folder chain uses the fixed Owner input directory',
       () async {
     final workspace = await createWorkspace();

@@ -10859,7 +10859,7 @@ List<String> _campaignStringList(Object? value) {
   return value.map((item) => item.toString()).toList(growable: false);
 }
 
-class _AgentCreationProductView extends StatelessWidget {
+class _AgentCreationProductView extends StatefulWidget {
   const _AgentCreationProductView({
     required this.zh,
     required this.workspace,
@@ -10867,6 +10867,37 @@ class _AgentCreationProductView extends StatelessWidget {
 
   final bool zh;
   final String workspace;
+
+  @override
+  State<_AgentCreationProductView> createState() =>
+      _AgentCreationProductViewState();
+}
+
+class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
+  String creationMode = 'simple';
+  String agentType = 'knowledge_qa';
+  String outputFormat = 'markdown';
+
+  bool get zh => widget.zh;
+  String get workspace => widget.workspace;
+
+  Rc6AgentGenerationConfig get _agentConfig => Rc6AgentGenerationConfig(
+        creationMode: creationMode,
+        agentType: agentType,
+        outputFormat: outputFormat,
+      );
+
+  String _creationModeLabel(String value) => value == 'advanced'
+      ? (zh ? '复杂构造' : 'Advanced build')
+      : (zh ? '简单构造' : 'Simple build');
+
+  String _agentTypeLabel(String value) => switch (value) {
+        'reading_summary' => zh ? '阅读总结 Agent' : 'Reading Summary Agent',
+        'quality_qa' => zh ? '质检 Agent' : 'Quality Agent',
+        'operation_conversion' => zh ? '运营转化 Agent' : 'Ops Conversion Agent',
+        'product_analysis' => zh ? '产品分析 Agent' : 'Product Analysis Agent',
+        _ => zh ? '知识问答 Agent' : 'Knowledge QA Agent',
+      };
 
   Future<void> _confirmAndDeleteAgent(
       BuildContext context, Rc6RuntimeController? rc6) async {
@@ -10896,6 +10927,51 @@ class _AgentCreationProductView extends StatelessWidget {
             ? _displayNameForPath(runtime.agentPath)
             : '$workspace/workbench_runs/agent',
         children: [
+          _FieldRow(
+              label: zh ? '当前构造模式' : 'Current build mode',
+              value: _creationModeLabel(creationMode)),
+          const SizedBox(height: 8),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            for (final item in const ['simple', 'advanced'])
+              ChoiceChip(
+                label: Text(_creationModeLabel(item)),
+                selected: creationMode == item,
+                onSelected: (_) => setState(() => creationMode = item),
+              ),
+          ]),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? 'Agent 类型' : 'Agent type',
+              value: _agentTypeLabel(agentType)),
+          const SizedBox(height: 8),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            for (final item in const [
+              'knowledge_qa',
+              'reading_summary',
+              'quality_qa',
+              'operation_conversion',
+              'product_analysis',
+            ])
+              ChoiceChip(
+                label: Text(_agentTypeLabel(item)),
+                selected: agentType == item,
+                onSelected: (_) => setState(() => agentType = item),
+              ),
+          ]),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? '输出格式' : 'Output format',
+              value: outputFormat.toUpperCase()),
+          const SizedBox(height: 8),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            for (final item in const ['markdown', 'json', 'report', 'chat'])
+              ChoiceChip(
+                label: Text(item.toUpperCase()),
+                selected: outputFormat == item,
+                onSelected: (_) => setState(() => outputFormat = item),
+              ),
+          ]),
+          const SizedBox(height: _DesktopGrid.gutter),
           _ProductTable(
             columns: zh
                 ? ['Agent', '构造模式', '知识库', 'Skill', '创建后动作']
@@ -10954,7 +11030,9 @@ class _AgentCreationProductView extends StatelessWidget {
             icon: Icons.smart_toy_outlined,
             onPressed: runtime.running || rc6 == null
                 ? null
-                : () => rc6.completeAgentProductOperations(),
+                : () => rc6.completeAgentProductOperations(
+                      config: _agentConfig,
+                    ),
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _EqualActionRow(children: [

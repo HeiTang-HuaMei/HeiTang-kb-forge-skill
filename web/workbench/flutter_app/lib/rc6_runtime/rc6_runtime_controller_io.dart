@@ -1829,7 +1829,9 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> generateAgent() async {
+  Future<void> generateAgent({
+    Rc6AgentGenerationConfig config = const Rc6AgentGenerationConfig(),
+  }) async {
     if (!_canRunDesktop()) {
       return;
     }
@@ -1846,7 +1848,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       arguments: [
         'generate-agent',
         '--mode',
-        'kb_bound',
+        config.coreMode,
         '--package',
         kbDir.path,
         '--skill',
@@ -1854,15 +1856,15 @@ class Rc6RuntimeController extends ChangeNotifier {
         '--output',
         _join(workspace.path, 'agent', 'knowledge_qa_agent'),
         '--agent-name',
-        '知识问答 Agent',
+        config.agentName,
       ],
       outputPath: _join(workspace.path, 'agent', 'knowledge_qa_agent'),
       nextPhase: Rc6RuntimePhase.agentGenerated,
       successMessage: 'Agent 草稿已生成并绑定知识库/Skill。',
     );
     if (state.lastResult?.passed == true) {
-      await _writeAdditionalAgentPackages();
-      await _writeAgentProductOperations();
+      await _writeAdditionalAgentPackages(config: config);
+      await _writeAgentProductOperations(config: config);
       await _writeSkillProductOperations(agentBound: true);
       await _writeMultiAgentDiscussion();
     }
@@ -2041,15 +2043,17 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> completeAgentProductOperations() async {
+  Future<void> completeAgentProductOperations({
+    Rc6AgentGenerationConfig config = const Rc6AgentGenerationConfig(),
+  }) async {
     if (!_canRunDesktop()) {
       return;
     }
     if (!state.hasAgent) {
-      await generateAgent();
+      await generateAgent(config: config);
       if (!state.hasAgent) return;
     }
-    await _writeAgentProductOperations();
+    await _writeAgentProductOperations(config: config);
     await _writeSkillProductOperations(agentBound: true);
     await runAgentDialogue();
     await _loadExistingArtifacts();
@@ -3894,7 +3898,9 @@ class Rc6RuntimeController extends ChangeNotifier {
             encoding: utf8);
   }
 
-  Future<void> _writeAdditionalAgentPackages() async {
+  Future<void> _writeAdditionalAgentPackages({
+    Rc6AgentGenerationConfig config = const Rc6AgentGenerationConfig(),
+  }) async {
     final workspace = _requireWorkspace();
     final agentRoot = Directory(_join(workspace.path, 'agent'));
     await agentRoot.create(recursive: true);
@@ -3950,37 +3956,51 @@ class Rc6RuntimeController extends ChangeNotifier {
     final agents = <Map<String, Object?>>[];
     for (final spec in specs) {
       final id = spec['id']!.toString();
-      final name = spec['name']!.toString();
+      final selectedPrimary = id == 'knowledge_qa_agent';
+      final name =
+          selectedPrimary ? config.agentName : spec['name']!.toString();
       final goal = spec['goal']!.toString();
       final kbIds =
           (spec['kb_ids'] as List).map((item) => item.toString()).toList();
       final skillIds =
           (spec['skill_ids'] as List).map((item) => item.toString()).toList();
+      final creationMode = selectedPrimary
+          ? config.creationMode
+          : spec['build_mode']!.toString();
+      final agentType =
+          selectedPrimary ? config.agentType : spec['type']!.toString();
+      final outputFormat = selectedPrimary ? config.outputFormat : 'markdown';
       final dir = Directory(_join(agentRoot.path, id));
       await dir.create(recursive: true);
       final payload = {
         'schema_version': 'rc10_real_input_agent.v1',
+        if (selectedPrimary)
+          'selected_manifest_schema_version':
+              'prd_v2_selected_agent_manifest.v1',
+        if (selectedPrimary) 'selected_generation_config': config.toJson(),
         'agent_id': id,
         'workspace_id': 'W_$id',
         'parent_workspace_id': '',
         'agent_name': name,
-        'agent_type': spec['type'],
-        'creation_mode': spec['build_mode'],
-        'simple_agent': spec['build_mode'] == 'simple',
-        'advanced_agent': spec['build_mode'] == 'advanced',
+        'agent_type': agentType,
+        'creation_mode': creationMode,
+        'simple_agent': creationMode == 'simple',
+        'advanced_agent': creationMode == 'advanced',
         'prompt': '只基于绑定知识库和 Skill 回答，输出必须带引用。',
-        'model_config_id': 'local-default-or-configured-provider',
+        'model_config_id': selectedPrimary
+            ? config.modelConfigId
+            : 'local-default-or-configured-provider',
         'kb_ids': kbIds,
         'skill_ids': skillIds,
-        'tool_ids': spec['build_mode'] == 'advanced'
+        'tool_ids': creationMode == 'advanced'
             ? ['kb_retrieval', 'document_export']
             : const <String>[],
         'redis_config_id':
-            spec['build_mode'] == 'advanced' ? 'settings_redis_optional' : '',
-        'vector_config_id': spec['build_mode'] == 'advanced'
+            creationMode == 'advanced' ? 'settings_redis_optional' : '',
+        'vector_config_id': creationMode == 'advanced'
             ? 'settings_agent_memory_vector_optional'
             : 'local_file_index',
-        'output_format': 'markdown',
+        'output_format': outputFormat,
         'audit_enabled': true,
         'name': name,
         'role_goal': goal,
@@ -4091,6 +4111,7 @@ class Rc6RuntimeController extends ChangeNotifier {
             const JsonEncoder.withIndent('  ').convert({
               'schema_version': 'rc10_real_input_agent_generation.v1',
               'status': 'pass',
+              'selected_generation_config': config.toJson(),
               'workspace_types': [
                 'single_agent',
                 'parent_multi_agent',
@@ -4141,7 +4162,9 @@ class Rc6RuntimeController extends ChangeNotifier {
             encoding: utf8);
   }
 
-  Future<void> _writeAgentProductOperations() async {
+  Future<void> _writeAgentProductOperations({
+    Rc6AgentGenerationConfig config = const Rc6AgentGenerationConfig(),
+  }) async {
     final workspace = _requireWorkspace();
     final agentRoot = Directory(_join(workspace.path, 'agent'));
     await agentRoot.create(recursive: true);
@@ -4154,6 +4177,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final advancedConfig = {
       'schema_version': 'prd_v2_agent_advanced_config.v1',
       'status': 'configured',
+      'selected_generation_config': config.toJson(),
       'workspace_policy': {
         'single_agent_workspace': 'W_A',
         'parent_workspace': 'W_M',
@@ -4161,7 +4185,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'cross_workspace_write': false,
       },
       'model': {
-        'mode': 'local_default_or_configured_provider',
+        'mode': config.modelConfigId,
         'provider_required_for_llm': true,
         'secret_source': 'env_only',
         'api_key_display': '************',
@@ -5646,6 +5670,52 @@ class Rc6SkillGenerationConfig {
         'personalization_goal': personalizationGoal,
         'personalization_goal_label': personalizationGoalLabel,
         'skill_name': skillName,
+      };
+}
+
+class Rc6AgentGenerationConfig {
+  const Rc6AgentGenerationConfig({
+    this.creationMode = 'simple',
+    this.agentType = 'knowledge_qa',
+    this.modelConfigId = 'local-default-or-configured-provider',
+    this.outputFormat = 'markdown',
+  });
+
+  final String creationMode;
+  final String agentType;
+  final String modelConfigId;
+  final String outputFormat;
+
+  String get coreMode =>
+      creationMode == 'advanced' ? 'advanced_kb_bound' : 'kb_bound';
+
+  String get agentName => switch (agentType) {
+        'reading_summary' => '阅读总结 Agent',
+        'quality_qa' => '质检 Agent',
+        'operation_conversion' => '运营转化 Agent',
+        'product_analysis' => '产品分析 Agent',
+        _ => '知识问答 Agent',
+      };
+
+  String get creationModeLabel =>
+      creationMode == 'advanced' ? '复杂 Agent' : '简单 Agent';
+
+  String get agentTypeLabel => switch (agentType) {
+        'reading_summary' => '阅读总结 Agent',
+        'quality_qa' => '质检 Agent',
+        'operation_conversion' => '运营转化 Agent',
+        'product_analysis' => '产品分析 Agent',
+        _ => '知识问答 Agent',
+      };
+
+  Map<String, String> toJson() => {
+        'creation_mode': creationMode,
+        'creation_mode_label': creationModeLabel,
+        'agent_type': agentType,
+        'agent_type_label': agentTypeLabel,
+        'agent_name': agentName,
+        'model_config_id': modelConfigId,
+        'output_format': outputFormat,
       };
 }
 
