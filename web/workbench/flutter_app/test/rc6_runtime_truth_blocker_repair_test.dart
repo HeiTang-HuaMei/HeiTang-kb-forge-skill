@@ -1696,6 +1696,36 @@ void main() {
           contains('"creation_mode": "advanced"'),
           contains('"output_format": "json"'),
         ));
+    await controller.runAgentDialogue(prompt: '用产品分析 Agent 总结证据');
+    final dialogueManifest = File(
+            '$agentRoot${Platform.pathSeparator}dialogue${Platform.pathSeparator}agent_dialogue_manifest.json')
+        .readAsStringSync();
+    expect(
+        dialogueManifest,
+        allOf(
+          contains('"model_config_id": "local-default-or-configured-provider"'),
+          contains('"used_kb_ids"'),
+          contains('"K1"'),
+          contains('"used_skill_ids"'),
+          contains('"S1"'),
+        ));
+    expect(
+        dialogueManifest,
+        allOf(
+          contains('"output_format": "json"'),
+          contains('"redis_config_id": "settings_redis_optional"'),
+          contains(
+              '"vector_config_id": "settings_agent_memory_vector_optional"'),
+        ));
+    expect(
+        File('$agentRoot${Platform.pathSeparator}dialogue${Platform.pathSeparator}chat_history.jsonl')
+            .readAsStringSync(),
+        allOf(
+          contains('"output_format":"json"'),
+          contains('"redis_config_id":"settings_redis_optional"'),
+          contains(
+              '"vector_config_id":"settings_agent_memory_vector_optional"'),
+        ));
   });
 
   test('rc6 owner input folder chain uses the fixed Owner input directory',

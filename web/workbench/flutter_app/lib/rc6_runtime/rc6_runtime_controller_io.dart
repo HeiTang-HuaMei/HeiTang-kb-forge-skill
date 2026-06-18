@@ -2076,14 +2076,30 @@ class Rc6RuntimeController extends ChangeNotifier {
     final dialoguePath = _join(outDir.path, 'agent_dialogue.md');
     final historyPath = _join(outDir.path, 'chat_history.jsonl');
     final previousTurns = await _readJsonl(File(historyPath));
+    final agentConfig = await _readJsonObject(_joinNested(
+        workspace.path, 'agent/knowledge_qa_agent/agent_manifest.json'));
+    final modelConfigId = _stringValue(
+        agentConfig['model_config_id'], 'local-default-or-configured-provider');
+    final configuredKbIds = _listOfStrings(agentConfig['kb_ids']);
+    final kbIds = configuredKbIds.isEmpty ? const ['K1'] : configuredKbIds;
+    final configuredSkillIds = _listOfStrings(agentConfig['skill_ids']);
+    final skillIds = configuredSkillIds.isEmpty
+        ? const ['S1', 'reading_summary_skill']
+        : configuredSkillIds;
+    final outputFormat = _stringValue(agentConfig['output_format'], 'markdown');
+    final redisConfigId =
+        _stringValue(agentConfig['redis_config_id'], 'settings_redis_optional');
+    final vectorConfigId =
+        _stringValue(agentConfig['vector_config_id'], 'local_file_index');
     final turn = {
       'turn_id':
           'turn_${(previousTurns.length + 1).toString().padLeft(3, '0')}',
       'prompt': prompt,
       'answer': '当前回答基于本地知识库和已生成 Skill，不调用外网、不执行系统命令。',
-      'model_config_id': 'local-default-or-configured-provider',
-      'kb_ids': ['K1'],
-      'skill_ids': ['S1', 'reading_summary_skill'],
+      'model_config_id': modelConfigId,
+      'kb_ids': kbIds,
+      'skill_ids': skillIds,
+      'output_format': outputFormat,
       'evidence_count': evidence.length,
       'evidence': evidence
           .map((item) => {
@@ -2099,7 +2115,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'memory_write': {
         'short_term': 'local_session',
         'history_path': historyPath,
-        'redis': 'settings_optional',
+        'redis_config_id': redisConfigId,
+        'vector_config_id': vectorConfigId,
         'vector_memory': 'separate_from_kb_index',
       },
       'boundary': {
@@ -2119,10 +2136,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       ..writeln('# Agent 最小对话')
       ..writeln()
       ..writeln('## 本轮配置')
-      ..writeln('- 模型：local-default-or-configured-provider')
-      ..writeln('- 知识库：K1')
-      ..writeln('- Skill：S1 / reading_summary_skill')
+      ..writeln('- 模型：$modelConfigId')
+      ..writeln('- 知识库：${kbIds.join(' / ')}')
+      ..writeln('- Skill：${skillIds.join(' / ')}')
+      ..writeln('- 输出格式：$outputFormat')
       ..writeln('- 记忆写入：local_session -> chat_history.jsonl')
+      ..writeln('- Redis 短期记忆配置：$redisConfigId')
+      ..writeln('- 向量长期记忆配置：$vectorConfigId')
       ..writeln()
       ..writeln('## 会话历史');
     for (final item in turns) {
@@ -2165,9 +2185,12 @@ class Rc6RuntimeController extends ChangeNotifier {
         'history_path': historyPath,
         'turn_count': turns.length,
         'evidence_count': evidence.length,
-        'model_config_id': 'local-default-or-configured-provider',
-        'used_kb_ids': ['K1'],
-        'used_skill_ids': ['S1', 'reading_summary_skill'],
+        'model_config_id': modelConfigId,
+        'used_kb_ids': kbIds,
+        'used_skill_ids': skillIds,
+        'output_format': outputFormat,
+        'redis_config_id': redisConfigId,
+        'vector_config_id': vectorConfigId,
         'citation_required': true,
         'memory_write_status': 'local_session_written',
         'error_message': '',
@@ -3597,6 +3620,11 @@ class Rc6RuntimeController extends ChangeNotifier {
           .toList(growable: false);
     }
     return const <String>[];
+  }
+
+  static String _stringValue(Object? value, String fallback) {
+    final text = (value ?? '').toString().trim();
+    return text.isEmpty ? fallback : text;
   }
 
   static String _nextKnowledgeBaseId(List<Map<String, dynamic>> records,
