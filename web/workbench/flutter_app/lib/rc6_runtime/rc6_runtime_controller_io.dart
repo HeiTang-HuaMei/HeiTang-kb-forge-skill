@@ -1732,7 +1732,9 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
   }
 
-  Future<void> generateSkill() async {
+  Future<void> generateSkill({
+    Rc6SkillGenerationConfig config = const Rc6SkillGenerationConfig(),
+  }) async {
     if (!_canRunDesktop()) {
       return;
     }
@@ -1752,14 +1754,14 @@ class Rc6RuntimeController extends ChangeNotifier {
         '--output',
         _join(workspace.path, 'skill', 'knowledge_qa_skill'),
         '--skill-name',
-        '真实输入知识问答 Skill',
+        config.skillName,
       ],
       outputPath: _join(workspace.path, 'skill', 'knowledge_qa_skill'),
       nextPhase: Rc6RuntimePhase.skillGenerated,
       successMessage: 'Skill 草稿已生成。',
     );
     if (state.lastResult?.passed == true) {
-      await _writeAdditionalSkillPackages();
+      await _writeAdditionalSkillPackages(config: config);
       await _writeSkillProductOperations(agentBound: state.hasAgent);
     }
     await _loadExistingArtifacts();
@@ -3401,8 +3403,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     return escaped;
   }
 
-  Future<void> _writeAdditionalSkillPackages(
-      {File? externalSkillSource}) async {
+  Future<void> _writeAdditionalSkillPackages({
+    File? externalSkillSource,
+    Rc6SkillGenerationConfig config = const Rc6SkillGenerationConfig(),
+  }) async {
     final workspace = _requireWorkspace();
     final skillRoot = Directory(_join(workspace.path, 'skill'));
     await skillRoot.create(recursive: true);
@@ -3411,38 +3415,46 @@ class Rc6RuntimeController extends ChangeNotifier {
     final primaryDir = Directory(_join(skillRoot.path, 'knowledge_qa_skill'));
     await primaryDir.create(recursive: true);
     final primarySkill = File(_join(primaryDir.path, 'SKILL.md'));
-    if (!await primarySkill.exists()) {
-      await primarySkill.writeAsString(
-        [
-          '# 真实输入知识问答 Skill',
-          '',
-          '## 能力说明',
-          '基于当前工作区的真实知识库、chunks、cards 和 qa_pairs 进行证据化问答。',
-          '',
-          '## 输入格式',
-          'Markdown question + optional citation requirement.',
-          '',
-          '## 输出格式',
-          'Cited Markdown answer with source paths.',
-          '',
-          '## 限制边界',
-          '- 只读取绑定知识库。',
-          '- 不调用外部网络。',
-          '- 不执行系统命令。',
-        ].join('\n'),
-        encoding: utf8,
-      );
-    }
+    await primarySkill.writeAsString(
+      [
+        '# ${config.skillName}',
+        '',
+        '## 能力说明',
+        '基于当前工作区的真实知识库、chunks、cards 和 qa_pairs 进行证据化问答。',
+        '',
+        '## 输入格式',
+        'Markdown question + optional citation requirement.',
+        '',
+        '## 输出格式',
+        'Cited Markdown answer with source paths.',
+        '',
+        '## 限制边界',
+        '- 只读取绑定知识库。',
+        '- 不调用外部网络。',
+        '- 不执行系统命令。',
+        '',
+        '## 生成配置',
+        '- Skill 类型：${config.skillTypeLabel}',
+        '- 目标平台：${config.targetPlatformLabel}',
+        '- 个性化目标：${config.personalizationGoalLabel}',
+      ].join('\n'),
+      encoding: utf8,
+    );
     final primaryConfig = {
       'skill_config_id': 'S1',
-      'skill_name': '真实输入知识问答 Skill',
-      'target_platform': 'codex',
-      'skill_type': 'analysis',
+      'skill_name': config.skillName,
+      'target_platform': config.targetPlatform,
+      'target_platform_label': config.targetPlatformLabel,
+      'skill_type': config.skillType,
+      'skill_type_label': config.skillTypeLabel,
       'source_mode': 'from_kb',
       'source_kb_ids': ['K1'],
       'source_kb_manifest': kbManifestPath,
       'external_skill_path': '',
-      'localization_goal': '',
+      'localization_goal': config.personalizationGoal,
+      'localization_goal_label': config.personalizationGoalLabel,
+      'personalization_goal': config.personalizationGoal,
+      'personalization_goal_label': config.personalizationGoalLabel,
       'export_path': primaryDir.path,
       'instruction_path': primarySkill.path,
       'sample_task': '基于当前知识库回答一个需要引用的问题。',
@@ -3720,6 +3732,7 @@ class Rc6RuntimeController extends ChangeNotifier {
                 'markdown',
                 'internal_agent',
               ],
+              'selected_generation_config': config.toJson(),
               'skills': manifest,
               'external_skills': [externalManifest],
               'localized_skills': [localizedManifest],
@@ -5573,6 +5586,66 @@ class Rc6DocumentGenerationConfig {
         'template_mode': templateMode,
         'template_mode_label': templateModeLabel,
         'title': title,
+      };
+}
+
+class Rc6SkillGenerationConfig {
+  const Rc6SkillGenerationConfig({
+    this.skillType = 'analysis',
+    this.targetPlatform = 'codex',
+    this.personalizationGoal = '',
+  });
+
+  final String skillType;
+  final String targetPlatform;
+  final String personalizationGoal;
+
+  String get skillName => switch (skillType) {
+        'writing' => '真实输入写作 Skill',
+        'teaching' => '真实输入教学 Skill',
+        'product' => '真实输入产品 Skill',
+        'ops' => '真实输入运营 Skill',
+        'legal' => '真实输入法规 Skill',
+        'custom' => '真实输入自定义 Skill',
+        _ => '真实输入知识问答 Skill',
+      };
+
+  String get skillTypeLabel => switch (skillType) {
+        'writing' => '写作 Skill',
+        'teaching' => '教学 Skill',
+        'product' => '产品 Skill',
+        'ops' => '运营 Skill',
+        'legal' => '法规 Skill',
+        'custom' => '自定义 Skill',
+        _ => '分析 Skill',
+      };
+
+  String get targetPlatformLabel => switch (targetPlatform) {
+        'claude_code' => 'Claude Code',
+        'openclaw' => 'OpenClaw',
+        'markdown' => 'Markdown',
+        'internal_agent' => '内置 Agent',
+        _ => 'Codex',
+      };
+
+  String get personalizationGoalLabel => switch (personalizationGoal) {
+        'domain_localization' => '领域本地化',
+        'style_personalization' => '用户风格化',
+        'platform_adaptation' => '平台适配',
+        'task_customization' => '任务定制',
+        'enterprise_constraints' => '企业知识约束',
+        'agent_specific' => 'Agent 专属化',
+        _ => '未选择',
+      };
+
+  Map<String, String> toJson() => {
+        'skill_type': skillType,
+        'skill_type_label': skillTypeLabel,
+        'target_platform': targetPlatform,
+        'target_platform_label': targetPlatformLabel,
+        'personalization_goal': personalizationGoal,
+        'personalization_goal_label': personalizationGoalLabel,
+        'skill_name': skillName,
       };
 }
 

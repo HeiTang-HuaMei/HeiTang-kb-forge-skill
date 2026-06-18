@@ -154,7 +154,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
-  Future<void> generateSkill() async => initialize();
+  Future<void> generateSkill({
+    Rc6SkillGenerationConfig config = const Rc6SkillGenerationConfig(),
+  }) async =>
+      initialize();
   Future<void> pickAndImportExternalSkill() async => initialize();
   Future<void> importExternalSkillPath(String path) async => initialize();
   Future<void> completeSkillProductOperations() async => initialize();
@@ -228,6 +231,18 @@ class Rc6DocumentGenerationConfig {
   final String outputFormat;
   final String citationStrategy;
   final String templateMode;
+}
+
+class Rc6SkillGenerationConfig {
+  const Rc6SkillGenerationConfig({
+    this.skillType = 'analysis',
+    this.targetPlatform = 'codex',
+    this.personalizationGoal = '',
+  });
+
+  final String skillType;
+  final String targetPlatform;
+  final String personalizationGoal;
 }
 
 class Rc6StorageTestResult {

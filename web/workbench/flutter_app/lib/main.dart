@@ -9998,8 +9998,45 @@ class _SkillBuilderProductWorkflowState
   bool outputPreviewReady = false;
   bool validationReady = false;
   int selectedTab = 0;
+  String skillType = 'analysis';
+  String targetPlatform = 'codex';
+  String personalizationGoal = '';
 
   bool get _zh => widget.localeCode == 'zh-CN';
+
+  Rc6SkillGenerationConfig get _skillConfig => Rc6SkillGenerationConfig(
+        skillType: skillType,
+        targetPlatform: targetPlatform,
+        personalizationGoal: personalizationGoal,
+      );
+
+  String _skillTypeLabel(String value) => switch (value) {
+        'writing' => _zh ? '写作 Skill' : 'Writing',
+        'teaching' => _zh ? '教学 Skill' : 'Teaching',
+        'product' => _zh ? '产品 Skill' : 'Product',
+        'ops' => _zh ? '运营 Skill' : 'Operations',
+        'legal' => _zh ? '法规 Skill' : 'Legal',
+        'custom' => _zh ? '自定义 Skill' : 'Custom',
+        _ => _zh ? '分析 Skill' : 'Analysis',
+      };
+
+  String _targetPlatformLabel(String value) => switch (value) {
+        'claude_code' => 'Claude Code',
+        'openclaw' => 'OpenClaw',
+        'markdown' => 'Markdown',
+        'internal_agent' => _zh ? '内置 Agent' : 'Internal Agent',
+        _ => 'Codex',
+      };
+
+  String _personalizationGoalLabel(String value) => switch (value) {
+        'domain_localization' => _zh ? '领域本地化' : 'Domain localization',
+        'style_personalization' => _zh ? '用户风格化' : 'Style personalization',
+        'platform_adaptation' => _zh ? '平台适配' : 'Platform adaptation',
+        'task_customization' => _zh ? '任务定制' : 'Task customization',
+        'enterprise_constraints' => _zh ? '企业知识约束' : 'Enterprise constraints',
+        'agent_specific' => _zh ? 'Agent 专属化' : 'Agent-specific',
+        _ => _zh ? '未选择' : 'Not selected',
+      };
 
   Future<void> _confirmAndDeleteSkill(Rc6RuntimeController? rc6) async {
     if (rc6 == null || rc6.state.running || !rc6.state.hasSkill) return;
@@ -10159,25 +10196,64 @@ class _SkillBuilderProductWorkflowState
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? 'Skill 类型' : 'Skill type',
-                value: _zh
-                    ? '写作 / 分析 / 教学 / 产品 / 运营 / 法规 / 自定义'
-                    : 'Writing / analysis / teaching / product / ops / legal / custom'),
+                value: _skillTypeLabel(skillType)),
+            const SizedBox(height: 8),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final item in const [
+                'analysis',
+                'writing',
+                'teaching',
+                'product',
+                'ops',
+                'legal',
+                'custom',
+              ])
+                ChoiceChip(
+                  label: Text(_skillTypeLabel(item)),
+                  selected: skillType == item,
+                  onSelected: (_) => setState(() => skillType = item),
+                ),
+            ]),
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? '目标平台' : 'Target platform',
-                value: _zh
-                    ? 'Codex / Claude Code / OpenClaw / Markdown / 内置 Agent'
-                    : 'Codex / Claude Code / OpenClaw / Markdown / internal Agent'),
+                value: _targetPlatformLabel(targetPlatform)),
+            const SizedBox(height: 8),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final item in const [
+                'codex',
+                'claude_code',
+                'openclaw',
+                'markdown',
+                'internal_agent',
+              ])
+                ChoiceChip(
+                  label: Text(_targetPlatformLabel(item)),
+                  selected: targetPlatform == item,
+                  onSelected: (_) => setState(() => targetPlatform = item),
+                ),
+            ]),
             const SizedBox(height: 8),
             _FieldRow(
-                label: _zh ? 'Skill 元数据' : 'Skill metadata',
-                value: configReady
-                    ? (_zh
-                        ? '名称、说明、适用任务已准备'
-                        : 'Name, description, and target task prepared')
-                    : (_zh
-                        ? '使用知识库自动生成'
-                        : 'Generated from the Knowledge Base')),
+                label: _zh ? '个性化目标' : 'Personalization goal',
+                value: _personalizationGoalLabel(personalizationGoal)),
+            const SizedBox(height: 8),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final item in const [
+                '',
+                'domain_localization',
+                'style_personalization',
+                'platform_adaptation',
+                'task_customization',
+                'enterprise_constraints',
+                'agent_specific',
+              ])
+                ChoiceChip(
+                  label: Text(_personalizationGoalLabel(item)),
+                  selected: personalizationGoal == item,
+                  onSelected: (_) => setState(() => personalizationGoal = item),
+                ),
+            ]),
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? '样例任务验证' : 'Sample task validation',
@@ -10197,7 +10273,7 @@ class _SkillBuilderProductWorkflowState
                         configReady = true;
                         outputPreviewReady = true;
                       });
-                      rc6.generateSkill();
+                      rc6.generateSkill(config: _skillConfig);
                     },
             ),
           ],
@@ -10408,7 +10484,7 @@ class _SkillBuilderProductWorkflowState
                         configReady = true;
                         outputPreviewReady = true;
                       });
-                      rc6.generateSkill();
+                      rc6.generateSkill(config: _skillConfig);
                     },
             ),
           ],

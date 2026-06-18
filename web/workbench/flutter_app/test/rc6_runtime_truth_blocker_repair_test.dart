@@ -1333,6 +1333,83 @@ void main() {
         ));
   });
 
+  test('skill generation persists type platform and personalization config',
+      () async {
+    final workspace = await createWorkspace();
+    final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    File('${kbDir.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{"schema_version":"test_kb.v1"}');
+    File('${kbDir.path}${Platform.pathSeparator}chunks.jsonl')
+        .writeAsStringSync('{"text":"产品分析证据","source_path":"alpha.txt"}\n');
+    File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'sources': [
+        {'source_name': 'alpha.txt', 'relative_path': 'alpha.txt'}
+      ],
+    }));
+
+    final requests = <CoreBridgeRequest>[];
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          requests.add(request);
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          File('${output.path}${Platform.pathSeparator}SKILL.md')
+              .writeAsStringSync('# generated skill');
+          File('${output.path}${Platform.pathSeparator}skill_manifest.yaml')
+              .writeAsStringSync('name: generated skill');
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.generateSkill(
+      config: const Rc6SkillGenerationConfig(
+        skillType: 'product',
+        targetPlatform: 'markdown',
+        personalizationGoal: 'agent_specific',
+      ),
+    );
+
+    expect(requests.single.actionId, 'package_to_skill');
+    expect(requests.single.arguments, contains('真实输入产品 Skill'));
+    final skillRoot = '${workspace.path}${Platform.pathSeparator}skill';
+    expect(
+        File('$skillRoot${Platform.pathSeparator}knowledge_qa_skill${Platform.pathSeparator}SKILL.md')
+            .readAsStringSync(),
+        allOf(
+          contains('真实输入产品 Skill'),
+          contains('产品 Skill'),
+          contains('Markdown'),
+          contains('Agent 专属化'),
+        ));
+    expect(
+        File('$skillRoot${Platform.pathSeparator}knowledge_qa_skill${Platform.pathSeparator}skill_config.json')
+            .readAsStringSync(),
+        allOf(
+          contains('"skill_type": "product"'),
+          contains('"target_platform": "markdown"'),
+          contains('"personalization_goal": "agent_specific"'),
+        ));
+    expect(
+        File('$skillRoot${Platform.pathSeparator}skill_generation_manifest.json')
+            .readAsStringSync(),
+        allOf(
+          contains('"selected_generation_config"'),
+          contains('"skill_type": "product"'),
+          contains('"target_platform": "markdown"'),
+          contains('"personalization_goal": "agent_specific"'),
+        ));
+  });
+
   test('rc6 owner input folder chain uses the fixed Owner input directory',
       () async {
     final workspace = await createWorkspace();
