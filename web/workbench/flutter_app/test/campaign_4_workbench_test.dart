@@ -119,6 +119,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.text('搜索文档、知识库、Skill、Agent'), findsOneWidget);
     await tester.tap(find.byKey(const Key('topbar-real-search-input')));
     await tester.pumpAndSettle();
     expect(find.text('页面 · 从知识库生成 Skill，并绑定给 Agent'), findsOneWidget);

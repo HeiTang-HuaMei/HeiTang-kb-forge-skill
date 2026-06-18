@@ -1914,7 +1914,9 @@ class _ProductTopBar extends StatelessWidget {
             ],
             Expanded(
               child: _TopBarSearchField(
-                label: _zh ? '搜索知识、Skill、文档' : 'Search knowledge, Skill, docs',
+                label: _zh
+                    ? '搜索文档、知识库、Skill、Agent'
+                    : 'Search docs, KBs, Skills, Agents',
                 compact: constraints.maxWidth < 900,
                 onPageChanged: onPageChanged,
               ),
