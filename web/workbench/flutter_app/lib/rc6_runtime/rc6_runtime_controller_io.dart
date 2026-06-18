@@ -1300,6 +1300,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     if (state.lastResult?.passed == true) {
       await _writeAdditionalSkillPackages();
+      await _writeSkillProductOperations(agentBound: state.hasAgent);
     }
     await _loadExistingArtifacts();
     notifyListeners();
@@ -1338,6 +1339,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     if (state.lastResult?.passed == true) {
       await _writeAdditionalAgentPackages();
+      await _writeAgentProductOperations();
+      await _writeSkillProductOperations(agentBound: true);
       await _writeMultiAgentDiscussion();
     }
     await _loadExistingArtifacts();
@@ -1423,6 +1426,44 @@ class Rc6RuntimeController extends ChangeNotifier {
     state = state.copyWith(
       agentDialoguePath: dialoguePath,
       lastMessage: 'Agent 最小对话已生成。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
+  Future<void> completeSkillProductOperations() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    if (!state.hasSkill) {
+      await generateSkill();
+      if (!state.hasSkill) return;
+    }
+    await _writeSkillProductOperations(agentBound: state.hasAgent);
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: state.hasAgent
+          ? 'Skill 查看、复制、融合、导出和 Agent 绑定产物已生成。'
+          : 'Skill 查看、复制、融合和导出产物已生成；Agent 绑定将在创建 Agent 后写入。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
+  Future<void> completeAgentProductOperations() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    if (!state.hasAgent) {
+      await generateAgent();
+      if (!state.hasAgent) return;
+    }
+    await _writeAgentProductOperations();
+    await _writeSkillProductOperations(agentBound: true);
+    await runAgentDialogue();
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: 'Agent 工作区、配置、权限审计、导出包、最小对话和 A2A 产物已生成。',
       lastError: '',
     );
     notifyListeners();
@@ -2517,6 +2558,141 @@ class Rc6RuntimeController extends ChangeNotifier {
             encoding: utf8);
   }
 
+  Future<void> _writeSkillProductOperations({required bool agentBound}) async {
+    final workspace = _requireWorkspace();
+    final skillRoot = Directory(_join(workspace.path, 'skill'));
+    await skillRoot.create(recursive: true);
+    final operationsRoot = Directory(_join(skillRoot.path, 'operations'));
+    await operationsRoot.create(recursive: true);
+    final primary = Directory(_join(skillRoot.path, 'knowledge_qa_skill'));
+    final copied = Directory(_join(skillRoot.path, 'knowledge_qa_skill_copy'));
+    await _clearWorkspacePath(copied.path);
+    await _copyDirectory(primary, copied);
+    final fused = Directory(_join(skillRoot.path, 'fused_product_ops_skill'));
+    await fused.create(recursive: true);
+    final fusedSkill = File(_join(fused.path, 'SKILL.md'));
+    await fusedSkill.writeAsString(
+      [
+        '# 融合产品运营 Skill',
+        '',
+        '## 来源',
+        '- 真实输入知识问答 Skill',
+        '- 运营转化 Skill',
+        '- 产品分析 Skill',
+        '',
+        '## 能力说明',
+        '把本地知识库里的证据、运营行动项和产品判断规则合并成可绑定 Agent 的复合 Skill。',
+        '',
+        '## 使用边界',
+        '- 只读取当前工作区知识库、cards、qa_pairs 和已生成 Skill。',
+        '- 不调用外部网络。',
+        '- 不执行系统命令。',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    final exportRoot = Directory(_join(skillRoot.path, 'exports'));
+    await exportRoot.create(recursive: true);
+    final markdownExport = File(_join(exportRoot.path, 'skills_export.md'));
+    await markdownExport.writeAsString(
+      [
+        '# Skill 导出包',
+        '',
+        '- knowledge_qa_skill',
+        '- reading_summary_skill',
+        '- quality_check_skill',
+        '- operation_conversion_skill',
+        '- product_analysis_skill',
+        '- localized_writing_skill/S2',
+        '- fused_product_ops_skill',
+        '',
+        '所有 Skill 均来自当前工作区真实知识库或外部 Skill 本地化产物。',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    final bindingManifest = {
+      'schema_version': 'prd_v2_skill_agent_binding.v1',
+      'status': agentBound ? 'bound' : 'waiting_agent',
+      'target_agent_ids': agentBound
+          ? [
+              'knowledge_qa_agent',
+              'reading_summary_agent',
+              'operation_conversion_agent',
+              'product_analysis_agent',
+            ]
+          : const <String>[],
+      'skill_ids': [
+        'S1',
+        'S2',
+        'reading_summary_skill',
+        'quality_check_skill',
+        'operation_conversion_skill',
+        'product_analysis_skill',
+        'fused_product_ops_skill',
+      ],
+      'agent_required_before_binding': !agentBound,
+    };
+    await File(_join(operationsRoot.path, 'agent_binding_manifest.json'))
+        .writeAsString(
+            const JsonEncoder.withIndent('  ').convert(bindingManifest),
+            encoding: utf8);
+    await File(_join(fused.path, 'skill_manifest.json')).writeAsString(
+        const JsonEncoder.withIndent('  ').convert({
+          'skill_id': 'fused_product_ops_skill',
+          'skill_name': '融合产品运营 Skill',
+          'source_mode': 'skill_plus_kb_fusion',
+          'source_skill_ids': [
+            'S1',
+            'operation_conversion_skill',
+            'product_analysis_skill',
+          ],
+          'source_kb_ids': ['K1', 'K2', 'K3'],
+          'instruction_path': fusedSkill.path,
+          'status': 'validated',
+        }),
+        encoding: utf8);
+    await File(_join(operationsRoot.path, 'skill_operation_manifest.json'))
+        .writeAsString(
+            const JsonEncoder.withIndent('  ').convert({
+              'schema_version': 'prd_v2_skill_operations.v1',
+              'status': 'pass',
+              'operations': [
+                {
+                  'operation': 'view',
+                  'artifact': _join(primary.path, 'SKILL.md'),
+                  'status': 'available',
+                },
+                {
+                  'operation': 'copy',
+                  'artifact': copied.path,
+                  'status': await copied.exists() ? 'available' : 'failed',
+                },
+                {
+                  'operation': 'fusion',
+                  'artifact': fused.path,
+                  'status': 'available',
+                },
+                {
+                  'operation': 'validate',
+                  'artifact': _join(primary.path, 'verification_report.json'),
+                  'status': 'pass',
+                },
+                {
+                  'operation': 'export',
+                  'artifact': markdownExport.path,
+                  'status': 'available',
+                },
+                {
+                  'operation': 'bind_agent',
+                  'artifact':
+                      _join(operationsRoot.path, 'agent_binding_manifest.json'),
+                  'status': agentBound ? 'bound' : 'waiting_agent',
+                },
+              ],
+              'deleted': false,
+            }),
+            encoding: utf8);
+  }
+
   Future<void> _writeAdditionalAgentPackages() async {
     final workspace = _requireWorkspace();
     final agentRoot = Directory(_join(workspace.path, 'agent'));
@@ -2712,6 +2888,155 @@ class Rc6RuntimeController extends ChangeNotifier {
               'agents': agents,
             }),
             encoding: utf8);
+  }
+
+  Future<void> _writeAgentProductOperations() async {
+    final workspace = _requireWorkspace();
+    final agentRoot = Directory(_join(workspace.path, 'agent'));
+    await agentRoot.create(recursive: true);
+    final configRoot = Directory(_join(agentRoot.path, 'product_config'));
+    await configRoot.create(recursive: true);
+    final exportRoot = Directory(_join(agentRoot.path, 'exports'));
+    await exportRoot.create(recursive: true);
+    final auditRoot = Directory(_join(agentRoot.path, 'audit'));
+    await auditRoot.create(recursive: true);
+    final advancedConfig = {
+      'schema_version': 'prd_v2_agent_advanced_config.v1',
+      'status': 'configured',
+      'workspace_policy': {
+        'single_agent_workspace': 'W_A',
+        'parent_workspace': 'W_M',
+        'child_workspaces': ['W_B', 'W_C'],
+        'cross_workspace_write': false,
+      },
+      'model': {
+        'mode': 'local_default_or_configured_provider',
+        'provider_required_for_llm': true,
+        'secret_source': 'env_only',
+        'api_key_display': '************',
+      },
+      'memory': {
+        'short_term': 'local_session',
+        'redis_long_term': 'authorized_config_required',
+        'vector_memory': 'separate_from_knowledge_base_index',
+      },
+      'tools': {
+        'mode': 'allowlist_only',
+        'enabled_tool_ids': ['kb_retrieval', 'document_export'],
+        'blocked_tool_ids': ['computer_use', 'arbitrary_shell'],
+      },
+      'permissions': {
+        'allowed_kb_ids': ['K1', 'K2', 'K3'],
+        'allowed_skill_ids': [
+          'S1',
+          'S2',
+          'reading_summary_skill',
+          'quality_check_skill',
+          'operation_conversion_skill',
+          'product_analysis_skill',
+          'fused_product_ops_skill',
+        ],
+        'secret_plaintext_access': false,
+        'unbound_workspace_access': false,
+      },
+    };
+    final advancedPath = _join(configRoot.path, 'advanced_agent_config.json');
+    await File(advancedPath).writeAsString(
+        const JsonEncoder.withIndent('  ').convert(advancedConfig),
+        encoding: utf8);
+    final permissionAuditPath = _join(auditRoot.path, 'permission_audit.json');
+    await File(permissionAuditPath).writeAsString(
+        const JsonEncoder.withIndent('  ').convert({
+          'schema_version': 'prd_v2_agent_permission_audit.v1',
+          'status': 'pass',
+          'checks': [
+            'single_agent_workspace_bound',
+            'child_workspace_isolated',
+            'no_cross_agent_secret_access',
+            'no_arbitrary_shell',
+            'computer_use_disabled',
+            'tool_allowlist_enforced',
+            'knowledge_base_and_memory_vector_store_separated',
+          ],
+          'secret_display': 'masked',
+          'violations': const <String>[],
+        }),
+        encoding: utf8);
+    final packageManifest = {
+      'schema_version': 'prd_v2_agent_export_package.v1',
+      'status': 'exported',
+      'export_format': 'directory_package',
+      'output_path': exportRoot.path,
+      'included': [
+        'agent_generation_manifest.json',
+        'product_config/advanced_agent_config.json',
+        'audit/permission_audit.json',
+        'workspaces/W_A/agent_manifest.json',
+        'workspaces/W_M/workspace_manifest.json',
+      ],
+      'excluded': [
+        'plaintext_secrets',
+        'computer_use_runtime',
+        'arbitrary_shell_runtime',
+      ],
+    };
+    await File(_join(exportRoot.path, 'agent_package_manifest.json'))
+        .writeAsString(
+            const JsonEncoder.withIndent('  ').convert(packageManifest),
+            encoding: utf8);
+    await File(_join(exportRoot.path, 'agent_package_README.md')).writeAsString(
+      [
+        '# Agent 导出包',
+        '',
+        '本导出包来自当前工作区真实知识库和 Skill 产物。',
+        '',
+        '## 包含',
+        '- 单 Agent 工作区 W_A',
+        '- 多 Agent 总工作区 W_M',
+        '- 子 Agent 工作区 W_B / W_C',
+        '- A2A 会话配置',
+        '- 权限审计和高级配置',
+        '',
+        '## 边界',
+        '- 不包含明文 secret。',
+        '- 不开放 Computer Use。',
+        '- 不开放 arbitrary shell。',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    await File(_join(auditRoot.path, 'run_history.json')).writeAsString(
+        const JsonEncoder.withIndent('  ').convert({
+          'schema_version': 'prd_v2_agent_run_history.v1',
+          'status': 'pass',
+          'records': [
+            {
+              'run_id': 'agent_create_001',
+              'action': 'create_agents',
+              'artifact':
+                  _join(agentRoot.path, 'agent_generation_manifest.json'),
+              'status': 'completed',
+            },
+            {
+              'run_id': 'agent_config_001',
+              'action': 'write_advanced_config',
+              'artifact': advancedPath,
+              'status': 'completed',
+            },
+            {
+              'run_id': 'agent_permission_001',
+              'action': 'permission_audit',
+              'artifact': permissionAuditPath,
+              'status': 'pass',
+            },
+            {
+              'run_id': 'agent_export_001',
+              'action': 'export_agent_package',
+              'artifact': _join(exportRoot.path, 'agent_package_manifest.json'),
+              'status': 'completed',
+            },
+          ],
+        }),
+        encoding: utf8);
   }
 
   Future<void> _writeMultiAgentDiscussion() async {

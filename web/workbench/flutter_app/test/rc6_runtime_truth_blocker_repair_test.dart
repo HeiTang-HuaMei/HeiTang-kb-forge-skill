@@ -115,7 +115,7 @@ void main() {
     expect(find.text('选择文件夹'), findsNothing);
     expect(find.text('运行 Owner input 链路'), findsNothing);
     expect(find.text('搜索当前关键词'), findsNothing);
-    expect(find.text('生成 Agent'), findsWidgets);
+    expect(find.text('生成 Agent 完整配置'), findsWidgets);
     expect(find.text('A2A 协作'), findsOneWidget);
     await tester.tap(find.text('A2A 协作').first, warnIfMissed: false);
     await tester.pumpAndSettle();
@@ -686,9 +686,37 @@ void main() {
             .readAsStringSync(),
         contains('rc10_real_input_skill_generation.v1'));
     expect(
+        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_manifest.json')
+            .readAsStringSync(),
+        allOf(contains('prd_v2_skill_operations.v1'), contains('fusion')));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}exports${Platform.pathSeparator}skills_export.md')
+            .readAsStringSync(),
+        contains('Skill 导出包'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}fused_product_ops_skill${Platform.pathSeparator}SKILL.md')
+            .readAsStringSync(),
+        contains('融合产品运营 Skill'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}agent_binding_manifest.json')
+            .readAsStringSync(),
+        contains('"status": "bound"'));
+    expect(
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}agent_generation_manifest.json')
             .readAsStringSync(),
         contains('rc10_real_input_agent_generation.v1'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}product_config${Platform.pathSeparator}advanced_agent_config.json')
+            .readAsStringSync(),
+        contains('prd_v2_agent_advanced_config.v1'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}permission_audit.json')
+            .readAsStringSync(),
+        contains('no_arbitrary_shell'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}exports${Platform.pathSeparator}agent_package_manifest.json')
+            .readAsStringSync(),
+        contains('prd_v2_agent_export_package.v1'));
     expect(
         File('${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
             .readAsStringSync(),
@@ -987,6 +1015,26 @@ void main() {
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001${Platform.pathSeparator}a2a_session_manifest.json')
             .readAsStringSync(),
         contains('"conflict_detection_enabled": true'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_manifest.json')
+            .readAsStringSync(),
+        contains('"operation": "copy"'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}agent_binding_manifest.json')
+            .readAsStringSync(),
+        contains('"status": "bound"'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}product_config${Platform.pathSeparator}advanced_agent_config.json')
+            .readAsStringSync(),
+        contains('"secret_source": "env_only"'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}permission_audit.json')
+            .readAsStringSync(),
+        contains('"computer_use_disabled"'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}exports${Platform.pathSeparator}agent_package_README.md')
+            .readAsStringSync(),
+        contains('Agent 导出包'));
     expect(
         File('${workspace.path}${Platform.pathSeparator}prd_p0${Platform.pathSeparator}agent_workspaces${Platform.pathSeparator}W_A${Platform.pathSeparator}agent_manifest.json')
             .readAsStringSync(),

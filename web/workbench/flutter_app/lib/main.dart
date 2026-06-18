@@ -9518,7 +9518,9 @@ class _SkillBuilderProductWorkflowState
             const SizedBox(height: 8),
             _EqualActionRow(children: [
               _PrimaryProductAction(
-                label: _zh ? '校验并生成 Skill' : 'Validate and generate Skill',
+                label: _zh
+                    ? '校验 / 复制 / 融合 / 导出 Skill'
+                    : 'Validate / copy / fuse / export Skill',
                 onPressed: runtime.running || rc6 == null
                     ? null
                     : () {
@@ -9527,7 +9529,7 @@ class _SkillBuilderProductWorkflowState
                           outputPreviewReady = true;
                           validationReady = true;
                         });
-                        rc6.generateSkill();
+                        rc6.completeSkillProductOperations();
                       },
                 icon: Icons.auto_awesome_outlined,
               ),
@@ -9896,11 +9898,11 @@ class _AgentCreationProductView extends StatelessWidget {
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _PrimaryProductAction(
-            label: zh ? '生成 Agent' : 'Generate Agent',
+            label: zh ? '生成 Agent 完整配置' : 'Generate complete Agent config',
             icon: Icons.smart_toy_outlined,
             onPressed: runtime.running || rc6 == null
                 ? null
-                : () => rc6.generateAgent(),
+                : () => rc6.completeAgentProductOperations(),
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _DisplayAction(

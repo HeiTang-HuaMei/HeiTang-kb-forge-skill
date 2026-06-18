@@ -132,7 +132,9 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   Future<void> generateSkill() async => initialize();
+  Future<void> completeSkillProductOperations() async => initialize();
   Future<void> generateAgent() async => initialize();
+  Future<void> completeAgentProductOperations() async => initialize();
   Future<void> runAgentDialogue({String prompt = '请基于当前知识库总结核心要点。'}) async =>
       initialize();
   Future<void> runMultiAgentDiscussion() async => initialize();

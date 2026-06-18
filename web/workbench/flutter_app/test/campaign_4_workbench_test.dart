@@ -260,7 +260,7 @@ void main() {
     expect(find.byKey(const Key('skill-validation-summary')), findsOneWidget);
     expect(find.text('治理报告与验证'), findsNothing);
     expect(find.text('验证导出'), findsOneWidget);
-    expect(find.text('校验并生成 Skill'), findsOneWidget);
+    expect(find.text('校验 / 复制 / 融合 / 导出 Skill'), findsOneWidget);
     expect(find.text('等待真实 Skill 产物'), findsWidgets);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
     expect(find.textContaining('生成完成'), findsNothing);
@@ -341,7 +341,7 @@ void main() {
     await tester.tap(configTab, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
-    expect(find.text('生成 Agent'), findsWidgets);
+    expect(find.text('生成 Agent 完整配置'), findsWidgets);
     expect(find.text('最小对话'), findsOneWidget);
     expect(find.text('A2A 协作'), findsOneWidget);
     expect(find.text('运行审计'), findsOneWidget);

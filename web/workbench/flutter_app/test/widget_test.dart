@@ -673,7 +673,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
     expect(find.text('Agent Config'), findsWidgets);
-    expect(find.text('Generate Agent'), findsWidgets);
+    expect(find.text('Generate complete Agent config'), findsWidgets);
     expect(find.text('Choose real folder to import'), findsNothing);
     expect(find.text('Build Knowledge Base'), findsNothing);
     expect(find.text('Generate Skill'), findsNothing);
