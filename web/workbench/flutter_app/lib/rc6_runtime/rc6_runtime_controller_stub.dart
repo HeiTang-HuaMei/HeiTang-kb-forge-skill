@@ -40,6 +40,31 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> search(String query) async => initialize();
   Future<void> generateMarkdown() async => initialize();
   Future<void> exportMarkdownDocument() async => initialize();
+  Future<void> exportDocumentFormat(String format) async => initialize();
+  Future<void> clearImportedSources() async => initialize();
+  Future<void> clearKnowledgeBaseArtifacts() async => initialize();
+  Future<Rc6StorageTestResult> testRedisConnection({
+    required String host,
+    required int port,
+    required String keyPrefix,
+    String password = '',
+  }) async =>
+      const Rc6StorageTestResult(
+        passed: false,
+        status: 'desktop_runtime_required',
+        detail: '真实 Redis 连接测试需要 Windows EXE 桌面端。',
+      );
+  Future<Rc6StorageTestResult> testQdrantConnection({
+    required String endpoint,
+    required String collection,
+    required int dimension,
+    String apiKey = '',
+  }) async =>
+      const Rc6StorageTestResult(
+        passed: false,
+        status: 'desktop_runtime_required',
+        detail: '真实 Qdrant 连接测试需要 Windows EXE 桌面端。',
+      );
   Future<void> generateSkill() async => initialize();
   Future<void> generateAgent() async => initialize();
   Future<void> runMultiAgentDiscussion() async => initialize();
@@ -85,6 +110,18 @@ class Rc6SearchResult {
   final String excerpt;
   final String citation;
   final String score;
+}
+
+class Rc6StorageTestResult {
+  const Rc6StorageTestResult({
+    required this.passed,
+    required this.status,
+    required this.detail,
+  });
+
+  final bool passed;
+  final String status;
+  final String detail;
 }
 
 class Rc6RuntimeState {

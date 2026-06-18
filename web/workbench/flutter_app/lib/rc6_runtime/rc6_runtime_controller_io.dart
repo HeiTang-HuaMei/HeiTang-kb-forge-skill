@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -501,6 +502,387 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     await _loadExistingArtifacts();
     notifyListeners();
+  }
+
+  Future<void> exportDocumentFormat(String format) async {
+    final normalized = format.trim().toLowerCase();
+    if (normalized == 'md' || normalized == 'markdown') {
+      await exportMarkdownDocument();
+      return;
+    }
+    if (!const {'docx', 'pdf', 'pptx'}.contains(normalized)) {
+      _fail('暂不支持该导出格式：$format');
+      return;
+    }
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    final kbDir = Directory(_join(workspace.path, 'kb'));
+    if (!await kbDir.exists()) {
+      _fail('请先构建知识库，再导出 $normalized 文档。');
+      return;
+    }
+    final exportDir = Directory(_join(workspace.path, 'export', normalized));
+    await _clearWorkspacePath(exportDir.path);
+    final command = 'generate-$normalized';
+    await _runCoreAction(
+      actionId: command.replaceAll('-', '_'),
+      arguments: [
+        command,
+        '--package',
+        kbDir.path,
+        '--output',
+        exportDir.path,
+        '--title',
+        '真实输入文档导出',
+      ],
+      outputPath: exportDir.path,
+      nextPhase: Rc6RuntimePhase.documentGenerated,
+      successMessage: '${normalized.toUpperCase()} 文档已导出。',
+      timeout: const Duration(minutes: 10),
+    );
+    if (state.lastResult?.passed == true) {
+      final generated = await _firstFileWithExtension(exportDir, normalized);
+      state = state.copyWith(
+        exportedDocumentPath: generated?.path ?? exportDir.path,
+        exportManifestPath: _join(exportDir.path, 'generated_file_report.json'),
+        lastMessage: '${normalized.toUpperCase()} 文档已导出。',
+        lastError: '',
+      );
+    }
+    await _loadExistingArtifacts();
+    notifyListeners();
+  }
+
+  Future<Rc6StorageTestResult> testRedisConnection({
+    required String host,
+    required int port,
+    required String keyPrefix,
+    String password = '',
+  }) async {
+    if (isWebRuntime || kIsWeb) {
+      return const Rc6StorageTestResult(
+        passed: false,
+        status: 'desktop_runtime_required',
+        detail: '真实 Redis 连接测试需要 Windows EXE 桌面端。',
+      );
+    }
+    final effectivePassword = _effectiveSecret(
+      provided: password,
+      environmentKey: 'HEITANG_REDIS_PASSWORD',
+    );
+    if (effectivePassword.isEmpty) {
+      return const Rc6StorageTestResult(
+        passed: false,
+        status: 'missing_password',
+        detail: '缺少 Redis 密码；请设置 HEITANG_REDIS_PASSWORD 或输入掩码字段。',
+      );
+    }
+    final safePrefix = keyPrefix.trim().isEmpty ? 'heitang:' : keyPrefix.trim();
+    final probeKey = '${safePrefix}settings_probe';
+    Socket? socket;
+    StreamIterator<List<int>>? iterator;
+    try {
+      socket = await Socket.connect(
+        host.trim().isEmpty ? '127.0.0.1' : host.trim(),
+        port,
+        timeout: const Duration(seconds: 5),
+      );
+      iterator = StreamIterator<List<int>>(socket);
+      Future<String> send(List<String> command) async {
+        socket!.add(utf8.encode(_redisCommand(command)));
+        await socket.flush();
+        final hasChunk = await iterator!
+            .moveNext()
+            .timeout(const Duration(seconds: 5), onTimeout: () => false);
+        if (!hasChunk) {
+          throw const SocketException('Redis response timed out');
+        }
+        return utf8.decode(iterator.current, allowMalformed: true);
+      }
+
+      final auth = await send(['AUTH', effectivePassword]);
+      if (!auth.startsWith('+OK')) {
+        return Rc6StorageTestResult(
+          passed: false,
+          status: 'auth_failed',
+          detail: _redisStatus(auth),
+        );
+      }
+      final ping = await send(['PING']);
+      if (!ping.startsWith('+PONG')) {
+        return Rc6StorageTestResult(
+          passed: false,
+          status: 'ping_failed',
+          detail: _redisStatus(ping),
+        );
+      }
+      final set = await send(['SET', probeKey, 'ok']);
+      final get = await send(['GET', probeKey]);
+      final del = await send(['DEL', probeKey]);
+      final ok = set.startsWith('+OK') &&
+          get.contains('\r\nok\r\n') &&
+          (del.startsWith(':1') || del.startsWith(':0'));
+      return Rc6StorageTestResult(
+        passed: ok,
+        status: ok ? 'connected' : 'probe_failed',
+        detail: ok
+            ? 'Redis PING / 写入 / 读取 / 删除均通过。'
+            : 'Redis 探针失败：${_redisStatus(get)}',
+      );
+    } on Object catch (error) {
+      return Rc6StorageTestResult(
+        passed: false,
+        status: 'connection_failed',
+        detail: _redactSecret(error.toString(), effectivePassword),
+      );
+    } finally {
+      await iterator?.cancel();
+      socket?.destroy();
+    }
+  }
+
+  Future<Rc6StorageTestResult> testQdrantConnection({
+    required String endpoint,
+    required String collection,
+    required int dimension,
+    String apiKey = '',
+  }) async {
+    if (isWebRuntime || kIsWeb) {
+      return const Rc6StorageTestResult(
+        passed: false,
+        status: 'desktop_runtime_required',
+        detail: '真实 Qdrant 连接测试需要 Windows EXE 桌面端。',
+      );
+    }
+    final baseUri = Uri.tryParse(endpoint.trim());
+    if (baseUri == null || !baseUri.hasScheme || baseUri.host.isEmpty) {
+      return const Rc6StorageTestResult(
+        passed: false,
+        status: 'invalid_endpoint',
+        detail: 'Qdrant endpoint 必须是 http(s) URL。',
+      );
+    }
+    if (dimension <= 0) {
+      return const Rc6StorageTestResult(
+        passed: false,
+        status: 'invalid_dimension',
+        detail: 'Qdrant 向量维度必须大于 0。',
+      );
+    }
+    final collectionName =
+        collection.trim().isEmpty ? 'heitang_kb' : collection.trim();
+    final effectiveApiKey = _effectiveSecret(
+      provided: apiKey,
+      environmentKey: 'HEITANG_QDRANT_API_KEY',
+    );
+    final client = HttpClient()..connectionTimeout = const Duration(seconds: 5);
+    try {
+      final health = await _qdrantRequest(
+        client,
+        baseUri,
+        'GET',
+        '/healthz',
+        effectiveApiKey,
+      );
+      if (health.statusCode >= 400) {
+        return Rc6StorageTestResult(
+          passed: false,
+          status: 'health_failed',
+          detail: 'Qdrant healthz 返回 HTTP ${health.statusCode}。',
+        );
+      }
+
+      final collectionPath = '/collections/$collectionName';
+      final current = await _qdrantRequest(
+        client,
+        baseUri,
+        'GET',
+        collectionPath,
+        effectiveApiKey,
+      );
+      if (current.statusCode == 404) {
+        final create = await _qdrantRequest(
+          client,
+          baseUri,
+          'PUT',
+          collectionPath,
+          effectiveApiKey,
+          body: {
+            'vectors': {'size': dimension, 'distance': 'Cosine'}
+          },
+        );
+        if (create.statusCode >= 400) {
+          return Rc6StorageTestResult(
+            passed: false,
+            status: 'collection_create_failed',
+            detail: '创建 collection 失败：HTTP ${create.statusCode}。',
+          );
+        }
+      } else if (current.statusCode >= 400) {
+        return Rc6StorageTestResult(
+          passed: false,
+          status: 'collection_check_failed',
+          detail: 'Collection 检查失败：HTTP ${current.statusCode}。',
+        );
+      }
+
+      const pointId = 4308;
+      final vector = List<double>.generate(
+        dimension,
+        (index) => index == 0 ? 1.0 : 0.0,
+      );
+      final upsert = await _qdrantRequest(
+        client,
+        baseUri,
+        'PUT',
+        '$collectionPath/points?wait=true',
+        effectiveApiKey,
+        body: {
+          'points': [
+            {
+              'id': pointId,
+              'vector': vector,
+              'payload': {'source': 'heitang_rc8_settings_probe'}
+            }
+          ]
+        },
+      );
+      if (upsert.statusCode >= 400) {
+        return Rc6StorageTestResult(
+          passed: false,
+          status: 'vector_write_failed',
+          detail: '测试向量写入失败：HTTP ${upsert.statusCode}。',
+        );
+      }
+      final search = await _qdrantRequest(
+        client,
+        baseUri,
+        'POST',
+        '$collectionPath/points/search',
+        effectiveApiKey,
+        body: {'vector': vector, 'limit': 1, 'with_payload': true},
+      );
+      if (search.statusCode >= 400 || !search.body.contains('$pointId')) {
+        return Rc6StorageTestResult(
+          passed: false,
+          status: 'vector_search_failed',
+          detail: '测试向量检索失败：HTTP ${search.statusCode}。',
+        );
+      }
+      final delete = await _qdrantRequest(
+        client,
+        baseUri,
+        'POST',
+        '$collectionPath/points/delete?wait=true',
+        effectiveApiKey,
+        body: {
+          'points': [pointId]
+        },
+      );
+      final deleted = delete.statusCode < 400;
+      return Rc6StorageTestResult(
+        passed: deleted,
+        status: deleted ? 'connected' : 'vector_delete_failed',
+        detail: deleted
+            ? 'Qdrant health / collection / 测试向量写入检索删除均通过。'
+            : '测试向量删除失败：HTTP ${delete.statusCode}。',
+      );
+    } on Object catch (error) {
+      return Rc6StorageTestResult(
+        passed: false,
+        status: 'connection_failed',
+        detail: _redactSecret(error.toString(), effectiveApiKey),
+      );
+    } finally {
+      client.close(force: true);
+    }
+  }
+
+  Future<void> clearImportedSources() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    await _clearGeneratedArtifacts(includeImport: true);
+    await _clearWorkspacePath(_join(workspace.path, 'input'));
+    await _clearWorkspacePath(_join(workspace.path, 'source_manifest.json'));
+    state = state.copyWith(
+      phase: Rc6RuntimePhase.initial,
+      selectedFilePath: '',
+      sourceManifestPath: '',
+      parseReportPath: '',
+      chunksPath: '',
+      kbManifestPath: '',
+      qualityReportPath: '',
+      cardsPath: '',
+      qaPairsPath: '',
+      queryResultPath: '',
+      generatedMarkdownPath: '',
+      readingNotesPath: '',
+      exportedDocumentPath: '',
+      exportManifestPath: '',
+      sourceCount: 0,
+      sourceNames: const [],
+      chunkCount: 0,
+      searchQuery: '',
+      searchStatus: Rc6SearchStatus.idle,
+      searchResults: const [],
+      lastMessage: '导入批次和下游产物已删除。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
+  Future<void> clearKnowledgeBaseArtifacts() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    for (final relative in const [
+      'kb',
+      'query',
+      'doc',
+      'export',
+    ]) {
+      await _clearWorkspacePath(_join(workspace.path, relative));
+    }
+    state = state.copyWith(
+      phase: state.hasImportedFile
+          ? Rc6RuntimePhase.documentUnderstanding
+          : Rc6RuntimePhase.initial,
+      chunksPath: '',
+      kbManifestPath: '',
+      qualityReportPath: '',
+      cardsPath: '',
+      qaPairsPath: '',
+      queryResultPath: '',
+      generatedMarkdownPath: '',
+      readingNotesPath: '',
+      exportedDocumentPath: '',
+      exportManifestPath: '',
+      chunkCount: 0,
+      searchQuery: '',
+      searchStatus: Rc6SearchStatus.idle,
+      searchResults: const [],
+      lastMessage: '知识库、检索和文档导出产物已删除。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
+  Future<File?> _firstFileWithExtension(
+      Directory directory, String extension) async {
+    if (!await directory.exists()) {
+      return null;
+    }
+    await for (final entity in directory.list(recursive: true)) {
+      if (entity is File && entity.path.toLowerCase().endsWith('.$extension')) {
+        return entity;
+      }
+    }
+    return null;
   }
 
   Future<void> generateSkill() async {
@@ -1258,6 +1640,71 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  static String _effectiveSecret({
+    required String provided,
+    required String environmentKey,
+  }) {
+    final value = provided.trim();
+    if (value.isNotEmpty &&
+        !value.contains('*') &&
+        !value.toLowerCase().contains('blank') &&
+        !value.contains('留空')) {
+      return value;
+    }
+    return Platform.environment[environmentKey]?.trim() ?? '';
+  }
+
+  static String _redactSecret(String text, String secret) {
+    if (secret.isEmpty) {
+      return text;
+    }
+    return text.replaceAll(secret, '********');
+  }
+
+  static String _redisCommand(List<String> parts) {
+    final buffer = StringBuffer('*${parts.length}\r\n');
+    for (final part in parts) {
+      final bytes = utf8.encode(part);
+      buffer
+        ..write('\$${bytes.length}\r\n')
+        ..write(part)
+        ..write('\r\n');
+    }
+    return buffer.toString();
+  }
+
+  static String _redisStatus(String response) {
+    final firstLine = response.split('\r\n').first.trim();
+    return firstLine.isEmpty ? 'empty Redis response' : firstLine;
+  }
+
+  static Future<_QdrantResponse> _qdrantRequest(
+    HttpClient client,
+    Uri baseUri,
+    String method,
+    String path,
+    String apiKey, {
+    Map<String, Object?>? body,
+  }) async {
+    final normalizedBase = baseUri.path.endsWith('/')
+        ? baseUri.path.substring(0, baseUri.path.length - 1)
+        : baseUri.path;
+    final uri = baseUri.replace(path: '$normalizedBase$path');
+    final request =
+        await client.openUrl(method, uri).timeout(const Duration(seconds: 8));
+    request.headers.set(HttpHeaders.acceptHeader, 'application/json');
+    if (apiKey.isNotEmpty) {
+      request.headers.set('api-key', apiKey);
+    }
+    if (body != null) {
+      request.headers.contentType = ContentType.json;
+      request.add(utf8.encode(jsonEncode(body)));
+    }
+    final response = await request.close().timeout(const Duration(seconds: 20));
+    final text = await utf8.decodeStream(response);
+    return _QdrantResponse(response.statusCode, text);
+  }
+
   static Future<Map<String, dynamic>> _readJsonObject(String path) async {
     final file = File(path);
     if (!await file.exists()) {
@@ -1451,6 +1898,25 @@ class Rc6SearchResult {
   final String excerpt;
   final String citation;
   final String score;
+}
+
+class Rc6StorageTestResult {
+  const Rc6StorageTestResult({
+    required this.passed,
+    required this.status,
+    required this.detail,
+  });
+
+  final bool passed;
+  final String status;
+  final String detail;
+}
+
+class _QdrantResponse {
+  const _QdrantResponse(this.statusCode, this.body);
+
+  final int statusCode;
+  final String body;
 }
 
 class Rc6RuntimeState {
