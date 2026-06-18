@@ -1349,6 +1349,23 @@ void main() {
         {'source_name': 'alpha.txt', 'relative_path': 'alpha.txt'}
       ],
     }));
+    final queryDir =
+        Directory('${workspace.path}${Platform.pathSeparator}query')
+          ..createSync(recursive: true);
+    File('${queryDir.path}${Platform.pathSeparator}multi_kb_query_result.json')
+        .writeAsStringSync(jsonEncode({
+      'query': '产品分析',
+      'selected_count': 1,
+      'selected': [
+        {
+          'text': '真实产品分析证据',
+          'source_path': 'alpha.txt',
+          'citation': 'alpha.txt#chunk=1',
+          'kb_id': 'K1',
+          'kb_name': '真实输入知识库',
+        }
+      ],
+    }));
 
     final requests = <CoreBridgeRequest>[];
     final controller = Rc6RuntimeController(
@@ -1393,6 +1410,15 @@ void main() {
           contains('"output_format": "docx"'),
           contains('"citation_strategy": "filename_and_chunk"'),
           contains('"template_mode": "agent"'),
+        ));
+    expect(
+        generationManifest,
+        allOf(
+          contains('"citations":'),
+          contains('alpha.txt#chunk=1'),
+          contains('"kb_name": "真实输入知识库"'),
+          contains('"generation_history":'),
+          contains('"citation_count": 1'),
         ));
     expect(
         File('$docRoot${Platform.pathSeparator}reading_notes.md')

@@ -3638,6 +3638,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         ? readingNotesPath
         : generatedPath;
     final sources = await _sourceNames();
+    final citations = _citationsFromQueryReport(queryReport);
     final payload = {
       'schema_version': 'prd_v2_template_document_generation.v1',
       'status': 'pass',
@@ -3650,11 +3651,23 @@ class Rc6RuntimeController extends ChangeNotifier {
       'retrieval_query': (queryReport['query'] ?? state.searchQuery).toString(),
       'source_count': sources.length,
       'sources': sources,
+      'citations': citations,
       'outline_status': 'generated_from_template',
       'body_status': 'generated',
       'citation_list_status': 'written',
       'output_markdown': outputPath,
       'export_format_requested': config.outputFormat,
+      'generation_history': [
+        {
+          'event': 'generate_document',
+          'template': config.templateMode,
+          'generation_type': config.generationType,
+          'output_format': config.outputFormat,
+          'output_markdown': outputPath,
+          'citation_count': citations.length,
+          'created_at': DateTime.now().toUtc().toIso8601String(),
+        }
+      ],
       'secret_plaintext_written': false,
     };
     await File(_join(docDir.path, 'generation_manifest.json')).writeAsString(
@@ -3669,6 +3682,25 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(workspace.path, 'doc', 'generation_manifest.json'));
     final config = manifest['generation_config'];
     return config is Map ? Map<String, dynamic>.from(config) : const {};
+  }
+
+  static List<Map<String, String>> _citationsFromQueryReport(
+      Map<String, dynamic> queryReport) {
+    final rows = queryReport['selected'] ??
+        queryReport['results'] ??
+        queryReport['records'];
+    if (rows is! List) return const <Map<String, String>>[];
+    return rows
+        .whereType<Map>()
+        .map((row) => {
+              'text': _compact(row['text'] ?? row['excerpt'] ?? row['title']),
+              'citation':
+                  (row['citation'] ?? row['source_path'] ?? '').toString(),
+              'kb_id': (row['kb_id'] ?? '').toString(),
+              'kb_name': (row['kb_name'] ?? '').toString(),
+            })
+        .where((row) => row['citation']!.trim().isNotEmpty)
+        .toList(growable: false);
   }
 
   Future<Map<String, Object?>> _structuredDocumentExportPayload(

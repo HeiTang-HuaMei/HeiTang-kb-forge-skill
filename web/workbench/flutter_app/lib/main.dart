@@ -7078,11 +7078,22 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                       '引用来源可追踪'
                     ],
                     [
+                      '引用清单',
+                      runtime.queryResultPath.isNotEmpty
+                          ? _displayNameForPath(runtime.queryResultPath)
+                          : '等待检索结果',
+                      '写入 generation_manifest.json'
+                    ],
+                    [
                       '编辑保存',
                       runtime.hasEditedDocument ? '已保存' : '等待编辑',
                       '用户工作区'
                     ],
-                    ['生成历史', runtime.hasMarkdown ? '已记录' : '暂无历史', '用户工作区'],
+                    [
+                      '生成历史',
+                      runtime.hasMarkdown ? 'generation_manifest.json' : '暂无历史',
+                      '用户工作区'
+                    ],
                   ]
                 : [
                     [
@@ -7099,8 +7110,17 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                       'Sources traceable'
                     ],
                     [
+                      'Citation list',
+                      runtime.queryResultPath.isNotEmpty
+                          ? _displayNameForPath(runtime.queryResultPath)
+                          : 'Waiting retrieval',
+                      'Written to generation_manifest.json'
+                    ],
+                    [
                       'History',
-                      runtime.hasMarkdown ? 'Recorded' : 'No history',
+                      runtime.hasMarkdown
+                          ? 'generation_manifest.json'
+                          : 'No history',
                       'User workspace'
                     ],
                     [
