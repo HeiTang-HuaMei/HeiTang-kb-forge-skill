@@ -262,6 +262,7 @@ void main() {
     expect(find.text('治理报告与验证'), findsNothing);
     expect(find.text('验证导出'), findsOneWidget);
     expect(find.text('校验 / 复制 / 融合 / 导出 Skill'), findsOneWidget);
+    expect(find.text('复制 Skill 路径'), findsNothing);
     expect(find.text('等待真实 Skill 产物'), findsWidgets);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
     expect(find.textContaining('生成完成'), findsNothing);
@@ -343,6 +344,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
     expect(find.text('生成 Agent 完整配置'), findsWidgets);
+    expect(find.text('复制 Agent 路径'), findsNothing);
+    expect(find.text('等待真实 Agent 产物'), findsWidgets);
     expect(find.text('最小对话'), findsOneWidget);
     expect(find.text('A2A 协作'), findsOneWidget);
     expect(find.text('运行审计'), findsOneWidget);
@@ -356,6 +359,8 @@ void main() {
     await tester.tap(chatTab, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-minimal-chat')), findsOneWidget);
+    expect(find.text('等待对话产物'), findsOneWidget);
+    expect(find.text('等待会话历史'), findsOneWidget);
 
     final discussionTab = find.byKey(const Key('page-tab-3'));
     await tester.ensureVisible(discussionTab);
@@ -364,6 +369,7 @@ void main() {
     expect(find.byKey(const Key('multi-agent-discussion-product-flow')),
         findsOneWidget);
     expect(find.text('启动联合讨论'), findsOneWidget);
+    expect(find.text('等待讨论纪要'), findsOneWidget);
 
     final historyTab = find.byKey(const Key('page-tab-4'));
     await tester.ensureVisible(historyTab);

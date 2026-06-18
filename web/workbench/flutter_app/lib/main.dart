@@ -4,7 +4,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart'
+    show Clipboard, ClipboardData, rootBundle;
 
 import 'core_actions/core_action_panel.dart';
 import 'core_actions/page_action_mapping.dart';
@@ -4813,6 +4814,20 @@ class _DisplayAction extends StatelessWidget {
   }
 }
 
+Future<void> _copyArtifactPath(
+  BuildContext context, {
+  required String path,
+  required String successMessage,
+}) async {
+  final trimmed = path.trim();
+  if (trimmed.isEmpty) return;
+  await Clipboard.setData(ClipboardData(text: trimmed));
+  if (!context.mounted) return;
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(successMessage)),
+  );
+}
+
 class _PrimaryProductAction extends StatelessWidget {
   const _PrimaryProductAction({
     required this.label,
@@ -9589,6 +9604,21 @@ class _SkillBuilderProductWorkflowState
               ),
               _DisplayAction(
                 label: runtime.hasSkill
+                    ? (_zh ? '复制 Skill 路径' : 'Copy Skill path')
+                    : (_zh ? '等待真实 Skill 产物' : 'Waiting for real Skill'),
+                icon: Icons.copy_outlined,
+                onPressed: runtime.hasSkill
+                    ? () => _copyArtifactPath(
+                          context,
+                          path: runtime.skillPath,
+                          successMessage: _zh
+                              ? 'Skill 产物路径已复制'
+                              : 'Skill artifact path copied',
+                        )
+                    : null,
+              ),
+              _DisplayAction(
+                label: runtime.hasSkill
                     ? (_zh ? '删除 Skill 产物' : 'Delete Skill artifacts')
                     : (_zh ? '等待真实 Skill 产物' : 'Waiting for real Skill'),
                 icon: runtime.hasSkill
@@ -9959,17 +9989,33 @@ class _AgentCreationProductView extends StatelessWidget {
                 : () => rc6.completeAgentProductOperations(),
           ),
           const SizedBox(height: _DesktopGrid.gutter),
-          _DisplayAction(
-            label: runtime.hasAgent
-                ? (zh ? '删除 Agent 产物' : 'Delete Agent artifacts')
-                : (zh ? '等待真实 Agent 产物' : 'Waiting for real Agent'),
-            icon: runtime.hasAgent
-                ? Icons.delete_outline
-                : Icons.smart_toy_outlined,
-            onPressed: runtime.hasAgent
-                ? () => _confirmAndDeleteAgent(context, rc6)
-                : null,
-          ),
+          _EqualActionRow(children: [
+            _DisplayAction(
+              label: runtime.hasAgent
+                  ? (zh ? '复制 Agent 路径' : 'Copy Agent path')
+                  : (zh ? '等待真实 Agent 产物' : 'Waiting for real Agent'),
+              icon: Icons.copy_outlined,
+              onPressed: runtime.hasAgent
+                  ? () => _copyArtifactPath(
+                        context,
+                        path: runtime.agentPath,
+                        successMessage:
+                            zh ? 'Agent 产物路径已复制' : 'Agent artifact path copied',
+                      )
+                  : null,
+            ),
+            _DisplayAction(
+              label: runtime.hasAgent
+                  ? (zh ? '删除 Agent 产物' : 'Delete Agent artifacts')
+                  : (zh ? '等待真实 Agent 产物' : 'Waiting for real Agent'),
+              icon: runtime.hasAgent
+                  ? Icons.delete_outline
+                  : Icons.smart_toy_outlined,
+              onPressed: runtime.hasAgent
+                  ? () => _confirmAndDeleteAgent(context, rc6)
+                  : null,
+            ),
+          ]),
         ],
       );
       final detail = _ProductPanel(
@@ -10101,6 +10147,21 @@ class _AgentDiscussionProductView extends StatelessWidget {
               ? null
               : () => rc6.runMultiAgentDiscussion(),
         ),
+        const SizedBox(height: _DesktopGrid.gutter),
+        _DisplayAction(
+          label: runtime.hasMultiAgentDiscussion
+              ? (zh ? '复制讨论纪要路径' : 'Copy discussion notes path')
+              : (zh ? '等待讨论纪要' : 'Waiting for discussion notes'),
+          icon: Icons.copy_outlined,
+          onPressed: runtime.hasMultiAgentDiscussion
+              ? () => _copyArtifactPath(
+                    context,
+                    path: runtime.multiAgentDiscussionPath,
+                    successMessage:
+                        zh ? '讨论纪要路径已复制' : 'Discussion notes path copied',
+                  )
+              : null,
+        ),
       ],
     );
   }
@@ -10177,6 +10238,37 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                     : '${runtime.agentDialogueTurnCount} turns · ${_displayNameForPath(runtime.agentDialogueHistoryPath)}')
                 : (zh ? '尚未生成' : 'Not generated'),
           ),
+          const SizedBox(height: _DesktopGrid.gutter),
+          _EqualActionRow(children: [
+            _DisplayAction(
+              label: runtime.hasAgentDialogue
+                  ? (zh ? '复制对话产物路径' : 'Copy dialogue artifact path')
+                  : (zh ? '等待对话产物' : 'Waiting for dialogue artifact'),
+              icon: Icons.copy_outlined,
+              onPressed: runtime.hasAgentDialogue
+                  ? () => _copyArtifactPath(
+                        context,
+                        path: runtime.agentDialoguePath,
+                        successMessage:
+                            zh ? '对话产物路径已复制' : 'Dialogue artifact path copied',
+                      )
+                  : null,
+            ),
+            _DisplayAction(
+              label: runtime.hasAgentDialogueHistory
+                  ? (zh ? '复制会话历史路径' : 'Copy chat history path')
+                  : (zh ? '等待会话历史' : 'Waiting for chat history'),
+              icon: Icons.copy_outlined,
+              onPressed: runtime.hasAgentDialogueHistory
+                  ? () => _copyArtifactPath(
+                        context,
+                        path: runtime.agentDialogueHistoryPath,
+                        successMessage:
+                            zh ? '会话历史路径已复制' : 'Chat history path copied',
+                      )
+                  : null,
+            ),
+          ]),
         ],
       );
       final bindings = _ProductPanel(

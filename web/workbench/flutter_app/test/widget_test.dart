@@ -674,6 +674,8 @@ void main() {
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
     expect(find.text('Agent Config'), findsWidgets);
     expect(find.text('Generate complete Agent config'), findsWidgets);
+    expect(find.text('Copy Agent path'), findsNothing);
+    expect(find.text('Waiting for real Agent'), findsWidgets);
     expect(find.text('Choose real folder to import'), findsNothing);
     expect(find.text('Build Knowledge Base'), findsNothing);
     expect(find.text('Generate Skill'), findsNothing);
@@ -687,12 +689,15 @@ void main() {
     expect(find.byKey(const Key('multi-agent-discussion-product-flow')),
         findsOneWidget);
     expect(find.text('Start discussion'), findsOneWidget);
+    expect(find.text('Waiting for discussion notes'), findsOneWidget);
 
     final chatTab = find.byKey(const Key('page-tab-2'));
     await tester.ensureVisible(chatTab);
     await tester.tap(chatTab, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-minimal-chat')), findsOneWidget);
+    expect(find.text('Waiting for dialogue artifact'), findsOneWidget);
+    expect(find.text('Waiting for chat history'), findsOneWidget);
 
     final historyTab = find.byKey(const Key('page-tab-4'));
     await tester.ensureVisible(historyTab);
