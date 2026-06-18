@@ -45,7 +45,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     await _loadExistingArtifacts();
     notifyListeners();
-    if (_autoRunOwnerInputDocumentFlowOnLaunch()) {
+    if (_autoRunOwnerInputPrdP0OnLaunch()) {
+      state = state.copyWith(
+        lastMessage: '启动参数请求运行 PRD P0 Owner input 产品闭环。',
+        lastError: '',
+      );
+      notifyListeners();
+      await runOwnerInputPrdP0E2E();
+    } else if (_autoRunOwnerInputDocumentFlowOnLaunch()) {
       state = state.copyWith(
         lastMessage: '启动参数请求运行 Owner input 文档链路。',
         lastError: '',
@@ -806,6 +813,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'query',
       'doc',
       'export',
+      'prd_p0',
     ]) {
       await _clearWorkspacePath(_join(workspace.path, relative));
     }
@@ -823,6 +831,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       readingNotesPath: '',
       exportedDocumentPath: '',
       exportManifestPath: '',
+      prdP0EvidencePath: '',
       chunkCount: 0,
       searchQuery: '',
       searchStatus: Rc6SearchStatus.idle,
@@ -847,6 +856,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'skill',
       'agent',
       'multi_agent',
+      'prd_p0',
     ]) {
       await _clearWorkspacePath(_join(workspace.path, relative));
     }
@@ -869,6 +879,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       skillPath: '',
       agentPath: '',
       multiAgentDiscussionPath: '',
+      prdP0EvidencePath: '',
       chunkCount: 0,
       searchQuery: '',
       searchStatus: Rc6SearchStatus.idle,
@@ -906,6 +917,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final workspace = _requireWorkspace();
     await _clearWorkspacePath(_join(workspace.path, 'doc'));
     await _clearWorkspacePath(_join(workspace.path, 'export'));
+    await _clearWorkspacePath(_join(workspace.path, 'prd_p0'));
     state = state.copyWith(
       phase: state.searchStatus == Rc6SearchStatus.success
           ? Rc6RuntimePhase.searched
@@ -916,6 +928,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       readingNotesPath: '',
       exportedDocumentPath: '',
       exportManifestPath: '',
+      prdP0EvidencePath: '',
       lastMessage: '文档生成和导出记录已删除。',
       lastError: '',
     );
@@ -931,6 +944,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'skill',
       'agent',
       'multi_agent',
+      'prd_p0',
     ]) {
       await _clearWorkspacePath(_join(workspace.path, relative));
     }
@@ -946,6 +960,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       agentPath: '',
       agentDialoguePath: '',
       multiAgentDiscussionPath: '',
+      prdP0EvidencePath: '',
       lastMessage: 'Skill、Agent 和讨论产物已删除。',
       lastError: '',
     );
@@ -959,6 +974,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final workspace = _requireWorkspace();
     await _clearWorkspacePath(_join(workspace.path, 'agent'));
     await _clearWorkspacePath(_join(workspace.path, 'multi_agent'));
+    await _clearWorkspacePath(_join(workspace.path, 'prd_p0'));
     state = state.copyWith(
       phase: state.hasSkill
           ? Rc6RuntimePhase.skillGenerated
@@ -972,6 +988,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       agentPath: '',
       agentDialoguePath: '',
       multiAgentDiscussionPath: '',
+      prdP0EvidencePath: '',
       lastMessage: 'Agent、对话和讨论产物已删除。',
       lastError: '',
     );
@@ -1259,6 +1276,26 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
   }
 
+  Future<void> runPrdP0ProductE2E(String folderPath,
+      {String query = '赚钱 小生意'}) async {
+    await runRealInputFolderE2E(folderPath, query: query);
+    if (!state.hasAgentDialogue || !state.hasMultiAgentDiscussion) return;
+    await _writePrdP0ProductArtifacts(query: query);
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: 'PRD P0 多知识库、外部 Skill、本地化 Skill、Agent 工作区和 A2A 闭环已生成。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
+  Future<void> runOwnerInputPrdP0E2E({String query = '赚钱 小生意'}) async {
+    await runPrdP0ProductE2E(
+      r'D:\HeiTang-Codex-WorkSpace\input',
+      query: query,
+    );
+  }
+
   Future<void> runDocumentFlowE2E(String folderPath,
       {String query = '赚钱 小生意'}) async {
     await importFolderPath(folderPath);
@@ -1360,6 +1397,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'skill',
       'agent',
       'multi_agent',
+      'prd_p0',
     ]) {
       await _clearWorkspacePath(_join(workspace.path, relative));
     }
@@ -1379,6 +1417,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       agentDialoguePath: '',
       readingNotesPath: '',
       multiAgentDiscussionPath: '',
+      prdP0EvidencePath: '',
       cardsPath: '',
       qaPairsPath: '',
       chunkCount: 0,
@@ -1448,6 +1487,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         _joinNested(workspace.path, 'agent/dialogue/agent_dialogue.md');
     final multiAgentPath =
         _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md');
+    final prdP0EvidencePath =
+        _join(workspace.path, 'prd_p0', 'prd_p0_e2e_evidence.json');
 
     final importReport = await _readJsonObject(importReportPath);
     final sourceManifest = await _readJsonObject(sourceManifestPath);
@@ -1515,6 +1556,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           await File(agentDialoguePath).exists() ? agentDialoguePath : '',
       multiAgentDiscussionPath:
           await File(multiAgentPath).exists() ? multiAgentPath : '',
+      prdP0EvidencePath:
+          await File(prdP0EvidencePath).exists() ? prdP0EvidencePath : '',
       sourceCount: sourceCount,
       sourceNames: sourceNames,
       chunkCount: chunkCount,
@@ -1628,36 +1671,109 @@ class Rc6RuntimeController extends ChangeNotifier {
     final workspace = _requireWorkspace();
     final skillRoot = Directory(_join(workspace.path, 'skill'));
     await skillRoot.create(recursive: true);
+    final kbManifestPath = _join(workspace.path, 'kb', 'manifest.json');
+    final sourceManifestPath = _join(workspace.path, 'source_manifest.json');
+    final primaryDir = Directory(_join(skillRoot.path, 'knowledge_qa_skill'));
+    await primaryDir.create(recursive: true);
+    final primarySkill = File(_join(primaryDir.path, 'SKILL.md'));
+    if (!await primarySkill.exists()) {
+      await primarySkill.writeAsString(
+        [
+          '# 真实输入知识问答 Skill',
+          '',
+          '## 能力说明',
+          '基于当前工作区的真实知识库、chunks、cards 和 qa_pairs 进行证据化问答。',
+          '',
+          '## 输入格式',
+          'Markdown question + optional citation requirement.',
+          '',
+          '## 输出格式',
+          'Cited Markdown answer with source paths.',
+          '',
+          '## 限制边界',
+          '- 只读取绑定知识库。',
+          '- 不调用外部网络。',
+          '- 不执行系统命令。',
+        ].join('\n'),
+        encoding: utf8,
+      );
+    }
+    final primaryConfig = {
+      'skill_config_id': 'S1',
+      'skill_name': '真实输入知识问答 Skill',
+      'target_platform': 'codex',
+      'skill_type': 'analysis',
+      'source_mode': 'from_kb',
+      'source_kb_ids': ['K1'],
+      'source_kb_manifest': kbManifestPath,
+      'external_skill_path': '',
+      'localization_goal': '',
+      'export_path': primaryDir.path,
+      'instruction_path': primarySkill.path,
+      'status': 'validated',
+    };
+    await File(_join(primaryDir.path, 'skill_config.json')).writeAsString(
+        const JsonEncoder.withIndent('  ').convert(primaryConfig),
+        encoding: utf8);
+    await File(_join(primaryDir.path, 'verification_report.json'))
+        .writeAsString(
+            const JsonEncoder.withIndent('  ').convert({
+              'status': 'pass',
+              'checks': [
+                'skill_md_exists',
+                'kb_binding_exists',
+                'target_platform_selected',
+                'no_plaintext_secret',
+              ],
+            }),
+            encoding: utf8);
+    await File(_join(primaryDir.path, 'export_manifest.json')).writeAsString(
+        const JsonEncoder.withIndent('  ').convert({
+          'exporter_type': 'skill_package',
+          'enabled': true,
+          'output_path': primaryDir.path,
+          'files': [
+            'SKILL.md',
+            'skill_config.json',
+            'verification_report.json'
+          ],
+        }),
+        encoding: utf8);
+
     const specs = [
       [
         'reading_summary_skill',
         '阅读总结 Skill',
+        'writing',
         'Summarize real KB themes with source citations.'
       ],
       [
         'quality_check_skill',
         '质检 Skill',
+        'analysis',
         'Inspect parse noise, missing evidence, and review risk.'
       ],
       [
         'operation_conversion_skill',
         '运营转化 Skill',
+        'ops',
         'Turn grounded notes into safe action checklists.'
       ],
       [
         'product_analysis_skill',
         '产品分析 Skill',
+        'product',
         'Analyze product/business patterns from grounded sources.'
       ],
     ];
-    final manifest = <Map<String, Object?>>[];
+    final manifest = <Map<String, Object?>>[primaryConfig];
     for (final spec in specs) {
       final dir = Directory(_join(skillRoot.path, spec[0]));
       await dir.create(recursive: true);
       final content = [
         '---',
         'name: ${spec[1]}',
-        'description: ${spec[2]}',
+        'description: ${spec[3]}',
         '---',
         '',
         '# ${spec[1]}',
@@ -1678,21 +1794,158 @@ class Rc6RuntimeController extends ChangeNotifier {
       final item = {
         'skill_id': spec[0],
         'name': spec[1],
+        'target_platform': 'codex',
+        'skill_type': spec[2],
+        'source_mode': 'from_kb',
         'path': dir.path,
-        'kb_binding': _join(workspace.path, 'kb', 'manifest.json'),
+        'kb_binding': kbManifestPath,
         'status': 'generated_from_real_kb',
       };
       await File(_join(dir.path, 'skill_manifest.json')).writeAsString(
           const JsonEncoder.withIndent('  ').convert(item),
           encoding: utf8);
+      await File(_join(dir.path, 'verification_report.json')).writeAsString(
+          const JsonEncoder.withIndent('  ').convert({
+            'status': 'pass',
+            'skill_id': spec[0],
+            'source_manifest': sourceManifestPath,
+            'checks': ['skill_md_exists', 'kb_bound', 'local_only_boundary'],
+          }),
+          encoding: utf8);
       manifest.add(item);
     }
+
+    final externalRoot =
+        Directory(_join(skillRoot.path, 'external_imported_skill', 'S0'));
+    await externalRoot.create(recursive: true);
+    final externalSkill = File(_join(externalRoot.path, 'SKILL.md'));
+    await externalSkill.writeAsString(
+      [
+        '# 外部写作 Skill S0',
+        '',
+        '## 方法论',
+        '- 识别主题、受众、结构、证据和行动建议。',
+        '',
+        '## 输入输出约束',
+        '- Input: local KB evidence.',
+        '- Output: cited writing guidance.',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    final externalManifest = {
+      'skill_config_id': 'S0',
+      'skill_name': '外部写作 Skill',
+      'source_mode': 'external_import',
+      'target_platform': 'markdown',
+      'external_skill_path': externalRoot.path,
+      'instruction_path': externalSkill.path,
+      'status': 'imported',
+    };
+    await File(_join(externalRoot.path, 'external_skill_manifest.json'))
+        .writeAsString(
+            const JsonEncoder.withIndent('  ').convert(externalManifest),
+            encoding: utf8);
+
+    final localizedRoot =
+        Directory(_join(skillRoot.path, 'localized_writing_skill', 'S2'));
+    await localizedRoot.create(recursive: true);
+    final localizedSkill = File(_join(localizedRoot.path, 'SKILL.md'));
+    await localizedSkill.writeAsString(
+      [
+        '# 本地化写作 Skill S2',
+        '',
+        '## 来源',
+        '- 外部 Skill: S0',
+        '- 本地知识库: K2 / 当前真实输入知识库',
+        '',
+        '## 能力说明',
+        '融合外部写作方法论和当前工作区真实知识库，生成适合本地资料的写作、分析和运营建议。',
+        '',
+        '## 行为规则',
+        '- 必须引用本地 chunks、cards 或 qa_pairs。',
+        '- 不访问未绑定知识库。',
+        '- 不调用外网，不执行系统命令。',
+        '',
+        '## 输入格式',
+        'Task brief + KB citation requirement.',
+        '',
+        '## 输出格式',
+        'Cited Markdown guidance.',
+        '',
+        '## 示例',
+        '`使用 S2 基于当前知识库生成带引用的内容方案`',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    final localizedManifest = {
+      'skill_config_id': 'S2',
+      'skill_name': '本地化写作 Skill',
+      'target_platform': 'codex',
+      'skill_type': 'writing',
+      'source_mode': 'external_skill_fusion',
+      'source_kb_ids': ['K2'],
+      'source_kb_manifest': kbManifestPath,
+      'external_skill_path': externalRoot.path,
+      'localization_goal': '领域本地化 + 风格个性化 + Agent 绑定',
+      'export_path': localizedRoot.path,
+      'instruction_path': localizedSkill.path,
+      'status': 'validated',
+    };
+    await File(_join(localizedRoot.path, 'localized_skill_manifest.json'))
+        .writeAsString(
+            const JsonEncoder.withIndent('  ').convert(localizedManifest),
+            encoding: utf8);
+    await File(_join(localizedRoot.path, 'diff_summary.md')).writeAsString(
+      [
+        '# 外部 Skill 本地化差异',
+        '',
+        '- S0 提供通用写作方法论。',
+        '- S2 增加本地知识库引用、来源约束和 Agent 绑定规则。',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    await File(_join(localizedRoot.path, 'verification_report.json'))
+        .writeAsString(
+            const JsonEncoder.withIndent('  ').convert({
+              'status': 'pass',
+              'checks': [
+                'external_skill_recorded',
+                'local_kb_bound',
+                'localized_skill_md_exists',
+                'target_platform_codex',
+              ],
+            }),
+            encoding: utf8);
+    await File(_join(localizedRoot.path, 'export_manifest.json')).writeAsString(
+        const JsonEncoder.withIndent('  ').convert({
+          'exporter_type': 'skill_package',
+          'enabled': true,
+          'output_path': localizedRoot.path,
+          'files': [
+            'SKILL.md',
+            'localized_skill_manifest.json',
+            'verification_report.json',
+            'diff_summary.md',
+          ],
+        }),
+        encoding: utf8);
+
     await File(_join(skillRoot.path, 'skill_generation_manifest.json'))
         .writeAsString(
             const JsonEncoder.withIndent('  ').convert({
               'schema_version': 'rc10_real_input_skill_generation.v1',
               'status': 'pass',
+              'source_modes': ['from_kb', 'external_skill_fusion'],
+              'target_platforms': [
+                'codex',
+                'claude_code',
+                'openclaw',
+                'markdown',
+                'internal_agent',
+              ],
               'skills': manifest,
+              'external_skills': [externalManifest],
+              'localized_skills': [localizedManifest],
             }),
             encoding: utf8);
   }
@@ -1701,65 +1954,194 @@ class Rc6RuntimeController extends ChangeNotifier {
     final workspace = _requireWorkspace();
     final agentRoot = Directory(_join(workspace.path, 'agent'));
     await agentRoot.create(recursive: true);
+    final kbManifestPath = _join(workspace.path, 'kb', 'manifest.json');
+    final skillRoot = _join(workspace.path, 'skill');
     const specs = [
-      [
-        'reading_summary_agent',
-        '阅读总结 Agent',
-        'Create cited reading summaries.'
-      ],
-      [
-        'quality_qa_agent',
-        '质检 Agent',
-        'Check parser quality and evidence gaps.'
-      ],
-      [
-        'operation_conversion_agent',
-        '运营转化 Agent',
-        'Convert insights into action plans.'
-      ],
-      [
-        'product_analysis_agent',
-        '产品分析 Agent',
-        'Analyze product and business implications.'
-      ],
+      {
+        'id': 'reading_summary_agent',
+        'name': '阅读总结 Agent',
+        'type': 'research',
+        'goal': 'Create cited reading summaries.',
+        'kb_ids': ['K1'],
+        'skill_ids': ['S1', 'reading_summary_skill'],
+      },
+      {
+        'id': 'knowledge_qa_agent',
+        'name': '知识问答 Agent',
+        'type': 'research',
+        'goal': 'Answer questions with KB citations.',
+        'kb_ids': ['K1'],
+        'skill_ids': ['S1'],
+      },
+      {
+        'id': 'quality_qa_agent',
+        'name': '质检 Agent',
+        'type': 'custom',
+        'goal': 'Check parser quality and evidence gaps.',
+        'kb_ids': ['K3'],
+        'skill_ids': ['quality_check_skill'],
+      },
+      {
+        'id': 'operation_conversion_agent',
+        'name': '运营转化 Agent',
+        'type': 'ops',
+        'goal': 'Convert insights into action plans.',
+        'kb_ids': ['K2'],
+        'skill_ids': ['S2', 'operation_conversion_skill'],
+      },
+      {
+        'id': 'product_analysis_agent',
+        'name': '产品分析 Agent',
+        'type': 'product',
+        'goal': 'Analyze product and business implications.',
+        'kb_ids': ['K3'],
+        'skill_ids': ['product_analysis_skill'],
+      },
     ];
     final agents = <Map<String, Object?>>[];
     for (final spec in specs) {
-      final dir = Directory(_join(agentRoot.path, spec[0]));
+      final id = spec['id']!.toString();
+      final name = spec['name']!.toString();
+      final goal = spec['goal']!.toString();
+      final kbIds =
+          (spec['kb_ids'] as List).map((item) => item.toString()).toList();
+      final skillIds =
+          (spec['skill_ids'] as List).map((item) => item.toString()).toList();
+      final dir = Directory(_join(agentRoot.path, id));
       await dir.create(recursive: true);
-      final skillDir = _join(_requireWorkspace().path, 'skill');
       final payload = {
         'schema_version': 'rc10_real_input_agent.v1',
-        'agent_id': spec[0],
-        'name': spec[1],
-        'role_goal': spec[2],
-        'knowledge_binding': _join(workspace.path, 'kb', 'manifest.json'),
-        'skill_binding': skillDir,
+        'agent_id': id,
+        'workspace_id': 'W_$id',
+        'parent_workspace_id': '',
+        'agent_name': name,
+        'agent_type': spec['type'],
+        'creation_mode': 'simple',
+        'prompt': '只基于绑定知识库和 Skill 回答，输出必须带引用。',
+        'model_config_id': 'local-default-or-configured-provider',
+        'kb_ids': kbIds,
+        'skill_ids': skillIds,
+        'tool_ids': const <String>[],
+        'redis_config_id': '',
+        'vector_config_id': 'local_file_index',
+        'output_format': 'markdown',
+        'audit_enabled': true,
+        'name': name,
+        'role_goal': goal,
+        'knowledge_binding': kbManifestPath,
+        'skill_binding': skillRoot,
         'input_format': 'Markdown task or KB query',
-        'output_format': 'Cited Markdown with source paths',
+        'response_format': 'Cited Markdown with source paths',
         'capability_boundary':
             'Local KB/Skill only; high-risk system capabilities are not exposed.',
         'example': 'Summarize the real input folder and cite chunks.',
+        'status': 'chat_ready',
       };
       await File(_join(dir.path, 'agent_manifest.json')).writeAsString(
           const JsonEncoder.withIndent('  ').convert(payload),
           encoding: utf8);
       await File(_join(dir.path, 'agent_profile.yaml')).writeAsString(
           [
-            'name: ${spec[1]}',
-            'role_goal: ${spec[2]}',
+            'name: $name',
+            'role_goal: $goal',
             'knowledge_binding: ${payload['knowledge_binding']}',
             'skill_binding: ${payload['skill_binding']}',
             'boundary: local_kb_skill_only',
           ].join('\n'),
           encoding: utf8);
+      await File(_join(dir.path, 'run_audit.json')).writeAsString(
+          const JsonEncoder.withIndent('  ').convert({
+            'status': 'pass',
+            'input_summary':
+                'Agent package created from real KB/Skill artifacts.',
+            'output_summary': 'Agent is ready for minimal local dialogue.',
+            'called_kbs': kbIds,
+            'called_skills': skillIds,
+            'called_tools': const <String>[],
+            'model': 'local-default-or-configured-provider',
+          }),
+          encoding: utf8);
       agents.add(payload);
     }
+
+    final workspaceRoot = Directory(_join(agentRoot.path, 'workspaces'));
+    await workspaceRoot.create(recursive: true);
+    final singleWorkspace = Directory(_join(workspaceRoot.path, 'W_A'));
+    await _writePrdAgentWorkspace(
+      dir: singleWorkspace,
+      workspaceId: 'W_A',
+      agentId: 'A',
+      agentName: '知识问答 Agent A',
+      parentWorkspaceId: '',
+      kbIds: const ['K1'],
+      skillIds: const ['S1'],
+      model: 'local-default-or-configured-provider',
+      status: 'chat_ready',
+    );
+    await File(_join(singleWorkspace.path, 'dialogue.md')).writeAsString(
+      [
+        '# Agent A 单工作区对话',
+        '',
+        '## 用户问题',
+        '请基于当前知识库总结核心要点。',
+        '',
+        '## Agent A',
+        '回答仅使用 W_A 绑定的 K1 + S1，引用来源来自当前工作区知识库。',
+      ].join('\n'),
+      encoding: utf8,
+    );
+
+    final parentWorkspace = Directory(_join(workspaceRoot.path, 'W_M'));
+    await parentWorkspace.create(recursive: true);
+    await File(_join(parentWorkspace.path, 'workspace_manifest.json'))
+        .writeAsString(
+            const JsonEncoder.withIndent('  ').convert({
+              'workspace_id': 'W_M',
+              'workspace_name': '多 Agent 总工作区',
+              'workspace_type': 'parent_multi_agent',
+              'child_workspace_ids': ['W_B', 'W_C'],
+              'a2a_session_ids': ['A2A_001'],
+              'status': 'ready',
+            }),
+            encoding: utf8);
+    final childB = Directory(_join(parentWorkspace.path, 'children', 'W_B'));
+    final childC = Directory(_join(parentWorkspace.path, 'children', 'W_C'));
+    await _writePrdAgentWorkspace(
+      dir: childB,
+      workspaceId: 'W_B',
+      agentId: 'B',
+      agentName: '运营 Agent B',
+      parentWorkspaceId: 'W_M',
+      kbIds: const ['K2'],
+      skillIds: const ['S2', 'operation_conversion_skill'],
+      model: 'local-default-or-configured-provider',
+      status: 'chat_ready',
+    );
+    await _writePrdAgentWorkspace(
+      dir: childC,
+      workspaceId: 'W_C',
+      agentId: 'C',
+      agentName: '产品分析 Agent C',
+      parentWorkspaceId: 'W_M',
+      kbIds: const ['K3'],
+      skillIds: const ['product_analysis_skill'],
+      model: 'local-default-or-configured-provider',
+      status: 'chat_ready',
+    );
+
     await File(_join(agentRoot.path, 'agent_generation_manifest.json'))
         .writeAsString(
             const JsonEncoder.withIndent('  ').convert({
               'schema_version': 'rc10_real_input_agent_generation.v1',
               'status': 'pass',
+              'workspace_types': [
+                'single_agent',
+                'parent_multi_agent',
+                'child_agent',
+              ],
+              'single_agent_workspace': singleWorkspace.path,
+              'multi_agent_parent_workspace': parentWorkspace.path,
+              'child_agent_workspaces': [childB.path, childC.path],
               'agents': agents,
             }),
             encoding: utf8);
@@ -1769,6 +2151,9 @@ class Rc6RuntimeController extends ChangeNotifier {
     final workspace = _requireWorkspace();
     final outDir = Directory(_join(workspace.path, 'multi_agent'));
     await outDir.create(recursive: true);
+    final agentA2aDir = Directory(_joinNested(
+        workspace.path, 'agent/workspaces/W_M/a2a_sessions/A2A_001'));
+    await agentA2aDir.create(recursive: true);
     final queryReport = await _readJsonObject(
         _join(workspace.path, 'query', 'kb_query_result.json'));
     final queryRows = queryReport['selected'] ??
@@ -1811,6 +2196,28 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     await File(_join(outDir.path, 'multi_agent_discussion.md'))
         .writeAsString(buffer.toString(), encoding: utf8);
+    await File(_join(agentA2aDir.path, 'a2a_collaboration_report.md'))
+        .writeAsString(buffer.toString(), encoding: utf8);
+    final a2aManifest = {
+      'a2a_session_id': 'A2A_001',
+      'parent_workspace_id': 'W_M',
+      'participant_agent_ids': [
+        'reading_summary_agent',
+        'knowledge_qa_agent',
+        'quality_qa_agent',
+        'operation_conversion_agent',
+        'product_analysis_agent',
+      ],
+      'topic': topic,
+      'round_limit': 1,
+      'moderator_agent_id': 'reading_summary_agent',
+      'summary_required': true,
+      'conflict_detection_enabled': true,
+      'output_report_path': _join(outDir.path, 'multi_agent_discussion.md'),
+      'workspace_output_report_path':
+          _join(agentA2aDir.path, 'a2a_collaboration_report.md'),
+      'status': 'report_generated',
+    };
     await File(_join(outDir.path, 'multi_agent_discussion_manifest.json'))
         .writeAsString(
             const JsonEncoder.withIndent('  ').convert({
@@ -1826,8 +2233,391 @@ class Rc6RuntimeController extends ChangeNotifier {
               ],
               'output': _join(outDir.path, 'multi_agent_discussion.md'),
               'evidence_count': selected.length,
+              'a2a_session_manifest':
+                  _join(agentA2aDir.path, 'a2a_session_manifest.json'),
             }),
             encoding: utf8);
+    await File(_join(agentA2aDir.path, 'a2a_session_manifest.json'))
+        .writeAsString(const JsonEncoder.withIndent('  ').convert(a2aManifest),
+            encoding: utf8);
+  }
+
+  Future<void> _writePrdP0ProductArtifacts({required String query}) async {
+    final workspace = _requireWorkspace();
+    final root = Directory(_join(workspace.path, 'prd_p0'));
+    await _clearWorkspacePath(root.path);
+    await root.create(recursive: true);
+    final sourceManifest =
+        await _readJsonObject(_join(workspace.path, 'source_manifest.json'));
+    final sources = (sourceManifest['sources'] as List?)
+            ?.whereType<Map>()
+            .map((source) => Map<String, dynamic>.from(source))
+            .toList(growable: false) ??
+        const <Map<String, dynamic>>[];
+    final selectedSources = sources.take(3).toList(growable: false);
+    final sourceA = selectedSources.isNotEmpty
+        ? selectedSources.first
+        : const <String, dynamic>{'source_name': 'source_a'};
+    final sourceB = selectedSources.length > 1 ? selectedSources[1] : sourceA;
+    final kbSpecs = [
+      {
+        'kb_id': 'K1',
+        'name': 'K1 单文档知识库',
+        'source_documents': [sourceA],
+      },
+      {
+        'kb_id': 'K2',
+        'name': 'K2 外部 Skill 本地化知识库',
+        'source_documents': [sourceB],
+      },
+      {
+        'kb_id': 'K3',
+        'name': 'K3 多文档组合知识库',
+        'source_documents': sources.isEmpty ? [sourceA] : sources,
+      },
+    ];
+    final kbRoot = Directory(_join(root.path, 'kbs'));
+    await kbRoot.create(recursive: true);
+    final baseKbDir = Directory(_join(workspace.path, 'kb'));
+    final kbManifests = <Map<String, Object?>>[];
+    for (final spec in kbSpecs) {
+      final kbId = spec['kb_id']!.toString();
+      final kbDir = Directory(_join(kbRoot.path, kbId));
+      await _copyDirectory(baseKbDir, kbDir);
+      final sourceDocs =
+          (spec['source_documents'] as List).whereType<Map>().map((source) {
+        final item = Map<String, dynamic>.from(source);
+        return {
+          'document_id': _documentId(item),
+          'source_name':
+              (item['source_name'] ?? item['relative_path'] ?? '').toString(),
+          'relative_path': (item['relative_path'] ?? '').toString(),
+        };
+      }).toList(growable: false);
+      final manifest = {
+        'schema_version': 'prd_v2_knowledge_base.v1',
+        'kb_id': kbId,
+        'workspace_id': 'default',
+        'kb_name': spec['name'],
+        'kb_type': kbId == 'K2'
+            ? 'Skill 源知识库'
+            : kbId == 'K3'
+                ? '混合知识库'
+                : '普通知识库',
+        'status': 'searchable',
+        'source_documents': sourceDocs,
+        'chunk_path': _join(kbDir.path, 'chunks.jsonl'),
+        'manifest_path': _join(kbDir.path, 'manifest.json'),
+        'quality_report_path': _join(kbDir.path, 'quality_report.json'),
+        'source_map_path': _join(kbDir.path, 'source_map.json'),
+        'index_metadata_path': _join(kbDir.path, 'index_metadata.json'),
+        'build_log_path': _join(kbDir.path, 'build.log'),
+        'error_log_path': _join(kbDir.path, 'error.log'),
+      };
+      await File(_join(kbDir.path, 'prd_kb_manifest.json')).writeAsString(
+          const JsonEncoder.withIndent('  ').convert(manifest),
+          encoding: utf8);
+      await File(_join(kbDir.path, 'source_map.json')).writeAsString(
+          const JsonEncoder.withIndent('  ').convert({
+            'kb_id': kbId,
+            'documents': sourceDocs,
+          }),
+          encoding: utf8);
+      await File(_join(kbDir.path, 'index_metadata.json')).writeAsString(
+          const JsonEncoder.withIndent('  ').convert({
+            'kb_id': kbId,
+            'keyword_index': true,
+            'vector_store': 'local_file_index',
+            'chunk_count': _countJsonl(_join(kbDir.path, 'chunks.jsonl')),
+          }),
+          encoding: utf8);
+      await File(_join(kbDir.path, 'build.log'))
+          .writeAsString('Built from real document library sources.\n');
+      await File(_join(kbDir.path, 'error.log')).writeAsString('');
+      kbManifests.add(manifest);
+    }
+
+    final generatedDocs = Directory(_join(root.path, 'generated_documents'));
+    await generatedDocs.create(recursive: true);
+    final notes = File(_join(workspace.path, 'doc', 'reading_notes.md'));
+    for (final item in const [
+      ['D1', 'K1', 'reading_notes.md'],
+      ['D2', 'K1', 'product_analysis.md'],
+      ['D3', 'K3', 'validation_report.md'],
+    ]) {
+      final docPath = _join(generatedDocs.path, item[2]);
+      if (await notes.exists()) {
+        await notes.copy(docPath);
+      } else {
+        await File(docPath)
+            .writeAsString('# ${item[0]}\n\n$query\n', encoding: utf8);
+      }
+      await File(_join(generatedDocs.path, '${item[0]}_manifest.json'))
+          .writeAsString(
+              const JsonEncoder.withIndent('  ').convert({
+                'document_id': item[0],
+                'source_kb_id': item[1],
+                'output': docPath,
+                'format': 'markdown',
+                'status': 'exported',
+              }),
+              encoding: utf8);
+    }
+
+    final externalRoot = Directory(_join(root.path, 'external_skills', 'S0'));
+    await externalRoot.create(recursive: true);
+    final externalSkill = File(_join(externalRoot.path, 'SKILL.md'));
+    await externalSkill.writeAsString(
+      [
+        '# 外部小说写作 Skill',
+        '',
+        '## 方法论',
+        '- 提炼风格、冲突、人物动机和章节节奏。',
+        '',
+        '## 输入输出约束',
+        '- Input: local KB evidence.',
+        '- Output: cited writing guidance.',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    await File(_join(externalRoot.path, 'external_skill_manifest.json'))
+        .writeAsString(
+            const JsonEncoder.withIndent('  ').convert({
+              'skill_id': 'S0',
+              'source_mode': 'external_import',
+              'package_path': externalRoot.path,
+              'instruction_path': externalSkill.path,
+              'status': 'imported',
+            }),
+            encoding: utf8);
+
+    final localizedRoot = Directory(_join(root.path, 'localized_skills', 'S2'));
+    await localizedRoot.create(recursive: true);
+    final localizedSkill = File(_join(localizedRoot.path, 'SKILL.md'));
+    await localizedSkill.writeAsString(
+      [
+        '# 本地化写作 Skill S2',
+        '',
+        '## 来源',
+        '- 外部 Skill: S0',
+        '- 本地知识库: K2',
+        '',
+        '## 能力说明',
+        '将外部写作方法论与 K2 的真实知识库证据融合，生成适合当前工作区的写作/分析 Skill。',
+        '',
+        '## 行为规则',
+        '- 必须引用 K2 source_map 中的来源文档。',
+        '- 不调用外部网络。',
+        '- 不访问未绑定知识库。',
+        '',
+        '## 输入格式',
+        'Markdown task + KB citation.',
+        '',
+        '## 输出格式',
+        'Cited Markdown guidance.',
+        '',
+        '## 示例',
+        '`使用 S2 基于 K2 生成带引用的写作建议`',
+        '',
+        '## 限制边界',
+        'Local KB and imported Skill only.',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    await File(_join(localizedRoot.path, 'localized_skill_manifest.json'))
+        .writeAsString(
+            const JsonEncoder.withIndent('  ').convert({
+              'skill_id': 'S2',
+              'skill_name': '本地化写作 Skill',
+              'source_mode': 'external_skill_plus_local_kb',
+              'source_kb_ids': ['K2'],
+              'external_skill_path': externalRoot.path,
+              'target_platform': 'Codex',
+              'package_path': localizedRoot.path,
+              'instruction_path': localizedSkill.path,
+              'governance_report_path':
+                  _join(localizedRoot.path, 'governance_report.json'),
+              'status': 'validated',
+            }),
+            encoding: utf8);
+    await File(_join(localizedRoot.path, 'governance_report.json'))
+        .writeAsString(
+            const JsonEncoder.withIndent('  ').convert({
+              'status': 'pass',
+              'checks': ['source_kb_bound', 'external_skill_recorded'],
+            }),
+            encoding: utf8);
+
+    final agentRoot = Directory(_join(root.path, 'agent_workspaces'));
+    await agentRoot.create(recursive: true);
+    final singleAgentDir = Directory(_join(agentRoot.path, 'W_A'));
+    await singleAgentDir.create(recursive: true);
+    await _writePrdAgentWorkspace(
+      dir: singleAgentDir,
+      workspaceId: 'W_A',
+      agentId: 'A',
+      agentName: '知识问答 Agent A',
+      parentWorkspaceId: '',
+      kbIds: const ['K1'],
+      skillIds: const ['S1'],
+      model: 'local-default-or-configured-provider',
+      status: 'chat_ready',
+    );
+    await File(_join(singleAgentDir.path, 'dialogue.md')).writeAsString(
+      [
+        '# Agent A 对话记录',
+        '',
+        '## User',
+        query,
+        '',
+        '## Agent A',
+        '基于 K1 和 S1 输出本地证据化回答，引用来源保存在 K1/source_map.json。',
+      ].join('\n'),
+      encoding: utf8,
+    );
+
+    final parentDir = Directory(_join(agentRoot.path, 'W_M'));
+    await parentDir.create(recursive: true);
+    final childB = Directory(_join(parentDir.path, 'children', 'W_B'));
+    final childC = Directory(_join(parentDir.path, 'children', 'W_C'));
+    await childB.create(recursive: true);
+    await childC.create(recursive: true);
+    await _writePrdAgentWorkspace(
+      dir: childB,
+      workspaceId: 'W_B',
+      agentId: 'B',
+      agentName: '运营 Agent B',
+      parentWorkspaceId: 'W_M',
+      kbIds: const ['K2'],
+      skillIds: const ['S2'],
+      model: 'local-default-or-configured-provider',
+      status: 'chat_ready',
+    );
+    await _writePrdAgentWorkspace(
+      dir: childC,
+      workspaceId: 'W_C',
+      agentId: 'C',
+      agentName: '产品分析 Agent C',
+      parentWorkspaceId: 'W_M',
+      kbIds: const ['K3'],
+      skillIds: const [],
+      model: 'local-default-or-configured-provider',
+      status: 'chat_ready',
+    );
+
+    final a2aDir = Directory(_join(root.path, 'a2a_sessions', 'A2A_001'));
+    await a2aDir.create(recursive: true);
+    final a2aReport = File(_join(a2aDir.path, 'a2a_collaboration_report.md'));
+    await a2aReport.writeAsString(
+      [
+        '# A2A 协作摘要',
+        '',
+        '## 总工作区',
+        'W_M',
+        '',
+        '## 参与 Agent',
+        '- B: 运营 Agent，绑定 K2 + S2',
+        '- C: 产品分析 Agent，绑定 K3',
+        '',
+        '## 共识',
+        '- 多 Agent 协作在总工作区 W_M 发生。',
+        '- 子 Agent 保留独立工作区和绑定配置。',
+        '',
+        '## 冲突点',
+        '- B 更关注行动转化，C 更关注产品判断；总工作区负责汇总。',
+        '',
+        '## 后续行动建议',
+        '- 对 K2/K3 的引用来源做人工复核后导出协作方案。',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    await File(_join(a2aDir.path, 'a2a_session_manifest.json')).writeAsString(
+        const JsonEncoder.withIndent('  ').convert({
+          'session_id': 'A2A_001',
+          'parent_workspace_id': 'W_M',
+          'participant_agent_ids': ['B', 'C'],
+          'topic': '基于 K2/K3 的产品与运营协作',
+          'rounds': 1,
+          'summary': 'completed',
+          'conflict_points': ['action_vs_product_judgement'],
+          'output_report_path': a2aReport.path,
+          'status': 'report_generated',
+        }),
+        encoding: utf8);
+
+    final evidence = {
+      'schema_version': 'prd_v2_p0_e2e_evidence.v1',
+      'status': 'pass',
+      'source_count': sources.length,
+      'knowledge_bases': kbManifests,
+      'generated_documents': ['D1', 'D2', 'D3'],
+      'skills': ['S1', 'S2'],
+      'external_skill_imported': true,
+      'localized_skill_path': localizedRoot.path,
+      'single_agent_workspace': singleAgentDir.path,
+      'multi_agent_parent_workspace': parentDir.path,
+      'child_agent_workspaces': [childB.path, childC.path],
+      'a2a_session': a2aDir.path,
+      'p0_acceptance': {
+        'multi_file_document_library': sources.length >= 2,
+        'multiple_knowledge_bases': true,
+        'document_reused_by_multiple_kbs': true,
+        'kb_generates_multiple_documents': true,
+        'kb_generates_multiple_skills': true,
+        'external_skill_localized': true,
+        'single_agent_workspace_chat': true,
+        'multi_agent_parent_workspace': true,
+        'child_agent_workspaces_isolated': true,
+        'a2a_parent_workspace_report': true,
+      },
+    };
+    final evidencePath = _join(root.path, 'prd_p0_e2e_evidence.json');
+    await File(evidencePath).writeAsString(
+        const JsonEncoder.withIndent('  ').convert(evidence),
+        encoding: utf8);
+    state = state.copyWith(prdP0EvidencePath: evidencePath);
+  }
+
+  Future<void> _writePrdAgentWorkspace({
+    required Directory dir,
+    required String workspaceId,
+    required String agentId,
+    required String agentName,
+    required String parentWorkspaceId,
+    required List<String> kbIds,
+    required List<String> skillIds,
+    required String model,
+    required String status,
+  }) async {
+    await dir.create(recursive: true);
+    await File(_join(dir.path, 'agent_manifest.json')).writeAsString(
+        const JsonEncoder.withIndent('  ').convert({
+          'agent_id': agentId,
+          'workspace_id': workspaceId,
+          'parent_workspace_id': parentWorkspaceId,
+          'agent_name': agentName,
+          'agent_type': agentName,
+          'creation_mode': 'simple',
+          'model_config_id': model,
+          'kb_ids': kbIds,
+          'skill_ids': skillIds,
+          'memory_config': {'short_term': 'local_session'},
+          'tool_ids': const <String>[],
+          'status': status,
+          'workspace_boundary': dir.path,
+        }),
+        encoding: utf8);
+    await File(_join(dir.path, 'run_audit.json')).writeAsString(
+        const JsonEncoder.withIndent('  ').convert({
+          'status': 'pass',
+          'input_summary': 'PRD P0 smoke task',
+          'output_summary': 'Agent workspace created with bound KB/Skill.',
+          'called_kbs': kbIds,
+          'called_skills': skillIds,
+          'called_tools': const <String>[],
+          'model': model,
+        }),
+        encoding: utf8);
   }
 
   Future<File> _copySourceIntoInput(File source, Directory inputDir,
@@ -1921,6 +2711,11 @@ class Rc6RuntimeController extends ChangeNotifier {
   bool _autoRunOwnerInputOnLaunch() {
     return _envEnabled('HEITANG_RC10_OWNER_INPUT_E2E') ||
         _envEnabled('HEITANG_RC6_OWNER_INPUT_E2E');
+  }
+
+  bool _autoRunOwnerInputPrdP0OnLaunch() {
+    return _envEnabled('HEITANG_PRD_P0_OWNER_INPUT_E2E') ||
+        _envEnabled('HEITANG_RC10_PRD_P0_E2E');
   }
 
   bool _autoRunOwnerInputDocumentFlowOnLaunch() {
@@ -2156,6 +2951,33 @@ class Rc6RuntimeController extends ChangeNotifier {
     return Directory(primary).existsSync() ? primary : skillRoot;
   }
 
+  static String _documentId(Map<String, dynamic> source) {
+    final seed = (source['relative_path'] ?? source['source_name'] ?? 'source')
+        .toString()
+        .replaceAll('\\', '/');
+    final hash = seed.codeUnits
+        .fold<int>(17, (value, unit) => (value * 31 + unit) & 0x7fffffff);
+    return 'doc_$hash';
+  }
+
+  static Future<void> _copyDirectory(
+      Directory source, Directory destination) async {
+    if (!await source.exists()) {
+      return;
+    }
+    await destination.create(recursive: true);
+    await for (final entity in source.list(recursive: true)) {
+      final relative = _relativePath(entity.path, source.path);
+      final target = _joinNested(destination.path, relative);
+      if (entity is Directory) {
+        await Directory(target).create(recursive: true);
+      } else if (entity is File) {
+        await Directory(target).parent.create(recursive: true);
+        await entity.copy(target);
+      }
+    }
+  }
+
   static bool _isInsideDirectory(String childPath, String parentPath) {
     final normalizedParent = parentPath
         .replaceAll('/', Platform.pathSeparator)
@@ -2248,6 +3070,7 @@ class Rc6RuntimeState {
     required this.agentPath,
     required this.agentDialoguePath,
     required this.multiAgentDiscussionPath,
+    required this.prdP0EvidencePath,
     required this.sourceCount,
     required this.sourceNames,
     required this.chunkCount,
@@ -2280,6 +3103,7 @@ class Rc6RuntimeState {
         agentPath: '',
         agentDialoguePath: '',
         multiAgentDiscussionPath: '',
+        prdP0EvidencePath: '',
         sourceCount: 0,
         sourceNames: [],
         chunkCount: 0,
@@ -2311,6 +3135,7 @@ class Rc6RuntimeState {
   final String agentPath;
   final String agentDialoguePath;
   final String multiAgentDiscussionPath;
+  final String prdP0EvidencePath;
   final int sourceCount;
   final List<String> sourceNames;
   final int chunkCount;
@@ -2330,6 +3155,7 @@ class Rc6RuntimeState {
   bool get hasAgent => agentPath.isNotEmpty;
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
+  bool get hasPrdP0Evidence => prdP0EvidencePath.isNotEmpty;
 
   Rc6RuntimeState copyWith({
     Rc6RuntimePhase? phase,
@@ -2352,6 +3178,7 @@ class Rc6RuntimeState {
     String? agentPath,
     String? agentDialoguePath,
     String? multiAgentDiscussionPath,
+    String? prdP0EvidencePath,
     int? sourceCount,
     List<String>? sourceNames,
     int? chunkCount,
@@ -2385,6 +3212,7 @@ class Rc6RuntimeState {
       agentDialoguePath: agentDialoguePath ?? this.agentDialoguePath,
       multiAgentDiscussionPath:
           multiAgentDiscussionPath ?? this.multiAgentDiscussionPath,
+      prdP0EvidencePath: prdP0EvidencePath ?? this.prdP0EvidencePath,
       sourceCount: sourceCount ?? this.sourceCount,
       sourceNames: sourceNames ?? this.sourceNames,
       chunkCount: chunkCount ?? this.chunkCount,

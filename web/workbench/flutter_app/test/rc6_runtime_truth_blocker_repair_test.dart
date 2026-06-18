@@ -84,15 +84,21 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-skill-factory')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.text('来源配置'), findsOneWidget);
+    expect(find.text('生成配置'), findsOneWidget);
+    expect(find.text('外部本地化'), findsOneWidget);
     expect(
         find.byKey(const Key('skill-metadata-source-config')), findsOneWidget);
+
+    await tester.tap(find.text('外部本地化').first, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(
+        find.byKey(const Key('skill-external-localization')), findsOneWidget);
 
     await tester.tap(find.text('包结构').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('skill-output-preview')), findsOneWidget);
 
-    await tester.tap(find.text('治理报告').first, warnIfMissed: false);
+    await tester.tap(find.text('验证导出').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('skill-validation-summary')), findsOneWidget);
 
@@ -101,13 +107,17 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-agent-factory-runtime')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
+    expect(find.byKey(const Key('agent-workspace-setup')), findsOneWidget);
+    expect(find.text('Agent 配置'), findsOneWidget);
+    await tester.tap(find.text('Agent 配置').first, warnIfMissed: false);
+    await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
     expect(find.text('选择文件夹'), findsNothing);
     expect(find.text('运行 Owner input 链路'), findsNothing);
     expect(find.text('搜索当前关键词'), findsNothing);
     expect(find.text('生成 Agent'), findsWidgets);
-    expect(find.text('联合讨论'), findsOneWidget);
-    await tester.tap(find.text('联合讨论').first, warnIfMissed: false);
+    expect(find.text('A2A 协作'), findsOneWidget);
+    await tester.tap(find.text('A2A 协作').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('multi-agent-discussion-product-flow')),
         findsOneWidget);
@@ -622,5 +632,135 @@ void main() {
       expect(controller.state.lastError,
           contains(r'D:\HeiTang-Codex-WorkSpace\input'));
     }
+  });
+
+  test('prd p0 product smoke writes multiple KBs, localized skill, and A2A',
+      () async {
+    final workspace = await createWorkspace();
+    final input =
+        Directory('${workspace.path}${Platform.pathSeparator}input_src')
+          ..createSync(recursive: true);
+    File('${input.path}${Platform.pathSeparator}alpha.pdf')
+        .writeAsStringSync('alpha real source 赚钱 小生意');
+    File('${input.path}${Platform.pathSeparator}beta.txt')
+        .writeAsStringSync('beta real source product ops');
+
+    final requests = <CoreBridgeRequest>[];
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          requests.add(request);
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          switch (request.actionId) {
+            case 'batch_import_documents':
+              File('${output.path}${Platform.pathSeparator}batch_import_report.json')
+                  .writeAsStringSync('{"imported_count":2}');
+            case 'document_understanding':
+              File('${output.path}${Platform.pathSeparator}document_understanding_manifest.json')
+                  .writeAsStringSync(
+                      '{"status":"completed","success_count":2,"failed_count":0}');
+            case 'knowledge_base_build':
+              File('${output.path}${Platform.pathSeparator}manifest.json')
+                  .writeAsStringSync('{"schema_version":"kb.v1"}');
+              File('${output.path}${Platform.pathSeparator}quality_report.json')
+                  .writeAsStringSync('{"status":"pass"}');
+              File('${output.path}${Platform.pathSeparator}knowledge_base_build_report.json')
+                  .writeAsStringSync('{"source_count":2}');
+              File('${output.path}${Platform.pathSeparator}chunks.jsonl')
+                  .writeAsStringSync(
+                      '{"text":"赚钱 小生意 alpha","source_path":"alpha.pdf","citation":"alpha.pdf#chunk=1"}\n'
+                      '{"text":"product ops beta","source_path":"beta.txt","citation":"beta.txt#chunk=1"}\n');
+              File('${output.path}${Platform.pathSeparator}cards.jsonl')
+                  .writeAsStringSync('{"title":"alpha","summary":"赚钱"}\n');
+              File('${output.path}${Platform.pathSeparator}qa_pairs.jsonl')
+                  .writeAsStringSync('{"question":"q","answer":"a"}\n');
+            case 'rag_query':
+              File('${output.path}${Platform.pathSeparator}kb_query_result.json')
+                  .writeAsStringSync(
+                      '{"query":"赚钱 小生意","selected_count":1,"selected":[{"text":"真实命中","source_path":"alpha.pdf","citation":"alpha.pdf#chunk=1"}]}');
+            case 'generate_markdown':
+              File('${output.path}${Platform.pathSeparator}generated.md')
+                  .writeAsStringSync('# generated from real input');
+            case 'package_to_skill':
+              File('${output.path}${Platform.pathSeparator}SKILL.md')
+                  .writeAsStringSync('# skill');
+              File('${output.path}${Platform.pathSeparator}skill_manifest.yaml')
+                  .writeAsStringSync('name: skill');
+            case 'kb_bound_agent_generation':
+              File('${output.path}${Platform.pathSeparator}agent_manifest.json')
+                  .writeAsStringSync('{"name":"agent"}');
+              File('${output.path}${Platform.pathSeparator}agent_profile.yaml')
+                  .writeAsStringSync('name: agent');
+          }
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.runPrdP0ProductE2E(input.path);
+
+    expect(
+        requests.map((request) => request.actionId),
+        containsAll([
+          'batch_import_documents',
+          'document_understanding',
+          'knowledge_base_build',
+          'rag_query',
+          'generate_markdown',
+          'package_to_skill',
+          'kb_bound_agent_generation',
+        ]));
+    expect(controller.state.hasPrdP0Evidence, isTrue);
+    final evidence = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}prd_p0${Platform.pathSeparator}prd_p0_e2e_evidence.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(evidence['status'], 'pass');
+    expect(evidence['knowledge_bases'], hasLength(3));
+    expect((evidence['generated_documents'] as List),
+        containsAll(['D1', 'D2', 'D3']));
+    expect(evidence['external_skill_imported'], isTrue);
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}prd_p0${Platform.pathSeparator}localized_skills${Platform.pathSeparator}S2${Platform.pathSeparator}SKILL.md')
+            .readAsStringSync(),
+        contains('本地化写作 Skill S2'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2${Platform.pathSeparator}localized_skill_manifest.json')
+            .readAsStringSync(),
+        contains('"source_mode": "external_skill_fusion"'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}external_imported_skill${Platform.pathSeparator}S0${Platform.pathSeparator}external_skill_manifest.json')
+            .readAsStringSync(),
+        contains('"source_mode": "external_import"'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}agent_generation_manifest.json')
+            .readAsStringSync(),
+        contains('"parent_multi_agent"'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}children${Platform.pathSeparator}W_B${Platform.pathSeparator}agent_manifest.json')
+            .readAsStringSync(),
+        contains('"parent_workspace_id": "W_M"'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001${Platform.pathSeparator}a2a_session_manifest.json')
+            .readAsStringSync(),
+        contains('"conflict_detection_enabled": true'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}prd_p0${Platform.pathSeparator}agent_workspaces${Platform.pathSeparator}W_A${Platform.pathSeparator}agent_manifest.json')
+            .readAsStringSync(),
+        contains('"workspace_id": "W_A"'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}prd_p0${Platform.pathSeparator}agent_workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}children${Platform.pathSeparator}W_B${Platform.pathSeparator}agent_manifest.json')
+            .readAsStringSync(),
+        contains('"parent_workspace_id": "W_M"'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}prd_p0${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001${Platform.pathSeparator}a2a_collaboration_report.md')
+            .readAsStringSync(),
+        contains('A2A 协作摘要'));
   });
 }

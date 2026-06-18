@@ -2884,6 +2884,11 @@ class _DashboardArtifactOverview extends StatelessWidget {
                     runtime.exportedDocumentPath.isEmpty ? '未导出' : '已导出',
                     _displayNameForPath(runtime.exportedDocumentPath)
                   ],
+                  [
+                    'PRD P0 产品闭环',
+                    runtime.hasPrdP0Evidence ? '已生成' : '未生成',
+                    _displayNameForPath(runtime.prdP0EvidencePath)
+                  ],
                 ]
               : [
                   [
@@ -2914,6 +2919,11 @@ class _DashboardArtifactOverview extends StatelessWidget {
                         : 'Exported',
                     _displayNameForPath(runtime.exportedDocumentPath)
                   ],
+                  [
+                    'PRD P0 product flow',
+                    runtime.hasPrdP0Evidence ? 'Generated' : 'Not generated',
+                    _displayNameForPath(runtime.prdP0EvidencePath)
+                  ],
                 ],
         ),
         const SizedBox(height: _DesktopGrid.gutter),
@@ -2928,6 +2938,13 @@ class _DashboardArtifactOverview extends StatelessWidget {
             icon: Icons.file_download_outlined,
             onPressed: () =>
                 onPageChanged(_pageIndexById('document-generation')),
+          ),
+          _DisplayAction(
+            label: _zh ? '查看 Agent / A2A' : 'Open Agent / A2A',
+            icon: Icons.groups_2_outlined,
+            onPressed: runtime.hasPrdP0Evidence
+                ? () => onPageChanged(_pageIndexById('agent-factory-runtime'))
+                : null,
           ),
         ]),
       ],
@@ -3589,7 +3606,7 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
     final tabCounts = <String, int>{
       'knowledge-package-management': 4,
       'document-generation': 3,
-      'agent-factory-runtime': 4,
+      'agent-factory-runtime': 5,
       'reports-audit': 3,
       'workspace': 6,
     };
@@ -9078,8 +9095,13 @@ class _SkillBuilderProductWorkflowState
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     final tabs = _zh
-        ? ['来源配置', '包结构', '治理报告']
-        : ['Source Config', 'Package Structure', 'Governance Report'];
+        ? ['生成配置', '外部本地化', '包结构', '验证导出']
+        : [
+            'Generation Config',
+            'External Localization',
+            'Package Structure',
+            'Validate & Export'
+          ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.extension_outlined,
@@ -9098,14 +9120,14 @@ class _SkillBuilderProductWorkflowState
       _MetricStrip(
         items: [
           _MetricDatum(
-              label: _zh ? '入口' : 'Entrypoints',
-              value: '5',
-              detail: _zh ? '书籍/知识库/模板' : 'book/base/template',
+              label: _zh ? '生成模式' : 'Generation modes',
+              value: '2',
+              detail: _zh ? '知识库 / 外部本地化' : 'KB / external fusion',
               icon: Icons.alt_route_outlined),
           _MetricDatum(
-              label: _zh ? '模板' : 'Templates',
-              value: '6',
-              detail: _zh ? 'Skill 专属' : 'Skill owned',
+              label: _zh ? '目标平台' : 'Target platforms',
+              value: '5',
+              detail: _zh ? 'Codex 等' : 'Codex and more',
               icon: Icons.dashboard_customize_outlined),
           _MetricDatum(
               label: _zh ? '治理报告' : 'Governance',
@@ -9139,16 +9161,16 @@ class _SkillBuilderProductWorkflowState
         final config = _ProductPanel(
           keyName: 'skill-metadata-source-config',
           icon: Icons.edit_note_outlined,
-          title: _zh ? 'Skill 元数据与来源配置' : 'Skill Metadata and Source Config',
+          title: _zh ? 'Skill 生成配置' : 'Skill Generation Config',
           children: [
             _ProductTable(
               columns:
-                  _zh ? ['入口', '来源', '状态'] : ['Entrypoint', 'Source', 'Status'],
+                  _zh ? ['生成模式', '来源', '状态'] : ['Mode', 'Source', 'Status'],
               rows: _zh
                   ? [
                       [
-                        '书籍 / 文档转 Skill',
-                        '文档库',
+                        '从知识库生成 Skill',
+                        '当前知识库',
                         runtime.hasSkill
                             ? '已生成'
                             : runtime.hasKnowledgeBase
@@ -9156,10 +9178,10 @@ class _SkillBuilderProductWorkflowState
                                 : '请先构建知识库'
                       ],
                       [
-                        '知识库转 Skill',
-                        '知识库',
+                        '外部 Skill 本地化',
+                        'S0 + 当前知识库',
                         runtime.hasSkill
-                            ? '已生成'
+                            ? '已生成 S2'
                             : runtime.hasKnowledgeBase
                                 ? '可生成'
                                 : '请先构建知识库'
@@ -9167,8 +9189,8 @@ class _SkillBuilderProductWorkflowState
                     ]
                   : [
                       [
-                        'Book / doc to Skill',
-                        'Document Library',
+                        'Generate Skill from KB',
+                        'Current KB',
                         runtime.hasSkill
                             ? 'Generated'
                             : runtime.hasKnowledgeBase
@@ -9176,10 +9198,10 @@ class _SkillBuilderProductWorkflowState
                                 : 'Build KB first'
                       ],
                       [
-                        'Knowledge Base to Skill',
-                        'Knowledge Base',
+                        'External Skill localization',
+                        'S0 + current KB',
                         runtime.hasSkill
-                            ? 'Generated'
+                            ? 'S2 generated'
                             : runtime.hasKnowledgeBase
                                 ? 'Ready'
                                 : 'Build KB first'
@@ -9194,14 +9216,16 @@ class _SkillBuilderProductWorkflowState
                     : (_zh ? '等待真实知识库' : 'Waiting for real Knowledge Base')),
             const SizedBox(height: 8),
             _FieldRow(
-                label: _zh ? '配置生成方式' : 'Generation mode',
-                value: _zh ? '知识库到 Skill 草稿' : 'Knowledge Base to Skill draft'),
+                label: _zh ? 'Skill 类型' : 'Skill type',
+                value: _zh
+                    ? '写作 / 分析 / 产品 / 运营 / 自定义'
+                    : 'Writing / analysis / product / ops / custom'),
             const SizedBox(height: 8),
             _FieldRow(
-                label: _zh ? '按需加载' : 'On-demand loading',
+                label: _zh ? '目标平台' : 'Target platform',
                 value: _zh
-                    ? 'Smart 按需加载，Token 预算 120K'
-                    : 'Smart on-demand loading, 120K token budget'),
+                    ? 'Codex / Claude Code / OpenClaw / Markdown / 内置 Agent'
+                    : 'Codex / Claude Code / OpenClaw / Markdown / internal Agent'),
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? 'Skill 元数据' : 'Skill metadata',
@@ -9228,6 +9252,70 @@ class _SkillBuilderProductWorkflowState
             ),
           ],
         );
+        final localization = _ProductPanel(
+          keyName: 'skill-external-localization',
+          icon: Icons.merge_type_outlined,
+          title: _zh ? '外部 Skill 本地化' : 'External Skill Localization',
+          subtitle: runtime.hasSkill
+              ? _displayNameForPath(runtime.skillPath)
+              : '${widget.workspace}/workbench_runs/skill/external_imported_skill',
+          children: [
+            _ProductTable(
+              columns:
+                  _zh ? ['对象', '业务含义', '状态'] : ['Object', 'Meaning', 'Status'],
+              rows: _zh
+                  ? [
+                      [
+                        'S0 外部 Skill',
+                        '导入外部写作方法论',
+                        runtime.hasSkill ? '已导入' : '生成 Skill 后写入'
+                      ],
+                      [
+                        'S2 本地化 Skill',
+                        'S0 + 当前知识库融合',
+                        runtime.hasSkill ? '已验证' : '等待知识库'
+                      ],
+                      [
+                        '差异说明',
+                        '记录本地化和 Agent 绑定变化',
+                        runtime.hasSkill ? '已生成' : '等待生成'
+                      ],
+                    ]
+                  : [
+                      [
+                        'S0 external Skill',
+                        'Imported writing methodology',
+                        runtime.hasSkill ? 'Imported' : 'Written on generate'
+                      ],
+                      [
+                        'S2 localized Skill',
+                        'S0 + current KB fusion',
+                        runtime.hasSkill ? 'Validated' : 'Waiting KB'
+                      ],
+                      [
+                        'Diff summary',
+                        'Localization and Agent-binding changes',
+                        runtime.hasSkill ? 'Generated' : 'Waiting'
+                      ],
+                    ],
+            ),
+            const SizedBox(height: _DesktopGrid.gutter),
+            _PrimaryProductAction(
+              label: _zh ? '导入并本地化 Skill' : 'Import and localize Skill',
+              icon: Icons.merge_type_outlined,
+              onPressed: runtime.running || rc6 == null
+                  ? null
+                  : () {
+                      setState(() {
+                        configReady = true;
+                        outputPreviewReady = true;
+                        validationReady = true;
+                      });
+                      rc6.generateSkill();
+                    },
+            ),
+          ],
+        );
         final output = _ProductPanel(
           keyName: 'skill-output-preview',
           icon: Icons.folder_zip_outlined,
@@ -9242,21 +9330,44 @@ class _SkillBuilderProductWorkflowState
                   ? [
                       ['knowledge_qa_skill/', ''],
                       ['SKILL.md', runtime.hasSkill ? '已生成' : '-'],
-                      ['manifests/', ''],
-                      ['skill_manifest.yaml', runtime.hasSkill ? '已生成' : '-'],
-                      ['README / usage', runtime.hasSkill ? '已生成' : '-'],
-                      ['examples/', runtime.hasSkill ? '已生成' : '-'],
+                      ['skill_config.json', runtime.hasSkill ? '已生成' : '-'],
+                      [
+                        'verification_report.json',
+                        runtime.hasSkill ? '已生成' : '-'
+                      ],
+                      [
+                        'external_imported_skill/S0/',
+                        runtime.hasSkill ? '已导入' : '-'
+                      ],
+                      [
+                        'localized_writing_skill/S2/',
+                        runtime.hasSkill ? '已生成' : '-'
+                      ],
+                      [
+                        'skill_generation_manifest.json',
+                        runtime.hasSkill ? '已生成' : '-'
+                      ],
                     ]
                   : [
                       ['knowledge_qa_skill/', ''],
                       ['SKILL.md', runtime.hasSkill ? 'written' : '-'],
-                      ['manifests/', ''],
+                      ['skill_config.json', runtime.hasSkill ? 'written' : '-'],
                       [
-                        'skill_manifest.yaml',
+                        'verification_report.json',
                         runtime.hasSkill ? 'written' : '-'
                       ],
-                      ['README / usage', runtime.hasSkill ? 'written' : '-'],
-                      ['examples/', runtime.hasSkill ? 'written' : '-'],
+                      [
+                        'external_imported_skill/S0/',
+                        runtime.hasSkill ? 'imported' : '-'
+                      ],
+                      [
+                        'localized_writing_skill/S2/',
+                        runtime.hasSkill ? 'written' : '-'
+                      ],
+                      [
+                        'skill_generation_manifest.json',
+                        runtime.hasSkill ? 'written' : '-'
+                      ],
                     ],
             ),
             const SizedBox(height: _DesktopGrid.gutter),
@@ -9278,7 +9389,7 @@ class _SkillBuilderProductWorkflowState
         final validation = _ProductPanel(
           keyName: 'skill-validation-summary',
           icon: Icons.rule_outlined,
-          title: _zh ? '治理报告与验证' : 'Governance Report and Validation',
+          title: _zh ? '验证与导出' : 'Validation and Export',
           children: [
             _MetricStrip(
               items: [
@@ -9296,13 +9407,13 @@ class _SkillBuilderProductWorkflowState
             ),
             const SizedBox(height: 8),
             _FieldRow(
-                label: _zh ? '覆盖率' : 'Coverage',
+                label: _zh ? '验证结果' : 'Validation result',
                 value: validationReady
-                    ? (runtime.hasSkill ? 'real package' : '86%')
+                    ? (runtime.hasSkill ? 'pass' : '等待真实 Skill 产物')
                     : (_zh ? '等待报告' : 'Waiting for report')),
             const SizedBox(height: 8),
             _FieldRow(
-                label: _zh ? '可安装性' : 'Installability',
+                label: _zh ? '导出包' : 'Export package',
                 value: validationReady
                     ? (runtime.hasSkill
                         ? _displayNameForPath(runtime.skillPath)
@@ -9355,8 +9466,9 @@ class _SkillBuilderProductWorkflowState
           ]);
         }
         return switch (selectedTab) {
-          1 => output,
-          2 => validation,
+          1 => localization,
+          2 => output,
+          3 => validation,
           _ => config,
         };
       }),
@@ -9384,8 +9496,14 @@ class _AgentProductWorkflow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['创建 Agent', '最小对话', '联合讨论', '运行记录']
-        : ['Create Agent', 'Minimal Chat', 'Team Discussion', 'Run History'];
+        ? ['工作区创建', 'Agent 配置', '最小对话', 'A2A 协作', '运行审计']
+        : [
+            'Workspace Setup',
+            'Agent Config',
+            'Minimal Chat',
+            'A2A Collaboration',
+            'Run Audit'
+          ];
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -9434,10 +9552,11 @@ class _AgentProductWorkflow extends StatelessWidget {
           tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
       const SizedBox(height: _DesktopGrid.gutter),
       switch (selectedTab) {
-        1 => _AgentMinimalChatView(zh: _zh),
-        2 => _AgentDiscussionProductView(zh: _zh),
-        3 => _AgentRunHistoryView(zh: _zh),
-        _ => _AgentCreationProductView(zh: _zh, workspace: workspace),
+        1 => _AgentCreationProductView(zh: _zh, workspace: workspace),
+        2 => _AgentMinimalChatView(zh: _zh),
+        3 => _AgentDiscussionProductView(zh: _zh),
+        4 => _AgentRunHistoryView(zh: _zh),
+        _ => _AgentWorkspaceProductView(zh: _zh, workspace: workspace),
       },
     ]);
   }
@@ -9472,6 +9591,123 @@ String _productRecordText(Object? value) {
     return normalized.split('/').where((part) => part.isNotEmpty).last;
   }
   return text;
+}
+
+class _AgentWorkspaceProductView extends StatelessWidget {
+  const _AgentWorkspaceProductView({
+    required this.zh,
+    required this.workspace,
+  });
+
+  final bool zh;
+  final String workspace;
+
+  @override
+  Widget build(BuildContext context) {
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
+    return LayoutBuilder(builder: (context, constraints) {
+      final wide = constraints.maxWidth >= 900;
+      final setup = _ProductPanel(
+        keyName: 'agent-workspace-setup',
+        icon: Icons.account_tree_outlined,
+        title: zh ? 'Agent 工作区' : 'Agent Workspaces',
+        subtitle: runtime.hasAgent
+            ? _displayNameForPath(runtime.agentPath)
+            : '$workspace/workbench_runs/agent/workspaces',
+        children: [
+          _ProductTable(
+            columns:
+                zh ? ['工作区', '用途', '绑定'] : ['Workspace', 'Purpose', 'Bindings'],
+            rows: zh
+                ? [
+                    [
+                      'W_A 单 Agent 工作区',
+                      '知识问答 Agent 独立运行',
+                      runtime.hasAgent ? 'K1 + S1' : '生成 Agent 后写入'
+                    ],
+                    [
+                      'W_M 多 Agent 总工作区',
+                      '承载 A2A 协作',
+                      runtime.hasAgent ? 'W_B + W_C' : '等待 Agent'
+                    ],
+                    [
+                      'W_B / W_C 子工作区',
+                      '子 Agent 隔离运行',
+                      runtime.hasAgent ? '各自 KB / Skill' : '等待 Agent'
+                    ],
+                  ]
+                : [
+                    [
+                      'W_A single-Agent workspace',
+                      'Knowledge QA Agent runs independently',
+                      runtime.hasAgent ? 'K1 + S1' : 'Written after generate'
+                    ],
+                    [
+                      'W_M parent workspace',
+                      'Hosts A2A collaboration',
+                      runtime.hasAgent ? 'W_B + W_C' : 'Waiting Agent'
+                    ],
+                    [
+                      'W_B / W_C child workspaces',
+                      'Child Agents run isolated',
+                      runtime.hasAgent ? 'Own KB / Skill' : 'Waiting Agent'
+                    ],
+                  ],
+          ),
+          const SizedBox(height: _DesktopGrid.gutter),
+          _PrimaryProductAction(
+            label: zh ? '创建 Agent 工作区' : 'Create Agent workspaces',
+            icon: Icons.account_tree_outlined,
+            onPressed: runtime.running || rc6 == null
+                ? null
+                : () => rc6.generateAgent(),
+          ),
+        ],
+      );
+      final boundaries = _ProductPanel(
+        keyName: 'agent-workspace-boundary',
+        icon: Icons.policy_outlined,
+        title: zh ? '访问边界' : 'Access Boundary',
+        children: [
+          _ProductTable(
+            columns: zh ? ['规则', '状态'] : ['Rule', 'Status'],
+            rows: zh
+                ? [
+                    ['单 Agent 只访问自己的工作区', runtime.hasAgent ? '已写入' : '等待生成'],
+                    ['子 Agent 不覆盖彼此配置', runtime.hasAgent ? '已隔离' : '等待生成'],
+                    ['不开放高风险系统能力', '保持关闭'],
+                    ['不展示明文 secret', '保持掩码'],
+                  ]
+                : [
+                    [
+                      'Single Agent uses own workspace only',
+                      runtime.hasAgent ? 'Written' : 'Waiting'
+                    ],
+                    [
+                      'Child Agents do not overwrite each other',
+                      runtime.hasAgent ? 'Isolated' : 'Waiting'
+                    ],
+                    ['High-risk system capabilities', 'Kept closed'],
+                    ['Plaintext secrets', 'Masked'],
+                  ],
+          ),
+        ],
+      );
+      if (!wide) {
+        return Column(children: [
+          setup,
+          const SizedBox(height: _DesktopGrid.gutter),
+          boundaries,
+        ]);
+      }
+      return _EqualHeightRow(
+        height: 420,
+        flexes: const [7, 4],
+        children: [setup, boundaries],
+      );
+    });
+  }
 }
 
 List<String> _campaignStringList(Object? value) {
@@ -9513,54 +9749,60 @@ class _AgentCreationProductView extends StatelessWidget {
       final create = _ProductPanel(
         keyName: 'agent-create-product-flow',
         icon: Icons.smart_toy_outlined,
-        title: zh ? '创建 Agent' : 'Create Agent',
+        title: zh ? 'Agent 配置' : 'Agent Config',
         subtitle: runtime.hasAgent
             ? _displayNameForPath(runtime.agentPath)
             : '$workspace/workbench_runs/agent',
         children: [
           _ProductTable(
             columns: zh
-                ? ['Agent', '知识库绑定', 'Skill 绑定', '状态']
-                : ['Agent', 'KB binding', 'Skill binding', 'Status'],
+                ? ['Agent', '类型 / 模式', '知识库', 'Skill', '模型']
+                : ['Agent', 'Type / Mode', 'KB', 'Skill', 'Model'],
             rows: zh
                 ? [
                     [
                       '知识问答 Agent',
+                      '研究 / 简单',
                       runtime.hasKnowledgeBase ? '已绑定' : '请先构建知识库',
                       runtime.hasSkill ? '已绑定' : '请先生成 Skill',
-                      runtime.hasAgent ? '已生成' : '可创建'
+                      '本地默认或已配置 Provider'
                     ],
                     [
                       '阅读总结 Agent',
+                      '研究 / 简单',
                       runtime.hasKnowledgeBase ? '已绑定' : '请先构建知识库',
                       runtime.hasSkill ? '已绑定' : '请先生成 Skill',
-                      runtime.hasAgent ? '已生成' : '等待创建'
+                      '本地默认或已配置 Provider'
                     ],
                     [
                       '质检 / 运营 / 产品分析 Agent',
+                      '质检 / 运营 / 产品',
                       runtime.hasKnowledgeBase ? '已绑定' : '请先构建知识库',
                       runtime.hasSkill ? '已绑定' : '请先生成 Skill',
-                      runtime.hasAgent ? '已生成' : '等待创建'
+                      '本地默认或已配置 Provider'
                     ],
                   ]
                 : [
                     [
                       'Knowledge QA Agent',
+                      'Research / simple',
                       runtime.hasKnowledgeBase ? 'Bound' : 'Build KB first',
                       runtime.hasSkill ? 'Bound' : 'Generate Skill first',
-                      runtime.hasAgent ? 'Generated' : 'Ready to create'
+                      'Local default or configured Provider'
                     ],
                     [
                       'Reading Summary Agent',
+                      'Research / simple',
                       runtime.hasKnowledgeBase ? 'Bound' : 'Build KB first',
                       runtime.hasSkill ? 'Bound' : 'Generate Skill first',
-                      runtime.hasAgent ? 'Generated' : 'Waiting'
+                      'Local default or configured Provider'
                     ],
                     [
                       'QA / Ops / Product Analysis Agents',
+                      'Quality / ops / product',
                       runtime.hasKnowledgeBase ? 'Bound' : 'Build KB first',
                       runtime.hasSkill ? 'Bound' : 'Generate Skill first',
-                      runtime.hasAgent ? 'Generated' : 'Waiting'
+                      'Local default or configured Provider'
                     ],
                   ],
           ),
@@ -9606,10 +9848,24 @@ class _AgentCreationProductView extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           _FieldRow(
+            label: zh ? '记忆配置' : 'Memory',
+            value: zh
+                ? '本地会话记忆；Redis / 向量长期记忆走设置授权'
+                : 'Local session memory; Redis / vector long-term memory is configured in Settings',
+          ),
+          const SizedBox(height: 8),
+          _FieldRow(
             label: zh ? '输出格式' : 'Output',
             value: zh
-                ? 'agent_manifest.json / package'
-                : 'agent_manifest.json / package',
+                ? 'Markdown / JSON / report / chat'
+                : 'Markdown / JSON / report / chat',
+          ),
+          const SizedBox(height: 8),
+          _FieldRow(
+            label: zh ? 'Tool 配置' : 'Tool config',
+            value: zh
+                ? '简单模式不展示 Tool；复杂模式仅允许白名单工具'
+                : 'Simple mode hides Tool config; advanced mode only allows allowlisted tools',
           ),
           const SizedBox(height: 8),
           _FieldRow(
@@ -9648,30 +9904,45 @@ class _AgentDiscussionProductView extends StatelessWidget {
     return _ProductPanel(
       keyName: 'multi-agent-discussion-product-flow',
       icon: Icons.groups_2_outlined,
-      title: zh ? '多 Agent 联合讨论' : 'Multi-Agent Discussion',
+      title: zh ? 'A2A 协作' : 'A2A Collaboration',
       subtitle: runtime.hasMultiAgentDiscussion
           ? _displayNameForPath(runtime.multiAgentDiscussionPath)
           : (zh ? '等待 Agent 产物' : 'Waiting for Agent package'),
       children: [
         _ProductTable(
-          columns: zh ? ['角色', '输入', '输出'] : ['Role', 'Input', 'Output'],
+          columns: zh
+              ? ['工作区 / Agent', '输入', '输出']
+              : ['Workspace / Agent', 'Input', 'Output'],
           rows: zh
               ? [
-                  ['阅读总结 Agent', '真实知识库', '主题摘要'],
-                  ['知识问答 Agent', '检索结果', '证据化回答'],
+                  ['W_M 总工作区', '协作议题', '共识 / 冲突 / 行动建议'],
+                  ['W_B 运营 Agent', 'K2 + S2', '运营转化观点'],
+                  ['W_C 产品分析 Agent', 'K3 + 产品分析 Skill', '产品判断'],
                   ['质检 Agent', '解析与 Chunk', '风险与复核点'],
-                  ['运营转化 Agent', '读书笔记', '行动建议'],
-                  ['产品分析 Agent', '知识库主题', '产品判断'],
                 ]
               : [
-                  ['Reading Summary Agent', 'Real KB', 'Theme summary'],
-                  ['Knowledge QA Agent', 'Search results', 'Grounded answer'],
+                  [
+                    'W_M parent workspace',
+                    'Collaboration topic',
+                    'Consensus / conflict / actions'
+                  ],
+                  ['W_B Ops Agent', 'K2 + S2', 'Ops conversion view'],
+                  [
+                    'W_C Product Agent',
+                    'K3 + product Skill',
+                    'Product judgement'
+                  ],
                   ['Quality Agent', 'Parse and chunks', 'Review risks'],
-                  ['Ops Conversion Agent', 'Reading notes', 'Action advice'],
-                  ['Product Analysis Agent', 'KB themes', 'Product judgement'],
                 ],
         ),
         const SizedBox(height: _DesktopGrid.gutter),
+        _FieldRow(
+          label: zh ? 'A2A Session' : 'A2A Session',
+          value: runtime.hasMultiAgentDiscussion
+              ? 'A2A_001'
+              : (zh ? '尚未启动' : 'Not started'),
+        ),
+        const SizedBox(height: 8),
         _FieldRow(
           label: zh ? '讨论纪要' : 'Discussion notes',
           value: runtime.hasMultiAgentDiscussion
@@ -9867,6 +10138,18 @@ class _AgentRunHistoryView extends StatelessWidget {
                         ? _displayNameForPath(runtime.multiAgentDiscussionPath)
                         : '无产物'
                   ],
+                  [
+                    'PRD P0 工作区 / A2A',
+                    runtime.hasPrdP0Evidence ? '已完成' : '未运行',
+                    runtime.hasPrdP0Evidence
+                        ? _displayNameForPath(runtime.prdP0EvidencePath)
+                        : '无产物'
+                  ],
+                  [
+                    'Agent 工作区审计',
+                    runtime.hasAgent ? '已写入' : '未运行',
+                    runtime.hasAgent ? 'agent_generation_manifest.json' : '无产物'
+                  ],
                 ]
               : [
                   [
@@ -9888,6 +10171,20 @@ class _AgentRunHistoryView extends StatelessWidget {
                     runtime.hasMultiAgentDiscussion ? 'Done' : 'Not run',
                     runtime.hasMultiAgentDiscussion
                         ? _displayNameForPath(runtime.multiAgentDiscussionPath)
+                        : 'No artifact'
+                  ],
+                  [
+                    'PRD P0 workspaces / A2A',
+                    runtime.hasPrdP0Evidence ? 'Done' : 'Not run',
+                    runtime.hasPrdP0Evidence
+                        ? _displayNameForPath(runtime.prdP0EvidencePath)
+                        : 'No artifact'
+                  ],
+                  [
+                    'Agent workspace audit',
+                    runtime.hasAgent ? 'Written' : 'Not run',
+                    runtime.hasAgent
+                        ? 'agent_generation_manifest.json'
                         : 'No artifact'
                   ],
                 ],

@@ -37,8 +37,8 @@ void main() {
           Key('sidebar-document-generation'), Key('document-generation-tasks')),
       MapEntry(
           Key('sidebar-skill-factory'), Key('skill-metadata-source-config')),
-      MapEntry(Key('sidebar-agent-factory-runtime'),
-          Key('agent-create-product-flow')),
+      MapEntry(
+          Key('sidebar-agent-factory-runtime'), Key('agent-workspace-setup')),
       MapEntry(Key('sidebar-workspace'), Key('settings-workspace-overview')),
     ];
 
@@ -124,6 +124,9 @@ void main() {
         warnIfMissed: false);
     await tester.pumpAndSettle();
 
+    expect(find.byKey(const Key('agent-workspace-setup')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('page-tab-1')), warnIfMissed: false);
+    await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
     expect(find.text('最小对话'), findsOneWidget);
     expect(find.textContaining('安全边界'), findsNothing);

@@ -83,6 +83,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       initialize();
   Future<void> runOwnerInputFolderE2E({String query = '赚钱 小生意'}) async =>
       initialize();
+  Future<void> runPrdP0ProductE2E(String folderPath,
+          {String query = '赚钱 小生意'}) async =>
+      initialize();
+  Future<void> runOwnerInputPrdP0E2E({String query = '赚钱 小生意'}) async =>
+      initialize();
   Future<void> runDocumentFlowE2E(String folderPath,
           {String query = '赚钱 小生意'}) async =>
       initialize();
@@ -156,6 +161,7 @@ class Rc6RuntimeState {
     required this.agentPath,
     required this.agentDialoguePath,
     required this.multiAgentDiscussionPath,
+    required this.prdP0EvidencePath,
     required this.sourceCount,
     required this.sourceNames,
     required this.chunkCount,
@@ -188,6 +194,7 @@ class Rc6RuntimeState {
         agentPath: '',
         agentDialoguePath: '',
         multiAgentDiscussionPath: '',
+        prdP0EvidencePath: '',
         sourceCount: 0,
         sourceNames: [],
         chunkCount: 0,
@@ -219,6 +226,7 @@ class Rc6RuntimeState {
   final String agentPath;
   final String agentDialoguePath;
   final String multiAgentDiscussionPath;
+  final String prdP0EvidencePath;
   final int sourceCount;
   final List<String> sourceNames;
   final int chunkCount;
@@ -238,6 +246,7 @@ class Rc6RuntimeState {
   bool get hasAgent => agentPath.isNotEmpty;
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
+  bool get hasPrdP0Evidence => prdP0EvidencePath.isNotEmpty;
 
   Rc6RuntimeState copyWith({
     Rc6RuntimePhase? phase,
@@ -260,6 +269,7 @@ class Rc6RuntimeState {
     String? agentPath,
     String? agentDialoguePath,
     String? multiAgentDiscussionPath,
+    String? prdP0EvidencePath,
     int? sourceCount,
     List<String>? sourceNames,
     int? chunkCount,
@@ -293,6 +303,7 @@ class Rc6RuntimeState {
       agentDialoguePath: agentDialoguePath ?? this.agentDialoguePath,
       multiAgentDiscussionPath:
           multiAgentDiscussionPath ?? this.multiAgentDiscussionPath,
+      prdP0EvidencePath: prdP0EvidencePath ?? this.prdP0EvidencePath,
       sourceCount: sourceCount ?? this.sourceCount,
       sourceNames: sourceNames ?? this.sourceNames,
       chunkCount: chunkCount ?? this.chunkCount,

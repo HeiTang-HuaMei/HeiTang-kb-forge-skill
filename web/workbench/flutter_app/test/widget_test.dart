@@ -624,18 +624,23 @@ void main() {
     expect(find.text('Skill 工厂'), findsWidgets);
     expect(
         find.byKey(const Key('skill-metadata-source-config')), findsOneWidget);
-    expect(find.text('来源配置'), findsOneWidget);
+    expect(find.text('生成配置'), findsOneWidget);
+    expect(find.text('外部本地化'), findsOneWidget);
     expect(find.text('包结构'), findsOneWidget);
-    expect(find.text('治理报告'), findsWidgets);
-    expect(find.text('Skill 元数据与来源配置'), findsOneWidget);
+    expect(find.text('验证导出'), findsOneWidget);
+    expect(find.text('Skill 生成配置'), findsOneWidget);
+    await tester.tap(find.text('外部本地化').first, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(
+        find.byKey(const Key('skill-external-localization')), findsOneWidget);
     await tester.tap(find.text('包结构').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('skill-output-preview')), findsOneWidget);
     expect(find.text('Skill 包结构'), findsOneWidget);
-    await tester.tap(find.text('治理报告').first, warnIfMissed: false);
+    await tester.tap(find.text('验证导出').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('skill-validation-summary')), findsOneWidget);
-    expect(find.text('治理报告与验证'), findsOneWidget);
+    expect(find.text('验证与导出'), findsOneWidget);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
     expect(find.text('开发者诊断'), findsNothing);
     expect(find.text('边界摘要'), findsNothing);
@@ -663,8 +668,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Agent Factory'), findsWidgets);
+    expect(find.byKey(const Key('agent-workspace-setup')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('page-tab-1')), warnIfMissed: false);
+    await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
-    expect(find.text('Create Agent'), findsWidgets);
+    expect(find.text('Agent Config'), findsWidgets);
     expect(find.text('Generate Agent'), findsWidgets);
     expect(find.text('Choose real folder to import'), findsNothing);
     expect(find.text('Build Knowledge Base'), findsNothing);
@@ -672,7 +680,7 @@ void main() {
     expect(find.text('Run real retrieval'), findsNothing);
     expect(find.text('Execution Overview'), findsNothing);
 
-    final discussionTab = find.text('Team Discussion').first;
+    final discussionTab = find.byKey(const Key('page-tab-3'));
     await tester.ensureVisible(discussionTab);
     await tester.tap(discussionTab, warnIfMissed: false);
     await tester.pumpAndSettle();
@@ -680,13 +688,13 @@ void main() {
         findsOneWidget);
     expect(find.text('Start discussion'), findsOneWidget);
 
-    final chatTab = find.text('Minimal Chat').first;
+    final chatTab = find.byKey(const Key('page-tab-2'));
     await tester.ensureVisible(chatTab);
     await tester.tap(chatTab, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-minimal-chat')), findsOneWidget);
 
-    final historyTab = find.text('Run History').first;
+    final historyTab = find.byKey(const Key('page-tab-4'));
     await tester.ensureVisible(historyTab);
     await tester.tap(historyTab, warnIfMissed: false);
     await tester.pumpAndSettle();

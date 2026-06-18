@@ -31,8 +31,8 @@ void main() {
       await pumpWorkbench(tester, size);
 
       for (final entry in <MapEntry<Key, Key>>[
-        const MapEntry(Key('sidebar-agent-factory-runtime'),
-            Key('agent-create-product-flow')),
+        const MapEntry(
+            Key('sidebar-agent-factory-runtime'), Key('agent-workspace-setup')),
         const MapEntry(
             Key('sidebar-reports-audit'), Key('validation-checklist')),
         const MapEntry(
@@ -114,7 +114,8 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-skill-factory')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.text('书籍 / 文档转 Skill'), findsOneWidget);
+    expect(find.text('从知识库生成 Skill'), findsOneWidget);
+    expect(find.text('外部本地化'), findsOneWidget);
     expect(find.text('生成 Skill'), findsWidgets);
     expect(find.textContaining('display_only'), findsNothing);
 
