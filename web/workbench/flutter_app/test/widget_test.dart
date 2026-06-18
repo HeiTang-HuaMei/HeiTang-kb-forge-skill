@@ -496,6 +496,10 @@ void main() {
     expect(find.byKey(const Key('artifact-center-catalog')), findsOneWidget);
     expect(find.byKey(const Key('artifact-center-detail')), findsOneWidget);
     expect(find.text('产物清单'), findsOneWidget);
+    expect(find.text('SKILL.md 草稿'), findsOneWidget);
+    expect(find.text('Skill 验证报告'), findsOneWidget);
+    expect(find.text('Skill 导出包'), findsOneWidget);
+    expect(find.text('Agent 绑定清单'), findsOneWidget);
     expect(find.textContaining('disabled_boundary'), findsNothing);
     expect(find.textContaining('开发者诊断'), findsNothing);
     expect(tester.takeException(), isNull);
