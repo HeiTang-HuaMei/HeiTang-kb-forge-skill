@@ -6147,6 +6147,17 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                 onTap: () => Navigator.of(context).pop('folder'),
               ),
             ),
+            Material(
+              type: MaterialType.transparency,
+              child: ListTile(
+                leading: const Icon(Icons.link_outlined),
+                title: Text(_zh ? '输入网页链接' : 'Enter web link'),
+                subtitle: Text(_zh
+                    ? '保存为文档库来源记录，授权后可联网抓取'
+                    : 'Save as a library source record; fetching needs authorization'),
+                onTap: () => Navigator.of(context).pop('web'),
+              ),
+            ),
           ],
         ),
       ),
@@ -6155,7 +6166,45 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
       await rc6.pickAndImportFile();
     } else if (choice == 'folder') {
       await rc6.pickAndImportFolder();
+    } else if (choice == 'web') {
+      final url = await _promptWebLink();
+      if (url != null && url.trim().isNotEmpty) {
+        await rc6.importWebLink(url);
+      }
     }
+  }
+
+  Future<String?> _promptWebLink() {
+    final controller = TextEditingController(text: 'https://');
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(_zh ? '输入网页链接' : 'Enter web link'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: InputDecoration(
+            labelText: _zh ? 'URL' : 'URL',
+            helperText: _zh
+                ? '未授权联网前只保存来源记录，不抓取正文。'
+                : 'Without network authorization, only the source record is saved.',
+            border: const OutlineInputBorder(),
+          ),
+          keyboardType: TextInputType.url,
+          onSubmitted: (value) => Navigator.of(context).pop(value),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(_zh ? '取消' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text),
+            child: Text(_zh ? '导入链接' : 'Import link'),
+          ),
+        ],
+      ),
+    ).whenComplete(controller.dispose);
   }
 
   Future<void> _confirmAndDeleteImport(Rc6RuntimeController? rc6) async {
@@ -8895,6 +8944,7 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
 
 String _documentTypeForName(String name) {
   final lower = name.toLowerCase();
+  if (lower.endsWith('.url.md')) return 'web';
   if (lower.endsWith('.pdf')) return 'pdf';
   if (lower.endsWith('.docx')) return 'docx';
   if (lower.endsWith('.md') || lower.endsWith('.markdown')) return 'md';

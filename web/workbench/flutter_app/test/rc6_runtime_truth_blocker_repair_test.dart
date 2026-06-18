@@ -290,6 +290,54 @@ void main() {
         isTrue);
   });
 
+  test('prd document library imports web links as real source records',
+      () async {
+    final workspace = await createWorkspace();
+    final requests = <CoreBridgeRequest>[];
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          requests.add(request);
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          File('${output.path}${Platform.pathSeparator}batch_import_report.json')
+              .writeAsStringSync('{"status":"completed","imported_count":1}');
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.importWebLink('https://example.com/a/b?topic=kb');
+    await controller.importWebLink('https://example.com/a/b?topic=kb');
+
+    final manifestFile =
+        File('${workspace.path}${Platform.pathSeparator}source_manifest.json');
+    final manifest =
+        jsonDecode(manifestFile.readAsStringSync()) as Map<String, dynamic>;
+    final sources = (manifest['sources'] as List).cast<Map>();
+    expect(requests.map((request) => request.actionId),
+        everyElement('batch_import_documents'));
+    expect(sources, hasLength(2));
+    expect(sources.map((source) => source['source_type']),
+        everyElement('web_link'));
+    expect(sources.map((source) => source['source_name']),
+        everyElement(endsWith('.url.md')));
+    expect(controller.state.sourceNames, hasLength(2));
+    expect(
+        Directory('${workspace.path}${Platform.pathSeparator}input')
+            .listSync()
+            .whereType<File>()
+            .where((file) => file.path.endsWith('.url.md'))
+            .length,
+        2);
+  });
+
   test('prd settings persist storage provider config without plaintext secrets',
       () async {
     final workspace = await createWorkspace();

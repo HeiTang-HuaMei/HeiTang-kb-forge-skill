@@ -227,6 +227,67 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> importWebLink(String url) async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final normalized = url.trim();
+    final uri = Uri.tryParse(normalized);
+    if (uri == null || !(uri.scheme == 'http' || uri.scheme == 'https')) {
+      _fail('请输入有效的 http(s) 网页链接。');
+      return;
+    }
+    final workspace = _requireWorkspace();
+    final inputDir = Directory(_join(workspace.path, 'input'));
+    await _clearGeneratedArtifacts(includeImport: false);
+    await _clearWorkspacePath(_join(workspace.path, 'import'));
+    await inputDir.create(recursive: true);
+    final fileName =
+        '${_safeFileName(uri.host)}_${_stableHash(normalized)}.url.md';
+    final target = await _uniqueInputFile(inputDir, fileName);
+    await target.writeAsString(
+      [
+        '# 网页链接来源',
+        '',
+        '- URL: $normalized',
+        '- 导入方式: 用户提供链接',
+        '- 正文抓取: 需要在设置中授权联网 Provider 后执行',
+        '',
+        '该文件作为文档库来源记录进入本地工作区；未授权前不会联网抓取网页正文。',
+        '',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    final manifestPath =
+        await _writeSourceManifestFromInput(inputDir, sourceName: uri.host);
+    final manifest = await _readJsonObject(manifestPath);
+    final sourceNames = _sourceNamesFromManifest(manifest);
+    state = state.copyWith(
+      phase: Rc6RuntimePhase.imported,
+      selectedFilePath: target.path,
+      sourceManifestPath: manifestPath,
+      sourceCount: sourceNames.length,
+      sourceNames: sourceNames,
+      lastMessage: '网页链接已作为来源记录导入工作区。',
+      lastError: '',
+    );
+    await _runCoreAction(
+      actionId: 'batch_import_documents',
+      arguments: [
+        'batch-import-documents',
+        '--input',
+        inputDir.path,
+        '--output',
+        _join(workspace.path, 'import'),
+      ],
+      outputPath: _join(workspace.path, 'import'),
+      nextPhase: Rc6RuntimePhase.imported,
+      successMessage: '网页链接来源导入预检完成。',
+    );
+    await _loadExistingArtifacts();
+    notifyListeners();
+  }
+
   Future<void> buildKnowledgeBase() async {
     if (!_canRunDesktop()) {
       return;
@@ -4628,6 +4689,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'source_path': file.path,
         'source_name': file.uri.pathSegments.last,
         'relative_path': relative,
+        'source_type': relative.endsWith('.url.md') ? 'web_link' : 'local_file',
         'size_bytes': await file.length(),
       });
     }
@@ -5193,6 +5255,23 @@ class Rc6RuntimeController extends ChangeNotifier {
     return cleaned.trim().isEmpty ? 'source.md' : cleaned;
   }
 
+  static Future<File> _uniqueInputFile(
+      Directory inputDir, String fileName) async {
+    final extension = fileName.toLowerCase().endsWith('.url.md')
+        ? '.url.md'
+        : _extension(fileName);
+    final stem = extension.isEmpty
+        ? fileName
+        : fileName.substring(0, fileName.length - extension.length);
+    var candidate = File(_join(inputDir.path, fileName));
+    var suffix = 1;
+    while (await candidate.exists()) {
+      candidate = File(_join(inputDir.path, '${stem}_$suffix$extension'));
+      suffix += 1;
+    }
+    return candidate;
+  }
+
   static Stream<File> _supportedSourceFiles(Directory root) async* {
     final supported = {'.md', '.txt', '.pdf', '.docx'};
     await for (final entity in root.list(recursive: true, followLinks: false)) {
@@ -5239,9 +5318,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     final seed = (source['relative_path'] ?? source['source_name'] ?? 'source')
         .toString()
         .replaceAll('\\', '/');
-    final hash = seed.codeUnits
-        .fold<int>(17, (value, unit) => (value * 31 + unit) & 0x7fffffff);
+    final hash = _stableHash(seed);
     return 'doc_$hash';
+  }
+
+  static int _stableHash(String value) {
+    return value.codeUnits
+        .fold<int>(17, (hash, unit) => (hash * 31 + unit) & 0x7fffffff);
   }
 
   static String _normalizePathKey(Object? value) {
