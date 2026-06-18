@@ -253,7 +253,46 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     if (state.lastResult?.passed == true) {
       await _writeDerivedKnowledgeArtifacts();
+      await _writeKnowledgeBaseCatalog();
     }
+    await _loadExistingArtifacts();
+    notifyListeners();
+  }
+
+  Future<void> copyKnowledgeBase(String sourceKbId) async {
+    if (!_canRunDesktop()) return;
+    await _copyKnowledgeBaseRecord(sourceKbId);
+    await _loadExistingArtifacts();
+    notifyListeners();
+  }
+
+  Future<void> mergeKnowledgeBases(List<String> sourceKbIds) async {
+    if (!_canRunDesktop()) return;
+    await _mergeKnowledgeBaseRecords(sourceKbIds);
+    await _loadExistingArtifacts();
+    notifyListeners();
+  }
+
+  Future<void> splitKnowledgeBase(String sourceKbId) async {
+    if (!_canRunDesktop()) return;
+    await _splitKnowledgeBaseRecord(sourceKbId);
+    await _loadExistingArtifacts();
+    notifyListeners();
+  }
+
+  Future<void> deleteKnowledgeBaseRecord(String kbId) async {
+    if (!_canRunDesktop()) return;
+    final workspace = _requireWorkspace();
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    final records = _catalogRecords(catalog)
+        .where((record) => record['kb_id']?.toString() != kbId)
+        .toList(growable: true);
+    final kbDir = Directory(_join(workspace.path, 'knowledge_bases', kbId));
+    if (await kbDir.exists()) {
+      await kbDir.delete(recursive: true);
+    }
+    await _writeKnowledgeCatalog(workspace, records, operation: 'delete:$kbId');
+    state = state.copyWith(lastMessage: '知识库 $kbId 已删除。', lastError: '');
     await _loadExistingArtifacts();
     notifyListeners();
   }
@@ -1559,6 +1598,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md');
     final prdP0EvidencePath =
         _join(workspace.path, 'prd_p0', 'prd_p0_e2e_evidence.json');
+    final kbCatalogPath =
+        _join(workspace.path, 'knowledge_bases', 'kb_catalog.json');
 
     final importReport = await _readJsonObject(importReportPath);
     final sourceManifest = await _readJsonObject(sourceManifestPath);
@@ -1566,6 +1607,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final kbReport = await _readJsonObject(
         _join(workspace.path, 'kb', 'knowledge_base_build_report.json'));
     final queryReport = await _readJsonObject(queryPath);
+    final kbCatalog = await _readJsonObject(kbCatalogPath);
 
     final sourceCount = _asInt(kbReport['source_count']) ??
         _asInt(importReport['imported_count']) ??
@@ -1628,6 +1670,9 @@ class Rc6RuntimeController extends ChangeNotifier {
           await File(multiAgentPath).exists() ? multiAgentPath : '',
       prdP0EvidencePath:
           await File(prdP0EvidencePath).exists() ? prdP0EvidencePath : '',
+      knowledgeBaseCatalogPath:
+          await File(kbCatalogPath).exists() ? kbCatalogPath : '',
+      knowledgeBases: _recordsFromKnowledgeCatalog(kbCatalog),
       sourceCount: sourceCount,
       sourceNames: sourceNames,
       chunkCount: chunkCount,
@@ -1678,6 +1723,341 @@ class Rc6RuntimeController extends ChangeNotifier {
     await File(_join(kbDir, 'rc10_real_input_derived_knowledge.json'))
         .writeAsString(const JsonEncoder.withIndent('  ').convert(summary),
             encoding: utf8);
+  }
+
+  Future<void> _writeKnowledgeBaseCatalog() async {
+    final workspace = _requireWorkspace();
+    final sourceManifest =
+        await _readJsonObject(_join(workspace.path, 'source_manifest.json'));
+    final sources = (sourceManifest['sources'] as List?)
+            ?.whereType<Map>()
+            .map((source) => Map<String, dynamic>.from(source))
+            .toList(growable: false) ??
+        const <Map<String, dynamic>>[];
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    final existing = _catalogRecords(catalog);
+    final currentId = existing.any((item) => item['kb_id'] == 'K1')
+        ? 'K${existing.length + 1}'
+        : 'K1';
+    final currentName = currentId == 'K1' ? '真实输入知识库' : '真实输入知识库 $currentId';
+    final record = await _materializeKnowledgeBaseRecord(
+      workspace: workspace,
+      kbId: currentId,
+      name: currentName,
+      type: '普通知识库',
+      sourceDocuments: sources,
+      sourceKbIds: const [],
+      operation: 'build',
+    );
+    final records = [
+      ...existing.where((item) => item['kb_id'] != currentId),
+      record,
+    ];
+    await _writeKnowledgeCatalog(workspace, records,
+        operation: 'build:$currentId');
+  }
+
+  Future<Map<String, dynamic>> _copyKnowledgeBaseRecord(
+      String sourceKbId) async {
+    final workspace = _requireWorkspace();
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    final records = _catalogRecords(catalog);
+    final source = records.cast<Map<String, dynamic>?>().firstWhere(
+          (record) => record?['kb_id']?.toString() == sourceKbId,
+          orElse: () => null,
+        );
+    if (source == null) {
+      _fail('未找到要复制的知识库：$sourceKbId');
+      return const {};
+    }
+    final copyId = _nextKnowledgeBaseId(records, prefix: '${sourceKbId}_COPY');
+    final record = await _materializeKnowledgeBaseRecord(
+      workspace: workspace,
+      kbId: copyId,
+      name: '${source['kb_name'] ?? sourceKbId} 副本',
+      type: (source['kb_type'] ?? '普通知识库').toString(),
+      sourceDocuments: _listOfMaps(source['source_documents']),
+      sourceKbIds: [sourceKbId],
+      operation: 'copy',
+    );
+    final updated = [...records, record];
+    await _writeKnowledgeCatalog(workspace, updated, operation: 'copy:$copyId');
+    state = state.copyWith(lastMessage: '知识库 $sourceKbId 已复制为 $copyId。');
+    return record;
+  }
+
+  Future<Map<String, dynamic>> _mergeKnowledgeBaseRecords(
+      List<String> sourceKbIds) async {
+    final workspace = _requireWorkspace();
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    final records = _catalogRecords(catalog);
+    final ids = sourceKbIds.where((id) => id.trim().isNotEmpty).toSet();
+    if (ids.length < 2) {
+      _fail('合并知识库至少需要选择两个知识库。');
+      return const {};
+    }
+    final selected = records
+        .where((record) => ids.contains(record['kb_id']?.toString()))
+        .toList(growable: false);
+    if (selected.length < 2) {
+      _fail('合并知识库的来源记录不足。');
+      return const {};
+    }
+    final docs = <Map<String, dynamic>>[];
+    for (final item in selected) {
+      docs.addAll(_listOfMaps(item['source_documents']));
+    }
+    final mergeId = _nextKnowledgeBaseId(records, prefix: 'K_MERGED');
+    final record = await _materializeKnowledgeBaseRecord(
+      workspace: workspace,
+      kbId: mergeId,
+      name: '合并知识库 ${ids.join("+")}',
+      type: '混合知识库',
+      sourceDocuments: _dedupeSourceDocuments(docs),
+      sourceKbIds: ids.toList(growable: false),
+      operation: 'merge',
+    );
+    final updated = [...records, record];
+    await _writeKnowledgeCatalog(workspace, updated,
+        operation: 'merge:$mergeId');
+    state = state.copyWith(lastMessage: '知识库已合并为 $mergeId。');
+    return record;
+  }
+
+  Future<Map<String, dynamic>> _splitKnowledgeBaseRecord(
+      String sourceKbId) async {
+    final workspace = _requireWorkspace();
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    final records = _catalogRecords(catalog);
+    final source = records.cast<Map<String, dynamic>?>().firstWhere(
+          (record) => record?['kb_id']?.toString() == sourceKbId,
+          orElse: () => null,
+        );
+    if (source == null) {
+      _fail('未找到要拆分的知识库：$sourceKbId');
+      return const {};
+    }
+    final docs = _listOfMaps(source['source_documents']);
+    if (docs.length < 2) {
+      _fail('知识库 $sourceKbId 只有一个来源文档，不能拆分。');
+      return const {};
+    }
+    final splitId =
+        _nextKnowledgeBaseId(records, prefix: '${sourceKbId}_SPLIT');
+    final record = await _materializeKnowledgeBaseRecord(
+      workspace: workspace,
+      kbId: splitId,
+      name: '${source['kb_name'] ?? sourceKbId} 拆分',
+      type: (source['kb_type'] ?? '普通知识库').toString(),
+      sourceDocuments: docs.take((docs.length / 2).ceil()).toList(),
+      sourceKbIds: [sourceKbId],
+      operation: 'split',
+    );
+    final updated = [...records, record];
+    await _writeKnowledgeCatalog(workspace, updated,
+        operation: 'split:$splitId');
+    state = state.copyWith(lastMessage: '知识库 $sourceKbId 已拆分为 $splitId。');
+    return record;
+  }
+
+  Future<Map<String, dynamic>> _materializeKnowledgeBaseRecord({
+    required Directory workspace,
+    required String kbId,
+    required String name,
+    required String type,
+    required List<Map<String, dynamic>> sourceDocuments,
+    required List<String> sourceKbIds,
+    required String operation,
+  }) async {
+    final kbRoot = Directory(_join(workspace.path, 'knowledge_bases', kbId));
+    final baseKbDir = Directory(_join(workspace.path, 'kb'));
+    if (await kbRoot.exists()) {
+      await kbRoot.delete(recursive: true);
+    }
+    await _copyDirectory(baseKbDir, kbRoot);
+    final docs = sourceDocuments.isEmpty
+        ? await _sourceDocumentsFromManifest(workspace)
+        : _dedupeSourceDocuments(sourceDocuments);
+    final now = DateTime.now().toUtc().toIso8601String();
+    final chunkPath = _join(kbRoot.path, 'chunks.jsonl');
+    final record = {
+      'schema_version': 'prd_v2_knowledge_base_record.v1',
+      'kb_id': kbId,
+      'workspace_id': 'default',
+      'kb_name': name,
+      'kb_type': type,
+      'status': 'searchable',
+      'operation': operation,
+      'created_at': now,
+      'updated_at': now,
+      'source_documents': docs,
+      'source_kb_ids': sourceKbIds,
+      'chunk_count': _countJsonl(chunkPath),
+      'vector_store': 'local_file_index',
+      'keyword_index': true,
+      'manifest_path': _join(kbRoot.path, 'manifest.json'),
+      'chunks_path': chunkPath,
+      'source_map_path': _join(kbRoot.path, 'source_map.json'),
+      'index_metadata_path': _join(kbRoot.path, 'index_metadata.json'),
+      'quality_report_path': _join(kbRoot.path, 'quality_report.json'),
+      'build_log_path': _join(kbRoot.path, 'build.log'),
+      'error_log_path': _join(kbRoot.path, 'error.log'),
+      'actions': [
+        'view',
+        'retrieve',
+        'rebuild',
+        'copy',
+        'merge',
+        'split',
+        'generate_document',
+        'generate_skill',
+        'bind_agent',
+        'delete',
+      ],
+    };
+    await File(_join(kbRoot.path, 'prd_kb_manifest.json')).writeAsString(
+        const JsonEncoder.withIndent('  ').convert(record),
+        encoding: utf8);
+    await File(_join(kbRoot.path, 'source_map.json')).writeAsString(
+        const JsonEncoder.withIndent('  ').convert({
+          'kb_id': kbId,
+          'documents': docs,
+          'source_kb_ids': sourceKbIds,
+        }),
+        encoding: utf8);
+    await File(_join(kbRoot.path, 'index_metadata.json')).writeAsString(
+        const JsonEncoder.withIndent('  ').convert({
+          'kb_id': kbId,
+          'keyword_index': true,
+          'vector_store': 'local_file_index',
+          'chunk_count': _countJsonl(chunkPath),
+        }),
+        encoding: utf8);
+    await File(_join(kbRoot.path, 'build.log')).writeAsString(
+      'operation=$operation\nsource_count=${docs.length}\n',
+      encoding: utf8,
+    );
+    final errorLog = File(_join(kbRoot.path, 'error.log'));
+    if (!await errorLog.exists()) {
+      await errorLog.writeAsString('', encoding: utf8);
+    }
+    return record;
+  }
+
+  Future<Map<String, dynamic>> _loadKnowledgeCatalog(Directory workspace) {
+    return _readJsonObject(
+        _join(workspace.path, 'knowledge_bases', 'kb_catalog.json'));
+  }
+
+  List<Map<String, dynamic>> _catalogRecords(Map<String, dynamic> catalog) {
+    return (catalog['knowledge_bases'] as List?)
+            ?.whereType<Map>()
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList(growable: true) ??
+        <Map<String, dynamic>>[];
+  }
+
+  static List<Rc6KnowledgeBaseRecord> _recordsFromKnowledgeCatalog(
+      Map<String, dynamic> catalog) {
+    final records = (catalog['knowledge_bases'] as List?)
+            ?.whereType<Map>()
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList(growable: false) ??
+        const <Map<String, dynamic>>[];
+    return records
+        .map((item) => Rc6KnowledgeBaseRecord(
+              id: (item['kb_id'] ?? '').toString(),
+              name: (item['kb_name'] ?? item['kb_id'] ?? '').toString(),
+              type: (item['kb_type'] ?? '').toString(),
+              status: (item['status'] ?? '').toString(),
+              sourceCount: _listOfMaps(item['source_documents']).length,
+              chunkCount: _asInt(item['chunk_count']) ?? 0,
+              manifestPath: (item['manifest_path'] ?? '').toString(),
+              qualityReportPath: (item['quality_report_path'] ?? '').toString(),
+              operation: (item['operation'] ?? '').toString(),
+            ))
+        .where((item) => item.id.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  Future<void> _writeKnowledgeCatalog(
+    Directory workspace,
+    List<Map<String, dynamic>> records, {
+    required String operation,
+  }) async {
+    final catalogDir = Directory(_join(workspace.path, 'knowledge_bases'));
+    await catalogDir.create(recursive: true);
+    records.sort((a, b) =>
+        (a['kb_id'] ?? '').toString().compareTo((b['kb_id'] ?? '').toString()));
+    final payload = {
+      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
+      'workspace': workspace.path,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+      'last_operation': operation,
+      'knowledge_bases': records,
+    };
+    await File(_join(catalogDir.path, 'kb_catalog.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> _sourceDocumentsFromManifest(
+      Directory workspace) async {
+    final sourceManifest =
+        await _readJsonObject(_join(workspace.path, 'source_manifest.json'));
+    return (sourceManifest['sources'] as List?)
+            ?.whereType<Map>()
+            .map((source) => Map<String, dynamic>.from(source))
+            .map((source) => {
+                  'document_id': _documentId(source),
+                  'source_name':
+                      (source['source_name'] ?? source['relative_path'] ?? '')
+                          .toString(),
+                  'relative_path': (source['relative_path'] ?? '').toString(),
+                })
+            .toList(growable: false) ??
+        const <Map<String, dynamic>>[];
+  }
+
+  static List<Map<String, dynamic>> _dedupeSourceDocuments(
+      List<Map<String, dynamic>> docs) {
+    final seen = <String>{};
+    final result = <Map<String, dynamic>>[];
+    for (final doc in docs) {
+      final normalized = {
+        'document_id': (doc['document_id'] ?? _documentId(doc)).toString(),
+        'source_name':
+            (doc['source_name'] ?? doc['relative_path'] ?? '').toString(),
+        'relative_path': (doc['relative_path'] ?? '').toString(),
+      };
+      final key = '${normalized['document_id']}|${normalized['relative_path']}';
+      if (seen.add(key)) result.add(normalized);
+    }
+    return result;
+  }
+
+  static List<Map<String, dynamic>> _listOfMaps(Object? value) {
+    if (value is List) {
+      return value
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList(growable: false);
+    }
+    return const <Map<String, dynamic>>[];
+  }
+
+  static String _nextKnowledgeBaseId(List<Map<String, dynamic>> records,
+      {required String prefix}) {
+    final existing =
+        records.map((record) => record['kb_id']?.toString()).toSet();
+    var index = 1;
+    var candidate = '$prefix$index';
+    while (existing.contains(candidate)) {
+      index += 1;
+      candidate = '$prefix$index';
+    }
+    return candidate;
   }
 
   Future<void> _writeReadingNotes() async {
@@ -3346,6 +3726,30 @@ class Rc6StorageTestResult {
   final String detail;
 }
 
+class Rc6KnowledgeBaseRecord {
+  const Rc6KnowledgeBaseRecord({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.status,
+    required this.sourceCount,
+    required this.chunkCount,
+    required this.manifestPath,
+    required this.qualityReportPath,
+    required this.operation,
+  });
+
+  final String id;
+  final String name;
+  final String type;
+  final String status;
+  final int sourceCount;
+  final int chunkCount;
+  final String manifestPath;
+  final String qualityReportPath;
+  final String operation;
+}
+
 class _QdrantResponse {
   const _QdrantResponse(this.statusCode, this.body);
 
@@ -3376,6 +3780,8 @@ class Rc6RuntimeState {
     required this.agentDialoguePath,
     required this.multiAgentDiscussionPath,
     required this.prdP0EvidencePath,
+    required this.knowledgeBaseCatalogPath,
+    required this.knowledgeBases,
     required this.sourceCount,
     required this.sourceNames,
     required this.chunkCount,
@@ -3409,6 +3815,8 @@ class Rc6RuntimeState {
         agentDialoguePath: '',
         multiAgentDiscussionPath: '',
         prdP0EvidencePath: '',
+        knowledgeBaseCatalogPath: '',
+        knowledgeBases: [],
         sourceCount: 0,
         sourceNames: [],
         chunkCount: 0,
@@ -3441,6 +3849,8 @@ class Rc6RuntimeState {
   final String agentDialoguePath;
   final String multiAgentDiscussionPath;
   final String prdP0EvidencePath;
+  final String knowledgeBaseCatalogPath;
+  final List<Rc6KnowledgeBaseRecord> knowledgeBases;
   final int sourceCount;
   final List<String> sourceNames;
   final int chunkCount;
@@ -3461,6 +3871,7 @@ class Rc6RuntimeState {
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
   bool get hasPrdP0Evidence => prdP0EvidencePath.isNotEmpty;
+  bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
 
   Rc6RuntimeState copyWith({
     Rc6RuntimePhase? phase,
@@ -3484,6 +3895,8 @@ class Rc6RuntimeState {
     String? agentDialoguePath,
     String? multiAgentDiscussionPath,
     String? prdP0EvidencePath,
+    String? knowledgeBaseCatalogPath,
+    List<Rc6KnowledgeBaseRecord>? knowledgeBases,
     int? sourceCount,
     List<String>? sourceNames,
     int? chunkCount,
@@ -3518,6 +3931,9 @@ class Rc6RuntimeState {
       multiAgentDiscussionPath:
           multiAgentDiscussionPath ?? this.multiAgentDiscussionPath,
       prdP0EvidencePath: prdP0EvidencePath ?? this.prdP0EvidencePath,
+      knowledgeBaseCatalogPath:
+          knowledgeBaseCatalogPath ?? this.knowledgeBaseCatalogPath,
+      knowledgeBases: knowledgeBases ?? this.knowledgeBases,
       sourceCount: sourceCount ?? this.sourceCount,
       sourceNames: sourceNames ?? this.sourceNames,
       chunkCount: chunkCount ?? this.chunkCount,

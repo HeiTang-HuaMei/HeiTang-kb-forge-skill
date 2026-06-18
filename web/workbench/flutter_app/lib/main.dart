@@ -7363,18 +7363,33 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
   }
 
   Future<void> _confirmAndDeleteKnowledgeBase(Rc6RuntimeController? rc6) async {
-    if (rc6 == null || rc6.state.running || !rc6.state.hasKnowledgeBase) {
+    if (rc6 == null ||
+        rc6.state.running ||
+        (!rc6.state.hasKnowledgeBase && rc6.state.knowledgeBases.isEmpty)) {
       return;
     }
+    final firstKbId = rc6.state.knowledgeBases.isNotEmpty
+        ? rc6.state.knowledgeBases.first.id
+        : '';
     final confirmed = await _confirmDestructiveAction(
       context,
-      title: zh ? '删除当前知识库？' : 'Delete current knowledge base?',
-      body: zh
-          ? '这会删除当前工作区内的知识库、检索结果和文档导出产物；导入文件和解析报告保留，可重新构建。'
-          : 'This deletes KB, retrieval, and document export artifacts in this workspace; imported files and parse reports are kept for rebuild.',
+      title: firstKbId.isEmpty
+          ? (zh ? '删除当前知识库？' : 'Delete current knowledge base?')
+          : (zh ? '删除知识库 $firstKbId？' : 'Delete KB $firstKbId?'),
+      body: firstKbId.isEmpty
+          ? (zh
+              ? '这会删除当前工作区内的知识库、检索结果和文档导出产物；导入文件和解析报告保留，可重新构建。'
+              : 'This deletes KB, retrieval, and document export artifacts in this workspace; imported files and parse reports are kept for rebuild.')
+          : (zh
+              ? '这会删除该知识库 catalog 记录和独立索引目录；文档库来源保留。'
+              : 'This deletes the catalog record and isolated index directory; source documents remain.'),
     );
     if (!confirmed) return;
-    await rc6.clearKnowledgeBaseArtifacts();
+    if (firstKbId.isEmpty) {
+      await rc6.clearKnowledgeBaseArtifacts();
+    } else {
+      await rc6.deleteKnowledgeBaseRecord(firstKbId);
+    }
     if (mounted) {
       setState(() {
         sourceSelected = false;
@@ -7395,6 +7410,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
     final artifactsReady = runtime.hasKnowledgeBase &&
         runtime.chunksPath.isNotEmpty &&
         runtime.qualityReportPath.isNotEmpty;
+    final knowledgeBases = runtime.knowledgeBases;
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 900;
       final builder = _FillProductPanel(
@@ -7686,6 +7702,61 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                 ],
               ),
               const SizedBox(height: _DesktopGrid.gutter),
+              if (knowledgeBases.isNotEmpty) ...[
+                _SectionCaption(zh ? '知识库列表' : 'Knowledge bases'),
+                const SizedBox(height: 8),
+                _ProductTable(
+                  columns: zh
+                      ? ['ID', '名称', '类型', '来源', 'chunks', '状态']
+                      : ['ID', 'Name', 'Type', 'Sources', 'Chunks', 'Status'],
+                  rows: knowledgeBases
+                      .map((kb) => [
+                            kb.id,
+                            kb.name,
+                            kb.type,
+                            kb.sourceCount.toString(),
+                            kb.chunkCount.toString(),
+                            kb.status,
+                          ])
+                      .toList(growable: false),
+                ),
+                const SizedBox(height: 8),
+                _EqualActionRow(children: [
+                  _PrimaryProductAction(
+                    label: zh ? '复制知识库' : 'Copy KB',
+                    icon: Icons.copy_outlined,
+                    onPressed: rc6 == null || knowledgeBases.isEmpty
+                        ? null
+                        : () => rc6.copyKnowledgeBase(knowledgeBases.first.id),
+                  ),
+                  _PrimaryProductAction(
+                    label: zh ? '合并知识库' : 'Merge KBs',
+                    icon: Icons.merge_type_outlined,
+                    onPressed: rc6 == null || knowledgeBases.length < 2
+                        ? null
+                        : () => rc6.mergeKnowledgeBases(
+                            knowledgeBases.take(2).map((kb) => kb.id).toList()),
+                  ),
+                ]),
+                const SizedBox(height: 8),
+                _EqualActionRow(children: [
+                  _PrimaryProductAction(
+                    label: zh ? '拆分知识库' : 'Split KB',
+                    icon: Icons.call_split_outlined,
+                    onPressed: rc6 == null || knowledgeBases.isEmpty
+                        ? null
+                        : () => rc6.splitKnowledgeBase(knowledgeBases.first.id),
+                  ),
+                  _DisplayAction(
+                    label: zh ? '删除知识库记录' : 'Delete KB record',
+                    icon: Icons.delete_outline,
+                    onPressed: rc6 == null || knowledgeBases.isEmpty
+                        ? null
+                        : () => _confirmAndDeleteKnowledgeBase(rc6),
+                  ),
+                ]),
+                const SizedBox(height: _DesktopGrid.gutter),
+              ],
               _ProductTable(
                 columns:
                     zh ? ['产物', '状态', '查看'] : ['Artifact', 'Status', 'View'],

@@ -37,6 +37,11 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> importFolderPath(String folderPath) async => initialize();
   Future<void> parseAndChunkSources() async => initialize();
   Future<void> buildKnowledgeBase() async => initialize();
+  Future<void> copyKnowledgeBase(String sourceKbId) async => initialize();
+  Future<void> mergeKnowledgeBases(List<String> sourceKbIds) async =>
+      initialize();
+  Future<void> splitKnowledgeBase(String sourceKbId) async => initialize();
+  Future<void> deleteKnowledgeBaseRecord(String kbId) async => initialize();
   Future<void> search(String query) async => initialize();
   Future<void> generateMarkdown() async => initialize();
   Future<void> exportMarkdownDocument() async => initialize();
@@ -190,6 +195,30 @@ class Rc6StorageTestResult {
   final String detail;
 }
 
+class Rc6KnowledgeBaseRecord {
+  const Rc6KnowledgeBaseRecord({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.status,
+    required this.sourceCount,
+    required this.chunkCount,
+    required this.manifestPath,
+    required this.qualityReportPath,
+    required this.operation,
+  });
+
+  final String id;
+  final String name;
+  final String type;
+  final String status;
+  final int sourceCount;
+  final int chunkCount;
+  final String manifestPath;
+  final String qualityReportPath;
+  final String operation;
+}
+
 class Rc6RuntimeState {
   const Rc6RuntimeState({
     required this.phase,
@@ -213,6 +242,8 @@ class Rc6RuntimeState {
     required this.agentDialoguePath,
     required this.multiAgentDiscussionPath,
     required this.prdP0EvidencePath,
+    required this.knowledgeBaseCatalogPath,
+    required this.knowledgeBases,
     required this.sourceCount,
     required this.sourceNames,
     required this.chunkCount,
@@ -246,6 +277,8 @@ class Rc6RuntimeState {
         agentDialoguePath: '',
         multiAgentDiscussionPath: '',
         prdP0EvidencePath: '',
+        knowledgeBaseCatalogPath: '',
+        knowledgeBases: [],
         sourceCount: 0,
         sourceNames: [],
         chunkCount: 0,
@@ -278,6 +311,8 @@ class Rc6RuntimeState {
   final String agentDialoguePath;
   final String multiAgentDiscussionPath;
   final String prdP0EvidencePath;
+  final String knowledgeBaseCatalogPath;
+  final List<Rc6KnowledgeBaseRecord> knowledgeBases;
   final int sourceCount;
   final List<String> sourceNames;
   final int chunkCount;
@@ -298,6 +333,7 @@ class Rc6RuntimeState {
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
   bool get hasPrdP0Evidence => prdP0EvidencePath.isNotEmpty;
+  bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
 
   Rc6RuntimeState copyWith({
     Rc6RuntimePhase? phase,
@@ -321,6 +357,8 @@ class Rc6RuntimeState {
     String? agentDialoguePath,
     String? multiAgentDiscussionPath,
     String? prdP0EvidencePath,
+    String? knowledgeBaseCatalogPath,
+    List<Rc6KnowledgeBaseRecord>? knowledgeBases,
     int? sourceCount,
     List<String>? sourceNames,
     int? chunkCount,
@@ -355,6 +393,9 @@ class Rc6RuntimeState {
       multiAgentDiscussionPath:
           multiAgentDiscussionPath ?? this.multiAgentDiscussionPath,
       prdP0EvidencePath: prdP0EvidencePath ?? this.prdP0EvidencePath,
+      knowledgeBaseCatalogPath:
+          knowledgeBaseCatalogPath ?? this.knowledgeBaseCatalogPath,
+      knowledgeBases: knowledgeBases ?? this.knowledgeBases,
       sourceCount: sourceCount ?? this.sourceCount,
       sourceNames: sourceNames ?? this.sourceNames,
       chunkCount: chunkCount ?? this.chunkCount,

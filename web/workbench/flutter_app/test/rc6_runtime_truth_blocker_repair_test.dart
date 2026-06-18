@@ -260,6 +260,92 @@ void main() {
     expect((reloaded['provider'] as Map)['api_key_display'], contains('*'));
   });
 
+  test('prd multi knowledge base catalog supports copy merge split delete',
+      () async {
+    final workspace = await createWorkspace();
+    final input = Directory('${workspace.path}${Platform.pathSeparator}input')
+      ..createSync(recursive: true);
+    File('${input.path}${Platform.pathSeparator}alpha.md')
+        .writeAsStringSync('alpha real document');
+    File('${input.path}${Platform.pathSeparator}beta.md')
+        .writeAsStringSync('beta real document');
+    File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'source_path': input.path,
+      'sources': [
+        {
+          'source_name': 'alpha.md',
+          'relative_path': 'alpha.md',
+        },
+        {
+          'source_name': 'beta.md',
+          'relative_path': 'beta.md',
+        },
+      ],
+    }));
+    Directory('${workspace.path}${Platform.pathSeparator}du')
+        .createSync(recursive: true);
+    final requests = <CoreBridgeRequest>[];
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          requests.add(request);
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          File('${output.path}${Platform.pathSeparator}manifest.json')
+              .writeAsStringSync('{"status":"searchable"}');
+          File('${output.path}${Platform.pathSeparator}chunks.jsonl')
+              .writeAsStringSync('{"chunk_id":"c1"}\n{"chunk_id":"c2"}\n');
+          File('${output.path}${Platform.pathSeparator}cards.jsonl')
+              .writeAsStringSync('{"title":"card"}\n');
+          File('${output.path}${Platform.pathSeparator}qa_pairs.jsonl')
+              .writeAsStringSync('{"question":"q","answer":"a"}\n');
+          File('${output.path}${Platform.pathSeparator}quality_report.json')
+              .writeAsStringSync('{"status":"pass"}');
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.buildKnowledgeBase();
+    expect(requests.single.actionId, 'knowledge_base_build');
+    expect(controller.state.knowledgeBases, hasLength(1));
+    expect(controller.state.knowledgeBases.first.id, 'K1');
+    expect(controller.state.knowledgeBases.first.sourceCount, 2);
+
+    await controller.copyKnowledgeBase('K1');
+    await controller.mergeKnowledgeBases(['K1', 'K1_COPY1']);
+    await controller.splitKnowledgeBase('K1');
+    expect(controller.state.knowledgeBases.map((kb) => kb.id),
+        containsAll(['K1', 'K1_COPY1', 'K_MERGED1', 'K1_SPLIT1']));
+
+    final catalogFile = File(
+        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}kb_catalog.json');
+    final catalog =
+        jsonDecode(catalogFile.readAsStringSync()) as Map<String, dynamic>;
+    expect(catalog['schema_version'], 'prd_v2_knowledge_base_catalog.v1');
+    expect(catalog['knowledge_bases'], isA<List>());
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K_MERGED1${Platform.pathSeparator}source_map.json')
+            .existsSync(),
+        isTrue);
+
+    await controller.deleteKnowledgeBaseRecord('K1_COPY1');
+    expect(controller.state.knowledgeBases.map((kb) => kb.id),
+        isNot(contains('K1_COPY1')));
+    expect(
+        Directory(
+                '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1_COPY1')
+            .existsSync(),
+        isFalse);
+  });
+
   test('rc10 deleting one imported source removes it and keeps other files',
       () async {
     final workspace = await createWorkspace();
