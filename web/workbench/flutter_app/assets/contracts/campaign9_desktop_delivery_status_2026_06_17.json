@@ -1,10 +1,10 @@
 {
   "schema_id": "campaign9_desktop_delivery_status",
   "schema_version": "2026-06-17",
-  "overall_status": "campaign9_windows_exe_packaging_rc6_runtime_truth_blocker_repaired_ui_bound_pending_owner_retest",
-  "final_target_status": "v4.3.0-rc6_runtime_truth_blockers_repaired_real_exe_verified_pushed_ci_green_tagged_pending_owner_retest",
-  "release_candidate_tag": "v4.3.0-rc6",
-  "package_version_baseline": "4.2.0",
+  "overall_status": "v4.3.0-rc10_product_flow_truth_ui_closure_real_exe_verified_pending_owner_retest",
+  "final_target_status": "v4.3.0-rc10_product_flow_truth_ui_closure_real_exe_verified_pending_owner_retest",
+  "release_candidate_tag": "v4.3.0-rc10",
+  "package_version_baseline": "4.3.0-rc10",
   "github_release_created": false,
   "stable_release_tag_authorized": false,
   "campaign_scope": {
@@ -42,12 +42,12 @@
   },
   "checksum": {
     "status": "pass",
-    "manifest_path": "output/rc6_runtime_truth_repair/release_bundle_manifest.json",
+    "manifest_path": "output/rc10_product_flow_truth_ui_closure/release_bundle_manifest.json",
     "exe_sha256": "d8e58accd56571fc08cfec3178b77ef7e1c3a58c5930c7d9d37718b1253e9d87"
   },
   "desktop_shell_smoke": {
     "status": "pass",
-    "evidence_path": "output/rc6_runtime_truth_repair/exe_smoke/rc6_exe_launch_smoke.json",
+    "evidence_path": "output/rc10_product_flow_truth_ui_closure/exe_smoke/rc10_exe_launch_smoke.json",
     "steps": [
       {
         "step": "launch",
@@ -83,60 +83,60 @@
     {
       "capability": "windows_package_build",
       "status": "pass",
-      "ui_state": "enabled_real",
+      "ui_state": "available",
       "evidence": "campaign9_flutter_build_windows.log"
     },
     {
       "capability": "desktop_shell_real_smoke",
       "status": "pass",
-      "ui_state": "enabled_real",
-      "evidence": "output/rc6_runtime_truth_repair/exe_smoke/rc6_exe_launch_smoke.json"
+      "ui_state": "available",
+      "evidence": "output/rc10_product_flow_truth_ui_closure/exe_smoke/rc10_exe_launch_smoke.json"
     },
     {
       "capability": "full_capability_runtime_chain",
       "status": "pass",
-      "ui_state": "enabled_real",
-      "evidence": "kb-forge-skill/output/rc6_validation_chain/rc6_core_chain_probe.log"
+      "ui_state": "available",
+      "evidence": "kb-forge-skill/output/rc10_validation_chain/rc10_core_chain_probe.log"
     },
     {
       "capability": "page_button_tab_audit",
       "status": "pass",
-      "ui_state": "enabled_real",
-      "evidence": "v4.3.0-rc6_Tab_Button_Page_Switch_Verification_Matrix_2026-06-17.md"
+      "ui_state": "available",
+      "evidence": "v4.3.0-rc10_Product_Flow_Truth_UI_Closure_Report_2026-06-18.md"
     },
     {
       "capability": "release_bundle_manifest",
       "status": "pass",
-      "ui_state": "enabled_real",
-      "evidence": "output/rc6_runtime_truth_repair/release_bundle_manifest.json"
+      "ui_state": "available",
+      "evidence": "output/rc10_product_flow_truth_ui_closure/release_bundle_manifest.json"
     },
     {
       "capability": "provider_secret_handling",
       "status": "pass",
-      "ui_state": "enabled_real",
+      "ui_state": "available",
       "evidence": "env_only_no_secret_bundle_boundary"
     },
     {
       "capability": "config_workspace_log_cache_paths",
       "status": "pass",
-      "ui_state": "enabled_real",
-      "evidence": "campaign7_configuration_system_reuse"
+      "ui_state": "available",
+      "evidence": "configuration_system_reuse"
     },
     {
       "capability": "github_release_creation",
       "status": "not_created",
-      "ui_state": "disabled_boundary",
+      "ui_state": "owner_authorization_required",
       "evidence": "owner_authorization_required"
     },
     {
       "capability": "computer_use_runtime",
-      "status": "disabled_boundary",
-      "ui_state": "disabled_boundary",
-      "evidence": "campaign6_boundary_preserved"
+      "status": "not_available_in_product_flow",
+      "ui_state": "not_available_in_product_flow",
+      "evidence": "high_risk_runtime_not_opened"
     }
   ],
   "path_rules": {
-    "config_path": "Campaign 7 config precedence persists default/workspace/user/env values.",
+    "config_path": "Configuration precedence persists default/workspace/user/env values.",
     "workspace_path": "Workspace selection remains user-controlled and must not require a development checkout.",
     "logs_path": "Packaged app logs use local application log storage and never write raw credentials.",
     "cache_path": "Packaged app cache is local, clearable, and non-authoritative.",
@@ -161,7 +161,7 @@
     {
       "condition": "desktop_shell_smoke_failure",
       "runtime_status": "blocked",
-      "user_message": "Keep Campaign 9 stopped and repair the shell behavior before tagging."
+      "user_message": "Stop the candidate and repair the desktop shell behavior before tagging."
     },
     {
       "condition": "github_release_requested",
@@ -176,7 +176,7 @@
     },
     {
       "area": "config_profile",
-      "rollback": "Use Campaign 7 rollback snapshots and preserve diagnostics."
+      "rollback": "Use configuration rollback snapshots and preserve diagnostics."
     },
     {
       "area": "workspace_state",

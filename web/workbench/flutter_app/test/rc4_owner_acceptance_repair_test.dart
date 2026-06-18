@@ -126,9 +126,10 @@ void main() {
     await tester.ensureVisible(desktopTab);
     await tester.tap(desktopTab, warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.text('v4.3.0-rc6'), findsWidgets);
+    expect(find.text('v4.3.0-rc10'), findsWidgets);
     expect(find.textContaining('pending_owner_retest'), findsWidgets);
-    expect(find.textContaining('GitHub Release'), findsWidgets);
+    expect(find.textContaining('disabled_boundary'), findsNothing);
+    expect(find.textContaining('enabled_real'), findsNothing);
     expect(find.textContaining('v4.3.0 stable'), findsNothing);
     expect(find.textContaining('arbitrary shell'), findsNothing);
     expect(tester.takeException(), isNull);

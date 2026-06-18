@@ -106,8 +106,8 @@ void main() {
     expect(find.text('运行 Owner input 链路'), findsNothing);
     expect(find.text('搜索当前关键词'), findsNothing);
     expect(find.text('生成 Agent'), findsWidgets);
-    expect(find.text('绑定与讨论'), findsOneWidget);
-    await tester.tap(find.text('绑定与讨论').first, warnIfMissed: false);
+    expect(find.text('联合讨论'), findsOneWidget);
+    await tester.tap(find.text('联合讨论').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('multi-agent-discussion-product-flow')),
         findsOneWidget);
@@ -147,6 +147,108 @@ void main() {
         Directory('${workspace.path}${Platform.pathSeparator}input')
             .existsSync(),
         isFalse);
+  });
+
+  test('rc10 importing another file appends instead of replacing library state',
+      () async {
+    final workspace = await createWorkspace();
+    final sourceDir =
+        Directory('${workspace.path}${Platform.pathSeparator}source_files')
+          ..createSync(recursive: true);
+    final first = File('${sourceDir.path}${Platform.pathSeparator}alpha.md')
+      ..writeAsStringSync('alpha real document');
+    final second = File('${sourceDir.path}${Platform.pathSeparator}beta.txt')
+      ..writeAsStringSync('beta real document');
+    final requests = <CoreBridgeRequest>[];
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          requests.add(request);
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          File('${output.path}${Platform.pathSeparator}batch_import_report.json')
+              .writeAsStringSync('{"status":"completed","imported_count":2}');
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.importFilePath(first.path);
+    await controller.importFilePath(second.path);
+
+    final manifestFile =
+        File('${workspace.path}${Platform.pathSeparator}source_manifest.json');
+    final manifest =
+        jsonDecode(manifestFile.readAsStringSync()) as Map<String, dynamic>;
+    final sources = (manifest['sources'] as List).cast<Map>();
+    expect(requests.map((request) => request.actionId),
+        everyElement('batch_import_documents'));
+    expect(sources.map((source) => source['source_name']),
+        containsAll(['alpha.md', 'beta.txt']));
+    expect(controller.state.sourceCount, 2);
+    expect(controller.state.sourceNames, containsAll(['alpha.md', 'beta.txt']));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}input${Platform.pathSeparator}alpha.md')
+            .existsSync(),
+        isTrue);
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}input${Platform.pathSeparator}beta.txt')
+            .existsSync(),
+        isTrue);
+  });
+
+  test('rc10 deleting one imported source removes it and keeps other files',
+      () async {
+    final workspace = await createWorkspace();
+    final input = Directory('${workspace.path}${Platform.pathSeparator}input')
+      ..createSync(recursive: true);
+    File('${input.path}${Platform.pathSeparator}alpha.md')
+        .writeAsStringSync('alpha real document');
+    File('${input.path}${Platform.pathSeparator}beta.txt')
+        .writeAsStringSync('beta real document');
+    Directory('${workspace.path}${Platform.pathSeparator}kb')
+        .createSync(recursive: true);
+    File('${workspace.path}${Platform.pathSeparator}kb${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{}');
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.importFolderPath(input.path);
+    await controller.deleteImportedSource('alpha.md');
+
+    final manifest = jsonDecode(
+        File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
+            .readAsStringSync()) as Map<String, dynamic>;
+    final sources = (manifest['sources'] as List).cast<Map>();
+    expect(sources.map((source) => source['source_name']), ['beta.txt']);
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}input${Platform.pathSeparator}alpha.md')
+            .existsSync(),
+        isFalse);
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}input${Platform.pathSeparator}beta.txt')
+            .existsSync(),
+        isTrue);
+    expect(
+        Directory('${workspace.path}${Platform.pathSeparator}kb').existsSync(),
+        isFalse);
+    expect(controller.state.sourceNames, ['beta.txt']);
+    expect(controller.state.hasKnowledgeBase, isFalse);
   });
 
   test('rc6 search clears stale query output before reading real results',
@@ -413,7 +515,7 @@ void main() {
     expect(
         File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}export_manifest.json')
             .readAsStringSync(),
-        contains('rc9_document_export.v1'));
+        contains('rc10_document_export.v1'));
   });
 
   test('rc6 owner input folder chain uses the fixed Owner input directory',

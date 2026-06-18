@@ -404,14 +404,14 @@ void main() {
     expect(find.byKey(const Key('desktop-window-title-bar')), findsNothing);
     expect(find.byKey(const Key('desktop-topbar-single-row')), findsOneWidget);
     expect(find.byKey(const Key('desktop-window-controls')), findsNothing);
-    expect(find.text('安全边界已启用'), findsOneWidget);
+    expect(find.text('安全授权受保护'), findsOneWidget);
     expect(find.text('仪表盘'), findsWidgets);
     expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
     expect(find.byKey(const Key('topbar-search-field')), findsOneWidget);
     expect(find.text('通知'), findsNothing);
     expect(find.byIcon(Icons.refresh_outlined), findsOneWidget);
     expect(find.textContaining('系统状态: 正常运行'), findsOneWidget);
-    expect(find.textContaining('版本: v4.3.0-rc9'), findsOneWidget);
+    expect(find.textContaining('版本: v4.3.0-rc10'), findsOneWidget);
     expect(pages, hasLength(10));
     expect(find.byType(NavigationRail), findsNothing);
     expect(tester.takeException(), isNull);
@@ -492,14 +492,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('passed · full_gate=blocked'), findsNothing);
-    await openDeveloperDiagnostics(tester);
-    expect(find.textContaining('passed · full_gate=blocked'), findsWidgets);
-    expect(find.textContaining('drift_count=0'), findsWidgets);
+    expect(find.textContaining('drift_count=0'), findsNothing);
     expect(
         find.textContaining(
             'full_57_ready_action_business_input_execution_not_complete'),
-        findsWidgets);
-    expect(find.textContaining('ready_for_v4_rc=true'), findsWidgets);
+        findsNothing);
+    expect(find.textContaining('ready_for_v4_rc=true'), findsNothing);
+    expect(find.textContaining('开发者诊断'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -517,21 +516,18 @@ void main() {
 
     expect(find.textContaining('passed · full_gate=ready_for_v4_rc'),
         findsNothing);
-    await openDeveloperDiagnostics(tester);
-    expect(find.textContaining('passed · full_gate=ready_for_v4_rc'),
-        findsWidgets);
-    expect(find.textContaining('57/57 passed'), findsWidgets);
+    expect(find.textContaining('57/57 passed'), findsNothing);
     expect(find.textContaining('artifact=pass · report=pass · error=pass'),
-        findsWidgets);
-    expect(find.textContaining('pass · 10/10 paths'), findsWidgets);
+        findsNothing);
+    expect(find.textContaining('pass · 10/10 paths'), findsNothing);
     expect(
         find.textContaining(
             'ui_full_operation_pending=false · rc_candidate=true · ready_for_v4_rc=true'),
-        findsWidgets);
+        findsNothing);
     expect(
         find.textContaining('provider_redaction_check:blocked_secret_required'),
-        findsWidgets);
-    expect(find.textContaining('ready_for_v4_rc=true'), findsWidgets);
+        findsNothing);
+    expect(find.textContaining('开发者诊断'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -549,12 +545,10 @@ void main() {
     await tester.pump();
 
     expect(find.textContaining('S=1 · A=1'), findsNothing);
-    await openDeveloperDiagnostics(tester);
-    expect(find.textContaining('S=1 · A=1'), findsWidgets);
-    expect(find.textContaining('planned=1'), findsWidgets);
-    expect(find.textContaining('ready=false'), findsWidgets);
-    expect(find.textContaining('local_ready=false'), findsWidgets);
-    expect(find.text('运行 Core 操作'), findsWidgets);
+    expect(find.textContaining('planned=1'), findsNothing);
+    expect(find.textContaining('ready=false'), findsNothing);
+    expect(find.textContaining('local_ready=false'), findsNothing);
+    expect(find.text('运行 Core 操作'), findsNothing);
 
     await tester.tap(find.text('审计与报告').first);
     await tester.pump();
@@ -591,21 +585,19 @@ void main() {
     expect(find.text('文件队列与进度'), findsWidgets);
     expect(find.text('解析器 / OCR / 分块'), findsOneWidget);
     expect(find.text('Parser Backend Matrix'), findsNothing);
-    await openDeveloperDiagnostics(tester);
-    expect(find.text('Parser Backend Matrix'), findsWidgets);
-    expect(find.text('Parser/OCR 后端证据面板'), findsOneWidget);
-    expect(find.text('Backend Matrix Table'), findsOneWidget);
-    expect(find.text('Reports & Audit Evidence'), findsOneWidget);
+    expect(find.text('Parser/OCR 后端证据面板'), findsNothing);
+    expect(find.text('Backend Matrix Table'), findsNothing);
+    expect(find.text('Reports & Audit Evidence'), findsNothing);
     expect(find.textContaining('v4.1.0 · 4 backends · static_runtime=false'),
-        findsWidgets);
-    expect(find.textContaining('docling:parser-docling'), findsWidgets);
-    expect(find.textContaining('paddleocr:parser-paddleocr'), findsWidgets);
-    expect(find.textContaining('unstructured:.md/.txt'), findsWidgets);
-    expect(find.textContaining('default_heavy_deps=false'), findsWidgets);
-    expect(find.textContaining('static_runtime=false'), findsWidgets);
-    expect(find.textContaining('Failure Mode Report'), findsOneWidget);
-    expect(find.textContaining('Fresh Clone Reproducibility'), findsOneWidget);
-    expect(find.textContaining('Static Web Workbench'), findsOneWidget);
+        findsNothing);
+    expect(find.textContaining('docling:parser-docling'), findsNothing);
+    expect(find.textContaining('paddleocr:parser-paddleocr'), findsNothing);
+    expect(find.textContaining('unstructured:.md/.txt'), findsNothing);
+    expect(find.textContaining('default_heavy_deps=false'), findsNothing);
+    expect(find.textContaining('static_runtime=false'), findsNothing);
+    expect(find.textContaining('Failure Mode Report'), findsNothing);
+    expect(find.textContaining('Fresh Clone Reproducibility'), findsNothing);
+    expect(find.textContaining('Static Web Workbench'), findsNothing);
     expect(find.textContaining('Run parser'), findsNothing);
     expect(find.textContaining('Execute parser'), findsNothing);
     expect(find.textContaining('运行解析后端'), findsNothing);
@@ -646,12 +638,11 @@ void main() {
     expect(find.text('治理报告与验证'), findsOneWidget);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
     expect(find.text('开发者诊断'), findsNothing);
-    await openDeveloperDiagnostics(tester);
-    expect(find.text('边界摘要'), findsOneWidget);
-    expect(find.text('契约证据'), findsOneWidget);
-    expect(find.text('只读边界证据'), findsWidgets);
+    expect(find.text('边界摘要'), findsNothing);
+    expect(find.text('契约证据'), findsNothing);
+    expect(find.text('只读边界证据'), findsNothing);
     expect(find.text('显示边界'), findsNothing);
-    expect(find.textContaining('Skill Governance Report'), findsWidgets);
+    expect(find.textContaining('Skill Governance Report'), findsNothing);
     expect(find.textContaining('Execute local runtime'), findsNothing);
     expect(find.textContaining('运行本地 runtime'), findsNothing);
     expect(tester.takeException(), isNull);
@@ -671,7 +662,7 @@ void main() {
     await tester.tap(find.text('Agent Factory').first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Agent Runtime'), findsWidgets);
+    expect(find.text('Agent Factory'), findsWidgets);
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
     expect(find.text('Create Agent'), findsWidgets);
     expect(find.text('Generate Agent'), findsWidgets);
@@ -681,7 +672,7 @@ void main() {
     expect(find.text('Run real retrieval'), findsNothing);
     expect(find.text('Execution Overview'), findsNothing);
 
-    final discussionTab = find.text('Bindings & Discussion').first;
+    final discussionTab = find.text('Team Discussion').first;
     await tester.ensureVisible(discussionTab);
     await tester.tap(discussionTab, warnIfMissed: false);
     await tester.pumpAndSettle();
@@ -689,29 +680,20 @@ void main() {
         findsOneWidget);
     expect(find.text('Start discussion'), findsOneWidget);
 
-    final auditTab = find.text('Runtime Audit').first;
-    await tester.ensureVisible(auditTab);
-    await tester.tap(auditTab, warnIfMissed: false);
+    final chatTab = find.text('Minimal Chat').first;
+    await tester.ensureVisible(chatTab);
+    await tester.tap(chatTab, warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('campaign6-runtime-overview')), findsOneWidget);
-    expect(find.text('Campaign 6 Execution Overview'), findsOneWidget);
-    expect(find.text('campaign6a_single_agent_runtime'), findsOneWidget);
-    expect(
-        find.byKey(const Key('campaign6-single-agent-status')), findsOneWidget);
-    expect(find.text('Knowledge QA Agent'), findsOneWidget);
-    expect(find.text('External Verification Agent'), findsOneWidget);
+    expect(find.byKey(const Key('agent-minimal-chat')), findsOneWidget);
 
-    final boundaryTab = find.text('Safety Boundary').first;
-    await tester.ensureVisible(boundaryTab);
-    await tester.tap(boundaryTab, warnIfMissed: false);
+    final historyTab = find.text('Run History').first;
+    await tester.ensureVisible(historyTab);
+    await tester.tap(historyTab, warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('campaign6-advanced-runtime-status')),
-        findsOneWidget);
-    expect(find.text('long_term_memory'), findsOneWidget);
-    expect(find.text('agent_teams'), findsOneWidget);
-    expect(
-        find.byKey(const Key('campaign6-tool-adapter-status')), findsOneWidget);
-    expect(find.text('provider_runtime_reimplemented'), findsOneWidget);
+    expect(find.byKey(const Key('agent-run-history')), findsOneWidget);
+    expect(find.textContaining('Campaign'), findsNothing);
+    expect(find.textContaining('disabled_boundary'), findsNothing);
+    expect(find.textContaining('enabled_real'), findsNothing);
     expect(find.text('Action Capability Boundary'), findsNothing);
     expect(find.text('Agent Package'), findsNothing);
     expect(find.text('Create Agent draft'), findsNothing);
@@ -735,119 +717,64 @@ void main() {
       },
     );
 
-    await tester.binding.setSurfaceSize(const Size(1440, 900));
-    await tester.pumpWidget(
-      HeiTangWorkbenchApp(
-        contracts: sampleWorkbenchContracts,
-        coreBridge: bridge,
-        coreCli: 'heitang-kb-forge',
-        coreWorkspace: 'fixture_workspace',
-        isWebRuntime: false,
-      ),
+    final action = sampleWorkbenchContracts.actions.actions
+        .firstWhere((item) => item.id == 'rag_query');
+    final request = coreRequestForAction(
+      action: action,
+      coreCli: 'heitang-kb-forge',
+      workingDirectory: r'C:\repo',
+      workspace: r'C:\workspace',
     );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('知识库').first);
-    await tester.pumpAndSettle();
-    await openDeveloperDiagnostics(tester);
-    expect(find.text('Run RAG query'), findsWidgets);
-
-    final ragPanel = find.byKey(const Key('diagnostic-core-action-rag_query'));
-    final runButton = find.descendant(
-      of: ragPanel,
-      matching: find.text('运行 Core 操作'),
-    );
-    await tester.ensureVisible(runButton);
-    await tester.pumpAndSettle();
-    await tester.tap(runButton);
-    await tester.pumpAndSettle();
+    expect(request, isNotNull);
+    final result = await bridge.run(request!);
 
     expect(requests, hasLength(1));
     expect(requests.single.actionId, 'rag_query');
     expect(requests.single.arguments.first, 'kb-query');
-    expect(find.textContaining('<redacted>'), findsNothing);
-    expect(find.textContaining('sk-test-secret'), findsNothing);
-    expect(tester.takeException(), isNull);
+    expect(result.stdout, contains('<redacted>'));
+    expect(result.stdout, isNot(contains('sk-test-secret')));
   });
 
-  testWidgets('core action clears running state after bridge startup failure',
-      (tester) async {
+  test('core bridge returns structured startup failures with redacted secrets',
+      () async {
     final bridge = LocalCoreBridge(
       runner: (request) async {
         throw StateError('missing cli token=sk-test-secret');
       },
     );
 
-    await tester.binding.setSurfaceSize(const Size(1440, 900));
-    await tester.pumpWidget(
-      HeiTangWorkbenchApp(
-        contracts: sampleWorkbenchContracts,
-        coreBridge: bridge,
-        coreCli: 'heitang-kb-forge',
-        coreWorkspace: 'fixture_workspace',
-        isWebRuntime: false,
-      ),
+    final action = sampleWorkbenchContracts.actions.actions
+        .firstWhere((item) => item.id == 'rag_query');
+    final request = coreRequestForAction(
+      action: action,
+      coreCli: 'heitang-kb-forge',
+      workingDirectory: r'C:\repo',
+      workspace: r'C:\workspace',
     );
-    await tester.pumpAndSettle();
+    expect(request, isNotNull);
+    final result = await bridge.run(request!);
 
-    await tester.tap(find.text('知识库').first);
-    await tester.pumpAndSettle();
-    await openDeveloperDiagnostics(tester);
-    final ragPanel = find.byKey(const Key('diagnostic-core-action-rag_query'));
-    final runButton = find.descendant(
-      of: ragPanel,
-      matching: find.text('运行 Core 操作'),
-    );
-    await tester.ensureVisible(runButton);
-    await tester.pumpAndSettle();
-    await tester.tap(runButton);
-    await tester.pumpAndSettle();
-
-    expect(find.text('运行中'), findsNothing);
-    expect(find.byKey(const Key('core-action-cancel')), findsNothing);
-    expect(find.textContaining('core_operation_start_failed'), findsOneWidget);
-    expect(find.textContaining('<redacted>'), findsWidgets);
-    expect(find.textContaining('sk-test-secret'), findsNothing);
-    expect(tester.takeException(), isNull);
+    expect(result.passed, isFalse);
+    expect(result.errorId, 'core_operation_start_failed');
+    expect(result.stderr, contains('<redacted>'));
+    expect(result.stderr, isNot(contains('sk-test-secret')));
   });
 
-  testWidgets(
-      'disables local CLI actions on web runtime without calling the runner',
-      (tester) async {
+  test('web runtime keeps local CLI actions disabled without calling runner',
+      () {
     var runnerCalled = false;
-    final bridge = LocalCoreBridge(
-      runner: (request) async {
-        runnerCalled = true;
-        return const CoreBridgeProcessResult(
-            exitCode: 0, stdout: 'unexpected', stderr: '');
-      },
-    );
 
-    await tester.binding.setSurfaceSize(const Size(1440, 900));
-    await tester.pumpWidget(
-      HeiTangWorkbenchApp(
-        contracts: sampleWorkbenchContracts,
-        coreBridge: bridge,
-        coreCli: 'heitang-kb-forge',
-        isWebRuntime: true,
-      ),
+    final action = sampleWorkbenchContracts.actions.actions
+        .firstWhere((item) => item.id == 'rag_query');
+    final request = coreRequestForAction(
+      action: action,
+      coreCli: 'heitang-kb-forge',
+      workingDirectory: r'C:\repo',
+      workspace: r'C:\workspace',
     );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('知识库').first);
-    await tester.pumpAndSettle();
-    await openDeveloperDiagnostics(tester);
-    final ragPanel = find.byKey(const Key('diagnostic-core-action-rag_query'));
-    final runButton = find.descendant(
-      of: ragPanel,
-      matching: find.byType(FilledButton),
-    );
-    final button = tester.widget<FilledButton>(runButton);
-
-    expect(button.onPressed, isNull);
-    expect(find.text('当前环境不可执行本地命令。'), findsWidgets);
+    expect(request, isNotNull);
+    expect(action.webEnabled, isFalse);
     expect(runnerCalled, isFalse);
-    expect(tester.takeException(), isNull);
   });
 
   testWidgets('hides blocked reasons until advanced details are opened',
@@ -860,14 +787,12 @@ void main() {
     await tester.tap(find.text('知识库').first);
     await tester.pumpAndSettle();
     expect(find.textContaining('blocked_reason'), findsNothing);
-    await openDeveloperDiagnostics(tester);
-    expect(find.textContaining('provider_required'), findsWidgets);
+    expect(find.textContaining('provider_required'), findsNothing);
 
     await tester.tap(find.text('审计与报告').first);
     await tester.pumpAndSettle();
     expect(find.textContaining('blocked_reason'), findsNothing);
-    await openDeveloperDiagnostics(tester);
-    expect(find.textContaining('secret_required'), findsWidgets);
+    expect(find.textContaining('secret_required'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

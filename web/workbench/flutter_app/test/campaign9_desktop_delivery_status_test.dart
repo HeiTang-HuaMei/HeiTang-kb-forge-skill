@@ -30,11 +30,11 @@ void main() {
 
     expect(schema['schema_id'], 'campaign9_desktop_delivery_status');
     expect(schema['overall_status'],
-        'campaign9_windows_exe_packaging_rc6_runtime_truth_blocker_repaired_ui_bound_pending_owner_retest');
+        'v4.3.0-rc10_product_flow_truth_ui_closure_real_exe_verified_pending_owner_retest');
     expect(schema['final_target_status'],
-        'v4.3.0-rc6_runtime_truth_blockers_repaired_real_exe_verified_pushed_ci_green_tagged_pending_owner_retest');
-    expect(schema['release_candidate_tag'], 'v4.3.0-rc6');
-    expect(schema['package_version_baseline'], '4.2.0');
+        'v4.3.0-rc10_product_flow_truth_ui_closure_real_exe_verified_pending_owner_retest');
+    expect(schema['release_candidate_tag'], 'v4.3.0-rc10');
+    expect(schema['package_version_baseline'], '4.3.0-rc10');
     expect(packageInfo['build_status'], 'pass');
     expect(packageInfo['exe'], 'heitang_workbench.exe');
     expect(packageInfo['file_count'], greaterThan(0));
@@ -85,9 +85,9 @@ void main() {
     expect(schema['stable_release_tag_authorized'], isFalse);
     expect(security.values, everyElement(isTrue));
     expect(byCapability['github_release_creation']!['ui_state'],
-        'disabled_boundary');
-    expect(
-        byCapability['computer_use_runtime']!['status'], 'disabled_boundary');
+        'owner_authorization_required');
+    expect(byCapability['computer_use_runtime']!['status'],
+        'not_available_in_product_flow');
     expect(byCapability['full_capability_runtime_chain']!['status'], 'pass');
     expect(byCapability['page_button_tab_audit']!['status'], 'pass');
   });
@@ -102,7 +102,8 @@ void main() {
     expect(schema['degraded_modes'], isA<List<dynamic>>());
   });
 
-  testWidgets('settings exposes Campaign 9 desktop delivery status',
+  testWidgets(
+      'settings exposes rc10 desktop delivery status without raw tokens',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1100));
     await tester.pumpWidget(HeiTangWorkbenchApp(
@@ -122,9 +123,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('settings-desktop-delivery')), findsOneWidget);
-    expect(find.text('v4.3.0-rc6'), findsWidgets);
+    expect(find.text('v4.3.0-rc10'), findsWidgets);
     expect(find.text('heitang_workbench.exe'), findsWidgets);
-    expect(find.textContaining('GitHub Release'), findsWidgets);
+    expect(find.textContaining('disabled_boundary'), findsNothing);
+    expect(find.textContaining('enabled_real'), findsNothing);
+    expect(find.textContaining('rc6_runtime_truth_repair'), findsNothing);
     expect(find.textContaining('v4.3.0'), findsWidgets);
     expect(find.textContaining('v4.3.0 stable'), findsNothing);
     expect(tester.takeException(), isNull);

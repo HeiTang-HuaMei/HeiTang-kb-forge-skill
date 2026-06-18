@@ -55,6 +55,25 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('rc10 settings hides developer diagnostics from standard UI',
+      (tester) async {
+    await pumpWorkbench(tester);
+
+    await tester.ensureVisible(find.byKey(const Key('sidebar-workspace')));
+    await tester.tap(find.byKey(const Key('sidebar-workspace')),
+        warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    expect(find.text('设置'), findsWidgets);
+    expect(find.text('Provider 与存储'), findsOneWidget);
+    expect(find.textContaining('开发者诊断'), findsNothing);
+    expect(find.textContaining('后端矩阵'), findsNothing);
+    expect(find.textContaining('Core CLI'), findsNothing);
+    expect(find.textContaining('enabled_real'), findsNothing);
+    expect(find.textContaining('disabled_boundary'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('rc5 page tabs have selected state and change visible content',
       (tester) async {
     await pumpWorkbench(tester);
@@ -90,7 +109,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('rc5 removes duplicate window controls and keeps boundaries',
+  testWidgets('rc10 removes duplicate window controls and exposes agent chat',
       (tester) async {
     await pumpWorkbench(tester);
 
@@ -104,13 +123,11 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-agent-factory-runtime')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    final boundaryTab = find.text('安全边界').first;
-    await tester.ensureVisible(boundaryTab);
-    await tester.tap(boundaryTab, warnIfMissed: false);
-    await tester.pumpAndSettle();
 
-    expect(find.textContaining('Computer Use'), findsWidgets);
-    expect(find.textContaining('disabled_boundary'), findsWidgets);
+    expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
+    expect(find.text('最小对话'), findsOneWidget);
+    expect(find.textContaining('安全边界'), findsNothing);
+    expect(find.textContaining('disabled_boundary'), findsNothing);
     expect(find.textContaining('arbitrary shell'), findsNothing);
     expect(tester.takeException(), isNull);
   });

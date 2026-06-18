@@ -41,7 +41,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     state = state.copyWith(
       workspacePath: workspace.path,
       phase: Rc6RuntimePhase.ready,
-      lastMessage: 'rc9 文档链路本地工作区已准备。',
+      lastMessage: 'rc10 产品链路本地工作区已准备。',
     );
     await _loadExistingArtifacts();
     notifyListeners();
@@ -132,35 +132,19 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     final workspace = _requireWorkspace();
     final inputDir = Directory(_join(workspace.path, 'input'));
-    await _clearGeneratedArtifacts(includeImport: true);
-    if (!_isInsideDirectory(source.absolute.path, inputDir.absolute.path)) {
-      await _clearWorkspacePath(inputDir.path);
-    }
+    await _clearGeneratedArtifacts(includeImport: false);
+    await _clearWorkspacePath(_join(workspace.path, 'import'));
     await inputDir.create(recursive: true);
-    final copied =
-        File(_join(inputDir.path, _safeFileName(source.uri.pathSegments.last)));
-    if (source.absolute.path != copied.absolute.path) {
-      await source.copy(copied.path);
-    }
-    final manifestPath = _join(workspace.path, 'source_manifest.json');
-    final manifest = {
-      'schema_version': 'rc6_source_manifest.v1',
-      'status': 'imported',
-      'source_path': copied.path,
-      'source_name': copied.uri.pathSegments.last,
-      'size_bytes': await copied.length(),
-      'workspace': workspace.path,
-    };
-    await File(manifestPath).writeAsString(
-      const JsonEncoder.withIndent('  ').convert(manifest),
-      encoding: utf8,
-    );
+    final copied = await _copySourceIntoInput(source, inputDir);
+    final manifestPath = await _writeSourceManifestFromInput(inputDir);
+    final manifest = await _readJsonObject(manifestPath);
+    final sourceNames = _sourceNamesFromManifest(manifest);
     state = state.copyWith(
       phase: Rc6RuntimePhase.imported,
       selectedFilePath: copied.path,
       sourceManifestPath: manifestPath,
-      sourceCount: 1,
-      sourceNames: [copied.uri.pathSegments.last],
+      sourceCount: sourceNames.length,
+      sourceNames: sourceNames,
       lastMessage: '真实文件已导入工作区。',
       lastError: '',
     );
@@ -197,46 +181,24 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     final workspace = _requireWorkspace();
     final inputDir = Directory(_join(workspace.path, 'input'));
-    await _clearGeneratedArtifacts(includeImport: true);
-    await _clearWorkspacePath(inputDir.path);
+    await _clearGeneratedArtifacts(includeImport: false);
+    await _clearWorkspacePath(_join(workspace.path, 'import'));
     await inputDir.create(recursive: true);
-    final imported = <Map<String, Object?>>[];
     for (final source in files) {
       final relative =
           _relativePath(source.absolute.path, sourceDir.absolute.path);
-      final target = File(_joinNested(inputDir.path, relative));
-      await target.parent.create(recursive: true);
-      await source.copy(target.path);
-      imported.add({
-        'source_path': target.path,
-        'source_name': source.uri.pathSegments.last,
-        'relative_path': relative.replaceAll('\\', '/'),
-        'size_bytes': await target.length(),
-      });
+      await _copySourceIntoInput(source, inputDir, relativePath: relative);
     }
-    final manifestPath = _join(workspace.path, 'source_manifest.json');
-    final manifest = {
-      'schema_version': 'rc6_source_manifest.v1',
-      'status': 'imported',
-      'source_path': inputDir.path,
-      'source_name': _lastNonEmptySegment(sourceDir.path),
-      'source_count': imported.length,
-      'sources': imported,
-      'workspace': workspace.path,
-    };
-    await File(manifestPath).writeAsString(
-      const JsonEncoder.withIndent('  ').convert(manifest),
-      encoding: utf8,
-    );
+    final manifestPath =
+        await _writeSourceManifestFromInput(inputDir, sourceName: 'input');
+    final manifest = await _readJsonObject(manifestPath);
+    final sourceNames = _sourceNamesFromManifest(manifest);
     state = state.copyWith(
       phase: Rc6RuntimePhase.imported,
       selectedFilePath: inputDir.path,
       sourceManifestPath: manifestPath,
-      sourceCount: imported.length,
-      sourceNames: imported
-          .map((source) => source['source_name']?.toString() ?? '')
-          .where((name) => name.isNotEmpty)
-          .toList(growable: false),
+      sourceCount: sourceNames.length,
+      sourceNames: sourceNames,
       lastMessage: '真实文件夹已导入工作区。',
       lastError: '',
     );
@@ -479,7 +441,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final exported = File(_join(exportDir.path, 'reading_notes_export.md'));
     await source.copy(exported.path);
     final manifest = {
-      'schema_version': 'rc9_document_export.v1',
+      'schema_version': 'rc10_document_export.v1',
       'status': 'pass',
       'format': 'markdown',
       'source': source.path,
@@ -871,6 +833,171 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> clearParseArtifacts() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    for (final relative in const [
+      'du',
+      'kb',
+      'query',
+      'doc',
+      'export',
+      'skill',
+      'agent',
+      'multi_agent',
+    ]) {
+      await _clearWorkspacePath(_join(workspace.path, relative));
+    }
+    await _clearWorkspacePath(_join(workspace.path, 'parse_report.json'));
+    state = state.copyWith(
+      phase: state.hasImportedFile
+          ? Rc6RuntimePhase.imported
+          : Rc6RuntimePhase.initial,
+      parseReportPath: '',
+      chunksPath: '',
+      kbManifestPath: '',
+      qualityReportPath: '',
+      cardsPath: '',
+      qaPairsPath: '',
+      queryResultPath: '',
+      generatedMarkdownPath: '',
+      readingNotesPath: '',
+      exportedDocumentPath: '',
+      exportManifestPath: '',
+      skillPath: '',
+      agentPath: '',
+      multiAgentDiscussionPath: '',
+      chunkCount: 0,
+      searchQuery: '',
+      searchStatus: Rc6SearchStatus.idle,
+      searchResults: const [],
+      lastMessage: '解析报告和下游产物已删除；导入文件保留。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
+  Future<void> clearSearchArtifacts() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    await _clearWorkspacePath(_join(workspace.path, 'query'));
+    state = state.copyWith(
+      phase: state.hasKnowledgeBase
+          ? Rc6RuntimePhase.knowledgeBuilt
+          : Rc6RuntimePhase.imported,
+      queryResultPath: '',
+      searchQuery: '',
+      searchStatus: Rc6SearchStatus.idle,
+      searchResults: const [],
+      lastMessage: '检索记录已删除。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
+  Future<void> clearDocumentArtifacts() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    await _clearWorkspacePath(_join(workspace.path, 'doc'));
+    await _clearWorkspacePath(_join(workspace.path, 'export'));
+    state = state.copyWith(
+      phase: state.searchStatus == Rc6SearchStatus.success
+          ? Rc6RuntimePhase.searched
+          : state.hasKnowledgeBase
+              ? Rc6RuntimePhase.knowledgeBuilt
+              : Rc6RuntimePhase.imported,
+      generatedMarkdownPath: '',
+      readingNotesPath: '',
+      exportedDocumentPath: '',
+      exportManifestPath: '',
+      lastMessage: '文档生成和导出记录已删除。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
+  Future<void> clearRecentTaskArtifacts(String taskId) async {
+    switch (taskId) {
+      case 'import':
+        await clearImportedSources();
+        return;
+      case 'parse':
+        await clearParseArtifacts();
+        return;
+      case 'kb':
+        await clearKnowledgeBaseArtifacts();
+        return;
+      case 'search':
+        await clearSearchArtifacts();
+        return;
+      case 'doc':
+        await clearDocumentArtifacts();
+        return;
+      default:
+        _fail('未知任务类型：$taskId');
+    }
+  }
+
+  Future<void> deleteImportedSource(String sourceNameOrRelativePath) async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    final inputDir = Directory(_join(workspace.path, 'input'));
+    final manifestPath = _join(workspace.path, 'source_manifest.json');
+    final manifest = await _readJsonObject(manifestPath);
+    final sources = manifest['sources'];
+    if (sources is! List) {
+      await clearImportedSources();
+      return;
+    }
+    final targetName = sourceNameOrRelativePath.trim();
+    Map<String, dynamic>? selected;
+    for (final source in sources.whereType<Map>()) {
+      final item = Map<String, dynamic>.from(source);
+      if ((item['source_name'] ?? '').toString() == targetName ||
+          (item['relative_path'] ?? '').toString() == targetName) {
+        selected = item;
+        break;
+      }
+    }
+    if (selected == null) {
+      _fail('未找到要删除的文档：$sourceNameOrRelativePath');
+      return;
+    }
+    final sourcePath = (selected['source_path'] ?? '').toString();
+    if (sourcePath.isNotEmpty &&
+        _isInsideDirectory(sourcePath, inputDir.absolute.path)) {
+      await _clearWorkspacePath(sourcePath);
+    }
+    await _clearGeneratedArtifacts(includeImport: false);
+    await _clearWorkspacePath(_join(workspace.path, 'import'));
+    final remaining = await _supportedSourceFiles(inputDir).length;
+    if (remaining == 0) {
+      await clearImportedSources();
+      return;
+    }
+    final rewrittenManifest = await _writeSourceManifestFromInput(inputDir);
+    final rewritten = await _readJsonObject(rewrittenManifest);
+    final sourceNames = _sourceNamesFromManifest(rewritten);
+    state = state.copyWith(
+      phase: Rc6RuntimePhase.imported,
+      selectedFilePath: inputDir.path,
+      sourceManifestPath: rewrittenManifest,
+      sourceCount: sourceNames.length,
+      sourceNames: sourceNames,
+      lastMessage: '来源文档已删除；请重新解析并构建知识库。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
   Future<File?> _firstFileWithExtension(
       Directory directory, String extension) async {
     if (!await directory.exists()) {
@@ -968,6 +1095,74 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     state = state.copyWith(
       lastMessage: '多 Agent 联合讨论纪要已生成。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
+  Future<void> runAgentDialogue({String prompt = '请基于当前知识库总结核心要点。'}) async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    if (!state.hasAgent) {
+      _fail('请先在 Agent 工厂生成 Agent。');
+      return;
+    }
+    final workspace = _requireWorkspace();
+    final outDir = Directory(_join(workspace.path, 'agent', 'dialogue'));
+    await outDir.create(recursive: true);
+    final queryReport = await _readJsonObject(
+        _join(workspace.path, 'query', 'kb_query_result.json'));
+    final queryRows = queryReport['selected'] ??
+        queryReport['results'] ??
+        queryReport['records'];
+    final selected = queryRows is List
+        ? queryRows.whereType<Map>().take(4).toList()
+        : const <Map>[];
+    final chunks = selected.isNotEmpty
+        ? const <Map<String, dynamic>>[]
+        : (await _readJsonl(File(_join(workspace.path, 'kb', 'chunks.jsonl'))))
+            .take(4)
+            .toList(growable: false);
+    final evidence = selected.isNotEmpty ? selected : chunks;
+    final dialoguePath = _join(outDir.path, 'agent_dialogue.md');
+    final buffer = StringBuffer()
+      ..writeln('# Agent 最小对话')
+      ..writeln()
+      ..writeln('## 用户问题')
+      ..writeln(prompt)
+      ..writeln()
+      ..writeln('## Agent 回答')
+      ..writeln('当前回答基于本地知识库和已生成 Skill，不调用外网、不执行系统命令。');
+    for (final item in evidence) {
+      buffer.writeln(
+          '- ${_compact(item['text'] ?? item['summary'] ?? item['content'] ?? '')} (${item['citation'] ?? item['source_path'] ?? item['chunk_id'] ?? '-'})');
+    }
+    if (evidence.isEmpty) {
+      buffer.writeln('- 当前知识库没有可用证据，请先运行检索或重新构建知识库。');
+    }
+    buffer
+      ..writeln()
+      ..writeln('## 边界')
+      ..writeln('- 仅使用本地 KB/Skill 产物。')
+      ..writeln('- 不开放 Computer Use。')
+      ..writeln('- 不开放 arbitrary shell。')
+      ..writeln('- 不展示明文 secret。');
+    await File(dialoguePath).writeAsString(buffer.toString(), encoding: utf8);
+    final manifestPath = _join(outDir.path, 'agent_dialogue_manifest.json');
+    await File(manifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'rc10_agent_dialogue.v1',
+        'status': evidence.isEmpty ? 'needs_evidence' : 'pass',
+        'prompt': prompt,
+        'output': dialoguePath,
+        'evidence_count': evidence.length,
+      }),
+      encoding: utf8,
+    );
+    state = state.copyWith(
+      agentDialoguePath: dialoguePath,
+      lastMessage: 'Agent 最小对话已生成。',
       lastError: '',
     );
     notifyListeners();
@@ -1115,6 +1310,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       exportManifestPath: '',
       skillPath: '',
       agentPath: '',
+      agentDialoguePath: '',
       readingNotesPath: '',
       multiAgentDiscussionPath: '',
       cardsPath: '',
@@ -1182,6 +1378,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final agentPath = _join(
         _join(workspace.path, 'agent', 'knowledge_qa_agent'),
         'agent_manifest.json');
+    final agentDialoguePath =
+        _joinNested(workspace.path, 'agent/dialogue/agent_dialogue.md');
     final multiAgentPath =
         _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md');
 
@@ -1219,53 +1417,40 @@ class Rc6RuntimeController extends ChangeNotifier {
 
     state = state.copyWith(
       phase: phase,
-      sourceManifestPath: await File(sourceManifestPath).exists()
-          ? sourceManifestPath
-          : state.sourceManifestPath,
+      sourceManifestPath:
+          await File(sourceManifestPath).exists() ? sourceManifestPath : '',
       selectedFilePath: (sourceManifest['source_path'] ?? '').toString().isEmpty
-          ? state.selectedFilePath
+          ? ''
           : sourceManifest['source_path'].toString(),
       parseReportPath: await File(parseReportAliasPath).exists()
           ? parseReportAliasPath
           : await File(duManifestPath).exists()
               ? duManifestPath
-              : state.parseReportPath,
-      chunksPath:
-          await File(chunksPath).exists() ? chunksPath : state.chunksPath,
-      kbManifestPath: await File(kbManifestPath).exists()
-          ? kbManifestPath
-          : state.kbManifestPath,
-      qualityReportPath: await File(qualityPath).exists()
-          ? qualityPath
-          : state.qualityReportPath,
-      cardsPath: await File(cardsPath).exists() ? cardsPath : state.cardsPath,
-      qaPairsPath:
-          await File(qaPairsPath).exists() ? qaPairsPath : state.qaPairsPath,
-      queryResultPath:
-          await File(queryPath).exists() ? queryPath : state.queryResultPath,
-      generatedMarkdownPath: await File(markdownPath).exists()
-          ? markdownPath
-          : state.generatedMarkdownPath,
-      readingNotesPath: await File(readingNotesPath).exists()
-          ? readingNotesPath
-          : state.readingNotesPath,
-      exportedDocumentPath: await File(exportedDocumentPath).exists()
-          ? exportedDocumentPath
-          : state.exportedDocumentPath,
-      exportManifestPath: await File(exportManifestPath).exists()
-          ? exportManifestPath
-          : state.exportManifestPath,
-      skillPath: await File(skillPath).exists()
-          ? _join(workspace.path, 'skill')
-          : state.skillPath,
-      agentPath: await File(agentPath).exists()
-          ? _join(workspace.path, 'agent')
-          : state.agentPath,
-      multiAgentDiscussionPath: await File(multiAgentPath).exists()
-          ? multiAgentPath
-          : state.multiAgentDiscussionPath,
+              : '',
+      chunksPath: await File(chunksPath).exists() ? chunksPath : '',
+      kbManifestPath: await File(kbManifestPath).exists() ? kbManifestPath : '',
+      qualityReportPath: await File(qualityPath).exists() ? qualityPath : '',
+      cardsPath: await File(cardsPath).exists() ? cardsPath : '',
+      qaPairsPath: await File(qaPairsPath).exists() ? qaPairsPath : '',
+      queryResultPath: await File(queryPath).exists() ? queryPath : '',
+      generatedMarkdownPath:
+          await File(markdownPath).exists() ? markdownPath : '',
+      readingNotesPath:
+          await File(readingNotesPath).exists() ? readingNotesPath : '',
+      exportedDocumentPath:
+          await File(exportedDocumentPath).exists() ? exportedDocumentPath : '',
+      exportManifestPath:
+          await File(exportManifestPath).exists() ? exportManifestPath : '',
+      skillPath:
+          await File(skillPath).exists() ? _join(workspace.path, 'skill') : '',
+      agentPath:
+          await File(agentPath).exists() ? _join(workspace.path, 'agent') : '',
+      agentDialoguePath:
+          await File(agentDialoguePath).exists() ? agentDialoguePath : '',
+      multiAgentDiscussionPath:
+          await File(multiAgentPath).exists() ? multiAgentPath : '',
       sourceCount: sourceCount,
-      sourceNames: sourceNames.isEmpty ? state.sourceNames : sourceNames,
+      sourceNames: sourceNames,
       chunkCount: chunkCount,
       searchResults: searchResults,
       searchStatus: selectedCount > 0
@@ -1300,7 +1485,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final qaPairs = await _readJsonl(File(_join(kbDir, 'qa_pairs.jsonl')));
     final chunks = await _readJsonl(File(_join(kbDir, 'chunks.jsonl')));
     final summary = {
-      'schema_version': 'rc6_real_input_derived_knowledge.v1',
+      'schema_version': 'rc10_real_input_derived_knowledge.v1',
       'status': chunks.isNotEmpty && cards.isNotEmpty && qaPairs.isNotEmpty
           ? 'pass'
           : 'failed',
@@ -1311,7 +1496,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'cards_path': _join(kbDir, 'cards.jsonl'),
       'qa_pairs_path': _join(kbDir, 'qa_pairs.jsonl'),
     };
-    await File(_join(kbDir, 'rc6_real_input_derived_knowledge.json'))
+    await File(_join(kbDir, 'rc10_real_input_derived_knowledge.json'))
         .writeAsString(const JsonEncoder.withIndent('  ').convert(summary),
             encoding: utf8);
   }
@@ -1334,7 +1519,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       ..writeln('## 核心摘要')
       ..writeln()
       ..writeln(
-          '- 本笔记由 rc6 真实 EXE 链路基于 `D:\\HeiTang-Codex-WorkSpace\\input` 的 ${sources.length} 个真实文件生成。')
+          '- 本笔记由 rc10 真实 EXE 链路基于 `D:\\HeiTang-Codex-WorkSpace\\input` 的 ${sources.length} 个真实文件生成。')
       ..writeln(
           '- 知识库包含 ${chunks.length} 个 chunks、${cards.length} 张 cards、${qaPairs.length} 个 QA pairs。')
       ..writeln('- 内容来自真实解析产物和知识库索引，不是固定演示文本。')
@@ -1412,12 +1597,12 @@ class Rc6RuntimeController extends ChangeNotifier {
         '# ${spec[1]}',
         '',
         '## 使用说明',
-        'Use this Skill only with the rc6 real input KB artifacts.',
+        'Use this Skill only with the rc10 real input KB artifacts.',
         '',
         '## 输入输出约束',
         '- Input: local KB query, cards, qa_pairs, and source citations.',
         '- Output: cited Markdown or JSON summary.',
-        '- Boundary: no network, no secret, no arbitrary shell.',
+        '- Boundary: local KB artifacts only; no high-risk system capability is exposed.',
         '',
         '## 示例调用',
         '`use ${spec[1]} with kb/manifest.json and cite source chunks`',
@@ -1439,7 +1624,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await File(_join(skillRoot.path, 'skill_generation_manifest.json'))
         .writeAsString(
             const JsonEncoder.withIndent('  ').convert({
-              'schema_version': 'rc6_real_input_skill_generation.v1',
+              'schema_version': 'rc10_real_input_skill_generation.v1',
               'status': 'pass',
               'skills': manifest,
             }),
@@ -1478,7 +1663,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       await dir.create(recursive: true);
       final skillDir = _join(_requireWorkspace().path, 'skill');
       final payload = {
-        'schema_version': 'rc6_real_input_agent.v1',
+        'schema_version': 'rc10_real_input_agent.v1',
         'agent_id': spec[0],
         'name': spec[1],
         'role_goal': spec[2],
@@ -1487,7 +1672,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'input_format': 'Markdown task or KB query',
         'output_format': 'Cited Markdown with source paths',
         'capability_boundary':
-            'Local KB/Skill only; no network, no arbitrary shell, no Computer Use.',
+            'Local KB/Skill only; high-risk system capabilities are not exposed.',
         'example': 'Summarize the real input folder and cite chunks.',
       };
       await File(_join(dir.path, 'agent_manifest.json')).writeAsString(
@@ -1507,7 +1692,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await File(_join(agentRoot.path, 'agent_generation_manifest.json'))
         .writeAsString(
             const JsonEncoder.withIndent('  ').convert({
-              'schema_version': 'rc6_real_input_agent_generation.v1',
+              'schema_version': 'rc10_real_input_agent_generation.v1',
               'status': 'pass',
               'agents': agents,
             }),
@@ -1537,7 +1722,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       ..writeln('- 阅读总结 Agent：围绕高频主题提炼摘要，并要求引用来源。')
       ..writeln('- 知识问答 Agent：优先回答来自 KB query 的可证据化问题。')
       ..writeln('- 质检 Agent：标记 OCR/Parser 噪声和需要人工复核的片段。')
-      ..writeln('- 运营转化 Agent：把可行动内容转成步骤，但不越过安全边界。')
+      ..writeln('- 运营转化 Agent：把可行动内容转成步骤，同时保留安全授权约束。')
       ..writeln('- 产品分析 Agent：识别主题、需求和风险，用于后续产品判断。')
       ..writeln()
       ..writeln('## 冲突点')
@@ -1547,7 +1732,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       ..writeln('## 共识结论')
       ..writeln('- 只使用本地 KB、Skill 和 Agent package 产物。')
       ..writeln('- 输出必须保留 source_path 或 citation。')
-      ..writeln('- 外部联网、Computer Use、arbitrary shell 仍为 disabled_boundary。')
+      ..writeln('- 外部联网和高风险系统能力仅在明确授权与配置后处理，本地讨论不调用它们。')
       ..writeln()
       ..writeln('## 后续行动建议')
       ..writeln('- 对高价值主题追加人工复核。')
@@ -1563,7 +1748,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await File(_join(outDir.path, 'multi_agent_discussion_manifest.json'))
         .writeAsString(
             const JsonEncoder.withIndent('  ').convert({
-              'schema_version': 'rc6_real_input_multi_agent_discussion.v1',
+              'schema_version': 'rc10_real_input_multi_agent_discussion.v1',
               'status': 'pass',
               'topic': topic,
               'agents': [
@@ -1579,6 +1764,64 @@ class Rc6RuntimeController extends ChangeNotifier {
             encoding: utf8);
   }
 
+  Future<File> _copySourceIntoInput(File source, Directory inputDir,
+      {String? relativePath}) async {
+    final relative = relativePath == null || relativePath.trim().isEmpty
+        ? source.uri.pathSegments.last
+        : relativePath;
+    var target = File(_joinNested(inputDir.path, relative));
+    if (source.absolute.path.toLowerCase() ==
+        target.absolute.path.toLowerCase()) {
+      return target;
+    }
+    var suffix = 1;
+    final extension = _extension(target.path);
+    final stem = extension.isEmpty
+        ? target.path
+        : target.path.substring(0, target.path.length - extension.length);
+    while (await target.exists()) {
+      target = File('$stem-$suffix$extension');
+      suffix += 1;
+    }
+    await target.parent.create(recursive: true);
+    await source.copy(target.path);
+    return target;
+  }
+
+  Future<String> _writeSourceManifestFromInput(Directory inputDir,
+      {String sourceName = 'input'}) async {
+    final workspace = _requireWorkspace();
+    final imported = <Map<String, Object?>>[];
+    await for (final file in _supportedSourceFiles(inputDir)) {
+      final relative = _relativePath(file.absolute.path, inputDir.absolute.path)
+          .replaceAll('\\', '/');
+      imported.add({
+        'source_path': file.path,
+        'source_name': file.uri.pathSegments.last,
+        'relative_path': relative,
+        'size_bytes': await file.length(),
+      });
+    }
+    imported.sort((a, b) => (a['relative_path'] ?? '')
+        .toString()
+        .compareTo((b['relative_path'] ?? '').toString()));
+    final manifestPath = _join(workspace.path, 'source_manifest.json');
+    final manifest = {
+      'schema_version': 'rc10_source_manifest.v1',
+      'status': 'imported',
+      'source_path': inputDir.path,
+      'source_name': sourceName,
+      'source_count': imported.length,
+      'sources': imported,
+      'workspace': workspace.path,
+    };
+    await File(manifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(manifest),
+      encoding: utf8,
+    );
+    return manifestPath;
+  }
+
   Future<Directory> _resolveWorkspace() async {
     if (configuredWorkspace.trim().isNotEmpty && configuredWorkspace != '.') {
       return Directory(configuredWorkspace);
@@ -1586,10 +1829,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     final appData = Platform.environment['LOCALAPPDATA'];
     if (appData != null && appData.trim().isNotEmpty) {
       return Directory(
-          _join(appData, 'HeiTangKBForge', 'rc9_document_flow_workspace'));
+          _join(appData, 'HeiTangKBForge', 'rc10_product_flow_workspace'));
     }
     return Directory(
-        _join(Directory.current.path, 'output', 'rc9_document_flow_workspace'));
+        _join(Directory.current.path, 'output', 'rc10_product_flow_workspace'));
   }
 
   bool _canRunDesktop() {
@@ -1610,17 +1853,19 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   bool _autoRunOwnerInputOnLaunch() {
-    final value = Platform.environment['HEITANG_RC6_OWNER_INPUT_E2E'];
-    return value == '1' || value?.toLowerCase() == 'true';
+    return _envEnabled('HEITANG_RC10_OWNER_INPUT_E2E') ||
+        _envEnabled('HEITANG_RC6_OWNER_INPUT_E2E');
   }
 
   bool _autoRunOwnerInputDocumentFlowOnLaunch() {
-    final rc9 = Platform.environment['HEITANG_RC9_DOCUMENT_FLOW_E2E'];
-    final rc8 = Platform.environment['HEITANG_RC8_DOCUMENT_FLOW_E2E'];
-    return rc9 == '1' ||
-        rc9?.toLowerCase() == 'true' ||
-        rc8 == '1' ||
-        rc8?.toLowerCase() == 'true';
+    return _envEnabled('HEITANG_RC10_DOCUMENT_FLOW_E2E') ||
+        _envEnabled('HEITANG_RC9_DOCUMENT_FLOW_E2E') ||
+        _envEnabled('HEITANG_RC8_DOCUMENT_FLOW_E2E');
+  }
+
+  bool _envEnabled(String key) {
+    final value = Platform.environment[key];
+    return value == '1' || value?.toLowerCase() == 'true';
   }
 
   Directory _requireWorkspace() {
@@ -1845,14 +2090,6 @@ class Rc6RuntimeController extends ChangeNotifier {
     return Directory(primary).existsSync() ? primary : skillRoot;
   }
 
-  static String _lastNonEmptySegment(String path) {
-    final segments = path
-        .split(RegExp(r'[\\/]'))
-        .where((segment) => segment.trim().isNotEmpty)
-        .toList(growable: false);
-    return segments.isEmpty ? 'input' : segments.last;
-  }
-
   static bool _isInsideDirectory(String childPath, String parentPath) {
     final normalizedParent = parentPath
         .replaceAll('/', Platform.pathSeparator)
@@ -1943,6 +2180,7 @@ class Rc6RuntimeState {
     required this.exportManifestPath,
     required this.skillPath,
     required this.agentPath,
+    required this.agentDialoguePath,
     required this.multiAgentDiscussionPath,
     required this.sourceCount,
     required this.sourceNames,
@@ -1974,6 +2212,7 @@ class Rc6RuntimeState {
         exportManifestPath: '',
         skillPath: '',
         agentPath: '',
+        agentDialoguePath: '',
         multiAgentDiscussionPath: '',
         sourceCount: 0,
         sourceNames: [],
@@ -2004,6 +2243,7 @@ class Rc6RuntimeState {
   final String exportManifestPath;
   final String skillPath;
   final String agentPath;
+  final String agentDialoguePath;
   final String multiAgentDiscussionPath;
   final int sourceCount;
   final List<String> sourceNames;
@@ -2022,6 +2262,7 @@ class Rc6RuntimeState {
   bool get hasExportedDocument => exportedDocumentPath.isNotEmpty;
   bool get hasSkill => skillPath.isNotEmpty;
   bool get hasAgent => agentPath.isNotEmpty;
+  bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
 
   Rc6RuntimeState copyWith({
@@ -2043,6 +2284,7 @@ class Rc6RuntimeState {
     String? exportManifestPath,
     String? skillPath,
     String? agentPath,
+    String? agentDialoguePath,
     String? multiAgentDiscussionPath,
     int? sourceCount,
     List<String>? sourceNames,
@@ -2074,6 +2316,7 @@ class Rc6RuntimeState {
       exportManifestPath: exportManifestPath ?? this.exportManifestPath,
       skillPath: skillPath ?? this.skillPath,
       agentPath: agentPath ?? this.agentPath,
+      agentDialoguePath: agentDialoguePath ?? this.agentDialoguePath,
       multiAgentDiscussionPath:
           multiAgentDiscussionPath ?? this.multiAgentDiscussionPath,
       sourceCount: sourceCount ?? this.sourceCount,

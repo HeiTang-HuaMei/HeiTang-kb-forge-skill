@@ -94,53 +94,20 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Knowledge-to-Skill Suite 工作流'), findsNothing);
-    await _openDeveloperDiagnostics(tester);
-    expect(find.text('Knowledge-to-Skill Suite 工作流'), findsOneWidget);
-    expect(find.textContaining('release_candidate'), findsWidgets);
-    expect(find.textContaining('Core 证据快照'), findsOneWidget);
-    expect(find.text('知识库'), findsWidgets);
-    expect(find.text('证据'), findsWidgets);
-    expect(find.text('方法论'), findsWidgets);
-    expect(find.text('候选'), findsWidgets);
-    expect(find.text('层级'), findsWidgets);
-    expect(find.text('Skill Suite'), findsWidgets);
-    expect(find.text('报告'), findsWidgets);
-    expect(find.text('导出'), findsWidgets);
-
-    await _openTab(tester, 'evidence');
-    expect(find.text('Evidence-led operations'), findsOneWidget);
+    expect(find.textContaining('release_candidate'), findsNothing);
+    expect(find.textContaining('Core 证据快照'), findsNothing);
+    expect(find.text('Skill 工厂'), findsWidgets);
     expect(
-        find.textContaining('operations.md#review-boundary'), findsOneWidget);
-    expect(find.textContaining('confidence=0.94'), findsOneWidget);
-
-    await _openTab(tester, 'methodology');
-    expect(find.text('Evidence-led Operations'), findsOneWidget);
-    expect(find.textContaining('Inspect, classify, validate'), findsOneWidget);
-
-    await _openTab(tester, 'candidates');
-    expect(find.textContaining('planning · accepted'), findsOneWidget);
-    expect(find.textContaining('functional · accepted'), findsOneWidget);
-    expect(find.textContaining('atomic · accepted'), findsOneWidget);
-
-    await _openTab(tester, 'hierarchy');
-    expect(find.text('planning'), findsOneWidget);
-    expect(find.text('functional'), findsOneWidget);
-    expect(find.text('atomic'), findsOneWidget);
-
-    await _openTab(tester, 'suite');
-    expect(find.text('Routing Rules'), findsOneWidget);
-    expect(find.text('Dependency Graph'), findsOneWidget);
-
-    await _openTab(tester, 'reports');
-    expect(find.text('validation'), findsOneWidget);
-    expect(find.text('diff'), findsOneWidget);
-    expect(find.text('installability'), findsOneWidget);
-    expect(find.text('governance'), findsOneWidget);
-
-    await _openTab(tester, 'export');
-    expect(find.text('Skill Pack Export'), findsOneWidget);
-    expect(find.text('local_first'), findsOneWidget);
-    expect(find.text('external_runtime_required'), findsOneWidget);
+        find.byKey(const Key('skill-metadata-source-config')), findsOneWidget);
+    expect(find.text('来源配置'), findsOneWidget);
+    expect(find.text('包结构'), findsOneWidget);
+    expect(find.text('治理报告'), findsWidgets);
+    await tester.tap(find.text('包结构').first, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('skill-output-preview')), findsOneWidget);
+    await tester.tap(find.text('治理报告').first, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('skill-validation-summary')), findsOneWidget);
     expect(find.textContaining('Execute local runtime'), findsNothing);
     expect(find.textContaining('运行本地 runtime'), findsNothing);
     expect(tester.takeException(), isNull);
@@ -158,48 +125,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Knowledge-to-Skill Suite 工作流'), findsNothing);
-    await _openDeveloperDiagnostics(tester);
-    expect(find.text('Knowledge-to-Skill Suite 工作流'), findsOneWidget);
-    expect(find.textContaining('Web 仅展示可审计产物'), findsOneWidget);
-    expect(find.byKey(const ValueKey('workflow-tab-overview')), findsOneWidget);
+    expect(find.textContaining('Web 仅展示可审计产物'), findsNothing);
+    expect(find.byKey(const ValueKey('workflow-tab-overview')), findsNothing);
+    expect(
+        find.byKey(const Key('skill-metadata-source-config')), findsOneWidget);
+    expect(find.byKey(const Key('skill-output-preview')), findsNothing);
     expect(tester.takeException(), isNull);
   });
-}
-
-Future<void> _openDeveloperDiagnostics(WidgetTester tester) async {
-  if (find.byType(DropdownButtonFormField<int>).evaluate().isNotEmpty) {
-    await tester.tap(find.byType(DropdownButtonFormField<int>));
-    await tester.pumpAndSettle();
-    final settingsItem = find.text('设置').evaluate().isNotEmpty
-        ? find.text('设置').last
-        : find.text('Settings').last;
-    await tester.tap(settingsItem);
-    await tester.pumpAndSettle();
-  } else {
-    final settings = find.text('设置').evaluate().isNotEmpty
-        ? find.text('设置').first
-        : find.text('Settings').first;
-    await tester.tap(settings);
-    await tester.pumpAndSettle();
-  }
-
-  final diagnosticsTab = find.text('开发者诊断').evaluate().isNotEmpty
-      ? find.text('开发者诊断').first
-      : find.text('Developer Diagnostics').first;
-  await tester.ensureVisible(diagnosticsTab);
-  await tester.tap(diagnosticsTab, warnIfMissed: false);
-  await tester.pumpAndSettle();
-
-  final finder = find.byKey(const Key('developer-diagnostics-details')).first;
-  await tester.ensureVisible(finder);
-  await tester.pumpAndSettle();
-  await tester.tap(finder, warnIfMissed: false);
-  await tester.pumpAndSettle();
-}
-
-Future<void> _openTab(WidgetTester tester, String id) async {
-  final finder = find.byKey(ValueKey('workflow-tab-$id'));
-  await tester.ensureVisible(finder);
-  await tester.tap(finder);
-  await tester.pumpAndSettle();
 }

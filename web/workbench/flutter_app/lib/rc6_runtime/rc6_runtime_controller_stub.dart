@@ -43,6 +43,12 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> exportDocumentFormat(String format) async => initialize();
   Future<void> clearImportedSources() async => initialize();
   Future<void> clearKnowledgeBaseArtifacts() async => initialize();
+  Future<void> clearParseArtifacts() async => initialize();
+  Future<void> clearSearchArtifacts() async => initialize();
+  Future<void> clearDocumentArtifacts() async => initialize();
+  Future<void> clearRecentTaskArtifacts(String taskId) async => initialize();
+  Future<void> deleteImportedSource(String sourceNameOrRelativePath) async =>
+      initialize();
   Future<Rc6StorageTestResult> testRedisConnection({
     required String host,
     required int port,
@@ -67,6 +73,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       );
   Future<void> generateSkill() async => initialize();
   Future<void> generateAgent() async => initialize();
+  Future<void> runAgentDialogue({String prompt = '请基于当前知识库总结核心要点。'}) async =>
+      initialize();
   Future<void> runMultiAgentDiscussion() async => initialize();
   Future<void> runRealInputFolderE2E(String folderPath,
           {String query = '赚钱 小生意'}) async =>
@@ -144,6 +152,7 @@ class Rc6RuntimeState {
     required this.exportManifestPath,
     required this.skillPath,
     required this.agentPath,
+    required this.agentDialoguePath,
     required this.multiAgentDiscussionPath,
     required this.sourceCount,
     required this.sourceNames,
@@ -175,6 +184,7 @@ class Rc6RuntimeState {
         exportManifestPath: '',
         skillPath: '',
         agentPath: '',
+        agentDialoguePath: '',
         multiAgentDiscussionPath: '',
         sourceCount: 0,
         sourceNames: [],
@@ -205,6 +215,7 @@ class Rc6RuntimeState {
   final String exportManifestPath;
   final String skillPath;
   final String agentPath;
+  final String agentDialoguePath;
   final String multiAgentDiscussionPath;
   final int sourceCount;
   final List<String> sourceNames;
@@ -223,6 +234,7 @@ class Rc6RuntimeState {
   bool get hasExportedDocument => exportedDocumentPath.isNotEmpty;
   bool get hasSkill => skillPath.isNotEmpty;
   bool get hasAgent => agentPath.isNotEmpty;
+  bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
 
   Rc6RuntimeState copyWith({
@@ -244,6 +256,7 @@ class Rc6RuntimeState {
     String? exportManifestPath,
     String? skillPath,
     String? agentPath,
+    String? agentDialoguePath,
     String? multiAgentDiscussionPath,
     int? sourceCount,
     List<String>? sourceNames,
@@ -275,6 +288,7 @@ class Rc6RuntimeState {
       exportManifestPath: exportManifestPath ?? this.exportManifestPath,
       skillPath: skillPath ?? this.skillPath,
       agentPath: agentPath ?? this.agentPath,
+      agentDialoguePath: agentDialoguePath ?? this.agentDialoguePath,
       multiAgentDiscussionPath:
           multiAgentDiscussionPath ?? this.multiAgentDiscussionPath,
       sourceCount: sourceCount ?? this.sourceCount,

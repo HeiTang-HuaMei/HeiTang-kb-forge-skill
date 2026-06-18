@@ -38,7 +38,7 @@ abstract final class _DesktopGrid {
 enum _DesktopWindowPreviewState { restored, maximized }
 
 const supportedLocaleCodes = <String>['zh-CN', 'en-US'];
-const _appVersionLabel = 'v4.3.0-rc9';
+const _appVersionLabel = 'v4.3.0-rc10';
 
 const pages = <WorkbenchPage>[
   WorkbenchPage(
@@ -125,8 +125,8 @@ const pages = <WorkbenchPage>[
       'workspace',
       'Settings',
       '设置',
-      'Review workspace, providers, storage, models, language, theme, safety, and diagnostics.',
-      '查看工作区、Provider、存储、模型、语言、主题、安全和诊断。',
+      'Manage workspace, models, providers, Redis, vector database, storage, and security authorization.',
+      '管理工作区、模型、Provider、Redis、向量库、存储和安全授权。',
       memberPageIds: [
         'workspace',
         'vector-hub-provider-storage',
@@ -1049,8 +1049,8 @@ class _LocalFirstCard extends StatelessWidget {
                 Flexible(
                   child: Text(
                       localeCode == 'zh-CN'
-                          ? '安全边界已启用'
-                          : 'Safety boundary active',
+                          ? '安全授权受保护'
+                          : 'Authorization protected',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -1213,20 +1213,9 @@ class _PageSurfaceState extends State<_PageSurface> {
     final onLocaleChanged = widget.onLocaleChanged;
     final onPageChanged = widget.onPageChanged;
     final isDashboard = page.id == 'dashboard';
-    final diagnosticPage = page.id == 'workspace'
-        ? WorkbenchPage(
-            'workspace',
-            page.enTitle,
-            page.zhTitle,
-            page.enDescription,
-            page.zhDescription,
-            memberPageIds:
-                pages.expand((item) => item.pageIds).toSet().toList(),
-          )
-        : page;
     final cards = _cardsFor(
-        diagnosticPage.id,
-        diagnosticPage,
+        page.id,
+        page,
         localeCode,
         contracts,
         workflowEvidence,
@@ -1237,7 +1226,7 @@ class _PageSurfaceState extends State<_PageSurface> {
         methodologyMap);
     final corePanels = <Widget>[];
     final actionById = <String, ContractAction>{};
-    for (final pageId in diagnosticPage.pageIds) {
+    for (final pageId in page.pageIds) {
       for (final action in coreActionsForPage(pageId, contracts)) {
         actionById[action.id] = action;
       }
@@ -1279,12 +1268,10 @@ class _PageSurfaceState extends State<_PageSurface> {
       cards: cards,
       columns: columns,
       corePanels: corePanels,
-      parserBackends: diagnosticPage.pageIds.any(_showsParserBackends)
-          ? parserBackends
-          : null,
-      skillFactoryWorkflow: diagnosticPage.pageIds.any(_showsSkillGovernance)
-          ? skillSuiteWorkflow
-          : null,
+      parserBackends:
+          page.pageIds.any(_showsParserBackends) ? parserBackends : null,
+      skillFactoryWorkflow:
+          page.pageIds.any(_showsSkillGovernance) ? skillSuiteWorkflow : null,
     );
 
     return LayoutBuilder(builder: (context, constraints) {
@@ -2060,8 +2047,8 @@ class _DashboardMetricGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final runtime =
-        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     final metrics = [
       _DashboardMetricData(
         icon: Icons.inventory_2_outlined,
@@ -2270,14 +2257,26 @@ class _DashboardRecentTasks extends StatefulWidget {
 }
 
 class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
-  final Set<String> deletedTaskIds = <String>{};
-
   bool get _zh => widget.localeCode == 'zh-CN';
+
+  Future<void> _deleteTask(
+      Rc6RuntimeController? rc6, _DashboardTaskRow row) async {
+    if (rc6 == null || rc6.state.running) return;
+    final confirmed = await _confirmDestructiveAction(
+      context,
+      title: _zh ? '删除任务记录？' : 'Delete task record?',
+      body: _zh
+          ? '这会删除“${row.title}”对应的真实工作区记录和下游产物；原始输入文件夹不会被删除。'
+          : 'This deletes the real workspace records and downstream artifacts for "${row.title}"; original source folders are not deleted.',
+    );
+    if (!confirmed) return;
+    await rc6.clearRecentTaskArtifacts(row.id);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final runtime =
-        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     final rows = <_DashboardTaskRow>[
       if (runtime.hasImportedFile)
         _DashboardTaskRow(
@@ -2329,8 +2328,7 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
           'document-generation',
         ),
     ];
-    final visibleRows =
-        rows.where((row) => !deletedTaskIds.contains(row.id)).toList();
+    final visibleRows = rows;
     return _FillProductPanel(
       keyName: 'dashboard-recent-tasks',
       icon: Icons.list_alt_outlined,
@@ -2359,8 +2357,7 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
                             row: row,
                             onOpen: () => widget
                                 .onPageChanged(_pageIndexById(row.pageId)),
-                            onDelete: () =>
-                                setState(() => deletedTaskIds.add(row.id)),
+                            onDelete: () => _deleteTask(rc6, row),
                           ),
                           if (row != visibleRows.last)
                             const SizedBox(height: 8),
@@ -2376,13 +2373,9 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
                 child: OutlinedButton.icon(
                   onPressed: visibleRows.isEmpty
                       ? null
-                      : () => setState(() {
-                            for (final row in visibleRows) {
-                              deletedTaskIds.add(row.id);
-                            }
-                          }),
+                      : () => _deleteTask(rc6, visibleRows.first),
                   icon: const Icon(Icons.delete_sweep_outlined),
-                  label: Text(_zh ? '批量删除' : 'Delete shown'),
+                  label: Text(_zh ? '删除最早阶段' : 'Delete first stage'),
                 ),
               ),
             ],
@@ -2406,8 +2399,8 @@ class _DashboardNextActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final runtime =
-        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     final actions = <_DashboardActionRow>[
       _DashboardActionRow(
         _zh ? '导入或解析来源' : 'Import or parse sources',
@@ -2779,7 +2772,7 @@ class _DashboardAuthorizationCard extends StatelessWidget {
     return _ProductPanel(
       keyName: 'dashboard-authorization',
       icon: Icons.admin_panel_settings_outlined,
-      title: _zh ? '授权与安全边界' : 'Authorization and Safety',
+      title: _zh ? '授权配置' : 'Authorization',
       gap: true,
       children: [
         _ProductTable(
@@ -2790,7 +2783,7 @@ class _DashboardAuthorizationCard extends StatelessWidget {
               ? [
                   ['外部事实验证', '授权后启用', '在设置中配置联网 Provider'],
                   ['外部向量库 / Redis', '授权后启用', '保存配置并测试连接'],
-                  ['arbitrary shell / 明文 secret', '不开放', '无产品入口'],
+                  ['高风险系统能力', '不开放', '无普通用户入口'],
                 ]
               : [
                   [
@@ -2804,9 +2797,9 @@ class _DashboardAuthorizationCard extends StatelessWidget {
                     'Save config and test connection'
                   ],
                   [
-                    'Arbitrary shell / plaintext secret',
+                    'High-risk system capabilities',
                     'Not opened',
-                    'No product entry'
+                    'No standard user entry'
                   ],
                 ],
         ),
@@ -3560,7 +3553,7 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
       'document-generation': 3,
       'agent-factory-runtime': 4,
       'reports-audit': 3,
-      'workspace': 7,
+      'workspace': 6,
     };
     final maxTab = (tabCounts[page] ?? 1) - 1;
     if (selectedTab > maxTab) selectedTab = 0;
@@ -3622,7 +3615,6 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
                     widget.campaign7ConfigurationStatus,
                 campaign9DesktopDeliveryStatus:
                     widget.campaign9DesktopDeliveryStatus,
-                diagnostics: widget.diagnostics,
               ),
           },
         ],
@@ -4642,6 +4634,10 @@ _CapabilityStatusKind _capabilityStatusKind(String value) {
       value.contains('只读')) {
     return _CapabilityStatusKind.displayOnly;
   }
+  if (lower.contains('owner_authorization_required') ||
+      lower.contains('not_available_in_product_flow')) {
+    return _CapabilityStatusKind.disabledBoundary;
+  }
   if (lower.contains('disabled_boundary') ||
       lower.contains('omitted') ||
       lower.contains('campaign 6') ||
@@ -4666,23 +4662,27 @@ _CapabilityStatusKind _capabilityStatusKind(String value) {
 
 String _capabilityStatusLabel(String? value, bool zh) {
   if (value == null) {
-    return zh ? '待补齐' : 'Needs work';
+    return zh ? '需要配置' : 'Needs configuration';
   }
   final lower = value.toLowerCase();
   if (lower.contains('enabled_real')) {
-    return zh ? '可用 · enabled_real' : 'Available · enabled_real';
+    return zh ? '可用' : 'Available';
   }
   if (lower.contains('display_only') ||
       lower.contains('preview only') ||
       lower.contains('read-only') ||
       value.contains('只读')) {
-    return zh ? '只读预览 · display_only' : 'Preview only · display_only';
+    return zh ? '仅查看' : 'View only';
   }
   if (lower.contains('omitted') ||
       lower.contains('campaign 6') ||
+      lower.contains('not_available_in_product_flow') ||
       value.contains('后续') ||
       value.contains('不实现')) {
-    return zh ? '后续阶段' : 'Later phase';
+    return zh ? '不在当前产品流程中' : 'Outside current product flow';
+  }
+  if (lower.contains('owner_authorization_required')) {
+    return zh ? '需要 Owner 授权' : 'Owner authorization required';
   }
   if (lower.contains('disabled_boundary') ||
       lower.contains('provider runtime gate') ||
@@ -4691,7 +4691,7 @@ String _capabilityStatusLabel(String? value, bool zh) {
       value.contains('未接入') ||
       value.contains('边界') ||
       value.contains('禁用')) {
-    return zh ? '禁用边界 · disabled_boundary' : 'Disabled · disabled_boundary';
+    return zh ? '需要配置或授权' : 'Configuration or authorization required';
   }
   return value;
 }
@@ -5969,7 +5969,7 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
               : 'Files, folders, and web links enter one queue; parser, OCR, chunking, and recovery are handled here.',
           trailing: _StatePill(
             label: widget.isWebRuntime
-                ? (_zh ? 'Web 安全边界' : 'Web safety boundary')
+                ? (_zh ? 'Web 预览模式' : 'Web preview mode')
                 : (_zh ? '桌面输入' : 'Desktop input'),
             icon: Icons.shield_outlined,
           ),
@@ -6144,28 +6144,24 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                     _zh ? ['配置项', '当前值', '分类'] : ['Setting', 'Value', 'Class'],
                 rows: _zh
                     ? [
-                        ['解析器', 'HeiTang Parser / builtin', 'enabled_real'],
-                        [
-                          'OCR',
-                          'PaddleOCR PP-OCRv6 local runtime',
-                          'enabled_real'
-                        ],
-                        ['分块', '语义切分，800 tokens，120 overlap', 'enabled_real'],
-                        ['语言', '中文 + 英文', 'enabled_real'],
+                        ['解析器', 'HeiTang Parser / builtin', '可用'],
+                        ['OCR', 'PaddleOCR PP-OCRv6 local runtime', '可用'],
+                        ['分块', '语义切分，800 tokens，120 overlap', '可用'],
+                        ['语言', '中文 + 英文', '可用'],
                       ]
                     : [
-                        ['Parser', 'HeiTang Parser / builtin', 'enabled_real'],
+                        ['Parser', 'HeiTang Parser / builtin', 'Available'],
                         [
                           'OCR',
                           'PaddleOCR PP-OCRv6 local runtime',
-                          'enabled_real'
+                          'Available'
                         ],
                         [
                           'Chunking',
                           'Semantic, 800 tokens, 120 overlap',
-                          'enabled_real'
+                          'Available'
                         ],
-                        ['Language', 'Chinese + English', 'enabled_real'],
+                        ['Language', 'Chinese + English', 'Available'],
                       ],
               ),
             ],
@@ -6330,14 +6326,14 @@ class _KnowledgeStorageBoundaryView extends StatelessWidget {
           columns: zh ? ['能力', '当前分类', '说明'] : ['Capability', 'Class', 'Note'],
           rows: zh
               ? [
-                  ['本地知识库', 'enabled_real', '依赖已有本地产物'],
+                  ['本地知识库', '可用', '依赖已有本地产物'],
                   ['向量库 Provider', '未配置外部向量库', '本地索引可用，可在 Settings 配置'],
-                  ['外部事实验证', 'enabled_real', '实时外部来源比对已验收'],
+                  ['外部事实验证', '授权后可用', '联网 Provider 配置后执行'],
                 ]
               : [
                   [
                     'Local package',
-                    'enabled_real',
+                    'Available',
                     'Depends on existing local artifacts'
                   ],
                   [
@@ -6347,8 +6343,8 @@ class _KnowledgeStorageBoundaryView extends StatelessWidget {
                   ],
                   [
                     'External fact verification',
-                    'enabled_real',
-                    'Live external source comparison accepted'
+                    'Available after authorization',
+                    'Runs after network Provider is configured'
                   ],
                 ],
         ),
@@ -7899,7 +7895,7 @@ class _KnowledgeVectorIndexView extends StatelessWidget {
                       '本地 chunks.jsonl',
                       runtime.chunkCount.toString(),
                       runtime.hasKnowledgeBase ? '本地索引可用' : '等待构建',
-                      runtime.hasKnowledgeBase ? 'enabled_real' : '请先构建'
+                      runtime.hasKnowledgeBase ? '可用' : '请先构建'
                     ],
                     [
                       'local_cards_qa',
@@ -7909,7 +7905,7 @@ class _KnowledgeVectorIndexView extends StatelessWidget {
                       '本地 JSONL',
                       runtime.cardsPath.isNotEmpty ? 'ready' : '-',
                       runtime.cardsPath.isNotEmpty ? '已生成' : '等待构建',
-                      runtime.cardsPath.isNotEmpty ? 'enabled_real' : '请先构建'
+                      runtime.cardsPath.isNotEmpty ? '可用' : '请先构建'
                     ],
                     [
                       'external_vector_db',
@@ -7931,7 +7927,7 @@ class _KnowledgeVectorIndexView extends StatelessWidget {
                       runtime.hasKnowledgeBase
                           ? 'Local index ready'
                           : 'Build first',
-                      runtime.hasKnowledgeBase ? 'enabled_real' : 'Build first'
+                      runtime.hasKnowledgeBase ? 'Available' : 'Build first'
                     ],
                     [
                       'local_cards_qa',
@@ -7943,9 +7939,7 @@ class _KnowledgeVectorIndexView extends StatelessWidget {
                       runtime.cardsPath.isNotEmpty
                           ? 'Generated'
                           : 'Build first',
-                      runtime.cardsPath.isNotEmpty
-                          ? 'enabled_real'
-                          : 'Build first'
+                      runtime.cardsPath.isNotEmpty ? 'Available' : 'Build first'
                     ],
                     [
                       'external_vector_db',
@@ -8161,8 +8155,8 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
 
   @override
   Widget build(BuildContext context) {
-    final runtime =
-        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     final hasRealDocument = runtime.hasImportedFile;
     final parsed = runtime.parseReportPath.isNotEmpty;
     final chunkCount = runtime.chunkCount;
@@ -8182,6 +8176,22 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
     }
     final selectedName =
         filteredNames.isEmpty ? '' : filteredNames[selectedDocumentIndex];
+    Future<void> deleteSelectedDocument() async {
+      if (rc6 == null || runtime.running || selectedName.isEmpty) return;
+      final confirmed = await _confirmDestructiveAction(
+        context,
+        title: zh ? '删除来源文档？' : 'Delete source document?',
+        body: zh
+            ? '这会从当前工作区删除“$selectedName”，并清理解析、知识库、检索和文档产物。'
+            : 'This removes "$selectedName" from the current workspace and clears parsing, KB, retrieval, and document artifacts.',
+      );
+      if (!confirmed) return;
+      await rc6.deleteImportedSource(selectedName);
+      if (mounted) {
+        setState(() => selectedDocumentIndex = 0);
+      }
+    }
+
     final documentRows = filteredNames.isEmpty
         ? [
             [
@@ -8342,8 +8352,9 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
           bottom: _DisplayAction(
             label: zh ? '重新解析当前文档' : 'Re-parse selected document',
             icon: Icons.restart_alt_outlined,
-            onPressed:
-                hasRealDocument ? () => setState(() => indexed = true) : null,
+            onPressed: hasRealDocument && rc6 != null && !runtime.running
+                ? () => rc6.parseAndChunkSources()
+                : null,
           ),
         ),
       );
@@ -8393,20 +8404,31 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
           ),
         ),
       );
+      final deleteAction = _DisplayAction(
+        label: zh ? '删除当前文档' : 'Delete current document',
+        icon: Icons.delete_outline,
+        onPressed: selectedName.isEmpty ? null : deleteSelectedDocument,
+      );
       if (!wide) {
         return Column(children: [
           SizedBox(height: 620, child: docs),
           const SizedBox(height: _DesktopGrid.gutter),
           SizedBox(height: 500, child: preview),
           const SizedBox(height: _DesktopGrid.gutter),
-          SizedBox(height: 460, child: detail)
+          SizedBox(height: 460, child: detail),
+          const SizedBox(height: _DesktopGrid.gutter),
+          deleteAction,
         ]);
       }
-      return _EqualHeightRow(
-        height: 672,
-        flexes: const [4, 4, 4],
-        children: [docs, preview, detail],
-      );
+      return Column(children: [
+        _EqualHeightRow(
+          height: 672,
+          flexes: const [4, 4, 4],
+          children: [docs, preview, detail],
+        ),
+        const SizedBox(height: _DesktopGrid.gutter),
+        Align(alignment: Alignment.centerRight, child: deleteAction),
+      ]);
     });
   }
 }
@@ -9037,8 +9059,9 @@ class _SkillBuilderProductWorkflowState
           _MetricDatum(
               label: _zh ? '治理报告' : 'Governance',
               value: runtime.hasSkill ? 'pass' : 'ready',
-              detail:
-                  runtime.hasSkill ? 'enabled_real' : (_zh ? '待生成' : 'pending'),
+              detail: runtime.hasSkill
+                  ? (_zh ? '已生成' : 'Generated')
+                  : (_zh ? '待生成' : 'Pending'),
               icon: Icons.rule_folder_outlined),
         ],
       ),
@@ -9258,8 +9281,8 @@ class _SkillBuilderProductWorkflowState
                       },
                 icon: Icons.auto_awesome_outlined,
               ),
-              const _DisplayAction(
-                  label: 'Skill Governance Report',
+              _DisplayAction(
+                  label: _zh ? '打开治理报告' : 'Open governance report',
                   icon: Icons.assessment_outlined),
             ]),
           ],
@@ -9303,30 +9326,14 @@ class _AgentProductWorkflow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['创建 Agent', '绑定与讨论', '运行审计', '安全边界']
-        : [
-            'Create Agent',
-            'Bindings & Discussion',
-            'Runtime Audit',
-            'Safety Boundary'
-          ];
-    final phases = _campaign6List(campaign6AgentRuntimeStatus['phase_status']);
-    final agents =
-        _campaign6List(campaign6AgentRuntimeStatus['agent_types_6a']);
-    final advanced =
-        _campaign6List(campaign6AgentRuntimeStatus['advanced_capabilities_6b']);
-    final toolAdapter =
-        _campaign6Map(campaign6AgentRuntimeStatus['tool_adapter_gate']);
+        ? ['创建 Agent', '最小对话', '联合讨论', '运行记录']
+        : ['Create Agent', 'Minimal Chat', 'Team Discussion', 'Run History'];
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
-    final acceptedPhases = phases
-        .where((item) => item['runtime_status'] == 'pass')
-        .length
-        .toString();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.smart_toy_outlined,
-        title: _zh ? 'Agent Runtime' : 'Agent Runtime',
+        title: _zh ? 'Agent 工厂' : 'Agent Factory',
         description: _zh
             ? '创建 Agent、绑定知识库与 Skill，并在本页启动多 Agent 联合讨论。'
             : 'Create Agents, bind Knowledge Base and Skill, and run multi-agent discussion here.',
@@ -9335,27 +9342,33 @@ class _AgentProductWorkflow extends StatelessWidget {
       _MetricStrip(
         items: [
           _MetricDatum(
-              label: _zh ? '6A Agent' : '6A Agents',
-              value: agents.length.toString(),
-              detail: _zh ? '五类真实 workflow' : 'real workflows',
+              label: _zh ? 'Agent 模板' : 'Agent templates',
+              value: '5',
+              detail: _zh
+                  ? '问答 / 总结 / 质检 / 运营 / 产品'
+                  : 'QA / summary / QA / ops / product',
               icon: Icons.psychology_alt_outlined),
           _MetricDatum(
-              label: _zh ? '6B 能力' : '6B Areas',
-              value: advanced.length.toString(),
-              detail: _zh ? 'Memory / A2A / Teams' : 'Memory / A2A / Teams',
-              icon: Icons.hub_outlined),
-          _MetricDatum(
-              label: _zh ? 'Gate' : 'Gates',
-              value: acceptedPhases,
-              detail: toolAdapter['ui_state']?.toString() ?? 'enabled_real',
-              icon: Icons.fact_check_outlined),
-          _MetricDatum(
-              label: _zh ? 'Agent 草稿' : 'Agent draft',
+              label: _zh ? 'Agent 产物' : 'Agent package',
               value: runtime.hasAgent ? 'real' : '0',
               detail: runtime.hasAgent
                   ? (_zh ? '已生成' : 'generated')
                   : (_zh ? '等待生成' : 'waiting generation'),
               icon: Icons.smart_toy_outlined),
+          _MetricDatum(
+              label: _zh ? '对话记录' : 'Dialogue',
+              value: runtime.hasAgentDialogue ? '1' : '0',
+              detail: runtime.hasAgentDialogue
+                  ? (_zh ? '已保存' : 'saved')
+                  : (_zh ? '等待对话' : 'waiting chat'),
+              icon: Icons.chat_bubble_outline),
+          _MetricDatum(
+              label: _zh ? '讨论纪要' : 'Discussion notes',
+              value: runtime.hasMultiAgentDiscussion ? '1' : '0',
+              detail: runtime.hasMultiAgentDiscussion
+                  ? (_zh ? '已生成' : 'generated')
+                  : (_zh ? '等待讨论' : 'waiting discussion'),
+              icon: Icons.groups_2_outlined),
         ],
       ),
       const SizedBox(height: _DesktopGrid.gutter),
@@ -9363,26 +9376,11 @@ class _AgentProductWorkflow extends StatelessWidget {
           tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
       const SizedBox(height: _DesktopGrid.gutter),
       switch (selectedTab) {
-        1 => _AgentDiscussionProductView(zh: _zh),
-        2 => Column(children: [
-            _Campaign6RuntimeOverviewView(
-              zh: _zh,
-              phases: phases,
-              security: _campaign6Map(
-                  campaign6AgentRuntimeStatus['security_boundaries']),
-            ),
-            const SizedBox(height: _DesktopGrid.gutter),
-            _Campaign6SingleAgentStatusView(zh: _zh, agents: agents),
-          ]),
-        3 =>
-          _Campaign6AdvancedRuntimeStatusView(zh: _zh, capabilities: advanced),
+        1 => _AgentMinimalChatView(zh: _zh),
+        2 => _AgentDiscussionProductView(zh: _zh),
+        3 => _AgentRunHistoryView(zh: _zh),
         _ => _AgentCreationProductView(zh: _zh, workspace: workspace),
       },
-      if (selectedTab == 3) ...[
-        const SizedBox(height: _DesktopGrid.gutter),
-        _Campaign6ToolAdapterStatusView(
-            zh: _zh, toolAdapter: toolAdapter, workspace: workspace),
-      ],
     ]);
   }
 }
@@ -9406,6 +9404,16 @@ Map<String, dynamic> _campaign6Map(Object? value) {
 
 String _campaignText(Object? value) {
   return value?.toString() ?? '-';
+}
+
+String _productRecordText(Object? value) {
+  final text = _campaignText(value);
+  if (text == '-') return text;
+  final normalized = text.replaceAll('\\', '/');
+  if (normalized.contains('/')) {
+    return normalized.split('/').where((part) => part.isNotEmpty).last;
+  }
+  return text;
 }
 
 List<String> _campaignStringList(Object? value) {
@@ -9523,8 +9531,8 @@ class _AgentCreationProductView extends StatelessWidget {
           _FieldRow(
             label: zh ? '能力边界' : 'Boundary',
             value: zh
-                ? '本地 KB/Skill，不开放 arbitrary shell 或 Computer Use'
-                : 'Local KB/Skill only; no arbitrary shell or Computer Use',
+                ? '仅使用本地知识库与 Skill，高风险系统能力不开放'
+                : 'Uses local Knowledge Base and Skill only; high-risk system capabilities are not exposed',
           ),
         ],
       );
@@ -9599,6 +9607,213 @@ class _AgentDiscussionProductView extends StatelessWidget {
   }
 }
 
+class _AgentMinimalChatView extends StatefulWidget {
+  const _AgentMinimalChatView({required this.zh});
+
+  final bool zh;
+
+  @override
+  State<_AgentMinimalChatView> createState() => _AgentMinimalChatViewState();
+}
+
+class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
+  final TextEditingController _promptController =
+      TextEditingController(text: '请基于当前知识库总结核心要点。');
+
+  bool get zh => widget.zh;
+
+  @override
+  void dispose() {
+    _promptController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
+    return LayoutBuilder(builder: (context, constraints) {
+      final wide = constraints.maxWidth >= 900;
+      final chat = _ProductPanel(
+        keyName: 'agent-minimal-chat',
+        icon: Icons.chat_bubble_outline,
+        title: zh ? '最小对话入口' : 'Minimal Chat Entry',
+        gap: true,
+        children: [
+          TextField(
+            controller: _promptController,
+            enabled: !runtime.running,
+            decoration: InputDecoration(
+              labelText: zh ? '对话问题' : 'Prompt',
+              helperText: zh
+                  ? '基于已生成 Agent、知识库和 Skill 生成本地可追踪对话记录。'
+                  : 'Creates a local traceable dialogue from the generated Agent, KB, and Skill.',
+              border: const OutlineInputBorder(),
+              isDense: true,
+            ),
+            minLines: 2,
+            maxLines: 4,
+          ),
+          const SizedBox(height: _DesktopGrid.gutter),
+          _PrimaryProductAction(
+            label: zh ? '运行最小对话' : 'Run minimal chat',
+            icon: Icons.play_arrow_outlined,
+            onPressed: runtime.running || rc6 == null || !runtime.hasAgent
+                ? null
+                : () => rc6.runAgentDialogue(prompt: _promptController.text),
+          ),
+          const SizedBox(height: _DesktopGrid.gutter),
+          _FieldRow(
+            label: zh ? '对话产物' : 'Dialogue artifact',
+            value: runtime.hasAgentDialogue
+                ? _displayNameForPath(runtime.agentDialoguePath)
+                : (zh ? '尚未生成' : 'Not generated'),
+          ),
+        ],
+      );
+      final bindings = _ProductPanel(
+        keyName: 'agent-chat-bindings',
+        icon: Icons.link_outlined,
+        title: zh ? '对话输入来源' : 'Chat Inputs',
+        children: [
+          _ProductTable(
+            columns: zh ? ['输入', '状态', '说明'] : ['Input', 'Status', 'Note'],
+            rows: zh
+                ? [
+                    [
+                      '知识库',
+                      runtime.hasKnowledgeBase ? '已绑定' : '请先构建知识库',
+                      runtime.hasKnowledgeBase
+                          ? _displayNameForPath(runtime.kbManifestPath)
+                          : '知识库页构建'
+                    ],
+                    [
+                      'Skill',
+                      runtime.hasSkill ? '已绑定' : '请先生成 Skill',
+                      runtime.hasSkill
+                          ? _displayNameForPath(runtime.skillPath)
+                          : 'Skill 工厂生成'
+                    ],
+                    [
+                      'Agent',
+                      runtime.hasAgent ? '已生成' : '请先生成 Agent',
+                      runtime.hasAgent
+                          ? _displayNameForPath(runtime.agentPath)
+                          : 'Agent 工厂创建'
+                    ],
+                  ]
+                : [
+                    [
+                      'Knowledge Base',
+                      runtime.hasKnowledgeBase ? 'Bound' : 'Build KB first',
+                      runtime.hasKnowledgeBase
+                          ? _displayNameForPath(runtime.kbManifestPath)
+                          : 'Build on Knowledge Base page'
+                    ],
+                    [
+                      'Skill',
+                      runtime.hasSkill ? 'Bound' : 'Generate Skill first',
+                      runtime.hasSkill
+                          ? _displayNameForPath(runtime.skillPath)
+                          : 'Generate in Skill Factory'
+                    ],
+                    [
+                      'Agent',
+                      runtime.hasAgent ? 'Generated' : 'Generate Agent first',
+                      runtime.hasAgent
+                          ? _displayNameForPath(runtime.agentPath)
+                          : 'Create in Agent Factory'
+                    ],
+                  ],
+          ),
+        ],
+      );
+      if (!wide) {
+        return Column(children: [
+          chat,
+          const SizedBox(height: _DesktopGrid.gutter),
+          bindings
+        ]);
+      }
+      return _EqualHeightRow(
+        height: 362,
+        flexes: const [6, 5],
+        children: [chat, bindings],
+      );
+    });
+  }
+}
+
+class _AgentRunHistoryView extends StatelessWidget {
+  const _AgentRunHistoryView({required this.zh});
+
+  final bool zh;
+
+  @override
+  Widget build(BuildContext context) {
+    final runtime =
+        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
+    return _ProductPanel(
+      keyName: 'agent-run-history',
+      icon: Icons.history_outlined,
+      title: zh ? '运行记录' : 'Run History',
+      children: [
+        _ProductTable(
+          columns: zh ? ['记录', '状态', '产物'] : ['Record', 'Status', 'Artifact'],
+          rows: zh
+              ? [
+                  [
+                    'Agent 创建',
+                    runtime.hasAgent ? '已完成' : '未运行',
+                    runtime.hasAgent
+                        ? _displayNameForPath(runtime.agentPath)
+                        : '无产物'
+                  ],
+                  [
+                    '最小对话',
+                    runtime.hasAgentDialogue ? '已完成' : '未运行',
+                    runtime.hasAgentDialogue
+                        ? _displayNameForPath(runtime.agentDialoguePath)
+                        : '无产物'
+                  ],
+                  [
+                    '联合讨论',
+                    runtime.hasMultiAgentDiscussion ? '已完成' : '未运行',
+                    runtime.hasMultiAgentDiscussion
+                        ? _displayNameForPath(runtime.multiAgentDiscussionPath)
+                        : '无产物'
+                  ],
+                ]
+              : [
+                  [
+                    'Agent creation',
+                    runtime.hasAgent ? 'Done' : 'Not run',
+                    runtime.hasAgent
+                        ? _displayNameForPath(runtime.agentPath)
+                        : 'No artifact'
+                  ],
+                  [
+                    'Minimal chat',
+                    runtime.hasAgentDialogue ? 'Done' : 'Not run',
+                    runtime.hasAgentDialogue
+                        ? _displayNameForPath(runtime.agentDialoguePath)
+                        : 'No artifact'
+                  ],
+                  [
+                    'Team discussion',
+                    runtime.hasMultiAgentDiscussion ? 'Done' : 'Not run',
+                    runtime.hasMultiAgentDiscussion
+                        ? _displayNameForPath(runtime.multiAgentDiscussionPath)
+                        : 'No artifact'
+                  ],
+                ],
+        ),
+      ],
+    );
+  }
+}
+
+// ignore: unused_element
 class _Campaign6RuntimeOverviewView extends StatelessWidget {
   const _Campaign6RuntimeOverviewView({
     required this.zh,
@@ -9677,6 +9892,7 @@ class _Campaign6RuntimeOverviewView extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _Campaign6SingleAgentStatusView extends StatelessWidget {
   const _Campaign6SingleAgentStatusView({
     required this.zh,
@@ -9728,6 +9944,7 @@ class _Campaign6SingleAgentStatusView extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _Campaign6AdvancedRuntimeStatusView extends StatelessWidget {
   const _Campaign6AdvancedRuntimeStatusView({
     required this.zh,
@@ -9773,6 +9990,7 @@ class _Campaign6AdvancedRuntimeStatusView extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _Campaign6ToolAdapterStatusView extends StatelessWidget {
   const _Campaign6ToolAdapterStatusView({
     required this.zh,
@@ -9928,12 +10146,12 @@ class _ValidationChecklistViewState extends State<_ValidationChecklistView> {
               _MetricDatum(
                   label: zh ? '需关注' : 'Needs review',
                   value: '1',
-                  detail: 'Final Gate',
+                  detail: zh ? '候选版本复验' : 'Candidate retest',
                   icon: Icons.warning_amber_outlined),
               _MetricDatum(
                   label: zh ? '阻塞' : 'Blocked',
                   value: checklistPrepared ? '0' : '1',
-                  detail: 'UI Gate',
+                  detail: zh ? '界面复验' : 'UI retest',
                   icon: Icons.block_outlined),
             ],
           ),
@@ -9945,11 +10163,11 @@ class _ValidationChecklistViewState extends State<_ValidationChecklistView> {
             rows: zh
                 ? [
                     ['Product Hardening', 'pass', '今天 10:42', '稳定', '查看'],
-                    ['Final Gate', 'needs_review', '昨天 09:21', '波动', '查看'],
+                    ['候选版本复验', 'needs_review', '昨天 09:21', '波动', '查看'],
                     ['OCR Proof', 'pass', '今天 10:15', '稳定', '查看'],
                     ['Vector Readiness', 'pass', '今天 08:34', '稳定', '查看'],
                     [
-                      'UI Gate',
+                      '界面复验',
                       checklistPrepared ? 'pass' : 'blocked',
                       '昨天 17:02',
                       '待复核',
@@ -9965,7 +10183,7 @@ class _ValidationChecklistViewState extends State<_ValidationChecklistView> {
                       'View'
                     ],
                     [
-                      'Final Gate',
+                      'Candidate retest',
                       'needs_review',
                       'Yesterday 09:21',
                       'mixed',
@@ -9980,7 +10198,7 @@ class _ValidationChecklistViewState extends State<_ValidationChecklistView> {
                       'View'
                     ],
                     [
-                      'UI Gate',
+                      'UI retest',
                       checklistPrepared ? 'pass' : 'blocked',
                       'Yesterday 17:02',
                       'review',
@@ -10007,22 +10225,18 @@ class _ValidationChecklistViewState extends State<_ValidationChecklistView> {
             columns: zh ? ['问题', '状态', '建议'] : ['Issue', 'Status', 'Advice'],
             rows: zh
                 ? [
-                    [
-                      'UI Gate 未通过历史项',
-                      checklistPrepared ? '已更新' : '阻塞',
-                      '保留历史证据，不篡改'
-                    ],
-                    ['Final Gate 需关注', '需复核', '检查报告证据'],
+                    ['界面复验历史项', checklistPrepared ? '已更新' : '阻塞', '保留历史证据，不篡改'],
+                    ['候选版本需关注', '需复核', '检查报告证据'],
                     ['Security & Privacy 建议', '需关注', '确认 Secret 不展示'],
                   ]
                 : [
                     [
-                      'UI Gate historical block',
+                      'UI retest historical block',
                       checklistPrepared ? 'Updated' : 'Blocked',
                       'Keep history unchanged'
                     ],
                     [
-                      'Final Gate attention',
+                      'Candidate retest attention',
                       'Needs review',
                       'Check report evidence'
                     ],
@@ -10145,16 +10359,16 @@ class _ReportsEvidenceViewState extends State<_ReportsEvidenceView> {
               label: zh ? '摘要' : 'Summary',
               value: reportSelected
                   ? (zh
-                      ? '4 项检查已打开，rc6 等待 Owner 复验'
-                      : '4 checks opened; rc6 is pending Owner retest')
+                      ? '4 项检查已打开，rc10 等待 Owner 复验'
+                      : '4 checks opened; rc10 is pending Owner retest')
                   : (zh ? '等待报告产物' : 'Waiting for report artifact')),
           const SizedBox(height: 8),
           _FieldRow(
-              label: zh ? '门禁影响' : 'Gate impact',
+              label: zh ? '复验影响' : 'Retest impact',
               value: reportSelected
                   ? (zh
-                      ? 'rc6 真实运行链路修复证据待 Owner 复验，不创建 Release'
-                      : 'rc6 runtime truth repair evidence awaits Owner retest; no Release is created')
+                      ? 'rc10 产品链路证据待 Owner 复验，不创建 Release'
+                      : 'rc10 product-flow evidence awaits Owner retest; no Release is created')
                   : (zh ? '未通过' : 'Not passed')),
         ],
       );
@@ -10254,7 +10468,6 @@ class _SettingsProductWorkflow extends StatelessWidget {
     required this.isWebRuntime,
     required this.campaign7ConfigurationStatus,
     required this.campaign9DesktopDeliveryStatus,
-    required this.diagnostics,
   });
 
   final String localeCode;
@@ -10265,38 +10478,34 @@ class _SettingsProductWorkflow extends StatelessWidget {
   final bool isWebRuntime;
   final Map<String, dynamic> campaign7ConfigurationStatus;
   final Map<String, dynamic> campaign9DesktopDeliveryStatus;
-  final Widget diagnostics;
 
   bool get _zh => localeCode == 'zh-CN';
 
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['工作区', 'Provider 与存储', '配置系统', '模型与语言', '安全', '桌面交付', '开发者诊断']
+        ? ['工作区', 'Provider 与存储', '配置系统', '模型与语言', '安全授权', '桌面交付']
         : [
             'Workspace',
             'Providers and Storage',
             'Configuration System',
             'Models and Language',
-            'Safety',
+            'Security Authorization',
             'Desktop Delivery',
-            'Developer Diagnostics'
           ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.settings_outlined,
         title: _zh ? '设置' : 'Settings',
         description: _zh
-            ? '管理应用工作区、Provider、存储、模型、语言、主题、安全和诊断。'
-            : 'Manage workspace, providers, storage, models, language, theme, safety, and diagnostics.',
+            ? '管理应用工作区、Provider、存储、模型、语言、主题和安全授权。'
+            : 'Manage workspace, providers, storage, models, language, theme, and authorization.',
       ),
       const SizedBox(height: _DesktopGrid.gutter),
       _PageTabs(
           tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
       const SizedBox(height: _DesktopGrid.gutter),
-      if (selectedTab == 6)
-        diagnostics
-      else if (selectedTab == 1)
+      if (selectedTab == 1)
         _SettingsProvidersStorageView(
             zh: _zh, workspace: workspace, runtimeController: runtimeController)
       else if (selectedTab == 2)
@@ -10332,21 +10541,17 @@ class _SettingsProductWorkflow extends StatelessWidget {
                         : ['Setting', 'Value', 'Status'],
                     rows: _zh
                         ? [
-                            ['LLM Provider', 'live smoke 通过', 'enabled_real'],
+                            ['LLM Provider', 'live smoke 通过', '可用'],
                             [
                               'Embedding 模型',
                               'Provider Runtime env-only',
                               '环境配置'
                             ],
-                            ['默认语言', '简体中文 / Chinese', 'enabled_real'],
-                            ['主题', '浅色 / 深色可切换', 'enabled_real'],
+                            ['默认语言', '简体中文 / Chinese', '可用'],
+                            ['主题', '浅色 / 深色可切换', '可用'],
                           ]
                         : [
-                            [
-                              'LLM Provider',
-                              'Live smoke passed',
-                              'enabled_real'
-                            ],
+                            ['LLM Provider', 'Live smoke passed', 'Available'],
                             [
                               'Embedding model',
                               'Provider Runtime env-only',
@@ -10355,13 +10560,9 @@ class _SettingsProductWorkflow extends StatelessWidget {
                             [
                               'Default language',
                               'Simplified Chinese / Chinese',
-                              'enabled_real'
+                              'Available'
                             ],
-                            [
-                              'Theme',
-                              'Light / dark switchable',
-                              'enabled_real'
-                            ],
+                            ['Theme', 'Light / dark switchable', 'Available'],
                           ],
                   ),
                   const SizedBox(height: 8),
@@ -10386,11 +10587,11 @@ class _SettingsProductWorkflow extends StatelessWidget {
                               : 'Secrets are not displayed directly'),
                       const SizedBox(height: 8),
                       _FieldRow(
-                          label: _zh ? '本地执行' : 'Local execution',
+                          label: _zh ? '桌面能力' : 'Desktop features',
                           value: isWebRuntime
                               ? (_zh
-                                  ? 'Flutter Web 中禁用本地命令'
-                                  : 'Local commands disabled in Flutter Web')
+                                  ? '请使用 Windows EXE 执行本地文件能力'
+                                  : 'Use the Windows EXE for local file workflows')
                               : (_zh ? '桌面可用' : 'Desktop available')),
                     ]
                   : [
@@ -10399,10 +10600,7 @@ class _SettingsProductWorkflow extends StatelessWidget {
                       const SizedBox(height: 8),
                       _FieldRow(
                           label: _zh ? '输出目录' : 'Output directory',
-                          value: './workbench_runs'),
-                      const SizedBox(height: 8),
-                      const _FieldRow(
-                          label: 'Core CLI', value: 'heitang-kb-forge'),
+                          value: _zh ? '当前用户工作区' : 'Current user workspace'),
                     ],
         ),
     ]);
@@ -10589,15 +10787,15 @@ class _SettingsProvidersStorageViewState
                 : ['Setting', 'Value', 'Connection', 'Class'],
             rows: zh
                 ? [
-                    ['应用工作区', widget.workspace, '本地可用', 'enabled_real'],
-                    ['对象存储', '本地文件系统', '本地可用', 'enabled_real'],
+                    ['应用工作区', widget.workspace, '本地可用', '可用'],
+                    ['对象存储', '本地文件系统', '本地可用', '可用'],
                     [
                       'Redis',
                       '${_redisHostController.text}:${_redisPortController.text} / ${_redisPrefixController.text}',
                       redisTested
                           ? 'PING / 写读删通过'
                           : _storageStatusLabel(redisStatus, zh),
-                      redisTested ? 'enabled_real' : 'configured'
+                      redisTested ? '可用' : '已配置'
                     ],
                     [
                       'Qdrant',
@@ -10605,10 +10803,10 @@ class _SettingsProvidersStorageViewState
                       qdrantTested
                           ? '健康检查 / collection / 向量探针通过'
                           : _storageStatusLabel(qdrantStatus, zh),
-                      qdrantTested ? 'enabled_real' : 'configured'
+                      qdrantTested ? '可用' : '已配置'
                     ],
-                    ['向量数据库', '本地文件索引 + Qdrant 可选', '本地索引可用', 'enabled_real'],
-                    ['LLM Provider', '环境变量', 'live smoke 通过', 'enabled_real'],
+                    ['向量数据库', '本地文件索引 + Qdrant 可选', '本地索引可用', '可用'],
+                    ['LLM Provider', '环境变量', 'live smoke 通过', '可用'],
                     ['API Key', '************', '掩码展示', '已保护'],
                   ]
                 : [
@@ -10616,13 +10814,13 @@ class _SettingsProvidersStorageViewState
                       'App workspace',
                       widget.workspace,
                       'Local available',
-                      'enabled_real'
+                      'Available'
                     ],
                     [
                       'Object storage',
                       'Local filesystem',
                       'Local available',
-                      'enabled_real'
+                      'Available'
                     ],
                     [
                       'Redis',
@@ -10630,7 +10828,7 @@ class _SettingsProvidersStorageViewState
                       redisTested
                           ? 'PING / write-read-delete passed'
                           : _storageStatusLabel(redisStatus, zh),
-                      redisTested ? 'enabled_real' : 'configured'
+                      redisTested ? 'Available' : 'Configured'
                     ],
                     [
                       'Qdrant',
@@ -10638,19 +10836,19 @@ class _SettingsProvidersStorageViewState
                       qdrantTested
                           ? 'Health / collection / vector probe passed'
                           : _storageStatusLabel(qdrantStatus, zh),
-                      qdrantTested ? 'enabled_real' : 'configured'
+                      qdrantTested ? 'Available' : 'Configured'
                     ],
                     [
                       'Vector DB',
                       'Local file index + optional Qdrant',
                       'Local index available',
-                      'enabled_real'
+                      'Available'
                     ],
                     [
                       'LLM Provider',
                       'Environment variables',
                       'Live smoke passed',
-                      'enabled_real'
+                      'Available'
                     ],
                     ['API Key', '************', 'Masked', 'Protected'],
                   ],
@@ -10785,11 +10983,11 @@ class _SettingsProvidersStorageViewState
       final detail = _ProductPanel(
         keyName: 'settings-provider-detail',
         icon: Icons.tune_outlined,
-        title: zh ? '配置边界' : 'Configuration Boundary',
+        title: zh ? '配置状态' : 'Configuration Status',
         gap: true,
         children: [
           _FieldRow(
-              label: zh ? 'Provider Gate' : 'Provider Gate',
+              label: zh ? 'Provider 状态' : 'Provider status',
               value: zh
                   ? '真实 live smoke 复验已通过'
                   : 'Real live-smoke reacceptance passed'),
@@ -10799,13 +10997,13 @@ class _SettingsProvidersStorageViewState
               value: zh ? '只显示掩码，不直接展示明文' : 'Masked only, plaintext hidden'),
           const SizedBox(height: 8),
           _FieldRow(
-              label: zh ? '未接入项' : 'Disconnected items',
+              label: zh ? '连接测试' : 'Connection tests',
               value: zh
                   ? 'Docker 未运行时显示已配置未测试；不得显示为已连接'
                   : 'When Docker is not running, show configured-not-tested; never connected'),
           const SizedBox(height: 8),
           _DisplayAction(
-              label: zh ? '查看 Provider 验收证据' : 'View Provider evidence',
+              label: zh ? '查看 Provider 状态' : 'View Provider status',
               icon: Icons.verified_outlined),
         ],
       );
@@ -10945,7 +11143,7 @@ class _SettingsConfigurationSystemView extends StatelessWidget {
       final overview = _ProductPanel(
         keyName: 'settings-configuration-system',
         icon: Icons.rule_folder_outlined,
-        title: zh ? 'Campaign 7 配置系统' : 'Campaign 7 Configuration System',
+        title: zh ? '配置系统' : 'Configuration System',
         gap: true,
         children: [
           _MetricStrip(
@@ -10963,8 +11161,11 @@ class _SettingsConfigurationSystemView extends StatelessWidget {
                   icon: Icons.schema_outlined),
               _MetricDatum(
                   label: zh ? 'UI' : 'UI',
-                  value: _campaignText(_campaign6Map(
-                      campaign7ConfigurationStatus['ui_settings'])['ui_state']),
+                  value: _capabilityStatusLabel(
+                      _campaignText(_campaign6Map(
+                              campaign7ConfigurationStatus['ui_settings'])[
+                          'ui_state']),
+                      zh),
                   detail: zh ? 'Settings 绑定' : 'Settings binding',
                   icon: Icons.settings_outlined),
             ],
@@ -10984,18 +11185,21 @@ class _SettingsConfigurationSystemView extends StatelessWidget {
             columns: zh
                 ? ['能力', '状态', 'UI 状态']
                 : ['Capability', 'Status', 'UI state'],
-            rows: statusRows,
+            rows: statusRows
+                .map((row) =>
+                    [row[0], row[1], _capabilityStatusLabel(row[2], zh)])
+                .toList(growable: false),
           ),
         ],
       );
       final diagnosticsPanel = _ProductPanel(
         keyName: 'settings-configuration-diagnostics',
         icon: Icons.health_and_safety_outlined,
-        title: zh ? '诊断与降级' : 'Diagnostics and Degraded Modes',
+        title: zh ? '配置检查' : 'Configuration Checks',
         gap: true,
         children: [
           _ProductTable(
-            columns: zh ? ['运行面', '状态'] : ['Runtime surface', 'Status'],
+            columns: zh ? ['配置面', '状态'] : ['Configuration area', 'Status'],
             rows: [
               [
                 'provider_runtime',
@@ -11014,8 +11218,8 @@ class _SettingsConfigurationSystemView extends StatelessWidget {
           const SizedBox(height: 8),
           _ProductTable(
             columns: zh
-                ? ['降级条件', '运行状态', '用户提示']
-                : ['Condition', 'Runtime status', 'User prompt'],
+                ? ['条件', '当前状态', '用户提示']
+                : ['Condition', 'Status', 'User prompt'],
             rows: degradedRows,
           ),
         ],
@@ -11023,7 +11227,7 @@ class _SettingsConfigurationSystemView extends StatelessWidget {
       final securityPanel = _ProductPanel(
         keyName: 'settings-configuration-security',
         icon: Icons.verified_user_outlined,
-        title: zh ? '安全边界' : 'Security Boundary',
+        title: zh ? '安全授权' : 'Security Authorization',
         gap: true,
         children: [
           _ProductTable(
@@ -11092,7 +11296,7 @@ class _SettingsDesktopDeliveryView extends StatelessWidget {
                   _campaignText(item['capability']),
                   _campaignText(item['status']),
                   _campaignText(item['ui_state']),
-                  _campaignText(item['evidence']),
+                  _productRecordText(item['evidence']),
                 ])
             .toList(growable: false);
     final smokeRows = _campaign6List(smoke['steps'])
@@ -11124,7 +11328,7 @@ class _SettingsDesktopDeliveryView extends StatelessWidget {
       final overview = _ProductPanel(
         keyName: 'settings-desktop-delivery',
         icon: Icons.desktop_windows_outlined,
-        title: zh ? 'Campaign 9 桌面交付' : 'Campaign 9 Desktop Delivery',
+        title: zh ? '桌面交付' : 'Desktop Delivery',
         gap: true,
         children: [
           _MetricStrip(
@@ -11133,28 +11337,35 @@ class _SettingsDesktopDeliveryView extends StatelessWidget {
                   label: zh ? '本地状态' : 'Local status',
                   value: _campaignText(
                       campaign9DesktopDeliveryStatus['overall_status']),
-                  detail: zh ? 'UI 已绑定' : 'UI-bound',
+                  detail: zh ? '等待 Owner 复验' : 'pending Owner retest',
                   icon: Icons.fact_check_outlined),
               _MetricDatum(
                   label: zh ? '候选标签' : 'Candidate tag',
                   value: _campaignText(
                       campaign9DesktopDeliveryStatus['release_candidate_tag']),
-                  detail: zh ? '等待 push / CI / tag' : 'pending push / CI / tag',
+                  detail: zh ? '未发布稳定版' : 'no stable release',
                   icon: Icons.local_offer_outlined),
               _MetricDatum(
                   label: zh ? '包版本' : 'Package version',
                   value: _campaignText(campaign9DesktopDeliveryStatus[
                       'package_version_baseline']),
-                  detail: zh ? '未做版本迁移' : 'no version migration',
+                  detail: zh ? '候选包' : 'candidate package',
                   icon: Icons.inventory_2_outlined),
             ],
           ),
           const SizedBox(height: 8),
           _ProductTable(
             columns: zh
-                ? ['能力', '状态', 'UI 状态', '证据']
-                : ['Capability', 'Status', 'UI state', 'Evidence'],
-            rows: validationRows,
+                ? ['能力', '状态', '用户可见状态', '验证记录']
+                : ['Capability', 'Status', 'User status', 'Validation record'],
+            rows: validationRows
+                .map((row) => [
+                      row[0],
+                      row[1],
+                      _capabilityStatusLabel(row[2], zh),
+                      row[3]
+                    ])
+                .toList(growable: false),
           ),
         ],
       );
@@ -11181,7 +11392,7 @@ class _SettingsDesktopDeliveryView extends StatelessWidget {
               label: 'SHA-256', value: _campaignText(checksum['exe_sha256'])),
           const SizedBox(height: 8),
           _FieldRow(
-              label: zh ? 'Tauri 边界' : 'Tauri boundary',
+              label: zh ? '桌面外壳' : 'Desktop shell',
               value: _campaignText(delivery['legacy_tauri_status'])),
         ],
       );
@@ -11196,8 +11407,8 @@ class _SettingsDesktopDeliveryView extends StatelessWidget {
               value: _campaignText(smoke['status'])),
           const SizedBox(height: 8),
           _FieldRow(
-              label: zh ? '证据路径' : 'Evidence path',
-              value: _campaignText(smoke['evidence_path'])),
+              label: zh ? '验证记录' : 'Validation record',
+              value: _productRecordText(smoke['evidence_path'])),
           const SizedBox(height: 8),
           _ProductTable(
             columns: zh ? ['步骤', '结果'] : ['Step', 'Result'],
@@ -11208,7 +11419,7 @@ class _SettingsDesktopDeliveryView extends StatelessWidget {
       final boundaryPanel = _ProductPanel(
         keyName: 'settings-desktop-boundary',
         icon: Icons.verified_user_outlined,
-        title: zh ? '路径、降级与安全边界' : 'Paths, Degraded Modes, and Security',
+        title: zh ? '路径、恢复与安全授权' : 'Paths, Recovery, and Security',
         gap: true,
         children: [
           _ProductTable(
@@ -11218,8 +11429,8 @@ class _SettingsDesktopDeliveryView extends StatelessWidget {
           const SizedBox(height: 8),
           _ProductTable(
             columns: zh
-                ? ['降级条件', '运行状态', '用户提示']
-                : ['Condition', 'Runtime status', 'User prompt'],
+                ? ['场景', '当前状态', '用户提示']
+                : ['Scenario', 'Status', 'User prompt'],
             rows: degradedRows,
           ),
           const SizedBox(height: 8),
@@ -11294,7 +11505,7 @@ class _SettingsWorkspaceView extends StatelessWidget {
                   label: zh ? '模式' : 'Mode',
                   value: isWebRuntime ? 'Web' : 'EXE',
                   detail: isWebRuntime
-                      ? (zh ? '安全边界' : 'safety boundary')
+                      ? (zh ? '预览模式' : 'preview mode')
                       : (zh ? '桌面运行' : 'desktop runtime'),
                   icon: isWebRuntime
                       ? Icons.public_outlined
@@ -11306,18 +11517,16 @@ class _SettingsWorkspaceView extends StatelessWidget {
             columns: zh ? ['路径', '当前值', '分类'] : ['Path', 'Value', 'Class'],
             rows: zh
                 ? [
-                    ['工作区根目录', workspace, 'enabled_real'],
-                    ['输出目录', './workbench_runs', 'enabled_real'],
+                    ['工作区根目录', workspace, '可用'],
+                    ['输出目录', '当前用户工作区', '可用'],
                     ['文档缓存', './data/documents', '本地路径'],
                     ['向量索引目录', './data/vector', '本地索引'],
-                    ['Core CLI', 'heitang-kb-forge', 'enabled_real'],
                   ]
                 : [
-                    ['Workspace root', workspace, 'enabled_real'],
-                    ['Output directory', './workbench_runs', 'enabled_real'],
+                    ['Workspace root', workspace, 'Available'],
+                    ['Output directory', 'Current user workspace', 'Available'],
                     ['Document cache', './data/documents', 'Local path'],
                     ['Vector index dir', './data/vector', 'Local index'],
-                    ['Core CLI', 'heitang-kb-forge', 'enabled_real'],
                   ],
           ),
         ],
@@ -12009,11 +12218,11 @@ const sampleCampaign9DesktopDeliveryStatus = <String, dynamic>{
   'schema_id': 'campaign9_desktop_delivery_status',
   'schema_version': '2026-06-17',
   'overall_status':
-      'campaign9_windows_exe_packaging_rc6_runtime_truth_blocker_repaired_ui_bound_pending_owner_retest',
+      'v4.3.0-rc10_product_flow_truth_ui_closure_real_exe_verified_pending_owner_retest',
   'final_target_status':
-      'v4.3.0-rc6_runtime_truth_blockers_repaired_real_exe_verified_pushed_ci_green_tagged_pending_owner_retest',
-  'release_candidate_tag': 'v4.3.0-rc6',
-  'package_version_baseline': '4.2.0',
+      'v4.3.0-rc10_product_flow_truth_ui_closure_real_exe_verified_pending_owner_retest',
+  'release_candidate_tag': 'v4.3.0-rc10',
+  'package_version_baseline': '4.3.0-rc10',
   'github_release_created': false,
   'stable_release_tag_authorized': false,
   'campaign_scope': {
@@ -12053,14 +12262,14 @@ const sampleCampaign9DesktopDeliveryStatus = <String, dynamic>{
   'checksum': {
     'status': 'pass',
     'manifest_path':
-        'output/rc6_runtime_truth_repair/release_bundle_manifest.json',
+        'output/rc10_product_flow_truth_ui_closure/release_bundle_manifest.json',
     'exe_sha256':
         'd8e58accd56571fc08cfec3178b77ef7e1c3a58c5930c7d9d37718b1253e9d87',
   },
   'desktop_shell_smoke': {
     'status': 'pass',
     'evidence_path':
-        'output/rc6_runtime_truth_repair/exe_smoke/rc6_exe_launch_smoke.json',
+        'output/rc10_product_flow_truth_ui_closure/exe_smoke/rc10_exe_launch_smoke.json',
     'steps': <Map<String, dynamic>>[
       {'step': 'launch', 'result': 'pass'},
       {'step': 'minimize', 'result': 'pass'},
@@ -12075,65 +12284,65 @@ const sampleCampaign9DesktopDeliveryStatus = <String, dynamic>{
     {
       'capability': 'windows_package_build',
       'status': 'pass',
-      'ui_state': 'enabled_real',
+      'ui_state': 'available',
       'evidence': 'campaign9_flutter_build_windows.log',
     },
     {
       'capability': 'desktop_shell_real_smoke',
       'status': 'pass',
-      'ui_state': 'enabled_real',
+      'ui_state': 'available',
       'evidence':
-          'output/rc6_runtime_truth_repair/exe_smoke/rc6_exe_launch_smoke.json',
+          'output/rc10_product_flow_truth_ui_closure/exe_smoke/rc10_exe_launch_smoke.json',
     },
     {
       'capability': 'full_capability_runtime_chain',
       'status': 'pass',
-      'ui_state': 'enabled_real',
+      'ui_state': 'available',
       'evidence':
-          'kb-forge-skill/output/rc6_validation_chain/rc6_core_chain_probe.log',
+          'kb-forge-skill/output/rc10_validation_chain/rc10_core_chain_probe.log',
     },
     {
       'capability': 'page_button_tab_audit',
       'status': 'pass',
-      'ui_state': 'enabled_real',
+      'ui_state': 'available',
       'evidence':
-          'v4.3.0-rc6_Tab_Button_Page_Switch_Verification_Matrix_2026-06-17.md',
+          'v4.3.0-rc10_Product_Flow_Truth_UI_Closure_Report_2026-06-18.md',
     },
     {
       'capability': 'release_bundle_manifest',
       'status': 'pass',
-      'ui_state': 'enabled_real',
+      'ui_state': 'available',
       'evidence':
-          'output/rc6_runtime_truth_repair/release_bundle_manifest.json',
+          'output/rc10_product_flow_truth_ui_closure/release_bundle_manifest.json',
     },
     {
       'capability': 'provider_secret_handling',
       'status': 'pass',
-      'ui_state': 'enabled_real',
+      'ui_state': 'available',
       'evidence': 'env_only_no_secret_bundle_boundary',
     },
     {
       'capability': 'config_workspace_log_cache_paths',
       'status': 'pass',
-      'ui_state': 'enabled_real',
-      'evidence': 'campaign7_configuration_system_reuse',
+      'ui_state': 'available',
+      'evidence': 'configuration_system_reuse',
     },
     {
       'capability': 'github_release_creation',
       'status': 'not_created',
-      'ui_state': 'disabled_boundary',
+      'ui_state': 'owner_authorization_required',
       'evidence': 'owner_authorization_required',
     },
     {
       'capability': 'computer_use_runtime',
-      'status': 'disabled_boundary',
-      'ui_state': 'disabled_boundary',
-      'evidence': 'campaign6_boundary_preserved',
+      'status': 'not_available_in_product_flow',
+      'ui_state': 'not_available_in_product_flow',
+      'evidence': 'high_risk_runtime_not_opened',
     },
   ],
   'path_rules': {
     'config_path':
-        'Campaign 7 config precedence persists default/workspace/user/env values.',
+        'Configuration precedence persists default/workspace/user/env values.',
     'workspace_path':
         'Workspace selection remains user-controlled and must not require a development checkout.',
     'logs_path':
@@ -12166,7 +12375,7 @@ const sampleCampaign9DesktopDeliveryStatus = <String, dynamic>{
       'condition': 'desktop_shell_smoke_failure',
       'runtime_status': 'blocked',
       'user_message':
-          'Keep Campaign 9 stopped and repair the shell behavior before tagging.',
+          'Stop the candidate and repair the desktop shell behavior before tagging.',
     },
     {
       'condition': 'github_release_requested',
@@ -12183,7 +12392,8 @@ const sampleCampaign9DesktopDeliveryStatus = <String, dynamic>{
     },
     {
       'area': 'config_profile',
-      'rollback': 'Use Campaign 7 rollback snapshots and preserve diagnostics.',
+      'rollback':
+          'Use configuration rollback snapshots and preserve diagnostics.',
     },
     {
       'area': 'workspace_state',

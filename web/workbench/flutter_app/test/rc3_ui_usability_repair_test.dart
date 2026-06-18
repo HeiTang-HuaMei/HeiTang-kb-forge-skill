@@ -72,23 +72,19 @@ void main() {
     }
   });
 
-  testWidgets(
-      'rc3 exposes accepted status without reopening disabled boundaries',
+  testWidgets('rc10 exposes product status without raw boundary labels',
       (tester) async {
     await pumpWorkbench(tester, const Size(1366, 768));
 
     await tester.ensureVisible(find.text('Agent 工厂').first);
     await tester.tap(find.text('Agent 工厂').first, warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.text('Agent Runtime'), findsWidgets);
-    expect(find.text('enabled_real'), findsWidgets);
-
-    final boundaryTab = find.text('安全边界').first;
-    await tester.ensureVisible(boundaryTab);
-    await tester.tap(boundaryTab, warnIfMissed: false);
-    await tester.pumpAndSettle();
-    expect(find.text('Computer Use'), findsWidgets);
-    expect(find.text('disabled_boundary'), findsWidgets);
+    expect(find.text('Agent 工厂'), findsWidgets);
+    expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
+    expect(find.text('最小对话'), findsOneWidget);
+    expect(find.text('enabled_real'), findsNothing);
+    expect(find.text('disabled_boundary'), findsNothing);
+    expect(find.textContaining('安全边界'), findsNothing);
     expect(find.textContaining('arbitrary shell'), findsNothing);
 
     await tester.ensureVisible(find.text('设置').first);
@@ -104,7 +100,8 @@ void main() {
     await tester.ensureVisible(desktopTab);
     await tester.tap(desktopTab, warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.text('v4.3.0-rc6'), findsWidgets);
+    expect(find.text('v4.3.0-rc10'), findsWidgets);
+    expect(find.text('v4.3.0-rc6'), findsNothing);
     expect(find.text('v4.3.0-rc2'), findsNothing);
     expect(tester.takeException(), isNull);
   });
