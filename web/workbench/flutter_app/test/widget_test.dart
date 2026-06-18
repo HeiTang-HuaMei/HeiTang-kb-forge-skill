@@ -648,19 +648,19 @@ void main() {
     expect(find.text('Skill 工厂'), findsWidgets);
     expect(
         find.byKey(const Key('skill-metadata-source-config')), findsOneWidget);
-    expect(find.text('生成配置'), findsOneWidget);
+    expect(find.text('从知识库生成'), findsOneWidget);
     expect(find.text('外部本地化'), findsOneWidget);
-    expect(find.text('包结构'), findsOneWidget);
+    expect(find.text('版本操作'), findsOneWidget);
     expect(find.text('验证导出'), findsOneWidget);
-    expect(find.text('Skill 生成配置'), findsOneWidget);
+    expect(find.text('从知识库生成 Skill'), findsWidgets);
     await tester.tap(find.text('外部本地化').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(
         find.byKey(const Key('skill-external-localization')), findsOneWidget);
-    await tester.tap(find.text('包结构').first, warnIfMissed: false);
+    await tester.tap(find.text('版本操作').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('skill-output-preview')), findsOneWidget);
-    expect(find.text('Skill 包结构'), findsOneWidget);
+    expect(find.text('Skill 版本操作'), findsOneWidget);
     await tester.tap(find.text('验证导出').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('skill-validation-summary')), findsOneWidget);
@@ -696,7 +696,9 @@ void main() {
     await tester.tap(find.byKey(const Key('page-tab-1')), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
-    expect(find.text('Agent Config'), findsWidgets);
+    expect(find.text('Create Agent'), findsWidgets);
+    expect(find.text('Simple Agent'), findsWidgets);
+    expect(find.text('Advanced Agent'), findsOneWidget);
     expect(find.text('Generate complete Agent config'), findsWidgets);
     expect(find.text('Copy Agent path'), findsNothing);
     expect(find.text('Waiting for real Agent'), findsWidgets);

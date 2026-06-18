@@ -140,7 +140,7 @@ void main() {
     await tester.tap(find.byKey(const Key('page-tab-1')), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
-    expect(find.text('最小对话'), findsOneWidget);
+    expect(find.text('单 Agent 对话'), findsOneWidget);
     expect(find.textContaining('安全边界'), findsNothing);
     expect(find.textContaining('disabled_boundary'), findsNothing);
     expect(find.textContaining('arbitrary shell'), findsNothing);

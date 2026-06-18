@@ -9712,11 +9712,11 @@ class _SkillBuilderProductWorkflowState
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     final tabs = _zh
-        ? ['生成配置', '外部本地化', '包结构', '验证导出']
+        ? ['从知识库生成', '外部本地化', '版本操作', '验证导出']
         : [
-            'Generation Config',
+            'Generate from KB',
             'External Localization',
-            'Package Structure',
+            'Version Operations',
             'Validate & Export'
           ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -9751,7 +9751,7 @@ class _SkillBuilderProductWorkflowState
               value: runtime.hasSkill ? 'pass' : 'ready',
               detail: runtime.hasSkill
                   ? (_zh ? '已生成' : 'Generated')
-                  : (_zh ? '待生成' : 'Pending'),
+                  : (_zh ? '等待知识库' : 'Waiting KB'),
               icon: Icons.rule_folder_outlined),
         ],
       ),
@@ -9778,7 +9778,7 @@ class _SkillBuilderProductWorkflowState
         final config = _ProductPanel(
           keyName: 'skill-metadata-source-config',
           icon: Icons.edit_note_outlined,
-          title: _zh ? 'Skill 生成配置' : 'Skill Generation Config',
+          title: _zh ? '从知识库生成 Skill' : 'Generate Skill from KB',
           children: [
             _ProductTable(
               columns:
@@ -9803,6 +9803,15 @@ class _SkillBuilderProductWorkflowState
                                 ? '可生成'
                                 : '请先构建知识库'
                       ],
+                      [
+                        '多知识库 Skill',
+                        '当前 KB Catalog',
+                        runtime.hasSkill
+                            ? '已生成'
+                            : runtime.hasKnowledgeBase
+                                ? '可生成'
+                                : '请先构建知识库'
+                      ],
                     ]
                   : [
                       [
@@ -9823,6 +9832,15 @@ class _SkillBuilderProductWorkflowState
                                 ? 'Ready'
                                 : 'Build KB first'
                       ],
+                      [
+                        'Multi-KB Skill',
+                        'Current KB catalog',
+                        runtime.hasSkill
+                            ? 'Generated'
+                            : runtime.hasKnowledgeBase
+                                ? 'Ready'
+                                : 'Build KB first'
+                      ],
                     ],
             ),
             const SizedBox(height: 8),
@@ -9835,8 +9853,8 @@ class _SkillBuilderProductWorkflowState
             _FieldRow(
                 label: _zh ? 'Skill 类型' : 'Skill type',
                 value: _zh
-                    ? '写作 / 分析 / 产品 / 运营 / 自定义'
-                    : 'Writing / analysis / product / ops / custom'),
+                    ? '写作 / 分析 / 教学 / 产品 / 运营 / 法规 / 自定义'
+                    : 'Writing / analysis / teaching / product / ops / legal / custom'),
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? '目标平台' : 'Target platform',
@@ -9853,6 +9871,14 @@ class _SkillBuilderProductWorkflowState
                     : (_zh
                         ? '使用知识库自动生成'
                         : 'Generated from the Knowledge Base')),
+            const SizedBox(height: 8),
+            _FieldRow(
+                label: _zh ? '样例任务验证' : 'Sample task validation',
+                value: runtime.hasSkill
+                    ? (_zh
+                        ? 'verification_report.json 已写入'
+                        : 'verification_report.json written')
+                    : (_zh ? '生成后执行本地样例校验' : 'Runs after local generation')),
             const SizedBox(height: 8),
             _PrimaryProductAction(
               label: _zh ? '生成 Skill' : 'Generate Skill',
@@ -9936,7 +9962,7 @@ class _SkillBuilderProductWorkflowState
         final output = _ProductPanel(
           keyName: 'skill-output-preview',
           icon: Icons.folder_zip_outlined,
-          title: _zh ? 'Skill 包结构' : 'Skill Package Structure',
+          title: _zh ? 'Skill 版本操作' : 'Skill Version Operations',
           subtitle: runtime.hasSkill
               ? _displayNameForPath(runtime.skillPath)
               : '${widget.workspace}/workbench_runs/skill',
@@ -9964,6 +9990,14 @@ class _SkillBuilderProductWorkflowState
                         'skill_generation_manifest.json',
                         runtime.hasSkill ? '已生成' : '-'
                       ],
+                      [
+                        'operations/skill_operation_manifest.json',
+                        runtime.hasSkill ? '已生成' : '-'
+                      ],
+                      [
+                        'exports/skills_export.md',
+                        runtime.hasSkill ? '已导出' : '-'
+                      ],
                     ]
                   : [
                       ['knowledge_qa_skill/', ''],
@@ -9984,6 +10018,75 @@ class _SkillBuilderProductWorkflowState
                       [
                         'skill_generation_manifest.json',
                         runtime.hasSkill ? 'written' : '-'
+                      ],
+                      [
+                        'operations/skill_operation_manifest.json',
+                        runtime.hasSkill ? 'written' : '-'
+                      ],
+                      [
+                        'exports/skills_export.md',
+                        runtime.hasSkill ? 'exported' : '-'
+                      ],
+                    ],
+            ),
+            const SizedBox(height: _DesktopGrid.gutter),
+            _ProductTable(
+              columns: _zh
+                  ? ['操作', '真实产物', '状态']
+                  : ['Operation', 'Artifact', 'Status'],
+              rows: _zh
+                  ? [
+                      [
+                        '查看',
+                        'knowledge_qa_skill/SKILL.md',
+                        runtime.hasSkill ? '可查看' : '等待生成'
+                      ],
+                      [
+                        '复制',
+                        'knowledge_qa_skill_copy/',
+                        runtime.hasSkill ? '已生成副本' : '等待生成'
+                      ],
+                      [
+                        '融合',
+                        'fused_product_ops_skill/',
+                        runtime.hasSkill ? '已融合' : '等待生成'
+                      ],
+                      [
+                        '导出',
+                        'exports/skills_export.md',
+                        runtime.hasSkill ? '可打开' : '等待生成'
+                      ],
+                      [
+                        '绑定 Agent',
+                        'operations/agent_binding_manifest.json',
+                        runtime.hasAgent ? '已绑定' : '创建 Agent 后绑定'
+                      ],
+                    ]
+                  : [
+                      [
+                        'View',
+                        'knowledge_qa_skill/SKILL.md',
+                        runtime.hasSkill ? 'Openable' : 'Waiting'
+                      ],
+                      [
+                        'Copy',
+                        'knowledge_qa_skill_copy/',
+                        runtime.hasSkill ? 'Copied' : 'Waiting'
+                      ],
+                      [
+                        'Fuse',
+                        'fused_product_ops_skill/',
+                        runtime.hasSkill ? 'Fused' : 'Waiting'
+                      ],
+                      [
+                        'Export',
+                        'exports/skills_export.md',
+                        runtime.hasSkill ? 'Openable' : 'Waiting'
+                      ],
+                      [
+                        'Bind Agent',
+                        'operations/agent_binding_manifest.json',
+                        runtime.hasAgent ? 'Bound' : 'After Agent creation'
                       ],
                     ],
             ),
@@ -10149,11 +10252,11 @@ class _AgentProductWorkflow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['工作区创建', 'Agent 配置', '最小对话', 'A2A 协作', '运行审计']
+        ? ['工作区', '创建 Agent', '单 Agent 对话', 'A2A 协作', '运行审计']
         : [
-            'Workspace Setup',
-            'Agent Config',
-            'Minimal Chat',
+            'Workspace',
+            'Create Agent',
+            'Single-Agent Chat',
             'A2A Collaboration',
             'Run Audit'
           ];
@@ -10264,53 +10367,56 @@ class _AgentWorkspaceProductView extends StatelessWidget {
       final setup = _ProductPanel(
         keyName: 'agent-workspace-setup',
         icon: Icons.account_tree_outlined,
-        title: zh ? 'Agent 工作区' : 'Agent Workspaces',
+        title: zh ? 'Agent 与会话列表' : 'Agent and Session Lists',
         subtitle: runtime.hasAgent
             ? _displayNameForPath(runtime.agentPath)
             : '$workspace/workbench_runs/agent/workspaces',
         children: [
           _ProductTable(
-            columns:
-                zh ? ['工作区', '用途', '绑定'] : ['Workspace', 'Purpose', 'Bindings'],
+            columns: zh
+                ? ['列表', '用途', '当前状态']
+                : ['List', 'Purpose', 'Current state'],
             rows: zh
                 ? [
                     [
-                      'W_A 单 Agent 工作区',
-                      '知识问答 Agent 独立运行',
+                      'Agent 列表',
+                      '简单 / 复杂 Agent 统一管理',
                       runtime.hasAgent ? 'K1 + S1' : '生成 Agent 后写入'
                     ],
                     [
-                      'W_M 多 Agent 总工作区',
-                      '承载 A2A 协作',
-                      runtime.hasAgent ? 'W_B + W_C' : '等待 Agent'
+                      '会话列表',
+                      '单 Agent 对话历史',
+                      runtime.hasAgentDialogue ? '已有会话' : '创建后立即对话'
                     ],
                     [
-                      'W_B / W_C 子工作区',
-                      '子 Agent 隔离运行',
+                      '多 Agent 工作区',
+                      '总工作区与子工作区隔离',
                       runtime.hasAgent ? '各自 KB / Skill' : '等待 Agent'
                     ],
                   ]
                 : [
                     [
-                      'W_A single-Agent workspace',
-                      'Knowledge QA Agent runs independently',
+                      'Agent list',
+                      'Simple / advanced Agents managed together',
                       runtime.hasAgent ? 'K1 + S1' : 'Written after generate'
                     ],
                     [
-                      'W_M parent workspace',
-                      'Hosts A2A collaboration',
-                      runtime.hasAgent ? 'W_B + W_C' : 'Waiting Agent'
+                      'Session list',
+                      'Single-Agent dialogue history',
+                      runtime.hasAgentDialogue
+                          ? 'Has session'
+                          : 'Chat after creation'
                     ],
                     [
-                      'W_B / W_C child workspaces',
-                      'Child Agents run isolated',
+                      'Multi-Agent workspace',
+                      'Parent and child workspaces isolated',
                       runtime.hasAgent ? 'Own KB / Skill' : 'Waiting Agent'
                     ],
                   ],
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _PrimaryProductAction(
-            label: zh ? '创建 Agent 工作区' : 'Create Agent workspaces',
+            label: zh ? '创建 Agent 工作区' : 'Create Agent workspace',
             icon: Icons.account_tree_outlined,
             onPressed: runtime.running || rc6 == null
                 ? null
@@ -10402,60 +10508,60 @@ class _AgentCreationProductView extends StatelessWidget {
       final create = _ProductPanel(
         keyName: 'agent-create-product-flow',
         icon: Icons.smart_toy_outlined,
-        title: zh ? 'Agent 配置' : 'Agent Config',
+        title: zh ? '创建 Agent' : 'Create Agent',
         subtitle: runtime.hasAgent
             ? _displayNameForPath(runtime.agentPath)
             : '$workspace/workbench_runs/agent',
         children: [
           _ProductTable(
             columns: zh
-                ? ['Agent', '类型 / 模式', '知识库', 'Skill', '模型']
-                : ['Agent', 'Type / Mode', 'KB', 'Skill', 'Model'],
+                ? ['Agent', '构造模式', '知识库', 'Skill', '创建后动作']
+                : ['Agent', 'Build mode', 'KB', 'Skill', 'After creation'],
             rows: zh
                 ? [
                     [
                       '知识问答 Agent',
-                      '研究 / 简单',
+                      '简单 Agent',
                       runtime.hasKnowledgeBase ? '已绑定' : '请先构建知识库',
                       runtime.hasSkill ? '已绑定' : '请先生成 Skill',
-                      '本地默认或已配置 Provider'
+                      '立即进入单 Agent 对话'
                     ],
                     [
                       '阅读总结 Agent',
-                      '研究 / 简单',
+                      '简单 Agent',
                       runtime.hasKnowledgeBase ? '已绑定' : '请先构建知识库',
                       runtime.hasSkill ? '已绑定' : '请先生成 Skill',
-                      '本地默认或已配置 Provider'
+                      '立即进入单 Agent 对话'
                     ],
                     [
                       '质检 / 运营 / 产品分析 Agent',
-                      '质检 / 运营 / 产品',
+                      '复杂 Agent',
                       runtime.hasKnowledgeBase ? '已绑定' : '请先构建知识库',
                       runtime.hasSkill ? '已绑定' : '请先生成 Skill',
-                      '本地默认或已配置 Provider'
+                      '写入记忆 / Tool / 审计配置'
                     ],
                   ]
                 : [
                     [
                       'Knowledge QA Agent',
-                      'Research / simple',
+                      'Simple Agent',
                       runtime.hasKnowledgeBase ? 'Bound' : 'Build KB first',
                       runtime.hasSkill ? 'Bound' : 'Generate Skill first',
-                      'Local default or configured Provider'
+                      'Enter single-Agent chat'
                     ],
                     [
                       'Reading Summary Agent',
-                      'Research / simple',
+                      'Simple Agent',
                       runtime.hasKnowledgeBase ? 'Bound' : 'Build KB first',
                       runtime.hasSkill ? 'Bound' : 'Generate Skill first',
-                      'Local default or configured Provider'
+                      'Enter single-Agent chat'
                     ],
                     [
                       'QA / Ops / Product Analysis Agents',
-                      'Quality / ops / product',
+                      'Advanced Agent',
                       runtime.hasKnowledgeBase ? 'Bound' : 'Build KB first',
                       runtime.hasSkill ? 'Bound' : 'Generate Skill first',
-                      'Local default or configured Provider'
+                      'Write memory / tool / audit config'
                     ],
                   ],
           ),
@@ -10538,8 +10644,8 @@ class _AgentCreationProductView extends StatelessWidget {
           _FieldRow(
             label: zh ? '记忆配置' : 'Memory',
             value: zh
-                ? '本地会话记忆；Redis / 向量长期记忆走设置授权'
-                : 'Local session memory; Redis / vector long-term memory is configured in Settings',
+                ? '简单模式本地会话；复杂模式可绑定 Redis / 向量长期记忆配置'
+                : 'Simple mode uses local session memory; advanced mode can bind Redis / vector memory settings',
           ),
           const SizedBox(height: 8),
           _FieldRow(
@@ -10554,6 +10660,13 @@ class _AgentCreationProductView extends StatelessWidget {
             value: zh
                 ? '简单模式不展示 Tool；复杂模式仅允许白名单工具'
                 : 'Simple mode hides Tool config; advanced mode only allows allowlisted tools',
+          ),
+          const SizedBox(height: 8),
+          _FieldRow(
+            label: zh ? '审计策略' : 'Audit policy',
+            value: zh
+                ? '创建、对话、A2A、权限审计均写入运行记录'
+                : 'Creation, chat, A2A, and permission checks are written to run history',
           ),
           const SizedBox(height: 8),
           _FieldRow(
@@ -10722,8 +10835,8 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
             decoration: InputDecoration(
               labelText: zh ? '对话问题' : 'Prompt',
               helperText: zh
-                  ? '基于已生成 Agent、知识库和 Skill 生成本地可追踪对话记录。'
-                  : 'Creates a local traceable dialogue from the generated Agent, KB, and Skill.',
+                  ? '基于已生成 Agent、知识库和 Skill 生成本地可追踪对话记录；创建后可立即运行。'
+                  : 'Creates a local traceable dialogue from the generated Agent, KB, and Skill; runnable immediately after creation.',
               border: const OutlineInputBorder(),
               isDense: true,
             ),
@@ -10753,6 +10866,15 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                     ? '${runtime.agentDialogueTurnCount} 轮 · ${_displayNameForPath(runtime.agentDialogueHistoryPath)}'
                     : '${runtime.agentDialogueTurnCount} turns · ${_displayNameForPath(runtime.agentDialogueHistoryPath)}')
                 : (zh ? '尚未生成' : 'Not generated'),
+          ),
+          const SizedBox(height: 8),
+          _FieldRow(
+            label: zh ? '回复说明' : 'Reply trace',
+            value: runtime.hasAgentDialogue
+                ? (zh
+                    ? '包含模型、知识库、Skill、引用和记忆写入状态'
+                    : 'Includes model, KB, Skill, citations, and memory write status')
+                : (zh ? '运行后写入对话产物' : 'Written after running chat'),
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _EqualActionRow(children: [
@@ -10851,6 +10973,7 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                           ? _displayNameForPath(runtime.agentPath)
                           : 'Agent 工作台创建'
                     ],
+                    ['模型', '本地默认或已配置 Provider', '密钥仅从环境/设置读取并掩码显示'],
                   ]
                 : [
                     [
@@ -10873,6 +10996,11 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                       runtime.hasAgent
                           ? _displayNameForPath(runtime.agentPath)
                           : 'Create in Agent Workbench'
+                    ],
+                    [
+                      'Model',
+                      'Local default or configured Provider',
+                      'Secrets are read from environment/settings and masked'
                     ],
                   ],
           ),

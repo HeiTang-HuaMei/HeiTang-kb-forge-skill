@@ -99,15 +99,15 @@ void main() {
     expect(find.text('Skill 工厂'), findsWidgets);
     expect(
         find.byKey(const Key('skill-metadata-source-config')), findsOneWidget);
-    expect(find.text('生成配置'), findsOneWidget);
+    expect(find.text('从知识库生成'), findsOneWidget);
     expect(find.text('外部本地化'), findsOneWidget);
-    expect(find.text('包结构'), findsOneWidget);
+    expect(find.text('版本操作'), findsOneWidget);
     expect(find.text('验证导出'), findsOneWidget);
     await tester.tap(find.text('外部本地化').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(
         find.byKey(const Key('skill-external-localization')), findsOneWidget);
-    await tester.tap(find.text('包结构').first, warnIfMissed: false);
+    await tester.tap(find.text('版本操作').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('skill-output-preview')), findsOneWidget);
     await tester.tap(find.text('验证导出').first, warnIfMissed: false);

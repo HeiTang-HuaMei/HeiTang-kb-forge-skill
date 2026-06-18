@@ -1781,6 +1781,9 @@ class Rc6RuntimeController extends ChangeNotifier {
           'turn_${(previousTurns.length + 1).toString().padLeft(3, '0')}',
       'prompt': prompt,
       'answer': '当前回答基于本地知识库和已生成 Skill，不调用外网、不执行系统命令。',
+      'model_config_id': 'local-default-or-configured-provider',
+      'kb_ids': ['K1'],
+      'skill_ids': ['S1', 'reading_summary_skill'],
       'evidence_count': evidence.length,
       'evidence': evidence
           .map((item) => {
@@ -1793,6 +1796,12 @@ class Rc6RuntimeController extends ChangeNotifier {
                     .toString(),
               })
           .toList(growable: false),
+      'memory_write': {
+        'short_term': 'local_session',
+        'history_path': historyPath,
+        'redis': 'settings_optional',
+        'vector_memory': 'separate_from_kb_index',
+      },
       'boundary': {
         'local_kb_only': true,
         'computer_use': false,
@@ -1808,6 +1817,12 @@ class Rc6RuntimeController extends ChangeNotifier {
     final turns = [...previousTurns, turn];
     final buffer = StringBuffer()
       ..writeln('# Agent 最小对话')
+      ..writeln()
+      ..writeln('## 本轮配置')
+      ..writeln('- 模型：local-default-or-configured-provider')
+      ..writeln('- 知识库：K1')
+      ..writeln('- Skill：S1 / reading_summary_skill')
+      ..writeln('- 记忆写入：local_session -> chat_history.jsonl')
       ..writeln()
       ..writeln('## 会话历史');
     for (final item in turns) {
@@ -1850,6 +1865,12 @@ class Rc6RuntimeController extends ChangeNotifier {
         'history_path': historyPath,
         'turn_count': turns.length,
         'evidence_count': evidence.length,
+        'model_config_id': 'local-default-or-configured-provider',
+        'used_kb_ids': ['K1'],
+        'used_skill_ids': ['S1', 'reading_summary_skill'],
+        'citation_required': true,
+        'memory_write_status': 'local_session_written',
+        'error_message': '',
       }),
       encoding: utf8,
     );
@@ -2995,6 +3016,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'localization_goal': '',
       'export_path': primaryDir.path,
       'instruction_path': primarySkill.path,
+      'sample_task': '基于当前知识库回答一个需要引用的问题。',
+      'version': '1.0.0',
       'status': 'validated',
     };
     await File(_join(primaryDir.path, 'skill_config.json')).writeAsString(
@@ -3017,6 +3040,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           'exporter_type': 'skill_package',
           'enabled': true,
           'output_path': primaryDir.path,
+          'version': '1.0.0',
           'files': [
             'SKILL.md',
             'skill_config.json',
@@ -3085,6 +3109,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'path': dir.path,
         'kb_binding': kbManifestPath,
         'status': 'generated_from_real_kb',
+        'version': '1.0.0',
+        'sample_task': 'Use local KB evidence and cite source chunks.',
       };
       await File(_join(dir.path, 'skill_manifest.json')).writeAsString(
           const JsonEncoder.withIndent('  ').convert(item),
@@ -3202,6 +3228,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'localization_goal': '领域本地化 + 风格个性化 + Agent 绑定',
       'export_path': localizedRoot.path,
       'instruction_path': localizedSkill.path,
+      'personalization_diff_path': _join(localizedRoot.path, 'diff_summary.md'),
+      'version': '1.0.0',
       'status': 'validated',
     };
     await File(_join(localizedRoot.path, 'localized_skill_manifest.json'))
@@ -3250,6 +3278,11 @@ class Rc6RuntimeController extends ChangeNotifier {
             const JsonEncoder.withIndent('  ').convert({
               'schema_version': 'rc10_real_input_skill_generation.v1',
               'status': 'pass',
+              'prd_v2_modes': [
+                'from_single_kb',
+                'from_multi_kb',
+                'external_skill_localization',
+              ],
               'source_modes': ['from_kb', 'external_skill_fusion'],
               'target_platforms': [
                 'codex',
@@ -3261,6 +3294,15 @@ class Rc6RuntimeController extends ChangeNotifier {
               'skills': manifest,
               'external_skills': [externalManifest],
               'localized_skills': [localizedManifest],
+              'version_operations': [
+                'view',
+                'copy',
+                'fusion',
+                'validate',
+                'export',
+                'delete_with_confirmation',
+                'bind_agent_after_agent_creation',
+              ],
             }),
             encoding: utf8);
   }
@@ -3336,6 +3378,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         'product_analysis_skill',
         'fused_product_ops_skill',
       ],
+      'binding_policy': {
+        'simple_agent_optional': true,
+        'advanced_agent_required_for_tool_memory_audit': true,
+        'cross_workspace_binding': false,
+      },
       'agent_required_before_binding': !agentBound,
     };
     await File(_join(operationsRoot.path, 'agent_binding_manifest.json'))
@@ -3394,6 +3441,11 @@ class Rc6RuntimeController extends ChangeNotifier {
                       _join(operationsRoot.path, 'agent_binding_manifest.json'),
                   'status': agentBound ? 'bound' : 'waiting_agent',
                 },
+                {
+                  'operation': 'delete',
+                  'artifact': skillRoot.path,
+                  'status': 'requires_confirmation',
+                },
               ],
               'deleted': false,
             }),
@@ -3411,6 +3463,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'id': 'reading_summary_agent',
         'name': '阅读总结 Agent',
         'type': 'research',
+        'build_mode': 'simple',
         'goal': 'Create cited reading summaries.',
         'kb_ids': ['K1'],
         'skill_ids': ['S1', 'reading_summary_skill'],
@@ -3419,6 +3472,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'id': 'knowledge_qa_agent',
         'name': '知识问答 Agent',
         'type': 'research',
+        'build_mode': 'simple',
         'goal': 'Answer questions with KB citations.',
         'kb_ids': ['K1'],
         'skill_ids': ['S1'],
@@ -3427,6 +3481,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'id': 'quality_qa_agent',
         'name': '质检 Agent',
         'type': 'custom',
+        'build_mode': 'advanced',
         'goal': 'Check parser quality and evidence gaps.',
         'kb_ids': ['K3'],
         'skill_ids': ['quality_check_skill'],
@@ -3435,6 +3490,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'id': 'operation_conversion_agent',
         'name': '运营转化 Agent',
         'type': 'ops',
+        'build_mode': 'advanced',
         'goal': 'Convert insights into action plans.',
         'kb_ids': ['K2'],
         'skill_ids': ['S2', 'operation_conversion_skill'],
@@ -3443,6 +3499,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'id': 'product_analysis_agent',
         'name': '产品分析 Agent',
         'type': 'product',
+        'build_mode': 'advanced',
         'goal': 'Analyze product and business implications.',
         'kb_ids': ['K3'],
         'skill_ids': ['product_analysis_skill'],
@@ -3466,14 +3523,21 @@ class Rc6RuntimeController extends ChangeNotifier {
         'parent_workspace_id': '',
         'agent_name': name,
         'agent_type': spec['type'],
-        'creation_mode': 'simple',
+        'creation_mode': spec['build_mode'],
+        'simple_agent': spec['build_mode'] == 'simple',
+        'advanced_agent': spec['build_mode'] == 'advanced',
         'prompt': '只基于绑定知识库和 Skill 回答，输出必须带引用。',
         'model_config_id': 'local-default-or-configured-provider',
         'kb_ids': kbIds,
         'skill_ids': skillIds,
-        'tool_ids': const <String>[],
-        'redis_config_id': '',
-        'vector_config_id': 'local_file_index',
+        'tool_ids': spec['build_mode'] == 'advanced'
+            ? ['kb_retrieval', 'document_export']
+            : const <String>[],
+        'redis_config_id':
+            spec['build_mode'] == 'advanced' ? 'settings_redis_optional' : '',
+        'vector_config_id': spec['build_mode'] == 'advanced'
+            ? 'settings_agent_memory_vector_optional'
+            : 'local_file_index',
         'output_format': 'markdown',
         'audit_enabled': true,
         'name': name,
@@ -3485,6 +3549,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'capability_boundary':
             'Local KB/Skill only; high-risk system capabilities are not exposed.',
         'example': 'Summarize the real input folder and cite chunks.',
+        'after_creation': 'single_agent_chat',
         'status': 'chat_ready',
       };
       await File(_join(dir.path, 'agent_manifest.json')).writeAsString(
@@ -3589,6 +3654,43 @@ class Rc6RuntimeController extends ChangeNotifier {
                 'parent_multi_agent',
                 'child_agent',
               ],
+              'agent_lists': {
+                'simple_agents': [
+                  'reading_summary_agent',
+                  'knowledge_qa_agent'
+                ],
+                'advanced_agents': [
+                  'quality_qa_agent',
+                  'operation_conversion_agent',
+                  'product_analysis_agent',
+                ],
+              },
+              'session_lists': {
+                'single_agent_dialogue':
+                    _joinNested(agentRoot.path, 'dialogue/chat_history.jsonl'),
+                'a2a_session': 'A2A_001',
+              },
+              'creation_flow': {
+                'simple_agent_fields': [
+                  'agent_name',
+                  'agent_type',
+                  'model_config_id',
+                  'optional_kb_ids',
+                  'optional_skill_ids',
+                  'role_goal',
+                ],
+                'advanced_agent_fields': [
+                  'workspace_id',
+                  'multi_kb_ids',
+                  'multi_skill_ids',
+                  'redis_memory_config',
+                  'vector_memory_config',
+                  'tool_allowlist',
+                  'output_format',
+                  'audit_policy',
+                ],
+                'after_create': 'open_single_agent_chat',
+              },
               'single_agent_workspace': singleWorkspace.path,
               'multi_agent_parent_workspace': parentWorkspace.path,
               'child_agent_workspaces': [childB.path, childC.path],
@@ -3621,6 +3723,34 @@ class Rc6RuntimeController extends ChangeNotifier {
         'provider_required_for_llm': true,
         'secret_source': 'env_only',
         'api_key_display': '************',
+      },
+      'agent_modes': {
+        'simple_agent': {
+          'fields': [
+            'agent_name',
+            'agent_type',
+            'model_config_id',
+            'optional_kb_ids',
+            'optional_skill_ids',
+            'role_goal',
+          ],
+          'tool_config_visible': false,
+          'after_create': 'single_agent_chat',
+        },
+        'advanced_agent': {
+          'fields': [
+            'workspace_id',
+            'multi_kb_ids',
+            'multi_skill_ids',
+            'redis_memory_config',
+            'vector_memory_config',
+            'tool_allowlist',
+            'output_format',
+            'audit_policy',
+          ],
+          'tool_config_visible': true,
+          'tool_mode': 'allowlist_only',
+        },
       },
       'memory': {
         'short_term': 'local_session',
@@ -3740,6 +3870,13 @@ class Rc6RuntimeController extends ChangeNotifier {
               'action': 'export_agent_package',
               'artifact': _join(exportRoot.path, 'agent_package_manifest.json'),
               'status': 'completed',
+            },
+            {
+              'run_id': 'agent_chat_ready_001',
+              'action': 'open_single_agent_chat',
+              'artifact':
+                  _join(agentRoot.path, 'dialogue', 'chat_history.jsonl'),
+              'status': 'ready_after_create',
             },
           ],
         }),

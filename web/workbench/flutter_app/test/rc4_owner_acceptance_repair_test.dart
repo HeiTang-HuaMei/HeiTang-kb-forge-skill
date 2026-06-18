@@ -117,7 +117,7 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-skill-factory')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.text('从知识库生成 Skill'), findsOneWidget);
+    expect(find.text('从知识库生成 Skill'), findsWidgets);
     expect(find.text('外部本地化'), findsOneWidget);
     expect(find.text('生成 Skill'), findsWidgets);
     expect(find.textContaining('display_only'), findsNothing);

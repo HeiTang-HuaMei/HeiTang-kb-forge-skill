@@ -159,7 +159,7 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-skill-factory')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.text('生成配置'), findsOneWidget);
+    expect(find.text('从知识库生成'), findsOneWidget);
     expect(find.text('外部本地化'), findsOneWidget);
     expect(
         find.byKey(const Key('skill-metadata-source-config')), findsOneWidget);
@@ -169,7 +169,7 @@ void main() {
     expect(
         find.byKey(const Key('skill-external-localization')), findsOneWidget);
 
-    await tester.tap(find.text('包结构').first, warnIfMissed: false);
+    await tester.tap(find.text('版本操作').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('skill-output-preview')), findsOneWidget);
 
@@ -183,10 +183,12 @@ void main() {
         warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-workspace-setup')), findsOneWidget);
-    expect(find.text('Agent 配置'), findsOneWidget);
-    await tester.tap(find.text('Agent 配置').first, warnIfMissed: false);
+    expect(find.text('创建 Agent'), findsWidgets);
+    await tester.tap(find.text('创建 Agent').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
+    expect(find.text('简单 Agent'), findsWidgets);
+    expect(find.text('复杂 Agent'), findsOneWidget);
     expect(find.text('选择文件夹'), findsNothing);
     expect(find.text('运行 Owner input 链路'), findsNothing);
     expect(find.text('搜索当前关键词'), findsNothing);
@@ -856,7 +858,11 @@ void main() {
     expect(
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}agent_dialogue_manifest.json')
             .readAsStringSync(),
-        contains('"turn_count": ${baseTurnCount + 2}'));
+        allOf(
+          contains('"turn_count": ${baseTurnCount + 2}'),
+          contains('"memory_write_status": "local_session_written"'),
+          contains('"used_skill_ids"'),
+        ));
     final reloadedController = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
         runner: (_) async => const CoreBridgeProcessResult(
@@ -886,11 +892,19 @@ void main() {
     expect(
         File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}skill_generation_manifest.json')
             .readAsStringSync(),
-        contains('rc10_real_input_skill_generation.v1'));
+        allOf(
+          contains('rc10_real_input_skill_generation.v1'),
+          contains('from_multi_kb'),
+          contains('delete_with_confirmation'),
+        ));
     expect(
         File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_manifest.json')
             .readAsStringSync(),
-        allOf(contains('prd_v2_skill_operations.v1'), contains('fusion')));
+        allOf(
+          contains('prd_v2_skill_operations.v1'),
+          contains('fusion'),
+          contains('requires_confirmation'),
+        ));
     expect(
         File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}exports${Platform.pathSeparator}skills_export.md')
             .readAsStringSync(),
@@ -906,11 +920,20 @@ void main() {
     expect(
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}agent_generation_manifest.json')
             .readAsStringSync(),
-        contains('rc10_real_input_agent_generation.v1'));
+        allOf(
+          contains('rc10_real_input_agent_generation.v1'),
+          contains('simple_agents'),
+          contains('advanced_agents'),
+          contains('open_single_agent_chat'),
+        ));
     expect(
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}product_config${Platform.pathSeparator}advanced_agent_config.json')
             .readAsStringSync(),
-        contains('prd_v2_agent_advanced_config.v1'));
+        allOf(
+          contains('prd_v2_agent_advanced_config.v1'),
+          contains('"simple_agent"'),
+          contains('"advanced_agent"'),
+        ));
     expect(
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}permission_audit.json')
             .readAsStringSync(),
@@ -1280,7 +1303,11 @@ void main() {
     expect(
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}agent_generation_manifest.json')
             .readAsStringSync(),
-        contains('"parent_multi_agent"'));
+        allOf(
+          contains('"parent_multi_agent"'),
+          contains('"simple_agents"'),
+          contains('"advanced_agents"'),
+        ));
     expect(
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}children${Platform.pathSeparator}W_B${Platform.pathSeparator}agent_manifest.json')
             .readAsStringSync(),
@@ -1300,7 +1327,11 @@ void main() {
     expect(
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}product_config${Platform.pathSeparator}advanced_agent_config.json')
             .readAsStringSync(),
-        contains('"secret_source": "env_only"'));
+        allOf(
+          contains('"secret_source": "env_only"'),
+          contains('"simple_agent"'),
+          contains('"advanced_agent"'),
+        ));
     expect(
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}permission_audit.json')
             .readAsStringSync(),
