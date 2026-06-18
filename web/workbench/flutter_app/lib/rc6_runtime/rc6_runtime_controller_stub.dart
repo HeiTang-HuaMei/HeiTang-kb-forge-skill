@@ -66,6 +66,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       initialize();
   Future<void> exportMarkdownDocument() async => initialize();
   Future<void> exportDocumentFormat(String format) async => initialize();
+  Future<void> clearDocumentGenerationHistory() async => initialize();
   Future<String> saveEditedDocument(String markdown) async {
     await initialize();
     return '';
@@ -377,6 +378,7 @@ class Rc6RuntimeState {
     required this.editManifestPath,
     required this.exportedDocumentPath,
     required this.exportManifestPath,
+    required this.documentGenerationHistoryCount,
     required this.skillPath,
     required this.agentPath,
     required this.agentDialoguePath,
@@ -425,6 +427,7 @@ class Rc6RuntimeState {
         editManifestPath: '',
         exportedDocumentPath: '',
         exportManifestPath: '',
+        documentGenerationHistoryCount: 0,
         skillPath: '',
         agentPath: '',
         agentDialoguePath: '',
@@ -472,6 +475,7 @@ class Rc6RuntimeState {
   final String editManifestPath;
   final String exportedDocumentPath;
   final String exportManifestPath;
+  final int documentGenerationHistoryCount;
   final String skillPath;
   final String agentPath;
   final String agentDialoguePath;
@@ -502,6 +506,7 @@ class Rc6RuntimeState {
   bool get hasReadingNotes => readingNotesPath.isNotEmpty;
   bool get hasEditedDocument => editedDocumentPath.isNotEmpty;
   bool get hasExportedDocument => exportedDocumentPath.isNotEmpty;
+  bool get hasDocumentGenerationHistory => documentGenerationHistoryCount > 0;
   bool get hasSkill => skillPath.isNotEmpty;
   bool get hasAgent => agentPath.isNotEmpty;
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
@@ -535,6 +540,7 @@ class Rc6RuntimeState {
     String? editManifestPath,
     String? exportedDocumentPath,
     String? exportManifestPath,
+    int? documentGenerationHistoryCount,
     String? skillPath,
     String? agentPath,
     String? agentDialoguePath,
@@ -583,6 +589,8 @@ class Rc6RuntimeState {
       editManifestPath: editManifestPath ?? this.editManifestPath,
       exportedDocumentPath: exportedDocumentPath ?? this.exportedDocumentPath,
       exportManifestPath: exportManifestPath ?? this.exportManifestPath,
+      documentGenerationHistoryCount:
+          documentGenerationHistoryCount ?? this.documentGenerationHistoryCount,
       skillPath: skillPath ?? this.skillPath,
       agentPath: agentPath ?? this.agentPath,
       agentDialoguePath: agentDialoguePath ?? this.agentDialoguePath,

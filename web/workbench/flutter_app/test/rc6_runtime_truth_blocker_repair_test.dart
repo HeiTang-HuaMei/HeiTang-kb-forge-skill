@@ -1395,15 +1395,14 @@ void main() {
         templateMode: 'agent',
       ),
     );
-
     expect(requests.single.actionId, 'generate_markdown');
     expect(requests.single.arguments, contains('真实输入产品分析'));
     final docRoot = '${workspace.path}${Platform.pathSeparator}doc';
-    final generationManifest =
+    final firstGenerationManifest =
         File('$docRoot${Platform.pathSeparator}generation_manifest.json')
             .readAsStringSync();
     expect(
-        generationManifest,
+        firstGenerationManifest,
         allOf(
           contains('prd_v2_template_document_generation.v1'),
           contains('"generation_type": "product_analysis"'),
@@ -1411,6 +1410,19 @@ void main() {
           contains('"citation_strategy": "filename_and_chunk"'),
           contains('"template_mode": "agent"'),
         ));
+    await controller.generateMarkdown(
+      config: const Rc6DocumentGenerationConfig(
+        generationType: 'summary',
+        outputFormat: 'md',
+        citationStrategy: 'filename_and_chunk',
+        templateMode: 'built_in',
+      ),
+    );
+
+    expect(requests, hasLength(2));
+    final generationManifest =
+        File('$docRoot${Platform.pathSeparator}generation_manifest.json')
+            .readAsStringSync();
     expect(
         generationManifest,
         allOf(
@@ -1419,14 +1431,31 @@ void main() {
           contains('"kb_name": "真实输入知识库"'),
           contains('"generation_history":'),
           contains('"citation_count": 1'),
+          contains('"generation_type": "summary"'),
         ));
+    final generationManifestJson =
+        jsonDecode(generationManifest) as Map<String, dynamic>;
+    expect(generationManifestJson['generation_history'], hasLength(2));
+    expect(controller.state.documentGenerationHistoryCount, 2);
+    expect(controller.state.hasDocumentGenerationHistory, isTrue);
+    await controller.clearDocumentGenerationHistory();
+    final clearedManifest = jsonDecode(
+        File('$docRoot${Platform.pathSeparator}generation_manifest.json')
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(clearedManifest['generation_history'], isEmpty);
+    expect(clearedManifest['history_cleared_at'], isNotEmpty);
+    expect(controller.state.documentGenerationHistoryCount, 0);
+    expect(controller.state.hasDocumentGenerationHistory, isFalse);
+    expect(
+        File('$docRoot${Platform.pathSeparator}reading_notes.md').existsSync(),
+        isTrue);
     expect(
         File('$docRoot${Platform.pathSeparator}reading_notes.md')
             .readAsStringSync(),
         allOf(
-          contains('真实输入产品分析'),
+          contains('文档类型：摘要'),
           contains('文件名 + Chunk'),
-          contains('内置 Agent 题材'),
+          contains('通用内置模板'),
         ));
 
     final editedPath = await controller.saveEditedDocument(
@@ -1453,8 +1482,8 @@ void main() {
         allOf(
           contains('generation_manifest.json'),
           contains('edit_manifest.json'),
-          contains('"generation_type": "product_analysis"'),
-          contains('"output_format": "docx"'),
+          contains('"generation_type": "summary"'),
+          contains('"output_format": "md"'),
         ));
     expect(
         File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}reading_notes_export.md')

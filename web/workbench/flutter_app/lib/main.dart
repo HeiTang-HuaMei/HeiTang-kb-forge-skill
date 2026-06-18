@@ -6810,6 +6810,13 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
       setState(() => savedEditPath = path);
     }
 
+    Future<void> clearGenerationHistory() async {
+      if (rc6 == null) return;
+      await rc6.clearDocumentGenerationHistory();
+      if (!mounted) return;
+      setState(() {});
+    }
+
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 1040;
       final extraWide = constraints.maxWidth >= 1180;
@@ -7091,7 +7098,9 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                     ],
                     [
                       '生成历史',
-                      runtime.hasMarkdown ? 'generation_manifest.json' : '暂无历史',
+                      runtime.hasDocumentGenerationHistory
+                          ? '${runtime.documentGenerationHistoryCount} 条'
+                          : '暂无历史',
                       '用户工作区'
                     ],
                   ]
@@ -7118,8 +7127,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                     ],
                     [
                       'History',
-                      runtime.hasMarkdown
-                          ? 'generation_manifest.json'
+                      runtime.hasDocumentGenerationHistory
+                          ? '${runtime.documentGenerationHistoryCount} records'
                           : 'No history',
                       'User workspace'
                     ],
@@ -7146,11 +7155,39 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
           ),
           const SizedBox(height: 8),
           _FieldRow(
+            label: zh ? '生成历史' : 'Generation history',
+            value: runtime.hasDocumentGenerationHistory
+                ? (zh
+                    ? '${runtime.documentGenerationHistoryCount} 条记录'
+                    : '${runtime.documentGenerationHistoryCount} records')
+                : (zh ? '暂无历史' : 'No history'),
+          ),
+          const SizedBox(height: 8),
+          _FieldRow(
             label: zh ? '导出边界' : 'Export boundary',
             value: zh
                 ? 'Markdown、DOCX、PDF、PPTX、JSON、CSV 均为本地真实导出。'
                 : 'Markdown, DOCX, PDF, PPTX, JSON, and CSV export locally.',
           ),
+          const SizedBox(height: 8),
+          _EqualActionRow(children: [
+            _DisplayAction(
+              label: zh ? '清空历史' : 'Clear history',
+              icon: Icons.delete_sweep_outlined,
+              onPressed: rc6 == null ||
+                      runtime.running ||
+                      !runtime.hasDocumentGenerationHistory
+                  ? null
+                  : clearGenerationHistory,
+            ),
+            _DisplayAction(
+              label: zh ? '导出 Markdown' : 'Export Markdown',
+              icon: Icons.download_outlined,
+              onPressed: rc6 == null || runtime.running || !runtime.hasMarkdown
+                  ? null
+                  : rc6.exportMarkdownDocument,
+            ),
+          ]),
         ],
       );
       final outputFormats = _FillProductPanel(

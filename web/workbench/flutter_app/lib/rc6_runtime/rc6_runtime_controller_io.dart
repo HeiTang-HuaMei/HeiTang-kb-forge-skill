@@ -672,6 +672,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       _fail('请先构建知识库，再生成文档。');
       return;
     }
+    final existingManifest = await _readJsonObject(
+        _join(workspace.path, 'doc', 'generation_manifest.json'));
+    final historyBeforeClear =
+        _listOfMaps(existingManifest['generation_history']);
     await _clearWorkspacePath(_join(workspace.path, 'doc'));
     await _runCoreAction(
       actionId: 'generate_markdown',
@@ -690,7 +694,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     if (state.lastResult?.passed == true) {
       await _writeReadingNotes(config: config);
-      await _writeDocumentGenerationManifest(config: config);
+      await _writeDocumentGenerationManifest(
+        config: config,
+        existingHistory: historyBeforeClear,
+      );
     }
     await _loadExistingArtifacts();
     notifyListeners();
@@ -755,6 +762,32 @@ class Rc6RuntimeController extends ChangeNotifier {
       lastError: '',
     );
     await _loadExistingArtifacts();
+    notifyListeners();
+  }
+
+  Future<void> clearDocumentGenerationHistory() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    final manifestPath =
+        _join(workspace.path, 'doc', 'generation_manifest.json');
+    final manifest = await _readJsonObject(manifestPath);
+    if (manifest.isEmpty) {
+      _fail('暂无生成历史可删除。');
+      return;
+    }
+    manifest['generation_history'] = <Map<String, dynamic>>[];
+    manifest['history_cleared_at'] = DateTime.now().toUtc().toIso8601String();
+    await File(manifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(manifest),
+      encoding: utf8,
+    );
+    state = state.copyWith(
+      documentGenerationHistoryCount: 0,
+      lastMessage: '文档生成历史已清空；正文和导出产物已保留。',
+      lastError: '',
+    );
     notifyListeners();
   }
 
@@ -2606,6 +2639,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     final dialogueTurnCount = _countJsonl(agentDialogueHistoryPath);
     final selectedCount = _asInt(queryReport['selected_count']) ?? 0;
     final searchResults = await _readSearchResults(queryPath);
+    final generationManifest = await _readJsonObject(
+        _join(workspace.path, 'doc', 'generation_manifest.json'));
+    final generationHistoryCount =
+        _listOfMaps(generationManifest['generation_history']).length;
 
     var phase = state.phase;
     final hasSkillArtifact = await File(skillPath).exists() ||
@@ -2660,6 +2697,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           await File(editManifestPath).exists() ? editManifestPath : '',
       exportedDocumentPath: exportedDocumentPath,
       exportManifestPath: exportManifestPath,
+      documentGenerationHistoryCount: generationHistoryCount,
       skillPath: hasSkillArtifact ? _join(workspace.path, 'skill') : '',
       agentPath:
           await File(agentPath).exists() ? _join(workspace.path, 'agent') : '',
@@ -3617,6 +3655,7 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   Future<void> _writeDocumentGenerationManifest({
     required Rc6DocumentGenerationConfig config,
+    List<Map<String, dynamic>> existingHistory = const [],
   }) async {
     final workspace = _requireWorkspace();
     final docDir = Directory(_join(workspace.path, 'doc'));
@@ -3639,6 +3678,16 @@ class Rc6RuntimeController extends ChangeNotifier {
         : generatedPath;
     final sources = await _sourceNames();
     final citations = _citationsFromQueryReport(queryReport);
+    final history = existingHistory.toList(growable: true);
+    history.add({
+      'event': 'generate_document',
+      'template': config.templateMode,
+      'generation_type': config.generationType,
+      'output_format': config.outputFormat,
+      'output_markdown': outputPath,
+      'citation_count': citations.length,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+    });
     final payload = {
       'schema_version': 'prd_v2_template_document_generation.v1',
       'status': 'pass',
@@ -3657,17 +3706,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'citation_list_status': 'written',
       'output_markdown': outputPath,
       'export_format_requested': config.outputFormat,
-      'generation_history': [
-        {
-          'event': 'generate_document',
-          'template': config.templateMode,
-          'generation_type': config.generationType,
-          'output_format': config.outputFormat,
-          'output_markdown': outputPath,
-          'citation_count': citations.length,
-          'created_at': DateTime.now().toUtc().toIso8601String(),
-        }
-      ],
+      'generation_history': history,
       'secret_plaintext_written': false,
     };
     await File(_join(docDir.path, 'generation_manifest.json')).writeAsString(
@@ -6357,6 +6396,7 @@ class Rc6RuntimeState {
     required this.editManifestPath,
     required this.exportedDocumentPath,
     required this.exportManifestPath,
+    required this.documentGenerationHistoryCount,
     required this.skillPath,
     required this.agentPath,
     required this.agentDialoguePath,
@@ -6405,6 +6445,7 @@ class Rc6RuntimeState {
         editManifestPath: '',
         exportedDocumentPath: '',
         exportManifestPath: '',
+        documentGenerationHistoryCount: 0,
         skillPath: '',
         agentPath: '',
         agentDialoguePath: '',
@@ -6452,6 +6493,7 @@ class Rc6RuntimeState {
   final String editManifestPath;
   final String exportedDocumentPath;
   final String exportManifestPath;
+  final int documentGenerationHistoryCount;
   final String skillPath;
   final String agentPath;
   final String agentDialoguePath;
@@ -6482,6 +6524,7 @@ class Rc6RuntimeState {
   bool get hasReadingNotes => readingNotesPath.isNotEmpty;
   bool get hasEditedDocument => editedDocumentPath.isNotEmpty;
   bool get hasExportedDocument => exportedDocumentPath.isNotEmpty;
+  bool get hasDocumentGenerationHistory => documentGenerationHistoryCount > 0;
   bool get hasSkill => skillPath.isNotEmpty;
   bool get hasAgent => agentPath.isNotEmpty;
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
@@ -6515,6 +6558,7 @@ class Rc6RuntimeState {
     String? editManifestPath,
     String? exportedDocumentPath,
     String? exportManifestPath,
+    int? documentGenerationHistoryCount,
     String? skillPath,
     String? agentPath,
     String? agentDialoguePath,
@@ -6563,6 +6607,8 @@ class Rc6RuntimeState {
       editManifestPath: editManifestPath ?? this.editManifestPath,
       exportedDocumentPath: exportedDocumentPath ?? this.exportedDocumentPath,
       exportManifestPath: exportManifestPath ?? this.exportManifestPath,
+      documentGenerationHistoryCount:
+          documentGenerationHistoryCount ?? this.documentGenerationHistoryCount,
       skillPath: skillPath ?? this.skillPath,
       agentPath: agentPath ?? this.agentPath,
       agentDialoguePath: agentDialoguePath ?? this.agentDialoguePath,
