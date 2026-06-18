@@ -38,6 +38,7 @@ PRODUCT_PAGE_IDS = [
     "skill-factory",
     "agent-factory-runtime",
     "reports-audit",
+    "artifact-center",
     "workspace",
 ]
 
@@ -100,6 +101,7 @@ def test_workbench_specs_cover_required_pages():
         "Skill Factory",
         "Agent Factory & Runtime",
         "Reports & Audit",
+        "Artifact Center",
         "Task / Job Center",
         "Artifact Management",
     ]:
@@ -113,5 +115,6 @@ def test_workbench_specs_cover_required_pages():
         "检索与验证",
         "文档生成",
         "报表与审计",
+        "产物中心",
     ]:
         assert heading in app or heading in flutter_main
