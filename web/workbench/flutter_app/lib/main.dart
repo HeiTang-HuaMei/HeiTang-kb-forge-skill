@@ -7744,11 +7744,11 @@ class _KnowledgePackageListView extends StatefulWidget {
 
 class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
   bool qualityReportPrepared = false;
-  bool sourceSelected = false;
   bool llmEnhance = false;
   String kbType = 'basic';
   String storageTarget = 'local';
   int buildStep = 0;
+  final Set<String> selectedSourceIds = <String>{};
   final TextEditingController _kbNameController =
       TextEditingController(text: '真实输入知识库');
 
@@ -7790,7 +7790,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
     }
     if (mounted) {
       setState(() {
-        sourceSelected = false;
+        selectedSourceIds.clear();
         buildStep = 0;
         qualityReportPrepared = false;
       });
@@ -7803,8 +7803,20 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     final hasKbName = _kbNameController.text.trim().isNotEmpty;
     final localStorageReady = storageTarget == 'local';
-    final buildReady =
-        runtime.hasImportedFile && hasKbName && localStorageReady;
+    final sourceRecords = runtime.sourceRecords;
+    final availableSourceIds = sourceRecords
+        .map((source) => source.documentId)
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    selectedSourceIds.removeWhere((id) => !availableSourceIds.contains(id));
+    if (selectedSourceIds.isEmpty && sourceRecords.isNotEmpty) {
+      selectedSourceIds.addAll(availableSourceIds);
+    }
+    final selectedSourceCount = selectedSourceIds.length;
+    final buildReady = runtime.hasImportedFile &&
+        selectedSourceCount > 0 &&
+        hasKbName &&
+        localStorageReady;
     final artifactsReady = runtime.hasKnowledgeBase &&
         runtime.chunksPath.isNotEmpty &&
         runtime.qualityReportPath.isNotEmpty;
@@ -7828,14 +7840,13 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                       zh ? '1. 选择来源文档' : '1. Select source docs',
                       runtime.hasImportedFile
                           ? (zh
-                              ? '${runtime.sourceCount} 个已导入文件'
-                              : '${runtime.sourceCount} imported files')
+                              ? '已选择 $selectedSourceCount / ${runtime.sourceCount} 个文档'
+                              : '$selectedSourceCount / ${runtime.sourceCount} docs selected')
                           : (zh ? '请先导入文件' : 'Import files first'),
                       Icons.library_books_outlined,
-                      runtime.hasImportedFile && sourceSelected,
+                      selectedSourceCount > 0,
                       runtime.hasImportedFile
                           ? () => setState(() {
-                                sourceSelected = true;
                                 buildStep = 1;
                               })
                           : null,
@@ -7887,10 +7898,11 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                           ? null
                           : () {
                               setState(() {
-                                sourceSelected = true;
                                 buildStep = 6;
                               });
-                              rc6.buildKnowledgeBase();
+                              rc6.buildKnowledgeBase(
+                                  documentIds: selectedSourceIds.toList(
+                                      growable: false));
                             },
                     ),
                     _KnowledgeBuildStep(
@@ -7925,10 +7937,10 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                       ? [
                           [
                             '来源文档',
-                            runtime.hasImportedFile
-                                ? '${runtime.sourceCount} 个已导入文件'
+                            selectedSourceCount > 0
+                                ? '已选择 $selectedSourceCount 个来源文档'
                                 : '请先导入文件夹',
-                            runtime.hasImportedFile ? '可选择' : '等待导入'
+                            selectedSourceCount > 0 ? '已选择' : '等待选择'
                           ],
                           [
                             '知识库名称',
@@ -7954,12 +7966,12 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                       : [
                           [
                             'Source docs',
-                            runtime.hasImportedFile
-                                ? '${runtime.sourceCount} imported files'
+                            selectedSourceCount > 0
+                                ? '$selectedSourceCount source docs selected'
                                 : 'Import a folder first',
-                            runtime.hasImportedFile
-                                ? 'Selectable'
-                                : 'Waiting import'
+                            selectedSourceCount > 0
+                                ? 'Selected'
+                                : 'Waiting selection'
                           ],
                           [
                             'KB name',
@@ -7993,6 +8005,46 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                           ],
                         ],
                 ),
+                if (sourceRecords.isNotEmpty) ...[
+                  const SizedBox(height: _DesktopGrid.gutter),
+                  _SectionCaption(zh ? '来源文档选择器' : 'Source document selector'),
+                  const SizedBox(height: 8),
+                  _ProductTable(
+                    columns: zh
+                        ? ['选择', '文档', 'Document ID', '类型']
+                        : ['Selected', 'Document', 'Document ID', 'Type'],
+                    rows: sourceRecords
+                        .map((source) => [
+                              selectedSourceIds.contains(source.documentId)
+                                  ? (zh ? '已选' : 'Selected')
+                                  : (zh ? '未选' : 'Not selected'),
+                              source.sourceName,
+                              source.documentId,
+                              _documentTypeLabel(
+                                  _documentTypeForSource(source), zh),
+                            ])
+                        .toList(growable: false),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(spacing: 8, runSpacing: 8, children: [
+                    for (final source in sourceRecords)
+                      FilterChip(
+                        label: Text(source.sourceName,
+                            overflow: TextOverflow.ellipsis),
+                        selected: selectedSourceIds.contains(source.documentId),
+                        onSelected: source.documentId.isEmpty
+                            ? null
+                            : (selected) => setState(() {
+                                  if (selected) {
+                                    selectedSourceIds.add(source.documentId);
+                                  } else {
+                                    selectedSourceIds.remove(source.documentId);
+                                  }
+                                  buildStep = 1;
+                                }),
+                      ),
+                  ]),
+                ],
                 const SizedBox(height: _DesktopGrid.gutter),
                 Wrap(spacing: 8, runSpacing: 8, children: [
                   ChoiceChip(
@@ -8048,8 +8100,18 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
             _PrimaryProductAction(
               label: zh ? '选择已导入文档' : 'Select imported documents',
               icon: Icons.library_books_outlined,
-              onPressed: runtime.hasImportedFile
-                  ? () => setState(() => sourceSelected = true)
+              onPressed: sourceRecords.isNotEmpty
+                  ? () => setState(() {
+                        if (selectedSourceIds.length ==
+                            availableSourceIds.length) {
+                          selectedSourceIds.clear();
+                        } else {
+                          selectedSourceIds
+                            ..clear()
+                            ..addAll(availableSourceIds);
+                        }
+                        buildStep = 1;
+                      })
                   : null,
             ),
             _PrimaryProductAction(
@@ -8058,8 +8120,9 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
               onPressed: runtime.running || rc6 == null || !buildReady
                   ? null
                   : () {
-                      setState(() => sourceSelected = true);
-                      rc6.buildKnowledgeBase();
+                      rc6.buildKnowledgeBase(
+                          documentIds:
+                              selectedSourceIds.toList(growable: false));
                     },
             ),
             _DisplayAction(

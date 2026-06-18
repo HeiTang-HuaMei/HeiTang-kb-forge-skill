@@ -497,10 +497,12 @@ void main() {
       'source_path': input.path,
       'sources': [
         {
+          'document_id': 'doc_alpha',
           'source_name': 'alpha.md',
           'relative_path': 'alpha.md',
         },
         {
+          'document_id': 'doc_beta',
           'source_name': 'beta.md',
           'relative_path': 'beta.md',
         },
@@ -548,18 +550,35 @@ void main() {
     );
 
     await controller.initialize();
-    await controller.buildKnowledgeBase();
+    await controller.buildKnowledgeBase(documentIds: const ['doc_alpha']);
     expect(requests.single.actionId, 'knowledge_base_build');
     expectMainKnowledgeArtifacts(workspace, controller.state);
     expect(controller.state.knowledgeBases, hasLength(1));
     expect(controller.state.knowledgeBases.first.id, 'K1');
-    expect(controller.state.knowledgeBases.first.sourceCount, 2);
+    expect(controller.state.knowledgeBases.first.sourceCount, 1);
+    final firstCatalogFile = File(
+        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}kb_catalog.json');
+    final firstCatalog =
+        jsonDecode(firstCatalogFile.readAsStringSync()) as Map<String, dynamic>;
+    final firstRecord =
+        ((firstCatalog['knowledge_bases'] as List).first as Map);
+    final firstSources = (firstRecord['source_documents'] as List).cast<Map>();
+    expect(firstSources.map((source) => source['document_id']), ['doc_alpha']);
+    await controller.splitKnowledgeBase('K1');
+    expect(controller.state.lastError, contains('不能拆分'));
+
+    await controller
+        .buildKnowledgeBase(documentIds: const ['doc_alpha', 'doc_beta']);
+    expect(controller.state.knowledgeBases.first.sourceCount, 1);
+    final fullKb =
+        controller.state.knowledgeBases.firstWhere((kb) => kb.id == 'K2');
+    expect(fullKb.sourceCount, 2);
 
     await controller.copyKnowledgeBase('K1');
     await controller.mergeKnowledgeBases(['K1', 'K1_COPY1']);
-    await controller.splitKnowledgeBase('K1');
+    await controller.splitKnowledgeBase('K2');
     expect(controller.state.knowledgeBases.map((kb) => kb.id),
-        containsAll(['K1', 'K1_COPY1', 'K_MERGED1', 'K1_SPLIT1']));
+        containsAll(['K1', 'K2', 'K1_COPY1', 'K_MERGED1', 'K2_SPLIT1']));
     expect(controller.state.knowledgeBases.first.versionCount, 1);
 
     await controller.updateKnowledgeBaseIncremental('K1');

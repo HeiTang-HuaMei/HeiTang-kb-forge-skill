@@ -38,7 +38,9 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> importWebLink(String url) async => initialize();
   Future<void> createOrSwitchWorkbook(String name) async => initialize();
   Future<void> parseAndChunkSources() async => initialize();
-  Future<void> buildKnowledgeBase() async => initialize();
+  Future<void> buildKnowledgeBase(
+          {List<String> documentIds = const []}) async =>
+      initialize();
   Future<void> copyKnowledgeBase(String sourceKbId) async => initialize();
   Future<void> mergeKnowledgeBases(List<String> sourceKbIds) async =>
       initialize();

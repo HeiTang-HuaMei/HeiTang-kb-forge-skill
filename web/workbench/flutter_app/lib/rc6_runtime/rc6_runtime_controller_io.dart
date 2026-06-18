@@ -315,14 +315,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> buildKnowledgeBase() async {
+  Future<void> buildKnowledgeBase({List<String> documentIds = const []}) async {
     if (!_canRunDesktop()) {
       return;
     }
     final passed = await _runKnowledgeBaseCoreBuild(successMessage: '知识库构建完成。');
     if (passed) {
       await _writeDerivedKnowledgeArtifacts();
-      await _writeKnowledgeBaseCatalog();
+      await _writeKnowledgeBaseCatalog(documentIds: documentIds);
     }
     await _loadExistingArtifacts();
     notifyListeners();
@@ -2976,7 +2976,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     return result;
   }
 
-  Future<void> _writeKnowledgeBaseCatalog() async {
+  Future<void> _writeKnowledgeBaseCatalog(
+      {List<String> documentIds = const []}) async {
     final workspace = _requireWorkspace();
     final sourceManifest =
         await _readJsonObject(_join(workspace.path, 'source_manifest.json'));
@@ -2985,6 +2986,15 @@ class Rc6RuntimeController extends ChangeNotifier {
             .map((source) => Map<String, dynamic>.from(source))
             .toList(growable: false) ??
         const <Map<String, dynamic>>[];
+    final selectedDocumentIds =
+        documentIds.map((id) => id.trim()).where((id) => id.isNotEmpty).toSet();
+    final selectedSources = selectedDocumentIds.isEmpty
+        ? sources
+        : sources.where((source) {
+            final documentId =
+                (source['document_id'] ?? _documentId(source)).toString();
+            return selectedDocumentIds.contains(documentId);
+          }).toList(growable: false);
     final catalog = await _loadKnowledgeCatalog(workspace);
     final existing = _catalogRecords(catalog);
     final currentId = existing.any((item) => item['kb_id'] == 'K1')
@@ -2996,7 +3006,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       kbId: currentId,
       name: currentName,
       type: '普通知识库',
-      sourceDocuments: sources,
+      sourceDocuments: selectedSources,
       sourceKbIds: const [],
       operation: 'build',
     );

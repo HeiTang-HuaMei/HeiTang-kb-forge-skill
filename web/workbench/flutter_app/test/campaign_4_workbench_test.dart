@@ -243,6 +243,7 @@ void main() {
     expect(find.text('输出目标'), findsNothing);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
     expect(find.byKey(const Key('product-status-panel')), findsNothing);
+    expect(find.text('1. 选择来源文档'), findsOneWidget);
     expect(find.text('开始构建知识库'), findsOneWidget);
     await tester.tap(find.text('质量记录'));
     await tester.pumpAndSettle();
