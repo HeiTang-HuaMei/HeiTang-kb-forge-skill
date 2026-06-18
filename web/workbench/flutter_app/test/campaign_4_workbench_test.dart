@@ -93,6 +93,54 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('top bar search exposes product destinations and no-match state',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1000));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        enableLocalCoreActions: false,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('topbar-real-search-input')));
+    await tester.pumpAndSettle();
+    expect(find.text('页面 · 从知识库生成 Skill，并绑定给 Agent'), findsOneWidget);
+
+    await tester
+        .tap(find.byKey(const Key('topbar-search-option-skill-factory')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('dense-page-workbench-skill-factory')),
+        findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('topbar-real-search-input')));
+    await tester.enterText(
+        find.byKey(const Key('topbar-real-search-input')), 'Agent');
+    await tester.pumpAndSettle();
+    expect(find.text('页面 · 创建 Agent、运行最小对话和联合讨论'), findsOneWidget);
+    await tester.tap(
+        find.byKey(const Key('topbar-search-option-agent-factory-runtime')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('dense-page-workbench-agent-factory-runtime')),
+        findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('topbar-real-search-input')));
+    await tester.enterText(
+        find.byKey(const Key('topbar-real-search-input')), '没有这个对象');
+    await tester.pumpAndSettle();
+    expect(find.text('无匹配，前往查询控制台'), findsOneWidget);
+    await tester.tap(
+        find.byKey(const Key('topbar-search-option-retrieval-verification')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('dense-page-workbench-retrieval-verification')),
+        findsOneWidget);
+
+    expect(find.textContaining('disabled_boundary'), findsNothing);
+    expect(find.textContaining('enabled_real'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('provider settings use product status labels and masked secrets',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1400));
