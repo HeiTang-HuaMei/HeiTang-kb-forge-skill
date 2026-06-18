@@ -5913,22 +5913,38 @@ class _DocumentSelectionList extends StatelessWidget {
     required this.zh,
     required this.documents,
     required this.selectedIndex,
+    required this.selectedDocuments,
     required this.onSelected,
+    required this.onSelectionChanged,
   });
 
   final bool zh;
   final List<String> documents;
   final int selectedIndex;
+  final Set<String> selectedDocuments;
   final ValueChanged<int> onSelected;
+  final void Function(String name, bool selected) onSelectionChanged;
 
   @override
   Widget build(BuildContext context) {
     if (documents.isEmpty) {
-      return Text(
-        zh ? '当前筛选下没有文档。' : 'No documents match the current filter.',
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            zh ? '当前筛选下没有文档。' : 'No documents match the current filter.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            zh
+                ? '导入文档后可在这里多选、预览和批量删除。'
+                : 'Imported documents can be multi-selected, previewed, and batch deleted here.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
       );
     }
     return Column(
@@ -5940,13 +5956,18 @@ class _DocumentSelectionList extends StatelessWidget {
           ListTile(
             dense: true,
             selected: selectedIndex == index,
-            leading: Icon(
-              selectedIndex == index
-                  ? Icons.radio_button_checked
-                  : Icons.radio_button_unchecked,
+            leading: Checkbox(
+              value: selectedDocuments.contains(documents[index]),
+              onChanged: (selected) =>
+                  onSelectionChanged(documents[index], selected ?? false),
             ),
             title: Text(documents[index],
                 maxLines: 1, overflow: TextOverflow.ellipsis),
+            trailing: Icon(
+              selectedIndex == index
+                  ? Icons.visibility_outlined
+                  : Icons.chevron_right_outlined,
+            ),
             onTap: () => onSelected(index),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
@@ -8658,9 +8679,19 @@ class _DocumentLibraryView extends StatefulWidget {
 class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
   bool indexed = true;
   String selectedType = 'all';
+  String sortMode = 'name_asc';
   int selectedDocumentIndex = 0;
+  final Set<String> selectedDocuments = <String>{};
+  final TextEditingController _documentSearchController =
+      TextEditingController();
 
   bool get zh => widget.zh;
+
+  @override
+  void dispose() {
+    _documentSearchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -8674,11 +8705,16 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
             if (hasRealDocument) _displayNameForPath(runtime.selectedFilePath)
           ]
         : runtime.sourceNames;
-    final filteredNames = selectedType == 'all'
-        ? importedNames
-        : importedNames
-            .where((name) => _documentTypeForName(name) == selectedType)
-            .toList(growable: false);
+    final searchText = _documentSearchController.text.trim().toLowerCase();
+    final filteredNames = (selectedType == 'all'
+            ? importedNames
+            : importedNames
+                .where((name) => _documentTypeForName(name) == selectedType))
+        .where((name) =>
+            searchText.isEmpty || name.toLowerCase().contains(searchText))
+        .toList(growable: true);
+    _sortDocumentNames(filteredNames, sortMode);
+    selectedDocuments.removeWhere((name) => !filteredNames.contains(name));
     if (selectedDocumentIndex >= filteredNames.length) {
       selectedDocumentIndex =
           filteredNames.isEmpty ? 0 : filteredNames.length - 1;
@@ -8698,6 +8734,29 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
       await rc6.deleteImportedSource(selectedName);
       if (mounted) {
         setState(() => selectedDocumentIndex = 0);
+      }
+    }
+
+    Future<void> deleteSelectedDocuments() async {
+      if (rc6 == null || runtime.running || selectedDocuments.isEmpty) return;
+      final count = selectedDocuments.length;
+      final confirmed = await _confirmDestructiveAction(
+        context,
+        title: zh ? '批量删除来源文档？' : 'Delete selected source documents?',
+        body: zh
+            ? '这会删除 $count 个已选来源文档，并清理解析、知识库、检索和文档产物。'
+            : 'This removes $count selected source documents and clears parsing, KB, retrieval, and document artifacts.',
+      );
+      if (!confirmed) return;
+      final toDelete = selectedDocuments.toList(growable: false);
+      for (final name in toDelete) {
+        await rc6.deleteImportedSource(name);
+      }
+      if (mounted) {
+        setState(() {
+          selectedDocuments.clear();
+          selectedDocumentIndex = 0;
+        });
       }
     }
 
@@ -8751,6 +8810,42 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                     }),
                   ),
               ]),
+              const SizedBox(height: 8),
+              TextField(
+                key: const Key('document-library-search-input'),
+                controller: _documentSearchController,
+                onChanged: (_) => setState(() {
+                  selectedDocumentIndex = 0;
+                  selectedDocuments.clear();
+                }),
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search_outlined),
+                  labelText: zh ? '搜索来源文档' : 'Search source documents',
+                  helperText: zh
+                      ? '按文件名、网页来源记录过滤文档库。'
+                      : 'Filter library documents by file name or web source record.',
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(spacing: 8, runSpacing: 8, children: [
+                ChoiceChip(
+                  label: Text(zh ? '名称升序' : 'Name A-Z'),
+                  selected: sortMode == 'name_asc',
+                  onSelected: (_) => setState(() => sortMode = 'name_asc'),
+                ),
+                ChoiceChip(
+                  label: Text(zh ? '名称降序' : 'Name Z-A'),
+                  selected: sortMode == 'name_desc',
+                  onSelected: (_) => setState(() => sortMode = 'name_desc'),
+                ),
+                ChoiceChip(
+                  label: Text(zh ? '类型排序' : 'Type sort'),
+                  selected: sortMode == 'type',
+                  onSelected: (_) => setState(() => sortMode = 'type'),
+                ),
+              ]),
               const SizedBox(height: _DesktopGrid.gutter),
               _RuntimeFeedbackBanner(
                 title: hasRealDocument
@@ -8785,7 +8880,10 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
           bottom: _PrimaryProductAction(
             label: zh ? '刷新文档列表' : 'Refresh document list',
             icon: Icons.refresh_outlined,
-            onPressed: () => setState(() => indexed = true),
+            onPressed: () => setState(() {
+              indexed = true;
+              selectedDocuments.clear();
+            }),
           ),
         ),
       );
@@ -8890,8 +8988,16 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                       zh: zh,
                       documents: filteredNames,
                       selectedIndex: selectedDocumentIndex,
+                      selectedDocuments: selectedDocuments,
                       onSelected: (index) =>
                           setState(() => selectedDocumentIndex = index),
+                      onSelectionChanged: (name, selected) => setState(() {
+                        if (selected) {
+                          selectedDocuments.add(name);
+                        } else {
+                          selectedDocuments.remove(name);
+                        }
+                      }),
                     ),
                   ),
                 ),
@@ -8914,9 +9020,15 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
         ),
       );
       final deleteAction = _DisplayAction(
-        label: zh ? '删除当前文档' : 'Delete current document',
+        label: selectedDocuments.isEmpty
+            ? (zh ? '删除当前文档' : 'Delete current document')
+            : (zh
+                ? '删除已选 ${selectedDocuments.length} 个文档'
+                : 'Delete ${selectedDocuments.length} selected docs'),
         icon: Icons.delete_outline,
-        onPressed: selectedName.isEmpty ? null : deleteSelectedDocument,
+        onPressed: selectedDocuments.isEmpty
+            ? (selectedName.isEmpty ? null : deleteSelectedDocument)
+            : deleteSelectedDocuments,
       );
       if (!wide) {
         return Column(children: [
@@ -8972,6 +9084,25 @@ String _documentTypeLabel(String type, bool zh) {
     'web' => zh ? '网页链接' : 'Web link',
     _ => zh ? '其他' : 'Other',
   };
+}
+
+void _sortDocumentNames(List<String> names, String sortMode) {
+  switch (sortMode) {
+    case 'name_desc':
+      names.sort((a, b) => b.toLowerCase().compareTo(a.toLowerCase()));
+      return;
+    case 'type':
+      names.sort((a, b) {
+        final typeCompare =
+            _documentTypeForName(a).compareTo(_documentTypeForName(b));
+        return typeCompare == 0
+            ? a.toLowerCase().compareTo(b.toLowerCase())
+            : typeCompare;
+      });
+      return;
+    default:
+      names.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  }
 }
 
 class _WorkbookProductWorkflow extends StatelessWidget {

@@ -21,9 +21,13 @@ void main() {
     return dir;
   }
 
-  Future<void> pumpWorkbench(WidgetTester tester) async {
+  Future<void> pumpWorkbench(WidgetTester tester,
+      {Future<void> Function(Directory workspace)? setupWorkspace}) async {
     await tester.binding.setSurfaceSize(const Size(1366, 768));
     final workspace = await createWorkspace();
+    if (setupWorkspace != null) {
+      await setupWorkspace(workspace);
+    }
     await tester.pumpWidget(
       HeiTangWorkbenchApp(
         contracts: sampleWorkbenchContracts,
@@ -128,6 +132,62 @@ void main() {
     expect(find.textContaining('display_only'), findsNothing);
     expect(find.textContaining('示例行保持'), findsNothing);
     expect(find.text('刷新文档列表'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('prd document library exposes search sort and multi-select',
+      (tester) async {
+    await pumpWorkbench(tester, setupWorkspace: (workspace) async {
+      final input = Directory('${workspace.path}${Platform.pathSeparator}input')
+        ..createSync(recursive: true);
+      File('${input.path}${Platform.pathSeparator}alpha.md')
+          .writeAsStringSync('alpha document');
+      File('${input.path}${Platform.pathSeparator}beta.txt')
+          .writeAsStringSync('beta document');
+      File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
+          .writeAsStringSync(jsonEncode({
+        'schema_version': 'rc10_source_manifest.v1',
+        'status': 'imported',
+        'source_path': input.path,
+        'source_name': 'input',
+        'source_count': 2,
+        'sources': [
+          {
+            'source_path': '${input.path}${Platform.pathSeparator}alpha.md',
+            'source_name': 'alpha.md',
+            'relative_path': 'alpha.md',
+            'source_type': 'local_file',
+            'size_bytes': 14,
+          },
+          {
+            'source_path': '${input.path}${Platform.pathSeparator}beta.txt',
+            'source_name': 'beta.txt',
+            'relative_path': 'beta.txt',
+            'source_type': 'local_file',
+            'size_bytes': 13,
+          },
+        ],
+        'workspace': workspace.path,
+      }));
+    });
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+
+    await tester
+        .ensureVisible(find.byKey(const Key('sidebar-document-library')));
+    await tester.tap(find.byKey(const Key('sidebar-document-library')),
+        warnIfMissed: false);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('来源文档').first, warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    expect(
+        find.byKey(const Key('document-library-search-input')), findsOneWidget);
+    expect(find.text('名称升序'), findsOneWidget);
+    expect(find.text('名称降序'), findsOneWidget);
+    expect(find.text('类型排序'), findsOneWidget);
+    expect(find.text('导入文档后可在这里多选、预览和批量删除。'), findsOneWidget);
+    expect(find.text('删除当前文档'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
