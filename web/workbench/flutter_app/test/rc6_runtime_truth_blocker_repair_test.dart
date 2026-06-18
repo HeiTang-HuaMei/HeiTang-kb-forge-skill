@@ -1604,6 +1604,19 @@ void main() {
         ));
     expect(controller.state.skillVersionCount, 1);
     expect(controller.state.hasSkillVersions, isTrue);
+    expect(controller.state.hasPrimarySkill, isTrue);
+    expect(controller.state.primarySkillPath, endsWith('SKILL.md'));
+    expect(controller.state.hasSkillConfig, isTrue);
+    expect(controller.state.hasSkillVerificationReport, isTrue);
+    expect(controller.state.hasSkillGenerationManifest, isTrue);
+    expect(controller.state.hasLocalizedSkillManifest, isTrue);
+    expect(controller.state.hasLocalizedSkillDiff, isTrue);
+    expect(controller.state.hasSkillVersionManifest, isTrue);
+    expect(controller.state.hasSkillOperationManifest, isTrue);
+    expect(controller.state.hasSkillExport, isTrue);
+    expect(controller.state.hasSkillAgentBindingManifest, isTrue);
+    expect(controller.state.skillOperationStatus, 'pass');
+    expect(controller.state.skillAgentBindingStatus, 'waiting_agent');
 
     final editedSkillPath = await controller.saveEditedSkill(
       '# Owner edited product Skill\n\nUse product evidence with citations.',
@@ -1645,6 +1658,11 @@ void main() {
           contains('skill_version_manifest.json'),
           contains('"status": "saved"'),
         ));
+    expect(controller.state.skillExportPath, endsWith('skills_export.md'));
+    expect(controller.state.skillOperationManifestPath,
+        endsWith('skill_operation_manifest.json'));
+    expect(controller.state.skillAgentBindingManifestPath,
+        endsWith('agent_binding_manifest.json'));
   });
 
   test('agent generation persists creation mode type and output config',

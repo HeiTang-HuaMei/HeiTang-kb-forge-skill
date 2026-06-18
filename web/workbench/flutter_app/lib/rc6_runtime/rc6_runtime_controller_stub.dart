@@ -381,6 +381,18 @@ class Rc6RuntimeState {
     required this.documentGenerationHistoryCount,
     required this.skillVersionCount,
     required this.skillPath,
+    required this.primarySkillPath,
+    required this.skillConfigPath,
+    required this.skillVerificationReportPath,
+    required this.skillGenerationManifestPath,
+    required this.localizedSkillManifestPath,
+    required this.localizedSkillDiffPath,
+    required this.skillVersionManifestPath,
+    required this.skillOperationManifestPath,
+    required this.skillExportPath,
+    required this.skillAgentBindingManifestPath,
+    required this.skillOperationStatus,
+    required this.skillAgentBindingStatus,
     required this.agentPath,
     required this.agentDialoguePath,
     required this.agentDialogueManifestPath,
@@ -447,6 +459,18 @@ class Rc6RuntimeState {
         documentGenerationHistoryCount: 0,
         skillVersionCount: 0,
         skillPath: '',
+        primarySkillPath: '',
+        skillConfigPath: '',
+        skillVerificationReportPath: '',
+        skillGenerationManifestPath: '',
+        localizedSkillManifestPath: '',
+        localizedSkillDiffPath: '',
+        skillVersionManifestPath: '',
+        skillOperationManifestPath: '',
+        skillExportPath: '',
+        skillAgentBindingManifestPath: '',
+        skillOperationStatus: '',
+        skillAgentBindingStatus: '',
         agentPath: '',
         agentDialoguePath: '',
         agentDialogueManifestPath: '',
@@ -512,6 +536,18 @@ class Rc6RuntimeState {
   final int documentGenerationHistoryCount;
   final int skillVersionCount;
   final String skillPath;
+  final String primarySkillPath;
+  final String skillConfigPath;
+  final String skillVerificationReportPath;
+  final String skillGenerationManifestPath;
+  final String localizedSkillManifestPath;
+  final String localizedSkillDiffPath;
+  final String skillVersionManifestPath;
+  final String skillOperationManifestPath;
+  final String skillExportPath;
+  final String skillAgentBindingManifestPath;
+  final String skillOperationStatus;
+  final String skillAgentBindingStatus;
   final String agentPath;
   final String agentDialoguePath;
   final String agentDialogueManifestPath;
@@ -559,7 +595,18 @@ class Rc6RuntimeState {
   bool get hasExportedDocument => exportedDocumentPath.isNotEmpty;
   bool get hasDocumentGenerationHistory => documentGenerationHistoryCount > 0;
   bool get hasSkill => skillPath.isNotEmpty;
+  bool get hasPrimarySkill => primarySkillPath.isNotEmpty;
+  bool get hasSkillConfig => skillConfigPath.isNotEmpty;
+  bool get hasSkillVerificationReport => skillVerificationReportPath.isNotEmpty;
+  bool get hasSkillGenerationManifest => skillGenerationManifestPath.isNotEmpty;
+  bool get hasLocalizedSkillManifest => localizedSkillManifestPath.isNotEmpty;
+  bool get hasLocalizedSkillDiff => localizedSkillDiffPath.isNotEmpty;
   bool get hasSkillVersions => skillVersionCount > 0;
+  bool get hasSkillVersionManifest => skillVersionManifestPath.isNotEmpty;
+  bool get hasSkillOperationManifest => skillOperationManifestPath.isNotEmpty;
+  bool get hasSkillExport => skillExportPath.isNotEmpty;
+  bool get hasSkillAgentBindingManifest =>
+      skillAgentBindingManifestPath.isNotEmpty;
   bool get hasAgent => agentPath.isNotEmpty;
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
   bool get hasAgentDialogueManifest => agentDialogueManifestPath.isNotEmpty;
@@ -599,6 +646,18 @@ class Rc6RuntimeState {
     int? documentGenerationHistoryCount,
     int? skillVersionCount,
     String? skillPath,
+    String? primarySkillPath,
+    String? skillConfigPath,
+    String? skillVerificationReportPath,
+    String? skillGenerationManifestPath,
+    String? localizedSkillManifestPath,
+    String? localizedSkillDiffPath,
+    String? skillVersionManifestPath,
+    String? skillOperationManifestPath,
+    String? skillExportPath,
+    String? skillAgentBindingManifestPath,
+    String? skillOperationStatus,
+    String? skillAgentBindingStatus,
     String? agentPath,
     String? agentDialoguePath,
     String? agentDialogueManifestPath,
@@ -666,6 +725,26 @@ class Rc6RuntimeState {
           documentGenerationHistoryCount ?? this.documentGenerationHistoryCount,
       skillVersionCount: skillVersionCount ?? this.skillVersionCount,
       skillPath: skillPath ?? this.skillPath,
+      primarySkillPath: primarySkillPath ?? this.primarySkillPath,
+      skillConfigPath: skillConfigPath ?? this.skillConfigPath,
+      skillVerificationReportPath:
+          skillVerificationReportPath ?? this.skillVerificationReportPath,
+      skillGenerationManifestPath:
+          skillGenerationManifestPath ?? this.skillGenerationManifestPath,
+      localizedSkillManifestPath:
+          localizedSkillManifestPath ?? this.localizedSkillManifestPath,
+      localizedSkillDiffPath:
+          localizedSkillDiffPath ?? this.localizedSkillDiffPath,
+      skillVersionManifestPath:
+          skillVersionManifestPath ?? this.skillVersionManifestPath,
+      skillOperationManifestPath:
+          skillOperationManifestPath ?? this.skillOperationManifestPath,
+      skillExportPath: skillExportPath ?? this.skillExportPath,
+      skillAgentBindingManifestPath:
+          skillAgentBindingManifestPath ?? this.skillAgentBindingManifestPath,
+      skillOperationStatus: skillOperationStatus ?? this.skillOperationStatus,
+      skillAgentBindingStatus:
+          skillAgentBindingStatus ?? this.skillAgentBindingStatus,
       agentPath: agentPath ?? this.agentPath,
       agentDialoguePath: agentDialoguePath ?? this.agentDialoguePath,
       agentDialogueManifestPath:

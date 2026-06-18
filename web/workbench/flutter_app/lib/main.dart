@@ -10404,10 +10404,29 @@ class _SkillBuilderProductWorkflowState
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
+    final skillDraftPath = runtime.primarySkillPath.isNotEmpty
+        ? runtime.primarySkillPath
+        : runtime.skillPath.isNotEmpty
+            ? '${runtime.skillPath}/knowledge_qa_skill/SKILL.md'
+            : '';
+    final skillExportPath = runtime.skillExportPath.isNotEmpty
+        ? runtime.skillExportPath
+        : runtime.skillPath.isNotEmpty
+            ? '${runtime.skillPath}/exports/skills_export.md'
+            : '';
+    final skillBindingStatus = runtime.skillAgentBindingStatus.isNotEmpty
+        ? runtime.skillAgentBindingStatus
+        : runtime.hasAgent
+            ? 'bound'
+            : 'waiting_agent';
+    final skillOperationStatus = runtime.skillOperationStatus.isNotEmpty
+        ? runtime.skillOperationStatus
+        : runtime.hasSkillOperationManifest
+            ? 'pass'
+            : '';
     Future<void> loadSkillDraft() async {
-      if (rc6 == null || !runtime.hasSkill) return;
-      final content = await rc6.readWorkspaceTextArtifact(
-          '${runtime.skillPath}/knowledge_qa_skill/SKILL.md');
+      if (rc6 == null || skillDraftPath.isEmpty) return;
+      final content = await rc6.readWorkspaceTextArtifact(skillDraftPath);
       if (!mounted) return;
       setState(() {
         _skillEditorController.text = content;
@@ -10627,10 +10646,12 @@ class _SkillBuilderProductWorkflowState
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? '样例任务验证' : 'Sample task validation',
-                value: runtime.hasSkill
+                value: runtime.hasSkillVerificationReport
                     ? (_zh
-                        ? 'verification_report.json 已写入'
-                        : 'verification_report.json written')
+                        ? _displayNameForPath(
+                            runtime.skillVerificationReportPath)
+                        : _displayNameForPath(
+                            runtime.skillVerificationReportPath))
                     : (_zh ? '生成后执行本地样例校验' : 'Runs after local generation')),
             const SizedBox(height: 8),
             SizedBox(
@@ -10678,8 +10699,9 @@ class _SkillBuilderProductWorkflowState
               _DisplayAction(
                 label: _zh ? '加载草稿' : 'Load draft',
                 icon: Icons.article_outlined,
-                onPressed:
-                    rc6 == null || !runtime.hasSkill ? null : loadSkillDraft,
+                onPressed: rc6 == null || skillDraftPath.isEmpty
+                    ? null
+                    : loadSkillDraft,
               ),
               _PrimaryProductAction(
                 label: _zh ? '保存编辑' : 'Save edit',
@@ -10716,34 +10738,38 @@ class _SkillBuilderProductWorkflowState
                       [
                         'S0 外部 Skill',
                         '导入外部写作方法论',
-                        runtime.hasSkill ? '已导入' : '生成 Skill 后写入'
+                        runtime.hasSkillGenerationManifest ? '已导入' : '等待导入'
                       ],
                       [
                         'S2 本地化 Skill',
                         'S0 + 当前知识库融合',
-                        runtime.hasSkill ? '已验证' : '等待知识库'
+                        runtime.hasLocalizedSkillManifest ? '已验证' : '等待知识库'
                       ],
                       [
                         '差异说明',
                         '记录本地化和 Agent 绑定变化',
-                        runtime.hasSkill ? '已生成' : '等待生成'
+                        runtime.hasLocalizedSkillDiff ? '已生成' : '等待生成'
                       ],
                     ]
                   : [
                       [
                         'S0 external Skill',
                         'Imported writing methodology',
-                        runtime.hasSkill ? 'Imported' : 'Written on generate'
+                        runtime.hasSkillGenerationManifest
+                            ? 'Imported'
+                            : 'Waiting import'
                       ],
                       [
                         'S2 localized Skill',
                         'S0 + current KB fusion',
-                        runtime.hasSkill ? 'Validated' : 'Waiting KB'
+                        runtime.hasLocalizedSkillManifest
+                            ? 'Validated'
+                            : 'Waiting KB'
                       ],
                       [
                         'Diff summary',
                         'Localization and Agent-binding changes',
-                        runtime.hasSkill ? 'Generated' : 'Waiting'
+                        runtime.hasLocalizedSkillDiff ? 'Generated' : 'Waiting'
                       ],
                     ],
             ),
@@ -10777,31 +10803,34 @@ class _SkillBuilderProductWorkflowState
               rows: _zh
                   ? [
                       ['knowledge_qa_skill/', ''],
-                      ['SKILL.md', runtime.hasSkill ? '已生成' : '-'],
-                      ['skill_config.json', runtime.hasSkill ? '已生成' : '-'],
+                      ['SKILL.md', runtime.hasPrimarySkill ? '已生成' : '-'],
+                      [
+                        'skill_config.json',
+                        runtime.hasSkillConfig ? '已生成' : '-'
+                      ],
                       [
                         'verification_report.json',
-                        runtime.hasSkill ? '已生成' : '-'
+                        runtime.hasSkillVerificationReport ? '已生成' : '-'
                       ],
                       [
                         'external_imported_skill/S0/',
-                        runtime.hasSkill ? '已导入' : '-'
+                        runtime.hasSkillGenerationManifest ? '已导入' : '-'
                       ],
                       [
                         'localized_writing_skill/S2/',
-                        runtime.hasSkill ? '已生成' : '-'
+                        runtime.hasLocalizedSkillManifest ? '已生成' : '-'
                       ],
                       [
                         'skill_generation_manifest.json',
-                        runtime.hasSkill ? '已生成' : '-'
+                        runtime.hasSkillGenerationManifest ? '已生成' : '-'
                       ],
                       [
                         'operations/skill_operation_manifest.json',
-                        runtime.hasSkill ? '已生成' : '-'
+                        runtime.hasSkillOperationManifest ? '已生成' : '-'
                       ],
                       [
                         'exports/skills_export.md',
-                        runtime.hasSkill ? '已导出' : '-'
+                        runtime.hasSkillExport ? '已导出' : '-'
                       ],
                       [
                         'knowledge_qa_skill/skill_edit_manifest.json',
@@ -10810,31 +10839,34 @@ class _SkillBuilderProductWorkflowState
                     ]
                   : [
                       ['knowledge_qa_skill/', ''],
-                      ['SKILL.md', runtime.hasSkill ? 'written' : '-'],
-                      ['skill_config.json', runtime.hasSkill ? 'written' : '-'],
+                      ['SKILL.md', runtime.hasPrimarySkill ? 'written' : '-'],
+                      [
+                        'skill_config.json',
+                        runtime.hasSkillConfig ? 'written' : '-'
+                      ],
                       [
                         'verification_report.json',
-                        runtime.hasSkill ? 'written' : '-'
+                        runtime.hasSkillVerificationReport ? 'written' : '-'
                       ],
                       [
                         'external_imported_skill/S0/',
-                        runtime.hasSkill ? 'imported' : '-'
+                        runtime.hasSkillGenerationManifest ? 'imported' : '-'
                       ],
                       [
                         'localized_writing_skill/S2/',
-                        runtime.hasSkill ? 'written' : '-'
+                        runtime.hasLocalizedSkillManifest ? 'written' : '-'
                       ],
                       [
                         'skill_generation_manifest.json',
-                        runtime.hasSkill ? 'written' : '-'
+                        runtime.hasSkillGenerationManifest ? 'written' : '-'
                       ],
                       [
                         'operations/skill_operation_manifest.json',
-                        runtime.hasSkill ? 'written' : '-'
+                        runtime.hasSkillOperationManifest ? 'written' : '-'
                       ],
                       [
                         'exports/skills_export.md',
-                        runtime.hasSkill ? 'exported' : '-'
+                        runtime.hasSkillExport ? 'exported' : '-'
                       ],
                       [
                         'knowledge_qa_skill/skill_edit_manifest.json',
@@ -10852,7 +10884,7 @@ class _SkillBuilderProductWorkflowState
                       [
                         '查看',
                         'knowledge_qa_skill/SKILL.md',
-                        runtime.hasSkill ? '可查看' : '等待生成'
+                        runtime.hasPrimarySkill ? '可查看' : '等待生成'
                       ],
                       [
                         '复制',
@@ -10867,19 +10899,23 @@ class _SkillBuilderProductWorkflowState
                       [
                         '导出',
                         'exports/skills_export.md',
-                        runtime.hasSkill ? '可打开' : '等待生成'
+                        runtime.hasSkillExport ? '可打开' : '等待生成'
                       ],
                       [
                         '绑定 Agent',
                         'operations/agent_binding_manifest.json',
-                        runtime.hasAgent ? '已绑定' : '创建 Agent 后绑定'
+                        runtime.hasSkillAgentBindingManifest
+                            ? (skillBindingStatus == 'bound'
+                                ? '已绑定'
+                                : '等待 Agent')
+                            : '创建 Agent 后绑定'
                       ],
                     ]
                   : [
                       [
                         'View',
                         'knowledge_qa_skill/SKILL.md',
-                        runtime.hasSkill ? 'Openable' : 'Waiting'
+                        runtime.hasPrimarySkill ? 'Openable' : 'Waiting'
                       ],
                       [
                         'Copy',
@@ -10894,12 +10930,16 @@ class _SkillBuilderProductWorkflowState
                       [
                         'Export',
                         'exports/skills_export.md',
-                        runtime.hasSkill ? 'Openable' : 'Waiting'
+                        runtime.hasSkillExport ? 'Openable' : 'Waiting'
                       ],
                       [
                         'Bind Agent',
                         'operations/agent_binding_manifest.json',
-                        runtime.hasAgent ? 'Bound' : 'After Agent creation'
+                        runtime.hasSkillAgentBindingManifest
+                            ? (skillBindingStatus == 'bound'
+                                ? 'Bound'
+                                : 'Waiting Agent')
+                            : 'After Agent creation'
                       ],
                     ],
             ),
@@ -10928,12 +10968,12 @@ class _SkillBuilderProductWorkflowState
               items: [
                 _MetricDatum(
                     label: _zh ? '覆盖率' : 'Coverage',
-                    value: runtime.hasSkill ? 'real' : '-',
+                    value: runtime.hasSkillGenerationManifest ? 'real' : '-',
                     detail: _zh ? '本地产物' : 'local artifact',
                     icon: Icons.pie_chart_outline),
                 _MetricDatum(
                     label: _zh ? '可安装性' : 'Installability',
-                    value: runtime.hasSkill ? 'ready' : '-',
+                    value: runtime.hasSkillExport ? 'ready' : '-',
                     detail: _zh ? '已写出' : 'written',
                     icon: Icons.verified_outlined),
               ],
@@ -10942,8 +10982,17 @@ class _SkillBuilderProductWorkflowState
             _FieldRow(
                 label: _zh ? '验证结果' : 'Validation result',
                 value: validationReady
-                    ? (runtime.hasSkill ? 'pass' : '等待真实 Skill 产物')
+                    ? (runtime.hasSkillVerificationReport
+                        ? _displayNameForPath(
+                            runtime.skillVerificationReportPath)
+                        : '等待真实 Skill 产物')
                     : (_zh ? '等待报告' : 'Waiting for report')),
+            const SizedBox(height: 8),
+            _FieldRow(
+                label: _zh ? '操作清单' : 'Operation manifest',
+                value: runtime.hasSkillOperationManifest
+                    ? '${skillOperationStatus.isEmpty ? 'pass' : skillOperationStatus} · ${_displayNameForPath(runtime.skillOperationManifestPath)}'
+                    : (_zh ? '等待生成操作产物' : 'Waiting operation artifact')),
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? '草稿编辑' : 'Draft edit',
@@ -10962,12 +11011,20 @@ class _SkillBuilderProductWorkflowState
             _FieldRow(
                 label: _zh ? '导出包' : 'Export package',
                 value: validationReady
-                    ? (runtime.hasSkill
-                        ? _displayNameForPath(runtime.skillPath)
+                    ? (runtime.hasSkillExport
+                        ? _displayNameForPath(runtime.skillExportPath)
                         : (_zh
                             ? '等待真实 Skill 产物'
                             : 'Waiting for real Skill artifact'))
                     : (_zh ? '等待报告' : 'Waiting for report')),
+            const SizedBox(height: 8),
+            _FieldRow(
+                label: _zh ? 'Agent 绑定' : 'Agent binding',
+                value: runtime.hasSkillAgentBindingManifest
+                    ? '${skillBindingStatus == 'bound' ? (_zh ? '已绑定' : 'bound') : (_zh ? '等待 Agent' : 'waiting Agent')} · ${_displayNameForPath(runtime.skillAgentBindingManifestPath)}'
+                    : (_zh
+                        ? '创建 Agent 后生成绑定清单'
+                        : 'Generated after Agent creation')),
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? '下一阶段' : 'Next stage',
@@ -10993,14 +11050,14 @@ class _SkillBuilderProductWorkflowState
                 icon: Icons.auto_awesome_outlined,
               ),
               _DisplayAction(
-                label: runtime.hasSkill
+                label: runtime.hasSkillExport
                     ? (_zh ? '复制 Skill 路径' : 'Copy Skill path')
                     : (_zh ? '等待真实 Skill 产物' : 'Waiting for real Skill'),
                 icon: Icons.copy_outlined,
-                onPressed: runtime.hasSkill
+                onPressed: runtime.hasSkillExport
                     ? () => _copyArtifactPath(
                           context,
-                          path: runtime.skillPath,
+                          path: skillExportPath,
                           successMessage: _zh
                               ? 'Skill 产物路径已复制'
                               : 'Skill artifact path copied',
@@ -11008,17 +11065,16 @@ class _SkillBuilderProductWorkflowState
                     : null,
               ),
               _DisplayAction(
-                label: runtime.hasSkill
+                label: skillDraftPath.isNotEmpty
                     ? (_zh ? '查看 Skill 内容' : 'View Skill content')
                     : (_zh ? '等待可预览 Skill' : 'Waiting for previewable Skill'),
                 icon: Icons.article_outlined,
-                onPressed: runtime.hasSkill
+                onPressed: skillDraftPath.isNotEmpty
                     ? () => _showWorkspaceArtifactPreview(
                           context,
                           rc6: rc6,
                           title: _zh ? 'Skill 内容预览' : 'Skill content preview',
-                          path:
-                              '${runtime.skillPath}/knowledge_qa_skill/SKILL.md',
+                          path: skillDraftPath,
                           unavailableMessage: _zh
                               ? '尚未生成可预览 Skill。'
                               : 'No previewable Skill has been generated.',
