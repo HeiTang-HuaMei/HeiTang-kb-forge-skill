@@ -546,6 +546,10 @@ void main() {
 
     expect(find.text('知识供应链进度'), findsOneWidget);
     expect(find.text('配置状态'), findsWidgets);
+    expect(find.text('SKILL.md'), findsOneWidget);
+    expect(find.text('agent_manifest.json'), findsOneWidget);
+    expect(find.text('agent_dialogue.md'), findsOneWidget);
+    expect(find.text('multi_agent_discussion.md'), findsOneWidget);
     expect(find.text('报告摘要'), findsNothing);
     expect(find.textContaining('passed · full_gate=ready_for_v4_rc'),
         findsNothing);

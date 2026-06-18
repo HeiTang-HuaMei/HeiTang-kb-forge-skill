@@ -2917,6 +2917,26 @@ class _DashboardArtifactOverview extends StatelessWidget {
                     _displayNameForPath(runtime.exportedDocumentPath)
                   ],
                   [
+                    'SKILL.md',
+                    runtime.hasSkill ? '已生成' : '未生成',
+                    _displayNameForPath(runtime.primarySkillPath)
+                  ],
+                  [
+                    'agent_manifest.json',
+                    runtime.hasAgent ? '已生成' : '未生成',
+                    _displayNameForPath(runtime.primaryAgentManifestPath)
+                  ],
+                  [
+                    'agent_dialogue.md',
+                    runtime.hasAgentDialogue ? '已保存' : '未生成',
+                    _displayNameForPath(runtime.agentDialoguePath)
+                  ],
+                  [
+                    'multi_agent_discussion.md',
+                    runtime.hasMultiAgentDiscussion ? '已生成' : '未生成',
+                    _displayNameForPath(runtime.multiAgentDiscussionPath)
+                  ],
+                  [
                     '知识生产链路',
                     runtime.hasPrdP0Evidence ? '已生成' : '未生成',
                     _displayNameForPath(runtime.prdP0EvidencePath)
@@ -2950,6 +2970,28 @@ class _DashboardArtifactOverview extends StatelessWidget {
                         ? 'Not exported'
                         : 'Exported',
                     _displayNameForPath(runtime.exportedDocumentPath)
+                  ],
+                  [
+                    'SKILL.md',
+                    runtime.hasSkill ? 'Generated' : 'Not generated',
+                    _displayNameForPath(runtime.primarySkillPath)
+                  ],
+                  [
+                    'agent_manifest.json',
+                    runtime.hasAgent ? 'Generated' : 'Not generated',
+                    _displayNameForPath(runtime.primaryAgentManifestPath)
+                  ],
+                  [
+                    'agent_dialogue.md',
+                    runtime.hasAgentDialogue ? 'Saved' : 'Not generated',
+                    _displayNameForPath(runtime.agentDialoguePath)
+                  ],
+                  [
+                    'multi_agent_discussion.md',
+                    runtime.hasMultiAgentDiscussion
+                        ? 'Generated'
+                        : 'Not generated',
+                    _displayNameForPath(runtime.multiAgentDiscussionPath)
                   ],
                   [
                     'Knowledge production flow',
