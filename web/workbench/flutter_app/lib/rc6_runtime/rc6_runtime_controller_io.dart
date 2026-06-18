@@ -2125,6 +2125,66 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<String> saveEditedSkill(String skillMarkdown) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    if (!state.hasSkill) {
+      _fail('请先生成 Skill 草稿，再保存编辑内容。');
+      return '';
+    }
+    final trimmed = skillMarkdown.trim();
+    if (trimmed.isEmpty) {
+      _fail('Skill 草稿不能为空。');
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final skillRoot = Directory(_join(workspace.path, 'skill'));
+    final primaryDir = Directory(_join(skillRoot.path, 'knowledge_qa_skill'));
+    final primarySkill = File(_join(primaryDir.path, 'SKILL.md'));
+    if (!await primarySkill.exists()) {
+      _fail('未找到可编辑的 SKILL.md。');
+      return '';
+    }
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在保存 Skill 编辑稿...',
+      lastError: '',
+    );
+    notifyListeners();
+    final previous = await primarySkill.readAsString(encoding: utf8);
+    final backup = File(_join(primaryDir.path, 'SKILL.original.md'));
+    if (!await backup.exists()) {
+      await backup.writeAsString(previous, encoding: utf8);
+    }
+    await primarySkill.writeAsString(skillMarkdown, encoding: utf8);
+    final manifestPath = _join(primaryDir.path, 'skill_edit_manifest.json');
+    await File(manifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v2_skill_draft_edit.v1',
+        'status': 'pass',
+        'workspace': workspace.path,
+        'edited_skill_path': primarySkill.path,
+        'original_backup_path': backup.path,
+        'size_bytes': await primarySkill.length(),
+        'saved_at': DateTime.now().toUtc().toIso8601String(),
+        'source_kb_manifest': _join(workspace.path, 'kb', 'manifest.json'),
+        'secret_plaintext_written': false,
+      }),
+      encoding: utf8,
+    );
+    await _writeSkillProductOperations(agentBound: state.hasAgent);
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      phase: Rc6RuntimePhase.skillGenerated,
+      lastMessage: 'Skill 编辑稿已保存并更新导出包。',
+      lastError: '',
+    );
+    notifyListeners();
+    return primarySkill.path;
+  }
+
   Future<void> completeAgentProductOperations({
     Rc6AgentGenerationConfig config = const Rc6AgentGenerationConfig(),
   }) async {
@@ -3882,9 +3942,19 @@ class Rc6RuntimeController extends ChangeNotifier {
     final exportRoot = Directory(_join(skillRoot.path, 'exports'));
     await exportRoot.create(recursive: true);
     final markdownExport = File(_join(exportRoot.path, 'skills_export.md'));
+    final primarySkill = File(_join(primary.path, 'SKILL.md'));
+    final primaryText = await primarySkill.exists()
+        ? await primarySkill.readAsString(encoding: utf8)
+        : '';
     await markdownExport.writeAsString(
       [
         '# Skill 导出包',
+        '',
+        '## 主 Skill',
+        '',
+        primaryText.trim().isEmpty ? '- 等待主 Skill 内容。' : primaryText,
+        '',
+        '## 包含的 Skill',
         '',
         '- knowledge_qa_skill',
         '- reading_summary_skill',
@@ -3974,6 +4044,15 @@ class Rc6RuntimeController extends ChangeNotifier {
                   'operation': 'export',
                   'artifact': markdownExport.path,
                   'status': 'available',
+                },
+                {
+                  'operation': 'edit',
+                  'artifact': _join(primary.path, 'skill_edit_manifest.json'),
+                  'status': await File(
+                              _join(primary.path, 'skill_edit_manifest.json'))
+                          .exists()
+                      ? 'saved'
+                      : 'waiting_edit',
                 },
                 {
                   'operation': 'bind_agent',

@@ -166,6 +166,11 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> pickAndImportExternalSkill() async => initialize();
   Future<void> importExternalSkillPath(String path) async => initialize();
   Future<void> completeSkillProductOperations() async => initialize();
+  Future<String> saveEditedSkill(String skillMarkdown) async {
+    await initialize();
+    return '';
+  }
+
   Future<void> generateAgent({
     Rc6AgentGenerationConfig config = const Rc6AgentGenerationConfig(),
   }) async =>

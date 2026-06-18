@@ -1430,6 +1430,37 @@ void main() {
           contains('"target_platform": "markdown"'),
           contains('"personalization_goal": "agent_specific"'),
         ));
+
+    final editedSkillPath = await controller.saveEditedSkill(
+      '# Owner edited product Skill\n\nUse product evidence with citations.',
+    );
+    expect(editedSkillPath, endsWith('SKILL.md'));
+    expect(
+        File('$skillRoot${Platform.pathSeparator}knowledge_qa_skill${Platform.pathSeparator}SKILL.md')
+            .readAsStringSync(),
+        contains('Owner edited product Skill'));
+    expect(
+        File('$skillRoot${Platform.pathSeparator}knowledge_qa_skill${Platform.pathSeparator}skill_edit_manifest.json')
+            .readAsStringSync(),
+        allOf(
+          contains('prd_v2_skill_draft_edit.v1'),
+          contains('SKILL.original.md'),
+          contains('"secret_plaintext_written": false'),
+        ));
+
+    await controller.completeSkillProductOperations();
+    expect(
+        File('$skillRoot${Platform.pathSeparator}exports${Platform.pathSeparator}skills_export.md')
+            .readAsStringSync(),
+        contains('Owner edited product Skill'));
+    expect(
+        File('$skillRoot${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_manifest.json')
+            .readAsStringSync(),
+        allOf(
+          contains('"operation": "edit"'),
+          contains('skill_edit_manifest.json'),
+          contains('"status": "saved"'),
+        ));
   });
 
   test('agent generation persists creation mode type and output config',

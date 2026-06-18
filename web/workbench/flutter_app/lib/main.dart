@@ -10013,8 +10013,16 @@ class _SkillBuilderProductWorkflowState
   String skillType = 'analysis';
   String targetPlatform = 'codex';
   String personalizationGoal = '';
+  final TextEditingController _skillEditorController = TextEditingController();
+  String savedSkillEditPath = '';
 
   bool get _zh => widget.localeCode == 'zh-CN';
+
+  @override
+  void dispose() {
+    _skillEditorController.dispose();
+    super.dispose();
+  }
 
   Rc6SkillGenerationConfig get _skillConfig => Rc6SkillGenerationConfig(
         skillType: skillType,
@@ -10067,6 +10075,27 @@ class _SkillBuilderProductWorkflowState
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
+    Future<void> loadSkillDraft() async {
+      if (rc6 == null || !runtime.hasSkill) return;
+      final content = await rc6.readWorkspaceTextArtifact(
+          '${runtime.skillPath}/knowledge_qa_skill/SKILL.md');
+      if (!mounted) return;
+      setState(() {
+        _skillEditorController.text = content;
+        outputPreviewReady = true;
+      });
+    }
+
+    Future<void> saveSkillDraft() async {
+      if (rc6 == null) return;
+      final path = await rc6.saveEditedSkill(_skillEditorController.text);
+      if (!mounted) return;
+      setState(() {
+        savedSkillEditPath = path;
+        validationReady = path.isNotEmpty;
+      });
+    }
+
     final tabs = _zh
         ? ['从知识库生成', '外部本地化', '版本操作', '验证导出']
         : [
@@ -10275,19 +10304,71 @@ class _SkillBuilderProductWorkflowState
                         : 'verification_report.json written')
                     : (_zh ? '生成后执行本地样例校验' : 'Runs after local generation')),
             const SizedBox(height: 8),
-            _PrimaryProductAction(
-              label: _zh ? '生成 Skill' : 'Generate Skill',
-              icon: Icons.extension_outlined,
-              onPressed: runtime.running || rc6 == null
-                  ? null
-                  : () {
-                      setState(() {
-                        configReady = true;
-                        outputPreviewReady = true;
-                      });
-                      rc6.generateSkill(config: _skillConfig);
-                    },
+            SizedBox(
+              height: 144,
+              child: TextField(
+                key: const Key('skill-draft-editor'),
+                controller: _skillEditorController,
+                maxLines: null,
+                expands: true,
+                enabled: rc6 != null,
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  hintText: runtime.hasSkill
+                      ? (_zh
+                          ? '加载 SKILL.md 后可编辑草稿。'
+                          : 'Load SKILL.md, then edit the draft.')
+                      : (_zh
+                          ? '请先生成 Skill 草稿。'
+                          : 'Generate a Skill draft first.'),
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                ),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontSize: 13,
+                      height: 1.22,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
             ),
+            const SizedBox(height: 8),
+            _EqualActionRow(children: [
+              _PrimaryProductAction(
+                label: _zh ? '生成 Skill' : 'Generate Skill',
+                icon: Icons.extension_outlined,
+                onPressed: runtime.running || rc6 == null
+                    ? null
+                    : () {
+                        setState(() {
+                          configReady = true;
+                          outputPreviewReady = true;
+                        });
+                        rc6.generateSkill(config: _skillConfig);
+                      },
+              ),
+              _DisplayAction(
+                label: _zh ? '加载草稿' : 'Load draft',
+                icon: Icons.article_outlined,
+                onPressed:
+                    rc6 == null || !runtime.hasSkill ? null : loadSkillDraft,
+              ),
+              _PrimaryProductAction(
+                label: _zh ? '保存编辑' : 'Save edit',
+                icon: Icons.save_outlined,
+                onPressed: rc6 == null ||
+                        runtime.running ||
+                        !runtime.hasSkill ||
+                        _skillEditorController.text.trim().isEmpty
+                    ? null
+                    : saveSkillDraft,
+              ),
+            ]),
+            if (savedSkillEditPath.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _FieldRow(
+                  label: _zh ? '编辑稿' : 'Edited draft',
+                  value: _displayNameForPath(savedSkillEditPath)),
+            ],
           ],
         );
         final localization = _ProductPanel(
@@ -10393,6 +10474,10 @@ class _SkillBuilderProductWorkflowState
                         'exports/skills_export.md',
                         runtime.hasSkill ? '已导出' : '-'
                       ],
+                      [
+                        'knowledge_qa_skill/skill_edit_manifest.json',
+                        savedSkillEditPath.isNotEmpty ? '已保存' : '-'
+                      ],
                     ]
                   : [
                       ['knowledge_qa_skill/', ''],
@@ -10421,6 +10506,10 @@ class _SkillBuilderProductWorkflowState
                       [
                         'exports/skills_export.md',
                         runtime.hasSkill ? 'exported' : '-'
+                      ],
+                      [
+                        'knowledge_qa_skill/skill_edit_manifest.json',
+                        savedSkillEditPath.isNotEmpty ? 'saved' : '-'
                       ],
                     ],
             ),
@@ -10526,6 +10615,12 @@ class _SkillBuilderProductWorkflowState
                 value: validationReady
                     ? (runtime.hasSkill ? 'pass' : '等待真实 Skill 产物')
                     : (_zh ? '等待报告' : 'Waiting for report')),
+            const SizedBox(height: 8),
+            _FieldRow(
+                label: _zh ? '草稿编辑' : 'Draft edit',
+                value: savedSkillEditPath.isNotEmpty
+                    ? _displayNameForPath(savedSkillEditPath)
+                    : (_zh ? '等待保存编辑稿' : 'Waiting edited draft')),
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? '导出包' : 'Export package',
