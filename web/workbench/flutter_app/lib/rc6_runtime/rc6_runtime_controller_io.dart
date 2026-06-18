@@ -1672,6 +1672,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       agentDialogueExportPath: '',
       multiAgentDiscussionPath: '',
       prdP0EvidencePath: '',
+      skillVersionCount: 0,
       lastMessage: 'Skill、Agent 和讨论产物已删除。',
       lastError: '',
     );
@@ -1911,6 +1912,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     if (state.lastResult?.passed == true) {
       await _writeAdditionalSkillPackages(config: config);
+      await _appendSkillVersionRecord(
+        event: 'generate_skill',
+        config: config.toJson(),
+      );
       await _writeSkillProductOperations(agentBound: state.hasAgent);
     }
     await _loadExistingArtifacts();
@@ -1967,6 +1972,12 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     notifyListeners();
     await _writeAdditionalSkillPackages(externalSkillSource: sourceFile);
+    await _appendSkillVersionRecord(
+      event: 'localize_external_skill',
+      config: {
+        'source': sourceFile.path,
+      },
+    );
     await _writeSkillProductOperations(agentBound: state.hasAgent);
     await _loadExistingArtifacts();
     state = state.copyWith(
@@ -2305,6 +2316,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       }),
       encoding: utf8,
     );
+    await _appendSkillVersionRecord(
+      event: 'edit_skill',
+      config: {
+        'edited_skill_path': primarySkill.path,
+      },
+    );
     await _writeSkillProductOperations(agentBound: state.hasAgent);
     await _loadExistingArtifacts();
     state = state.copyWith(
@@ -2595,6 +2612,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'skill_manifest.yaml');
     final localizedSkillPath = _joinNested(workspace.path,
         'skill/localized_writing_skill/S2/localized_skill_manifest.json');
+    final skillVersionManifestPath = _joinNested(
+        workspace.path, 'skill/operations/skill_version_manifest.json');
     final agentPath = _join(
         _join(workspace.path, 'agent', 'knowledge_qa_agent'),
         'agent_manifest.json');
@@ -2643,6 +2662,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(workspace.path, 'doc', 'generation_manifest.json'));
     final generationHistoryCount =
         _listOfMaps(generationManifest['generation_history']).length;
+    final skillVersionManifest =
+        await _readJsonObject(skillVersionManifestPath);
+    final skillVersionCount =
+        _listOfMaps(skillVersionManifest['versions']).length;
 
     var phase = state.phase;
     final hasSkillArtifact = await File(skillPath).exists() ||
@@ -2698,6 +2721,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       exportedDocumentPath: exportedDocumentPath,
       exportManifestPath: exportManifestPath,
       documentGenerationHistoryCount: generationHistoryCount,
+      skillVersionCount: skillVersionCount,
       skillPath: hasSkillArtifact ? _join(workspace.path, 'skill') : '',
       agentPath:
           await File(agentPath).exists() ? _join(workspace.path, 'agent') : '',
@@ -4365,6 +4389,16 @@ class Rc6RuntimeController extends ChangeNotifier {
                   'status': agentBound ? 'bound' : 'waiting_agent',
                 },
                 {
+                  'operation': 'version',
+                  'artifact':
+                      _join(operationsRoot.path, 'skill_version_manifest.json'),
+                  'status': await File(_join(operationsRoot.path,
+                              'skill_version_manifest.json'))
+                          .exists()
+                      ? 'available'
+                      : 'waiting_generation',
+                },
+                {
                   'operation': 'delete',
                   'artifact': skillRoot.path,
                   'status': 'requires_confirmation',
@@ -4373,6 +4407,41 @@ class Rc6RuntimeController extends ChangeNotifier {
               'deleted': false,
             }),
             encoding: utf8);
+  }
+
+  Future<void> _appendSkillVersionRecord({
+    required String event,
+    required Map<String, Object?> config,
+  }) async {
+    final workspace = _requireWorkspace();
+    final operationsRoot =
+        Directory(_join(workspace.path, 'skill', 'operations'));
+    await operationsRoot.create(recursive: true);
+    final manifestPath =
+        _join(operationsRoot.path, 'skill_version_manifest.json');
+    final current = await _readJsonObject(manifestPath);
+    final versions = _listOfMaps(current['versions']).toList(growable: true);
+    final nextVersion = 'v${versions.length + 1}';
+    versions.add({
+      'version_id': nextVersion,
+      'event': event,
+      'skill_id': 'S1',
+      'artifact':
+          _joinNested(workspace.path, 'skill/knowledge_qa_skill/SKILL.md'),
+      'config': config,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+    });
+    await File(manifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v2_skill_version_manifest.v1',
+        'status': 'tracked',
+        'current_version': nextVersion,
+        'version_count': versions.length,
+        'versions': versions,
+        'delete_requires_confirmation': true,
+      }),
+      encoding: utf8,
+    );
   }
 
   Future<void> _writeAdditionalAgentPackages({
@@ -6397,6 +6466,7 @@ class Rc6RuntimeState {
     required this.exportedDocumentPath,
     required this.exportManifestPath,
     required this.documentGenerationHistoryCount,
+    required this.skillVersionCount,
     required this.skillPath,
     required this.agentPath,
     required this.agentDialoguePath,
@@ -6446,6 +6516,7 @@ class Rc6RuntimeState {
         exportedDocumentPath: '',
         exportManifestPath: '',
         documentGenerationHistoryCount: 0,
+        skillVersionCount: 0,
         skillPath: '',
         agentPath: '',
         agentDialoguePath: '',
@@ -6494,6 +6565,7 @@ class Rc6RuntimeState {
   final String exportedDocumentPath;
   final String exportManifestPath;
   final int documentGenerationHistoryCount;
+  final int skillVersionCount;
   final String skillPath;
   final String agentPath;
   final String agentDialoguePath;
@@ -6526,6 +6598,7 @@ class Rc6RuntimeState {
   bool get hasExportedDocument => exportedDocumentPath.isNotEmpty;
   bool get hasDocumentGenerationHistory => documentGenerationHistoryCount > 0;
   bool get hasSkill => skillPath.isNotEmpty;
+  bool get hasSkillVersions => skillVersionCount > 0;
   bool get hasAgent => agentPath.isNotEmpty;
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
   bool get hasAgentDialogueHistory => agentDialogueHistoryPath.isNotEmpty;
@@ -6559,6 +6632,7 @@ class Rc6RuntimeState {
     String? exportedDocumentPath,
     String? exportManifestPath,
     int? documentGenerationHistoryCount,
+    int? skillVersionCount,
     String? skillPath,
     String? agentPath,
     String? agentDialoguePath,
@@ -6609,6 +6683,7 @@ class Rc6RuntimeState {
       exportManifestPath: exportManifestPath ?? this.exportManifestPath,
       documentGenerationHistoryCount:
           documentGenerationHistoryCount ?? this.documentGenerationHistoryCount,
+      skillVersionCount: skillVersionCount ?? this.skillVersionCount,
       skillPath: skillPath ?? this.skillPath,
       agentPath: agentPath ?? this.agentPath,
       agentDialoguePath: agentDialoguePath ?? this.agentDialoguePath,

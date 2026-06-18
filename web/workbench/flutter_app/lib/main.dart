@@ -10952,6 +10952,14 @@ class _SkillBuilderProductWorkflowState
                     : (_zh ? '等待保存编辑稿' : 'Waiting edited draft')),
             const SizedBox(height: 8),
             _FieldRow(
+                label: _zh ? '版本记录' : 'Version history',
+                value: runtime.hasSkillVersions
+                    ? (_zh
+                        ? '${runtime.skillVersionCount} 个版本'
+                        : '${runtime.skillVersionCount} versions')
+                    : (_zh ? '等待生成 Skill' : 'Waiting Skill generation')),
+            const SizedBox(height: 8),
+            _FieldRow(
                 label: _zh ? '导出包' : 'Export package',
                 value: validationReady
                     ? (runtime.hasSkill

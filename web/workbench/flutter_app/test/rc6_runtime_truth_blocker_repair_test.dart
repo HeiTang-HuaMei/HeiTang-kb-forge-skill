@@ -1566,6 +1566,17 @@ void main() {
           contains('"target_platform": "markdown"'),
           contains('"personalization_goal": "agent_specific"'),
         ));
+    final skillVersionManifestPath =
+        '$skillRoot${Platform.pathSeparator}operations${Platform.pathSeparator}skill_version_manifest.json';
+    expect(
+        File(skillVersionManifestPath).readAsStringSync(),
+        allOf(
+          contains('prd_v2_skill_version_manifest.v1'),
+          contains('"version_id": "v1"'),
+          contains('"event": "generate_skill"'),
+        ));
+    expect(controller.state.skillVersionCount, 1);
+    expect(controller.state.hasSkillVersions, isTrue);
 
     final editedSkillPath = await controller.saveEditedSkill(
       '# Owner edited product Skill\n\nUse product evidence with citations.',
@@ -1583,6 +1594,14 @@ void main() {
           contains('SKILL.original.md'),
           contains('"secret_plaintext_written": false'),
         ));
+    final editedVersionManifest =
+        jsonDecode(File(skillVersionManifestPath).readAsStringSync())
+            as Map<String, dynamic>;
+    expect(editedVersionManifest['version_count'], 2);
+    expect(editedVersionManifest['versions'], hasLength(2));
+    expect(File(skillVersionManifestPath).readAsStringSync(),
+        contains('"event": "edit_skill"'));
+    expect(controller.state.skillVersionCount, 2);
 
     await controller.completeSkillProductOperations();
     expect(
@@ -1594,7 +1613,9 @@ void main() {
             .readAsStringSync(),
         allOf(
           contains('"operation": "edit"'),
+          contains('"operation": "version"'),
           contains('skill_edit_manifest.json'),
+          contains('skill_version_manifest.json'),
           contains('"status": "saved"'),
         ));
   });

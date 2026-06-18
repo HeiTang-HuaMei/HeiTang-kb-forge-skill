@@ -379,6 +379,7 @@ class Rc6RuntimeState {
     required this.exportedDocumentPath,
     required this.exportManifestPath,
     required this.documentGenerationHistoryCount,
+    required this.skillVersionCount,
     required this.skillPath,
     required this.agentPath,
     required this.agentDialoguePath,
@@ -428,6 +429,7 @@ class Rc6RuntimeState {
         exportedDocumentPath: '',
         exportManifestPath: '',
         documentGenerationHistoryCount: 0,
+        skillVersionCount: 0,
         skillPath: '',
         agentPath: '',
         agentDialoguePath: '',
@@ -476,6 +478,7 @@ class Rc6RuntimeState {
   final String exportedDocumentPath;
   final String exportManifestPath;
   final int documentGenerationHistoryCount;
+  final int skillVersionCount;
   final String skillPath;
   final String agentPath;
   final String agentDialoguePath;
@@ -508,6 +511,7 @@ class Rc6RuntimeState {
   bool get hasExportedDocument => exportedDocumentPath.isNotEmpty;
   bool get hasDocumentGenerationHistory => documentGenerationHistoryCount > 0;
   bool get hasSkill => skillPath.isNotEmpty;
+  bool get hasSkillVersions => skillVersionCount > 0;
   bool get hasAgent => agentPath.isNotEmpty;
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
   bool get hasAgentDialogueHistory => agentDialogueHistoryPath.isNotEmpty;
@@ -541,6 +545,7 @@ class Rc6RuntimeState {
     String? exportedDocumentPath,
     String? exportManifestPath,
     int? documentGenerationHistoryCount,
+    int? skillVersionCount,
     String? skillPath,
     String? agentPath,
     String? agentDialoguePath,
@@ -591,6 +596,7 @@ class Rc6RuntimeState {
       exportManifestPath: exportManifestPath ?? this.exportManifestPath,
       documentGenerationHistoryCount:
           documentGenerationHistoryCount ?? this.documentGenerationHistoryCount,
+      skillVersionCount: skillVersionCount ?? this.skillVersionCount,
       skillPath: skillPath ?? this.skillPath,
       agentPath: agentPath ?? this.agentPath,
       agentDialoguePath: agentDialoguePath ?? this.agentDialoguePath,
