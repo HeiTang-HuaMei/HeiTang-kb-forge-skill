@@ -1919,4 +1919,39 @@ void main() {
     expect(controller.state.hasMarkdown, isFalse);
     expect(controller.state.hasExportedDocument, isFalse);
   });
+
+  test('prd workbook creation and switching persists across restart', () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    await controller.createOrSwitchWorkbook('产品研究工作本');
+    await controller.createOrSwitchWorkbook('运营复盘工作本');
+
+    final manifest = File(
+        '${workspace.path}${Platform.pathSeparator}workbooks${Platform.pathSeparator}workbook_manifest.json');
+    expect(manifest.existsSync(), isTrue);
+    final payload = jsonDecode(manifest.readAsStringSync()) as Map;
+    expect(payload['schema_version'], 'prd_v2_workbook_manifest.v1');
+    expect(payload['current_workbook'], '运营复盘工作本');
+    expect(controller.state.currentWorkbookName, '运营复盘工作本');
+    expect(controller.state.workbookNames,
+        containsAll(['默认工作本', '产品研究工作本', '运营复盘工作本']));
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(reloaded.state.currentWorkbookName, '运营复盘工作本');
+    expect(reloaded.state.workbookManifestPath, manifest.path);
+    expect(reloaded.state.workbookNames, containsAll(['产品研究工作本', '运营复盘工作本']));
+  });
 }

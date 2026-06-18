@@ -36,6 +36,7 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> importFilePath(String filePath) async => initialize();
   Future<void> importFolderPath(String folderPath) async => initialize();
   Future<void> importWebLink(String url) async => initialize();
+  Future<void> createOrSwitchWorkbook(String name) async => initialize();
   Future<void> parseAndChunkSources() async => initialize();
   Future<void> buildKnowledgeBase() async => initialize();
   Future<void> copyKnowledgeBase(String sourceKbId) async => initialize();
@@ -355,6 +356,9 @@ class Rc6RuntimeState {
     required this.multiAgentDiscussionPath,
     required this.prdP0EvidencePath,
     required this.knowledgeBaseCatalogPath,
+    required this.workbookManifestPath,
+    required this.currentWorkbookName,
+    required this.workbookNames,
     required this.knowledgeBases,
     required this.sourceCount,
     required this.sourceNames,
@@ -399,6 +403,9 @@ class Rc6RuntimeState {
         multiAgentDiscussionPath: '',
         prdP0EvidencePath: '',
         knowledgeBaseCatalogPath: '',
+        workbookManifestPath: '',
+        currentWorkbookName: '默认工作本',
+        workbookNames: ['默认工作本'],
         knowledgeBases: [],
         sourceCount: 0,
         sourceNames: [],
@@ -442,6 +449,9 @@ class Rc6RuntimeState {
   final String multiAgentDiscussionPath;
   final String prdP0EvidencePath;
   final String knowledgeBaseCatalogPath;
+  final String workbookManifestPath;
+  final String currentWorkbookName;
+  final List<String> workbookNames;
   final List<Rc6KnowledgeBaseRecord> knowledgeBases;
   final int sourceCount;
   final List<String> sourceNames;
@@ -467,6 +477,7 @@ class Rc6RuntimeState {
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
   bool get hasPrdP0Evidence => prdP0EvidencePath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
+  bool get hasWorkbookManifest => workbookManifestPath.isNotEmpty;
 
   Rc6RuntimeState copyWith({
     Rc6RuntimePhase? phase,
@@ -500,6 +511,9 @@ class Rc6RuntimeState {
     String? multiAgentDiscussionPath,
     String? prdP0EvidencePath,
     String? knowledgeBaseCatalogPath,
+    String? workbookManifestPath,
+    String? currentWorkbookName,
+    List<String>? workbookNames,
     List<Rc6KnowledgeBaseRecord>? knowledgeBases,
     int? sourceCount,
     List<String>? sourceNames,
@@ -549,6 +563,9 @@ class Rc6RuntimeState {
       prdP0EvidencePath: prdP0EvidencePath ?? this.prdP0EvidencePath,
       knowledgeBaseCatalogPath:
           knowledgeBaseCatalogPath ?? this.knowledgeBaseCatalogPath,
+      workbookManifestPath: workbookManifestPath ?? this.workbookManifestPath,
+      currentWorkbookName: currentWorkbookName ?? this.currentWorkbookName,
+      workbookNames: workbookNames ?? this.workbookNames,
       knowledgeBases: knowledgeBases ?? this.knowledgeBases,
       sourceCount: sourceCount ?? this.sourceCount,
       sourceNames: sourceNames ?? this.sourceNames,

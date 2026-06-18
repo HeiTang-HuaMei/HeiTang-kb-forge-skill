@@ -70,6 +70,27 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
   }
 
+  Future<void> createOrSwitchWorkbook(String name) async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workbookName = name.trim().isEmpty ? '默认工作本' : name.trim();
+    final workspace = _requireWorkspace();
+    final manifestPath = await _writeWorkbookManifest(
+      workspace,
+      currentName: workbookName,
+      addName: workbookName,
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      currentWorkbookName: workbookName,
+      workbookManifestPath: manifestPath,
+      lastMessage: '已切换到工作本：$workbookName。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
   Future<void> pickAndImportFile() async {
     if (!_canRunDesktop()) {
       return;
@@ -2547,6 +2568,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(workspace.path, 'prd_p0', 'prd_p0_e2e_evidence.json');
     final kbCatalogPath =
         _join(workspace.path, 'knowledge_bases', 'kb_catalog.json');
+    final workbookManifestPath =
+        _join(workspace.path, 'workbooks', 'workbook_manifest.json');
 
     final importReport = await _readJsonObject(importReportPath);
     final sourceManifest = await _readJsonObject(sourceManifestPath);
@@ -2557,6 +2580,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         await File(multiQueryPath).exists() ? multiQueryPath : singleQueryPath;
     final queryReport = await _readJsonObject(queryPath);
     final kbCatalog = await _readJsonObject(kbCatalogPath);
+    final workbookManifest = await _readWorkbookManifest(workspace);
 
     final sourceCount = _asInt(kbReport['source_count']) ??
         _asInt(importReport['imported_count']) ??
@@ -2638,6 +2662,10 @@ class Rc6RuntimeController extends ChangeNotifier {
           await File(prdP0EvidencePath).exists() ? prdP0EvidencePath : '',
       knowledgeBaseCatalogPath:
           await File(kbCatalogPath).exists() ? kbCatalogPath : '',
+      workbookManifestPath:
+          await File(workbookManifestPath).exists() ? workbookManifestPath : '',
+      currentWorkbookName: workbookManifest.$1,
+      workbookNames: workbookManifest.$2,
       knowledgeBases: _recordsFromKnowledgeCatalog(kbCatalog),
       sourceCount: sourceCount,
       sourceNames: sourceNames,
@@ -2665,6 +2693,97 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     final single = (manifest['source_name'] ?? '').toString().trim();
     return single.isEmpty ? const <String>[] : <String>[single];
+  }
+
+  Future<(String, List<String>)> _readWorkbookManifest(
+      Directory workspace) async {
+    final path = _join(workspace.path, 'workbooks', 'workbook_manifest.json');
+    final manifest = await _readJsonObject(path);
+    final current = (manifest['current_workbook'] ?? '默认工作本').toString().trim();
+    final rows = manifest['workbooks'];
+    final names = rows is List
+        ? rows
+            .whereType<Map>()
+            .map((row) => (row['name'] ?? '').toString().trim())
+            .where((name) => name.isNotEmpty)
+            .toList(growable: true)
+        : <String>[];
+    if (names.isEmpty) names.add(current.isEmpty ? '默认工作本' : current);
+    final effectiveCurrent = current.isEmpty ? names.first : current;
+    if (!names.contains(effectiveCurrent)) names.insert(0, effectiveCurrent);
+    return (effectiveCurrent, List<String>.unmodifiable(names));
+  }
+
+  Future<String> _writeWorkbookManifest(
+    Directory workspace, {
+    required String currentName,
+    required String addName,
+  }) async {
+    final manifestDir = Directory(_join(workspace.path, 'workbooks'));
+    await manifestDir.create(recursive: true);
+    final manifestPath = _join(manifestDir.path, 'workbook_manifest.json');
+    final existing = await _readJsonObject(manifestPath);
+    final rows = existing['workbooks'] is List
+        ? (existing['workbooks'] as List)
+            .whereType<Map>()
+            .map((row) => Map<String, dynamic>.from(row))
+            .toList(growable: true)
+        : <Map<String, dynamic>>[];
+    final now = DateTime.now().toUtc().toIso8601String();
+    if (rows.isEmpty) {
+      rows.add({
+        'workbook_id': 'WB_${_stableHash(state.currentWorkbookName)}',
+        'name': state.currentWorkbookName,
+        'status':
+            state.currentWorkbookName == currentName ? 'active' : 'available',
+        'created_at': now,
+        'last_opened_at': now,
+        'document_count': state.sourceCount,
+        'knowledge_base_count': state.knowledgeBases.isNotEmpty
+            ? state.knowledgeBases.length
+            : state.hasKnowledgeBase
+                ? 1
+                : 0,
+      });
+    }
+    final normalizedAdd = addName.trim().isEmpty ? '默认工作本' : addName.trim();
+    var found = false;
+    for (final row in rows) {
+      if ((row['name'] ?? '').toString() == normalizedAdd) {
+        row['status'] = 'active';
+        row['last_opened_at'] = now;
+        found = true;
+      } else {
+        row['status'] = 'available';
+      }
+    }
+    if (!found) {
+      rows.add({
+        'workbook_id': 'WB_${_stableHash(normalizedAdd)}',
+        'name': normalizedAdd,
+        'status': 'active',
+        'created_at': now,
+        'last_opened_at': now,
+        'document_count': state.sourceCount,
+        'knowledge_base_count': state.knowledgeBases.isNotEmpty
+            ? state.knowledgeBases.length
+            : state.hasKnowledgeBase
+                ? 1
+                : 0,
+      });
+    }
+    final payload = {
+      'schema_version': 'prd_v2_workbook_manifest.v1',
+      'workspace_path': workspace.path,
+      'current_workbook':
+          currentName.trim().isEmpty ? normalizedAdd : currentName.trim(),
+      'workbooks': rows,
+    };
+    await File(manifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+    return manifestPath;
   }
 
   Future<List<_SearchableKnowledgeBase>> _selectedKnowledgeBasesForSearch(
@@ -6080,6 +6199,9 @@ class Rc6RuntimeState {
     required this.multiAgentDiscussionPath,
     required this.prdP0EvidencePath,
     required this.knowledgeBaseCatalogPath,
+    required this.workbookManifestPath,
+    required this.currentWorkbookName,
+    required this.workbookNames,
     required this.knowledgeBases,
     required this.sourceCount,
     required this.sourceNames,
@@ -6124,6 +6246,9 @@ class Rc6RuntimeState {
         multiAgentDiscussionPath: '',
         prdP0EvidencePath: '',
         knowledgeBaseCatalogPath: '',
+        workbookManifestPath: '',
+        currentWorkbookName: '默认工作本',
+        workbookNames: ['默认工作本'],
         knowledgeBases: [],
         sourceCount: 0,
         sourceNames: [],
@@ -6167,6 +6292,9 @@ class Rc6RuntimeState {
   final String multiAgentDiscussionPath;
   final String prdP0EvidencePath;
   final String knowledgeBaseCatalogPath;
+  final String workbookManifestPath;
+  final String currentWorkbookName;
+  final List<String> workbookNames;
   final List<Rc6KnowledgeBaseRecord> knowledgeBases;
   final int sourceCount;
   final List<String> sourceNames;
@@ -6192,6 +6320,7 @@ class Rc6RuntimeState {
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
   bool get hasPrdP0Evidence => prdP0EvidencePath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
+  bool get hasWorkbookManifest => workbookManifestPath.isNotEmpty;
 
   Rc6RuntimeState copyWith({
     Rc6RuntimePhase? phase,
@@ -6225,6 +6354,9 @@ class Rc6RuntimeState {
     String? multiAgentDiscussionPath,
     String? prdP0EvidencePath,
     String? knowledgeBaseCatalogPath,
+    String? workbookManifestPath,
+    String? currentWorkbookName,
+    List<String>? workbookNames,
     List<Rc6KnowledgeBaseRecord>? knowledgeBases,
     int? sourceCount,
     List<String>? sourceNames,
@@ -6274,6 +6406,9 @@ class Rc6RuntimeState {
       prdP0EvidencePath: prdP0EvidencePath ?? this.prdP0EvidencePath,
       knowledgeBaseCatalogPath:
           knowledgeBaseCatalogPath ?? this.knowledgeBaseCatalogPath,
+      workbookManifestPath: workbookManifestPath ?? this.workbookManifestPath,
+      currentWorkbookName: currentWorkbookName ?? this.currentWorkbookName,
+      workbookNames: workbookNames ?? this.workbookNames,
       knowledgeBases: knowledgeBases ?? this.knowledgeBases,
       sourceCount: sourceCount ?? this.sourceCount,
       sourceNames: sourceNames ?? this.sourceNames,

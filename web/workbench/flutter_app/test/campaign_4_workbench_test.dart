@@ -95,6 +95,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('workbook-overview')), findsOneWidget);
     expect(find.byKey(const Key('workbook-next-actions')), findsOneWidget);
+    expect(find.byKey(const Key('workbook-name-input')), findsOneWidget);
+    expect(find.text('创建 / 切换工作本'), findsOneWidget);
     await tester.tap(find.text('文档库').first);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('dense-page-workbench-document-library')),

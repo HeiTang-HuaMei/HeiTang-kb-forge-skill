@@ -9145,7 +9145,7 @@ void _sortDocumentNames(List<String> names, String sortMode) {
   }
 }
 
-class _WorkbookProductWorkflow extends StatelessWidget {
+class _WorkbookProductWorkflow extends StatefulWidget {
   const _WorkbookProductWorkflow({
     required this.localeCode,
     required this.workspace,
@@ -9156,12 +9156,36 @@ class _WorkbookProductWorkflow extends StatelessWidget {
   final String workspace;
   final ValueChanged<int> onPageChanged;
 
+  @override
+  State<_WorkbookProductWorkflow> createState() =>
+      _WorkbookProductWorkflowState();
+}
+
+class _WorkbookProductWorkflowState extends State<_WorkbookProductWorkflow> {
+  final TextEditingController _workbookNameController =
+      TextEditingController(text: '新知识工作本');
+
   bool get _zh => localeCode == 'zh-CN';
+
+  String get localeCode => widget.localeCode;
+
+  Future<void> _createOrSwitchWorkbook(Rc6RuntimeController? rc6,
+      {String? name}) async {
+    if (rc6 == null || rc6.state.running) return;
+    final target = (name ?? _workbookNameController.text).trim();
+    await rc6.createOrSwitchWorkbook(target);
+  }
+
+  @override
+  void dispose() {
+    _workbookNameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final runtime =
-        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     final latestArtifact = runtime.hasExportedDocument
         ? _displayNameForPath(runtime.exportedDocumentPath)
         : runtime.hasMarkdown
@@ -9253,7 +9277,7 @@ class _WorkbookProductWorkflow extends StatelessWidget {
               columns: _zh ? ['项目', '状态', '说明'] : ['Item', 'Status', 'Note'],
               rows: _zh
                   ? [
-                      ['位置', '用户工作区', _displayNameForPath(workspace)],
+                      ['位置', '用户工作区', _displayNameForPath(widget.workspace)],
                       [
                         '已就绪资产',
                         readySummary.isEmpty ? '暂无' : readySummary.join(' / '),
@@ -9264,13 +9288,23 @@ class _WorkbookProductWorkflow extends StatelessWidget {
                         runtime.hasImportedFile ? '已有记录' : '等待首个任务',
                         runtime.hasImportedFile ? '重启后可继续' : '导入资料后写入工作本'
                       ],
+                      [
+                        '当前工作本',
+                        runtime.currentWorkbookName,
+                        runtime.hasWorkbookManifest ? '已保存' : '等待保存'
+                      ],
+                      [
+                        '工作本数量',
+                        '${runtime.workbookNames.length}',
+                        runtime.workbookNames.join(' / ')
+                      ],
                       ['下一步', _dashboardNextStep(runtime, true), '从右侧入口继续'],
                     ]
                   : [
                       [
                         'Location',
                         'User workspace',
-                        _displayNameForPath(workspace)
+                        _displayNameForPath(widget.workspace)
                       ],
                       [
                         'Ready assets',
@@ -9287,12 +9321,55 @@ class _WorkbookProductWorkflow extends StatelessWidget {
                             : 'Import sources to persist'
                       ],
                       [
+                        'Current workbook',
+                        runtime.currentWorkbookName,
+                        runtime.hasWorkbookManifest ? 'Saved' : 'Waiting save'
+                      ],
+                      [
+                        'Workbook count',
+                        '${runtime.workbookNames.length}',
+                        runtime.workbookNames.join(' / ')
+                      ],
+                      [
                         'Next',
                         _dashboardNextStep(runtime, false),
                         'Continue from the actions panel'
                       ],
                     ],
             ),
+            const SizedBox(height: _DesktopGrid.gutter),
+            TextField(
+              key: const Key('workbook-name-input'),
+              controller: _workbookNameController,
+              decoration: InputDecoration(
+                labelText: _zh ? '工作本名称' : 'Workbook name',
+                border: const OutlineInputBorder(),
+                isDense: true,
+              ),
+              onSubmitted: (_) => _createOrSwitchWorkbook(rc6),
+            ),
+            const SizedBox(height: 8),
+            _EqualActionRow(children: [
+              _PrimaryProductAction(
+                label: _zh ? '创建 / 切换工作本' : 'Create / switch workbook',
+                icon: Icons.add_to_photos_outlined,
+                onPressed: rc6 == null || runtime.running
+                    ? null
+                    : () => _createOrSwitchWorkbook(rc6),
+              ),
+              for (final name in runtime.workbookNames.take(3))
+                _DisplayAction(
+                  label: name == runtime.currentWorkbookName
+                      ? (_zh ? '当前：$name' : 'Current: $name')
+                      : (_zh ? '切换到 $name' : 'Switch to $name'),
+                  icon: Icons.workspaces_outline,
+                  onPressed: rc6 == null ||
+                          runtime.running ||
+                          name == runtime.currentWorkbookName
+                      ? null
+                      : () => _createOrSwitchWorkbook(rc6, name: name),
+                ),
+            ]),
           ],
         );
         final actions = _ProductPanel(
@@ -9305,14 +9382,14 @@ class _WorkbookProductWorkflow extends StatelessWidget {
               label: _zh ? '进入文档库导入资料' : 'Open Document Library',
               icon: Icons.library_books_outlined,
               onPressed: () =>
-                  onPageChanged(_pageIndexById('document-library')),
+                  widget.onPageChanged(_pageIndexById('document-library')),
             ),
             const SizedBox(height: 8),
             _DisplayAction(
               label: _zh ? '创建或更新知识库' : 'Create or update KB',
               icon: Icons.account_tree_outlined,
               onPressed: runtime.hasImportedFile
-                  ? () => onPageChanged(
+                  ? () => widget.onPageChanged(
                       _pageIndexById('knowledge-package-management'))
                   : null,
             ),
@@ -9321,8 +9398,8 @@ class _WorkbookProductWorkflow extends StatelessWidget {
               label: _zh ? '检索验证证据' : 'Search and verify evidence',
               icon: Icons.manage_search_outlined,
               onPressed: runtime.hasKnowledgeBase
-                  ? () =>
-                      onPageChanged(_pageIndexById('retrieval-verification'))
+                  ? () => widget
+                      .onPageChanged(_pageIndexById('retrieval-verification'))
                   : null,
             ),
             const SizedBox(height: 8),
@@ -9330,7 +9407,8 @@ class _WorkbookProductWorkflow extends StatelessWidget {
               label: _zh ? '生成交付文档' : 'Generate deliverable document',
               icon: Icons.edit_document,
               onPressed: runtime.hasKnowledgeBase
-                  ? () => onPageChanged(_pageIndexById('document-generation'))
+                  ? () => widget
+                      .onPageChanged(_pageIndexById('document-generation'))
                   : null,
             ),
           ],
