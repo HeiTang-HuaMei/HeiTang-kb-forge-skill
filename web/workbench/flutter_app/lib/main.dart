@@ -2303,6 +2303,22 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
     await rc6.clearRecentTaskArtifacts(row.id);
   }
 
+  Future<void> _clearTasks(
+      Rc6RuntimeController? rc6, List<_DashboardTaskRow> rows) async {
+    if (rc6 == null || rc6.state.running || rows.isEmpty) return;
+    final confirmed = await _confirmDestructiveAction(
+      context,
+      title: _zh ? '清空最近任务？' : 'Clear recent tasks?',
+      body: _zh
+          ? '这会删除当前显示的真实任务记录和对应产物；原始输入文件夹不会被删除。'
+          : 'This deletes the currently displayed real task records and artifacts; original source folders are not deleted.',
+    );
+    if (!confirmed) return;
+    for (final row in rows.reversed) {
+      await rc6.clearRecentTaskArtifacts(row.id);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
@@ -2427,9 +2443,9 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
                 child: OutlinedButton.icon(
                   onPressed: visibleRows.isEmpty
                       ? null
-                      : () => _deleteTask(rc6, visibleRows.first),
+                      : () => _clearTasks(rc6, visibleRows),
                   icon: const Icon(Icons.delete_sweep_outlined),
-                  label: Text(_zh ? '删除最早阶段' : 'Delete first stage'),
+                  label: Text(_zh ? '清空最近任务' : 'Clear recent tasks'),
                 ),
               ),
             ],
