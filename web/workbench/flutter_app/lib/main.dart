@@ -7996,73 +7996,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
               _ProductTable(
                 columns:
                     zh ? ['产物', '状态', '查看'] : ['Artifact', 'Status', 'View'],
-                rows: zh
-                    ? [
-                        [
-                          'source_manifest.json',
-                          runtime.sourceManifestPath.isNotEmpty ? '完成' : '等待',
-                          runtime.sourceManifestPath.isEmpty
-                              ? '来源清单'
-                              : _displayNameForPath(runtime.sourceManifestPath)
-                        ],
-                        [
-                          'chunks.jsonl',
-                          runtime.chunksPath.isNotEmpty ? '完成' : '等待',
-                          runtime.chunksPath.isEmpty
-                              ? 'chunks.jsonl'
-                              : _displayNameForPath(runtime.chunksPath)
-                        ],
-                        [
-                          'quality_report.json',
-                          runtime.qualityReportPath.isNotEmpty ? '通过' : '等待',
-                          runtime.qualityReportPath.isEmpty
-                              ? '质量报告'
-                              : _displayNameForPath(runtime.qualityReportPath)
-                        ],
-                        [
-                          'manifest.json',
-                          runtime.kbManifestPath.isNotEmpty ? '完成' : '等待',
-                          runtime.kbManifestPath.isEmpty
-                              ? '知识库清单'
-                              : _displayNameForPath(runtime.kbManifestPath)
-                        ],
-                      ]
-                    : [
-                        [
-                          'source_manifest.json',
-                          runtime.sourceManifestPath.isNotEmpty
-                              ? 'Done'
-                              : 'Waiting',
-                          runtime.sourceManifestPath.isEmpty
-                              ? 'source_manifest'
-                              : _displayNameForPath(runtime.sourceManifestPath)
-                        ],
-                        [
-                          'chunks.jsonl',
-                          runtime.chunksPath.isNotEmpty ? 'Done' : 'Waiting',
-                          runtime.chunksPath.isEmpty
-                              ? 'chunks.jsonl'
-                              : _displayNameForPath(runtime.chunksPath)
-                        ],
-                        [
-                          'quality_report.json',
-                          runtime.qualityReportPath.isNotEmpty
-                              ? 'Passed'
-                              : 'Waiting',
-                          runtime.qualityReportPath.isEmpty
-                              ? 'quality_report'
-                              : _displayNameForPath(runtime.qualityReportPath)
-                        ],
-                        [
-                          'manifest.json',
-                          runtime.kbManifestPath.isNotEmpty
-                              ? 'Done'
-                              : 'Waiting',
-                          runtime.kbManifestPath.isEmpty
-                              ? 'KB manifest'
-                              : _displayNameForPath(runtime.kbManifestPath)
-                        ],
-                      ],
+                rows: _knowledgeArtifactRows(runtime, zh),
               ),
               const SizedBox(height: 8),
               _EqualActionRow(children: [
@@ -8121,6 +8055,33 @@ String _knowledgeStorageLabel(String value, bool zh) {
     'qdrant' => zh ? 'Qdrant 本机向量库' : 'Local Qdrant vector DB',
     _ => zh ? '本地文件索引' : 'Local file index',
   };
+}
+
+List<List<String>> _knowledgeArtifactRows(Rc6RuntimeState runtime, bool zh) {
+  List<String> row(String name, String path, String waiting,
+      {String? readyStatus}) {
+    final ready = path.isNotEmpty;
+    return [
+      name,
+      ready ? (readyStatus ?? (zh ? '完成' : 'Done')) : (zh ? '等待' : 'Waiting'),
+      ready ? _displayNameForPath(path) : waiting,
+    ];
+  }
+
+  return [
+    row('source_manifest.json', runtime.sourceManifestPath,
+        zh ? '来源清单' : 'source manifest'),
+    row('manifest.json', runtime.kbManifestPath, zh ? '知识库清单' : 'KB manifest'),
+    row('chunks.jsonl', runtime.chunksPath, 'chunks.jsonl'),
+    row('source_map.json', runtime.sourceMapPath, 'source_map.json'),
+    row('index_metadata.json', runtime.indexMetadataPath,
+        'index_metadata.json'),
+    row('quality_report.json', runtime.qualityReportPath,
+        zh ? '质量报告' : 'quality report',
+        readyStatus: zh ? '通过' : 'Passed'),
+    row('build.log', runtime.buildLogPath, 'build.log'),
+    row('error.log', runtime.errorLogPath, 'error.log'),
+  ];
 }
 
 class _KnowledgeBuildStep {

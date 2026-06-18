@@ -55,6 +55,61 @@ void main() {
     }));
   }
 
+  void writeDuRecords(Directory workspace, List<String> relativePaths) {
+    final du = Directory('${workspace.path}${Platform.pathSeparator}du')
+      ..createSync(recursive: true);
+    final normalized =
+        Directory('${du.path}${Platform.pathSeparator}normalized_sources')
+          ..createSync(recursive: true);
+    final rows = <String>[];
+    for (var index = 0; index < relativePaths.length; index += 1) {
+      final normalizedPath =
+          '${normalized.path}${Platform.pathSeparator}${index + 1}.md';
+      File(normalizedPath)
+          .writeAsStringSync('normalized ${relativePaths[index]}');
+      rows.add(jsonEncode({
+        'relative_path': relativePaths[index],
+        'normalized_path': normalizedPath,
+      }));
+    }
+    File('${du.path}${Platform.pathSeparator}document_understanding_records.jsonl')
+        .writeAsStringSync('${rows.join('\n')}\n');
+  }
+
+  String jsonl(List<Map<String, Object?>> rows) =>
+      '${rows.map(jsonEncode).join('\n')}\n';
+
+  void expectMainKnowledgeArtifacts(
+      Directory workspace, Rc6RuntimeState state) {
+    final kbRoot = '${workspace.path}${Platform.pathSeparator}kb';
+    final sourceMap = File('$kbRoot${Platform.pathSeparator}source_map.json');
+    final indexMetadata =
+        File('$kbRoot${Platform.pathSeparator}index_metadata.json');
+    final buildLog = File('$kbRoot${Platform.pathSeparator}build.log');
+    final errorLog = File('$kbRoot${Platform.pathSeparator}error.log');
+
+    expect(state.sourceMapPath, sourceMap.path);
+    expect(state.indexMetadataPath, indexMetadata.path);
+    expect(state.buildLogPath, buildLog.path);
+    expect(state.errorLogPath, errorLog.path);
+    final sourceMapRaw = sourceMap.readAsStringSync();
+    expect(sourceMapRaw, contains('prd_v2_source_map.v1'));
+    final sourceMapPayload = jsonDecode(sourceMapRaw) as Map<String, dynamic>;
+    final sourceDocs =
+        (sourceMapPayload['documents'] as List? ?? const []).cast<Map>();
+    expect(
+        sourceDocs
+            .map((doc) => doc['chunk_count'])
+            .whereType<int>()
+            .fold<int>(0, (total, count) => total + count),
+        greaterThan(0));
+    expect(
+        indexMetadata.readAsStringSync(), contains('prd_v2_index_metadata.v1'));
+    expect(buildLog.readAsStringSync(),
+        contains('schema_version=prd_v2_kb_build_log.v1'));
+    expect(errorLog.readAsStringSync().trim(), isNotEmpty);
+  }
+
   testWidgets('rc7 document library shows product-owned document state',
       (tester) async {
     await pumpWorkbench(tester);
@@ -302,6 +357,7 @@ void main() {
     }));
     Directory('${workspace.path}${Platform.pathSeparator}du')
         .createSync(recursive: true);
+    writeDuRecords(workspace, ['alpha.md', 'beta.md']);
     final requests = <CoreBridgeRequest>[];
     final controller = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
@@ -311,8 +367,19 @@ void main() {
             ..createSync(recursive: true);
           File('${output.path}${Platform.pathSeparator}manifest.json')
               .writeAsStringSync('{"status":"searchable"}');
+          final normalizedRoot =
+              '${workspace.path}${Platform.pathSeparator}du${Platform.pathSeparator}normalized_sources';
           File('${output.path}${Platform.pathSeparator}chunks.jsonl')
-              .writeAsStringSync('{"chunk_id":"c1"}\n{"chunk_id":"c2"}\n');
+              .writeAsStringSync(jsonl([
+            {
+              'chunk_id': 'c1',
+              'source_path': '$normalizedRoot${Platform.pathSeparator}1.md',
+            },
+            {
+              'chunk_id': 'c2',
+              'source_path': '$normalizedRoot${Platform.pathSeparator}2.md',
+            },
+          ]));
           File('${output.path}${Platform.pathSeparator}cards.jsonl')
               .writeAsStringSync('{"title":"card"}\n');
           File('${output.path}${Platform.pathSeparator}qa_pairs.jsonl')
@@ -332,6 +399,7 @@ void main() {
     await controller.initialize();
     await controller.buildKnowledgeBase();
     expect(requests.single.actionId, 'knowledge_base_build');
+    expectMainKnowledgeArtifacts(workspace, controller.state);
     expect(controller.state.knowledgeBases, hasLength(1));
     expect(controller.state.knowledgeBases.first.id, 'K1');
     expect(controller.state.knowledgeBases.first.sourceCount, 2);
@@ -663,6 +731,7 @@ void main() {
               }));
             case 'document_understanding':
               expect(request.arguments, contains('--runtime-config'));
+              writeDuRecords(workspace, ['alpha.pdf', 'nested/beta.txt']);
               final duManifest = {
                 'status': 'completed',
                 'success_count': 2,
@@ -672,9 +741,6 @@ void main() {
               File('${output.path}${Platform.pathSeparator}document_understanding_manifest.json')
                   .writeAsStringSync(
                       const JsonEncoder.withIndent('  ').convert(duManifest));
-              File('${output.path}${Platform.pathSeparator}document_understanding_records.jsonl')
-                  .writeAsStringSync(
-                      '{"backend":"builtin","text_length":20}\n');
               Directory(
                       '${output.path}${Platform.pathSeparator}normalized_sources')
                   .createSync();
@@ -685,9 +751,16 @@ void main() {
                   .writeAsStringSync('{}');
               File('${output.path}${Platform.pathSeparator}knowledge_base_build_report.json')
                   .writeAsStringSync('{"source_count":2}');
+              final normalizedRoot =
+                  '${workspace.path}${Platform.pathSeparator}du${Platform.pathSeparator}normalized_sources';
               File('${output.path}${Platform.pathSeparator}chunks.jsonl')
-                  .writeAsStringSync(
-                      '{"text":"赚钱 小生意","source_path":"alpha.pdf","citation":"alpha.pdf#chunk=1"}\n');
+                  .writeAsStringSync(jsonl([
+                {
+                  'text': '赚钱 小生意',
+                  'source_path': '$normalizedRoot${Platform.pathSeparator}1.md',
+                  'citation': 'alpha.pdf#chunk=1',
+                },
+              ]));
               File('${output.path}${Platform.pathSeparator}cards.jsonl')
                   .writeAsStringSync('{"title":"赚钱小生意","summary":"真实主题"}\n');
               File('${output.path}${Platform.pathSeparator}qa_pairs.jsonl')
@@ -757,6 +830,7 @@ void main() {
     expect(controller.state.chunkCount, 1);
     expect(controller.state.cardsPath, isNotEmpty);
     expect(controller.state.qaPairsPath, isNotEmpty);
+    expectMainKnowledgeArtifacts(workspace, controller.state);
     expect(controller.state.hasReadingNotes, isTrue);
     expect(controller.state.hasMultiAgentDiscussion, isTrue);
     final baseTurnCount = controller.state.agentDialogueTurnCount;
@@ -791,6 +865,7 @@ void main() {
       isWebRuntime: false,
     );
     await reloadedController.initialize();
+    expectMainKnowledgeArtifacts(workspace, reloadedController.state);
     expect(reloadedController.state.hasAgentDialogueHistory, isTrue);
     expect(reloadedController.state.agentDialogueTurnCount, baseTurnCount + 2);
     expect(
@@ -892,6 +967,7 @@ void main() {
               File('${output.path}${Platform.pathSeparator}batch_import_report.json')
                   .writeAsStringSync('{"imported_count":1}');
             case 'document_understanding':
+              writeDuRecords(workspace, ['alpha.txt']);
               File('${output.path}${Platform.pathSeparator}document_understanding_manifest.json')
                   .writeAsStringSync('{"status":"completed"}');
             case 'knowledge_base_build':
@@ -901,9 +977,16 @@ void main() {
                   .writeAsStringSync('{}');
               File('${output.path}${Platform.pathSeparator}knowledge_base_build_report.json')
                   .writeAsStringSync('{"source_count":1}');
+              final normalizedRoot =
+                  '${workspace.path}${Platform.pathSeparator}du${Platform.pathSeparator}normalized_sources';
               File('${output.path}${Platform.pathSeparator}chunks.jsonl')
-                  .writeAsStringSync(
-                      '{"text":"赚钱 小生意","source_path":"alpha.txt","citation":"alpha.txt#chunk=1"}\n');
+                  .writeAsStringSync(jsonl([
+                {
+                  'text': '赚钱 小生意',
+                  'source_path': '$normalizedRoot${Platform.pathSeparator}1.md',
+                  'citation': 'alpha.txt#chunk=1',
+                },
+              ]));
               File('${output.path}${Platform.pathSeparator}cards.jsonl')
                   .writeAsStringSync('{"title":"赚钱小生意","summary":"真实主题"}\n');
               File('${output.path}${Platform.pathSeparator}qa_pairs.jsonl')
@@ -948,6 +1031,7 @@ void main() {
     ]);
     expect(controller.state.hasReadingNotes, isTrue);
     expect(controller.state.hasExportedDocument, isTrue);
+    expectMainKnowledgeArtifacts(workspace, controller.state);
     expect(controller.state.hasSkill, isFalse);
     expect(controller.state.hasAgent, isFalse);
     expect(
@@ -1087,6 +1171,7 @@ void main() {
               File('${output.path}${Platform.pathSeparator}batch_import_report.json')
                   .writeAsStringSync('{"imported_count":2}');
             case 'document_understanding':
+              writeDuRecords(workspace, ['alpha.pdf', 'beta.txt']);
               File('${output.path}${Platform.pathSeparator}document_understanding_manifest.json')
                   .writeAsStringSync(
                       '{"status":"completed","success_count":2,"failed_count":0}');
@@ -1097,10 +1182,21 @@ void main() {
                   .writeAsStringSync('{"status":"pass"}');
               File('${output.path}${Platform.pathSeparator}knowledge_base_build_report.json')
                   .writeAsStringSync('{"source_count":2}');
+              final normalizedRoot =
+                  '${workspace.path}${Platform.pathSeparator}du${Platform.pathSeparator}normalized_sources';
               File('${output.path}${Platform.pathSeparator}chunks.jsonl')
-                  .writeAsStringSync(
-                      '{"text":"赚钱 小生意 alpha","source_path":"alpha.pdf","citation":"alpha.pdf#chunk=1"}\n'
-                      '{"text":"product ops beta","source_path":"beta.txt","citation":"beta.txt#chunk=1"}\n');
+                  .writeAsStringSync(jsonl([
+                {
+                  'text': '赚钱 小生意 alpha',
+                  'source_path': '$normalizedRoot${Platform.pathSeparator}1.md',
+                  'citation': 'alpha.pdf#chunk=1',
+                },
+                {
+                  'text': 'product ops beta',
+                  'source_path': '$normalizedRoot${Platform.pathSeparator}2.md',
+                  'citation': 'beta.txt#chunk=1',
+                },
+              ]));
               File('${output.path}${Platform.pathSeparator}cards.jsonl')
                   .writeAsStringSync('{"title":"alpha","summary":"赚钱"}\n');
               File('${output.path}${Platform.pathSeparator}qa_pairs.jsonl')
@@ -1157,6 +1253,7 @@ void main() {
           'kb_bound_agent_generation',
         ]));
     expect(controller.state.hasPrdP0Evidence, isTrue);
+    expectMainKnowledgeArtifacts(workspace, controller.state);
     final evidence = jsonDecode(File(
             '${workspace.path}${Platform.pathSeparator}prd_p0${Platform.pathSeparator}prd_p0_e2e_evidence.json')
         .readAsStringSync()) as Map<String, dynamic>;

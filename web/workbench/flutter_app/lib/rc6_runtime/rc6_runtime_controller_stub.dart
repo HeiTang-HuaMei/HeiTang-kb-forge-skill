@@ -245,6 +245,10 @@ class Rc6RuntimeState {
     required this.qualityReportPath,
     required this.cardsPath,
     required this.qaPairsPath,
+    required this.sourceMapPath,
+    required this.indexMetadataPath,
+    required this.buildLogPath,
+    required this.errorLogPath,
     required this.queryResultPath,
     required this.generatedMarkdownPath,
     required this.readingNotesPath,
@@ -282,6 +286,10 @@ class Rc6RuntimeState {
         qualityReportPath: '',
         cardsPath: '',
         qaPairsPath: '',
+        sourceMapPath: '',
+        indexMetadataPath: '',
+        buildLogPath: '',
+        errorLogPath: '',
         queryResultPath: '',
         generatedMarkdownPath: '',
         readingNotesPath: '',
@@ -318,6 +326,10 @@ class Rc6RuntimeState {
   final String qualityReportPath;
   final String cardsPath;
   final String qaPairsPath;
+  final String sourceMapPath;
+  final String indexMetadataPath;
+  final String buildLogPath;
+  final String errorLogPath;
   final String queryResultPath;
   final String generatedMarkdownPath;
   final String readingNotesPath;
@@ -367,6 +379,10 @@ class Rc6RuntimeState {
     String? qualityReportPath,
     String? cardsPath,
     String? qaPairsPath,
+    String? sourceMapPath,
+    String? indexMetadataPath,
+    String? buildLogPath,
+    String? errorLogPath,
     String? queryResultPath,
     String? generatedMarkdownPath,
     String? readingNotesPath,
@@ -403,6 +419,10 @@ class Rc6RuntimeState {
       qualityReportPath: qualityReportPath ?? this.qualityReportPath,
       cardsPath: cardsPath ?? this.cardsPath,
       qaPairsPath: qaPairsPath ?? this.qaPairsPath,
+      sourceMapPath: sourceMapPath ?? this.sourceMapPath,
+      indexMetadataPath: indexMetadataPath ?? this.indexMetadataPath,
+      buildLogPath: buildLogPath ?? this.buildLogPath,
+      errorLogPath: errorLogPath ?? this.errorLogPath,
       queryResultPath: queryResultPath ?? this.queryResultPath,
       generatedMarkdownPath:
           generatedMarkdownPath ?? this.generatedMarkdownPath,

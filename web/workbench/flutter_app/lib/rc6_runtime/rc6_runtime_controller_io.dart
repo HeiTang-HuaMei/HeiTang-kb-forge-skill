@@ -1092,6 +1092,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       qualityReportPath: '',
       cardsPath: '',
       qaPairsPath: '',
+      sourceMapPath: '',
+      indexMetadataPath: '',
+      buildLogPath: '',
+      errorLogPath: '',
       queryResultPath: '',
       generatedMarkdownPath: '',
       readingNotesPath: '',
@@ -1132,6 +1136,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       qualityReportPath: '',
       cardsPath: '',
       qaPairsPath: '',
+      sourceMapPath: '',
+      indexMetadataPath: '',
+      buildLogPath: '',
+      errorLogPath: '',
       queryResultPath: '',
       generatedMarkdownPath: '',
       readingNotesPath: '',
@@ -1177,6 +1185,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       qualityReportPath: '',
       cardsPath: '',
       qaPairsPath: '',
+      sourceMapPath: '',
+      indexMetadataPath: '',
+      buildLogPath: '',
+      errorLogPath: '',
       queryResultPath: '',
       generatedMarkdownPath: '',
       readingNotesPath: '',
@@ -2008,6 +2020,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     final cardsPath = _join(workspace.path, 'kb', 'cards.jsonl');
     final qaPairsPath = _join(workspace.path, 'kb', 'qa_pairs.jsonl');
     final qualityPath = _join(workspace.path, 'kb', 'quality_report.json');
+    final sourceMapPath = _join(workspace.path, 'kb', 'source_map.json');
+    final indexMetadataPath =
+        _join(workspace.path, 'kb', 'index_metadata.json');
+    final buildLogPath = _join(workspace.path, 'kb', 'build.log');
+    final errorLogPath = _join(workspace.path, 'kb', 'error.log');
     final multiQueryPath =
         _join(workspace.path, 'query', 'multi_kb_query_result.json');
     final singleQueryPath =
@@ -2092,6 +2109,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       qualityReportPath: await File(qualityPath).exists() ? qualityPath : '',
       cardsPath: await File(cardsPath).exists() ? cardsPath : '',
       qaPairsPath: await File(qaPairsPath).exists() ? qaPairsPath : '',
+      sourceMapPath: await File(sourceMapPath).exists() ? sourceMapPath : '',
+      indexMetadataPath:
+          await File(indexMetadataPath).exists() ? indexMetadataPath : '',
+      buildLogPath: await File(buildLogPath).exists() ? buildLogPath : '',
+      errorLogPath: await File(errorLogPath).exists() ? errorLogPath : '',
       queryResultPath: await File(queryPath).exists() ? queryPath : '',
       generatedMarkdownPath:
           await File(markdownPath).exists() ? markdownPath : '',
@@ -2190,6 +2212,48 @@ class Rc6RuntimeController extends ChangeNotifier {
     final cards = await _readJsonl(File(_join(kbDir, 'cards.jsonl')));
     final qaPairs = await _readJsonl(File(_join(kbDir, 'qa_pairs.jsonl')));
     final chunks = await _readJsonl(File(_join(kbDir, 'chunks.jsonl')));
+    final sourceManifest =
+        await _readJsonObject(_join(workspace.path, 'source_manifest.json'));
+    final normalizedSourcesByRelativePath =
+        await _normalizedSourcesByRelativePath(workspace);
+    final chunkCountsBySource = <String, int>{};
+    for (final chunk in chunks) {
+      final sourcePath =
+          _normalizePathKey(chunk['source_path'] ?? chunk['source']);
+      if (sourcePath.isEmpty) continue;
+      chunkCountsBySource[sourcePath] =
+          (chunkCountsBySource[sourcePath] ?? 0) + 1;
+    }
+    final sources = (sourceManifest['sources'] as List?)
+            ?.whereType<Map>()
+            .map((source) => Map<String, dynamic>.from(source))
+            .toList(growable: false) ??
+        const <Map<String, dynamic>>[];
+    final sourceDocs = sources.map((source) {
+      final relativePath = (source['relative_path'] ?? '').toString();
+      final normalizedPath =
+          normalizedSourcesByRelativePath[_normalizePathKey(relativePath)];
+      final sourcePath = _normalizePathKey(source['source_path']);
+      final sourceName = _normalizePathKey(source['source_name']);
+      final chunkCount = {
+        normalizedPath,
+        sourcePath,
+        sourceName,
+        _normalizePathKey(relativePath),
+      }
+          .where((key) => key != null && key.isNotEmpty)
+          .map((key) => chunkCountsBySource[key] ?? 0)
+          .fold<int>(0, (total, count) => total + count);
+      return {
+        'document_id': _documentId(source),
+        'source_name':
+            (source['source_name'] ?? source['relative_path'] ?? '').toString(),
+        'relative_path': relativePath,
+        'normalized_path': normalizedPath ?? '',
+        'size_bytes': _asInt(source['size_bytes']) ?? 0,
+        'chunk_count': chunkCount,
+      };
+    }).toList(growable: false);
     final summary = {
       'schema_version': 'rc10_real_input_derived_knowledge.v1',
       'status': chunks.isNotEmpty && cards.isNotEmpty && qaPairs.isNotEmpty
@@ -2201,10 +2265,66 @@ class Rc6RuntimeController extends ChangeNotifier {
       'source_manifest': _join(workspace.path, 'source_manifest.json'),
       'cards_path': _join(kbDir, 'cards.jsonl'),
       'qa_pairs_path': _join(kbDir, 'qa_pairs.jsonl'),
+      'source_map_path': _join(kbDir, 'source_map.json'),
+      'index_metadata_path': _join(kbDir, 'index_metadata.json'),
+      'build_log_path': _join(kbDir, 'build.log'),
+      'error_log_path': _join(kbDir, 'error.log'),
     };
     await File(_join(kbDir, 'rc10_real_input_derived_knowledge.json'))
         .writeAsString(const JsonEncoder.withIndent('  ').convert(summary),
             encoding: utf8);
+    await File(_join(kbDir, 'source_map.json')).writeAsString(
+        const JsonEncoder.withIndent('  ').convert({
+          'schema_version': 'prd_v2_source_map.v1',
+          'kb_id': 'current_kb',
+          'source_manifest': _join(workspace.path, 'source_manifest.json'),
+          'documents': sourceDocs,
+          'chunk_count': chunks.length,
+        }),
+        encoding: utf8);
+    await File(_join(kbDir, 'index_metadata.json')).writeAsString(
+        const JsonEncoder.withIndent('  ').convert({
+          'schema_version': 'prd_v2_index_metadata.v1',
+          'kb_id': 'current_kb',
+          'index_type': 'hybrid_local',
+          'keyword_index': true,
+          'vector_store': 'local_file_index',
+          'chunk_count': chunks.length,
+          'card_count': cards.length,
+          'qa_pair_count': qaPairs.length,
+          'source_count': sources.length,
+        }),
+        encoding: utf8);
+    await File(_join(kbDir, 'build.log')).writeAsString(
+      [
+        'schema_version=prd_v2_kb_build_log.v1',
+        'operation=build',
+        'source_count=${sources.length}',
+        'chunk_count=${chunks.length}',
+        'card_count=${cards.length}',
+        'qa_pair_count=${qaPairs.length}',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    await File(_join(kbDir, 'error.log')).writeAsString(
+      chunks.isEmpty ? 'no_chunks_generated\n' : 'status=ok\n',
+      encoding: utf8,
+    );
+  }
+
+  Future<Map<String, String>> _normalizedSourcesByRelativePath(
+      Directory workspace) async {
+    final records = await _readJsonl(File(
+        _join(workspace.path, 'du', 'document_understanding_records.jsonl')));
+    final result = <String, String>{};
+    for (final record in records) {
+      final relativePath = _normalizePathKey(record['relative_path']);
+      final normalizedPath = _normalizePathKey(record['normalized_path']);
+      if (relativePath.isNotEmpty && normalizedPath.isNotEmpty) {
+        result[relativePath] = normalizedPath;
+      }
+    }
+    return result;
   }
 
   Future<void> _writeKnowledgeBaseCatalog() async {
@@ -2421,7 +2541,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     final errorLog = File(_join(kbRoot.path, 'error.log'));
     if (!await errorLog.exists()) {
-      await errorLog.writeAsString('', encoding: utf8);
+      await errorLog.writeAsString('status=ok\n', encoding: utf8);
     }
     return record;
   }
@@ -3699,7 +3819,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           encoding: utf8);
       await File(_join(kbDir.path, 'build.log'))
           .writeAsString('Built from real document library sources.\n');
-      await File(_join(kbDir.path, 'error.log')).writeAsString('');
+      await File(_join(kbDir.path, 'error.log'))
+          .writeAsString('status=ok\n', encoding: utf8);
       kbManifests.add(manifest);
     }
 
@@ -4637,6 +4758,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     return 'doc_$hash';
   }
 
+  static String _normalizePathKey(Object? value) {
+    return (value ?? '').toString().replaceAll('\\', '/').trim().toLowerCase();
+  }
+
   static Future<void> _copyDirectory(
       Directory source, Directory destination) async {
     if (!await source.exists()) {
@@ -4778,6 +4903,10 @@ class Rc6RuntimeState {
     required this.qualityReportPath,
     required this.cardsPath,
     required this.qaPairsPath,
+    required this.sourceMapPath,
+    required this.indexMetadataPath,
+    required this.buildLogPath,
+    required this.errorLogPath,
     required this.queryResultPath,
     required this.generatedMarkdownPath,
     required this.readingNotesPath,
@@ -4815,6 +4944,10 @@ class Rc6RuntimeState {
         qualityReportPath: '',
         cardsPath: '',
         qaPairsPath: '',
+        sourceMapPath: '',
+        indexMetadataPath: '',
+        buildLogPath: '',
+        errorLogPath: '',
         queryResultPath: '',
         generatedMarkdownPath: '',
         readingNotesPath: '',
@@ -4851,6 +4984,10 @@ class Rc6RuntimeState {
   final String qualityReportPath;
   final String cardsPath;
   final String qaPairsPath;
+  final String sourceMapPath;
+  final String indexMetadataPath;
+  final String buildLogPath;
+  final String errorLogPath;
   final String queryResultPath;
   final String generatedMarkdownPath;
   final String readingNotesPath;
@@ -4900,6 +5037,10 @@ class Rc6RuntimeState {
     String? qualityReportPath,
     String? cardsPath,
     String? qaPairsPath,
+    String? sourceMapPath,
+    String? indexMetadataPath,
+    String? buildLogPath,
+    String? errorLogPath,
     String? queryResultPath,
     String? generatedMarkdownPath,
     String? readingNotesPath,
@@ -4936,6 +5077,10 @@ class Rc6RuntimeState {
       qualityReportPath: qualityReportPath ?? this.qualityReportPath,
       cardsPath: cardsPath ?? this.cardsPath,
       qaPairsPath: qaPairsPath ?? this.qaPairsPath,
+      sourceMapPath: sourceMapPath ?? this.sourceMapPath,
+      indexMetadataPath: indexMetadataPath ?? this.indexMetadataPath,
+      buildLogPath: buildLogPath ?? this.buildLogPath,
+      errorLogPath: errorLogPath ?? this.errorLogPath,
       queryResultPath: queryResultPath ?? this.queryResultPath,
       generatedMarkdownPath:
           generatedMarkdownPath ?? this.generatedMarkdownPath,
