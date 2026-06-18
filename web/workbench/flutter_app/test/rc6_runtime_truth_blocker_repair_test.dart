@@ -834,6 +834,20 @@ void main() {
     expect(controller.state.searchResults.map((row) => row.kbName),
         ['Beta KB', 'Alpha KB']);
     expect(controller.state.queryResultPath, resultFile.path);
+
+    final validationPath = await controller.saveRetrievalValidationReport({
+      0: 'keep',
+      1: 'conflict',
+    });
+    final validationFile = File(validationPath);
+    expect(validationFile.existsSync(), isTrue);
+    final validation =
+        jsonDecode(validationFile.readAsStringSync()) as Map<String, dynamic>;
+    expect(
+        validation['schema_version'], 'prd_v2_retrieval_validation_report.v1');
+    expect(validation['result_count'], 2);
+    expect(validation['conflict_count'], 1);
+    expect(validation['manual_corrections'], isA<List>());
   });
 
   test(

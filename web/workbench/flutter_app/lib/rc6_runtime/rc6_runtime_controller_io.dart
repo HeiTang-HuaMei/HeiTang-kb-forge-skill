@@ -571,6 +571,68 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<String> saveRetrievalValidationReport(
+      Map<int, String> corrections) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    if (state.queryResultPath.isEmpty ||
+        !await File(state.queryResultPath).exists()) {
+      _fail('请先完成一次真实检索，再保存验证报告。');
+      return '';
+    }
+    final queryReport = await _readJsonObject(state.queryResultPath);
+    final rows = await _readSearchResults(state.queryResultPath);
+    final correctionRows = corrections.entries
+        .map((entry) => {
+              'result_index': entry.key,
+              'decision': entry.value,
+            })
+        .toList(growable: false);
+    final reportPath = _join(workspace.path, 'query', 'validation_report.json');
+    final payload = {
+      'schema_version': 'prd_v2_retrieval_validation_report.v1',
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+      'query': (queryReport['query'] ?? state.searchQuery).toString(),
+      'selected_kb_ids': queryReport['selected_kb_ids'] ?? const <String>[],
+      'result_count': rows.length,
+      'citation_coverage': queryReport['citation_coverage'] ??
+          _citationCoverage(rows
+              .map((row) => {
+                    'citation': row.citation,
+                    'source_path': row.citation,
+                  })
+              .toList(growable: false)),
+      'conflict_count':
+          correctionRows.where((row) => row['decision'] == 'conflict').length,
+      'manual_corrections': correctionRows,
+      'external_validation_status':
+          queryReport['external_validation_status'] ?? 'not_enabled_local_only',
+      'query_result_path': state.queryResultPath,
+      'results': rows
+          .map((row) => {
+                'title': row.title,
+                'excerpt': row.excerpt,
+                'citation': row.citation,
+                'score': row.score,
+                'kb_id': row.kbId,
+                'kb_name': row.kbName,
+              })
+          .toList(growable: false),
+    };
+    await File(reportPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+    state = state.copyWith(
+      lastMessage: '检索验证报告已保存。',
+      lastError: '',
+    );
+    notifyListeners();
+    return reportPath;
+  }
+
   Future<void> generateMarkdown() async {
     if (!_canRunDesktop()) {
       return;

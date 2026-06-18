@@ -51,6 +51,12 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> search(String query) async => initialize();
   Future<void> searchKnowledgeBases(String query, List<String> kbIds) async =>
       initialize();
+  Future<String> saveRetrievalValidationReport(
+      Map<int, String> corrections) async {
+    await initialize();
+    return '';
+  }
+
   Future<void> generateMarkdown() async => initialize();
   Future<void> exportMarkdownDocument() async => initialize();
   Future<void> exportDocumentFormat(String format) async => initialize();

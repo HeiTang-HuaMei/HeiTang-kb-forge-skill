@@ -9431,6 +9431,7 @@ class _RetrievalVerificationViewState
   bool retrievalPrepared = false;
   final Set<String> selectedKbIds = <String>{};
   String selectedStage = 'rewrite';
+  String validationReportPath = '';
   final Map<int, String> correctionState = <int, String>{};
   final TextEditingController _queryController =
       TextEditingController(text: 'heitang-rc6-needle');
@@ -9677,6 +9678,22 @@ class _RetrievalVerificationViewState
                     },
               icon: Icons.play_arrow_outlined,
             ),
+            _PrimaryProductAction(
+              label: zh ? '保存验证报告' : 'Save validation report',
+              onPressed: runtime.queryResultPath.isEmpty || rc6 == null
+                  ? null
+                  : () async {
+                      final path = await rc6
+                          .saveRetrievalValidationReport(correctionState);
+                      if (mounted && path.isNotEmpty) {
+                        setState(() => validationReportPath = path);
+                      }
+                    },
+              icon: Icons.save_alt_outlined,
+            ),
+          ]),
+          const SizedBox(height: 8),
+          _EqualActionRow(children: [
             _RuntimeFeedbackBanner(
               title: zh ? '外部事实验证未启用' : 'External fact checking is not enabled',
               detail: zh
@@ -9686,6 +9703,15 @@ class _RetrievalVerificationViewState
               icon: Icons.public_off_outlined,
             ),
           ]),
+          if (validationReportPath.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _RuntimeFeedbackBanner(
+              title: zh ? '验证报告已保存' : 'Validation report saved',
+              detail: validationReportPath,
+              tone: _StatusTone.success,
+              icon: Icons.fact_check_outlined,
+            ),
+          ],
           const SizedBox(height: 8),
           _FieldRow(
             label: zh ? '外部验证边界' : 'External verification boundary',
