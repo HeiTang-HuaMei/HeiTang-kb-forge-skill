@@ -2724,6 +2724,18 @@ class Rc6RuntimeController extends ChangeNotifier {
     final agentPath = _join(
         _join(workspace.path, 'agent', 'knowledge_qa_agent'),
         'agent_manifest.json');
+    final agentProfilePath = _joinNested(
+        workspace.path, 'agent/knowledge_qa_agent/agent_profile.yaml');
+    final agentGenerationManifestPath =
+        _joinNested(workspace.path, 'agent/agent_generation_manifest.json');
+    final agentAdvancedConfigPath = _joinNested(
+        workspace.path, 'agent/product_config/advanced_agent_config.json');
+    final agentPermissionAuditPath =
+        _joinNested(workspace.path, 'agent/audit/permission_audit.json');
+    final agentPackageManifestPath = _joinNested(
+        workspace.path, 'agent/exports/agent_package_manifest.json');
+    final agentPackageReadmePath =
+        _joinNested(workspace.path, 'agent/exports/agent_package_README.md');
     final agentDialoguePath =
         _joinNested(workspace.path, 'agent/dialogue/agent_dialogue.md');
     final agentDialogueManifestPath = _joinNested(
@@ -2880,6 +2892,25 @@ class Rc6RuntimeController extends ChangeNotifier {
       skillAgentBindingStatus: _stringValue(skillBindingManifest['status'], ''),
       agentPath:
           await File(agentPath).exists() ? _join(workspace.path, 'agent') : '',
+      primaryAgentManifestPath: await File(agentPath).exists() ? agentPath : '',
+      agentProfilePath:
+          await File(agentProfilePath).exists() ? agentProfilePath : '',
+      agentGenerationManifestPath:
+          await File(agentGenerationManifestPath).exists()
+              ? agentGenerationManifestPath
+              : '',
+      agentAdvancedConfigPath: await File(agentAdvancedConfigPath).exists()
+          ? agentAdvancedConfigPath
+          : '',
+      agentPermissionAuditPath: await File(agentPermissionAuditPath).exists()
+          ? agentPermissionAuditPath
+          : '',
+      agentPackageManifestPath: await File(agentPackageManifestPath).exists()
+          ? agentPackageManifestPath
+          : '',
+      agentPackageReadmePath: await File(agentPackageReadmePath).exists()
+          ? agentPackageReadmePath
+          : '',
       agentDialoguePath:
           await File(agentDialoguePath).exists() ? agentDialoguePath : '',
       agentDialogueManifestPath: await File(agentDialogueManifestPath).exists()
@@ -6679,6 +6710,13 @@ class Rc6RuntimeState {
     required this.skillOperationStatus,
     required this.skillAgentBindingStatus,
     required this.agentPath,
+    required this.primaryAgentManifestPath,
+    required this.agentProfilePath,
+    required this.agentGenerationManifestPath,
+    required this.agentAdvancedConfigPath,
+    required this.agentPermissionAuditPath,
+    required this.agentPackageManifestPath,
+    required this.agentPackageReadmePath,
     required this.agentDialoguePath,
     required this.agentDialogueManifestPath,
     required this.agentDialogueHistoryPath,
@@ -6757,6 +6795,13 @@ class Rc6RuntimeState {
         skillOperationStatus: '',
         skillAgentBindingStatus: '',
         agentPath: '',
+        primaryAgentManifestPath: '',
+        agentProfilePath: '',
+        agentGenerationManifestPath: '',
+        agentAdvancedConfigPath: '',
+        agentPermissionAuditPath: '',
+        agentPackageManifestPath: '',
+        agentPackageReadmePath: '',
         agentDialoguePath: '',
         agentDialogueManifestPath: '',
         agentDialogueHistoryPath: '',
@@ -6834,6 +6879,13 @@ class Rc6RuntimeState {
   final String skillOperationStatus;
   final String skillAgentBindingStatus;
   final String agentPath;
+  final String primaryAgentManifestPath;
+  final String agentProfilePath;
+  final String agentGenerationManifestPath;
+  final String agentAdvancedConfigPath;
+  final String agentPermissionAuditPath;
+  final String agentPackageManifestPath;
+  final String agentPackageReadmePath;
   final String agentDialoguePath;
   final String agentDialogueManifestPath;
   final String agentDialogueHistoryPath;
@@ -6893,6 +6945,13 @@ class Rc6RuntimeState {
   bool get hasSkillAgentBindingManifest =>
       skillAgentBindingManifestPath.isNotEmpty;
   bool get hasAgent => agentPath.isNotEmpty;
+  bool get hasPrimaryAgentManifest => primaryAgentManifestPath.isNotEmpty;
+  bool get hasAgentProfile => agentProfilePath.isNotEmpty;
+  bool get hasAgentGenerationManifest => agentGenerationManifestPath.isNotEmpty;
+  bool get hasAgentAdvancedConfig => agentAdvancedConfigPath.isNotEmpty;
+  bool get hasAgentPermissionAudit => agentPermissionAuditPath.isNotEmpty;
+  bool get hasAgentPackageManifest => agentPackageManifestPath.isNotEmpty;
+  bool get hasAgentPackageReadme => agentPackageReadmePath.isNotEmpty;
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
   bool get hasAgentDialogueManifest => agentDialogueManifestPath.isNotEmpty;
   bool get hasAgentDialogueHistory => agentDialogueHistoryPath.isNotEmpty;
@@ -6944,6 +7003,13 @@ class Rc6RuntimeState {
     String? skillOperationStatus,
     String? skillAgentBindingStatus,
     String? agentPath,
+    String? primaryAgentManifestPath,
+    String? agentProfilePath,
+    String? agentGenerationManifestPath,
+    String? agentAdvancedConfigPath,
+    String? agentPermissionAuditPath,
+    String? agentPackageManifestPath,
+    String? agentPackageReadmePath,
     String? agentDialoguePath,
     String? agentDialogueManifestPath,
     String? agentDialogueHistoryPath,
@@ -7031,6 +7097,19 @@ class Rc6RuntimeState {
       skillAgentBindingStatus:
           skillAgentBindingStatus ?? this.skillAgentBindingStatus,
       agentPath: agentPath ?? this.agentPath,
+      primaryAgentManifestPath:
+          primaryAgentManifestPath ?? this.primaryAgentManifestPath,
+      agentProfilePath: agentProfilePath ?? this.agentProfilePath,
+      agentGenerationManifestPath:
+          agentGenerationManifestPath ?? this.agentGenerationManifestPath,
+      agentAdvancedConfigPath:
+          agentAdvancedConfigPath ?? this.agentAdvancedConfigPath,
+      agentPermissionAuditPath:
+          agentPermissionAuditPath ?? this.agentPermissionAuditPath,
+      agentPackageManifestPath:
+          agentPackageManifestPath ?? this.agentPackageManifestPath,
+      agentPackageReadmePath:
+          agentPackageReadmePath ?? this.agentPackageReadmePath,
       agentDialoguePath: agentDialoguePath ?? this.agentDialoguePath,
       agentDialogueManifestPath:
           agentDialogueManifestPath ?? this.agentDialogueManifestPath,

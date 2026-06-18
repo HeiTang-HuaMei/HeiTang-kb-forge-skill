@@ -1741,6 +1741,17 @@ void main() {
           contains('"creation_mode": "advanced"'),
           contains('"output_format": "json"'),
         ));
+    expect(controller.state.hasPrimaryAgentManifest, isTrue);
+    expect(controller.state.primaryAgentManifestPath,
+        endsWith('agent_manifest.json'));
+    expect(controller.state.hasAgentProfile, isTrue);
+    expect(controller.state.hasAgentGenerationManifest, isTrue);
+    expect(controller.state.agentGenerationManifestPath,
+        endsWith('agent_generation_manifest.json'));
+    expect(controller.state.hasAgentAdvancedConfig, isTrue);
+    expect(controller.state.hasAgentPermissionAudit, isTrue);
+    expect(controller.state.hasAgentPackageManifest, isTrue);
+    expect(controller.state.hasAgentPackageReadme, isTrue);
     await controller.runAgentDialogue(prompt: '用产品分析 Agent 总结证据');
     expect(controller.state.hasAgentDialogueManifest, isTrue);
     expect(controller.state.agentDialogueModelConfigId,

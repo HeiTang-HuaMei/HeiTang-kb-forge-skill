@@ -500,6 +500,10 @@ void main() {
     expect(find.text('Skill 验证报告'), findsOneWidget);
     expect(find.text('Skill 导出包'), findsOneWidget);
     expect(find.text('Agent 绑定清单'), findsOneWidget);
+    expect(find.text('Agent manifest'), findsOneWidget);
+    expect(find.text('Agent 生成清单'), findsOneWidget);
+    expect(find.text('Agent 权限审计'), findsOneWidget);
+    expect(find.text('Agent 导出清单'), findsOneWidget);
     expect(find.textContaining('disabled_boundary'), findsNothing);
     expect(find.textContaining('开发者诊断'), findsNothing);
     expect(tester.takeException(), isNull);
