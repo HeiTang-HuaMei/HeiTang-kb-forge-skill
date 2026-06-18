@@ -168,12 +168,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     final manifestPath = await _writeSourceManifestFromInput(inputDir);
     final manifest = await _readJsonObject(manifestPath);
     final sourceNames = _sourceNamesFromManifest(manifest);
+    final sourceRecords = _sourceRecordsFromManifest(manifest);
     state = state.copyWith(
       phase: Rc6RuntimePhase.imported,
       selectedFilePath: copied.path,
       sourceManifestPath: manifestPath,
       sourceCount: sourceNames.length,
       sourceNames: sourceNames,
+      sourceRecords: sourceRecords,
       lastMessage: '真实文件已导入工作区。',
       lastError: '',
     );
@@ -222,12 +224,14 @@ class Rc6RuntimeController extends ChangeNotifier {
         await _writeSourceManifestFromInput(inputDir, sourceName: 'input');
     final manifest = await _readJsonObject(manifestPath);
     final sourceNames = _sourceNamesFromManifest(manifest);
+    final sourceRecords = _sourceRecordsFromManifest(manifest);
     state = state.copyWith(
       phase: Rc6RuntimePhase.imported,
       selectedFilePath: inputDir.path,
       sourceManifestPath: manifestPath,
       sourceCount: sourceNames.length,
       sourceNames: sourceNames,
+      sourceRecords: sourceRecords,
       lastMessage: '真实文件夹已导入工作区。',
       lastError: '',
     );
@@ -283,12 +287,14 @@ class Rc6RuntimeController extends ChangeNotifier {
         await _writeSourceManifestFromInput(inputDir, sourceName: uri.host);
     final manifest = await _readJsonObject(manifestPath);
     final sourceNames = _sourceNamesFromManifest(manifest);
+    final sourceRecords = _sourceRecordsFromManifest(manifest);
     state = state.copyWith(
       phase: Rc6RuntimePhase.imported,
       selectedFilePath: target.path,
       sourceManifestPath: manifestPath,
       sourceCount: sourceNames.length,
       sourceNames: sourceNames,
+      sourceRecords: sourceRecords,
       lastMessage: '网页链接已作为来源记录导入工作区。',
       lastError: '',
     );
@@ -1448,6 +1454,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       exportManifestPath: '',
       sourceCount: 0,
       sourceNames: const [],
+      sourceRecords: const [],
       chunkCount: 0,
       searchQuery: '',
       searchStatus: Rc6SearchStatus.idle,
@@ -1738,12 +1745,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     final rewrittenManifest = await _writeSourceManifestFromInput(inputDir);
     final rewritten = await _readJsonObject(rewrittenManifest);
     final sourceNames = _sourceNamesFromManifest(rewritten);
+    final sourceRecords = _sourceRecordsFromManifest(rewritten);
     state = state.copyWith(
       phase: Rc6RuntimePhase.imported,
       selectedFilePath: inputDir.path,
       sourceManifestPath: rewrittenManifest,
       sourceCount: sourceNames.length,
       sourceNames: sourceNames,
+      sourceRecords: sourceRecords,
       lastMessage: '来源文档已删除；请重新解析并构建知识库。',
       lastError: '',
     );
@@ -2582,10 +2591,17 @@ class Rc6RuntimeController extends ChangeNotifier {
     final kbCatalog = await _readJsonObject(kbCatalogPath);
     final workbookManifest = await _readWorkbookManifest(workspace);
 
+    final sourceNames = _sourceNamesFromManifest(sourceManifest);
+    final sourceRecords = _sourceRecordsFromManifest(sourceManifest);
+    final manifestSourceCount = sourceRecords.isNotEmpty
+        ? sourceRecords.length
+        : sourceNames.isNotEmpty
+            ? sourceNames.length
+            : null;
     final sourceCount = _asInt(kbReport['source_count']) ??
         _asInt(importReport['imported_count']) ??
+        manifestSourceCount ??
         state.sourceCount;
-    final sourceNames = _sourceNamesFromManifest(sourceManifest);
     final chunkCount = _countJsonl(chunksPath);
     final dialogueTurnCount = _countJsonl(agentDialogueHistoryPath);
     final selectedCount = _asInt(queryReport['selected_count']) ?? 0;
@@ -2669,6 +2685,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       knowledgeBases: _recordsFromKnowledgeCatalog(kbCatalog),
       sourceCount: sourceCount,
       sourceNames: sourceNames,
+      sourceRecords: sourceRecords,
       chunkCount: chunkCount,
       searchResults: searchResults,
       searchStatus: selectedCount > 0
@@ -2693,6 +2710,17 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     final single = (manifest['source_name'] ?? '').toString().trim();
     return single.isEmpty ? const <String>[] : <String>[single];
+  }
+
+  List<Rc6SourceRecord> _sourceRecordsFromManifest(
+      Map<String, Object?> manifest) {
+    final sources = manifest['sources'];
+    if (sources is! List) return const <Rc6SourceRecord>[];
+    return sources
+        .whereType<Map>()
+        .map((source) =>
+            Rc6SourceRecord.fromJson(Map<String, dynamic>.from(source)))
+        .toList(growable: false);
   }
 
   Future<(String, List<String>)> _readWorkbookManifest(
@@ -5221,12 +5249,23 @@ class Rc6RuntimeController extends ChangeNotifier {
     await for (final file in _supportedSourceFiles(inputDir)) {
       final relative = _relativePath(file.absolute.path, inputDir.absolute.path)
           .replaceAll('\\', '/');
-      imported.add({
+      final source = {
         'source_path': file.path,
         'source_name': file.uri.pathSegments.last,
         'relative_path': relative,
         'source_type': relative.endsWith('.url.md') ? 'web_link' : 'local_file',
+      };
+      final stats = await _sourceStructureStats(file);
+      imported.add({
+        ...source,
+        'document_id': _documentId(source),
+        'extension': _extension(file.path).toLowerCase(),
         'size_bytes': await file.length(),
+        'word_count': stats['word_count'],
+        'image_count': stats['image_count'],
+        'table_count': stats['table_count'],
+        'link_count': stats['link_count'],
+        'structure_status': stats['structure_status'],
       });
     }
     imported.sort((a, b) => (a['relative_path'] ?? '')
@@ -5779,6 +5818,39 @@ class Rc6RuntimeController extends ChangeNotifier {
         .length;
   }
 
+  static Future<Map<String, Object>> _sourceStructureStats(File file) async {
+    final extension = _extension(file.path).toLowerCase();
+    if (!{'.md', '.txt', '.url.md'}.contains(extension)) {
+      return const {
+        'word_count': 0,
+        'image_count': 0,
+        'table_count': 0,
+        'link_count': 0,
+        'structure_status': 'requires_parser',
+      };
+    }
+    final text = await file.readAsString(encoding: utf8);
+    final words = RegExp(r'[\p{L}\p{N}_]+', unicode: true).allMatches(text);
+    final markdownImages = RegExp(r'!\[[^\]]*\]\([^)]+\)').allMatches(text);
+    final explicitLinks = RegExp(r'https?://\S+').allMatches(text).length;
+    final markdownLinks = RegExp(r'\[[^\]]+\]\([^)]+\)')
+        .allMatches(text)
+        .where((match) => match.start == 0 || text[match.start - 1] != '!')
+        .length;
+    final tableLines = text
+        .split(RegExp(r'\r?\n'))
+        .where(
+            (line) => line.trim().startsWith('|') && line.trim().endsWith('|'))
+        .length;
+    return {
+      'word_count': words.length,
+      'image_count': markdownImages.length,
+      'table_count': tableLines >= 2 ? 1 : 0,
+      'link_count': explicitLinks + markdownLinks,
+      'structure_status': 'local_text_scan',
+    };
+  }
+
   static int? _asInt(Object? value) {
     if (value is int) return value;
     if (value is num) return value.toInt();
@@ -6159,6 +6231,59 @@ class Rc6KnowledgeBaseRecord {
   final String operation;
 }
 
+class Rc6SourceRecord {
+  const Rc6SourceRecord({
+    required this.documentId,
+    required this.sourceName,
+    required this.relativePath,
+    required this.sourceType,
+    required this.extension,
+    required this.sizeBytes,
+    required this.wordCount,
+    required this.imageCount,
+    required this.tableCount,
+    required this.linkCount,
+    required this.structureStatus,
+  });
+
+  factory Rc6SourceRecord.fromJson(Map<String, dynamic> json) {
+    final sourceName =
+        (json['source_name'] ?? json['relative_path'] ?? '').toString().trim();
+    return Rc6SourceRecord(
+      documentId: (json['document_id'] ?? '').toString(),
+      sourceName: sourceName,
+      relativePath: (json['relative_path'] ?? sourceName).toString(),
+      sourceType: (json['source_type'] ?? 'local_file').toString(),
+      extension: (json['extension'] ?? '').toString(),
+      sizeBytes: _asInt(json['size_bytes']) ?? 0,
+      wordCount: _asInt(json['word_count']) ?? 0,
+      imageCount: _asInt(json['image_count']) ?? 0,
+      tableCount: _asInt(json['table_count']) ?? 0,
+      linkCount: _asInt(json['link_count']) ?? 0,
+      structureStatus: (json['structure_status'] ?? 'not_scanned').toString(),
+    );
+  }
+
+  static int? _asInt(Object? value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
+  final String documentId;
+  final String sourceName;
+  final String relativePath;
+  final String sourceType;
+  final String extension;
+  final int sizeBytes;
+  final int wordCount;
+  final int imageCount;
+  final int tableCount;
+  final int linkCount;
+  final String structureStatus;
+}
+
 class _QdrantResponse {
   const _QdrantResponse(this.statusCode, this.body);
 
@@ -6205,6 +6330,7 @@ class Rc6RuntimeState {
     required this.knowledgeBases,
     required this.sourceCount,
     required this.sourceNames,
+    required this.sourceRecords,
     required this.chunkCount,
     required this.searchQuery,
     required this.searchStatus,
@@ -6252,6 +6378,7 @@ class Rc6RuntimeState {
         knowledgeBases: [],
         sourceCount: 0,
         sourceNames: [],
+        sourceRecords: [],
         chunkCount: 0,
         searchQuery: '',
         searchStatus: Rc6SearchStatus.idle,
@@ -6298,6 +6425,7 @@ class Rc6RuntimeState {
   final List<Rc6KnowledgeBaseRecord> knowledgeBases;
   final int sourceCount;
   final List<String> sourceNames;
+  final List<Rc6SourceRecord> sourceRecords;
   final int chunkCount;
   final String searchQuery;
   final Rc6SearchStatus searchStatus;
@@ -6360,6 +6488,7 @@ class Rc6RuntimeState {
     List<Rc6KnowledgeBaseRecord>? knowledgeBases,
     int? sourceCount,
     List<String>? sourceNames,
+    List<Rc6SourceRecord>? sourceRecords,
     int? chunkCount,
     String? searchQuery,
     Rc6SearchStatus? searchStatus,
@@ -6412,6 +6541,7 @@ class Rc6RuntimeState {
       knowledgeBases: knowledgeBases ?? this.knowledgeBases,
       sourceCount: sourceCount ?? this.sourceCount,
       sourceNames: sourceNames ?? this.sourceNames,
+      sourceRecords: sourceRecords ?? this.sourceRecords,
       chunkCount: chunkCount ?? this.chunkCount,
       searchQuery: searchQuery ?? this.searchQuery,
       searchStatus: searchStatus ?? this.searchStatus,

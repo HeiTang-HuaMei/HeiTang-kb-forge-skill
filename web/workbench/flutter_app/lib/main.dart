@@ -5866,7 +5866,7 @@ class _SourceDocumentPreviewPanel extends StatelessWidget {
 class _DocumentSelectionList extends StatelessWidget {
   const _DocumentSelectionList({
     required this.zh,
-    required this.documents,
+    required this.sources,
     required this.selectedIndex,
     required this.selectedDocuments,
     required this.onSelected,
@@ -5874,7 +5874,7 @@ class _DocumentSelectionList extends StatelessWidget {
   });
 
   final bool zh;
-  final List<String> documents;
+  final List<Rc6SourceRecord> sources;
   final int selectedIndex;
   final Set<String> selectedDocuments;
   final ValueChanged<int> onSelected;
@@ -5882,7 +5882,7 @@ class _DocumentSelectionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (documents.isEmpty) {
+    if (sources.isEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -5907,27 +5907,35 @@ class _DocumentSelectionList extends StatelessWidget {
       children: [
         _SectionCaption(zh ? '文档预览切换' : 'Preview document switcher'),
         const SizedBox(height: 8),
-        for (var index = 0; index < documents.length; index++) ...[
-          ListTile(
-            dense: true,
-            selected: selectedIndex == index,
-            leading: Checkbox(
-              value: selectedDocuments.contains(documents[index]),
-              onChanged: (selected) =>
-                  onSelectionChanged(documents[index], selected ?? false),
-            ),
-            title: Text(documents[index],
-                maxLines: 1, overflow: TextOverflow.ellipsis),
-            trailing: Icon(
-              selectedIndex == index
-                  ? Icons.visibility_outlined
-                  : Icons.chevron_right_outlined,
-            ),
-            onTap: () => onSelected(index),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
+        for (var index = 0; index < sources.length; index++) ...[
+          Builder(builder: (context) {
+            final source = sources[index];
+            final key = _documentKey(source);
+            return ListTile(
+              dense: true,
+              selected: selectedIndex == index,
+              leading: Checkbox(
+                value: selectedDocuments.contains(key),
+                onChanged: (selected) =>
+                    onSelectionChanged(key, selected ?? false),
+              ),
+              title: Text(source.sourceName,
+                  maxLines: 1, overflow: TextOverflow.ellipsis),
+              subtitle: source.documentId.isEmpty
+                  ? null
+                  : Text(source.documentId,
+                      maxLines: 1, overflow: TextOverflow.ellipsis),
+              trailing: Icon(
+                selectedIndex == index
+                    ? Icons.visibility_outlined
+                    : Icons.chevron_right_outlined,
+              ),
+              onTap: () => onSelected(index),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            );
+          }),
         ],
       ],
     );
@@ -8740,29 +8748,63 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
     final hasRealDocument = runtime.hasImportedFile;
     final parsed = runtime.parseReportPath.isNotEmpty;
     final chunkCount = runtime.chunkCount;
-    final importedNames = runtime.sourceNames.isEmpty
-        ? <String>[
-            if (hasRealDocument) _displayNameForPath(runtime.selectedFilePath)
+    final importedSources = runtime.sourceRecords.isEmpty
+        ? <Rc6SourceRecord>[
+            for (final name in runtime.sourceNames)
+              Rc6SourceRecord(
+                documentId: '',
+                sourceName: name,
+                relativePath: name,
+                sourceType: 'local_file',
+                extension: '',
+                sizeBytes: 0,
+                wordCount: 0,
+                imageCount: 0,
+                tableCount: 0,
+                linkCount: 0,
+                structureStatus: 'not_scanned',
+              ),
+            if (runtime.sourceNames.isEmpty && hasRealDocument)
+              Rc6SourceRecord(
+                documentId: '',
+                sourceName: _displayNameForPath(runtime.selectedFilePath),
+                relativePath: _displayNameForPath(runtime.selectedFilePath),
+                sourceType: 'local_file',
+                extension: '',
+                sizeBytes: 0,
+                wordCount: 0,
+                imageCount: 0,
+                tableCount: 0,
+                linkCount: 0,
+                structureStatus: 'not_scanned',
+              ),
           ]
-        : runtime.sourceNames;
+        : runtime.sourceRecords;
     final searchText = _documentSearchController.text.trim().toLowerCase();
-    final filteredNames = (selectedType == 'all'
-            ? importedNames
-            : importedNames
-                .where((name) => _documentTypeForName(name) == selectedType))
-        .where((name) =>
-            searchText.isEmpty || name.toLowerCase().contains(searchText))
+    final filteredSources = (selectedType == 'all'
+            ? importedSources
+            : importedSources.where(
+                (source) => _documentTypeForSource(source) == selectedType))
+        .where((source) =>
+            searchText.isEmpty ||
+            source.sourceName.toLowerCase().contains(searchText) ||
+            source.relativePath.toLowerCase().contains(searchText) ||
+            source.documentId.toLowerCase().contains(searchText))
         .toList(growable: true);
-    _sortDocumentNames(filteredNames, sortMode);
-    selectedDocuments.removeWhere((name) => !filteredNames.contains(name));
-    if (selectedDocumentIndex >= filteredNames.length) {
+    _sortDocumentSources(filteredSources, sortMode);
+    final filteredKeys = filteredSources.map(_documentKey).toSet();
+    selectedDocuments.removeWhere((name) => !filteredKeys.contains(name));
+    if (selectedDocumentIndex >= filteredSources.length) {
       selectedDocumentIndex =
-          filteredNames.isEmpty ? 0 : filteredNames.length - 1;
+          filteredSources.isEmpty ? 0 : filteredSources.length - 1;
     }
-    final selectedName =
-        filteredNames.isEmpty ? '' : filteredNames[selectedDocumentIndex];
+    final selectedSource =
+        filteredSources.isEmpty ? null : filteredSources[selectedDocumentIndex];
+    final selectedName = selectedSource?.sourceName ?? '';
+    final selectedKey =
+        selectedSource == null ? '' : _documentKey(selectedSource);
     Future<void> deleteSelectedDocument() async {
-      if (rc6 == null || runtime.running || selectedName.isEmpty) return;
+      if (rc6 == null || runtime.running || selectedSource == null) return;
       final confirmed = await _confirmDestructiveAction(
         context,
         title: zh ? '删除来源文档？' : 'Delete source document?',
@@ -8771,7 +8813,7 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
             : 'This removes "$selectedName" from the current workspace and clears parsing, KB, retrieval, and document artifacts.',
       );
       if (!confirmed) return;
-      await rc6.deleteImportedSource(selectedName);
+      await rc6.deleteImportedSource(selectedSource.relativePath);
       if (mounted) {
         setState(() => selectedDocumentIndex = 0);
       }
@@ -8788,9 +8830,15 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
             : 'This removes $count selected source documents and clears parsing, KB, retrieval, and document artifacts.',
       );
       if (!confirmed) return;
+      final byKey = {
+        for (final source in filteredSources) _documentKey(source): source,
+      };
       final toDelete = selectedDocuments.toList(growable: false);
-      for (final name in toDelete) {
-        await rc6.deleteImportedSource(name);
+      for (final key in toDelete) {
+        final source = byKey[key];
+        if (source != null) {
+          await rc6.deleteImportedSource(source.relativePath);
+        }
       }
       if (mounted) {
         setState(() {
@@ -8800,25 +8848,27 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
       }
     }
 
-    final documentRows = filteredNames.isEmpty
+    final documentRows = filteredSources.isEmpty
         ? [
             [
               zh ? '请先导入真实文件' : 'Import real files first',
+              '-',
               selectedType == 'all'
                   ? '-'
                   : _documentTypeLabel(selectedType, zh),
-              zh ? '本地文件' : 'Local file',
               zh ? '尚未导入' : 'Not imported',
+              '0',
               '0',
             ]
           ]
-        : filteredNames
-            .map((name) => [
-                  name,
-                  _documentTypeLabel(_documentTypeForName(name), zh),
-                  zh ? '本地文件' : 'Local file',
+        : filteredSources
+            .map((source) => [
+                  source.sourceName,
+                  source.documentId.isEmpty ? '-' : source.documentId,
+                  _documentTypeLabel(_documentTypeForSource(source), zh),
+                  _structureStatusLabel(source.structureStatus, zh),
                   parsed ? (zh ? '已解析' : 'Parsed') : (zh ? '已导入' : 'Imported'),
-                  chunkCount.toString(),
+                  source.wordCount.toString(),
                 ])
             .toList(growable: false);
     return LayoutBuilder(builder: (context, constraints) {
@@ -8908,8 +8958,15 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                   child: _LocalScrollBox(
                     child: _ProductTable(
                       columns: zh
-                          ? ['文档', '类型', '来源', '解析', 'Chunks']
-                          : ['Document', 'Type', 'Source', 'Parsing', 'Chunks'],
+                          ? ['文档', 'Document ID', '类型', '结构', '解析', '字数']
+                          : [
+                              'Document',
+                              'Document ID',
+                              'Type',
+                              'Structure',
+                              'Parsing',
+                              'Words'
+                            ],
                       rows: documentRows,
                     ),
                   ),
@@ -8939,28 +8996,30 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                 items: [
                   _MetricDatum(
                       label: zh ? '字数' : 'Words',
-                      value: hasRealDocument
-                          ? (chunkCount == 0 ? '待解析' : '${chunkCount * 180}+')
-                          : '-',
-                      detail: zh ? '解析估算' : 'parse estimate',
+                      value: selectedSource == null
+                          ? '-'
+                          : selectedSource.wordCount.toString(),
+                      detail: zh ? '来源统计' : 'source stats',
                       icon: Icons.text_fields_outlined),
                   _MetricDatum(
                       label: zh ? '图片' : 'Images',
-                      value: _documentTypeForName(selectedName) == 'image'
-                          ? '1'
-                          : '0',
+                      value: selectedSource == null
+                          ? '-'
+                          : selectedSource.imageCount.toString(),
                       detail: zh ? '来源统计' : 'source count',
                       icon: Icons.image_outlined),
                   _MetricDatum(
                       label: zh ? '表格' : 'Tables',
-                      value: '0',
-                      detail: zh ? '解析报告' : 'parse report',
+                      value: selectedSource == null
+                          ? '-'
+                          : selectedSource.tableCount.toString(),
+                      detail: zh ? '来源统计' : 'source count',
                       icon: Icons.table_chart_outlined),
                   _MetricDatum(
                       label: zh ? '链接' : 'Links',
-                      value: _documentTypeForName(selectedName) == 'web'
-                          ? '1'
-                          : '0',
+                      value: selectedSource == null
+                          ? '-'
+                          : selectedSource.linkCount.toString(),
                       detail: zh ? '来源统计' : 'source count',
                       icon: Icons.link_outlined),
                 ],
@@ -8973,9 +9032,14 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                       columns: 1,
                       children: [
                         _FieldRow(
-                            label: zh ? '元数据' : 'Metadata',
+                            label: zh ? 'Document ID' : 'Document ID',
+                            value: selectedSource?.documentId.isNotEmpty == true
+                                ? selectedSource!.documentId
+                                : (zh ? '等待真实文件' : 'Waiting for real file')),
+                        _FieldRow(
+                            label: zh ? '来源路径' : 'Source path',
                             value: selectedName.isNotEmpty
-                                ? selectedName
+                                ? (selectedSource?.relativePath ?? selectedName)
                                 : (zh ? '等待真实文件' : 'Waiting for real file')),
                         _FieldRow(
                             label: zh ? '解析摘要' : 'Parse summary',
@@ -9026,7 +9090,7 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                   child: _LocalScrollBox(
                     child: _DocumentSelectionList(
                       zh: zh,
-                      documents: filteredNames,
+                      sources: filteredSources,
                       selectedIndex: selectedDocumentIndex,
                       selectedDocuments: selectedDocuments,
                       onSelected: (index) =>
@@ -9067,7 +9131,7 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                 : 'Delete ${selectedDocuments.length} selected docs'),
         icon: Icons.delete_outline,
         onPressed: selectedDocuments.isEmpty
-            ? (selectedName.isEmpty ? null : deleteSelectedDocument)
+            ? (selectedKey.isEmpty ? null : deleteSelectedDocument)
             : deleteSelectedDocuments,
       );
       if (!wide) {
@@ -9113,6 +9177,31 @@ String _documentTypeForName(String name) {
   return 'other';
 }
 
+String _documentKey(Rc6SourceRecord source) {
+  if (source.documentId.isNotEmpty) return source.documentId;
+  if (source.relativePath.isNotEmpty) return source.relativePath;
+  return source.sourceName;
+}
+
+String _documentTypeForSource(Rc6SourceRecord source) {
+  if (source.sourceType == 'web_link') return 'web';
+  if (source.extension.isNotEmpty) {
+    final extension = source.extension.toLowerCase();
+    if (extension == '.pdf') return 'pdf';
+    if (extension == '.docx') return 'docx';
+    if (extension == '.md' || extension == '.markdown') return 'md';
+    if (extension == '.txt') return 'txt';
+    if (extension == '.png' ||
+        extension == '.jpg' ||
+        extension == '.jpeg' ||
+        extension == '.webp') {
+      return 'image';
+    }
+  }
+  return _documentTypeForName(
+      source.relativePath.isNotEmpty ? source.relativePath : source.sourceName);
+}
+
 String _documentTypeLabel(String type, bool zh) {
   return switch (type) {
     'all' => zh ? '全部' : 'All',
@@ -9126,22 +9215,33 @@ String _documentTypeLabel(String type, bool zh) {
   };
 }
 
-void _sortDocumentNames(List<String> names, String sortMode) {
+String _structureStatusLabel(String status, bool zh) {
+  return switch (status) {
+    'local_text_scan' => zh ? '文本已扫描' : 'Text scanned',
+    'requires_parser' => zh ? '待解析器' : 'Parser required',
+    'not_scanned' => zh ? '待扫描' : 'Not scanned',
+    _ => status.isEmpty ? (zh ? '待扫描' : 'Not scanned') : status,
+  };
+}
+
+void _sortDocumentSources(List<Rc6SourceRecord> sources, String sortMode) {
   switch (sortMode) {
     case 'name_desc':
-      names.sort((a, b) => b.toLowerCase().compareTo(a.toLowerCase()));
+      sources.sort((a, b) =>
+          b.sourceName.toLowerCase().compareTo(a.sourceName.toLowerCase()));
       return;
     case 'type':
-      names.sort((a, b) {
+      sources.sort((a, b) {
         final typeCompare =
-            _documentTypeForName(a).compareTo(_documentTypeForName(b));
+            _documentTypeForSource(a).compareTo(_documentTypeForSource(b));
         return typeCompare == 0
-            ? a.toLowerCase().compareTo(b.toLowerCase())
+            ? a.sourceName.toLowerCase().compareTo(b.sourceName.toLowerCase())
             : typeCompare;
       });
       return;
     default:
-      names.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      sources.sort((a, b) =>
+          a.sourceName.toLowerCase().compareTo(b.sourceName.toLowerCase()));
   }
 }
 

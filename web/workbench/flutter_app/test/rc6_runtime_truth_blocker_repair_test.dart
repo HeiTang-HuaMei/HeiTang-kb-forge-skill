@@ -303,28 +303,38 @@ void main() {
         Directory('${workspace.path}${Platform.pathSeparator}source_files')
           ..createSync(recursive: true);
     final first = File('${sourceDir.path}${Platform.pathSeparator}alpha.md')
-      ..writeAsStringSync('alpha real document');
+      ..writeAsStringSync([
+        '# Alpha',
+        'alpha real document with https://example.com/ref',
+        '![chart](chart.png)',
+        '',
+        '| A | B |',
+        '|---|---|',
+        '| 1 | 2 |',
+      ].join('\n'));
     final second = File('${sourceDir.path}${Platform.pathSeparator}beta.txt')
       ..writeAsStringSync('beta real document');
     final requests = <CoreBridgeRequest>[];
-    final controller = Rc6RuntimeController(
-      coreBridge: LocalCoreBridge(
-        runner: (request) async {
-          requests.add(request);
-          final output = Directory(request.outputPath!)
-            ..createSync(recursive: true);
-          File('${output.path}${Platform.pathSeparator}batch_import_report.json')
-              .writeAsStringSync('{"status":"completed","imported_count":2}');
-          return const CoreBridgeProcessResult(
-              exitCode: 0, stdout: 'ok', stderr: '');
-        },
-      ),
-      coreCli: 'heitang-kb-forge',
-      coreWorkingDirectory: Directory.current.path,
-      configuredWorkspace: workspace.path,
-      isWebRuntime: false,
-    );
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (request) async {
+              requests.add(request);
+              final output = Directory(request.outputPath!)
+                ..createSync(recursive: true);
+              File('${output.path}${Platform.pathSeparator}batch_import_report.json')
+                  .writeAsStringSync(
+                      '{"status":"completed","imported_count":2}');
+              return const CoreBridgeProcessResult(
+                  exitCode: 0, stdout: 'ok', stderr: '');
+            },
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
 
+    final controller = buildController();
     await controller.initialize();
     await controller.importFilePath(first.path);
     await controller.importFilePath(second.path);
@@ -338,8 +348,28 @@ void main() {
         everyElement('batch_import_documents'));
     expect(sources.map((source) => source['source_name']),
         containsAll(['alpha.md', 'beta.txt']));
+    expect(sources.map((source) => source['document_id']),
+        everyElement(startsWith('doc_')));
+    expect(
+        sources.map((source) => source['document_id']).toSet(), hasLength(2));
+    final alpha =
+        sources.firstWhere((source) => source['source_name'] == 'alpha.md');
+    final beta =
+        sources.firstWhere((source) => source['source_name'] == 'beta.txt');
+    expect(alpha['extension'], '.md');
+    expect(alpha['word_count'], greaterThan(5));
+    expect(alpha['image_count'], 1);
+    expect(alpha['table_count'], 1);
+    expect(alpha['link_count'], 1);
+    expect(alpha['structure_status'], 'local_text_scan');
+    expect(beta['extension'], '.txt');
+    expect(beta['word_count'], greaterThanOrEqualTo(3));
+    expect(beta['structure_status'], 'local_text_scan');
     expect(controller.state.sourceCount, 2);
     expect(controller.state.sourceNames, containsAll(['alpha.md', 'beta.txt']));
+    expect(controller.state.sourceRecords, hasLength(2));
+    expect(controller.state.sourceRecords.map((source) => source.documentId),
+        containsAll(sources.map((source) => source['document_id'])));
     expect(
         File('${workspace.path}${Platform.pathSeparator}input${Platform.pathSeparator}alpha.md')
             .existsSync(),
@@ -348,6 +378,14 @@ void main() {
         File('${workspace.path}${Platform.pathSeparator}input${Platform.pathSeparator}beta.txt')
             .existsSync(),
         isTrue);
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(reloaded.state.sourceCount, 2);
+    expect(reloaded.state.sourceRecords.map((source) => source.sourceName),
+        containsAll(['alpha.md', 'beta.txt']));
+    expect(reloaded.state.sourceRecords.map((source) => source.documentId),
+        containsAll(sources.map((source) => source['document_id'])));
   });
 
   test('prd document library imports web links as real source records',

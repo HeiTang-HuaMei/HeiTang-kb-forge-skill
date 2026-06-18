@@ -323,6 +323,34 @@ class Rc6KnowledgeBaseRecord {
   final String operation;
 }
 
+class Rc6SourceRecord {
+  const Rc6SourceRecord({
+    required this.documentId,
+    required this.sourceName,
+    required this.relativePath,
+    required this.sourceType,
+    required this.extension,
+    required this.sizeBytes,
+    required this.wordCount,
+    required this.imageCount,
+    required this.tableCount,
+    required this.linkCount,
+    required this.structureStatus,
+  });
+
+  final String documentId;
+  final String sourceName;
+  final String relativePath;
+  final String sourceType;
+  final String extension;
+  final int sizeBytes;
+  final int wordCount;
+  final int imageCount;
+  final int tableCount;
+  final int linkCount;
+  final String structureStatus;
+}
+
 class Rc6RuntimeState {
   const Rc6RuntimeState({
     required this.phase,
@@ -362,6 +390,7 @@ class Rc6RuntimeState {
     required this.knowledgeBases,
     required this.sourceCount,
     required this.sourceNames,
+    required this.sourceRecords,
     required this.chunkCount,
     required this.searchQuery,
     required this.searchStatus,
@@ -409,6 +438,7 @@ class Rc6RuntimeState {
         knowledgeBases: [],
         sourceCount: 0,
         sourceNames: [],
+        sourceRecords: [],
         chunkCount: 0,
         searchQuery: '',
         searchStatus: Rc6SearchStatus.idle,
@@ -455,6 +485,7 @@ class Rc6RuntimeState {
   final List<Rc6KnowledgeBaseRecord> knowledgeBases;
   final int sourceCount;
   final List<String> sourceNames;
+  final List<Rc6SourceRecord> sourceRecords;
   final int chunkCount;
   final String searchQuery;
   final Rc6SearchStatus searchStatus;
@@ -517,6 +548,7 @@ class Rc6RuntimeState {
     List<Rc6KnowledgeBaseRecord>? knowledgeBases,
     int? sourceCount,
     List<String>? sourceNames,
+    List<Rc6SourceRecord>? sourceRecords,
     int? chunkCount,
     String? searchQuery,
     Rc6SearchStatus? searchStatus,
@@ -569,6 +601,7 @@ class Rc6RuntimeState {
       knowledgeBases: knowledgeBases ?? this.knowledgeBases,
       sourceCount: sourceCount ?? this.sourceCount,
       sourceNames: sourceNames ?? this.sourceNames,
+      sourceRecords: sourceRecords ?? this.sourceRecords,
       chunkCount: chunkCount ?? this.chunkCount,
       searchQuery: searchQuery ?? this.searchQuery,
       searchStatus: searchStatus ?? this.searchStatus,
