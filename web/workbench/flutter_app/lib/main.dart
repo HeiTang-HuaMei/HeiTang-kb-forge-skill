@@ -3368,6 +3368,21 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
         keywords: [runtime.agentDialoguePath, runtime.agentDialogueHistoryPath],
       ));
     }
+    if (runtime.hasAgentDialogueExport) {
+      suggestions.add(_TopBarSearchSuggestion(
+        title: zh ? 'Agent 对话导出' : 'Agent dialogue export',
+        subtitle: _displayNameForPath(runtime.agentDialogueExportPath),
+        category: 'Agent',
+        pageId: 'agent-factory-runtime',
+        icon: Icons.file_download_done_outlined,
+        keywords: [
+          runtime.agentDialogueExportPath,
+          'agent_dialogue_export',
+          'dialogue export',
+          '对话导出'
+        ],
+      ));
+    }
     if (runtime.hasMultiAgentDiscussion) {
       suggestions.add(_TopBarSearchSuggestion(
         title: zh ? '多 Agent 联合讨论' : 'Multi-agent discussion',
@@ -12443,6 +12458,7 @@ String _firstAuditPreviewPath(Rc6RuntimeState runtime) {
     runtime.sourceManifestPath,
     runtime.generatedMarkdownPath,
     runtime.agentDialoguePath,
+    runtime.agentDialogueExportPath,
     runtime.multiAgentDiscussionPath,
   ]) {
     if (path.trim().isNotEmpty) return path;
@@ -12463,6 +12479,7 @@ class _ArtifactCenterProductWorkflow extends StatefulWidget {
 class _ArtifactCenterProductWorkflowState
     extends State<_ArtifactCenterProductWorkflow> {
   int selectedIndex = 0;
+  String _selectedInitialExportPath = '';
 
   bool get _zh => widget.localeCode == 'zh-CN';
 
@@ -12472,6 +12489,15 @@ class _ArtifactCenterProductWorkflowState
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     final artifacts = _artifactCenterItems(runtime, _zh);
     if (selectedIndex >= artifacts.length) selectedIndex = 0;
+    if (runtime.hasAgentDialogueExport &&
+        _selectedInitialExportPath != runtime.agentDialogueExportPath) {
+      final exportIndex = artifacts.indexWhere(
+          (artifact) => artifact.path == runtime.agentDialogueExportPath);
+      if (exportIndex >= 0) {
+        selectedIndex = exportIndex;
+        _selectedInitialExportPath = runtime.agentDialogueExportPath;
+      }
+    }
     final selected = artifacts.isEmpty ? null : artifacts[selectedIndex];
     final generatedCount =
         artifacts.where((artifact) => artifact.path.trim().isNotEmpty).length;
@@ -12716,6 +12742,8 @@ List<_ArtifactCenterItem> _artifactCenterItems(
         runtime.agentDialoguePath),
     item('Agent 工作台', 'Agent Workbench', 'Agent 会话历史', 'Agent chat history',
         'history', runtime.agentDialogueHistoryPath),
+    item('Agent 工作台', 'Agent Workbench', 'Agent 对话导出', 'Agent dialogue export',
+        'chat export', runtime.agentDialogueExportPath),
     item('Agent 工作台', 'Agent Workbench', '多 Agent 讨论纪要',
         'Multi-agent discussion', 'a2a', runtime.multiAgentDiscussionPath),
     item('治理', 'Governance', 'PRD P0 验证证据', 'PRD P0 evidence', 'evidence',

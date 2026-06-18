@@ -1858,4 +1858,20 @@ void main() {
     final unsupported = await controller.readWorkspaceTextArtifact(binary.path);
     expect(unsupported, contains('仅支持文本产物'));
   });
+
+  testWidgets('prd artifact center lists exported Agent dialogue',
+      (tester) async {
+    await pumpWorkbench(tester);
+
+    await tester
+        .ensureVisible(find.byKey(const Key('sidebar-artifact-center')));
+    await tester.tap(find.byKey(const Key('sidebar-artifact-center')),
+        warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('artifact-center-catalog')), findsOneWidget);
+    expect(find.text('Agent 对话导出'), findsOneWidget);
+    expect(find.textContaining('chat export'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
