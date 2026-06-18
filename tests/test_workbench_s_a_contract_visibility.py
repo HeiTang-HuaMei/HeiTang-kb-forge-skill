@@ -58,7 +58,7 @@ def test_flutter_surface_mentions_boundary_not_run_or_installed_claims():
     assert "S/A external capabilities" in main
     assert "ready=false" in main
     assert "local_ready=false" in main
-    assert "Safety boundary active" in main
+    assert "Authorization protected" in main
     assert "anysearchskill" not in bridge.lower()
     assert "weknora" not in bridge.lower()
     assert "n8n" not in bridge.lower()
