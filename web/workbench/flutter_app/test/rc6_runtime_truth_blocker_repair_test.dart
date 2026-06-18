@@ -213,6 +213,53 @@ void main() {
         isTrue);
   });
 
+  test('prd settings persist storage provider config without plaintext secrets',
+      () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final savedPath = await controller.saveStorageProviderSettings(
+      redisHost: '127.0.0.1',
+      redisPort: 6379,
+      redisKeyPrefix: 'heitang:',
+      redisPassword: 'super-secret-password',
+      qdrantEndpoint: 'http://127.0.0.1:6333',
+      qdrantCollection: 'heitang_kb',
+      qdrantDimension: 1536,
+      qdrantApiKey: 'qdrant-secret-key',
+    );
+
+    final savedFile = File(savedPath);
+    expect(savedFile.existsSync(), isTrue);
+    final raw = savedFile.readAsStringSync();
+    expect(raw, isNot(contains('super-secret-password')));
+    expect(raw, isNot(contains('qdrant-secret-key')));
+    expect(raw, contains('runtime_input_not_persisted'));
+    final saved = jsonDecode(raw) as Map<String, dynamic>;
+    expect((saved['redis'] as Map)['status'], 'configured_not_tested');
+    expect((saved['qdrant'] as Map)['collection'], 'heitang_kb');
+    expect((saved['exporters'] as Map)['markdown'], isA<Map>());
+
+    final reloadedController = buildController();
+    await reloadedController.initialize();
+    final reloaded = await reloadedController.loadStorageProviderSettings();
+    expect((reloaded['redis'] as Map)['host'], '127.0.0.1');
+    expect((reloaded['redis'] as Map)['key_prefix'], 'heitang:');
+    expect((reloaded['qdrant'] as Map)['dimension'], 1536);
+    expect((reloaded['provider'] as Map)['api_key_display'], contains('*'));
+  });
+
   test('rc10 deleting one imported source removes it and keeps other files',
       () async {
     final workspace = await createWorkspace();

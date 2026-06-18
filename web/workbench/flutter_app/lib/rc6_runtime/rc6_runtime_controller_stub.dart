@@ -73,6 +73,57 @@ class Rc6RuntimeController extends ChangeNotifier {
         status: 'desktop_runtime_required',
         detail: '真实 Qdrant 连接测试需要 Windows EXE 桌面端。',
       );
+  Future<Map<String, dynamic>> loadStorageProviderSettings() async => {
+        'schema_version': 'heitang_storage_provider_settings.v1',
+        'workspace': '',
+        'provider': {
+          'llm_provider': 'env_configured',
+          'secret_source': 'env_only',
+          'api_key_display': '************',
+          'status': 'configured',
+        },
+        'redis': {
+          'host': '127.0.0.1',
+          'port': 6379,
+          'key_prefix': 'heitang:',
+          'password_display': '********',
+          'password_secret_ref': 'env:HEITANG_REDIS_PASSWORD',
+          'status': 'desktop_runtime_required',
+          'last_test_detail': '',
+        },
+        'qdrant': {
+          'provider': 'qdrant',
+          'endpoint': 'http://127.0.0.1:6333',
+          'collection': 'heitang_kb',
+          'dimension': 1536,
+          'api_key_display': '',
+          'api_key_secret_ref': 'none',
+          'status': 'desktop_runtime_required',
+          'last_test_detail': '',
+        },
+        'exporters': {
+          'markdown': {'status': 'enabled_real', 'extension': 'md'},
+          'docx': {'status': 'configured_not_enabled'},
+          'pdf': {'status': 'configured_not_enabled'},
+          'pptx': {'status': 'configured_not_enabled'},
+          'json': {'status': 'configured_not_enabled'},
+          'csv': {'status': 'configured_not_enabled'},
+        },
+      };
+  Future<String> saveStorageProviderSettings({
+    required String redisHost,
+    required int redisPort,
+    required String redisKeyPrefix,
+    required String redisPassword,
+    required String qdrantEndpoint,
+    required String qdrantCollection,
+    required int qdrantDimension,
+    required String qdrantApiKey,
+  }) async {
+    await initialize();
+    return '';
+  }
+
   Future<void> generateSkill() async => initialize();
   Future<void> generateAgent() async => initialize();
   Future<void> runAgentDialogue({String prompt = '请基于当前知识库总结核心要点。'}) async =>

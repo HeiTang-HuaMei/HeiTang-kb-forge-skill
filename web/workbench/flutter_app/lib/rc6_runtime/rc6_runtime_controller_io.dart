@@ -540,14 +540,25 @@ class Rc6RuntimeController extends ChangeNotifier {
       provided: password,
       environmentKey: 'HEITANG_REDIS_PASSWORD',
     );
+    final safePrefix = keyPrefix.trim().isEmpty ? 'heitang:' : keyPrefix.trim();
+    Future<Rc6StorageTestResult> persist(Rc6StorageTestResult result) async {
+      await _persistRedisStorageResult(
+        host: host,
+        port: port,
+        keyPrefix: safePrefix,
+        password: password,
+        result: result,
+      );
+      return result;
+    }
+
     if (effectivePassword.isEmpty) {
-      return const Rc6StorageTestResult(
+      return persist(const Rc6StorageTestResult(
         passed: false,
         status: 'missing_password',
         detail: '缺少 Redis 密码；请设置 HEITANG_REDIS_PASSWORD 或输入掩码字段。',
-      );
+      ));
     }
-    final safePrefix = keyPrefix.trim().isEmpty ? 'heitang:' : keyPrefix.trim();
     final probeKey = '${safePrefix}settings_probe';
     Socket? socket;
     StreamIterator<List<int>>? iterator;
@@ -572,19 +583,19 @@ class Rc6RuntimeController extends ChangeNotifier {
 
       final auth = await send(['AUTH', effectivePassword]);
       if (!auth.startsWith('+OK')) {
-        return Rc6StorageTestResult(
+        return persist(Rc6StorageTestResult(
           passed: false,
           status: 'auth_failed',
           detail: _redisStatus(auth),
-        );
+        ));
       }
       final ping = await send(['PING']);
       if (!ping.startsWith('+PONG')) {
-        return Rc6StorageTestResult(
+        return persist(Rc6StorageTestResult(
           passed: false,
           status: 'ping_failed',
           detail: _redisStatus(ping),
-        );
+        ));
       }
       final set = await send(['SET', probeKey, 'ok']);
       final get = await send(['GET', probeKey]);
@@ -592,19 +603,19 @@ class Rc6RuntimeController extends ChangeNotifier {
       final ok = set.startsWith('+OK') &&
           get.contains('\r\nok\r\n') &&
           (del.startsWith(':1') || del.startsWith(':0'));
-      return Rc6StorageTestResult(
+      return persist(Rc6StorageTestResult(
         passed: ok,
         status: ok ? 'connected' : 'probe_failed',
         detail: ok
             ? 'Redis PING / 写入 / 读取 / 删除均通过。'
             : 'Redis 探针失败：${_redisStatus(get)}',
-      );
+      ));
     } on Object catch (error) {
-      return Rc6StorageTestResult(
+      return persist(Rc6StorageTestResult(
         passed: false,
         status: 'connection_failed',
         detail: _redactSecret(error.toString(), effectivePassword),
-      );
+      ));
     } finally {
       await iterator?.cancel();
       socket?.destroy();
@@ -645,6 +656,17 @@ class Rc6RuntimeController extends ChangeNotifier {
       provided: apiKey,
       environmentKey: 'HEITANG_QDRANT_API_KEY',
     );
+    Future<Rc6StorageTestResult> persist(Rc6StorageTestResult result) async {
+      await _persistQdrantStorageResult(
+        endpoint: endpoint,
+        collection: collectionName,
+        dimension: dimension,
+        apiKey: apiKey,
+        result: result,
+      );
+      return result;
+    }
+
     final client = HttpClient()..connectionTimeout = const Duration(seconds: 5);
     try {
       final health = await _qdrantRequest(
@@ -655,11 +677,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         effectiveApiKey,
       );
       if (health.statusCode >= 400) {
-        return Rc6StorageTestResult(
+        return persist(Rc6StorageTestResult(
           passed: false,
           status: 'health_failed',
           detail: 'Qdrant healthz 返回 HTTP ${health.statusCode}。',
-        );
+        ));
       }
 
       final collectionPath = '/collections/$collectionName';
@@ -682,18 +704,18 @@ class Rc6RuntimeController extends ChangeNotifier {
           },
         );
         if (create.statusCode >= 400) {
-          return Rc6StorageTestResult(
+          return persist(Rc6StorageTestResult(
             passed: false,
             status: 'collection_create_failed',
             detail: '创建 collection 失败：HTTP ${create.statusCode}。',
-          );
+          ));
         }
       } else if (current.statusCode >= 400) {
-        return Rc6StorageTestResult(
+        return persist(Rc6StorageTestResult(
           passed: false,
           status: 'collection_check_failed',
           detail: 'Collection 检查失败：HTTP ${current.statusCode}。',
-        );
+        ));
       }
 
       const pointId = 4308;
@@ -718,11 +740,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         },
       );
       if (upsert.statusCode >= 400) {
-        return Rc6StorageTestResult(
+        return persist(Rc6StorageTestResult(
           passed: false,
           status: 'vector_write_failed',
           detail: '测试向量写入失败：HTTP ${upsert.statusCode}。',
-        );
+        ));
       }
       final search = await _qdrantRequest(
         client,
@@ -733,11 +755,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         body: {'vector': vector, 'limit': 1, 'with_payload': true},
       );
       if (search.statusCode >= 400 || !search.body.contains('$pointId')) {
-        return Rc6StorageTestResult(
+        return persist(Rc6StorageTestResult(
           passed: false,
           status: 'vector_search_failed',
           detail: '测试向量检索失败：HTTP ${search.statusCode}。',
-        );
+        ));
       }
       final delete = await _qdrantRequest(
         client,
@@ -750,22 +772,70 @@ class Rc6RuntimeController extends ChangeNotifier {
         },
       );
       final deleted = delete.statusCode < 400;
-      return Rc6StorageTestResult(
+      return persist(Rc6StorageTestResult(
         passed: deleted,
         status: deleted ? 'connected' : 'vector_delete_failed',
         detail: deleted
             ? 'Qdrant health / collection / 测试向量写入检索删除均通过。'
             : '测试向量删除失败：HTTP ${delete.statusCode}。',
-      );
+      ));
     } on Object catch (error) {
-      return Rc6StorageTestResult(
+      return persist(Rc6StorageTestResult(
         passed: false,
         status: 'connection_failed',
         detail: _redactSecret(error.toString(), effectiveApiKey),
-      );
+      ));
     } finally {
       client.close(force: true);
     }
+  }
+
+  Future<Map<String, dynamic>> loadStorageProviderSettings() async {
+    final workspace = _workspaceDir;
+    if (workspace == null || !await workspace.exists()) {
+      return _defaultStorageProviderSettings('');
+    }
+    final saved =
+        await _readJsonObject(_storageProviderSettingsPath(workspace));
+    return _mergeStorageProviderSettings(
+      _defaultStorageProviderSettings(workspace.path),
+      saved,
+    );
+  }
+
+  Future<String> saveStorageProviderSettings({
+    required String redisHost,
+    required int redisPort,
+    required String redisKeyPrefix,
+    required String redisPassword,
+    required String qdrantEndpoint,
+    required String qdrantCollection,
+    required int qdrantDimension,
+    required String qdrantApiKey,
+  }) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final path = await _writeStorageProviderSettings(
+      redisHost: redisHost,
+      redisPort: redisPort,
+      redisKeyPrefix: redisKeyPrefix,
+      redisPassword: redisPassword,
+      redisStatus: 'configured_not_tested',
+      redisDetail: '',
+      qdrantEndpoint: qdrantEndpoint,
+      qdrantCollection: qdrantCollection,
+      qdrantDimension: qdrantDimension,
+      qdrantApiKey: qdrantApiKey,
+      qdrantStatus: 'configured_not_tested',
+      qdrantDetail: '',
+    );
+    state = state.copyWith(
+      lastMessage: 'Provider、Redis、Qdrant 和导出器配置已保存到工作区。',
+      lastError: '',
+    );
+    notifyListeners();
+    return path;
   }
 
   Future<void> clearImportedSources() async {
@@ -2689,6 +2759,241 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     return Directory(
         _join(Directory.current.path, 'output', 'rc10_product_flow_workspace'));
+  }
+
+  Future<void> _persistRedisStorageResult({
+    required String host,
+    required int port,
+    required String keyPrefix,
+    required String password,
+    required Rc6StorageTestResult result,
+  }) async {
+    final workspace = _workspaceDir;
+    if (workspace == null) return;
+    final current = await loadStorageProviderSettings();
+    final qdrant = _mapValue(current['qdrant']);
+    await _writeStorageProviderSettings(
+      redisHost: host,
+      redisPort: port,
+      redisKeyPrefix: keyPrefix,
+      redisPassword: password,
+      redisStatus: result.status,
+      redisDetail: result.detail,
+      qdrantEndpoint:
+          (qdrant['endpoint'] ?? 'http://127.0.0.1:6333').toString(),
+      qdrantCollection: (qdrant['collection'] ?? 'heitang_kb').toString(),
+      qdrantDimension: _asInt(qdrant['dimension']) ?? 1536,
+      qdrantApiKey: '',
+      qdrantStatus: (qdrant['status'] ?? 'configured_not_tested').toString(),
+      qdrantDetail: (qdrant['last_test_detail'] ?? '').toString(),
+    );
+  }
+
+  Future<void> _persistQdrantStorageResult({
+    required String endpoint,
+    required String collection,
+    required int dimension,
+    required String apiKey,
+    required Rc6StorageTestResult result,
+  }) async {
+    final workspace = _workspaceDir;
+    if (workspace == null) return;
+    final current = await loadStorageProviderSettings();
+    final redis = _mapValue(current['redis']);
+    await _writeStorageProviderSettings(
+      redisHost: (redis['host'] ?? '127.0.0.1').toString(),
+      redisPort: _asInt(redis['port']) ?? 6379,
+      redisKeyPrefix: (redis['key_prefix'] ?? 'heitang:').toString(),
+      redisPassword: '',
+      redisStatus: (redis['status'] ?? 'configured_not_tested').toString(),
+      redisDetail: (redis['last_test_detail'] ?? '').toString(),
+      qdrantEndpoint: endpoint,
+      qdrantCollection: collection,
+      qdrantDimension: dimension,
+      qdrantApiKey: apiKey,
+      qdrantStatus: result.status,
+      qdrantDetail: result.detail,
+    );
+  }
+
+  Future<String> _writeStorageProviderSettings({
+    required String redisHost,
+    required int redisPort,
+    required String redisKeyPrefix,
+    required String redisPassword,
+    required String redisStatus,
+    required String redisDetail,
+    required String qdrantEndpoint,
+    required String qdrantCollection,
+    required int qdrantDimension,
+    required String qdrantApiKey,
+    required String qdrantStatus,
+    required String qdrantDetail,
+  }) async {
+    final workspace = _requireWorkspace();
+    final configDir = Directory(_join(workspace.path, 'config'));
+    await configDir.create(recursive: true);
+    final path = _storageProviderSettingsPath(workspace);
+    final now = DateTime.now().toUtc().toIso8601String();
+    final redisSecretRef = _secretReference(
+      provided: redisPassword,
+      environmentKey: 'HEITANG_REDIS_PASSWORD',
+    );
+    final qdrantSecretRef = _secretReference(
+      provided: qdrantApiKey,
+      environmentKey: 'HEITANG_QDRANT_API_KEY',
+    );
+    final payload = {
+      'schema_version': 'heitang_storage_provider_settings.v1',
+      'workspace': workspace.path,
+      'saved_at': now,
+      'provider': {
+        'llm_provider': 'env_configured',
+        'secret_source': 'env_only',
+        'api_key_display': '************',
+        'status': 'configured',
+      },
+      'redis': {
+        'host': redisHost.trim().isEmpty ? '127.0.0.1' : redisHost.trim(),
+        'port': redisPort,
+        'db': 0,
+        'key_prefix':
+            redisKeyPrefix.trim().isEmpty ? 'heitang:' : redisKeyPrefix.trim(),
+        'tls': false,
+        'password_display': '********',
+        'password_secret_ref': redisSecretRef,
+        'status': redisStatus,
+        'last_test_detail': _redactSecret(redisDetail, redisPassword),
+        'last_tested_at': redisStatus == 'configured_not_tested' ? '' : now,
+      },
+      'qdrant': {
+        'provider': 'qdrant',
+        'endpoint': qdrantEndpoint.trim().isEmpty
+            ? 'http://127.0.0.1:6333'
+            : qdrantEndpoint.trim(),
+        'collection': qdrantCollection.trim().isEmpty
+            ? 'heitang_kb'
+            : qdrantCollection.trim(),
+        'dimension': qdrantDimension,
+        'tls': qdrantEndpoint.trim().startsWith('https://'),
+        'api_key_display': qdrantSecretRef == 'none' ? '' : '********',
+        'api_key_secret_ref': qdrantSecretRef,
+        'status': qdrantStatus,
+        'last_test_detail': _redactSecret(qdrantDetail, qdrantApiKey),
+        'last_tested_at': qdrantStatus == 'configured_not_tested' ? '' : now,
+      },
+      'exporters': {
+        'markdown': {'status': 'enabled_real', 'extension': 'md'},
+        'docx': {'status': 'configured_not_enabled', 'secret_required': false},
+        'pdf': {'status': 'configured_not_enabled', 'secret_required': false},
+        'pptx': {'status': 'configured_not_enabled', 'secret_required': false},
+        'json': {'status': 'configured_not_enabled', 'secret_required': false},
+        'csv': {'status': 'configured_not_enabled', 'secret_required': false},
+      },
+    };
+    await File(path).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+    return path;
+  }
+
+  static String _storageProviderSettingsPath(Directory workspace) {
+    return _join(workspace.path, 'config', 'storage_provider_settings.json');
+  }
+
+  static Map<String, dynamic> _defaultStorageProviderSettings(
+      String workspacePath) {
+    return {
+      'schema_version': 'heitang_storage_provider_settings.v1',
+      'workspace': workspacePath,
+      'provider': {
+        'llm_provider': 'env_configured',
+        'secret_source': 'env_only',
+        'api_key_display': '************',
+        'status': 'configured',
+      },
+      'redis': {
+        'host': '127.0.0.1',
+        'port': 6379,
+        'db': 0,
+        'key_prefix': 'heitang:',
+        'tls': false,
+        'password_display': '********',
+        'password_secret_ref': 'env:HEITANG_REDIS_PASSWORD',
+        'status': 'configured_not_tested',
+        'last_test_detail': '',
+        'last_tested_at': '',
+      },
+      'qdrant': {
+        'provider': 'qdrant',
+        'endpoint': 'http://127.0.0.1:6333',
+        'collection': 'heitang_kb',
+        'dimension': 1536,
+        'tls': false,
+        'api_key_display': '',
+        'api_key_secret_ref': 'none',
+        'status': 'configured_not_tested',
+        'last_test_detail': '',
+        'last_tested_at': '',
+      },
+      'exporters': {
+        'markdown': {'status': 'enabled_real', 'extension': 'md'},
+        'docx': {'status': 'configured_not_enabled', 'secret_required': false},
+        'pdf': {'status': 'configured_not_enabled', 'secret_required': false},
+        'pptx': {'status': 'configured_not_enabled', 'secret_required': false},
+        'json': {'status': 'configured_not_enabled', 'secret_required': false},
+        'csv': {'status': 'configured_not_enabled', 'secret_required': false},
+      },
+    };
+  }
+
+  static Map<String, dynamic> _mergeStorageProviderSettings(
+    Map<String, dynamic> defaults,
+    Map<String, dynamic> saved,
+  ) {
+    if (saved.isEmpty) return defaults;
+    return {
+      ...defaults,
+      ...saved,
+      'provider': {
+        ..._mapValue(defaults['provider']),
+        ..._mapValue(saved['provider']),
+      },
+      'redis': {
+        ..._mapValue(defaults['redis']),
+        ..._mapValue(saved['redis']),
+      },
+      'qdrant': {
+        ..._mapValue(defaults['qdrant']),
+        ..._mapValue(saved['qdrant']),
+      },
+      'exporters': {
+        ..._mapValue(defaults['exporters']),
+        ..._mapValue(saved['exporters']),
+      },
+    };
+  }
+
+  static Map<String, dynamic> _mapValue(Object? value) {
+    if (value is Map) {
+      return Map<String, dynamic>.from(value);
+    }
+    return const {};
+  }
+
+  static String _secretReference({
+    required String provided,
+    required String environmentKey,
+  }) {
+    final value = provided.trim();
+    if (value.isEmpty || value.toLowerCase().contains('blank')) {
+      return 'none';
+    }
+    if (value.contains('*') || value.contains('留空')) {
+      return 'env:$environmentKey';
+    }
+    return 'runtime_input_not_persisted';
   }
 
   bool _canRunDesktop() {

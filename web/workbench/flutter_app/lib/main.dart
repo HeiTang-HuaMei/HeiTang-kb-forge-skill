@@ -11012,10 +11012,12 @@ class _SettingsProvidersStorageViewState
   bool qdrantTested = false;
   bool redisTesting = false;
   bool qdrantTesting = false;
+  bool configLoading = false;
   String redisStatus = 'configured_not_tested';
   String qdrantStatus = 'configured_not_tested';
   String redisDetail = '';
   String qdrantDetail = '';
+  String savedConfigPath = '';
   final TextEditingController _redisHostController =
       TextEditingController(text: '127.0.0.1');
   final TextEditingController _redisPortController =
@@ -11036,6 +11038,12 @@ class _SettingsProvidersStorageViewState
   bool get zh => widget.zh;
 
   @override
+  void initState() {
+    super.initState();
+    _loadStoredConfig();
+  }
+
+  @override
   void dispose() {
     _redisHostController.dispose();
     _redisPortController.dispose();
@@ -11046,6 +11054,44 @@ class _SettingsProvidersStorageViewState
     _maskedRedisPasswordController.dispose();
     _blankQdrantApiKeyController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadStoredConfig() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null) return;
+    setState(() => configLoading = true);
+    final settings = await rc6.loadStorageProviderSettings();
+    if (!mounted) return;
+    final redis = _settingsMap(settings['redis']);
+    final qdrant = _settingsMap(settings['qdrant']);
+    setState(() {
+      configLoading = false;
+      _redisHostController.text = _settingsText(redis, 'host', '127.0.0.1');
+      _redisPortController.text = _settingsInt(redis, 'port', 6379).toString();
+      _redisPrefixController.text =
+          _settingsText(redis, 'key_prefix', 'heitang:');
+      _maskedRedisPasswordController.text =
+          _settingsText(redis, 'password_display', '********');
+      redisStatus = _settingsText(redis, 'status', 'configured_not_tested');
+      redisDetail = _settingsText(redis, 'last_test_detail', '');
+      redisTested = redisStatus == 'connected';
+      _qdrantEndpointController.text =
+          _settingsText(qdrant, 'endpoint', 'http://127.0.0.1:6333');
+      _qdrantCollectionController.text =
+          _settingsText(qdrant, 'collection', 'heitang_kb');
+      _qdrantDimensionController.text =
+          _settingsInt(qdrant, 'dimension', 1536).toString();
+      _blankQdrantApiKeyController.text =
+          _settingsText(qdrant, 'api_key_display', '').isEmpty
+              ? (zh ? '留空 / blank' : 'blank')
+              : '********';
+      qdrantStatus = _settingsText(qdrant, 'status', 'configured_not_tested');
+      qdrantDetail = _settingsText(qdrant, 'last_test_detail', '');
+      qdrantTested = qdrantStatus == 'connected';
+      savedConfigPath = settings['workspace']?.toString().isNotEmpty == true
+          ? 'config/storage_provider_settings.json'
+          : '';
+    });
   }
 
   Future<void> _testRedisConnection() async {
@@ -11087,6 +11133,7 @@ class _SettingsProvidersStorageViewState
       redisTested = result.passed;
       redisStatus = result.status;
       redisDetail = result.detail;
+      savedConfigPath = 'config/storage_provider_settings.json';
     });
   }
 
@@ -11130,6 +11177,7 @@ class _SettingsProvidersStorageViewState
       qdrantTested = result.passed;
       qdrantStatus = result.status;
       qdrantDetail = result.detail;
+      savedConfigPath = 'config/storage_provider_settings.json';
     });
   }
 
@@ -11139,8 +11187,71 @@ class _SettingsProvidersStorageViewState
     await _testQdrantConnection();
   }
 
+  Future<void> _saveStorageProviderSettings() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null) {
+      setState(() {
+        configSaved = false;
+        storageTested = true;
+        redisStatus = 'desktop_runtime_required';
+        qdrantStatus = 'desktop_runtime_required';
+        redisDetail = zh
+            ? '真实配置保存需要 Windows EXE 桌面端。'
+            : 'Real config save requires the Windows desktop runtime.';
+      });
+      return;
+    }
+    final redisPort = int.tryParse(_redisPortController.text.trim());
+    final qdrantDimension =
+        int.tryParse(_qdrantDimensionController.text.trim());
+    if (redisPort == null || redisPort <= 0) {
+      setState(() {
+        configSaved = false;
+        storageTested = true;
+        redisStatus = 'invalid_port';
+        redisDetail = zh ? 'Redis 端口必须是正整数。' : 'Redis port must be positive.';
+      });
+      return;
+    }
+    if (qdrantDimension == null || qdrantDimension <= 0) {
+      setState(() {
+        configSaved = false;
+        storageTested = true;
+        qdrantStatus = 'invalid_dimension';
+        qdrantDetail =
+            zh ? 'Qdrant 向量维度必须是正整数。' : 'Qdrant dimension must be positive.';
+      });
+      return;
+    }
+    final path = await rc6.saveStorageProviderSettings(
+      redisHost: _redisHostController.text,
+      redisPort: redisPort,
+      redisKeyPrefix: _redisPrefixController.text,
+      redisPassword: _maskedRedisPasswordController.text,
+      qdrantEndpoint: _qdrantEndpointController.text,
+      qdrantCollection: _qdrantCollectionController.text,
+      qdrantDimension: qdrantDimension,
+      qdrantApiKey: _blankQdrantApiKeyController.text,
+    );
+    if (!mounted) return;
+    setState(() {
+      configSaved = path.isNotEmpty;
+      storageTested = true;
+      savedConfigPath =
+          path.isEmpty ? '' : 'config/storage_provider_settings.json';
+      redisStatus = 'configured_not_tested';
+      qdrantStatus = 'configured_not_tested';
+      redisDetail = '';
+      qdrantDetail = '';
+      redisTested = false;
+      qdrantTested = false;
+    });
+  }
+
   String _storageFeedbackDetail() {
     final details = <String>[
+      if (savedConfigPath.isNotEmpty)
+        zh ? '配置文件：$savedConfigPath' : 'Config file: $savedConfigPath',
       if (redisDetail.isNotEmpty) 'Redis: $redisDetail',
       if (qdrantDetail.isNotEmpty) 'Qdrant: $qdrantDetail',
     ];
@@ -11295,7 +11406,7 @@ class _SettingsProvidersStorageViewState
             _PrimaryProductAction(
               label: zh ? '保存配置' : 'Save config',
               icon: Icons.save_outlined,
-              onPressed: () => setState(() => configSaved = true),
+              onPressed: _saveStorageProviderSettings,
             ),
           ]),
           if (storageTested || configSaved) ...[
@@ -11380,8 +11491,12 @@ class _SettingsProvidersStorageViewState
           _FieldRow(
               label: zh ? '连接测试' : 'Connection tests',
               value: zh
-                  ? 'Docker 未运行时显示已配置未测试；不得显示为已连接'
-                  : 'When Docker is not running, show configured-not-tested; never connected'),
+                  ? configLoading
+                      ? '正在加载工作区配置'
+                      : 'Docker 未运行时显示已配置未测试；不得显示为已连接'
+                  : configLoading
+                      ? 'Loading workspace config'
+                      : 'When Docker is not running, show configured-not-tested; never connected'),
           const SizedBox(height: 8),
           _DisplayAction(
               label: zh ? '查看 Provider 状态' : 'View Provider status',
@@ -11435,6 +11550,24 @@ String _storageStatusLabel(String status, bool zh) {
     'probe_failed' => zh ? '探针失败' : 'Probe failed',
     _ => status,
   };
+}
+
+Map<String, dynamic> _settingsMap(Object? value) {
+  if (value is Map) {
+    return Map<String, dynamic>.from(value);
+  }
+  return const {};
+}
+
+String _settingsText(Map<String, dynamic> source, String key, String fallback) {
+  final value = source[key]?.toString();
+  return value == null || value.isEmpty ? fallback : value;
+}
+
+int _settingsInt(Map<String, dynamic> source, String key, int fallback) {
+  final value = source[key];
+  if (value is int) return value;
+  return int.tryParse(value?.toString() ?? '') ?? fallback;
 }
 
 class _SettingsConnectionForm extends StatelessWidget {
