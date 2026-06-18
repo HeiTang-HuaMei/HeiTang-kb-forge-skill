@@ -48,6 +48,11 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> generateMarkdown() async => initialize();
   Future<void> exportMarkdownDocument() async => initialize();
   Future<void> exportDocumentFormat(String format) async => initialize();
+  Future<String> exportAuditReport() async {
+    await initialize();
+    return '';
+  }
+
   Future<void> clearImportedSources() async => initialize();
   Future<void> clearKnowledgeBaseArtifacts() async => initialize();
   Future<void> clearParseArtifacts() async => initialize();

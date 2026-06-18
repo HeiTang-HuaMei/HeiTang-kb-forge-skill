@@ -328,7 +328,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('validation report reflects rc10 owner retest pending',
+  testWidgets('audit center shows real execution records and export action',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1000));
     await tester.pumpWidget(
@@ -340,16 +340,22 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('报告证据'), warnIfMissed: false);
+    expect(find.byKey(const Key('validation-checklist')), findsOneWidget);
+    expect(find.text('执行记录'), findsWidgets);
+    expect(find.text('失败记录'), findsWidgets);
+    expect(find.text('产物记录'), findsWidgets);
+
+    await tester.tap(find.byKey(const Key('page-tab-1')), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('report-evidence-list')), findsOneWidget);
-    final evidenceButton = find.text('打开验证报告证据').first;
-    await tester.ensureVisible(evidenceButton);
-    await tester.tap(evidenceButton, warnIfMissed: false);
+
+    await tester.tap(find.byKey(const Key('page-tab-2')), warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.textContaining('rc10 等待 Owner 复验'), findsWidgets);
+    expect(find.byKey(const Key('controlled-export-summary')), findsOneWidget);
+    expect(find.text('导出审计报告'), findsOneWidget);
+    expect(find.textContaining('rc10 等待 Owner 复验'), findsNothing);
     expect(find.textContaining('Owner 视觉验收已通过'), findsNothing);
-    expect(find.textContaining('Release'), findsWidgets);
+    expect(find.textContaining('Release'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

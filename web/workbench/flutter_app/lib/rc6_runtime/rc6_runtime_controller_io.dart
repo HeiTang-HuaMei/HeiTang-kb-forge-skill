@@ -1037,6 +1037,117 @@ class Rc6RuntimeController extends ChangeNotifier {
     return path;
   }
 
+  Future<String> exportAuditReport() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final auditDir = Directory(_join(workspace.path, 'audit'));
+    await auditDir.create(recursive: true);
+    final reportPath = _join(auditDir.path, 'audit_report.json');
+    final last = state.lastResult;
+    final records = <Map<String, Object?>>[
+      {
+        'module': 'document_library',
+        'event': 'source_import',
+        'status': state.hasImportedFile ? 'success' : 'not_run',
+        'artifact': state.sourceManifestPath,
+        'detail': '${state.sourceCount} sources',
+      },
+      {
+        'module': 'document_library',
+        'event': 'parse_chunk',
+        'status': state.parseReportPath.isNotEmpty ? 'success' : 'not_run',
+        'artifact': state.parseReportPath,
+        'detail': '${state.chunkCount} chunks',
+      },
+      {
+        'module': 'knowledge_base',
+        'event': 'build',
+        'status': state.hasKnowledgeBase ? 'success' : 'not_run',
+        'artifact': state.kbManifestPath,
+        'detail': '${state.chunkCount} chunks',
+      },
+      {
+        'module': 'retrieval_validation',
+        'event': 'query',
+        'status': state.queryResultPath.isNotEmpty ? 'success' : 'not_run',
+        'artifact': state.queryResultPath,
+        'detail': state.searchQuery,
+      },
+      {
+        'module': 'document_generation',
+        'event': 'export',
+        'status': state.exportedDocumentPath.isNotEmpty ? 'success' : 'not_run',
+        'artifact': state.exportedDocumentPath,
+        'detail': state.exportManifestPath,
+      },
+      {
+        'module': 'skill_factory',
+        'event': 'generate_skill',
+        'status': state.hasSkill ? 'success' : 'not_run',
+        'artifact': state.skillPath,
+        'detail': 'Skill package',
+      },
+      {
+        'module': 'agent_workbench',
+        'event': 'generate_agent',
+        'status': state.hasAgent ? 'success' : 'not_run',
+        'artifact': state.agentPath,
+        'detail': 'Agent package',
+      },
+      {
+        'module': 'agent_workbench',
+        'event': 'agent_dialogue',
+        'status': state.hasAgentDialogue ? 'success' : 'not_run',
+        'artifact': state.agentDialoguePath,
+        'detail': '${state.agentDialogueTurnCount} turns',
+      },
+      {
+        'module': 'agent_workbench',
+        'event': 'a2a_discussion',
+        'status': state.hasMultiAgentDiscussion ? 'success' : 'not_run',
+        'artifact': state.multiAgentDiscussionPath,
+        'detail': 'Multi-agent discussion',
+      },
+      {
+        'module': 'runtime',
+        'event': last?.actionId ?? 'last_message',
+        'status': last?.productStatus ?? state.phase.name,
+        'artifact': last?.outputPath ?? '',
+        'detail': _redactSecret(
+            state.lastError.isEmpty ? state.lastMessage : state.lastError, ''),
+      },
+    ];
+    final report = {
+      'schema_version': 'heitang_workbench_audit_report.v1',
+      'workspace': workspace.path,
+      'runtime_phase': state.phase.name,
+      'running': state.running,
+      'records': records,
+      'failure_records': records
+          .where((record) =>
+              record['status'] == 'failed' ||
+              record['status'] == 'blocked' ||
+              record['status'] == 'degraded')
+          .toList(growable: false),
+      'artifact_records': records
+          .where((record) => (record['artifact']?.toString() ?? '').isNotEmpty)
+          .toList(growable: false),
+      'last_error': _redactSecret(state.lastError, ''),
+    };
+    await File(reportPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(report),
+      encoding: utf8,
+    );
+    state = state.copyWith(
+      lastMessage: '审计报告已导出到工作区。',
+      lastError: '',
+    );
+    notifyListeners();
+    return reportPath;
+  }
+
   Future<String> readWorkspaceTextArtifact(String path,
       {int maxCharacters = 6000}) async {
     if (!_canRunDesktop()) {
