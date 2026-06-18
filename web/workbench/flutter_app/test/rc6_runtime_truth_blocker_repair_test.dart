@@ -1322,15 +1322,37 @@ void main() {
           contains('内置 Agent 题材'),
         ));
 
+    final editedPath = await controller.saveEditedDocument(
+      '# Owner edited product analysis\n\nfinal edited body from real KB',
+    );
+    expect(editedPath, endsWith('edited_document.md'));
+    expect(
+        File('$docRoot${Platform.pathSeparator}edited_document.md')
+            .readAsStringSync(),
+        contains('final edited body from real KB'));
+    expect(
+        File('$docRoot${Platform.pathSeparator}edit_manifest.json')
+            .readAsStringSync(),
+        allOf(
+          contains('prd_v2_document_edit.v1'),
+          contains('edited_document.md'),
+          contains('"secret_plaintext_written": false'),
+        ));
+
     await controller.exportMarkdownDocument();
     expect(
         File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}export_manifest.json')
             .readAsStringSync(),
         allOf(
           contains('generation_manifest.json'),
+          contains('edit_manifest.json'),
           contains('"generation_type": "product_analysis"'),
           contains('"output_format": "docx"'),
         ));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}reading_notes_export.md')
+            .readAsStringSync(),
+        contains('final edited body from real KB'));
   });
 
   test('skill generation persists type platform and personalization config',

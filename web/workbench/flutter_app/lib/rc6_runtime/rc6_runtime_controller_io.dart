@@ -677,7 +677,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     final docDir = Directory(_join(workspace.path, 'doc'));
     final generated = File(_join(docDir.path, 'generated.md'));
     final notes = File(_join(docDir.path, 'reading_notes.md'));
-    if (!await generated.exists() && !await notes.exists()) {
+    final edited = File(_join(docDir.path, 'edited_document.md'));
+    if (!await generated.exists() &&
+        !await notes.exists() &&
+        !await edited.exists()) {
       _fail('请先在文档生成页生成 Markdown 草稿。');
       return;
     }
@@ -690,7 +693,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     final exportDir = Directory(_join(workspace.path, 'export'));
     await _clearWorkspacePath(exportDir.path);
     await exportDir.create(recursive: true);
-    final source = await notes.exists() ? notes : generated;
+    final source = await edited.exists()
+        ? edited
+        : await notes.exists()
+            ? notes
+            : generated;
     final exported = File(_join(exportDir.path, 'reading_notes_export.md'));
     await source.copy(exported.path);
     final manifest = {
@@ -702,6 +709,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       'size_bytes': await exported.length(),
       'workspace': workspace.path,
       'generation_manifest': _join(docDir.path, 'generation_manifest.json'),
+      'edit_manifest':
+          await File(_join(docDir.path, 'edit_manifest.json')).exists()
+              ? _join(docDir.path, 'edit_manifest.json')
+              : '',
       'generation_config': await _latestDocumentGenerationConfig(workspace),
     };
     await File(_join(exportDir.path, 'export_manifest.json')).writeAsString(
@@ -718,6 +729,69 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     await _loadExistingArtifacts();
     notifyListeners();
+  }
+
+  Future<String> saveEditedDocument(String markdown) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final docDir = Directory(_join(workspace.path, 'doc'));
+    final generated = File(_join(docDir.path, 'generated.md'));
+    final notes = File(_join(docDir.path, 'reading_notes.md'));
+    if (!await generated.exists() && !await notes.exists()) {
+      _fail('请先生成正文，再保存编辑稿。');
+      return '';
+    }
+    final trimmed = markdown.trim();
+    if (trimmed.isEmpty) {
+      _fail('编辑正文不能为空。');
+      return '';
+    }
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在保存编辑稿...',
+      lastError: '',
+    );
+    notifyListeners();
+    await docDir.create(recursive: true);
+    final edited = File(_join(docDir.path, 'edited_document.md'));
+    await edited.writeAsString(markdown, encoding: utf8);
+    final source = await notes.exists() ? notes.path : generated.path;
+    final manifestPath = _join(docDir.path, 'edit_manifest.json');
+    final payload = {
+      'schema_version': 'prd_v2_document_edit.v1',
+      'status': 'pass',
+      'workspace': workspace.path,
+      'source_document': source,
+      'edited_output_markdown': edited.path,
+      'generation_manifest': _join(docDir.path, 'generation_manifest.json'),
+      'generation_config': await _latestDocumentGenerationConfig(workspace),
+      'size_bytes': await edited.length(),
+      'saved_at': DateTime.now().toUtc().toIso8601String(),
+      'secret_plaintext_written': false,
+    };
+    await File(manifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+    state = state.copyWith(
+      running: false,
+      phase: Rc6RuntimePhase.documentGenerated,
+      editedDocumentPath: edited.path,
+      editManifestPath: manifestPath,
+      lastMessage: '编辑稿已保存。导出将优先使用编辑稿。',
+      lastError: '',
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      editedDocumentPath: edited.path,
+      editManifestPath: manifestPath,
+      lastMessage: '编辑稿已保存。导出将优先使用编辑稿。',
+      lastError: '',
+    );
+    notifyListeners();
+    return edited.path;
   }
 
   Future<void> exportDocumentFormat(String format) async {
@@ -1347,6 +1421,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       queryResultPath: '',
       generatedMarkdownPath: '',
       readingNotesPath: '',
+      editedDocumentPath: '',
+      editManifestPath: '',
       exportedDocumentPath: '',
       exportManifestPath: '',
       sourceCount: 0,
@@ -1391,6 +1467,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       queryResultPath: '',
       generatedMarkdownPath: '',
       readingNotesPath: '',
+      editedDocumentPath: '',
+      editManifestPath: '',
       exportedDocumentPath: '',
       exportManifestPath: '',
       prdP0EvidencePath: '',
@@ -1440,6 +1518,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       queryResultPath: '',
       generatedMarkdownPath: '',
       readingNotesPath: '',
+      editedDocumentPath: '',
+      editManifestPath: '',
       exportedDocumentPath: '',
       exportManifestPath: '',
       skillPath: '',
@@ -1492,6 +1572,8 @@ class Rc6RuntimeController extends ChangeNotifier {
               : Rc6RuntimePhase.imported,
       generatedMarkdownPath: '',
       readingNotesPath: '',
+      editedDocumentPath: '',
+      editManifestPath: '',
       exportedDocumentPath: '',
       exportManifestPath: '',
       prdP0EvidencePath: '',
@@ -2241,6 +2323,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       agentPath: '',
       agentDialoguePath: '',
       readingNotesPath: '',
+      editedDocumentPath: '',
+      editManifestPath: '',
       multiAgentDiscussionPath: '',
       prdP0EvidencePath: '',
       cardsPath: '',
@@ -2306,6 +2390,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(workspace.path, 'query', 'kb_query_result.json');
     final markdownPath = _join(workspace.path, 'doc', 'generated.md');
     final readingNotesPath = _join(workspace.path, 'doc', 'reading_notes.md');
+    final editedDocumentPath =
+        _join(workspace.path, 'doc', 'edited_document.md');
+    final editManifestPath = _join(workspace.path, 'doc', 'edit_manifest.json');
     final latestExport = await _latestExistingExportArtifact(workspace);
     final exportedDocumentPath = latestExport.$1;
     final exportManifestPath = latestExport.$2;
@@ -2394,6 +2481,10 @@ class Rc6RuntimeController extends ChangeNotifier {
           await File(markdownPath).exists() ? markdownPath : '',
       readingNotesPath:
           await File(readingNotesPath).exists() ? readingNotesPath : '',
+      editedDocumentPath:
+          await File(editedDocumentPath).exists() ? editedDocumentPath : '',
+      editManifestPath:
+          await File(editManifestPath).exists() ? editManifestPath : '',
       exportedDocumentPath: exportedDocumentPath,
       exportManifestPath: exportManifestPath,
       skillPath: hasSkillArtifact ? _join(workspace.path, 'skill') : '',
@@ -3303,10 +3394,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     final qaPairs =
         await _readJsonl(File(_join(workspace.path, 'kb', 'qa_pairs.jsonl')));
     final readingNotes = File(_join(workspace.path, 'doc', 'reading_notes.md'));
+    final edited = File(_join(workspace.path, 'doc', 'edited_document.md'));
     final generated = File(_join(workspace.path, 'doc', 'generated.md'));
-    final docText = await readingNotes.exists()
-        ? await readingNotes.readAsString(encoding: utf8)
-        : await generated.readAsString(encoding: utf8);
+    final docText = await edited.exists()
+        ? await edited.readAsString(encoding: utf8)
+        : await readingNotes.exists()
+            ? await readingNotes.readAsString(encoding: utf8)
+            : await generated.readAsString(encoding: utf8);
     final sources = _listOfMaps(sourceManifest['sources']);
     final queryRows = queryReport['selected'] ??
         queryReport['results'] ??
@@ -5818,6 +5912,8 @@ class Rc6RuntimeState {
     required this.queryResultPath,
     required this.generatedMarkdownPath,
     required this.readingNotesPath,
+    required this.editedDocumentPath,
+    required this.editManifestPath,
     required this.exportedDocumentPath,
     required this.exportManifestPath,
     required this.skillPath,
@@ -5859,6 +5955,8 @@ class Rc6RuntimeState {
         queryResultPath: '',
         generatedMarkdownPath: '',
         readingNotesPath: '',
+        editedDocumentPath: '',
+        editManifestPath: '',
         exportedDocumentPath: '',
         exportManifestPath: '',
         skillPath: '',
@@ -5899,6 +5997,8 @@ class Rc6RuntimeState {
   final String queryResultPath;
   final String generatedMarkdownPath;
   final String readingNotesPath;
+  final String editedDocumentPath;
+  final String editManifestPath;
   final String exportedDocumentPath;
   final String exportManifestPath;
   final String skillPath;
@@ -5924,6 +6024,7 @@ class Rc6RuntimeState {
   bool get hasKnowledgeBase => kbManifestPath.isNotEmpty && chunkCount > 0;
   bool get hasMarkdown => generatedMarkdownPath.isNotEmpty;
   bool get hasReadingNotes => readingNotesPath.isNotEmpty;
+  bool get hasEditedDocument => editedDocumentPath.isNotEmpty;
   bool get hasExportedDocument => exportedDocumentPath.isNotEmpty;
   bool get hasSkill => skillPath.isNotEmpty;
   bool get hasAgent => agentPath.isNotEmpty;
@@ -5952,6 +6053,8 @@ class Rc6RuntimeState {
     String? queryResultPath,
     String? generatedMarkdownPath,
     String? readingNotesPath,
+    String? editedDocumentPath,
+    String? editManifestPath,
     String? exportedDocumentPath,
     String? exportManifestPath,
     String? skillPath,
@@ -5993,6 +6096,8 @@ class Rc6RuntimeState {
       generatedMarkdownPath:
           generatedMarkdownPath ?? this.generatedMarkdownPath,
       readingNotesPath: readingNotesPath ?? this.readingNotesPath,
+      editedDocumentPath: editedDocumentPath ?? this.editedDocumentPath,
+      editManifestPath: editManifestPath ?? this.editManifestPath,
       exportedDocumentPath: exportedDocumentPath ?? this.exportedDocumentPath,
       exportManifestPath: exportManifestPath ?? this.exportManifestPath,
       skillPath: skillPath ?? this.skillPath,

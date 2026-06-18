@@ -5766,90 +5766,6 @@ class _PagePreviewStripState extends State<_PagePreviewStrip> {
   }
 }
 
-class _DocumentPreviewPanel extends StatelessWidget {
-  const _DocumentPreviewPanel({required this.zh, required this.ready});
-
-  final bool zh;
-  final bool ready;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      key: const Key('document-central-preview'),
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: colors.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  ready
-                      ? (zh ? '知识库验证报告草稿' : 'Knowledge Base Validation Draft')
-                      : (zh ? '尚未生成文档预览' : 'Document preview not generated'),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        height: 1.12,
-                      ),
-                ),
-              ),
-              const _StatusBadge(
-                label: '只读预览',
-                tone: _StatusTone.neutral,
-                icon: Icons.visibility_outlined,
-              ),
-            ],
-          ),
-          const SizedBox(height: _DesktopGrid.gutter),
-          Text(
-            zh
-                ? '2026 桌面工作台验证版'
-                : '2026 Desktop Workbench Verification Edition',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontSize: 14,
-                  color: colors.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
-                  height: 1.16,
-                ),
-          ),
-          const SizedBox(height: 12),
-          for (final line in (zh
-              ? [
-                  '1. 摘要：基于本地知识库证据生成。',
-                  '2. 证据覆盖：引用、来源、时间戳保持可追踪。',
-                  '3. 风险：外部事实比对需要联网 Provider 和显式 opt-in。',
-                  '4. 导出：Markdown 已纳入本轮真实链路，其它格式需导出器配置。'
-                ]
-              : [
-                  '1. Summary: generated from local Knowledge Base evidence.',
-                  '2. Coverage: citations, sources, and timestamps stay traceable.',
-                  '3. Risk: external comparison requires network Provider and explicit opt-in.',
-                  '4. Export: Markdown, DOCX, PDF, PPTX, JSON, and CSV are verified through local workspace artifacts.'
-                ])) ...[
-            Text(line,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      height: 1.18,
-                    )),
-            const SizedBox(height: 6),
-          ],
-          const SizedBox(height: 10),
-          _PagePreviewStrip(zh: zh),
-        ],
-      ),
-    );
-  }
-}
-
 class _SourceDocumentPreviewPanel extends StatelessWidget {
   const _SourceDocumentPreviewPanel({
     required this.zh,
@@ -6784,8 +6700,16 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
   String outputFormat = 'md';
   String citationStrategy = 'source_filename';
   String templateMode = 'built_in';
+  final TextEditingController _editorController = TextEditingController();
+  String savedEditPath = '';
 
   bool get zh => widget.zh;
+
+  @override
+  void dispose() {
+    _editorController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -6834,6 +6758,27 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
       if (result.outputFormat != 'md' && rc6.state.lastResult?.passed == true) {
         await rc6.exportDocumentFormat(result.outputFormat);
       }
+    }
+
+    Future<void> loadGeneratedBody() async {
+      if (rc6 == null) return;
+      final path = runtime.readingNotesPath.isNotEmpty
+          ? runtime.readingNotesPath
+          : runtime.generatedMarkdownPath;
+      if (path.isEmpty) return;
+      final content = await rc6.readWorkspaceTextArtifact(path);
+      if (!mounted) return;
+      setState(() {
+        _editorController.text = content;
+        previewReady = true;
+      });
+    }
+
+    Future<void> saveEditedBody() async {
+      if (rc6 == null) return;
+      final path = await rc6.saveEditedDocument(_editorController.text);
+      if (!mounted) return;
+      setState(() => savedEditPath = path);
     }
 
     return LayoutBuilder(builder: (context, constraints) {
@@ -7006,11 +6951,55 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
       final preview = _ProductPanel(
         keyName: 'document-live-preview',
         icon: Icons.article_outlined,
-        title: zh ? '文档预览' : 'Document Preview',
+        title: zh ? '正文编辑' : 'Body Editor',
         minHeight: 366,
         children: [
-          _DocumentPreviewPanel(
-              zh: zh, ready: previewReady || runtime.hasMarkdown),
+          SizedBox(
+            key: const Key('document-central-preview'),
+            height: 184,
+            child: TextField(
+              key: const Key('document-body-editor'),
+              controller: _editorController,
+              maxLines: null,
+              expands: true,
+              enabled: rc6 != null,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                hintText: runtime.hasMarkdown
+                    ? (zh
+                        ? '加载生成稿后可编辑正文。'
+                        : 'Load the generated body, then edit it.')
+                    : (zh ? '请先生成正文。' : 'Generate the body first.'),
+                border: const OutlineInputBorder(),
+                isDense: true,
+              ),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: 13,
+                    height: 1.22,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          _EqualActionRow(children: [
+            _DisplayAction(
+              label: zh ? '加载生成稿' : 'Load Draft',
+              icon: Icons.article_outlined,
+              onPressed: rc6 == null || !runtime.hasMarkdown
+                  ? null
+                  : loadGeneratedBody,
+            ),
+            _PrimaryProductAction(
+              label: zh ? '保存编辑' : 'Save Edit',
+              icon: Icons.save_outlined,
+              onPressed: rc6 == null ||
+                      runtime.running ||
+                      !runtime.hasMarkdown ||
+                      _editorController.text.trim().isEmpty
+                  ? null
+                  : saveEditedBody,
+            ),
+          ]),
           if (runtime.generatedMarkdownPath.isNotEmpty) ...[
             const SizedBox(height: 8),
             _FieldRow(
@@ -7023,6 +7012,16 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
             _FieldRow(
               label: zh ? '读书笔记' : 'Reading notes',
               value: _displayNameForPath(runtime.readingNotesPath),
+            ),
+          ],
+          if (runtime.editedDocumentPath.isNotEmpty ||
+              savedEditPath.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _FieldRow(
+              label: zh ? '编辑稿' : 'Edited draft',
+              value: _displayNameForPath(runtime.editedDocumentPath.isNotEmpty
+                  ? runtime.editedDocumentPath
+                  : savedEditPath),
             ),
           ],
         ],
@@ -7049,6 +7048,11 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                           : '需要先运行检索',
                       '引用来源可追踪'
                     ],
+                    [
+                      '编辑保存',
+                      runtime.hasEditedDocument ? '已保存' : '等待编辑',
+                      '用户工作区'
+                    ],
                     ['生成历史', runtime.hasMarkdown ? '已记录' : '暂无历史', '用户工作区'],
                   ]
                 : [
@@ -7068,6 +7072,11 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                     [
                       'History',
                       runtime.hasMarkdown ? 'Recorded' : 'No history',
+                      'User workspace'
+                    ],
+                    [
+                      'Edit save',
+                      runtime.hasEditedDocument ? 'Saved' : 'Waiting edit',
                       'User workspace'
                     ],
                   ],

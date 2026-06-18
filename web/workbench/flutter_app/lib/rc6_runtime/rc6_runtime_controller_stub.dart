@@ -63,6 +63,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       initialize();
   Future<void> exportMarkdownDocument() async => initialize();
   Future<void> exportDocumentFormat(String format) async => initialize();
+  Future<String> saveEditedDocument(String markdown) async {
+    await initialize();
+    return '';
+  }
+
   Future<String> exportAuditReport() async {
     await initialize();
     return '';
@@ -327,6 +332,8 @@ class Rc6RuntimeState {
     required this.queryResultPath,
     required this.generatedMarkdownPath,
     required this.readingNotesPath,
+    required this.editedDocumentPath,
+    required this.editManifestPath,
     required this.exportedDocumentPath,
     required this.exportManifestPath,
     required this.skillPath,
@@ -368,6 +375,8 @@ class Rc6RuntimeState {
         queryResultPath: '',
         generatedMarkdownPath: '',
         readingNotesPath: '',
+        editedDocumentPath: '',
+        editManifestPath: '',
         exportedDocumentPath: '',
         exportManifestPath: '',
         skillPath: '',
@@ -408,6 +417,8 @@ class Rc6RuntimeState {
   final String queryResultPath;
   final String generatedMarkdownPath;
   final String readingNotesPath;
+  final String editedDocumentPath;
+  final String editManifestPath;
   final String exportedDocumentPath;
   final String exportManifestPath;
   final String skillPath;
@@ -433,6 +444,7 @@ class Rc6RuntimeState {
   bool get hasKnowledgeBase => kbManifestPath.isNotEmpty && chunkCount > 0;
   bool get hasMarkdown => generatedMarkdownPath.isNotEmpty;
   bool get hasReadingNotes => readingNotesPath.isNotEmpty;
+  bool get hasEditedDocument => editedDocumentPath.isNotEmpty;
   bool get hasExportedDocument => exportedDocumentPath.isNotEmpty;
   bool get hasSkill => skillPath.isNotEmpty;
   bool get hasAgent => agentPath.isNotEmpty;
@@ -461,6 +473,8 @@ class Rc6RuntimeState {
     String? queryResultPath,
     String? generatedMarkdownPath,
     String? readingNotesPath,
+    String? editedDocumentPath,
+    String? editManifestPath,
     String? exportedDocumentPath,
     String? exportManifestPath,
     String? skillPath,
@@ -502,6 +516,8 @@ class Rc6RuntimeState {
       generatedMarkdownPath:
           generatedMarkdownPath ?? this.generatedMarkdownPath,
       readingNotesPath: readingNotesPath ?? this.readingNotesPath,
+      editedDocumentPath: editedDocumentPath ?? this.editedDocumentPath,
+      editManifestPath: editManifestPath ?? this.editManifestPath,
       exportedDocumentPath: exportedDocumentPath ?? this.exportedDocumentPath,
       exportManifestPath: exportManifestPath ?? this.exportManifestPath,
       skillPath: skillPath ?? this.skillPath,
