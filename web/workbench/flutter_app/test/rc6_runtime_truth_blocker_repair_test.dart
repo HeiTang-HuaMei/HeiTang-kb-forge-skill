@@ -759,12 +759,40 @@ void main() {
     expect(controller.state.qaPairsPath, isNotEmpty);
     expect(controller.state.hasReadingNotes, isTrue);
     expect(controller.state.hasMultiAgentDiscussion, isTrue);
+    final baseTurnCount = controller.state.agentDialogueTurnCount;
     await controller.runAgentDialogue(prompt: '总结真实输入主题');
+    await controller.runAgentDialogue(prompt: '继续追问行动建议');
     expect(controller.state.hasAgentDialogue, isTrue);
+    expect(controller.state.hasAgentDialogueHistory, isTrue);
+    expect(controller.state.agentDialogueTurnCount, baseTurnCount + 2);
     expect(
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}agent_dialogue.md')
             .readAsStringSync(),
         contains('总结真实输入主题'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}agent_dialogue.md')
+            .readAsStringSync(),
+        contains('继续追问行动建议'));
+    final chatHistory = File(
+        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}chat_history.jsonl');
+    expect(chatHistory.readAsLinesSync(), hasLength(baseTurnCount + 2));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}agent_dialogue_manifest.json')
+            .readAsStringSync(),
+        contains('"turn_count": ${baseTurnCount + 2}'));
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    expect(reloadedController.state.hasAgentDialogueHistory, isTrue);
+    expect(reloadedController.state.agentDialogueTurnCount, baseTurnCount + 2);
     expect(
         File('${workspace.path}${Platform.pathSeparator}doc${Platform.pathSeparator}reading_notes.md')
             .readAsStringSync(),

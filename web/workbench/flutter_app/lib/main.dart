@@ -10168,6 +10168,15 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                 ? _displayNameForPath(runtime.agentDialoguePath)
                 : (zh ? '尚未生成' : 'Not generated'),
           ),
+          const SizedBox(height: 8),
+          _FieldRow(
+            label: zh ? '会话历史' : 'Chat history',
+            value: runtime.hasAgentDialogueHistory
+                ? (zh
+                    ? '${runtime.agentDialogueTurnCount} 轮 · ${_displayNameForPath(runtime.agentDialogueHistoryPath)}'
+                    : '${runtime.agentDialogueTurnCount} turns · ${_displayNameForPath(runtime.agentDialogueHistoryPath)}')
+                : (zh ? '尚未生成' : 'Not generated'),
+          ),
         ],
       );
       final bindings = _ProductPanel(
@@ -10272,7 +10281,7 @@ class _AgentRunHistoryView extends StatelessWidget {
                     '最小对话',
                     runtime.hasAgentDialogue ? '已完成' : '未运行',
                     runtime.hasAgentDialogue
-                        ? _displayNameForPath(runtime.agentDialoguePath)
+                        ? '${runtime.agentDialogueTurnCount} 轮 · ${_displayNameForPath(runtime.agentDialoguePath)}'
                         : '无产物'
                   ],
                   [
@@ -10307,7 +10316,7 @@ class _AgentRunHistoryView extends StatelessWidget {
                     'Minimal chat',
                     runtime.hasAgentDialogue ? 'Done' : 'Not run',
                     runtime.hasAgentDialogue
-                        ? _displayNameForPath(runtime.agentDialoguePath)
+                        ? '${runtime.agentDialogueTurnCount} turns · ${_displayNameForPath(runtime.agentDialoguePath)}'
                         : 'No artifact'
                   ],
                   [

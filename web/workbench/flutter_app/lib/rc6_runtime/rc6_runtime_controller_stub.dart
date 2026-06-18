@@ -250,6 +250,8 @@ class Rc6RuntimeState {
     required this.skillPath,
     required this.agentPath,
     required this.agentDialoguePath,
+    required this.agentDialogueHistoryPath,
+    required this.agentDialogueTurnCount,
     required this.multiAgentDiscussionPath,
     required this.prdP0EvidencePath,
     required this.knowledgeBaseCatalogPath,
@@ -285,6 +287,8 @@ class Rc6RuntimeState {
         skillPath: '',
         agentPath: '',
         agentDialoguePath: '',
+        agentDialogueHistoryPath: '',
+        agentDialogueTurnCount: 0,
         multiAgentDiscussionPath: '',
         prdP0EvidencePath: '',
         knowledgeBaseCatalogPath: '',
@@ -319,6 +323,8 @@ class Rc6RuntimeState {
   final String skillPath;
   final String agentPath;
   final String agentDialoguePath;
+  final String agentDialogueHistoryPath;
+  final int agentDialogueTurnCount;
   final String multiAgentDiscussionPath;
   final String prdP0EvidencePath;
   final String knowledgeBaseCatalogPath;
@@ -341,6 +347,7 @@ class Rc6RuntimeState {
   bool get hasSkill => skillPath.isNotEmpty;
   bool get hasAgent => agentPath.isNotEmpty;
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
+  bool get hasAgentDialogueHistory => agentDialogueHistoryPath.isNotEmpty;
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
   bool get hasPrdP0Evidence => prdP0EvidencePath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
@@ -365,6 +372,8 @@ class Rc6RuntimeState {
     String? skillPath,
     String? agentPath,
     String? agentDialoguePath,
+    String? agentDialogueHistoryPath,
+    int? agentDialogueTurnCount,
     String? multiAgentDiscussionPath,
     String? prdP0EvidencePath,
     String? knowledgeBaseCatalogPath,
@@ -400,6 +409,10 @@ class Rc6RuntimeState {
       skillPath: skillPath ?? this.skillPath,
       agentPath: agentPath ?? this.agentPath,
       agentDialoguePath: agentDialoguePath ?? this.agentDialoguePath,
+      agentDialogueHistoryPath:
+          agentDialogueHistoryPath ?? this.agentDialogueHistoryPath,
+      agentDialogueTurnCount:
+          agentDialogueTurnCount ?? this.agentDialogueTurnCount,
       multiAgentDiscussionPath:
           multiAgentDiscussionPath ?? this.multiAgentDiscussionPath,
       prdP0EvidencePath: prdP0EvidencePath ?? this.prdP0EvidencePath,

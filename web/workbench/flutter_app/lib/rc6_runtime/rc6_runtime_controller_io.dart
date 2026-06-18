@@ -1613,20 +1613,63 @@ class Rc6RuntimeController extends ChangeNotifier {
             .toList(growable: false);
     final evidence = selected.isNotEmpty ? selected : chunks;
     final dialoguePath = _join(outDir.path, 'agent_dialogue.md');
+    final historyPath = _join(outDir.path, 'chat_history.jsonl');
+    final previousTurns = await _readJsonl(File(historyPath));
+    final turn = {
+      'turn_id':
+          'turn_${(previousTurns.length + 1).toString().padLeft(3, '0')}',
+      'prompt': prompt,
+      'answer': '当前回答基于本地知识库和已生成 Skill，不调用外网、不执行系统命令。',
+      'evidence_count': evidence.length,
+      'evidence': evidence
+          .map((item) => {
+                'text': _compact(
+                    item['text'] ?? item['summary'] ?? item['content'] ?? ''),
+                'citation': (item['citation'] ??
+                        item['source_path'] ??
+                        item['chunk_id'] ??
+                        '-')
+                    .toString(),
+              })
+          .toList(growable: false),
+      'boundary': {
+        'local_kb_only': true,
+        'computer_use': false,
+        'arbitrary_shell': false,
+        'secret_plaintext_access': false,
+      },
+    };
+    await File(historyPath).writeAsString(
+      '${const JsonEncoder().convert(turn)}\n',
+      encoding: utf8,
+      mode: FileMode.append,
+    );
+    final turns = [...previousTurns, turn];
     final buffer = StringBuffer()
       ..writeln('# Agent 最小对话')
       ..writeln()
-      ..writeln('## 用户问题')
-      ..writeln(prompt)
-      ..writeln()
-      ..writeln('## Agent 回答')
-      ..writeln('当前回答基于本地知识库和已生成 Skill，不调用外网、不执行系统命令。');
-    for (final item in evidence) {
-      buffer.writeln(
-          '- ${_compact(item['text'] ?? item['summary'] ?? item['content'] ?? '')} (${item['citation'] ?? item['source_path'] ?? item['chunk_id'] ?? '-'})');
-    }
-    if (evidence.isEmpty) {
-      buffer.writeln('- 当前知识库没有可用证据，请先运行检索或重新构建知识库。');
+      ..writeln('## 会话历史');
+    for (final item in turns) {
+      buffer
+        ..writeln()
+        ..writeln('### ${item['turn_id']}')
+        ..writeln()
+        ..writeln('**用户问题**')
+        ..writeln(item['prompt'])
+        ..writeln()
+        ..writeln('**Agent 回答**')
+        ..writeln(item['answer'])
+        ..writeln()
+        ..writeln('**证据**');
+      final itemEvidence = item['evidence'];
+      if (itemEvidence is List && itemEvidence.isNotEmpty) {
+        for (final evidenceItem in itemEvidence.whereType<Map>()) {
+          buffer.writeln(
+              '- ${evidenceItem['text'] ?? ''} (${evidenceItem['citation'] ?? '-'})');
+        }
+      } else {
+        buffer.writeln('- 当前知识库没有可用证据，请先运行检索或重新构建知识库。');
+      }
     }
     buffer
       ..writeln()
@@ -1641,15 +1684,19 @@ class Rc6RuntimeController extends ChangeNotifier {
       const JsonEncoder.withIndent('  ').convert({
         'schema_version': 'rc10_agent_dialogue.v1',
         'status': evidence.isEmpty ? 'needs_evidence' : 'pass',
-        'prompt': prompt,
+        'latest_prompt': prompt,
         'output': dialoguePath,
+        'history_path': historyPath,
+        'turn_count': turns.length,
         'evidence_count': evidence.length,
       }),
       encoding: utf8,
     );
     state = state.copyWith(
       agentDialoguePath: dialoguePath,
-      lastMessage: 'Agent 最小对话已生成。',
+      agentDialogueHistoryPath: historyPath,
+      agentDialogueTurnCount: turns.length,
+      lastMessage: 'Agent 最小对话已追加到会话历史。',
       lastError: '',
     );
     notifyListeners();
@@ -1943,6 +1990,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'agent_manifest.json');
     final agentDialoguePath =
         _joinNested(workspace.path, 'agent/dialogue/agent_dialogue.md');
+    final agentDialogueHistoryPath =
+        _joinNested(workspace.path, 'agent/dialogue/chat_history.jsonl');
     final multiAgentPath =
         _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md');
     final prdP0EvidencePath =
@@ -1965,6 +2014,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         state.sourceCount;
     final sourceNames = _sourceNamesFromManifest(sourceManifest);
     final chunkCount = _countJsonl(chunksPath);
+    final dialogueTurnCount = _countJsonl(agentDialogueHistoryPath);
     final selectedCount = _asInt(queryReport['selected_count']) ?? 0;
     final searchResults = await _readSearchResults(queryPath);
 
@@ -2017,6 +2067,10 @@ class Rc6RuntimeController extends ChangeNotifier {
           await File(agentPath).exists() ? _join(workspace.path, 'agent') : '',
       agentDialoguePath:
           await File(agentDialoguePath).exists() ? agentDialoguePath : '',
+      agentDialogueHistoryPath: await File(agentDialogueHistoryPath).exists()
+          ? agentDialogueHistoryPath
+          : '',
+      agentDialogueTurnCount: dialogueTurnCount,
       multiAgentDiscussionPath:
           await File(multiAgentPath).exists() ? multiAgentPath : '',
       prdP0EvidencePath:
@@ -4695,6 +4749,8 @@ class Rc6RuntimeState {
     required this.skillPath,
     required this.agentPath,
     required this.agentDialoguePath,
+    required this.agentDialogueHistoryPath,
+    required this.agentDialogueTurnCount,
     required this.multiAgentDiscussionPath,
     required this.prdP0EvidencePath,
     required this.knowledgeBaseCatalogPath,
@@ -4730,6 +4786,8 @@ class Rc6RuntimeState {
         skillPath: '',
         agentPath: '',
         agentDialoguePath: '',
+        agentDialogueHistoryPath: '',
+        agentDialogueTurnCount: 0,
         multiAgentDiscussionPath: '',
         prdP0EvidencePath: '',
         knowledgeBaseCatalogPath: '',
@@ -4764,6 +4822,8 @@ class Rc6RuntimeState {
   final String skillPath;
   final String agentPath;
   final String agentDialoguePath;
+  final String agentDialogueHistoryPath;
+  final int agentDialogueTurnCount;
   final String multiAgentDiscussionPath;
   final String prdP0EvidencePath;
   final String knowledgeBaseCatalogPath;
@@ -4786,6 +4846,7 @@ class Rc6RuntimeState {
   bool get hasSkill => skillPath.isNotEmpty;
   bool get hasAgent => agentPath.isNotEmpty;
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
+  bool get hasAgentDialogueHistory => agentDialogueHistoryPath.isNotEmpty;
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
   bool get hasPrdP0Evidence => prdP0EvidencePath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
@@ -4810,6 +4871,8 @@ class Rc6RuntimeState {
     String? skillPath,
     String? agentPath,
     String? agentDialoguePath,
+    String? agentDialogueHistoryPath,
+    int? agentDialogueTurnCount,
     String? multiAgentDiscussionPath,
     String? prdP0EvidencePath,
     String? knowledgeBaseCatalogPath,
@@ -4845,6 +4908,10 @@ class Rc6RuntimeState {
       skillPath: skillPath ?? this.skillPath,
       agentPath: agentPath ?? this.agentPath,
       agentDialoguePath: agentDialoguePath ?? this.agentDialoguePath,
+      agentDialogueHistoryPath:
+          agentDialogueHistoryPath ?? this.agentDialogueHistoryPath,
+      agentDialogueTurnCount:
+          agentDialogueTurnCount ?? this.agentDialogueTurnCount,
       multiAgentDiscussionPath:
           multiAgentDiscussionPath ?? this.multiAgentDiscussionPath,
       prdP0EvidencePath: prdP0EvidencePath ?? this.prdP0EvidencePath,
