@@ -14793,14 +14793,14 @@ class _DeveloperDiagnosticsDetails extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: colors.outlineVariant),
       ),
-      title: Text(_zh ? '开发者诊断' : 'Developer Diagnostics',
+      title: Text(_zh ? '高级只读记录' : 'Advanced Read-only Records',
           style: Theme.of(context)
               .textTheme
               .titleMedium
               ?.copyWith(fontWeight: FontWeight.w800)),
       subtitle: Text(_zh
-          ? '默认折叠；仅用于只读技术证据、契约、后端矩阵和 Core 操作。'
-          : 'Collapsed by default; read-only technical evidence, contracts, backend matrices, and Core actions only.'),
+          ? '默认折叠；仅记录执行证据、契约字段、解析能力和本地动作请求。'
+          : 'Collapsed by default; records execution evidence, contract fields, parser capabilities, and local action requests.'),
       children: [
         _AdvancedBoundarySummary(
           localeCode: localeCode,
@@ -14859,7 +14859,7 @@ class _DeveloperDiagnosticsDetails extends StatelessWidget {
           if (cards.isNotEmpty) const SizedBox(height: 20),
           _AdvancedBoundarySectionHeader(
             icon: Icons.storage_outlined,
-            title: _zh ? '后端矩阵证据' : 'Backend Matrix Evidence',
+            title: _zh ? '解析能力记录' : 'Parser Capability Records',
             body: _zh
                 ? '展示解析后端能力边界，不启用重型默认依赖。'
                 : 'Shows parser backend boundaries without enabling heavy default dependencies.',
@@ -14874,10 +14874,10 @@ class _DeveloperDiagnosticsDetails extends StatelessWidget {
           const SizedBox(height: 20),
           _AdvancedBoundarySectionHeader(
             icon: Icons.terminal_outlined,
-            title: _zh ? '本地 Core 执行详情' : 'Local Core Execution Details',
+            title: _zh ? '本地动作请求记录' : 'Local Action Request Records',
             body: _zh
-                ? '仅展示允许列表内的本地 Core 操作；Web 中保持安全禁用。'
-                : 'Shows allowlisted local Core actions only; they remain safely disabled on Web.',
+                ? '仅记录允许列表内的本地动作请求；Web 中保持安全禁用。'
+                : 'Records allowlisted local action requests only; they remain safely disabled on Web.',
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           for (var index = 0; index < corePanels.length; index++) ...[
@@ -14945,11 +14945,11 @@ class _AdvancedBoundarySummary extends StatelessWidget {
                 value: '$contractCount',
               ),
               _AdvancedBoundaryChip(
-                label: _zh ? 'Core 操作' : 'Core actions',
+                label: _zh ? '本地动作请求' : 'Local action requests',
                 value: '$coreActionCount',
               ),
               _AdvancedBoundaryChip(
-                label: _zh ? '后端矩阵' : 'Backend matrix',
+                label: _zh ? '解析能力' : 'Parser capability',
                 value: hasParserBackends
                     ? (_zh ? '可查看' : 'available')
                     : (_zh ? '无' : 'none'),

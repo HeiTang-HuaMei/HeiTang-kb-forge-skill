@@ -848,6 +848,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('blocked_reason'), findsNothing);
     expect(find.textContaining('secret_required'), findsNothing);
+    expect(find.text('开发者诊断'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }
@@ -869,9 +870,9 @@ Future<void> openDeveloperDiagnostics(WidgetTester tester) async {
     await tester.pumpAndSettle();
   }
 
-  final diagnosticsTab = find.text('开发者诊断').evaluate().isNotEmpty
-      ? find.text('开发者诊断').first
-      : find.text('Developer Diagnostics').first;
+  final diagnosticsTab = find.text('高级只读记录').evaluate().isNotEmpty
+      ? find.text('高级只读记录').first
+      : find.text('Advanced Read-only Records').first;
   await tester.ensureVisible(diagnosticsTab);
   await tester.tap(diagnosticsTab, warnIfMissed: false);
   await tester.pumpAndSettle();
