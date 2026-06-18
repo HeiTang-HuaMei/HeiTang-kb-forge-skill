@@ -6805,7 +6805,14 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
         previewReady = true;
       });
       if (rc6 == null || runtime.running) return;
-      await rc6.generateMarkdown();
+      await rc6.generateMarkdown(
+        config: Rc6DocumentGenerationConfig(
+          generationType: result.generationType,
+          outputFormat: result.outputFormat,
+          citationStrategy: result.citationStrategy,
+          templateMode: result.templateMode,
+        ),
+      );
       if (result.outputFormat != 'md' && rc6.state.lastResult?.passed == true) {
         await rc6.exportDocumentFormat(result.outputFormat);
       }

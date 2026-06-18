@@ -633,7 +633,9 @@ class Rc6RuntimeController extends ChangeNotifier {
     return reportPath;
   }
 
-  Future<void> generateMarkdown() async {
+  Future<void> generateMarkdown({
+    Rc6DocumentGenerationConfig config = const Rc6DocumentGenerationConfig(),
+  }) async {
     if (!_canRunDesktop()) {
       return;
     }
@@ -653,14 +655,15 @@ class Rc6RuntimeController extends ChangeNotifier {
         '--output',
         _join(workspace.path, 'doc'),
         '--title',
-        '真实输入读书笔记',
+        config.title,
       ],
       outputPath: _join(workspace.path, 'doc'),
       nextPhase: Rc6RuntimePhase.documentGenerated,
       successMessage: 'Markdown 文档已生成。',
     );
     if (state.lastResult?.passed == true) {
-      await _writeReadingNotes();
+      await _writeReadingNotes(config: config);
+      await _writeDocumentGenerationManifest(config: config);
     }
     await _loadExistingArtifacts();
     notifyListeners();
@@ -698,6 +701,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'output': exported.path,
       'size_bytes': await exported.length(),
       'workspace': workspace.path,
+      'generation_manifest': _join(docDir.path, 'generation_manifest.json'),
+      'generation_config': await _latestDocumentGenerationConfig(workspace),
     };
     await File(_join(exportDir.path, 'export_manifest.json')).writeAsString(
       const JsonEncoder.withIndent('  ').convert(manifest),
@@ -3155,7 +3160,9 @@ class Rc6RuntimeController extends ChangeNotifier {
     return candidate;
   }
 
-  Future<void> _writeReadingNotes() async {
+  Future<void> _writeReadingNotes({
+    Rc6DocumentGenerationConfig config = const Rc6DocumentGenerationConfig(),
+  }) async {
     final workspace = _requireWorkspace();
     final kbDir = _join(workspace.path, 'kb');
     final docDir = Directory(_join(workspace.path, 'doc'));
@@ -3168,7 +3175,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     final topCards = cards.take(8).toList(growable: false);
     final topQa = qaPairs.take(6).toList(growable: false);
     final buffer = StringBuffer()
-      ..writeln('# 真实输入文件夹读书笔记')
+      ..writeln('# ${config.title}')
+      ..writeln()
+      ..writeln('## 生成配置')
+      ..writeln('- 文档类型：${config.generationTypeLabel}')
+      ..writeln('- 模板模式：${config.templateModeLabel}')
+      ..writeln('- 输出格式：${config.outputFormat.toUpperCase()}')
+      ..writeln('- 引用策略：${config.citationStrategyLabel}')
       ..writeln()
       ..writeln('## 核心摘要')
       ..writeln()
@@ -3210,6 +3223,62 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     await File(_join(docDir.path, 'reading_notes.md'))
         .writeAsString(buffer.toString(), encoding: utf8);
+  }
+
+  Future<void> _writeDocumentGenerationManifest({
+    required Rc6DocumentGenerationConfig config,
+  }) async {
+    final workspace = _requireWorkspace();
+    final docDir = Directory(_join(workspace.path, 'doc'));
+    await docDir.create(recursive: true);
+    final kbManifest =
+        await _readJsonObject(_join(workspace.path, 'kb', 'manifest.json'));
+    final queryReport = await _readLatestQueryReport(workspace);
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    final records = _catalogRecords(catalog);
+    final selectedKbIds = records.isEmpty
+        ? const ['current_kb']
+        : records
+            .map((record) => (record['kb_id'] ?? '').toString())
+            .where((id) => id.isNotEmpty)
+            .toList(growable: false);
+    final readingNotesPath = _join(docDir.path, 'reading_notes.md');
+    final generatedPath = _join(docDir.path, 'generated.md');
+    final outputPath = await File(readingNotesPath).exists()
+        ? readingNotesPath
+        : generatedPath;
+    final sources = await _sourceNames();
+    final payload = {
+      'schema_version': 'prd_v2_template_document_generation.v1',
+      'status': 'pass',
+      'workspace': workspace.path,
+      'generation_config': config.toJson(),
+      'selected_kb_ids': selectedKbIds,
+      'kb_manifest_path': _join(workspace.path, 'kb', 'manifest.json'),
+      'kb_schema_version': (kbManifest['schema_version'] ?? '').toString(),
+      'retrieval_report_path': queryReport.isEmpty ? '' : state.queryResultPath,
+      'retrieval_query': (queryReport['query'] ?? state.searchQuery).toString(),
+      'source_count': sources.length,
+      'sources': sources,
+      'outline_status': 'generated_from_template',
+      'body_status': 'generated',
+      'citation_list_status': 'written',
+      'output_markdown': outputPath,
+      'export_format_requested': config.outputFormat,
+      'secret_plaintext_written': false,
+    };
+    await File(_join(docDir.path, 'generation_manifest.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+  }
+
+  Future<Map<String, dynamic>> _latestDocumentGenerationConfig(
+      Directory workspace) async {
+    final manifest = await _readJsonObject(
+        _join(workspace.path, 'doc', 'generation_manifest.json'));
+    final config = manifest['generation_config'];
+    return config is Map ? Map<String, dynamic>.from(config) : const {};
   }
 
   Future<Map<String, Object?>> _structuredDocumentExportPayload(
@@ -5447,6 +5516,65 @@ enum Rc6RuntimePhase {
 }
 
 enum Rc6SearchStatus { idle, loading, success, empty, error }
+
+class Rc6DocumentGenerationConfig {
+  const Rc6DocumentGenerationConfig({
+    this.generationType = 'reading_notes',
+    this.outputFormat = 'md',
+    this.citationStrategy = 'source_filename',
+    this.templateMode = 'built_in',
+  });
+
+  final String generationType;
+  final String outputFormat;
+  final String citationStrategy;
+  final String templateMode;
+
+  String get title => switch (generationType) {
+        'summary' => '真实输入资料摘要',
+        'study_cards' => '真实输入学习卡片',
+        'structured_report' => '真实输入结构化报告',
+        'ppt_outline' => '真实输入 PPT 大纲',
+        'operation_plan' => '真实输入运营方案',
+        'product_analysis' => '真实输入产品分析',
+        'qa_script' => '真实输入问答稿',
+        _ => '真实输入文件夹读书笔记',
+      };
+
+  String get generationTypeLabel => switch (generationType) {
+        'summary' => '摘要',
+        'study_cards' => '学习卡片',
+        'structured_report' => '结构化报告',
+        'ppt_outline' => 'PPT 大纲',
+        'operation_plan' => '运营方案',
+        'product_analysis' => '产品分析',
+        'qa_script' => '问答稿',
+        _ => '读书笔记',
+      };
+
+  String get templateModeLabel => switch (templateMode) {
+        'custom' => '自定义模板',
+        'agent' => '内置 Agent 题材',
+        _ => '通用内置模板',
+      };
+
+  String get citationStrategyLabel => switch (citationStrategy) {
+        'strict_citation' => '严格引用',
+        'filename_and_chunk' => '文件名 + Chunk',
+        _ => '来源文件名',
+      };
+
+  Map<String, String> toJson() => {
+        'generation_type': generationType,
+        'generation_type_label': generationTypeLabel,
+        'output_format': outputFormat,
+        'citation_strategy': citationStrategy,
+        'citation_strategy_label': citationStrategyLabel,
+        'template_mode': templateMode,
+        'template_mode_label': templateModeLabel,
+        'title': title,
+      };
+}
 
 class Rc6SearchResult {
   const Rc6SearchResult({

@@ -1241,6 +1241,98 @@ void main() {
         contains('prd_v2_structured_document_export.v1'));
   });
 
+  test('document generation persists template config into real artifacts',
+      () async {
+    final workspace = await createWorkspace();
+    final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    File('${kbDir.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{"schema_version":"test_kb.v1"}');
+    File('${kbDir.path}${Platform.pathSeparator}quality_report.json')
+        .writeAsStringSync('{"status":"pass"}');
+    File('${kbDir.path}${Platform.pathSeparator}chunks.jsonl')
+        .writeAsStringSync(jsonl([
+      {
+        'text': '真实产品分析证据',
+        'source_path': 'alpha.txt',
+        'citation': 'alpha.txt#chunk=1',
+      },
+    ]));
+    File('${kbDir.path}${Platform.pathSeparator}cards.jsonl')
+        .writeAsStringSync('{"title":"产品分析","summary":"真实主题"}\n');
+    File('${kbDir.path}${Platform.pathSeparator}qa_pairs.jsonl')
+        .writeAsStringSync('{"question":"主题是什么?","answer":"产品分析"}\n');
+    File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'sources': [
+        {'source_name': 'alpha.txt', 'relative_path': 'alpha.txt'}
+      ],
+    }));
+
+    final requests = <CoreBridgeRequest>[];
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          requests.add(request);
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          File('${output.path}${Platform.pathSeparator}generated.md')
+              .writeAsStringSync('# generated from real input');
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.generateMarkdown(
+      config: const Rc6DocumentGenerationConfig(
+        generationType: 'product_analysis',
+        outputFormat: 'docx',
+        citationStrategy: 'filename_and_chunk',
+        templateMode: 'agent',
+      ),
+    );
+
+    expect(requests.single.actionId, 'generate_markdown');
+    expect(requests.single.arguments, contains('真实输入产品分析'));
+    final docRoot = '${workspace.path}${Platform.pathSeparator}doc';
+    final generationManifest =
+        File('$docRoot${Platform.pathSeparator}generation_manifest.json')
+            .readAsStringSync();
+    expect(
+        generationManifest,
+        allOf(
+          contains('prd_v2_template_document_generation.v1'),
+          contains('"generation_type": "product_analysis"'),
+          contains('"output_format": "docx"'),
+          contains('"citation_strategy": "filename_and_chunk"'),
+          contains('"template_mode": "agent"'),
+        ));
+    expect(
+        File('$docRoot${Platform.pathSeparator}reading_notes.md')
+            .readAsStringSync(),
+        allOf(
+          contains('真实输入产品分析'),
+          contains('文件名 + Chunk'),
+          contains('内置 Agent 题材'),
+        ));
+
+    await controller.exportMarkdownDocument();
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}export_manifest.json')
+            .readAsStringSync(),
+        allOf(
+          contains('generation_manifest.json'),
+          contains('"generation_type": "product_analysis"'),
+          contains('"output_format": "docx"'),
+        ));
+  });
+
   test('rc6 owner input folder chain uses the fixed Owner input directory',
       () async {
     final workspace = await createWorkspace();

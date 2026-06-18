@@ -57,7 +57,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
-  Future<void> generateMarkdown() async => initialize();
+  Future<void> generateMarkdown({
+    Rc6DocumentGenerationConfig config = const Rc6DocumentGenerationConfig(),
+  }) async =>
+      initialize();
   Future<void> exportMarkdownDocument() async => initialize();
   Future<void> exportDocumentFormat(String format) async => initialize();
   Future<String> exportAuditReport() async {
@@ -211,6 +214,20 @@ class Rc6SearchResult {
   final String score;
   final String kbId;
   final String kbName;
+}
+
+class Rc6DocumentGenerationConfig {
+  const Rc6DocumentGenerationConfig({
+    this.generationType = 'reading_notes',
+    this.outputFormat = 'md',
+    this.citationStrategy = 'source_filename',
+    this.templateMode = 'built_in',
+  });
+
+  final String generationType;
+  final String outputFormat;
+  final String citationStrategy;
+  final String templateMode;
 }
 
 class Rc6StorageTestResult {
