@@ -6767,8 +6767,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
           _FieldRow(
             label: zh ? '导出边界' : 'Export boundary',
             value: zh
-                ? 'Markdown 为本轮真实导出；DOCX/PDF/PPTX/JSON/CSV 未启用，缺少导出器配置。'
-                : 'Markdown is the verified export path; DOCX/PDF/PPTX/JSON/CSV are not enabled without exporter config.',
+                ? 'Markdown、JSON、CSV 为本地真实导出；DOCX/PDF/PPTX 需要导出器配置。'
+                : 'Markdown, JSON, and CSV export locally; DOCX/PDF/PPTX require exporter config.',
           ),
         ],
       );
@@ -6796,8 +6796,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                 icon: Icons.picture_as_pdf_outlined),
             _MetricDatum(
                 label: 'JSON/CSV',
-                value: adapterNotEnabled,
-                detail: zh ? '结构化导出器未启用' : 'structured exporter off',
+                value: zh ? '可导出' : 'enabled',
+                detail: zh ? '本地结构化文件' : 'local structured files',
                 icon: Icons.table_chart_outlined),
             _MetricDatum(
                 label: zh ? '脱敏验证' : 'Redaction',
@@ -7171,8 +7171,8 @@ class _DocumentExportPreviewViewState
         title: zh ? '文档导出' : 'Document Export',
         children: [
           _SectionCaption(zh
-              ? 'Markdown 直接导出；DOCX / PDF / PPTX 需要先配置导出器。'
-              : 'Markdown exports directly; DOCX / PDF / PPTX require exporter config first.'),
+              ? 'Markdown / JSON / CSV 直接导出；DOCX / PDF / PPTX 需要先配置导出器。'
+              : 'Markdown / JSON / CSV export directly; DOCX / PDF / PPTX require exporter config first.'),
           const SizedBox(height: 8),
           _ProductTable(
             columns: zh
@@ -7192,6 +7192,18 @@ class _DocumentExportPreviewViewState
                           ? _displayNameForPath(runtime.exportedDocumentPath)
                           : '尚未生成导出文件'
                     ],
+                    [
+                      'JSON',
+                      runtime.hasMarkdown ? '可导出' : '需要 Markdown',
+                      '本地结构化',
+                      'knowledge_export.json'
+                    ],
+                    [
+                      'CSV',
+                      runtime.hasMarkdown ? '可导出' : '需要 Markdown',
+                      '本地结构化',
+                      'knowledge_export.csv'
+                    ],
                     ['DOCX', adapterNotEnabled, '需要导出器配置', '未生成'],
                     ['PDF', adapterNotEnabled, '需要导出器配置', '未生成'],
                     ['PPTX', adapterNotEnabled, '需要导出器配置', '未生成'],
@@ -7208,6 +7220,18 @@ class _DocumentExportPreviewViewState
                       runtime.hasExportedDocument
                           ? _displayNameForPath(runtime.exportedDocumentPath)
                           : 'No export file yet'
+                    ],
+                    [
+                      'JSON',
+                      runtime.hasMarkdown ? 'Ready' : 'Needs Markdown',
+                      'Local structured',
+                      'knowledge_export.json'
+                    ],
+                    [
+                      'CSV',
+                      runtime.hasMarkdown ? 'Ready' : 'Needs Markdown',
+                      'Local structured',
+                      'knowledge_export.csv'
                     ],
                     [
                       'DOCX',
@@ -7231,11 +7255,18 @@ class _DocumentExportPreviewViewState
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           Wrap(spacing: 8, runSpacing: 8, children: [
-            for (final item in const ['md', 'docx', 'pdf', 'pptx'])
+            for (final item in const [
+              'md',
+              'json',
+              'csv',
+              'docx',
+              'pdf',
+              'pptx'
+            ])
               ChoiceChip(
                 label: Text(item.toUpperCase()),
                 selected: selectedExportFormat == item,
-                onSelected: item == 'md'
+                onSelected: const {'md', 'json', 'csv'}.contains(item)
                     ? (_) => setState(() => selectedExportFormat = item)
                     : null,
               ),
@@ -7246,10 +7277,7 @@ class _DocumentExportPreviewViewState
                 ? '导出 ${selectedExportFormat.toUpperCase()} 文件'
                 : 'Export ${selectedExportFormat.toUpperCase()} file',
             icon: Icons.file_download_outlined,
-            onPressed: runtime.running ||
-                    rc6 == null ||
-                    selectedExportFormat != 'md' ||
-                    !runtime.hasMarkdown
+            onPressed: runtime.running || rc6 == null || !runtime.hasMarkdown
                 ? null
                 : () {
                     setState(() => exportPreviewReady = true);

@@ -590,6 +590,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       await exportMarkdownDocument();
       return;
     }
+    if (normalized == 'json' || normalized == 'csv') {
+      await _exportStructuredDocumentFormat(normalized);
+      return;
+    }
     if (!const {'docx', 'pdf', 'pptx'}.contains(normalized)) {
       _fail('暂不支持该导出格式：$format');
       return;
@@ -631,6 +635,72 @@ class Rc6RuntimeController extends ChangeNotifier {
         lastError: '',
       );
     }
+    await _loadExistingArtifacts();
+    notifyListeners();
+  }
+
+  Future<void> _exportStructuredDocumentFormat(String format) async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    final kbDir = Directory(_join(workspace.path, 'kb'));
+    final docDir = Directory(_join(workspace.path, 'doc'));
+    if (!await kbDir.exists()) {
+      _fail('请先构建知识库，再导出 ${format.toUpperCase()}。');
+      return;
+    }
+    if (!await File(_join(docDir.path, 'reading_notes.md')).exists() &&
+        !await File(_join(docDir.path, 'generated.md')).exists()) {
+      _fail('请先生成文档，再导出结构化结果。');
+      return;
+    }
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在导出 ${format.toUpperCase()} 结构化文件...',
+      lastError: '',
+    );
+    notifyListeners();
+    final exportDir = Directory(_join(workspace.path, 'export', 'structured'));
+    await exportDir.create(recursive: true);
+    final structured = await _structuredDocumentExportPayload(workspace);
+    final jsonPath = _join(exportDir.path, 'knowledge_export.json');
+    final csvPath = _join(exportDir.path, 'knowledge_export.csv');
+    await File(jsonPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(structured),
+      encoding: utf8,
+    );
+    await File(csvPath).writeAsString(
+      _structuredDocumentExportCsv(structured),
+      encoding: utf8,
+    );
+    final outputPath = format == 'json' ? jsonPath : csvPath;
+    final manifestPath =
+        _join(exportDir.path, 'structured_export_manifest.json');
+    await File(manifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v2_structured_document_export.v1',
+        'status': 'pass',
+        'requested_format': format,
+        'json_output': jsonPath,
+        'csv_output': csvPath,
+        'selected_output': outputPath,
+        'source_manifest': _join(workspace.path, 'source_manifest.json'),
+        'kb_manifest': _join(workspace.path, 'kb', 'manifest.json'),
+        'query_result': await File(_join(
+                    workspace.path, 'query', 'multi_kb_query_result.json'))
+                .exists()
+            ? _join(workspace.path, 'query', 'multi_kb_query_result.json')
+            : _join(workspace.path, 'query', 'kb_query_result.json'),
+      }),
+      encoding: utf8,
+    );
+    state = state.copyWith(
+      running: false,
+      phase: Rc6RuntimePhase.documentGenerated,
+      lastMessage: '${format.toUpperCase()} 结构化文件已导出。',
+      lastError: '',
+    );
     await _loadExistingArtifacts();
     notifyListeners();
   }
@@ -1484,6 +1554,9 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     await generateMarkdown();
     if (state.lastResult?.passed != true) return;
+    await exportMarkdownDocument();
+    await exportDocumentFormat('json');
+    await exportDocumentFormat('csv');
     await generateSkill();
     if (state.lastResult?.passed != true) return;
     await generateAgent();
@@ -1534,6 +1607,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     await generateMarkdown();
     if (state.lastResult?.passed != true) return;
     await exportMarkdownDocument();
+    await exportDocumentFormat('json');
+    await exportDocumentFormat('csv');
   }
 
   Future<void> runOwnerInputDocumentFlowE2E({String query = '赚钱 小生意'}) async {
@@ -2273,6 +2348,126 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     await File(_join(docDir.path, 'reading_notes.md'))
         .writeAsString(buffer.toString(), encoding: utf8);
+  }
+
+  Future<Map<String, Object?>> _structuredDocumentExportPayload(
+      Directory workspace) async {
+    final sourceManifest =
+        await _readJsonObject(_join(workspace.path, 'source_manifest.json'));
+    final kbManifest =
+        await _readJsonObject(_join(workspace.path, 'kb', 'manifest.json'));
+    final qualityReport = await _readJsonObject(
+        _join(workspace.path, 'kb', 'quality_report.json'));
+    final queryReport = await _readLatestQueryReport(workspace);
+    final chunks =
+        await _readJsonl(File(_join(workspace.path, 'kb', 'chunks.jsonl')));
+    final cards =
+        await _readJsonl(File(_join(workspace.path, 'kb', 'cards.jsonl')));
+    final qaPairs =
+        await _readJsonl(File(_join(workspace.path, 'kb', 'qa_pairs.jsonl')));
+    final readingNotes = File(_join(workspace.path, 'doc', 'reading_notes.md'));
+    final generated = File(_join(workspace.path, 'doc', 'generated.md'));
+    final docText = await readingNotes.exists()
+        ? await readingNotes.readAsString(encoding: utf8)
+        : await generated.readAsString(encoding: utf8);
+    final sources = _listOfMaps(sourceManifest['sources']);
+    final queryRows = queryReport['selected'] ??
+        queryReport['results'] ??
+        queryReport['records'];
+    return {
+      'schema_version': 'prd_v2_structured_document_export_payload.v1',
+      'status': 'pass',
+      'workspace': workspace.path,
+      'source_count': sources.length,
+      'sources': sources
+          .map((source) => {
+                'source_name':
+                    (source['source_name'] ?? source['relative_path'] ?? '')
+                        .toString(),
+                'relative_path': (source['relative_path'] ?? '').toString(),
+                'size_bytes': _asInt(source['size_bytes']) ?? 0,
+              })
+          .toList(growable: false),
+      'knowledge_base': {
+        'manifest': _join(workspace.path, 'kb', 'manifest.json'),
+        'schema_version': (kbManifest['schema_version'] ?? '').toString(),
+        'chunk_count': chunks.length,
+        'card_count': cards.length,
+        'qa_pair_count': qaPairs.length,
+        'quality_status': (qualityReport['status'] ?? 'unknown').toString(),
+      },
+      'document': {
+        'format': 'markdown',
+        'path':
+            await readingNotes.exists() ? readingNotes.path : generated.path,
+        'size_bytes': utf8.encode(docText).length,
+        'preview': _compact(docText),
+      },
+      'retrieval': {
+        'query': (queryReport['query'] ?? state.searchQuery).toString(),
+        'selected_count': _asInt(queryReport['selected_count']) ?? 0,
+        'citation_coverage': queryReport['citation_coverage'] ?? '',
+        'results': queryRows is List
+            ? queryRows
+                .whereType<Map>()
+                .take(20)
+                .map((row) => Map<String, dynamic>.from(row))
+                .toList(growable: false)
+            : const <Map<String, dynamic>>[],
+      },
+      'cards': cards.take(20).toList(growable: false),
+      'qa_pairs': qaPairs.take(20).toList(growable: false),
+      'redaction': {
+        'secret_plaintext_written': false,
+        'api_key_display': 'masked',
+      },
+    };
+  }
+
+  static String _structuredDocumentExportCsv(Map<String, Object?> payload) {
+    final rows = <List<Object?>>[
+      ['section', 'name', 'value', 'citation'],
+    ];
+    final sources = payload['sources'];
+    if (sources is List) {
+      for (final source in sources.whereType<Map>()) {
+        rows.add([
+          'source',
+          source['source_name'],
+          source['size_bytes'],
+          source['relative_path'],
+        ]);
+      }
+    }
+    final kb = _mapValue(payload['knowledge_base']);
+    rows.add(['knowledge_base', 'chunk_count', kb['chunk_count'], '']);
+    rows.add(['knowledge_base', 'card_count', kb['card_count'], '']);
+    rows.add(['knowledge_base', 'qa_pair_count', kb['qa_pair_count'], '']);
+    final retrieval = _mapValue(payload['retrieval']);
+    rows.add(['retrieval', 'query', retrieval['query'], '']);
+    rows.add(['retrieval', 'selected_count', retrieval['selected_count'], '']);
+    final results = retrieval['results'];
+    if (results is List) {
+      for (final result in results.whereType<Map>()) {
+        rows.add([
+          'retrieval_result',
+          result['source_path'] ?? result['title'] ?? result['chunk_id'],
+          result['text'] ?? result['summary'] ?? result['content'],
+          result['citation'] ?? result['source_path'] ?? '',
+        ]);
+      }
+    }
+    return rows.map((row) => row.map(_csvCell).join(',')).join('\r\n');
+  }
+
+  static String _csvCell(Object? value) {
+    final text =
+        (value ?? '').toString().replaceAll('\r', ' ').replaceAll('\n', ' ');
+    final escaped = text.replaceAll('"', '""');
+    if (escaped.contains(',') || escaped.contains('"')) {
+      return '"$escaped"';
+    }
+    return escaped;
   }
 
   Future<void> _writeAdditionalSkillPackages() async {
@@ -3708,8 +3903,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'docx': {'status': 'configured_not_enabled', 'secret_required': false},
         'pdf': {'status': 'configured_not_enabled', 'secret_required': false},
         'pptx': {'status': 'configured_not_enabled', 'secret_required': false},
-        'json': {'status': 'configured_not_enabled', 'secret_required': false},
-        'csv': {'status': 'configured_not_enabled', 'secret_required': false},
+        'json': {'status': 'enabled_real', 'extension': 'json'},
+        'csv': {'status': 'enabled_real', 'extension': 'csv'},
       },
     };
     await File(path).writeAsString(
@@ -3763,8 +3958,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'docx': {'status': 'configured_not_enabled', 'secret_required': false},
         'pdf': {'status': 'configured_not_enabled', 'secret_required': false},
         'pptx': {'status': 'configured_not_enabled', 'secret_required': false},
-        'json': {'status': 'configured_not_enabled', 'secret_required': false},
-        'csv': {'status': 'configured_not_enabled', 'secret_required': false},
+        'json': {'status': 'enabled_real', 'extension': 'json'},
+        'csv': {'status': 'enabled_real', 'extension': 'csv'},
       },
     };
   }

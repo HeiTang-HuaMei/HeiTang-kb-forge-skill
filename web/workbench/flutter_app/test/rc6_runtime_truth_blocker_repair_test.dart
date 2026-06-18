@@ -682,6 +682,14 @@ void main() {
             .readAsStringSync(),
         contains('真实输入文件夹读书笔记'));
     expect(
+        File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}structured${Platform.pathSeparator}knowledge_export.json')
+            .readAsStringSync(),
+        contains('prd_v2_structured_document_export_payload.v1'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}structured${Platform.pathSeparator}knowledge_export.csv')
+            .readAsStringSync(),
+        contains('retrieval_result'));
+    expect(
         File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}skill_generation_manifest.json')
             .readAsStringSync(),
         contains('rc10_real_input_skill_generation.v1'));
@@ -825,6 +833,22 @@ void main() {
         File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}export_manifest.json')
             .readAsStringSync(),
         contains('rc10_document_export.v1'));
+    await controller.exportDocumentFormat('json');
+    await controller.exportDocumentFormat('csv');
+    final structuredRoot =
+        '${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}structured';
+    expect(
+        File('$structuredRoot${Platform.pathSeparator}knowledge_export.json')
+            .readAsStringSync(),
+        contains('prd_v2_structured_document_export_payload.v1'));
+    expect(
+        File('$structuredRoot${Platform.pathSeparator}knowledge_export.csv')
+            .readAsStringSync(),
+        contains('retrieval_result'));
+    expect(
+        File('$structuredRoot${Platform.pathSeparator}structured_export_manifest.json')
+            .readAsStringSync(),
+        contains('prd_v2_structured_document_export.v1'));
   });
 
   test('rc6 owner input folder chain uses the fixed Owner input directory',
