@@ -2371,11 +2371,13 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
           'agent',
           _zh ? '创建 Agent' : 'Create Agent',
           _zh ? 'Agent 工作台' : 'Agent Workbench',
-          runtime.hasAgentDialogue
-              ? (_zh ? '已对话' : 'chat saved')
-              : runtime.hasMultiAgentDiscussion
-                  ? (_zh ? '已讨论' : 'discussion saved')
-                  : (_zh ? '已生成' : 'generated'),
+          runtime.hasAgentDialogueExport
+              ? (_zh ? '已导出对话' : 'dialogue exported')
+              : runtime.hasAgentDialogue
+                  ? (_zh ? '已对话' : 'chat saved')
+                  : runtime.hasMultiAgentDiscussion
+                      ? (_zh ? '已讨论' : 'discussion saved')
+                      : (_zh ? '已生成' : 'generated'),
           Icons.smart_toy_outlined,
           'agent-factory-runtime',
         ),
@@ -9214,6 +9216,7 @@ class _WorkbookProductWorkflow extends StatelessWidget {
               runtime.hasSkill,
               runtime.hasAgent,
               runtime.hasAgentDialogue,
+              runtime.hasAgentDialogueExport,
               runtime.hasMultiAgentDiscussion,
             ].where((value) => value).length.toString(),
             detail: latestArtifact,

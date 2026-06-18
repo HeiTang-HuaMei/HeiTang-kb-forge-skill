@@ -1040,6 +1040,8 @@ void main() {
     expectMainKnowledgeArtifacts(workspace, reloadedController.state);
     expect(reloadedController.state.hasAgentDialogueHistory, isTrue);
     expect(reloadedController.state.hasAgentDialogueExport, isTrue);
+    expect(reloadedController.state.agentDialogueExportPath,
+        endsWith('agent_dialogue_export.md'));
     expect(reloadedController.state.agentDialogueTurnCount, baseTurnCount + 2);
     expect(
         File('${workspace.path}${Platform.pathSeparator}doc${Platform.pathSeparator}reading_notes.md')
