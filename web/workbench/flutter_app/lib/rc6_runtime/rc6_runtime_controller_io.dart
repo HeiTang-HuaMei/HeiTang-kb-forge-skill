@@ -1059,7 +1059,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       '.jsonl',
       '.yaml',
       '.yml',
-      '.csv'
+      '.csv',
+      '.log'
     };
     if (!supported.contains(extension)) {
       return '无法预览：仅支持文本产物。';

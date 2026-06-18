@@ -117,11 +117,17 @@ const pages = <WorkbenchPage>[
       '查看质量、检索、OCR、安全和治理报告、问题与修复建议。',
       memberPageIds: [
         'reports-audit',
-        'artifact-management',
         'error-repair-center',
         'governance',
         'memory-center',
       ]),
+  WorkbenchPage(
+      'artifact-center',
+      'Artifact Center',
+      '产物中心',
+      'Browse generated documents, knowledge artifacts, Skills, Agents, dialogue records, and A2A outputs from real workspace state.',
+      '从真实工作区状态浏览生成文档、知识库产物、Skill、Agent、对话记录和 A2A 输出。',
+      memberPageIds: ['artifact-management']),
   WorkbenchPage(
       'workspace',
       'Run Settings',
@@ -825,31 +831,32 @@ class _WorkbenchSidebar extends StatelessWidget {
           const SizedBox(height: _DesktopGrid.gutter),
           _SidebarGroupLabel(
               label: localeCode == 'zh-CN' ? '治理' : 'Governance'),
-          _SidebarItem(
-            keyName: 'sidebar-reports-audit',
-            page: pages[8],
-            icon: _sidebarIconFor(pages[8].id),
-            localeCode: localeCode,
-            contracts: contracts,
-            selected: effectiveSelectedIndex == 8,
-            primaryText: primaryText,
-            secondaryText: secondaryText,
-            selectedBackground: selectedBackground,
-            onTap: () => onPageChanged(8),
-          ),
+          for (final index in [8, 9])
+            _SidebarItem(
+              keyName: 'sidebar-${pages[index].id}',
+              page: pages[index],
+              icon: _sidebarIconFor(pages[index].id),
+              localeCode: localeCode,
+              contracts: contracts,
+              selected: effectiveSelectedIndex == index,
+              primaryText: primaryText,
+              secondaryText: secondaryText,
+              selectedBackground: selectedBackground,
+              onTap: () => onPageChanged(index),
+            ),
           const SizedBox(height: _DesktopGrid.gutter),
           _SidebarGroupLabel(label: localeCode == 'zh-CN' ? '系统' : 'System'),
           _SidebarItem(
             keyName: 'sidebar-workspace',
-            page: pages[9],
+            page: pages[10],
             icon: Icons.tune_outlined,
             localeCode: localeCode,
             contracts: contracts,
-            selected: effectiveSelectedIndex == 9,
+            selected: effectiveSelectedIndex == 10,
             primaryText: primaryText,
             secondaryText: secondaryText,
             selectedBackground: selectedBackground,
-            onTap: () => onPageChanged(9),
+            onTap: () => onPageChanged(10),
           ),
           const SizedBox(height: 10),
           _LocalFirstCard(localeCode: localeCode),
@@ -1089,6 +1096,8 @@ IconData _sidebarIconFor(String pageId) {
       return Icons.smart_toy_outlined;
     case 'reports-audit':
       return Icons.assignment_outlined;
+    case 'artifact-center':
+      return Icons.folder_copy_outlined;
     case 'workspace':
       return Icons.settings_outlined;
     default:
@@ -3226,6 +3235,16 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
       icon: Icons.smart_toy_outlined,
       keywords: const ['agent', 'chat', 'a2a', 'discussion', '智能体', '对话'],
     ),
+    _TopBarSearchSuggestion(
+      title: zh ? '产物中心' : 'Artifact Center',
+      subtitle: zh
+          ? '查看生成文档、知识库、Skill、Agent 和对话产物'
+          : 'Browse generated documents, KB, Skill, Agent, and dialogue artifacts',
+      category: zh ? '治理' : 'Governance',
+      pageId: 'artifact-center',
+      icon: Icons.folder_copy_outlined,
+      keywords: const ['artifact', 'output', '产物', '导出', '清单'],
+    ),
   ];
   if (runtime != null) {
     for (final name in runtime.sourceNames.take(8)) {
@@ -3793,6 +3812,9 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
                 workspace: widget.workspace,
                 selectedTab: selectedTab,
                 onTabSelected: (index) => setState(() => selectedTab = index),
+              ),
+            'artifact-center' => _ArtifactCenterProductWorkflow(
+                localeCode: widget.localeCode,
               ),
             _ => _SettingsProductWorkflow(
                 localeCode: widget.localeCode,
@@ -11314,6 +11336,281 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
       ],
     );
   }
+}
+
+class _ArtifactCenterProductWorkflow extends StatefulWidget {
+  const _ArtifactCenterProductWorkflow({required this.localeCode});
+
+  final String localeCode;
+
+  @override
+  State<_ArtifactCenterProductWorkflow> createState() =>
+      _ArtifactCenterProductWorkflowState();
+}
+
+class _ArtifactCenterProductWorkflowState
+    extends State<_ArtifactCenterProductWorkflow> {
+  int selectedIndex = 0;
+
+  bool get _zh => widget.localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
+    final artifacts = _artifactCenterItems(runtime, _zh);
+    if (selectedIndex >= artifacts.length) selectedIndex = 0;
+    final selected = artifacts.isEmpty ? null : artifacts[selectedIndex];
+    final generatedCount =
+        artifacts.where((artifact) => artifact.path.trim().isNotEmpty).length;
+    final categories =
+        artifacts.map((artifact) => artifact.category).toSet().length;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _ProductHeader(
+        icon: Icons.folder_copy_outlined,
+        title: _zh ? '产物中心' : 'Artifact Center',
+        description: _zh
+            ? '集中查看真实工作区中已经生成的文档、知识库、检索、Skill、Agent 和对话产物。'
+            : 'Browse generated document, KB, retrieval, Skill, Agent, and dialogue artifacts from the real workspace.',
+      ),
+      const SizedBox(height: _DesktopGrid.gutter),
+      _MetricStrip(
+        items: [
+          _MetricDatum(
+            label: _zh ? '已生成产物' : 'Generated',
+            value: '$generatedCount',
+            detail: _zh ? '来自真实运行状态' : 'From runtime state',
+            icon: Icons.task_alt_outlined,
+          ),
+          _MetricDatum(
+            label: _zh ? '产物分类' : 'Categories',
+            value: '$categories',
+            detail: _zh ? '文档 / 知识库 / 应用' : 'Docs / KB / apps',
+            icon: Icons.category_outlined,
+          ),
+          _MetricDatum(
+            label: _zh ? '来源文档' : 'Sources',
+            value: '${runtime.sourceCount}',
+            detail: runtime.sourceNames.isEmpty
+                ? (_zh ? '等待导入' : 'Waiting for import')
+                : runtime.sourceNames.take(2).join(' · '),
+            icon: Icons.article_outlined,
+          ),
+          _MetricDatum(
+            label: _zh ? '知识库 chunks' : 'KB chunks',
+            value: '${runtime.chunkCount}',
+            detail: runtime.hasKnowledgeBase
+                ? (_zh ? '可检索' : 'Searchable')
+                : (_zh ? '等待构建' : 'Build KB first'),
+            icon: Icons.account_tree_outlined,
+          ),
+        ],
+      ),
+      const SizedBox(height: _DesktopGrid.gutter),
+      LayoutBuilder(builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 900;
+        final catalog = _ProductPanel(
+          keyName: 'artifact-center-catalog',
+          icon: Icons.inventory_2_outlined,
+          title: _zh ? '产物清单' : 'Artifact Catalog',
+          subtitle: runtime.workspacePath.isEmpty
+              ? (_zh ? '等待工作区初始化' : 'Waiting for workspace')
+              : (_zh ? '用户工作区' : 'User workspace'),
+          children: [
+            _ProductTable(
+              columns: _zh
+                  ? ['分类', '产物', '状态', '文件']
+                  : ['Category', 'Artifact', 'Status', 'File'],
+              rows: artifacts
+                  .map((artifact) => [
+                        artifact.category,
+                        artifact.label,
+                        artifact.path.trim().isEmpty
+                            ? (_zh ? '未生成' : 'Not generated')
+                            : (_zh ? '已生成' : 'Generated'),
+                        artifact.path.trim().isEmpty
+                            ? (_zh ? '去对应页面生成' : 'Generate on owner page')
+                            : _displayNameForPath(artifact.path),
+                      ])
+                  .toList(growable: false),
+            ),
+            const SizedBox(height: _DesktopGrid.gutter),
+            _PageTabs(
+              tabs: [
+                for (final artifact in artifacts)
+                  '${artifact.shortLabel} ${artifact.path.trim().isEmpty ? "○" : "✓"}',
+              ],
+              selectedIndex: selectedIndex,
+              onSelected: (index) => setState(() => selectedIndex = index),
+            ),
+          ],
+        );
+        final canPreview = selected != null &&
+            selected.path.trim().isNotEmpty &&
+            selected.previewable;
+        final detail = _ProductPanel(
+          keyName: 'artifact-center-detail',
+          icon: Icons.article_outlined,
+          title: _zh ? '产物详情' : 'Artifact Detail',
+          children: [
+            _FieldRow(
+              label: _zh ? '分类' : 'Category',
+              value: selected?.category ?? '-',
+            ),
+            const SizedBox(height: 8),
+            _FieldRow(
+              label: _zh ? '产物' : 'Artifact',
+              value: selected?.label ?? '-',
+            ),
+            const SizedBox(height: 8),
+            _FieldRow(
+              label: _zh ? '状态' : 'Status',
+              value: selected == null || selected.path.trim().isEmpty
+                  ? (_zh ? '未生成' : 'Not generated')
+                  : (_zh ? '已生成' : 'Generated'),
+            ),
+            const SizedBox(height: 8),
+            _FieldRow(
+              label: _zh ? '文件' : 'File',
+              value: selected == null || selected.path.trim().isEmpty
+                  ? (_zh ? '对应业务页面完成后出现' : 'Appears after workflow run')
+                  : _displayNameForPath(selected.path),
+            ),
+            const SizedBox(height: _DesktopGrid.gutter),
+            _EqualActionRow(children: [
+              _DisplayAction(
+                label: selected != null && selected.path.trim().isNotEmpty
+                    ? (_zh ? '复制产物路径' : 'Copy artifact path')
+                    : (_zh ? '等待产物路径' : 'Waiting for artifact path'),
+                icon: Icons.copy_outlined,
+                onPressed: selected != null && selected.path.trim().isNotEmpty
+                    ? () => _copyArtifactPath(
+                          context,
+                          path: selected.path,
+                          successMessage:
+                              _zh ? '产物路径已复制' : 'Artifact path copied',
+                        )
+                    : null,
+              ),
+              _DisplayAction(
+                label: canPreview
+                    ? (_zh ? '预览文本产物' : 'Preview text artifact')
+                    : selected != null && selected.path.trim().isNotEmpty
+                        ? (_zh ? '目录产物请复制路径打开' : 'Copy path to open folder')
+                        : (_zh
+                            ? '等待可预览产物'
+                            : 'Waiting for previewable artifact'),
+                icon: Icons.visibility_outlined,
+                onPressed: canPreview
+                    ? () => _showWorkspaceArtifactPreview(
+                          context,
+                          rc6: rc6,
+                          title: selected.label,
+                          path: selected.path,
+                          unavailableMessage:
+                              _zh ? '尚未生成可预览产物。' : 'No artifact generated.',
+                          closeLabel: _zh ? '关闭' : 'Close',
+                        )
+                    : null,
+              ),
+            ]),
+          ],
+        );
+        if (!wide) {
+          return Column(children: [
+            catalog,
+            const SizedBox(height: _DesktopGrid.gutter),
+            detail
+          ]);
+        }
+        return _EqualHeightRow(
+          height: 540,
+          flexes: const [7, 4],
+          children: [catalog, detail],
+        );
+      }),
+    ]);
+  }
+}
+
+class _ArtifactCenterItem {
+  const _ArtifactCenterItem({
+    required this.category,
+    required this.label,
+    required this.shortLabel,
+    required this.path,
+    this.previewable = true,
+  });
+
+  final String category;
+  final String label;
+  final String shortLabel;
+  final String path;
+  final bool previewable;
+}
+
+List<_ArtifactCenterItem> _artifactCenterItems(
+    Rc6RuntimeState runtime, bool zh) {
+  _ArtifactCenterItem item(String zhCategory, String enCategory, String zhLabel,
+          String enLabel, String shortLabel, String path,
+          {bool previewable = true}) =>
+      _ArtifactCenterItem(
+        category: zh ? zhCategory : enCategory,
+        label: zh ? zhLabel : enLabel,
+        shortLabel: shortLabel,
+        path: path,
+        previewable: previewable,
+      );
+  return [
+    item('文档库', 'Document Library', '导入清单 source_manifest.json',
+        'Source manifest', 'manifest', runtime.sourceManifestPath),
+    item('文档库', 'Document Library', '解析报告 parse_report.json', 'Parse report',
+        'parse', runtime.parseReportPath),
+    item('知识库', 'Knowledge Base', '知识库 manifest.json', 'KB manifest', 'kb',
+        runtime.kbManifestPath),
+    item('知识库', 'Knowledge Base', 'chunks.jsonl', 'Chunks', 'chunks',
+        runtime.chunksPath),
+    item('知识库', 'Knowledge Base', 'cards.jsonl', 'Cards', 'cards',
+        runtime.cardsPath),
+    item('知识库', 'Knowledge Base', 'qa_pairs.jsonl', 'QA pairs', 'qa',
+        runtime.qaPairsPath),
+    item('知识库', 'Knowledge Base', 'source_map.json', 'Source map', 'source map',
+        runtime.sourceMapPath),
+    item('知识库', 'Knowledge Base', 'index_metadata.json', 'Index metadata',
+        'index', runtime.indexMetadataPath),
+    item('知识库', 'Knowledge Base', 'quality_report.json', 'Quality report',
+        'quality', runtime.qualityReportPath),
+    item('知识库', 'Knowledge Base', 'build.log', 'Build log', 'build log',
+        runtime.buildLogPath),
+    item('知识库', 'Knowledge Base', 'error.log', 'Error log', 'error log',
+        runtime.errorLogPath),
+    item('检索验证', 'Retrieval', '检索结果', 'Retrieval result', 'retrieval',
+        runtime.queryResultPath),
+    item('文档生成', 'Document Generation', 'Markdown 草稿', 'Markdown draft', 'md',
+        runtime.generatedMarkdownPath),
+    item('文档生成', 'Document Generation', '读书笔记', 'Reading notes', 'notes',
+        runtime.readingNotesPath),
+    item('文档生成', 'Document Generation', '导出文档', 'Exported document', 'export',
+        runtime.exportedDocumentPath),
+    item('文档生成', 'Document Generation', '导出清单', 'Export manifest',
+        'export manifest', runtime.exportManifestPath),
+    item('Skill 工厂', 'Skill Factory', 'Skill 包', 'Skill package', 'skill',
+        runtime.skillPath,
+        previewable: false),
+    item('Agent 工作台', 'Agent Workbench', 'Agent 包', 'Agent package', 'agent',
+        runtime.agentPath,
+        previewable: false),
+    item('Agent 工作台', 'Agent Workbench', 'Agent 对话记录', 'Agent dialogue', 'chat',
+        runtime.agentDialoguePath),
+    item('Agent 工作台', 'Agent Workbench', 'Agent 会话历史', 'Agent chat history',
+        'history', runtime.agentDialogueHistoryPath),
+    item('Agent 工作台', 'Agent Workbench', '多 Agent 讨论纪要',
+        'Multi-agent discussion', 'a2a', runtime.multiAgentDiscussionPath),
+    item('治理', 'Governance', 'PRD P0 验证证据', 'PRD P0 evidence', 'evidence',
+        runtime.prdP0EvidencePath),
+    item('治理', 'Governance', '知识库目录', 'Knowledge Base catalog', 'catalog',
+        runtime.knowledgeBaseCatalogPath),
+  ];
 }
 
 class _SettingsProductWorkflow extends StatelessWidget {

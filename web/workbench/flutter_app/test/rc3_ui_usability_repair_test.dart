@@ -61,6 +61,7 @@ void main() {
       'Skill 工厂',
       'Agent 工作台',
       '审计中心',
+      '产物中心',
       '运行设置',
     ]) {
       final target = find.text(label).first;

@@ -412,7 +412,7 @@ void main() {
     expect(find.byIcon(Icons.refresh_outlined), findsOneWidget);
     expect(find.textContaining('系统状态: 正常运行'), findsOneWidget);
     expect(find.textContaining('版本: v4.3.0-rc10'), findsOneWidget);
-    expect(pages, hasLength(10));
+    expect(pages, hasLength(11));
     expect(find.byType(NavigationRail), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -469,6 +469,7 @@ void main() {
       'Skill 工厂',
       'Agent 工作台',
       '审计中心',
+      '产物中心',
       '运行设置',
     ]) {
       await tester.tap(find.text(title).first);
@@ -477,6 +478,27 @@ void main() {
       expect(find.textContaining('blocked_reason'), findsNothing);
       expect(tester.takeException(), isNull);
     }
+  });
+
+  testWidgets('renders artifact center as a governance product page',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1320));
+    await tester
+        .pumpWidget(HeiTangWorkbenchApp(contracts: sampleWorkbenchContracts));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('产物中心').first);
+    await tester.tap(find.text('产物中心').first, warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('dense-page-workbench-artifact-center')),
+        findsOneWidget);
+    expect(find.byKey(const Key('artifact-center-catalog')), findsOneWidget);
+    expect(find.byKey(const Key('artifact-center-detail')), findsOneWidget);
+    expect(find.text('产物清单'), findsOneWidget);
+    expect(find.textContaining('disabled_boundary'), findsNothing);
+    expect(find.textContaining('开发者诊断'), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets(

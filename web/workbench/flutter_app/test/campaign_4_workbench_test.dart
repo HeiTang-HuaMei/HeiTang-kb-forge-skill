@@ -64,7 +64,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(pages, hasLength(10));
+    expect(pages, hasLength(11));
     expect(
       pages.map((page) => page.zhTitle),
       [
@@ -77,6 +77,7 @@ void main() {
         'Skill 工厂',
         'Agent 工作台',
         '审计中心',
+        '产物中心',
         '运行设置',
       ],
     );
@@ -359,7 +360,7 @@ void main() {
       HeiTangWorkbenchApp(
         contracts: sampleWorkbenchContracts,
         enableLocalCoreActions: false,
-        initialSelectedIndex: 9,
+        initialSelectedIndex: 10,
       ),
     );
     await tester.pumpAndSettle();
