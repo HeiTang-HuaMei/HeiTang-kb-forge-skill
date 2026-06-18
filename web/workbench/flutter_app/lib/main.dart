@@ -9453,7 +9453,7 @@ class _SkillBuilderProductWorkflowState
                         outputPreviewReady = true;
                         validationReady = true;
                       });
-                      rc6.generateSkill();
+                      rc6.pickAndImportExternalSkill();
                     },
             ),
           ],

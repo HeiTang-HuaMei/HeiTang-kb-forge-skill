@@ -411,6 +411,68 @@ void main() {
     expect(controller.state.hasKnowledgeBase, isFalse);
   });
 
+  test('prd external Skill import localizes real file content into workspace',
+      () async {
+    final workspace = await createWorkspace();
+    final kb = Directory('${workspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    File('${kb.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{"schema_version":"kb.v1"}');
+    File('${kb.path}${Platform.pathSeparator}chunks.jsonl').writeAsStringSync(
+        '{"text":"本地知识库证据：外部 Skill 需要结合真实资料","source_path":"alpha.md","citation":"alpha.md#chunk=1"}\n');
+    File('${kb.path}${Platform.pathSeparator}cards.jsonl')
+        .writeAsStringSync('{"title":"本地化主题","summary":"真实资料融合"}\n');
+    File('${kb.path}${Platform.pathSeparator}qa_pairs.jsonl')
+        .writeAsStringSync('{"question":"如何本地化?","answer":"结合 KB 证据"}\n');
+    final externalDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}external_skill_src')
+      ..createSync(recursive: true);
+    final externalSkill =
+        File('${externalDir.path}${Platform.pathSeparator}SKILL.md')
+          ..writeAsStringSync([
+            '# 外部转化写作 Skill',
+            '',
+            '## 方法论',
+            '- 先识别受众，再输出可执行内容。',
+            '- 每个结论要能回到证据。',
+          ].join('\n'));
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.importExternalSkillPath(externalDir.path);
+
+    final imported = File(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}external_imported_skill${Platform.pathSeparator}S0${Platform.pathSeparator}source${Platform.pathSeparator}SKILL.md');
+    final externalManifest = File(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}external_imported_skill${Platform.pathSeparator}S0${Platform.pathSeparator}external_skill_manifest.json');
+    final localized = File(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2${Platform.pathSeparator}SKILL.md');
+    final localizedManifest = File(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2${Platform.pathSeparator}localized_skill_manifest.json');
+    final diff = File(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2${Platform.pathSeparator}diff_summary.md');
+
+    expect(imported.readAsStringSync(), contains('外部转化写作 Skill'));
+    expect(
+        externalManifest.readAsStringSync(),
+        allOf(contains('"source_mode": "external_import"'),
+            contains(externalSkill.path.replaceAll('\\', '\\\\'))));
+    expect(localized.readAsStringSync(), contains('先识别受众'));
+    expect(localizedManifest.readAsStringSync(),
+        contains('"source_mode": "external_skill_fusion"'));
+    expect(diff.readAsStringSync(), contains('不会执行外部代码或系统命令'));
+    expect(controller.state.hasSkill, isTrue);
+  });
+
   test('rc6 search clears stale query output before reading real results',
       () async {
     final workspace = await createWorkspace();

@@ -1359,6 +1359,32 @@ class Rc6RuntimeController extends ChangeNotifier {
     return null;
   }
 
+  Future<File?> _resolveExternalSkillFile(String path) async {
+    final file = File(path);
+    if (await file.exists()) {
+      return file;
+    }
+    final directory = Directory(path);
+    if (!await directory.exists()) {
+      return null;
+    }
+    final preferred = File(_join(directory.path, 'SKILL.md'));
+    if (await preferred.exists()) {
+      return preferred;
+    }
+    const supported = {'.md', '.txt', '.json', '.yaml', '.yml'};
+    await for (final entity in directory.list(recursive: true)) {
+      if (entity is! File) {
+        continue;
+      }
+      final lower = entity.path.toLowerCase();
+      if (supported.any(lower.endsWith)) {
+        return entity;
+      }
+    }
+    return null;
+  }
+
   Future<(String, String)> _latestExistingExportArtifact(
       Directory workspace) async {
     final candidates = <(String, String)>[
@@ -1440,6 +1466,67 @@ class Rc6RuntimeController extends ChangeNotifier {
       await _writeSkillProductOperations(agentBound: state.hasAgent);
     }
     await _loadExistingArtifacts();
+    notifyListeners();
+  }
+
+  Future<void> pickAndImportExternalSkill() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final file = await openFile(
+      acceptedTypeGroups: const [
+        XTypeGroup(
+          label: 'External Skill',
+          extensions: ['md', 'txt', 'json', 'yaml', 'yml'],
+        ),
+      ],
+    );
+    if (file != null) {
+      await importExternalSkillPath(file.path);
+      return;
+    }
+    final directoryPath = await getDirectoryPath();
+    if (directoryPath == null) {
+      state = state.copyWith(
+        lastMessage: '未选择外部 Skill；本地化未执行。',
+        phase: Rc6RuntimePhase.ready,
+      );
+      notifyListeners();
+      return;
+    }
+    await importExternalSkillPath(directoryPath);
+  }
+
+  Future<void> importExternalSkillPath(String path) async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    final kbDir = Directory(_join(workspace.path, 'kb'));
+    if (!await kbDir.exists()) {
+      _fail('请先构建知识库，再导入并本地化外部 Skill。');
+      return;
+    }
+    final sourceFile = await _resolveExternalSkillFile(path);
+    if (sourceFile == null) {
+      _fail('未找到可导入的外部 Skill 文件；请选择 SKILL.md、Markdown、JSON 或 YAML 文件。');
+      return;
+    }
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在导入并本地化外部 Skill...',
+      lastError: '',
+    );
+    notifyListeners();
+    await _writeAdditionalSkillPackages(externalSkillSource: sourceFile);
+    await _writeSkillProductOperations(agentBound: state.hasAgent);
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      phase: Rc6RuntimePhase.skillGenerated,
+      lastMessage: '外部 Skill 已导入并结合当前知识库生成本地化 Skill。',
+      lastError: '',
+    );
     notifyListeners();
   }
 
@@ -1849,6 +1936,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final skillPath = _join(
         _join(workspace.path, 'skill', 'knowledge_qa_skill'),
         'skill_manifest.yaml');
+    final localizedSkillPath = _joinNested(workspace.path,
+        'skill/localized_writing_skill/S2/localized_skill_manifest.json');
     final agentPath = _join(
         _join(workspace.path, 'agent', 'knowledge_qa_agent'),
         'agent_manifest.json');
@@ -1880,9 +1969,12 @@ class Rc6RuntimeController extends ChangeNotifier {
     final searchResults = await _readSearchResults(queryPath);
 
     var phase = state.phase;
+    final hasSkillArtifact = await File(skillPath).exists() ||
+        await File(localizedSkillPath).exists();
+
     if (await File(agentPath).exists()) {
       phase = Rc6RuntimePhase.agentGenerated;
-    } else if (await File(skillPath).exists()) {
+    } else if (hasSkillArtifact) {
       phase = Rc6RuntimePhase.skillGenerated;
     } else if (await File(markdownPath).exists()) {
       phase = Rc6RuntimePhase.documentGenerated;
@@ -1920,8 +2012,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           await File(readingNotesPath).exists() ? readingNotesPath : '',
       exportedDocumentPath: exportedDocumentPath,
       exportManifestPath: exportManifestPath,
-      skillPath:
-          await File(skillPath).exists() ? _join(workspace.path, 'skill') : '',
+      skillPath: hasSkillArtifact ? _join(workspace.path, 'skill') : '',
       agentPath:
           await File(agentPath).exists() ? _join(workspace.path, 'agent') : '',
       agentDialoguePath:
@@ -2537,7 +2628,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     return escaped;
   }
 
-  Future<void> _writeAdditionalSkillPackages() async {
+  Future<void> _writeAdditionalSkillPackages(
+      {File? externalSkillSource}) async {
     final workspace = _requireWorkspace();
     final skillRoot = Directory(_join(workspace.path, 'skill'));
     await skillRoot.create(recursive: true);
@@ -2687,10 +2779,25 @@ class Rc6RuntimeController extends ChangeNotifier {
 
     final externalRoot =
         Directory(_join(skillRoot.path, 'external_imported_skill', 'S0'));
+    await _clearWorkspacePath(externalRoot.path);
     await externalRoot.create(recursive: true);
     final externalSkill = File(_join(externalRoot.path, 'SKILL.md'));
-    await externalSkill.writeAsString(
-      [
+    final importedSourceDir = Directory(_join(externalRoot.path, 'source'));
+    await importedSourceDir.create(recursive: true);
+    final importedSourcePath = _join(
+        importedSourceDir.path,
+        _safeFileName(externalSkillSource?.uri.pathSegments.last ??
+            'default_external_skill.md'));
+    String externalSkillText;
+    String originalExternalPath;
+    if (externalSkillSource != null) {
+      await externalSkillSource.copy(importedSourcePath);
+      externalSkillText =
+          await externalSkillSource.readAsString(encoding: utf8);
+      originalExternalPath = externalSkillSource.path;
+      await externalSkill.writeAsString(externalSkillText, encoding: utf8);
+    } else {
+      externalSkillText = [
         '# 外部写作 Skill S0',
         '',
         '## 方法论',
@@ -2699,16 +2806,23 @@ class Rc6RuntimeController extends ChangeNotifier {
         '## 输入输出约束',
         '- Input: local KB evidence.',
         '- Output: cited writing guidance.',
-      ].join('\n'),
-      encoding: utf8,
-    );
+      ].join('\n');
+      originalExternalPath = externalSkill.path;
+      await externalSkill.writeAsString(externalSkillText, encoding: utf8);
+      await File(importedSourcePath)
+          .writeAsString(externalSkillText, encoding: utf8);
+    }
     final externalManifest = {
       'skill_config_id': 'S0',
       'skill_name': '外部写作 Skill',
       'source_mode': 'external_import',
       'target_platform': 'markdown',
       'external_skill_path': externalRoot.path,
+      'original_external_path': originalExternalPath,
+      'imported_source_path': importedSourcePath,
       'instruction_path': externalSkill.path,
+      'content_size_bytes': utf8.encode(externalSkillText).length,
+      'content_preview': _compact(externalSkillText),
       'status': 'imported',
     };
     await File(_join(externalRoot.path, 'external_skill_manifest.json'))
@@ -2726,10 +2840,14 @@ class Rc6RuntimeController extends ChangeNotifier {
         '',
         '## 来源',
         '- 外部 Skill: S0',
+        '- 外部 Skill 文件: ${_safeFileName(originalExternalPath.split(RegExp(r'[\\/]+')).last)}',
         '- 本地知识库: K2 / 当前真实输入知识库',
         '',
         '## 能力说明',
         '融合外部写作方法论和当前工作区真实知识库，生成适合本地资料的写作、分析和运营建议。',
+        '',
+        '## 外部 Skill 摘要',
+        _compact(externalSkillText),
         '',
         '## 行为规则',
         '- 必须引用本地 chunks、cards 或 qa_pairs。',
@@ -2756,6 +2874,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'source_kb_ids': ['K2'],
       'source_kb_manifest': kbManifestPath,
       'external_skill_path': externalRoot.path,
+      'original_external_path': originalExternalPath,
+      'imported_source_path': importedSourcePath,
       'localization_goal': '领域本地化 + 风格个性化 + Agent 绑定',
       'export_path': localizedRoot.path,
       'instruction_path': localizedSkill.path,
@@ -2771,6 +2891,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         '',
         '- S0 提供通用写作方法论。',
         '- S2 增加本地知识库引用、来源约束和 Agent 绑定规则。',
+        '- 外部 Skill 原始文件已复制到当前工作区，运行时不会执行外部代码或系统命令。',
       ].join('\n'),
       encoding: utf8,
     );
@@ -2780,6 +2901,7 @@ class Rc6RuntimeController extends ChangeNotifier {
               'status': 'pass',
               'checks': [
                 'external_skill_recorded',
+                'external_skill_copied_to_workspace',
                 'local_kb_bound',
                 'localized_skill_md_exists',
                 'target_platform_codex',
