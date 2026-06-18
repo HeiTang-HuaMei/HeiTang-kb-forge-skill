@@ -43,6 +43,8 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> splitKnowledgeBase(String sourceKbId) async => initialize();
   Future<void> deleteKnowledgeBaseRecord(String kbId) async => initialize();
   Future<void> search(String query) async => initialize();
+  Future<void> searchKnowledgeBases(String query, List<String> kbIds) async =>
+      initialize();
   Future<void> generateMarkdown() async => initialize();
   Future<void> exportMarkdownDocument() async => initialize();
   Future<void> exportDocumentFormat(String format) async => initialize();
@@ -175,12 +177,16 @@ class Rc6SearchResult {
     required this.excerpt,
     required this.citation,
     required this.score,
+    this.kbId = '',
+    this.kbName = '',
   });
 
   final String title;
   final String excerpt;
   final String citation;
   final String score;
+  final String kbId;
+  final String kbName;
 }
 
 class Rc6StorageTestResult {

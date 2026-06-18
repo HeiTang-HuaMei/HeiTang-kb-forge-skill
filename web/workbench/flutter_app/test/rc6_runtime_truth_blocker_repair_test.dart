@@ -449,6 +449,110 @@ void main() {
         contains('heitang-rc6-needle'));
   });
 
+  test('prd multi knowledge base retrieval merges and attributes results',
+      () async {
+    final workspace = await createWorkspace();
+    final kbRoot =
+        Directory('${workspace.path}${Platform.pathSeparator}knowledge_bases')
+          ..createSync(recursive: true);
+    for (final id in ['K1', 'K2']) {
+      final dir = Directory('${kbRoot.path}${Platform.pathSeparator}$id')
+        ..createSync(recursive: true);
+      File('${dir.path}${Platform.pathSeparator}manifest.json')
+          .writeAsStringSync('{"status":"searchable"}');
+      File('${dir.path}${Platform.pathSeparator}chunks.jsonl')
+          .writeAsStringSync('{"chunk_id":"$id-c1"}\n');
+    }
+    File('${kbRoot.path}${Platform.pathSeparator}kb_catalog.json')
+        .writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
+      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
+      'knowledge_bases': [
+        {
+          'kb_id': 'K1',
+          'kb_name': 'Alpha KB',
+          'kb_type': '基础知识库',
+          'status': 'searchable',
+          'operation': 'build',
+          'source_documents': [
+            {'source_name': 'alpha.md'}
+          ],
+          'chunk_count': 1,
+        },
+        {
+          'kb_id': 'K2',
+          'kb_name': 'Beta KB',
+          'kb_type': '基础知识库',
+          'status': 'searchable',
+          'operation': 'build',
+          'source_documents': [
+            {'source_name': 'beta.md'}
+          ],
+          'chunk_count': 1,
+        },
+      ],
+    }));
+
+    final requests = <CoreBridgeRequest>[];
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          requests.add(request);
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          final kbId = request.outputPath!.split(Platform.pathSeparator).last;
+          final score = kbId == 'K2' ? 0.92 : 0.51;
+          final payload = {
+            'selected_count': 1,
+            'selected': [
+              {
+                'chunk_id': '$kbId-c1',
+                'source_path': '$kbId-source.md',
+                'text': '$kbId contains multi kb retrieval needle',
+                'score': score,
+              }
+            ],
+          };
+          File('${output.path}${Platform.pathSeparator}kb_query_result.json')
+              .writeAsStringSync(
+                  const JsonEncoder.withIndent('  ').convert(payload));
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.searchKnowledgeBases('multi kb retrieval needle', [
+      'K1',
+      'K2',
+    ]);
+
+    expect(requests, hasLength(2));
+    expect(
+        requests.map((request) => request.arguments),
+        everyElement(
+          allOf(contains('kb-query'), contains('multi kb retrieval needle')),
+        ));
+    final resultFile = File(
+        '${workspace.path}${Platform.pathSeparator}query${Platform.pathSeparator}multi_kb_query_result.json');
+    expect(resultFile.existsSync(), isTrue);
+    final result =
+        jsonDecode(resultFile.readAsStringSync()) as Map<String, dynamic>;
+    expect(result['schema_version'], 'prd_v2_multi_kb_query_result.v1');
+    expect(result['selected_kb_ids'], ['K1', 'K2']);
+    final rows = (result['results'] as List).cast<Map>();
+    expect(rows.map((row) => row['kb_id']), ['K2', 'K1']);
+    expect(rows.first['kb_name'], 'Beta KB');
+    expect(controller.state.searchStatus, Rc6SearchStatus.success);
+    expect(controller.state.searchResults.map((row) => row.kbName),
+        ['Beta KB', 'Alpha KB']);
+    expect(controller.state.queryResultPath, resultFile.path);
+  });
+
   test(
       'rc6 real input folder chain uses allowlisted Core actions and artifacts',
       () async {

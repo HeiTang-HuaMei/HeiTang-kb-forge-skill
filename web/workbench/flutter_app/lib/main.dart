@@ -8626,7 +8626,7 @@ class _RetrievalVerificationView extends StatefulWidget {
 class _RetrievalVerificationViewState
     extends State<_RetrievalVerificationView> {
   bool retrievalPrepared = false;
-  final Set<String> selectedKbIds = <String>{'real_input_kb'};
+  final Set<String> selectedKbIds = <String>{};
   String selectedStage = 'rewrite';
   final Map<int, String> correctionState = <int, String>{};
   final TextEditingController _queryController =
@@ -8657,24 +8657,31 @@ class _RetrievalVerificationViewState
         .where((citation) => citation.isNotEmpty)
         .toSet()
         .length;
-    final kbOptions = [
-      _KbSelectionOption(
-        'real_input_kb',
-        zh ? '真实输入知识库' : 'Real input KB',
-        runtime.hasKnowledgeBase
-            ? '${runtime.chunkCount} chunks'
-            : (zh ? '请先构建' : 'Build first'),
-        runtime.hasKnowledgeBase,
-      ),
-      _KbSelectionOption(
-        'local_cards_qa',
-        zh ? '卡片 / QA 索引' : 'Cards / QA index',
-        runtime.cardsPath.isNotEmpty
-            ? 'cards / qa_pairs'
-            : (zh ? '等待产物' : 'Waiting artifacts'),
-        runtime.cardsPath.isNotEmpty,
-      ),
-    ];
+    final kbOptions = runtime.knowledgeBases.isNotEmpty
+        ? runtime.knowledgeBases
+            .map((kb) => _KbSelectionOption(
+                  kb.id,
+                  kb.name,
+                  '${kb.chunkCount} chunks · ${kb.operation}',
+                  kb.status == 'searchable' && kb.chunkCount > 0,
+                ))
+            .toList(growable: false)
+        : [
+            _KbSelectionOption(
+              'default_kb',
+              zh ? '当前知识库' : 'Current KB',
+              runtime.hasKnowledgeBase
+                  ? '${runtime.chunkCount} chunks'
+                  : (zh ? '请先构建' : 'Build first'),
+              runtime.hasKnowledgeBase,
+            ),
+          ];
+    final enabledKbIds =
+        kbOptions.where((option) => option.enabled).map((option) => option.id);
+    selectedKbIds.removeWhere((id) => !enabledKbIds.contains(id));
+    if (selectedKbIds.isEmpty && enabledKbIds.isNotEmpty) {
+      selectedKbIds.add(enabledKbIds.first);
+    }
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 900;
       final extraWide = constraints.maxWidth >= 1180;
@@ -8730,7 +8737,8 @@ class _RetrievalVerificationViewState
             key: const Key('retrieval-real-query-input'),
             controller: _queryController,
             enabled: !runtime.running,
-            onSubmitted: (value) => rc6?.search(value),
+            onSubmitted: (value) =>
+                rc6?.searchKnowledgeBases(value, selectedKbIds.toList()),
             decoration: InputDecoration(
               labelText: zh ? '真实搜索关键词' : 'Real search keyword',
               helperText: zh
@@ -8786,9 +8794,7 @@ class _RetrievalVerificationViewState
                         realResults[index].excerpt.isEmpty
                             ? realResults[index].title
                             : realResults[index].excerpt,
-                        zh
-                            ? 'KB: ${selectedKbIds.join(', ')} · ${realResults[index].citation}'
-                            : 'KB: ${selectedKbIds.join(', ')} · ${realResults[index].citation}',
+                        _resultKbCitation(realResults[index]),
                         realResults[index].score.isEmpty
                             ? '-'
                             : realResults[index].score,
@@ -8863,7 +8869,8 @@ class _RetrievalVerificationViewState
                   ? null
                   : () {
                       setState(() => retrievalPrepared = true);
-                      rc6.search(_queryController.text);
+                      rc6.searchKnowledgeBases(
+                          _queryController.text, selectedKbIds.toList());
                     },
               icon: Icons.play_arrow_outlined,
             ),
@@ -9039,6 +9046,16 @@ String _retrievalStageDetail(String stage, bool zh) {
         ? '保留用户原意，展开同义词和文件名线索。'
         : 'Preserve intent while expanding synonyms and filename hints.',
   };
+}
+
+String _resultKbCitation(Rc6SearchResult result) {
+  final kbName = result.kbName.trim().isNotEmpty
+      ? result.kbName.trim()
+      : result.kbId.trim().isNotEmpty
+          ? result.kbId.trim()
+          : '当前知识库';
+  final citation = result.citation.trim();
+  return citation.isEmpty ? 'KB: $kbName' : 'KB: $kbName · $citation';
 }
 
 String _correctionLabel(String? value, bool zh) {

@@ -25,6 +25,7 @@ class Rc6RuntimeController extends ChangeNotifier {
   Rc6RuntimeState state = Rc6RuntimeState.initial();
 
   Directory? _workspaceDir;
+  String? _resolvedCoreWorkingDirectory;
 
   Future<void> initialize() async {
     if (isWebRuntime || kIsWeb) {
@@ -341,7 +342,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final configFile = File(_join(configDir.path, 'du_runtime_config.json'));
     final config = {
       'schema_version': 'document_understanding_runtime_config.v1',
-      'working_directory': coreWorkingDirectory,
+      'working_directory': _effectiveCoreWorkingDirectory,
       'routes': {
         '.pdf': 'builtin',
         '.PDF': 'builtin',
@@ -374,6 +375,14 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   Future<void> search(String query) async {
+    final searchableIds = state.knowledgeBases
+        .where((kb) => kb.status == 'searchable')
+        .map((kb) => kb.id)
+        .toList(growable: false);
+    await searchKnowledgeBases(query, searchableIds);
+  }
+
+  Future<void> searchKnowledgeBases(String query, List<String> kbIds) async {
     if (!_canRunDesktop()) {
       return;
     }
@@ -383,8 +392,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       return;
     }
     final workspace = _requireWorkspace();
-    final kbDir = Directory(_join(workspace.path, 'kb'));
-    if (!await kbDir.exists()) {
+    final selectedKbs = await _selectedKnowledgeBasesForSearch(kbIds);
+    if (selectedKbs.isEmpty) {
       _fail('请先构建知识库，再执行搜索。');
       return;
     }
@@ -395,36 +404,100 @@ class Rc6RuntimeController extends ChangeNotifier {
       searchStatus: Rc6SearchStatus.loading,
       queryResultPath: '',
       searchResults: const [],
-      lastMessage: '正在检索真实知识库。',
+      lastMessage: '正在检索 ${selectedKbs.length} 个真实知识库。',
       lastError: '',
+      running: true,
     );
     notifyListeners();
-    await _runCoreAction(
-      actionId: 'rag_query',
-      arguments: [
-        'kb-query',
-        '--package',
-        kbDir.path,
-        '--query',
-        normalizedQuery,
-        '--output',
-        queryDir,
-      ],
-      outputPath: queryDir,
-      nextPhase: Rc6RuntimePhase.searched,
-      successMessage: '知识库搜索完成。',
-    );
-    if (state.lastResult?.passed != true) {
-      state = state.copyWith(searchStatus: Rc6SearchStatus.error);
-      notifyListeners();
-      return;
+
+    CoreBridgeResult? lastResult;
+    final mergedRows = <Map<String, dynamic>>[];
+    final kbSummaries = <Map<String, Object?>>[];
+    for (final kb in selectedKbs) {
+      final outputDir = _join(queryDir, kb.id);
+      await Directory(outputDir).create(recursive: true);
+      final request = CoreBridgeRequest(
+        actionId: 'rag_query',
+        coreCli: coreCli,
+        workingDirectory: _effectiveCoreWorkingDirectory,
+        arguments: [
+          'kb-query',
+          '--package',
+          kb.path,
+          '--query',
+          normalizedQuery,
+          '--output',
+          outputDir,
+        ],
+        outputPath: outputDir,
+        allowedOutputRoot: workspace.path,
+        timeout: const Duration(minutes: 5),
+      );
+      lastResult = await coreBridge.run(request, isWeb: isWebRuntime);
+      if (!lastResult.passed) {
+        state = state.copyWith(
+          running: false,
+          lastResult: lastResult,
+          phase: Rc6RuntimePhase.failed,
+          searchStatus: Rc6SearchStatus.error,
+          lastMessage: lastResult.userReason,
+          lastError: lastResult.userReason,
+        );
+        notifyListeners();
+        return;
+      }
+      final resultPath = _join(outputDir, 'kb_query_result.json');
+      final rows = await _readRawSearchRows(resultPath);
+      for (final row in rows) {
+        mergedRows.add({
+          ...row,
+          'kb_id': kb.id,
+          'kb_name': kb.name,
+          'kb_path': kb.path,
+        });
+      }
+      kbSummaries.add({
+        'kb_id': kb.id,
+        'kb_name': kb.name,
+        'result_count': rows.length,
+        'result_path': resultPath,
+      });
     }
+
+    mergedRows
+        .sort((a, b) => _scoreOf(b['score']).compareTo(_scoreOf(a['score'])));
+    final multiQueryPath = _join(queryDir, 'multi_kb_query_result.json');
+    await File(multiQueryPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v2_multi_kb_query_result.v1',
+        'query': normalizedQuery,
+        'selected_kb_ids': selectedKbs.map((kb) => kb.id).toList(),
+        'selected_count': mergedRows.length,
+        'selected_kb_count': selectedKbs.length,
+        'citation_coverage': _citationCoverage(mergedRows),
+        'answer_coverage': mergedRows.isEmpty ? 0 : 1,
+        'conflict_count': _conflictCount(mergedRows),
+        'external_validation_status': 'not_enabled_local_only',
+        'correction_status': 'pending_manual_review',
+        'knowledge_bases': kbSummaries,
+        'results': mergedRows,
+      }),
+      encoding: utf8,
+    );
+
+    state = state.copyWith(
+      running: false,
+      lastResult: lastResult,
+      phase: Rc6RuntimePhase.searched,
+      lastMessage: '多知识库检索完成。',
+      lastError: '',
+    );
     await _loadExistingArtifacts();
     final hasResults = state.searchResults.isNotEmpty;
     state = state.copyWith(
       searchStatus:
           hasResults ? Rc6SearchStatus.success : Rc6SearchStatus.empty,
-      lastMessage: hasResults ? '搜索命中真实结果。' : '搜索完成，无结果。',
+      lastMessage: hasResults ? '多知识库检索命中真实结果。' : '搜索完成，无结果。',
     );
     notifyListeners();
   }
@@ -1299,8 +1372,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final workspace = _requireWorkspace();
     final outDir = Directory(_join(workspace.path, 'agent', 'dialogue'));
     await outDir.create(recursive: true);
-    final queryReport = await _readJsonObject(
-        _join(workspace.path, 'query', 'kb_query_result.json'));
+    final queryReport = await _readLatestQueryReport(workspace);
     final queryRows = queryReport['selected'] ??
         queryReport['results'] ??
         queryReport['records'];
@@ -1476,7 +1548,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final request = CoreBridgeRequest(
       actionId: actionId,
       coreCli: coreCli,
-      workingDirectory: coreWorkingDirectory,
+      workingDirectory: _effectiveCoreWorkingDirectory,
       arguments: arguments,
       outputPath: outputPath,
       allowedOutputRoot: workspace.path,
@@ -1579,7 +1651,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     final cardsPath = _join(workspace.path, 'kb', 'cards.jsonl');
     final qaPairsPath = _join(workspace.path, 'kb', 'qa_pairs.jsonl');
     final qualityPath = _join(workspace.path, 'kb', 'quality_report.json');
-    final queryPath = _join(workspace.path, 'query', 'kb_query_result.json');
+    final multiQueryPath =
+        _join(workspace.path, 'query', 'multi_kb_query_result.json');
+    final singleQueryPath =
+        _join(workspace.path, 'query', 'kb_query_result.json');
     final markdownPath = _join(workspace.path, 'doc', 'generated.md');
     final readingNotesPath = _join(workspace.path, 'doc', 'reading_notes.md');
     final exportedDocumentPath =
@@ -1606,6 +1681,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final duManifest = await _readJsonObject(duManifestPath);
     final kbReport = await _readJsonObject(
         _join(workspace.path, 'kb', 'knowledge_base_build_report.json'));
+    final queryPath =
+        await File(multiQueryPath).exists() ? multiQueryPath : singleQueryPath;
     final queryReport = await _readJsonObject(queryPath);
     final kbCatalog = await _readJsonObject(kbCatalogPath);
 
@@ -1699,6 +1776,46 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     final single = (manifest['source_name'] ?? '').toString().trim();
     return single.isEmpty ? const <String>[] : <String>[single];
+  }
+
+  Future<List<_SearchableKnowledgeBase>> _selectedKnowledgeBasesForSearch(
+      List<String> kbIds) async {
+    final workspace = _requireWorkspace();
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    final records = _catalogRecords(catalog);
+    final requested = kbIds.where((id) => id.trim().isNotEmpty).toSet();
+    final selectedRecords = records
+        .where((record) =>
+            requested.isEmpty ||
+            requested.contains(record['kb_id']?.toString()))
+        .toList(growable: false);
+    final result = <_SearchableKnowledgeBase>[];
+    for (final record in selectedRecords) {
+      final id = (record['kb_id'] ?? '').toString();
+      if (id.isEmpty) continue;
+      final dir = Directory(_join(workspace.path, 'knowledge_bases', id));
+      if (await File(_join(dir.path, 'manifest.json')).exists()) {
+        result.add(_SearchableKnowledgeBase(
+          id: id,
+          name: (record['kb_name'] ?? id).toString(),
+          path: dir.path,
+        ));
+      }
+    }
+    if (result.isNotEmpty) {
+      return result;
+    }
+    final fallback = Directory(_join(workspace.path, 'kb'));
+    if (await File(_join(fallback.path, 'manifest.json')).exists()) {
+      return [
+        _SearchableKnowledgeBase(
+          id: 'default_kb',
+          name: '当前知识库',
+          path: fallback.path,
+        )
+      ];
+    }
+    return const [];
   }
 
   Future<void> _writeDerivedKnowledgeArtifacts() async {
@@ -2604,8 +2721,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final agentA2aDir = Directory(_joinNested(
         workspace.path, 'agent/workspaces/W_M/a2a_sessions/A2A_001'));
     await agentA2aDir.create(recursive: true);
-    final queryReport = await _readJsonObject(
-        _join(workspace.path, 'query', 'kb_query_result.json'));
+    final queryReport = await _readLatestQueryReport(workspace);
     final queryRows = queryReport['selected'] ??
         queryReport['results'] ??
         queryReport['records'];
@@ -3435,6 +3551,32 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  String get _effectiveCoreWorkingDirectory {
+    final configured = coreWorkingDirectory.trim();
+    if (configured.isNotEmpty && configured != '.') {
+      return Directory(configured).absolute.path;
+    }
+    final cached = _resolvedCoreWorkingDirectory;
+    if (cached != null) {
+      return cached;
+    }
+    Directory cursor = Directory.current.absolute;
+    while (true) {
+      final sibling = Directory(_join(cursor.parent.path, 'kb-forge-skill'));
+      final cli = File(_join(sibling.path, 'heitang_kb_forge', 'cli.py'));
+      if (cli.existsSync()) {
+        _resolvedCoreWorkingDirectory = sibling.path;
+        return sibling.path;
+      }
+      final parent = cursor.parent;
+      if (parent.path == cursor.path) {
+        _resolvedCoreWorkingDirectory = Directory.current.absolute.path;
+        return _resolvedCoreWorkingDirectory!;
+      }
+      cursor = parent;
+    }
+  }
+
   static String _effectiveSecret({
     required String provided,
     required String environmentKey,
@@ -3509,15 +3651,19 @@ class Rc6RuntimeController extends ChangeNotifier {
     return decoded is Map ? Map<String, dynamic>.from(decoded) : const {};
   }
 
-  static Future<List<Rc6SearchResult>> _readSearchResults(String path) async {
-    final payload = await _readJsonObject(path);
-    final rows =
-        payload['selected'] ?? payload['results'] ?? payload['records'];
-    if (rows is! List) {
-      return const [];
+  static Future<Map<String, dynamic>> _readLatestQueryReport(
+      Directory workspace) async {
+    final multi = _join(workspace.path, 'query', 'multi_kb_query_result.json');
+    if (await File(multi).exists()) {
+      return _readJsonObject(multi);
     }
-    return rows.whereType<Map>().map((row) {
-      final item = Map<String, dynamic>.from(row);
+    return _readJsonObject(
+        _join(workspace.path, 'query', 'kb_query_result.json'));
+  }
+
+  static Future<List<Rc6SearchResult>> _readSearchResults(String path) async {
+    final rows = await _readRawSearchRows(path);
+    return rows.map((item) {
       return Rc6SearchResult(
         title: (item['source_path'] ??
                 item['title'] ??
@@ -3528,8 +3674,54 @@ class Rc6RuntimeController extends ChangeNotifier {
             .toString(),
         citation: (item['citation'] ?? item['source_path'] ?? '').toString(),
         score: (item['score'] ?? '').toString(),
+        kbId: (item['kb_id'] ?? '').toString(),
+        kbName: (item['kb_name'] ?? '').toString(),
       );
     }).toList(growable: false);
+  }
+
+  static Future<List<Map<String, dynamic>>> _readRawSearchRows(
+      String path) async {
+    final payload = await _readJsonObject(path);
+    final rows =
+        payload['selected'] ?? payload['results'] ?? payload['records'];
+    if (rows is! List) {
+      return const [];
+    }
+    return rows
+        .whereType<Map>()
+        .map((row) => Map<String, dynamic>.from(row))
+        .toList(growable: false);
+  }
+
+  static double _scoreOf(Object? value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse((value ?? '').toString()) ?? 0;
+  }
+
+  static double _citationCoverage(List<Map<String, dynamic>> rows) {
+    if (rows.isEmpty) return 0;
+    final cited = rows.where((row) {
+      final citation =
+          (row['citation'] ?? row['source_path'] ?? '').toString().trim();
+      return citation.isNotEmpty;
+    }).length;
+    return cited / rows.length;
+  }
+
+  static int _conflictCount(List<Map<String, dynamic>> rows) {
+    final kbIdsByTitle = <String, Set<String>>{};
+    for (final row in rows) {
+      final title =
+          (row['title'] ?? row['chunk_id'] ?? row['source_path'] ?? '')
+              .toString()
+              .trim();
+      if (title.isEmpty) continue;
+      kbIdsByTitle
+          .putIfAbsent(title, () => <String>{})
+          .add((row['kb_id'] ?? '').toString());
+    }
+    return kbIdsByTitle.values.where((ids) => ids.length > 1).length;
   }
 
   static Future<List<Map<String, dynamic>>> _readJsonl(File file) async {
@@ -3706,12 +3898,28 @@ class Rc6SearchResult {
     required this.excerpt,
     required this.citation,
     required this.score,
+    this.kbId = '',
+    this.kbName = '',
   });
 
   final String title;
   final String excerpt;
   final String citation;
   final String score;
+  final String kbId;
+  final String kbName;
+}
+
+class _SearchableKnowledgeBase {
+  const _SearchableKnowledgeBase({
+    required this.id,
+    required this.name,
+    required this.path,
+  });
+
+  final String id;
+  final String name;
+  final String path;
 }
 
 class Rc6StorageTestResult {
