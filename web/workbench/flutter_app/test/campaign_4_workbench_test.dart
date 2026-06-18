@@ -255,7 +255,7 @@ void main() {
     expect(find.byKey(const Key('skill-validation-summary')), findsOneWidget);
     expect(find.text('治理报告与验证'), findsOneWidget);
     expect(find.text('校验并生成 Skill'), findsOneWidget);
-    expect(find.text('打开治理报告'), findsWidgets);
+    expect(find.text('等待真实 Skill 产物'), findsWidgets);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
     expect(find.textContaining('生成完成'), findsNothing);
     expect(tester.takeException(), isNull);

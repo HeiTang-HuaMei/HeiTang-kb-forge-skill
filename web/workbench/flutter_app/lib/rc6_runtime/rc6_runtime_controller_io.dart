@@ -922,6 +922,62 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> clearSkillArtifacts() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    for (final relative in const [
+      'skill',
+      'agent',
+      'multi_agent',
+    ]) {
+      await _clearWorkspacePath(_join(workspace.path, relative));
+    }
+    state = state.copyWith(
+      phase: state.hasReadingNotes
+          ? Rc6RuntimePhase.documentGenerated
+          : state.searchStatus == Rc6SearchStatus.success
+              ? Rc6RuntimePhase.searched
+              : state.hasKnowledgeBase
+                  ? Rc6RuntimePhase.knowledgeBuilt
+                  : Rc6RuntimePhase.imported,
+      skillPath: '',
+      agentPath: '',
+      agentDialoguePath: '',
+      multiAgentDiscussionPath: '',
+      lastMessage: 'Skill、Agent 和讨论产物已删除。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
+  Future<void> clearAgentArtifacts() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    await _clearWorkspacePath(_join(workspace.path, 'agent'));
+    await _clearWorkspacePath(_join(workspace.path, 'multi_agent'));
+    state = state.copyWith(
+      phase: state.hasSkill
+          ? Rc6RuntimePhase.skillGenerated
+          : state.hasReadingNotes
+              ? Rc6RuntimePhase.documentGenerated
+              : state.searchStatus == Rc6SearchStatus.success
+                  ? Rc6RuntimePhase.searched
+                  : state.hasKnowledgeBase
+                      ? Rc6RuntimePhase.knowledgeBuilt
+                      : Rc6RuntimePhase.imported,
+      agentPath: '',
+      agentDialoguePath: '',
+      multiAgentDiscussionPath: '',
+      lastMessage: 'Agent、对话和讨论产物已删除。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
   Future<void> clearRecentTaskArtifacts(String taskId) async {
     switch (taskId) {
       case 'import':
@@ -938,6 +994,12 @@ class Rc6RuntimeController extends ChangeNotifier {
         return;
       case 'doc':
         await clearDocumentArtifacts();
+        return;
+      case 'skill':
+        await clearSkillArtifacts();
+        return;
+      case 'agent':
+        await clearAgentArtifacts();
         return;
       default:
         _fail('未知任务类型：$taskId');
@@ -1186,6 +1248,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     await generateSkill();
     if (state.lastResult?.passed != true) return;
     await generateAgent();
+    if (state.lastResult?.passed != true) return;
+    await runAgentDialogue();
   }
 
   Future<void> runOwnerInputFolderE2E({String query = '赚钱 小生意'}) async {
@@ -1244,6 +1308,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     await generateSkill();
     if (state.lastResult?.passed != true) return;
     await generateAgent();
+    if (state.lastResult?.passed != true) return;
+    await runAgentDialogue();
   }
 
   Future<void> _runCoreAction({

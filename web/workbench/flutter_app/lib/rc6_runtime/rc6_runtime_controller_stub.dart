@@ -46,6 +46,8 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> clearParseArtifacts() async => initialize();
   Future<void> clearSearchArtifacts() async => initialize();
   Future<void> clearDocumentArtifacts() async => initialize();
+  Future<void> clearSkillArtifacts() async => initialize();
+  Future<void> clearAgentArtifacts() async => initialize();
   Future<void> clearRecentTaskArtifacts(String taskId) async => initialize();
   Future<void> deleteImportedSource(String sourceNameOrRelativePath) async =>
       initialize();

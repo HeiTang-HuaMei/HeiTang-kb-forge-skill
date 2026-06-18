@@ -424,10 +424,24 @@ void main() {
     expect(controller.state.qaPairsPath, isNotEmpty);
     expect(controller.state.hasReadingNotes, isTrue);
     expect(controller.state.hasMultiAgentDiscussion, isTrue);
+    await controller.runAgentDialogue(prompt: '总结真实输入主题');
+    expect(controller.state.hasAgentDialogue, isTrue);
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}agent_dialogue.md')
+            .readAsStringSync(),
+        contains('总结真实输入主题'));
     expect(
         File('${workspace.path}${Platform.pathSeparator}doc${Platform.pathSeparator}reading_notes.md')
             .readAsStringSync(),
         contains('真实输入文件夹读书笔记'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}skill_generation_manifest.json')
+            .readAsStringSync(),
+        contains('rc10_real_input_skill_generation.v1'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}agent_generation_manifest.json')
+            .readAsStringSync(),
+        contains('rc10_real_input_agent_generation.v1'));
     expect(
         File('${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
             .readAsStringSync(),
@@ -436,6 +450,26 @@ void main() {
         File('${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
             .readAsStringSync(),
         contains('真实输入命中赚钱小生意'));
+
+    await controller.clearAgentArtifacts();
+    expect(controller.state.hasAgent, isFalse);
+    expect(controller.state.hasAgentDialogue, isFalse);
+    expect(controller.state.hasMultiAgentDiscussion, isFalse);
+    expect(controller.state.hasSkill, isTrue);
+    expect(
+        Directory('${workspace.path}${Platform.pathSeparator}agent')
+            .existsSync(),
+        isFalse);
+
+    await controller.generateAgent();
+    expect(controller.state.hasAgent, isTrue);
+    await controller.clearSkillArtifacts();
+    expect(controller.state.hasSkill, isFalse);
+    expect(controller.state.hasAgent, isFalse);
+    expect(
+        Directory('${workspace.path}${Platform.pathSeparator}skill')
+            .existsSync(),
+        isFalse);
   });
 
   test('rc8 document flow stops at real Markdown export without Skill or Agent',

@@ -2327,6 +2327,28 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
           Icons.description_outlined,
           'document-generation',
         ),
+      if (runtime.hasSkill)
+        _DashboardTaskRow(
+          'skill',
+          _zh ? '生成 Skill' : 'Generate Skill',
+          _zh ? 'Skill 工厂' : 'Skill Factory',
+          _displayNameForPath(runtime.skillPath),
+          Icons.extension_outlined,
+          'skill-factory',
+        ),
+      if (runtime.hasAgent)
+        _DashboardTaskRow(
+          'agent',
+          _zh ? '创建 Agent' : 'Create Agent',
+          _zh ? 'Agent 工厂' : 'Agent Factory',
+          runtime.hasAgentDialogue
+              ? (_zh ? '已对话' : 'chat saved')
+              : runtime.hasMultiAgentDiscussion
+                  ? (_zh ? '已讨论' : 'discussion saved')
+                  : (_zh ? '已生成' : 'generated'),
+          Icons.smart_toy_outlined,
+          'agent-factory-runtime',
+        ),
     ];
     final visibleRows = rows;
     return _FillProductPanel(
@@ -3115,16 +3137,16 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
     _TopBarSearchSuggestion(
       title: zh ? 'Skill 工厂' : 'Skill Factory',
       subtitle: zh
-          ? '定位 Skill，不在本轮扩展生成逻辑'
-          : 'Locate Skills; generation logic is frozen',
+          ? '从知识库生成 Skill，并绑定给 Agent'
+          : 'Generate Skills from KBs and bind them to Agents',
       pageId: 'skill-factory',
       icon: Icons.extension_outlined,
     ),
     _TopBarSearchSuggestion(
       title: zh ? 'Agent 工厂' : 'Agent Factory',
       subtitle: zh
-          ? '定位 Agent，不在本轮扩展生成逻辑'
-          : 'Locate Agents; generation logic is frozen',
+          ? '创建 Agent、运行最小对话和联合讨论'
+          : 'Create Agents, run minimal chat and team discussion',
       pageId: 'agent-factory-runtime',
       icon: Icons.smart_toy_outlined,
     ),
@@ -3152,6 +3174,22 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
         subtitle: _displayNameForPath(runtime.generatedMarkdownPath),
         pageId: 'document-generation',
         icon: Icons.notes_outlined,
+      ));
+    }
+    if (runtime.hasSkill) {
+      suggestions.add(_TopBarSearchSuggestion(
+        title: zh ? '已生成 Skill' : 'Generated Skill',
+        subtitle: _displayNameForPath(runtime.skillPath),
+        pageId: 'skill-factory',
+        icon: Icons.extension_outlined,
+      ));
+    }
+    if (runtime.hasAgent) {
+      suggestions.add(_TopBarSearchSuggestion(
+        title: zh ? '已生成 Agent' : 'Generated Agent',
+        subtitle: _displayNameForPath(runtime.agentPath),
+        pageId: 'agent-factory-runtime',
+        icon: Icons.smart_toy_outlined,
       ));
     }
   }
@@ -4750,7 +4788,7 @@ class _DisplayAction extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
-        onPressed: onPressed ?? () {},
+        onPressed: onPressed,
         icon: Icon(icon),
         label: Text(label, overflow: TextOverflow.ellipsis),
       ),
@@ -9022,6 +9060,19 @@ class _SkillBuilderProductWorkflowState
 
   bool get _zh => widget.localeCode == 'zh-CN';
 
+  Future<void> _confirmAndDeleteSkill(Rc6RuntimeController? rc6) async {
+    if (rc6 == null || rc6.state.running || !rc6.state.hasSkill) return;
+    final confirmed = await _confirmDestructiveAction(
+      context,
+      title: _zh ? '删除 Skill 产物？' : 'Delete Skill artifacts?',
+      body: _zh
+          ? '这会删除当前工作区里的 Skill、Agent、对话和联合讨论产物；知识库和文档不会被删除。'
+          : 'This deletes Skill, Agent, dialogue, and discussion artifacts in this workspace; KB and documents are kept.',
+    );
+    if (!confirmed) return;
+    await rc6.clearSkillArtifacts();
+  }
+
   @override
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
@@ -9282,8 +9333,15 @@ class _SkillBuilderProductWorkflowState
                 icon: Icons.auto_awesome_outlined,
               ),
               _DisplayAction(
-                  label: _zh ? '打开治理报告' : 'Open governance report',
-                  icon: Icons.assessment_outlined),
+                label: runtime.hasSkill
+                    ? (_zh ? '删除 Skill 产物' : 'Delete Skill artifacts')
+                    : (_zh ? '等待真实 Skill 产物' : 'Waiting for real Skill'),
+                icon: runtime.hasSkill
+                    ? Icons.delete_outline
+                    : Icons.assessment_outlined,
+                onPressed:
+                    runtime.hasSkill ? () => _confirmAndDeleteSkill(rc6) : null,
+              ),
             ]),
           ],
         );
@@ -9432,6 +9490,20 @@ class _AgentCreationProductView extends StatelessWidget {
   final bool zh;
   final String workspace;
 
+  Future<void> _confirmAndDeleteAgent(
+      BuildContext context, Rc6RuntimeController? rc6) async {
+    if (rc6 == null || rc6.state.running || !rc6.state.hasAgent) return;
+    final confirmed = await _confirmDestructiveAction(
+      context,
+      title: zh ? '删除 Agent 产物？' : 'Delete Agent artifacts?',
+      body: zh
+          ? '这会删除当前工作区里的 Agent、最小对话和联合讨论产物；知识库和 Skill 保留。'
+          : 'This deletes Agent, minimal chat, and team discussion artifacts in this workspace; KB and Skill are kept.',
+    );
+    if (!confirmed) return;
+    await rc6.clearAgentArtifacts();
+  }
+
   @override
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
@@ -9499,6 +9571,18 @@ class _AgentCreationProductView extends StatelessWidget {
             onPressed: runtime.running || rc6 == null
                 ? null
                 : () => rc6.generateAgent(),
+          ),
+          const SizedBox(height: _DesktopGrid.gutter),
+          _DisplayAction(
+            label: runtime.hasAgent
+                ? (zh ? '删除 Agent 产物' : 'Delete Agent artifacts')
+                : (zh ? '等待真实 Agent 产物' : 'Waiting for real Agent'),
+            icon: runtime.hasAgent
+                ? Icons.delete_outline
+                : Icons.smart_toy_outlined,
+            onPressed: runtime.hasAgent
+                ? () => _confirmAndDeleteAgent(context, rc6)
+                : null,
           ),
         ],
       );
