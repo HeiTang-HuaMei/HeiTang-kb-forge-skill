@@ -411,7 +411,7 @@ void main() {
     expect(find.text('通知'), findsNothing);
     expect(find.byIcon(Icons.refresh_outlined), findsOneWidget);
     expect(find.textContaining('系统状态: 正常运行'), findsOneWidget);
-    expect(find.textContaining('版本: v1.0.0'), findsOneWidget);
+    expect(find.textContaining('版本: v4.3.0-rc9'), findsOneWidget);
     expect(pages, hasLength(10));
     expect(find.byType(NavigationRail), findsNothing);
     expect(tester.takeException(), isNull);

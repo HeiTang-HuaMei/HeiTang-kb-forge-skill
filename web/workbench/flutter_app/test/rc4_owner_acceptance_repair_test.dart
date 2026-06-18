@@ -74,7 +74,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('运行真实检索'), warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.text('授权后执行外部事实验证'), findsWidgets);
+    expect(find.text('外部事实验证未启用'), findsWidgets);
     expect(find.textContaining('显式 opt-in'), findsWidgets);
 
     await tester
@@ -84,7 +84,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('生成文档'), warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.textContaining('等待生成'), findsWidgets);
+    expect(find.textContaining('尚未生成'), findsWidgets);
 
     await tester.ensureVisible(find.byKey(const Key('sidebar-skill-factory')));
     await tester.tap(find.byKey(const Key('sidebar-skill-factory')),

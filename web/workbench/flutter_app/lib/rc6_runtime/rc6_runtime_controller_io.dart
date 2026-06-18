@@ -30,8 +30,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     if (isWebRuntime || kIsWeb) {
       state = state.copyWith(
         phase: Rc6RuntimePhase.blocked,
-        lastMessage:
-            '真实文件链路需要 Windows EXE 桌面端；Flutter Web 保持 disabled_boundary。',
+        lastMessage: '真实文件链路需要 Windows EXE 桌面端；Flutter Web 不执行本地文件操作。',
       );
       notifyListeners();
       return;
@@ -42,7 +41,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     state = state.copyWith(
       workspacePath: workspace.path,
       phase: Rc6RuntimePhase.ready,
-      lastMessage: 'rc6 本地工作区已准备。',
+      lastMessage: 'rc9 文档链路本地工作区已准备。',
     );
     await _loadExistingArtifacts();
     notifyListeners();
@@ -480,7 +479,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final exported = File(_join(exportDir.path, 'reading_notes_export.md'));
     await source.copy(exported.path);
     final manifest = {
-      'schema_version': 'rc8_document_export.v1',
+      'schema_version': 'rc9_document_export.v1',
       'status': 'pass',
       'format': 'markdown',
       'source': source.path,
@@ -1140,7 +1139,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         .replaceAll('/', Platform.pathSeparator)
         .toLowerCase();
     if (!normalizedTarget.startsWith(normalizedRoot)) {
-      throw StateError('Refusing to clear path outside rc6 workspace');
+      throw StateError(
+          'Refusing to clear path outside document flow workspace');
     }
     final file = File(targetPath);
     if (await file.exists()) {
@@ -1586,10 +1586,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     final appData = Platform.environment['LOCALAPPDATA'];
     if (appData != null && appData.trim().isNotEmpty) {
       return Directory(
-          _join(appData, 'HeiTangKBForge', 'rc6_runtime_workspace'));
+          _join(appData, 'HeiTangKBForge', 'rc9_document_flow_workspace'));
     }
     return Directory(
-        _join(Directory.current.path, 'output', 'rc6_runtime_workspace'));
+        _join(Directory.current.path, 'output', 'rc9_document_flow_workspace'));
   }
 
   bool _canRunDesktop() {
@@ -1615,14 +1615,18 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   bool _autoRunOwnerInputDocumentFlowOnLaunch() {
-    final value = Platform.environment['HEITANG_RC8_DOCUMENT_FLOW_E2E'];
-    return value == '1' || value?.toLowerCase() == 'true';
+    final rc9 = Platform.environment['HEITANG_RC9_DOCUMENT_FLOW_E2E'];
+    final rc8 = Platform.environment['HEITANG_RC8_DOCUMENT_FLOW_E2E'];
+    return rc9 == '1' ||
+        rc9?.toLowerCase() == 'true' ||
+        rc8 == '1' ||
+        rc8?.toLowerCase() == 'true';
   }
 
   Directory _requireWorkspace() {
     final workspace = _workspaceDir;
     if (workspace == null) {
-      throw StateError('rc6 workspace is not initialized');
+      throw StateError('document flow workspace is not initialized');
     }
     return workspace;
   }

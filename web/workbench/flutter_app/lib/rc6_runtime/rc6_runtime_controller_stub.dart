@@ -22,7 +22,7 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> initialize() async {
     state = state.copyWith(
       phase: Rc6RuntimePhase.blocked,
-      lastMessage: '真实文件链路需要 Windows EXE 桌面端；Flutter Web 保持 disabled_boundary。',
+      lastMessage: '真实文件链路需要 Windows EXE 桌面端；Flutter Web 不执行本地文件操作。',
       lastError: 'desktop_runtime_required',
     );
     notifyListeners();

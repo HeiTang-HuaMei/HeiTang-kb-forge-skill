@@ -38,6 +38,7 @@ abstract final class _DesktopGrid {
 enum _DesktopWindowPreviewState { restored, maximized }
 
 const supportedLocaleCodes = <String>['zh-CN', 'en-US'];
+const _appVersionLabel = 'v4.3.0-rc9';
 
 const pages = <WorkbenchPage>[
   WorkbenchPage(
@@ -687,7 +688,7 @@ class _DesktopStatusBar extends StatelessWidget {
               _StatusBarItem(
                 icon: Icons.info_outline,
                 label: _zh ? '版本' : 'Version',
-                value: 'v1.0.0',
+                value: _appVersionLabel,
               ),
             ],
             if (showUpdates) ...[
@@ -878,8 +879,8 @@ class _SidebarBrand extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
               localeCode == 'zh-CN'
-                  ? '知识工作台  v1.0.0'
-                  : 'Knowledge Workbench  v1.0.0',
+                  ? '知识工作台  $_appVersionLabel'
+                  : 'Knowledge Workbench  $_appVersionLabel',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: secondaryText,
                     fontWeight: FontWeight.w600,
@@ -2095,7 +2096,9 @@ class _DashboardMetricGrid extends StatelessWidget {
         value: runtime.hasMarkdown ? '1' : '0',
         detail: runtime.hasExportedDocument
             ? (_zh ? '已导出' : 'exported')
-            : (_zh ? '等待生成/导出' : 'waiting generation/export'),
+            : runtime.hasMarkdown
+                ? (_zh ? '已生成，待导出' : 'generated, export next')
+                : (_zh ? '尚未生成' : 'not generated'),
         pageId: 'document-generation',
       ),
       _DashboardMetricData(
@@ -4646,14 +4649,10 @@ _CapabilityStatusKind _capabilityStatusKind(String value) {
       lower.contains('external source verification gate') ||
       lower.contains('not connected') ||
       lower.contains('not authorized') ||
-      lower.contains('waiting') ||
-      lower.contains('pending') ||
       lower.contains('preview only') ||
       lower.contains('read-only') ||
       lower.contains('reserved') ||
       value.contains('未接入') ||
-      value.contains('等待') ||
-      value.contains('待') ||
       value.contains('预留') ||
       value.contains('只读') ||
       value.contains('不实现') ||
@@ -4689,10 +4688,7 @@ String _capabilityStatusLabel(String? value, bool zh) {
       lower.contains('provider runtime gate') ||
       lower.contains('external source verification gate') ||
       lower.contains('not connected') ||
-      lower.contains('waiting') ||
-      lower.contains('pending') ||
       value.contains('未接入') ||
-      value.contains('等待') ||
       value.contains('边界') ||
       value.contains('禁用')) {
     return zh ? '禁用边界 · disabled_boundary' : 'Disabled · disabled_boundary';
@@ -4733,47 +4729,6 @@ class _StatePill extends StatelessWidget {
                     fontWeight: FontWeight.w900,
                   )),
         ],
-      ),
-    );
-  }
-}
-
-class _DisabledAction extends StatelessWidget {
-  const _DisabledAction({
-    required this.label,
-    required this.reason,
-    this.icon = Icons.lock_outline,
-  });
-
-  final String label;
-  final String reason;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = Colors.amber.shade700;
-    return SizedBox(
-      width: double.infinity,
-      child: Tooltip(
-        message: reason,
-        child: Container(
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: color.withValues(alpha: 0.36)),
-          ),
-          child: OutlinedButton.icon(
-            onPressed: null,
-            icon: Icon(icon, color: color),
-            label: Text(label, overflow: TextOverflow.ellipsis),
-            style: OutlinedButton.styleFrom(
-              disabledForegroundColor: color,
-              side: BorderSide.none,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -5539,7 +5494,7 @@ class _DocumentPreviewPanel extends StatelessWidget {
                 child: Text(
                   ready
                       ? (zh ? '知识库验证报告草稿' : 'Knowledge Base Validation Draft')
-                      : (zh ? '文档预览等待生成' : 'Document preview waiting'),
+                      : (zh ? '尚未生成文档预览' : 'Document preview not generated'),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontSize: 22,
                         fontWeight: FontWeight.w900,
@@ -5571,14 +5526,14 @@ class _DocumentPreviewPanel extends StatelessWidget {
               ? [
                   '1. 摘要：基于本地知识库证据生成。',
                   '2. 证据覆盖：引用、来源、时间戳保持可追踪。',
-                  '3. 风险：外部事实比对已验收，执行仍需显式网络 opt-in。',
-                  '4. 导出：Markdown / DOCX / PDF / PPTX 在本模块管理。'
+                  '3. 风险：外部事实比对需要联网 Provider 和显式 opt-in。',
+                  '4. 导出：Markdown 已纳入本轮真实链路，其它格式需导出器配置。'
                 ]
               : [
                   '1. Summary: generated from local Knowledge Base evidence.',
                   '2. Coverage: citations, sources, and timestamps stay traceable.',
-                  '3. Risk: external comparison is accepted and still requires explicit network opt-in.',
-                  '4. Export: Markdown / DOCX / PDF / PPTX are owned here.'
+                  '3. Risk: external comparison requires network Provider and explicit opt-in.',
+                  '4. Export: Markdown is verified in this flow; other formats require exporter config.'
                 ])) ...[
             Text(line,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -6471,6 +6426,13 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
+    final markdownStatus = runtime.hasMarkdown
+        ? (zh ? '已生成' : 'Generated')
+        : runtime.hasKnowledgeBase
+            ? (zh ? '可生成' : 'Ready')
+            : (zh ? '需要知识库' : 'Needs KB');
+    final adapterNotEnabled =
+        zh ? '未启用：缺少导出器配置' : 'Not enabled: exporter config missing';
     Future<void> openGenerationDialog() async {
       final result = await showDialog<_DocumentGenerationConfig>(
         context: context,
@@ -6494,10 +6456,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
         previewReady = true;
       });
       if (rc6 == null || runtime.running) return;
+      if (result.outputFormat != 'md') return;
       await rc6.generateMarkdown();
-      if (result.outputFormat != 'md') {
-        await rc6.exportDocumentFormat(result.outputFormat);
-      }
     }
 
     return LayoutBuilder(builder: (context, constraints) {
@@ -6526,8 +6486,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                                 '知识库 / 来源',
                                 runtime.hasKnowledgeBase
                                     ? '真实输入知识库'
-                                    : '请先构建知识库',
-                                runtime.hasKnowledgeBase ? '可生成' : '等待'
+                                    : '需要先完成知识库构建',
+                                markdownStatus
                               ],
                               [
                                 '生成类型',
@@ -6544,7 +6504,9 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                               [
                                 '输出格式',
                                 outputFormat.toUpperCase(),
-                                outputFormat == 'md' ? '真实导出' : '格式适配准备'
+                                outputFormat == 'md'
+                                    ? markdownStatus
+                                    : adapterNotEnabled
                               ],
                               [
                                 '引用策略',
@@ -6557,8 +6519,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                                 'KB / source',
                                 runtime.hasKnowledgeBase
                                     ? 'Real input KB'
-                                    : 'Build KB first',
-                                runtime.hasKnowledgeBase ? 'Ready' : 'Waiting'
+                                    : 'Complete KB build first',
+                                markdownStatus
                               ],
                               [
                                 'Generation type',
@@ -6582,8 +6544,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                                 'Output format',
                                 outputFormat.toUpperCase(),
                                 outputFormat == 'md'
-                                    ? 'Real export'
-                                    : 'Adapter-ready'
+                                    ? markdownStatus
+                                    : adapterNotEnabled
                               ],
                               [
                                 'Citation strategy',
@@ -6634,8 +6596,9 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                         ChoiceChip(
                           label: Text(item.toUpperCase()),
                           selected: outputFormat == item,
-                          onSelected: (_) =>
-                              setState(() => outputFormat = item),
+                          onSelected: item == 'md'
+                              ? (_) => setState(() => outputFormat = item)
+                              : null,
                         ),
                     ]),
                   ],
@@ -6647,17 +6610,17 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                   icon: Icons.notes_outlined,
                   onPressed: runtime.running || rc6 == null
                       ? null
-                      : runtime.hasKnowledgeBase
+                      : runtime.hasKnowledgeBase && outputFormat == 'md'
                           ? openGenerationDialog
-                          : () async {
-                              setState(() => draftQueued = true);
-                              await rc6.generateMarkdown();
-                            },
+                          : null,
                 ),
                 _PrimaryProductAction(
                   label: zh ? '重新生成' : 'Regenerate',
                   icon: Icons.restart_alt_outlined,
-                  onPressed: runtime.running || rc6 == null
+                  onPressed: runtime.running ||
+                          rc6 == null ||
+                          !runtime.hasKnowledgeBase ||
+                          outputFormat != 'md'
                       ? null
                       : openGenerationDialog,
                 ),
@@ -6709,10 +6672,10 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                       '引用验证',
                       runtime.searchStatus == Rc6SearchStatus.success
                           ? '检索结果可用'
-                          : '等待检索',
+                          : '需要先运行检索',
                       '引用来源可追踪'
                     ],
-                    ['生成历史', runtime.hasMarkdown ? '可追踪' : '等待生成', '用户工作区'],
+                    ['生成历史', runtime.hasMarkdown ? '已记录' : '暂无历史', '用户工作区'],
                   ]
                 : [
                     [
@@ -6725,12 +6688,12 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                       'Citation validation',
                       runtime.searchStatus == Rc6SearchStatus.success
                           ? 'Search result ready'
-                          : 'Waiting search',
+                          : 'Run retrieval first',
                       'Sources traceable'
                     ],
                     [
                       'History',
-                      runtime.hasMarkdown ? 'Traceable' : 'Waiting',
+                      runtime.hasMarkdown ? 'Recorded' : 'No history',
                       'User workspace'
                     ],
                   ],
@@ -6747,14 +6710,14 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
             label: zh ? 'Markdown 产物' : 'Markdown artifact',
             value: runtime.hasMarkdown
                 ? _displayNameForPath(runtime.generatedMarkdownPath)
-                : (zh ? '等待生成' : 'Waiting'),
+                : (zh ? '尚未生成' : 'Not generated'),
           ),
           const SizedBox(height: 8),
           _FieldRow(
             label: zh ? '导出边界' : 'Export boundary',
             value: zh
-                ? 'MD/DOCX/PDF/PPTX 复用 Core 导出命令；JSON/CSV 导出结构化清单。'
-                : 'MD/DOCX/PDF/PPTX reuse Core export commands; JSON/CSV export structured manifests.',
+                ? 'Markdown 为本轮真实导出；DOCX/PDF/PPTX/JSON/CSV 未启用，缺少导出器配置。'
+                : 'Markdown is the verified export path; DOCX/PDF/PPTX/JSON/CSV are not enabled without exporter config.',
           ),
         ],
       );
@@ -6765,28 +6728,25 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
           items: [
             _MetricDatum(
                 label: 'Markdown',
-                value: runtime.hasMarkdown
-                    ? (zh ? '已生成' : 'Generated')
-                    : (zh ? '可生成' : 'Ready'),
+                value: markdownStatus,
                 detail: runtime.hasMarkdown
                     ? (zh ? '真实文件' : 'real file')
-                    : (zh ? '等待点击' : 'waiting click'),
+                    : (zh ? '点击生成' : 'generate on click'),
                 icon: Icons.notes_outlined),
             _MetricDatum(
                 label: 'DOCX',
-                value: zh ? '可导出' : 'Exportable',
-                detail: zh ? 'Core generate-docx' : 'Core generate-docx',
+                value: adapterNotEnabled,
+                detail: zh ? '需要导出器配置' : 'needs exporter config',
                 icon: Icons.description_outlined),
             _MetricDatum(
                 label: 'PDF/PPTX',
-                value: zh ? '可导出' : 'Exportable',
-                detail:
-                    zh ? 'Core generate-pdf/pptx' : 'Core generate-pdf/pptx',
+                value: adapterNotEnabled,
+                detail: zh ? '需要导出器配置' : 'needs exporter config',
                 icon: Icons.picture_as_pdf_outlined),
             _MetricDatum(
                 label: 'JSON/CSV',
-                value: zh ? '结构化导出' : 'Structured export',
-                detail: zh ? '知识卡片/QA' : 'cards / QA',
+                value: adapterNotEnabled,
+                detail: zh ? '结构化导出器未启用' : 'structured exporter off',
                 icon: Icons.table_chart_outlined),
             _MetricDatum(
                 label: zh ? '脱敏验证' : 'Redaction',
@@ -6804,8 +6764,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                   ? (zh ? '读书笔记已生成' : 'Reading notes generated')
                   : (zh ? '文档生成已触发' : 'Document generation started'),
               detail: zh
-                  ? 'Markdown 产物保存在本地工作区，导出预览不冒充主链路能力。'
-                  : 'Markdown is saved in the local workspace; export preview does not masquerade as a main-flow capability.',
+                  ? 'Markdown 产物保存在本地工作区；其它格式需配置导出器后启用。'
+                  : 'Markdown is saved in the local workspace; other formats require exporter config.',
               tone: runtime.hasMarkdown
                   ? _StatusTone.success
                   : _StatusTone.neutral,
@@ -6831,8 +6791,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                 ? (zh ? '读书笔记已生成' : 'Reading notes generated')
                 : (zh ? '文档生成已触发' : 'Document generation started'),
             detail: zh
-                ? 'Markdown 产物保存在本地工作区，导出预览不冒充主链路能力。'
-                : 'Markdown is saved in the local workspace; export preview does not masquerade as a main-flow capability.',
+                ? 'Markdown 产物保存在本地工作区；其它格式需配置导出器后启用。'
+                : 'Markdown is saved in the local workspace; other formats require exporter config.',
             tone:
                 runtime.hasMarkdown ? _StatusTone.success : _StatusTone.neutral,
             icon: Icons.notes_outlined,
@@ -7079,7 +7039,9 @@ class _DocumentGenerationDialogState extends State<_DocumentGenerationDialog> {
                   ChoiceChip(
                     label: Text(item.toUpperCase()),
                     selected: outputFormat == item,
-                    onSelected: (_) => setState(() => outputFormat = item),
+                    onSelected: item == 'md'
+                        ? (_) => setState(() => outputFormat = item)
+                        : null,
                   ),
               ]),
               const SizedBox(height: 12),
@@ -7148,6 +7110,8 @@ class _DocumentExportPreviewViewState
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
+    final adapterNotEnabled =
+        zh ? '未启用：缺少导出器配置' : 'Not enabled: exporter config missing';
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= _DesktopGrid.rowBreakpoint;
       final export = _ProductPanel(
@@ -7156,8 +7120,8 @@ class _DocumentExportPreviewViewState
         title: zh ? '文档导出' : 'Document Export',
         children: [
           _SectionCaption(zh
-              ? '格式适配：Markdown 直接导出；DOCX / PDF / PPTX 通过 Core 适配器生成。'
-              : 'Format adapters: Markdown exports directly; DOCX / PDF / PPTX use Core adapters.'),
+              ? 'Markdown 直接导出；DOCX / PDF / PPTX 需要先配置导出器。'
+              : 'Markdown exports directly; DOCX / PDF / PPTX require exporter config first.'),
           const SizedBox(height: 8),
           _ProductTable(
             columns: zh
@@ -7171,30 +7135,15 @@ class _DocumentExportPreviewViewState
                           ? '已导出'
                           : runtime.hasMarkdown
                               ? '可导出'
-                              : '等待草稿',
-                      runtime.hasExportedDocument ? '通过' : '等待导出',
+                              : '需要 Markdown',
+                      runtime.hasExportedDocument ? '通过' : '尚未导出',
                       runtime.hasExportedDocument
                           ? _displayNameForPath(runtime.exportedDocumentPath)
-                          : 'reading_notes_export.md'
+                          : '尚未生成导出文件'
                     ],
-                    [
-                      'DOCX',
-                      runtime.hasKnowledgeBase ? '格式适配可导出' : '格式适配等待知识库',
-                      '引用完整性',
-                      'generate-docx'
-                    ],
-                    [
-                      'PDF',
-                      runtime.hasKnowledgeBase ? '格式适配可导出' : '格式适配等待知识库',
-                      '导出验证',
-                      'generate-pdf'
-                    ],
-                    [
-                      'PPTX',
-                      runtime.hasKnowledgeBase ? '格式适配可导出' : '格式适配等待知识库',
-                      '导出验证',
-                      'generate-pptx'
-                    ],
+                    ['DOCX', adapterNotEnabled, '需要导出器配置', '未生成'],
+                    ['PDF', adapterNotEnabled, '需要导出器配置', '未生成'],
+                    ['PPTX', adapterNotEnabled, '需要导出器配置', '未生成'],
                   ]
                 : [
                     [
@@ -7203,29 +7152,29 @@ class _DocumentExportPreviewViewState
                           ? 'Exported'
                           : runtime.hasMarkdown
                               ? 'Ready'
-                              : 'Waiting for draft',
-                      runtime.hasExportedDocument ? 'Passed' : 'Waiting export',
+                              : 'Needs Markdown',
+                      runtime.hasExportedDocument ? 'Passed' : 'Not exported',
                       runtime.hasExportedDocument
                           ? _displayNameForPath(runtime.exportedDocumentPath)
-                          : 'reading_notes_export.md'
+                          : 'No export file yet'
                     ],
                     [
                       'DOCX',
-                      runtime.hasKnowledgeBase ? 'Exportable' : 'Waiting KB',
-                      'Citation integrity',
-                      'generate-docx'
+                      adapterNotEnabled,
+                      'Exporter config required',
+                      'Not generated'
                     ],
                     [
                       'PDF',
-                      runtime.hasKnowledgeBase ? 'Exportable' : 'Waiting KB',
-                      'Export validation',
-                      'generate-pdf'
+                      adapterNotEnabled,
+                      'Exporter config required',
+                      'Not generated'
                     ],
                     [
                       'PPTX',
-                      runtime.hasKnowledgeBase ? 'Exportable' : 'Waiting KB',
-                      'Export validation',
-                      'generate-pptx'
+                      adapterNotEnabled,
+                      'Exporter config required',
+                      'Not generated'
                     ],
                   ],
           ),
@@ -7235,7 +7184,9 @@ class _DocumentExportPreviewViewState
               ChoiceChip(
                 label: Text(item.toUpperCase()),
                 selected: selectedExportFormat == item,
-                onSelected: (_) => setState(() => selectedExportFormat = item),
+                onSelected: item == 'md'
+                    ? (_) => setState(() => selectedExportFormat = item)
+                    : null,
               ),
           ]),
           const SizedBox(height: _DesktopGrid.gutter),
@@ -7246,9 +7197,8 @@ class _DocumentExportPreviewViewState
             icon: Icons.file_download_outlined,
             onPressed: runtime.running ||
                     rc6 == null ||
-                    (selectedExportFormat == 'md'
-                        ? !runtime.hasMarkdown
-                        : !runtime.hasKnowledgeBase)
+                    selectedExportFormat != 'md' ||
+                    !runtime.hasMarkdown
                 ? null
                 : () {
                     setState(() => exportPreviewReady = true);
@@ -7387,6 +7337,13 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
+    final hasKbName = _kbNameController.text.trim().isNotEmpty;
+    final localStorageReady = storageTarget == 'local';
+    final buildReady =
+        runtime.hasImportedFile && hasKbName && localStorageReady;
+    final artifactsReady = runtime.hasKnowledgeBase &&
+        runtime.chunksPath.isNotEmpty &&
+        runtime.qualityReportPath.isNotEmpty;
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 900;
       final builder = _FillProductPanel(
@@ -7410,7 +7367,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                               : '${runtime.sourceCount} imported files')
                           : (zh ? '请先导入文件' : 'Import files first'),
                       Icons.library_books_outlined,
-                      sourceSelected,
+                      runtime.hasImportedFile && sourceSelected,
                       runtime.hasImportedFile
                           ? () => setState(() {
                                 sourceSelected = true;
@@ -7424,7 +7381,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                           ? (zh ? '待命名' : 'Needs name')
                           : _kbNameController.text.trim(),
                       Icons.drive_file_rename_outline,
-                      _kbNameController.text.trim().isNotEmpty,
+                      hasKbName,
                       () => setState(() => buildStep = 2),
                     ),
                     _KnowledgeBuildStep(
@@ -7449,7 +7406,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                       zh ? '5. 选择存储' : '5. Storage',
                       _knowledgeStorageLabel(storageTarget, zh),
                       Icons.storage_outlined,
-                      true,
+                      localStorageReady,
                       () => setState(() => buildStep = 5),
                     ),
                     _KnowledgeBuildStep(
@@ -7457,11 +7414,11 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                       runtime.hasKnowledgeBase
                           ? (zh ? '已构建' : 'Built')
                           : (zh
-                              ? '生成 chunks / manifest'
-                              : 'Write chunks / manifest'),
+                              ? '点击后生成 chunks / manifest'
+                              : 'Click to write chunks / manifest'),
                       Icons.build_outlined,
                       runtime.hasKnowledgeBase,
-                      runtime.running || rc6 == null || !runtime.hasImportedFile
+                      runtime.running || rc6 == null || !buildReady
                           ? null
                           : () {
                               setState(() {
@@ -7473,12 +7430,12 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                     ),
                     _KnowledgeBuildStep(
                       zh ? '7. 查看产物' : '7. Artifacts',
-                      runtime.hasKnowledgeBase
+                      artifactsReady
                           ? _displayNameForPath(runtime.kbManifestPath)
                           : (zh ? '等待构建' : 'Waiting build'),
                       Icons.folder_open_outlined,
-                      runtime.hasKnowledgeBase,
-                      runtime.hasKnowledgeBase
+                      artifactsReady,
+                      artifactsReady
                           ? () => setState(() => qualityReportPrepared = true)
                           : null,
                     ),
@@ -7521,7 +7478,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                           [
                             'LLM 增强',
                             llmEnhance ? '启用，使用已配置 Provider' : '关闭，使用本地构建',
-                            llmEnhance ? '授权后执行' : '本地可用'
+                            llmEnhance ? '需要授权配置' : '本地可用'
                           ],
                           [
                             '存储路径',
@@ -7558,7 +7515,9 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                             llmEnhance
                                 ? 'Enabled with configured Provider'
                                 : 'Off, local build',
-                            llmEnhance ? 'Authorized run' : 'Local ready'
+                            llmEnhance
+                                ? 'Authorization config required'
+                                : 'Local ready'
                           ],
                           [
                             'Storage path',
@@ -7631,13 +7590,12 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
             _PrimaryProductAction(
               label: zh ? '开始构建知识库' : 'Build Knowledge Base',
               icon: Icons.build_outlined,
-              onPressed:
-                  runtime.running || rc6 == null || !runtime.hasImportedFile
-                      ? null
-                      : () {
-                          setState(() => sourceSelected = true);
-                          rc6.buildKnowledgeBase();
-                        },
+              onPressed: runtime.running || rc6 == null || !buildReady
+                  ? null
+                  : () {
+                      setState(() => sourceSelected = true);
+                      rc6.buildKnowledgeBase();
+                    },
             ),
             _DisplayAction(
               label: zh ? '删除旧知识库版本' : 'Delete old KB version',
@@ -8541,6 +8499,16 @@ class _RetrievalVerificationViewState
     final realResults = [...runtime.searchResults]..sort((a, b) =>
         (double.tryParse(b.score) ?? 0)
             .compareTo(double.tryParse(a.score) ?? 0));
+    final citedCount =
+        realResults.where((result) => result.citation.trim().isNotEmpty).length;
+    final faithfulness = realResults.isEmpty
+        ? 0
+        : ((citedCount / realResults.length) * 100).round();
+    final uniqueCitationCount = realResults
+        .map((result) => result.citation.trim())
+        .where((citation) => citation.isNotEmpty)
+        .toSet()
+        .length;
     final kbOptions = [
       _KbSelectionOption(
         'real_input_kb',
@@ -8704,26 +8672,29 @@ class _RetrievalVerificationViewState
               _MetricDatum(
                   label: zh ? '准确率' : 'Accuracy',
                   value: runtime.searchStatus == Rc6SearchStatus.success
-                      ? '${realResults.length}/${realResults.length}'
+                      ? '${realResults.length}/${runtime.chunkCount}'
                       : '-',
                   detail: zh ? '命中证据 / 返回证据' : 'matched / returned',
                   icon: Icons.verified_outlined),
               _MetricDatum(
                   label: zh ? '忠实度' : 'Faithfulness',
                   value: runtime.searchStatus == Rc6SearchStatus.success
-                      ? '100%'
+                      ? '$faithfulness%'
                       : '-',
                   detail: zh ? '有引用答案 / 全部答案' : 'cited / all',
                   icon: Icons.link_outlined),
               _MetricDatum(
                   label: zh ? '覆盖率' : 'Coverage',
-                  value: realResults.length.toString(),
-                  detail: zh ? '命中来源数' : 'source hits',
+                  value: uniqueCitationCount.toString(),
+                  detail: zh ? '命中引用来源数' : 'citation sources',
                   icon: Icons.pie_chart_outline),
               _MetricDatum(
                   label: zh ? '矛盾项' : 'Contradictions',
                   value: runtime.searchStatus == Rc6SearchStatus.success
-                      ? '0'
+                      ? correctionState.values
+                          .where((value) => value == 'conflict')
+                          .length
+                          .toString()
                       : '-',
                   detail: zh ? '人工可纠偏' : 'manual correction',
                   icon: Icons.warning_amber_outlined),
@@ -8748,13 +8719,12 @@ class _RetrievalVerificationViewState
                     },
               icon: Icons.play_arrow_outlined,
             ),
-            _DisabledAction(
-              label: zh
-                  ? '授权后执行外部事实验证'
-                  : 'Run external fact checking after authorization',
-              reason: zh
-                  ? '需要在设置中配置联网 Provider、Tool Adapter 和显式 opt-in。'
-                  : 'Requires network Provider, Tool Adapter, and explicit opt-in in Settings.',
+            _RuntimeFeedbackBanner(
+              title: zh ? '外部事实验证未启用' : 'External fact checking is not enabled',
+              detail: zh
+                  ? '需要在设置中配置联网 Provider、Tool Adapter 和显式 opt-in；当前检索只使用本地知识库证据。'
+                  : 'Requires network Provider, Tool Adapter, and explicit opt-in in Settings; current retrieval uses local KB evidence only.',
+              tone: _StatusTone.neutral,
               icon: Icons.public_off_outlined,
             ),
           ]),

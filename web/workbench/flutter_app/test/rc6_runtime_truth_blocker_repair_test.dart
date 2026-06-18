@@ -56,7 +56,8 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('rc8 retrieval keeps evidence, scoring, and authorization in one console',
+  testWidgets(
+      'rc8 retrieval keeps evidence, scoring, and authorization in one console',
       (tester) async {
     await pumpWorkbench(tester);
 
@@ -69,7 +70,7 @@ void main() {
     expect(find.text('所选知识库'), findsOneWidget);
     expect(find.text('证据片段'), findsOneWidget);
     expect(find.text('人工纠偏'), findsOneWidget);
-    expect(find.text('授权后执行外部事实验证'), findsOneWidget);
+    expect(find.text('外部事实验证未启用'), findsOneWidget);
     expect(find.text('证据结果'), findsNothing);
     expect(find.text('外部边界'), findsNothing);
     expect(tester.takeException(), isNull);
@@ -406,15 +407,13 @@ void main() {
     expect(controller.state.hasSkill, isFalse);
     expect(controller.state.hasAgent, isFalse);
     expect(
-        File(
-                '${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}reading_notes_export.md')
+        File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}reading_notes_export.md')
             .readAsStringSync(),
         contains('真实输入文件夹读书笔记'));
     expect(
-        File(
-                '${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}export_manifest.json')
+        File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}export_manifest.json')
             .readAsStringSync(),
-        contains('rc8_document_export.v1'));
+        contains('rc9_document_export.v1'));
   });
 
   test('rc6 owner input folder chain uses the fixed Owner input directory',
