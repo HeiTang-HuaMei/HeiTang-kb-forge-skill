@@ -1876,4 +1876,47 @@ void main() {
     expect(find.textContaining('chat export'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  test('prd artifact center deletion uses owned generated document scope',
+      () async {
+    final workspace = await createWorkspace();
+    final doc = Directory('${workspace.path}${Platform.pathSeparator}doc')
+      ..createSync(recursive: true);
+    final export = Directory('${workspace.path}${Platform.pathSeparator}export')
+      ..createSync(recursive: true);
+    File('${doc.path}${Platform.pathSeparator}generated.md')
+        .writeAsStringSync('# generated from product flow');
+    File('${doc.path}${Platform.pathSeparator}reading_notes.md')
+        .writeAsStringSync('# reading notes from product flow');
+    File('${export.path}${Platform.pathSeparator}reading_notes_export.md')
+        .writeAsStringSync('# exported reading notes');
+    File('${export.path}${Platform.pathSeparator}export_manifest.json')
+        .writeAsStringSync('{"schema_version":"test_export_manifest.v1"}');
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    expect(controller.state.hasMarkdown, isTrue);
+    expect(controller.state.hasExportedDocument, isTrue);
+
+    await controller.clearRecentTaskArtifacts('doc');
+
+    expect(
+        Directory('${workspace.path}${Platform.pathSeparator}doc').existsSync(),
+        isFalse);
+    expect(
+        Directory('${workspace.path}${Platform.pathSeparator}export')
+            .existsSync(),
+        isFalse);
+    expect(controller.state.hasMarkdown, isFalse);
+    expect(controller.state.hasExportedDocument, isFalse);
+  });
 }

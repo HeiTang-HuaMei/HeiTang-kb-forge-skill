@@ -4283,11 +4283,13 @@ class _PageTabs extends StatelessWidget {
     required this.tabs,
     required this.selectedIndex,
     required this.onSelected,
+    this.keyPrefix = 'page-tab',
   });
 
   final List<String> tabs;
   final int selectedIndex;
   final ValueChanged<int> onSelected;
+  final String keyPrefix;
 
   @override
   Widget build(BuildContext context) {
@@ -4299,7 +4301,7 @@ class _PageTabs extends StatelessWidget {
         children: [
           for (var index = 0; index < tabs.length; index++)
             _PageTabButton(
-              key: Key('page-tab-$index'),
+              key: Key('$keyPrefix-$index'),
               label: tabs[index],
               selected: selectedIndex == index,
               width: compact ? (constraints.maxWidth - 6) / 2 : null,
@@ -12488,12 +12490,33 @@ class _ArtifactCenterProductWorkflowState
 
   bool get _zh => widget.localeCode == 'zh-CN';
 
+  Future<void> _deleteSelectedArtifact(
+      Rc6RuntimeController? rc6, _ArtifactCenterItem item) async {
+    if (rc6 == null || rc6.state.running || item.path.trim().isEmpty) return;
+    final confirmed = await _confirmDestructiveAction(
+      context,
+      title: _zh ? '删除产物记录？' : 'Delete artifact record?',
+      body: _zh
+          ? '这会删除“${item.label}”所属业务阶段的真实产物记录；不会按任意文件路径删除工作区外内容。'
+          : 'This deletes the real artifacts for the business stage that owns "${item.label}"; it never deletes arbitrary paths outside the workspace.',
+    );
+    if (!confirmed) return;
+    await rc6.clearRecentTaskArtifacts(item.taskId);
+    if (!mounted) return;
+    setState(() => selectedIndex = 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     final artifacts = _artifactCenterItems(runtime, _zh);
     if (selectedIndex >= artifacts.length) selectedIndex = 0;
+    if (artifacts.isNotEmpty && artifacts[selectedIndex].path.trim().isEmpty) {
+      final firstGenerated =
+          artifacts.indexWhere((artifact) => artifact.path.trim().isNotEmpty);
+      if (firstGenerated >= 0) selectedIndex = firstGenerated;
+    }
     if (runtime.hasAgentDialogueExport &&
         _selectedInitialExportPath != runtime.agentDialogueExportPath) {
       final exportIndex = artifacts.indexWhere(
@@ -12584,6 +12607,7 @@ class _ArtifactCenterProductWorkflowState
                   '${artifact.shortLabel} ${artifact.path.trim().isEmpty ? "○" : "✓"}',
               ],
               selectedIndex: selectedIndex,
+              keyPrefix: 'artifact-center-tab',
               onSelected: (index) => setState(() => selectedIndex = index),
             ),
           ],
@@ -12656,6 +12680,18 @@ class _ArtifactCenterProductWorkflowState
                         )
                     : null,
               ),
+              _DisplayAction(
+                label: selected != null && selected.path.trim().isNotEmpty
+                    ? (_zh ? '删除产物记录' : 'Delete artifact record')
+                    : (_zh ? '等待可删除产物' : 'Waiting for deletable artifact'),
+                icon: Icons.delete_outline,
+                onPressed: selected != null &&
+                        selected.path.trim().isNotEmpty &&
+                        rc6 != null &&
+                        !runtime.running
+                    ? () => _deleteSelectedArtifact(rc6, selected)
+                    : null,
+              ),
             ]),
           ],
         );
@@ -12682,6 +12718,7 @@ class _ArtifactCenterItem {
     required this.label,
     required this.shortLabel,
     required this.path,
+    required this.taskId,
     this.previewable = true,
   });
 
@@ -12689,72 +12726,80 @@ class _ArtifactCenterItem {
   final String label;
   final String shortLabel;
   final String path;
+  final String taskId;
   final bool previewable;
 }
 
 List<_ArtifactCenterItem> _artifactCenterItems(
     Rc6RuntimeState runtime, bool zh) {
   _ArtifactCenterItem item(String zhCategory, String enCategory, String zhLabel,
-          String enLabel, String shortLabel, String path,
+          String enLabel, String shortLabel, String path, String taskId,
           {bool previewable = true}) =>
       _ArtifactCenterItem(
         category: zh ? zhCategory : enCategory,
         label: zh ? zhLabel : enLabel,
         shortLabel: shortLabel,
         path: path,
+        taskId: taskId,
         previewable: previewable,
       );
   return [
     item('文档库', 'Document Library', '导入清单 source_manifest.json',
-        'Source manifest', 'manifest', runtime.sourceManifestPath),
+        'Source manifest', 'manifest', runtime.sourceManifestPath, 'import'),
     item('文档库', 'Document Library', '解析报告 parse_report.json', 'Parse report',
-        'parse', runtime.parseReportPath),
+        'parse', runtime.parseReportPath, 'parse'),
     item('知识库', 'Knowledge Base', '知识库 manifest.json', 'KB manifest', 'kb',
-        runtime.kbManifestPath),
+        runtime.kbManifestPath, 'kb'),
     item('知识库', 'Knowledge Base', 'chunks.jsonl', 'Chunks', 'chunks',
-        runtime.chunksPath),
+        runtime.chunksPath, 'kb'),
     item('知识库', 'Knowledge Base', 'cards.jsonl', 'Cards', 'cards',
-        runtime.cardsPath),
+        runtime.cardsPath, 'kb'),
     item('知识库', 'Knowledge Base', 'qa_pairs.jsonl', 'QA pairs', 'qa',
-        runtime.qaPairsPath),
+        runtime.qaPairsPath, 'kb'),
     item('知识库', 'Knowledge Base', 'source_map.json', 'Source map', 'source map',
-        runtime.sourceMapPath),
+        runtime.sourceMapPath, 'kb'),
     item('知识库', 'Knowledge Base', 'index_metadata.json', 'Index metadata',
-        'index', runtime.indexMetadataPath),
+        'index', runtime.indexMetadataPath, 'kb'),
     item('知识库', 'Knowledge Base', 'quality_report.json', 'Quality report',
-        'quality', runtime.qualityReportPath),
+        'quality', runtime.qualityReportPath, 'kb'),
     item('知识库', 'Knowledge Base', 'build.log', 'Build log', 'build log',
-        runtime.buildLogPath),
+        runtime.buildLogPath, 'kb'),
     item('知识库', 'Knowledge Base', 'error.log', 'Error log', 'error log',
-        runtime.errorLogPath),
+        runtime.errorLogPath, 'kb'),
     item('检索验证', 'Retrieval', '检索结果', 'Retrieval result', 'retrieval',
-        runtime.queryResultPath),
+        runtime.queryResultPath, 'search'),
     item('文档生成', 'Document Generation', 'Markdown 草稿', 'Markdown draft', 'md',
-        runtime.generatedMarkdownPath),
+        runtime.generatedMarkdownPath, 'doc'),
     item('文档生成', 'Document Generation', '读书笔记', 'Reading notes', 'notes',
-        runtime.readingNotesPath),
+        runtime.readingNotesPath, 'doc'),
     item('文档生成', 'Document Generation', '导出文档', 'Exported document', 'export',
-        runtime.exportedDocumentPath),
+        runtime.exportedDocumentPath, 'doc'),
     item('文档生成', 'Document Generation', '导出清单', 'Export manifest',
-        'export manifest', runtime.exportManifestPath),
+        'export manifest', runtime.exportManifestPath, 'doc'),
     item('Skill 工厂', 'Skill Factory', 'Skill 包', 'Skill package', 'skill',
-        runtime.skillPath,
+        runtime.skillPath, 'skill',
         previewable: false),
     item('Agent 工作台', 'Agent Workbench', 'Agent 包', 'Agent package', 'agent',
-        runtime.agentPath,
+        runtime.agentPath, 'agent',
         previewable: false),
     item('Agent 工作台', 'Agent Workbench', 'Agent 对话记录', 'Agent dialogue', 'chat',
-        runtime.agentDialoguePath),
+        runtime.agentDialoguePath, 'agent'),
     item('Agent 工作台', 'Agent Workbench', 'Agent 会话历史', 'Agent chat history',
-        'history', runtime.agentDialogueHistoryPath),
+        'history', runtime.agentDialogueHistoryPath, 'agent'),
     item('Agent 工作台', 'Agent Workbench', 'Agent 对话导出', 'Agent dialogue export',
-        'chat export', runtime.agentDialogueExportPath),
-    item('Agent 工作台', 'Agent Workbench', '多 Agent 讨论纪要',
-        'Multi-agent discussion', 'a2a', runtime.multiAgentDiscussionPath),
+        'chat export', runtime.agentDialogueExportPath, 'agent'),
+    item(
+        'Agent 工作台',
+        'Agent Workbench',
+        '多 Agent 讨论纪要',
+        'Multi-agent discussion',
+        'a2a',
+        runtime.multiAgentDiscussionPath,
+        'agent'),
     item('治理', 'Governance', 'PRD P0 验证证据', 'PRD P0 evidence', 'evidence',
-        runtime.prdP0EvidencePath),
+        runtime.prdP0EvidencePath, 'doc'),
     item('治理', 'Governance', '知识库目录', 'Knowledge Base catalog', 'catalog',
-        runtime.knowledgeBaseCatalogPath),
+        runtime.knowledgeBaseCatalogPath, 'kb'),
   ];
 }
 
