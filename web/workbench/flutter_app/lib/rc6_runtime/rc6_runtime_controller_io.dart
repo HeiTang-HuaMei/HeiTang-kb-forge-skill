@@ -1668,8 +1668,17 @@ class Rc6RuntimeController extends ChangeNotifier {
       skillPath: '',
       agentPath: '',
       agentDialoguePath: '',
+      agentDialogueManifestPath: '',
       agentDialogueHistoryPath: '',
       agentDialogueExportPath: '',
+      agentDialogueTurnCount: 0,
+      agentDialogueModelConfigId: '',
+      agentDialogueUsedKbIds: const [],
+      agentDialogueUsedSkillIds: const [],
+      agentDialogueOutputFormat: '',
+      agentDialogueEvidenceCount: 0,
+      agentDialogueMemoryWriteStatus: '',
+      agentDialogueErrorMessage: '',
       multiAgentDiscussionPath: '',
       prdP0EvidencePath: '',
       skillVersionCount: 0,
@@ -1699,8 +1708,17 @@ class Rc6RuntimeController extends ChangeNotifier {
                       : Rc6RuntimePhase.imported,
       agentPath: '',
       agentDialoguePath: '',
+      agentDialogueManifestPath: '',
       agentDialogueHistoryPath: '',
       agentDialogueExportPath: '',
+      agentDialogueTurnCount: 0,
+      agentDialogueModelConfigId: '',
+      agentDialogueUsedKbIds: const [],
+      agentDialogueUsedSkillIds: const [],
+      agentDialogueOutputFormat: '',
+      agentDialogueEvidenceCount: 0,
+      agentDialogueMemoryWriteStatus: '',
+      agentDialogueErrorMessage: '',
       multiAgentDiscussionPath: '',
       prdP0EvidencePath: '',
       lastMessage: 'Agent、对话和讨论产物已删除。',
@@ -2199,8 +2217,16 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     state = state.copyWith(
       agentDialoguePath: dialoguePath,
+      agentDialogueManifestPath: manifestPath,
       agentDialogueHistoryPath: historyPath,
       agentDialogueTurnCount: turns.length,
+      agentDialogueModelConfigId: modelConfigId,
+      agentDialogueUsedKbIds: kbIds,
+      agentDialogueUsedSkillIds: skillIds,
+      agentDialogueOutputFormat: outputFormat,
+      agentDialogueEvidenceCount: evidence.length,
+      agentDialogueMemoryWriteStatus: 'local_session_written',
+      agentDialogueErrorMessage: '',
       lastMessage: 'Agent 最小对话已追加到会话历史。',
       lastError: '',
     );
@@ -2230,6 +2256,12 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(exportDir.path, 'agent_dialogue_export_manifest.json');
     final historyLines = await history.readAsLines(encoding: utf8);
     final dialogueText = await dialogue.readAsString(encoding: utf8);
+    final dialogueManifest = await _readJsonObject(_joinNested(
+        workspace.path, 'agent/dialogue/agent_dialogue_manifest.json'));
+    final usedKbIds = _listOfStrings(dialogueManifest['used_kb_ids']);
+    final usedSkillIds = _listOfStrings(dialogueManifest['used_skill_ids']);
+    final modelConfigId = _stringValue(dialogueManifest['model_config_id'],
+        'local-default-or-configured-provider');
     await File(outputPath).writeAsString(
       [
         '# Agent 对话导出',
@@ -2238,8 +2270,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         '- 来源对话：${dialogue.path}',
         '- 会话历史：${history.path}',
         '- 导出轮数：${historyLines.length}',
-        '- 绑定知识库：K1',
-        '- 绑定 Skill：S1 / reading_summary_skill',
+        '- 绑定知识库：${usedKbIds.isEmpty ? 'K1' : usedKbIds.join(' / ')}',
+        '- 绑定 Skill：${usedSkillIds.isEmpty ? 'S1 / reading_summary_skill' : usedSkillIds.join(' / ')}',
+        '- 模型配置：$modelConfigId',
         '- 高风险能力：未开放 Computer Use / arbitrary shell',
         '',
         dialogueText,
@@ -2255,9 +2288,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         'source_history': history.path,
         'output': outputPath,
         'turn_count': historyLines.length,
-        'used_kb_ids': ['K1'],
-        'used_skill_ids': ['S1', 'reading_summary_skill'],
-        'model_config_id': 'local-default-or-configured-provider',
+        'used_kb_ids': usedKbIds.isEmpty ? ['K1'] : usedKbIds,
+        'used_skill_ids': usedSkillIds.isEmpty
+            ? ['S1', 'reading_summary_skill']
+            : usedSkillIds,
+        'model_config_id': modelConfigId,
         'audit_included': true,
         'secret_plaintext_written': false,
       }),
@@ -2554,8 +2589,17 @@ class Rc6RuntimeController extends ChangeNotifier {
       skillPath: '',
       agentPath: '',
       agentDialoguePath: '',
+      agentDialogueManifestPath: '',
       agentDialogueHistoryPath: '',
       agentDialogueExportPath: '',
+      agentDialogueTurnCount: 0,
+      agentDialogueModelConfigId: '',
+      agentDialogueUsedKbIds: const [],
+      agentDialogueUsedSkillIds: const [],
+      agentDialogueOutputFormat: '',
+      agentDialogueEvidenceCount: 0,
+      agentDialogueMemoryWriteStatus: '',
+      agentDialogueErrorMessage: '',
       readingNotesPath: '',
       editedDocumentPath: '',
       editManifestPath: '',
@@ -2642,6 +2686,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'agent_manifest.json');
     final agentDialoguePath =
         _joinNested(workspace.path, 'agent/dialogue/agent_dialogue.md');
+    final agentDialogueManifestPath = _joinNested(
+        workspace.path, 'agent/dialogue/agent_dialogue_manifest.json');
     final agentDialogueHistoryPath =
         _joinNested(workspace.path, 'agent/dialogue/chat_history.jsonl');
     final agentDialogueExportPath = _joinNested(
@@ -2689,6 +2735,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         await _readJsonObject(skillVersionManifestPath);
     final skillVersionCount =
         _listOfMaps(skillVersionManifest['versions']).length;
+    final agentDialogueManifest =
+        await _readJsonObject(agentDialogueManifestPath);
 
     var phase = state.phase;
     final hasSkillArtifact = await File(skillPath).exists() ||
@@ -2750,6 +2798,9 @@ class Rc6RuntimeController extends ChangeNotifier {
           await File(agentPath).exists() ? _join(workspace.path, 'agent') : '',
       agentDialoguePath:
           await File(agentDialoguePath).exists() ? agentDialoguePath : '',
+      agentDialogueManifestPath: await File(agentDialogueManifestPath).exists()
+          ? agentDialogueManifestPath
+          : '',
       agentDialogueHistoryPath: await File(agentDialogueHistoryPath).exists()
           ? agentDialogueHistoryPath
           : '',
@@ -2757,6 +2808,20 @@ class Rc6RuntimeController extends ChangeNotifier {
           ? agentDialogueExportPath
           : '',
       agentDialogueTurnCount: dialogueTurnCount,
+      agentDialogueModelConfigId:
+          _stringValue(agentDialogueManifest['model_config_id'], ''),
+      agentDialogueUsedKbIds:
+          _listOfStrings(agentDialogueManifest['used_kb_ids']),
+      agentDialogueUsedSkillIds:
+          _listOfStrings(agentDialogueManifest['used_skill_ids']),
+      agentDialogueOutputFormat:
+          _stringValue(agentDialogueManifest['output_format'], ''),
+      agentDialogueEvidenceCount:
+          _asInt(agentDialogueManifest['evidence_count']) ?? 0,
+      agentDialogueMemoryWriteStatus:
+          _stringValue(agentDialogueManifest['memory_write_status'], ''),
+      agentDialogueErrorMessage:
+          _stringValue(agentDialogueManifest['error_message'], ''),
       multiAgentDiscussionPath:
           await File(multiAgentPath).exists() ? multiAgentPath : '',
       prdP0EvidencePath:
@@ -6498,9 +6563,17 @@ class Rc6RuntimeState {
     required this.skillPath,
     required this.agentPath,
     required this.agentDialoguePath,
+    required this.agentDialogueManifestPath,
     required this.agentDialogueHistoryPath,
     required this.agentDialogueExportPath,
     required this.agentDialogueTurnCount,
+    required this.agentDialogueModelConfigId,
+    required this.agentDialogueUsedKbIds,
+    required this.agentDialogueUsedSkillIds,
+    required this.agentDialogueOutputFormat,
+    required this.agentDialogueEvidenceCount,
+    required this.agentDialogueMemoryWriteStatus,
+    required this.agentDialogueErrorMessage,
     required this.multiAgentDiscussionPath,
     required this.prdP0EvidencePath,
     required this.knowledgeBaseCatalogPath,
@@ -6548,9 +6621,17 @@ class Rc6RuntimeState {
         skillPath: '',
         agentPath: '',
         agentDialoguePath: '',
+        agentDialogueManifestPath: '',
         agentDialogueHistoryPath: '',
         agentDialogueExportPath: '',
         agentDialogueTurnCount: 0,
+        agentDialogueModelConfigId: '',
+        agentDialogueUsedKbIds: [],
+        agentDialogueUsedSkillIds: [],
+        agentDialogueOutputFormat: '',
+        agentDialogueEvidenceCount: 0,
+        agentDialogueMemoryWriteStatus: '',
+        agentDialogueErrorMessage: '',
         multiAgentDiscussionPath: '',
         prdP0EvidencePath: '',
         knowledgeBaseCatalogPath: '',
@@ -6597,9 +6678,17 @@ class Rc6RuntimeState {
   final String skillPath;
   final String agentPath;
   final String agentDialoguePath;
+  final String agentDialogueManifestPath;
   final String agentDialogueHistoryPath;
   final String agentDialogueExportPath;
   final int agentDialogueTurnCount;
+  final String agentDialogueModelConfigId;
+  final List<String> agentDialogueUsedKbIds;
+  final List<String> agentDialogueUsedSkillIds;
+  final String agentDialogueOutputFormat;
+  final int agentDialogueEvidenceCount;
+  final String agentDialogueMemoryWriteStatus;
+  final String agentDialogueErrorMessage;
   final String multiAgentDiscussionPath;
   final String prdP0EvidencePath;
   final String knowledgeBaseCatalogPath;
@@ -6629,6 +6718,7 @@ class Rc6RuntimeState {
   bool get hasSkillVersions => skillVersionCount > 0;
   bool get hasAgent => agentPath.isNotEmpty;
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
+  bool get hasAgentDialogueManifest => agentDialogueManifestPath.isNotEmpty;
   bool get hasAgentDialogueHistory => agentDialogueHistoryPath.isNotEmpty;
   bool get hasAgentDialogueExport => agentDialogueExportPath.isNotEmpty;
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
@@ -6664,9 +6754,17 @@ class Rc6RuntimeState {
     String? skillPath,
     String? agentPath,
     String? agentDialoguePath,
+    String? agentDialogueManifestPath,
     String? agentDialogueHistoryPath,
     String? agentDialogueExportPath,
     int? agentDialogueTurnCount,
+    String? agentDialogueModelConfigId,
+    List<String>? agentDialogueUsedKbIds,
+    List<String>? agentDialogueUsedSkillIds,
+    String? agentDialogueOutputFormat,
+    int? agentDialogueEvidenceCount,
+    String? agentDialogueMemoryWriteStatus,
+    String? agentDialogueErrorMessage,
     String? multiAgentDiscussionPath,
     String? prdP0EvidencePath,
     String? knowledgeBaseCatalogPath,
@@ -6715,12 +6813,28 @@ class Rc6RuntimeState {
       skillPath: skillPath ?? this.skillPath,
       agentPath: agentPath ?? this.agentPath,
       agentDialoguePath: agentDialoguePath ?? this.agentDialoguePath,
+      agentDialogueManifestPath:
+          agentDialogueManifestPath ?? this.agentDialogueManifestPath,
       agentDialogueHistoryPath:
           agentDialogueHistoryPath ?? this.agentDialogueHistoryPath,
       agentDialogueExportPath:
           agentDialogueExportPath ?? this.agentDialogueExportPath,
       agentDialogueTurnCount:
           agentDialogueTurnCount ?? this.agentDialogueTurnCount,
+      agentDialogueModelConfigId:
+          agentDialogueModelConfigId ?? this.agentDialogueModelConfigId,
+      agentDialogueUsedKbIds:
+          agentDialogueUsedKbIds ?? this.agentDialogueUsedKbIds,
+      agentDialogueUsedSkillIds:
+          agentDialogueUsedSkillIds ?? this.agentDialogueUsedSkillIds,
+      agentDialogueOutputFormat:
+          agentDialogueOutputFormat ?? this.agentDialogueOutputFormat,
+      agentDialogueEvidenceCount:
+          agentDialogueEvidenceCount ?? this.agentDialogueEvidenceCount,
+      agentDialogueMemoryWriteStatus:
+          agentDialogueMemoryWriteStatus ?? this.agentDialogueMemoryWriteStatus,
+      agentDialogueErrorMessage:
+          agentDialogueErrorMessage ?? this.agentDialogueErrorMessage,
       multiAgentDiscussionPath:
           multiAgentDiscussionPath ?? this.multiAgentDiscussionPath,
       prdP0EvidencePath: prdP0EvidencePath ?? this.prdP0EvidencePath,

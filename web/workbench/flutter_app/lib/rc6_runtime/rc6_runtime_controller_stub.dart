@@ -383,9 +383,17 @@ class Rc6RuntimeState {
     required this.skillPath,
     required this.agentPath,
     required this.agentDialoguePath,
+    required this.agentDialogueManifestPath,
     required this.agentDialogueHistoryPath,
     required this.agentDialogueExportPath,
     required this.agentDialogueTurnCount,
+    required this.agentDialogueModelConfigId,
+    required this.agentDialogueUsedKbIds,
+    required this.agentDialogueUsedSkillIds,
+    required this.agentDialogueOutputFormat,
+    required this.agentDialogueEvidenceCount,
+    required this.agentDialogueMemoryWriteStatus,
+    required this.agentDialogueErrorMessage,
     required this.multiAgentDiscussionPath,
     required this.prdP0EvidencePath,
     required this.knowledgeBaseCatalogPath,
@@ -433,9 +441,17 @@ class Rc6RuntimeState {
         skillPath: '',
         agentPath: '',
         agentDialoguePath: '',
+        agentDialogueManifestPath: '',
         agentDialogueHistoryPath: '',
         agentDialogueExportPath: '',
         agentDialogueTurnCount: 0,
+        agentDialogueModelConfigId: '',
+        agentDialogueUsedKbIds: [],
+        agentDialogueUsedSkillIds: [],
+        agentDialogueOutputFormat: '',
+        agentDialogueEvidenceCount: 0,
+        agentDialogueMemoryWriteStatus: '',
+        agentDialogueErrorMessage: '',
         multiAgentDiscussionPath: '',
         prdP0EvidencePath: '',
         knowledgeBaseCatalogPath: '',
@@ -482,9 +498,17 @@ class Rc6RuntimeState {
   final String skillPath;
   final String agentPath;
   final String agentDialoguePath;
+  final String agentDialogueManifestPath;
   final String agentDialogueHistoryPath;
   final String agentDialogueExportPath;
   final int agentDialogueTurnCount;
+  final String agentDialogueModelConfigId;
+  final List<String> agentDialogueUsedKbIds;
+  final List<String> agentDialogueUsedSkillIds;
+  final String agentDialogueOutputFormat;
+  final int agentDialogueEvidenceCount;
+  final String agentDialogueMemoryWriteStatus;
+  final String agentDialogueErrorMessage;
   final String multiAgentDiscussionPath;
   final String prdP0EvidencePath;
   final String knowledgeBaseCatalogPath;
@@ -514,6 +538,7 @@ class Rc6RuntimeState {
   bool get hasSkillVersions => skillVersionCount > 0;
   bool get hasAgent => agentPath.isNotEmpty;
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
+  bool get hasAgentDialogueManifest => agentDialogueManifestPath.isNotEmpty;
   bool get hasAgentDialogueHistory => agentDialogueHistoryPath.isNotEmpty;
   bool get hasAgentDialogueExport => agentDialogueExportPath.isNotEmpty;
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
@@ -549,9 +574,17 @@ class Rc6RuntimeState {
     String? skillPath,
     String? agentPath,
     String? agentDialoguePath,
+    String? agentDialogueManifestPath,
     String? agentDialogueHistoryPath,
     String? agentDialogueExportPath,
     int? agentDialogueTurnCount,
+    String? agentDialogueModelConfigId,
+    List<String>? agentDialogueUsedKbIds,
+    List<String>? agentDialogueUsedSkillIds,
+    String? agentDialogueOutputFormat,
+    int? agentDialogueEvidenceCount,
+    String? agentDialogueMemoryWriteStatus,
+    String? agentDialogueErrorMessage,
     String? multiAgentDiscussionPath,
     String? prdP0EvidencePath,
     String? knowledgeBaseCatalogPath,
@@ -600,12 +633,28 @@ class Rc6RuntimeState {
       skillPath: skillPath ?? this.skillPath,
       agentPath: agentPath ?? this.agentPath,
       agentDialoguePath: agentDialoguePath ?? this.agentDialoguePath,
+      agentDialogueManifestPath:
+          agentDialogueManifestPath ?? this.agentDialogueManifestPath,
       agentDialogueHistoryPath:
           agentDialogueHistoryPath ?? this.agentDialogueHistoryPath,
       agentDialogueExportPath:
           agentDialogueExportPath ?? this.agentDialogueExportPath,
       agentDialogueTurnCount:
           agentDialogueTurnCount ?? this.agentDialogueTurnCount,
+      agentDialogueModelConfigId:
+          agentDialogueModelConfigId ?? this.agentDialogueModelConfigId,
+      agentDialogueUsedKbIds:
+          agentDialogueUsedKbIds ?? this.agentDialogueUsedKbIds,
+      agentDialogueUsedSkillIds:
+          agentDialogueUsedSkillIds ?? this.agentDialogueUsedSkillIds,
+      agentDialogueOutputFormat:
+          agentDialogueOutputFormat ?? this.agentDialogueOutputFormat,
+      agentDialogueEvidenceCount:
+          agentDialogueEvidenceCount ?? this.agentDialogueEvidenceCount,
+      agentDialogueMemoryWriteStatus:
+          agentDialogueMemoryWriteStatus ?? this.agentDialogueMemoryWriteStatus,
+      agentDialogueErrorMessage:
+          agentDialogueErrorMessage ?? this.agentDialogueErrorMessage,
       multiAgentDiscussionPath:
           multiAgentDiscussionPath ?? this.multiAgentDiscussionPath,
       prdP0EvidencePath: prdP0EvidencePath ?? this.prdP0EvidencePath,

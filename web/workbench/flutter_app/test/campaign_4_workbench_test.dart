@@ -443,7 +443,13 @@ void main() {
     await tester.tap(chatTab, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-minimal-chat')), findsOneWidget);
-    expect(find.text('回复说明'), findsOneWidget);
+    expect(find.text('审计清单'), findsOneWidget);
+    expect(find.text('模型配置'), findsOneWidget);
+    expect(find.text('绑定知识库'), findsOneWidget);
+    expect(find.text('绑定 Skill'), findsOneWidget);
+    expect(find.text('引用证据'), findsOneWidget);
+    expect(find.text('记忆写入'), findsOneWidget);
+    expect(find.text('错误状态'), findsOneWidget);
     expect(find.text('等待对话产物'), findsOneWidget);
     expect(find.text('等待会话历史'), findsOneWidget);
     expect(find.text('等待可预览对话'), findsOneWidget);

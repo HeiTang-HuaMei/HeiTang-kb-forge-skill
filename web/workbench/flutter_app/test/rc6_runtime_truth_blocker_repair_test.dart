@@ -1047,8 +1047,18 @@ void main() {
     await controller.runAgentDialogue(prompt: '总结真实输入主题');
     await controller.runAgentDialogue(prompt: '继续追问行动建议');
     expect(controller.state.hasAgentDialogue, isTrue);
+    expect(controller.state.hasAgentDialogueManifest, isTrue);
     expect(controller.state.hasAgentDialogueHistory, isTrue);
     expect(controller.state.agentDialogueTurnCount, baseTurnCount + 2);
+    expect(controller.state.agentDialogueModelConfigId,
+        'local-default-or-configured-provider');
+    expect(controller.state.agentDialogueUsedKbIds, contains('K1'));
+    expect(controller.state.agentDialogueUsedSkillIds, contains('S1'));
+    expect(controller.state.agentDialogueOutputFormat, 'markdown');
+    expect(controller.state.agentDialogueEvidenceCount, greaterThan(0));
+    expect(controller.state.agentDialogueMemoryWriteStatus,
+        'local_session_written');
+    expect(controller.state.agentDialogueErrorMessage, isEmpty);
     expect(
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}agent_dialogue.md')
             .readAsStringSync(),
@@ -1099,10 +1109,14 @@ void main() {
     await reloadedController.initialize();
     expectMainKnowledgeArtifacts(workspace, reloadedController.state);
     expect(reloadedController.state.hasAgentDialogueHistory, isTrue);
+    expect(reloadedController.state.hasAgentDialogueManifest, isTrue);
     expect(reloadedController.state.hasAgentDialogueExport, isTrue);
     expect(reloadedController.state.agentDialogueExportPath,
         endsWith('agent_dialogue_export.md'));
     expect(reloadedController.state.agentDialogueTurnCount, baseTurnCount + 2);
+    expect(reloadedController.state.agentDialogueUsedKbIds, contains('K1'));
+    expect(reloadedController.state.agentDialogueUsedSkillIds, contains('S1'));
+    expect(reloadedController.state.agentDialogueEvidenceCount, greaterThan(0));
     expect(
         File('${workspace.path}${Platform.pathSeparator}doc${Platform.pathSeparator}reading_notes.md')
             .readAsStringSync(),
@@ -1697,6 +1711,16 @@ void main() {
           contains('"output_format": "json"'),
         ));
     await controller.runAgentDialogue(prompt: '用产品分析 Agent 总结证据');
+    expect(controller.state.hasAgentDialogueManifest, isTrue);
+    expect(controller.state.agentDialogueModelConfigId,
+        'local-default-or-configured-provider');
+    expect(controller.state.agentDialogueUsedKbIds, contains('K1'));
+    expect(controller.state.agentDialogueUsedSkillIds, contains('S1'));
+    expect(controller.state.agentDialogueOutputFormat, 'json');
+    expect(controller.state.agentDialogueEvidenceCount, 0);
+    expect(controller.state.agentDialogueMemoryWriteStatus,
+        'local_session_written');
+    expect(controller.state.agentDialogueErrorMessage, isEmpty);
     final dialogueManifest = File(
             '$agentRoot${Platform.pathSeparator}dialogue${Platform.pathSeparator}agent_dialogue_manifest.json')
         .readAsStringSync();

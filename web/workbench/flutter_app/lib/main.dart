@@ -11728,6 +11728,26 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 900;
+      final kbIds = runtime.agentDialogueUsedKbIds.isEmpty
+          ? (zh ? '运行后读取' : 'Read after run')
+          : runtime.agentDialogueUsedKbIds.join(' / ');
+      final skillIds = runtime.agentDialogueUsedSkillIds.isEmpty
+          ? (zh ? '运行后读取' : 'Read after run')
+          : runtime.agentDialogueUsedSkillIds.join(' / ');
+      final modelConfig = runtime.agentDialogueModelConfigId.isEmpty
+          ? (zh ? '运行后读取' : 'Read after run')
+          : runtime.agentDialogueModelConfigId;
+      final outputFormat = runtime.agentDialogueOutputFormat.isEmpty
+          ? (zh ? '运行后读取' : 'Read after run')
+          : runtime.agentDialogueOutputFormat.toUpperCase();
+      final memoryStatus = runtime.agentDialogueMemoryWriteStatus.isEmpty
+          ? (zh ? '运行后写入' : 'Written after run')
+          : runtime.agentDialogueMemoryWriteStatus;
+      final errorStatus = runtime.agentDialogueErrorMessage.isEmpty
+          ? (runtime.hasAgentDialogue
+              ? (zh ? '无错误' : 'No error')
+              : (zh ? '未运行' : 'Not run'))
+          : runtime.agentDialogueErrorMessage;
       final chat = _ProductPanel(
         keyName: 'agent-minimal-chat',
         icon: Icons.chat_bubble_outline,
@@ -11781,12 +11801,43 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
           ),
           const SizedBox(height: 8),
           _FieldRow(
-            label: zh ? '回复说明' : 'Reply trace',
-            value: runtime.hasAgentDialogue
-                ? (zh
-                    ? '包含模型、知识库、Skill、引用和记忆写入状态'
-                    : 'Includes model, KB, Skill, citations, and memory write status')
-                : (zh ? '运行后写入对话产物' : 'Written after running chat'),
+            label: zh ? '审计清单' : 'Audit manifest',
+            value: runtime.hasAgentDialogueManifest
+                ? _displayNameForPath(runtime.agentDialogueManifestPath)
+                : (zh ? '运行后生成' : 'Generated after running chat'),
+          ),
+          const SizedBox(height: 8),
+          _ProductTable(
+            columns: zh ? ['追踪项', '真实值'] : ['Trace item', 'Real value'],
+            rows: zh
+                ? [
+                    ['模型配置', modelConfig],
+                    ['绑定知识库', kbIds],
+                    ['绑定 Skill', skillIds],
+                    ['输出格式', outputFormat],
+                    [
+                      '引用证据',
+                      runtime.hasAgentDialogue
+                          ? '${runtime.agentDialogueEvidenceCount} 条'
+                          : '运行后统计'
+                    ],
+                    ['记忆写入', memoryStatus],
+                    ['错误状态', errorStatus],
+                  ]
+                : [
+                    ['Model config', modelConfig],
+                    ['Bound KB', kbIds],
+                    ['Bound Skill', skillIds],
+                    ['Output format', outputFormat],
+                    [
+                      'Citations',
+                      runtime.hasAgentDialogue
+                          ? '${runtime.agentDialogueEvidenceCount}'
+                          : 'Counted after run'
+                    ],
+                    ['Memory write', memoryStatus],
+                    ['Error status', errorStatus],
+                  ],
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _EqualActionRow(children: [
@@ -11913,7 +11964,15 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                           ? _displayNameForPath(runtime.agentPath)
                           : 'Agent 工作台创建'
                     ],
-                    ['模型', '本地默认或已配置 Provider', '密钥仅从环境/设置读取并掩码显示'],
+                    ['模型', modelConfig, '密钥仅从环境/设置读取并掩码显示'],
+                    [
+                      '对话审计',
+                      runtime.hasAgentDialogueManifest ? '已写入' : '运行后写入',
+                      runtime.hasAgentDialogueManifest
+                          ? _displayNameForPath(
+                              runtime.agentDialogueManifestPath)
+                          : 'agent_dialogue_manifest.json'
+                    ],
                   ]
                 : [
                     [
@@ -11939,8 +11998,18 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                     ],
                     [
                       'Model',
-                      'Local default or configured Provider',
+                      modelConfig,
                       'Secrets are read from environment/settings and masked'
+                    ],
+                    [
+                      'Dialogue audit',
+                      runtime.hasAgentDialogueManifest
+                          ? 'Written'
+                          : 'Written after run',
+                      runtime.hasAgentDialogueManifest
+                          ? _displayNameForPath(
+                              runtime.agentDialogueManifestPath)
+                          : 'agent_dialogue_manifest.json'
                     ],
                   ],
           ),
