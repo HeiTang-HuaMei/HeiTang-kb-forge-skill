@@ -203,6 +203,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('retrieval-workflow')), findsOneWidget);
     expect(find.text('所选知识库'), findsOneWidget);
+    expect(find.text('知识库'), findsWidgets);
+    expect(find.text('引用来源'), findsOneWidget);
+    expect(find.text('证据选择'), findsWidgets);
     expect(find.text('证据片段'), findsOneWidget);
     expect(find.text('人工纠偏'), findsOneWidget);
     expect(find.text('外部事实验证未启用'), findsOneWidget);

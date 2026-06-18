@@ -9743,6 +9743,10 @@ class _RetrievalVerificationViewState
         .where((citation) => citation.isNotEmpty)
         .toSet()
         .length;
+    final selectedEvidenceCount =
+        runtime.searchStatus == Rc6SearchStatus.success
+            ? realResults.length
+            : 0;
     final kbOptions = runtime.knowledgeBases.isNotEmpty
         ? runtime.knowledgeBases
             .map((kb) => _KbSelectionOption(
@@ -9850,18 +9854,22 @@ class _RetrievalVerificationViewState
           const SizedBox(height: _DesktopGrid.gutter),
           _ProductTable(
             columns: zh
-                ? ['证据片段', '引用来源', '评分', '验证状态', '人工纠偏']
+                ? ['证据片段', '知识库', '引用来源', '评分', '证据选择', '人工纠偏']
                 : [
                     'Evidence snippet',
+                    'Knowledge Base',
                     'Citation',
                     'Score',
-                    'Validation',
+                    'Evidence',
                     'Correction'
                   ],
             rows: realResults.isEmpty
                 ? [
                     [
                       zh ? '等待真实检索结果' : 'Waiting for real result',
+                      selectedKbIds.isEmpty
+                          ? (zh ? '请先选择知识库' : 'Select a KB first')
+                          : selectedKbIds.join(', '),
                       runtime.hasKnowledgeBase
                           ? (zh ? '本地知识库' : 'Local KB')
                           : (zh ? '未构建' : 'Not built'),
@@ -9880,11 +9888,16 @@ class _RetrievalVerificationViewState
                         realResults[index].excerpt.isEmpty
                             ? realResults[index].title
                             : realResults[index].excerpt,
-                        _resultKbCitation(realResults[index]),
+                        realResults[index].kbName.isNotEmpty
+                            ? realResults[index].kbName
+                            : realResults[index].kbId,
+                        realResults[index].citation.isEmpty
+                            ? (zh ? '无引用' : 'No citation')
+                            : realResults[index].citation,
                         realResults[index].score.isEmpty
                             ? '-'
                             : realResults[index].score,
-                        zh ? '按相关性排序' : 'Sorted by relevance',
+                        zh ? '已选证据' : 'Selected evidence',
                         _correctionLabel(correctionState[index], zh),
                       ],
                   ],
@@ -10014,7 +10027,11 @@ class _RetrievalVerificationViewState
                 ? [
                     ['查询改写', retrievalPrepared ? '完成' : '等待', '保留原问题边界'],
                     ['检索规划', retrievalPrepared ? '混合检索' : '等待', '向量 + 关键词'],
-                    ['证据选择', retrievalPrepared ? '3 选 2' : '等待', '只引用本地证据'],
+                    [
+                      '证据选择',
+                      retrievalPrepared ? '$selectedEvidenceCount 条' : '等待',
+                      '只引用本地证据'
+                    ],
                     [
                       '交叉验证',
                       retrievalPrepared ? '1 条需复核' : '等待',
@@ -10034,7 +10051,9 @@ class _RetrievalVerificationViewState
                     ],
                     [
                       'Evidence selection',
-                      retrievalPrepared ? '3 of 2' : 'Waiting',
+                      retrievalPrepared
+                          ? '$selectedEvidenceCount selected'
+                          : 'Waiting',
                       'Local evidence only'
                     ],
                     [
@@ -10157,16 +10176,6 @@ String _retrievalStageDetail(String stage, bool zh) {
         ? '保留用户原意，展开同义词和文件名线索。'
         : 'Preserve intent while expanding synonyms and filename hints.',
   };
-}
-
-String _resultKbCitation(Rc6SearchResult result) {
-  final kbName = result.kbName.trim().isNotEmpty
-      ? result.kbName.trim()
-      : result.kbId.trim().isNotEmpty
-          ? result.kbId.trim()
-          : '当前知识库';
-  final citation = result.citation.trim();
-  return citation.isEmpty ? 'KB: $kbName' : 'KB: $kbName · $citation';
 }
 
 String _correctionLabel(String? value, bool zh) {
