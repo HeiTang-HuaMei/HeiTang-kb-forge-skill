@@ -1680,6 +1680,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       agentDialogueMemoryWriteStatus: '',
       agentDialogueErrorMessage: '',
       multiAgentDiscussionPath: '',
+      multiAgentDiscussionManifestPath: '',
+      a2aSessionManifestPath: '',
+      a2aWorkspaceReportPath: '',
+      a2aSessionId: '',
+      a2aTopic: '',
+      a2aParticipantAgentIds: const [],
+      a2aEvidenceCount: 0,
+      a2aStatus: '',
       prdP0EvidencePath: '',
       skillVersionCount: 0,
       lastMessage: 'Skill、Agent 和讨论产物已删除。',
@@ -1720,6 +1728,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       agentDialogueMemoryWriteStatus: '',
       agentDialogueErrorMessage: '',
       multiAgentDiscussionPath: '',
+      multiAgentDiscussionManifestPath: '',
+      a2aSessionManifestPath: '',
+      a2aWorkspaceReportPath: '',
+      a2aSessionId: '',
+      a2aTopic: '',
+      a2aParticipantAgentIds: const [],
+      a2aEvidenceCount: 0,
+      a2aStatus: '',
       prdP0EvidencePath: '',
       lastMessage: 'Agent、对话和讨论产物已删除。',
       lastError: '',
@@ -2604,6 +2620,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       editedDocumentPath: '',
       editManifestPath: '',
       multiAgentDiscussionPath: '',
+      multiAgentDiscussionManifestPath: '',
+      a2aSessionManifestPath: '',
+      a2aWorkspaceReportPath: '',
+      a2aSessionId: '',
+      a2aTopic: '',
+      a2aParticipantAgentIds: const [],
+      a2aEvidenceCount: 0,
+      a2aStatus: '',
       prdP0EvidencePath: '',
       cardsPath: '',
       qaPairsPath: '',
@@ -2694,6 +2718,12 @@ class Rc6RuntimeController extends ChangeNotifier {
         workspace.path, 'agent/dialogue_export/agent_dialogue_export.md');
     final multiAgentPath =
         _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md');
+    final multiAgentManifestPath = _join(
+        workspace.path, 'multi_agent', 'multi_agent_discussion_manifest.json');
+    final a2aSessionManifestPath = _joinNested(workspace.path,
+        'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json');
+    final a2aWorkspaceReportPath = _joinNested(workspace.path,
+        'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_collaboration_report.md');
     final prdP0EvidencePath =
         _join(workspace.path, 'prd_p0', 'prd_p0_e2e_evidence.json');
     final kbCatalogPath =
@@ -2737,6 +2767,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         _listOfMaps(skillVersionManifest['versions']).length;
     final agentDialogueManifest =
         await _readJsonObject(agentDialogueManifestPath);
+    final multiAgentManifest = await _readJsonObject(multiAgentManifestPath);
+    final a2aSessionManifest = await _readJsonObject(a2aSessionManifestPath);
 
     var phase = state.phase;
     final hasSkillArtifact = await File(skillPath).exists() ||
@@ -2824,6 +2856,27 @@ class Rc6RuntimeController extends ChangeNotifier {
           _stringValue(agentDialogueManifest['error_message'], ''),
       multiAgentDiscussionPath:
           await File(multiAgentPath).exists() ? multiAgentPath : '',
+      multiAgentDiscussionManifestPath:
+          await File(multiAgentManifestPath).exists()
+              ? multiAgentManifestPath
+              : '',
+      a2aSessionManifestPath: await File(a2aSessionManifestPath).exists()
+          ? a2aSessionManifestPath
+          : '',
+      a2aWorkspaceReportPath: await File(a2aWorkspaceReportPath).exists()
+          ? a2aWorkspaceReportPath
+          : '',
+      a2aSessionId: _stringValue(
+          a2aSessionManifest['a2a_session_id'] ??
+              a2aSessionManifest['session_id'],
+          ''),
+      a2aTopic: _stringValue(
+          a2aSessionManifest['topic'] ?? multiAgentManifest['topic'], ''),
+      a2aParticipantAgentIds:
+          _listOfStrings(a2aSessionManifest['participant_agent_ids']),
+      a2aEvidenceCount: _asInt(multiAgentManifest['evidence_count']) ?? 0,
+      a2aStatus: _stringValue(
+          a2aSessionManifest['status'] ?? multiAgentManifest['status'], ''),
       prdP0EvidencePath:
           await File(prdP0EvidencePath).exists() ? prdP0EvidencePath : '',
       knowledgeBaseCatalogPath:
@@ -6575,6 +6628,14 @@ class Rc6RuntimeState {
     required this.agentDialogueMemoryWriteStatus,
     required this.agentDialogueErrorMessage,
     required this.multiAgentDiscussionPath,
+    required this.multiAgentDiscussionManifestPath,
+    required this.a2aSessionManifestPath,
+    required this.a2aWorkspaceReportPath,
+    required this.a2aSessionId,
+    required this.a2aTopic,
+    required this.a2aParticipantAgentIds,
+    required this.a2aEvidenceCount,
+    required this.a2aStatus,
     required this.prdP0EvidencePath,
     required this.knowledgeBaseCatalogPath,
     required this.workbookManifestPath,
@@ -6633,6 +6694,14 @@ class Rc6RuntimeState {
         agentDialogueMemoryWriteStatus: '',
         agentDialogueErrorMessage: '',
         multiAgentDiscussionPath: '',
+        multiAgentDiscussionManifestPath: '',
+        a2aSessionManifestPath: '',
+        a2aWorkspaceReportPath: '',
+        a2aSessionId: '',
+        a2aTopic: '',
+        a2aParticipantAgentIds: [],
+        a2aEvidenceCount: 0,
+        a2aStatus: '',
         prdP0EvidencePath: '',
         knowledgeBaseCatalogPath: '',
         workbookManifestPath: '',
@@ -6690,6 +6759,14 @@ class Rc6RuntimeState {
   final String agentDialogueMemoryWriteStatus;
   final String agentDialogueErrorMessage;
   final String multiAgentDiscussionPath;
+  final String multiAgentDiscussionManifestPath;
+  final String a2aSessionManifestPath;
+  final String a2aWorkspaceReportPath;
+  final String a2aSessionId;
+  final String a2aTopic;
+  final List<String> a2aParticipantAgentIds;
+  final int a2aEvidenceCount;
+  final String a2aStatus;
   final String prdP0EvidencePath;
   final String knowledgeBaseCatalogPath;
   final String workbookManifestPath;
@@ -6722,6 +6799,9 @@ class Rc6RuntimeState {
   bool get hasAgentDialogueHistory => agentDialogueHistoryPath.isNotEmpty;
   bool get hasAgentDialogueExport => agentDialogueExportPath.isNotEmpty;
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
+  bool get hasMultiAgentDiscussionManifest =>
+      multiAgentDiscussionManifestPath.isNotEmpty;
+  bool get hasA2aSessionManifest => a2aSessionManifestPath.isNotEmpty;
   bool get hasPrdP0Evidence => prdP0EvidencePath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
   bool get hasWorkbookManifest => workbookManifestPath.isNotEmpty;
@@ -6766,6 +6846,14 @@ class Rc6RuntimeState {
     String? agentDialogueMemoryWriteStatus,
     String? agentDialogueErrorMessage,
     String? multiAgentDiscussionPath,
+    String? multiAgentDiscussionManifestPath,
+    String? a2aSessionManifestPath,
+    String? a2aWorkspaceReportPath,
+    String? a2aSessionId,
+    String? a2aTopic,
+    List<String>? a2aParticipantAgentIds,
+    int? a2aEvidenceCount,
+    String? a2aStatus,
     String? prdP0EvidencePath,
     String? knowledgeBaseCatalogPath,
     String? workbookManifestPath,
@@ -6837,6 +6925,18 @@ class Rc6RuntimeState {
           agentDialogueErrorMessage ?? this.agentDialogueErrorMessage,
       multiAgentDiscussionPath:
           multiAgentDiscussionPath ?? this.multiAgentDiscussionPath,
+      multiAgentDiscussionManifestPath: multiAgentDiscussionManifestPath ??
+          this.multiAgentDiscussionManifestPath,
+      a2aSessionManifestPath:
+          a2aSessionManifestPath ?? this.a2aSessionManifestPath,
+      a2aWorkspaceReportPath:
+          a2aWorkspaceReportPath ?? this.a2aWorkspaceReportPath,
+      a2aSessionId: a2aSessionId ?? this.a2aSessionId,
+      a2aTopic: a2aTopic ?? this.a2aTopic,
+      a2aParticipantAgentIds:
+          a2aParticipantAgentIds ?? this.a2aParticipantAgentIds,
+      a2aEvidenceCount: a2aEvidenceCount ?? this.a2aEvidenceCount,
+      a2aStatus: a2aStatus ?? this.a2aStatus,
       prdP0EvidencePath: prdP0EvidencePath ?? this.prdP0EvidencePath,
       knowledgeBaseCatalogPath:
           knowledgeBaseCatalogPath ?? this.knowledgeBaseCatalogPath,

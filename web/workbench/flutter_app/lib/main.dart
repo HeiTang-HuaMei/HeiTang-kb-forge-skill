@@ -11607,6 +11607,20 @@ class _AgentDiscussionProductView extends StatelessWidget {
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
+    final sessionId = runtime.a2aSessionId.isEmpty
+        ? (zh ? '尚未启动' : 'Not started')
+        : runtime.a2aSessionId;
+    final topic = runtime.a2aTopic.isEmpty
+        ? (zh ? '启动后读取协作议题' : 'Topic read after start')
+        : runtime.a2aTopic;
+    final participants = runtime.a2aParticipantAgentIds.isEmpty
+        ? (zh ? '启动后读取' : 'Read after start')
+        : runtime.a2aParticipantAgentIds.join(' / ');
+    final a2aStatus = runtime.a2aStatus.isEmpty
+        ? (runtime.hasMultiAgentDiscussion
+            ? (zh ? '已生成' : 'Generated')
+            : (zh ? '未运行' : 'Not run'))
+        : runtime.a2aStatus;
     return _ProductPanel(
       keyName: 'multi-agent-discussion-product-flow',
       icon: Icons.groups_2_outlined,
@@ -11644,9 +11658,12 @@ class _AgentDiscussionProductView extends StatelessWidget {
         const SizedBox(height: _DesktopGrid.gutter),
         _FieldRow(
           label: zh ? 'A2A Session' : 'A2A Session',
-          value: runtime.hasMultiAgentDiscussion
-              ? 'A2A_001'
-              : (zh ? '尚未启动' : 'Not started'),
+          value: sessionId,
+        ),
+        const SizedBox(height: 8),
+        _FieldRow(
+          label: zh ? '协作议题' : 'Collaboration topic',
+          value: topic,
         ),
         const SizedBox(height: 8),
         _FieldRow(
@@ -11654,6 +11671,57 @@ class _AgentDiscussionProductView extends StatelessWidget {
           value: runtime.hasMultiAgentDiscussion
               ? _displayNameForPath(runtime.multiAgentDiscussionPath)
               : (zh ? '尚未生成' : 'Not generated'),
+        ),
+        const SizedBox(height: 8),
+        _ProductTable(
+          columns: zh ? ['追踪项', '真实值'] : ['Trace item', 'Real value'],
+          rows: zh
+              ? [
+                  ['参与 Agent', participants],
+                  [
+                    '证据引用',
+                    runtime.hasMultiAgentDiscussion
+                        ? '${runtime.a2aEvidenceCount} 条'
+                        : '启动后统计'
+                  ],
+                  ['会话状态', a2aStatus],
+                  [
+                    '会话审计',
+                    runtime.hasA2aSessionManifest
+                        ? _displayNameForPath(runtime.a2aSessionManifestPath)
+                        : '启动后写入'
+                  ],
+                  [
+                    '讨论审计',
+                    runtime.hasMultiAgentDiscussionManifest
+                        ? _displayNameForPath(
+                            runtime.multiAgentDiscussionManifestPath)
+                        : '启动后写入'
+                  ],
+                ]
+              : [
+                  ['Participant Agents', participants],
+                  [
+                    'Evidence citations',
+                    runtime.hasMultiAgentDiscussion
+                        ? '${runtime.a2aEvidenceCount}'
+                        : 'Counted after start'
+                  ],
+                  ['Session status', a2aStatus],
+                  [
+                    'Session audit',
+                    runtime.hasA2aSessionManifest
+                        ? _displayNameForPath(runtime.a2aSessionManifestPath)
+                        : 'Written after start'
+                  ],
+                  [
+                    'Discussion audit',
+                    runtime.hasMultiAgentDiscussionManifest
+                        ? _displayNameForPath(
+                            runtime.multiAgentDiscussionManifestPath)
+                        : 'Written after start'
+                  ],
+                ],
         ),
         const SizedBox(height: _DesktopGrid.gutter),
         _PrimaryProductAction(
@@ -11696,6 +11764,45 @@ class _AgentDiscussionProductView extends StatelessWidget {
                   )
               : null,
         ),
+        const SizedBox(height: _DesktopGrid.gutter),
+        _EqualActionRow(children: [
+          _DisplayAction(
+            label: runtime.hasA2aSessionManifest
+                ? (zh ? '查看会话审计' : 'View session audit')
+                : (zh ? '等待会话审计' : 'Waiting for session audit'),
+            icon: Icons.fact_check_outlined,
+            onPressed: runtime.hasA2aSessionManifest
+                ? () => _showWorkspaceArtifactPreview(
+                      context,
+                      rc6: rc6,
+                      title: zh ? 'A2A 会话审计' : 'A2A session audit',
+                      path: runtime.a2aSessionManifestPath,
+                      unavailableMessage: zh
+                          ? '尚未生成 A2A 会话审计。'
+                          : 'No A2A session audit generated.',
+                      closeLabel: zh ? '关闭' : 'Close',
+                    )
+                : null,
+          ),
+          _DisplayAction(
+            label: runtime.hasMultiAgentDiscussionManifest
+                ? (zh ? '查看讨论审计' : 'View discussion audit')
+                : (zh ? '等待讨论审计' : 'Waiting for discussion audit'),
+            icon: Icons.article_outlined,
+            onPressed: runtime.hasMultiAgentDiscussionManifest
+                ? () => _showWorkspaceArtifactPreview(
+                      context,
+                      rc6: rc6,
+                      title: zh ? '多 Agent 讨论审计' : 'Discussion audit',
+                      path: runtime.multiAgentDiscussionManifestPath,
+                      unavailableMessage: zh
+                          ? '尚未生成多 Agent 讨论审计。'
+                          : 'No multi-agent discussion audit generated.',
+                      closeLabel: zh ? '关闭' : 'Close',
+                    )
+                : null,
+          ),
+        ]),
       ],
     );
   }

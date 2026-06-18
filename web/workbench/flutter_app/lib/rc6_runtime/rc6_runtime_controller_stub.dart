@@ -395,6 +395,14 @@ class Rc6RuntimeState {
     required this.agentDialogueMemoryWriteStatus,
     required this.agentDialogueErrorMessage,
     required this.multiAgentDiscussionPath,
+    required this.multiAgentDiscussionManifestPath,
+    required this.a2aSessionManifestPath,
+    required this.a2aWorkspaceReportPath,
+    required this.a2aSessionId,
+    required this.a2aTopic,
+    required this.a2aParticipantAgentIds,
+    required this.a2aEvidenceCount,
+    required this.a2aStatus,
     required this.prdP0EvidencePath,
     required this.knowledgeBaseCatalogPath,
     required this.workbookManifestPath,
@@ -453,6 +461,14 @@ class Rc6RuntimeState {
         agentDialogueMemoryWriteStatus: '',
         agentDialogueErrorMessage: '',
         multiAgentDiscussionPath: '',
+        multiAgentDiscussionManifestPath: '',
+        a2aSessionManifestPath: '',
+        a2aWorkspaceReportPath: '',
+        a2aSessionId: '',
+        a2aTopic: '',
+        a2aParticipantAgentIds: [],
+        a2aEvidenceCount: 0,
+        a2aStatus: '',
         prdP0EvidencePath: '',
         knowledgeBaseCatalogPath: '',
         workbookManifestPath: '',
@@ -510,6 +526,14 @@ class Rc6RuntimeState {
   final String agentDialogueMemoryWriteStatus;
   final String agentDialogueErrorMessage;
   final String multiAgentDiscussionPath;
+  final String multiAgentDiscussionManifestPath;
+  final String a2aSessionManifestPath;
+  final String a2aWorkspaceReportPath;
+  final String a2aSessionId;
+  final String a2aTopic;
+  final List<String> a2aParticipantAgentIds;
+  final int a2aEvidenceCount;
+  final String a2aStatus;
   final String prdP0EvidencePath;
   final String knowledgeBaseCatalogPath;
   final String workbookManifestPath;
@@ -542,6 +566,9 @@ class Rc6RuntimeState {
   bool get hasAgentDialogueHistory => agentDialogueHistoryPath.isNotEmpty;
   bool get hasAgentDialogueExport => agentDialogueExportPath.isNotEmpty;
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
+  bool get hasMultiAgentDiscussionManifest =>
+      multiAgentDiscussionManifestPath.isNotEmpty;
+  bool get hasA2aSessionManifest => a2aSessionManifestPath.isNotEmpty;
   bool get hasPrdP0Evidence => prdP0EvidencePath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
   bool get hasWorkbookManifest => workbookManifestPath.isNotEmpty;
@@ -586,6 +613,14 @@ class Rc6RuntimeState {
     String? agentDialogueMemoryWriteStatus,
     String? agentDialogueErrorMessage,
     String? multiAgentDiscussionPath,
+    String? multiAgentDiscussionManifestPath,
+    String? a2aSessionManifestPath,
+    String? a2aWorkspaceReportPath,
+    String? a2aSessionId,
+    String? a2aTopic,
+    List<String>? a2aParticipantAgentIds,
+    int? a2aEvidenceCount,
+    String? a2aStatus,
     String? prdP0EvidencePath,
     String? knowledgeBaseCatalogPath,
     String? workbookManifestPath,
@@ -657,6 +692,18 @@ class Rc6RuntimeState {
           agentDialogueErrorMessage ?? this.agentDialogueErrorMessage,
       multiAgentDiscussionPath:
           multiAgentDiscussionPath ?? this.multiAgentDiscussionPath,
+      multiAgentDiscussionManifestPath: multiAgentDiscussionManifestPath ??
+          this.multiAgentDiscussionManifestPath,
+      a2aSessionManifestPath:
+          a2aSessionManifestPath ?? this.a2aSessionManifestPath,
+      a2aWorkspaceReportPath:
+          a2aWorkspaceReportPath ?? this.a2aWorkspaceReportPath,
+      a2aSessionId: a2aSessionId ?? this.a2aSessionId,
+      a2aTopic: a2aTopic ?? this.a2aTopic,
+      a2aParticipantAgentIds:
+          a2aParticipantAgentIds ?? this.a2aParticipantAgentIds,
+      a2aEvidenceCount: a2aEvidenceCount ?? this.a2aEvidenceCount,
+      a2aStatus: a2aStatus ?? this.a2aStatus,
       prdP0EvidencePath: prdP0EvidencePath ?? this.prdP0EvidencePath,
       knowledgeBaseCatalogPath:
           knowledgeBaseCatalogPath ?? this.knowledgeBaseCatalogPath,

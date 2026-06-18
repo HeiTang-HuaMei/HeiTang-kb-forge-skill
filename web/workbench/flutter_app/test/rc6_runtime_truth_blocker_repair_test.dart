@@ -1043,6 +1043,14 @@ void main() {
     expectMainKnowledgeArtifacts(workspace, controller.state);
     expect(controller.state.hasReadingNotes, isTrue);
     expect(controller.state.hasMultiAgentDiscussion, isTrue);
+    expect(controller.state.hasMultiAgentDiscussionManifest, isTrue);
+    expect(controller.state.hasA2aSessionManifest, isTrue);
+    expect(controller.state.a2aSessionId, 'A2A_001');
+    expect(controller.state.a2aTopic, '赚钱 小生意');
+    expect(controller.state.a2aParticipantAgentIds,
+        contains('product_analysis_agent'));
+    expect(controller.state.a2aEvidenceCount, greaterThan(0));
+    expect(controller.state.a2aStatus, 'report_generated');
     final baseTurnCount = controller.state.agentDialogueTurnCount;
     await controller.runAgentDialogue(prompt: '总结真实输入主题');
     await controller.runAgentDialogue(prompt: '继续追问行动建议');
@@ -1111,6 +1119,11 @@ void main() {
     expect(reloadedController.state.hasAgentDialogueHistory, isTrue);
     expect(reloadedController.state.hasAgentDialogueManifest, isTrue);
     expect(reloadedController.state.hasAgentDialogueExport, isTrue);
+    expect(reloadedController.state.hasA2aSessionManifest, isTrue);
+    expect(reloadedController.state.a2aSessionId, 'A2A_001');
+    expect(reloadedController.state.a2aParticipantAgentIds,
+        contains('knowledge_qa_agent'));
+    expect(reloadedController.state.a2aEvidenceCount, greaterThan(0));
     expect(reloadedController.state.agentDialogueExportPath,
         endsWith('agent_dialogue_export.md'));
     expect(reloadedController.state.agentDialogueTurnCount, baseTurnCount + 2);

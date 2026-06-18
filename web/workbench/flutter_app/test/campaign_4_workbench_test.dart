@@ -462,8 +462,16 @@ void main() {
     expect(find.byKey(const Key('multi-agent-discussion-product-flow')),
         findsOneWidget);
     expect(find.text('启动联合讨论'), findsOneWidget);
+    expect(find.text('协作议题'), findsWidgets);
+    expect(find.text('参与 Agent'), findsOneWidget);
+    expect(find.text('证据引用'), findsOneWidget);
+    expect(find.text('会话状态'), findsOneWidget);
+    expect(find.text('会话审计'), findsOneWidget);
+    expect(find.text('讨论审计'), findsOneWidget);
     expect(find.text('等待讨论纪要'), findsOneWidget);
     expect(find.text('等待可预览纪要'), findsOneWidget);
+    expect(find.text('等待会话审计'), findsOneWidget);
+    expect(find.text('等待讨论审计'), findsOneWidget);
 
     final historyTab = find.byKey(const Key('page-tab-4'));
     await tester.ensureVisible(historyTab);
