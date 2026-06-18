@@ -1037,6 +1037,43 @@ class Rc6RuntimeController extends ChangeNotifier {
     return path;
   }
 
+  Future<String> readWorkspaceTextArtifact(String path,
+      {int maxCharacters = 6000}) async {
+    if (!_canRunDesktop()) {
+      return '真实产物预览需要 Windows EXE 桌面端。';
+    }
+    final trimmed = path.trim();
+    if (trimmed.isEmpty) {
+      return '尚未生成可预览产物。';
+    }
+    final workspace = _requireWorkspace().absolute.path;
+    final file = File(trimmed).absolute;
+    if (!_isInsideDirectory(file.path, workspace)) {
+      return '无法预览：产物路径不在当前工作区内。';
+    }
+    final extension = _extension(file.path).toLowerCase();
+    const supported = {
+      '.md',
+      '.txt',
+      '.json',
+      '.jsonl',
+      '.yaml',
+      '.yml',
+      '.csv'
+    };
+    if (!supported.contains(extension)) {
+      return '无法预览：仅支持文本产物。';
+    }
+    if (!await file.exists()) {
+      return '无法预览：产物文件不存在。';
+    }
+    final text = await file.readAsString(encoding: utf8);
+    if (text.length <= maxCharacters) {
+      return text;
+    }
+    return '${text.substring(0, maxCharacters)}\n\n... 预览已截断，完整内容请复制路径后在本地查看。';
+  }
+
   Future<void> clearImportedSources() async {
     if (!_canRunDesktop()) {
       return;

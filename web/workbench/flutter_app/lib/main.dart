@@ -4828,6 +4828,39 @@ Future<void> _copyArtifactPath(
   );
 }
 
+Future<void> _showWorkspaceArtifactPreview(
+  BuildContext context, {
+  required Rc6RuntimeController? rc6,
+  required String title,
+  required String path,
+  required String unavailableMessage,
+  required String closeLabel,
+}) async {
+  if (rc6 == null || path.trim().isEmpty) return;
+  final content = await rc6.readWorkspaceTextArtifact(path);
+  if (!context.mounted) return;
+  await showDialog<void>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(title),
+      content: SizedBox(
+        width: 720,
+        child: SingleChildScrollView(
+          child: SelectableText(
+            content.trim().isEmpty ? unavailableMessage : content,
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(closeLabel),
+        ),
+      ],
+    ),
+  );
+}
+
 class _PrimaryProductAction extends StatelessWidget {
   const _PrimaryProductAction({
     required this.label,
@@ -9619,6 +9652,25 @@ class _SkillBuilderProductWorkflowState
               ),
               _DisplayAction(
                 label: runtime.hasSkill
+                    ? (_zh ? '查看 Skill 内容' : 'View Skill content')
+                    : (_zh ? '等待可预览 Skill' : 'Waiting for previewable Skill'),
+                icon: Icons.article_outlined,
+                onPressed: runtime.hasSkill
+                    ? () => _showWorkspaceArtifactPreview(
+                          context,
+                          rc6: rc6,
+                          title: _zh ? 'Skill 内容预览' : 'Skill content preview',
+                          path:
+                              '${runtime.skillPath}/knowledge_qa_skill/SKILL.md',
+                          unavailableMessage: _zh
+                              ? '尚未生成可预览 Skill。'
+                              : 'No previewable Skill has been generated.',
+                          closeLabel: _zh ? '关闭' : 'Close',
+                        )
+                    : null,
+              ),
+              _DisplayAction(
+                label: runtime.hasSkill
                     ? (_zh ? '删除 Skill 产物' : 'Delete Skill artifacts')
                     : (_zh ? '等待真实 Skill 产物' : 'Waiting for real Skill'),
                 icon: runtime.hasSkill
@@ -10006,6 +10058,25 @@ class _AgentCreationProductView extends StatelessWidget {
             ),
             _DisplayAction(
               label: runtime.hasAgent
+                  ? (zh ? '查看 Agent 配置' : 'View Agent config')
+                  : (zh ? '等待可预览 Agent' : 'Waiting for previewable Agent'),
+              icon: Icons.article_outlined,
+              onPressed: runtime.hasAgent
+                  ? () => _showWorkspaceArtifactPreview(
+                        context,
+                        rc6: rc6,
+                        title: zh ? 'Agent 配置预览' : 'Agent config preview',
+                        path:
+                            '${runtime.agentPath}/agent_generation_manifest.json',
+                        unavailableMessage: zh
+                            ? '尚未生成可预览 Agent 配置。'
+                            : 'No previewable Agent config has been generated.',
+                        closeLabel: zh ? '关闭' : 'Close',
+                      )
+                  : null,
+            ),
+            _DisplayAction(
+              label: runtime.hasAgent
                   ? (zh ? '删除 Agent 产物' : 'Delete Agent artifacts')
                   : (zh ? '等待真实 Agent 产物' : 'Waiting for real Agent'),
               icon: runtime.hasAgent
@@ -10162,6 +10233,24 @@ class _AgentDiscussionProductView extends StatelessWidget {
                   )
               : null,
         ),
+        const SizedBox(height: _DesktopGrid.gutter),
+        _DisplayAction(
+          label: runtime.hasMultiAgentDiscussion
+              ? (zh ? '查看讨论纪要' : 'View discussion notes')
+              : (zh ? '等待可预览纪要' : 'Waiting for previewable notes'),
+          icon: Icons.article_outlined,
+          onPressed: runtime.hasMultiAgentDiscussion
+              ? () => _showWorkspaceArtifactPreview(
+                    context,
+                    rc6: rc6,
+                    title: zh ? '联合讨论纪要预览' : 'Discussion notes preview',
+                    path: runtime.multiAgentDiscussionPath,
+                    unavailableMessage:
+                        zh ? '尚未生成可预览讨论纪要。' : 'No discussion notes generated.',
+                    closeLabel: zh ? '关闭' : 'Close',
+                  )
+              : null,
+        ),
       ],
     );
   }
@@ -10255,6 +10344,23 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                   : null,
             ),
             _DisplayAction(
+              label: runtime.hasAgentDialogue
+                  ? (zh ? '查看对话内容' : 'View dialogue content')
+                  : (zh ? '等待可预览对话' : 'Waiting for previewable dialogue'),
+              icon: Icons.article_outlined,
+              onPressed: runtime.hasAgentDialogue
+                  ? () => _showWorkspaceArtifactPreview(
+                        context,
+                        rc6: rc6,
+                        title: zh ? '对话内容预览' : 'Dialogue content preview',
+                        path: runtime.agentDialoguePath,
+                        unavailableMessage:
+                            zh ? '尚未生成可预览对话。' : 'No dialogue generated.',
+                        closeLabel: zh ? '关闭' : 'Close',
+                      )
+                  : null,
+            ),
+            _DisplayAction(
               label: runtime.hasAgentDialogueHistory
                   ? (zh ? '复制会话历史路径' : 'Copy chat history path')
                   : (zh ? '等待会话历史' : 'Waiting for chat history'),
@@ -10265,6 +10371,23 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                         path: runtime.agentDialogueHistoryPath,
                         successMessage:
                             zh ? '会话历史路径已复制' : 'Chat history path copied',
+                      )
+                  : null,
+            ),
+            _DisplayAction(
+              label: runtime.hasAgentDialogueHistory
+                  ? (zh ? '查看会话历史' : 'View chat history')
+                  : (zh ? '等待可预览历史' : 'Waiting for previewable history'),
+              icon: Icons.article_outlined,
+              onPressed: runtime.hasAgentDialogueHistory
+                  ? () => _showWorkspaceArtifactPreview(
+                        context,
+                        rc6: rc6,
+                        title: zh ? '会话历史预览' : 'Chat history preview',
+                        path: runtime.agentDialogueHistoryPath,
+                        unavailableMessage:
+                            zh ? '尚未生成可预览会话历史。' : 'No chat history generated.',
+                        closeLabel: zh ? '关闭' : 'Close',
                       )
                   : null,
             ),

@@ -1222,4 +1222,45 @@ void main() {
             .readAsStringSync(),
         contains('A2A 协作摘要'));
   });
+
+  test('workspace artifact preview reads only bounded text artifacts',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final artifact = File(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill${Platform.pathSeparator}SKILL.md');
+    artifact.parent.createSync(recursive: true);
+    artifact.writeAsStringSync('# Real Skill\n${'body ' * 200}');
+
+    final preview = await controller.readWorkspaceTextArtifact(artifact.path,
+        maxCharacters: 40);
+    expect(preview, contains('# Real Skill'));
+    expect(preview, contains('预览已截断'));
+
+    final outside = File(
+        '${Directory.systemTemp.path}${Platform.pathSeparator}outside_skill.md');
+    outside.writeAsStringSync('# outside');
+    addTearDown(() {
+      if (outside.existsSync()) outside.deleteSync();
+    });
+    final blocked = await controller.readWorkspaceTextArtifact(outside.path);
+    expect(blocked, contains('不在当前工作区'));
+
+    final binary = File(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}asset.bin');
+    binary.writeAsBytesSync([1, 2, 3]);
+    final unsupported = await controller.readWorkspaceTextArtifact(binary.path);
+    expect(unsupported, contains('仅支持文本产物'));
+  });
 }

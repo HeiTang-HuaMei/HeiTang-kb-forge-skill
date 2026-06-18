@@ -676,6 +676,7 @@ void main() {
     expect(find.text('Generate complete Agent config'), findsWidgets);
     expect(find.text('Copy Agent path'), findsNothing);
     expect(find.text('Waiting for real Agent'), findsWidgets);
+    expect(find.text('Waiting for previewable Agent'), findsOneWidget);
     expect(find.text('Choose real folder to import'), findsNothing);
     expect(find.text('Build Knowledge Base'), findsNothing);
     expect(find.text('Generate Skill'), findsNothing);
@@ -690,6 +691,7 @@ void main() {
         findsOneWidget);
     expect(find.text('Start discussion'), findsOneWidget);
     expect(find.text('Waiting for discussion notes'), findsOneWidget);
+    expect(find.text('Waiting for previewable notes'), findsOneWidget);
 
     final chatTab = find.byKey(const Key('page-tab-2'));
     await tester.ensureVisible(chatTab);
@@ -698,6 +700,8 @@ void main() {
     expect(find.byKey(const Key('agent-minimal-chat')), findsOneWidget);
     expect(find.text('Waiting for dialogue artifact'), findsOneWidget);
     expect(find.text('Waiting for chat history'), findsOneWidget);
+    expect(find.text('Waiting for previewable dialogue'), findsOneWidget);
+    expect(find.text('Waiting for previewable history'), findsOneWidget);
 
     final historyTab = find.byKey(const Key('page-tab-4'));
     await tester.ensureVisible(historyTab);

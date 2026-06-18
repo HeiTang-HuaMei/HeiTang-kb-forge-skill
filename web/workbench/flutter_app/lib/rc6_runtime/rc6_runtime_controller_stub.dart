@@ -58,6 +58,9 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> clearRecentTaskArtifacts(String taskId) async => initialize();
   Future<void> deleteImportedSource(String sourceNameOrRelativePath) async =>
       initialize();
+  Future<String> readWorkspaceTextArtifact(String path,
+          {int maxCharacters = 6000}) async =>
+      '真实产物预览需要 Windows EXE 桌面端。';
   Future<Rc6StorageTestResult> testRedisConnection({
     required String host,
     required int port,
