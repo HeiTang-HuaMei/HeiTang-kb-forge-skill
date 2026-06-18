@@ -7987,13 +7987,22 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                 const SizedBox(height: 8),
                 _ProductTable(
                   columns: zh
-                      ? ['ID', '名称', '类型', '来源', 'chunks', '状态']
-                      : ['ID', 'Name', 'Type', 'Sources', 'Chunks', 'Status'],
+                      ? ['ID', '名称', '版本', '来源', 'chunks', '状态']
+                      : [
+                          'ID',
+                          'Name',
+                          'Version',
+                          'Sources',
+                          'Chunks',
+                          'Status'
+                        ],
                   rows: knowledgeBases
                       .map((kb) => [
                             kb.id,
                             kb.name,
-                            kb.type,
+                            kb.currentVersion.isEmpty
+                                ? (zh ? 'v1' : 'v1')
+                                : kb.currentVersion,
                             kb.sourceCount.toString(),
                             kb.chunkCount.toString(),
                             kb.status,
@@ -8033,6 +8042,56 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                     onPressed: rc6 == null || knowledgeBases.isEmpty
                         ? null
                         : () => _confirmAndDeleteKnowledgeBase(rc6),
+                  ),
+                ]),
+                const SizedBox(height: _DesktopGrid.gutter),
+                _SectionCaption(zh ? '迭代更新与版本管理' : 'Iteration and versions'),
+                const SizedBox(height: 8),
+                _ProductTable(
+                  columns: zh
+                      ? ['能力', '真实产物', '状态']
+                      : ['Capability', 'Artifact', 'Status'],
+                  rows:
+                      _knowledgeVersionRows(knowledgeBases.first, runtime, zh),
+                ),
+                const SizedBox(height: 8),
+                _EqualActionRow(children: [
+                  _PrimaryProductAction(
+                    label: zh ? '增量更新' : 'Incremental update',
+                    icon: Icons.update_outlined,
+                    onPressed: rc6 == null || knowledgeBases.isEmpty
+                        ? null
+                        : () => rc6.updateKnowledgeBaseIncremental(
+                            knowledgeBases.first.id),
+                  ),
+                  _PrimaryProductAction(
+                    label: zh ? '全量重建' : 'Full rebuild',
+                    icon: Icons.refresh_outlined,
+                    onPressed: rc6 == null || knowledgeBases.isEmpty
+                        ? null
+                        : () => rc6
+                            .rebuildKnowledgeBaseFull(knowledgeBases.first.id),
+                  ),
+                ]),
+                const SizedBox(height: 8),
+                _EqualActionRow(children: [
+                  _PrimaryProductAction(
+                    label: zh ? '版本对比' : 'Compare versions',
+                    icon: Icons.compare_arrows_outlined,
+                    onPressed: rc6 == null || knowledgeBases.isEmpty
+                        ? null
+                        : () => rc6.compareKnowledgeBaseVersions(
+                            knowledgeBases.first.id),
+                  ),
+                  _DisplayAction(
+                    label: zh ? '回滚上一版本' : 'Rollback previous version',
+                    icon: Icons.restore_outlined,
+                    onPressed: rc6 == null ||
+                            knowledgeBases.isEmpty ||
+                            knowledgeBases.first.versionCount < 2
+                        ? null
+                        : () => rc6.rollbackKnowledgeBaseVersion(
+                            knowledgeBases.first.id),
                   ),
                 ]),
                 const SizedBox(height: _DesktopGrid.gutter),
@@ -8125,6 +8184,40 @@ List<List<String>> _knowledgeArtifactRows(Rc6RuntimeState runtime, bool zh) {
         readyStatus: zh ? '通过' : 'Passed'),
     row('build.log', runtime.buildLogPath, 'build.log'),
     row('error.log', runtime.errorLogPath, 'error.log'),
+  ];
+}
+
+List<List<String>> _knowledgeVersionRows(
+    Rc6KnowledgeBaseRecord kb, Rc6RuntimeState runtime, bool zh) {
+  final compareReady = kb.versionComparePath.isNotEmpty;
+  final rollbackReady = kb.versionCount > 1;
+  return [
+    [
+      zh ? '版本记录' : 'Version history',
+      kb.currentVersion.isEmpty ? 'v1' : kb.currentVersion,
+      zh ? '${kb.versionCount} 个版本' : '${kb.versionCount} versions',
+    ],
+    [
+      zh ? '构建日志' : 'Build log',
+      runtime.buildLogPath.isEmpty
+          ? (zh ? '等待构建' : 'Waiting build')
+          : _displayNameForPath(runtime.buildLogPath),
+      runtime.buildLogPath.isEmpty ? (zh ? '未生成' : 'Not generated') : 'ready',
+    ],
+    [
+      zh ? '版本对比' : 'Version compare',
+      compareReady
+          ? _displayNameForPath(kb.versionComparePath)
+          : (zh ? '点击版本对比后生成' : 'Run compare to generate'),
+      compareReady ? (zh ? '已生成' : 'Generated') : (zh ? '点击生成' : 'Run compare'),
+    ],
+    [
+      zh ? '回滚' : 'Rollback',
+      rollbackReady
+          ? (zh ? '可回滚到上一版本' : 'Previous version available')
+          : (zh ? '更新后可回滚' : 'Available after update'),
+      rollbackReady ? (zh ? '可用' : 'Ready') : (zh ? '等待版本' : 'Need version'),
+    ],
   ];
 }
 

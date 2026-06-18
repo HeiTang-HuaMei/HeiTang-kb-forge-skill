@@ -231,28 +231,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     if (!_canRunDesktop()) {
       return;
     }
-    final workspace = _requireWorkspace();
-    final duDir = Directory(_join(workspace.path, 'du'));
-    final parseReport = File(_join(workspace.path, 'parse_report.json'));
-    if (!await duDir.exists() && !await parseReport.exists()) {
-      _fail('请先在导入与解析页完成解析/OCR/Chunking。');
-      return;
-    }
-    await _runCoreAction(
-      actionId: 'knowledge_base_build',
-      arguments: [
-        'build-knowledge-base',
-        '--document-understanding',
-        _join(workspace.path, 'du'),
-        '--output',
-        _join(workspace.path, 'kb'),
-      ],
-      outputPath: _join(workspace.path, 'kb'),
-      nextPhase: Rc6RuntimePhase.knowledgeBuilt,
-      successMessage: '知识库构建完成。',
-      timeout: const Duration(minutes: 15),
-    );
-    if (state.lastResult?.passed == true) {
+    final passed = await _runKnowledgeBaseCoreBuild(successMessage: '知识库构建完成。');
+    if (passed) {
       await _writeDerivedKnowledgeArtifacts();
       await _writeKnowledgeBaseCatalog();
     }
@@ -277,6 +257,34 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> splitKnowledgeBase(String sourceKbId) async {
     if (!_canRunDesktop()) return;
     await _splitKnowledgeBaseRecord(sourceKbId);
+    await _loadExistingArtifacts();
+    notifyListeners();
+  }
+
+  Future<void> updateKnowledgeBaseIncremental(String kbId) async {
+    if (!_canRunDesktop()) return;
+    await _updateKnowledgeBaseVersion(kbId, operation: 'incremental_update');
+    await _loadExistingArtifacts();
+    notifyListeners();
+  }
+
+  Future<void> rebuildKnowledgeBaseFull(String kbId) async {
+    if (!_canRunDesktop()) return;
+    await _updateKnowledgeBaseVersion(kbId, operation: 'full_rebuild');
+    await _loadExistingArtifacts();
+    notifyListeners();
+  }
+
+  Future<void> compareKnowledgeBaseVersions(String kbId) async {
+    if (!_canRunDesktop()) return;
+    await _compareKnowledgeBaseVersions(kbId);
+    await _loadExistingArtifacts();
+    notifyListeners();
+  }
+
+  Future<void> rollbackKnowledgeBaseVersion(String kbId) async {
+    if (!_canRunDesktop()) return;
+    await _rollbackKnowledgeBaseVersion(kbId);
     await _loadExistingArtifacts();
     notifyListeners();
   }
@@ -2492,6 +2500,33 @@ class Rc6RuntimeController extends ChangeNotifier {
         operation: 'build:$currentId');
   }
 
+  Future<bool> _runKnowledgeBaseCoreBuild({
+    required String successMessage,
+  }) async {
+    final workspace = _requireWorkspace();
+    final duDir = Directory(_join(workspace.path, 'du'));
+    final parseReport = File(_join(workspace.path, 'parse_report.json'));
+    if (!await duDir.exists() && !await parseReport.exists()) {
+      _fail('请先在导入与解析页完成解析/OCR/Chunking。');
+      return false;
+    }
+    await _runCoreAction(
+      actionId: 'knowledge_base_build',
+      arguments: [
+        'build-knowledge-base',
+        '--document-understanding',
+        _join(workspace.path, 'du'),
+        '--output',
+        _join(workspace.path, 'kb'),
+      ],
+      outputPath: _join(workspace.path, 'kb'),
+      nextPhase: Rc6RuntimePhase.knowledgeBuilt,
+      successMessage: successMessage,
+      timeout: const Duration(minutes: 15),
+    );
+    return state.lastResult?.passed == true;
+  }
+
   Future<Map<String, dynamic>> _copyKnowledgeBaseRecord(
       String sourceKbId) async {
     final workspace = _requireWorkspace();
@@ -2595,6 +2630,135 @@ class Rc6RuntimeController extends ChangeNotifier {
     return record;
   }
 
+  Future<void> _updateKnowledgeBaseVersion(String kbId,
+      {required String operation}) async {
+    final workspace = _requireWorkspace();
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    final records = _catalogRecords(catalog);
+    final index =
+        records.indexWhere((record) => record['kb_id']?.toString() == kbId);
+    if (index < 0) {
+      _fail('未找到要更新的知识库：$kbId');
+      return;
+    }
+    await _snapshotKnowledgeBaseVersion(workspace, records[index],
+        reason: operation == 'full_rebuild' ? '全量重建前快照' : '增量更新前快照');
+    await _writeKnowledgeCatalog(workspace, records,
+        operation: 'snapshot_before_$operation:$kbId');
+    final passed = await _runKnowledgeBaseCoreBuild(
+      successMessage: operation == 'full_rebuild' ? '知识库全量重建完成。' : '知识库增量更新完成。',
+    );
+    if (!passed) return;
+    await _writeDerivedKnowledgeArtifacts();
+    final refreshed = await _materializeKnowledgeBaseRecord(
+      workspace: workspace,
+      kbId: kbId,
+      name: (records[index]['kb_name'] ?? kbId).toString(),
+      type: (records[index]['kb_type'] ?? '普通知识库').toString(),
+      sourceDocuments: _listOfMaps(records[index]['source_documents']),
+      sourceKbIds: _listOfStrings(records[index]['source_kb_ids']),
+      operation: operation,
+      versionsOverride: _listOfMaps(records[index]['versions']),
+    );
+    records[index] = refreshed;
+    await _writeKnowledgeCatalog(workspace, records,
+        operation: '$operation:$kbId');
+    state = state.copyWith(
+      lastMessage:
+          operation == 'full_rebuild' ? '知识库 $kbId 已全量重建。' : '知识库 $kbId 已增量更新。',
+      lastError: '',
+    );
+  }
+
+  Future<void> _compareKnowledgeBaseVersions(String kbId) async {
+    final workspace = _requireWorkspace();
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    final records = _catalogRecords(catalog);
+    final record = records.cast<Map<String, dynamic>?>().firstWhere(
+          (item) => item?['kb_id']?.toString() == kbId,
+          orElse: () => null,
+        );
+    if (record == null) {
+      _fail('未找到要对比的知识库：$kbId');
+      return;
+    }
+    final versions = _listOfMaps(record['versions']).toList(growable: true);
+    final latest = versions.isEmpty ? null : versions.last;
+    final comparePath = _joinNested(
+        workspace.path, 'knowledge_bases/$kbId/version_compare_latest.json');
+    await File(comparePath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v2_kb_version_compare.v1',
+        'kb_id': kbId,
+        'current_version': record['current_version'] ?? 'v1',
+        'compared_to': latest?['version_id'] ?? 'none',
+        'current_chunks': record['chunk_count'] ?? 0,
+        'previous_chunks': latest?['chunk_count'] ?? 0,
+        'source_delta': {
+          'current_sources': _listOfMaps(record['source_documents']).length,
+          'previous_sources': _listOfMaps(latest?['source_documents']).length,
+        },
+        'status': versions.isEmpty ? 'no_previous_version' : 'compared',
+      }),
+      encoding: utf8,
+    );
+    record['version_compare_path'] = comparePath;
+    await _writeKnowledgeCatalog(workspace, records,
+        operation: 'compare_versions:$kbId');
+    state = state.copyWith(lastMessage: '知识库 $kbId 版本对比已生成。', lastError: '');
+  }
+
+  Future<void> _rollbackKnowledgeBaseVersion(String kbId) async {
+    final workspace = _requireWorkspace();
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    final records = _catalogRecords(catalog);
+    final index =
+        records.indexWhere((record) => record['kb_id']?.toString() == kbId);
+    if (index < 0) {
+      _fail('未找到要回滚的知识库：$kbId');
+      return;
+    }
+    final versions = _listOfMaps(records[index]['versions']);
+    if (versions.isEmpty) {
+      _fail('知识库 $kbId 没有可回滚版本。');
+      return;
+    }
+    final target = versions.last;
+    final snapshotDir = Directory((target['snapshot_path'] ?? '').toString());
+    if (!await snapshotDir.exists()) {
+      _fail('知识库 $kbId 的回滚快照不存在。');
+      return;
+    }
+    final kbRoot = Directory(_join(workspace.path, 'knowledge_bases', kbId));
+    if (await kbRoot.exists()) {
+      await kbRoot.delete(recursive: true);
+    }
+    await _copyDirectory(snapshotDir, kbRoot);
+    final record = await _materializeKnowledgeBaseRecord(
+      workspace: workspace,
+      kbId: kbId,
+      name: (target['kb_name'] ?? records[index]['kb_name'] ?? kbId).toString(),
+      type: (target['kb_type'] ?? records[index]['kb_type'] ?? '普通知识库')
+          .toString(),
+      sourceDocuments: _listOfMaps(target['source_documents']),
+      sourceKbIds: _listOfStrings(records[index]['source_kb_ids']),
+      operation: 'rollback',
+      sourceDirectory: snapshotDir,
+      versionsOverride: versions.take(versions.length - 1).toList(),
+      currentVersionOverride: (target['version_id'] ?? '').toString(),
+    );
+    record['rolled_back_from'] = records[index]['current_version'] ?? 'current';
+    record['rolled_back_to'] = target['version_id'] ?? 'previous';
+    await File(_join(kbRoot.path, 'rollback.log')).writeAsString(
+      'rolled_back_to=${record['rolled_back_to']}\n',
+      encoding: utf8,
+    );
+    records[index] = record;
+    await _writeKnowledgeCatalog(workspace, records,
+        operation: 'rollback:$kbId');
+    state = state.copyWith(lastMessage: '知识库 $kbId 已回滚。', lastError: '');
+  }
+
   Future<Map<String, dynamic>> _materializeKnowledgeBaseRecord({
     required Directory workspace,
     required String kbId,
@@ -2603,9 +2767,12 @@ class Rc6RuntimeController extends ChangeNotifier {
     required List<Map<String, dynamic>> sourceDocuments,
     required List<String> sourceKbIds,
     required String operation,
+    Directory? sourceDirectory,
+    List<Map<String, dynamic>>? versionsOverride,
+    String? currentVersionOverride,
   }) async {
     final kbRoot = Directory(_join(workspace.path, 'knowledge_bases', kbId));
-    final baseKbDir = Directory(_join(workspace.path, 'kb'));
+    final baseKbDir = sourceDirectory ?? Directory(_join(workspace.path, 'kb'));
     if (await kbRoot.exists()) {
       await kbRoot.delete(recursive: true);
     }
@@ -2615,6 +2782,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         : _dedupeSourceDocuments(sourceDocuments);
     final now = DateTime.now().toUtc().toIso8601String();
     final chunkPath = _join(kbRoot.path, 'chunks.jsonl');
+    final previousVersions = versionsOverride ??
+        await _existingKnowledgeBaseVersions(workspace, kbId);
+    final currentVersion = currentVersionOverride?.isNotEmpty == true
+        ? currentVersionOverride!
+        : 'v${previousVersions.length + 1}_${now.replaceAll(RegExp(r'[:.]'), '')}';
     final record = {
       'schema_version': 'prd_v2_knowledge_base_record.v1',
       'kb_id': kbId,
@@ -2625,6 +2797,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'operation': operation,
       'created_at': now,
       'updated_at': now,
+      'current_version': currentVersion,
+      'versions': previousVersions,
       'source_documents': docs,
       'source_kb_ids': sourceKbIds,
       'chunk_count': _countJsonl(chunkPath),
@@ -2640,7 +2814,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       'actions': [
         'view',
         'retrieve',
+        'incremental_update',
         'rebuild',
+        'compare_versions',
+        'rollback',
         'copy',
         'merge',
         'split',
@@ -2669,7 +2846,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         }),
         encoding: utf8);
     await File(_join(kbRoot.path, 'build.log')).writeAsString(
-      'operation=$operation\nsource_count=${docs.length}\n',
+      'operation=$operation\nversion=$currentVersion\nsource_count=${docs.length}\n',
       encoding: utf8,
     );
     final errorLog = File(_join(kbRoot.path, 'error.log'));
@@ -2677,6 +2854,52 @@ class Rc6RuntimeController extends ChangeNotifier {
       await errorLog.writeAsString('status=ok\n', encoding: utf8);
     }
     return record;
+  }
+
+  Future<List<Map<String, dynamic>>> _existingKnowledgeBaseVersions(
+      Directory workspace, String kbId) async {
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    final records = _catalogRecords(catalog);
+    final record = records.cast<Map<String, dynamic>?>().firstWhere(
+          (item) => item?['kb_id']?.toString() == kbId,
+          orElse: () => null,
+        );
+    return record == null
+        ? <Map<String, dynamic>>[]
+        : _listOfMaps(record['versions']);
+  }
+
+  Future<void> _snapshotKnowledgeBaseVersion(
+    Directory workspace,
+    Map<String, dynamic> record, {
+    required String reason,
+  }) async {
+    final kbId = (record['kb_id'] ?? '').toString();
+    if (kbId.isEmpty) return;
+    final kbRoot = Directory(_join(workspace.path, 'knowledge_bases', kbId));
+    if (!await kbRoot.exists()) return;
+    final versionId = (record['current_version'] ?? 'v1').toString();
+    final safeVersionId = _safeFileName(versionId);
+    final snapshotDir = Directory(_joinNested(
+        workspace.path, 'knowledge_bases/_versions/$kbId/$safeVersionId'));
+    if (await snapshotDir.exists()) {
+      await snapshotDir.delete(recursive: true);
+    }
+    await _copyDirectory(kbRoot, snapshotDir);
+    final versions = _listOfMaps(record['versions']).toList(growable: true);
+    versions.add({
+      'version_id': versionId,
+      'snapshot_path': snapshotDir.path,
+      'created_at': record['updated_at'] ?? record['created_at'] ?? '',
+      'reason': reason,
+      'kb_name': record['kb_name'] ?? kbId,
+      'kb_type': record['kb_type'] ?? '',
+      'source_documents': _listOfMaps(record['source_documents']),
+      'chunk_count': record['chunk_count'] ?? 0,
+      'manifest_path': record['manifest_path'] ?? '',
+      'quality_report_path': record['quality_report_path'] ?? '',
+    });
+    record['versions'] = versions;
   }
 
   Future<Map<String, dynamic>> _loadKnowledgeCatalog(Directory workspace) {
@@ -2705,10 +2928,14 @@ class Rc6RuntimeController extends ChangeNotifier {
               name: (item['kb_name'] ?? item['kb_id'] ?? '').toString(),
               type: (item['kb_type'] ?? '').toString(),
               status: (item['status'] ?? '').toString(),
+              currentVersion: (item['current_version'] ?? '').toString(),
+              versionCount: _listOfMaps(item['versions']).length + 1,
               sourceCount: _listOfMaps(item['source_documents']).length,
               chunkCount: _asInt(item['chunk_count']) ?? 0,
               manifestPath: (item['manifest_path'] ?? '').toString(),
               qualityReportPath: (item['quality_report_path'] ?? '').toString(),
+              versionComparePath:
+                  (item['version_compare_path'] ?? '').toString(),
               operation: (item['operation'] ?? '').toString(),
             ))
         .where((item) => item.id.isNotEmpty)
@@ -2780,6 +3007,16 @@ class Rc6RuntimeController extends ChangeNotifier {
           .toList(growable: false);
     }
     return const <Map<String, dynamic>>[];
+  }
+
+  static List<String> _listOfStrings(Object? value) {
+    if (value is List) {
+      return value
+          .map((item) => item.toString())
+          .where((item) => item.trim().isNotEmpty)
+          .toList(growable: false);
+    }
+    return const <String>[];
   }
 
   static String _nextKnowledgeBaseId(List<Map<String, dynamic>> records,
@@ -5114,10 +5351,13 @@ class Rc6KnowledgeBaseRecord {
     required this.name,
     required this.type,
     required this.status,
+    required this.currentVersion,
+    required this.versionCount,
     required this.sourceCount,
     required this.chunkCount,
     required this.manifestPath,
     required this.qualityReportPath,
+    required this.versionComparePath,
     required this.operation,
   });
 
@@ -5125,10 +5365,13 @@ class Rc6KnowledgeBaseRecord {
   final String name;
   final String type;
   final String status;
+  final String currentVersion;
+  final int versionCount;
   final int sourceCount;
   final int chunkCount;
   final String manifestPath;
   final String qualityReportPath;
+  final String versionComparePath;
   final String operation;
 }
 

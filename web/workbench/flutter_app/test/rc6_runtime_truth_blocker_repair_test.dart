@@ -414,6 +414,29 @@ void main() {
     await controller.splitKnowledgeBase('K1');
     expect(controller.state.knowledgeBases.map((kb) => kb.id),
         containsAll(['K1', 'K1_COPY1', 'K_MERGED1', 'K1_SPLIT1']));
+    expect(controller.state.knowledgeBases.first.versionCount, 1);
+
+    await controller.updateKnowledgeBaseIncremental('K1');
+    final updatedK1 =
+        controller.state.knowledgeBases.firstWhere((kb) => kb.id == 'K1');
+    expect(updatedK1.operation, 'incremental_update');
+    expect(updatedK1.versionCount, 2);
+
+    await controller.compareKnowledgeBaseVersions('K1');
+    final comparedK1 =
+        controller.state.knowledgeBases.firstWhere((kb) => kb.id == 'K1');
+    expect(comparedK1.versionComparePath, isNotEmpty);
+    expect(File(comparedK1.versionComparePath).existsSync(), isTrue);
+
+    await controller.rollbackKnowledgeBaseVersion('K1');
+    final rolledBackK1 =
+        controller.state.knowledgeBases.firstWhere((kb) => kb.id == 'K1');
+    expect(rolledBackK1.operation, 'rollback');
+    expect(rolledBackK1.versionCount, 1);
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1${Platform.pathSeparator}rollback.log')
+            .existsSync(),
+        isTrue);
 
     final catalogFile = File(
         '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}kb_catalog.json');

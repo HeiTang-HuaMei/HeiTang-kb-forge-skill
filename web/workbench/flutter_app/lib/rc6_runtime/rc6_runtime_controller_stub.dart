@@ -41,6 +41,11 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> mergeKnowledgeBases(List<String> sourceKbIds) async =>
       initialize();
   Future<void> splitKnowledgeBase(String sourceKbId) async => initialize();
+  Future<void> updateKnowledgeBaseIncremental(String kbId) async =>
+      initialize();
+  Future<void> rebuildKnowledgeBaseFull(String kbId) async => initialize();
+  Future<void> compareKnowledgeBaseVersions(String kbId) async => initialize();
+  Future<void> rollbackKnowledgeBaseVersion(String kbId) async => initialize();
   Future<void> deleteKnowledgeBaseRecord(String kbId) async => initialize();
   Future<void> search(String query) async => initialize();
   Future<void> searchKnowledgeBases(String query, List<String> kbIds) async =>
@@ -219,10 +224,13 @@ class Rc6KnowledgeBaseRecord {
     required this.name,
     required this.type,
     required this.status,
+    required this.currentVersion,
+    required this.versionCount,
     required this.sourceCount,
     required this.chunkCount,
     required this.manifestPath,
     required this.qualityReportPath,
+    required this.versionComparePath,
     required this.operation,
   });
 
@@ -230,10 +238,13 @@ class Rc6KnowledgeBaseRecord {
   final String name;
   final String type;
   final String status;
+  final String currentVersion;
+  final int versionCount;
   final int sourceCount;
   final int chunkCount;
   final String manifestPath;
   final String qualityReportPath;
+  final String versionComparePath;
   final String operation;
 }
 
