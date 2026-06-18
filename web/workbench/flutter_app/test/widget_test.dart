@@ -405,7 +405,7 @@ void main() {
     expect(find.byKey(const Key('desktop-topbar-single-row')), findsOneWidget);
     expect(find.byKey(const Key('desktop-window-controls')), findsNothing);
     expect(find.text('安全授权受保护'), findsOneWidget);
-    expect(find.text('仪表盘'), findsWidgets);
+    expect(find.text('首页'), findsWidgets);
     expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
     expect(find.byKey(const Key('topbar-search-field')), findsOneWidget);
     expect(find.text('通知'), findsNothing);
@@ -428,7 +428,7 @@ void main() {
     expect(find.text('页面'), findsNothing);
     expect(find.byType(DropdownButtonFormField<int>), findsNothing);
     expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
-    expect(find.text('仪表盘'), findsWidgets);
+    expect(find.text('首页'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
@@ -444,7 +444,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('HeiTang'), findsWidgets);
-    expect(find.text('Dashboard'), findsWidgets);
+    expect(find.text('Home'), findsWidgets);
     expect(find.textContaining('Knowledge Workbench'), findsWidgets);
     expect(find.byKey(const Key('desktop-window-title-bar')), findsNothing);
     expect(find.byKey(const Key('desktop-topbar-single-row')), findsOneWidget);
@@ -461,15 +461,15 @@ void main() {
     await tester.pumpAndSettle();
 
     for (final title in [
-      '导入与解析',
+      '文档库导入',
       '文档库',
       '知识库',
       '检索与验证',
       '文档生成',
       'Skill 工厂',
-      'Agent 工厂',
-      '审计与报告',
-      '设置',
+      'Agent 工作台',
+      '审计中心',
+      '运行设置',
     ]) {
       await tester.tap(find.text(title).first);
       await tester.pumpAndSettle();
@@ -488,7 +488,7 @@ void main() {
         workflowEvidence: sampleP1WorkflowEvidence));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('仪表盘').first);
+    await tester.tap(find.text('首页').first);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('passed · full_gate=blocked'), findsNothing);
@@ -511,7 +511,7 @@ void main() {
         workflowV2Evidence: sampleP1WorkflowV2Evidence));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('仪表盘').first);
+    await tester.tap(find.text('首页').first);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('passed · full_gate=ready_for_v4_rc'),
@@ -550,7 +550,7 @@ void main() {
     expect(find.textContaining('local_ready=false'), findsNothing);
     expect(find.text('运行 Core 操作'), findsNothing);
 
-    await tester.tap(find.text('审计与报告').first);
+    await tester.tap(find.text('审计中心').first);
     await tester.pump();
     expect(find.textContaining('LLM Wiki v2'), findsNothing);
     expect(
@@ -571,7 +571,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('导入与解析').first);
+    await tester.tap(find.text('文档库').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('document-library-open-import-flow')),
+        warnIfMissed: false);
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('dense-page-workbench-import-parsing')),
@@ -587,7 +590,7 @@ void main() {
     expect(find.text('Parser Backend Matrix'), findsNothing);
     expect(find.text('Parser/OCR 后端证据面板'), findsNothing);
     expect(find.text('Backend Matrix Table'), findsNothing);
-    expect(find.text('Reports & Audit Evidence'), findsNothing);
+    expect(find.text('Audit Center Evidence'), findsNothing);
     expect(find.textContaining('v4.1.0 · 4 backends · static_runtime=false'),
         findsNothing);
     expect(find.textContaining('docling:parser-docling'), findsNothing);
@@ -602,10 +605,10 @@ void main() {
     expect(find.textContaining('Execute parser'), findsNothing);
     expect(find.textContaining('运行解析后端'), findsNothing);
 
-    await tester.tap(find.text('仪表盘').first);
+    await tester.tap(find.text('首页').first);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('审计与报告').first);
+    await tester.tap(find.text('审计中心').first);
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
@@ -664,10 +667,10 @@ void main() {
 
     await tester.tap(find.text('EN'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Agent Factory').first);
+    await tester.tap(find.text('Agent Workbench').first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Agent Factory'), findsWidgets);
+    expect(find.text('Agent Workbench'), findsWidgets);
     expect(find.byKey(const Key('agent-workspace-setup')), findsOneWidget);
     await tester.tap(find.byKey(const Key('page-tab-1')), warnIfMissed: false);
     await tester.pumpAndSettle();
@@ -806,7 +809,7 @@ void main() {
     expect(find.textContaining('blocked_reason'), findsNothing);
     expect(find.textContaining('provider_required'), findsNothing);
 
-    await tester.tap(find.text('审计与报告').first);
+    await tester.tap(find.text('审计中心').first);
     await tester.pumpAndSettle();
     expect(find.textContaining('blocked_reason'), findsNothing);
     expect(find.textContaining('secret_required'), findsNothing);
@@ -818,15 +821,15 @@ Future<void> openDeveloperDiagnostics(WidgetTester tester) async {
   if (find.byType(DropdownButtonFormField<int>).evaluate().isNotEmpty) {
     await tester.tap(find.byType(DropdownButtonFormField<int>));
     await tester.pumpAndSettle();
-    final settingsItem = find.text('设置').evaluate().isNotEmpty
-        ? find.text('设置').last
-        : find.text('Settings').last;
+    final settingsItem = find.text('运行设置').evaluate().isNotEmpty
+        ? find.text('运行设置').last
+        : find.text('Run Settings').last;
     await tester.tap(settingsItem);
     await tester.pumpAndSettle();
   } else {
-    final settings = find.text('设置').evaluate().isNotEmpty
-        ? find.text('设置').first
-        : find.text('Settings').first;
+    final settings = find.text('运行设置').evaluate().isNotEmpty
+        ? find.text('运行设置').first
+        : find.text('Run Settings').first;
     await tester.tap(settings);
     await tester.pumpAndSettle();
   }

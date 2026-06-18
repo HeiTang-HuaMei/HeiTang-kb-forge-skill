@@ -113,7 +113,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('设置').first);
+    await tester.tap(find.text('运行设置').first);
     await tester.pumpAndSettle();
     final desktopTab = find.text('桌面交付').evaluate().isNotEmpty
         ? find.text('桌面交付').first

@@ -53,15 +53,15 @@ void main() {
     expect(tester.takeException(), isNull);
 
     for (final label in <String>[
-      '仪表盘',
+      '首页',
       '检索与验证',
       '文档库',
       '知识库',
       '文档生成',
       'Skill 工厂',
-      'Agent 工厂',
-      '审计与报告',
-      '设置',
+      'Agent 工作台',
+      '审计中心',
+      '运行设置',
     ]) {
       final target = find.text(label).first;
       await tester.ensureVisible(target);
@@ -76,10 +76,10 @@ void main() {
       (tester) async {
     await pumpWorkbench(tester, const Size(1366, 768));
 
-    await tester.ensureVisible(find.text('Agent 工厂').first);
-    await tester.tap(find.text('Agent 工厂').first, warnIfMissed: false);
+    await tester.ensureVisible(find.text('Agent 工作台').first);
+    await tester.tap(find.text('Agent 工作台').first, warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.text('Agent 工厂'), findsWidgets);
+    expect(find.text('Agent 工作台'), findsWidgets);
     expect(find.byKey(const Key('agent-workspace-setup')), findsOneWidget);
     await tester.tap(find.byKey(const Key('page-tab-1')), warnIfMissed: false);
     await tester.pumpAndSettle();
@@ -90,8 +90,8 @@ void main() {
     expect(find.textContaining('安全边界'), findsNothing);
     expect(find.textContaining('arbitrary shell'), findsNothing);
 
-    await tester.ensureVisible(find.text('设置').first);
-    await tester.tap(find.text('设置').first, warnIfMissed: false);
+    await tester.ensureVisible(find.text('运行设置').first);
+    await tester.tap(find.text('运行设置').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     final providerTab = find.text('Provider 与存储').first;
     await tester.ensureVisible(providerTab);

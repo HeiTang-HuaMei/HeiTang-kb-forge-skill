@@ -45,7 +45,7 @@ const pages = <WorkbenchPage>[
   WorkbenchPage(
       'dashboard',
       'Dashboard',
-      '仪表盘',
+      '首页',
       'Workbench overview, recent work, health, artifacts, and activity timeline.',
       '工作台概览、最近任务、健康状态、产物与活动时间线。',
       memberPageIds: [
@@ -56,8 +56,8 @@ const pages = <WorkbenchPage>[
       ]),
   WorkbenchPage(
       'import-parsing',
-      'Import & Parsing',
-      '导入与解析',
+      'Document Library Import',
+      '文档库导入',
       'Stage files, folders, and web links, then configure parsing, OCR, chunks, and recovery.',
       '暂存文件、文件夹和网页链接，并配置解析、OCR、分块与失败恢复。',
       memberPageIds: ['import-parsing']),
@@ -68,8 +68,8 @@ const pages = <WorkbenchPage>[
       'Manage source documents, metadata, parsing records, versions, references, and artifacts.',
       '管理来源文档、元数据、解析记录、版本、引用和产物。',
       memberPageIds: [
+        'import-parsing',
         'document-library',
-        'document-generation',
       ]),
   WorkbenchPage(
       'knowledge-package-management',
@@ -104,15 +104,15 @@ const pages = <WorkbenchPage>[
       memberPageIds: ['skill-factory']),
   WorkbenchPage(
       'agent-factory-runtime',
-      'Agent Factory',
-      'Agent 工厂',
-      'Create Agents, bind Knowledge Base and Skill artifacts, and run governed multi-agent discussion.',
-      '创建 Agent、绑定知识库和 Skill 产物，并执行受治理的多 Agent 讨论。',
+      'Agent Workbench',
+      'Agent 工作台',
+      'Create Agents, run single-agent dialogue, and coordinate governed multi-agent discussion.',
+      '创建 Agent、运行单 Agent 对话，并协调受治理的多 Agent 讨论。',
       memberPageIds: ['agent-factory-runtime']),
   WorkbenchPage(
       'reports-audit',
-      'Reports & Audit',
-      '审计与报告',
+      'Audit Center',
+      '审计中心',
       'Review quality, retrieval, OCR, safety, governance reports, issues, and repair suggestions.',
       '查看质量、检索、OCR、安全和治理报告、问题与修复建议。',
       memberPageIds: [
@@ -124,8 +124,8 @@ const pages = <WorkbenchPage>[
       ]),
   WorkbenchPage(
       'workspace',
-      'Settings',
-      '设置',
+      'Run Settings',
+      '运行设置',
       'Manage workspace, models, providers, Redis, vector database, storage, and security authorization.',
       '管理工作区、模型、Provider、Redis、向量库、存储和安全授权。',
       memberPageIds: [
@@ -766,6 +766,8 @@ class _WorkbenchSidebar extends StatelessWidget {
     const selectedBackground = Color(0xff2d3339);
     const primaryText = Color(0xfff7f7f5);
     const secondaryText = Color(0xffaeb6bf);
+    final effectiveSelectedIndex =
+        pages[selectedIndex].id == 'import-parsing' ? 2 : selectedIndex;
 
     return Material(
       color: sidebarBackground,
@@ -775,15 +777,14 @@ class _WorkbenchSidebar extends StatelessWidget {
         children: [
           _SidebarBrand(localeCode: localeCode),
           const SizedBox(height: 10),
-          _SidebarGroupLabel(
-              label: localeCode == 'zh-CN' ? '工作区' : 'Workspace'),
+          _SidebarGroupLabel(label: localeCode == 'zh-CN' ? '首页' : 'Home'),
           _SidebarItem(
             keyName: 'sidebar-dashboard',
             page: pages[0],
             icon: Icons.dashboard_customize_outlined,
             localeCode: localeCode,
             contracts: contracts,
-            selected: selectedIndex == 0,
+            selected: effectiveSelectedIndex == 0,
             primaryText: primaryText,
             secondaryText: secondaryText,
             selectedBackground: selectedBackground,
@@ -791,15 +792,15 @@ class _WorkbenchSidebar extends StatelessWidget {
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _SidebarGroupLabel(
-              label: localeCode == 'zh-CN' ? '知识工程' : 'Knowledge Flow'),
-          for (var index = 1; index <= 5; index++)
+              label: localeCode == 'zh-CN' ? '知识资产' : 'Knowledge Assets'),
+          for (final index in [2, 3, 4])
             _SidebarItem(
               keyName: 'sidebar-${pages[index].id}',
               page: pages[index],
               icon: _sidebarIconFor(pages[index].id),
               localeCode: localeCode,
               contracts: contracts,
-              selected: selectedIndex == index,
+              selected: effectiveSelectedIndex == index,
               primaryText: primaryText,
               secondaryText: secondaryText,
               selectedBackground: selectedBackground,
@@ -807,15 +808,15 @@ class _WorkbenchSidebar extends StatelessWidget {
             ),
           const SizedBox(height: _DesktopGrid.gutter),
           _SidebarGroupLabel(
-              label: localeCode == 'zh-CN' ? '智能能力' : 'Intelligence'),
-          for (var index = 6; index <= 7; index++)
+              label: localeCode == 'zh-CN' ? '知识应用' : 'Knowledge Apps'),
+          for (final index in [5, 6, 7])
             _SidebarItem(
               keyName: 'sidebar-${pages[index].id}',
               page: pages[index],
               icon: _sidebarIconFor(pages[index].id),
               localeCode: localeCode,
               contracts: contracts,
-              selected: selectedIndex == index,
+              selected: effectiveSelectedIndex == index,
               primaryText: primaryText,
               secondaryText: secondaryText,
               selectedBackground: selectedBackground,
@@ -823,14 +824,14 @@ class _WorkbenchSidebar extends StatelessWidget {
             ),
           const SizedBox(height: _DesktopGrid.gutter),
           _SidebarGroupLabel(
-              label: localeCode == 'zh-CN' ? '治理与系统' : 'Governance'),
+              label: localeCode == 'zh-CN' ? '治理' : 'Governance'),
           _SidebarItem(
             keyName: 'sidebar-reports-audit',
             page: pages[8],
             icon: _sidebarIconFor(pages[8].id),
             localeCode: localeCode,
             contracts: contracts,
-            selected: selectedIndex == 8,
+            selected: effectiveSelectedIndex == 8,
             primaryText: primaryText,
             secondaryText: secondaryText,
             selectedBackground: selectedBackground,
@@ -844,7 +845,7 @@ class _WorkbenchSidebar extends StatelessWidget {
             icon: Icons.tune_outlined,
             localeCode: localeCode,
             contracts: contracts,
-            selected: selectedIndex == 9,
+            selected: effectiveSelectedIndex == 9,
             primaryText: primaryText,
             secondaryText: secondaryText,
             selectedBackground: selectedBackground,
@@ -2283,7 +2284,7 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
         _DashboardTaskRow(
           'import',
           _zh ? '导入来源文件' : 'Import sources',
-          _zh ? '导入与解析' : 'Import',
+          _zh ? '文档库' : 'Document Library',
           _zh ? '${runtime.sourceCount} 个文件' : '${runtime.sourceCount} files',
           Icons.upload_file_outlined,
           'import-parsing',
@@ -2292,7 +2293,7 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
         _DashboardTaskRow(
           'parse',
           _zh ? '解析 / OCR / Chunking' : 'Parse / OCR / Chunking',
-          _zh ? '导入与解析' : 'Parsing',
+          _zh ? '文档库' : 'Document Library',
           _zh ? '解析报告已生成' : 'parse report ready',
           Icons.document_scanner_outlined,
           'import-parsing',
@@ -2341,7 +2342,7 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
         _DashboardTaskRow(
           'agent',
           _zh ? '创建 Agent' : 'Create Agent',
-          _zh ? 'Agent 工厂' : 'Agent Factory',
+          _zh ? 'Agent 工作台' : 'Agent Workbench',
           runtime.hasAgentDialogue
               ? (_zh ? '已对话' : 'chat saved')
               : runtime.hasMultiAgentDiscussion
@@ -2364,8 +2365,8 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
                 ? Center(
                     child: Text(
                       _zh
-                          ? '暂无真实任务。请从“导入与解析”开始。'
-                          : 'No real tasks yet. Start from Import & Parsing.',
+                          ? '暂无真实任务。请从“文档库导入资料”开始。'
+                          : 'No real tasks yet. Start from the Document Library import.',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w700,
@@ -2426,7 +2427,7 @@ class _DashboardNextActions extends StatelessWidget {
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     final actions = <_DashboardActionRow>[
       _DashboardActionRow(
-        _zh ? '导入或解析来源' : 'Import or parse sources',
+        _zh ? '文档库导入资料' : 'Import sources to document library',
         _dashboardImportActionLabel(runtime, _zh),
         Icons.file_upload_outlined,
         'import-parsing',
@@ -2671,7 +2672,7 @@ class _DashboardReportSummary extends StatelessWidget {
           rows: _zh
               ? [
                   [
-                    '导入与解析',
+                    '文档库导入',
                     '可操作',
                     'source_manifest.json / parse_report.json',
                     '进入文档库'
@@ -3166,9 +3167,9 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
     Rc6RuntimeState? runtime, bool zh) {
   final suggestions = <_TopBarSearchSuggestion>[
     _TopBarSearchSuggestion(
-      title: zh ? '导入与解析' : 'Import & Parsing',
+      title: zh ? '文档库导入资料' : 'Import into Document Library',
       subtitle: zh ? '选择文件、解析、OCR、分块' : 'Choose files, parse, OCR, chunk',
-      category: zh ? '页面' : 'Page',
+      category: zh ? '文档库' : 'Document Library',
       pageId: 'import-parsing',
       icon: Icons.file_upload_outlined,
       keywords: const ['import', 'parse', 'ocr', 'chunk', '导入', '解析', '分块'],
@@ -3216,10 +3217,10 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
       keywords: const ['skill', 'SKILL.md', '技能', '工厂'],
     ),
     _TopBarSearchSuggestion(
-      title: zh ? 'Agent 工厂' : 'Agent Factory',
+      title: zh ? 'Agent 工作台' : 'Agent Workbench',
       subtitle: zh
-          ? '创建 Agent、运行最小对话和联合讨论'
-          : 'Create Agents, run minimal chat and team discussion',
+          ? '创建 Agent、单 Agent 对话和多 Agent 协作'
+          : 'Create Agents, chat, and coordinate multi-agent work',
       category: zh ? '页面' : 'Page',
       pageId: 'agent-factory-runtime',
       icon: Icons.smart_toy_outlined,
@@ -3758,6 +3759,8 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
               ),
             'document-library' => _DocumentLibraryProductWorkflow(
                 localeCode: widget.localeCode,
+                onOpenImport: () =>
+                    widget.onPageChanged(_pageIndexById('import-parsing')),
               ),
             'knowledge-package-management' => _KnowledgeProductWorkflow(
                 localeCode: widget.localeCode,
@@ -6197,7 +6200,7 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
       children: [
         _ProductHeader(
           icon: Icons.upload_file_outlined,
-          title: _zh ? '导入与解析' : 'Import & Parsing',
+          title: _zh ? '文档库导入资料' : 'Document Library Import',
           description: _zh
               ? '文件、文件夹与网页链接进入同一队列；解析器、OCR、分块和失败恢复在本页完成。'
               : 'Files, folders, and web links enter one queue; parser, OCR, chunking, and recovery are handled here.',
@@ -8609,8 +8612,8 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                 detail: hasRealDocument
                     ? _displayNameForPath(runtime.sourceManifestPath)
                     : (zh
-                        ? '请从导入与解析页选择真实文件或文件夹。'
-                        : 'Choose real files or a folder from Import & Parsing.'),
+                        ? '请从文档库导入资料入口选择真实文件或文件夹。'
+                        : 'Choose real files or a folder from Document Library Import.'),
                 tone:
                     hasRealDocument ? _StatusTone.success : _StatusTone.warning,
                 icon: hasRealDocument
@@ -8824,9 +8827,13 @@ String _documentTypeLabel(String type, bool zh) {
 }
 
 class _DocumentLibraryProductWorkflow extends StatelessWidget {
-  const _DocumentLibraryProductWorkflow({required this.localeCode});
+  const _DocumentLibraryProductWorkflow({
+    required this.localeCode,
+    required this.onOpenImport,
+  });
 
   final String localeCode;
+  final VoidCallback onOpenImport;
 
   bool get _zh => localeCode == 'zh-CN';
 
@@ -8839,6 +8846,16 @@ class _DocumentLibraryProductWorkflow extends StatelessWidget {
         description: _zh
             ? '管理来源文档、分类、搜索、筛选、解析信息、元数据、版本和引用情况。'
             : 'Manage source documents, categories, search, filters, parsing information, metadata, versions, and references.',
+      ),
+      const SizedBox(height: _DesktopGrid.gutter),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: FilledButton.icon(
+          key: const Key('document-library-open-import-flow'),
+          onPressed: onOpenImport,
+          icon: const Icon(Icons.file_upload_outlined),
+          label: Text(_zh ? '导入资料' : 'Import sources'),
+        ),
       ),
       const SizedBox(height: _DesktopGrid.gutter),
       _DocumentLibraryView(zh: _zh),
@@ -9866,7 +9883,7 @@ class _AgentProductWorkflow extends StatelessWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.smart_toy_outlined,
-        title: _zh ? 'Agent 工厂' : 'Agent Factory',
+        title: _zh ? 'Agent 工作台' : 'Agent Workbench',
         description: _zh
             ? '创建 Agent、绑定知识库与 Skill，并在本页启动多 Agent 联合讨论。'
             : 'Create Agents, bind Knowledge Base and Skill, and run multi-agent discussion here.',
@@ -10553,7 +10570,7 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                       runtime.hasAgent ? '已生成' : '请先生成 Agent',
                       runtime.hasAgent
                           ? _displayNameForPath(runtime.agentPath)
-                          : 'Agent 工厂创建'
+                          : 'Agent 工作台创建'
                     ],
                   ]
                 : [
@@ -10576,7 +10593,7 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                       runtime.hasAgent ? 'Generated' : 'Generate Agent first',
                       runtime.hasAgent
                           ? _displayNameForPath(runtime.agentPath)
-                          : 'Create in Agent Factory'
+                          : 'Create in Agent Workbench'
                     ],
                   ],
           ),
@@ -10974,7 +10991,7 @@ class _ValidateExportProductWorkflow extends StatelessWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.fact_check_outlined,
-        title: _zh ? '审计与报告' : 'Reports & Audit',
+        title: _zh ? '审计中心' : 'Audit Center',
         description: _zh
             ? '汇总质量、检索、OCR、安全和治理报告，展示问题、阻塞项和修复建议。'
             : 'Summarize quality, retrieval, OCR, safety, and governance reports, issues, blockers, and repair suggestions.',
@@ -11298,7 +11315,7 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
                   ['归档报告', exportManifestReady ? '已准备' : '未准备', '只归档报告证据'],
                   ['导出文档', '归文档生成模块', '本页不重复入口'],
                   ['导出 Skill', '归 Skill 工厂', '本页不重复入口'],
-                  ['导出 Agent Package', '归 Agent 工厂', '本页不重复入口'],
+                  ['导出 Agent Package', '归 Agent 工作台', '本页不重复入口'],
                   ['发布 Release', '未授权', '不创建 Release'],
                 ]
               : [
@@ -11315,7 +11332,7 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
                   ['Export Skill', 'Skill Factory', 'No duplicate entry here'],
                   [
                     'Export Agent Package',
-                    'Agent Factory',
+                    'Agent Workbench',
                     'No duplicate entry here'
                   ],
                   [
@@ -11376,7 +11393,7 @@ class _SettingsProductWorkflow extends StatelessWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.settings_outlined,
-        title: _zh ? '设置' : 'Settings',
+        title: _zh ? '运行设置' : 'Run Settings',
         description: _zh
             ? '管理应用工作区、Provider、存储、模型、语言、主题和安全授权。'
             : 'Manage workspace, providers, storage, models, language, theme, and authorization.',
@@ -12562,7 +12579,7 @@ class _SettingsWorkspaceView extends StatelessWidget {
                       'Agent Creation Package',
                       'Agent Package',
                       '已登记',
-                      'Agent 工厂管理'
+                      'Agent 工作台管理'
                     ],
                   ]
                 : [
@@ -12583,7 +12600,7 @@ class _SettingsWorkspaceView extends StatelessWidget {
                       'Agent Creation Package',
                       'Agent Package',
                       'Registered',
-                      'Agent Factory'
+                      'Agent Workbench'
                     ],
                   ],
           ),

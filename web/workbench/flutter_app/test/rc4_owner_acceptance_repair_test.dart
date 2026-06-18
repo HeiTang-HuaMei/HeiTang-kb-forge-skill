@@ -58,8 +58,12 @@ void main() {
     expect(find.byKey(const Key('topbar-real-search-input')), findsOneWidget);
     expect(find.textContaining('display_only'), findsNothing);
 
-    await tester.ensureVisible(find.byKey(const Key('sidebar-import-parsing')));
-    await tester.tap(find.byKey(const Key('sidebar-import-parsing')),
+    await tester
+        .ensureVisible(find.byKey(const Key('sidebar-document-library')));
+    await tester.tap(find.byKey(const Key('sidebar-document-library')),
+        warnIfMissed: false);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('document-library-open-import-flow')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);

@@ -28,7 +28,7 @@ void main() {
     await pumpWorkbench(tester);
 
     const expectedSurfaces = <MapEntry<Key, Key>>[
-      MapEntry(Key('sidebar-import-parsing'), Key('import-intake-surface')),
+      MapEntry(Key('sidebar-document-library'), Key('document-library')),
       MapEntry(Key('sidebar-knowledge-package-management'),
           Key('knowledge-package-list')),
       MapEntry(
@@ -52,6 +52,13 @@ void main() {
       expect(find.textContaining('allowlisted_core_bridge'), findsNothing,
           reason: '${entry.key}');
     }
+    await tester.tap(find.byKey(const Key('sidebar-document-library')),
+        warnIfMissed: false);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('document-library-open-import-flow')),
+        warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -64,7 +71,7 @@ void main() {
         warnIfMissed: false);
     await tester.pumpAndSettle();
 
-    expect(find.text('设置'), findsWidgets);
+    expect(find.text('运行设置'), findsWidgets);
     expect(find.text('Provider 与存储'), findsOneWidget);
     expect(find.textContaining('开发者诊断'), findsNothing);
     expect(find.textContaining('后端矩阵'), findsNothing);

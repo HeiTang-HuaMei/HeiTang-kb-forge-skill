@@ -68,21 +68,21 @@ void main() {
     expect(
       pages.map((page) => page.zhTitle),
       [
-        '仪表盘',
-        '导入与解析',
+        '首页',
+        '文档库导入',
         '文档库',
         '知识库',
         '检索与验证',
         '文档生成',
         'Skill 工厂',
-        'Agent 工厂',
-        '审计与报告',
-        '设置',
+        'Agent 工作台',
+        '审计中心',
+        '运行设置',
       ],
     );
-    expect(find.text('仪表盘'), findsWidgets);
-    expect(find.text('导入与解析'), findsWidgets);
-    expect(find.text('Agent 工厂'), findsWidgets);
+    expect(find.text('首页'), findsWidgets);
+    expect(find.text('导入与解析'), findsNothing);
+    expect(find.text('Agent 工作台'), findsWidgets);
     expect(find.text('Agent 包'), findsNothing);
     expect(find.text('Agent 工厂与运行'), findsNothing);
     expect(find.text('运行与编排'), findsNothing);
@@ -90,6 +90,15 @@ void main() {
     expect(find.text('agent-factory-runtime'), findsNothing);
     expect(find.text('knowledge-package-management'), findsNothing);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
+    await tester.tap(find.text('文档库').first);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('document-library-open-import-flow')),
+        findsOneWidget);
+    await tester
+        .tap(find.byKey(const Key('document-library-open-import-flow')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('dense-page-workbench-import-parsing')),
+        findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -118,7 +127,7 @@ void main() {
     await tester.enterText(
         find.byKey(const Key('topbar-real-search-input')), 'Agent');
     await tester.pumpAndSettle();
-    expect(find.text('页面 · 创建 Agent、运行最小对话和联合讨论'), findsOneWidget);
+    expect(find.text('页面 · 创建 Agent、单 Agent 对话和多 Agent 协作'), findsOneWidget);
     await tester.tap(
         find.byKey(const Key('topbar-search-option-agent-factory-runtime')));
     await tester.pumpAndSettle();
@@ -152,7 +161,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('设置').first);
+    await tester.tap(find.text('运行设置').first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Provider 与存储'));
     await tester.pumpAndSettle();
@@ -383,7 +392,7 @@ void main() {
 
     expect(find.byKey(const Key('dense-page-workbench-agent-factory-runtime')),
         findsOneWidget);
-    expect(find.text('Agent 工厂'), findsWidgets);
+    expect(find.text('Agent 工作台'), findsWidgets);
     expect(find.byKey(const Key('agent-workspace-setup')), findsOneWidget);
     expect(find.text('工作区创建'), findsOneWidget);
     expect(find.text('Agent 配置'), findsOneWidget);
