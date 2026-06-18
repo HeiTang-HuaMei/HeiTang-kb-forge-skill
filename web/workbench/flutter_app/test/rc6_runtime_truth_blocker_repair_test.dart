@@ -1008,6 +1008,24 @@ void main() {
           contains('"memory_write_status": "local_session_written"'),
           contains('"used_skill_ids"'),
         ));
+    final dialogueExportPath = await controller.exportAgentDialogue();
+    expect(dialogueExportPath, endsWith('agent_dialogue_export.md'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue_export${Platform.pathSeparator}agent_dialogue_export.md')
+            .readAsStringSync(),
+        allOf(
+          contains('Agent 对话导出'),
+          contains('总结真实输入主题'),
+          contains('继续追问行动建议'),
+        ));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue_export${Platform.pathSeparator}agent_dialogue_export_manifest.json')
+            .readAsStringSync(),
+        allOf(
+          contains('prd_v2_agent_dialogue_export.v1'),
+          contains('"turn_count": ${baseTurnCount + 2}'),
+          contains('"secret_plaintext_written": false'),
+        ));
     final reloadedController = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
         runner: (_) async => const CoreBridgeProcessResult(
@@ -1021,6 +1039,7 @@ void main() {
     await reloadedController.initialize();
     expectMainKnowledgeArtifacts(workspace, reloadedController.state);
     expect(reloadedController.state.hasAgentDialogueHistory, isTrue);
+    expect(reloadedController.state.hasAgentDialogueExport, isTrue);
     expect(reloadedController.state.agentDialogueTurnCount, baseTurnCount + 2);
     expect(
         File('${workspace.path}${Platform.pathSeparator}doc${Platform.pathSeparator}reading_notes.md')

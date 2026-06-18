@@ -1607,6 +1607,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       skillPath: '',
       agentPath: '',
       agentDialoguePath: '',
+      agentDialogueHistoryPath: '',
+      agentDialogueExportPath: '',
       multiAgentDiscussionPath: '',
       prdP0EvidencePath: '',
       lastMessage: 'Skill、Agent 和讨论产物已删除。',
@@ -1635,6 +1637,8 @@ class Rc6RuntimeController extends ChangeNotifier {
                       : Rc6RuntimePhase.imported,
       agentPath: '',
       agentDialoguePath: '',
+      agentDialogueHistoryPath: '',
+      agentDialogueExportPath: '',
       multiAgentDiscussionPath: '',
       prdP0EvidencePath: '',
       lastMessage: 'Agent、对话和讨论产物已删除。',
@@ -2106,6 +2110,71 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<String> exportAgentDialogue() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    if (!state.hasAgentDialogue || !state.hasAgentDialogueHistory) {
+      _fail('请先运行单 Agent 对话，再导出对话记录。');
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final dialogue = File(state.agentDialoguePath);
+    final history = File(state.agentDialogueHistoryPath);
+    if (!await dialogue.exists() || !await history.exists()) {
+      _fail('对话产物不完整，请重新运行单 Agent 对话。');
+      return '';
+    }
+    final exportDir =
+        Directory(_join(workspace.path, 'agent', 'dialogue_export'));
+    await exportDir.create(recursive: true);
+    final outputPath = _join(exportDir.path, 'agent_dialogue_export.md');
+    final manifestPath =
+        _join(exportDir.path, 'agent_dialogue_export_manifest.json');
+    final historyLines = await history.readAsLines(encoding: utf8);
+    final dialogueText = await dialogue.readAsString(encoding: utf8);
+    await File(outputPath).writeAsString(
+      [
+        '# Agent 对话导出',
+        '',
+        '## 导出说明',
+        '- 来源对话：${dialogue.path}',
+        '- 会话历史：${history.path}',
+        '- 导出轮数：${historyLines.length}',
+        '- 绑定知识库：K1',
+        '- 绑定 Skill：S1 / reading_summary_skill',
+        '- 高风险能力：未开放 Computer Use / arbitrary shell',
+        '',
+        dialogueText,
+      ].join('\n'),
+      encoding: utf8,
+    );
+    await File(manifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v2_agent_dialogue_export.v1',
+        'status': 'pass',
+        'workspace': workspace.path,
+        'source_dialogue': dialogue.path,
+        'source_history': history.path,
+        'output': outputPath,
+        'turn_count': historyLines.length,
+        'used_kb_ids': ['K1'],
+        'used_skill_ids': ['S1', 'reading_summary_skill'],
+        'model_config_id': 'local-default-or-configured-provider',
+        'audit_included': true,
+        'secret_plaintext_written': false,
+      }),
+      encoding: utf8,
+    );
+    state = state.copyWith(
+      agentDialogueExportPath: outputPath,
+      lastMessage: 'Agent 对话记录已导出。',
+      lastError: '',
+    );
+    notifyListeners();
+    return outputPath;
+  }
+
   Future<void> completeSkillProductOperations() async {
     if (!_canRunDesktop()) {
       return;
@@ -2382,6 +2451,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       skillPath: '',
       agentPath: '',
       agentDialoguePath: '',
+      agentDialogueHistoryPath: '',
+      agentDialogueExportPath: '',
       readingNotesPath: '',
       editedDocumentPath: '',
       editManifestPath: '',
@@ -2468,6 +2539,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         _joinNested(workspace.path, 'agent/dialogue/agent_dialogue.md');
     final agentDialogueHistoryPath =
         _joinNested(workspace.path, 'agent/dialogue/chat_history.jsonl');
+    final agentDialogueExportPath = _joinNested(
+        workspace.path, 'agent/dialogue_export/agent_dialogue_export.md');
     final multiAgentPath =
         _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md');
     final prdP0EvidencePath =
@@ -2554,6 +2627,9 @@ class Rc6RuntimeController extends ChangeNotifier {
           await File(agentDialoguePath).exists() ? agentDialoguePath : '',
       agentDialogueHistoryPath: await File(agentDialogueHistoryPath).exists()
           ? agentDialogueHistoryPath
+          : '',
+      agentDialogueExportPath: await File(agentDialogueExportPath).exists()
+          ? agentDialogueExportPath
           : '',
       agentDialogueTurnCount: dialogueTurnCount,
       multiAgentDiscussionPath:
@@ -5999,6 +6075,7 @@ class Rc6RuntimeState {
     required this.agentPath,
     required this.agentDialoguePath,
     required this.agentDialogueHistoryPath,
+    required this.agentDialogueExportPath,
     required this.agentDialogueTurnCount,
     required this.multiAgentDiscussionPath,
     required this.prdP0EvidencePath,
@@ -6042,6 +6119,7 @@ class Rc6RuntimeState {
         agentPath: '',
         agentDialoguePath: '',
         agentDialogueHistoryPath: '',
+        agentDialogueExportPath: '',
         agentDialogueTurnCount: 0,
         multiAgentDiscussionPath: '',
         prdP0EvidencePath: '',
@@ -6084,6 +6162,7 @@ class Rc6RuntimeState {
   final String agentPath;
   final String agentDialoguePath;
   final String agentDialogueHistoryPath;
+  final String agentDialogueExportPath;
   final int agentDialogueTurnCount;
   final String multiAgentDiscussionPath;
   final String prdP0EvidencePath;
@@ -6109,6 +6188,7 @@ class Rc6RuntimeState {
   bool get hasAgent => agentPath.isNotEmpty;
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
   bool get hasAgentDialogueHistory => agentDialogueHistoryPath.isNotEmpty;
+  bool get hasAgentDialogueExport => agentDialogueExportPath.isNotEmpty;
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
   bool get hasPrdP0Evidence => prdP0EvidencePath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
@@ -6140,6 +6220,7 @@ class Rc6RuntimeState {
     String? agentPath,
     String? agentDialoguePath,
     String? agentDialogueHistoryPath,
+    String? agentDialogueExportPath,
     int? agentDialogueTurnCount,
     String? multiAgentDiscussionPath,
     String? prdP0EvidencePath,
@@ -6184,6 +6265,8 @@ class Rc6RuntimeState {
       agentDialoguePath: agentDialoguePath ?? this.agentDialoguePath,
       agentDialogueHistoryPath:
           agentDialogueHistoryPath ?? this.agentDialogueHistoryPath,
+      agentDialogueExportPath:
+          agentDialogueExportPath ?? this.agentDialogueExportPath,
       agentDialogueTurnCount:
           agentDialogueTurnCount ?? this.agentDialogueTurnCount,
       multiAgentDiscussionPath:

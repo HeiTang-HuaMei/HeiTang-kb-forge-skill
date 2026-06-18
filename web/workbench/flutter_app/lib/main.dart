@@ -11437,6 +11437,13 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
           ),
           const SizedBox(height: 8),
           _FieldRow(
+            label: zh ? '导出记录' : 'Exported dialogue',
+            value: runtime.hasAgentDialogueExport
+                ? _displayNameForPath(runtime.agentDialogueExportPath)
+                : (zh ? '尚未导出' : 'Not exported'),
+          ),
+          const SizedBox(height: 8),
+          _FieldRow(
             label: zh ? '回复说明' : 'Reply trace',
             value: runtime.hasAgentDialogue
                 ? (zh
@@ -11504,6 +11511,34 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                         path: runtime.agentDialogueHistoryPath,
                         unavailableMessage:
                             zh ? '尚未生成可预览会话历史。' : 'No chat history generated.',
+                        closeLabel: zh ? '关闭' : 'Close',
+                      )
+                  : null,
+            ),
+            _PrimaryProductAction(
+              label: runtime.hasAgentDialogueHistory
+                  ? (zh ? '导出对话记录' : 'Export dialogue')
+                  : (zh ? '等待可导出历史' : 'Waiting for exportable history'),
+              icon: Icons.file_download_outlined,
+              onPressed: runtime.hasAgentDialogueHistory &&
+                      rc6 != null &&
+                      !runtime.running
+                  ? () => rc6.exportAgentDialogue()
+                  : null,
+            ),
+            _DisplayAction(
+              label: runtime.hasAgentDialogueExport
+                  ? (zh ? '查看导出记录' : 'View export')
+                  : (zh ? '等待导出记录' : 'Waiting for export'),
+              icon: Icons.article_outlined,
+              onPressed: runtime.hasAgentDialogueExport
+                  ? () => _showWorkspaceArtifactPreview(
+                        context,
+                        rc6: rc6,
+                        title: zh ? '导出对话预览' : 'Dialogue export preview',
+                        path: runtime.agentDialogueExportPath,
+                        unavailableMessage:
+                            zh ? '尚未生成可预览导出。' : 'No dialogue export generated.',
                         closeLabel: zh ? '关闭' : 'Close',
                       )
                   : null,

@@ -181,6 +181,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       initialize();
   Future<void> runAgentDialogue({String prompt = '请基于当前知识库总结核心要点。'}) async =>
       initialize();
+  Future<String> exportAgentDialogue() async {
+    await initialize();
+    return '';
+  }
+
   Future<void> runMultiAgentDiscussion() async => initialize();
   Future<void> runRealInputFolderE2E(String folderPath,
           {String query = '赚钱 小生意'}) async =>
@@ -345,6 +350,7 @@ class Rc6RuntimeState {
     required this.agentPath,
     required this.agentDialoguePath,
     required this.agentDialogueHistoryPath,
+    required this.agentDialogueExportPath,
     required this.agentDialogueTurnCount,
     required this.multiAgentDiscussionPath,
     required this.prdP0EvidencePath,
@@ -388,6 +394,7 @@ class Rc6RuntimeState {
         agentPath: '',
         agentDialoguePath: '',
         agentDialogueHistoryPath: '',
+        agentDialogueExportPath: '',
         agentDialogueTurnCount: 0,
         multiAgentDiscussionPath: '',
         prdP0EvidencePath: '',
@@ -430,6 +437,7 @@ class Rc6RuntimeState {
   final String agentPath;
   final String agentDialoguePath;
   final String agentDialogueHistoryPath;
+  final String agentDialogueExportPath;
   final int agentDialogueTurnCount;
   final String multiAgentDiscussionPath;
   final String prdP0EvidencePath;
@@ -455,6 +463,7 @@ class Rc6RuntimeState {
   bool get hasAgent => agentPath.isNotEmpty;
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
   bool get hasAgentDialogueHistory => agentDialogueHistoryPath.isNotEmpty;
+  bool get hasAgentDialogueExport => agentDialogueExportPath.isNotEmpty;
   bool get hasMultiAgentDiscussion => multiAgentDiscussionPath.isNotEmpty;
   bool get hasPrdP0Evidence => prdP0EvidencePath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
@@ -486,6 +495,7 @@ class Rc6RuntimeState {
     String? agentPath,
     String? agentDialoguePath,
     String? agentDialogueHistoryPath,
+    String? agentDialogueExportPath,
     int? agentDialogueTurnCount,
     String? multiAgentDiscussionPath,
     String? prdP0EvidencePath,
@@ -530,6 +540,8 @@ class Rc6RuntimeState {
       agentDialoguePath: agentDialoguePath ?? this.agentDialoguePath,
       agentDialogueHistoryPath:
           agentDialogueHistoryPath ?? this.agentDialogueHistoryPath,
+      agentDialogueExportPath:
+          agentDialogueExportPath ?? this.agentDialogueExportPath,
       agentDialogueTurnCount:
           agentDialogueTurnCount ?? this.agentDialogueTurnCount,
       multiAgentDiscussionPath:
