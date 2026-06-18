@@ -38,6 +38,23 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  void writeGeneratedDocumentExport(Directory output, String format) {
+    final file =
+        File('${output.path}${Platform.pathSeparator}generated.$format');
+    if (format == 'pdf') {
+      file.writeAsBytesSync('%PDF-1.4\n% test document\n'.codeUnits);
+    } else {
+      file.writeAsStringSync('generated $format from real input');
+    }
+    File('${output.path}${Platform.pathSeparator}generated_file_report.json')
+        .writeAsStringSync(jsonEncode({
+      'status': 'pass',
+      'files': {
+        format: file.path,
+      },
+    }));
+  }
+
   testWidgets('rc7 document library shows product-owned document state',
       (tester) async {
     await pumpWorkbench(tester);
@@ -632,6 +649,12 @@ void main() {
             case 'generate_markdown':
               File('${output.path}${Platform.pathSeparator}generated.md')
                   .writeAsStringSync('# generated from real input');
+            case 'generate_docx':
+              writeGeneratedDocumentExport(output, 'docx');
+            case 'generate_pdf':
+              writeGeneratedDocumentExport(output, 'pdf');
+            case 'generate_pptx':
+              writeGeneratedDocumentExport(output, 'pptx');
             case 'package_to_skill':
               File('${output.path}${Platform.pathSeparator}SKILL.md')
                   .writeAsStringSync('# skill');
@@ -662,6 +685,9 @@ void main() {
       'knowledge_base_build',
       'rag_query',
       'generate_markdown',
+      'generate_docx',
+      'generate_pdf',
+      'generate_pptx',
       'package_to_skill',
       'kb_bound_agent_generation',
     ]);
@@ -800,6 +826,12 @@ void main() {
             case 'generate_markdown':
               File('${output.path}${Platform.pathSeparator}generated.md')
                   .writeAsStringSync('# generated from real input');
+            case 'generate_docx':
+              writeGeneratedDocumentExport(output, 'docx');
+            case 'generate_pdf':
+              writeGeneratedDocumentExport(output, 'pdf');
+            case 'generate_pptx':
+              writeGeneratedDocumentExport(output, 'pptx');
           }
           return const CoreBridgeProcessResult(
               exitCode: 0, stdout: 'ok', stderr: '');
@@ -820,6 +852,9 @@ void main() {
       'knowledge_base_build',
       'rag_query',
       'generate_markdown',
+      'generate_docx',
+      'generate_pdf',
+      'generate_pptx',
     ]);
     expect(controller.state.hasReadingNotes, isTrue);
     expect(controller.state.hasExportedDocument, isTrue);
@@ -833,6 +868,16 @@ void main() {
         File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}export_manifest.json')
             .readAsStringSync(),
         contains('rc10_document_export.v1'));
+    for (final format in const ['docx', 'pdf', 'pptx']) {
+      expect(
+          File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}$format${Platform.pathSeparator}generated.$format')
+              .existsSync(),
+          isTrue);
+      expect(
+          File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}$format${Platform.pathSeparator}generated_file_report.json')
+              .readAsStringSync(),
+          contains('"status":"pass"'));
+    }
     await controller.exportDocumentFormat('json');
     await controller.exportDocumentFormat('csv');
     final structuredRoot =
@@ -887,6 +932,12 @@ void main() {
             case 'generate_markdown':
               File('${output.path}${Platform.pathSeparator}generated.md')
                   .writeAsStringSync('# owner input');
+            case 'generate_docx':
+              writeGeneratedDocumentExport(output, 'docx');
+            case 'generate_pdf':
+              writeGeneratedDocumentExport(output, 'pdf');
+            case 'generate_pptx':
+              writeGeneratedDocumentExport(output, 'pptx');
             case 'package_to_skill':
               File('${output.path}${Platform.pathSeparator}SKILL.md')
                   .writeAsStringSync('# skill');
@@ -971,6 +1022,12 @@ void main() {
             case 'generate_markdown':
               File('${output.path}${Platform.pathSeparator}generated.md')
                   .writeAsStringSync('# generated from real input');
+            case 'generate_docx':
+              writeGeneratedDocumentExport(output, 'docx');
+            case 'generate_pdf':
+              writeGeneratedDocumentExport(output, 'pdf');
+            case 'generate_pptx':
+              writeGeneratedDocumentExport(output, 'pptx');
             case 'package_to_skill':
               File('${output.path}${Platform.pathSeparator}SKILL.md')
                   .writeAsStringSync('# skill');
@@ -1003,6 +1060,9 @@ void main() {
           'knowledge_base_build',
           'rag_query',
           'generate_markdown',
+          'generate_docx',
+          'generate_pdf',
+          'generate_pptx',
           'package_to_skill',
           'kb_bound_agent_generation',
         ]));

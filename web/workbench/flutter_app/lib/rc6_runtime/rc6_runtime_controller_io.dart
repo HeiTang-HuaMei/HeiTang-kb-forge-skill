@@ -639,6 +639,15 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> _exportOfficeDocumentFormats() async {
+    for (final format in const ['docx', 'pdf', 'pptx']) {
+      await exportDocumentFormat(format);
+      if (state.lastResult?.passed != true) {
+        return;
+      }
+    }
+  }
+
   Future<void> _exportStructuredDocumentFormat(String format) async {
     if (!_canRunDesktop()) {
       return;
@@ -698,10 +707,18 @@ class Rc6RuntimeController extends ChangeNotifier {
     state = state.copyWith(
       running: false,
       phase: Rc6RuntimePhase.documentGenerated,
+      exportedDocumentPath: outputPath,
+      exportManifestPath: manifestPath,
       lastMessage: '${format.toUpperCase()} 结构化文件已导出。',
       lastError: '',
     );
     await _loadExistingArtifacts();
+    state = state.copyWith(
+      exportedDocumentPath: outputPath,
+      exportManifestPath: manifestPath,
+      lastMessage: '${format.toUpperCase()} 结构化文件已导出。',
+      lastError: '',
+    );
     notifyListeners();
   }
 
@@ -1342,6 +1359,56 @@ class Rc6RuntimeController extends ChangeNotifier {
     return null;
   }
 
+  Future<(String, String)> _latestExistingExportArtifact(
+      Directory workspace) async {
+    final candidates = <(String, String)>[
+      (
+        _join(workspace.path, 'export', 'reading_notes_export.md'),
+        _join(workspace.path, 'export', 'export_manifest.json')
+      ),
+      (
+        _joinNested(workspace.path, 'export/docx/generated.docx'),
+        _joinNested(workspace.path, 'export/docx/generated_file_report.json')
+      ),
+      (
+        _joinNested(workspace.path, 'export/pdf/generated.pdf'),
+        _joinNested(workspace.path, 'export/pdf/generated_file_report.json')
+      ),
+      (
+        _joinNested(workspace.path, 'export/pptx/generated.pptx'),
+        _joinNested(workspace.path, 'export/pptx/generated_file_report.json')
+      ),
+      (
+        _joinNested(workspace.path, 'export/structured/knowledge_export.json'),
+        _joinNested(
+            workspace.path, 'export/structured/structured_export_manifest.json')
+      ),
+      (
+        _joinNested(workspace.path, 'export/structured/knowledge_export.csv'),
+        _joinNested(
+            workspace.path, 'export/structured/structured_export_manifest.json')
+      ),
+    ];
+    (String, String, DateTime)? latest;
+    for (final candidate in candidates) {
+      final file = File(candidate.$1);
+      if (!await file.exists()) {
+        continue;
+      }
+      final modified = await file.lastModified();
+      if (latest == null || modified.isAfter(latest.$3)) {
+        latest = (candidate.$1, candidate.$2, modified);
+      }
+    }
+    if (latest == null) {
+      return ('', '');
+    }
+    return (
+      latest.$1,
+      await File(latest.$2).exists() ? latest.$2 : '',
+    );
+  }
+
   Future<void> generateSkill() async {
     if (!_canRunDesktop()) {
       return;
@@ -1557,6 +1624,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     await exportMarkdownDocument();
     await exportDocumentFormat('json');
     await exportDocumentFormat('csv');
+    await _exportOfficeDocumentFormats();
+    if (state.lastResult?.passed != true) return;
     await generateSkill();
     if (state.lastResult?.passed != true) return;
     await generateAgent();
@@ -1609,6 +1678,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await exportMarkdownDocument();
     await exportDocumentFormat('json');
     await exportDocumentFormat('csv');
+    await _exportOfficeDocumentFormats();
   }
 
   Future<void> runOwnerInputDocumentFlowE2E({String query = '赚钱 小生意'}) async {
@@ -1773,10 +1843,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(workspace.path, 'query', 'kb_query_result.json');
     final markdownPath = _join(workspace.path, 'doc', 'generated.md');
     final readingNotesPath = _join(workspace.path, 'doc', 'reading_notes.md');
-    final exportedDocumentPath =
-        _join(workspace.path, 'export', 'reading_notes_export.md');
-    final exportManifestPath =
-        _join(workspace.path, 'export', 'export_manifest.json');
+    final latestExport = await _latestExistingExportArtifact(workspace);
+    final exportedDocumentPath = latestExport.$1;
+    final exportManifestPath = latestExport.$2;
     final skillPath = _join(
         _join(workspace.path, 'skill', 'knowledge_qa_skill'),
         'skill_manifest.yaml');
@@ -1849,10 +1918,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           await File(markdownPath).exists() ? markdownPath : '',
       readingNotesPath:
           await File(readingNotesPath).exists() ? readingNotesPath : '',
-      exportedDocumentPath:
-          await File(exportedDocumentPath).exists() ? exportedDocumentPath : '',
-      exportManifestPath:
-          await File(exportManifestPath).exists() ? exportManifestPath : '',
+      exportedDocumentPath: exportedDocumentPath,
+      exportManifestPath: exportManifestPath,
       skillPath:
           await File(skillPath).exists() ? _join(workspace.path, 'skill') : '',
       agentPath:
@@ -3900,9 +3967,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       },
       'exporters': {
         'markdown': {'status': 'enabled_real', 'extension': 'md'},
-        'docx': {'status': 'configured_not_enabled', 'secret_required': false},
-        'pdf': {'status': 'configured_not_enabled', 'secret_required': false},
-        'pptx': {'status': 'configured_not_enabled', 'secret_required': false},
+        'docx': {'status': 'enabled_real', 'extension': 'docx'},
+        'pdf': {'status': 'enabled_real', 'extension': 'pdf'},
+        'pptx': {'status': 'enabled_real', 'extension': 'pptx'},
         'json': {'status': 'enabled_real', 'extension': 'json'},
         'csv': {'status': 'enabled_real', 'extension': 'csv'},
       },
@@ -3955,9 +4022,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       },
       'exporters': {
         'markdown': {'status': 'enabled_real', 'extension': 'md'},
-        'docx': {'status': 'configured_not_enabled', 'secret_required': false},
-        'pdf': {'status': 'configured_not_enabled', 'secret_required': false},
-        'pptx': {'status': 'configured_not_enabled', 'secret_required': false},
+        'docx': {'status': 'enabled_real', 'extension': 'docx'},
+        'pdf': {'status': 'enabled_real', 'extension': 'pdf'},
+        'pptx': {'status': 'enabled_real', 'extension': 'pptx'},
         'json': {'status': 'enabled_real', 'extension': 'json'},
         'csv': {'status': 'enabled_real', 'extension': 'csv'},
       },

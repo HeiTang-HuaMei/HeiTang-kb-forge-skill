@@ -110,11 +110,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         },
         'exporters': {
           'markdown': {'status': 'enabled_real', 'extension': 'md'},
-          'docx': {'status': 'configured_not_enabled'},
-          'pdf': {'status': 'configured_not_enabled'},
-          'pptx': {'status': 'configured_not_enabled'},
-          'json': {'status': 'configured_not_enabled'},
-          'csv': {'status': 'configured_not_enabled'},
+          'docx': {'status': 'desktop_runtime_required', 'extension': 'docx'},
+          'pdf': {'status': 'desktop_runtime_required', 'extension': 'pdf'},
+          'pptx': {'status': 'desktop_runtime_required', 'extension': 'pptx'},
+          'json': {'status': 'desktop_runtime_required', 'extension': 'json'},
+          'csv': {'status': 'desktop_runtime_required', 'extension': 'csv'},
         },
       };
   Future<String> saveStorageProviderSettings({

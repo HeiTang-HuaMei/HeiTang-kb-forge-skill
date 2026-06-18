@@ -5588,7 +5588,7 @@ class _DocumentPreviewPanel extends StatelessWidget {
                   '1. Summary: generated from local Knowledge Base evidence.',
                   '2. Coverage: citations, sources, and timestamps stay traceable.',
                   '3. Risk: external comparison requires network Provider and explicit opt-in.',
-                  '4. Export: Markdown is verified in this flow; other formats require exporter config.'
+                  '4. Export: Markdown, DOCX, PDF, PPTX, JSON, and CSV are verified through local workspace artifacts.'
                 ])) ...[
             Text(line,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -6482,8 +6482,10 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
         : runtime.hasKnowledgeBase
             ? (zh ? '可生成' : 'Ready')
             : (zh ? '需要知识库' : 'Needs KB');
-    final adapterNotEnabled =
-        zh ? '未启用：缺少导出器配置' : 'Not enabled: exporter config missing';
+    final exportReady = runtime.hasMarkdown
+        ? (zh ? '可导出' : 'Ready')
+        : (zh ? '需要文档' : 'Needs document');
+    final realCoreExport = zh ? '本地 Core 导出' : 'Local Core export';
     Future<void> openGenerationDialog() async {
       final result = await showDialog<_DocumentGenerationConfig>(
         context: context,
@@ -6507,8 +6509,10 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
         previewReady = true;
       });
       if (rc6 == null || runtime.running) return;
-      if (result.outputFormat != 'md') return;
       await rc6.generateMarkdown();
+      if (result.outputFormat != 'md' && rc6.state.lastResult?.passed == true) {
+        await rc6.exportDocumentFormat(result.outputFormat);
+      }
     }
 
     return LayoutBuilder(builder: (context, constraints) {
@@ -6557,7 +6561,7 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                                 outputFormat.toUpperCase(),
                                 outputFormat == 'md'
                                     ? markdownStatus
-                                    : adapterNotEnabled
+                                    : exportReady
                               ],
                               [
                                 '引用策略',
@@ -6596,7 +6600,7 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                                 outputFormat.toUpperCase(),
                                 outputFormat == 'md'
                                     ? markdownStatus
-                                    : adapterNotEnabled
+                                    : exportReady
                               ],
                               [
                                 'Citation strategy',
@@ -6647,9 +6651,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                         ChoiceChip(
                           label: Text(item.toUpperCase()),
                           selected: outputFormat == item,
-                          onSelected: item == 'md'
-                              ? (_) => setState(() => outputFormat = item)
-                              : null,
+                          onSelected: (_) =>
+                              setState(() => outputFormat = item),
                         ),
                     ]),
                   ],
@@ -6661,7 +6664,7 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                   icon: Icons.notes_outlined,
                   onPressed: runtime.running || rc6 == null
                       ? null
-                      : runtime.hasKnowledgeBase && outputFormat == 'md'
+                      : runtime.hasKnowledgeBase
                           ? openGenerationDialog
                           : null,
                 ),
@@ -6670,8 +6673,7 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                   icon: Icons.restart_alt_outlined,
                   onPressed: runtime.running ||
                           rc6 == null ||
-                          !runtime.hasKnowledgeBase ||
-                          outputFormat != 'md'
+                          !runtime.hasKnowledgeBase
                       ? null
                       : openGenerationDialog,
                 ),
@@ -6767,8 +6769,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
           _FieldRow(
             label: zh ? '导出边界' : 'Export boundary',
             value: zh
-                ? 'Markdown、JSON、CSV 为本地真实导出；DOCX/PDF/PPTX 需要导出器配置。'
-                : 'Markdown, JSON, and CSV export locally; DOCX/PDF/PPTX require exporter config.',
+                ? 'Markdown、DOCX、PDF、PPTX、JSON、CSV 均为本地真实导出。'
+                : 'Markdown, DOCX, PDF, PPTX, JSON, and CSV export locally.',
           ),
         ],
       );
@@ -6786,13 +6788,13 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                 icon: Icons.notes_outlined),
             _MetricDatum(
                 label: 'DOCX',
-                value: adapterNotEnabled,
-                detail: zh ? '需要导出器配置' : 'needs exporter config',
+                value: exportReady,
+                detail: realCoreExport,
                 icon: Icons.description_outlined),
             _MetricDatum(
                 label: 'PDF/PPTX',
-                value: adapterNotEnabled,
-                detail: zh ? '需要导出器配置' : 'needs exporter config',
+                value: exportReady,
+                detail: realCoreExport,
                 icon: Icons.picture_as_pdf_outlined),
             _MetricDatum(
                 label: 'JSON/CSV',
@@ -6815,8 +6817,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                   ? (zh ? '读书笔记已生成' : 'Reading notes generated')
                   : (zh ? '文档生成已触发' : 'Document generation started'),
               detail: zh
-                  ? 'Markdown 产物保存在本地工作区；其它格式需配置导出器后启用。'
-                  : 'Markdown is saved in the local workspace; other formats require exporter config.',
+                  ? '文档产物保存在本地工作区，导出页可继续导出多格式文件。'
+                  : 'Document artifacts are saved in the local workspace; export more formats from the export page.',
               tone: runtime.hasMarkdown
                   ? _StatusTone.success
                   : _StatusTone.neutral,
@@ -6842,8 +6844,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                 ? (zh ? '读书笔记已生成' : 'Reading notes generated')
                 : (zh ? '文档生成已触发' : 'Document generation started'),
             detail: zh
-                ? 'Markdown 产物保存在本地工作区；其它格式需配置导出器后启用。'
-                : 'Markdown is saved in the local workspace; other formats require exporter config.',
+                ? '文档产物保存在本地工作区，导出页可继续导出多格式文件。'
+                : 'Document artifacts are saved in the local workspace; export more formats from the export page.',
             tone:
                 runtime.hasMarkdown ? _StatusTone.success : _StatusTone.neutral,
             icon: Icons.notes_outlined,
@@ -7090,9 +7092,7 @@ class _DocumentGenerationDialogState extends State<_DocumentGenerationDialog> {
                   ChoiceChip(
                     label: Text(item.toUpperCase()),
                     selected: outputFormat == item,
-                    onSelected: item == 'md'
-                        ? (_) => setState(() => outputFormat = item)
-                        : null,
+                    onSelected: (_) => setState(() => outputFormat = item),
                   ),
               ]),
               const SizedBox(height: 12),
@@ -7161,8 +7161,21 @@ class _DocumentExportPreviewViewState
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
-    final adapterNotEnabled =
-        zh ? '未启用：缺少导出器配置' : 'Not enabled: exporter config missing';
+    final exportStatus = runtime.hasMarkdown
+        ? (zh ? '可导出' : 'Ready')
+        : (zh ? '需要 Markdown' : 'Needs Markdown');
+    String artifactForFormat(String format) {
+      if (!runtime.hasExportedDocument) {
+        return zh ? '尚未生成导出文件' : 'No export file yet';
+      }
+      final path = runtime.exportedDocumentPath.toLowerCase();
+      final normalized = format == 'markdown' ? 'md' : format;
+      if (path.endsWith('.$normalized')) {
+        return _displayNameForPath(runtime.exportedDocumentPath);
+      }
+      return zh ? '点击导出生成' : 'Export on click';
+    }
+
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= _DesktopGrid.rowBreakpoint;
       final export = _ProductPanel(
@@ -7171,8 +7184,8 @@ class _DocumentExportPreviewViewState
         title: zh ? '文档导出' : 'Document Export',
         children: [
           _SectionCaption(zh
-              ? 'Markdown / JSON / CSV 直接导出；DOCX / PDF / PPTX 需要先配置导出器。'
-              : 'Markdown / JSON / CSV export directly; DOCX / PDF / PPTX require exporter config first.'),
+              ? 'Markdown / DOCX / PDF / PPTX / JSON / CSV 都通过本地工作区真实导出。'
+              : 'Markdown / DOCX / PDF / PPTX / JSON / CSV export through the local workspace.'),
           const SizedBox(height: 8),
           _ProductTable(
             columns: zh
@@ -7204,9 +7217,24 @@ class _DocumentExportPreviewViewState
                       '本地结构化',
                       'knowledge_export.csv'
                     ],
-                    ['DOCX', adapterNotEnabled, '需要导出器配置', '未生成'],
-                    ['PDF', adapterNotEnabled, '需要导出器配置', '未生成'],
-                    ['PPTX', adapterNotEnabled, '需要导出器配置', '未生成'],
+                    [
+                      'DOCX',
+                      exportStatus,
+                      '本地 Core 生成',
+                      artifactForFormat('docx')
+                    ],
+                    [
+                      'PDF',
+                      exportStatus,
+                      '本地 Core 生成',
+                      artifactForFormat('pdf')
+                    ],
+                    [
+                      'PPTX',
+                      exportStatus,
+                      '本地 Core 生成',
+                      artifactForFormat('pptx')
+                    ],
                   ]
                 : [
                     [
@@ -7235,21 +7263,21 @@ class _DocumentExportPreviewViewState
                     ],
                     [
                       'DOCX',
-                      adapterNotEnabled,
-                      'Exporter config required',
-                      'Not generated'
+                      exportStatus,
+                      'Local Core generation',
+                      artifactForFormat('docx')
                     ],
                     [
                       'PDF',
-                      adapterNotEnabled,
-                      'Exporter config required',
-                      'Not generated'
+                      exportStatus,
+                      'Local Core generation',
+                      artifactForFormat('pdf')
                     ],
                     [
                       'PPTX',
-                      adapterNotEnabled,
-                      'Exporter config required',
-                      'Not generated'
+                      exportStatus,
+                      'Local Core generation',
+                      artifactForFormat('pptx')
                     ],
                   ],
           ),
@@ -7266,9 +7294,7 @@ class _DocumentExportPreviewViewState
               ChoiceChip(
                 label: Text(item.toUpperCase()),
                 selected: selectedExportFormat == item,
-                onSelected: const {'md', 'json', 'csv'}.contains(item)
-                    ? (_) => setState(() => selectedExportFormat = item)
-                    : null,
+                onSelected: (_) => setState(() => selectedExportFormat = item),
               ),
           ]),
           const SizedBox(height: _DesktopGrid.gutter),

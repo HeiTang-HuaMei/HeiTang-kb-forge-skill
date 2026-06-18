@@ -220,7 +220,8 @@ void main() {
     expect(find.text('PDF'), findsWidgets);
     expect(find.text('PPTX'), findsWidgets);
     expect(find.textContaining('display_only'), findsNothing);
-    expect(find.textContaining('需要导出器配置'), findsWidgets);
+    expect(find.textContaining('需要导出器配置'), findsNothing);
+    expect(find.textContaining('本地 Core 生成'), findsWidgets);
     expect(find.textContaining('Release complete'), findsNothing);
     expect(tester.takeException(), isNull);
   });
