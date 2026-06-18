@@ -461,7 +461,7 @@ void main() {
     await tester.pumpAndSettle();
 
     for (final title in [
-      '文档库导入',
+      '工作本管理',
       '文档库',
       '知识库',
       '检索与验证',
@@ -595,12 +595,11 @@ void main() {
 
     await tester.tap(find.text('文档库').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('document-library-open-import-flow')),
-        warnIfMissed: false);
-    await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('dense-page-workbench-import-parsing')),
+    expect(find.byKey(const Key('dense-page-workbench-document-library')),
         findsOneWidget);
+    expect(find.text('导入与解析'), findsWidgets);
+    expect(find.text('来源文档'), findsOneWidget);
     expect(find.byKey(const Key('product-status-panel')), findsNothing);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
     expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);

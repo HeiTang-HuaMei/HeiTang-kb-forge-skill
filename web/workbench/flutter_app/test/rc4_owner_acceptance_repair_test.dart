@@ -63,9 +63,8 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-document-library')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('document-library-open-import-flow')),
-        warnIfMissed: false);
-    await tester.pumpAndSettle();
+    expect(find.text('导入与解析'), findsWidgets);
+    expect(find.text('来源文档'), findsOneWidget);
     expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);
     expect(find.text('选择来源'), findsWidgets);
     expect(find.text('导入 Owner input 文件夹'), findsNothing);

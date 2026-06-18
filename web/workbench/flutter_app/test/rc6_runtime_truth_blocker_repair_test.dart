@@ -120,6 +120,9 @@ void main() {
         warnIfMissed: false);
     await tester.pumpAndSettle();
 
+    expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);
+    await tester.tap(find.text('来源文档'), warnIfMissed: false);
+    await tester.pumpAndSettle();
     expect(find.byKey(const Key('document-library')), findsOneWidget);
     expect(find.text('等待导入真实文档'), findsOneWidget);
     expect(find.textContaining('display_only'), findsNothing);

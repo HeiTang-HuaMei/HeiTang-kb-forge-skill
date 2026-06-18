@@ -30,7 +30,7 @@ REQUIRED_PAGE_IDS = [
 
 PRODUCT_PAGE_IDS = [
     "dashboard",
-    "import-parsing",
+    "workbook",
     "document-library",
     "knowledge-package-management",
     "retrieval-verification",
@@ -84,6 +84,11 @@ def test_flutter_scaffold_declares_product_pages_and_covers_required_routes():
         assert re.search(rf"WorkbenchPage\(\s*'{re.escape(page_id)}'", page_block)
     for page_id in FLUTTER_COVERED_ROUTE_IDS:
         assert f"'{page_id}'" in page_block
+    assert re.search(
+        r"WorkbenchPage\(\s*'document-library'.*?memberPageIds:\s*\[.*?'import-parsing'.*?'document-library'",
+        page_block,
+        flags=re.S,
+    )
 
 
 def test_workbench_specs_cover_required_pages():

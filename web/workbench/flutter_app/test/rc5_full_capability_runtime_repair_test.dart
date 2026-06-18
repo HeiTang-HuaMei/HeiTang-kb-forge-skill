@@ -46,6 +46,12 @@ void main() {
       await tester.ensureVisible(find.byKey(entry.key));
       await tester.tap(find.byKey(entry.key), warnIfMissed: false);
       await tester.pumpAndSettle();
+      if (entry.key == const Key('sidebar-document-library')) {
+        expect(find.byKey(const Key('import-intake-surface')), findsOneWidget,
+            reason: '${entry.key}');
+        await tester.tap(find.text('来源文档'), warnIfMissed: false);
+        await tester.pumpAndSettle();
+      }
       expect(find.byKey(entry.value), findsOneWidget, reason: '${entry.key}');
       expect(find.text('真实运行链路'), findsNothing, reason: '${entry.key}');
       expect(find.text('运行 Core 操作'), findsNothing, reason: '${entry.key}');
@@ -55,9 +61,8 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-document-library')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('document-library-open-import-flow')),
-        warnIfMissed: false);
-    await tester.pumpAndSettle();
+    expect(find.text('导入与解析'), findsWidgets);
+    expect(find.text('来源文档'), findsOneWidget);
     expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

@@ -55,12 +55,12 @@ const pages = <WorkbenchPage>[
         'task-job-center',
       ]),
   WorkbenchPage(
-      'import-parsing',
-      'Document Library Import',
-      '文档库导入',
-      'Stage files, folders, and web links, then configure parsing, OCR, chunks, and recovery.',
-      '暂存文件、文件夹和网页链接，并配置解析、OCR、分块与失败恢复。',
-      memberPageIds: ['import-parsing']),
+      'workbook',
+      'Workbook',
+      '工作本管理',
+      'Review the current workbook, persistence state, recent assets, and handoff points.',
+      '查看当前工作本、持久化状态、最近资产和下一步承接入口。',
+      memberPageIds: ['workspace']),
   WorkbenchPage(
       'document-library',
       'Document Library',
@@ -772,8 +772,9 @@ class _WorkbenchSidebar extends StatelessWidget {
     const selectedBackground = Color(0xff2d3339);
     const primaryText = Color(0xfff7f7f5);
     const secondaryText = Color(0xffaeb6bf);
-    final effectiveSelectedIndex =
-        pages[selectedIndex].id == 'import-parsing' ? 2 : selectedIndex;
+    final effectiveSelectedIndex = pages[selectedIndex].id == 'import-parsing'
+        ? _pageIndexById('document-library')
+        : selectedIndex;
 
     return Material(
       color: sidebarBackground,
@@ -795,6 +796,20 @@ class _WorkbenchSidebar extends StatelessWidget {
             secondaryText: secondaryText,
             selectedBackground: selectedBackground,
             onTap: () => onPageChanged(0),
+          ),
+          const SizedBox(height: _DesktopGrid.gutter),
+          _SidebarGroupLabel(label: localeCode == 'zh-CN' ? '工作本' : 'Workbook'),
+          _SidebarItem(
+            keyName: 'sidebar-workbook',
+            page: pages[1],
+            icon: Icons.workspaces_outline,
+            localeCode: localeCode,
+            contracts: contracts,
+            selected: effectiveSelectedIndex == 1,
+            primaryText: primaryText,
+            secondaryText: secondaryText,
+            selectedBackground: selectedBackground,
+            onTap: () => onPageChanged(1),
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _SidebarGroupLabel(
@@ -1106,7 +1121,9 @@ IconData _sidebarIconFor(String pageId) {
 }
 
 int _pageIndexById(String pageId) {
-  final index = pages.indexWhere((page) => page.id == pageId);
+  final normalizedPageId =
+      pageId == 'import-parsing' ? 'document-library' : pageId;
+  final index = pages.indexWhere((page) => page.id == normalizedPageId);
   return index < 0 ? 0 : index;
 }
 
@@ -2068,7 +2085,7 @@ class _DashboardMetricGrid extends StatelessWidget {
         detail: runtime.hasImportedFile
             ? (_zh ? '已进入文档库' : 'in library')
             : (_zh ? '等待导入' : 'waiting import'),
-        pageId: runtime.hasImportedFile ? 'document-library' : 'import-parsing',
+        pageId: 'document-library',
       ),
       _DashboardMetricData(
         icon: Icons.storage_outlined,
@@ -2137,7 +2154,7 @@ class _DashboardMetricGrid extends StatelessWidget {
 
 String _dashboardNextPageId(Rc6RuntimeState runtime) {
   if (!runtime.hasImportedFile || runtime.parseReportPath.isEmpty) {
-    return 'import-parsing';
+    return 'document-library';
   }
   if (!runtime.hasKnowledgeBase) return 'knowledge-package-management';
   if (runtime.searchStatus != Rc6SearchStatus.success) {
@@ -2296,7 +2313,7 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
           _zh ? '文档库' : 'Document Library',
           _zh ? '${runtime.sourceCount} 个文件' : '${runtime.sourceCount} files',
           Icons.upload_file_outlined,
-          'import-parsing',
+          'document-library',
         ),
       if (runtime.parseReportPath.isNotEmpty)
         _DashboardTaskRow(
@@ -2305,7 +2322,7 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
           _zh ? '文档库' : 'Document Library',
           _zh ? '解析报告已生成' : 'parse report ready',
           Icons.document_scanner_outlined,
-          'import-parsing',
+          'document-library',
         ),
       if (runtime.hasKnowledgeBase)
         _DashboardTaskRow(
@@ -2439,7 +2456,7 @@ class _DashboardNextActions extends StatelessWidget {
         _zh ? '文档库导入资料' : 'Import sources to document library',
         _dashboardImportActionLabel(runtime, _zh),
         Icons.file_upload_outlined,
-        'import-parsing',
+        'document-library',
         runtime.hasImportedFile && runtime.parseReportPath.isNotEmpty,
       ),
       _DashboardActionRow(
@@ -2681,7 +2698,7 @@ class _DashboardReportSummary extends StatelessWidget {
           rows: _zh
               ? [
                   [
-                    '文档库导入',
+                    '文档库导入与解析',
                     '可操作',
                     'source_manifest.json / parse_report.json',
                     '进入文档库'
@@ -3179,7 +3196,7 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
       title: zh ? '文档库导入资料' : 'Import into Document Library',
       subtitle: zh ? '选择文件、解析、OCR、分块' : 'Choose files, parse, OCR, chunk',
       category: zh ? '文档库' : 'Document Library',
-      pageId: 'import-parsing',
+      pageId: 'document-library',
       icon: Icons.file_upload_outlined,
       keywords: const ['import', 'parse', 'ocr', 'chunk', '导入', '解析', '分块'],
     ),
@@ -3778,8 +3795,8 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
               ),
             'document-library' => _DocumentLibraryProductWorkflow(
                 localeCode: widget.localeCode,
-                onOpenImport: () =>
-                    widget.onPageChanged(_pageIndexById('import-parsing')),
+                workspace: widget.workspace,
+                isWebRuntime: widget.isWebRuntime,
               ),
             'knowledge-package-management' => _KnowledgeProductWorkflow(
                 localeCode: widget.localeCode,
@@ -3806,6 +3823,11 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
                 campaign6AgentRuntimeStatus: widget.campaign6AgentRuntimeStatus,
                 selectedTab: selectedTab,
                 onTabSelected: (index) => setState(() => selectedTab = index),
+              ),
+            'workbook' => _WorkbookProductWorkflow(
+                localeCode: widget.localeCode,
+                workspace: widget.workspace,
+                onPageChanged: widget.onPageChanged,
               ),
             'reports-audit' => _ValidateExportProductWorkflow(
                 localeCode: widget.localeCode,
@@ -6222,7 +6244,7 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
       children: [
         _ProductHeader(
           icon: Icons.upload_file_outlined,
-          title: _zh ? '文档库导入资料' : 'Document Library Import',
+          title: _zh ? '导入与解析' : 'Import and Parsing',
           description: _zh
               ? '文件、文件夹与网页链接进入同一队列；解析器、OCR、分块和失败恢复在本页完成。'
               : 'Files, folders, and web links enter one queue; parser, OCR, chunking, and recovery are handled here.',
@@ -8595,8 +8617,8 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                 detail: hasRealDocument
                     ? _displayNameForPath(runtime.sourceManifestPath)
                     : (zh
-                        ? '请从文档库导入资料入口选择真实文件或文件夹。'
-                        : 'Choose real files or a folder from Document Library Import.'),
+                        ? '请在导入与解析页签选择真实文件或文件夹。'
+                        : 'Choose real files or a folder from the Import and Parsing tab.'),
                 tone:
                     hasRealDocument ? _StatusTone.success : _StatusTone.warning,
                 icon: hasRealDocument
@@ -8809,39 +8831,313 @@ String _documentTypeLabel(String type, bool zh) {
   };
 }
 
-class _DocumentLibraryProductWorkflow extends StatelessWidget {
-  const _DocumentLibraryProductWorkflow({
+class _WorkbookProductWorkflow extends StatelessWidget {
+  const _WorkbookProductWorkflow({
     required this.localeCode,
-    required this.onOpenImport,
+    required this.workspace,
+    required this.onPageChanged,
   });
 
   final String localeCode;
-  final VoidCallback onOpenImport;
+  final String workspace;
+  final ValueChanged<int> onPageChanged;
 
   bool get _zh => localeCode == 'zh-CN';
 
   @override
   Widget build(BuildContext context) {
+    final runtime =
+        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
+    final latestArtifact = runtime.hasExportedDocument
+        ? _displayNameForPath(runtime.exportedDocumentPath)
+        : runtime.hasMarkdown
+            ? _displayNameForPath(runtime.generatedMarkdownPath)
+            : runtime.hasKnowledgeBase
+                ? _displayNameForPath(runtime.kbManifestPath)
+                : runtime.hasImportedFile
+                    ? _displayNameForPath(runtime.sourceManifestPath)
+                    : (_zh ? '暂无产物' : 'No artifacts yet');
+    final readySummary = [
+      if (runtime.hasImportedFile) _zh ? '文档库' : 'Document Library',
+      if (runtime.hasKnowledgeBase) _zh ? '知识库' : 'Knowledge Base',
+      if (runtime.searchStatus == Rc6SearchStatus.success)
+        _zh ? '检索报告' : 'Retrieval Report',
+      if (runtime.hasMarkdown) _zh ? '生成文档' : 'Generated Document',
+      if (runtime.hasSkill) 'Skill',
+      if (runtime.hasAgent) 'Agent',
+    ];
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _ProductHeader(
+        icon: Icons.workspaces_outline,
+        title: _zh ? '工作本管理' : 'Workbook',
+        description: _zh
+            ? '工作本隔离文档、知识库、应用产物和审计记录，并承接下一步任务。'
+            : 'The workbook isolates documents, knowledge bases, application artifacts, and audit records.',
+      ),
+      const SizedBox(height: _DesktopGrid.gutter),
+      _MetricStrip(
+        items: [
+          _MetricDatum(
+            label: _zh ? '来源文档' : 'Source Docs',
+            value: runtime.sourceCount.toString(),
+            detail: runtime.hasImportedFile
+                ? (_zh ? '已持久化' : 'persisted')
+                : (_zh ? '等待导入' : 'waiting'),
+            icon: Icons.article_outlined,
+          ),
+          _MetricDatum(
+            label: _zh ? '知识库' : 'Knowledge Bases',
+            value: runtime.knowledgeBases.isNotEmpty
+                ? runtime.knowledgeBases.length.toString()
+                : runtime.hasKnowledgeBase
+                    ? '1'
+                    : '0',
+            detail: runtime.hasKnowledgeBase
+                ? '${runtime.chunkCount} chunks'
+                : (_zh ? '等待构建' : 'waiting build'),
+            icon: Icons.account_tree_outlined,
+          ),
+          _MetricDatum(
+            label: _zh ? '应用产物' : 'App Artifacts',
+            value: [
+              runtime.hasMarkdown,
+              runtime.hasSkill,
+              runtime.hasAgent,
+              runtime.hasAgentDialogue,
+              runtime.hasMultiAgentDiscussion,
+            ].where((value) => value).length.toString(),
+            detail: latestArtifact,
+            icon: Icons.folder_copy_outlined,
+          ),
+          _MetricDatum(
+            label: _zh ? '最近结果' : 'Latest Result',
+            value: runtime.lastError.isEmpty
+                ? (_zh ? '正常' : 'OK')
+                : (_zh ? '失败' : 'Failed'),
+            detail: runtime.lastError.isEmpty
+                ? (runtime.lastMessage.isEmpty
+                    ? (_zh ? '等待任务' : 'idle')
+                    : runtime.lastMessage)
+                : runtime.lastError,
+            icon: runtime.lastError.isEmpty
+                ? Icons.verified_outlined
+                : Icons.error_outline,
+          ),
+        ],
+      ),
+      const SizedBox(height: _DesktopGrid.gutter),
+      LayoutBuilder(builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 980;
+        final overview = _ProductPanel(
+          keyName: 'workbook-overview',
+          icon: Icons.space_dashboard_outlined,
+          title: _zh ? '当前工作本' : 'Current Workbook',
+          minHeight: 320,
+          children: [
+            _ProductTable(
+              columns: _zh ? ['项目', '状态', '说明'] : ['Item', 'Status', 'Note'],
+              rows: _zh
+                  ? [
+                      ['位置', '用户工作区', _displayNameForPath(workspace)],
+                      [
+                        '已就绪资产',
+                        readySummary.isEmpty ? '暂无' : readySummary.join(' / '),
+                        '来自真实工作区状态'
+                      ],
+                      [
+                        '持久化',
+                        runtime.hasImportedFile ? '已有记录' : '等待首个任务',
+                        runtime.hasImportedFile ? '重启后可继续' : '导入资料后写入工作本'
+                      ],
+                      ['下一步', _dashboardNextStep(runtime, true), '从右侧入口继续'],
+                    ]
+                  : [
+                      [
+                        'Location',
+                        'User workspace',
+                        _displayNameForPath(workspace)
+                      ],
+                      [
+                        'Ready assets',
+                        readySummary.isEmpty
+                            ? 'None'
+                            : readySummary.join(' / '),
+                        'From real workspace state'
+                      ],
+                      [
+                        'Persistence',
+                        runtime.hasImportedFile ? 'Recorded' : 'Waiting',
+                        runtime.hasImportedFile
+                            ? 'Can continue after restart'
+                            : 'Import sources to persist'
+                      ],
+                      [
+                        'Next',
+                        _dashboardNextStep(runtime, false),
+                        'Continue from the actions panel'
+                      ],
+                    ],
+            ),
+          ],
+        );
+        final actions = _ProductPanel(
+          keyName: 'workbook-next-actions',
+          icon: Icons.route_outlined,
+          title: _zh ? '继续任务' : 'Continue Work',
+          minHeight: 320,
+          children: [
+            _PrimaryProductAction(
+              label: _zh ? '进入文档库导入资料' : 'Open Document Library',
+              icon: Icons.library_books_outlined,
+              onPressed: () =>
+                  onPageChanged(_pageIndexById('document-library')),
+            ),
+            const SizedBox(height: 8),
+            _DisplayAction(
+              label: _zh ? '创建或更新知识库' : 'Create or update KB',
+              icon: Icons.account_tree_outlined,
+              onPressed: runtime.hasImportedFile
+                  ? () => onPageChanged(
+                      _pageIndexById('knowledge-package-management'))
+                  : null,
+            ),
+            const SizedBox(height: 8),
+            _DisplayAction(
+              label: _zh ? '检索验证证据' : 'Search and verify evidence',
+              icon: Icons.manage_search_outlined,
+              onPressed: runtime.hasKnowledgeBase
+                  ? () =>
+                      onPageChanged(_pageIndexById('retrieval-verification'))
+                  : null,
+            ),
+            const SizedBox(height: 8),
+            _DisplayAction(
+              label: _zh ? '生成交付文档' : 'Generate deliverable document',
+              icon: Icons.edit_document,
+              onPressed: runtime.hasKnowledgeBase
+                  ? () => onPageChanged(_pageIndexById('document-generation'))
+                  : null,
+            ),
+          ],
+        );
+        final handoff = _ProductPanel(
+          keyName: 'workbook-handoff',
+          icon: Icons.inventory_2_outlined,
+          title: _zh ? '资产承接' : 'Asset Handoff',
+          minHeight: 260,
+          children: [
+            _ProductTable(
+              columns: _zh
+                  ? ['阶段', '输入', '输出', '下一步']
+                  : ['Stage', 'Input', 'Output', 'Next'],
+              rows: _zh
+                  ? [
+                      ['文档库', '本地资料', '来源文档 / 解析报告', '知识库'],
+                      ['知识库', '来源文档', 'chunks / manifest / 质量报告', '检索验证'],
+                      ['检索验证', '知识库', '证据片段 / 验证记录', '文档生成'],
+                      ['知识应用', '可信证据', '文档 / Skill / Agent', '治理审计'],
+                    ]
+                  : [
+                      [
+                        'Document Library',
+                        'Local sources',
+                        'Documents / parse report',
+                        'Knowledge Base'
+                      ],
+                      [
+                        'Knowledge Base',
+                        'Source documents',
+                        'chunks / manifest / quality',
+                        'Retrieval'
+                      ],
+                      [
+                        'Retrieval',
+                        'Knowledge bases',
+                        'Evidence / validation record',
+                        'Document Generation'
+                      ],
+                      [
+                        'Knowledge Apps',
+                        'Trusted evidence',
+                        'Docs / Skills / Agents',
+                        'Governance'
+                      ],
+                    ],
+            ),
+          ],
+        );
+        if (!wide) {
+          return Column(children: [
+            overview,
+            const SizedBox(height: _DesktopGrid.gutter),
+            actions,
+            const SizedBox(height: _DesktopGrid.gutter),
+            handoff,
+          ]);
+        }
+        return Column(children: [
+          _EqualHeightRow(
+            height: 320,
+            flexes: const [7, 5],
+            children: [overview, actions],
+          ),
+          const SizedBox(height: _DesktopGrid.gutter),
+          handoff,
+        ]);
+      }),
+    ]);
+  }
+}
+
+class _DocumentLibraryProductWorkflow extends StatefulWidget {
+  const _DocumentLibraryProductWorkflow({
+    required this.localeCode,
+    required this.workspace,
+    required this.isWebRuntime,
+  });
+
+  final String localeCode;
+  final String workspace;
+  final bool isWebRuntime;
+
+  @override
+  State<_DocumentLibraryProductWorkflow> createState() =>
+      _DocumentLibraryProductWorkflowState();
+}
+
+class _DocumentLibraryProductWorkflowState
+    extends State<_DocumentLibraryProductWorkflow> {
+  int selectedTab = 0;
+
+  bool get _zh => widget.localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final tabs =
+        _zh ? ['导入与解析', '来源文档'] : ['Import and Parsing', 'Source Documents'];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.library_books_outlined,
         title: _zh ? '文档库' : 'Document Library',
         description: _zh
-            ? '管理来源文档、分类、搜索、筛选、解析信息、元数据、版本和引用情况。'
-            : 'Manage source documents, categories, search, filters, parsing information, metadata, versions, and references.',
+            ? '导入资料、解析/OCR/分块，并管理进入工作本的来源文档。'
+            : 'Import sources, parse/OCR/chunk them, and manage source documents in the workbook.',
       ),
       const SizedBox(height: _DesktopGrid.gutter),
-      Align(
-        alignment: Alignment.centerLeft,
-        child: FilledButton.icon(
-          key: const Key('document-library-open-import-flow'),
-          onPressed: onOpenImport,
-          icon: const Icon(Icons.file_upload_outlined),
-          label: Text(_zh ? '导入资料' : 'Import sources'),
-        ),
+      _PageTabs(
+        tabs: tabs,
+        selectedIndex: selectedTab,
+        onSelected: (index) => setState(() => selectedTab = index),
       ),
       const SizedBox(height: _DesktopGrid.gutter),
-      _DocumentLibraryView(zh: _zh),
+      if (selectedTab == 0)
+        _ImportProductWorkflow(
+          localeCode: widget.localeCode,
+          workspace: widget.workspace,
+          isWebRuntime: widget.isWebRuntime,
+        )
+      else
+        _DocumentLibraryView(zh: _zh),
     ]);
   }
 }

@@ -69,7 +69,7 @@ void main() {
       pages.map((page) => page.zhTitle),
       [
         '首页',
-        '文档库导入',
+        '工作本管理',
         '文档库',
         '知识库',
         '检索与验证',
@@ -91,15 +91,20 @@ void main() {
     expect(find.text('agent-factory-runtime'), findsNothing);
     expect(find.text('knowledge-package-management'), findsNothing);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
+    await tester.tap(find.text('工作本管理').first);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('workbook-overview')), findsOneWidget);
+    expect(find.byKey(const Key('workbook-next-actions')), findsOneWidget);
     await tester.tap(find.text('文档库').first);
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('document-library-open-import-flow')),
+    expect(find.byKey(const Key('dense-page-workbench-document-library')),
         findsOneWidget);
-    await tester
-        .tap(find.byKey(const Key('document-library-open-import-flow')));
+    expect(find.text('导入与解析'), findsWidgets);
+    expect(find.text('来源文档'), findsOneWidget);
+    expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);
+    await tester.tap(find.text('来源文档'));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('dense-page-workbench-import-parsing')),
-        findsOneWidget);
+    expect(find.byKey(const Key('document-library')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
