@@ -255,7 +255,7 @@ void main() {
     expect(find.text('选择文件夹'), findsNothing);
     expect(find.text('运行 Owner input 链路'), findsNothing);
     expect(find.text('搜索当前关键词'), findsNothing);
-    expect(find.text('生成 Agent 完整配置'), findsWidgets);
+    expect(find.text('创建 Agent 并进入对话'), findsWidgets);
     expect(find.text('A2A 协作'), findsOneWidget);
     await tester.tap(find.text('A2A 协作').first, warnIfMissed: false);
     await tester.pumpAndSettle();

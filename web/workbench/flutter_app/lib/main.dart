@@ -2917,7 +2917,7 @@ class _DashboardArtifactOverview extends StatelessWidget {
                     _displayNameForPath(runtime.exportedDocumentPath)
                   ],
                   [
-                    'PRD P0 产品闭环',
+                    '知识生产链路',
                     runtime.hasPrdP0Evidence ? '已生成' : '未生成',
                     _displayNameForPath(runtime.prdP0EvidencePath)
                   ],
@@ -2952,7 +2952,7 @@ class _DashboardArtifactOverview extends StatelessWidget {
                     _displayNameForPath(runtime.exportedDocumentPath)
                   ],
                   [
-                    'PRD P0 product flow',
+                    'Knowledge production flow',
                     runtime.hasPrdP0Evidence ? 'Generated' : 'Not generated',
                     _displayNameForPath(runtime.prdP0EvidencePath)
                   ],
@@ -11191,7 +11191,11 @@ class _AgentProductWorkflow extends StatelessWidget {
           tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
       const SizedBox(height: _DesktopGrid.gutter),
       switch (selectedTab) {
-        1 => _AgentCreationProductView(zh: _zh, workspace: workspace),
+        1 => _AgentCreationProductView(
+            zh: _zh,
+            workspace: workspace,
+            onAgentCreated: () => onTabSelected(2),
+          ),
         2 => _AgentMinimalChatView(zh: _zh),
         3 => _AgentDiscussionProductView(zh: _zh),
         4 => _AgentRunHistoryView(zh: _zh),
@@ -11363,10 +11367,12 @@ class _AgentCreationProductView extends StatefulWidget {
   const _AgentCreationProductView({
     required this.zh,
     required this.workspace,
+    required this.onAgentCreated,
   });
 
   final bool zh;
   final String workspace;
+  final VoidCallback onAgentCreated;
 
   @override
   State<_AgentCreationProductView> createState() =>
@@ -11526,13 +11532,16 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _PrimaryProductAction(
-            label: zh ? '生成 Agent 完整配置' : 'Generate complete Agent config',
+            label: zh ? '创建 Agent 并进入对话' : 'Create Agent and open chat',
             icon: Icons.smart_toy_outlined,
             onPressed: runtime.running || rc6 == null
                 ? null
-                : () => rc6.completeAgentProductOperations(
+                : () async {
+                    await rc6.completeAgentProductOperations(
                       config: _agentConfig,
-                    ),
+                    );
+                    if (mounted) widget.onAgentCreated();
+                  },
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _EqualActionRow(children: [
@@ -12234,7 +12243,7 @@ class _AgentRunHistoryView extends StatelessWidget {
                         : '无产物'
                   ],
                   [
-                    'PRD P0 工作区 / A2A',
+                    '多 Agent 总工作区',
                     runtime.hasPrdP0Evidence ? '已完成' : '未运行',
                     runtime.hasPrdP0Evidence
                         ? _displayNameForPath(runtime.prdP0EvidencePath)
@@ -12269,7 +12278,7 @@ class _AgentRunHistoryView extends StatelessWidget {
                         : 'No artifact'
                   ],
                   [
-                    'PRD P0 workspaces / A2A',
+                    'Multi-Agent parent workspace',
                     runtime.hasPrdP0Evidence ? 'Done' : 'Not run',
                     runtime.hasPrdP0Evidence
                         ? _displayNameForPath(runtime.prdP0EvidencePath)
@@ -13387,7 +13396,7 @@ List<_ArtifactCenterItem> _artifactCenterItems(
         'a2a',
         runtime.multiAgentDiscussionPath,
         'agent'),
-    item('治理', 'Governance', 'PRD P0 验证证据', 'PRD P0 evidence', 'evidence',
+    item('治理', 'Governance', '产品链路验证证据', 'Product-flow evidence', 'evidence',
         runtime.prdP0EvidencePath, 'doc'),
     item('治理', 'Governance', '知识库目录', 'Knowledge Base catalog', 'catalog',
         runtime.knowledgeBaseCatalogPath, 'kb'),

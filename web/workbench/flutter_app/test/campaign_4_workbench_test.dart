@@ -428,7 +428,7 @@ void main() {
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
     expect(find.text('简单 Agent'), findsWidgets);
     expect(find.text('复杂 Agent'), findsOneWidget);
-    expect(find.text('生成 Agent 完整配置'), findsWidgets);
+    expect(find.text('创建 Agent 并进入对话'), findsWidgets);
     expect(find.text('复制 Agent 路径'), findsNothing);
     expect(find.text('等待真实 Agent 产物'), findsWidgets);
     expect(find.text('等待可预览 Agent'), findsOneWidget);
@@ -439,6 +439,12 @@ void main() {
     expect(find.text('构建知识库'), findsNothing);
     expect(find.text('生成 Skill'), findsNothing);
     expect(find.text('搜索当前关键词'), findsNothing);
+
+    final createAndChatButton = find.text('创建 Agent 并进入对话').first;
+    await tester.ensureVisible(createAndChatButton);
+    await tester.tap(createAndChatButton, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('agent-minimal-chat')), findsOneWidget);
 
     final chatTab = find.byKey(const Key('page-tab-2'));
     await tester.ensureVisible(chatTab);
@@ -480,7 +486,7 @@ void main() {
     await tester.tap(historyTab, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-run-history')), findsOneWidget);
-    expect(find.text('PRD P0 工作区 / A2A'), findsOneWidget);
+    expect(find.text('多 Agent 总工作区'), findsOneWidget);
     expect(find.textContaining('Campaign'), findsNothing);
     expect(find.textContaining('disabled_boundary'), findsNothing);
     expect(find.textContaining('enabled_real'), findsNothing);
