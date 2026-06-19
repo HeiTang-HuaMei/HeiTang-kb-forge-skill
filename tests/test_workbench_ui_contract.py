@@ -222,6 +222,14 @@ def test_campaign9_desktop_delivery_status_is_ui_bound_without_release_overclaim
     status = json.loads(asset_path.read_text(encoding="utf-8"))
     pubspec = (flutter_root / "pubspec.yaml").read_text(encoding="utf-8")
     main = (flutter_root / "lib" / "main.dart").read_text(encoding="utf-8")
+    settings = (
+        flutter_root
+        / "lib"
+        / "features"
+        / "settings"
+        / "settings_product_workflow.dart"
+    ).read_text(encoding="utf-8")
+    ui_source = main + settings
 
     assert status["schema_id"] == "campaign9_desktop_delivery_status"
     assert (
@@ -255,8 +263,8 @@ def test_campaign9_desktop_delivery_status_is_ui_bound_without_release_overclaim
     assert all(status["security_boundaries"].values())
     assert "campaign9_desktop_delivery_status_2026_06_17.json" in pubspec
     assert "campaign9DesktopDeliveryStatus" in main
-    assert "settings-desktop-delivery" in main
-    assert "_SettingsDesktopDeliveryView" in main
+    assert "settings-desktop-delivery" in ui_source
+    assert "_SettingsDesktopDeliveryView" in ui_source
     assert "GitHub Release creation requires separate Owner authorization" in json.dumps(status)
     assert "v4.3.0-rc6" not in json.dumps(status)
     assert "rc6_runtime_truth_repair" not in json.dumps(status)
