@@ -6,7 +6,7 @@ This map freezes the current behavior before further structural cleanup. It is n
 
 | Area | Current Location | Finding | Cleanup Rule |
 | --- | --- | --- | --- |
-| Main UI | `web/workbench/flutter_app/lib/main.dart` | 15,586 lines after the first Artifact Center extraction. Routing, shared widgets, and most product pages still live together. | Split one UI page at a time into `lib/features/<page>/...` without changing visible behavior. |
+| Main UI | `web/workbench/flutter_app/lib/main.dart` | 13,344 lines after the Retrieval extraction. Routing, shared widgets, and several product pages still live together. | Split one UI page at a time into `lib/features/<page>/...` without changing visible behavior. |
 | Runtime | `web/workbench/flutter_app/lib/rc6_runtime/rc6_runtime_controller_io.dart` | 7,216 lines. It contains import, parsing, KB, retrieval, document, storage, Skill, Agent, and artifact cleanup logic. The `rc6` name is now historical debt. | Do not rename yet. After UI slices are stable, introduce product-named wrappers or files while keeping compatibility. |
 | Runtime Stub/Models | `web/workbench/flutter_app/lib/rc6_runtime/rc6_runtime_controller_stub.dart` | State model and web stub still carry `Rc6RuntimeState` and many PRD-era fields. | Keep stable until runtime naming cleanup is isolated. |
 | Widget Tests | `web/workbench/flutter_app/test/campaign_4_workbench_test.dart` | 754 lines. Modern product-flow widget tests still live under a Campaign 4 name. | Later move tests into `test/product_flow/` one group at a time. |
@@ -20,7 +20,7 @@ This map freezes the current behavior before further structural cleanup. It is n
 | Import And Parsing | `_ImportProductWorkflow` | `importFilePath`, `importFolderPath`, `importWebLink`, `parseAndChunkSources`, `clearImportedSources`, `deleteImportedSource` | `source_manifest.json`, `parse_report.json`, `du/document_understanding_manifest.json`, imported input files | `rc6_runtime_truth_blocker_repair_test.dart`: import append/delete/web link; full-chain precondition tests |
 | Document Library | `_DocumentLibraryView`, `_DocumentLibraryProductWorkflow` | Reads source records from runtime; calls source deletion and downstream KB build handoff | `source_manifest.json`, copied input files, source records | `campaign_4_workbench_test.dart`: document library to KB handoff; `rc6_runtime_truth_blocker_repair_test.dart`: document library product state |
 | Knowledge Base | `_KnowledgeProductWorkflow`, `_KnowledgePackageListView` | `buildKnowledgeBase`, `copyKnowledgeBase`, `mergeKnowledgeBases`, `splitKnowledgeBase`, `updateKnowledgeBaseIncremental`, `rebuildKnowledgeBaseFull`, `compareKnowledgeBaseVersions`, `rollbackKnowledgeBaseVersion`, `deleteKnowledgeBaseRecord` | `kb/chunks.jsonl`, `kb/cards.jsonl`, `kb/qa_pairs.jsonl`, `kb/manifest.json`, `kb/quality_report.json`, `knowledge_bases/kb_catalog.json` | `campaign_4_workbench_test.dart`: KB page surfaces; `rc6_runtime_truth_blocker_repair_test.dart`: multi-KB catalog operations |
-| Retrieval And Verification | `_RetrievalVerificationView`, `_RetrievalVerificationProductWorkflow` | `search`, `searchKnowledgeBases`, `saveRetrievalValidationReport` | `query/multi_kb_query_result.json`, per-KB `kb_query_result.json`, `query/validation_report.json` | `rc6_runtime_truth_blocker_repair_test.dart`: stale query clearing, multi-KB retrieval attribution |
+| Retrieval And Verification | `_RetrievalVerificationView`, `_RetrievalVerificationProductWorkflow` in `lib/features/retrieval/retrieval_verification_product_workflow.dart` | `search`, `searchKnowledgeBases`, `saveRetrievalValidationReport` | `query/multi_kb_query_result.json`, per-KB `kb_query_result.json`, `query/validation_report.json` | `rc6_runtime_truth_blocker_repair_test.dart`: stale query clearing, multi-KB retrieval attribution |
 | Document Generation | `_DocumentGenerationView`, `_DocumentExportPreviewView`, `_DocumentProductWorkflow` | `generateMarkdown`, `exportMarkdownDocument`, `exportDocumentFormat`, `saveEditedDocument`, `clearDocumentGenerationHistory` | `doc/generated.md`, `doc/reading_notes.md`, `doc/generation_manifest.json`, `doc/edited_document.md`, `export/reading_notes_export.md`, `export/export_manifest.json` | `rc6_runtime_truth_blocker_repair_test.dart`: document flow, generation config, export |
 | Skill Factory | `_SkillBuilderProductWorkflow` | `generateSkill`, `importExternalSkillPath`, `completeSkillProductOperations`, `runSkillOperation`, `saveEditedSkill` | `skill/knowledge_qa_skill/SKILL.md`, skill manifests, localization diff, operation manifest, export package | `campaign_4_workbench_test.dart`: Skill page ownership; `rc6_runtime_truth_blocker_repair_test.dart`: Skill generation/import/operations |
 | Agent Workbench | `_AgentProductWorkflow`, `_AgentMinimalChatView`, `_AgentDiscussionProductView` | `generateAgent`, `runAgentDialogue`, `exportAgentDialogue`, `clearAgentDialogueHistory`, `runMultiAgentDiscussion` | `agent/knowledge_qa_agent/agent_manifest.json`, `agent/dialogue/agent_dialogue.md`, `agent/dialogue/chat_history.jsonl`, `agent/dialogue_export/agent_dialogue_export.md`, `agent/multi_agent_discussion.md` | `campaign_4_workbench_test.dart`: Agent page ownership; `rc6_runtime_truth_blocker_repair_test.dart`: Agent generation, dialogue, A2A dependencies |
@@ -51,7 +51,7 @@ This map freezes the current behavior before further structural cleanup. It is n
 
 ## Recommended Cleanup Order
 
-1. Continue UI extraction only. Next low-risk candidates: Audit Center, Settings Provider/Storage, then Dashboard panels.
+1. Continue UI extraction only. Next low-risk candidates: Document Library, Dashboard panels, then Knowledge Base.
 2. Keep runtime method names and `Rc6RuntimeState` stable until UI extractions have landed and passed tests.
 3. Move tests only after the relevant page module has been extracted and CI has stayed green.
 4. For every extraction slice, validate with:
@@ -63,4 +63,6 @@ This map freezes the current behavior before further structural cleanup. It is n
 
 ## Latest Structural Slice
 
-`db0d314 Extract Artifact Center workflow` moved Artifact Center UI into `web/workbench/flutter_app/lib/features/artifacts/artifact_center_product_workflow.dart` with no product behavior change. Local focused tests and remote CI passed.
+`d2f5f8b Extract Workbook workflow` moved Workbook UI into `web/workbench/flutter_app/lib/features/workbook/workbook_product_workflow.dart` with no product behavior change. Local focused tests and remote CI passed.
+
+The current retrieval slice moves Retrieval And Verification UI into `web/workbench/flutter_app/lib/features/retrieval/retrieval_verification_product_workflow.dart` with no product behavior change. Local focused tests passed before commit.
