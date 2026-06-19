@@ -9,9 +9,7 @@ import 'package:flutter/services.dart'
 
 import 'core_bridge/local_core_bridge.dart';
 import 'contracts/workbench_contracts.dart';
-import 'backend_evidence/parser_backend_dashboard.dart';
 import 'rc6_runtime/rc6_runtime_controller.dart';
-import 'skill_factory/skill_factory_workflow.dart';
 
 part 'app/product_top_bar.dart';
 part 'app/desktop_status_bar.dart';
@@ -749,15 +747,10 @@ class _PageSurfaceState extends State<_PageSurface> {
     final page = widget.page;
     final localeCode = widget.localeCode;
     final contracts = widget.contracts;
-    final workflowEvidence = widget.workflowEvidence;
     final workflowV2Evidence = widget.workflowV2Evidence;
     final externalCapabilities = widget.externalCapabilities;
     final parserBackends = widget.parserBackends;
     final campaign6AgentRuntimeStatus = widget.campaign6AgentRuntimeStatus;
-    final skillGovernanceReport = widget.skillGovernanceReport;
-    final methodologyMap = widget.methodologyMap;
-    final skillSuiteWorkflow = widget.skillSuiteWorkflow;
-    final columns = widget.columns;
     final coreWorkspace = widget.coreWorkspace;
     final isWebRuntime = widget.isWebRuntime;
     final isDark = widget.isDark;
@@ -767,28 +760,6 @@ class _PageSurfaceState extends State<_PageSurface> {
     final onLocaleChanged = widget.onLocaleChanged;
     final onPageChanged = widget.onPageChanged;
     final isDashboard = page.id == 'dashboard';
-    final cards = _cardsFor(
-        page.id,
-        page,
-        localeCode,
-        contracts,
-        workflowEvidence,
-        workflowV2Evidence,
-        externalCapabilities,
-        parserBackends,
-        skillGovernanceReport,
-        methodologyMap);
-    final diagnostics = _DeveloperDiagnosticsDetails(
-      localeCode: localeCode,
-      cards: cards,
-      columns: columns,
-      corePanels: const [],
-      parserBackends:
-          page.pageIds.any(_showsParserBackends) ? parserBackends : null,
-      skillFactoryWorkflow:
-          page.pageIds.any(_showsSkillGovernance) ? skillSuiteWorkflow : null,
-    );
-
     return LayoutBuilder(builder: (context, constraints) {
       const horizontalPadding = 16.0;
       final availableWidth = constraints.maxWidth - horizontalPadding * 2;
@@ -848,7 +819,6 @@ class _PageSurfaceState extends State<_PageSurface> {
                       workspace: coreWorkspace,
                       campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
                       isWebRuntime: isWebRuntime,
-                      diagnostics: diagnostics,
                       onPageChanged: onPageChanged,
                     ),
                     const SizedBox(height: _DesktopGrid.sectionGap),
@@ -862,284 +832,6 @@ class _PageSurfaceState extends State<_PageSurface> {
     });
   }
 
-  List<_CardCopy> _cardsFor(
-    String id,
-    WorkbenchPage page,
-    String localeCode,
-    WorkbenchContracts contracts,
-    P1WorkflowEvidence workflowEvidence,
-    P1WorkflowEvidence workflowV2Evidence,
-    ExternalCapabilityRegistry externalCapabilities,
-    ParserBackendMatrix parserBackends,
-    Map<String, dynamic> skillGovernanceReport,
-    Map<String, dynamic> methodologyMap,
-  ) {
-    final zh = localeCode == 'zh-CN';
-    final views = page.pageIds
-        .map((pageId) => _contractViewForId(pageId, contracts))
-        .toList(growable: false);
-    final actions = views
-        .expand((view) => _actionsForView(view, contracts))
-        .toList(growable: false);
-    final reports = views
-        .expand((view) => _reportsForView(view, contracts))
-        .toList(growable: false);
-    final artifacts = views
-        .expand((view) => _artifactsForView(view, contracts))
-        .toList(growable: false);
-    final common = views.expand((view) => view.assetTypes).isEmpty
-        ? (zh ? '合同样例' : 'Contract sample')
-        : views.expand((view) => view.assetTypes).join(' · ');
-    final externalProjects = views
-        .map((view) => view.corePageId)
-        .expand(externalCapabilities.projectsForCorePage)
-        .fold(<String, ExternalCapabilityProject>{}, (projects, project) {
-          projects[project.projectId] = project;
-          return projects;
-        })
-        .values
-        .toList(growable: false);
-    final providerProjects = externalProjects
-        .where((project) =>
-            project.contractStatus.contains('provider_required') ||
-            project.requiresApiKey ||
-            project.requiresNetwork ||
-            project.requiresExternalRuntime)
-        .toList(growable: false);
-    final templateProjects = externalProjects
-        .where(
-            (project) => project.contractStatus.contains('template_reference'))
-        .toList(growable: false);
-    final governanceChecks =
-        (skillGovernanceReport['checks'] as Map?)?.cast<String, dynamic>() ??
-            const <String, dynamic>{};
-    final governanceUiContract = (skillGovernanceReport['ui_contract'] as Map?)
-            ?.cast<String, dynamic>() ??
-        const <String, dynamic>{};
-    final diffCheck = (governanceChecks['diff_comparison'] as Map?)
-            ?.cast<String, dynamic>() ??
-        const <String, dynamic>{};
-    final installabilityCheck =
-        (governanceChecks['installability'] as Map?)?.cast<String, dynamic>() ??
-            const <String, dynamic>{};
-    final validationCheck =
-        (governanceChecks['validation'] as Map?)?.cast<String, dynamic>() ??
-            const <String, dynamic>{};
-    final tokenBudgetCheck =
-        (governanceChecks['token_budget'] as Map?)?.cast<String, dynamic>() ??
-            const <String, dynamic>{};
-    final methodologyModules =
-        (methodologyMap['methodology_modules'] as List?) ?? const <dynamic>[];
-    final firstMethodologyModule = methodologyModules.isEmpty
-        ? const <String, dynamic>{}
-        : (methodologyModules.first as Map).cast<String, dynamic>();
-    final methodologyEvidence =
-        (methodologyMap['source_evidence'] as List?) ?? const <dynamic>[];
-    final methodologyRisks =
-        (methodologyMap['risk_flags'] as List?) ?? const <dynamic>[];
-    final unsupportedClaims =
-        (methodologyMap['unsupported_claim_detection'] as Map?)
-                ?.cast<String, dynamic>() ??
-            const <String, dynamic>{};
-    return [
-      _CardCopy(zh ? 'Core 来源' : 'Core source', contracts.source.coreCommit),
-      _CardCopy(
-          zh ? '操作契约' : 'Action contracts',
-          actions.isEmpty
-              ? common
-              : actions.map((action) => action.id).take(3).join(' · ')),
-      _CardCopy(
-          zh ? '报告契约' : 'Report contracts',
-          reports.isEmpty
-              ? '${contracts.status.reportCount}'
-              : reports.map((report) => report.id).take(3).join(' · ')),
-      _CardCopy(
-          zh ? '产物契约' : 'Artifact contracts',
-          artifacts.isEmpty
-              ? '${contracts.status.assetCount}'
-              : artifacts.map((artifact) => artifact.id).take(3).join(' · ')),
-      _CardCopy(zh ? '任务状态' : 'Task statuses',
-          contracts.taskSchema.statuses.join(' · ')),
-      _CardCopy(zh ? '门禁状态' : 'Gate status',
-          '${contracts.gate.status} · not_v4_0_workbench_rc=${contracts.gate.notV4WorkbenchRc}'),
-      if (page.pageIds.any(_showsWorkflowEvidence))
-        _CardCopy(zh ? 'P1-RWF-V1 状态' : 'P1-RWF-V1 status',
-            '${workflowEvidence.status} · full_gate=${workflowEvidence.fullGateStatus}'),
-      if (page.pageIds.any(_showsWorkflowEvidence))
-        _CardCopy(zh ? '命令漂移' : 'Command drift',
-            'drift_count=${workflowEvidence.driftCount} · fixture_only_real=${workflowEvidence.fixtureOnlyCountedAsReal}'),
-      if (page.pageIds.any(_showsWorkflowEvidence))
-        _CardCopy(zh ? '黄金工作流' : 'Golden workflows',
-            '${workflowEvidence.workflowCount} · ${workflowEvidence.evidenceLevelCounts.entries.map((entry) => '${entry.key}:${entry.value}').join(' · ')}'),
-      if (page.pageIds.any(_showsWorkflowEvidence))
-        _CardCopy(zh ? '剩余阻塞' : 'Remaining blockers',
-            workflowEvidence.remainingBlockers.take(2).join(' · ')),
-      if (page.pageIds.any(_showsV2Evidence))
-        _CardCopy(zh ? 'P1-RWF-V2 状态' : 'P1-RWF-V2 status',
-            '${workflowV2Evidence.status} · full_gate=${workflowV2Evidence.fullGateStatus}'),
-      if (page.pageIds.any(_showsV2Evidence))
-        _CardCopy(zh ? '57 action 矩阵' : '57 action matrix',
-            '${workflowV2Evidence.passedActionCount}/${workflowV2Evidence.executionTargetCount} passed · failed=${workflowV2Evidence.failedActionCount}'),
-      if (page.pageIds.any(_showsV2Evidence))
-        _CardCopy(zh ? '产物 / 报告断言' : 'Artifact / report assertions',
-            'artifact=${workflowV2Evidence.artifactAssertionStatus} · report=${workflowV2Evidence.reportAssertionStatus} · error=${workflowV2Evidence.errorBoundaryStatus}'),
-      if (page.pageIds.any(_showsV2Evidence))
-        _CardCopy(zh ? '用户路径闭环' : 'User path closure',
-            '${workflowV2Evidence.userPathClosureStatus} · ${workflowV2Evidence.userPathPassedCount}/${workflowV2Evidence.userPathCount} paths'),
-      if (page.pageIds.any(_showsV2Evidence))
-        _CardCopy(zh ? 'UI 门禁' : 'UI gate',
-            'ui_full_operation_pending=${workflowV2Evidence.uiFullOperationPending} · rc_candidate=${workflowV2Evidence.readyForV4RcCandidate} · ready_for_v4_rc=${workflowV2Evidence.readyForV4Rc}'),
-      if (page.pageIds.any(_showsV2Evidence))
-        _CardCopy(
-            zh ? 'Provider/secret blocked' : 'Provider/secret blocked',
-            workflowV2Evidence.blockedActions
-                .map((action) => '${action.actionId}:${action.classification}')
-                .take(2)
-                .join(' · ')),
-      if (page.pageIds.any(_showsExternalCapabilities))
-        _CardCopy(zh ? 'S/A 外部能力' : 'S/A external capabilities',
-            'S=${externalCapabilities.sProjectCount} · A=${externalCapabilities.aProjectCount} · anchors=${externalCapabilities.internalCapabilityAnchorCount}'),
-      if (page.pageIds.any(_showsExternalCapabilities))
-        _CardCopy(zh ? 'Adapter 边界' : 'Adapter boundary',
-            'planned=${externalCapabilities.plannedAdapterCount} · future=${externalCapabilities.futureAdapterCount} · ready=false'),
-      if (page.pageIds.any(_showsExternalCapabilities))
-        _CardCopy(zh ? 'Provider 边界' : 'Provider boundary',
-            'provider_required=${externalCapabilities.providerRequiredCount} · local_ready=false'),
-      if (page.pageIds.any(_showsParserBackends))
-        _CardCopy(zh ? 'Parser Backend Matrix' : 'Parser Backend Matrix',
-            '${parserBackends.releaseVersion} · ${parserBackends.backends.length} backends · static_runtime=${parserBackends.staticWorkbenchRuntimeExecutionClaimed}'),
-      if (page.pageIds.any(_showsParserBackends))
-        _CardCopy(
-            zh ? 'Backend Status Detail' : 'Backend Status Detail',
-            parserBackends.backends
-                .map((backend) => '${backend.backendId}:${backend.status}')
-                .join(' · ')),
-      if (page.pageIds.any(_showsParserBackends))
-        _CardCopy(
-            zh ? 'Backend Install Mode' : 'Backend Install Mode',
-            parserBackends.backends
-                .map((backend) =>
-                    '${backend.backendId}:${backend.optionalExtra ?? backend.dependencyMode}')
-                .join(' · ')),
-      if (page.pageIds.any(_showsParserBackends))
-        _CardCopy(
-            zh ? 'Backend Last Acceptance' : 'Backend Last Acceptance',
-            parserBackends.backends
-                .map((backend) =>
-                    '${backend.backendId}:dep=${backend.dependencyAvailable},run=${backend.runtimeInvoked}')
-                .join(' · ')),
-      if (page.pageIds.any(_showsParserBackends))
-        _CardCopy(
-            zh
-                ? 'Backend Capability Boundaries'
-                : 'Backend Capability Boundaries',
-            parserBackends.backends
-                .map((backend) =>
-                    '${backend.backendId}:${backend.validatedStableSurface.join('/')}')
-                .join(' · ')),
-      if (page.pageIds.any(_showsParserBackends))
-        _CardCopy(
-            zh ? 'Backend Known Limitations' : 'Backend Known Limitations',
-            '${parserBackends.backend('unstructured')?.knownLimitations.first ?? 'limited_surface'} · default_heavy_deps=${parserBackends.defaultHeavyDependenciesBundled}'),
-      if (page.pageIds.any(_showsParserBackends))
-        _CardCopy(zh ? 'Backend Evidence Link' : 'Backend Evidence Link',
-            '${parserBackends.acceptanceReportPath} · ${parserBackends.knownLimitationReportPath}'),
-      if (_showsParserBackends(id))
-        _CardCopy(
-            zh ? 'Optional Dependency Reason' : 'Optional Dependency Reason',
-            'optional_gated=${parserBackends.optionalDependencyGatedCount} · no_static_execution=${parserBackends.backends.every((backend) => !backend.staticWorkbenchExecutable)}'),
-      if (page.pageIds.any(_showsSkillGovernance))
-        _CardCopy(zh ? 'Skill Governance Report' : 'Skill Governance Report',
-            '${skillGovernanceReport['skill_name'] ?? 'unknown'} · status=${skillGovernanceReport['status']} · release_ready=${skillGovernanceReport['release_ready']}'),
-      if (page.pageIds.any(_showsSkillGovernance))
-        _CardCopy(zh ? 'Diff baseline' : 'Diff baseline',
-            'diff=${diffCheck['status']} · baseline=${diffCheck['baseline_provided']} · changed=${diffCheck['changed_file_count']}'),
-      if (page.pageIds.any(_showsSkillGovernance))
-        _CardCopy(
-            zh ? 'Validation / installability' : 'Validation / installability',
-            'validation=${validationCheck['status']} · installability=${installabilityCheck['status']} · budget=${tokenBudgetCheck['status']}'),
-      if (page.pageIds.any(_showsSkillGovernance))
-        _CardCopy(
-            zh ? 'Workbench display evidence' : 'Workbench display evidence',
-            'asset=${governanceUiContract['asset_id']} · display=${governanceUiContract['ready_for_workbench_display']} · static_only=true'),
-      if (page.pageIds.any(_showsMethodology))
-        _CardCopy(zh ? '方法论地图' : 'Methodology Map',
-            '${methodologyMap['source_package_id']} · modules=${methodologyMap['module_count']} · confidence=${methodologyMap['confidence']}'),
-      if (page.pageIds.any(_showsMethodology))
-        _CardCopy(zh ? 'Evidence Windows' : 'Evidence Windows',
-            'count=${methodologyEvidence.length} · ${methodologyEvidence.take(3).join(' · ')}'),
-      if (page.pageIds.any(_showsMethodology))
-        _CardCopy(zh ? '方法论模块' : 'Methodology Module',
-            '${firstMethodologyModule['title']} · concepts=${(firstMethodologyModule['concepts'] as List?)?.length ?? 0} · principles=${(firstMethodologyModule['principles'] as List?)?.length ?? 0} · workflows=${(firstMethodologyModule['workflows'] as List?)?.length ?? 0}'),
-      if (page.pageIds.any(_showsMethodology))
-        _CardCopy(zh ? '来源追踪 / 风险' : 'Source Trace / Risk',
-            'trace=${methodologyEvidence.length} · unsupported=${unsupportedClaims['status']} · risks=${methodologyRisks.isEmpty ? 'none' : methodologyRisks.join('/')} · static_only=true'),
-      if (externalProjects.isNotEmpty)
-        _CardCopy(
-            zh ? '页面映射' : 'Mapped external projects',
-            externalProjects
-                .map((project) =>
-                    '${project.projectName}:${project.contractStatus.join('/')}')
-                .take(2)
-                .join(' · ')),
-      if (providerProjects.isNotEmpty)
-        _CardCopy(
-            zh ? 'blocked_reason' : 'blocked_reason',
-            providerProjects
-                .map((project) =>
-                    '${project.projectId}:${project.blockedReason}')
-                .take(2)
-                .join(' · ')),
-      if (templateProjects.isNotEmpty)
-        _CardCopy(
-            zh ? '模板参考' : 'Template references',
-            templateProjects
-                .map((project) => project.projectName)
-                .take(3)
-                .join(' · ')),
-      if (page.pageIds.contains('artifact-management'))
-        _CardCopy(
-            zh ? 'Artifact evidence' : 'Artifact evidence',
-            workflowV2Evidence.actionResults
-                .map((action) => '${action.actionId}:${action.artifactCount}')
-                .take(2)
-                .join(' · ')),
-      if (page.pageIds.contains('reports-audit'))
-        _CardCopy(
-            zh ? 'Gate impact' : 'Gate impact',
-            workflowV2Evidence.userPaths
-                .map((path) => '${path.userPathId}:${path.gateImpact}')
-                .take(1)
-                .join('')),
-      if (page.pageIds.contains('agent-factory-runtime'))
-        _CardCopy(zh ? 'Agent 模式' : 'Agent modes',
-            contracts.agent.supportedModes.join(' · ')),
-      if (page.pageIds.contains('error-repair-center'))
-        _CardCopy(zh ? '错误码' : 'Error codes',
-            contracts.errors.errorStates.join(' · ')),
-      if (page.pageIds.contains('error-repair-center'))
-        _CardCopy(
-            zh ? 'Blocked reason' : 'Blocked reason',
-            workflowV2Evidence.blockedActions
-                .map((action) => action.blockedReason)
-                .take(1)
-                .join('')),
-      if (page.pageIds.contains('document-generation'))
-        _CardCopy(
-            zh ? '文档模板' : 'Document templates',
-            contracts.templates.templates
-                .map((template) => template.id)
-                .take(3)
-                .join(' · ')),
-    ];
-  }
-}
-
-class _CardCopy {
-  const _CardCopy(this.title, this.body);
-
-  final String title;
-  final String body;
 }
 
 class _ProductPageOverview extends StatefulWidget {
@@ -1149,7 +841,6 @@ class _ProductPageOverview extends StatefulWidget {
     required this.workspace,
     required this.campaign6AgentRuntimeStatus,
     required this.isWebRuntime,
-    required this.diagnostics,
     required this.onPageChanged,
   });
 
@@ -1158,7 +849,6 @@ class _ProductPageOverview extends StatefulWidget {
   final String workspace;
   final Map<String, dynamic> campaign6AgentRuntimeStatus;
   final bool isWebRuntime;
-  final Widget diagnostics;
   final ValueChanged<int> onPageChanged;
 
   @override
@@ -1538,7 +1228,7 @@ class _RuntimeFeedbackBanner extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final color = switch (tone) {
       _StatusTone.success => Colors.green.shade700,
-      _StatusTone.warning => Colors.orange.shade700,
+      _StatusTone.warning => colors.onSurfaceVariant,
       _StatusTone.danger => colors.error,
       _StatusTone.neutral => colors.primary,
     };
@@ -1669,7 +1359,7 @@ class _StatusBadge extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final color = switch (tone) {
       _StatusTone.success => Colors.green.shade700,
-      _StatusTone.warning => Colors.orange.shade700,
+      _StatusTone.warning => colors.onSurfaceVariant,
       _StatusTone.danger => colors.error,
       _StatusTone.neutral => colors.onSurfaceVariant,
     };
@@ -2435,61 +2125,3 @@ const sampleMethodologyMap = <String, dynamic>{
     },
   ],
 };
-
-class _WorkbenchCard extends StatelessWidget {
-  const _WorkbenchCard(
-      {required this.title, required this.body, required this.localeCode});
-
-  final String title;
-  final String body;
-  final String localeCode;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    return Card(
-      color: colors.surface,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w700)),
-            const SizedBox(height: 8),
-            Expanded(
-              child: Text(body,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: textTheme.bodyMedium),
-            ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                decoration: BoxDecoration(
-                  color: colors.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: colors.outlineVariant),
-                ),
-                child: Text(
-                  localeCode == 'zh-CN' ? '只读边界证据' : 'Read-only evidence',
-                  style: textTheme.labelSmall?.copyWith(
-                    color: colors.onSurfaceVariant,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

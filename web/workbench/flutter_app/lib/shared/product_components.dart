@@ -205,7 +205,6 @@ class _ProductPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final gapColor = Colors.amber.shade700;
     return Container(
       key: keyName == null ? null : Key(keyName!),
       width: double.infinity,
@@ -214,14 +213,14 @@ class _ProductPanel extends StatelessWidget {
       padding: const EdgeInsets.all(_DesktopGrid.panelPadding),
       decoration: BoxDecoration(
         color: gap
-            ? gapColor.withValues(alpha: 0.08)
+            ? colors.surfaceContainerLow
             : accent
                 ? colors.primary.withValues(alpha: 0.05)
                 : colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(_DesktopGrid.panelRadius),
         border: Border.all(
           color: gap
-              ? gapColor.withValues(alpha: 0.5)
+              ? colors.outlineVariant
               : accent
                   ? colors.primary.withValues(alpha: 0.24)
                   : colors.outlineVariant,
@@ -234,7 +233,7 @@ class _ProductPanel extends StatelessWidget {
             Row(
               children: [
                 if (icon != null) ...[
-                  Icon(icon, size: 18, color: gap ? gapColor : colors.primary),
+                  Icon(icon, size: 18, color: colors.primary),
                   const SizedBox(width: 8),
                 ],
                 Expanded(
@@ -248,10 +247,6 @@ class _ProductPanel extends StatelessWidget {
                                 height: 1.12,
                               )),
                 ),
-                if (gap) ...[
-                  const SizedBox(width: 8),
-                  const _CapabilityStatusMarker(compact: true),
-                ],
               ],
             ),
             if (subtitle != null) ...[
@@ -615,12 +610,10 @@ enum _CapabilityStatusKind { available, displayOnly, disabledBoundary }
 class _CapabilityStatusMarker extends StatelessWidget {
   const _CapabilityStatusMarker({
     this.label,
-    this.compact = false,
     this.kind,
   });
 
   final String? label;
-  final bool compact;
   final _CapabilityStatusKind? kind;
 
   @override
@@ -629,12 +622,12 @@ class _CapabilityStatusMarker extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final color = switch (resolvedKind) {
       _CapabilityStatusKind.displayOnly => colors.onSurfaceVariant,
-      _CapabilityStatusKind.disabledBoundary => Colors.amber.shade700,
+      _CapabilityStatusKind.disabledBoundary => colors.onSurfaceVariant,
       _CapabilityStatusKind.available => Colors.green.shade700,
     };
     final icon = switch (resolvedKind) {
       _CapabilityStatusKind.displayOnly => Icons.visibility_outlined,
-      _CapabilityStatusKind.disabledBoundary => Icons.warning_amber_outlined,
+      _CapabilityStatusKind.disabledBoundary => Icons.info_outline,
       _CapabilityStatusKind.available => Icons.check_circle_outline,
     };
     final text = _capabilityStatusLabel(
@@ -642,10 +635,7 @@ class _CapabilityStatusMarker extends StatelessWidget {
       Localizations.localeOf(context).languageCode == 'zh',
     );
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 7 : 8,
-        vertical: compact ? 3 : 5,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(6),
@@ -654,7 +644,7 @@ class _CapabilityStatusMarker extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: compact ? 13 : 14, color: color),
+          Icon(icon, size: 14, color: color),
           const SizedBox(width: 5),
           Flexible(
             child: Text(
@@ -662,7 +652,7 @@ class _CapabilityStatusMarker extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    fontSize: compact ? 12.5 : 13,
+                    fontSize: 13,
                     color: color,
                     fontWeight: FontWeight.w900,
                     height: 1.12,
@@ -692,7 +682,6 @@ _CapabilityStatusKind _capabilityStatusKind(String value) {
   }
   if (lower.contains('disabled_boundary') ||
       lower.contains('omitted') ||
-      lower.contains('campaign 6') ||
       lower.contains('provider runtime gate') ||
       lower.contains('external source verification gate') ||
       lower.contains('not connected') ||
@@ -727,7 +716,6 @@ String _capabilityStatusLabel(String? value, bool zh) {
     return zh ? '仅查看' : 'View only';
   }
   if (lower.contains('omitted') ||
-      lower.contains('campaign 6') ||
       lower.contains('not_available_in_product_flow') ||
       value.contains('后续') ||
       value.contains('不实现')) {

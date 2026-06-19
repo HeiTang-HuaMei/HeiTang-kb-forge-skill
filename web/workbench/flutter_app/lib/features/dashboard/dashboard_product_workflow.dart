@@ -540,6 +540,28 @@ class _DashboardNextActions extends StatelessWidget {
         'document-generation',
         runtime.hasExportedDocument,
       ),
+      _DashboardActionRow(
+        _zh ? '生成 Skill' : 'Generate Skill',
+        runtime.hasSkill
+            ? (_zh ? 'Skill 产物可复用' : 'Skill artifact is reusable')
+            : (_zh ? '基于知识库生成并验证' : 'Generate and validate from KB'),
+        Icons.extension_outlined,
+        'skill-factory',
+        runtime.hasSkill,
+      ),
+      _DashboardActionRow(
+        _zh ? '创建 Agent 并协作' : 'Create Agent and collaborate',
+        runtime.hasMultiAgentDiscussion
+            ? (_zh ? '多 Agent 讨论已保存' : 'Multi-agent discussion saved')
+            : runtime.hasAgentDialogue
+                ? (_zh ? '单 Agent 对话已保存' : 'Single-Agent dialogue saved')
+                : (_zh
+                    ? '在 Agent 工作台完成单 Agent 与多 Agent'
+                    : 'Use Agent Workbench for single and multi-agent work'),
+        Icons.groups_2_outlined,
+        'agent-factory-runtime',
+        runtime.hasAgentDialogue || runtime.hasMultiAgentDiscussion,
+      ),
     ];
     return _FillProductPanel(
       keyName: 'dashboard-next-actions',
@@ -759,7 +781,10 @@ class _DashboardReportSummary extends StatelessWidget {
                     'chunks / cards / qa_pairs / manifest',
                     '检索验证'
                   ],
-                  ['文档生成', '可操作', 'Markdown 草稿与导出文件', '进入产物中心'],
+                  ['检索与验证', '可操作', '证据片段 / 引用 / 验证报告', '生成文档'],
+                  ['文档生成', '可操作', 'Markdown 草稿与导出文件', '生成 Skill'],
+                  ['Skill 工厂', '可操作', 'SKILL.md / 验证报告 / 绑定清单', '进入 Agent 工作台'],
+                  ['Agent 工作台', '可操作', '单 Agent 对话 / 多 Agent 协作记录', '进入产物中心'],
                 ]
               : [
                   [
@@ -775,9 +800,27 @@ class _DashboardReportSummary extends StatelessWidget {
                     'Search'
                   ],
                   [
+                    'Retrieval and verification',
+                    'Actionable',
+                    'Evidence snippets / citations / validation report',
+                    'Generate documents'
+                  ],
+                  [
                     'Document generation',
                     'Actionable',
                     'Markdown draft and export file',
+                    'Generate Skill'
+                  ],
+                  [
+                    'Skill Factory',
+                    'Actionable',
+                    'SKILL.md / validation report / binding manifest',
+                    'Open Agent Workbench'
+                  ],
+                  [
+                    'Agent Workbench',
+                    'Actionable',
+                    'Single-Agent dialogue / multi-agent records',
                     'Open artifacts'
                   ],
                 ],
@@ -991,9 +1034,9 @@ class _DashboardArtifactOverview extends StatelessWidget {
                 onPageChanged(_pageIndexById('document-generation')),
           ),
           _DisplayAction(
-            label: _zh ? '查看 Agent / A2A' : 'Open Agent / A2A',
+            label: _zh ? '打开 Agent 工作台' : 'Open Agent Workbench',
             icon: Icons.groups_2_outlined,
-            onPressed: runtime.hasPrdP0Evidence
+            onPressed: runtime.hasAgent || runtime.hasSkill
                 ? () => onPageChanged(_pageIndexById('agent-factory-runtime'))
                 : null,
           ),
