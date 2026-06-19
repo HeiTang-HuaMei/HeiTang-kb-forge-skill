@@ -3174,15 +3174,48 @@ class Rc6RuntimeController extends ChangeNotifier {
     ].where((path) => File(path).existsSync()).toList(growable: false);
     final skillArtifacts = <String>[
       _joinNested(workspace.path, 'skill/knowledge_qa_skill/SKILL.md'),
+      _joinNested(
+          workspace.path, 'skill/knowledge_qa_skill/skill_config.json'),
+      _joinNested(
+          workspace.path, 'skill/knowledge_qa_skill/verification_report.json'),
+      _joinNested(
+          workspace.path, 'skill/knowledge_qa_skill/skill_edit_manifest.json'),
+      _joinNested(workspace.path, 'skill/skill_generation_manifest.json'),
       _joinNested(workspace.path,
           'skill/localized_writing_skill/S2/localized_skill_manifest.json'),
+      _joinNested(
+          workspace.path, 'skill/localized_writing_skill/S2/diff_summary.md'),
+      _joinNested(
+          workspace.path, 'skill/operations/skill_version_manifest.json'),
+      _joinNested(
+          workspace.path, 'skill/operations/skill_operation_manifest.json'),
+      _joinNested(
+          workspace.path, 'skill/operations/agent_binding_manifest.json'),
       _joinNested(workspace.path, 'skill/exports/skills_export.md'),
     ].where((path) => File(path).existsSync()).toList(growable: false);
     final agentArtifacts = <String>[
       _joinNested(workspace.path, 'agent/knowledge_qa_agent/agent_manifest.json'),
+      _joinNested(workspace.path, 'agent/knowledge_qa_agent/agent_profile.yaml'),
+      _joinNested(workspace.path, 'agent/agent_generation_manifest.json'),
+      _joinNested(
+          workspace.path, 'agent/product_config/advanced_agent_config.json'),
+      _joinNested(
+          workspace.path, 'agent/exports/agent_package_manifest.json'),
+      _joinNested(workspace.path, 'agent/exports/agent_package_README.md'),
       _joinNested(workspace.path, 'agent/dialogue/agent_dialogue.md'),
+      _joinNested(
+          workspace.path, 'agent/dialogue/agent_dialogue_manifest.json'),
+      _joinNested(workspace.path, 'agent/dialogue/chat_history.jsonl'),
+      _joinNested(
+          workspace.path, 'agent/dialogue_export/agent_dialogue_export.md'),
+      _joinNested(workspace.path,
+          'agent/dialogue_export/agent_dialogue_export_manifest.json'),
+      _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md'),
+      _join(workspace.path, 'multi_agent', 'multi_agent_discussion_manifest.json'),
       _joinNested(workspace.path,
           'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json'),
+      _joinNested(workspace.path,
+          'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_collaboration_report.md'),
     ].where((path) => File(path).existsSync()).toList(growable: false);
     final auditArtifacts = <String>[
       _join(workspace.path, 'audit', 'audit_report.json'),

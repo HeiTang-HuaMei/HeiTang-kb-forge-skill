@@ -2326,11 +2326,41 @@ void main() {
       ..createSync(recursive: true);
     File('${skillDir.path}${Platform.pathSeparator}SKILL.md')
         .writeAsStringSync('# Skill');
+    final skillOps = Directory(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations')
+      ..createSync(recursive: true);
+    final skillBindingPath =
+        '${skillOps.path}${Platform.pathSeparator}agent_binding_manifest.json';
+    File(skillBindingPath).writeAsStringSync('{"status":"bound"}');
+    final skillExportDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}exports')
+      ..createSync(recursive: true);
+    final skillExportPath =
+        '${skillExportDir.path}${Platform.pathSeparator}skills_export.md';
+    File(skillExportPath).writeAsStringSync('# exported Skill');
     final agentDir = Directory(
         '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}knowledge_qa_agent')
       ..createSync(recursive: true);
     File('${agentDir.path}${Platform.pathSeparator}agent_manifest.json')
         .writeAsStringSync('{"agent_id":"A"}');
+    final dialogueExportDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue_export')
+      ..createSync(recursive: true);
+    final dialogueExportPath =
+        '${dialogueExportDir.path}${Platform.pathSeparator}agent_dialogue_export.md';
+    File(dialogueExportPath).writeAsStringSync('# dialogue export');
+    final multiAgentDir =
+        Directory('${workspace.path}${Platform.pathSeparator}multi_agent')
+          ..createSync(recursive: true);
+    final discussionPath =
+        '${multiAgentDir.path}${Platform.pathSeparator}multi_agent_discussion.md';
+    File(discussionPath).writeAsStringSync('# A2A discussion');
+    final a2aDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001')
+      ..createSync(recursive: true);
+    final a2aReportPath =
+        '${a2aDir.path}${Platform.pathSeparator}a2a_collaboration_report.md';
+    File(a2aReportPath).writeAsStringSync('# A2A report');
 
     final reloaded = buildController();
     await reloaded.initialize();
@@ -2347,6 +2377,11 @@ void main() {
     expect(refreshedIndex['knowledge_base_ids'], contains('K1'));
     expect(refreshedIndex['skill_artifacts'], isNotEmpty);
     expect(refreshedIndex['agent_artifacts'], isNotEmpty);
+    expect(refreshedIndex['skill_artifacts'], contains(skillBindingPath));
+    expect(refreshedIndex['skill_artifacts'], contains(skillExportPath));
+    expect(refreshedIndex['agent_artifacts'], contains(dialogueExportPath));
+    expect(refreshedIndex['agent_artifacts'], contains(discussionPath));
+    expect(refreshedIndex['agent_artifacts'], contains(a2aReportPath));
     expect(activeWorkbook['updated_at'], isNotNull);
   });
 }
