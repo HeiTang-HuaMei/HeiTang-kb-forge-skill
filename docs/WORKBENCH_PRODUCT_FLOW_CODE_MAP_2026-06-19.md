@@ -6,7 +6,7 @@ This map freezes the current behavior before further structural cleanup. It is n
 
 | Area | Current Location | Finding | Cleanup Rule |
 | --- | --- | --- | --- |
-| Main UI | `web/workbench/flutter_app/lib/main.dart` | 5,213 lines after the Product Top Bar extraction. Routing, shared widgets, and several product pages still live together. | Split one UI page at a time into `lib/features/<page>/...` or `lib/app/...` without changing visible behavior. |
+| Main UI | `web/workbench/flutter_app/lib/main.dart` | About 4,300 lines after the top bar and desktop status bar shell extractions. Routing, shared widgets, and several shell/page helpers still live together. | Split one UI page or shell widget at a time into `lib/features/<page>/...` or `lib/app/...` without changing visible behavior. |
 | Runtime | `web/workbench/flutter_app/lib/rc6_runtime/rc6_runtime_controller_io.dart` | 7,216 lines. It contains import, parsing, KB, retrieval, document, storage, Skill, Agent, and artifact cleanup logic. The `rc6` name is now historical debt. | Do not rename yet. After UI slices are stable, introduce product-named wrappers or files while keeping compatibility. |
 | Runtime Stub/Models | `web/workbench/flutter_app/lib/rc6_runtime/rc6_runtime_controller_stub.dart` | State model and web stub still carry `Rc6RuntimeState` and many PRD-era fields. | Keep stable until runtime naming cleanup is isolated. |
 | Widget Tests | `web/workbench/flutter_app/test/campaign_4_workbench_test.dart` | 754 lines. Modern product-flow widget tests still live under a Campaign 4 name. | Later move tests into `test/product_flow/` one group at a time. |
@@ -87,4 +87,8 @@ The current Dashboard slice moves Dashboard panels into `web/workbench/flutter_a
 
 The current Import And Parsing slice moves import workflow UI into `web/workbench/flutter_app/lib/features/import_parsing/import_product_workflow.dart` with no product behavior change. Shared document preview/type helper widgets stay in `main.dart` because Document Library and Skill still use them.
 
-The current Product Top Bar slice moves the desktop top bar shell into `web/workbench/flutter_app/lib/app/product_top_bar.dart` with no search, navigation, or theme behavior change.
+The Product Top Bar shell slice moves the desktop top bar shell into `web/workbench/flutter_app/lib/app/product_top_bar.dart` with no search, navigation, or theme behavior change.
+
+The Product Top Bar helper slice moves top bar search, language toggle, chips, and icon button helpers into `web/workbench/flutter_app/lib/app/product_top_bar.dart` with no behavior change.
+
+The Desktop Status Bar slice moves the desktop status bar shell into `web/workbench/flutter_app/lib/app/desktop_status_bar.dart` with no behavior change.
