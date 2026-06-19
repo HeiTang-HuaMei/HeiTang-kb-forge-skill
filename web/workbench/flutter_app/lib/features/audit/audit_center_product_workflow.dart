@@ -520,6 +520,8 @@ String _firstAuditPreviewPath(Rc6RuntimeState runtime) {
   for (final path in [
     runtime.queryResultPath,
     runtime.standardKnowledgePackageManifestPath,
+    runtime.indexBuildReportPath,
+    runtime.indexProfilePath,
     runtime.exportManifestPath,
     runtime.qualityReportPath,
     runtime.parseReportPath,

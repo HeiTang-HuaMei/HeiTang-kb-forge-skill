@@ -1874,6 +1874,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       qaPairsPath: '',
       sourceMapPath: '',
       indexMetadataPath: '',
+      indexProfilePath: '',
+      keywordIndexPath: '',
+      vectorIndexReferencePath: '',
+      metadataIndexPath: '',
+      citationIndexPath: '',
+      memoryIndexReferencePath: '',
+      indexBuildReportPath: '',
       buildLogPath: '',
       errorLogPath: '',
       queryResultPath: '',
@@ -1921,6 +1928,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       qaPairsPath: '',
       sourceMapPath: '',
       indexMetadataPath: '',
+      indexProfilePath: '',
+      keywordIndexPath: '',
+      vectorIndexReferencePath: '',
+      metadataIndexPath: '',
+      citationIndexPath: '',
+      memoryIndexReferencePath: '',
+      indexBuildReportPath: '',
       buildLogPath: '',
       errorLogPath: '',
       queryResultPath: '',
@@ -1977,6 +1991,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       qaPairsPath: '',
       sourceMapPath: '',
       indexMetadataPath: '',
+      indexProfilePath: '',
+      keywordIndexPath: '',
+      vectorIndexReferencePath: '',
+      metadataIndexPath: '',
+      citationIndexPath: '',
+      memoryIndexReferencePath: '',
+      indexBuildReportPath: '',
       buildLogPath: '',
       errorLogPath: '',
       queryResultPath: '',
@@ -3293,6 +3314,15 @@ class Rc6RuntimeController extends ChangeNotifier {
       prdP0EvidencePath: '',
       cardsPath: '',
       qaPairsPath: '',
+      sourceMapPath: '',
+      indexMetadataPath: '',
+      indexProfilePath: '',
+      keywordIndexPath: '',
+      vectorIndexReferencePath: '',
+      metadataIndexPath: '',
+      citationIndexPath: '',
+      memoryIndexReferencePath: '',
+      indexBuildReportPath: '',
       chunkCount: 0,
       searchStatus: Rc6SearchStatus.idle,
       searchResults: const [],
@@ -3354,6 +3384,18 @@ class Rc6RuntimeController extends ChangeNotifier {
     final sourceMapPath = _join(workspace.path, 'kb', 'source_map.json');
     final indexMetadataPath =
         _join(workspace.path, 'kb', 'index_metadata.json');
+    final indexProfilePath = _join(workspace.path, 'kb', 'index_profile.json');
+    final keywordIndexPath = _join(workspace.path, 'kb', 'keyword_index.json');
+    final vectorIndexReferencePath =
+        _join(workspace.path, 'kb', 'vector_index_reference.json');
+    final metadataIndexPath =
+        _join(workspace.path, 'kb', 'metadata_index.json');
+    final citationIndexPath =
+        _join(workspace.path, 'kb', 'citation_index.json');
+    final memoryIndexReferencePath =
+        _join(workspace.path, 'kb', 'memory_index_reference.json');
+    final indexBuildReportPath =
+        _join(workspace.path, 'kb', 'index_build_report.json');
     final buildLogPath = _join(workspace.path, 'kb', 'build.log');
     final errorLogPath = _join(workspace.path, 'kb', 'error.log');
     final multiQueryPath =
@@ -3538,6 +3580,22 @@ class Rc6RuntimeController extends ChangeNotifier {
       sourceMapPath: await File(sourceMapPath).exists() ? sourceMapPath : '',
       indexMetadataPath:
           await File(indexMetadataPath).exists() ? indexMetadataPath : '',
+      indexProfilePath:
+          await File(indexProfilePath).exists() ? indexProfilePath : '',
+      keywordIndexPath:
+          await File(keywordIndexPath).exists() ? keywordIndexPath : '',
+      vectorIndexReferencePath: await File(vectorIndexReferencePath).exists()
+          ? vectorIndexReferencePath
+          : '',
+      metadataIndexPath:
+          await File(metadataIndexPath).exists() ? metadataIndexPath : '',
+      citationIndexPath:
+          await File(citationIndexPath).exists() ? citationIndexPath : '',
+      memoryIndexReferencePath: await File(memoryIndexReferencePath).exists()
+          ? memoryIndexReferencePath
+          : '',
+      indexBuildReportPath:
+          await File(indexBuildReportPath).exists() ? indexBuildReportPath : '',
       buildLogPath: await File(buildLogPath).exists() ? buildLogPath : '',
       errorLogPath: await File(errorLogPath).exists() ? errorLogPath : '',
       queryResultPath: await File(queryPath).exists() ? queryPath : '',
@@ -3933,6 +3991,31 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(workspace.path, 'knowledge_bases', 'kb_catalog.json');
     final kbCatalog = await _readJsonObject(kbCatalogPath);
     final knowledgeBaseRecords = _catalogRecords(kbCatalog);
+    final knowledgeIndexArtifacts = <String>[
+      _joinNested(workspace.path, 'kb/index_profile.json'),
+      _joinNested(workspace.path, 'kb/keyword_index.json'),
+      _joinNested(workspace.path, 'kb/vector_index_reference.json'),
+      _joinNested(workspace.path, 'kb/metadata_index.json'),
+      _joinNested(workspace.path, 'kb/citation_index.json'),
+      _joinNested(workspace.path, 'kb/memory_index_reference.json'),
+      _joinNested(workspace.path, 'kb/index_build_report.json'),
+      for (final record in knowledgeBaseRecords) ...[
+        _joinNested(workspace.path,
+            'knowledge_bases/${record['kb_id']}/index_profile.json'),
+        _joinNested(workspace.path,
+            'knowledge_bases/${record['kb_id']}/keyword_index.json'),
+        _joinNested(workspace.path,
+            'knowledge_bases/${record['kb_id']}/vector_index_reference.json'),
+        _joinNested(workspace.path,
+            'knowledge_bases/${record['kb_id']}/metadata_index.json'),
+        _joinNested(workspace.path,
+            'knowledge_bases/${record['kb_id']}/citation_index.json'),
+        _joinNested(workspace.path,
+            'knowledge_bases/${record['kb_id']}/memory_index_reference.json'),
+        _joinNested(workspace.path,
+            'knowledge_bases/${record['kb_id']}/index_build_report.json'),
+      ],
+    ].where((path) => File(path).existsSync()).toList(growable: false);
     final standardPackageArtifacts = <String>[
       _joinNested(workspace.path,
           'standard_packages/current/standard_package_manifest.json'),
@@ -4015,6 +4098,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           .map((record) => (record['kb_id'] ?? '').toString())
           .where((id) => id.isNotEmpty)
           .toList(growable: false),
+      'knowledge_index_artifacts': knowledgeIndexArtifacts,
       'standard_knowledge_package_artifacts': standardPackageArtifacts,
       'generated_documents': generatedDocuments,
       'skill_artifacts': skillArtifacts,
@@ -4127,6 +4211,15 @@ class Rc6RuntimeController extends ChangeNotifier {
       'qa_pairs_path': _join(kbDir, 'qa_pairs.jsonl'),
       'source_map_path': _join(kbDir, 'source_map.json'),
       'index_metadata_path': _join(kbDir, 'index_metadata.json'),
+      'index_profile_path': _join(kbDir, 'index_profile.json'),
+      'keyword_index_path': _join(kbDir, 'keyword_index.json'),
+      'vector_index_reference_path':
+          _join(kbDir, 'vector_index_reference.json'),
+      'metadata_index_path': _join(kbDir, 'metadata_index.json'),
+      'citation_index_path': _join(kbDir, 'citation_index.json'),
+      'memory_index_reference_path':
+          _join(kbDir, 'memory_index_reference.json'),
+      'index_build_report_path': _join(kbDir, 'index_build_report.json'),
       'build_log_path': _join(kbDir, 'build.log'),
       'error_log_path': _join(kbDir, 'error.log'),
     };
@@ -4142,19 +4235,16 @@ class Rc6RuntimeController extends ChangeNotifier {
           'chunk_count': chunks.length,
         }),
         encoding: utf8);
-    await File(_join(kbDir, 'index_metadata.json')).writeAsString(
-        const JsonEncoder.withIndent('  ').convert({
-          'schema_version': 'prd_v2_index_metadata.v1',
-          'kb_id': 'current_kb',
-          'index_type': 'hybrid_local',
-          'keyword_index': true,
-          'vector_store': 'local_file_index',
-          'chunk_count': chunks.length,
-          'card_count': cards.length,
-          'qa_pair_count': qaPairs.length,
-          'source_count': sources.length,
-        }),
-        encoding: utf8);
+    await _writeIndustrialIndexArtifacts(
+      kbDir: Directory(kbDir),
+      kbId: 'current_kb',
+      operation: 'build',
+      chunks: chunks,
+      sourceDocs: sourceDocs,
+      cards: cards,
+      qaPairs: qaPairs,
+      vectorStore: 'local_file_index',
+    );
     await File(_join(kbDir, 'build.log')).writeAsString(
       [
         'schema_version=prd_v2_kb_build_log.v1',
@@ -4537,6 +4627,15 @@ class Rc6RuntimeController extends ChangeNotifier {
       'chunks_path': chunkPath,
       'source_map_path': _join(kbRoot.path, 'source_map.json'),
       'index_metadata_path': _join(kbRoot.path, 'index_metadata.json'),
+      'index_profile_path': _join(kbRoot.path, 'index_profile.json'),
+      'keyword_index_path': _join(kbRoot.path, 'keyword_index.json'),
+      'vector_index_reference_path':
+          _join(kbRoot.path, 'vector_index_reference.json'),
+      'metadata_index_path': _join(kbRoot.path, 'metadata_index.json'),
+      'citation_index_path': _join(kbRoot.path, 'citation_index.json'),
+      'memory_index_reference_path':
+          _join(kbRoot.path, 'memory_index_reference.json'),
+      'index_build_report_path': _join(kbRoot.path, 'index_build_report.json'),
       'quality_report_path': _join(kbRoot.path, 'quality_report.json'),
       'build_log_path': _join(kbRoot.path, 'build.log'),
       'error_log_path': _join(kbRoot.path, 'error.log'),
@@ -4566,14 +4665,16 @@ class Rc6RuntimeController extends ChangeNotifier {
           'source_kb_ids': sourceKbIds,
         }),
         encoding: utf8);
-    await File(_join(kbRoot.path, 'index_metadata.json')).writeAsString(
-        const JsonEncoder.withIndent('  ').convert({
-          'kb_id': kbId,
-          'keyword_index': true,
-          'vector_store': 'local_file_index',
-          'chunk_count': _countJsonl(chunkPath),
-        }),
-        encoding: utf8);
+    await _writeIndustrialIndexArtifacts(
+      kbDir: kbRoot,
+      kbId: kbId,
+      operation: operation,
+      chunks: await _readJsonl(File(chunkPath)),
+      sourceDocs: docs,
+      cards: await _readJsonl(File(_join(kbRoot.path, 'cards.jsonl'))),
+      qaPairs: await _readJsonl(File(_join(kbRoot.path, 'qa_pairs.jsonl'))),
+      vectorStore: 'local_file_index',
+    );
     await File(_join(kbRoot.path, 'build.log')).writeAsString(
       'operation=$operation\nversion=$currentVersion\nsource_count=${docs.length}\n',
       encoding: utf8,
@@ -4583,6 +4684,173 @@ class Rc6RuntimeController extends ChangeNotifier {
       await errorLog.writeAsString('status=ok\n', encoding: utf8);
     }
     return record;
+  }
+
+  Future<void> _writeIndustrialIndexArtifacts({
+    required Directory kbDir,
+    required String kbId,
+    required String operation,
+    required List<Map<String, dynamic>> chunks,
+    required List<Map<String, dynamic>> sourceDocs,
+    required List<Map<String, dynamic>> cards,
+    required List<Map<String, dynamic>> qaPairs,
+    required String vectorStore,
+  }) async {
+    await kbDir.create(recursive: true);
+    final now = DateTime.now().toUtc().toIso8601String();
+    final chunkRows = chunks
+        .asMap()
+        .entries
+        .map((entry) => {
+              ...entry.value,
+              'chunk_id': _stringValue(
+                  entry.value['chunk_id'], 'chunk_${entry.key + 1}'),
+            })
+        .toList(growable: false);
+    final keywordIndex = <String, Set<String>>{};
+    final citationRows = <Map<String, Object?>>[];
+    for (final chunk in chunkRows) {
+      final chunkId = _stringValue(chunk['chunk_id'], '');
+      final text = _stringValue(chunk['text'] ?? chunk['summary'], '');
+      for (final term in text
+          .toLowerCase()
+          .split(RegExp(r'[^a-z0-9\u4e00-\u9fff]+'))
+          .where((term) => term.trim().length >= 2)
+          .take(80)) {
+        keywordIndex.putIfAbsent(term, () => <String>{}).add(chunkId);
+      }
+      citationRows.add({
+        'chunk_id': chunkId,
+        'citation': _stringValue(
+            chunk['citation'] ?? chunk['source_path'] ?? chunk['source'], ''),
+        'source_path':
+            _stringValue(chunk['source_path'] ?? chunk['source'], ''),
+      });
+    }
+    final keywordPayload = {
+      for (final entry in keywordIndex.entries)
+        entry.key: entry.value.toList(growable: false)..sort(),
+    };
+    final metadataRows = sourceDocs
+        .map((doc) => {
+              'document_id': _stringValue(doc['document_id'], ''),
+              'source_name': _stringValue(doc['source_name'], ''),
+              'relative_path': _stringValue(doc['relative_path'], ''),
+              'chunk_count': _asInt(doc['chunk_count']) ?? 0,
+              'size_bytes': _asInt(doc['size_bytes']) ?? 0,
+            })
+        .toList(growable: false);
+    await File(_join(kbDir.path, 'index_profile.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_index_profile.v1',
+        'index_profile_id': '${kbId}_hybrid_local_v1',
+        'kb_id': kbId,
+        'status': chunkRows.isEmpty ? 'needs_content' : 'ready',
+        'keyword_index_enabled': true,
+        'vector_index_enabled': true,
+        'metadata_index_enabled': true,
+        'citation_index_enabled': true,
+        'memory_index_enabled': true,
+        'vector_store': vectorStore,
+        'created_at': now,
+      }),
+      encoding: utf8,
+    );
+    await File(_join(kbDir.path, 'keyword_index.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_keyword_index.v1',
+        'kb_id': kbId,
+        'term_count': keywordPayload.length,
+        'terms': keywordPayload,
+      }),
+      encoding: utf8,
+    );
+    await File(_join(kbDir.path, 'vector_index_reference.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_vector_index_reference.v1',
+        'kb_id': kbId,
+        'vector_store': vectorStore,
+        'embedding_provider': 'configured_provider_or_local_reference',
+        'chunk_count': chunkRows.length,
+        'external_vector_db_required': false,
+        'secret_plaintext_written': false,
+      }),
+      encoding: utf8,
+    );
+    await File(_join(kbDir.path, 'metadata_index.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_metadata_index.v1',
+        'kb_id': kbId,
+        'documents': metadataRows,
+      }),
+      encoding: utf8,
+    );
+    await File(_join(kbDir.path, 'citation_index.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_citation_index.v1',
+        'kb_id': kbId,
+        'citations': citationRows,
+      }),
+      encoding: utf8,
+    );
+    await File(_join(kbDir.path, 'memory_index_reference.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_memory_index_reference.v1',
+        'kb_id': kbId,
+        'memory_scope': 'agent_long_term_memory',
+        'memory_store': 'separate_from_kb_index',
+        'enabled_by_agent_config': true,
+        'secret_plaintext_written': false,
+      }),
+      encoding: utf8,
+    );
+    await File(_join(kbDir.path, 'index_build_report.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_index_build_report.v1',
+        'kb_id': kbId,
+        'operation': operation,
+        'status': chunkRows.isEmpty ? 'needs_content' : 'pass',
+        'chunk_count': chunkRows.length,
+        'source_count': sourceDocs.length,
+        'card_count': cards.length,
+        'qa_pair_count': qaPairs.length,
+        'built_at': now,
+        'outputs': {
+          'index_profile': _join(kbDir.path, 'index_profile.json'),
+          'keyword_index': _join(kbDir.path, 'keyword_index.json'),
+          'vector_index_reference':
+              _join(kbDir.path, 'vector_index_reference.json'),
+          'metadata_index': _join(kbDir.path, 'metadata_index.json'),
+          'citation_index': _join(kbDir.path, 'citation_index.json'),
+          'memory_index_reference':
+              _join(kbDir.path, 'memory_index_reference.json'),
+        },
+      }),
+      encoding: utf8,
+    );
+    await File(_join(kbDir.path, 'index_metadata.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_index_metadata.v1',
+        'kb_id': kbId,
+        'index_type': 'hybrid_local',
+        'index_profile_path': _join(kbDir.path, 'index_profile.json'),
+        'keyword_index_path': _join(kbDir.path, 'keyword_index.json'),
+        'vector_index_reference_path':
+            _join(kbDir.path, 'vector_index_reference.json'),
+        'metadata_index_path': _join(kbDir.path, 'metadata_index.json'),
+        'citation_index_path': _join(kbDir.path, 'citation_index.json'),
+        'memory_index_reference_path':
+            _join(kbDir.path, 'memory_index_reference.json'),
+        'index_build_report_path': _join(kbDir.path, 'index_build_report.json'),
+        'keyword_index': true,
+        'vector_store': vectorStore,
+        'chunk_count': chunkRows.length,
+        'card_count': cards.length,
+        'qa_pair_count': qaPairs.length,
+        'source_count': sourceDocs.length,
+      }),
+      encoding: utf8,
+    );
   }
 
   Future<List<Map<String, dynamic>>> _existingKnowledgeBaseVersions(
@@ -8000,6 +8268,13 @@ class Rc6RuntimeState {
     required this.qaPairsPath,
     required this.sourceMapPath,
     required this.indexMetadataPath,
+    required this.indexProfilePath,
+    required this.keywordIndexPath,
+    required this.vectorIndexReferencePath,
+    required this.metadataIndexPath,
+    required this.citationIndexPath,
+    required this.memoryIndexReferencePath,
+    required this.indexBuildReportPath,
     required this.buildLogPath,
     required this.errorLogPath,
     required this.queryResultPath,
@@ -8090,6 +8365,13 @@ class Rc6RuntimeState {
         qaPairsPath: '',
         sourceMapPath: '',
         indexMetadataPath: '',
+        indexProfilePath: '',
+        keywordIndexPath: '',
+        vectorIndexReferencePath: '',
+        metadataIndexPath: '',
+        citationIndexPath: '',
+        memoryIndexReferencePath: '',
+        indexBuildReportPath: '',
         buildLogPath: '',
         errorLogPath: '',
         queryResultPath: '',
@@ -8179,6 +8461,13 @@ class Rc6RuntimeState {
   final String qaPairsPath;
   final String sourceMapPath;
   final String indexMetadataPath;
+  final String indexProfilePath;
+  final String keywordIndexPath;
+  final String vectorIndexReferencePath;
+  final String metadataIndexPath;
+  final String citationIndexPath;
+  final String memoryIndexReferencePath;
+  final String indexBuildReportPath;
   final String buildLogPath;
   final String errorLogPath;
   final String queryResultPath;
@@ -8312,6 +8601,13 @@ class Rc6RuntimeState {
     String? qaPairsPath,
     String? sourceMapPath,
     String? indexMetadataPath,
+    String? indexProfilePath,
+    String? keywordIndexPath,
+    String? vectorIndexReferencePath,
+    String? metadataIndexPath,
+    String? citationIndexPath,
+    String? memoryIndexReferencePath,
+    String? indexBuildReportPath,
     String? buildLogPath,
     String? errorLogPath,
     String? queryResultPath,
@@ -8407,6 +8703,15 @@ class Rc6RuntimeState {
       qaPairsPath: qaPairsPath ?? this.qaPairsPath,
       sourceMapPath: sourceMapPath ?? this.sourceMapPath,
       indexMetadataPath: indexMetadataPath ?? this.indexMetadataPath,
+      indexProfilePath: indexProfilePath ?? this.indexProfilePath,
+      keywordIndexPath: keywordIndexPath ?? this.keywordIndexPath,
+      vectorIndexReferencePath:
+          vectorIndexReferencePath ?? this.vectorIndexReferencePath,
+      metadataIndexPath: metadataIndexPath ?? this.metadataIndexPath,
+      citationIndexPath: citationIndexPath ?? this.citationIndexPath,
+      memoryIndexReferencePath:
+          memoryIndexReferencePath ?? this.memoryIndexReferencePath,
+      indexBuildReportPath: indexBuildReportPath ?? this.indexBuildReportPath,
       buildLogPath: buildLogPath ?? this.buildLogPath,
       errorLogPath: errorLogPath ?? this.errorLogPath,
       queryResultPath: queryResultPath ?? this.queryResultPath,

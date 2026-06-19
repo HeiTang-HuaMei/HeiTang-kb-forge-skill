@@ -406,6 +406,13 @@ class Rc6RuntimeState {
     required this.qaPairsPath,
     required this.sourceMapPath,
     required this.indexMetadataPath,
+    required this.indexProfilePath,
+    required this.keywordIndexPath,
+    required this.vectorIndexReferencePath,
+    required this.metadataIndexPath,
+    required this.citationIndexPath,
+    required this.memoryIndexReferencePath,
+    required this.indexBuildReportPath,
     required this.buildLogPath,
     required this.errorLogPath,
     required this.queryResultPath,
@@ -496,6 +503,13 @@ class Rc6RuntimeState {
         qaPairsPath: '',
         sourceMapPath: '',
         indexMetadataPath: '',
+        indexProfilePath: '',
+        keywordIndexPath: '',
+        vectorIndexReferencePath: '',
+        metadataIndexPath: '',
+        citationIndexPath: '',
+        memoryIndexReferencePath: '',
+        indexBuildReportPath: '',
         buildLogPath: '',
         errorLogPath: '',
         queryResultPath: '',
@@ -585,6 +599,13 @@ class Rc6RuntimeState {
   final String qaPairsPath;
   final String sourceMapPath;
   final String indexMetadataPath;
+  final String indexProfilePath;
+  final String keywordIndexPath;
+  final String vectorIndexReferencePath;
+  final String metadataIndexPath;
+  final String citationIndexPath;
+  final String memoryIndexReferencePath;
+  final String indexBuildReportPath;
   final String buildLogPath;
   final String errorLogPath;
   final String queryResultPath;
@@ -718,6 +739,13 @@ class Rc6RuntimeState {
     String? qaPairsPath,
     String? sourceMapPath,
     String? indexMetadataPath,
+    String? indexProfilePath,
+    String? keywordIndexPath,
+    String? vectorIndexReferencePath,
+    String? metadataIndexPath,
+    String? citationIndexPath,
+    String? memoryIndexReferencePath,
+    String? indexBuildReportPath,
     String? buildLogPath,
     String? errorLogPath,
     String? queryResultPath,
@@ -813,6 +841,15 @@ class Rc6RuntimeState {
       qaPairsPath: qaPairsPath ?? this.qaPairsPath,
       sourceMapPath: sourceMapPath ?? this.sourceMapPath,
       indexMetadataPath: indexMetadataPath ?? this.indexMetadataPath,
+      indexProfilePath: indexProfilePath ?? this.indexProfilePath,
+      keywordIndexPath: keywordIndexPath ?? this.keywordIndexPath,
+      vectorIndexReferencePath:
+          vectorIndexReferencePath ?? this.vectorIndexReferencePath,
+      metadataIndexPath: metadataIndexPath ?? this.metadataIndexPath,
+      citationIndexPath: citationIndexPath ?? this.citationIndexPath,
+      memoryIndexReferencePath:
+          memoryIndexReferencePath ?? this.memoryIndexReferencePath,
+      indexBuildReportPath: indexBuildReportPath ?? this.indexBuildReportPath,
       buildLogPath: buildLogPath ?? this.buildLogPath,
       errorLogPath: errorLogPath ?? this.errorLogPath,
       queryResultPath: queryResultPath ?? this.queryResultPath,

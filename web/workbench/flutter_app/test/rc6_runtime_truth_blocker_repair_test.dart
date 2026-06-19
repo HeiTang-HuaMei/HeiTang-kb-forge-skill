@@ -89,6 +89,68 @@ void main() {
       .map((line) => jsonDecode(line) as Map<String, dynamic>)
       .toList(growable: false);
 
+  void expectIndustrialIndexArtifacts(String kbRoot,
+      {String? kbId, Rc6RuntimeState? state}) {
+    final indexProfile =
+        File('$kbRoot${Platform.pathSeparator}index_profile.json');
+    final keywordIndex =
+        File('$kbRoot${Platform.pathSeparator}keyword_index.json');
+    final vectorIndex =
+        File('$kbRoot${Platform.pathSeparator}vector_index_reference.json');
+    final metadataIndex =
+        File('$kbRoot${Platform.pathSeparator}metadata_index.json');
+    final citationIndex =
+        File('$kbRoot${Platform.pathSeparator}citation_index.json');
+    final memoryIndex =
+        File('$kbRoot${Platform.pathSeparator}memory_index_reference.json');
+    final indexBuildReport =
+        File('$kbRoot${Platform.pathSeparator}index_build_report.json');
+    final indexMetadata =
+        File('$kbRoot${Platform.pathSeparator}index_metadata.json');
+
+    for (final file in [
+      indexProfile,
+      keywordIndex,
+      vectorIndex,
+      metadataIndex,
+      citationIndex,
+      memoryIndex,
+      indexBuildReport,
+      indexMetadata,
+    ]) {
+      expect(file.existsSync(), isTrue, reason: file.path);
+    }
+
+    expect(
+        indexProfile.readAsStringSync(), contains('prd_v3_index_profile.v1'));
+    expect(
+        keywordIndex.readAsStringSync(), contains('prd_v3_keyword_index.v1'));
+    expect(vectorIndex.readAsStringSync(),
+        contains('prd_v3_vector_index_reference.v1'));
+    expect(
+        metadataIndex.readAsStringSync(), contains('prd_v3_metadata_index.v1'));
+    expect(
+        citationIndex.readAsStringSync(), contains('prd_v3_citation_index.v1'));
+    expect(memoryIndex.readAsStringSync(),
+        contains('prd_v3_memory_index_reference.v1'));
+    expect(indexBuildReport.readAsStringSync(),
+        contains('prd_v3_index_build_report.v1'));
+    expect(
+        indexMetadata.readAsStringSync(), contains('prd_v3_index_metadata.v1'));
+    if (kbId != null) {
+      expect(indexMetadata.readAsStringSync(), contains('"kb_id": "$kbId"'));
+    }
+    if (state != null) {
+      expect(state.indexProfilePath, indexProfile.path);
+      expect(state.keywordIndexPath, keywordIndex.path);
+      expect(state.vectorIndexReferencePath, vectorIndex.path);
+      expect(state.metadataIndexPath, metadataIndex.path);
+      expect(state.citationIndexPath, citationIndex.path);
+      expect(state.memoryIndexReferencePath, memoryIndex.path);
+      expect(state.indexBuildReportPath, indexBuildReport.path);
+    }
+  }
+
   void expectMainKnowledgeArtifacts(
       Directory workspace, Rc6RuntimeState state) {
     final kbRoot = '${workspace.path}${Platform.pathSeparator}kb';
@@ -113,8 +175,7 @@ void main() {
             .whereType<int>()
             .fold<int>(0, (total, count) => total + count),
         greaterThan(0));
-    expect(
-        indexMetadata.readAsStringSync(), contains('prd_v2_index_metadata.v1'));
+    expectIndustrialIndexArtifacts(kbRoot, kbId: 'current_kb', state: state);
     expect(buildLog.readAsStringSync(),
         contains('schema_version=prd_v2_kb_build_log.v1'));
     expect(errorLog.readAsStringSync().trim(), isNotEmpty);
@@ -584,13 +645,25 @@ void main() {
     expect(fullKb.sourceCount, 2);
 
     await controller.copyKnowledgeBase('K1');
+    expectIndustrialIndexArtifacts(
+        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1_COPY1',
+        kbId: 'K1_COPY1');
     await controller.mergeKnowledgeBases(['K1', 'K1_COPY1']);
+    expectIndustrialIndexArtifacts(
+        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K_MERGED1',
+        kbId: 'K_MERGED1');
     await controller.splitKnowledgeBase('K2');
+    expectIndustrialIndexArtifacts(
+        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K2_SPLIT1',
+        kbId: 'K2_SPLIT1');
     expect(controller.state.knowledgeBases.map((kb) => kb.id),
         containsAll(['K1', 'K2', 'K1_COPY1', 'K_MERGED1', 'K2_SPLIT1']));
     expect(controller.state.knowledgeBases.first.versionCount, 1);
 
     await controller.updateKnowledgeBaseIncremental('K1');
+    expectIndustrialIndexArtifacts(
+        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1',
+        kbId: 'K1');
     final updatedK1 =
         controller.state.knowledgeBases.firstWhere((kb) => kb.id == 'K1');
     expect(updatedK1.operation, 'incremental_update');
@@ -603,6 +676,9 @@ void main() {
     expect(File(comparedK1.versionComparePath).existsSync(), isTrue);
 
     await controller.rollbackKnowledgeBaseVersion('K1');
+    expectIndustrialIndexArtifacts(
+        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1',
+        kbId: 'K1');
     final rolledBackK1 =
         controller.state.knowledgeBases.firstWhere((kb) => kb.id == 'K1');
     expect(rolledBackK1.operation, 'rollback');
@@ -611,6 +687,14 @@ void main() {
         File('${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K1${Platform.pathSeparator}rollback.log')
             .existsSync(),
         isTrue);
+
+    await controller.rebuildKnowledgeBaseFull('K2');
+    expectIndustrialIndexArtifacts(
+        '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}K2',
+        kbId: 'K2');
+    final rebuiltK2 =
+        controller.state.knowledgeBases.firstWhere((kb) => kb.id == 'K2');
+    expect(rebuiltK2.operation, 'full_rebuild');
 
     final catalogFile = File(
         '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}kb_catalog.json');
@@ -2613,6 +2697,7 @@ void main() {
         '${workspace.path}${Platform.pathSeparator}source_manifest.json');
     expect(assetIndex['document_ids'], contains('doc_alpha'));
     expect(assetIndex['knowledge_base_ids'], contains('K1'));
+    expect(assetIndex['knowledge_index_artifacts'], isA<List>());
     expect(assetIndex['skill_artifacts'], isNotEmpty);
     expect(assetIndex['agent_artifacts'], isNotEmpty);
     expect(assetIndex['audit_artifacts'], isNotEmpty);
