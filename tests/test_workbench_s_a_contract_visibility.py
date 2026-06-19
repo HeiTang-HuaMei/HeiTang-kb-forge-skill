@@ -66,10 +66,14 @@ def test_flutter_surface_mentions_boundary_not_run_or_installed_claims():
     bridge = (WORKBENCH / "flutter_app" / "lib" / "core_bridge" / "local_core_bridge.dart").read_text(encoding="utf-8")
 
     assert "assets/external/external_capability_registry.json" in flutter_sources
-    assert "S/A external capabilities" in flutter_sources
-    assert "ready=false" in flutter_sources
-    assert "local_ready=false" in flutter_sources
+    assert "Provider" in flutter_sources
+    assert "OCR" in flutter_sources
+    assert "Parser" in flutter_sources
     assert "Authorization protected" in flutter_sources
+    assert "S/A external capabilities" not in flutter_sources
+    assert "hot-swap" not in flutter_sources.lower()
+    assert "plugin project" not in flutter_sources.lower()
+    assert "external project" not in flutter_sources.lower()
     assert "anysearchskill" not in bridge.lower()
     assert "weknora" not in bridge.lower()
     assert "n8n" not in bridge.lower()
