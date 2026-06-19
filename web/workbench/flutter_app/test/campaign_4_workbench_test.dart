@@ -476,6 +476,8 @@ void main() {
     expect(find.text('版本操作'), findsOneWidget);
     expect(find.text('验证导出'), findsOneWidget);
     expect(find.text('从知识库生成 Skill'), findsWidgets);
+    expect(find.byKey(const Key('skill-name-input')), findsOneWidget);
+    expect(find.text('Skill 名称'), findsOneWidget);
     expect(find.text('生成 Skill'), findsWidgets);
     await tester.tap(find.text('外部本地化').first, warnIfMissed: false);
     await tester.pumpAndSettle();
@@ -623,6 +625,12 @@ void main() {
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
     expect(find.text('简单 Agent'), findsWidgets);
     expect(find.text('复杂 Agent'), findsOneWidget);
+    expect(find.byKey(const Key('agent-name-input')), findsOneWidget);
+    expect(find.byKey(const Key('agent-model-config-input')), findsOneWidget);
+    expect(find.byKey(const Key('agent-role-goal-input')), findsOneWidget);
+    expect(find.text('Agent 名称'), findsOneWidget);
+    expect(find.text('模型配置'), findsOneWidget);
+    expect(find.text('角色说明'), findsOneWidget);
     expect(find.text('简单 Agent 对话配置'), findsOneWidget);
     expect(find.text('复杂 Agent 运行配置'), findsNothing);
     expect(find.text('Redis 短期记忆'), findsNothing);

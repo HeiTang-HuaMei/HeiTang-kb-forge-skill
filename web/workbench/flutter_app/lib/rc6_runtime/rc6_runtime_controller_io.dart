@@ -2117,6 +2117,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         ? const ['S1', 'reading_summary_skill']
         : configuredSkillIds;
     final outputFormat = _stringValue(agentConfig['output_format'], 'markdown');
+    final roleGoal =
+        _stringValue(agentConfig['role_goal'], '只基于绑定知识库和 Skill 回答，输出必须带引用。');
     final redisConfigId =
         _stringValue(agentConfig['redis_config_id'], 'settings_redis_optional');
     final vectorConfigId =
@@ -2126,6 +2128,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           'turn_${(previousTurns.length + 1).toString().padLeft(3, '0')}',
       'prompt': prompt,
       'answer': '当前回答基于本地知识库和已生成 Skill，不调用外网、不执行系统命令。',
+      'role_goal': roleGoal,
       'model_config_id': modelConfigId,
       'kb_ids': kbIds,
       'skill_ids': skillIds,
@@ -2167,6 +2170,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       ..writeln()
       ..writeln('## 本轮配置')
       ..writeln('- 模型：$modelConfigId')
+      ..writeln('- 角色说明：$roleGoal')
       ..writeln('- 知识库：${kbIds.join(' / ')}')
       ..writeln('- Skill：${skillIds.join(' / ')}')
       ..writeln('- 输出格式：$outputFormat')
@@ -2216,6 +2220,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'turn_count': turns.length,
         'evidence_count': evidence.length,
         'model_config_id': modelConfigId,
+        'role_goal': roleGoal,
         'used_kb_ids': kbIds,
         'used_skill_ids': skillIds,
         'output_format': outputFormat,
@@ -3137,8 +3142,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final effectiveCurrent = currentName.trim().isEmpty
         ? (existing['current_workbook'] ?? '默认工作本').toString().trim()
         : currentName.trim();
-    final index = rows.indexWhere((row) =>
-        (row['name'] ?? '').toString().trim() == effectiveCurrent);
+    final index = rows.indexWhere(
+        (row) => (row['name'] ?? '').toString().trim() == effectiveCurrent);
     if (index < 0) {
       return manifestPath;
     }
@@ -3174,8 +3179,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     ].where((path) => File(path).existsSync()).toList(growable: false);
     final skillArtifacts = <String>[
       _joinNested(workspace.path, 'skill/knowledge_qa_skill/SKILL.md'),
-      _joinNested(
-          workspace.path, 'skill/knowledge_qa_skill/skill_config.json'),
+      _joinNested(workspace.path, 'skill/knowledge_qa_skill/skill_config.json'),
       _joinNested(
           workspace.path, 'skill/knowledge_qa_skill/verification_report.json'),
       _joinNested(
@@ -3194,13 +3198,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       _joinNested(workspace.path, 'skill/exports/skills_export.md'),
     ].where((path) => File(path).existsSync()).toList(growable: false);
     final agentArtifacts = <String>[
-      _joinNested(workspace.path, 'agent/knowledge_qa_agent/agent_manifest.json'),
-      _joinNested(workspace.path, 'agent/knowledge_qa_agent/agent_profile.yaml'),
+      _joinNested(
+          workspace.path, 'agent/knowledge_qa_agent/agent_manifest.json'),
+      _joinNested(
+          workspace.path, 'agent/knowledge_qa_agent/agent_profile.yaml'),
       _joinNested(workspace.path, 'agent/agent_generation_manifest.json'),
       _joinNested(
           workspace.path, 'agent/product_config/advanced_agent_config.json'),
-      _joinNested(
-          workspace.path, 'agent/exports/agent_package_manifest.json'),
+      _joinNested(workspace.path, 'agent/exports/agent_package_manifest.json'),
       _joinNested(workspace.path, 'agent/exports/agent_package_README.md'),
       _joinNested(workspace.path, 'agent/dialogue/agent_dialogue.md'),
       _joinNested(
@@ -3211,7 +3216,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       _joinNested(workspace.path,
           'agent/dialogue_export/agent_dialogue_export_manifest.json'),
       _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md'),
-      _join(workspace.path, 'multi_agent', 'multi_agent_discussion_manifest.json'),
+      _join(workspace.path, 'multi_agent',
+          'multi_agent_discussion_manifest.json'),
       _joinNested(workspace.path,
           'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json'),
       _joinNested(workspace.path,
@@ -4881,7 +4887,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       final selectedPrimary = id == 'knowledge_qa_agent';
       final name =
           selectedPrimary ? config.agentName : spec['name']!.toString();
-      final goal = spec['goal']!.toString();
+      final goal = selectedPrimary ? config.roleGoal : spec['goal']!.toString();
       final kbIds =
           (spec['kb_ids'] as List).map((item) => item.toString()).toList();
       final skillIds =
@@ -4908,7 +4914,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'creation_mode': creationMode,
         'simple_agent': creationMode == 'simple',
         'advanced_agent': creationMode == 'advanced',
-        'prompt': '只基于绑定知识库和 Skill 回答，输出必须带引用。',
+        'prompt': goal,
         'model_config_id': selectedPrimary
             ? config.modelConfigId
             : 'local-default-or-configured-provider',
@@ -4957,7 +4963,10 @@ class Rc6RuntimeController extends ChangeNotifier {
             'called_kbs': kbIds,
             'called_skills': skillIds,
             'called_tools': const <String>[],
-            'model': 'local-default-or-configured-provider',
+            'model': selectedPrimary
+                ? config.modelConfigId
+                : 'local-default-or-configured-provider',
+            'role_goal': goal,
           }),
           encoding: utf8);
       agents.add(payload);
@@ -6586,24 +6595,32 @@ class Rc6DocumentGenerationConfig {
 
 class Rc6SkillGenerationConfig {
   const Rc6SkillGenerationConfig({
+    this.customSkillName = '',
     this.skillType = 'analysis',
     this.targetPlatform = 'codex',
     this.personalizationGoal = '',
   });
 
+  final String customSkillName;
   final String skillType;
   final String targetPlatform;
   final String personalizationGoal;
 
-  String get skillName => switch (skillType) {
-        'writing' => '真实输入写作 Skill',
-        'teaching' => '真实输入教学 Skill',
-        'product' => '真实输入产品 Skill',
-        'ops' => '真实输入运营 Skill',
-        'legal' => '真实输入法规 Skill',
-        'custom' => '真实输入自定义 Skill',
-        _ => '真实输入知识问答 Skill',
-      };
+  String get skillName {
+    final trimmed = customSkillName.trim();
+    if (trimmed.isNotEmpty) {
+      return trimmed;
+    }
+    return switch (skillType) {
+      'writing' => '真实输入写作 Skill',
+      'teaching' => '真实输入教学 Skill',
+      'product' => '真实输入产品 Skill',
+      'ops' => '真实输入运营 Skill',
+      'legal' => '真实输入法规 Skill',
+      'custom' => '真实输入自定义 Skill',
+      _ => '真实输入知识问答 Skill',
+    };
+  }
 
   String get skillTypeLabel => switch (skillType) {
         'writing' => '写作 Skill',
@@ -6641,32 +6658,43 @@ class Rc6SkillGenerationConfig {
         'personalization_goal': personalizationGoal,
         'personalization_goal_label': personalizationGoalLabel,
         'skill_name': skillName,
+        'custom_skill_name': customSkillName.trim(),
       };
 }
 
 class Rc6AgentGenerationConfig {
   const Rc6AgentGenerationConfig({
+    this.customAgentName = '',
     this.creationMode = 'simple',
     this.agentType = 'knowledge_qa',
     this.modelConfigId = 'local-default-or-configured-provider',
     this.outputFormat = 'markdown',
+    this.roleGoal = '只基于绑定知识库和 Skill 回答，输出必须带引用。',
   });
 
+  final String customAgentName;
   final String creationMode;
   final String agentType;
   final String modelConfigId;
   final String outputFormat;
+  final String roleGoal;
 
   String get coreMode =>
       creationMode == 'advanced' ? 'advanced_kb_bound' : 'kb_bound';
 
-  String get agentName => switch (agentType) {
-        'reading_summary' => '阅读总结 Agent',
-        'quality_qa' => '质检 Agent',
-        'operation_conversion' => '运营转化 Agent',
-        'product_analysis' => '产品分析 Agent',
-        _ => '知识问答 Agent',
-      };
+  String get agentName {
+    final trimmed = customAgentName.trim();
+    if (trimmed.isNotEmpty) {
+      return trimmed;
+    }
+    return switch (agentType) {
+      'reading_summary' => '阅读总结 Agent',
+      'quality_qa' => '质检 Agent',
+      'operation_conversion' => '运营转化 Agent',
+      'product_analysis' => '产品分析 Agent',
+      _ => '知识问答 Agent',
+    };
+  }
 
   String get creationModeLabel =>
       creationMode == 'advanced' ? '复杂 Agent' : '简单 Agent';
@@ -6685,8 +6713,10 @@ class Rc6AgentGenerationConfig {
         'agent_type': agentType,
         'agent_type_label': agentTypeLabel,
         'agent_name': agentName,
+        'custom_agent_name': customAgentName.trim(),
         'model_config_id': modelConfigId,
         'output_format': outputFormat,
+        'role_goal': roleGoal.trim(),
       };
 }
 

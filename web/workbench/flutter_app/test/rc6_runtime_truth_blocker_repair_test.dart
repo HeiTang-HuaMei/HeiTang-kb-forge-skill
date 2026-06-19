@@ -1568,6 +1568,7 @@ void main() {
     await controller.initialize();
     await controller.generateSkill(
       config: const Rc6SkillGenerationConfig(
+        customSkillName: 'Owner 产品方法论 Skill',
         skillType: 'product',
         targetPlatform: 'markdown',
         personalizationGoal: 'agent_specific',
@@ -1575,13 +1576,13 @@ void main() {
     );
 
     expect(requests.single.actionId, 'package_to_skill');
-    expect(requests.single.arguments, contains('真实输入产品 Skill'));
+    expect(requests.single.arguments, contains('Owner 产品方法论 Skill'));
     final skillRoot = '${workspace.path}${Platform.pathSeparator}skill';
     expect(
         File('$skillRoot${Platform.pathSeparator}knowledge_qa_skill${Platform.pathSeparator}SKILL.md')
             .readAsStringSync(),
         allOf(
-          contains('真实输入产品 Skill'),
+          contains('Owner 产品方法论 Skill'),
           contains('产品 Skill'),
           contains('Markdown'),
           contains('Agent 专属化'),
@@ -1593,6 +1594,7 @@ void main() {
           contains('"skill_type": "product"'),
           contains('"target_platform": "markdown"'),
           contains('"personalization_goal": "agent_specific"'),
+          contains('"skill_name": "Owner 产品方法论 Skill"'),
         ));
     expect(
         File('$skillRoot${Platform.pathSeparator}skill_generation_manifest.json')
@@ -1602,6 +1604,7 @@ void main() {
           contains('"skill_type": "product"'),
           contains('"target_platform": "markdown"'),
           contains('"personalization_goal": "agent_specific"'),
+          contains('"custom_skill_name": "Owner 产品方法论 Skill"'),
         ));
     final skillVersionManifestPath =
         '$skillRoot${Platform.pathSeparator}operations${Platform.pathSeparator}skill_version_manifest.json';
@@ -1715,33 +1718,49 @@ void main() {
     await controller.initialize();
     await controller.generateAgent(
       config: const Rc6AgentGenerationConfig(
+        customAgentName: 'Owner 产品分析 Agent',
         creationMode: 'advanced',
         agentType: 'product_analysis',
+        modelConfigId: 'owner-provider-model',
         outputFormat: 'json',
+        roleGoal: '以产品经理视角分析证据并输出可执行结论。',
       ),
     );
 
     expect(requests.single.actionId, 'kb_bound_agent_generation');
     expect(requests.single.arguments, contains('advanced_kb_bound'));
-    expect(requests.single.arguments, contains('产品分析 Agent'));
+    expect(requests.single.arguments, contains('Owner 产品分析 Agent'));
     final agentRoot = '${workspace.path}${Platform.pathSeparator}agent';
     expect(
         File('$agentRoot${Platform.pathSeparator}knowledge_qa_agent${Platform.pathSeparator}agent_manifest.json')
             .readAsStringSync(),
         allOf(
           contains('prd_v2_selected_agent_manifest.v1'),
+          contains('"agent_name": "Owner 产品分析 Agent"'),
           contains('"creation_mode": "advanced"'),
           contains('"agent_type": "product_analysis"'),
+          contains('"model_config_id": "owner-provider-model"'),
           contains('"output_format": "json"'),
+          contains('"role_goal": "以产品经理视角分析证据并输出可执行结论。"'),
+        ));
+    expect(
+        File('$agentRoot${Platform.pathSeparator}knowledge_qa_agent${Platform.pathSeparator}agent_profile.yaml')
+            .readAsStringSync(),
+        allOf(
+          contains('name: Owner 产品分析 Agent'),
+          contains('role_goal: 以产品经理视角分析证据并输出可执行结论。'),
         ));
     expect(
         File('$agentRoot${Platform.pathSeparator}agent_generation_manifest.json')
             .readAsStringSync(),
         allOf(
           contains('"selected_generation_config"'),
+          contains('"custom_agent_name": "Owner 产品分析 Agent"'),
           contains('"creation_mode": "advanced"'),
           contains('"agent_type": "product_analysis"'),
+          contains('"model_config_id": "owner-provider-model"'),
           contains('"output_format": "json"'),
+          contains('"role_goal": "以产品经理视角分析证据并输出可执行结论。"'),
         ));
     expect(
         File('$agentRoot${Platform.pathSeparator}product_config${Platform.pathSeparator}advanced_agent_config.json')
@@ -1749,7 +1768,9 @@ void main() {
         allOf(
           contains('"selected_generation_config"'),
           contains('"creation_mode": "advanced"'),
+          contains('"model_config_id": "owner-provider-model"'),
           contains('"output_format": "json"'),
+          contains('"role_goal": "以产品经理视角分析证据并输出可执行结论。"'),
         ));
     expect(controller.state.hasPrimaryAgentManifest, isTrue);
     expect(controller.state.primaryAgentManifestPath,
@@ -1764,8 +1785,7 @@ void main() {
     expect(controller.state.hasAgentPackageReadme, isTrue);
     await controller.runAgentDialogue(prompt: '用产品分析 Agent 总结证据');
     expect(controller.state.hasAgentDialogueManifest, isTrue);
-    expect(controller.state.agentDialogueModelConfigId,
-        'local-default-or-configured-provider');
+    expect(controller.state.agentDialogueModelConfigId, 'owner-provider-model');
     expect(controller.state.agentDialogueUsedKbIds, contains('K1'));
     expect(controller.state.agentDialogueUsedSkillIds, contains('S1'));
     expect(controller.state.agentDialogueOutputFormat, 'json');
@@ -1779,7 +1799,8 @@ void main() {
     expect(
         dialogueManifest,
         allOf(
-          contains('"model_config_id": "local-default-or-configured-provider"'),
+          contains('"model_config_id": "owner-provider-model"'),
+          contains('"role_goal": "以产品经理视角分析证据并输出可执行结论。"'),
           contains('"used_kb_ids"'),
           contains('"K1"'),
           contains('"used_skill_ids"'),
@@ -1798,6 +1819,7 @@ void main() {
             .readAsStringSync(),
         allOf(
           contains('"output_format":"json"'),
+          contains('"role_goal":"以产品经理视角分析证据并输出可执行结论。"'),
           contains('"redis_config_id":"settings_redis_optional"'),
           contains(
               '"vector_config_id":"settings_agent_memory_vector_optional"'),
@@ -2180,8 +2202,7 @@ void main() {
           'document_id': 'doc_alpha',
           'source_name': 'alpha.md',
           'relative_path': 'alpha.md',
-          'workspace_path':
-              '${input.path}${Platform.pathSeparator}alpha.md',
+          'workspace_path': '${input.path}${Platform.pathSeparator}alpha.md',
           'extension': '.md',
         }
       ]
@@ -2285,8 +2306,8 @@ void main() {
     await controller.createOrSwitchWorkbook('产品研究工作本');
     final manifestPath =
         '${workspace.path}${Platform.pathSeparator}workbooks${Platform.pathSeparator}workbook_manifest.json';
-    var payload =
-        jsonDecode(File(manifestPath).readAsStringSync()) as Map<String, dynamic>;
+    var payload = jsonDecode(File(manifestPath).readAsStringSync())
+        as Map<String, dynamic>;
     var activeWorkbook = (payload['workbooks'] as List)
         .whereType<Map>()
         .firstWhere((row) => row['name'] == '产品研究工作本');
@@ -2305,8 +2326,7 @@ void main() {
           'document_id': 'doc_alpha',
           'source_name': 'alpha.md',
           'relative_path': 'alpha.md',
-          'workspace_path':
-              '${input.path}${Platform.pathSeparator}alpha.md',
+          'workspace_path': '${input.path}${Platform.pathSeparator}alpha.md',
           'extension': '.md',
         }
       ]
@@ -2364,8 +2384,8 @@ void main() {
 
     final reloaded = buildController();
     await reloaded.initialize();
-    payload =
-        jsonDecode(File(manifestPath).readAsStringSync()) as Map<String, dynamic>;
+    payload = jsonDecode(File(manifestPath).readAsStringSync())
+        as Map<String, dynamic>;
     activeWorkbook = (payload['workbooks'] as List)
         .whereType<Map>()
         .firstWhere((row) => row['name'] == '产品研究工作本');

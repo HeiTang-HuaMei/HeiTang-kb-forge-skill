@@ -10484,6 +10484,8 @@ class _SkillBuilderProductWorkflowState
   String skillType = 'analysis';
   String targetPlatform = 'codex';
   String personalizationGoal = '';
+  final TextEditingController _skillNameController =
+      TextEditingController(text: '真实输入知识问答 Skill');
   final TextEditingController _skillEditorController = TextEditingController();
   String savedSkillEditPath = '';
 
@@ -10491,11 +10493,13 @@ class _SkillBuilderProductWorkflowState
 
   @override
   void dispose() {
+    _skillNameController.dispose();
     _skillEditorController.dispose();
     super.dispose();
   }
 
   Rc6SkillGenerationConfig get _skillConfig => Rc6SkillGenerationConfig(
+        customSkillName: _skillNameController.text,
         skillType: skillType,
         targetPlatform: targetPlatform,
         personalizationGoal: personalizationGoal,
@@ -10724,6 +10728,20 @@ class _SkillBuilderProductWorkflowState
                 value: runtime.kbManifestPath.isNotEmpty
                     ? _displayNameForPath(runtime.kbManifestPath)
                     : (_zh ? '等待真实知识库' : 'Waiting for real Knowledge Base')),
+            const SizedBox(height: 8),
+            TextField(
+              key: const Key('skill-name-input'),
+              controller: _skillNameController,
+              enabled: rc6 != null && !runtime.running,
+              decoration: InputDecoration(
+                labelText: _zh ? 'Skill 名称' : 'Skill name',
+                helperText: _zh
+                    ? '写入 SKILL.md、配置、验证和导出清单。'
+                    : 'Written to SKILL.md, config, validation, and export manifests.',
+                border: const OutlineInputBorder(),
+                isDense: true,
+              ),
+            ),
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? 'Skill 类型' : 'Skill type',
@@ -11728,15 +11746,34 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
   String creationMode = 'simple';
   String agentType = 'knowledge_qa';
   String outputFormat = 'markdown';
+  final TextEditingController _agentNameController =
+      TextEditingController(text: '知识问答 Agent');
+  final TextEditingController _modelConfigController =
+      TextEditingController(text: 'local-default-or-configured-provider');
+  final TextEditingController _roleGoalController =
+      TextEditingController(text: '只基于绑定知识库和 Skill 回答，输出必须带引用。');
 
   bool get zh => widget.zh;
   String get workspace => widget.workspace;
 
   Rc6AgentGenerationConfig get _agentConfig => Rc6AgentGenerationConfig(
+        customAgentName: _agentNameController.text,
         creationMode: creationMode,
         agentType: agentType,
+        modelConfigId: _modelConfigController.text.trim().isEmpty
+            ? 'local-default-or-configured-provider'
+            : _modelConfigController.text.trim(),
         outputFormat: outputFormat,
+        roleGoal: _roleGoalController.text,
       );
+
+  @override
+  void dispose() {
+    _agentNameController.dispose();
+    _modelConfigController.dispose();
+    _roleGoalController.dispose();
+    super.dispose();
+  }
 
   String _creationModeLabel(String value) => value == 'advanced'
       ? (zh ? '复杂构造' : 'Advanced build')
@@ -11792,6 +11829,20 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
               ),
           ]),
           const SizedBox(height: 8),
+          TextField(
+            key: const Key('agent-name-input'),
+            controller: _agentNameController,
+            enabled: rc6 != null && !runtime.running,
+            decoration: InputDecoration(
+              labelText: zh ? 'Agent 名称' : 'Agent name',
+              helperText: zh
+                  ? '写入 Agent 配置、工作区和运行审计。'
+                  : 'Written to Agent config, workspace, and run audit.',
+              border: const OutlineInputBorder(),
+              isDense: true,
+            ),
+          ),
+          const SizedBox(height: 8),
           _FieldRow(
               label: zh ? 'Agent 类型' : 'Agent type',
               value: _agentTypeLabel(agentType)),
@@ -11823,6 +11874,36 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
                 onSelected: (_) => setState(() => outputFormat = item),
               ),
           ]),
+          const SizedBox(height: 8),
+          TextField(
+            key: const Key('agent-model-config-input'),
+            controller: _modelConfigController,
+            enabled: rc6 != null && !runtime.running,
+            decoration: InputDecoration(
+              labelText: zh ? '模型配置' : 'Model config',
+              helperText: zh
+                  ? '引用设置页已保存的 Provider/模型配置；密钥仍只掩码显示。'
+                  : 'References saved Provider/model settings; secrets stay masked.',
+              border: const OutlineInputBorder(),
+              isDense: true,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            key: const Key('agent-role-goal-input'),
+            controller: _roleGoalController,
+            enabled: rc6 != null && !runtime.running,
+            minLines: 2,
+            maxLines: 3,
+            decoration: InputDecoration(
+              labelText: zh ? '角色说明' : 'Role instructions',
+              helperText: zh
+                  ? '用于生成 Agent profile、对话上下文和审计记录。'
+                  : 'Used in Agent profile, chat context, and audit records.',
+              border: const OutlineInputBorder(),
+              isDense: true,
+            ),
+          ),
           const SizedBox(height: _DesktopGrid.gutter),
           _ProductTable(
             columns: zh

@@ -260,11 +260,13 @@ class Rc6DocumentGenerationConfig {
 
 class Rc6SkillGenerationConfig {
   const Rc6SkillGenerationConfig({
+    this.customSkillName = '',
     this.skillType = 'analysis',
     this.targetPlatform = 'codex',
     this.personalizationGoal = '',
   });
 
+  final String customSkillName;
   final String skillType;
   final String targetPlatform;
   final String personalizationGoal;
@@ -272,16 +274,20 @@ class Rc6SkillGenerationConfig {
 
 class Rc6AgentGenerationConfig {
   const Rc6AgentGenerationConfig({
+    this.customAgentName = '',
     this.creationMode = 'simple',
     this.agentType = 'knowledge_qa',
     this.modelConfigId = 'local-default-or-configured-provider',
     this.outputFormat = 'markdown',
+    this.roleGoal = '只基于绑定知识库和 Skill 回答，输出必须带引用。',
   });
 
+  final String customAgentName;
   final String creationMode;
   final String agentType;
   final String modelConfigId;
   final String outputFormat;
+  final String roleGoal;
 }
 
 class Rc6StorageTestResult {
