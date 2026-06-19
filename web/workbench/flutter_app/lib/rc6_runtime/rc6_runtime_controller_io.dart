@@ -2901,6 +2901,7 @@ class Rc6RuntimeController extends ChangeNotifier {
 
     var phase = state.phase;
     final hasSkillArtifact = await File(skillPath).exists() ||
+        await File(primarySkillPath).exists() ||
         await File(localizedSkillPath).exists();
 
     if (await File(agentPath).exists()) {
@@ -7220,7 +7221,7 @@ class Rc6RuntimeState {
   bool get hasEditedDocument => editedDocumentPath.isNotEmpty;
   bool get hasExportedDocument => exportedDocumentPath.isNotEmpty;
   bool get hasDocumentGenerationHistory => documentGenerationHistoryCount > 0;
-  bool get hasSkill => skillPath.isNotEmpty;
+  bool get hasSkill => skillPath.isNotEmpty || primarySkillPath.isNotEmpty;
   bool get hasPrimarySkill => primarySkillPath.isNotEmpty;
   bool get hasSkillConfig => skillConfigPath.isNotEmpty;
   bool get hasSkillVerificationReport => skillVerificationReportPath.isNotEmpty;
