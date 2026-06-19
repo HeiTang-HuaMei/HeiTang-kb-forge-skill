@@ -328,8 +328,28 @@ class _RetrievalVerificationViewState
             columns: zh ? ['阶段', '结果', '说明'] : ['Stage', 'Result', 'Note'],
             rows: zh
                 ? [
-                    ['查询改写', retrievalPrepared ? '完成' : '等待', '保留原问题边界'],
-                    ['检索规划', retrievalPrepared ? '混合检索' : '等待', '向量 + 关键词'],
+                    [
+                      '查询改写',
+                      runtime.retrievalPlanPath.isNotEmpty ? '完成' : '等待',
+                      runtime.retrievalPlanPath.isNotEmpty
+                          ? _displayNameForPath(runtime.retrievalPlanPath)
+                          : '保留原问题边界'
+                    ],
+                    [
+                      '检索规划',
+                      runtime.retrievalPlanPath.isNotEmpty ? '混合检索' : '等待',
+                      '向量 + 关键词'
+                    ],
+                    [
+                      '重排',
+                      runtime.retrievalRerankReportPath.isNotEmpty
+                          ? '完成'
+                          : '等待',
+                      runtime.retrievalRerankReportPath.isNotEmpty
+                          ? _displayNameForPath(
+                              runtime.retrievalRerankReportPath)
+                          : '按评分与引用完整性排序'
+                    ],
                     [
                       '证据选择',
                       retrievalPrepared ? '$selectedEvidenceCount 条' : '等待',
@@ -337,20 +357,39 @@ class _RetrievalVerificationViewState
                     ],
                     [
                       '交叉验证',
-                      retrievalPrepared ? '1 条需复核' : '等待',
-                      '授权联网后与外部来源逐条比对'
+                      runtime.externalValidationBoundaryPath.isNotEmpty
+                          ? '本地边界已记录'
+                          : '等待',
+                      runtime.externalValidationBoundaryPath.isNotEmpty
+                          ? _displayNameForPath(
+                              runtime.externalValidationBoundaryPath)
+                          : '授权联网后与外部来源逐条比对'
                     ],
                   ]
                 : [
                     [
                       'Query rewrite',
-                      retrievalPrepared ? 'Done' : 'Waiting',
-                      'Keeps original scope'
+                      runtime.retrievalPlanPath.isNotEmpty ? 'Done' : 'Waiting',
+                      runtime.retrievalPlanPath.isNotEmpty
+                          ? _displayNameForPath(runtime.retrievalPlanPath)
+                          : 'Keeps original scope'
                     ],
                     [
                       'Retrieval planning',
-                      retrievalPrepared ? 'Hybrid' : 'Waiting',
+                      runtime.retrievalPlanPath.isNotEmpty
+                          ? 'Hybrid'
+                          : 'Waiting',
                       'Vector + keyword'
+                    ],
+                    [
+                      'Rerank',
+                      runtime.retrievalRerankReportPath.isNotEmpty
+                          ? 'Done'
+                          : 'Waiting',
+                      runtime.retrievalRerankReportPath.isNotEmpty
+                          ? _displayNameForPath(
+                              runtime.retrievalRerankReportPath)
+                          : 'Sort by score and citation completeness'
                     ],
                     [
                       'Evidence selection',
@@ -361,8 +400,13 @@ class _RetrievalVerificationViewState
                     ],
                     [
                       'Cross validation',
-                      retrievalPrepared ? '1 review' : 'Waiting',
-                      'Compare with external sources after authorization'
+                      runtime.externalValidationBoundaryPath.isNotEmpty
+                          ? 'Boundary recorded'
+                          : 'Waiting',
+                      runtime.externalValidationBoundaryPath.isNotEmpty
+                          ? _displayNameForPath(
+                              runtime.externalValidationBoundaryPath)
+                          : 'Compare with external sources after authorization'
                     ],
                   ],
           ),

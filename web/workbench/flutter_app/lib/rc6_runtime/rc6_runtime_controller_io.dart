@@ -705,6 +705,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     for (final kb in selectedKbs) {
       final outputDir = _join(queryDir, kb.id);
       await Directory(outputDir).create(recursive: true);
+      final startedAt = DateTime.now().toUtc().toIso8601String();
       final request = CoreBridgeRequest(
         actionId: 'rag_query',
         coreCli: coreCli,
@@ -750,19 +751,35 @@ class Rc6RuntimeController extends ChangeNotifier {
         'kb_name': kb.name,
         'result_count': rows.length,
         'result_path': resultPath,
+        'started_at': startedAt,
+        'completed_at': DateTime.now().toUtc().toIso8601String(),
       });
     }
 
     mergedRows
         .sort((a, b) => _scoreOf(b['score']).compareTo(_scoreOf(a['score'])));
     final multiQueryPath = _join(queryDir, 'multi_kb_query_result.json');
+    await _writeRetrievalIndustrialArtifacts(
+      queryDir: Directory(queryDir),
+      query: normalizedQuery,
+      selectedKbs: selectedKbs,
+      kbSummaries: kbSummaries,
+      rankedRows: mergedRows,
+    );
     await File(multiQueryPath).writeAsString(
       const JsonEncoder.withIndent('  ').convert({
-        'schema_version': 'prd_v2_multi_kb_query_result.v1',
+        'schema_version': 'prd_v3_multi_kb_query_result.v1',
         'query': normalizedQuery,
         'selected_kb_ids': selectedKbs.map((kb) => kb.id).toList(),
         'selected_count': mergedRows.length,
         'selected_kb_count': selectedKbs.length,
+        'retrieval_plan_path': _join(queryDir, 'retrieval_plan.json'),
+        'rerank_report_path': _join(queryDir, 'rerank_report.json'),
+        'citation_coverage_report_path':
+            _join(queryDir, 'citation_coverage_report.json'),
+        'conflict_report_path': _join(queryDir, 'conflict_report.json'),
+        'external_validation_boundary_path':
+            _join(queryDir, 'external_validation_boundary.json'),
         'citation_coverage': _citationCoverage(mergedRows),
         'answer_coverage': mergedRows.isEmpty ? 0 : 1,
         'conflict_count': _conflictCount(mergedRows),
@@ -789,6 +806,115 @@ class Rc6RuntimeController extends ChangeNotifier {
       lastMessage: hasResults ? '多知识库检索命中真实结果。' : '搜索完成，无结果。',
     );
     notifyListeners();
+  }
+
+  Future<void> _writeRetrievalIndustrialArtifacts({
+    required Directory queryDir,
+    required String query,
+    required List<_SearchableKnowledgeBase> selectedKbs,
+    required List<Map<String, Object?>> kbSummaries,
+    required List<Map<String, dynamic>> rankedRows,
+  }) async {
+    await queryDir.create(recursive: true);
+    final now = DateTime.now().toUtc().toIso8601String();
+    final rewrittenQueries = <String>{
+      query,
+      ...query
+          .split(RegExp(r'[\s,，。；;]+'))
+          .map((part) => part.trim())
+          .where((part) => part.length >= 2),
+    }.toList(growable: false);
+    final citationCoverage = _citationCoverage(rankedRows);
+    final conflictRows = _conflictRows(rankedRows);
+    await File(_join(queryDir.path, 'retrieval_plan.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_retrieval_plan.v1',
+        'query': query,
+        'rewritten_queries': rewrittenQueries,
+        'retrieval_strategy': 'hybrid_keyword_vector_local',
+        'selected_kb_ids': selectedKbs.map((kb) => kb.id).toList(),
+        'selected_kb_count': selectedKbs.length,
+        'external_fact_check_enabled': false,
+        'created_at': now,
+      }),
+      encoding: utf8,
+    );
+    await File(_join(queryDir.path, 'rerank_report.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_retrieval_rerank_report.v1',
+        'query': query,
+        'ranking_rule': 'score_desc_with_kb_attribution',
+        'result_count': rankedRows.length,
+        'ranked_results': [
+          for (var index = 0; index < rankedRows.length; index += 1)
+            {
+              'rank': index + 1,
+              'kb_id': _stringValue(rankedRows[index]['kb_id'], ''),
+              'chunk_id': _stringValue(rankedRows[index]['chunk_id'], ''),
+              'score': _scoreOf(rankedRows[index]['score']),
+              'citation': _stringValue(
+                  rankedRows[index]['citation'] ??
+                      rankedRows[index]['source_path'],
+                  ''),
+            }
+        ],
+        'built_at': now,
+      }),
+      encoding: utf8,
+    );
+    await File(_join(queryDir.path, 'citation_coverage_report.json'))
+        .writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_retrieval_citation_coverage.v1',
+        'query': query,
+        'result_count': rankedRows.length,
+        'cited_result_count': rankedRows
+            .where((row) =>
+                _stringValue(row['citation'] ?? row['source_path'], '')
+                    .trim()
+                    .isNotEmpty)
+            .length,
+        'citation_coverage': citationCoverage,
+        'missing_citation_count': rankedRows.length -
+            rankedRows
+                .where((row) =>
+                    _stringValue(row['citation'] ?? row['source_path'], '')
+                        .trim()
+                        .isNotEmpty)
+                .length,
+        'generated_at': now,
+      }),
+      encoding: utf8,
+    );
+    await File(_join(queryDir.path, 'conflict_report.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_retrieval_conflict_report.v1',
+        'query': query,
+        'conflict_count': conflictRows.length,
+        'conflicts': conflictRows,
+        'manual_review_required': conflictRows.isNotEmpty,
+        'generated_at': now,
+      }),
+      encoding: utf8,
+    );
+    await File(_join(queryDir.path, 'external_validation_boundary.json'))
+        .writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_external_validation_boundary.v1',
+        'query': query,
+        'status': 'not_enabled_local_only',
+        'required_enablement': [
+          'network_provider_configured',
+          'tool_adapter_configured',
+          'explicit_owner_opt_in',
+        ],
+        'external_calls_made': false,
+        'local_evidence_only': true,
+        'secret_plaintext_written': false,
+        'generated_at': now,
+      }),
+      encoding: utf8,
+    );
   }
 
   Future<String> saveRetrievalValidationReport(
@@ -818,11 +944,16 @@ class Rc6RuntimeController extends ChangeNotifier {
     final markdownPath = _join(queryDir.path, 'validation_report.md');
     final historyPath = _join(queryDir.path, 'validation_history.jsonl');
     final payload = {
-      'schema_version': 'prd_v2_retrieval_validation_report.v1',
+      'schema_version': 'prd_v3_retrieval_validation_report.v1',
       'created_at': DateTime.now().toUtc().toIso8601String(),
       'query': (queryReport['query'] ?? state.searchQuery).toString(),
       'selected_kb_ids': queryReport['selected_kb_ids'] ?? const <String>[],
       'result_count': rows.length,
+      'retrieval_plan_path': state.retrievalPlanPath,
+      'rerank_report_path': state.retrievalRerankReportPath,
+      'citation_coverage_report_path': state.retrievalCitationCoveragePath,
+      'conflict_report_path': state.retrievalConflictReportPath,
+      'external_validation_boundary_path': state.externalValidationBoundaryPath,
       'citation_coverage': queryReport['citation_coverage'] ??
           _citationCoverage(rows
               .map((row) => {
@@ -868,6 +999,13 @@ class Rc6RuntimeController extends ChangeNotifier {
             'result_count': payload['result_count'],
             'conflict_count': payload['conflict_count'],
             'correction_status': payload['correction_status'],
+            'retrieval_plan_path': payload['retrieval_plan_path'],
+            'rerank_report_path': payload['rerank_report_path'],
+            'citation_coverage_report_path':
+                payload['citation_coverage_report_path'],
+            'conflict_report_path': payload['conflict_report_path'],
+            'external_validation_boundary_path':
+                payload['external_validation_boundary_path'],
             'report_path': reportPath,
             'markdown_report_path': markdownPath,
           })}\n',
@@ -875,6 +1013,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       encoding: utf8,
     );
     state = state.copyWith(
+      retrievalValidationReportPath: reportPath,
+      retrievalValidationMarkdownPath: markdownPath,
+      retrievalValidationHistoryPath: historyPath,
       lastMessage: '检索验证报告和历史已保存。',
       lastError: '',
     );
@@ -1884,6 +2025,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       buildLogPath: '',
       errorLogPath: '',
       queryResultPath: '',
+      retrievalPlanPath: '',
+      retrievalRerankReportPath: '',
+      retrievalCitationCoveragePath: '',
+      retrievalConflictReportPath: '',
+      externalValidationBoundaryPath: '',
+      retrievalValidationReportPath: '',
+      retrievalValidationMarkdownPath: '',
+      retrievalValidationHistoryPath: '',
       generatedMarkdownPath: '',
       readingNotesPath: '',
       editedDocumentPath: '',
@@ -1938,6 +2087,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       buildLogPath: '',
       errorLogPath: '',
       queryResultPath: '',
+      retrievalPlanPath: '',
+      retrievalRerankReportPath: '',
+      retrievalCitationCoveragePath: '',
+      retrievalConflictReportPath: '',
+      externalValidationBoundaryPath: '',
+      retrievalValidationReportPath: '',
+      retrievalValidationMarkdownPath: '',
+      retrievalValidationHistoryPath: '',
       generatedMarkdownPath: '',
       readingNotesPath: '',
       editedDocumentPath: '',
@@ -2001,6 +2158,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       buildLogPath: '',
       errorLogPath: '',
       queryResultPath: '',
+      retrievalPlanPath: '',
+      retrievalRerankReportPath: '',
+      retrievalCitationCoveragePath: '',
+      retrievalConflictReportPath: '',
+      externalValidationBoundaryPath: '',
+      retrievalValidationReportPath: '',
+      retrievalValidationMarkdownPath: '',
+      retrievalValidationHistoryPath: '',
       generatedMarkdownPath: '',
       readingNotesPath: '',
       editedDocumentPath: '',
@@ -2032,6 +2197,14 @@ class Rc6RuntimeController extends ChangeNotifier {
           ? Rc6RuntimePhase.knowledgeBuilt
           : Rc6RuntimePhase.imported,
       queryResultPath: '',
+      retrievalPlanPath: '',
+      retrievalRerankReportPath: '',
+      retrievalCitationCoveragePath: '',
+      retrievalConflictReportPath: '',
+      externalValidationBoundaryPath: '',
+      retrievalValidationReportPath: '',
+      retrievalValidationMarkdownPath: '',
+      retrievalValidationHistoryPath: '',
       searchQuery: '',
       searchStatus: Rc6SearchStatus.idle,
       searchResults: const [],
@@ -3402,6 +3575,22 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(workspace.path, 'query', 'multi_kb_query_result.json');
     final singleQueryPath =
         _join(workspace.path, 'query', 'kb_query_result.json');
+    final retrievalPlanPath =
+        _join(workspace.path, 'query', 'retrieval_plan.json');
+    final retrievalRerankReportPath =
+        _join(workspace.path, 'query', 'rerank_report.json');
+    final retrievalCitationCoveragePath =
+        _join(workspace.path, 'query', 'citation_coverage_report.json');
+    final retrievalConflictReportPath =
+        _join(workspace.path, 'query', 'conflict_report.json');
+    final externalValidationBoundaryPath =
+        _join(workspace.path, 'query', 'external_validation_boundary.json');
+    final retrievalValidationReportPath =
+        _join(workspace.path, 'query', 'validation_report.json');
+    final retrievalValidationMarkdownPath =
+        _join(workspace.path, 'query', 'validation_report.md');
+    final retrievalValidationHistoryPath =
+        _join(workspace.path, 'query', 'validation_history.jsonl');
     final markdownPath = _join(workspace.path, 'doc', 'generated.md');
     final readingNotesPath = _join(workspace.path, 'doc', 'reading_notes.md');
     final editedDocumentPath =
@@ -3599,6 +3788,35 @@ class Rc6RuntimeController extends ChangeNotifier {
       buildLogPath: await File(buildLogPath).exists() ? buildLogPath : '',
       errorLogPath: await File(errorLogPath).exists() ? errorLogPath : '',
       queryResultPath: await File(queryPath).exists() ? queryPath : '',
+      retrievalPlanPath:
+          await File(retrievalPlanPath).exists() ? retrievalPlanPath : '',
+      retrievalRerankReportPath: await File(retrievalRerankReportPath).exists()
+          ? retrievalRerankReportPath
+          : '',
+      retrievalCitationCoveragePath:
+          await File(retrievalCitationCoveragePath).exists()
+              ? retrievalCitationCoveragePath
+              : '',
+      retrievalConflictReportPath:
+          await File(retrievalConflictReportPath).exists()
+              ? retrievalConflictReportPath
+              : '',
+      externalValidationBoundaryPath:
+          await File(externalValidationBoundaryPath).exists()
+              ? externalValidationBoundaryPath
+              : '',
+      retrievalValidationReportPath:
+          await File(retrievalValidationReportPath).exists()
+              ? retrievalValidationReportPath
+              : '',
+      retrievalValidationMarkdownPath:
+          await File(retrievalValidationMarkdownPath).exists()
+              ? retrievalValidationMarkdownPath
+              : '',
+      retrievalValidationHistoryPath:
+          await File(retrievalValidationHistoryPath).exists()
+              ? retrievalValidationHistoryPath
+              : '',
       generatedMarkdownPath:
           await File(markdownPath).exists() ? markdownPath : '',
       readingNotesPath:
@@ -4031,6 +4249,17 @@ class Rc6RuntimeController extends ChangeNotifier {
       _join(workspace.path, 'doc', 'edited_document.md'),
       _join(workspace.path, 'export', 'reading_notes_export.md'),
     ].where((path) => File(path).existsSync()).toList(growable: false);
+    final retrievalArtifacts = <String>[
+      _joinNested(workspace.path, 'query/multi_kb_query_result.json'),
+      _joinNested(workspace.path, 'query/retrieval_plan.json'),
+      _joinNested(workspace.path, 'query/rerank_report.json'),
+      _joinNested(workspace.path, 'query/citation_coverage_report.json'),
+      _joinNested(workspace.path, 'query/conflict_report.json'),
+      _joinNested(workspace.path, 'query/external_validation_boundary.json'),
+      _joinNested(workspace.path, 'query/validation_report.json'),
+      _joinNested(workspace.path, 'query/validation_report.md'),
+      _joinNested(workspace.path, 'query/validation_history.jsonl'),
+    ].where((path) => File(path).existsSync()).toList(growable: false);
     final skillArtifacts = <String>[
       _joinNested(workspace.path, 'skill/knowledge_qa_skill/SKILL.md'),
       _joinNested(workspace.path, 'skill/knowledge_qa_skill/skill_config.json'),
@@ -4101,6 +4330,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'knowledge_index_artifacts': knowledgeIndexArtifacts,
       'standard_knowledge_package_artifacts': standardPackageArtifacts,
       'generated_documents': generatedDocuments,
+      'retrieval_artifacts': retrievalArtifacts,
       'skill_artifacts': skillArtifacts,
       'agent_artifacts': agentArtifacts,
       'audit_artifacts': auditArtifacts,
@@ -7700,6 +7930,42 @@ class Rc6RuntimeController extends ChangeNotifier {
     return kbIdsByTitle.values.where((ids) => ids.length > 1).length;
   }
 
+  static List<Map<String, Object?>> _conflictRows(
+      List<Map<String, dynamic>> rows) {
+    final rowsByTitle = <String, List<Map<String, dynamic>>>{};
+    for (final row in rows) {
+      final title =
+          (row['title'] ?? row['chunk_id'] ?? row['source_path'] ?? '')
+              .toString()
+              .trim();
+      if (title.isEmpty) continue;
+      rowsByTitle.putIfAbsent(title, () => <Map<String, dynamic>>[]).add(row);
+    }
+    return [
+      for (final entry in rowsByTitle.entries)
+        if (entry.value
+                .map((row) => _stringValue(row['kb_id'], ''))
+                .where((id) => id.isNotEmpty)
+                .toSet()
+                .length >
+            1)
+          {
+            'evidence_key': entry.key,
+            'kb_ids': entry.value
+                .map((row) => _stringValue(row['kb_id'], ''))
+                .where((id) => id.isNotEmpty)
+                .toSet()
+                .toList(growable: false),
+            'citations': entry.value
+                .map((row) =>
+                    _stringValue(row['citation'] ?? row['source_path'], ''))
+                .where((citation) => citation.isNotEmpty)
+                .toSet()
+                .toList(growable: false),
+          },
+    ];
+  }
+
   static bool _isConflictDecision(Object? value) {
     final decision = (value ?? '').toString().trim().toLowerCase();
     return decision == 'conflict' || decision == 'contradiction';
@@ -8278,6 +8544,14 @@ class Rc6RuntimeState {
     required this.buildLogPath,
     required this.errorLogPath,
     required this.queryResultPath,
+    required this.retrievalPlanPath,
+    required this.retrievalRerankReportPath,
+    required this.retrievalCitationCoveragePath,
+    required this.retrievalConflictReportPath,
+    required this.externalValidationBoundaryPath,
+    required this.retrievalValidationReportPath,
+    required this.retrievalValidationMarkdownPath,
+    required this.retrievalValidationHistoryPath,
     required this.generatedMarkdownPath,
     required this.readingNotesPath,
     required this.editedDocumentPath,
@@ -8375,6 +8649,14 @@ class Rc6RuntimeState {
         buildLogPath: '',
         errorLogPath: '',
         queryResultPath: '',
+        retrievalPlanPath: '',
+        retrievalRerankReportPath: '',
+        retrievalCitationCoveragePath: '',
+        retrievalConflictReportPath: '',
+        externalValidationBoundaryPath: '',
+        retrievalValidationReportPath: '',
+        retrievalValidationMarkdownPath: '',
+        retrievalValidationHistoryPath: '',
         generatedMarkdownPath: '',
         readingNotesPath: '',
         editedDocumentPath: '',
@@ -8471,6 +8753,14 @@ class Rc6RuntimeState {
   final String buildLogPath;
   final String errorLogPath;
   final String queryResultPath;
+  final String retrievalPlanPath;
+  final String retrievalRerankReportPath;
+  final String retrievalCitationCoveragePath;
+  final String retrievalConflictReportPath;
+  final String externalValidationBoundaryPath;
+  final String retrievalValidationReportPath;
+  final String retrievalValidationMarkdownPath;
+  final String retrievalValidationHistoryPath;
   final String generatedMarkdownPath;
   final String readingNotesPath;
   final String editedDocumentPath;
@@ -8611,6 +8901,14 @@ class Rc6RuntimeState {
     String? buildLogPath,
     String? errorLogPath,
     String? queryResultPath,
+    String? retrievalPlanPath,
+    String? retrievalRerankReportPath,
+    String? retrievalCitationCoveragePath,
+    String? retrievalConflictReportPath,
+    String? externalValidationBoundaryPath,
+    String? retrievalValidationReportPath,
+    String? retrievalValidationMarkdownPath,
+    String? retrievalValidationHistoryPath,
     String? generatedMarkdownPath,
     String? readingNotesPath,
     String? editedDocumentPath,
@@ -8715,6 +9013,21 @@ class Rc6RuntimeState {
       buildLogPath: buildLogPath ?? this.buildLogPath,
       errorLogPath: errorLogPath ?? this.errorLogPath,
       queryResultPath: queryResultPath ?? this.queryResultPath,
+      retrievalPlanPath: retrievalPlanPath ?? this.retrievalPlanPath,
+      retrievalRerankReportPath:
+          retrievalRerankReportPath ?? this.retrievalRerankReportPath,
+      retrievalCitationCoveragePath:
+          retrievalCitationCoveragePath ?? this.retrievalCitationCoveragePath,
+      retrievalConflictReportPath:
+          retrievalConflictReportPath ?? this.retrievalConflictReportPath,
+      externalValidationBoundaryPath:
+          externalValidationBoundaryPath ?? this.externalValidationBoundaryPath,
+      retrievalValidationReportPath:
+          retrievalValidationReportPath ?? this.retrievalValidationReportPath,
+      retrievalValidationMarkdownPath: retrievalValidationMarkdownPath ??
+          this.retrievalValidationMarkdownPath,
+      retrievalValidationHistoryPath:
+          retrievalValidationHistoryPath ?? this.retrievalValidationHistoryPath,
       generatedMarkdownPath:
           generatedMarkdownPath ?? this.generatedMarkdownPath,
       readingNotesPath: readingNotesPath ?? this.readingNotesPath,

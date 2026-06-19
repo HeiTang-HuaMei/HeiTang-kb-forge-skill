@@ -975,8 +975,15 @@ void main() {
     expect(resultFile.existsSync(), isTrue);
     final result =
         jsonDecode(resultFile.readAsStringSync()) as Map<String, dynamic>;
-    expect(result['schema_version'], 'prd_v2_multi_kb_query_result.v1');
+    expect(result['schema_version'], 'prd_v3_multi_kb_query_result.v1');
     expect(result['selected_kb_ids'], ['K1', 'K2']);
+    expect(result['retrieval_plan_path'], contains('retrieval_plan.json'));
+    expect(result['rerank_report_path'], contains('rerank_report.json'));
+    expect(result['citation_coverage_report_path'],
+        contains('citation_coverage_report.json'));
+    expect(result['conflict_report_path'], contains('conflict_report.json'));
+    expect(result['external_validation_boundary_path'],
+        contains('external_validation_boundary.json'));
     final rows = (result['results'] as List).cast<Map>();
     expect(rows.map((row) => row['kb_id']), ['K2', 'K1']);
     expect(rows.first['kb_name'], 'Beta KB');
@@ -984,6 +991,28 @@ void main() {
     expect(controller.state.searchResults.map((row) => row.kbName),
         ['Beta KB', 'Alpha KB']);
     expect(controller.state.queryResultPath, resultFile.path);
+    expect(controller.state.retrievalPlanPath, isNotEmpty);
+    expect(controller.state.retrievalRerankReportPath, isNotEmpty);
+    expect(controller.state.retrievalCitationCoveragePath, isNotEmpty);
+    expect(controller.state.retrievalConflictReportPath, isNotEmpty);
+    expect(controller.state.externalValidationBoundaryPath, isNotEmpty);
+    expect(File(controller.state.retrievalPlanPath).readAsStringSync(),
+        contains('prd_v3_retrieval_plan.v1'));
+    expect(File(controller.state.retrievalRerankReportPath).readAsStringSync(),
+        allOf(contains('prd_v3_retrieval_rerank_report.v1'), contains('K2')));
+    expect(
+        File(controller.state.retrievalCitationCoveragePath).readAsStringSync(),
+        contains('prd_v3_retrieval_citation_coverage.v1'));
+    expect(
+        File(controller.state.retrievalConflictReportPath).readAsStringSync(),
+        contains('prd_v3_retrieval_conflict_report.v1'));
+    expect(
+        File(controller.state.externalValidationBoundaryPath)
+            .readAsStringSync(),
+        allOf(
+          contains('prd_v3_external_validation_boundary.v1'),
+          contains('"external_calls_made": false'),
+        ));
 
     final validationPath = await controller.saveRetrievalValidationReport({
       0: 'keep',
@@ -994,16 +1023,29 @@ void main() {
     final validation =
         jsonDecode(validationFile.readAsStringSync()) as Map<String, dynamic>;
     expect(
-        validation['schema_version'], 'prd_v2_retrieval_validation_report.v1');
+        validation['schema_version'], 'prd_v3_retrieval_validation_report.v1');
     expect(validation['result_count'], 2);
     expect(validation['conflict_count'], 1);
     expect(validation['correction_status'], 'reviewed');
+    expect(
+        validation['retrieval_plan_path'], controller.state.retrievalPlanPath);
+    expect(validation['rerank_report_path'],
+        controller.state.retrievalRerankReportPath);
+    expect(validation['citation_coverage_report_path'],
+        controller.state.retrievalCitationCoveragePath);
+    expect(validation['conflict_report_path'],
+        controller.state.retrievalConflictReportPath);
+    expect(validation['external_validation_boundary_path'],
+        controller.state.externalValidationBoundaryPath);
+    expect(controller.state.retrievalValidationReportPath, validationPath);
     final corrections = (validation['manual_corrections'] as List).cast<Map>();
     expect(corrections.last['decision'], 'contradiction');
     expect(corrections.last['normalized_decision'], 'conflict');
     final validationMarkdown = File(
         '${workspace.path}${Platform.pathSeparator}query${Platform.pathSeparator}validation_report.md');
     expect(validationMarkdown.existsSync(), isTrue);
+    expect(controller.state.retrievalValidationMarkdownPath,
+        validationMarkdown.path);
     expect(
         validationMarkdown.readAsStringSync(),
         allOf(
@@ -1016,12 +1058,35 @@ void main() {
     final validationHistory = File(
         '${workspace.path}${Platform.pathSeparator}query${Platform.pathSeparator}validation_history.jsonl');
     expect(validationHistory.existsSync(), isTrue);
+    expect(controller.state.retrievalValidationHistoryPath,
+        validationHistory.path);
     final historyLines = validationHistory.readAsLinesSync();
     expect(historyLines, hasLength(1));
     final historyRow = jsonDecode(historyLines.single) as Map<String, dynamic>;
     expect(historyRow['selected_kb_ids'], ['K1', 'K2']);
     expect(historyRow['conflict_count'], 1);
+    expect(
+        historyRow['retrieval_plan_path'], controller.state.retrievalPlanPath);
     expect(historyRow['markdown_report_path'], validationMarkdown.path);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    expect(reloadedController.state.queryResultPath, resultFile.path);
+    expect(reloadedController.state.retrievalPlanPath,
+        controller.state.retrievalPlanPath);
+    expect(reloadedController.state.retrievalRerankReportPath,
+        controller.state.retrievalRerankReportPath);
+    expect(
+        reloadedController.state.retrievalValidationReportPath, validationPath);
   });
 
   test(

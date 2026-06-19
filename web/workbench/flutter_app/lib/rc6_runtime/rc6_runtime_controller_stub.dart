@@ -416,6 +416,14 @@ class Rc6RuntimeState {
     required this.buildLogPath,
     required this.errorLogPath,
     required this.queryResultPath,
+    required this.retrievalPlanPath,
+    required this.retrievalRerankReportPath,
+    required this.retrievalCitationCoveragePath,
+    required this.retrievalConflictReportPath,
+    required this.externalValidationBoundaryPath,
+    required this.retrievalValidationReportPath,
+    required this.retrievalValidationMarkdownPath,
+    required this.retrievalValidationHistoryPath,
     required this.generatedMarkdownPath,
     required this.readingNotesPath,
     required this.editedDocumentPath,
@@ -513,6 +521,14 @@ class Rc6RuntimeState {
         buildLogPath: '',
         errorLogPath: '',
         queryResultPath: '',
+        retrievalPlanPath: '',
+        retrievalRerankReportPath: '',
+        retrievalCitationCoveragePath: '',
+        retrievalConflictReportPath: '',
+        externalValidationBoundaryPath: '',
+        retrievalValidationReportPath: '',
+        retrievalValidationMarkdownPath: '',
+        retrievalValidationHistoryPath: '',
         generatedMarkdownPath: '',
         readingNotesPath: '',
         editedDocumentPath: '',
@@ -609,6 +625,14 @@ class Rc6RuntimeState {
   final String buildLogPath;
   final String errorLogPath;
   final String queryResultPath;
+  final String retrievalPlanPath;
+  final String retrievalRerankReportPath;
+  final String retrievalCitationCoveragePath;
+  final String retrievalConflictReportPath;
+  final String externalValidationBoundaryPath;
+  final String retrievalValidationReportPath;
+  final String retrievalValidationMarkdownPath;
+  final String retrievalValidationHistoryPath;
   final String generatedMarkdownPath;
   final String readingNotesPath;
   final String editedDocumentPath;
@@ -749,6 +773,14 @@ class Rc6RuntimeState {
     String? buildLogPath,
     String? errorLogPath,
     String? queryResultPath,
+    String? retrievalPlanPath,
+    String? retrievalRerankReportPath,
+    String? retrievalCitationCoveragePath,
+    String? retrievalConflictReportPath,
+    String? externalValidationBoundaryPath,
+    String? retrievalValidationReportPath,
+    String? retrievalValidationMarkdownPath,
+    String? retrievalValidationHistoryPath,
     String? generatedMarkdownPath,
     String? readingNotesPath,
     String? editedDocumentPath,
@@ -853,6 +885,21 @@ class Rc6RuntimeState {
       buildLogPath: buildLogPath ?? this.buildLogPath,
       errorLogPath: errorLogPath ?? this.errorLogPath,
       queryResultPath: queryResultPath ?? this.queryResultPath,
+      retrievalPlanPath: retrievalPlanPath ?? this.retrievalPlanPath,
+      retrievalRerankReportPath:
+          retrievalRerankReportPath ?? this.retrievalRerankReportPath,
+      retrievalCitationCoveragePath:
+          retrievalCitationCoveragePath ?? this.retrievalCitationCoveragePath,
+      retrievalConflictReportPath:
+          retrievalConflictReportPath ?? this.retrievalConflictReportPath,
+      externalValidationBoundaryPath:
+          externalValidationBoundaryPath ?? this.externalValidationBoundaryPath,
+      retrievalValidationReportPath:
+          retrievalValidationReportPath ?? this.retrievalValidationReportPath,
+      retrievalValidationMarkdownPath: retrievalValidationMarkdownPath ??
+          this.retrievalValidationMarkdownPath,
+      retrievalValidationHistoryPath:
+          retrievalValidationHistoryPath ?? this.retrievalValidationHistoryPath,
       generatedMarkdownPath:
           generatedMarkdownPath ?? this.generatedMarkdownPath,
       readingNotesPath: readingNotesPath ?? this.readingNotesPath,

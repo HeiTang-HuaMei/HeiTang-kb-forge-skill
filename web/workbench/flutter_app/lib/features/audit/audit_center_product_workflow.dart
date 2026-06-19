@@ -519,6 +519,12 @@ List<List<String>> _auditArtifactRows(Rc6RuntimeState runtime, bool zh) {
 String _firstAuditPreviewPath(Rc6RuntimeState runtime) {
   for (final path in [
     runtime.queryResultPath,
+    runtime.retrievalValidationReportPath,
+    runtime.retrievalPlanPath,
+    runtime.retrievalRerankReportPath,
+    runtime.retrievalCitationCoveragePath,
+    runtime.retrievalConflictReportPath,
+    runtime.externalValidationBoundaryPath,
     runtime.standardKnowledgePackageManifestPath,
     runtime.indexBuildReportPath,
     runtime.indexProfilePath,
