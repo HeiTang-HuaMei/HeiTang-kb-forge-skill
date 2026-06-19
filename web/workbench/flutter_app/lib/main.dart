@@ -6851,7 +6851,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
           templateMode: result.templateMode,
         ),
       );
-      if (result.outputFormat != 'md' && rc6.state.lastResult?.passed == true) {
+      if ((result.outputFormat == 'json' || result.outputFormat == 'csv') &&
+          rc6.state.lastResult?.passed == true) {
         await rc6.exportDocumentFormat(result.outputFormat);
       }
     }
@@ -7523,6 +7524,14 @@ class _DocumentGenerationDialogState extends State<_DocumentGenerationDialog> {
 
   bool get zh => widget.zh;
 
+  String _outputChoiceLabel(String item) {
+    final upper = item.toUpperCase();
+    if (item == 'docx' || item == 'pdf' || item == 'pptx') {
+      return zh ? '$upper（需配置）' : '$upper (config required)';
+    }
+    return upper;
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -7567,9 +7576,16 @@ class _DocumentGenerationDialogState extends State<_DocumentGenerationDialog> {
               _SectionCaption(zh ? '输出格式' : 'Output format'),
               const SizedBox(height: 8),
               Wrap(spacing: 8, runSpacing: 8, children: [
-                for (final item in const ['md', 'docx', 'pdf', 'pptx'])
+                for (final item in const [
+                  'md',
+                  'json',
+                  'csv',
+                  'docx',
+                  'pdf',
+                  'pptx'
+                ])
                   ChoiceChip(
-                    label: Text(item.toUpperCase()),
+                    label: Text(_outputChoiceLabel(item)),
                     selected: outputFormat == item,
                     onSelected: (_) => setState(() => outputFormat = item),
                   ),

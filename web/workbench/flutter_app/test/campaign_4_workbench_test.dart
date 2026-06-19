@@ -277,6 +277,7 @@ void main() {
     expect(find.byKey(const Key('document-generation-tasks')), findsOneWidget);
     expect(find.text('生成任务'), findsWidgets);
     expect(find.byKey(const Key('document-central-preview')), findsOneWidget);
+    expect(find.textContaining('需要导出器配置'), findsWidgets);
     await tester.tap(find.text('文档模板').last);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('document-template-library')), findsOneWidget);
