@@ -680,6 +680,7 @@ void main() {
     expect(find.text('等待会话历史'), findsOneWidget);
     expect(find.text('等待可预览对话'), findsOneWidget);
     expect(find.text('等待可预览历史'), findsOneWidget);
+    expect(find.text('等待可清空历史'), findsOneWidget);
 
     final discussionTab = find.byKey(const Key('page-tab-3'));
     await tester.ensureVisible(discussionTab);

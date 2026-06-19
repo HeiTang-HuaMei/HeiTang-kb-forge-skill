@@ -1739,6 +1739,33 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> clearAgentDialogueHistory() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    await _clearWorkspacePath(_join(workspace.path, 'agent', 'dialogue'));
+    await _clearWorkspacePath(
+        _join(workspace.path, 'agent', 'dialogue_export'));
+    state = state.copyWith(
+      agentDialoguePath: '',
+      agentDialogueManifestPath: '',
+      agentDialogueHistoryPath: '',
+      agentDialogueExportPath: '',
+      agentDialogueTurnCount: 0,
+      agentDialogueModelConfigId: '',
+      agentDialogueUsedKbIds: const [],
+      agentDialogueUsedSkillIds: const [],
+      agentDialogueOutputFormat: '',
+      agentDialogueEvidenceCount: 0,
+      agentDialogueMemoryWriteStatus: '',
+      agentDialogueErrorMessage: '',
+      lastMessage: '单 Agent 对话历史和导出记录已删除。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
   Future<void> clearRecentTaskArtifacts(String taskId) async {
     switch (taskId) {
       case 'import':
@@ -1761,6 +1788,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         return;
       case 'agent':
         await clearAgentArtifacts();
+        return;
+      case 'agent_dialogue':
+        await clearAgentDialogueHistory();
         return;
       default:
         _fail('未知任务类型：$taskId');

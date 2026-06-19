@@ -191,6 +191,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<void> clearAgentDialogueHistory() async => initialize();
+
   Future<void> runMultiAgentDiscussion({
     String topic = '',
     List<String> participantAgentIds = const [],

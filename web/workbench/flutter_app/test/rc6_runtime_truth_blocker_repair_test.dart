@@ -1204,6 +1204,31 @@ void main() {
             .readAsStringSync(),
         contains('真实输入命中赚钱小生意'));
 
+    await controller.clearAgentDialogueHistory();
+    expect(controller.state.hasAgent, isTrue);
+    expect(controller.state.hasAgentDialogue, isFalse);
+    expect(controller.state.hasAgentDialogueHistory, isFalse);
+    expect(controller.state.hasAgentDialogueExport, isFalse);
+    expect(controller.state.hasMultiAgentDiscussion, isTrue);
+    expect(
+        Directory(
+                '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}knowledge_qa_agent')
+            .existsSync(),
+        isTrue);
+    expect(
+        Directory(
+                '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue')
+            .existsSync(),
+        isFalse);
+    expect(
+        Directory(
+                '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue_export')
+            .existsSync(),
+        isFalse);
+    await controller.runAgentDialogue(prompt: '清空后重新对话');
+    expect(controller.state.hasAgentDialogueHistory, isTrue);
+    expect(controller.state.agentDialogueTurnCount, 1);
+
     await controller.clearAgentArtifacts();
     expect(controller.state.hasAgent, isFalse);
     expect(controller.state.hasAgentDialogue, isFalse);

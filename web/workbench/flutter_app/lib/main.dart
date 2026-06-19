@@ -12474,6 +12474,24 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
     super.dispose();
   }
 
+  Future<void> _confirmAndClearDialogue(
+      BuildContext context, Rc6RuntimeController? rc6) async {
+    if (rc6 == null ||
+        rc6.state.running ||
+        !rc6.state.hasAgentDialogueHistory) {
+      return;
+    }
+    final confirmed = await _confirmDestructiveAction(
+      context,
+      title: zh ? '清空单 Agent 对话？' : 'Clear single-Agent dialogue?',
+      body: zh
+          ? '这会删除当前 Agent 的对话内容、会话历史和对话导出；Agent 配置、Skill、知识库和 A2A 产物不会被删除。'
+          : 'This deletes the current Agent dialogue, chat history, and dialogue export; Agent config, Skill, KB, and A2A artifacts are kept.',
+    );
+    if (!confirmed) return;
+    await rc6.clearAgentDialogueHistory();
+  }
+
   @override
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
@@ -12681,6 +12699,17 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                             zh ? '尚未生成可预览导出。' : 'No dialogue export generated.',
                         closeLabel: zh ? '关闭' : 'Close',
                       )
+                  : null,
+            ),
+            _DisplayAction(
+              label: runtime.hasAgentDialogueHistory
+                  ? (zh ? '清空对话历史' : 'Clear dialogue history')
+                  : (zh ? '等待可清空历史' : 'Waiting for history'),
+              icon: Icons.delete_sweep_outlined,
+              onPressed: runtime.hasAgentDialogueHistory &&
+                      rc6 != null &&
+                      !runtime.running
+                  ? () => _confirmAndClearDialogue(context, rc6)
                   : null,
             ),
           ]),
