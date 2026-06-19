@@ -6,7 +6,7 @@ This map freezes the current behavior before further structural cleanup. It is n
 
 | Area | Current Location | Finding | Cleanup Rule |
 | --- | --- | --- | --- |
-| Main UI | `web/workbench/flutter_app/lib/main.dart` | About 2,900 lines after the top bar, status bar, sidebar, app shell, shared layout, and shared product component extractions. Routing, page-surface dispatch, state labels, and a few general helpers still live together. | Split one UI page, shell widget, or shared widget group at a time into `lib/features/<page>/...`, `lib/app/...`, or `lib/shared/...` without changing visible behavior. |
+| Main UI | `web/workbench/flutter_app/lib/main.dart` | About 2,800 lines after the top bar, status bar, sidebar, app shell, shared layout, and shared product component extractions. Routing, page-surface dispatch, and a few general action helpers still live together. | Split one UI page, shell widget, or shared widget group at a time into `lib/features/<page>/...`, `lib/app/...`, or `lib/shared/...` without changing visible behavior. |
 | Runtime | `web/workbench/flutter_app/lib/rc6_runtime/rc6_runtime_controller_io.dart` | 7,216 lines. It contains import, parsing, KB, retrieval, document, storage, Skill, Agent, and artifact cleanup logic. The `rc6` name is now historical debt. | Do not rename yet. After UI slices are stable, introduce product-named wrappers or files while keeping compatibility. |
 | Runtime Stub/Models | `web/workbench/flutter_app/lib/rc6_runtime/rc6_runtime_controller_stub.dart` | State model and web stub still carry `Rc6RuntimeState` and many PRD-era fields. | Keep stable until runtime naming cleanup is isolated. |
 | Widget Tests | `web/workbench/flutter_app/test/campaign_4_workbench_test.dart` | 754 lines. Modern product-flow widget tests still live under a Campaign 4 name. | Later move tests into `test/product_flow/` one group at a time. |
@@ -99,4 +99,4 @@ The Shared Workbench Layout slice moves reusable layout and scroll helper widget
 
 The Workbench Shell slice moves the scaffold and desktop preview frame into `web/workbench/flutter_app/lib/app/workbench_shell.dart` with no behavior change.
 
-The Shared Product Components slice moves reusable product headers, page tabs, panels, tables, field rows, section captions, and capability status markers into `web/workbench/flutter_app/lib/shared/product_components.dart` with no behavior change. `main.dart` is now about 2,865 lines.
+The Shared Product Components slice moves reusable product headers, page tabs, panels, tables, field rows, section captions, capability status markers, settings health labels, and state pills into `web/workbench/flutter_app/lib/shared/product_components.dart` with no behavior change. `main.dart` is now about 2,814 lines.
