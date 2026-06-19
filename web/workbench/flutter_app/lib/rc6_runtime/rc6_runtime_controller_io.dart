@@ -3049,11 +3049,19 @@ class Rc6RuntimeController extends ChangeNotifier {
       });
     }
     final normalizedAdd = addName.trim().isEmpty ? '默认工作本' : addName.trim();
+    final assetIndex = await _workbookAssetIndex(workspace);
     var found = false;
     for (final row in rows) {
       if ((row['name'] ?? '').toString() == normalizedAdd) {
         row['status'] = 'active';
         row['last_opened_at'] = now;
+        row['document_count'] = state.sourceCount;
+        row['knowledge_base_count'] = state.knowledgeBases.isNotEmpty
+            ? state.knowledgeBases.length
+            : state.hasKnowledgeBase
+                ? 1
+                : 0;
+        row['asset_index'] = assetIndex;
         found = true;
       } else {
         row['status'] = 'available';
@@ -3072,6 +3080,7 @@ class Rc6RuntimeController extends ChangeNotifier {
             : state.hasKnowledgeBase
                 ? 1
                 : 0,
+        'asset_index': assetIndex,
       });
     }
     final payload = {
@@ -3086,6 +3095,62 @@ class Rc6RuntimeController extends ChangeNotifier {
       encoding: utf8,
     );
     return manifestPath;
+  }
+
+  Future<Map<String, Object?>> _workbookAssetIndex(Directory workspace) async {
+    final sourceManifestPath = _join(workspace.path, 'source_manifest.json');
+    final sourceManifest = await _readJsonObject(sourceManifestPath);
+    final sourceRecords = _sourceRecordsFromManifest(sourceManifest);
+    final kbCatalogPath =
+        _join(workspace.path, 'knowledge_bases', 'kb_catalog.json');
+    final kbCatalog = await _readJsonObject(kbCatalogPath);
+    final knowledgeBaseRecords = _catalogRecords(kbCatalog);
+    final generatedDocuments = <String>[
+      _join(workspace.path, 'doc', 'generated.md'),
+      _join(workspace.path, 'doc', 'reading_notes.md'),
+      _join(workspace.path, 'doc', 'edited_document.md'),
+      _join(workspace.path, 'export', 'reading_notes_export.md'),
+    ].where((path) => File(path).existsSync()).toList(growable: false);
+    final skillArtifacts = <String>[
+      _joinNested(workspace.path, 'skill/knowledge_qa_skill/SKILL.md'),
+      _joinNested(workspace.path,
+          'skill/localized_writing_skill/S2/localized_skill_manifest.json'),
+      _joinNested(workspace.path, 'skill/exports/skills_export.md'),
+    ].where((path) => File(path).existsSync()).toList(growable: false);
+    final agentArtifacts = <String>[
+      _joinNested(workspace.path, 'agent/knowledge_qa_agent/agent_manifest.json'),
+      _joinNested(workspace.path, 'agent/dialogue/agent_dialogue.md'),
+      _joinNested(workspace.path,
+          'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json'),
+    ].where((path) => File(path).existsSync()).toList(growable: false);
+    final auditArtifacts = <String>[
+      _join(workspace.path, 'audit', 'audit_report.json'),
+      _joinNested(workspace.path, 'agent/audit/permission_audit.json'),
+      _joinNested(workspace.path, 'agent/audit/run_history.json'),
+    ].where((path) => File(path).existsSync()).toList(growable: false);
+    return {
+      'schema_version': 'prd_v2_workbook_asset_index.v1',
+      'workspace_boundary': workspace.path,
+      'source_manifest_path':
+          File(sourceManifestPath).existsSync() ? sourceManifestPath : '',
+      'document_ids': sourceRecords
+          .map((source) => source.documentId)
+          .where((id) => id.isNotEmpty)
+          .toList(growable: false),
+      'source_document_count': sourceRecords.length,
+      'knowledge_base_catalog_path':
+          File(kbCatalogPath).existsSync() ? kbCatalogPath : '',
+      'knowledge_base_ids': knowledgeBaseRecords
+          .map((record) => (record['kb_id'] ?? '').toString())
+          .where((id) => id.isNotEmpty)
+          .toList(growable: false),
+      'generated_documents': generatedDocuments,
+      'skill_artifacts': skillArtifacts,
+      'agent_artifacts': agentArtifacts,
+      'audit_artifacts': auditArtifacts,
+      'secret_plaintext_written': false,
+      'directory_isolation': 'single_workspace_asset_index',
+    };
   }
 
   Future<List<_SearchableKnowledgeBase>> _selectedKnowledgeBasesForSearch(

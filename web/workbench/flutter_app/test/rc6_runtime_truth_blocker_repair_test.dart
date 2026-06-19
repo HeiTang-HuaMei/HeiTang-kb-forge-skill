@@ -2164,6 +2164,56 @@ void main() {
 
   test('prd workbook creation and switching persists across restart', () async {
     final workspace = await createWorkspace();
+    final input = Directory('${workspace.path}${Platform.pathSeparator}input')
+      ..createSync(recursive: true);
+    File('${input.path}${Platform.pathSeparator}alpha.md')
+        .writeAsStringSync('alpha workbook source');
+    File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'rc10_source_manifest.v1',
+      'source_path': input.path,
+      'sources': [
+        {
+          'document_id': 'doc_alpha',
+          'source_name': 'alpha.md',
+          'relative_path': 'alpha.md',
+          'workspace_path':
+              '${input.path}${Platform.pathSeparator}alpha.md',
+          'extension': '.md',
+        }
+      ]
+    }));
+    final kbCatalogDir =
+        Directory('${workspace.path}${Platform.pathSeparator}knowledge_bases')
+          ..createSync(recursive: true);
+    File('${kbCatalogDir.path}${Platform.pathSeparator}kb_catalog.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
+      'knowledge_bases': [
+        {
+          'kb_id': 'K1',
+          'kb_name': '产品研究知识库',
+          'source_documents': [
+            {'document_id': 'doc_alpha'}
+          ],
+        }
+      ],
+    }));
+    final skillDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
+      ..createSync(recursive: true);
+    File('${skillDir.path}${Platform.pathSeparator}SKILL.md')
+        .writeAsStringSync('# Skill');
+    final agentDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}knowledge_qa_agent')
+      ..createSync(recursive: true);
+    File('${agentDir.path}${Platform.pathSeparator}agent_manifest.json')
+        .writeAsStringSync('{"agent_id":"A"}');
+    final auditDir =
+        Directory('${workspace.path}${Platform.pathSeparator}audit')
+          ..createSync(recursive: true);
+    File('${auditDir.path}${Platform.pathSeparator}audit_report.json')
+        .writeAsStringSync('{"status":"pass"}');
     Rc6RuntimeController buildController() => Rc6RuntimeController(
           coreBridge: LocalCoreBridge(
             runner: (_) async => const CoreBridgeProcessResult(
@@ -2186,6 +2236,22 @@ void main() {
     final payload = jsonDecode(manifest.readAsStringSync()) as Map;
     expect(payload['schema_version'], 'prd_v2_workbook_manifest.v1');
     expect(payload['current_workbook'], '运营复盘工作本');
+    final activeWorkbook = (payload['workbooks'] as List)
+        .whereType<Map>()
+        .firstWhere((row) => row['name'] == '运营复盘工作本');
+    final assetIndex =
+        (activeWorkbook['asset_index'] as Map).cast<String, dynamic>();
+    expect(assetIndex['schema_version'], 'prd_v2_workbook_asset_index.v1');
+    expect(assetIndex['workspace_boundary'], workspace.path);
+    expect(assetIndex['source_manifest_path'],
+        '${workspace.path}${Platform.pathSeparator}source_manifest.json');
+    expect(assetIndex['document_ids'], contains('doc_alpha'));
+    expect(assetIndex['knowledge_base_ids'], contains('K1'));
+    expect(assetIndex['skill_artifacts'], isNotEmpty);
+    expect(assetIndex['agent_artifacts'], isNotEmpty);
+    expect(assetIndex['audit_artifacts'], isNotEmpty);
+    expect(assetIndex['secret_plaintext_written'], isFalse);
+    expect(assetIndex['directory_isolation'], 'single_workspace_asset_index');
     expect(controller.state.currentWorkbookName, '运营复盘工作本');
     expect(controller.state.workbookNames,
         containsAll(['默认工作本', '产品研究工作本', '运营复盘工作本']));
