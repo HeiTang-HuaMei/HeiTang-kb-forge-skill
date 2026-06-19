@@ -6,7 +6,7 @@ This map freezes the current behavior before further structural cleanup. It is n
 
 | Area | Current Location | Finding | Cleanup Rule |
 | --- | --- | --- | --- |
-| Main UI | `web/workbench/flutter_app/lib/main.dart` | About 3,900 lines after the top bar, desktop status bar, and sidebar shell extractions. Routing, shared widgets, and several shell/page helpers still live together. | Split one UI page or shell widget at a time into `lib/features/<page>/...` or `lib/app/...` without changing visible behavior. |
+| Main UI | `web/workbench/flutter_app/lib/main.dart` | About 3,700 lines after the top bar, status bar, sidebar, and shared layout extractions. Routing, shared widgets, and several shell/page helpers still live together. | Split one UI page, shell widget, or shared widget group at a time into `lib/features/<page>/...`, `lib/app/...`, or `lib/shared/...` without changing visible behavior. |
 | Runtime | `web/workbench/flutter_app/lib/rc6_runtime/rc6_runtime_controller_io.dart` | 7,216 lines. It contains import, parsing, KB, retrieval, document, storage, Skill, Agent, and artifact cleanup logic. The `rc6` name is now historical debt. | Do not rename yet. After UI slices are stable, introduce product-named wrappers or files while keeping compatibility. |
 | Runtime Stub/Models | `web/workbench/flutter_app/lib/rc6_runtime/rc6_runtime_controller_stub.dart` | State model and web stub still carry `Rc6RuntimeState` and many PRD-era fields. | Keep stable until runtime naming cleanup is isolated. |
 | Widget Tests | `web/workbench/flutter_app/test/campaign_4_workbench_test.dart` | 754 lines. Modern product-flow widget tests still live under a Campaign 4 name. | Later move tests into `test/product_flow/` one group at a time. |
@@ -94,3 +94,5 @@ The Product Top Bar helper slice moves top bar search, language toggle, chips, a
 The Desktop Status Bar slice moves the desktop status bar shell into `web/workbench/flutter_app/lib/app/desktop_status_bar.dart` with no behavior change.
 
 The Workbench Sidebar slice moves the desktop sidebar shell into `web/workbench/flutter_app/lib/app/workbench_sidebar.dart` with no navigation or route behavior change.
+
+The Shared Workbench Layout slice moves reusable layout and scroll helper widgets into `web/workbench/flutter_app/lib/shared/workbench_layout.dart` with no behavior change.
