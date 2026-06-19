@@ -11420,11 +11420,11 @@ class _AgentWorkspaceProductView extends StatelessWidget {
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _PrimaryProductAction(
-            label: zh ? '创建 Agent 工作区' : 'Create Agent workspace',
+            label: zh ? '创建 Agent 工作区并进入对话' : 'Create Agent workspace and chat',
             icon: Icons.account_tree_outlined,
             onPressed: runtime.running || rc6 == null
                 ? null
-                : () => rc6.generateAgent(),
+                : () => rc6.completeAgentProductOperations(),
           ),
         ],
       );

@@ -458,6 +458,7 @@ void main() {
     expect(find.text('创建 Agent'), findsWidgets);
     expect(find.text('单 Agent 对话'), findsOneWidget);
     expect(find.text('Agent 与会话列表'), findsOneWidget);
+    expect(find.text('创建 Agent 工作区并进入对话'), findsOneWidget);
     final configTab = find.byKey(const Key('page-tab-1'));
     await tester.ensureVisible(configTab);
     await tester.tap(configTab, warnIfMissed: false);
