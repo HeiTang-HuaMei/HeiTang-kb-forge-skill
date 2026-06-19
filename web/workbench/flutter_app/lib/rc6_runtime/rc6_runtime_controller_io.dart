@@ -649,7 +649,11 @@ class Rc6RuntimeController extends ChangeNotifier {
                   _isConflictDecision(entry.value) ? 'conflict' : entry.value,
             })
         .toList(growable: false);
-    final reportPath = _join(workspace.path, 'query', 'validation_report.json');
+    final queryDir = Directory(_join(workspace.path, 'query'));
+    await queryDir.create(recursive: true);
+    final reportPath = _join(queryDir.path, 'validation_report.json');
+    final markdownPath = _join(queryDir.path, 'validation_report.md');
+    final historyPath = _join(queryDir.path, 'validation_history.jsonl');
     final payload = {
       'schema_version': 'prd_v2_retrieval_validation_report.v1',
       'created_at': DateTime.now().toUtc().toIso8601String(),
@@ -672,6 +676,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'external_validation_status':
           queryReport['external_validation_status'] ?? 'not_enabled_local_only',
       'query_result_path': state.queryResultPath,
+      'markdown_report_path': markdownPath,
+      'history_path': historyPath,
       'results': rows
           .map((row) => {
                 'title': row.title,
@@ -687,8 +693,26 @@ class Rc6RuntimeController extends ChangeNotifier {
       const JsonEncoder.withIndent('  ').convert(payload),
       encoding: utf8,
     );
+    await File(markdownPath).writeAsString(
+      _retrievalValidationMarkdown(payload),
+      encoding: utf8,
+    );
+    await File(historyPath).writeAsString(
+      '${jsonEncode({
+            'created_at': payload['created_at'],
+            'query': payload['query'],
+            'selected_kb_ids': payload['selected_kb_ids'],
+            'result_count': payload['result_count'],
+            'conflict_count': payload['conflict_count'],
+            'correction_status': payload['correction_status'],
+            'report_path': reportPath,
+            'markdown_report_path': markdownPath,
+          })}\n',
+      mode: FileMode.append,
+      encoding: utf8,
+    );
     state = state.copyWith(
-      lastMessage: '检索验证报告已保存。',
+      lastMessage: '检索验证报告和历史已保存。',
       lastError: '',
     );
     notifyListeners();
@@ -1560,6 +1584,53 @@ class Rc6RuntimeController extends ChangeNotifier {
       return text;
     }
     return '${text.substring(0, maxCharacters)}\n\n... 预览已截断，完整内容请复制路径后在本地查看。';
+  }
+
+  static String _retrievalValidationMarkdown(Map<String, dynamic> payload) {
+    final results = _listOfMaps(payload['results']);
+    final corrections = _listOfMaps(payload['manual_corrections']);
+    final selectedKbIds = payload['selected_kb_ids'] is List
+        ? (payload['selected_kb_ids'] as List)
+            .map((value) => value.toString())
+            .where((value) => value.isNotEmpty)
+            .toList(growable: false)
+        : const <String>[];
+    final buffer = StringBuffer()
+      ..writeln('# 检索验证报告')
+      ..writeln()
+      ..writeln('- 查询：${payload['query'] ?? ''}')
+      ..writeln(
+          '- 知识库：${selectedKbIds.isEmpty ? 'current_kb' : selectedKbIds.join(', ')}')
+      ..writeln('- 结果数：${payload['result_count'] ?? 0}')
+      ..writeln('- 引用覆盖率：${payload['citation_coverage'] ?? 0}')
+      ..writeln('- 矛盾项：${payload['conflict_count'] ?? 0}')
+      ..writeln('- 纠偏状态：${payload['correction_status'] ?? ''}')
+      ..writeln('- 外部验证：${payload['external_validation_status'] ?? ''}')
+      ..writeln()
+      ..writeln('## 人工纠偏');
+    if (corrections.isEmpty) {
+      buffer.writeln('- 暂无人工纠偏记录。');
+    } else {
+      for (final correction in corrections) {
+        buffer.writeln(
+            '- #${correction['result_index']}: ${correction['decision']} (${correction['normalized_decision']})');
+      }
+    }
+    buffer
+      ..writeln()
+      ..writeln('## 证据结果');
+    if (results.isEmpty) {
+      buffer.writeln('- 无检索结果。');
+    } else {
+      for (final row in results) {
+        buffer
+          ..writeln('- ${_compact(row['title'] ?? row['excerpt'] ?? '')}')
+          ..writeln('  - KB：${row['kb_name'] ?? row['kb_id'] ?? ''}')
+          ..writeln('  - 引用：${row['citation'] ?? ''}')
+          ..writeln('  - 分数：${row['score'] ?? ''}');
+      }
+    }
+    return buffer.toString();
   }
 
   Future<void> clearImportedSources() async {

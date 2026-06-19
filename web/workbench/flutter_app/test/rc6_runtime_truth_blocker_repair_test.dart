@@ -911,6 +911,27 @@ void main() {
     final corrections = (validation['manual_corrections'] as List).cast<Map>();
     expect(corrections.last['decision'], 'contradiction');
     expect(corrections.last['normalized_decision'], 'conflict');
+    final validationMarkdown = File(
+        '${workspace.path}${Platform.pathSeparator}query${Platform.pathSeparator}validation_report.md');
+    expect(validationMarkdown.existsSync(), isTrue);
+    expect(
+        validationMarkdown.readAsStringSync(),
+        allOf(
+          contains('# 检索验证报告'),
+          contains('Alpha KB'),
+          contains('Beta KB'),
+          contains('contradiction'),
+          contains('K1-source.md'),
+        ));
+    final validationHistory = File(
+        '${workspace.path}${Platform.pathSeparator}query${Platform.pathSeparator}validation_history.jsonl');
+    expect(validationHistory.existsSync(), isTrue);
+    final historyLines = validationHistory.readAsLinesSync();
+    expect(historyLines, hasLength(1));
+    final historyRow = jsonDecode(historyLines.single) as Map<String, dynamic>;
+    expect(historyRow['selected_kb_ids'], ['K1', 'K2']);
+    expect(historyRow['conflict_count'], 1);
+    expect(historyRow['markdown_report_path'], validationMarkdown.path);
   });
 
   test(

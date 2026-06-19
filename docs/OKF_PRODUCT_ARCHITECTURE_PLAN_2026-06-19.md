@@ -58,6 +58,38 @@ Import sources
 
 OKF must not become a first-level navigation item.
 
+## Layered Product Architecture
+
+The product architecture is layered from knowledge assets to knowledge invocation:
+
+```text
+Document Library
+-> OKF
+-> Knowledge Base
+-> Index Layer
+-> RAG Layer
+-> Orchestration Layer
+-> Document / Skill / Agent / A2A application outputs
+```
+
+These layers are not ordinary user navigation peers. The ordinary user sees a continuous workflow, while the product keeps the technical responsibilities separated:
+
+- Document Library: the asset pool for real imported, parsed, and cleaned content.
+- OKF: the open standard packaging layer for migration, versioning, audit, and reuse.
+- Knowledge Base: the manageable knowledge asset built from Document Library content or OKF packages.
+- Index Layer: retrieval infrastructure for the Knowledge Base, including local indexes, vector indexes, and optional Redis/Qdrant-backed storage.
+- RAG Layer: retrieval, reranking, citation recall, validation, and evidence constraints over indexes.
+- Orchestration Layer: the product brain that decides how to invoke Knowledge Bases, RAG, LLM providers, templates, Skills, Agents, and A2A sessions.
+- Document Generation, Skill Factory, Agent Workbench, and A2A: application output layers driven by orchestration.
+
+UI placement:
+
+- Index Layer belongs inside the Knowledge Base page as index and storage configuration/status.
+- RAG Layer belongs inside Retrieval And Verification as query, rerank, citation, validation, and correction workflow.
+- Orchestration Layer belongs inside Document Generation, Skill Factory, and Agent Workbench as task configuration and execution planning.
+
+Do not add `Index Layer`, `RAG Layer`, or `Orchestration Layer` as ordinary first-level navigation items.
+
 ## Product Definition
 
 Document Library stores parsed, cleaned, and structured source content.
