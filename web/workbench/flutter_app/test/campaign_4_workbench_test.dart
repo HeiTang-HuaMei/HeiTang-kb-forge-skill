@@ -360,6 +360,23 @@ void main() {
     expect(find.text('执行记录'), findsWidgets);
     expect(find.text('失败记录'), findsWidgets);
     expect(find.text('产物记录'), findsWidgets);
+    expect(find.text('筛选执行记录'), findsOneWidget);
+    expect(find.text('全部模块'), findsOneWidget);
+    expect(find.text('全部状态'), findsOneWidget);
+    expect(find.text('已完成 / 执行中'), findsOneWidget);
+    expect(find.text('未运行'), findsWidgets);
+
+    await tester.tap(find.byKey(const Key('audit-module-filter-知识库')),
+        warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.text('构建知识库'), findsOneWidget);
+    expect(find.text('导入来源'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('audit-status-filter-done')),
+        warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.text('无匹配记录'), findsOneWidget);
+    expect(find.text('请调整模块或状态'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('page-tab-1')), warnIfMissed: false);
     await tester.pumpAndSettle();

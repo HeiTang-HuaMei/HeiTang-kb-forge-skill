@@ -12672,6 +12672,9 @@ class _ValidationChecklistView extends StatefulWidget {
 }
 
 class _ValidationChecklistViewState extends State<_ValidationChecklistView> {
+  String moduleFilter = 'all';
+  String statusFilter = 'all';
+
   bool get zh => widget.zh;
 
   @override
@@ -12679,6 +12682,20 @@ class _ValidationChecklistViewState extends State<_ValidationChecklistView> {
     final runtime =
         widget.runtimeController?.state ?? Rc6RuntimeState.initial();
     final records = _auditRecordRows(runtime, zh);
+    final modules = [
+      'all',
+      ...records.map((row) => row.first).toSet(),
+    ];
+    final filteredRecords = records.where((row) {
+      final moduleMatches = moduleFilter == 'all' || row.first == moduleFilter;
+      final status = row.length > 2 ? row[2] : '';
+      final completed = status == (zh ? '已完成' : 'Done') ||
+          status == (zh ? '执行中' : 'Running');
+      final statusMatches = statusFilter == 'all' ||
+          (statusFilter == 'done' && completed) ||
+          (statusFilter == 'open' && !completed);
+      return moduleMatches && statusMatches;
+    }).toList(growable: false);
     final failureRows = _auditFailureRows(runtime, zh);
     final artifactRows = _auditArtifactRows(runtime, zh);
     return LayoutBuilder(builder: (context, constraints) {
@@ -12692,7 +12709,7 @@ class _ValidationChecklistViewState extends State<_ValidationChecklistView> {
             items: [
               _MetricDatum(
                   label: zh ? '执行记录' : 'Records',
-                  value: '${records.length}',
+                  value: '${filteredRecords.length}/${records.length}',
                   detail: zh ? '来自运行状态' : 'From runtime state',
                   icon: Icons.receipt_long_outlined),
               _MetricDatum(
@@ -12712,11 +12729,55 @@ class _ValidationChecklistViewState extends State<_ValidationChecklistView> {
             ],
           ),
           const SizedBox(height: _DesktopGrid.gutter),
+          _SectionCaption(zh ? '筛选执行记录' : 'Filter execution records'),
+          const SizedBox(height: 6),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            for (final module in modules)
+              ChoiceChip(
+                key: Key('audit-module-filter-$module'),
+                label: Text(module == 'all'
+                    ? (zh ? '全部模块' : 'All modules')
+                    : module),
+                selected: moduleFilter == module,
+                onSelected: (_) => setState(() => moduleFilter = module),
+              ),
+          ]),
+          const SizedBox(height: 8),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            ChoiceChip(
+              key: const Key('audit-status-filter-all'),
+              label: Text(zh ? '全部状态' : 'All status'),
+              selected: statusFilter == 'all',
+              onSelected: (_) => setState(() => statusFilter = 'all'),
+            ),
+            ChoiceChip(
+              key: const Key('audit-status-filter-done'),
+              label: Text(zh ? '已完成 / 执行中' : 'Done / running'),
+              selected: statusFilter == 'done',
+              onSelected: (_) => setState(() => statusFilter = 'done'),
+            ),
+            ChoiceChip(
+              key: const Key('audit-status-filter-open'),
+              label: Text(zh ? '未运行' : 'Not run'),
+              selected: statusFilter == 'open',
+              onSelected: (_) => setState(() => statusFilter = 'open'),
+            ),
+          ]),
+          const SizedBox(height: _DesktopGrid.gutter),
           _ProductTable(
             columns: zh
                 ? ['模块', '事件', '状态', '产物']
                 : ['Module', 'Event', 'Status', 'Artifact'],
-            rows: records,
+            rows: filteredRecords.isEmpty
+                ? [
+                    [
+                      zh ? '当前筛选' : 'Current filter',
+                      zh ? '无匹配记录' : 'No matching record',
+                      zh ? '请调整模块或状态' : 'Adjust module or status',
+                      zh ? '无产物' : 'No artifact',
+                    ]
+                  ]
+                : filteredRecords,
           ),
         ],
       );
