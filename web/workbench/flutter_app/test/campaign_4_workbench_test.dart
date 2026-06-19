@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heitang_workbench/contracts/sample_contracts.dart';
@@ -112,7 +115,7 @@ void main() {
     expect(find.text('导入与解析'), findsWidgets);
     expect(find.text('来源文档'), findsOneWidget);
     expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);
-    await tester.tap(find.text('来源文档'));
+    await tester.tap(find.byKey(const Key('page-tab-1')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('document-library')), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -177,6 +180,84 @@ void main() {
     expect(find.textContaining('capability-matrix'), findsNothing);
     expect(find.textContaining('task-job-center'), findsNothing);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('document library hands imported sources to knowledge build',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1200));
+    final workspace = Directory.systemTemp
+        .createTempSync('kb_forge_product_flow_document_handoff_');
+    addTearDown(() {
+      if (workspace.existsSync()) {
+        workspace.deleteSync(recursive: true);
+      }
+    });
+    final input = Directory('${workspace.path}${Platform.pathSeparator}input')
+      ..createSync(recursive: true);
+    final source = File('${input.path}${Platform.pathSeparator}owner-note.txt')
+      ..writeAsStringSync('product flow source document');
+    File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
+        .writeAsStringSync(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'rc10_source_manifest.v1',
+        'status': 'imported',
+        'source_path': input.path,
+        'source_name': 'input',
+        'source_count': 1,
+        'workspace': workspace.path,
+        'sources': [
+          {
+            'source_path': source.path,
+            'source_name': 'owner-note.txt',
+            'relative_path': 'owner-note.txt',
+            'source_type': 'local_file',
+            'document_id': 'doc_owner_note',
+            'extension': '.txt',
+            'size_bytes': 28,
+            'word_count': 4,
+            'image_count': 0,
+            'table_count': 0,
+            'link_count': 0,
+            'structure_status': 'local_text_scan',
+          }
+        ],
+      }),
+    );
+
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        enableLocalCoreActions: false,
+        isWebRuntime: false,
+        coreWorkspace: workspace.path,
+        initialSelectedIndex: 2,
+      ),
+    );
+    await tester.runAsync(
+        () async => Future<void>.delayed(const Duration(milliseconds: 300)));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('dense-page-workbench-document-library')),
+        findsOneWidget);
+    await tester.tap(find.byKey(const Key('page-tab-1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('document-library')), findsOneWidget);
+
+    final buildAction = find.text('用文档构建知识库');
+    await tester.ensureVisible(buildAction);
+    expect(buildAction, findsOneWidget);
+    await tester.tap(buildAction);
+    await tester.pumpAndSettle();
+
+    expect(
+        find.byKey(
+            const Key('dense-page-workbench-knowledge-package-management')),
+        findsOneWidget);
+    expect(find.text('1. 选择来源文档'), findsOneWidget);
+    expect(find.textContaining('operation-gate'), findsNothing);
+    expect(find.textContaining('capability-matrix'), findsNothing);
+    expect(find.textContaining('task-job-center'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

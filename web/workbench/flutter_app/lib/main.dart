@@ -3877,6 +3877,7 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
                 localeCode: widget.localeCode,
                 workspace: widget.workspace,
                 isWebRuntime: widget.isWebRuntime,
+                onPageChanged: widget.onPageChanged,
               ),
             'knowledge-package-management' => _KnowledgeProductWorkflow(
                 localeCode: widget.localeCode,
@@ -8951,9 +8952,13 @@ class _KnowledgeQualityRecordsView extends StatelessWidget {
 }
 
 class _DocumentLibraryView extends StatefulWidget {
-  const _DocumentLibraryView({required this.zh});
+  const _DocumentLibraryView({
+    required this.zh,
+    required this.onBuildKnowledgeBase,
+  });
 
   final bool zh;
+  final VoidCallback onBuildKnowledgeBase;
 
   @override
   State<_DocumentLibraryView> createState() => _DocumentLibraryViewState();
@@ -9369,6 +9374,11 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
             ? (selectedKey.isEmpty ? null : deleteSelectedDocument)
             : deleteSelectedDocuments,
       );
+      final buildKnowledgeAction = _PrimaryProductAction(
+        label: zh ? '用文档构建知识库' : 'Build KB from documents',
+        icon: Icons.account_tree_outlined,
+        onPressed: widget.onBuildKnowledgeBase,
+      );
       if (!wide) {
         return Column(children: [
           SizedBox(height: 620, child: docs),
@@ -9377,7 +9387,7 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
           const SizedBox(height: _DesktopGrid.gutter),
           SizedBox(height: 460, child: detail),
           const SizedBox(height: _DesktopGrid.gutter),
-          deleteAction,
+          _EqualActionRow(children: [deleteAction, buildKnowledgeAction]),
         ]);
       }
       return Column(children: [
@@ -9387,7 +9397,16 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
           children: [docs, preview, detail],
         ),
         const SizedBox(height: _DesktopGrid.gutter),
-        Align(alignment: Alignment.centerRight, child: deleteAction),
+        Align(
+          alignment: Alignment.centerRight,
+          child: SizedBox(
+            width: 520,
+            child: _EqualActionRow(children: [
+              deleteAction,
+              buildKnowledgeAction,
+            ]),
+          ),
+        ),
       ]);
     });
   }
@@ -9822,11 +9841,13 @@ class _DocumentLibraryProductWorkflow extends StatefulWidget {
     required this.localeCode,
     required this.workspace,
     required this.isWebRuntime,
+    required this.onPageChanged,
   });
 
   final String localeCode;
   final String workspace;
   final bool isWebRuntime;
+  final ValueChanged<int> onPageChanged;
 
   @override
   State<_DocumentLibraryProductWorkflow> createState() =>
@@ -9865,7 +9886,11 @@ class _DocumentLibraryProductWorkflowState
           isWebRuntime: widget.isWebRuntime,
         )
       else
-        _DocumentLibraryView(zh: _zh),
+        _DocumentLibraryView(
+          zh: _zh,
+          onBuildKnowledgeBase: () => widget
+              .onPageChanged(_pageIndexById('knowledge-package-management')),
+        ),
     ]);
   }
 }
