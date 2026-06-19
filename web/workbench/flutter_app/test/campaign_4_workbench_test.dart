@@ -81,6 +81,14 @@ void main() {
         '运行设置',
       ],
     );
+    expect(pages[0].pageIds, ['dashboard']);
+    expect(
+      pages[2].pageIds,
+      ['import-parsing', 'document-library'],
+    );
+    expect(pages[5].pageIds, ['document-generation']);
+    expect(pages[6].pageIds, ['skill-factory']);
+    expect(pages[7].pageIds, ['agent-factory-runtime']);
     expect(find.text('首页'), findsWidgets);
     expect(find.text('导入与解析'), findsNothing);
     expect(find.text('Agent 工作台'), findsWidgets);

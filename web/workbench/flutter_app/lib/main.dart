@@ -48,12 +48,7 @@ const pages = <WorkbenchPage>[
       '首页',
       'Workbench overview, recent work, health, artifacts, and next actions.',
       '工作台概览、最近任务、健康状态、产物与下一步行动。',
-      memberPageIds: [
-        'dashboard',
-        'operation-gate',
-        'capability-matrix',
-        'task-job-center',
-      ]),
+      memberPageIds: ['dashboard']),
   WorkbenchPage(
       'workbook',
       'Workbook',
