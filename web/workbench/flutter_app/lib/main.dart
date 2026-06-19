@@ -12328,6 +12328,10 @@ class _AgentDiscussionProductViewState
                   ],
                   ['会话状态', a2aStatus],
                   [
+                    '运行前置',
+                    runtime.hasSkill ? 'Skill 已生成' : '请先生成 Skill'
+                  ],
+                  [
                     '会话审计',
                     runtime.hasA2aSessionManifest
                         ? _displayNameForPath(runtime.a2aSessionManifestPath)
@@ -12351,6 +12355,12 @@ class _AgentDiscussionProductViewState
                   ],
                   ['Session status', a2aStatus],
                   [
+                    'Prerequisite',
+                    runtime.hasSkill
+                        ? 'Skill generated'
+                        : 'Generate Skill first'
+                  ],
+                  [
                     'Session audit',
                     runtime.hasA2aSessionManifest
                         ? _displayNameForPath(runtime.a2aSessionManifestPath)
@@ -12369,7 +12379,10 @@ class _AgentDiscussionProductViewState
         _PrimaryProductAction(
           label: zh ? '启动联合讨论' : 'Start discussion',
           icon: Icons.forum_outlined,
-          onPressed: runtime.running || rc6 == null
+          onPressed: runtime.running ||
+                  rc6 == null ||
+                  !runtime.hasAgent ||
+                  !runtime.hasSkill
               ? null
               : () => rc6.runMultiAgentDiscussion(
                     topic: _topicController.text,
@@ -12540,9 +12553,7 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _PrimaryProductAction(
-            label: runtime.hasSkill
-                ? (zh ? '运行最小对话' : 'Run minimal chat')
-                : (zh ? '请先生成 Skill' : 'Generate Skill first'),
+            label: zh ? '运行最小对话' : 'Run minimal chat',
             icon: Icons.play_arrow_outlined,
             onPressed: runtime.running ||
                     rc6 == null ||

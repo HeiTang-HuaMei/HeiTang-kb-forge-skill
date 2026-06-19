@@ -1258,6 +1258,9 @@ void main() {
     await controller.runAgentDialogue(prompt: '缺少 Skill 时不应运行');
     expect(controller.state.hasAgentDialogueHistory, isFalse);
     expect(controller.state.lastError, contains('请先在 Skill 工厂生成 Skill'));
+    await controller.runMultiAgentDiscussion(topic: '缺少 Skill 时不应协作');
+    expect(controller.state.hasMultiAgentDiscussion, isFalse);
+    expect(controller.state.lastError, contains('请先在 Skill 工厂生成 Skill'));
   });
 
   test('rc8 document flow stops at real Markdown export without Skill or Agent',

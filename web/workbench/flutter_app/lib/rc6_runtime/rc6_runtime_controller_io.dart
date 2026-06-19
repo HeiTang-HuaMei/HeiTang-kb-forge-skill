@@ -2115,6 +2115,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       _fail('请先在 Agent 工厂生成 Agent。');
       return;
     }
+    if (!state.hasSkill) {
+      _fail('请先在 Skill 工厂生成 Skill，再启动 A2A 协作。');
+      return;
+    }
     await _writeMultiAgentDiscussion(
       topic: topic,
       participantAgentIds: participantAgentIds,
