@@ -135,6 +135,14 @@ const pages = <WorkbenchPage>[
       ]),
 ];
 
+// Legacy web/P1 routes remain covered by the Flutter source contract, but they
+// are not mounted into the user-facing dashboard product flow.
+const productFlowHiddenContractRouteIds = <String>[
+  'operation-gate',
+  'capability-matrix',
+  'task-job-center',
+];
+
 class WorkbenchPage {
   const WorkbenchPage(this.id, this.enTitle, this.zhTitle, this.enDescription,
       this.zhDescription,
