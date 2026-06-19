@@ -897,7 +897,7 @@ void main() {
 
     final validationPath = await controller.saveRetrievalValidationReport({
       0: 'keep',
-      1: 'conflict',
+      1: 'contradiction',
     });
     final validationFile = File(validationPath);
     expect(validationFile.existsSync(), isTrue);
@@ -907,7 +907,10 @@ void main() {
         validation['schema_version'], 'prd_v2_retrieval_validation_report.v1');
     expect(validation['result_count'], 2);
     expect(validation['conflict_count'], 1);
-    expect(validation['manual_corrections'], isA<List>());
+    expect(validation['correction_status'], 'reviewed');
+    final corrections = (validation['manual_corrections'] as List).cast<Map>();
+    expect(corrections.last['decision'], 'contradiction');
+    expect(corrections.last['normalized_decision'], 'conflict');
   });
 
   test(

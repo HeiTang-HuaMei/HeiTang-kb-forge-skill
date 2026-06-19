@@ -10114,7 +10114,9 @@ class _RetrievalVerificationViewState
                   label: zh ? '矛盾项' : 'Contradictions',
                   value: runtime.searchStatus == Rc6SearchStatus.success
                       ? correctionState.values
-                          .where((value) => value == 'conflict')
+                          .where((value) =>
+                              value == 'conflict' ||
+                              value == 'contradiction')
                           .length
                           .toString()
                       : '-',

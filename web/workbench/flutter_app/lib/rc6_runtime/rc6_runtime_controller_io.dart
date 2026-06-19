@@ -615,6 +615,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         .map((entry) => {
               'result_index': entry.key,
               'decision': entry.value,
+              'normalized_decision':
+                  _isConflictDecision(entry.value) ? 'conflict' : entry.value,
             })
         .toList(growable: false);
     final reportPath = _join(workspace.path, 'query', 'validation_report.json');
@@ -631,8 +633,11 @@ class Rc6RuntimeController extends ChangeNotifier {
                     'source_path': row.citation,
                   })
               .toList(growable: false)),
-      'conflict_count':
-          correctionRows.where((row) => row['decision'] == 'conflict').length,
+      'conflict_count': correctionRows
+          .where((row) => row['normalized_decision'] == 'conflict')
+          .length,
+      'correction_status':
+          correctionRows.isEmpty ? 'pending_manual_review' : 'reviewed',
       'manual_corrections': correctionRows,
       'external_validation_status':
           queryReport['external_validation_status'] ?? 'not_enabled_local_only',
@@ -6254,6 +6259,11 @@ class Rc6RuntimeController extends ChangeNotifier {
           .add((row['kb_id'] ?? '').toString());
     }
     return kbIdsByTitle.values.where((ids) => ids.length > 1).length;
+  }
+
+  static bool _isConflictDecision(Object? value) {
+    final decision = (value ?? '').toString().trim().toLowerCase();
+    return decision == 'conflict' || decision == 'contradiction';
   }
 
   static Future<List<Map<String, dynamic>>> _readJsonl(File file) async {
