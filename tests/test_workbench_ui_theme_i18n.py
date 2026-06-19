@@ -4,6 +4,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKBENCH = ROOT / "web" / "workbench"
+FLUTTER_LIB = WORKBENCH / "flutter_app" / "lib"
+
+
+def _flutter_shell_sources() -> str:
+    return "\n".join(
+        [
+            (FLUTTER_LIB / "main.dart").read_text(encoding="utf-8"),
+            (FLUTTER_LIB / "app" / "product_top_bar.dart").read_text(encoding="utf-8"),
+        ]
+    )
 
 
 def test_workbench_supports_light_and_dark_theme_tokens():
@@ -64,7 +74,7 @@ def test_workbench_supports_chinese_and_english_i18n_switching():
     index = (WORKBENCH / "index.html").read_text(encoding="utf-8")
     i18n = (WORKBENCH / "src" / "i18n.js").read_text(encoding="utf-8")
     app = (WORKBENCH / "src" / "app.js").read_text(encoding="utf-8")
-    flutter_main = (WORKBENCH / "flutter_app" / "lib" / "main.dart").read_text(encoding="utf-8")
+    flutter_sources = _flutter_shell_sources()
 
     assert 'lang="zh-CN"' in index
     assert 'data-locale="zh-CN"' in index
@@ -79,13 +89,13 @@ def test_workbench_supports_chinese_and_english_i18n_switching():
     assert "RISK_LABELS" in app
     assert "statusText(value)" in app
     assert "riskText(value)" in app
-    assert "supportedLocaleCodes" in flutter_main
-    assert "const Locale('zh', 'CN')" in flutter_main
-    assert "const Locale('en', 'US')" in flutter_main
-    assert "_TopBarLanguageToggle" in flutter_main
-    assert "topbar-language-toggle" in flutter_main
-    assert "onLocaleChanged('zh-CN')" in flutter_main
-    assert "onLocaleChanged('en-US')" in flutter_main
+    assert "supportedLocaleCodes" in flutter_sources
+    assert "const Locale('zh', 'CN')" in flutter_sources
+    assert "const Locale('en', 'US')" in flutter_sources
+    assert "_TopBarLanguageToggle" in flutter_sources
+    assert "topbar-language-toggle" in flutter_sources
+    assert "onLocaleChanged('zh-CN')" in flutter_sources
+    assert "onLocaleChanged('en-US')" in flutter_sources
 
 
 def test_workbench_brand_and_mascot_assets_exist():
@@ -105,14 +115,14 @@ def test_workbench_brand_and_mascot_assets_exist():
 
 
 def test_flutter_scaffold_supports_light_and_dark_modes():
-    flutter_main = (WORKBENCH / "flutter_app" / "lib" / "main.dart").read_text(encoding="utf-8")
+    flutter_sources = _flutter_shell_sources()
 
-    assert "ThemeMode.light" in flutter_main
-    assert "ThemeMode.dark" in flutter_main
-    assert "theme: _theme(Brightness.light)" in flutter_main
-    assert "darkTheme: _theme(Brightness.dark)" in flutter_main
-    assert "Icons.light_mode_outlined" in flutter_main
-    assert "Icons.dark_mode_outlined" in flutter_main
+    assert "ThemeMode.light" in flutter_sources
+    assert "ThemeMode.dark" in flutter_sources
+    assert "theme: _theme(Brightness.light)" in flutter_sources
+    assert "darkTheme: _theme(Brightness.dark)" in flutter_sources
+    assert "Icons.light_mode_outlined" in flutter_sources
+    assert "Icons.dark_mode_outlined" in flutter_sources
 
 
 def test_workbench_defaults_to_windows_desktop_shell_not_macos_shell():

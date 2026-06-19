@@ -4,7 +4,7 @@ This document records a future product architecture layer only. It does not intr
 
 ## Official Baseline
 
-OKF refers to Google's Open Knowledge Format in the `GoogleCloudPlatform/knowledge-catalog` repository:
+OKF refers to Google's Open Knowledge Format in the `GoogleCloudPlatform/knowledge-catalog` repository. It is the Google-published open knowledge format standard that HeiTang KB Forge will use as the future product boundary for executable, portable knowledge packages.
 
 - SPEC: <https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md>
 - Repository: <https://github.com/GoogleCloudPlatform/knowledge-catalog>
@@ -30,7 +30,7 @@ Future OKF export should respect the official bundle model:
 - Every concept frontmatter must contain a non-empty `type` field.
 - Consumers should tolerate optional-field gaps, unknown types, unknown frontmatter keys, broken links, and missing index files.
 
-Owner context: OKF is intended here as the executable standardization layer for the LLM Wiki style of knowledge packaging. The implementation source of truth remains the official Google OKF SPEC above.
+Owner context: OKF is intended here as the executable standardization layer that turns the LLM Wiki idea into a concrete product specification for HeiTang KB Forge. The implementation source of truth remains the official Google OKF SPEC above.
 
 ## Placement
 

@@ -3,6 +3,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKBENCH = ROOT / "web" / "workbench"
+FLUTTER_LIB = WORKBENCH / "flutter_app" / "lib"
+
+
+def _flutter_shell_sources() -> str:
+    return "\n".join(
+        [
+            (FLUTTER_LIB / "main.dart").read_text(encoding="utf-8"),
+            (FLUTTER_LIB / "app" / "product_top_bar.dart").read_text(encoding="utf-8"),
+        ]
+    )
 
 
 def test_workbench_declares_responsive_viewport_and_mobile_nav():
@@ -41,18 +51,18 @@ def test_workbench_mobile_spec_is_responsive_web_with_platform_scaffolds():
 
 
 def test_flutter_scaffold_contains_fixed_desktop_shell_not_mobile_scaling():
-    flutter_main = (WORKBENCH / "flutter_app" / "lib" / "main.dart").read_text(encoding="utf-8")
+    flutter_sources = _flutter_shell_sources()
 
-    assert "initialWindowWidth = 1440" in flutter_main
-    assert "initialWindowHeight = 900" in flutter_main
-    assert "_DesktopWindowPreviewShell" in flutter_main
-    assert "_DesktopWorkbench" in flutter_main
-    assert "desktop-window-preview-frame" in flutter_main
-    assert "desktop-topbar-single-row" in flutter_main
-    assert "_WorkbenchSidebar" in flutter_main
-    assert "ListView(" in flutter_main
-    assert "NavigationRail" not in flutter_main
-    assert "columns: 3" in flutter_main
+    assert "initialWindowWidth = 1440" in flutter_sources
+    assert "initialWindowHeight = 900" in flutter_sources
+    assert "_DesktopWindowPreviewShell" in flutter_sources
+    assert "_DesktopWorkbench" in flutter_sources
+    assert "desktop-window-preview-frame" in flutter_sources
+    assert "desktop-topbar-single-row" in flutter_sources
+    assert "_WorkbenchSidebar" in flutter_sources
+    assert "ListView(" in flutter_sources
+    assert "NavigationRail" not in flutter_sources
+    assert "columns: 3" in flutter_sources
 
 
 def test_web_pwa_and_flutter_platform_targets_are_scaffolded():
