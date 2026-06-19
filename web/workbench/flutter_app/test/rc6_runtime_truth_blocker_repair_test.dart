@@ -2057,10 +2057,14 @@ void main() {
     expect(controller.state.hasSkillConfig, isTrue);
     expect(controller.state.hasSkillVerificationReport, isTrue);
     expect(controller.state.hasSkillGenerationManifest, isTrue);
+    expect(controller.state.hasSkillPackageManifest, isTrue);
+    expect(controller.state.hasSkillValidationReport, isTrue);
     expect(controller.state.hasLocalizedSkillManifest, isTrue);
     expect(controller.state.hasLocalizedSkillDiff, isTrue);
     expect(controller.state.hasSkillVersionManifest, isTrue);
     expect(controller.state.hasSkillOperationManifest, isTrue);
+    expect(controller.state.skillFactoryAuditPath,
+        endsWith('skill_factory_audit.json'));
     expect(controller.state.hasSkillExport, isTrue);
     expect(controller.state.hasSkillAgentBindingManifest, isTrue);
     expect(controller.state.skillOperationStatus, 'pass');
@@ -2119,6 +2123,54 @@ void main() {
           contains('"operation": "fusion"'),
           contains('fused_product_ops_skill'),
         ));
+    final factoryAuditPath =
+        '$skillRoot${Platform.pathSeparator}operations${Platform.pathSeparator}skill_factory_audit.json';
+    final skillPackageManifestPath =
+        '$skillRoot${Platform.pathSeparator}skill_package_manifest.json';
+    final skillPackageManifest =
+        jsonDecode(File(skillPackageManifestPath).readAsStringSync())
+            as Map<String, dynamic>;
+    expect(skillPackageManifest['schema_version'],
+        'prd_v3_skill_package_manifest.v1');
+    expect(skillPackageManifest['status'], 'ready');
+    expect(skillPackageManifest['skill_packages'], isA<List>());
+    expect(skillPackageManifest['missing_required_artifacts'], isEmpty);
+    final skillPackageBoundary = skillPackageManifest['tool_boundary'] as Map;
+    expect(skillPackageBoundary['local_kb_only'], isTrue);
+    expect(skillPackageBoundary['arbitrary_shell_enabled'], isFalse);
+    expect(skillPackageBoundary['computer_use_enabled'], isFalse);
+    final skillValidationReportPath =
+        '$skillRoot${Platform.pathSeparator}skill_validation_report.json';
+    final skillValidationReport =
+        jsonDecode(File(skillValidationReportPath).readAsStringSync())
+            as Map<String, dynamic>;
+    expect(skillValidationReport['schema_version'],
+        'prd_v3_skill_factory_validation.v1');
+    expect(skillValidationReport['status'], 'pass');
+    expect(skillValidationReport['missing_required_artifacts'], isEmpty);
+    expect(skillValidationReport['ready_for_agent_binding'], isTrue);
+    expect(skillValidationReport['ready_for_export'], isTrue);
+    final factoryAudit = jsonDecode(File(factoryAuditPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(factoryAudit['schema_version'], 'prd_v3_skill_factory_audit.v1');
+    expect(factoryAudit['status'], 'pass');
+    expect(factoryAudit['requested_operation'], 'fusion');
+    expect(factoryAudit['package_manifest_path'],
+        endsWith('skill_package_manifest.json'));
+    expect(factoryAudit['validation_report_path'],
+        endsWith('skill_validation_report.json'));
+    expect(factoryAudit['generation_modes'],
+        containsAll(['from_kb', 'external_skill_fusion', 'export']));
+    expect(factoryAudit['artifacts'], isA<List>());
+    expect(factoryAudit['artifact_count'], greaterThan(0));
+    expect(factoryAudit['missing_required_artifacts'], isEmpty);
+    expect(factoryAudit['ready_for_agent_binding'], isTrue);
+    expect(factoryAudit['ready_for_export'], isTrue);
+    final toolBoundary = factoryAudit['tool_boundary'] as Map;
+    expect(toolBoundary['arbitrary_shell_enabled'], isFalse);
+    expect(toolBoundary['external_plugin_marketplace_enabled'], isFalse);
+    expect(toolBoundary['computer_use_enabled'], isFalse);
+    expect(factoryAudit['secret_plaintext_written'], isFalse);
     expect(File(skillVersionManifestPath).readAsStringSync(),
         contains('"event": "skill_operation_fusion"'));
     final skillOperationHistoryPath =
@@ -2163,6 +2215,12 @@ void main() {
     expect(reloadedController.state.hasSkillOperationHistory, isTrue);
     expect(reloadedController.state.skillOperationHistoryPath,
         endsWith('skill_operation_history.json'));
+    expect(reloadedController.state.skillFactoryAuditPath,
+        endsWith('skill_factory_audit.json'));
+    expect(reloadedController.state.skillPackageManifestPath,
+        endsWith('skill_package_manifest.json'));
+    expect(reloadedController.state.skillValidationReportPath,
+        endsWith('skill_validation_report.json'));
     expect(controller.state.skillExportPath, endsWith('skills_export.md'));
     expect(controller.state.skillOperationManifestPath,
         endsWith('skill_operation_manifest.json'));

@@ -897,6 +897,18 @@ class _SkillBuilderProductWorkflowState
                     : (_zh ? '等待生成操作产物' : 'Waiting operation artifact')),
             const SizedBox(height: 8),
             _FieldRow(
+                label: _zh ? '包清单' : 'Package manifest',
+                value: runtime.hasSkillPackageManifest
+                    ? _displayNameForPath(runtime.skillPackageManifestPath)
+                    : (_zh ? '等待 Skill 包清单' : 'Waiting Skill package')),
+            const SizedBox(height: 8),
+            _FieldRow(
+                label: _zh ? '工厂验证' : 'Factory validation',
+                value: runtime.hasSkillValidationReport
+                    ? _displayNameForPath(runtime.skillValidationReportPath)
+                    : (_zh ? '等待工厂验证报告' : 'Waiting factory validation')),
+            const SizedBox(height: 8),
+            _FieldRow(
                 label: _zh ? '草稿编辑' : 'Draft edit',
                 value: savedSkillEditPath.isNotEmpty
                     ? _displayNameForPath(savedSkillEditPath)
@@ -909,6 +921,12 @@ class _SkillBuilderProductWorkflowState
                         ? '${runtime.skillVersionCount} 个版本'
                         : '${runtime.skillVersionCount} versions')
                     : (_zh ? '等待生成 Skill' : 'Waiting Skill generation')),
+            const SizedBox(height: 8),
+            _FieldRow(
+                label: _zh ? '工厂审计' : 'Factory audit',
+                value: runtime.skillFactoryAuditPath.isNotEmpty
+                    ? _displayNameForPath(runtime.skillFactoryAuditPath)
+                    : (_zh ? '等待 Skill 操作' : 'Waiting Skill operation')),
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? '导出包' : 'Export package',

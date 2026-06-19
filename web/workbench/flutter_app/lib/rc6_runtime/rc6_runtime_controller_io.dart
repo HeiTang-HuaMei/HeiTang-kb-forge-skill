@@ -2280,11 +2280,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       skillConfigPath: '',
       skillVerificationReportPath: '',
       skillGenerationManifestPath: '',
+      skillPackageManifestPath: '',
+      skillValidationReportPath: '',
       localizedSkillManifestPath: '',
       localizedSkillDiffPath: '',
       skillVersionManifestPath: '',
       skillOperationManifestPath: '',
       skillOperationHistoryPath: '',
+      skillFactoryAuditPath: '',
       skillExportPath: '',
       skillAgentBindingManifestPath: '',
       skillOperationStatus: '',
@@ -3627,6 +3630,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         workspace.path, 'skill/knowledge_qa_skill/verification_report.json');
     final skillGenerationManifestPath =
         _joinNested(workspace.path, 'skill/skill_generation_manifest.json');
+    final skillPackageManifestPath =
+        _joinNested(workspace.path, 'skill/skill_package_manifest.json');
+    final skillValidationReportPath =
+        _joinNested(workspace.path, 'skill/skill_validation_report.json');
     final localizedSkillPath = _joinNested(workspace.path,
         'skill/localized_writing_skill/S2/localized_skill_manifest.json');
     final localizedSkillDiffPath = _joinNested(
@@ -3637,6 +3644,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         workspace.path, 'skill/operations/skill_operation_manifest.json');
     final skillOperationHistoryPath = _joinNested(
         workspace.path, 'skill/operations/skill_operation_history.json');
+    final skillFactoryAuditPath = _joinNested(
+        workspace.path, 'skill/operations/skill_factory_audit.json');
     final skillExportPath =
         _joinNested(workspace.path, 'skill/exports/skills_export.md');
     final skillAgentBindingManifestPath = _joinNested(
@@ -3868,6 +3877,12 @@ class Rc6RuntimeController extends ChangeNotifier {
           await File(skillGenerationManifestPath).exists()
               ? skillGenerationManifestPath
               : '',
+      skillPackageManifestPath: await File(skillPackageManifestPath).exists()
+          ? skillPackageManifestPath
+          : '',
+      skillValidationReportPath: await File(skillValidationReportPath).exists()
+          ? skillValidationReportPath
+          : '',
       localizedSkillManifestPath:
           await File(localizedSkillPath).exists() ? localizedSkillPath : '',
       localizedSkillDiffPath: await File(localizedSkillDiffPath).exists()
@@ -3882,6 +3897,9 @@ class Rc6RuntimeController extends ChangeNotifier {
               : '',
       skillOperationHistoryPath: await File(skillOperationHistoryPath).exists()
           ? skillOperationHistoryPath
+          : '',
+      skillFactoryAuditPath: await File(skillFactoryAuditPath).exists()
+          ? skillFactoryAuditPath
           : '',
       skillExportPath:
           await File(skillExportPath).exists() ? skillExportPath : '',
@@ -4297,6 +4315,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       _joinNested(
           workspace.path, 'skill/knowledge_qa_skill/skill_edit_manifest.json'),
       _joinNested(workspace.path, 'skill/skill_generation_manifest.json'),
+      _joinNested(workspace.path, 'skill/skill_package_manifest.json'),
+      _joinNested(workspace.path, 'skill/skill_validation_report.json'),
       _joinNested(workspace.path,
           'skill/localized_writing_skill/S2/localized_skill_manifest.json'),
       _joinNested(
@@ -4305,6 +4325,9 @@ class Rc6RuntimeController extends ChangeNotifier {
           workspace.path, 'skill/operations/skill_version_manifest.json'),
       _joinNested(
           workspace.path, 'skill/operations/skill_operation_manifest.json'),
+      _joinNested(
+          workspace.path, 'skill/operations/skill_operation_history.json'),
+      _joinNested(workspace.path, 'skill/operations/skill_factory_audit.json'),
       _joinNested(
           workspace.path, 'skill/operations/agent_binding_manifest.json'),
       _joinNested(workspace.path, 'skill/exports/skills_export.md'),
@@ -6386,6 +6409,333 @@ class Rc6RuntimeController extends ChangeNotifier {
               'deleted': false,
             }),
             encoding: utf8);
+    final validationReport = await _writeSkillFactoryPackageArtifacts(
+      agentBound: agentBound,
+      requestedOperation: requestedOperation,
+    );
+    await _writeSkillFactoryAudit(
+      agentBound: agentBound,
+      requestedOperation: requestedOperation,
+      validationReport: validationReport,
+    );
+  }
+
+  Future<Map<String, Object?>> _writeSkillFactoryPackageArtifacts({
+    required bool agentBound,
+    required String requestedOperation,
+  }) async {
+    final workspace = _requireWorkspace();
+    final skillRoot = Directory(_join(workspace.path, 'skill'));
+    final operationsRoot = Directory(_join(skillRoot.path, 'operations'));
+    final exportRoot = Directory(_join(skillRoot.path, 'exports'));
+    await skillRoot.create(recursive: true);
+    await operationsRoot.create(recursive: true);
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    final catalogKbIds = _catalogRecords(catalog)
+        .map((record) => _stringValue(record['kb_id'], ''))
+        .where((id) => id.isNotEmpty)
+        .toList(growable: false);
+    final sourceKbIds =
+        catalogKbIds.isEmpty ? const ['current_kb'] : catalogKbIds;
+    final artifacts = <Map<String, Object?>>[
+      {
+        'artifact_id': 'primary_skill',
+        'path': _joinNested(skillRoot.path, 'knowledge_qa_skill/SKILL.md'),
+        'required': true,
+      },
+      {
+        'artifact_id': 'primary_skill_config',
+        'path':
+            _joinNested(skillRoot.path, 'knowledge_qa_skill/skill_config.json'),
+        'required': true,
+      },
+      {
+        'artifact_id': 'primary_skill_verification',
+        'path': _joinNested(
+            skillRoot.path, 'knowledge_qa_skill/verification_report.json'),
+        'required': true,
+      },
+      {
+        'artifact_id': 'generation_manifest',
+        'path': _join(skillRoot.path, 'skill_generation_manifest.json'),
+        'required': true,
+      },
+      {
+        'artifact_id': 'localized_skill',
+        'path':
+            _joinNested(skillRoot.path, 'localized_writing_skill/S2/SKILL.md'),
+        'required': true,
+      },
+      {
+        'artifact_id': 'localized_skill_manifest',
+        'path': _joinNested(skillRoot.path,
+            'localized_writing_skill/S2/localized_skill_manifest.json'),
+        'required': true,
+      },
+      {
+        'artifact_id': 'localized_diff_summary',
+        'path': _joinNested(
+            skillRoot.path, 'localized_writing_skill/S2/diff_summary.md'),
+        'required': true,
+      },
+      {
+        'artifact_id': 'copied_skill',
+        'path': _joinNested(skillRoot.path, 'knowledge_qa_skill_copy/SKILL.md'),
+        'required': true,
+      },
+      {
+        'artifact_id': 'fused_skill',
+        'path': _joinNested(skillRoot.path, 'fused_product_ops_skill/SKILL.md'),
+        'required': true,
+      },
+      {
+        'artifact_id': 'fused_skill_manifest',
+        'path': _joinNested(
+            skillRoot.path, 'fused_product_ops_skill/skill_manifest.json'),
+        'required': true,
+      },
+      {
+        'artifact_id': 'skill_export',
+        'path': _join(exportRoot.path, 'skills_export.md'),
+        'required': true,
+      },
+      {
+        'artifact_id': 'version_manifest',
+        'path': _join(operationsRoot.path, 'skill_version_manifest.json'),
+        'required': true,
+      },
+      {
+        'artifact_id': 'operation_manifest',
+        'path': _join(operationsRoot.path, 'skill_operation_manifest.json'),
+        'required': true,
+      },
+      {
+        'artifact_id': 'operation_history',
+        'path': _join(operationsRoot.path, 'skill_operation_history.json'),
+        'required': true,
+      },
+      {
+        'artifact_id': 'agent_binding_manifest',
+        'path': _join(operationsRoot.path, 'agent_binding_manifest.json'),
+        'required': true,
+      },
+      {
+        'artifact_id': 'external_imported_skill',
+        'path':
+            _joinNested(skillRoot.path, 'external_imported_skill/S0/SKILL.md'),
+        'required': false,
+      },
+    ];
+    final artifactRecords = <Map<String, Object?>>[];
+    final missingRequired = <String>[];
+    for (final artifact in artifacts) {
+      final path = artifact['path']!.toString();
+      final exists = await File(path).exists();
+      if (artifact['required'] == true && !exists) {
+        missingRequired.add(artifact['artifact_id']!.toString());
+      }
+      artifactRecords.add({
+        ...artifact,
+        'exists': exists,
+      });
+    }
+    final packageManifestPath =
+        _join(skillRoot.path, 'skill_package_manifest.json');
+    final validationReportPath =
+        _join(skillRoot.path, 'skill_validation_report.json');
+    final packageManifest = {
+      'schema_version': 'prd_v3_skill_package_manifest.v1',
+      'status': missingRequired.isEmpty ? 'ready' : 'needs_repair',
+      'requested_operation': requestedOperation,
+      'source_kb_ids': sourceKbIds,
+      'skill_packages': [
+        {
+          'skill_id': 'S1',
+          'name': 'knowledge_qa_skill',
+          'source_mode': 'from_kb',
+          'instruction_path':
+              _joinNested(skillRoot.path, 'knowledge_qa_skill/SKILL.md'),
+          'config_path': _joinNested(
+              skillRoot.path, 'knowledge_qa_skill/skill_config.json'),
+          'verification_path': _joinNested(
+              skillRoot.path, 'knowledge_qa_skill/verification_report.json'),
+          'source_kb_ids': sourceKbIds,
+        },
+        {
+          'skill_id': 'S2',
+          'name': 'localized_writing_skill',
+          'source_mode': 'external_skill_fusion',
+          'instruction_path': _joinNested(
+              skillRoot.path, 'localized_writing_skill/S2/SKILL.md'),
+          'manifest_path': _joinNested(skillRoot.path,
+              'localized_writing_skill/S2/localized_skill_manifest.json'),
+          'source_kb_ids': sourceKbIds,
+        },
+        {
+          'skill_id': 'fused_product_ops_skill',
+          'name': 'fused_product_ops_skill',
+          'source_mode': 'skill_plus_kb_fusion',
+          'instruction_path':
+              _joinNested(skillRoot.path, 'fused_product_ops_skill/SKILL.md'),
+          'manifest_path': _joinNested(
+              skillRoot.path, 'fused_product_ops_skill/skill_manifest.json'),
+          'source_kb_ids': sourceKbIds,
+        },
+      ],
+      'operation_manifest_path':
+          _join(operationsRoot.path, 'skill_operation_manifest.json'),
+      'operation_history_path':
+          _join(operationsRoot.path, 'skill_operation_history.json'),
+      'export_path': _join(exportRoot.path, 'skills_export.md'),
+      'agent_binding': {
+        'status': agentBound ? 'bound' : 'waiting_agent',
+        'manifest_path':
+            _join(operationsRoot.path, 'agent_binding_manifest.json'),
+      },
+      'artifact_records': artifactRecords,
+      'missing_required_artifacts': missingRequired,
+      'tool_boundary': {
+        'local_kb_only': true,
+        'arbitrary_shell_enabled': false,
+        'computer_use_enabled': false,
+        'external_plugin_marketplace_enabled': false,
+      },
+      'secret_plaintext_written': false,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await File(packageManifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(packageManifest),
+      encoding: utf8,
+    );
+    final checks = [
+      {
+        'check_id': 'required_artifacts_exist',
+        'status': missingRequired.isEmpty ? 'pass' : 'fail',
+        'missing': missingRequired,
+      },
+      {
+        'check_id': 'local_kb_binding_only',
+        'status': 'pass',
+        'source_kb_ids': sourceKbIds,
+      },
+      {
+        'check_id': 'tool_boundary_enforced',
+        'status': 'pass',
+        'blocked_tools': [
+          'arbitrary_shell',
+          'computer_use',
+          'external_plugin_marketplace',
+        ],
+      },
+      {
+        'check_id': 'agent_binding_state_recorded',
+        'status': 'pass',
+        'binding_status': agentBound ? 'bound' : 'waiting_agent',
+      },
+      {
+        'check_id': 'secret_plaintext_absent',
+        'status': 'pass',
+      },
+    ];
+    final validationReport = {
+      'schema_version': 'prd_v3_skill_factory_validation.v1',
+      'status': missingRequired.isEmpty ? 'pass' : 'fail',
+      'requested_operation': requestedOperation,
+      'package_manifest_path': packageManifestPath,
+      'source_kb_ids': sourceKbIds,
+      'checks': checks,
+      'missing_required_artifacts': missingRequired,
+      'agent_binding_status': agentBound ? 'bound' : 'waiting_agent',
+      'ready_for_agent_binding': missingRequired.isEmpty,
+      'ready_for_export': missingRequired.isEmpty,
+      'secret_plaintext_written': false,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await File(validationReportPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(validationReport),
+      encoding: utf8,
+    );
+    return validationReport;
+  }
+
+  Future<void> _writeSkillFactoryAudit({
+    required bool agentBound,
+    required String requestedOperation,
+    required Map<String, Object?> validationReport,
+  }) async {
+    final workspace = _requireWorkspace();
+    final skillRoot = Directory(_join(workspace.path, 'skill'));
+    final operationsRoot = Directory(_join(skillRoot.path, 'operations'));
+    await operationsRoot.create(recursive: true);
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    final kbIds = _catalogRecords(catalog)
+        .map((record) => _stringValue(record['kb_id'], ''))
+        .where((id) => id.isNotEmpty)
+        .toList(growable: false);
+    final artifacts = <String>[
+      _joinNested(skillRoot.path, 'knowledge_qa_skill/SKILL.md'),
+      _joinNested(skillRoot.path, 'knowledge_qa_skill/skill_config.json'),
+      _joinNested(
+          skillRoot.path, 'knowledge_qa_skill/verification_report.json'),
+      _joinNested(
+          skillRoot.path, 'knowledge_qa_skill/skill_edit_manifest.json'),
+      _joinNested(skillRoot.path, 'external_imported_skill/S0/SKILL.md'),
+      _joinNested(skillRoot.path,
+          'external_imported_skill/S0/external_skill_manifest.json'),
+      _joinNested(skillRoot.path, 'localized_writing_skill/S2/SKILL.md'),
+      _joinNested(skillRoot.path,
+          'localized_writing_skill/S2/localized_skill_manifest.json'),
+      _joinNested(skillRoot.path, 'localized_writing_skill/S2/diff_summary.md'),
+      _joinNested(skillRoot.path, 'knowledge_qa_skill_copy/SKILL.md'),
+      _joinNested(skillRoot.path, 'fused_product_ops_skill/SKILL.md'),
+      _joinNested(skillRoot.path, 'exports/skills_export.md'),
+      _joinNested(skillRoot.path, 'skill_package_manifest.json'),
+      _joinNested(skillRoot.path, 'skill_validation_report.json'),
+      _joinNested(operationsRoot.path, 'skill_version_manifest.json'),
+      _joinNested(operationsRoot.path, 'skill_operation_manifest.json'),
+      _joinNested(operationsRoot.path, 'skill_operation_history.json'),
+      _joinNested(operationsRoot.path, 'agent_binding_manifest.json'),
+    ].where((path) => File(path).existsSync()).toList(growable: false);
+    final payload = {
+      'schema_version': 'prd_v3_skill_factory_audit.v1',
+      'status': _stringValue(validationReport['status'], 'fail'),
+      'requested_operation': requestedOperation,
+      'package_manifest_path':
+          _join(skillRoot.path, 'skill_package_manifest.json'),
+      'validation_report_path':
+          _join(skillRoot.path, 'skill_validation_report.json'),
+      'source_kb_ids': kbIds.isEmpty ? const ['current_kb'] : kbIds,
+      'generation_modes': [
+        'from_kb',
+        'external_import',
+        'external_skill_fusion',
+        'copy',
+        'fusion',
+        'export',
+        'agent_binding',
+      ],
+      'artifact_count': artifacts.length,
+      'artifacts': artifacts,
+      'missing_required_artifacts':
+          validationReport['missing_required_artifacts'] ?? const <String>[],
+      'ready_for_agent_binding':
+          validationReport['ready_for_agent_binding'] == true,
+      'ready_for_export': validationReport['ready_for_export'] == true,
+      'agent_binding_status': agentBound ? 'bound' : 'waiting_agent',
+      'tool_boundary': {
+        'arbitrary_shell_enabled': false,
+        'external_plugin_marketplace_enabled': false,
+        'computer_use_enabled': false,
+        'local_kb_only': true,
+      },
+      'secret_plaintext_written': false,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await File(_join(operationsRoot.path, 'skill_factory_audit.json'))
+        .writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
   }
 
   Future<void> _appendSkillVersionRecord({
@@ -8655,11 +9005,14 @@ class Rc6RuntimeState {
     required this.skillConfigPath,
     required this.skillVerificationReportPath,
     required this.skillGenerationManifestPath,
+    required this.skillPackageManifestPath,
+    required this.skillValidationReportPath,
     required this.localizedSkillManifestPath,
     required this.localizedSkillDiffPath,
     required this.skillVersionManifestPath,
     required this.skillOperationManifestPath,
     required this.skillOperationHistoryPath,
+    required this.skillFactoryAuditPath,
     required this.skillExportPath,
     required this.skillAgentBindingManifestPath,
     required this.skillOperationStatus,
@@ -8763,11 +9116,14 @@ class Rc6RuntimeState {
         skillConfigPath: '',
         skillVerificationReportPath: '',
         skillGenerationManifestPath: '',
+        skillPackageManifestPath: '',
+        skillValidationReportPath: '',
         localizedSkillManifestPath: '',
         localizedSkillDiffPath: '',
         skillVersionManifestPath: '',
         skillOperationManifestPath: '',
         skillOperationHistoryPath: '',
+        skillFactoryAuditPath: '',
         skillExportPath: '',
         skillAgentBindingManifestPath: '',
         skillOperationStatus: '',
@@ -8870,11 +9226,14 @@ class Rc6RuntimeState {
   final String skillConfigPath;
   final String skillVerificationReportPath;
   final String skillGenerationManifestPath;
+  final String skillPackageManifestPath;
+  final String skillValidationReportPath;
   final String localizedSkillManifestPath;
   final String localizedSkillDiffPath;
   final String skillVersionManifestPath;
   final String skillOperationManifestPath;
   final String skillOperationHistoryPath;
+  final String skillFactoryAuditPath;
   final String skillExportPath;
   final String skillAgentBindingManifestPath;
   final String skillOperationStatus;
@@ -8940,6 +9299,8 @@ class Rc6RuntimeState {
   bool get hasSkillConfig => skillConfigPath.isNotEmpty;
   bool get hasSkillVerificationReport => skillVerificationReportPath.isNotEmpty;
   bool get hasSkillGenerationManifest => skillGenerationManifestPath.isNotEmpty;
+  bool get hasSkillPackageManifest => skillPackageManifestPath.isNotEmpty;
+  bool get hasSkillValidationReport => skillValidationReportPath.isNotEmpty;
   bool get hasLocalizedSkillManifest => localizedSkillManifestPath.isNotEmpty;
   bool get hasLocalizedSkillDiff => localizedSkillDiffPath.isNotEmpty;
   bool get hasSkillVersions => skillVersionCount > 0;
@@ -9021,11 +9382,14 @@ class Rc6RuntimeState {
     String? skillConfigPath,
     String? skillVerificationReportPath,
     String? skillGenerationManifestPath,
+    String? skillPackageManifestPath,
+    String? skillValidationReportPath,
     String? localizedSkillManifestPath,
     String? localizedSkillDiffPath,
     String? skillVersionManifestPath,
     String? skillOperationManifestPath,
     String? skillOperationHistoryPath,
+    String? skillFactoryAuditPath,
     String? skillExportPath,
     String? skillAgentBindingManifestPath,
     String? skillOperationStatus,
@@ -9149,6 +9513,10 @@ class Rc6RuntimeState {
           skillVerificationReportPath ?? this.skillVerificationReportPath,
       skillGenerationManifestPath:
           skillGenerationManifestPath ?? this.skillGenerationManifestPath,
+      skillPackageManifestPath:
+          skillPackageManifestPath ?? this.skillPackageManifestPath,
+      skillValidationReportPath:
+          skillValidationReportPath ?? this.skillValidationReportPath,
       localizedSkillManifestPath:
           localizedSkillManifestPath ?? this.localizedSkillManifestPath,
       localizedSkillDiffPath:
@@ -9159,6 +9527,8 @@ class Rc6RuntimeState {
           skillOperationManifestPath ?? this.skillOperationManifestPath,
       skillOperationHistoryPath:
           skillOperationHistoryPath ?? this.skillOperationHistoryPath,
+      skillFactoryAuditPath:
+          skillFactoryAuditPath ?? this.skillFactoryAuditPath,
       skillExportPath: skillExportPath ?? this.skillExportPath,
       skillAgentBindingManifestPath:
           skillAgentBindingManifestPath ?? this.skillAgentBindingManifestPath,

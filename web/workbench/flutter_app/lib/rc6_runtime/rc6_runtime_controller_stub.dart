@@ -440,11 +440,14 @@ class Rc6RuntimeState {
     required this.skillConfigPath,
     required this.skillVerificationReportPath,
     required this.skillGenerationManifestPath,
+    required this.skillPackageManifestPath,
+    required this.skillValidationReportPath,
     required this.localizedSkillManifestPath,
     required this.localizedSkillDiffPath,
     required this.skillVersionManifestPath,
     required this.skillOperationManifestPath,
     required this.skillOperationHistoryPath,
+    required this.skillFactoryAuditPath,
     required this.skillExportPath,
     required this.skillAgentBindingManifestPath,
     required this.skillOperationStatus,
@@ -548,11 +551,14 @@ class Rc6RuntimeState {
         skillConfigPath: '',
         skillVerificationReportPath: '',
         skillGenerationManifestPath: '',
+        skillPackageManifestPath: '',
+        skillValidationReportPath: '',
         localizedSkillManifestPath: '',
         localizedSkillDiffPath: '',
         skillVersionManifestPath: '',
         skillOperationManifestPath: '',
         skillOperationHistoryPath: '',
+        skillFactoryAuditPath: '',
         skillExportPath: '',
         skillAgentBindingManifestPath: '',
         skillOperationStatus: '',
@@ -655,11 +661,14 @@ class Rc6RuntimeState {
   final String skillConfigPath;
   final String skillVerificationReportPath;
   final String skillGenerationManifestPath;
+  final String skillPackageManifestPath;
+  final String skillValidationReportPath;
   final String localizedSkillManifestPath;
   final String localizedSkillDiffPath;
   final String skillVersionManifestPath;
   final String skillOperationManifestPath;
   final String skillOperationHistoryPath;
+  final String skillFactoryAuditPath;
   final String skillExportPath;
   final String skillAgentBindingManifestPath;
   final String skillOperationStatus;
@@ -725,6 +734,8 @@ class Rc6RuntimeState {
   bool get hasSkillConfig => skillConfigPath.isNotEmpty;
   bool get hasSkillVerificationReport => skillVerificationReportPath.isNotEmpty;
   bool get hasSkillGenerationManifest => skillGenerationManifestPath.isNotEmpty;
+  bool get hasSkillPackageManifest => skillPackageManifestPath.isNotEmpty;
+  bool get hasSkillValidationReport => skillValidationReportPath.isNotEmpty;
   bool get hasLocalizedSkillManifest => localizedSkillManifestPath.isNotEmpty;
   bool get hasLocalizedSkillDiff => localizedSkillDiffPath.isNotEmpty;
   bool get hasSkillVersions => skillVersionCount > 0;
@@ -806,11 +817,14 @@ class Rc6RuntimeState {
     String? skillConfigPath,
     String? skillVerificationReportPath,
     String? skillGenerationManifestPath,
+    String? skillPackageManifestPath,
+    String? skillValidationReportPath,
     String? localizedSkillManifestPath,
     String? localizedSkillDiffPath,
     String? skillVersionManifestPath,
     String? skillOperationManifestPath,
     String? skillOperationHistoryPath,
+    String? skillFactoryAuditPath,
     String? skillExportPath,
     String? skillAgentBindingManifestPath,
     String? skillOperationStatus,
@@ -934,6 +948,10 @@ class Rc6RuntimeState {
           skillVerificationReportPath ?? this.skillVerificationReportPath,
       skillGenerationManifestPath:
           skillGenerationManifestPath ?? this.skillGenerationManifestPath,
+      skillPackageManifestPath:
+          skillPackageManifestPath ?? this.skillPackageManifestPath,
+      skillValidationReportPath:
+          skillValidationReportPath ?? this.skillValidationReportPath,
       localizedSkillManifestPath:
           localizedSkillManifestPath ?? this.localizedSkillManifestPath,
       localizedSkillDiffPath:
@@ -944,6 +962,8 @@ class Rc6RuntimeState {
           skillOperationManifestPath ?? this.skillOperationManifestPath,
       skillOperationHistoryPath:
           skillOperationHistoryPath ?? this.skillOperationHistoryPath,
+      skillFactoryAuditPath:
+          skillFactoryAuditPath ?? this.skillFactoryAuditPath,
       skillExportPath: skillExportPath ?? this.skillExportPath,
       skillAgentBindingManifestPath:
           skillAgentBindingManifestPath ?? this.skillAgentBindingManifestPath,
