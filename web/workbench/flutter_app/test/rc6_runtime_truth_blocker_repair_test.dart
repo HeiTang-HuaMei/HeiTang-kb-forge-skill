@@ -246,8 +246,8 @@ void main() {
         warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-workspace-setup')), findsOneWidget);
-    expect(find.text('创建 Agent'), findsWidgets);
-    await tester.tap(find.text('创建 Agent').first, warnIfMissed: false);
+    expect(find.text('单 Agent'), findsWidgets);
+    await tester.tap(find.text('单 Agent').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
     expect(find.text('简单 Agent'), findsWidgets);
@@ -256,8 +256,8 @@ void main() {
     expect(find.text('运行 Owner input 链路'), findsNothing);
     expect(find.text('搜索当前关键词'), findsNothing);
     expect(find.text('创建 Agent 并进入对话'), findsWidgets);
-    expect(find.text('A2A 协作'), findsOneWidget);
-    await tester.tap(find.text('A2A 协作').first, warnIfMissed: false);
+    expect(find.text('多 Agent / A2A'), findsOneWidget);
+    await tester.tap(find.text('多 Agent / A2A').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('multi-agent-discussion-product-flow')),
         findsOneWidget);

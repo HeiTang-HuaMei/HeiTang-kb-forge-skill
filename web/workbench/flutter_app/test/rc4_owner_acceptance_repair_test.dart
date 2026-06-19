@@ -126,12 +126,10 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-workspace')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    final desktopTab = find.text('桌面交付').first;
-    await tester.ensureVisible(desktopTab);
-    await tester.tap(desktopTab, warnIfMissed: false);
-    await tester.pumpAndSettle();
-    expect(find.text('v4.3.0-rc10'), findsWidgets);
-    expect(find.textContaining('pending_owner_retest'), findsWidgets);
+    expect(find.text('设置'), findsWidgets);
+    expect(find.text('Provider / 模型'), findsOneWidget);
+    expect(find.text('Redis / 向量库'), findsOneWidget);
+    expect(find.text('桌面交付'), findsNothing);
     expect(find.textContaining('disabled_boundary'), findsNothing);
     expect(find.textContaining('enabled_real'), findsNothing);
     expect(find.textContaining('v4.3.0 stable'), findsNothing);

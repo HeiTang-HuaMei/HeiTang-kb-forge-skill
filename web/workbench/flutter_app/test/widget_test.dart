@@ -468,9 +468,9 @@ void main() {
       '文档生成',
       'Skill 工厂',
       'Agent 工作台',
-      '审计中心',
       '产物中心',
-      '运行设置',
+      '治理与审计',
+      '设置',
     ]) {
       await tester.tap(find.text(title).first);
       await tester.pumpAndSettle();
@@ -589,7 +589,7 @@ void main() {
     expect(find.textContaining('local_ready=false'), findsNothing);
     expect(find.text('运行 Core 操作'), findsNothing);
 
-    await tester.tap(find.text('审计中心').first);
+    await tester.tap(find.text('治理与审计').first);
     await tester.pump();
     expect(find.textContaining('LLM Wiki v2'), findsNothing);
     expect(
@@ -628,7 +628,7 @@ void main() {
     expect(find.text('Parser Backend Matrix'), findsNothing);
     expect(find.text('Parser/OCR 后端证据面板'), findsNothing);
     expect(find.text('Backend Matrix Table'), findsNothing);
-    expect(find.text('Audit Center Evidence'), findsNothing);
+    expect(find.text('Governance & Audit Evidence'), findsNothing);
     expect(find.textContaining('v4.1.0 · 4 backends · static_runtime=false'),
         findsNothing);
     expect(find.textContaining('docling:parser-docling'), findsNothing);
@@ -646,7 +646,7 @@ void main() {
     await tester.tap(find.text('首页').first);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('审计中心').first);
+    await tester.tap(find.text('治理与审计').first);
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
@@ -716,7 +716,7 @@ void main() {
     expect(find.text('Create Agent'), findsWidgets);
     expect(find.text('Simple Agent'), findsWidgets);
     expect(find.text('Advanced Agent'), findsOneWidget);
-    expect(find.text('Generate complete Agent config'), findsWidgets);
+    expect(find.text('Create Agent and open chat'), findsWidgets);
     expect(find.text('Copy Agent path'), findsNothing);
     expect(find.text('Waiting for real Agent'), findsWidgets);
     expect(find.text('Waiting for previewable Agent'), findsOneWidget);
@@ -725,8 +725,13 @@ void main() {
     expect(find.text('Generate Skill'), findsNothing);
     expect(find.text('Run real retrieval'), findsNothing);
     expect(find.text('Execution Overview'), findsNothing);
+    expect(find.byKey(const Key('agent-minimal-chat')), findsOneWidget);
+    expect(find.text('Waiting for dialogue artifact'), findsOneWidget);
+    expect(find.text('Waiting for chat history'), findsOneWidget);
+    expect(find.text('Waiting for previewable dialogue'), findsOneWidget);
+    expect(find.text('Waiting for previewable history'), findsOneWidget);
 
-    final discussionTab = find.byKey(const Key('page-tab-3'));
+    final discussionTab = find.byKey(const Key('page-tab-2'));
     await tester.ensureVisible(discussionTab);
     await tester.tap(discussionTab, warnIfMissed: false);
     await tester.pumpAndSettle();
@@ -736,17 +741,7 @@ void main() {
     expect(find.text('Waiting for discussion notes'), findsOneWidget);
     expect(find.text('Waiting for previewable notes'), findsOneWidget);
 
-    final chatTab = find.byKey(const Key('page-tab-2'));
-    await tester.ensureVisible(chatTab);
-    await tester.tap(chatTab, warnIfMissed: false);
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-minimal-chat')), findsOneWidget);
-    expect(find.text('Waiting for dialogue artifact'), findsOneWidget);
-    expect(find.text('Waiting for chat history'), findsOneWidget);
-    expect(find.text('Waiting for previewable dialogue'), findsOneWidget);
-    expect(find.text('Waiting for previewable history'), findsOneWidget);
-
-    final historyTab = find.byKey(const Key('page-tab-4'));
+    final historyTab = find.byKey(const Key('page-tab-3'));
     await tester.ensureVisible(historyTab);
     await tester.tap(historyTab, warnIfMissed: false);
     await tester.pumpAndSettle();
@@ -849,7 +844,7 @@ void main() {
     expect(find.textContaining('blocked_reason'), findsNothing);
     expect(find.textContaining('provider_required'), findsNothing);
 
-    await tester.tap(find.text('审计中心').first);
+    await tester.tap(find.text('治理与审计').first);
     await tester.pumpAndSettle();
     expect(find.textContaining('blocked_reason'), findsNothing);
     expect(find.textContaining('secret_required'), findsNothing);
@@ -862,15 +857,15 @@ Future<void> openDeveloperDiagnostics(WidgetTester tester) async {
   if (find.byType(DropdownButtonFormField<int>).evaluate().isNotEmpty) {
     await tester.tap(find.byType(DropdownButtonFormField<int>));
     await tester.pumpAndSettle();
-    final settingsItem = find.text('运行设置').evaluate().isNotEmpty
-        ? find.text('运行设置').last
-        : find.text('Run Settings').last;
+    final settingsItem = find.text('设置').evaluate().isNotEmpty
+        ? find.text('设置').last
+        : find.text('Settings').last;
     await tester.tap(settingsItem);
     await tester.pumpAndSettle();
   } else {
-    final settings = find.text('运行设置').evaluate().isNotEmpty
-        ? find.text('运行设置').first
-        : find.text('Run Settings').first;
+    final settings = find.text('设置').evaluate().isNotEmpty
+        ? find.text('设置').first
+        : find.text('Settings').first;
     await tester.tap(settings);
     await tester.pumpAndSettle();
   }

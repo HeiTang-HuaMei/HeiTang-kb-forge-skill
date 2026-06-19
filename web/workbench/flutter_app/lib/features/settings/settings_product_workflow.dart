@@ -8,8 +8,6 @@ class _SettingsProductWorkflow extends StatelessWidget {
     required this.selectedTab,
     required this.onTabSelected,
     required this.isWebRuntime,
-    required this.campaign7ConfigurationStatus,
-    required this.campaign9DesktopDeliveryStatus,
   });
 
   final String localeCode;
@@ -18,134 +16,241 @@ class _SettingsProductWorkflow extends StatelessWidget {
   final int selectedTab;
   final ValueChanged<int> onTabSelected;
   final bool isWebRuntime;
-  final Map<String, dynamic> campaign7ConfigurationStatus;
-  final Map<String, dynamic> campaign9DesktopDeliveryStatus;
 
   bool get _zh => localeCode == 'zh-CN';
 
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['工作区', 'Provider 与存储', '配置系统', '模型与语言', '安全授权', '桌面交付']
+        ? ['工作区', 'Provider / 模型', 'Redis / 向量库', '导出器', '网络与安全']
         : [
             'Workspace',
-            'Providers and Storage',
-            'Configuration System',
-            'Models and Language',
-            'Security Authorization',
-            'Desktop Delivery',
+            'Provider / Model',
+            'Redis / Vector DB',
+            'Exporter',
+            'Network and Security',
           ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.settings_outlined,
-        title: _zh ? '运行设置' : 'Run Settings',
+        title: _zh ? '设置' : 'Settings',
         description: _zh
-            ? '管理应用工作区、Provider、存储、模型、语言、主题和安全授权。'
-            : 'Manage workspace, providers, storage, models, language, theme, and authorization.',
+            ? '管理工作区、Provider、模型、Redis、向量库、导出器、网络授权与安全。'
+            : 'Manage workspace, providers, models, Redis, vector DB, exporters, network authorization, and security.',
       ),
       const SizedBox(height: _DesktopGrid.gutter),
       _PageTabs(
           tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
       const SizedBox(height: _DesktopGrid.gutter),
-      if (selectedTab == 1)
-        _SettingsProvidersStorageView(
-            zh: _zh, workspace: workspace, runtimeController: runtimeController)
-      else if (selectedTab == 2)
-        _SettingsConfigurationSystemView(
-          zh: _zh,
-          campaign7ConfigurationStatus: campaign7ConfigurationStatus,
-        )
-      else if (selectedTab == 5)
-        _SettingsDesktopDeliveryView(
-          zh: _zh,
-          campaign9DesktopDeliveryStatus: campaign9DesktopDeliveryStatus,
-        )
-      else if (selectedTab == 0)
+      if (selectedTab == 0)
         _SettingsWorkspaceView(
           zh: _zh,
           workspace: workspace,
           isWebRuntime: isWebRuntime,
         )
+      else if (selectedTab == 1)
+        _SettingsProviderModelView(zh: _zh)
+      else if (selectedTab == 2)
+        _SettingsProvidersStorageView(
+            zh: _zh, workspace: workspace, runtimeController: runtimeController)
+      else if (selectedTab == 3)
+        _SettingsExporterView(zh: _zh)
       else
-        _ProductPanel(
-          keyName: 'settings-groups',
-          icon: selectedTab == 3
-              ? Icons.memory_outlined
-              : selectedTab == 4
-                  ? Icons.shield_outlined
-                  : Icons.folder_outlined,
-          title: tabs[selectedTab],
-          children: selectedTab == 3
-              ? [
-                  _ProductTable(
-                    columns: _zh
-                        ? ['配置项', '当前值', '状态']
-                        : ['Setting', 'Value', 'Status'],
-                    rows: _zh
-                        ? [
-                            ['LLM Provider', 'live smoke 通过', '可用'],
-                            [
-                              'Embedding 模型',
-                              'Provider Runtime env-only',
-                              '环境配置'
-                            ],
-                            ['默认语言', '简体中文 / Chinese', '可用'],
-                            ['主题', '浅色 / 深色可切换', '可用'],
-                          ]
-                        : [
-                            ['LLM Provider', 'Live smoke passed', 'Available'],
-                            [
-                              'Embedding model',
-                              'Provider Runtime env-only',
-                              'Env config'
-                            ],
-                            [
-                              'Default language',
-                              'Simplified Chinese / Chinese',
-                              'Available'
-                            ],
-                            ['Theme', 'Light / dark switchable', 'Available'],
-                          ],
-                  ),
-                  const SizedBox(height: 8),
-                  _FieldRow(
-                      label: _zh ? '当前语言' : 'Current language',
-                      value: _zh ? '中文' : 'English'),
-                  const SizedBox(height: 8),
-                  _FieldRow(
-                      label: _zh ? '主题' : 'Theme',
-                      value: _zh ? '跟随切换' : 'Switchable'),
-                ]
-              : selectedTab == 4
-                  ? [
-                      _FieldRow(
-                          label: _zh ? '云服务' : 'Cloud services',
-                          value: _zh ? '默认关闭' : 'Off by default'),
-                      const SizedBox(height: 8),
-                      _FieldRow(
-                          label: _zh ? '敏感信息' : 'Sensitive data',
-                          value: _zh
-                              ? 'Secret 不直接展示'
-                              : 'Secrets are not displayed directly'),
-                      const SizedBox(height: 8),
-                      _FieldRow(
-                          label: _zh ? '桌面能力' : 'Desktop features',
-                          value: isWebRuntime
-                              ? (_zh
-                                  ? '请使用 Windows EXE 执行本地文件能力'
-                                  : 'Use the Windows EXE for local file workflows')
-                              : (_zh ? '桌面可用' : 'Desktop available')),
-                    ]
-                  : [
-                      _FieldRow(
-                          label: _zh ? '工作区' : 'Workspace', value: workspace),
-                      const SizedBox(height: 8),
-                      _FieldRow(
-                          label: _zh ? '输出目录' : 'Output directory',
-                          value: _zh ? '当前用户工作区' : 'Current user workspace'),
-                    ],
-        ),
+        _SettingsNetworkSecurityView(zh: _zh, isWebRuntime: isWebRuntime),
     ]);
+  }
+}
+
+class _SettingsProviderModelView extends StatelessWidget {
+  const _SettingsProviderModelView({required this.zh});
+
+  final bool zh;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      final wide = constraints.maxWidth >= 900;
+      final provider = _ProductPanel(
+        keyName: 'settings-provider-model',
+        icon: Icons.memory_outlined,
+        title: zh ? 'Provider 与模型' : 'Provider and Model',
+        gap: true,
+        children: [
+          _ProductTable(
+            columns: zh
+                ? ['配置项', '当前值', '用户可见状态']
+                : ['Setting', 'Value', 'User status'],
+            rows: zh
+                ? [
+                    ['LLM Provider', '环境变量 / 设置引用', '可配置'],
+                    ['Embedding Provider', '环境变量 / 设置引用', '可配置'],
+                    ['Search Provider', '本地检索优先，可选外部检索', '可配置'],
+                    ['Parser / OCR Provider', '本地解析优先，可选增强解析', '可配置'],
+                  ]
+                : [
+                    ['LLM Provider', 'Env / settings reference', 'Configurable'],
+                    [
+                      'Embedding Provider',
+                      'Env / settings reference',
+                      'Configurable'
+                    ],
+                    [
+                      'Search Provider',
+                      'Local search first, optional external search',
+                      'Configurable'
+                    ],
+                    [
+                      'Parser / OCR Provider',
+                      'Local parser first, optional enhanced parser',
+                      'Configurable'
+                    ],
+                  ],
+          ),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? 'Secret 展示' : 'Secret display',
+              value: zh ? '只显示掩码，不展示明文' : 'Masked only, never plaintext'),
+        ],
+      );
+      final model = _ProductPanel(
+        keyName: 'settings-model-language',
+        icon: Icons.tune_outlined,
+        title: zh ? '模型、语言与主题' : 'Model, Language, and Theme',
+        gap: true,
+        children: [
+          _FieldRow(
+              label: zh ? '默认模型' : 'Default model',
+              value: zh ? '从 Provider 配置读取' : 'Read from Provider config'),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? '默认语言' : 'Default language',
+              value: zh ? '简体中文 / English 可切换' : 'Chinese / English switchable'),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? '主题' : 'Theme',
+              value: zh ? '浅色 / 深色可切换' : 'Light / dark switchable'),
+        ],
+      );
+      if (!wide) {
+        return Column(children: [
+          provider,
+          const SizedBox(height: _DesktopGrid.gutter),
+          model,
+        ]);
+      }
+      return _EqualHeightRow(
+        height: 310,
+        flexes: const [7, 5],
+        children: [provider, model],
+      );
+    });
+  }
+}
+
+class _SettingsExporterView extends StatelessWidget {
+  const _SettingsExporterView({required this.zh});
+
+  final bool zh;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProductPanel(
+      keyName: 'settings-exporter',
+      icon: Icons.file_download_outlined,
+      title: zh ? '导出器配置' : 'Exporter Config',
+      gap: true,
+      children: [
+        _ProductTable(
+          columns: zh
+              ? ['格式', '当前状态', '配置入口']
+              : ['Format', 'Current status', 'Config entry'],
+          rows: zh
+              ? [
+                  ['Markdown', '本地可用', '无需外部导出器'],
+                  ['JSON / CSV', '本地可用', '无需外部导出器'],
+                  ['DOCX', '需要导出器配置', '配置后启用'],
+                  ['PDF', '需要导出器配置', '配置后启用'],
+                  ['PPTX', '需要导出器配置', '配置后启用'],
+                ]
+              : [
+                  ['Markdown', 'Local available', 'No external exporter'],
+                  ['JSON / CSV', 'Local available', 'No external exporter'],
+                  ['DOCX', 'Exporter config required', 'Enable after config'],
+                  ['PDF', 'Exporter config required', 'Enable after config'],
+                  ['PPTX', 'Exporter config required', 'Enable after config'],
+                ],
+        ),
+      ],
+    );
+  }
+}
+
+class _SettingsNetworkSecurityView extends StatelessWidget {
+  const _SettingsNetworkSecurityView({
+    required this.zh,
+    required this.isWebRuntime,
+  });
+
+  final bool zh;
+  final bool isWebRuntime;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      final wide = constraints.maxWidth >= 900;
+      final network = _ProductPanel(
+        keyName: 'settings-network-authorization',
+        icon: Icons.public_off_outlined,
+        title: zh ? '网络授权' : 'Network Authorization',
+        gap: true,
+        children: [
+          _FieldRow(
+              label: zh ? '默认网络' : 'Default network',
+              value: zh ? '本地优先，外部调用需显式配置' : 'Local-first; external calls require explicit config'),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? '桌面能力' : 'Desktop capability',
+              value: isWebRuntime
+                  ? (zh ? '请使用 Windows EXE 执行本地文件能力' : 'Use the Windows EXE for local file workflows')
+                  : (zh ? '桌面运行可用' : 'Desktop runtime available')),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? '失败处理' : 'Failure handling',
+              value: zh ? '保留失败原因，可回退本地路径' : 'Keep failure reasons and fall back to local paths'),
+        ],
+      );
+      final security = _ProductPanel(
+        keyName: 'settings-security-policy',
+        icon: Icons.shield_outlined,
+        title: zh ? '安全策略' : 'Security Policy',
+        gap: true,
+        children: [
+          _FieldRow(
+              label: zh ? 'Secret' : 'Secret',
+              value: zh ? '只保存或读取掩码引用，不展示明文' : 'Store/read masked references only; never show plaintext'),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? '高风险能力' : 'High-risk capability',
+              value: zh ? '普通 UI 不开放任意系统命令' : 'Arbitrary system commands are not exposed in ordinary UI'),
+          const SizedBox(height: 8),
+          _FieldRow(
+              label: zh ? '审计' : 'Audit',
+              value: zh ? '运行记录、失败、权限和恢复进入治理与审计' : 'Runs, failures, permissions, and recovery go to Governance & Audit'),
+        ],
+      );
+      if (!wide) {
+        return Column(children: [
+          network,
+          const SizedBox(height: _DesktopGrid.gutter),
+          security,
+        ]);
+      }
+      return _EqualHeightRow(
+        height: 320,
+        flexes: const [6, 6],
+        children: [network, security],
+      );
+    });
   }
 }
 
@@ -791,409 +896,6 @@ class _SettingsConnectionForm extends StatelessWidget {
           );
         },
       );
-    });
-  }
-}
-
-class _SettingsConfigurationSystemView extends StatelessWidget {
-  const _SettingsConfigurationSystemView({
-    required this.zh,
-    required this.campaign7ConfigurationStatus,
-  });
-
-  final bool zh;
-  final Map<String, dynamic> campaign7ConfigurationStatus;
-
-  @override
-  Widget build(BuildContext context) {
-    final schema = _campaign6Map(campaign7ConfigurationStatus['config_schema']);
-    final diagnostics =
-        _campaign6Map(campaign7ConfigurationStatus['diagnostics']);
-    final security =
-        _campaign6Map(campaign7ConfigurationStatus['security_boundaries']);
-    final statusRows =
-        _campaign6List(campaign7ConfigurationStatus['status_matrix'])
-            .map((item) => [
-                  _campaignText(item['capability']),
-                  _campaignText(item['status']),
-                  _campaignText(item['ui_state']),
-                ])
-            .toList(growable: false);
-    final degradedRows =
-        _campaign6List(campaign7ConfigurationStatus['degraded_modes'])
-            .map((item) => [
-                  _campaignText(item['condition']),
-                  _campaignText(item['runtime_status']),
-                  _campaignText(item['user_message']),
-                ])
-            .toList(growable: false);
-    final securityRows = security.entries
-        .map((entry) => [
-              entry.key,
-              entry.value == true ? 'pass' : 'fail',
-            ])
-        .toList(growable: false);
-    final sourcePrecedence =
-        _campaignStringList(schema['source_precedence']).join(' > ');
-
-    return LayoutBuilder(builder: (context, constraints) {
-      final wide = constraints.maxWidth >= 980;
-      final overview = _ProductPanel(
-        keyName: 'settings-configuration-system',
-        icon: Icons.rule_folder_outlined,
-        title: zh ? '配置系统' : 'Configuration System',
-        gap: true,
-        children: [
-          _MetricStrip(
-            items: [
-              _MetricDatum(
-                  label: zh ? '总状态' : 'Overall',
-                  value: _campaignText(
-                      campaign7ConfigurationStatus['overall_status']),
-                  detail: zh ? '已绑定 UI' : 'UI-bound',
-                  icon: Icons.fact_check_outlined),
-              _MetricDatum(
-                  label: zh ? 'Schema' : 'Schema',
-                  value: _campaignText(schema['schema_version']),
-                  detail: zh ? '统一配置' : 'unified config',
-                  icon: Icons.schema_outlined),
-              _MetricDatum(
-                  label: zh ? 'UI' : 'UI',
-                  value: _capabilityStatusLabel(
-                      _campaignText(_campaign6Map(
-                              campaign7ConfigurationStatus['ui_settings'])[
-                          'ui_state']),
-                      zh),
-                  detail: zh ? 'Settings 绑定' : 'Settings binding',
-                  icon: Icons.settings_outlined),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _FieldRow(
-              label: zh ? '配置来源优先级' : 'Config source precedence',
-              value: sourcePrecedence),
-          const SizedBox(height: 8),
-          _FieldRow(
-              label: zh ? 'Secret 展示' : 'Secret display',
-              value: _campaignText(
-                  _campaign6Map(campaign7ConfigurationStatus['ui_settings'])[
-                      'masked_secret_display'])),
-          const SizedBox(height: 8),
-          _ProductTable(
-            columns: zh
-                ? ['能力', '状态', 'UI 状态']
-                : ['Capability', 'Status', 'UI state'],
-            rows: statusRows
-                .map((row) =>
-                    [row[0], row[1], _capabilityStatusLabel(row[2], zh)])
-                .toList(growable: false),
-          ),
-        ],
-      );
-      final diagnosticsPanel = _ProductPanel(
-        keyName: 'settings-configuration-diagnostics',
-        icon: Icons.health_and_safety_outlined,
-        title: zh ? '配置健康' : 'Configuration Health',
-        gap: true,
-        children: [
-          _ProductTable(
-            columns: zh ? ['配置项', '状态'] : ['Configuration item', 'Status'],
-            rows: zh
-                ? [
-                    [
-                      '模型 Provider',
-                      _settingsHealthLabel(diagnostics['provider_runtime'], zh)
-                    ],
-                    [
-                      'Agent 工作台配置',
-                      _settingsHealthLabel(diagnostics['agent_runtime'], zh)
-                    ],
-                    [
-                      '知识库 / RAG 配置',
-                      _settingsHealthLabel(diagnostics['rag'], zh)
-                    ],
-                    [
-                      '工作区路径',
-                      _settingsHealthLabel(diagnostics['workspace'], zh)
-                    ],
-                    [
-                      '界面设置',
-                      _settingsHealthLabel(diagnostics['ui_settings'], zh)
-                    ],
-                  ]
-                : [
-                    [
-                      'Model Provider',
-                      _settingsHealthLabel(diagnostics['provider_runtime'], zh)
-                    ],
-                    [
-                      'Agent Workbench config',
-                      _settingsHealthLabel(diagnostics['agent_runtime'], zh)
-                    ],
-                    [
-                      'Knowledge Base / RAG config',
-                      _settingsHealthLabel(diagnostics['rag'], zh)
-                    ],
-                    [
-                      'Workspace path',
-                      _settingsHealthLabel(diagnostics['workspace'], zh)
-                    ],
-                    [
-                      'UI settings',
-                      _settingsHealthLabel(diagnostics['ui_settings'], zh)
-                    ],
-                  ],
-          ),
-          const SizedBox(height: 8),
-          _ProductTable(
-            columns: zh
-                ? ['条件', '当前状态', '用户提示']
-                : ['Condition', 'Status', 'User prompt'],
-            rows: degradedRows,
-          ),
-        ],
-      );
-      final securityPanel = _ProductPanel(
-        keyName: 'settings-configuration-security',
-        icon: Icons.verified_user_outlined,
-        title: zh ? '安全授权' : 'Security Authorization',
-        gap: true,
-        children: [
-          _ProductTable(
-            columns: zh ? ['检查', '结果'] : ['Check', 'Result'],
-            rows: securityRows,
-          ),
-          const SizedBox(height: 8),
-          _FieldRow(
-              label: zh ? '模型 Provider 复用' : 'Model Provider reuse',
-              value: _campaignText(
-                  _campaign6Map(schema['runtime_reuse'])['provider_runtime'])),
-          const SizedBox(height: 8),
-          _FieldRow(
-              label: zh ? 'Agent 工作台复用' : 'Agent Workbench reuse',
-              value: _campaignText(
-                  _campaign6Map(schema['runtime_reuse'])['agent_runtime'])),
-        ],
-      );
-      if (!wide) {
-        return Column(children: [
-          overview,
-          const SizedBox(height: _DesktopGrid.gutter),
-          diagnosticsPanel,
-          const SizedBox(height: _DesktopGrid.gutter),
-          securityPanel,
-        ]);
-      }
-      return Column(children: [
-        _EqualHeightRow(
-          height: 430,
-          flexes: const [7, 5],
-          children: [overview, diagnosticsPanel],
-        ),
-        const SizedBox(height: _DesktopGrid.gutter),
-        securityPanel,
-      ]);
-    });
-  }
-}
-
-class _SettingsDesktopDeliveryView extends StatelessWidget {
-  const _SettingsDesktopDeliveryView({
-    required this.zh,
-    required this.campaign9DesktopDeliveryStatus,
-  });
-
-  final bool zh;
-  final Map<String, dynamic> campaign9DesktopDeliveryStatus;
-
-  @override
-  Widget build(BuildContext context) {
-    final delivery =
-        _campaign6Map(campaign9DesktopDeliveryStatus['delivery_path']);
-    final packageInfo =
-        _campaign6Map(campaign9DesktopDeliveryStatus['package']);
-    final checksum = _campaign6Map(campaign9DesktopDeliveryStatus['checksum']);
-    final smoke =
-        _campaign6Map(campaign9DesktopDeliveryStatus['desktop_shell_smoke']);
-    final pathRules =
-        _campaign6Map(campaign9DesktopDeliveryStatus['path_rules']);
-    final security =
-        _campaign6Map(campaign9DesktopDeliveryStatus['security_boundaries']);
-    final validationRows =
-        _campaign6List(campaign9DesktopDeliveryStatus['validation_matrix'])
-            .map((item) => [
-                  _campaignText(item['capability']),
-                  _campaignText(item['status']),
-                  _campaignText(item['ui_state']),
-                  _productRecordText(item['evidence']),
-                ])
-            .toList(growable: false);
-    final smokeRows = _campaign6List(smoke['steps'])
-        .map((item) => [
-              _campaignText(item['step']),
-              _campaignText(item['result']),
-            ])
-        .toList(growable: false);
-    final degradedRows =
-        _campaign6List(campaign9DesktopDeliveryStatus['degraded_modes'])
-            .map((item) => [
-                  _campaignText(item['condition']),
-                  _campaignText(item['runtime_status']),
-                  _campaignText(item['user_message']),
-                ])
-            .toList(growable: false);
-    final securityRows = security.entries
-        .map((entry) => [
-              entry.key,
-              entry.value == true ? 'pass' : 'fail',
-            ])
-        .toList(growable: false);
-    final pathRows = pathRules.entries
-        .map((entry) => [entry.key, _campaignText(entry.value)])
-        .toList(growable: false);
-
-    return LayoutBuilder(builder: (context, constraints) {
-      final wide = constraints.maxWidth >= 980;
-      final overview = _ProductPanel(
-        keyName: 'settings-desktop-delivery',
-        icon: Icons.desktop_windows_outlined,
-        title: zh ? '桌面交付' : 'Desktop Delivery',
-        gap: true,
-        children: [
-          _MetricStrip(
-            items: [
-              _MetricDatum(
-                  label: zh ? '本地状态' : 'Local status',
-                  value: _campaignText(
-                      campaign9DesktopDeliveryStatus['overall_status']),
-                  detail: zh ? '等待人工复查' : 'pending manual review',
-                  icon: Icons.fact_check_outlined),
-              _MetricDatum(
-                  label: zh ? '候选标签' : 'Candidate tag',
-                  value: _campaignText(
-                      campaign9DesktopDeliveryStatus['release_candidate_tag']),
-                  detail: zh ? '未发布稳定版' : 'no stable release',
-                  icon: Icons.local_offer_outlined),
-              _MetricDatum(
-                  label: zh ? '包版本' : 'Package version',
-                  value: _campaignText(campaign9DesktopDeliveryStatus[
-                      'package_version_baseline']),
-                  detail: zh ? '候选包' : 'candidate package',
-                  icon: Icons.inventory_2_outlined),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _ProductTable(
-            columns: zh
-                ? ['能力', '状态', '用户可见状态', '验证记录']
-                : ['Capability', 'Status', 'User status', 'Validation record'],
-            rows: validationRows
-                .map((row) => [
-                      row[0],
-                      row[1],
-                      _capabilityStatusLabel(row[2], zh),
-                      row[3]
-                    ])
-                .toList(growable: false),
-          ),
-        ],
-      );
-      final packagePanel = _ProductPanel(
-        keyName: 'settings-desktop-package',
-        icon: Icons.inventory_outlined,
-        title: zh ? 'Windows 包与校验' : 'Windows Package and Checksum',
-        gap: true,
-        children: [
-          _FieldRow(
-              label: zh ? '交付路径' : 'Delivery path',
-              value: _campaignText(delivery['accepted_packaging_path'])),
-          const SizedBox(height: 8),
-          _FieldRow(
-              label: zh ? 'EXE' : 'EXE',
-              value: _campaignText(packageInfo['exe'])),
-          const SizedBox(height: 8),
-          _FieldRow(
-              label: zh ? '文件数量 / 大小' : 'Files / size',
-              value:
-                  '${_campaignText(packageInfo['file_count'])} / ${_campaignText(packageInfo['total_size_bytes'])} bytes'),
-          const SizedBox(height: 8),
-          _FieldRow(
-              label: 'SHA-256', value: _campaignText(checksum['exe_sha256'])),
-          const SizedBox(height: 8),
-          _FieldRow(
-              label: zh ? '桌面外壳' : 'Desktop shell',
-              value: _campaignText(delivery['legacy_tauri_status'])),
-        ],
-      );
-      final smokePanel = _ProductPanel(
-        keyName: 'settings-desktop-smoke',
-        icon: Icons.monitor_heart_outlined,
-        title: zh ? '真实桌面冒烟' : 'Real Desktop Smoke',
-        gap: true,
-        children: [
-          _FieldRow(
-              label: zh ? '冒烟状态' : 'Smoke status',
-              value: _campaignText(smoke['status'])),
-          const SizedBox(height: 8),
-          _FieldRow(
-              label: zh ? '验证记录' : 'Validation record',
-              value: _productRecordText(smoke['evidence_path'])),
-          const SizedBox(height: 8),
-          _ProductTable(
-            columns: zh ? ['步骤', '结果'] : ['Step', 'Result'],
-            rows: smokeRows,
-          ),
-        ],
-      );
-      final boundaryPanel = _ProductPanel(
-        keyName: 'settings-desktop-boundary',
-        icon: Icons.verified_user_outlined,
-        title: zh ? '路径、恢复与安全授权' : 'Paths, Recovery, and Security',
-        gap: true,
-        children: [
-          _ProductTable(
-            columns: zh ? ['路径规则', '说明'] : ['Path rule', 'Description'],
-            rows: pathRows,
-          ),
-          const SizedBox(height: 8),
-          _ProductTable(
-            columns: zh
-                ? ['场景', '当前状态', '用户提示']
-                : ['Scenario', 'Status', 'User prompt'],
-            rows: degradedRows,
-          ),
-          const SizedBox(height: 8),
-          _ProductTable(
-            columns: zh ? ['安全检查', '结果'] : ['Security check', 'Result'],
-            rows: securityRows,
-          ),
-        ],
-      );
-
-      if (!wide) {
-        return Column(children: [
-          overview,
-          const SizedBox(height: _DesktopGrid.gutter),
-          packagePanel,
-          const SizedBox(height: _DesktopGrid.gutter),
-          smokePanel,
-          const SizedBox(height: _DesktopGrid.gutter),
-          boundaryPanel,
-        ]);
-      }
-      return Column(children: [
-        _EqualHeightRow(
-          height: 470,
-          flexes: const [7, 5],
-          children: [overview, packagePanel],
-        ),
-        const SizedBox(height: _DesktopGrid.gutter),
-        _EqualHeightRow(
-          height: 520,
-          flexes: const [5, 7],
-          children: [smokePanel, boundaryPanel],
-        ),
-      ]);
     });
   }
 }

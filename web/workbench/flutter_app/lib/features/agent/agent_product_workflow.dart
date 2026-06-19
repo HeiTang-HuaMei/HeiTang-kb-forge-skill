@@ -20,12 +20,11 @@ class _AgentProductWorkflow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['工作区', '创建 Agent', '单 Agent 对话', 'A2A 协作', '运行审计']
+        ? ['Agent 总览', '单 Agent', '多 Agent / A2A', '运行审计']
         : [
-            'Workspace',
-            'Create Agent',
-            'Single-Agent Chat',
-            'A2A Collaboration',
+            'Agent Overview',
+            'Single Agent',
+            'Multi-Agent / A2A',
             'Run Audit'
           ];
     final rc6 = _Rc6RuntimeScope.of(context);
@@ -76,16 +75,40 @@ class _AgentProductWorkflow extends StatelessWidget {
           tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
       const SizedBox(height: _DesktopGrid.gutter),
       switch (selectedTab) {
-        1 => _AgentCreationProductView(
+        1 => _SingleAgentWorkspaceView(
             zh: _zh,
             workspace: workspace,
-            onAgentCreated: () => onTabSelected(2),
+            onAgentCreated: () => onTabSelected(1),
           ),
-        2 => _AgentMinimalChatView(zh: _zh),
-        3 => _AgentDiscussionProductView(zh: _zh),
-        4 => _AgentRunHistoryView(zh: _zh),
+        2 => _AgentDiscussionProductView(zh: _zh),
+        3 => _AgentRunHistoryView(zh: _zh),
         _ => _AgentWorkspaceProductView(zh: _zh, workspace: workspace),
       },
+    ]);
+  }
+}
+
+class _SingleAgentWorkspaceView extends StatelessWidget {
+  const _SingleAgentWorkspaceView({
+    required this.zh,
+    required this.workspace,
+    required this.onAgentCreated,
+  });
+
+  final bool zh;
+  final String workspace;
+  final VoidCallback onAgentCreated;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      _AgentCreationProductView(
+        zh: zh,
+        workspace: workspace,
+        onAgentCreated: onAgentCreated,
+      ),
+      const SizedBox(height: _DesktopGrid.gutter),
+      _AgentMinimalChatView(zh: zh),
     ]);
   }
 }
@@ -98,27 +121,6 @@ List<Map<String, dynamic>> _campaign6List(Object? value) {
       .whereType<Map>()
       .map((item) => Map<String, dynamic>.from(item))
       .toList(growable: false);
-}
-
-Map<String, dynamic> _campaign6Map(Object? value) {
-  if (value is! Map) {
-    return const <String, dynamic>{};
-  }
-  return Map<String, dynamic>.from(value);
-}
-
-String _campaignText(Object? value) {
-  return value?.toString() ?? '-';
-}
-
-String _productRecordText(Object? value) {
-  final text = _campaignText(value);
-  if (text == '-') return text;
-  final normalized = text.replaceAll('\\', '/');
-  if (normalized.contains('/')) {
-    return normalized.split('/').where((part) => part.isNotEmpty).last;
-  }
-  return text;
 }
 
 class _AgentWorkspaceProductView extends StatelessWidget {
@@ -239,13 +241,6 @@ class _AgentWorkspaceProductView extends StatelessWidget {
       );
     });
   }
-}
-
-List<String> _campaignStringList(Object? value) {
-  if (value is! List) {
-    return const <String>[];
-  }
-  return value.map((item) => item.toString()).toList(growable: false);
 }
 
 class _AgentCreationProductView extends StatefulWidget {
@@ -588,15 +583,15 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
             _FieldRow(
               label: zh ? 'Redis 短期记忆' : 'Redis short-term memory',
               value: zh
-                  ? '使用运行设置中的 Redis 配置；未通过连接测试时回退本地会话'
-                  : 'Uses Run Settings Redis; falls back to local session if untested',
+                  ? '使用设置中的 Redis 配置；未通过连接测试时回退本地会话'
+                  : 'Uses Settings Redis; falls back to local session if untested',
             ),
             const SizedBox(height: 8),
             _FieldRow(
               label: zh ? '向量长期记忆' : 'Vector long-term memory',
               value: zh
-                  ? '绑定运行设置中的 Qdrant / 本地索引配置'
-                  : 'Binds Qdrant / local index from Run Settings',
+                  ? '绑定设置中的 Qdrant / 本地索引配置'
+                  : 'Binds Qdrant / local index from Settings',
             ),
             const SizedBox(height: 8),
             _FieldRow(
@@ -696,7 +691,7 @@ class _AgentDiscussionProductViewState
     return _ProductPanel(
       keyName: 'multi-agent-discussion-product-flow',
       icon: Icons.groups_2_outlined,
-      title: zh ? 'A2A 协作' : 'A2A Collaboration',
+      title: zh ? '多 Agent / A2A' : 'Multi-Agent / A2A',
       subtitle: runtime.hasMultiAgentDiscussion
           ? _displayNameForPath(runtime.multiAgentDiscussionPath)
           : (zh ? '等待 Agent 产物' : 'Waiting for Agent package'),
@@ -1990,8 +1985,6 @@ List<ContractAsset> _artifactsForView(
 bool _showsWorkflowEvidence(String pageId) {
   return const {
     'dashboard',
-    'operation-gate',
-    'task-job-center',
     'artifact-management',
     'error-repair-center',
     'reports-audit',
@@ -2001,9 +1994,6 @@ bool _showsWorkflowEvidence(String pageId) {
 bool _showsV2Evidence(String pageId) {
   return const {
     'dashboard',
-    'operation-gate',
-    'capability-matrix',
-    'task-job-center',
     'artifact-management',
     'error-repair-center',
     'reports-audit',
@@ -2013,8 +2003,6 @@ bool _showsV2Evidence(String pageId) {
 bool _showsExternalCapabilities(String pageId) {
   return const {
     'dashboard',
-    'operation-gate',
-    'capability-matrix',
     'vector-hub-provider-storage',
     'retrieval-verification',
     'reports-audit',
@@ -2027,8 +2015,6 @@ bool _showsParserBackends(String pageId) {
   return const {
     'dashboard',
     'import-parsing',
-    'capability-matrix',
-    'operation-gate',
     'reports-audit',
     'artifact-management',
     'error-repair-center',

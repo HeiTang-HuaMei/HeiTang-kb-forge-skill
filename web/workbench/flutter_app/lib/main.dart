@@ -7,9 +7,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart'
     show Clipboard, ClipboardData, rootBundle;
 
-import 'core_actions/core_action_panel.dart';
-import 'core_actions/page_action_mapping.dart';
-import 'core_actions/workbench_actions.dart';
 import 'core_bridge/local_core_bridge.dart';
 import 'contracts/workbench_contracts.dart';
 import 'backend_evidence/parser_backend_dashboard.dart';
@@ -124,9 +121,16 @@ const pages = <WorkbenchPage>[
       '创建 Agent、运行单 Agent 对话，并协调受治理的多 Agent 讨论。',
       memberPageIds: ['agent-factory-runtime']),
   WorkbenchPage(
+      'artifact-center',
+      'Artifact Center',
+      '产物中心',
+      'Browse generated documents, knowledge artifacts, Skills, Agents, dialogue records, and A2A outputs from real workspace state.',
+      '从真实工作区状态浏览生成文档、知识库产物、Skill、Agent、对话记录和 A2A 输出。',
+      memberPageIds: ['artifact-management']),
+  WorkbenchPage(
       'reports-audit',
-      'Audit Center',
-      '审计中心',
+      'Governance & Audit',
+      '治理与审计',
       'Review quality, retrieval, OCR, safety, governance reports, issues, and repair suggestions.',
       '查看质量、检索、OCR、安全和治理报告、问题与修复建议。',
       memberPageIds: [
@@ -136,16 +140,9 @@ const pages = <WorkbenchPage>[
         'memory-center',
       ]),
   WorkbenchPage(
-      'artifact-center',
-      'Artifact Center',
-      '产物中心',
-      'Browse generated documents, knowledge artifacts, Skills, Agents, dialogue records, and A2A outputs from real workspace state.',
-      '从真实工作区状态浏览生成文档、知识库产物、Skill、Agent、对话记录和 A2A 输出。',
-      memberPageIds: ['artifact-management']),
-  WorkbenchPage(
       'workspace',
-      'Run Settings',
-      '运行设置',
+      'Settings',
+      '设置',
       'Manage workspace, models, providers, Redis, vector database, storage, and security authorization.',
       '管理工作区、模型、Provider、Redis、向量库、存储和安全授权。',
       memberPageIds: [
@@ -757,18 +754,11 @@ class _PageSurfaceState extends State<_PageSurface> {
     final externalCapabilities = widget.externalCapabilities;
     final parserBackends = widget.parserBackends;
     final campaign6AgentRuntimeStatus = widget.campaign6AgentRuntimeStatus;
-    final campaign7ConfigurationStatus = widget.campaign7ConfigurationStatus;
-    final campaign9DesktopDeliveryStatus =
-        widget.campaign9DesktopDeliveryStatus;
     final skillGovernanceReport = widget.skillGovernanceReport;
     final methodologyMap = widget.methodologyMap;
     final skillSuiteWorkflow = widget.skillSuiteWorkflow;
     final columns = widget.columns;
-    final coreBridge = widget.coreBridge;
-    final coreCli = widget.coreCli;
-    final coreWorkingDirectory = widget.coreWorkingDirectory;
     final coreWorkspace = widget.coreWorkspace;
-    final enableLocalCoreActions = widget.enableLocalCoreActions;
     final isWebRuntime = widget.isWebRuntime;
     final isDark = widget.isDark;
     final windowState = widget.windowState;
@@ -788,50 +778,11 @@ class _PageSurfaceState extends State<_PageSurface> {
         parserBackends,
         skillGovernanceReport,
         methodologyMap);
-    final corePanels = <Widget>[];
-    final actionById = <String, ContractAction>{};
-    for (final pageId in page.pageIds) {
-      for (final action in coreActionsForPage(pageId, contracts)) {
-        actionById[action.id] = action;
-      }
-    }
-    final rc5RuntimeActions = _rc5RuntimeActionsForPage(page.id);
-    for (final action in rc5RuntimeActions) {
-      actionById[action.id] = action;
-    }
-    final pageActions = actionById.values.where(
-      (action) =>
-          page.id != 'dashboard' &&
-          (page.id != 'agent-factory-runtime' ||
-              const {
-                'standalone_agent_generation',
-                'kb_bound_agent_generation',
-              }.contains(action.id)),
-    );
-    for (final action in pageActions) {
-      final request = coreRequestForAction(
-        action: action,
-        coreCli: coreCli,
-        workingDirectory: coreWorkingDirectory,
-        workspace: coreWorkspace,
-      );
-      corePanels.add(
-        CoreActionPanel(
-          key: Key('diagnostic-core-action-${action.id}'),
-          action: action,
-          request: request,
-          coreBridge: coreBridge,
-          isWebRuntime: isWebRuntime,
-          enabled: enableLocalCoreActions,
-          localeCode: localeCode,
-        ),
-      );
-    }
     final diagnostics = _DeveloperDiagnosticsDetails(
       localeCode: localeCode,
       cards: cards,
       columns: columns,
-      corePanels: corePanels,
+      corePanels: const [],
       parserBackends:
           page.pageIds.any(_showsParserBackends) ? parserBackends : null,
       skillFactoryWorkflow:
@@ -896,10 +847,6 @@ class _PageSurfaceState extends State<_PageSurface> {
                       page: page,
                       workspace: coreWorkspace,
                       campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
-                      campaign7ConfigurationStatus:
-                          campaign7ConfigurationStatus,
-                      campaign9DesktopDeliveryStatus:
-                          campaign9DesktopDeliveryStatus,
                       isWebRuntime: isWebRuntime,
                       diagnostics: diagnostics,
                       onPageChanged: onPageChanged,
@@ -1150,26 +1097,6 @@ class _PageSurfaceState extends State<_PageSurface> {
                 .map((project) => project.projectName)
                 .take(3)
                 .join(' · ')),
-      if (page.pageIds.contains('operation-gate'))
-        _CardCopy(zh ? 'S/A 不影响 P1' : 'S/A does not affect P1',
-            'p1_gate_changed=${externalCapabilities.releaseBoundary['p1_gate_changed']} · v4_0_started=${externalCapabilities.releaseBoundary['v4_0_started']}'),
-      if (page.pageIds.contains('capability-matrix'))
-        _CardCopy(
-            zh ? 'Action 分类' : 'Action classification',
-            workflowV2Evidence.actionResults
-                .map((action) => '${action.actionId}:${action.status}')
-                .take(2)
-                .join(' · ')),
-      if (page.pageIds.contains('capability-matrix'))
-        _CardCopy(zh ? '能力域' : 'Capability areas',
-            '${contracts.capabilities.areas.length}'),
-      if (page.pageIds.contains('task-job-center'))
-        _CardCopy(
-            zh ? 'Task evidence' : 'Task evidence',
-            workflowV2Evidence.actionResults
-                .map((action) => '${action.actionId}:${action.assertionStatus}')
-                .take(2)
-                .join(' · ')),
       if (page.pageIds.contains('artifact-management'))
         _CardCopy(
             zh ? 'Artifact evidence' : 'Artifact evidence',
@@ -1221,8 +1148,6 @@ class _ProductPageOverview extends StatefulWidget {
     required this.page,
     required this.workspace,
     required this.campaign6AgentRuntimeStatus,
-    required this.campaign7ConfigurationStatus,
-    required this.campaign9DesktopDeliveryStatus,
     required this.isWebRuntime,
     required this.diagnostics,
     required this.onPageChanged,
@@ -1232,8 +1157,6 @@ class _ProductPageOverview extends StatefulWidget {
   final WorkbenchPage page;
   final String workspace;
   final Map<String, dynamic> campaign6AgentRuntimeStatus;
-  final Map<String, dynamic> campaign7ConfigurationStatus;
-  final Map<String, dynamic> campaign9DesktopDeliveryStatus;
   final bool isWebRuntime;
   final Widget diagnostics;
   final ValueChanged<int> onPageChanged;
@@ -1262,9 +1185,9 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
     final tabCounts = <String, int>{
       'knowledge-package-management': 4,
       'document-generation': 3,
-      'agent-factory-runtime': 5,
+      'agent-factory-runtime': 4,
       'reports-audit': 3,
-      'workspace': 6,
+      'workspace': 5,
     };
     final maxTab = (tabCounts[page] ?? 1) - 1;
     if (selectedTab > maxTab) selectedTab = 0;
@@ -1333,10 +1256,6 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
                 selectedTab: selectedTab,
                 onTabSelected: (index) => setState(() => selectedTab = index),
                 isWebRuntime: widget.isWebRuntime,
-                campaign7ConfigurationStatus:
-                    widget.campaign7ConfigurationStatus,
-                campaign9DesktopDeliveryStatus:
-                    widget.campaign9DesktopDeliveryStatus,
               ),
           },
         ],
@@ -1361,315 +1280,6 @@ class _ProductWorkspaceFrame extends StatelessWidget {
       child: child,
     );
   }
-}
-
-List<ContractAction> _rc5RuntimeActionsForPage(String pageId) {
-  switch (pageId) {
-    case 'import-parsing':
-      return const <ContractAction>[
-        ContractAction(
-          id: 'document_preflight',
-          label: 'Document Preflight',
-          command: 'preflight-documents --input <input> --output <output>',
-          requires: <String>['input', 'workspace'],
-          pageId: 'import_parsing',
-          status: 'ready',
-          commandKind: 'core_cli',
-          blockedReason: '',
-          desktopEnabled: true,
-          webEnabled: false,
-          desktopBlockedReason: '',
-          webBlockedReason: 'web_local_cli_unsupported',
-          reportIds: <String>['document_preflight_report'],
-          artifactIds: <String>['document_inventory'],
-          errorCodes: <String>['document_preflight_failed'],
-        ),
-        ContractAction(
-          id: 'batch_import_documents',
-          label: 'Batch Import Documents',
-          command: 'batch-import-documents --input <input> --output <output>',
-          requires: <String>['input', 'workspace'],
-          pageId: 'import_parsing',
-          status: 'ready',
-          commandKind: 'core_cli',
-          blockedReason: '',
-          desktopEnabled: true,
-          webEnabled: false,
-          desktopBlockedReason: '',
-          webBlockedReason: 'web_local_cli_unsupported',
-          reportIds: <String>['batch_import_report'],
-          artifactIds: <String>['source_manifest'],
-          errorCodes: <String>['batch_import_failed'],
-        ),
-      ];
-    case 'document-library':
-      return const <ContractAction>[
-        ContractAction(
-          id: 'document_preflight',
-          label: 'Document Preflight',
-          command: 'preflight-documents --input <input> --output <output>',
-          requires: <String>['input', 'workspace'],
-          pageId: 'document_library',
-          status: 'ready',
-          commandKind: 'core_cli',
-          blockedReason: '',
-          desktopEnabled: true,
-          webEnabled: false,
-          desktopBlockedReason: '',
-          webBlockedReason: 'web_local_cli_unsupported',
-          reportIds: <String>['document_preflight_report'],
-          artifactIds: <String>['document_inventory'],
-          errorCodes: <String>['document_preflight_failed'],
-        ),
-        ContractAction(
-          id: 'batch_import_documents',
-          label: 'Batch Import Documents',
-          command: 'batch-import-documents --input <input> --output <output>',
-          requires: <String>['input', 'workspace'],
-          pageId: 'document_library',
-          status: 'ready',
-          commandKind: 'core_cli',
-          blockedReason: '',
-          desktopEnabled: true,
-          webEnabled: false,
-          desktopBlockedReason: '',
-          webBlockedReason: 'web_local_cli_unsupported',
-          reportIds: <String>['batch_import_report'],
-          artifactIds: <String>['source_manifest'],
-          errorCodes: <String>['batch_import_failed'],
-        ),
-      ];
-    case 'knowledge-package-management':
-      return const <ContractAction>[
-        ContractAction(
-          id: 'knowledge_base_build',
-          label: 'Build Knowledge Base',
-          command:
-              'build-knowledge-base --document-understanding <source> --output <output>',
-          requires: <String>['document_understanding', 'workspace'],
-          pageId: 'knowledge_package_management',
-          status: 'ready',
-          commandKind: 'core_cli',
-          blockedReason: '',
-          desktopEnabled: true,
-          webEnabled: false,
-          desktopBlockedReason: '',
-          webBlockedReason: 'web_local_cli_unsupported',
-          reportIds: <String>['knowledge_base_build_report'],
-          artifactIds: <String>['kb_manifest'],
-          errorCodes: <String>['knowledge_base_build_failed'],
-        ),
-        ContractAction(
-          id: 'knowledge_package_build',
-          label: 'Build Knowledge Package',
-          command:
-              'build-knowledge-package --knowledge-base <package> --output <output>',
-          requires: <String>['knowledge_base', 'workspace'],
-          pageId: 'knowledge_package_management',
-          status: 'ready',
-          commandKind: 'core_cli',
-          blockedReason: '',
-          desktopEnabled: true,
-          webEnabled: false,
-          desktopBlockedReason: '',
-          webBlockedReason: 'web_local_cli_unsupported',
-          reportIds: <String>['knowledge_package_build_report'],
-          artifactIds: <String>['portable_kb_package'],
-          errorCodes: <String>['knowledge_package_build_failed'],
-        ),
-      ];
-    case 'retrieval-verification':
-      return const <ContractAction>[
-        ContractAction(
-          id: 'rag_query',
-          label: 'Run RAG Query',
-          command:
-              'kb-query --package <package> --query <query> --output <output>',
-          requires: <String>['package', 'query', 'workspace'],
-          pageId: 'retrieval_verification',
-          status: 'ready',
-          commandKind: 'core_cli',
-          blockedReason: '',
-          desktopEnabled: true,
-          webEnabled: false,
-          desktopBlockedReason: '',
-          webBlockedReason: 'web_local_cli_unsupported',
-          reportIds: <String>['rag_query_report'],
-          artifactIds: <String>['citation_trace'],
-          errorCodes: <String>['rag_query_failed'],
-        ),
-        ContractAction(
-          id: 'evidence_selection',
-          label: 'Select Evidence',
-          command:
-              'select-evidence --package <package> --query <query> --output <output>',
-          requires: <String>['package', 'query', 'workspace'],
-          pageId: 'retrieval_verification',
-          status: 'ready',
-          commandKind: 'core_cli',
-          blockedReason: '',
-          desktopEnabled: true,
-          webEnabled: false,
-          desktopBlockedReason: '',
-          webBlockedReason: 'web_local_cli_unsupported',
-          reportIds: <String>['evidence_selection_report'],
-          artifactIds: <String>['evidence_trace'],
-          errorCodes: <String>['evidence_selection_failed'],
-        ),
-      ];
-    case 'document-generation':
-      return const <ContractAction>[
-        ContractAction(
-          id: 'generate_markdown',
-          label: 'Generate Markdown',
-          command: 'generate-md --package <package> --output <output>',
-          requires: <String>['package', 'workspace'],
-          pageId: 'document_generation',
-          status: 'ready',
-          commandKind: 'core_cli',
-          blockedReason: '',
-          desktopEnabled: true,
-          webEnabled: false,
-          desktopBlockedReason: '',
-          webBlockedReason: 'web_local_cli_unsupported',
-          reportIds: <String>['markdown_generation_report'],
-          artifactIds: <String>['markdown_document'],
-          errorCodes: <String>['document_generation_failed'],
-        ),
-        ContractAction(
-          id: 'generate_manual_user_guide',
-          label: 'Generate Document Bundle',
-          command: 'generate-documents --package <package> --output <output>',
-          requires: <String>['package', 'workspace'],
-          pageId: 'document_generation',
-          status: 'ready',
-          commandKind: 'core_cli',
-          blockedReason: '',
-          desktopEnabled: true,
-          webEnabled: false,
-          desktopBlockedReason: '',
-          webBlockedReason: 'web_local_cli_unsupported',
-          reportIds: <String>['document_bundle_report'],
-          artifactIds: <String>['generated_documents'],
-          errorCodes: <String>['document_bundle_failed'],
-        ),
-      ];
-    case 'skill-factory':
-      return const <ContractAction>[
-        ContractAction(
-          id: 'package_to_skill',
-          label: 'Generate Skill Package',
-          command: 'generate-skill --package <package> --output <output>',
-          requires: <String>['package', 'workspace'],
-          pageId: 'skill_factory',
-          status: 'ready',
-          commandKind: 'core_cli',
-          blockedReason: '',
-          desktopEnabled: true,
-          webEnabled: false,
-          desktopBlockedReason: '',
-          webBlockedReason: 'web_local_cli_unsupported',
-          reportIds: <String>['skill_generation_report'],
-          artifactIds: <String>['skill_package'],
-          errorCodes: <String>['skill_generation_failed'],
-        ),
-        ContractAction(
-          id: 'skill_governance_report',
-          label: 'Skill Governance Report',
-          command: 'skill-governance-report --skill <skill> --output <output>',
-          requires: <String>['skill', 'workspace'],
-          pageId: 'skill_factory',
-          status: 'ready',
-          commandKind: 'core_cli',
-          blockedReason: '',
-          desktopEnabled: true,
-          webEnabled: false,
-          desktopBlockedReason: '',
-          webBlockedReason: 'web_local_cli_unsupported',
-          reportIds: <String>['skill_governance_report'],
-          artifactIds: <String>['governance_report'],
-          errorCodes: <String>['skill_governance_failed'],
-        ),
-      ];
-    case 'agent-factory-runtime':
-      return const <ContractAction>[
-        ContractAction(
-          id: 'standalone_agent_generation',
-          label: 'Generate Standalone Agent',
-          command: 'generate-agent --mode standalone --output <output>',
-          requires: <String>['workspace'],
-          pageId: 'agent_factory_runtime',
-          status: 'ready',
-          commandKind: 'core_cli',
-          blockedReason: '',
-          desktopEnabled: true,
-          webEnabled: false,
-          desktopBlockedReason: '',
-          webBlockedReason: 'web_local_cli_unsupported',
-          reportIds: <String>['agent_generation_report'],
-          artifactIds: <String>['agent_package'],
-          errorCodes: <String>['agent_generation_failed'],
-        ),
-        ContractAction(
-          id: 'kb_bound_agent_generation',
-          label: 'Generate KB-bound Agent',
-          command:
-              'generate-agent --mode kb_bound --package <package> --skill <skill> --output <output>',
-          requires: <String>['package', 'skill', 'workspace'],
-          pageId: 'agent_factory_runtime',
-          status: 'ready',
-          commandKind: 'core_cli',
-          blockedReason: '',
-          desktopEnabled: true,
-          webEnabled: false,
-          desktopBlockedReason: '',
-          webBlockedReason: 'web_local_cli_unsupported',
-          reportIds: <String>['kb_bound_agent_generation_report'],
-          artifactIds: <String>['agent_package'],
-          errorCodes: <String>['agent_generation_failed'],
-        ),
-      ];
-    case 'workspace':
-      return const <ContractAction>[
-        ContractAction(
-          id: 'provider_config_validate',
-          label: 'Validate Provider Config',
-          command:
-              'provider-config-validate --config <config> --output <output>',
-          requires: <String>['config_profile', 'workspace'],
-          pageId: 'workspace',
-          status: 'ready',
-          commandKind: 'core_cli',
-          blockedReason: '',
-          desktopEnabled: true,
-          webEnabled: false,
-          desktopBlockedReason: '',
-          webBlockedReason: 'web_local_cli_unsupported',
-          reportIds: <String>['provider_config_validation_report'],
-          artifactIds: <String>['masked_provider_profile'],
-          errorCodes: <String>['provider_config_invalid'],
-        ),
-        ContractAction(
-          id: 'provider_readiness',
-          label: 'Provider Readiness',
-          command:
-              'provider-readiness --workspace <workspace> --output <output>',
-          requires: <String>['workspace'],
-          pageId: 'workspace',
-          status: 'ready',
-          commandKind: 'core_cli',
-          blockedReason: '',
-          desktopEnabled: true,
-          webEnabled: false,
-          desktopBlockedReason: '',
-          webBlockedReason: 'web_local_cli_unsupported',
-          reportIds: <String>['provider_readiness_report'],
-          artifactIds: <String>['provider_status'],
-          errorCodes: <String>['provider_readiness_failed'],
-        ),
-      ];
-  }
-  return const <ContractAction>[];
 }
 
 Future<void> _copyArtifactPath(

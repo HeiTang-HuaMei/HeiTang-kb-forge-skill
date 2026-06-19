@@ -60,9 +60,9 @@ void main() {
       '文档生成',
       'Skill 工厂',
       'Agent 工作台',
-      '审计中心',
       '产物中心',
-      '运行设置',
+      '治理与审计',
+      '设置',
     ]) {
       final target = find.text(label).first;
       await tester.ensureVisible(target);
@@ -85,28 +85,22 @@ void main() {
     await tester.tap(find.byKey(const Key('page-tab-1')), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
-    expect(find.text('单 Agent 对话'), findsOneWidget);
+    expect(find.text('单 Agent'), findsOneWidget);
     expect(find.text('enabled_real'), findsNothing);
     expect(find.text('disabled_boundary'), findsNothing);
     expect(find.textContaining('安全边界'), findsNothing);
     expect(find.textContaining('arbitrary shell'), findsNothing);
 
-    await tester.ensureVisible(find.text('运行设置').first);
-    await tester.tap(find.text('运行设置').first, warnIfMissed: false);
+    await tester.ensureVisible(find.text('设置').first);
+    await tester.tap(find.text('设置').first, warnIfMissed: false);
     await tester.pumpAndSettle();
-    final providerTab = find.text('Provider 与存储').first;
+    final providerTab = find.text('Redis / 向量库').first;
     await tester.ensureVisible(providerTab);
     await tester.tap(providerTab, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.text('************'), findsWidgets);
-
-    final desktopTab = find.text('桌面交付').first;
-    await tester.ensureVisible(desktopTab);
-    await tester.tap(desktopTab, warnIfMissed: false);
-    await tester.pumpAndSettle();
-    expect(find.text('v4.3.0-rc10'), findsWidgets);
-    expect(find.text('v4.3.0-rc6'), findsNothing);
-    expect(find.text('v4.3.0-rc2'), findsNothing);
+    expect(find.text('配置系统'), findsNothing);
+    expect(find.text('桌面交付'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

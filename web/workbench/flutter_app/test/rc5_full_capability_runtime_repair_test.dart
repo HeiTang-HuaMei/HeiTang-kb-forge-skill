@@ -76,8 +76,13 @@ void main() {
         warnIfMissed: false);
     await tester.pumpAndSettle();
 
-    expect(find.text('运行设置'), findsWidgets);
-    expect(find.text('Provider 与存储'), findsOneWidget);
+    expect(find.text('设置'), findsWidgets);
+    expect(find.text('Provider / 模型'), findsOneWidget);
+    expect(find.text('Redis / 向量库'), findsOneWidget);
+    expect(find.text('导出器'), findsOneWidget);
+    expect(find.text('网络与安全'), findsOneWidget);
+    expect(find.text('配置系统'), findsNothing);
+    expect(find.text('桌面交付'), findsNothing);
     expect(find.textContaining('开发者诊断'), findsNothing);
     expect(find.textContaining('后端矩阵'), findsNothing);
     expect(find.textContaining('Core CLI'), findsNothing);
@@ -109,10 +114,9 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-workspace')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('配置系统').first, warnIfMissed: false);
+    await tester.tap(find.text('Redis / 向量库').first, warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(
-        find.byKey(const Key('settings-configuration-system')), findsOneWidget);
+    expect(find.byKey(const Key('settings-provider-storage')), findsOneWidget);
     expect(
         find.descendant(
             of: find.byKey(const Key('page-tab-2')),
@@ -140,7 +144,7 @@ void main() {
     await tester.tap(find.byKey(const Key('page-tab-1')), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
-    expect(find.text('单 Agent 对话'), findsOneWidget);
+    expect(find.text('单 Agent'), findsOneWidget);
     expect(find.textContaining('安全边界'), findsNothing);
     expect(find.textContaining('disabled_boundary'), findsNothing);
     expect(find.textContaining('arbitrary shell'), findsNothing);

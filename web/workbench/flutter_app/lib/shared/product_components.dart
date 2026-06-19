@@ -748,24 +748,6 @@ String _capabilityStatusLabel(String? value, bool zh) {
   return value;
 }
 
-String _settingsHealthLabel(Object? value, bool zh) {
-  final text = value?.toString() ?? '';
-  if (text.isEmpty) return zh ? '需要配置' : 'Needs configuration';
-  final lower = text.toLowerCase();
-  if (lower == 'available' ||
-      lower == 'pass' ||
-      lower == 'configured' ||
-      lower == 'connected') {
-    return zh ? '可用' : 'Available';
-  }
-  if (lower.contains('missing') ||
-      lower.contains('not connected') ||
-      lower.contains('not authorized')) {
-    return zh ? '需要配置或测试' : 'Needs configuration or test';
-  }
-  return _capabilityStatusLabel(text, zh);
-}
-
 class _StatePill extends StatelessWidget {
   const _StatePill({
     required this.label,

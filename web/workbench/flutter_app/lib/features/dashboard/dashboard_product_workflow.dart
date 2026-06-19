@@ -812,7 +812,7 @@ class _DashboardAuthorizationCard extends StatelessWidget {
               : ['Capability', 'Handling', 'User action'],
           rows: _zh
               ? [
-                  ['外部事实验证', '需要配置', '在运行设置中配置联网 Provider'],
+                  ['外部事实验证', '需要配置', '在设置中配置联网 Provider'],
                   ['Redis 记忆缓存', '可选配置', '保存配置并测试连接'],
                   ['Qdrant 向量库', '可选配置', '保存配置并测试连接'],
                 ]

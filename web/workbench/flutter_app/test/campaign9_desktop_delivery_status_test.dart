@@ -103,7 +103,7 @@ void main() {
   });
 
   testWidgets(
-      'settings exposes rc10 desktop delivery status without raw tokens',
+      'settings demotes desktop delivery history from ordinary UI',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1100));
     await tester.pumpWidget(HeiTangWorkbenchApp(
@@ -113,22 +113,16 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('运行设置').first);
-    await tester.pumpAndSettle();
-    final desktopTab = find.text('桌面交付').evaluate().isNotEmpty
-        ? find.text('桌面交付').first
-        : find.text('Desktop Delivery').first;
-    await tester.ensureVisible(desktopTab);
-    await tester.tap(desktopTab, warnIfMissed: false);
+    await tester.tap(find.text('设置').first);
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('settings-desktop-delivery')), findsOneWidget);
-    expect(find.text('v4.3.0-rc10'), findsWidgets);
-    expect(find.text('heitang_workbench.exe'), findsWidgets);
+    expect(find.byKey(const Key('settings-desktop-delivery')), findsNothing);
+    expect(find.text('桌面交付'), findsNothing);
+    expect(find.text('Desktop Delivery'), findsNothing);
+    expect(find.byKey(const Key('settings-workspace-overview')), findsOneWidget);
     expect(find.textContaining('disabled_boundary'), findsNothing);
     expect(find.textContaining('enabled_real'), findsNothing);
     expect(find.textContaining('rc6_runtime_truth_repair'), findsNothing);
-    expect(find.textContaining('v4.3.0'), findsWidgets);
     expect(find.textContaining('v4.3.0 stable'), findsNothing);
     expect(tester.takeException(), isNull);
   });

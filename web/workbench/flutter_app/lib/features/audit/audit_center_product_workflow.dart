@@ -24,7 +24,7 @@ class _ValidateExportProductWorkflow extends StatelessWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.fact_check_outlined,
-        title: _zh ? '审计中心' : 'Audit Center',
+        title: _zh ? '治理与审计' : 'Governance & Audit',
         description: _zh
             ? '统一查看真实执行记录、失败记录和产物记录，并导出当前工作区审计报告。'
             : 'Review real execution, failure, and artifact records, then export the current workspace audit report.',
@@ -471,7 +471,7 @@ List<List<String>> _auditRecordRows(Rc6RuntimeState runtime, bool zh) {
         runtime.hasAgent, runtime.agentPath),
     row('Agent 工作台', 'Agent Workbench', 'Agent 对话', 'Agent dialogue',
         runtime.hasAgentDialogue, runtime.agentDialoguePath),
-    row('Agent 工作台', 'Agent Workbench', 'A2A 协作', 'A2A collaboration',
+    row('Agent 工作台', 'Agent Workbench', '多 Agent / A2A', 'Multi-Agent / A2A',
         runtime.hasMultiAgentDiscussion, runtime.multiAgentDiscussionPath),
     [
       zh ? '运行状态' : 'Runtime',

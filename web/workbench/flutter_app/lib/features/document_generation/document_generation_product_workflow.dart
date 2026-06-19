@@ -83,7 +83,7 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
             ? (zh ? '可生成' : 'Ready')
             : (zh ? '需要知识库' : 'Needs KB');
     final officeExporterStatus = zh ? '需要导出器配置' : 'Exporter config required';
-    final officeExporterDetail = zh ? '在运行设置启用后可导出' : 'Enable in Run Settings';
+    final officeExporterDetail = zh ? '在设置启用后可导出' : 'Enable in Settings';
     String statusForOutputFormat(String format) {
       if (format == 'md') return markdownStatus;
       if (format == 'json' || format == 'csv') {
@@ -973,7 +973,7 @@ class _DocumentExportPreviewViewState
     final officeExporterStatus = zh ? '需要导出器配置' : 'Exporter config required';
     final officeExporterValidation = zh ? '未启用' : 'Not enabled';
     final officeExporterArtifact =
-        zh ? '在运行设置启用导出器' : 'Enable exporter in Run Settings';
+        zh ? '在设置启用导出器' : 'Enable exporter in Settings';
 
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= _DesktopGrid.rowBreakpoint;
@@ -983,8 +983,8 @@ class _DocumentExportPreviewViewState
         title: zh ? '文档导出' : 'Document Export',
         children: [
           _SectionCaption(zh
-              ? 'Markdown、JSON、CSV 通过本地工作区真实导出；DOCX/PDF/PPTX 需要在运行设置启用导出器。'
-              : 'Markdown, JSON, and CSV export through the local workspace; DOCX/PDF/PPTX require exporters in Run Settings.'),
+              ? 'Markdown、JSON、CSV 通过本地工作区真实导出；DOCX/PDF/PPTX 需要在设置启用导出器。'
+              : 'Markdown, JSON, and CSV export through the local workspace; DOCX/PDF/PPTX require exporters in Settings.'),
           const SizedBox(height: 8),
           _ProductTable(
             columns: zh

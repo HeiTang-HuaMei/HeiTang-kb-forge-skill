@@ -79,9 +79,9 @@ void main() {
         '文档生成',
         'Skill 工厂',
         'Agent 工作台',
-        '审计中心',
         '产物中心',
-        '运行设置',
+        '治理与审计',
+        '设置',
       ],
     );
     expect(pages[0].pageIds, ['dashboard']);
@@ -294,7 +294,7 @@ void main() {
     await tester.enterText(
         find.byKey(const Key('topbar-real-search-input')), 'Agent');
     await tester.pumpAndSettle();
-    expect(find.text('页面 · 创建 Agent、单 Agent 对话和多 Agent 协作'), findsOneWidget);
+    expect(find.text('页面 · Agent 总览、单 Agent 和多 Agent / A2A'), findsOneWidget);
     await tester.tap(
         find.byKey(const Key('topbar-search-option-agent-factory-runtime')));
     await tester.pumpAndSettle();
@@ -328,15 +328,15 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('运行设置').first);
+    await tester.tap(find.text('设置').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Provider 与存储'));
+    await tester.tap(find.text('Redis / 向量库'));
     await tester.pumpAndSettle();
 
     expect(find.text('enabled_real'), findsNothing);
     expect(find.text('LLM Provider'), findsWidgets);
     expect(find.text('Provider 与存储配置'), findsOneWidget);
-    expect(find.text('live smoke 通过'), findsWidgets);
+    expect(find.text('本地可用'), findsWidgets);
     expect(find.text('API Key'), findsWidgets);
     expect(find.text('************'), findsWidgets);
     expect(find.text('掩码展示'), findsWidgets);
@@ -547,7 +547,7 @@ void main() {
       HeiTangWorkbenchApp(
         contracts: sampleWorkbenchContracts,
         enableLocalCoreActions: false,
-        initialSelectedIndex: 8,
+        initialSelectedIndex: 9,
       ),
     );
     await tester.pumpAndSettle();
@@ -600,17 +600,25 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Provider 与存储'), findsOneWidget);
+    expect(find.text('Provider / 模型'), findsOneWidget);
+    expect(find.text('Redis / 向量库'), findsOneWidget);
+    expect(find.text('导出器'), findsOneWidget);
+    expect(find.text('网络与安全'), findsOneWidget);
     expect(find.text('模板管理'), findsNothing);
+    expect(find.text('配置系统'), findsNothing);
+    expect(find.text('桌面交付'), findsNothing);
     expect(find.byKey(const Key('settings-provider-storage')), findsNothing);
-    await tester.tap(find.text('Provider 与存储'));
+    await tester.tap(find.text('Redis / 向量库'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('settings-provider-storage')), findsOneWidget);
     expect(find.textContaining('************'), findsOneWidget);
     expect(find.text('测试存储连接'), findsOneWidget);
     expect(find.text('保存配置'), findsOneWidget);
     expect(find.text('导出器与授权状态'), findsOneWidget);
-    expect(find.text('文档导出器'), findsOneWidget);
+    await tester.tap(find.text('导出器'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('settings-exporter')), findsOneWidget);
+    expect(find.text('导出器配置'), findsOneWidget);
     expect(find.textContaining('需要导出器配置'), findsWidgets);
     expect(find.textContaining('sk-test-secret'), findsNothing);
     expect(find.text('模板库'), findsNothing);
@@ -633,9 +641,9 @@ void main() {
         findsOneWidget);
     expect(find.text('Agent 工作台'), findsWidgets);
     expect(find.byKey(const Key('agent-workspace-setup')), findsOneWidget);
-    expect(find.text('工作区'), findsOneWidget);
-    expect(find.text('创建 Agent'), findsWidgets);
-    expect(find.text('单 Agent 对话'), findsOneWidget);
+    expect(find.text('Agent 总览'), findsOneWidget);
+    expect(find.text('单 Agent'), findsOneWidget);
+    expect(find.text('多 Agent / A2A'), findsOneWidget);
     expect(find.text('Agent 与会话列表'), findsOneWidget);
     expect(find.text('创建 Agent 工作区并进入对话'), findsOneWidget);
     final configTab = find.byKey(const Key('page-tab-1'));
@@ -649,7 +657,7 @@ void main() {
     expect(find.byKey(const Key('agent-model-config-input')), findsOneWidget);
     expect(find.byKey(const Key('agent-role-goal-input')), findsOneWidget);
     expect(find.text('Agent 名称'), findsOneWidget);
-    expect(find.text('模型配置'), findsOneWidget);
+    expect(find.text('模型配置'), findsWidgets);
     expect(find.text('角色说明'), findsOneWidget);
     expect(find.text('简单 Agent 对话配置'), findsOneWidget);
     expect(find.text('复杂 Agent 运行配置'), findsNothing);
@@ -666,8 +674,8 @@ void main() {
     expect(find.text('复制 Agent 路径'), findsNothing);
     expect(find.text('等待真实 Agent 产物'), findsWidgets);
     expect(find.text('等待可预览 Agent'), findsOneWidget);
-    expect(find.text('单 Agent 对话'), findsOneWidget);
-    expect(find.text('A2A 协作'), findsOneWidget);
+    expect(find.text('单 Agent'), findsOneWidget);
+    expect(find.text('多 Agent / A2A'), findsOneWidget);
     expect(find.text('运行审计'), findsOneWidget);
     expect(find.text('选择文件夹'), findsNothing);
     expect(find.text('构建知识库'), findsNothing);
@@ -680,13 +688,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-minimal-chat')), findsOneWidget);
 
-    final chatTab = find.byKey(const Key('page-tab-2'));
-    await tester.ensureVisible(chatTab);
-    await tester.tap(chatTab, warnIfMissed: false);
-    await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-minimal-chat')), findsOneWidget);
     expect(find.text('审计清单'), findsOneWidget);
-    expect(find.text('模型配置'), findsOneWidget);
+    expect(find.text('模型配置'), findsWidgets);
     expect(find.text('绑定知识库'), findsOneWidget);
     expect(find.text('绑定 Skill'), findsOneWidget);
     expect(find.text('引用证据'), findsOneWidget);
@@ -698,7 +702,7 @@ void main() {
     expect(find.text('等待可预览历史'), findsOneWidget);
     expect(find.text('等待可清空历史'), findsOneWidget);
 
-    final discussionTab = find.byKey(const Key('page-tab-3'));
+    final discussionTab = find.byKey(const Key('page-tab-2'));
     await tester.ensureVisible(discussionTab);
     await tester.tap(discussionTab, warnIfMissed: false);
     await tester.pumpAndSettle();
@@ -722,7 +726,7 @@ void main() {
     expect(find.text('等待会话审计'), findsOneWidget);
     expect(find.text('等待讨论审计'), findsOneWidget);
 
-    final historyTab = find.byKey(const Key('page-tab-4'));
+    final historyTab = find.byKey(const Key('page-tab-3'));
     await tester.ensureVisible(historyTab);
     await tester.tap(historyTab, warnIfMissed: false);
     await tester.pumpAndSettle();
