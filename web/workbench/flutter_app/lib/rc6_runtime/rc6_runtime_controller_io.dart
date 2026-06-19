@@ -2769,6 +2769,13 @@ class Rc6RuntimeController extends ChangeNotifier {
         _asInt(importReport['imported_count']) ??
         manifestSourceCount ??
         state.sourceCount;
+    final refreshedWorkbookManifestPath =
+        await _refreshCurrentWorkbookAssetIndex(
+      workspace,
+      workbookManifest.$1,
+      sourceCount,
+      kbCatalog,
+    );
     final chunkCount = _countJsonl(chunksPath);
     final dialogueTurnCount = _countJsonl(agentDialogueHistoryPath);
     final selectedCount = _asInt(queryReport['selected_count']) ?? 0;
@@ -2952,8 +2959,11 @@ class Rc6RuntimeController extends ChangeNotifier {
           await File(prdP0EvidencePath).exists() ? prdP0EvidencePath : '',
       knowledgeBaseCatalogPath:
           await File(kbCatalogPath).exists() ? kbCatalogPath : '',
-      workbookManifestPath:
-          await File(workbookManifestPath).exists() ? workbookManifestPath : '',
+      workbookManifestPath: refreshedWorkbookManifestPath.isNotEmpty
+          ? refreshedWorkbookManifestPath
+          : await File(workbookManifestPath).exists()
+              ? workbookManifestPath
+              : '',
       currentWorkbookName: workbookManifest.$1,
       workbookNames: workbookManifest.$2,
       knowledgeBases: _recordsFromKnowledgeCatalog(kbCatalog),
@@ -3091,6 +3101,52 @@ class Rc6RuntimeController extends ChangeNotifier {
       'workbooks': rows,
     };
     await File(manifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+    return manifestPath;
+  }
+
+  Future<String> _refreshCurrentWorkbookAssetIndex(
+    Directory workspace,
+    String currentName,
+    int sourceCount,
+    Map<String, dynamic> kbCatalog,
+  ) async {
+    final manifestPath =
+        _join(workspace.path, 'workbooks', 'workbook_manifest.json');
+    final manifestFile = File(manifestPath);
+    if (!await manifestFile.exists()) {
+      return '';
+    }
+    final existing = await _readJsonObject(manifestPath);
+    final rows = existing['workbooks'] is List
+        ? (existing['workbooks'] as List)
+            .whereType<Map>()
+            .map((row) => Map<String, dynamic>.from(row))
+            .toList(growable: true)
+        : <Map<String, dynamic>>[];
+    if (rows.isEmpty) {
+      return manifestPath;
+    }
+    final effectiveCurrent = currentName.trim().isEmpty
+        ? (existing['current_workbook'] ?? '默认工作本').toString().trim()
+        : currentName.trim();
+    final index = rows.indexWhere((row) =>
+        (row['name'] ?? '').toString().trim() == effectiveCurrent);
+    if (index < 0) {
+      return manifestPath;
+    }
+    rows[index]['asset_index'] = await _workbookAssetIndex(workspace);
+    rows[index]['document_count'] = sourceCount;
+    rows[index]['knowledge_base_count'] = _catalogRecords(kbCatalog).length;
+    rows[index]['updated_at'] = DateTime.now().toUtc().toIso8601String();
+    final payload = {
+      ...existing,
+      'current_workbook': effectiveCurrent,
+      'workbooks': rows,
+    };
+    await manifestFile.writeAsString(
       const JsonEncoder.withIndent('  ').convert(payload),
       encoding: utf8,
     );

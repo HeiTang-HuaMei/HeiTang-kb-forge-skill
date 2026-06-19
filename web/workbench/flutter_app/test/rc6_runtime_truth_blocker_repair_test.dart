@@ -2262,4 +2262,88 @@ void main() {
     expect(reloaded.state.workbookManifestPath, manifest.path);
     expect(reloaded.state.workbookNames, containsAll(['产品研究工作本', '运营复盘工作本']));
   });
+
+  test('prd workbook asset index refreshes after product artifacts are added',
+      () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    await controller.createOrSwitchWorkbook('产品研究工作本');
+    final manifestPath =
+        '${workspace.path}${Platform.pathSeparator}workbooks${Platform.pathSeparator}workbook_manifest.json';
+    var payload =
+        jsonDecode(File(manifestPath).readAsStringSync()) as Map<String, dynamic>;
+    var activeWorkbook = (payload['workbooks'] as List)
+        .whereType<Map>()
+        .firstWhere((row) => row['name'] == '产品研究工作本');
+    expect((activeWorkbook['asset_index'] as Map)['document_ids'], isEmpty);
+
+    final input = Directory('${workspace.path}${Platform.pathSeparator}input')
+      ..createSync(recursive: true);
+    File('${input.path}${Platform.pathSeparator}alpha.md')
+        .writeAsStringSync('alpha workbook source');
+    File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'rc10_source_manifest.v1',
+      'source_path': input.path,
+      'sources': [
+        {
+          'document_id': 'doc_alpha',
+          'source_name': 'alpha.md',
+          'relative_path': 'alpha.md',
+          'workspace_path':
+              '${input.path}${Platform.pathSeparator}alpha.md',
+          'extension': '.md',
+        }
+      ]
+    }));
+    final kbCatalogDir =
+        Directory('${workspace.path}${Platform.pathSeparator}knowledge_bases')
+          ..createSync(recursive: true);
+    File('${kbCatalogDir.path}${Platform.pathSeparator}kb_catalog.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
+      'knowledge_bases': [
+        {'kb_id': 'K1', 'kb_name': '产品研究知识库'}
+      ],
+    }));
+    final skillDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
+      ..createSync(recursive: true);
+    File('${skillDir.path}${Platform.pathSeparator}SKILL.md')
+        .writeAsStringSync('# Skill');
+    final agentDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}knowledge_qa_agent')
+      ..createSync(recursive: true);
+    File('${agentDir.path}${Platform.pathSeparator}agent_manifest.json')
+        .writeAsStringSync('{"agent_id":"A"}');
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    payload =
+        jsonDecode(File(manifestPath).readAsStringSync()) as Map<String, dynamic>;
+    activeWorkbook = (payload['workbooks'] as List)
+        .whereType<Map>()
+        .firstWhere((row) => row['name'] == '产品研究工作本');
+    final refreshedIndex =
+        (activeWorkbook['asset_index'] as Map).cast<String, dynamic>();
+    expect(activeWorkbook['document_count'], 1);
+    expect(activeWorkbook['knowledge_base_count'], 1);
+    expect(refreshedIndex['document_ids'], contains('doc_alpha'));
+    expect(refreshedIndex['knowledge_base_ids'], contains('K1'));
+    expect(refreshedIndex['skill_artifacts'], isNotEmpty);
+    expect(refreshedIndex['agent_artifacts'], isNotEmpty);
+    expect(activeWorkbook['updated_at'], isNotNull);
+  });
 }
