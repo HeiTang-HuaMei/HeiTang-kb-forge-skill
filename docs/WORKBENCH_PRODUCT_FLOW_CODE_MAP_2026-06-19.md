@@ -6,7 +6,7 @@ This map freezes the current behavior before further structural cleanup. It is n
 
 | Area | Current Location | Finding | Cleanup Rule |
 | --- | --- | --- | --- |
-| Main UI | `web/workbench/flutter_app/lib/main.dart` | 7,039 lines after the Agent Workbench extraction. Routing, shared widgets, and several product pages still live together. | Split one UI page at a time into `lib/features/<page>/...` without changing visible behavior. |
+| Main UI | `web/workbench/flutter_app/lib/main.dart` | 6,036 lines after the Dashboard extraction. Routing, shared widgets, and several product pages still live together. | Split one UI page at a time into `lib/features/<page>/...` without changing visible behavior. |
 | Runtime | `web/workbench/flutter_app/lib/rc6_runtime/rc6_runtime_controller_io.dart` | 7,216 lines. It contains import, parsing, KB, retrieval, document, storage, Skill, Agent, and artifact cleanup logic. The `rc6` name is now historical debt. | Do not rename yet. After UI slices are stable, introduce product-named wrappers or files while keeping compatibility. |
 | Runtime Stub/Models | `web/workbench/flutter_app/lib/rc6_runtime/rc6_runtime_controller_stub.dart` | State model and web stub still carry `Rc6RuntimeState` and many PRD-era fields. | Keep stable until runtime naming cleanup is isolated. |
 | Widget Tests | `web/workbench/flutter_app/test/campaign_4_workbench_test.dart` | 754 lines. Modern product-flow widget tests still live under a Campaign 4 name. | Later move tests into `test/product_flow/` one group at a time. |
@@ -16,7 +16,7 @@ This map freezes the current behavior before further structural cleanup. It is n
 
 | User Page | Current Component | Runtime Entry Points | Primary Artifacts | Main Tests |
 | --- | --- | --- | --- | --- |
-| Dashboard / Workbench Home | `_ProductPageOverview`, dashboard panels in `main.dart` | Reads `Rc6RuntimeState`; routes through `onPageChanged` | Current source, KB, retrieval, document, Skill, Agent, and task state | `campaign_4_workbench_test.dart`: dashboard state, next actions, product navigation |
+| Dashboard / Workbench Home | `_ProductPageOverview`, `_DesktopDashboardSurface`, dashboard panels in `lib/features/dashboard/dashboard_product_workflow.dart` | Reads `Rc6RuntimeState`; routes through `onPageChanged` | Current source, KB, retrieval, document, Skill, Agent, and task state | `campaign_4_workbench_test.dart`: dashboard state, next actions, product navigation |
 | Import And Parsing | `_ImportProductWorkflow` | `importFilePath`, `importFolderPath`, `importWebLink`, `parseAndChunkSources`, `clearImportedSources`, `deleteImportedSource` | `source_manifest.json`, `parse_report.json`, `du/document_understanding_manifest.json`, imported input files | `rc6_runtime_truth_blocker_repair_test.dart`: import append/delete/web link; full-chain precondition tests |
 | Document Library | `_DocumentLibraryView`, `_DocumentLibraryProductWorkflow` in `lib/features/document_library/document_library_product_workflow.dart` | Reads source records from runtime; calls source deletion and downstream KB build handoff | `source_manifest.json`, copied input files, source records | `campaign_4_workbench_test.dart`: document library to KB handoff; `rc6_runtime_truth_blocker_repair_test.dart`: document library product state |
 | Knowledge Base | `_KnowledgeProductWorkflow`, `_KnowledgePackageListView` in `lib/features/knowledge_base/knowledge_base_product_workflow.dart` | `buildKnowledgeBase`, `copyKnowledgeBase`, `mergeKnowledgeBases`, `splitKnowledgeBase`, `updateKnowledgeBaseIncremental`, `rebuildKnowledgeBaseFull`, `compareKnowledgeBaseVersions`, `rollbackKnowledgeBaseVersion`, `deleteKnowledgeBaseRecord` | `kb/chunks.jsonl`, `kb/cards.jsonl`, `kb/qa_pairs.jsonl`, `kb/manifest.json`, `kb/quality_report.json`, `knowledge_bases/kb_catalog.json` | `campaign_4_workbench_test.dart`: KB page surfaces; `rc6_runtime_truth_blocker_repair_test.dart`: multi-KB catalog operations |
@@ -51,7 +51,7 @@ This map freezes the current behavior before further structural cleanup. It is n
 
 ## Recommended Cleanup Order
 
-1. Continue UI extraction only. Next low-risk candidates: Dashboard panels, Import And Parsing, then shared shell widgets.
+1. Continue UI extraction only. Next low-risk candidates: Import And Parsing, then shared shell widgets.
 2. Keep runtime method names and `Rc6RuntimeState` stable until UI extractions have landed and passed tests.
 3. Move tests only after the relevant page module has been extracted and CI has stayed green.
 4. For every extraction slice, validate with:
@@ -76,3 +76,5 @@ The current knowledge base slice moves Knowledge Base UI into `web/workbench/flu
 The current Skill Factory slice moves Skill Factory UI into `web/workbench/flutter_app/lib/features/skill/skill_builder_product_workflow.dart` with no product behavior change.
 
 The current Agent Workbench slice moves Agent Workbench UI into `web/workbench/flutter_app/lib/features/agent/agent_product_workflow.dart` with no product behavior change.
+
+The current Dashboard slice moves Dashboard panels into `web/workbench/flutter_app/lib/features/dashboard/dashboard_product_workflow.dart` with no product behavior change.
