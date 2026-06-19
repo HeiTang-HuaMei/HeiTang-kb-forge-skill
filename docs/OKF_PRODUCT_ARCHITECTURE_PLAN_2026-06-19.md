@@ -90,6 +90,44 @@ UI placement:
 
 Do not add `Index Layer`, `RAG Layer`, or `Orchestration Layer` as ordinary first-level navigation items.
 
+## Formal Product Layer Canon
+
+HeiTang KB Forge must describe the knowledge product stack as a layered product flow, not as a set of parallel feature pages:
+
+```text
+Document Library / OKF / Knowledge Base / Index Layer / RAG Layer / Orchestration Layer
+```
+
+This is the official product positioning for future PRD, acceptance, and page-design work:
+
+- Document Library: the real imported, parsed, and cleaned content asset pool.
+- OKF: the open standard package layer for Document Library content, used for migration, versioning, audit, and reuse.
+- Knowledge Base: the manageable knowledge asset built from Document Library content or OKF packages.
+- Index Layer: the Knowledge Base retrieval infrastructure, including local indexes, vector indexes, Redis, Qdrant, and later compatible stores.
+- RAG Layer: the retrieval method over the Index Layer, covering search, reranking, citation recall, evidence constraints, validation, and correction.
+- Orchestration Layer: the product brain that chooses how to call Knowledge Bases, RAG, LLM providers, templates, Skills, Agents, and A2A tasks.
+- Document Generation / Skill / Agent / A2A: application outputs driven by the Orchestration Layer.
+
+The full internal chain is:
+
+```text
+Import sources
+-> Document Library
+-> OKF standardization
+-> Knowledge Base
+-> Index Layer
+-> RAG Layer
+-> Orchestration Layer
+-> Document / Skill / Agent / A2A
+```
+
+The UI must keep this as a continuous user workflow, not expose each technical layer as a separate ordinary navigation page:
+
+- Index Layer lives in the Knowledge Base page as `Index And Storage` configuration and status.
+- RAG Layer lives in Retrieval And Verification as `Query -> Rerank -> Citation -> Validation -> Correction`.
+- Orchestration Layer lives inside Document Generation, Skill Factory, and Agent Workbench as task configuration and execution planning.
+- OKF lives between Document Library and Knowledge Base as a standardization step and asset format, not as a first-level product module.
+
 ## Product Definition
 
 Document Library stores parsed, cleaned, and structured source content.
