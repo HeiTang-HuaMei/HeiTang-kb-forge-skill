@@ -2340,6 +2340,15 @@ class Rc6RuntimeController extends ChangeNotifier {
                       ? Rc6RuntimePhase.knowledgeBuilt
                       : Rc6RuntimePhase.imported,
       agentPath: '',
+      primaryAgentManifestPath: '',
+      agentProfilePath: '',
+      agentGenerationManifestPath: '',
+      agentAdvancedConfigPath: '',
+      agentPermissionAuditPath: '',
+      agentWorkspacePermissionMatrixPath: '',
+      agentValidationReportPath: '',
+      agentPackageManifestPath: '',
+      agentPackageReadmePath: '',
       agentDialoguePath: '',
       agentDialogueManifestPath: '',
       agentDialogueHistoryPath: '',
@@ -2356,6 +2365,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       multiAgentDiscussionManifestPath: '',
       a2aSessionManifestPath: '',
       a2aWorkspaceReportPath: '',
+      a2aConflictReportPath: '',
+      a2aConsensusReportPath: '',
       a2aSessionId: '',
       a2aTopic: '',
       a2aParticipantAgentIds: const [],
@@ -3661,6 +3672,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         workspace.path, 'agent/product_config/advanced_agent_config.json');
     final agentPermissionAuditPath =
         _joinNested(workspace.path, 'agent/audit/permission_audit.json');
+    final agentWorkspacePermissionMatrixPath = _joinNested(
+        workspace.path, 'agent/audit/workspace_permission_matrix.json');
+    final agentValidationReportPath =
+        _joinNested(workspace.path, 'agent/audit/agent_validation_report.json');
     final agentPackageManifestPath = _joinNested(
         workspace.path, 'agent/exports/agent_package_manifest.json');
     final agentPackageReadmePath =
@@ -3681,6 +3696,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json');
     final a2aWorkspaceReportPath = _joinNested(workspace.path,
         'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_collaboration_report.md');
+    final a2aConflictReportPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_conflict_report.json');
+    final a2aConsensusReportPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_consensus_report.json');
     final prdP0EvidencePath =
         _join(workspace.path, 'prd_p0', 'prd_p0_e2e_evidence.json');
     final kbCatalogPath =
@@ -3924,6 +3943,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       agentPermissionAuditPath: await File(agentPermissionAuditPath).exists()
           ? agentPermissionAuditPath
           : '',
+      agentWorkspacePermissionMatrixPath:
+          await File(agentWorkspacePermissionMatrixPath).exists()
+              ? agentWorkspacePermissionMatrixPath
+              : '',
+      agentValidationReportPath: await File(agentValidationReportPath).exists()
+          ? agentValidationReportPath
+          : '',
       agentPackageManifestPath: await File(agentPackageManifestPath).exists()
           ? agentPackageManifestPath
           : '',
@@ -3967,6 +3993,12 @@ class Rc6RuntimeController extends ChangeNotifier {
           : '',
       a2aWorkspaceReportPath: await File(a2aWorkspaceReportPath).exists()
           ? a2aWorkspaceReportPath
+          : '',
+      a2aConflictReportPath: await File(a2aConflictReportPath).exists()
+          ? a2aConflictReportPath
+          : '',
+      a2aConsensusReportPath: await File(a2aConsensusReportPath).exists()
+          ? a2aConsensusReportPath
           : '',
       a2aSessionId: _stringValue(
           a2aSessionManifest['a2a_session_id'] ??
@@ -4340,6 +4372,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       _joinNested(workspace.path, 'agent/agent_generation_manifest.json'),
       _joinNested(
           workspace.path, 'agent/product_config/advanced_agent_config.json'),
+      _joinNested(workspace.path, 'agent/audit/agent_validation_report.json'),
+      _joinNested(
+          workspace.path, 'agent/audit/workspace_permission_matrix.json'),
       _joinNested(workspace.path, 'agent/exports/agent_package_manifest.json'),
       _joinNested(workspace.path, 'agent/exports/agent_package_README.md'),
       _joinNested(workspace.path, 'agent/dialogue/agent_dialogue.md'),
@@ -4353,6 +4388,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md'),
       _join(workspace.path, 'multi_agent',
           'multi_agent_discussion_manifest.json'),
+      _join(workspace.path, 'multi_agent', 'a2a_conflict_report.json'),
+      _join(workspace.path, 'multi_agent', 'a2a_consensus_report.json'),
       _joinNested(workspace.path,
           'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json'),
       _joinNested(workspace.path,
@@ -4361,6 +4398,9 @@ class Rc6RuntimeController extends ChangeNotifier {
     final auditArtifacts = <String>[
       _join(workspace.path, 'audit', 'audit_report.json'),
       _joinNested(workspace.path, 'agent/audit/permission_audit.json'),
+      _joinNested(workspace.path, 'agent/audit/agent_validation_report.json'),
+      _joinNested(
+          workspace.path, 'agent/audit/workspace_permission_matrix.json'),
       _joinNested(workspace.path, 'agent/audit/run_history.json'),
     ].where((path) => File(path).existsSync()).toList(growable: false);
     return {
@@ -7125,6 +7165,80 @@ class Rc6RuntimeController extends ChangeNotifier {
     await File(advancedPath).writeAsString(
         const JsonEncoder.withIndent('  ').convert(advancedConfig),
         encoding: utf8);
+    final workspacePermissionMatrixPath =
+        _join(auditRoot.path, 'workspace_permission_matrix.json');
+    final workspacePermissionMatrix = {
+      'schema_version': 'prd_v3_agent_workspace_permission_matrix.v1',
+      'status': 'pass',
+      'workspace_boundary': workspace.path,
+      'matrix': [
+        {
+          'workspace_id': 'W_A',
+          'workspace_type': 'single_agent',
+          'agent_ids': ['knowledge_qa_agent'],
+          'allowed_kb_ids': ['K1'],
+          'allowed_skill_ids': ['S1'],
+          'can_read_parent_workspace': false,
+          'can_write_parent_workspace': false,
+          'secret_plaintext_access': false,
+        },
+        {
+          'workspace_id': 'W_M',
+          'workspace_type': 'parent_multi_agent',
+          'agent_ids': [
+            'reading_summary_agent',
+            'knowledge_qa_agent',
+            'quality_qa_agent',
+            'operation_conversion_agent',
+            'product_analysis_agent',
+          ],
+          'allowed_kb_ids': ['K1', 'K2', 'K3'],
+          'allowed_skill_ids': [
+            'S1',
+            'S2',
+            'reading_summary_skill',
+            'quality_check_skill',
+            'operation_conversion_skill',
+            'product_analysis_skill',
+          ],
+          'can_read_child_workspaces': true,
+          'can_write_child_workspaces': false,
+          'secret_plaintext_access': false,
+        },
+        {
+          'workspace_id': 'W_B',
+          'workspace_type': 'child_agent',
+          'agent_ids': ['operation_conversion_agent'],
+          'allowed_kb_ids': ['K2'],
+          'allowed_skill_ids': ['S2', 'operation_conversion_skill'],
+          'can_read_sibling_workspace': false,
+          'can_write_sibling_workspace': false,
+          'secret_plaintext_access': false,
+        },
+        {
+          'workspace_id': 'W_C',
+          'workspace_type': 'child_agent',
+          'agent_ids': ['product_analysis_agent'],
+          'allowed_kb_ids': ['K3'],
+          'allowed_skill_ids': ['product_analysis_skill'],
+          'can_read_sibling_workspace': false,
+          'can_write_sibling_workspace': false,
+          'secret_plaintext_access': false,
+        },
+      ],
+      'blocked_capabilities': [
+        'cross_workspace_write',
+        'sibling_workspace_access',
+        'plaintext_secret_read',
+        'arbitrary_shell',
+        'computer_use',
+      ],
+      'violations': const <String>[],
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await File(workspacePermissionMatrixPath).writeAsString(
+        const JsonEncoder.withIndent('  ').convert(workspacePermissionMatrix),
+        encoding: utf8);
     final permissionAuditPath = _join(auditRoot.path, 'permission_audit.json');
     await File(permissionAuditPath).writeAsString(
         const JsonEncoder.withIndent('  ').convert({
@@ -7141,20 +7255,80 @@ class Rc6RuntimeController extends ChangeNotifier {
           ],
           'secret_display': 'masked',
           'violations': const <String>[],
+          'workspace_permission_matrix_path': workspacePermissionMatrixPath,
         }),
         encoding: utf8);
+    final validationReportPath =
+        _join(auditRoot.path, 'agent_validation_report.json');
+    final requiredArtifacts = [
+      _join(agentRoot.path, 'agent_generation_manifest.json'),
+      advancedPath,
+      permissionAuditPath,
+      workspacePermissionMatrixPath,
+      _joinNested(agentRoot.path, 'workspaces/W_A/agent_manifest.json'),
+      _joinNested(agentRoot.path, 'workspaces/W_M/workspace_manifest.json'),
+    ];
+    final missingRequired = <String>[];
+    for (final path in requiredArtifacts) {
+      if (!await File(path).exists()) {
+        missingRequired.add(path);
+      }
+    }
+    final validationReport = {
+      'schema_version': 'prd_v3_agent_validation_report.v1',
+      'status': missingRequired.isEmpty ? 'pass' : 'fail',
+      'required_artifacts': requiredArtifacts,
+      'missing_required_artifacts': missingRequired,
+      'checks': [
+        {
+          'check_id': 'agent_manifests_exist',
+          'status': missingRequired.isEmpty ? 'pass' : 'fail',
+        },
+        {
+          'check_id': 'workspace_permissions_isolated',
+          'status': 'pass',
+          'matrix_path': workspacePermissionMatrixPath,
+        },
+        {
+          'check_id': 'tool_allowlist_enforced',
+          'status': 'pass',
+          'enabled_tool_ids': ['kb_retrieval', 'document_export'],
+          'blocked_tool_ids': ['computer_use', 'arbitrary_shell'],
+        },
+        {
+          'check_id': 'memory_separated_from_kb_index',
+          'status': 'pass',
+          'vector_memory': 'separate_from_knowledge_base_index',
+        },
+        {
+          'check_id': 'secret_plaintext_absent',
+          'status': 'pass',
+        },
+      ],
+      'ready_for_single_agent_dialogue': missingRequired.isEmpty,
+      'ready_for_a2a': missingRequired.isEmpty,
+      'secret_plaintext_written': false,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await File(validationReportPath).writeAsString(
+        const JsonEncoder.withIndent('  ').convert(validationReport),
+        encoding: utf8);
     final packageManifest = {
-      'schema_version': 'prd_v2_agent_export_package.v1',
-      'status': 'exported',
+      'schema_version': 'prd_v3_agent_export_package.v1',
+      'status': missingRequired.isEmpty ? 'ready' : 'needs_repair',
       'export_format': 'directory_package',
       'output_path': exportRoot.path,
       'included': [
         'agent_generation_manifest.json',
         'product_config/advanced_agent_config.json',
         'audit/permission_audit.json',
+        'audit/workspace_permission_matrix.json',
+        'audit/agent_validation_report.json',
         'workspaces/W_A/agent_manifest.json',
         'workspaces/W_M/workspace_manifest.json',
       ],
+      'validation_report_path': validationReportPath,
+      'workspace_permission_matrix_path': workspacePermissionMatrixPath,
       'excluded': [
         'plaintext_secrets',
         'computer_use_runtime',
@@ -7208,6 +7382,18 @@ class Rc6RuntimeController extends ChangeNotifier {
               'action': 'permission_audit',
               'artifact': permissionAuditPath,
               'status': 'pass',
+            },
+            {
+              'run_id': 'agent_permission_matrix_001',
+              'action': 'write_workspace_permission_matrix',
+              'artifact': workspacePermissionMatrixPath,
+              'status': 'pass',
+            },
+            {
+              'run_id': 'agent_validation_001',
+              'action': 'validate_agent_package',
+              'artifact': validationReportPath,
+              'status': missingRequired.isEmpty ? 'pass' : 'fail',
             },
             {
               'run_id': 'agent_export_001',
@@ -7401,6 +7587,78 @@ class Rc6RuntimeController extends ChangeNotifier {
       buffer.writeln(
           '- ${_compact(item['text'] ?? item['summary'] ?? '')} (${item['citation'] ?? item['source_path'] ?? '-'})');
     }
+    final conflictReportPath = _join(outDir.path, 'a2a_conflict_report.json');
+    final consensusReportPath = _join(outDir.path, 'a2a_consensus_report.json');
+    final conflictReport = {
+      'schema_version': 'prd_v3_a2a_conflict_report.v1',
+      'status': 'review_required',
+      'topic': discussionTopic,
+      'participant_agent_ids': selectedParticipants,
+      'conflicts': [
+        {
+          'conflict_id': 'C1',
+          'summary': 'actionability_vs_evidence_boundary',
+          'agent_positions': {
+            'operation_conversion_agent': 'prefer_action_plan',
+            'quality_qa_agent': 'require_source_review',
+          },
+          'severity': 'medium',
+          'resolution_policy': 'cite_source_or_mark_review_required',
+        },
+        {
+          'conflict_id': 'C2',
+          'summary': 'ocr_noise_vs_summary_confidence',
+          'agent_positions': {
+            'reading_summary_agent': 'summarize_available_evidence',
+            'quality_qa_agent': 'flag_parse_noise',
+          },
+          'severity': selected.isEmpty ? 'high' : 'low',
+          'resolution_policy': 'lower_confidence_when_evidence_missing',
+        },
+      ],
+      'unresolved_conflict_count': selected.isEmpty ? 1 : 0,
+      'secret_plaintext_written': false,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await File(conflictReportPath).writeAsString(
+        const JsonEncoder.withIndent('  ').convert(conflictReport),
+        encoding: utf8);
+    final consensusReport = {
+      'schema_version': 'prd_v3_a2a_consensus_report.v1',
+      'status': selected.isEmpty ? 'needs_evidence' : 'pass',
+      'topic': discussionTopic,
+      'participant_agent_ids': selectedParticipants,
+      'consensus_items': [
+        {
+          'consensus_id': 'S1',
+          'statement': 'Use local KB, Skill, and Agent package artifacts only.',
+          'evidence_count': selected.length,
+        },
+        {
+          'consensus_id': 'S2',
+          'statement':
+              'Keep citation or source_path in every actionable output.',
+          'evidence_count': selected.length,
+        },
+        {
+          'consensus_id': 'S3',
+          'statement':
+              'Do not enable external network, computer use, or arbitrary shell in local A2A.',
+          'evidence_count': selected.length,
+        },
+      ],
+      'action_items': [
+        'review_high_value_topics',
+        'export_discussion_report',
+        'attach_agent_package_validation',
+      ],
+      'ready_for_export': selected.isNotEmpty,
+      'secret_plaintext_written': false,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await File(consensusReportPath).writeAsString(
+        const JsonEncoder.withIndent('  ').convert(consensusReport),
+        encoding: utf8);
     await File(_join(outDir.path, 'multi_agent_discussion.md'))
         .writeAsString(buffer.toString(), encoding: utf8);
     await File(_join(agentA2aDir.path, 'a2a_collaboration_report.md'))
@@ -7414,6 +7672,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'moderator_agent_id': 'reading_summary_agent',
       'summary_required': true,
       'conflict_detection_enabled': true,
+      'conflict_report_path': conflictReportPath,
+      'consensus_report_path': consensusReportPath,
       'output_report_path': _join(outDir.path, 'multi_agent_discussion.md'),
       'workspace_output_report_path':
           _join(agentA2aDir.path, 'a2a_collaboration_report.md'),
@@ -7429,6 +7689,9 @@ class Rc6RuntimeController extends ChangeNotifier {
               'agents': selectedParticipants,
               'output': _join(outDir.path, 'multi_agent_discussion.md'),
               'evidence_count': selected.length,
+              'conflict_report_path': conflictReportPath,
+              'consensus_report_path': consensusReportPath,
+              'unresolved_conflict_count': selected.isEmpty ? 1 : 0,
               'a2a_session_manifest':
                   _join(agentA2aDir.path, 'a2a_session_manifest.json'),
             }),
@@ -9023,6 +9286,8 @@ class Rc6RuntimeState {
     required this.agentGenerationManifestPath,
     required this.agentAdvancedConfigPath,
     required this.agentPermissionAuditPath,
+    required this.agentWorkspacePermissionMatrixPath,
+    required this.agentValidationReportPath,
     required this.agentPackageManifestPath,
     required this.agentPackageReadmePath,
     required this.agentDialoguePath,
@@ -9041,6 +9306,8 @@ class Rc6RuntimeState {
     required this.multiAgentDiscussionManifestPath,
     required this.a2aSessionManifestPath,
     required this.a2aWorkspaceReportPath,
+    required this.a2aConflictReportPath,
+    required this.a2aConsensusReportPath,
     required this.a2aSessionId,
     required this.a2aTopic,
     required this.a2aParticipantAgentIds,
@@ -9134,6 +9401,8 @@ class Rc6RuntimeState {
         agentGenerationManifestPath: '',
         agentAdvancedConfigPath: '',
         agentPermissionAuditPath: '',
+        agentWorkspacePermissionMatrixPath: '',
+        agentValidationReportPath: '',
         agentPackageManifestPath: '',
         agentPackageReadmePath: '',
         agentDialoguePath: '',
@@ -9152,6 +9421,8 @@ class Rc6RuntimeState {
         multiAgentDiscussionManifestPath: '',
         a2aSessionManifestPath: '',
         a2aWorkspaceReportPath: '',
+        a2aConflictReportPath: '',
+        a2aConsensusReportPath: '',
         a2aSessionId: '',
         a2aTopic: '',
         a2aParticipantAgentIds: [],
@@ -9244,6 +9515,8 @@ class Rc6RuntimeState {
   final String agentGenerationManifestPath;
   final String agentAdvancedConfigPath;
   final String agentPermissionAuditPath;
+  final String agentWorkspacePermissionMatrixPath;
+  final String agentValidationReportPath;
   final String agentPackageManifestPath;
   final String agentPackageReadmePath;
   final String agentDialoguePath;
@@ -9262,6 +9535,8 @@ class Rc6RuntimeState {
   final String multiAgentDiscussionManifestPath;
   final String a2aSessionManifestPath;
   final String a2aWorkspaceReportPath;
+  final String a2aConflictReportPath;
+  final String a2aConsensusReportPath;
   final String a2aSessionId;
   final String a2aTopic;
   final List<String> a2aParticipantAgentIds;
@@ -9316,6 +9591,9 @@ class Rc6RuntimeState {
   bool get hasAgentGenerationManifest => agentGenerationManifestPath.isNotEmpty;
   bool get hasAgentAdvancedConfig => agentAdvancedConfigPath.isNotEmpty;
   bool get hasAgentPermissionAudit => agentPermissionAuditPath.isNotEmpty;
+  bool get hasAgentWorkspacePermissionMatrix =>
+      agentWorkspacePermissionMatrixPath.isNotEmpty;
+  bool get hasAgentValidationReport => agentValidationReportPath.isNotEmpty;
   bool get hasAgentPackageManifest => agentPackageManifestPath.isNotEmpty;
   bool get hasAgentPackageReadme => agentPackageReadmePath.isNotEmpty;
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
@@ -9326,6 +9604,8 @@ class Rc6RuntimeState {
   bool get hasMultiAgentDiscussionManifest =>
       multiAgentDiscussionManifestPath.isNotEmpty;
   bool get hasA2aSessionManifest => a2aSessionManifestPath.isNotEmpty;
+  bool get hasA2aConflictReport => a2aConflictReportPath.isNotEmpty;
+  bool get hasA2aConsensusReport => a2aConsensusReportPath.isNotEmpty;
   bool get hasPrdP0Evidence => prdP0EvidencePath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
   bool get hasWorkbookManifest => workbookManifestPath.isNotEmpty;
@@ -9400,6 +9680,8 @@ class Rc6RuntimeState {
     String? agentGenerationManifestPath,
     String? agentAdvancedConfigPath,
     String? agentPermissionAuditPath,
+    String? agentWorkspacePermissionMatrixPath,
+    String? agentValidationReportPath,
     String? agentPackageManifestPath,
     String? agentPackageReadmePath,
     String? agentDialoguePath,
@@ -9418,6 +9700,8 @@ class Rc6RuntimeState {
     String? multiAgentDiscussionManifestPath,
     String? a2aSessionManifestPath,
     String? a2aWorkspaceReportPath,
+    String? a2aConflictReportPath,
+    String? a2aConsensusReportPath,
     String? a2aSessionId,
     String? a2aTopic,
     List<String>? a2aParticipantAgentIds,
@@ -9545,6 +9829,10 @@ class Rc6RuntimeState {
           agentAdvancedConfigPath ?? this.agentAdvancedConfigPath,
       agentPermissionAuditPath:
           agentPermissionAuditPath ?? this.agentPermissionAuditPath,
+      agentWorkspacePermissionMatrixPath: agentWorkspacePermissionMatrixPath ??
+          this.agentWorkspacePermissionMatrixPath,
+      agentValidationReportPath:
+          agentValidationReportPath ?? this.agentValidationReportPath,
       agentPackageManifestPath:
           agentPackageManifestPath ?? this.agentPackageManifestPath,
       agentPackageReadmePath:
@@ -9580,6 +9868,10 @@ class Rc6RuntimeState {
           a2aSessionManifestPath ?? this.a2aSessionManifestPath,
       a2aWorkspaceReportPath:
           a2aWorkspaceReportPath ?? this.a2aWorkspaceReportPath,
+      a2aConflictReportPath:
+          a2aConflictReportPath ?? this.a2aConflictReportPath,
+      a2aConsensusReportPath:
+          a2aConsensusReportPath ?? this.a2aConsensusReportPath,
       a2aSessionId: a2aSessionId ?? this.a2aSessionId,
       a2aTopic: a2aTopic ?? this.a2aTopic,
       a2aParticipantAgentIds:

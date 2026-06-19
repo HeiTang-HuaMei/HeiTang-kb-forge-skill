@@ -21,12 +21,7 @@ class _AgentProductWorkflow extends StatelessWidget {
   Widget build(BuildContext context) {
     final tabs = _zh
         ? ['Agent 总览', '单 Agent', '多 Agent / A2A', '运行审计']
-        : [
-            'Agent Overview',
-            'Single Agent',
-            'Multi-Agent / A2A',
-            'Run Audit'
-          ];
+        : ['Agent Overview', 'Single Agent', 'Multi-Agent / A2A', 'Run Audit'];
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -563,6 +558,21 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
                 ? '创建后立即进入单 Agent 对话'
                 : 'Open single-Agent chat immediately after creation',
           ),
+          const SizedBox(height: 8),
+          _FieldRow(
+            label: zh ? '包验证' : 'Package validation',
+            value: runtime.hasAgentValidationReport
+                ? _displayNameForPath(runtime.agentValidationReportPath)
+                : (zh ? '创建后写入验证报告' : 'Written after creation'),
+          ),
+          const SizedBox(height: 8),
+          _FieldRow(
+            label: zh ? '权限矩阵' : 'Permission matrix',
+            value: runtime.hasAgentWorkspacePermissionMatrix
+                ? _displayNameForPath(
+                    runtime.agentWorkspacePermissionMatrixPath)
+                : (zh ? '创建后写入权限矩阵' : 'Written after creation'),
+          ),
           if (simpleMode) ...[
             const SizedBox(height: 8),
             _FieldRow(
@@ -802,6 +812,18 @@ class _AgentDiscussionProductViewState
                         : '启动后写入'
                   ],
                   [
+                    '冲突报告',
+                    runtime.hasA2aConflictReport
+                        ? _displayNameForPath(runtime.a2aConflictReportPath)
+                        : '启动后写入'
+                  ],
+                  [
+                    '共识报告',
+                    runtime.hasA2aConsensusReport
+                        ? _displayNameForPath(runtime.a2aConsensusReportPath)
+                        : '启动后写入'
+                  ],
+                  [
                     '讨论审计',
                     runtime.hasMultiAgentDiscussionManifest
                         ? _displayNameForPath(
@@ -828,6 +850,18 @@ class _AgentDiscussionProductViewState
                     'Session audit',
                     runtime.hasA2aSessionManifest
                         ? _displayNameForPath(runtime.a2aSessionManifestPath)
+                        : 'Written after start'
+                  ],
+                  [
+                    'Conflict report',
+                    runtime.hasA2aConflictReport
+                        ? _displayNameForPath(runtime.a2aConflictReportPath)
+                        : 'Written after start'
+                  ],
+                  [
+                    'Consensus report',
+                    runtime.hasA2aConsensusReport
+                        ? _displayNameForPath(runtime.a2aConsensusReportPath)
                         : 'Written after start'
                   ],
                   [

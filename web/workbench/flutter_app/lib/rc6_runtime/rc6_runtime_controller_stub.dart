@@ -458,6 +458,8 @@ class Rc6RuntimeState {
     required this.agentGenerationManifestPath,
     required this.agentAdvancedConfigPath,
     required this.agentPermissionAuditPath,
+    required this.agentWorkspacePermissionMatrixPath,
+    required this.agentValidationReportPath,
     required this.agentPackageManifestPath,
     required this.agentPackageReadmePath,
     required this.agentDialoguePath,
@@ -476,6 +478,8 @@ class Rc6RuntimeState {
     required this.multiAgentDiscussionManifestPath,
     required this.a2aSessionManifestPath,
     required this.a2aWorkspaceReportPath,
+    required this.a2aConflictReportPath,
+    required this.a2aConsensusReportPath,
     required this.a2aSessionId,
     required this.a2aTopic,
     required this.a2aParticipantAgentIds,
@@ -569,6 +573,8 @@ class Rc6RuntimeState {
         agentGenerationManifestPath: '',
         agentAdvancedConfigPath: '',
         agentPermissionAuditPath: '',
+        agentWorkspacePermissionMatrixPath: '',
+        agentValidationReportPath: '',
         agentPackageManifestPath: '',
         agentPackageReadmePath: '',
         agentDialoguePath: '',
@@ -587,6 +593,8 @@ class Rc6RuntimeState {
         multiAgentDiscussionManifestPath: '',
         a2aSessionManifestPath: '',
         a2aWorkspaceReportPath: '',
+        a2aConflictReportPath: '',
+        a2aConsensusReportPath: '',
         a2aSessionId: '',
         a2aTopic: '',
         a2aParticipantAgentIds: [],
@@ -679,6 +687,8 @@ class Rc6RuntimeState {
   final String agentGenerationManifestPath;
   final String agentAdvancedConfigPath;
   final String agentPermissionAuditPath;
+  final String agentWorkspacePermissionMatrixPath;
+  final String agentValidationReportPath;
   final String agentPackageManifestPath;
   final String agentPackageReadmePath;
   final String agentDialoguePath;
@@ -697,6 +707,8 @@ class Rc6RuntimeState {
   final String multiAgentDiscussionManifestPath;
   final String a2aSessionManifestPath;
   final String a2aWorkspaceReportPath;
+  final String a2aConflictReportPath;
+  final String a2aConsensusReportPath;
   final String a2aSessionId;
   final String a2aTopic;
   final List<String> a2aParticipantAgentIds;
@@ -751,6 +763,9 @@ class Rc6RuntimeState {
   bool get hasAgentGenerationManifest => agentGenerationManifestPath.isNotEmpty;
   bool get hasAgentAdvancedConfig => agentAdvancedConfigPath.isNotEmpty;
   bool get hasAgentPermissionAudit => agentPermissionAuditPath.isNotEmpty;
+  bool get hasAgentWorkspacePermissionMatrix =>
+      agentWorkspacePermissionMatrixPath.isNotEmpty;
+  bool get hasAgentValidationReport => agentValidationReportPath.isNotEmpty;
   bool get hasAgentPackageManifest => agentPackageManifestPath.isNotEmpty;
   bool get hasAgentPackageReadme => agentPackageReadmePath.isNotEmpty;
   bool get hasAgentDialogue => agentDialoguePath.isNotEmpty;
@@ -761,6 +776,8 @@ class Rc6RuntimeState {
   bool get hasMultiAgentDiscussionManifest =>
       multiAgentDiscussionManifestPath.isNotEmpty;
   bool get hasA2aSessionManifest => a2aSessionManifestPath.isNotEmpty;
+  bool get hasA2aConflictReport => a2aConflictReportPath.isNotEmpty;
+  bool get hasA2aConsensusReport => a2aConsensusReportPath.isNotEmpty;
   bool get hasPrdP0Evidence => prdP0EvidencePath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
   bool get hasWorkbookManifest => workbookManifestPath.isNotEmpty;
@@ -835,6 +852,8 @@ class Rc6RuntimeState {
     String? agentGenerationManifestPath,
     String? agentAdvancedConfigPath,
     String? agentPermissionAuditPath,
+    String? agentWorkspacePermissionMatrixPath,
+    String? agentValidationReportPath,
     String? agentPackageManifestPath,
     String? agentPackageReadmePath,
     String? agentDialoguePath,
@@ -853,6 +872,8 @@ class Rc6RuntimeState {
     String? multiAgentDiscussionManifestPath,
     String? a2aSessionManifestPath,
     String? a2aWorkspaceReportPath,
+    String? a2aConflictReportPath,
+    String? a2aConsensusReportPath,
     String? a2aSessionId,
     String? a2aTopic,
     List<String>? a2aParticipantAgentIds,
@@ -980,6 +1001,10 @@ class Rc6RuntimeState {
           agentAdvancedConfigPath ?? this.agentAdvancedConfigPath,
       agentPermissionAuditPath:
           agentPermissionAuditPath ?? this.agentPermissionAuditPath,
+      agentWorkspacePermissionMatrixPath: agentWorkspacePermissionMatrixPath ??
+          this.agentWorkspacePermissionMatrixPath,
+      agentValidationReportPath:
+          agentValidationReportPath ?? this.agentValidationReportPath,
       agentPackageManifestPath:
           agentPackageManifestPath ?? this.agentPackageManifestPath,
       agentPackageReadmePath:
@@ -1015,6 +1040,10 @@ class Rc6RuntimeState {
           a2aSessionManifestPath ?? this.a2aSessionManifestPath,
       a2aWorkspaceReportPath:
           a2aWorkspaceReportPath ?? this.a2aWorkspaceReportPath,
+      a2aConflictReportPath:
+          a2aConflictReportPath ?? this.a2aConflictReportPath,
+      a2aConsensusReportPath:
+          a2aConsensusReportPath ?? this.a2aConsensusReportPath,
       a2aSessionId: a2aSessionId ?? this.a2aSessionId,
       a2aTopic: a2aTopic ?? this.a2aTopic,
       a2aParticipantAgentIds:

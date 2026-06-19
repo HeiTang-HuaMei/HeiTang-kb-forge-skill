@@ -1221,6 +1221,10 @@ void main() {
     expect(controller.state.hasMultiAgentDiscussion, isTrue);
     expect(controller.state.hasMultiAgentDiscussionManifest, isTrue);
     expect(controller.state.hasA2aSessionManifest, isTrue);
+    expect(controller.state.hasA2aConflictReport, isTrue);
+    expect(controller.state.hasA2aConsensusReport, isTrue);
+    expect(controller.state.hasAgentWorkspacePermissionMatrix, isTrue);
+    expect(controller.state.hasAgentValidationReport, isTrue);
     expect(controller.state.a2aSessionId, 'A2A_001');
     expect(controller.state.a2aTopic, '赚钱 小生意');
     expect(controller.state.a2aParticipantAgentIds,
@@ -1334,6 +1338,10 @@ void main() {
     expect(reloadedController.state.hasAgentDialogueManifest, isTrue);
     expect(reloadedController.state.hasAgentDialogueExport, isTrue);
     expect(reloadedController.state.hasA2aSessionManifest, isTrue);
+    expect(reloadedController.state.hasA2aConflictReport, isTrue);
+    expect(reloadedController.state.hasA2aConsensusReport, isTrue);
+    expect(reloadedController.state.hasAgentWorkspacePermissionMatrix, isTrue);
+    expect(reloadedController.state.hasAgentValidationReport, isTrue);
     expect(reloadedController.state.a2aSessionId, 'A2A_001');
     expect(reloadedController.state.a2aParticipantAgentIds,
         contains('knowledge_qa_agent'));
@@ -1405,10 +1413,32 @@ void main() {
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}permission_audit.json')
             .readAsStringSync(),
         contains('no_arbitrary_shell'));
+    final permissionMatrix = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}workspace_permission_matrix.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(permissionMatrix['schema_version'],
+        'prd_v3_agent_workspace_permission_matrix.v1');
+    expect(permissionMatrix['status'], 'pass');
+    expect(permissionMatrix['violations'], isEmpty);
+    expect(permissionMatrix['blocked_capabilities'],
+        containsAll(['arbitrary_shell', 'computer_use']));
+    final agentValidation = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}agent_validation_report.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(
+        agentValidation['schema_version'], 'prd_v3_agent_validation_report.v1');
+    expect(agentValidation['status'], 'pass');
+    expect(agentValidation['missing_required_artifacts'], isEmpty);
+    expect(agentValidation['ready_for_single_agent_dialogue'], isTrue);
+    expect(agentValidation['ready_for_a2a'], isTrue);
     expect(
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}exports${Platform.pathSeparator}agent_package_manifest.json')
             .readAsStringSync(),
-        contains('prd_v2_agent_export_package.v1'));
+        allOf(
+          contains('prd_v3_agent_export_package.v1'),
+          contains('agent_validation_report.json'),
+          contains('workspace_permission_matrix.json'),
+        ));
     expect(
         File('${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
             .readAsStringSync(),
@@ -1417,6 +1447,25 @@ void main() {
         File('${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
             .readAsStringSync(),
         contains('真实输入命中赚钱小生意'));
+    final a2aConflict = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}a2a_conflict_report.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(a2aConflict['schema_version'], 'prd_v3_a2a_conflict_report.v1');
+    expect(a2aConflict['conflicts'], isA<List>());
+    expect(a2aConflict['secret_plaintext_written'], isFalse);
+    final a2aConsensus = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}a2a_consensus_report.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(a2aConsensus['schema_version'], 'prd_v3_a2a_consensus_report.v1');
+    expect(a2aConsensus['status'], 'pass');
+    expect(a2aConsensus['ready_for_export'], isTrue);
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion_manifest.json')
+            .readAsStringSync(),
+        allOf(
+          contains('a2a_conflict_report.json'),
+          contains('a2a_consensus_report.json'),
+        ));
 
     await controller.clearAgentDialogueHistory();
     expect(controller.state.hasAgent, isTrue);
@@ -1447,6 +1496,10 @@ void main() {
     expect(controller.state.hasAgent, isFalse);
     expect(controller.state.hasAgentDialogue, isFalse);
     expect(controller.state.hasMultiAgentDiscussion, isFalse);
+    expect(controller.state.hasAgentValidationReport, isFalse);
+    expect(controller.state.hasAgentWorkspacePermissionMatrix, isFalse);
+    expect(controller.state.hasA2aConflictReport, isFalse);
+    expect(controller.state.hasA2aConsensusReport, isFalse);
     expect(controller.state.hasSkill, isTrue);
     expect(
         Directory('${workspace.path}${Platform.pathSeparator}agent')
