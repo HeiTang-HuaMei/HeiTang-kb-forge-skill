@@ -443,10 +443,27 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                     ],
                     [
                       '引用清单',
-                      runtime.queryResultPath.isNotEmpty
-                          ? _displayNameForPath(runtime.queryResultPath)
-                          : '等待检索结果',
+                      runtime.documentCitationsPath.isNotEmpty
+                          ? _displayNameForPath(runtime.documentCitationsPath)
+                          : runtime.queryResultPath.isNotEmpty
+                              ? _displayNameForPath(runtime.queryResultPath)
+                              : '等待检索结果',
                       '写入 generation_manifest.json'
+                    ],
+                    [
+                      '大纲',
+                      runtime.documentOutlinePath.isNotEmpty
+                          ? _displayNameForPath(runtime.documentOutlinePath)
+                          : '等待生成',
+                      'outline.json'
+                    ],
+                    [
+                      '文档验证',
+                      runtime.documentValidationReportPath.isNotEmpty
+                          ? _displayNameForPath(
+                              runtime.documentValidationReportPath)
+                          : '等待生成',
+                      'document_validation_report.json'
                     ],
                     [
                       '编辑保存',
@@ -477,10 +494,27 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                     ],
                     [
                       'Citation list',
-                      runtime.queryResultPath.isNotEmpty
-                          ? _displayNameForPath(runtime.queryResultPath)
-                          : 'Waiting retrieval',
+                      runtime.documentCitationsPath.isNotEmpty
+                          ? _displayNameForPath(runtime.documentCitationsPath)
+                          : runtime.queryResultPath.isNotEmpty
+                              ? _displayNameForPath(runtime.queryResultPath)
+                              : 'Waiting retrieval',
                       'Written to generation_manifest.json'
+                    ],
+                    [
+                      'Outline',
+                      runtime.documentOutlinePath.isNotEmpty
+                          ? _displayNameForPath(runtime.documentOutlinePath)
+                          : 'Waiting generation',
+                      'outline.json'
+                    ],
+                    [
+                      'Document validation',
+                      runtime.documentValidationReportPath.isNotEmpty
+                          ? _displayNameForPath(
+                              runtime.documentValidationReportPath)
+                          : 'Waiting generation',
+                      'document_validation_report.json'
                     ],
                     [
                       'History',

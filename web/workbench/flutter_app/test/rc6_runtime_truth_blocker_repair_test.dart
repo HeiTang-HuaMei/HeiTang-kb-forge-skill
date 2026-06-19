@@ -1799,7 +1799,7 @@ void main() {
     expect(
         firstGenerationManifest,
         allOf(
-          contains('prd_v2_template_document_generation.v1'),
+          contains('prd_v3_template_document_generation.v1'),
           contains('"generation_type": "product_analysis"'),
           contains('"output_format": "docx"'),
           contains('"citation_strategy": "filename_and_chunk"'),
@@ -1821,12 +1821,45 @@ void main() {
     expect(
         generationManifest,
         allOf(
+          contains('prd_v3_template_document_generation.v1'),
           contains('"citations":'),
           contains('alpha.txt#chunk=1'),
           contains('"kb_name": "真实输入知识库"'),
+          contains('"outline_path":'),
+        ));
+    expect(
+        generationManifest,
+        allOf(
+          contains('"citations_path":'),
+          contains('"document_validation_report_path":'),
           contains('"generation_history":'),
           contains('"citation_count": 1'),
           contains('"generation_type": "summary"'),
+        ));
+    expect(controller.state.documentOutlinePath,
+        '$docRoot${Platform.pathSeparator}outline.json');
+    expect(controller.state.documentCitationsPath,
+        '$docRoot${Platform.pathSeparator}citations.json');
+    expect(controller.state.documentValidationReportPath,
+        '$docRoot${Platform.pathSeparator}document_validation_report.json');
+    expect(
+        File(controller.state.documentOutlinePath).readAsStringSync(),
+        allOf(
+          contains('prd_v3_document_outline.v1'),
+          contains('真实输入资料摘要'),
+        ));
+    expect(
+        File(controller.state.documentCitationsPath).readAsStringSync(),
+        allOf(
+          contains('prd_v3_document_citations.v1'),
+          contains('alpha.txt#chunk=1'),
+        ));
+    expect(
+        File(controller.state.documentValidationReportPath).readAsStringSync(),
+        allOf(
+          contains('prd_v3_document_validation_report.v1'),
+          contains('"history_snapshot_status": "written"'),
+          contains('"secret_plaintext_written": false'),
         ));
     final generationManifestJson =
         jsonDecode(generationManifest) as Map<String, dynamic>;
@@ -1910,6 +1943,24 @@ void main() {
         File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}reading_notes_export.md')
             .readAsStringSync(),
         contains('final edited body from real KB'));
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    expect(reloadedController.state.documentOutlinePath,
+        controller.state.documentOutlinePath);
+    expect(reloadedController.state.documentCitationsPath,
+        controller.state.documentCitationsPath);
+    expect(reloadedController.state.documentValidationReportPath,
+        controller.state.documentValidationReportPath);
   });
 
   test('skill generation persists type platform and personalization config',

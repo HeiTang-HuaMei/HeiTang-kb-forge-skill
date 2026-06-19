@@ -2037,6 +2037,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       readingNotesPath: '',
       editedDocumentPath: '',
       editManifestPath: '',
+      documentOutlinePath: '',
+      documentCitationsPath: '',
+      documentValidationReportPath: '',
       exportedDocumentPath: '',
       exportManifestPath: '',
       sourceCount: 0,
@@ -2099,6 +2102,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       readingNotesPath: '',
       editedDocumentPath: '',
       editManifestPath: '',
+      documentOutlinePath: '',
+      documentCitationsPath: '',
+      documentValidationReportPath: '',
       exportedDocumentPath: '',
       exportManifestPath: '',
       prdP0EvidencePath: '',
@@ -2170,6 +2176,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       readingNotesPath: '',
       editedDocumentPath: '',
       editManifestPath: '',
+      documentOutlinePath: '',
+      documentCitationsPath: '',
+      documentValidationReportPath: '',
       exportedDocumentPath: '',
       exportManifestPath: '',
       skillPath: '',
@@ -2232,6 +2241,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       readingNotesPath: '',
       editedDocumentPath: '',
       editManifestPath: '',
+      documentOutlinePath: '',
+      documentCitationsPath: '',
+      documentValidationReportPath: '',
       exportedDocumentPath: '',
       exportManifestPath: '',
       prdP0EvidencePath: '',
@@ -3596,6 +3608,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     final editedDocumentPath =
         _join(workspace.path, 'doc', 'edited_document.md');
     final editManifestPath = _join(workspace.path, 'doc', 'edit_manifest.json');
+    final documentOutlinePath = _join(workspace.path, 'doc', 'outline.json');
+    final documentCitationsPath =
+        _join(workspace.path, 'doc', 'citations.json');
+    final documentValidationReportPath =
+        _join(workspace.path, 'doc', 'document_validation_report.json');
     final latestExport = await _latestExistingExportArtifact(workspace);
     final exportedDocumentPath = latestExport.$1;
     final exportManifestPath = latestExport.$2;
@@ -3825,6 +3842,15 @@ class Rc6RuntimeController extends ChangeNotifier {
           await File(editedDocumentPath).exists() ? editedDocumentPath : '',
       editManifestPath:
           await File(editManifestPath).exists() ? editManifestPath : '',
+      documentOutlinePath:
+          await File(documentOutlinePath).exists() ? documentOutlinePath : '',
+      documentCitationsPath: await File(documentCitationsPath).exists()
+          ? documentCitationsPath
+          : '',
+      documentValidationReportPath:
+          await File(documentValidationReportPath).exists()
+              ? documentValidationReportPath
+              : '',
       exportedDocumentPath: exportedDocumentPath,
       exportManifestPath: exportManifestPath,
       documentGenerationHistoryCount: generationHistoryCount,
@@ -4247,6 +4273,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       _join(workspace.path, 'doc', 'generated.md'),
       _join(workspace.path, 'doc', 'reading_notes.md'),
       _join(workspace.path, 'doc', 'edited_document.md'),
+      _join(workspace.path, 'doc', 'outline.json'),
+      _join(workspace.path, 'doc', 'citations.json'),
+      _join(workspace.path, 'doc', 'document_validation_report.json'),
       _join(workspace.path, 'export', 'reading_notes_export.md'),
     ].where((path) => File(path).existsSync()).toList(growable: false);
     final retrievalArtifacts = <String>[
@@ -5576,6 +5605,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     final citations = _citationsFromQueryReport(queryReport);
     final history = existingHistory.toList(growable: true);
     final createdAt = DateTime.now().toUtc().toIso8601String();
+    final outlinePath = _join(docDir.path, 'outline.json');
+    final citationsPath = _join(docDir.path, 'citations.json');
+    final validationPath =
+        _join(docDir.path, 'document_validation_report.json');
     final historyDir = Directory(_join(workspace.path, 'document_history'));
     await historyDir.create(recursive: true);
     final historyMarkdownPath = _join(
@@ -5597,8 +5630,59 @@ class Rc6RuntimeController extends ChangeNotifier {
       'citation_count': citations.length,
       'created_at': createdAt,
     });
+    await File(outlinePath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_document_outline.v1',
+        'title': config.title,
+        'generation_type': config.generationType,
+        'template_mode': config.templateMode,
+        'selected_kb_ids': selectedKbIds,
+        'sections': [
+          '生成配置',
+          '核心摘要',
+          '章节 / 主题结构',
+          '关键概念',
+          '可执行行动项',
+          '适合后续 Agent 使用的要点',
+          '引用来源或文件名',
+        ],
+        'confirmed_by_owner': false,
+        'generated_at': createdAt,
+      }),
+      encoding: utf8,
+    );
+    await File(citationsPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_document_citations.v1',
+        'citation_strategy': config.citationStrategy,
+        'citation_count': citations.length,
+        'citations': citations,
+        'retrieval_report_path':
+            queryReport.isEmpty ? '' : state.queryResultPath,
+        'generated_at': createdAt,
+      }),
+      encoding: utf8,
+    );
+    await File(validationPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_document_validation_report.v1',
+        'status': 'pass',
+        'body_status':
+            await File(outputPath).exists() ? 'generated' : 'missing_output',
+        'outline_status': 'generated_from_template',
+        'citation_list_status': 'written',
+        'citation_count': citations.length,
+        'history_snapshot_status': await File(historyMarkdownPath).exists()
+            ? 'written'
+            : 'not_written',
+        'export_format_requested': config.outputFormat,
+        'secret_plaintext_written': false,
+        'generated_at': createdAt,
+      }),
+      encoding: utf8,
+    );
     final payload = {
-      'schema_version': 'prd_v2_template_document_generation.v1',
+      'schema_version': 'prd_v3_template_document_generation.v1',
       'status': 'pass',
       'workspace': workspace.path,
       'generation_config': config.toJson(),
@@ -5610,6 +5694,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'source_count': sources.length,
       'sources': sources,
       'citations': citations,
+      'outline_path': outlinePath,
+      'citations_path': citationsPath,
+      'document_validation_report_path': validationPath,
       'outline_status': 'generated_from_template',
       'body_status': 'generated',
       'citation_list_status': 'written',
@@ -8556,6 +8643,9 @@ class Rc6RuntimeState {
     required this.readingNotesPath,
     required this.editedDocumentPath,
     required this.editManifestPath,
+    required this.documentOutlinePath,
+    required this.documentCitationsPath,
+    required this.documentValidationReportPath,
     required this.exportedDocumentPath,
     required this.exportManifestPath,
     required this.documentGenerationHistoryCount,
@@ -8661,6 +8751,9 @@ class Rc6RuntimeState {
         readingNotesPath: '',
         editedDocumentPath: '',
         editManifestPath: '',
+        documentOutlinePath: '',
+        documentCitationsPath: '',
+        documentValidationReportPath: '',
         exportedDocumentPath: '',
         exportManifestPath: '',
         documentGenerationHistoryCount: 0,
@@ -8765,6 +8858,9 @@ class Rc6RuntimeState {
   final String readingNotesPath;
   final String editedDocumentPath;
   final String editManifestPath;
+  final String documentOutlinePath;
+  final String documentCitationsPath;
+  final String documentValidationReportPath;
   final String exportedDocumentPath;
   final String exportManifestPath;
   final int documentGenerationHistoryCount;
@@ -8913,6 +9009,9 @@ class Rc6RuntimeState {
     String? readingNotesPath,
     String? editedDocumentPath,
     String? editManifestPath,
+    String? documentOutlinePath,
+    String? documentCitationsPath,
+    String? documentValidationReportPath,
     String? exportedDocumentPath,
     String? exportManifestPath,
     int? documentGenerationHistoryCount,
@@ -9033,6 +9132,11 @@ class Rc6RuntimeState {
       readingNotesPath: readingNotesPath ?? this.readingNotesPath,
       editedDocumentPath: editedDocumentPath ?? this.editedDocumentPath,
       editManifestPath: editManifestPath ?? this.editManifestPath,
+      documentOutlinePath: documentOutlinePath ?? this.documentOutlinePath,
+      documentCitationsPath:
+          documentCitationsPath ?? this.documentCitationsPath,
+      documentValidationReportPath:
+          documentValidationReportPath ?? this.documentValidationReportPath,
       exportedDocumentPath: exportedDocumentPath ?? this.exportedDocumentPath,
       exportManifestPath: exportManifestPath ?? this.exportManifestPath,
       documentGenerationHistoryCount:

@@ -428,6 +428,9 @@ class Rc6RuntimeState {
     required this.readingNotesPath,
     required this.editedDocumentPath,
     required this.editManifestPath,
+    required this.documentOutlinePath,
+    required this.documentCitationsPath,
+    required this.documentValidationReportPath,
     required this.exportedDocumentPath,
     required this.exportManifestPath,
     required this.documentGenerationHistoryCount,
@@ -533,6 +536,9 @@ class Rc6RuntimeState {
         readingNotesPath: '',
         editedDocumentPath: '',
         editManifestPath: '',
+        documentOutlinePath: '',
+        documentCitationsPath: '',
+        documentValidationReportPath: '',
         exportedDocumentPath: '',
         exportManifestPath: '',
         documentGenerationHistoryCount: 0,
@@ -637,6 +643,9 @@ class Rc6RuntimeState {
   final String readingNotesPath;
   final String editedDocumentPath;
   final String editManifestPath;
+  final String documentOutlinePath;
+  final String documentCitationsPath;
+  final String documentValidationReportPath;
   final String exportedDocumentPath;
   final String exportManifestPath;
   final int documentGenerationHistoryCount;
@@ -785,6 +794,9 @@ class Rc6RuntimeState {
     String? readingNotesPath,
     String? editedDocumentPath,
     String? editManifestPath,
+    String? documentOutlinePath,
+    String? documentCitationsPath,
+    String? documentValidationReportPath,
     String? exportedDocumentPath,
     String? exportManifestPath,
     int? documentGenerationHistoryCount,
@@ -905,6 +917,11 @@ class Rc6RuntimeState {
       readingNotesPath: readingNotesPath ?? this.readingNotesPath,
       editedDocumentPath: editedDocumentPath ?? this.editedDocumentPath,
       editManifestPath: editManifestPath ?? this.editManifestPath,
+      documentOutlinePath: documentOutlinePath ?? this.documentOutlinePath,
+      documentCitationsPath:
+          documentCitationsPath ?? this.documentCitationsPath,
+      documentValidationReportPath:
+          documentValidationReportPath ?? this.documentValidationReportPath,
       exportedDocumentPath: exportedDocumentPath ?? this.exportedDocumentPath,
       exportManifestPath: exportManifestPath ?? this.exportManifestPath,
       documentGenerationHistoryCount:
