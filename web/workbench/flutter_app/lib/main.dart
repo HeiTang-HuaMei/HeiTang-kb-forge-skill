@@ -6827,16 +6827,23 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
           zh: zh,
           initial: _DocumentGenerationConfig(
             generationType: generationType,
-            outputFormat: outputFormat,
+            outputFormat: _documentOutputFormatRequiresConfiguration(
+                    outputFormat)
+                ? 'md'
+                : outputFormat,
             citationStrategy: citationStrategy,
             templateMode: templateMode,
           ),
         ),
       );
       if (result == null) return;
+      final output = _documentOutputFormatRequiresConfiguration(
+              result.outputFormat)
+          ? 'md'
+          : result.outputFormat;
       setState(() {
         generationType = result.generationType;
-        outputFormat = result.outputFormat;
+        outputFormat = output;
         citationStrategy = result.citationStrategy;
         templateMode = result.templateMode;
         draftQueued = true;
@@ -6846,14 +6853,14 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
       await rc6.generateMarkdown(
         config: Rc6DocumentGenerationConfig(
           generationType: result.generationType,
-          outputFormat: result.outputFormat,
+          outputFormat: output,
           citationStrategy: result.citationStrategy,
           templateMode: result.templateMode,
         ),
       );
-      if ((result.outputFormat == 'json' || result.outputFormat == 'csv') &&
+      if ((output == 'json' || output == 'csv') &&
           rc6.state.lastResult?.passed == true) {
-        await rc6.exportDocumentFormat(result.outputFormat);
+        await rc6.exportDocumentFormat(output);
       }
     }
 
@@ -7015,10 +7022,12 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                         'csv'
                       ])
                         ChoiceChip(
-                          label: Text(item.toUpperCase()),
+                          label: Text(_documentOutputFormatLabel(item, zh)),
                           selected: outputFormat == item,
-                          onSelected: (_) =>
-                              setState(() => outputFormat = item),
+                          onSelected:
+                              _documentOutputFormatRequiresConfiguration(item)
+                                  ? null
+                                  : (_) => setState(() => outputFormat = item),
                         ),
                     ]),
                   ],
@@ -7488,6 +7497,18 @@ String _citationStrategyLabel(String value, bool zh) {
   };
 }
 
+bool _documentOutputFormatRequiresConfiguration(String value) {
+  return const {'docx', 'pdf', 'pptx'}.contains(value);
+}
+
+String _documentOutputFormatLabel(String value, bool zh) {
+  final upper = value.toUpperCase();
+  if (_documentOutputFormatRequiresConfiguration(value)) {
+    return zh ? '$upper（需配置）' : '$upper (config required)';
+  }
+  return upper;
+}
+
 class _DocumentGenerationConfig {
   const _DocumentGenerationConfig({
     required this.generationType,
@@ -7778,9 +7799,11 @@ class _DocumentExportPreviewViewState
               'pptx'
             ])
               ChoiceChip(
-                label: Text(item.toUpperCase()),
+                label: Text(_documentOutputFormatLabel(item, zh)),
                 selected: selectedExportFormat == item,
-                onSelected: (_) => setState(() => selectedExportFormat = item),
+                onSelected: _documentOutputFormatRequiresConfiguration(item)
+                    ? null
+                    : (_) => setState(() => selectedExportFormat = item),
               ),
           ]),
           const SizedBox(height: _DesktopGrid.gutter),
@@ -7789,7 +7812,11 @@ class _DocumentExportPreviewViewState
                 ? '导出 ${selectedExportFormat.toUpperCase()} 文件'
                 : 'Export ${selectedExportFormat.toUpperCase()} file',
             icon: Icons.file_download_outlined,
-            onPressed: runtime.running || rc6 == null || !runtime.hasMarkdown
+            onPressed: runtime.running ||
+                    rc6 == null ||
+                    !runtime.hasMarkdown ||
+                    _documentOutputFormatRequiresConfiguration(
+                        selectedExportFormat)
                 ? null
                 : () {
                     setState(() => exportPreviewReady = true);

@@ -278,6 +278,10 @@ void main() {
     expect(find.text('生成任务'), findsWidgets);
     expect(find.byKey(const Key('document-central-preview')), findsOneWidget);
     expect(find.textContaining('需要导出器配置'), findsWidgets);
+    expect(find.text('DOCX（需配置）'), findsOneWidget);
+    final disabledDocxChoice =
+        tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'DOCX（需配置）'));
+    expect(disabledDocxChoice.onSelected, isNull);
     await tester.tap(find.text('文档模板').last);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('document-template-library')), findsOneWidget);
@@ -287,6 +291,10 @@ void main() {
     expect(find.byKey(const Key('document-export-preview')), findsOneWidget);
     expect(find.text('PDF'), findsWidgets);
     expect(find.text('PPTX'), findsWidgets);
+    expect(find.text('PDF（需配置）'), findsOneWidget);
+    final disabledPdfChoice =
+        tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'PDF（需配置）'));
+    expect(disabledPdfChoice.onSelected, isNull);
     expect(find.textContaining('display_only'), findsNothing);
     expect(find.textContaining('需要导出器配置'), findsWidgets);
     expect(find.textContaining('本地导出器'), findsNothing);
