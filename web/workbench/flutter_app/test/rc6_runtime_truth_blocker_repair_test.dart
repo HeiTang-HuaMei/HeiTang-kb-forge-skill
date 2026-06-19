@@ -1513,6 +1513,17 @@ void main() {
     expect(generationManifestJson['generation_history'], hasLength(2));
     expect(controller.state.documentGenerationHistoryCount, 2);
     expect(controller.state.hasDocumentGenerationHistory, isTrue);
+    await controller.deleteLatestDocumentGenerationHistory();
+    final latestDeletedManifest = jsonDecode(
+        File('$docRoot${Platform.pathSeparator}generation_manifest.json')
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(latestDeletedManifest['generation_history'], hasLength(1));
+    expect((latestDeletedManifest['generation_history'] as List).single,
+        containsPair('generation_type', 'product_analysis'));
+    expect(latestDeletedManifest['latest_history_deleted_event'],
+        'generate_document');
+    expect(controller.state.documentGenerationHistoryCount, 1);
+    expect(controller.state.hasDocumentGenerationHistory, isTrue);
     await controller.clearDocumentGenerationHistory();
     final clearedManifest = jsonDecode(
         File('$docRoot${Platform.pathSeparator}generation_manifest.json')

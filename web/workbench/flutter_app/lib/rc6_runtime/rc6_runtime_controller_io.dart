@@ -826,6 +826,38 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> deleteLatestDocumentGenerationHistory() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    final manifestPath =
+        _join(workspace.path, 'doc', 'generation_manifest.json');
+    final manifest = await _readJsonObject(manifestPath);
+    final history =
+        _listOfMaps(manifest['generation_history']).toList(growable: true);
+    if (history.isEmpty) {
+      _fail('暂无生成历史可删除。');
+      return;
+    }
+    final deleted = history.removeLast();
+    manifest['generation_history'] = history;
+    manifest['latest_history_deleted_at'] =
+        DateTime.now().toUtc().toIso8601String();
+    manifest['latest_history_deleted_event'] =
+        (deleted['event'] ?? '').toString();
+    await File(manifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(manifest),
+      encoding: utf8,
+    );
+    state = state.copyWith(
+      documentGenerationHistoryCount: history.length,
+      lastMessage: '最近一条文档生成历史已删除；正文和导出产物已保留。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
   Future<String> saveEditedDocument(String markdown) async {
     if (!_canRunDesktop()) {
       return '';

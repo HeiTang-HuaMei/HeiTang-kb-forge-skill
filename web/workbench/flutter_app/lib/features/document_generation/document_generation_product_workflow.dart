@@ -166,6 +166,13 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
       setState(() {});
     }
 
+    Future<void> deleteLatestGenerationHistory() async {
+      if (rc6 == null) return;
+      await rc6.deleteLatestDocumentGenerationHistory();
+      if (!mounted) return;
+      setState(() {});
+    }
+
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 1040;
       final extraWide = constraints.maxWidth >= 1180;
@@ -366,7 +373,7 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
           const SizedBox(height: 8),
           _EqualActionRow(children: [
             _DisplayAction(
-              label: zh ? '加载生成稿' : 'Load Draft',
+              label: zh ? '重新打开生成稿' : 'Reopen Draft',
               icon: Icons.article_outlined,
               onPressed: rc6 == null || !runtime.hasMarkdown
                   ? null
@@ -518,6 +525,15 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
           ),
           const SizedBox(height: 8),
           _EqualActionRow(children: [
+            _DisplayAction(
+              label: zh ? '删除最近记录' : 'Delete latest record',
+              icon: Icons.delete_outline,
+              onPressed: rc6 == null ||
+                      runtime.running ||
+                      !runtime.hasDocumentGenerationHistory
+                  ? null
+                  : deleteLatestGenerationHistory,
+            ),
             _DisplayAction(
               label: zh ? '清空历史' : 'Clear history',
               icon: Icons.delete_sweep_outlined,

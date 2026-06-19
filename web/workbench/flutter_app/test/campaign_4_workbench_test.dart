@@ -435,6 +435,15 @@ void main() {
     expect(find.byKey(const Key('document-generation-tasks')), findsOneWidget);
     expect(find.text('生成任务'), findsWidgets);
     expect(find.byKey(const Key('document-central-preview')), findsOneWidget);
+    final reopenDraft = find.widgetWithText(OutlinedButton, '重新打开生成稿');
+    final deleteLatestHistory = find.widgetWithText(OutlinedButton, '删除最近记录');
+    expect(reopenDraft, findsOneWidget);
+    expect(deleteLatestHistory, findsOneWidget);
+    expect(tester.widget<OutlinedButton>(reopenDraft).onPressed, isNull);
+    expect(
+      tester.widget<OutlinedButton>(deleteLatestHistory).onPressed,
+      isNull,
+    );
     expect(find.textContaining('需要导出器配置'), findsWidgets);
     expect(find.text('DOCX（需配置）'), findsOneWidget);
     final disabledDocxChoice =
