@@ -211,7 +211,7 @@ def test_flutter_scaffold_does_not_import_core_modules():
         assert all(forbidden not in line for line in import_lines)
 
 
-def test_campaign9_desktop_delivery_status_is_ui_bound_without_release_overclaim():
+def test_campaign9_desktop_delivery_status_is_retained_without_ui_route_or_release_overclaim():
     flutter_root = WORKBENCH / "flutter_app"
     asset_path = (
         flutter_root
@@ -263,8 +263,8 @@ def test_campaign9_desktop_delivery_status_is_ui_bound_without_release_overclaim
     assert all(status["security_boundaries"].values())
     assert "campaign9_desktop_delivery_status_2026_06_17.json" in pubspec
     assert "campaign9DesktopDeliveryStatus" in main
-    assert "settings-desktop-delivery" in ui_source
-    assert "_SettingsDesktopDeliveryView" in ui_source
+    assert "settings-desktop-delivery" not in ui_source
+    assert "_SettingsDesktopDeliveryView" not in ui_source
     assert "GitHub Release creation requires separate Owner authorization" in json.dumps(status)
     assert "v4.3.0-rc6" not in json.dumps(status)
     assert "rc6_runtime_truth_repair" not in json.dumps(status)
