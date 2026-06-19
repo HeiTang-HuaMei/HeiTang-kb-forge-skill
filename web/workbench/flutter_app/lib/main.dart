@@ -14212,7 +14212,7 @@ class _SettingsProvidersStorageViewState
       final detail = _ProductPanel(
         keyName: 'settings-provider-detail',
         icon: Icons.tune_outlined,
-        title: zh ? '配置状态' : 'Configuration Status',
+        title: zh ? '导出器与授权状态' : 'Exporter and Authorization Status',
         gap: true,
         children: [
           _FieldRow(
@@ -14234,6 +14234,29 @@ class _SettingsProvidersStorageViewState
                   : configLoading
                       ? 'Loading workspace config'
                       : 'When Docker is not running, show configured-not-tested; never connected'),
+          const SizedBox(height: 8),
+          _SectionCaption(zh ? '文档导出器' : 'Document exporters'),
+          const SizedBox(height: 6),
+          _ProductTable(
+            columns: zh
+                ? ['格式', '状态', '配置入口']
+                : ['Format', 'Status', 'Config entry'],
+            rows: zh
+                ? [
+                    ['Markdown', '本地可用', '无需外部导出器'],
+                    ['JSON / CSV', '本地可用', '无需外部导出器'],
+                    ['DOCX', '需要导出器配置', '配置导出器后启用'],
+                    ['PDF', '需要导出器配置', '配置导出器后启用'],
+                    ['PPTX', '需要导出器配置', '配置导出器后启用'],
+                  ]
+                : [
+                    ['Markdown', 'Local available', 'No external exporter'],
+                    ['JSON / CSV', 'Local available', 'No external exporter'],
+                    ['DOCX', 'Exporter config required', 'Enable after config'],
+                    ['PDF', 'Exporter config required', 'Enable after config'],
+                    ['PPTX', 'Exporter config required', 'Enable after config'],
+                  ],
+          ),
           const SizedBox(height: 8),
           _DisplayAction(
               label: zh ? '查看 Provider 状态' : 'View Provider status',

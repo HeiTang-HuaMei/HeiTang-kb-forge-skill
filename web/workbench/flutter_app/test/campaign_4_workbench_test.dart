@@ -414,6 +414,9 @@ void main() {
     expect(find.textContaining('************'), findsOneWidget);
     expect(find.text('测试存储连接'), findsOneWidget);
     expect(find.text('保存配置'), findsOneWidget);
+    expect(find.text('导出器与授权状态'), findsOneWidget);
+    expect(find.text('文档导出器'), findsOneWidget);
+    expect(find.textContaining('需要导出器配置'), findsWidgets);
     expect(find.textContaining('sk-test-secret'), findsNothing);
     expect(find.text('模板库'), findsNothing);
     expect(tester.takeException(), isNull);
