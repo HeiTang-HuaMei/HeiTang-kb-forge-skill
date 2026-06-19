@@ -91,6 +91,36 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> deleteWorkbook(String name) async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workbookName = name.trim();
+    if (workbookName.isEmpty) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    final result = await _deleteWorkbookFromManifest(workspace, workbookName);
+    if (result == null) {
+      state = state.copyWith(
+        lastError: '无法删除工作本：$workbookName；请确认记录存在且至少保留一个工作本。',
+        lastMessage: '',
+      );
+      notifyListeners();
+      return;
+    }
+    final (manifestPath, currentName, workbookNames) = result;
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      currentWorkbookName: currentName,
+      workbookManifestPath: manifestPath,
+      workbookNames: workbookNames,
+      lastMessage: '已删除工作本：$workbookName。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
   Future<void> pickAndImportFile() async {
     if (!_canRunDesktop()) {
       return;
@@ -3208,6 +3238,74 @@ class Rc6RuntimeController extends ChangeNotifier {
       encoding: utf8,
     );
     return manifestPath;
+  }
+
+  Future<(String, String, List<String>)?> _deleteWorkbookFromManifest(
+    Directory workspace,
+    String name,
+  ) async {
+    final manifestPath =
+        _join(workspace.path, 'workbooks', 'workbook_manifest.json');
+    final manifestFile = File(manifestPath);
+    if (!await manifestFile.exists()) {
+      return null;
+    }
+    final existing = await _readJsonObject(manifestPath);
+    final rows = existing['workbooks'] is List
+        ? (existing['workbooks'] as List)
+            .whereType<Map>()
+            .map((row) => Map<String, dynamic>.from(row))
+            .where((row) => (row['name'] ?? '').toString().trim().isNotEmpty)
+            .toList(growable: true)
+        : <Map<String, dynamic>>[];
+    final target = name.trim();
+    final index = rows
+        .indexWhere((row) => (row['name'] ?? '').toString().trim() == target);
+    if (index < 0 || rows.length <= 1) {
+      return null;
+    }
+    rows.removeAt(index);
+    final previousCurrent =
+        (existing['current_workbook'] ?? state.currentWorkbookName)
+            .toString()
+            .trim();
+    final deletedCurrent = previousCurrent == target;
+    final defaultIndex = rows
+        .indexWhere((row) => (row['name'] ?? '').toString().trim() == '默认工作本');
+    final nextCurrent = deletedCurrent
+        ? (defaultIndex >= 0
+            ? (rows[defaultIndex]['name'] ?? '').toString().trim()
+            : (rows.first['name'] ?? '').toString().trim())
+        : previousCurrent;
+    final effectiveCurrent = nextCurrent.isEmpty
+        ? (rows.first['name'] ?? '默认工作本').toString()
+        : nextCurrent;
+    final now = DateTime.now().toUtc().toIso8601String();
+    for (final row in rows) {
+      final rowName = (row['name'] ?? '').toString().trim();
+      row['status'] = rowName == effectiveCurrent ? 'active' : 'available';
+      if (rowName == effectiveCurrent) {
+        row['last_opened_at'] = now;
+      }
+    }
+    final payload = {
+      ...existing,
+      'schema_version': 'prd_v2_workbook_manifest.v1',
+      'workspace_path': workspace.path,
+      'current_workbook': effectiveCurrent,
+      'workbooks': rows,
+    };
+    await manifestFile.writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+    return (
+      manifestPath,
+      effectiveCurrent,
+      List<String>.unmodifiable(rows
+          .map((row) => (row['name'] ?? '').toString().trim())
+          .where((rowName) => rowName.isNotEmpty))
+    );
   }
 
   Future<String> _refreshCurrentWorkbookAssetIndex(

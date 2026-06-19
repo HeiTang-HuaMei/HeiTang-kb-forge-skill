@@ -31,6 +31,22 @@ class _WorkbookProductWorkflowState extends State<_WorkbookProductWorkflow> {
     await rc6.createOrSwitchWorkbook(target);
   }
 
+  Future<void> _confirmAndDeleteWorkbook(
+    Rc6RuntimeController? rc6,
+    String name,
+  ) async {
+    if (rc6 == null || rc6.state.running || name.trim().isEmpty) return;
+    final confirmed = await _confirmDestructiveAction(
+      context,
+      title: _zh ? '删除工作本？' : 'Delete workbook?',
+      body: _zh
+          ? '这会从当前工作区删除“$name”的工作本记录；真实导入文件、知识库和产物仍保留在工作区，可由其他工作本继续引用。'
+          : 'This deletes the "$name" workbook record from the current workspace. Imported files, knowledge bases, and artifacts remain in the workspace and can still be referenced by other workbooks.',
+    );
+    if (!confirmed) return;
+    await rc6.deleteWorkbook(name);
+  }
+
   @override
   void dispose() {
     _workbookNameController.dispose();
@@ -223,6 +239,16 @@ class _WorkbookProductWorkflowState extends State<_WorkbookProductWorkflow> {
                           name == runtime.currentWorkbookName
                       ? null
                       : () => _createOrSwitchWorkbook(rc6, name: name),
+                ),
+              for (final name in runtime.workbookNames.take(3))
+                _DisplayAction(
+                  label: _zh ? '删除 $name' : 'Delete $name',
+                  icon: Icons.delete_outline,
+                  onPressed: rc6 == null ||
+                          runtime.running ||
+                          runtime.workbookNames.length <= 1
+                      ? null
+                      : () => _confirmAndDeleteWorkbook(rc6, name),
                 ),
             ]),
           ],

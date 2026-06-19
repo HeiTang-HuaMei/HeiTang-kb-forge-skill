@@ -108,6 +108,13 @@ void main() {
     expect(find.byKey(const Key('workbook-next-actions')), findsOneWidget);
     expect(find.byKey(const Key('workbook-name-input')), findsOneWidget);
     expect(find.text('创建 / 切换工作本'), findsOneWidget);
+    final deleteDefaultWorkbook =
+        find.widgetWithText(OutlinedButton, '删除 默认工作本');
+    expect(deleteDefaultWorkbook, findsOneWidget);
+    expect(
+      tester.widget<OutlinedButton>(deleteDefaultWorkbook).onPressed,
+      isNull,
+    );
     await tester.tap(find.text('文档库').first);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('dense-page-workbench-document-library')),

@@ -2368,6 +2368,62 @@ void main() {
     expect(reloaded.state.workbookNames, containsAll(['产品研究工作本', '运营复盘工作本']));
   });
 
+  test('prd workbook deletion persists across restart', () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    await controller.createOrSwitchWorkbook('产品研究工作本');
+    await controller.createOrSwitchWorkbook('运营复盘工作本');
+    await controller.deleteWorkbook('产品研究工作本');
+
+    final manifest = File(
+        '${workspace.path}${Platform.pathSeparator}workbooks${Platform.pathSeparator}workbook_manifest.json');
+    var payload =
+        jsonDecode(manifest.readAsStringSync()) as Map<String, dynamic>;
+    var workbookNames = (payload['workbooks'] as List)
+        .whereType<Map>()
+        .map((row) => row['name'])
+        .toList();
+    expect(workbookNames, isNot(contains('产品研究工作本')));
+    expect(workbookNames, containsAll(['默认工作本', '运营复盘工作本']));
+    expect(payload['current_workbook'], '运营复盘工作本');
+    expect(controller.state.workbookNames, isNot(contains('产品研究工作本')));
+    expect(controller.state.currentWorkbookName, '运营复盘工作本');
+
+    await controller.deleteWorkbook('运营复盘工作本');
+    payload = jsonDecode(manifest.readAsStringSync()) as Map<String, dynamic>;
+    workbookNames = (payload['workbooks'] as List)
+        .whereType<Map>()
+        .map((row) => row['name'])
+        .toList();
+    expect(workbookNames, ['默认工作本']);
+    expect(payload['current_workbook'], '默认工作本');
+    expect(controller.state.workbookNames, ['默认工作本']);
+    expect(controller.state.currentWorkbookName, '默认工作本');
+
+    await controller.deleteWorkbook('默认工作本');
+    expect(controller.state.lastError, contains('至少保留一个工作本'));
+    expect(controller.state.workbookNames, ['默认工作本']);
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(reloaded.state.currentWorkbookName, '默认工作本');
+    expect(reloaded.state.workbookNames, ['默认工作本']);
+    expect(reloaded.state.workbookNames, isNot(contains('产品研究工作本')));
+    expect(reloaded.state.workbookNames, isNot(contains('运营复盘工作本')));
+  });
+
   test('prd workbook asset index refreshes after product artifacts are added',
       () async {
     final workspace = await createWorkspace();
