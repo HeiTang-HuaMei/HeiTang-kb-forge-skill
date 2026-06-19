@@ -1125,6 +1125,15 @@ void main() {
           contains('"turn_count": ${baseTurnCount + 2}'),
           contains('"secret_plaintext_written": false'),
         ));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}run_history.json')
+            .readAsStringSync(),
+        allOf(
+          contains('"action": "run_agent_dialogue"'),
+          contains('"action": "export_agent_dialogue"'),
+          contains(
+              '"artifact": "${dialogueExportPath.replaceAll(r'\', r'\\')}"'),
+        ));
     final reloadedController = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
         runner: (_) async => const CoreBridgeProcessResult(
@@ -1951,6 +1960,14 @@ void main() {
           contains('"topic": "Owner 自定义 A2A 议题"'),
           contains('"operation_conversion_agent"'),
           contains('"product_analysis_agent"'),
+        ));
+    expect(
+        File('$agentRoot${Platform.pathSeparator}audit${Platform.pathSeparator}run_history.json')
+            .readAsStringSync(),
+        allOf(
+          contains('"action": "run_agent_dialogue"'),
+          contains('"action": "run_a2a_discussion"'),
+          contains('Owner 自定义 A2A 议题'),
         ));
   });
 

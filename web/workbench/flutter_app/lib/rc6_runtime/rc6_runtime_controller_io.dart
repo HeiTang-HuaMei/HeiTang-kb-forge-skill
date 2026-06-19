@@ -2304,6 +2304,17 @@ class Rc6RuntimeController extends ChangeNotifier {
       topic: topic,
       participantAgentIds: participantAgentIds,
     );
+    final workspace = _requireWorkspace();
+    await _appendAgentRunHistoryRecord(
+      action: 'run_a2a_discussion',
+      artifact:
+          _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md'),
+      status: 'completed',
+      details: {
+        'topic': topic.trim(),
+        'participant_agent_ids': participantAgentIds,
+      },
+    );
     await _loadExistingArtifacts();
     state = state.copyWith(
       lastMessage: '多 Agent 联合讨论纪要已生成。',
@@ -2469,6 +2480,20 @@ class Rc6RuntimeController extends ChangeNotifier {
       }),
       encoding: utf8,
     );
+    await _appendAgentRunHistoryRecord(
+      action: 'run_agent_dialogue',
+      artifact: dialoguePath,
+      status: evidence.isEmpty ? 'needs_evidence' : 'completed',
+      details: {
+        'prompt': prompt,
+        'history_path': historyPath,
+        'turn_count': turns.length,
+        'evidence_count': evidence.length,
+        'model_config_id': modelConfigId,
+        'used_kb_ids': kbIds,
+        'used_skill_ids': skillIds,
+      },
+    );
     state = state.copyWith(
       agentDialoguePath: dialoguePath,
       agentDialogueManifestPath: manifestPath,
@@ -2551,6 +2576,20 @@ class Rc6RuntimeController extends ChangeNotifier {
         'secret_plaintext_written': false,
       }),
       encoding: utf8,
+    );
+    await _appendAgentRunHistoryRecord(
+      action: 'export_agent_dialogue',
+      artifact: outputPath,
+      status: 'completed',
+      details: {
+        'manifest_path': manifestPath,
+        'source_history': history.path,
+        'turn_count': historyLines.length,
+        'used_kb_ids': usedKbIds.isEmpty ? ['K1'] : usedKbIds,
+        'used_skill_ids': usedSkillIds.isEmpty
+            ? ['S1', 'reading_summary_skill']
+            : usedSkillIds,
+      },
     );
     state = state.copyWith(
       agentDialogueExportPath: outputPath,
@@ -5638,6 +5677,40 @@ class Rc6RuntimeController extends ChangeNotifier {
           ],
         }),
         encoding: utf8);
+  }
+
+  Future<void> _appendAgentRunHistoryRecord({
+    required String action,
+    required String artifact,
+    required String status,
+    Map<String, Object?> details = const {},
+  }) async {
+    final workspace = _requireWorkspace();
+    final auditRoot = Directory(_join(workspace.path, 'agent', 'audit'));
+    await auditRoot.create(recursive: true);
+    final historyPath = _join(auditRoot.path, 'run_history.json');
+    final current = await _readJsonObject(historyPath);
+    final records = _listOfMaps(current['records']).toList(growable: true);
+    records.add({
+      'run_id':
+          'agent_${action}_${(records.length + 1).toString().padLeft(3, '0')}',
+      'action': action,
+      'artifact': artifact,
+      'status': status,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+      'details': details,
+    });
+    final payload = {
+      ...current,
+      'schema_version': _stringValue(
+          current['schema_version'], 'prd_v2_agent_run_history.v1'),
+      'status': 'pass',
+      'records': records,
+    };
+    await File(historyPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
   }
 
   Future<void> _writeMultiAgentDiscussion({
