@@ -6807,10 +6807,19 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
         : runtime.hasKnowledgeBase
             ? (zh ? '可生成' : 'Ready')
             : (zh ? '需要知识库' : 'Needs KB');
-    final exportReady = runtime.hasMarkdown
-        ? (zh ? '可导出' : 'Ready')
-        : (zh ? '需要文档' : 'Needs document');
-    final localExporter = zh ? '本地导出器' : 'Local exporter';
+    final officeExporterStatus =
+        zh ? '需要导出器配置' : 'Exporter config required';
+    final officeExporterDetail =
+        zh ? '在运行设置启用后可导出' : 'Enable in Run Settings';
+    String statusForOutputFormat(String format) {
+      if (format == 'md') return markdownStatus;
+      if (format == 'json' || format == 'csv') {
+        return runtime.hasMarkdown
+            ? (zh ? '可导出' : 'Ready')
+            : (zh ? '需要文档' : 'Needs document');
+      }
+      return officeExporterStatus;
+    }
     Future<void> openGenerationDialog() async {
       final result = await showDialog<_DocumentGenerationConfig>(
         context: context,
@@ -6919,9 +6928,7 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                               [
                                 '输出格式',
                                 outputFormat.toUpperCase(),
-                                outputFormat == 'md'
-                                    ? markdownStatus
-                                    : exportReady
+                                statusForOutputFormat(outputFormat)
                               ],
                               [
                                 '引用策略',
@@ -6958,9 +6965,7 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                               [
                                 'Output format',
                                 outputFormat.toUpperCase(),
-                                outputFormat == 'md'
-                                    ? markdownStatus
-                                    : exportReady
+                                statusForOutputFormat(outputFormat)
                               ],
                               [
                                 'Citation strategy',
@@ -7224,8 +7229,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
           _FieldRow(
             label: zh ? '导出边界' : 'Export boundary',
             value: zh
-                ? 'Markdown、DOCX、PDF、PPTX、JSON、CSV 均为本地真实导出。'
-                : 'Markdown, DOCX, PDF, PPTX, JSON, and CSV export locally.',
+                ? 'Markdown、JSON、CSV 为本地导出；DOCX/PDF/PPTX 需要导出器配置。'
+                : 'Markdown, JSON, and CSV export locally; DOCX/PDF/PPTX require exporter config.',
           ),
           const SizedBox(height: 8),
           _EqualActionRow(children: [
@@ -7262,13 +7267,13 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                 icon: Icons.notes_outlined),
             _MetricDatum(
                 label: 'DOCX',
-                value: exportReady,
-                detail: localExporter,
+                value: officeExporterStatus,
+                detail: officeExporterDetail,
                 icon: Icons.description_outlined),
             _MetricDatum(
                 label: 'PDF/PPTX',
-                value: exportReady,
-                detail: localExporter,
+                value: officeExporterStatus,
+                detail: officeExporterDetail,
                 icon: Icons.picture_as_pdf_outlined),
             _MetricDatum(
                 label: 'JSON/CSV',
@@ -7635,20 +7640,11 @@ class _DocumentExportPreviewViewState
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
-    final exportStatus = runtime.hasMarkdown
-        ? (zh ? '可导出' : 'Ready')
-        : (zh ? '需要 Markdown' : 'Needs Markdown');
-    String artifactForFormat(String format) {
-      if (!runtime.hasExportedDocument) {
-        return zh ? '尚未生成导出文件' : 'No export file yet';
-      }
-      final path = runtime.exportedDocumentPath.toLowerCase();
-      final normalized = format == 'markdown' ? 'md' : format;
-      if (path.endsWith('.$normalized')) {
-        return _displayNameForPath(runtime.exportedDocumentPath);
-      }
-      return zh ? '点击导出生成' : 'Export on click';
-    }
+    final officeExporterStatus =
+        zh ? '需要导出器配置' : 'Exporter config required';
+    final officeExporterValidation = zh ? '未启用' : 'Not enabled';
+    final officeExporterArtifact =
+        zh ? '在运行设置启用导出器' : 'Enable exporter in Run Settings';
 
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= _DesktopGrid.rowBreakpoint;
@@ -7658,8 +7654,8 @@ class _DocumentExportPreviewViewState
         title: zh ? '文档导出' : 'Document Export',
         children: [
           _SectionCaption(zh
-              ? 'Markdown / DOCX / PDF / PPTX / JSON / CSV 都通过本地工作区真实导出。'
-              : 'Markdown / DOCX / PDF / PPTX / JSON / CSV export through the local workspace.'),
+              ? 'Markdown、JSON、CSV 通过本地工作区真实导出；DOCX/PDF/PPTX 需要在运行设置启用导出器。'
+              : 'Markdown, JSON, and CSV export through the local workspace; DOCX/PDF/PPTX require exporters in Run Settings.'),
           const SizedBox(height: 8),
           _ProductTable(
             columns: zh
@@ -7691,9 +7687,24 @@ class _DocumentExportPreviewViewState
                       '本地结构化',
                       'knowledge_export.csv'
                     ],
-                    ['DOCX', exportStatus, '本地导出器', artifactForFormat('docx')],
-                    ['PDF', exportStatus, '本地导出器', artifactForFormat('pdf')],
-                    ['PPTX', exportStatus, '本地导出器', artifactForFormat('pptx')],
+                    [
+                      'DOCX',
+                      officeExporterStatus,
+                      officeExporterValidation,
+                      officeExporterArtifact
+                    ],
+                    [
+                      'PDF',
+                      officeExporterStatus,
+                      officeExporterValidation,
+                      officeExporterArtifact
+                    ],
+                    [
+                      'PPTX',
+                      officeExporterStatus,
+                      officeExporterValidation,
+                      officeExporterArtifact
+                    ],
                   ]
                 : [
                     [
@@ -7722,21 +7733,21 @@ class _DocumentExportPreviewViewState
                     ],
                     [
                       'DOCX',
-                      exportStatus,
-                      'Local exporter',
-                      artifactForFormat('docx')
+                      officeExporterStatus,
+                      officeExporterValidation,
+                      officeExporterArtifact
                     ],
                     [
                       'PDF',
-                      exportStatus,
-                      'Local exporter',
-                      artifactForFormat('pdf')
+                      officeExporterStatus,
+                      officeExporterValidation,
+                      officeExporterArtifact
                     ],
                     [
                       'PPTX',
-                      exportStatus,
-                      'Local exporter',
-                      artifactForFormat('pptx')
+                      officeExporterStatus,
+                      officeExporterValidation,
+                      officeExporterArtifact
                     ],
                   ],
           ),
