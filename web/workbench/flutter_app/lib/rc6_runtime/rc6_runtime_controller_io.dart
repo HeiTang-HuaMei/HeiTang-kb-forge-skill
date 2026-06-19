@@ -2343,6 +2343,42 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> runSkillOperation(String operation) async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final normalized = operation.trim();
+    const allowed = {
+      'copy',
+      'fusion',
+      'validate',
+      'export',
+      'bind_agent',
+    };
+    if (!allowed.contains(normalized)) {
+      _fail('未知 Skill 操作：$operation');
+      return;
+    }
+    if (!state.hasSkill) {
+      await generateSkill();
+      if (!state.hasSkill) return;
+    }
+    await _appendSkillVersionRecord(
+      event: 'skill_operation_$normalized',
+      config: {'operation': normalized},
+    );
+    await _writeSkillProductOperations(
+      agentBound: state.hasAgent,
+      requestedOperation: normalized,
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: 'Skill 操作已完成：$normalized。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
   Future<String> saveEditedSkill(String skillMarkdown) async {
     if (!_canRunDesktop()) {
       return '';
@@ -4617,7 +4653,10 @@ class Rc6RuntimeController extends ChangeNotifier {
             encoding: utf8);
   }
 
-  Future<void> _writeSkillProductOperations({required bool agentBound}) async {
+  Future<void> _writeSkillProductOperations({
+    required bool agentBound,
+    String requestedOperation = 'all',
+  }) async {
     final workspace = _requireWorkspace();
     final skillRoot = Directory(_join(workspace.path, 'skill'));
     await skillRoot.create(recursive: true);
@@ -4729,6 +4768,8 @@ class Rc6RuntimeController extends ChangeNotifier {
             const JsonEncoder.withIndent('  ').convert({
               'schema_version': 'prd_v2_skill_operations.v1',
               'status': 'pass',
+              'requested_operation': requestedOperation,
+              'last_operation_at': DateTime.now().toUtc().toIso8601String(),
               'operations': [
                 {
                   'operation': 'view',

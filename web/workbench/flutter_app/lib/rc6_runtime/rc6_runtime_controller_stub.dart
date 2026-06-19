@@ -167,6 +167,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     Rc6SkillGenerationConfig config = const Rc6SkillGenerationConfig(),
   }) async =>
       initialize();
+  Future<void> runSkillOperation(String operation) async => initialize();
   Future<void> pickAndImportExternalSkill() async => initialize();
   Future<void> importExternalSkillPath(String path) async => initialize();
   Future<void> completeSkillProductOperations() async => initialize();

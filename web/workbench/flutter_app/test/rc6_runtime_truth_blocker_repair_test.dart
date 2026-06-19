@@ -1665,12 +1665,26 @@ void main() {
         File('$skillRoot${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_manifest.json')
             .readAsStringSync(),
         allOf(
+          contains('"requested_operation": "all"'),
           contains('"operation": "edit"'),
           contains('"operation": "version"'),
           contains('skill_edit_manifest.json'),
           contains('skill_version_manifest.json'),
           contains('"status": "saved"'),
         ));
+    await controller.runSkillOperation('fusion');
+    final operationManifest = File(
+            '$skillRoot${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_manifest.json')
+        .readAsStringSync();
+    expect(
+        operationManifest,
+        allOf(
+          contains('"requested_operation": "fusion"'),
+          contains('"operation": "fusion"'),
+          contains('fused_product_ops_skill'),
+        ));
+    expect(File(skillVersionManifestPath).readAsStringSync(),
+        contains('"event": "skill_operation_fusion"'));
     expect(controller.state.skillExportPath, endsWith('skills_export.md'));
     expect(controller.state.skillOperationManifestPath,
         endsWith('skill_operation_manifest.json'));

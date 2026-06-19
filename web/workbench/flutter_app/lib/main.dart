@@ -11397,9 +11397,7 @@ class _SkillBuilderProductWorkflowState
             const SizedBox(height: 8),
             _EqualActionRow(children: [
               _PrimaryProductAction(
-                label: _zh
-                    ? '校验 / 复制 / 融合 / 导出 Skill'
-                    : 'Validate / copy / fuse / export Skill',
+                label: _zh ? '校验 Skill' : 'Validate Skill',
                 onPressed: runtime.running || rc6 == null
                     ? null
                     : () {
@@ -11408,9 +11406,61 @@ class _SkillBuilderProductWorkflowState
                           outputPreviewReady = true;
                           validationReady = true;
                         });
-                        rc6.completeSkillProductOperations();
+                        rc6.runSkillOperation('validate');
                       },
-                icon: Icons.auto_awesome_outlined,
+                icon: Icons.verified_outlined,
+              ),
+              _PrimaryProductAction(
+                label: _zh ? '复制 Skill' : 'Copy Skill',
+                icon: Icons.content_copy_outlined,
+                onPressed: runtime.running || rc6 == null
+                    ? null
+                    : () {
+                        setState(() {
+                          outputPreviewReady = true;
+                          validationReady = true;
+                        });
+                        rc6.runSkillOperation('copy');
+                      },
+              ),
+              _PrimaryProductAction(
+                label: _zh ? '融合 Skill' : 'Fuse Skill',
+                icon: Icons.merge_type_outlined,
+                onPressed: runtime.running || rc6 == null
+                    ? null
+                    : () {
+                        setState(() {
+                          outputPreviewReady = true;
+                          validationReady = true;
+                        });
+                        rc6.runSkillOperation('fusion');
+                      },
+              ),
+              _PrimaryProductAction(
+                label: _zh ? '导出 Skill' : 'Export Skill',
+                icon: Icons.file_download_outlined,
+                onPressed: runtime.running || rc6 == null
+                    ? null
+                    : () {
+                        setState(() {
+                          outputPreviewReady = true;
+                          validationReady = true;
+                        });
+                        rc6.runSkillOperation('export');
+                      },
+              ),
+              _PrimaryProductAction(
+                label: _zh ? '绑定 Agent' : 'Bind Agent',
+                icon: Icons.link_outlined,
+                onPressed: runtime.running || rc6 == null
+                    ? null
+                    : () {
+                        setState(() {
+                          outputPreviewReady = true;
+                          validationReady = true;
+                        });
+                        rc6.runSkillOperation('bind_agent');
+                      },
               ),
               _DisplayAction(
                 label: runtime.hasSkillExport

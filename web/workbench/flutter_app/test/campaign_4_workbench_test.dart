@@ -509,7 +509,11 @@ void main() {
     expect(find.byKey(const Key('skill-validation-summary')), findsOneWidget);
     expect(find.text('治理报告与验证'), findsNothing);
     expect(find.text('验证导出'), findsOneWidget);
-    expect(find.text('校验 / 复制 / 融合 / 导出 Skill'), findsOneWidget);
+    expect(find.text('校验 Skill'), findsOneWidget);
+    expect(find.text('复制 Skill'), findsOneWidget);
+    expect(find.text('融合 Skill'), findsOneWidget);
+    expect(find.text('导出 Skill'), findsOneWidget);
+    expect(find.text('绑定 Agent'), findsOneWidget);
     expect(find.text('操作清单'), findsOneWidget);
     expect(find.text('Agent 绑定'), findsOneWidget);
     expect(find.text('复制 Skill 路径'), findsNothing);
