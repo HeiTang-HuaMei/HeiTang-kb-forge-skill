@@ -6,10 +6,20 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKBENCH = ROOT / "web" / "workbench"
 CONTRACTS = WORKBENCH / "contracts.json"
 REGISTRY = ROOT / "examples" / "ui_mock_data" / "external" / "external_capability_registry_fixture.json"
+FLUTTER_LIB = WORKBENCH / "flutter_app" / "lib"
 
 
 def _json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _flutter_shell_sources() -> str:
+    return "\n".join(
+        [
+            (FLUTTER_LIB / "main.dart").read_text(encoding="utf-8"),
+            (FLUTTER_LIB / "app" / "workbench_sidebar.dart").read_text(encoding="utf-8"),
+        ]
+    )
 
 
 def test_external_capability_sources_are_registered_for_existing_pages_only():
@@ -51,14 +61,14 @@ def test_web_mock_service_loads_external_capabilities_without_runtime_calls():
 
 
 def test_flutter_surface_mentions_boundary_not_run_or_installed_claims():
-    main = (WORKBENCH / "flutter_app" / "lib" / "main.dart").read_text(encoding="utf-8")
+    flutter_sources = _flutter_shell_sources()
     bridge = (WORKBENCH / "flutter_app" / "lib" / "core_bridge" / "local_core_bridge.dart").read_text(encoding="utf-8")
 
-    assert "assets/external/external_capability_registry.json" in main
-    assert "S/A external capabilities" in main
-    assert "ready=false" in main
-    assert "local_ready=false" in main
-    assert "Authorization protected" in main
+    assert "assets/external/external_capability_registry.json" in flutter_sources
+    assert "S/A external capabilities" in flutter_sources
+    assert "ready=false" in flutter_sources
+    assert "local_ready=false" in flutter_sources
+    assert "Authorization protected" in flutter_sources
     assert "anysearchskill" not in bridge.lower()
     assert "weknora" not in bridge.lower()
     assert "n8n" not in bridge.lower()

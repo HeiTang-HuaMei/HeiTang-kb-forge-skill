@@ -12,6 +12,8 @@ def _flutter_shell_sources() -> str:
         [
             (FLUTTER_LIB / "main.dart").read_text(encoding="utf-8"),
             (FLUTTER_LIB / "app" / "product_top_bar.dart").read_text(encoding="utf-8"),
+            (FLUTTER_LIB / "app" / "desktop_status_bar.dart").read_text(encoding="utf-8"),
+            (FLUTTER_LIB / "app" / "workbench_sidebar.dart").read_text(encoding="utf-8"),
         ]
     )
 
@@ -100,7 +102,7 @@ def test_workbench_supports_chinese_and_english_i18n_switching():
 
 def test_workbench_brand_and_mascot_assets_exist():
     index = (WORKBENCH / "index.html").read_text(encoding="utf-8")
-    flutter_main = (WORKBENCH / "flutter_app" / "lib" / "main.dart").read_text(encoding="utf-8")
+    flutter_sources = _flutter_shell_sources()
     pubspec = (WORKBENCH / "flutter_app" / "pubspec.yaml").read_text(encoding="utf-8")
 
     assert "HeiTang 黑糖" in index
@@ -108,8 +110,8 @@ def test_workbench_brand_and_mascot_assets_exist():
     assert "black_tiger_head.svg" in index
     assert "black_cat_head.svg" in pubspec
     assert "black_tiger_head.svg" in pubspec
-    assert "HeiTang" in flutter_main
-    assert "黑糖" in flutter_main
+    assert "HeiTang" in flutter_sources
+    assert "黑糖" in flutter_sources
     assert (WORKBENCH / "flutter_app" / "assets" / "brand" / "black_cat_head.svg").exists()
     assert (WORKBENCH / "flutter_app" / "assets" / "brand" / "black_tiger_head.svg").exists()
 

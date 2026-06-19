@@ -11,6 +11,8 @@ def _flutter_shell_sources() -> str:
         [
             (FLUTTER_LIB / "main.dart").read_text(encoding="utf-8"),
             (FLUTTER_LIB / "app" / "product_top_bar.dart").read_text(encoding="utf-8"),
+            (FLUTTER_LIB / "app" / "desktop_status_bar.dart").read_text(encoding="utf-8"),
+            (FLUTTER_LIB / "app" / "workbench_sidebar.dart").read_text(encoding="utf-8"),
         ]
     )
 
