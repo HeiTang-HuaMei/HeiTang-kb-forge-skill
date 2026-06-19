@@ -347,6 +347,49 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets(
+      'settings exposes provider exporter CRUD and audit exposes parallel validation',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1600));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        enableLocalCoreActions: false,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('设置').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Provider / 模型'));
+    await tester.pumpAndSettle();
+    expect(find.text('Provider CRUD 配置'), findsOneWidget);
+    expect(find.text('保存 Provider 配置'), findsOneWidget);
+    expect(find.text('验证 Provider 配置'), findsOneWidget);
+    expect(find.text('API Key'), findsOneWidget);
+    expect(find.textContaining('redacted-runtime-input'), findsNothing);
+
+    await tester.tap(find.text('导出器'));
+    await tester.pumpAndSettle();
+    expect(find.text('导出器 CRUD 配置'), findsOneWidget);
+    expect(find.text('保存导出器配置'), findsOneWidget);
+    expect(find.text('验证导出器配置'), findsOneWidget);
+    expect(find.text('DOCX Exporter'), findsOneWidget);
+    expect(find.text('PDF Exporter'), findsOneWidget);
+    expect(find.text('PPTX Exporter'), findsOneWidget);
+
+    await tester.tap(find.text('治理与审计').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('审计导出'));
+    await tester.pumpAndSettle();
+    expect(find.text('验证并行任务'), findsOneWidget);
+    expect(find.text('等待并行报告'), findsOneWidget);
+    expect(find.text('并行任务验证'), findsOneWidget);
+    expect(find.textContaining('task-job-center'), findsNothing);
+    expect(find.textContaining('Provider Gate'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('desktop business pages hide the old state strip',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1200));
@@ -622,7 +665,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('settings-exporter')), findsOneWidget);
     expect(find.text('导出器配置'), findsOneWidget);
-    expect(find.textContaining('需要导出器配置'), findsWidgets);
+    expect(find.text('导出器 CRUD 配置'), findsOneWidget);
+    expect(find.textContaining('requires_configuration'), findsWidgets);
+    expect(find.text('保存导出器配置'), findsOneWidget);
+    expect(find.text('验证导出器配置'), findsOneWidget);
     expect(find.textContaining('sk-test-secret'), findsNothing);
     expect(find.text('模板库'), findsNothing);
     expect(tester.takeException(), isNull);

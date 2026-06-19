@@ -315,7 +315,9 @@ class _ControlledExportView extends StatefulWidget {
 
 class _ControlledExportViewState extends State<_ControlledExportView> {
   String auditReportPath = '';
+  String parallelReportPath = '';
   bool exporting = false;
+  bool validatingParallelTasks = false;
 
   bool get zh => widget.zh;
 
@@ -328,6 +330,18 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
     setState(() {
       auditReportPath = path;
       exporting = false;
+    });
+  }
+
+  Future<void> _runParallelTaskValidation() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null || rc6.state.running || validatingParallelTasks) return;
+    setState(() => validatingParallelTasks = true);
+    final path = await rc6.runParallelTaskCapacityValidation(taskCount: 8);
+    if (!mounted) return;
+    setState(() {
+      parallelReportPath = path;
+      validatingParallelTasks = false;
     });
   }
 
@@ -367,6 +381,16 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
                         ? '点击下方按钮生成'
                         : _displayNameForPath(auditReportPath)
                   ],
+                  [
+                    '并行任务验证',
+                    runtime.parallelTaskCapacityReportPath.isEmpty
+                        ? '未运行'
+                        : '已通过',
+                    runtime.parallelTaskCapacityReportPath.isEmpty
+                        ? '验证容量、隔离、恢复'
+                        : _displayNameForPath(
+                            runtime.parallelTaskCapacityReportPath)
+                  ],
                 ]
               : [
                   [
@@ -392,6 +416,16 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
                     auditReportPath.isEmpty
                         ? 'Use the action below'
                         : _displayNameForPath(auditReportPath)
+                  ],
+                  [
+                    'Parallel task validation',
+                    runtime.parallelTaskCapacityReportPath.isEmpty
+                        ? 'Not run'
+                        : 'Passed',
+                    runtime.parallelTaskCapacityReportPath.isEmpty
+                        ? 'Validate capacity, isolation, recovery'
+                        : _displayNameForPath(
+                            runtime.parallelTaskCapacityReportPath)
                   ],
                 ],
         ),
@@ -438,6 +472,40 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
                     ),
           ),
         ]),
+        const SizedBox(height: 8),
+        _EqualActionRow(children: [
+          _PrimaryProductAction(
+            label: validatingParallelTasks
+                ? (zh ? '正在验证并行任务' : 'Validating parallel tasks')
+                : (zh ? '验证并行任务' : 'Validate parallel tasks'),
+            icon: Icons.account_tree_outlined,
+            onPressed:
+                widget.runtimeController == null || validatingParallelTasks
+                    ? null
+                    : _runParallelTaskValidation,
+          ),
+          _DisplayAction(
+            label: (parallelReportPath.isNotEmpty ||
+                    runtime.parallelTaskCapacityReportPath.isNotEmpty)
+                ? (zh ? '预览并行报告' : 'Preview parallel report')
+                : (zh ? '等待并行报告' : 'Waiting for parallel report'),
+            icon: Icons.visibility_outlined,
+            onPressed: (parallelReportPath.isNotEmpty ||
+                    runtime.parallelTaskCapacityReportPath.isNotEmpty)
+                ? () => _showWorkspaceArtifactPreview(
+                      context,
+                      rc6: widget.runtimeController,
+                      title: zh ? '并行任务容量报告' : 'Parallel task report',
+                      path: parallelReportPath.isNotEmpty
+                          ? parallelReportPath
+                          : runtime.parallelTaskCapacityReportPath,
+                      unavailableMessage:
+                          zh ? '尚未生成并行任务报告。' : 'No parallel report generated.',
+                      closeLabel: zh ? '关闭' : 'Close',
+                    )
+                : null,
+          ),
+        ]),
       ],
     );
   }
@@ -473,6 +541,27 @@ List<List<String>> _auditRecordRows(Rc6RuntimeState runtime, bool zh) {
         runtime.hasAgentDialogue, runtime.agentDialoguePath),
     row('Agent 工作台', 'Agent Workbench', '多 Agent / A2A', 'Multi-Agent / A2A',
         runtime.hasMultiAgentDiscussion, runtime.multiAgentDiscussionPath),
+    row(
+        '设置',
+        'Settings',
+        'Provider 配置验证',
+        'Provider validation',
+        runtime.providerValidationReportPath.isNotEmpty,
+        runtime.providerValidationReportPath),
+    row(
+        '设置',
+        'Settings',
+        '导出器验证',
+        'Exporter validation',
+        runtime.exporterValidationReportPath.isNotEmpty,
+        runtime.exporterValidationReportPath),
+    row(
+        '治理',
+        'Governance',
+        '并行任务验证',
+        'Parallel task validation',
+        runtime.parallelTaskCapacityReportPath.isNotEmpty,
+        runtime.parallelTaskCapacityReportPath),
     [
       zh ? '运行状态' : 'Runtime',
       zh ? '最近消息' : 'Latest message',

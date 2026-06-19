@@ -49,12 +49,19 @@ class _SettingsProductWorkflow extends StatelessWidget {
           isWebRuntime: isWebRuntime,
         )
       else if (selectedTab == 1)
-        _SettingsProviderModelView(zh: _zh)
+        _SettingsProviderModelView(
+          zh: _zh,
+          runtimeController: runtimeController,
+        )
       else if (selectedTab == 2)
         _SettingsProvidersStorageView(
             zh: _zh, workspace: workspace, runtimeController: runtimeController)
       else if (selectedTab == 3)
-        _SettingsExporterView(zh: _zh)
+        _SettingsExporterView(
+          zh: _zh,
+          runtimeController: runtimeController,
+          workspace: workspace,
+        )
       else
         _SettingsNetworkSecurityView(zh: _zh, isWebRuntime: isWebRuntime),
     ]);
@@ -62,9 +69,148 @@ class _SettingsProductWorkflow extends StatelessWidget {
 }
 
 class _SettingsProviderModelView extends StatelessWidget {
-  const _SettingsProviderModelView({required this.zh});
+  const _SettingsProviderModelView({
+    required this.zh,
+    required this.runtimeController,
+  });
 
   final bool zh;
+  final Rc6RuntimeController? runtimeController;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SettingsProviderModelEditor(
+      zh: zh,
+      runtimeController: runtimeController,
+    );
+  }
+}
+
+class _SettingsProviderModelEditor extends StatefulWidget {
+  const _SettingsProviderModelEditor({
+    required this.zh,
+    required this.runtimeController,
+  });
+
+  final bool zh;
+  final Rc6RuntimeController? runtimeController;
+
+  @override
+  State<_SettingsProviderModelEditor> createState() =>
+      _SettingsProviderModelEditorState();
+}
+
+class _SettingsProviderModelEditorState
+    extends State<_SettingsProviderModelEditor> {
+  bool loading = false;
+  bool saved = false;
+  bool validated = false;
+  String savedPath = '';
+  String validationPath = '';
+  final TextEditingController _llmProviderController =
+      TextEditingController(text: 'env_configured');
+  final TextEditingController _modelController =
+      TextEditingController(text: 'local-default-or-configured-provider');
+  final TextEditingController _embeddingProviderController =
+      TextEditingController(text: 'local_keyword_embedding');
+  final TextEditingController _searchProviderController =
+      TextEditingController(text: 'local_index');
+  final TextEditingController _parserProviderController =
+      TextEditingController(text: 'local_parser');
+  final TextEditingController _ocrProviderController =
+      TextEditingController(text: 'optional_ocr');
+  final TextEditingController _apiKeyController =
+      TextEditingController(text: '************');
+
+  bool get zh => widget.zh;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  @override
+  void dispose() {
+    _llmProviderController.dispose();
+    _modelController.dispose();
+    _embeddingProviderController.dispose();
+    _searchProviderController.dispose();
+    _parserProviderController.dispose();
+    _ocrProviderController.dispose();
+    _apiKeyController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadSettings() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null) return;
+    setState(() => loading = true);
+    final settings = await rc6.loadProviderRuntimeSettings();
+    if (!mounted) return;
+    final llm = _settingsMap(settings['llm']);
+    final embedding = _settingsMap(settings['embedding']);
+    final search = _settingsMap(settings['search']);
+    final parser = _settingsMap(settings['parser']);
+    final ocr = _settingsMap(settings['ocr']);
+    setState(() {
+      loading = false;
+      _llmProviderController.text =
+          _settingsText(llm, 'provider_id', 'env_configured');
+      _modelController.text = _settingsText(
+          llm, 'model_id', 'local-default-or-configured-provider');
+      _embeddingProviderController.text =
+          _settingsText(embedding, 'provider_id', 'local_keyword_embedding');
+      _searchProviderController.text =
+          _settingsText(search, 'provider_id', 'local_index');
+      _parserProviderController.text =
+          _settingsText(parser, 'provider_id', 'local_parser');
+      _ocrProviderController.text =
+          _settingsText(ocr, 'provider_id', 'optional_ocr');
+      _apiKeyController.text =
+          _settingsText(llm, 'api_key_display', '************');
+      savedPath = rc6.state.providerRuntimeSettingsPath.isEmpty
+          ? ''
+          : 'config/provider_runtime_settings.json';
+      validationPath = rc6.state.providerValidationReportPath.isEmpty
+          ? ''
+          : 'config/provider_validation_report.json';
+    });
+  }
+
+  Future<void> _saveSettings() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null) return;
+    final path = await rc6.saveProviderRuntimeSettings(
+      llmProvider: _llmProviderController.text,
+      modelId: _modelController.text,
+      embeddingProvider: _embeddingProviderController.text,
+      searchProvider: _searchProviderController.text,
+      parserProvider: _parserProviderController.text,
+      ocrProvider: _ocrProviderController.text,
+      apiKey: _apiKeyController.text,
+    );
+    if (!mounted) return;
+    setState(() {
+      saved = path.isNotEmpty;
+      savedPath = path.isEmpty ? '' : 'config/provider_runtime_settings.json';
+      validationPath = path.isEmpty
+          ? validationPath
+          : 'config/provider_validation_report.json';
+    });
+  }
+
+  Future<void> _validateSettings() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null) return;
+    final path = await rc6.validateProviderRuntimeSettings();
+    if (!mounted) return;
+    setState(() {
+      validated = path.isNotEmpty;
+      validationPath =
+          path.isEmpty ? '' : 'config/provider_validation_report.json';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +234,11 @@ class _SettingsProviderModelView extends StatelessWidget {
                     ['Parser / OCR Provider', '本地解析优先，可选增强解析', '可配置'],
                   ]
                 : [
-                    ['LLM Provider', 'Env / settings reference', 'Configurable'],
+                    [
+                      'LLM Provider',
+                      'Env / settings reference',
+                      'Configurable'
+                    ],
                     [
                       'Embedding Provider',
                       'Env / settings reference',
@@ -110,6 +260,59 @@ class _SettingsProviderModelView extends StatelessWidget {
           _FieldRow(
               label: zh ? 'Secret 展示' : 'Secret display',
               value: zh ? '只显示掩码，不展示明文' : 'Masked only, never plaintext'),
+          const SizedBox(height: 8),
+          _SectionCaption(zh ? 'Provider CRUD 配置' : 'Provider CRUD config'),
+          const SizedBox(height: 6),
+          _SettingsConnectionForm(
+            zh: zh,
+            fields: [
+              _SettingsTextFieldSpec('LLM Provider', _llmProviderController),
+              _SettingsTextFieldSpec(
+                  zh ? '模型 ID' : 'Model ID', _modelController),
+              _SettingsTextFieldSpec(
+                  'Embedding Provider', _embeddingProviderController),
+              _SettingsTextFieldSpec(
+                  'Search Provider', _searchProviderController),
+              _SettingsTextFieldSpec(
+                  'Parser Provider', _parserProviderController),
+              _SettingsTextFieldSpec('OCR Provider', _ocrProviderController),
+              _SettingsTextFieldSpec('API Key', _apiKeyController),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _EqualActionRow(children: [
+            _PrimaryProductAction(
+              label: zh ? '保存 Provider 配置' : 'Save Provider config',
+              icon: Icons.save_outlined,
+              onPressed: _saveSettings,
+            ),
+            _PrimaryProductAction(
+              label: zh ? '验证 Provider 配置' : 'Validate Provider config',
+              icon: Icons.fact_check_outlined,
+              onPressed: _validateSettings,
+            ),
+          ]),
+          if (saved || validated || loading) ...[
+            const SizedBox(height: 8),
+            _RuntimeFeedbackBanner(
+              title: validated
+                  ? (zh
+                      ? 'Provider 验证报告已生成'
+                      : 'Provider validation report generated')
+                  : saved
+                      ? (zh ? 'Provider 配置已保存' : 'Provider config saved')
+                      : (zh ? '正在加载配置' : 'Loading config'),
+              detail: [
+                if (savedPath.isNotEmpty) savedPath,
+                if (validationPath.isNotEmpty) validationPath,
+                zh
+                    ? 'secret 仅保存掩码或环境变量引用'
+                    : 'secrets are masked or env references only',
+              ].join('\n'),
+              tone: _StatusTone.success,
+              icon: Icons.verified_user_outlined,
+            ),
+          ],
         ],
       );
       final model = _ProductPanel(
@@ -120,11 +323,13 @@ class _SettingsProviderModelView extends StatelessWidget {
         children: [
           _FieldRow(
               label: zh ? '默认模型' : 'Default model',
-              value: zh ? '从 Provider 配置读取' : 'Read from Provider config'),
+              value:
+                  loading ? (zh ? '正在加载' : 'Loading') : _modelController.text),
           const SizedBox(height: 8),
           _FieldRow(
               label: zh ? '默认语言' : 'Default language',
-              value: zh ? '简体中文 / English 可切换' : 'Chinese / English switchable'),
+              value:
+                  zh ? '简体中文 / English 可切换' : 'Chinese / English switchable'),
           const SizedBox(height: 8),
           _FieldRow(
               label: zh ? '主题' : 'Theme',
@@ -148,9 +353,124 @@ class _SettingsProviderModelView extends StatelessWidget {
 }
 
 class _SettingsExporterView extends StatelessWidget {
-  const _SettingsExporterView({required this.zh});
+  const _SettingsExporterView({
+    required this.zh,
+    required this.runtimeController,
+    required this.workspace,
+  });
 
   final bool zh;
+  final Rc6RuntimeController? runtimeController;
+  final String workspace;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SettingsExporterEditor(
+      zh: zh,
+      runtimeController: runtimeController,
+      workspace: workspace,
+    );
+  }
+}
+
+class _SettingsExporterEditor extends StatefulWidget {
+  const _SettingsExporterEditor({
+    required this.zh,
+    required this.runtimeController,
+    required this.workspace,
+  });
+
+  final bool zh;
+  final Rc6RuntimeController? runtimeController;
+  final String workspace;
+
+  @override
+  State<_SettingsExporterEditor> createState() =>
+      _SettingsExporterEditorState();
+}
+
+class _SettingsExporterEditorState extends State<_SettingsExporterEditor> {
+  bool saved = false;
+  bool validated = false;
+  String savedPath = '';
+  String validationPath = '';
+  final TextEditingController _docxController =
+      TextEditingController(text: 'requires_configuration');
+  final TextEditingController _pdfController =
+      TextEditingController(text: 'requires_configuration');
+  final TextEditingController _pptxController =
+      TextEditingController(text: 'requires_configuration');
+  final TextEditingController _exportRootController = TextEditingController();
+
+  bool get zh => widget.zh;
+
+  @override
+  void initState() {
+    super.initState();
+    _exportRootController.text = '${widget.workspace}\\export';
+    _loadSettings();
+  }
+
+  @override
+  void dispose() {
+    _docxController.dispose();
+    _pdfController.dispose();
+    _pptxController.dispose();
+    _exportRootController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadSettings() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null) return;
+    final settings = await rc6.loadExporterSettings();
+    if (!mounted) return;
+    final exporters = _settingsMap(settings['exporters']);
+    setState(() {
+      _docxController.text = _settingsText(_settingsMap(exporters['docx']),
+          'provider', 'requires_configuration');
+      _pdfController.text = _settingsText(
+          _settingsMap(exporters['pdf']), 'provider', 'requires_configuration');
+      _pptxController.text = _settingsText(_settingsMap(exporters['pptx']),
+          'provider', 'requires_configuration');
+      _exportRootController.text =
+          _settingsText(settings, 'export_root', '${widget.workspace}\\export');
+      validationPath = rc6.state.exporterValidationReportPath.isEmpty
+          ? ''
+          : 'config/exporter_validation_report.json';
+    });
+  }
+
+  Future<void> _saveSettings() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null) return;
+    final path = await rc6.saveExporterSettings(
+      docxExporter: _docxController.text,
+      pdfExporter: _pdfController.text,
+      pptxExporter: _pptxController.text,
+      exportRoot: _exportRootController.text,
+    );
+    if (!mounted) return;
+    setState(() {
+      saved = path.isNotEmpty;
+      savedPath = path.isEmpty ? '' : 'config/exporter_settings.json';
+      validationPath = path.isEmpty
+          ? validationPath
+          : 'config/exporter_validation_report.json';
+    });
+  }
+
+  Future<void> _validateSettings() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null) return;
+    final path = await rc6.validateExporterSettings();
+    if (!mounted) return;
+    setState(() {
+      validated = path.isNotEmpty;
+      validationPath =
+          path.isEmpty ? '' : 'config/exporter_validation_report.json';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -168,18 +488,61 @@ class _SettingsExporterView extends StatelessWidget {
               ? [
                   ['Markdown', '本地可用', '无需外部导出器'],
                   ['JSON / CSV', '本地可用', '无需外部导出器'],
-                  ['DOCX', '需要导出器配置', '配置后启用'],
-                  ['PDF', '需要导出器配置', '配置后启用'],
-                  ['PPTX', '需要导出器配置', '配置后启用'],
+                  ['DOCX', _docxController.text, '配置后启用'],
+                  ['PDF', _pdfController.text, '配置后启用'],
+                  ['PPTX', _pptxController.text, '配置后启用'],
                 ]
               : [
                   ['Markdown', 'Local available', 'No external exporter'],
                   ['JSON / CSV', 'Local available', 'No external exporter'],
-                  ['DOCX', 'Exporter config required', 'Enable after config'],
-                  ['PDF', 'Exporter config required', 'Enable after config'],
-                  ['PPTX', 'Exporter config required', 'Enable after config'],
+                  ['DOCX', _docxController.text, 'Enable after config'],
+                  ['PDF', _pdfController.text, 'Enable after config'],
+                  ['PPTX', _pptxController.text, 'Enable after config'],
                 ],
         ),
+        const SizedBox(height: 8),
+        _SectionCaption(zh ? '导出器 CRUD 配置' : 'Exporter CRUD config'),
+        const SizedBox(height: 6),
+        _SettingsConnectionForm(
+          zh: zh,
+          fields: [
+            _SettingsTextFieldSpec('DOCX Exporter', _docxController),
+            _SettingsTextFieldSpec('PDF Exporter', _pdfController),
+            _SettingsTextFieldSpec('PPTX Exporter', _pptxController),
+            _SettingsTextFieldSpec(
+                zh ? '导出根目录' : 'Export root', _exportRootController),
+          ],
+        ),
+        const SizedBox(height: 8),
+        _EqualActionRow(children: [
+          _PrimaryProductAction(
+            label: zh ? '保存导出器配置' : 'Save exporter config',
+            icon: Icons.save_outlined,
+            onPressed: _saveSettings,
+          ),
+          _PrimaryProductAction(
+            label: zh ? '验证导出器配置' : 'Validate exporter config',
+            icon: Icons.fact_check_outlined,
+            onPressed: _validateSettings,
+          ),
+        ]),
+        if (saved || validated) ...[
+          const SizedBox(height: 8),
+          _RuntimeFeedbackBanner(
+            title: validated
+                ? (zh ? '导出器验证报告已生成' : 'Exporter validation report generated')
+                : (zh ? '导出器配置已保存' : 'Exporter config saved'),
+            detail: [
+              if (savedPath.isNotEmpty) savedPath,
+              if (validationPath.isNotEmpty) validationPath,
+              zh
+                  ? 'DOCX/PDF/PPTX 仍按依赖配置启用'
+                  : 'DOCX/PDF/PPTX remain dependency-gated',
+            ].join('\n'),
+            tone: _StatusTone.success,
+            icon: Icons.file_download_done_outlined,
+          ),
+        ],
       ],
     );
   }
@@ -206,17 +569,23 @@ class _SettingsNetworkSecurityView extends StatelessWidget {
         children: [
           _FieldRow(
               label: zh ? '默认网络' : 'Default network',
-              value: zh ? '本地优先，外部调用需显式配置' : 'Local-first; external calls require explicit config'),
+              value: zh
+                  ? '本地优先，外部调用需显式配置'
+                  : 'Local-first; external calls require explicit config'),
           const SizedBox(height: 8),
           _FieldRow(
               label: zh ? '桌面能力' : 'Desktop capability',
               value: isWebRuntime
-                  ? (zh ? '请使用 Windows EXE 执行本地文件能力' : 'Use the Windows EXE for local file workflows')
+                  ? (zh
+                      ? '请使用 Windows EXE 执行本地文件能力'
+                      : 'Use the Windows EXE for local file workflows')
                   : (zh ? '桌面运行可用' : 'Desktop runtime available')),
           const SizedBox(height: 8),
           _FieldRow(
               label: zh ? '失败处理' : 'Failure handling',
-              value: zh ? '保留失败原因，可回退本地路径' : 'Keep failure reasons and fall back to local paths'),
+              value: zh
+                  ? '保留失败原因，可回退本地路径'
+                  : 'Keep failure reasons and fall back to local paths'),
         ],
       );
       final security = _ProductPanel(
@@ -227,15 +596,21 @@ class _SettingsNetworkSecurityView extends StatelessWidget {
         children: [
           _FieldRow(
               label: zh ? 'Secret' : 'Secret',
-              value: zh ? '只保存或读取掩码引用，不展示明文' : 'Store/read masked references only; never show plaintext'),
+              value: zh
+                  ? '只保存或读取掩码引用，不展示明文'
+                  : 'Store/read masked references only; never show plaintext'),
           const SizedBox(height: 8),
           _FieldRow(
               label: zh ? '高风险能力' : 'High-risk capability',
-              value: zh ? '普通 UI 不开放任意系统命令' : 'Arbitrary system commands are not exposed in ordinary UI'),
+              value: zh
+                  ? '普通 UI 不开放任意系统命令'
+                  : 'Arbitrary system commands are not exposed in ordinary UI'),
           const SizedBox(height: 8),
           _FieldRow(
               label: zh ? '审计' : 'Audit',
-              value: zh ? '运行记录、失败、权限和恢复进入治理与审计' : 'Runs, failures, permissions, and recovery go to Governance & Audit'),
+              value: zh
+                  ? '运行记录、失败、权限和恢复进入治理与审计'
+                  : 'Runs, failures, permissions, and recovery go to Governance & Audit'),
         ],
       );
       if (!wide) {

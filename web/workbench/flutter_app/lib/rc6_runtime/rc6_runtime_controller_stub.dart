@@ -104,6 +104,8 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> clearDocumentArtifacts() async => initialize();
   Future<void> clearSkillArtifacts() async => initialize();
   Future<void> clearAgentArtifacts() async => initialize();
+  Future<void> clearSettingsValidationArtifacts() async => initialize();
+  Future<void> clearParallelTaskValidationArtifacts() async => initialize();
   Future<void> clearRecentTaskArtifacts(String taskId) async => initialize();
   Future<void> deleteImportedSource(String sourceNameOrRelativePath) async =>
       initialize();
@@ -179,6 +181,96 @@ class Rc6RuntimeController extends ChangeNotifier {
     required int qdrantDimension,
     required String qdrantApiKey,
   }) async {
+    await initialize();
+    return '';
+  }
+
+  Future<Map<String, dynamic>> loadProviderRuntimeSettings() async => {
+        'schema_version': 'prd_v3_provider_runtime_settings.v1',
+        'workspace': '',
+        'provider_crud_status': 'desktop_runtime_required',
+        'llm': {
+          'provider_id': 'env_configured',
+          'model_id': 'local-default-or-configured-provider',
+          'api_key_display': '************',
+          'api_key_secret_ref': 'env:HEITANG_LLM_API_KEY',
+          'status': 'desktop_runtime_required',
+        },
+        'embedding': {
+          'provider_id': 'local_keyword_embedding',
+          'status': 'desktop_runtime_required',
+        },
+        'search': {
+          'provider_id': 'local_index',
+          'network_required': false,
+          'status': 'desktop_runtime_required',
+        },
+        'parser': {
+          'provider_id': 'local_parser',
+          'status': 'desktop_runtime_required',
+        },
+        'ocr': {
+          'provider_id': 'optional_ocr',
+          'status': 'desktop_runtime_required',
+        },
+        'secret_plaintext_written': false,
+      };
+  Future<String> saveProviderRuntimeSettings({
+    required String llmProvider,
+    required String modelId,
+    required String embeddingProvider,
+    required String searchProvider,
+    required String parserProvider,
+    required String ocrProvider,
+    required String apiKey,
+  }) async {
+    await initialize();
+    return '';
+  }
+
+  Future<String> validateProviderRuntimeSettings() async {
+    await initialize();
+    return '';
+  }
+
+  Future<Map<String, dynamic>> loadExporterSettings() async => {
+        'schema_version': 'prd_v3_exporter_settings.v1',
+        'workspace': '',
+        'export_root': '',
+        'exporters': {
+          'markdown': {'provider': 'local_markdown', 'status': 'enabled_real'},
+          'json': {'provider': 'local_json', 'status': 'enabled_real'},
+          'csv': {'provider': 'local_csv', 'status': 'enabled_real'},
+          'docx': {
+            'provider': 'requires_configuration',
+            'status': 'desktop_runtime_required',
+          },
+          'pdf': {
+            'provider': 'requires_configuration',
+            'status': 'desktop_runtime_required',
+          },
+          'pptx': {
+            'provider': 'requires_configuration',
+            'status': 'desktop_runtime_required',
+          },
+        },
+      };
+  Future<String> saveExporterSettings({
+    required String docxExporter,
+    required String pdfExporter,
+    required String pptxExporter,
+    required String exportRoot,
+  }) async {
+    await initialize();
+    return '';
+  }
+
+  Future<String> validateExporterSettings() async {
+    await initialize();
+    return '';
+  }
+
+  Future<String> runParallelTaskCapacityValidation({int taskCount = 8}) async {
     await initialize();
     return '';
   }
@@ -486,6 +578,13 @@ class Rc6RuntimeState {
     required this.a2aEvidenceCount,
     required this.a2aStatus,
     required this.prdP0EvidencePath,
+    required this.providerRuntimeSettingsPath,
+    required this.storageProviderSettingsPath,
+    required this.providerValidationReportPath,
+    required this.exporterValidationReportPath,
+    required this.parallelTaskCapacityReportPath,
+    required this.taskIsolationMatrixPath,
+    required this.taskRecoveryReportPath,
     required this.knowledgeBaseCatalogPath,
     required this.workbookManifestPath,
     required this.currentWorkbookName,
@@ -601,6 +700,13 @@ class Rc6RuntimeState {
         a2aEvidenceCount: 0,
         a2aStatus: '',
         prdP0EvidencePath: '',
+        providerRuntimeSettingsPath: '',
+        storageProviderSettingsPath: '',
+        providerValidationReportPath: '',
+        exporterValidationReportPath: '',
+        parallelTaskCapacityReportPath: '',
+        taskIsolationMatrixPath: '',
+        taskRecoveryReportPath: '',
         knowledgeBaseCatalogPath: '',
         workbookManifestPath: '',
         currentWorkbookName: '默认工作本',
@@ -715,6 +821,13 @@ class Rc6RuntimeState {
   final int a2aEvidenceCount;
   final String a2aStatus;
   final String prdP0EvidencePath;
+  final String providerRuntimeSettingsPath;
+  final String storageProviderSettingsPath;
+  final String providerValidationReportPath;
+  final String exporterValidationReportPath;
+  final String parallelTaskCapacityReportPath;
+  final String taskIsolationMatrixPath;
+  final String taskRecoveryReportPath;
   final String knowledgeBaseCatalogPath;
   final String workbookManifestPath;
   final String currentWorkbookName;
@@ -779,6 +892,11 @@ class Rc6RuntimeState {
   bool get hasA2aConflictReport => a2aConflictReportPath.isNotEmpty;
   bool get hasA2aConsensusReport => a2aConsensusReportPath.isNotEmpty;
   bool get hasPrdP0Evidence => prdP0EvidencePath.isNotEmpty;
+  bool get hasProviderRuntimeSettings => providerRuntimeSettingsPath.isNotEmpty;
+  bool get hasProviderValidationReport =>
+      providerValidationReportPath.isNotEmpty;
+  bool get hasParallelTaskCapacityReport =>
+      parallelTaskCapacityReportPath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
   bool get hasWorkbookManifest => workbookManifestPath.isNotEmpty;
 
@@ -880,6 +998,13 @@ class Rc6RuntimeState {
     int? a2aEvidenceCount,
     String? a2aStatus,
     String? prdP0EvidencePath,
+    String? providerRuntimeSettingsPath,
+    String? storageProviderSettingsPath,
+    String? providerValidationReportPath,
+    String? exporterValidationReportPath,
+    String? parallelTaskCapacityReportPath,
+    String? taskIsolationMatrixPath,
+    String? taskRecoveryReportPath,
     String? knowledgeBaseCatalogPath,
     String? workbookManifestPath,
     String? currentWorkbookName,
@@ -1051,6 +1176,20 @@ class Rc6RuntimeState {
       a2aEvidenceCount: a2aEvidenceCount ?? this.a2aEvidenceCount,
       a2aStatus: a2aStatus ?? this.a2aStatus,
       prdP0EvidencePath: prdP0EvidencePath ?? this.prdP0EvidencePath,
+      providerRuntimeSettingsPath:
+          providerRuntimeSettingsPath ?? this.providerRuntimeSettingsPath,
+      storageProviderSettingsPath:
+          storageProviderSettingsPath ?? this.storageProviderSettingsPath,
+      providerValidationReportPath:
+          providerValidationReportPath ?? this.providerValidationReportPath,
+      exporterValidationReportPath:
+          exporterValidationReportPath ?? this.exporterValidationReportPath,
+      parallelTaskCapacityReportPath:
+          parallelTaskCapacityReportPath ?? this.parallelTaskCapacityReportPath,
+      taskIsolationMatrixPath:
+          taskIsolationMatrixPath ?? this.taskIsolationMatrixPath,
+      taskRecoveryReportPath:
+          taskRecoveryReportPath ?? this.taskRecoveryReportPath,
       knowledgeBaseCatalogPath:
           knowledgeBaseCatalogPath ?? this.knowledgeBaseCatalogPath,
       workbookManifestPath: workbookManifestPath ?? this.workbookManifestPath,

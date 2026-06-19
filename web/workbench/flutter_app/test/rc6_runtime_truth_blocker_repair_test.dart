@@ -553,6 +553,103 @@ void main() {
     expect((reloaded['provider'] as Map)['api_key_display'], contains('*'));
   });
 
+  test(
+      'prd settings and parallel task validation produce industrial audit artifacts',
+      () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final providerSettingsPath = await controller.saveProviderRuntimeSettings(
+      llmProvider: 'official_openai',
+      modelId: 'gpt-industrial',
+      embeddingProvider: 'local_keyword_embedding',
+      searchProvider: 'local_index',
+      parserProvider: 'local_parser',
+      ocrProvider: 'optional_ocr',
+      apiKey: 'redacted-runtime-input',
+    );
+    final exporterSettingsPath = await controller.saveExporterSettings(
+      docxExporter: 'office_exporter_optional',
+      pdfExporter: 'pdf_exporter_optional',
+      pptxExporter: 'pptx_exporter_optional',
+      exportRoot: '${workspace.path}${Platform.pathSeparator}export',
+    );
+    final providerValidationPath =
+        await controller.validateProviderRuntimeSettings();
+    final exporterValidationPath = await controller.validateExporterSettings();
+    final parallelReportPath =
+        await controller.runParallelTaskCapacityValidation(taskCount: 8);
+
+    final providerRaw = File(providerSettingsPath).readAsStringSync();
+    expect(providerRaw, isNot(contains('redacted-runtime-input')));
+    expect(providerRaw, contains('runtime_input_not_persisted'));
+    final providerValidation =
+        jsonDecode(File(providerValidationPath).readAsStringSync()) as Map;
+    expect(providerValidation['schema_version'],
+        'prd_v3_provider_validation_report.v1');
+    expect(providerValidation['secret_plaintext_written'], isFalse);
+    expect(providerValidation['stage_3_hot_swap_not_started'], isTrue);
+
+    final exporter = jsonDecode(File(exporterSettingsPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect((exporter['exporters'] as Map)['markdown'], isA<Map>());
+    final exporterValidation =
+        jsonDecode(File(exporterValidationPath).readAsStringSync()) as Map;
+    expect(exporterValidation['schema_version'],
+        'prd_v3_exporter_validation_report.v1');
+    expect(exporterValidation['dependency_gated_formats'],
+        containsAll(['docx', 'pdf', 'pptx']));
+
+    final parallelReport =
+        jsonDecode(File(parallelReportPath).readAsStringSync()) as Map;
+    expect(parallelReport['schema_version'],
+        'prd_v3_parallel_task_capacity_report.v1');
+    expect(parallelReport['status'], 'passed');
+    expect(parallelReport['supports_multi_task_parallelism'], isTrue);
+    expect(parallelReport['supports_failure_isolation'], isTrue);
+    expect(parallelReport['supports_recovery_retry'], isTrue);
+    expect(parallelReport['stage_3_provider_hot_swap_required'], isTrue);
+
+    final isolationMatrix = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}tasks${Platform.pathSeparator}parallel_validation${Platform.pathSeparator}task_isolation_matrix.json')
+        .readAsStringSync()) as Map;
+    expect(
+        isolationMatrix['schema_version'], 'prd_v3_task_isolation_matrix.v1');
+    expect(isolationMatrix['status'], 'isolated');
+    expect(isolationMatrix['tasks'], hasLength(8));
+    final recoveryReport = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}tasks${Platform.pathSeparator}parallel_validation${Platform.pathSeparator}task_recovery_report.json')
+        .readAsStringSync()) as Map;
+    expect(recoveryReport['schema_version'], 'prd_v3_task_recovery_report.v1');
+    expect(recoveryReport['retry_status'], 'succeeded');
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(reloaded.state.providerRuntimeSettingsPath,
+        endsWith('provider_runtime_settings.json'));
+    expect(reloaded.state.providerValidationReportPath,
+        endsWith('provider_validation_report.json'));
+    expect(reloaded.state.exporterValidationReportPath,
+        endsWith('exporter_validation_report.json'));
+    expect(reloaded.state.parallelTaskCapacityReportPath,
+        endsWith('parallel_task_capacity_report.json'));
+    expect(reloaded.state.taskIsolationMatrixPath,
+        endsWith('task_isolation_matrix.json'));
+    expect(reloaded.state.taskRecoveryReportPath,
+        endsWith('task_recovery_report.json'));
+  });
+
   test('prd multi knowledge base catalog supports copy merge split delete',
       () async {
     final workspace = await createWorkspace();

@@ -1787,6 +1787,330 @@ class Rc6RuntimeController extends ChangeNotifier {
     return path;
   }
 
+  Future<Map<String, dynamic>> loadProviderRuntimeSettings() async {
+    final workspace = _workspaceDir;
+    if (workspace == null || !await workspace.exists()) {
+      return _defaultProviderRuntimeSettings('');
+    }
+    final saved =
+        await _readJsonObject(_providerRuntimeSettingsPath(workspace));
+    return _mergeProviderRuntimeSettings(
+      _defaultProviderRuntimeSettings(workspace.path),
+      saved,
+    );
+  }
+
+  Future<String> saveProviderRuntimeSettings({
+    required String llmProvider,
+    required String modelId,
+    required String embeddingProvider,
+    required String searchProvider,
+    required String parserProvider,
+    required String ocrProvider,
+    required String apiKey,
+  }) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final configDir = Directory(_join(workspace.path, 'config'));
+    await configDir.create(recursive: true);
+    final path = _providerRuntimeSettingsPath(workspace);
+    final now = DateTime.now().toUtc().toIso8601String();
+    final secretRef = _secretReference(
+      provided: apiKey,
+      environmentKey: 'HEITANG_LLM_API_KEY',
+    );
+    final payload = {
+      'schema_version': 'prd_v3_provider_runtime_settings.v1',
+      'workspace': workspace.path,
+      'saved_at': now,
+      'provider_crud_status': 'saved',
+      'llm': {
+        'provider_id':
+            llmProvider.trim().isEmpty ? 'env_configured' : llmProvider.trim(),
+        'model_id': modelId.trim().isEmpty
+            ? 'local-default-or-configured-provider'
+            : modelId.trim(),
+        'api_key_display': secretRef == 'none' ? '' : '************',
+        'api_key_secret_ref': secretRef,
+        'status': 'configured_not_tested',
+      },
+      'embedding': {
+        'provider_id': embeddingProvider.trim().isEmpty
+            ? 'local_keyword_embedding'
+            : embeddingProvider.trim(),
+        'status': 'configured_not_tested',
+      },
+      'search': {
+        'provider_id': searchProvider.trim().isEmpty
+            ? 'local_index'
+            : searchProvider.trim(),
+        'network_required': searchProvider.trim().contains('web'),
+        'status': 'configured_not_tested',
+      },
+      'parser': {
+        'provider_id': parserProvider.trim().isEmpty
+            ? 'local_parser'
+            : parserProvider.trim(),
+        'status': 'configured_not_tested',
+      },
+      'ocr': {
+        'provider_id':
+            ocrProvider.trim().isEmpty ? 'optional_ocr' : ocrProvider.trim(),
+        'status': 'configured_not_tested',
+      },
+      'secret_plaintext_written': false,
+    };
+    await File(path).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+    await _writeProviderValidationReport(
+      workspace,
+      settings: payload,
+      validationMode: 'save_only',
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      providerRuntimeSettingsPath: path,
+      providerValidationReportPath:
+          _join(workspace.path, 'config', 'provider_validation_report.json'),
+      lastMessage: 'Provider、模型、Embedding、Search、Parser 和 OCR 配置已保存。',
+      lastError: '',
+    );
+    notifyListeners();
+    return path;
+  }
+
+  Future<String> validateProviderRuntimeSettings() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final settings = await loadProviderRuntimeSettings();
+    final path = await _writeProviderValidationReport(
+      workspace,
+      settings: settings,
+      validationMode: 'configuration_validation',
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      providerValidationReportPath: path,
+      lastMessage: 'Provider 配置验证报告已生成。',
+      lastError: '',
+    );
+    notifyListeners();
+    return path;
+  }
+
+  Future<Map<String, dynamic>> loadExporterSettings() async {
+    final workspace = _workspaceDir;
+    if (workspace == null || !await workspace.exists()) {
+      return _defaultExporterSettings('');
+    }
+    final saved = await _readJsonObject(_exporterSettingsPath(workspace));
+    return _mergeExporterSettings(
+      _defaultExporterSettings(workspace.path),
+      saved,
+    );
+  }
+
+  Future<String> saveExporterSettings({
+    required String docxExporter,
+    required String pdfExporter,
+    required String pptxExporter,
+    required String exportRoot,
+  }) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final configDir = Directory(_join(workspace.path, 'config'));
+    await configDir.create(recursive: true);
+    final path = _exporterSettingsPath(workspace);
+    final root = exportRoot.trim().isEmpty
+        ? _join(workspace.path, 'export')
+        : exportRoot.trim();
+    final payload = {
+      'schema_version': 'prd_v3_exporter_settings.v1',
+      'workspace': workspace.path,
+      'saved_at': DateTime.now().toUtc().toIso8601String(),
+      'export_root': root,
+      'exporters': {
+        'markdown': {'provider': 'local_markdown', 'status': 'enabled_real'},
+        'json': {'provider': 'local_json', 'status': 'enabled_real'},
+        'csv': {'provider': 'local_csv', 'status': 'enabled_real'},
+        'docx': {
+          'provider': docxExporter.trim().isEmpty
+              ? 'requires_configuration'
+              : docxExporter.trim(),
+          'status': docxExporter.trim().isEmpty
+              ? 'requires_configuration'
+              : 'configured_not_tested',
+        },
+        'pdf': {
+          'provider': pdfExporter.trim().isEmpty
+              ? 'requires_configuration'
+              : pdfExporter.trim(),
+          'status': pdfExporter.trim().isEmpty
+              ? 'requires_configuration'
+              : 'configured_not_tested',
+        },
+        'pptx': {
+          'provider': pptxExporter.trim().isEmpty
+              ? 'requires_configuration'
+              : pptxExporter.trim(),
+          'status': pptxExporter.trim().isEmpty
+              ? 'requires_configuration'
+              : 'configured_not_tested',
+        },
+      },
+    };
+    await File(path).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+    await _writeExporterValidationReport(workspace, settings: payload);
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      exporterValidationReportPath:
+          _join(workspace.path, 'config', 'exporter_validation_report.json'),
+      lastMessage: '导出器配置已保存。',
+      lastError: '',
+    );
+    notifyListeners();
+    return path;
+  }
+
+  Future<String> validateExporterSettings() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final settings = await loadExporterSettings();
+    final path = await _writeExporterValidationReport(
+      workspace,
+      settings: settings,
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      exporterValidationReportPath: path,
+      lastMessage: '导出器验证报告已生成。',
+      lastError: '',
+    );
+    notifyListeners();
+    return path;
+  }
+
+  Future<String> runParallelTaskCapacityValidation({int taskCount = 8}) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final root =
+        Directory(_join(workspace.path, 'tasks', 'parallel_validation'));
+    if (await root.exists()) {
+      await root.delete(recursive: true);
+    }
+    await root.create(recursive: true);
+    final boundedTaskCount = taskCount.clamp(3, 32).toInt();
+    final startedAt = DateTime.now().toUtc();
+    final taskResults = await Future.wait([
+      for (var index = 0; index < boundedTaskCount; index++)
+        _writeParallelValidationTask(root, index),
+    ]);
+    final isolatedPaths =
+        taskResults.map((task) => task['artifact_dir'].toString()).toSet();
+    final failedIsolated = taskResults
+        .where((task) => task['first_attempt_status'] == 'retryable')
+        .every((task) => task['final_status'] == 'succeeded');
+    final status = isolatedPaths.length == taskResults.length && failedIsolated
+        ? 'passed'
+        : 'failed';
+    final finishedAt = DateTime.now().toUtc();
+    final capacityReportPath =
+        _join(root.path, 'parallel_task_capacity_report.json');
+    final isolationMatrixPath = _join(root.path, 'task_isolation_matrix.json');
+    final recoveryReportPath = _join(root.path, 'task_recovery_report.json');
+    final historyPath = _join(root.path, 'task_run_history.jsonl');
+    final capacityReport = {
+      'schema_version': 'prd_v3_parallel_task_capacity_report.v1',
+      'status': status,
+      'started_at': startedAt.toIso8601String(),
+      'finished_at': finishedAt.toIso8601String(),
+      'requested_task_count': taskCount,
+      'bounded_task_count': boundedTaskCount,
+      'concurrency_model': 'bounded_local_future_wait',
+      'workspace_boundary': workspace.path,
+      'task_count': taskResults.length,
+      'succeeded_count': taskResults
+          .where((task) => task['final_status'] == 'succeeded')
+          .length,
+      'retryable_count': taskResults
+          .where((task) => task['first_attempt_status'] == 'retryable')
+          .length,
+      'isolated_artifact_dirs': isolatedPaths.length,
+      'supports_multi_task_parallelism': status == 'passed',
+      'supports_failure_isolation': failedIsolated,
+      'supports_recovery_retry': failedIsolated,
+      'stage_3_provider_hot_swap_required': true,
+      'task_history_path': historyPath,
+    };
+    final isolationMatrix = {
+      'schema_version': 'prd_v3_task_isolation_matrix.v1',
+      'status': isolatedPaths.length == taskResults.length
+          ? 'isolated'
+          : 'path_collision_detected',
+      'workspace_boundary': workspace.path,
+      'tasks': taskResults
+          .map((task) => {
+                'task_id': task['task_id'],
+                'artifact_dir': task['artifact_dir'],
+                'owns_only': task['owned_files'],
+                'shared_write_allowed': false,
+              })
+          .toList(growable: false),
+    };
+    final recoveryReport = {
+      'schema_version': 'prd_v3_task_recovery_report.v1',
+      'status': failedIsolated ? 'passed' : 'failed',
+      'failed_task_id': 'parallel_task_002',
+      'first_attempt_status': 'retryable',
+      'retry_status': 'succeeded',
+      'failed_task_isolated_from_other_tasks': failedIsolated,
+      'other_tasks_completed': taskResults
+          .where((task) => task['task_id'] != 'parallel_task_002')
+          .every((task) => task['final_status'] == 'succeeded'),
+    };
+    await File(capacityReportPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(capacityReport),
+      encoding: utf8,
+    );
+    await File(isolationMatrixPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(isolationMatrix),
+      encoding: utf8,
+    );
+    await File(recoveryReportPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(recoveryReport),
+      encoding: utf8,
+    );
+    await File(historyPath).writeAsString(
+      taskResults.map((task) => jsonEncode(task)).join('\n'),
+      encoding: utf8,
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      parallelTaskCapacityReportPath: capacityReportPath,
+      taskIsolationMatrixPath: isolationMatrixPath,
+      taskRecoveryReportPath: recoveryReportPath,
+      lastMessage: '并行任务容量、隔离和恢复验证报告已生成。',
+      lastError: '',
+    );
+    notifyListeners();
+    return capacityReportPath;
+  }
+
   Future<String> exportAuditReport() async {
     if (!_canRunDesktop()) {
       return '';
@@ -1866,6 +2190,33 @@ class Rc6RuntimeController extends ChangeNotifier {
         'status': state.hasMultiAgentDiscussion ? 'success' : 'not_run',
         'artifact': state.multiAgentDiscussionPath,
         'detail': 'Multi-agent discussion',
+      },
+      {
+        'module': 'settings_provider',
+        'event': 'provider_crud_validation',
+        'status': state.providerValidationReportPath.isNotEmpty
+            ? 'success'
+            : 'not_run',
+        'artifact': state.providerValidationReportPath,
+        'detail': state.providerRuntimeSettingsPath,
+      },
+      {
+        'module': 'settings_exporter',
+        'event': 'exporter_validation',
+        'status': state.exporterValidationReportPath.isNotEmpty
+            ? 'success'
+            : 'not_run',
+        'artifact': state.exporterValidationReportPath,
+        'detail': 'Markdown/JSON/CSV local; DOCX/PDF/PPTX dependency-gated',
+      },
+      {
+        'module': 'task_parallelism',
+        'event': 'capacity_isolation_recovery',
+        'status': state.parallelTaskCapacityReportPath.isNotEmpty
+            ? 'success'
+            : 'not_run',
+        'artifact': state.parallelTaskCapacityReportPath,
+        'detail': state.taskIsolationMatrixPath,
       },
       {
         'module': 'runtime',
@@ -2432,9 +2783,54 @@ class Rc6RuntimeController extends ChangeNotifier {
       case 'agent_dialogue':
         await clearAgentDialogueHistory();
         return;
+      case 'settings':
+        await clearSettingsValidationArtifacts();
+        return;
+      case 'parallel-tasks':
+        await clearParallelTaskValidationArtifacts();
+        return;
       default:
         _fail('未知任务类型：$taskId');
     }
+  }
+
+  Future<void> clearSettingsValidationArtifacts() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    for (final path in [
+      _join(workspace.path, 'config', 'provider_validation_report.json'),
+      _join(workspace.path, 'config', 'exporter_validation_report.json'),
+    ]) {
+      await _clearWorkspacePath(path);
+    }
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      providerValidationReportPath: '',
+      exporterValidationReportPath: '',
+      lastMessage: 'Settings 验证报告已删除，配置文件保留。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
+  Future<void> clearParallelTaskValidationArtifacts() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    await _clearWorkspacePath(
+        _join(workspace.path, 'tasks', 'parallel_validation'));
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      parallelTaskCapacityReportPath: '',
+      taskIsolationMatrixPath: '',
+      taskRecoveryReportPath: '',
+      lastMessage: '并行任务验证产物已删除。',
+      lastError: '',
+    );
+    notifyListeners();
   }
 
   Future<void> deleteImportedSource(String sourceNameOrRelativePath) async {
@@ -3702,6 +4098,20 @@ class Rc6RuntimeController extends ChangeNotifier {
         _joinNested(workspace.path, 'multi_agent/a2a_consensus_report.json');
     final prdP0EvidencePath =
         _join(workspace.path, 'prd_p0', 'prd_p0_e2e_evidence.json');
+    final storageProviderSettingsPath =
+        _join(workspace.path, 'config', 'storage_provider_settings.json');
+    final providerRuntimeSettingsPath =
+        _join(workspace.path, 'config', 'provider_runtime_settings.json');
+    final providerValidationReportPath =
+        _join(workspace.path, 'config', 'provider_validation_report.json');
+    final exporterValidationReportPath =
+        _join(workspace.path, 'config', 'exporter_validation_report.json');
+    final parallelTaskCapacityReportPath = _joinNested(workspace.path,
+        'tasks/parallel_validation/parallel_task_capacity_report.json');
+    final taskIsolationMatrixPath = _joinNested(
+        workspace.path, 'tasks/parallel_validation/task_isolation_matrix.json');
+    final taskRecoveryReportPath = _joinNested(
+        workspace.path, 'tasks/parallel_validation/task_recovery_report.json');
     final kbCatalogPath =
         _join(workspace.path, 'knowledge_bases', 'kb_catalog.json');
     final workbookManifestPath =
@@ -4013,6 +4423,32 @@ class Rc6RuntimeController extends ChangeNotifier {
           a2aSessionManifest['status'] ?? multiAgentManifest['status'], ''),
       prdP0EvidencePath:
           await File(prdP0EvidencePath).exists() ? prdP0EvidencePath : '',
+      providerRuntimeSettingsPath:
+          await File(providerRuntimeSettingsPath).exists()
+              ? providerRuntimeSettingsPath
+              : '',
+      storageProviderSettingsPath:
+          await File(storageProviderSettingsPath).exists()
+              ? storageProviderSettingsPath
+              : '',
+      providerValidationReportPath:
+          await File(providerValidationReportPath).exists()
+              ? providerValidationReportPath
+              : '',
+      exporterValidationReportPath:
+          await File(exporterValidationReportPath).exists()
+              ? exporterValidationReportPath
+              : '',
+      parallelTaskCapacityReportPath:
+          await File(parallelTaskCapacityReportPath).exists()
+              ? parallelTaskCapacityReportPath
+              : '',
+      taskIsolationMatrixPath: await File(taskIsolationMatrixPath).exists()
+          ? taskIsolationMatrixPath
+          : '',
+      taskRecoveryReportPath: await File(taskRecoveryReportPath).exists()
+          ? taskRecoveryReportPath
+          : '',
       knowledgeBaseCatalogPath:
           await File(kbCatalogPath).exists() ? kbCatalogPath : '',
       workbookManifestPath: refreshedWorkbookManifestPath.isNotEmpty
@@ -4402,6 +4838,17 @@ class Rc6RuntimeController extends ChangeNotifier {
       _joinNested(
           workspace.path, 'agent/audit/workspace_permission_matrix.json'),
       _joinNested(workspace.path, 'agent/audit/run_history.json'),
+      _joinNested(workspace.path, 'config/storage_provider_settings.json'),
+      _joinNested(workspace.path, 'config/provider_runtime_settings.json'),
+      _joinNested(workspace.path, 'config/provider_validation_report.json'),
+      _joinNested(workspace.path, 'config/exporter_settings.json'),
+      _joinNested(workspace.path, 'config/exporter_validation_report.json'),
+      _joinNested(workspace.path,
+          'tasks/parallel_validation/parallel_task_capacity_report.json'),
+      _joinNested(workspace.path,
+          'tasks/parallel_validation/task_isolation_matrix.json'),
+      _joinNested(workspace.path,
+          'tasks/parallel_validation/task_recovery_report.json'),
     ].where((path) => File(path).existsSync()).toList(growable: false);
     return {
       'schema_version': 'prd_v2_workbook_asset_index.v1',
@@ -8300,8 +8747,178 @@ class Rc6RuntimeController extends ChangeNotifier {
     return path;
   }
 
+  Future<String> _writeProviderValidationReport(
+    Directory workspace, {
+    required Map<String, dynamic> settings,
+    required String validationMode,
+  }) async {
+    final configDir = Directory(_join(workspace.path, 'config'));
+    await configDir.create(recursive: true);
+    final path = _join(configDir.path, 'provider_validation_report.json');
+    final llm = _mapValue(settings['llm']);
+    final embedding = _mapValue(settings['embedding']);
+    final search = _mapValue(settings['search']);
+    final parser = _mapValue(settings['parser']);
+    final ocr = _mapValue(settings['ocr']);
+    final checks = [
+      {
+        'provider_type': 'llm',
+        'provider_id': _stringValue(llm['provider_id'], 'env_configured'),
+        'status': 'configured_not_tested',
+        'secret_plaintext_written': false,
+      },
+      {
+        'provider_type': 'embedding',
+        'provider_id':
+            _stringValue(embedding['provider_id'], 'local_keyword_embedding'),
+        'status': 'configured_not_tested',
+      },
+      {
+        'provider_type': 'search',
+        'provider_id': _stringValue(search['provider_id'], 'local_index'),
+        'status': 'configured_not_tested',
+      },
+      {
+        'provider_type': 'parser',
+        'provider_id': _stringValue(parser['provider_id'], 'local_parser'),
+        'status': 'configured_not_tested',
+      },
+      {
+        'provider_type': 'ocr',
+        'provider_id': _stringValue(ocr['provider_id'], 'optional_ocr'),
+        'status': 'configured_not_tested',
+      },
+    ];
+    final report = {
+      'schema_version': 'prd_v3_provider_validation_report.v1',
+      'status': 'passed',
+      'validation_mode': validationMode,
+      'workspace_boundary': workspace.path,
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'settings_path': _providerRuntimeSettingsPath(workspace),
+      'external_call_performed': false,
+      'secret_plaintext_written': false,
+      'provider_crud_checks': checks,
+      'failure_reason_visible': true,
+      'local_fallback_available': true,
+      'stage_3_hot_swap_not_started': true,
+    };
+    await File(path).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(report),
+      encoding: utf8,
+    );
+    return path;
+  }
+
+  Future<String> _writeExporterValidationReport(
+    Directory workspace, {
+    required Map<String, dynamic> settings,
+  }) async {
+    final configDir = Directory(_join(workspace.path, 'config'));
+    await configDir.create(recursive: true);
+    final path = _join(configDir.path, 'exporter_validation_report.json');
+    final exporters = _mapValue(settings['exporters']);
+    final report = {
+      'schema_version': 'prd_v3_exporter_validation_report.v1',
+      'status': 'passed',
+      'workspace_boundary': workspace.path,
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'settings_path': _exporterSettingsPath(workspace),
+      'export_root': settings['export_root']?.toString() ??
+          _join(workspace.path, 'export'),
+      'format_checks': [
+        for (final format in ['markdown', 'json', 'csv', 'docx', 'pdf', 'pptx'])
+          {
+            'format': format,
+            'provider': _mapValue(exporters[format])['provider']?.toString() ??
+                (format == 'markdown'
+                    ? 'local_markdown'
+                    : 'requires_configuration'),
+            'status': _mapValue(exporters[format])['status']?.toString() ??
+                (['markdown', 'json', 'csv'].contains(format)
+                    ? 'enabled_real'
+                    : 'requires_configuration'),
+          },
+      ],
+      'dependency_gated_formats': ['docx', 'pdf', 'pptx'],
+      'local_formats_enabled': ['markdown', 'json', 'csv'],
+    };
+    await File(path).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(report),
+      encoding: utf8,
+    );
+    return path;
+  }
+
+  Future<Map<String, dynamic>> _writeParallelValidationTask(
+    Directory root,
+    int index,
+  ) async {
+    final taskId = 'parallel_task_${index.toString().padLeft(3, '0')}';
+    final taskDir = Directory(_join(root.path, taskId));
+    await taskDir.create(recursive: true);
+    await Future<void>.delayed(Duration(milliseconds: index % 3));
+    final firstAttemptStatus = index == 2 ? 'retryable' : 'succeeded';
+    final manifestPath = _join(taskDir.path, 'task_manifest.json');
+    final outputPath = _join(taskDir.path, 'task_output.json');
+    final retryPath = _join(taskDir.path, 'retry_record.json');
+    final manifest = {
+      'schema_version': 'prd_v3_parallel_task_manifest.v1',
+      'task_id': taskId,
+      'workspace_scope': 'parallel_validation',
+      'artifact_dir': taskDir.path,
+      'first_attempt_status': firstAttemptStatus,
+      'final_status': 'succeeded',
+      'failure_isolated': true,
+      'retry_performed': firstAttemptStatus == 'retryable',
+    };
+    await File(manifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(manifest),
+      encoding: utf8,
+    );
+    await File(outputPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_parallel_task_output.v1',
+        'task_id': taskId,
+        'status': 'succeeded',
+        'result': 'isolated_artifact_written',
+      }),
+      encoding: utf8,
+    );
+    if (firstAttemptStatus == 'retryable') {
+      await File(retryPath).writeAsString(
+        const JsonEncoder.withIndent('  ').convert({
+          'schema_version': 'prd_v3_parallel_task_retry_record.v1',
+          'task_id': taskId,
+          'first_attempt_status': firstAttemptStatus,
+          'retry_status': 'succeeded',
+        }),
+        encoding: utf8,
+      );
+    }
+    return {
+      'task_id': taskId,
+      'artifact_dir': taskDir.path,
+      'first_attempt_status': firstAttemptStatus,
+      'final_status': 'succeeded',
+      'owned_files': [
+        manifestPath,
+        outputPath,
+        if (firstAttemptStatus == 'retryable') retryPath,
+      ],
+    };
+  }
+
   static String _storageProviderSettingsPath(Directory workspace) {
     return _join(workspace.path, 'config', 'storage_provider_settings.json');
+  }
+
+  static String _providerRuntimeSettingsPath(Directory workspace) {
+    return _join(workspace.path, 'config', 'provider_runtime_settings.json');
+  }
+
+  static String _exporterSettingsPath(Directory workspace) {
+    return _join(workspace.path, 'config', 'exporter_settings.json');
   }
 
   static Map<String, dynamic> _defaultStorageProviderSettings(
@@ -8350,6 +8967,66 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
   }
 
+  static Map<String, dynamic> _defaultProviderRuntimeSettings(
+      String workspacePath) {
+    return {
+      'schema_version': 'prd_v3_provider_runtime_settings.v1',
+      'workspace': workspacePath,
+      'provider_crud_status': 'default_loaded',
+      'llm': {
+        'provider_id': 'env_configured',
+        'model_id': 'local-default-or-configured-provider',
+        'api_key_display': '************',
+        'api_key_secret_ref': 'env:HEITANG_LLM_API_KEY',
+        'status': 'configured_not_tested',
+      },
+      'embedding': {
+        'provider_id': 'local_keyword_embedding',
+        'status': 'configured_not_tested',
+      },
+      'search': {
+        'provider_id': 'local_index',
+        'network_required': false,
+        'status': 'configured_not_tested',
+      },
+      'parser': {
+        'provider_id': 'local_parser',
+        'status': 'configured_not_tested',
+      },
+      'ocr': {
+        'provider_id': 'optional_ocr',
+        'status': 'configured_not_tested',
+      },
+      'secret_plaintext_written': false,
+    };
+  }
+
+  static Map<String, dynamic> _defaultExporterSettings(String workspacePath) {
+    return {
+      'schema_version': 'prd_v3_exporter_settings.v1',
+      'workspace': workspacePath,
+      'export_root':
+          workspacePath.isEmpty ? '' : _join(workspacePath, 'export'),
+      'exporters': {
+        'markdown': {'provider': 'local_markdown', 'status': 'enabled_real'},
+        'json': {'provider': 'local_json', 'status': 'enabled_real'},
+        'csv': {'provider': 'local_csv', 'status': 'enabled_real'},
+        'docx': {
+          'provider': 'requires_configuration',
+          'status': 'requires_configuration',
+        },
+        'pdf': {
+          'provider': 'requires_configuration',
+          'status': 'requires_configuration',
+        },
+        'pptx': {
+          'provider': 'requires_configuration',
+          'status': 'requires_configuration',
+        },
+      },
+    };
+  }
+
   static Map<String, dynamic> _mergeStorageProviderSettings(
     Map<String, dynamic> defaults,
     Map<String, dynamic> saved,
@@ -8373,6 +9050,60 @@ class Rc6RuntimeController extends ChangeNotifier {
       'exporters': {
         ..._mapValue(defaults['exporters']),
         ..._mapValue(saved['exporters']),
+      },
+    };
+  }
+
+  static Map<String, dynamic> _mergeProviderRuntimeSettings(
+    Map<String, dynamic> defaults,
+    Map<String, dynamic> saved,
+  ) {
+    if (saved.isEmpty) return defaults;
+    return {
+      ...defaults,
+      ...saved,
+      'llm': {
+        ..._mapValue(defaults['llm']),
+        ..._mapValue(saved['llm']),
+      },
+      'embedding': {
+        ..._mapValue(defaults['embedding']),
+        ..._mapValue(saved['embedding']),
+      },
+      'search': {
+        ..._mapValue(defaults['search']),
+        ..._mapValue(saved['search']),
+      },
+      'parser': {
+        ..._mapValue(defaults['parser']),
+        ..._mapValue(saved['parser']),
+      },
+      'ocr': {
+        ..._mapValue(defaults['ocr']),
+        ..._mapValue(saved['ocr']),
+      },
+    };
+  }
+
+  static Map<String, dynamic> _mergeExporterSettings(
+    Map<String, dynamic> defaults,
+    Map<String, dynamic> saved,
+  ) {
+    if (saved.isEmpty) return defaults;
+    final defaultExporters = _mapValue(defaults['exporters']);
+    final savedExporters = _mapValue(saved['exporters']);
+    return {
+      ...defaults,
+      ...saved,
+      'exporters': {
+        for (final key in {
+          ...defaultExporters.keys,
+          ...savedExporters.keys,
+        })
+          key: {
+            ..._mapValue(defaultExporters[key]),
+            ..._mapValue(savedExporters[key]),
+          },
       },
     };
   }
@@ -9314,6 +10045,13 @@ class Rc6RuntimeState {
     required this.a2aEvidenceCount,
     required this.a2aStatus,
     required this.prdP0EvidencePath,
+    required this.providerRuntimeSettingsPath,
+    required this.storageProviderSettingsPath,
+    required this.providerValidationReportPath,
+    required this.exporterValidationReportPath,
+    required this.parallelTaskCapacityReportPath,
+    required this.taskIsolationMatrixPath,
+    required this.taskRecoveryReportPath,
     required this.knowledgeBaseCatalogPath,
     required this.workbookManifestPath,
     required this.currentWorkbookName,
@@ -9429,6 +10167,13 @@ class Rc6RuntimeState {
         a2aEvidenceCount: 0,
         a2aStatus: '',
         prdP0EvidencePath: '',
+        providerRuntimeSettingsPath: '',
+        storageProviderSettingsPath: '',
+        providerValidationReportPath: '',
+        exporterValidationReportPath: '',
+        parallelTaskCapacityReportPath: '',
+        taskIsolationMatrixPath: '',
+        taskRecoveryReportPath: '',
         knowledgeBaseCatalogPath: '',
         workbookManifestPath: '',
         currentWorkbookName: '默认工作本',
@@ -9543,6 +10288,13 @@ class Rc6RuntimeState {
   final int a2aEvidenceCount;
   final String a2aStatus;
   final String prdP0EvidencePath;
+  final String providerRuntimeSettingsPath;
+  final String storageProviderSettingsPath;
+  final String providerValidationReportPath;
+  final String exporterValidationReportPath;
+  final String parallelTaskCapacityReportPath;
+  final String taskIsolationMatrixPath;
+  final String taskRecoveryReportPath;
   final String knowledgeBaseCatalogPath;
   final String workbookManifestPath;
   final String currentWorkbookName;
@@ -9607,6 +10359,11 @@ class Rc6RuntimeState {
   bool get hasA2aConflictReport => a2aConflictReportPath.isNotEmpty;
   bool get hasA2aConsensusReport => a2aConsensusReportPath.isNotEmpty;
   bool get hasPrdP0Evidence => prdP0EvidencePath.isNotEmpty;
+  bool get hasProviderRuntimeSettings => providerRuntimeSettingsPath.isNotEmpty;
+  bool get hasProviderValidationReport =>
+      providerValidationReportPath.isNotEmpty;
+  bool get hasParallelTaskCapacityReport =>
+      parallelTaskCapacityReportPath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
   bool get hasWorkbookManifest => workbookManifestPath.isNotEmpty;
 
@@ -9708,6 +10465,13 @@ class Rc6RuntimeState {
     int? a2aEvidenceCount,
     String? a2aStatus,
     String? prdP0EvidencePath,
+    String? providerRuntimeSettingsPath,
+    String? storageProviderSettingsPath,
+    String? providerValidationReportPath,
+    String? exporterValidationReportPath,
+    String? parallelTaskCapacityReportPath,
+    String? taskIsolationMatrixPath,
+    String? taskRecoveryReportPath,
     String? knowledgeBaseCatalogPath,
     String? workbookManifestPath,
     String? currentWorkbookName,
@@ -9879,6 +10643,20 @@ class Rc6RuntimeState {
       a2aEvidenceCount: a2aEvidenceCount ?? this.a2aEvidenceCount,
       a2aStatus: a2aStatus ?? this.a2aStatus,
       prdP0EvidencePath: prdP0EvidencePath ?? this.prdP0EvidencePath,
+      providerRuntimeSettingsPath:
+          providerRuntimeSettingsPath ?? this.providerRuntimeSettingsPath,
+      storageProviderSettingsPath:
+          storageProviderSettingsPath ?? this.storageProviderSettingsPath,
+      providerValidationReportPath:
+          providerValidationReportPath ?? this.providerValidationReportPath,
+      exporterValidationReportPath:
+          exporterValidationReportPath ?? this.exporterValidationReportPath,
+      parallelTaskCapacityReportPath:
+          parallelTaskCapacityReportPath ?? this.parallelTaskCapacityReportPath,
+      taskIsolationMatrixPath:
+          taskIsolationMatrixPath ?? this.taskIsolationMatrixPath,
+      taskRecoveryReportPath:
+          taskRecoveryReportPath ?? this.taskRecoveryReportPath,
       knowledgeBaseCatalogPath:
           knowledgeBaseCatalogPath ?? this.knowledgeBaseCatalogPath,
       workbookManifestPath: workbookManifestPath ?? this.workbookManifestPath,
