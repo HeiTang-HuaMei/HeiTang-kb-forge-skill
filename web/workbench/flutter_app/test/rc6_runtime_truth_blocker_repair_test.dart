@@ -1511,6 +1511,18 @@ void main() {
     final generationManifestJson =
         jsonDecode(generationManifest) as Map<String, dynamic>;
     expect(generationManifestJson['generation_history'], hasLength(2));
+    final historyEntries =
+        (generationManifestJson['generation_history'] as List)
+            .whereType<Map>()
+            .toList();
+    for (final entry in historyEntries) {
+      final historyMarkdown = entry['history_markdown'].toString();
+      expect(historyMarkdown, endsWith('.md'));
+      expect(File(historyMarkdown).existsSync(), isTrue);
+    }
+    final latestHistoryMarkdown =
+        await controller.readLatestDocumentGenerationHistoryMarkdown();
+    expect(latestHistoryMarkdown, contains('文档类型：摘要'));
     expect(controller.state.documentGenerationHistoryCount, 2);
     expect(controller.state.hasDocumentGenerationHistory, isTrue);
     await controller.deleteLatestDocumentGenerationHistory();
@@ -1524,6 +1536,9 @@ void main() {
         'generate_document');
     expect(controller.state.documentGenerationHistoryCount, 1);
     expect(controller.state.hasDocumentGenerationHistory, isTrue);
+    final firstHistoryMarkdown =
+        await controller.readLatestDocumentGenerationHistoryMarkdown();
+    expect(firstHistoryMarkdown, contains('文档类型：产品分析'));
     await controller.clearDocumentGenerationHistory();
     final clearedManifest = jsonDecode(
         File('$docRoot${Platform.pathSeparator}generation_manifest.json')

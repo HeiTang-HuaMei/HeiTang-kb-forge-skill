@@ -69,6 +69,13 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> exportDocumentFormat(String format) async => initialize();
   Future<void> clearDocumentGenerationHistory() async => initialize();
   Future<void> deleteLatestDocumentGenerationHistory() async => initialize();
+  Future<String> readLatestDocumentGenerationHistoryMarkdown({
+    int maxCharacters = 6000,
+  }) async {
+    await initialize();
+    return '';
+  }
+
   Future<String> saveEditedDocument(String markdown) async {
     await initialize();
     return '';

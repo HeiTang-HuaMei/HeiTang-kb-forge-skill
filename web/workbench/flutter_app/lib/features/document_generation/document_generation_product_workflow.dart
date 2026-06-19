@@ -140,11 +140,14 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
 
     Future<void> loadGeneratedBody() async {
       if (rc6 == null) return;
-      final path = runtime.readingNotesPath.isNotEmpty
-          ? runtime.readingNotesPath
-          : runtime.generatedMarkdownPath;
-      if (path.isEmpty) return;
-      final content = await rc6.readWorkspaceTextArtifact(path);
+      final content = runtime.hasDocumentGenerationHistory
+          ? await rc6.readLatestDocumentGenerationHistoryMarkdown()
+          : await rc6.readWorkspaceTextArtifact(
+              runtime.readingNotesPath.isNotEmpty
+                  ? runtime.readingNotesPath
+                  : runtime.generatedMarkdownPath,
+            );
+      if (content.isEmpty) return;
       if (!mounted) return;
       setState(() {
         _editorController.text = content;

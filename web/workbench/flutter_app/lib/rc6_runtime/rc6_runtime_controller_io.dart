@@ -858,6 +858,54 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<String> readLatestDocumentGenerationHistoryMarkdown({
+    int maxCharacters = 6000,
+  }) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final manifest = await _readJsonObject(
+        _join(workspace.path, 'doc', 'generation_manifest.json'));
+    final history = _listOfMaps(manifest['generation_history']);
+    if (history.isEmpty) {
+      _fail('暂无可重新打开的文档生成历史。');
+      return '';
+    }
+    final outputPath = (history.last['history_markdown'] ??
+            history.last['output_markdown'] ??
+            '')
+        .toString();
+    if (outputPath.trim().isEmpty) {
+      _fail('最近一条文档生成历史没有可打开的 Markdown 产物。');
+      return '';
+    }
+    final workspacePath = workspace.absolute.path;
+    final file = File(outputPath).absolute;
+    if (!_isInsideDirectory(file.path, workspacePath)) {
+      _fail('无法重新打开：历史产物不在当前工作区内。');
+      return '';
+    }
+    if (_extension(file.path).toLowerCase() != '.md') {
+      _fail('无法重新打开：当前只支持 Markdown 历史产物。');
+      return '';
+    }
+    if (!await file.exists()) {
+      _fail('无法重新打开：历史 Markdown 文件不存在。');
+      return '';
+    }
+    final text = await file.readAsString(encoding: utf8);
+    state = state.copyWith(
+      lastMessage: '最近一条文档生成历史已重新打开。',
+      lastError: '',
+    );
+    notifyListeners();
+    if (text.length <= maxCharacters) {
+      return text;
+    }
+    return '${text.substring(0, maxCharacters)}\n\n... 预览已截断，完整内容请复制路径后在本地查看。';
+  }
+
   Future<String> saveEditedDocument(String markdown) async {
     if (!_canRunDesktop()) {
       return '';
@@ -4308,14 +4356,27 @@ class Rc6RuntimeController extends ChangeNotifier {
     final sources = await _sourceNames();
     final citations = _citationsFromQueryReport(queryReport);
     final history = existingHistory.toList(growable: true);
+    final createdAt = DateTime.now().toUtc().toIso8601String();
+    final historyDir = Directory(_join(workspace.path, 'document_history'));
+    await historyDir.create(recursive: true);
+    final historyMarkdownPath = _join(
+      historyDir.path,
+      _safeFileName(
+        'generation_${history.length + 1}_${config.generationType}_$createdAt.md',
+      ),
+    );
+    if (await File(outputPath).exists()) {
+      await File(outputPath).copy(historyMarkdownPath);
+    }
     history.add({
       'event': 'generate_document',
       'template': config.templateMode,
       'generation_type': config.generationType,
       'output_format': config.outputFormat,
       'output_markdown': outputPath,
+      'history_markdown': historyMarkdownPath,
       'citation_count': citations.length,
-      'created_at': DateTime.now().toUtc().toIso8601String(),
+      'created_at': createdAt,
     });
     final payload = {
       'schema_version': 'prd_v2_template_document_generation.v1',
