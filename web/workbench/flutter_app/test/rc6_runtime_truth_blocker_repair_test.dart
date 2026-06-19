@@ -1462,6 +1462,112 @@ void main() {
         contains('prd_v2_structured_document_export.v1'));
   });
 
+  test('prd standard knowledge package exports imports and builds KB',
+      () async {
+    final workspace = await createWorkspace();
+    final input =
+        Directory('${workspace.path}${Platform.pathSeparator}input_src')
+          ..createSync(recursive: true);
+    File('${input.path}${Platform.pathSeparator}alpha.txt')
+        .writeAsStringSync('alpha standard package evidence');
+
+    final requests = <CoreBridgeRequest>[];
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          requests.add(request);
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          switch (request.actionId) {
+            case 'batch_import_documents':
+              File('${output.path}${Platform.pathSeparator}batch_import_report.json')
+                  .writeAsStringSync('{"imported_count":1}');
+            case 'document_understanding':
+              writeDuRecords(workspace, ['alpha.txt']);
+              File('${output.path}${Platform.pathSeparator}document_understanding_manifest.json')
+                  .writeAsStringSync('{"status":"completed"}');
+          }
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.importFolderPath(input.path);
+    await controller.parseAndChunkSources();
+    final packagePath = await controller.exportStandardKnowledgePackage();
+    expect(packagePath, endsWith('current'));
+    expect(controller.state.hasStandardKnowledgePackage, isTrue);
+    final standardRoot =
+        '${workspace.path}${Platform.pathSeparator}standard_packages${Platform.pathSeparator}current';
+    expect(
+        File('$standardRoot${Platform.pathSeparator}standard_package_manifest.json')
+            .readAsStringSync(),
+        allOf(
+          contains('prd_v3_standard_knowledge_package_manifest.v1'),
+          contains('"standard": "okf_candidate"'),
+          contains('"okf_runtime_enabled": false'),
+          contains('"independent_agent_runtime": false'),
+        ));
+    expect(
+        File('$standardRoot${Platform.pathSeparator}source_references.json')
+            .readAsStringSync(),
+        contains('alpha.txt'));
+    expect(
+        File('$standardRoot${Platform.pathSeparator}content_package.jsonl')
+            .readAsStringSync(),
+        contains('normalized alpha.txt'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}standard_packages${Platform.pathSeparator}audit_history.jsonl')
+            .readAsStringSync(),
+        contains('export_standard_knowledge_package'));
+
+    await controller.buildKnowledgeBaseFromStandardPackage();
+    expect(controller.state.hasKnowledgeBase, isTrue);
+    expect(
+        controller.state.knowledgeBases.map((kb) => kb.id), contains('K_OKF1'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}kb${Platform.pathSeparator}manifest.json')
+            .readAsStringSync(),
+        contains('prd_v3_kb_from_standard_package.v1'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}kb_catalog.json')
+            .readAsStringSync(),
+        allOf(
+          contains('build_from_standard_package:K_OKF1'),
+          contains('"okf_runtime_enabled": false'),
+        ));
+    final orchestrationRecords = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}orchestration${Platform.pathSeparator}orchestration_plan.jsonl');
+    expect(
+        orchestrationRecords.map((record) => record['action']),
+        containsAll([
+          'export_standard_knowledge_package',
+          'build_kb_from_standard_package',
+        ]));
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    expect(reloadedController.state.hasStandardKnowledgePackage, isTrue);
+    expect(reloadedController.state.hasKnowledgeBase, isTrue);
+    expect(reloadedController.state.knowledgeBases.map((kb) => kb.id),
+        contains('K_OKF1'));
+  });
+
   test('document generation persists template config into real artifacts',
       () async {
     final workspace = await createWorkspace();

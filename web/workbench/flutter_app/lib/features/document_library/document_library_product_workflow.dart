@@ -428,6 +428,13 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
         icon: Icons.account_tree_outlined,
         onPressed: widget.onBuildKnowledgeBase,
       );
+      final standardPackageAction = _PrimaryProductAction(
+        label: zh ? '生成标准知识包' : 'Create standard package',
+        icon: Icons.inventory_2_outlined,
+        onPressed: hasRealDocument && parsed && rc6 != null && !runtime.running
+            ? () => rc6.exportStandardKnowledgePackage()
+            : null,
+      );
       if (!wide) {
         return Column(children: [
           SizedBox(height: 620, child: docs),
@@ -436,7 +443,11 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
           const SizedBox(height: _DesktopGrid.gutter),
           SizedBox(height: 460, child: detail),
           const SizedBox(height: _DesktopGrid.gutter),
-          _EqualActionRow(children: [deleteAction, buildKnowledgeAction]),
+          _EqualActionRow(children: [
+            deleteAction,
+            standardPackageAction,
+            buildKnowledgeAction
+          ]),
         ]);
       }
       return Column(children: [
@@ -449,9 +460,10 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
         Align(
           alignment: Alignment.centerRight,
           child: SizedBox(
-            width: 520,
+            width: 720,
             child: _EqualActionRow(children: [
               deleteAction,
+              standardPackageAction,
               buildKnowledgeAction,
             ]),
           ),

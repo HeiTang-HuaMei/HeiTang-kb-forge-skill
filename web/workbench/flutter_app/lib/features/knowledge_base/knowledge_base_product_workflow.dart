@@ -488,6 +488,15 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                               selectedSourceIds.toList(growable: false));
                     },
             ),
+            _PrimaryProductAction(
+              label: zh ? '从标准包构建' : 'Build from package',
+              icon: Icons.inventory_2_outlined,
+              onPressed: runtime.running ||
+                      rc6 == null ||
+                      !runtime.hasStandardKnowledgePackage
+                  ? null
+                  : () => rc6.buildKnowledgeBaseFromStandardPackage(),
+            ),
             _DisplayAction(
               label: zh ? '删除旧知识库版本' : 'Delete old KB version',
               icon: Icons.delete_outline,
@@ -718,6 +727,12 @@ List<List<String>> _knowledgeArtifactRows(Rc6RuntimeState runtime, bool zh) {
   return [
     row('source_manifest.json', runtime.sourceManifestPath,
         zh ? '来源清单' : 'source manifest'),
+    row(
+        'standard_package_manifest.json',
+        runtime.standardKnowledgePackageManifestPath,
+        zh ? '标准知识包' : 'standard package'),
+    row('content_package.jsonl', runtime.standardKnowledgePackageContentPath,
+        zh ? '标准包内容' : 'package content'),
     row('manifest.json', runtime.kbManifestPath, zh ? '知识库清单' : 'KB manifest'),
     row('chunks.jsonl', runtime.chunksPath, 'chunks.jsonl'),
     row('source_map.json', runtime.sourceMapPath, 'source_map.json'),

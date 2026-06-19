@@ -358,6 +358,169 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<String> exportStandardKnowledgePackage() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    if (!state.hasImportedFile) {
+      _fail('请先导入文档，再生成标准知识包。');
+      return '';
+    }
+    if (state.parseReportPath.isEmpty &&
+        !await Directory(_join(workspace.path, 'du')).exists()) {
+      _fail('请先完成解析/OCR/Chunking，再生成标准知识包。');
+      return '';
+    }
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在封装标准知识包...',
+      lastError: '',
+    );
+    notifyListeners();
+    final packageDir = await _writeStandardKnowledgePackage(
+      workspace: workspace,
+      operation: 'export_standard_package',
+    );
+    await _appendOrchestrationPlanRecord(
+      layer: 'standard_knowledge_package',
+      action: 'export_standard_knowledge_package',
+      artifact: _join(packageDir.path, 'standard_package_manifest.json'),
+      status: 'completed',
+      resources: {
+        'source_manifest': _join(workspace.path, 'source_manifest.json'),
+        'package_path': packageDir.path,
+        'okf_candidate': true,
+      },
+    );
+    await _appendStandardPackageAuditRecord(
+      action: 'export_standard_knowledge_package',
+      artifact: _join(packageDir.path, 'standard_package_manifest.json'),
+      status: 'completed',
+      details: {
+        'package_path': packageDir.path,
+        'okf_runtime_enabled': false,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      standardKnowledgePackagePath: packageDir.path,
+      standardKnowledgePackageManifestPath:
+          _join(packageDir.path, 'standard_package_manifest.json'),
+      standardKnowledgePackageContentPath:
+          _join(packageDir.path, 'content_package.jsonl'),
+      standardKnowledgePackageAuditPath:
+          _join(workspace.path, 'standard_packages', 'audit_history.jsonl'),
+      lastMessage: '标准知识包已生成，可用于导出或构建知识库。',
+      lastError: '',
+    );
+    notifyListeners();
+    return packageDir.path;
+  }
+
+  Future<String> importStandardKnowledgePackagePath(String path) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final trimmed = path.trim();
+    if (trimmed.isEmpty) {
+      _fail('请选择标准知识包目录或 manifest 文件。');
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final source = FileSystemEntity.isDirectorySync(trimmed)
+        ? Directory(trimmed)
+        : Directory(File(trimmed).parent.path);
+    final manifest = File(_join(source.path, 'standard_package_manifest.json'));
+    if (!await manifest.exists()) {
+      _fail('未找到 standard_package_manifest.json，无法导入标准知识包。');
+      return '';
+    }
+    final target =
+        Directory(_join(workspace.path, 'standard_packages', 'current'));
+    if (await target.exists()) {
+      await target.delete(recursive: true);
+    }
+    await _copyDirectory(source, target);
+    await _appendStandardPackageAuditRecord(
+      action: 'import_standard_knowledge_package',
+      artifact: _join(target.path, 'standard_package_manifest.json'),
+      status: 'completed',
+      details: {
+        'source_path': source.path,
+        'target_path': target.path,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      standardKnowledgePackagePath: target.path,
+      standardKnowledgePackageManifestPath:
+          _join(target.path, 'standard_package_manifest.json'),
+      standardKnowledgePackageContentPath:
+          _join(target.path, 'content_package.jsonl'),
+      standardKnowledgePackageAuditPath:
+          _join(workspace.path, 'standard_packages', 'audit_history.jsonl'),
+      lastMessage: '标准知识包已导入当前工作区。',
+      lastError: '',
+    );
+    notifyListeners();
+    return target.path;
+  }
+
+  Future<void> buildKnowledgeBaseFromStandardPackage() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    final packageDir = state.standardKnowledgePackagePath.isNotEmpty
+        ? Directory(state.standardKnowledgePackagePath)
+        : Directory(_join(workspace.path, 'standard_packages', 'current'));
+    final manifestPath =
+        _join(packageDir.path, 'standard_package_manifest.json');
+    final contentPath = _join(packageDir.path, 'content_package.jsonl');
+    if (!await File(manifestPath).exists() ||
+        !await File(contentPath).exists()) {
+      _fail('请先生成或导入标准知识包，再从标准包构建知识库。');
+      return;
+    }
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在从标准知识包构建知识库...',
+      lastError: '',
+    );
+    notifyListeners();
+    await _materializeKnowledgeBaseFromStandardPackage(packageDir);
+    await _appendOrchestrationPlanRecord(
+      layer: 'knowledge_base',
+      action: 'build_kb_from_standard_package',
+      artifact: _join(workspace.path, 'kb', 'manifest.json'),
+      status: 'completed',
+      resources: {
+        'standard_package_manifest': manifestPath,
+        'content_package': contentPath,
+        'okf_runtime_enabled': false,
+      },
+    );
+    await _appendStandardPackageAuditRecord(
+      action: 'build_kb_from_standard_package',
+      artifact: _join(workspace.path, 'kb', 'manifest.json'),
+      status: 'completed',
+      details: {
+        'standard_package_manifest': manifestPath,
+        'kb_manifest': _join(workspace.path, 'kb', 'manifest.json'),
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      phase: Rc6RuntimePhase.knowledgeBuilt,
+      lastMessage: '已从标准知识包构建知识库。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
   Future<void> copyKnowledgeBase(String sourceKbId) async {
     if (!_canRunDesktop()) return;
     await _copyKnowledgeBaseRecord(sourceKbId);
@@ -1508,6 +1671,13 @@ class Rc6RuntimeController extends ChangeNotifier {
         'detail': '${state.chunkCount} chunks',
       },
       {
+        'module': 'standard_knowledge_package',
+        'event': 'export_or_import',
+        'status': state.hasStandardKnowledgePackage ? 'success' : 'not_run',
+        'artifact': state.standardKnowledgePackageManifestPath,
+        'detail': state.standardKnowledgePackagePath,
+      },
+      {
         'module': 'knowledge_base',
         'event': 'build',
         'status': state.hasKnowledgeBase ? 'success' : 'not_run',
@@ -1687,10 +1857,15 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _clearGeneratedArtifacts(includeImport: true);
     await _clearWorkspacePath(_join(workspace.path, 'input'));
     await _clearWorkspacePath(_join(workspace.path, 'source_manifest.json'));
+    await _clearWorkspacePath(_join(workspace.path, 'standard_packages'));
     state = state.copyWith(
       phase: Rc6RuntimePhase.initial,
       selectedFilePath: '',
       sourceManifestPath: '',
+      standardKnowledgePackagePath: '',
+      standardKnowledgePackageManifestPath: '',
+      standardKnowledgePackageContentPath: '',
+      standardKnowledgePackageAuditPath: '',
       parseReportPath: '',
       chunksPath: '',
       kbManifestPath: '',
@@ -1773,6 +1948,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final workspace = _requireWorkspace();
     for (final relative in const [
       'du',
+      'standard_packages',
       'kb',
       'query',
       'doc',
@@ -1790,6 +1966,10 @@ class Rc6RuntimeController extends ChangeNotifier {
           ? Rc6RuntimePhase.imported
           : Rc6RuntimePhase.initial,
       parseReportPath: '',
+      standardKnowledgePackagePath: '',
+      standardKnowledgePackageManifestPath: '',
+      standardKnowledgePackageContentPath: '',
+      standardKnowledgePackageAuditPath: '',
       chunksPath: '',
       kbManifestPath: '',
       qualityReportPath: '',
@@ -3058,6 +3238,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     for (final relative in const [
       'du',
+      'standard_packages',
       'kb',
       'query',
       'doc',
@@ -3072,6 +3253,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     state = state.copyWith(
       phase: includeImport ? Rc6RuntimePhase.imported : state.phase,
       parseReportPath: '',
+      standardKnowledgePackagePath: '',
+      standardKnowledgePackageManifestPath: '',
+      standardKnowledgePackageContentPath: '',
+      standardKnowledgePackageAuditPath: '',
       chunksPath: '',
       kbManifestPath: '',
       qualityReportPath: '',
@@ -3153,6 +3338,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     final duManifestPath =
         _join(workspace.path, 'du', 'document_understanding_manifest.json');
     final parseReportAliasPath = _join(workspace.path, 'parse_report.json');
+    final standardPackagePath =
+        _join(workspace.path, 'standard_packages', 'current');
+    final standardPackageManifestPath =
+        _join(standardPackagePath, 'standard_package_manifest.json');
+    final standardPackageContentPath =
+        _join(standardPackagePath, 'content_package.jsonl');
+    final standardPackageAuditPath =
+        _join(workspace.path, 'standard_packages', 'audit_history.jsonl');
     final kbManifestPath = _join(workspace.path, 'kb', 'manifest.json');
     final chunksPath = _join(workspace.path, 'kb', 'chunks.jsonl');
     final cardsPath = _join(workspace.path, 'kb', 'cards.jsonl');
@@ -3320,6 +3513,22 @@ class Rc6RuntimeController extends ChangeNotifier {
           ? parseReportAliasPath
           : await File(duManifestPath).exists()
               ? duManifestPath
+              : '',
+      standardKnowledgePackagePath:
+          await File(standardPackageManifestPath).exists()
+              ? standardPackagePath
+              : '',
+      standardKnowledgePackageManifestPath:
+          await File(standardPackageManifestPath).exists()
+              ? standardPackageManifestPath
+              : '',
+      standardKnowledgePackageContentPath:
+          await File(standardPackageContentPath).exists()
+              ? standardPackageContentPath
+              : '',
+      standardKnowledgePackageAuditPath:
+          await File(standardPackageAuditPath).exists()
+              ? standardPackageAuditPath
               : '',
       chunksPath: await File(chunksPath).exists() ? chunksPath : '',
       kbManifestPath: await File(kbManifestPath).exists() ? kbManifestPath : '',
@@ -3724,6 +3933,15 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(workspace.path, 'knowledge_bases', 'kb_catalog.json');
     final kbCatalog = await _readJsonObject(kbCatalogPath);
     final knowledgeBaseRecords = _catalogRecords(kbCatalog);
+    final standardPackageArtifacts = <String>[
+      _joinNested(workspace.path,
+          'standard_packages/current/standard_package_manifest.json'),
+      _joinNested(
+          workspace.path, 'standard_packages/current/source_references.json'),
+      _joinNested(
+          workspace.path, 'standard_packages/current/content_package.jsonl'),
+      _joinNested(workspace.path, 'standard_packages/audit_history.jsonl'),
+    ].where((path) => File(path).existsSync()).toList(growable: false);
     final generatedDocuments = <String>[
       _join(workspace.path, 'doc', 'generated.md'),
       _join(workspace.path, 'doc', 'reading_notes.md'),
@@ -3797,6 +4015,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           .map((record) => (record['kb_id'] ?? '').toString())
           .where((id) => id.isNotEmpty)
           .toList(growable: false),
+      'standard_knowledge_package_artifacts': standardPackageArtifacts,
       'generated_documents': generatedDocuments,
       'skill_artifacts': skillArtifacts,
       'agent_artifacts': agentArtifacts,
@@ -4415,6 +4634,226 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<Map<String, dynamic>> _loadKnowledgeCatalog(Directory workspace) {
     return _readJsonObject(
         _join(workspace.path, 'knowledge_bases', 'kb_catalog.json'));
+  }
+
+  Future<Directory> _writeStandardKnowledgePackage({
+    required Directory workspace,
+    required String operation,
+  }) async {
+    final packageRoot =
+        Directory(_join(workspace.path, 'standard_packages', 'current'));
+    if (await packageRoot.exists()) {
+      await packageRoot.delete(recursive: true);
+    }
+    await packageRoot.create(recursive: true);
+    final sourceManifestPath = _join(workspace.path, 'source_manifest.json');
+    final parseReportPath = _join(workspace.path, 'parse_report.json');
+    final sourceManifest = await _readJsonObject(sourceManifestPath);
+    final sources = _sourceRecordsFromManifest(sourceManifest);
+    final normalizedSourcesByRelativePath =
+        await _normalizedSourcesByRelativePath(workspace);
+    final packageId =
+        'OKF_${DateTime.now().toUtc().toIso8601String().replaceAll(RegExp(r'[^0-9]'), '')}_${_stableHash(sourceManifestPath)}';
+    final contentRows = <Map<String, Object?>>[];
+    for (final source in sources) {
+      final normalizedPath = normalizedSourcesByRelativePath[
+          _normalizePathKey(source.relativePath)];
+      var contentPreview = '';
+      if (normalizedPath != null && await File(normalizedPath).exists()) {
+        contentPreview = _compact(
+          await File(normalizedPath).readAsString(encoding: utf8),
+          maxLength: 1200,
+        );
+      }
+      contentRows.add({
+        'document_id': source.documentId,
+        'source_name': source.sourceName,
+        'relative_path': source.relativePath,
+        'source_type': source.sourceType,
+        'normalized_path': normalizedPath ?? '',
+        'content_preview': contentPreview,
+        'word_count': source.wordCount,
+        'image_count': source.imageCount,
+        'table_count': source.tableCount,
+        'link_count': source.linkCount,
+      });
+    }
+    final sourceRefsPath = _join(packageRoot.path, 'source_references.json');
+    final contentPath = _join(packageRoot.path, 'content_package.jsonl');
+    final manifestPath =
+        _join(packageRoot.path, 'standard_package_manifest.json');
+    await File(sourceRefsPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_standard_knowledge_package_sources.v1',
+        'package_id': packageId,
+        'source_manifest': sourceManifestPath,
+        'parse_report':
+            await File(parseReportPath).exists() ? parseReportPath : '',
+        'sources': contentRows
+            .map((row) => {
+                  'document_id': row['document_id'],
+                  'source_name': row['source_name'],
+                  'relative_path': row['relative_path'],
+                  'normalized_path': row['normalized_path'],
+                })
+            .toList(growable: false),
+      }),
+      encoding: utf8,
+    );
+    await File(contentPath).writeAsString(
+      '${contentRows.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    final manifest = {
+      'schema_version': 'prd_v3_standard_knowledge_package_manifest.v1',
+      'package_id': packageId,
+      'standard': 'okf_candidate',
+      'status': 'exported',
+      'operation': operation,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+      'workspace': workspace.path,
+      'manifest_path': manifestPath,
+      'source_references_path': sourceRefsPath,
+      'content_package_path': contentPath,
+      'source_manifest_path': sourceManifestPath,
+      'parse_report_path':
+          await File(parseReportPath).exists() ? parseReportPath : '',
+      'source_count': sources.length,
+      'content_record_count': contentRows.length,
+      'version': 'v1',
+      'okf_runtime_enabled': false,
+      'independent_agent_runtime': false,
+      'secret_plaintext_written': false,
+    };
+    await File(manifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(manifest),
+      encoding: utf8,
+    );
+    return packageRoot;
+  }
+
+  Future<void> _materializeKnowledgeBaseFromStandardPackage(
+      Directory packageDir) async {
+    final workspace = _requireWorkspace();
+    final manifest = await _readJsonObject(
+        _join(packageDir.path, 'standard_package_manifest.json'));
+    final contentRows =
+        await _readJsonl(File(_join(packageDir.path, 'content_package.jsonl')));
+    final kbDir = Directory(_join(workspace.path, 'kb'));
+    await _clearWorkspacePath(kbDir.path);
+    await kbDir.create(recursive: true);
+    final chunks = <String>[];
+    for (var index = 0; index < contentRows.length; index += 1) {
+      final row = contentRows[index];
+      chunks.add(jsonEncode({
+        'chunk_id': 'okf_chunk_${index + 1}',
+        'text': row['content_preview'] ?? row['source_name'] ?? '',
+        'source_path': row['relative_path'] ?? row['source_name'] ?? '',
+        'citation': '${row['source_name'] ?? 'source'}#okf=${index + 1}',
+        'document_id': row['document_id'] ?? '',
+      }));
+    }
+    await File(_join(kbDir.path, 'chunks.jsonl')).writeAsString(
+      chunks.isEmpty ? '' : '${chunks.join('\n')}\n',
+      encoding: utf8,
+    );
+    await File(_join(kbDir.path, 'cards.jsonl')).writeAsString(
+      contentRows
+              .map((row) => jsonEncode({
+                    'title': row['source_name'] ?? 'standard package source',
+                    'summary': _compact(row['content_preview'] ?? ''),
+                    'source_path': row['relative_path'] ?? '',
+                  }))
+              .join('\n') +
+          (contentRows.isEmpty ? '' : '\n'),
+      encoding: utf8,
+    );
+    await File(_join(kbDir.path, 'qa_pairs.jsonl')).writeAsString(
+      contentRows
+              .map((row) => jsonEncode({
+                    'question': '来源 ${row['source_name'] ?? ''} 的核心内容是什么？',
+                    'answer': _compact(row['content_preview'] ?? ''),
+                    'source_path': row['relative_path'] ?? '',
+                  }))
+              .join('\n') +
+          (contentRows.isEmpty ? '' : '\n'),
+      encoding: utf8,
+    );
+    await File(_join(kbDir.path, 'manifest.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_kb_from_standard_package.v1',
+        'status': contentRows.isEmpty ? 'needs_content' : 'pass',
+        'package_id': manifest['package_id'] ?? '',
+        'standard': manifest['standard'] ?? 'okf_candidate',
+        'source_package_manifest':
+            _join(packageDir.path, 'standard_package_manifest.json'),
+        'chunk_count': contentRows.length,
+      }),
+      encoding: utf8,
+    );
+    await File(_join(kbDir.path, 'quality_report.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_standard_package_kb_quality.v1',
+        'status': contentRows.isEmpty ? 'needs_content' : 'pass',
+        'source_package_manifest':
+            _join(packageDir.path, 'standard_package_manifest.json'),
+        'coverage': {
+          'source_count': manifest['source_count'] ?? contentRows.length,
+          'content_record_count': contentRows.length,
+        },
+      }),
+      encoding: utf8,
+    );
+    await _writeDerivedKnowledgeArtifacts();
+    final record = await _materializeKnowledgeBaseRecord(
+      workspace: workspace,
+      kbId: 'K_OKF1',
+      name: '标准知识包知识库',
+      type: '标准知识包构建',
+      sourceDocuments: contentRows
+          .map((row) => {
+                'document_id': row['document_id'] ?? '',
+                'source_name': row['source_name'] ?? '',
+                'relative_path': row['relative_path'] ?? '',
+                'source_type': row['source_type'] ?? '',
+              })
+          .toList(growable: false),
+      sourceKbIds: const [],
+      operation: 'build_from_standard_package',
+    );
+    record['source_standard_package_manifest'] =
+        _join(packageDir.path, 'standard_package_manifest.json');
+    record['okf_runtime_enabled'] = false;
+    final catalog = await _loadKnowledgeCatalog(workspace);
+    final records = [
+      ..._catalogRecords(catalog).where((item) => item['kb_id'] != 'K_OKF1'),
+      record,
+    ];
+    await _writeKnowledgeCatalog(workspace, records,
+        operation: 'build_from_standard_package:K_OKF1');
+  }
+
+  Future<void> _appendStandardPackageAuditRecord({
+    required String action,
+    required String artifact,
+    required String status,
+    Map<String, Object?> details = const {},
+  }) async {
+    final workspace = _requireWorkspace();
+    final root = Directory(_join(workspace.path, 'standard_packages'));
+    await root.create(recursive: true);
+    await File(_join(root.path, 'audit_history.jsonl')).writeAsString(
+      '${jsonEncode({
+            'schema_version': 'prd_v3_standard_package_audit_record.v1',
+            'action': action,
+            'artifact': artifact,
+            'status': status,
+            'details': details,
+            'created_at': DateTime.now().toUtc().toIso8601String(),
+          })}\n',
+      mode: FileMode.append,
+      encoding: utf8,
+    );
   }
 
   List<Map<String, dynamic>> _catalogRecords(Map<String, dynamic> catalog) {
@@ -7030,11 +7469,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     return sourceName.isEmpty ? const [] : [sourceName];
   }
 
-  static String _compact(Object? value) {
+  static String _compact(Object? value, {int maxLength = 180}) {
     final text =
         (value ?? '').toString().replaceAll(RegExp(r'\s+'), ' ').trim();
-    if (text.length <= 180) return text;
-    return '${text.substring(0, 180)}...';
+    if (text.length <= maxLength) return text;
+    return '${text.substring(0, maxLength)}...';
   }
 
   static int _countJsonl(String path) {
@@ -7550,6 +7989,10 @@ class Rc6RuntimeState {
     required this.selectedFilePath,
     required this.sourceManifestPath,
     required this.parseReportPath,
+    required this.standardKnowledgePackagePath,
+    required this.standardKnowledgePackageManifestPath,
+    required this.standardKnowledgePackageContentPath,
+    required this.standardKnowledgePackageAuditPath,
     required this.chunksPath,
     required this.kbManifestPath,
     required this.qualityReportPath,
@@ -7636,6 +8079,10 @@ class Rc6RuntimeState {
         selectedFilePath: '',
         sourceManifestPath: '',
         parseReportPath: '',
+        standardKnowledgePackagePath: '',
+        standardKnowledgePackageManifestPath: '',
+        standardKnowledgePackageContentPath: '',
+        standardKnowledgePackageAuditPath: '',
         chunksPath: '',
         kbManifestPath: '',
         qualityReportPath: '',
@@ -7721,6 +8168,10 @@ class Rc6RuntimeState {
   final String selectedFilePath;
   final String sourceManifestPath;
   final String parseReportPath;
+  final String standardKnowledgePackagePath;
+  final String standardKnowledgePackageManifestPath;
+  final String standardKnowledgePackageContentPath;
+  final String standardKnowledgePackageAuditPath;
   final String chunksPath;
   final String kbManifestPath;
   final String qualityReportPath;
@@ -7800,6 +8251,9 @@ class Rc6RuntimeState {
   final CoreBridgeResult? lastResult;
 
   bool get hasImportedFile => sourceManifestPath.isNotEmpty;
+  bool get hasStandardKnowledgePackage =>
+      standardKnowledgePackageManifestPath.isNotEmpty &&
+      standardKnowledgePackageContentPath.isNotEmpty;
   bool get hasKnowledgeBase => kbManifestPath.isNotEmpty && chunkCount > 0;
   bool get hasMarkdown => generatedMarkdownPath.isNotEmpty;
   bool get hasReadingNotes => readingNotesPath.isNotEmpty;
@@ -7847,6 +8301,10 @@ class Rc6RuntimeState {
     String? selectedFilePath,
     String? sourceManifestPath,
     String? parseReportPath,
+    String? standardKnowledgePackagePath,
+    String? standardKnowledgePackageManifestPath,
+    String? standardKnowledgePackageContentPath,
+    String? standardKnowledgePackageAuditPath,
     String? chunksPath,
     String? kbManifestPath,
     String? qualityReportPath,
@@ -7932,6 +8390,16 @@ class Rc6RuntimeState {
       selectedFilePath: selectedFilePath ?? this.selectedFilePath,
       sourceManifestPath: sourceManifestPath ?? this.sourceManifestPath,
       parseReportPath: parseReportPath ?? this.parseReportPath,
+      standardKnowledgePackagePath:
+          standardKnowledgePackagePath ?? this.standardKnowledgePackagePath,
+      standardKnowledgePackageManifestPath:
+          standardKnowledgePackageManifestPath ??
+              this.standardKnowledgePackageManifestPath,
+      standardKnowledgePackageContentPath:
+          standardKnowledgePackageContentPath ??
+              this.standardKnowledgePackageContentPath,
+      standardKnowledgePackageAuditPath: standardKnowledgePackageAuditPath ??
+          this.standardKnowledgePackageAuditPath,
       chunksPath: chunksPath ?? this.chunksPath,
       kbManifestPath: kbManifestPath ?? this.kbManifestPath,
       qualityReportPath: qualityReportPath ?? this.qualityReportPath,

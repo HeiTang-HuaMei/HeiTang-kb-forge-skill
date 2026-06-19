@@ -403,6 +403,9 @@ void main() {
     expect(find.byKey(const Key('product-status-panel')), findsNothing);
     expect(find.text('1. 选择来源文档'), findsOneWidget);
     expect(find.text('开始构建知识库'), findsOneWidget);
+    expect(find.text('从标准包构建'), findsOneWidget);
+    expect(find.text('OKF'), findsNothing);
+    expect(find.byKey(const Key('sidebar-okf')), findsNothing);
     await tester.tap(find.text('质量记录'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('knowledge-quality-records')), findsOneWidget);

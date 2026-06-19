@@ -42,6 +42,17 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> buildKnowledgeBase(
           {List<String> documentIds = const []}) async =>
       initialize();
+  Future<String> exportStandardKnowledgePackage() async {
+    await initialize();
+    return '';
+  }
+
+  Future<String> importStandardKnowledgePackagePath(String path) async {
+    await initialize();
+    return '';
+  }
+
+  Future<void> buildKnowledgeBaseFromStandardPackage() async => initialize();
   Future<void> copyKnowledgeBase(String sourceKbId) async => initialize();
   Future<void> mergeKnowledgeBases(List<String> sourceKbIds) async =>
       initialize();
@@ -384,6 +395,10 @@ class Rc6RuntimeState {
     required this.selectedFilePath,
     required this.sourceManifestPath,
     required this.parseReportPath,
+    required this.standardKnowledgePackagePath,
+    required this.standardKnowledgePackageManifestPath,
+    required this.standardKnowledgePackageContentPath,
+    required this.standardKnowledgePackageAuditPath,
     required this.chunksPath,
     required this.kbManifestPath,
     required this.qualityReportPath,
@@ -470,6 +485,10 @@ class Rc6RuntimeState {
         selectedFilePath: '',
         sourceManifestPath: '',
         parseReportPath: '',
+        standardKnowledgePackagePath: '',
+        standardKnowledgePackageManifestPath: '',
+        standardKnowledgePackageContentPath: '',
+        standardKnowledgePackageAuditPath: '',
         chunksPath: '',
         kbManifestPath: '',
         qualityReportPath: '',
@@ -555,6 +574,10 @@ class Rc6RuntimeState {
   final String selectedFilePath;
   final String sourceManifestPath;
   final String parseReportPath;
+  final String standardKnowledgePackagePath;
+  final String standardKnowledgePackageManifestPath;
+  final String standardKnowledgePackageContentPath;
+  final String standardKnowledgePackageAuditPath;
   final String chunksPath;
   final String kbManifestPath;
   final String qualityReportPath;
@@ -634,6 +657,9 @@ class Rc6RuntimeState {
   final CoreBridgeResult? lastResult;
 
   bool get hasImportedFile => sourceManifestPath.isNotEmpty;
+  bool get hasStandardKnowledgePackage =>
+      standardKnowledgePackageManifestPath.isNotEmpty &&
+      standardKnowledgePackageContentPath.isNotEmpty;
   bool get hasKnowledgeBase => kbManifestPath.isNotEmpty && chunkCount > 0;
   bool get hasMarkdown => generatedMarkdownPath.isNotEmpty;
   bool get hasReadingNotes => readingNotesPath.isNotEmpty;
@@ -681,6 +707,10 @@ class Rc6RuntimeState {
     String? selectedFilePath,
     String? sourceManifestPath,
     String? parseReportPath,
+    String? standardKnowledgePackagePath,
+    String? standardKnowledgePackageManifestPath,
+    String? standardKnowledgePackageContentPath,
+    String? standardKnowledgePackageAuditPath,
     String? chunksPath,
     String? kbManifestPath,
     String? qualityReportPath,
@@ -766,6 +796,16 @@ class Rc6RuntimeState {
       selectedFilePath: selectedFilePath ?? this.selectedFilePath,
       sourceManifestPath: sourceManifestPath ?? this.sourceManifestPath,
       parseReportPath: parseReportPath ?? this.parseReportPath,
+      standardKnowledgePackagePath:
+          standardKnowledgePackagePath ?? this.standardKnowledgePackagePath,
+      standardKnowledgePackageManifestPath:
+          standardKnowledgePackageManifestPath ??
+              this.standardKnowledgePackageManifestPath,
+      standardKnowledgePackageContentPath:
+          standardKnowledgePackageContentPath ??
+              this.standardKnowledgePackageContentPath,
+      standardKnowledgePackageAuditPath: standardKnowledgePackageAuditPath ??
+          this.standardKnowledgePackageAuditPath,
       chunksPath: chunksPath ?? this.chunksPath,
       kbManifestPath: kbManifestPath ?? this.kbManifestPath,
       qualityReportPath: qualityReportPath ?? this.qualityReportPath,
