@@ -142,13 +142,18 @@ def test_docs_use_chinese_public_filename_structure():
         "audits",
         "bridge",
         "governance",
-        "product",
         "roadmap",
         "testing",
     ]
     tracked = set(_tracked_files())
     for dirname in removed_dirs:
         assert not any(path.startswith(f"docs/{dirname}/") for path in tracked)
+    allowed_product_baseline = {
+        "docs/product/FEATURE_ACCEPTANCE_MATRIX_V3_2026-06-19.md",
+        "docs/product/PRD_V3_2026-06-19.md",
+        "docs/product/PRODUCT_ARCHITECTURE_V3_2026-06-19.md",
+    }
+    assert {path for path in tracked if path.startswith("docs/product/")} <= allowed_product_baseline
 
 
 def test_cleanup_mapping_table_covers_required_actions():

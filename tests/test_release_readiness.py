@@ -74,6 +74,11 @@ def test_release_readiness_uses_v4_2_chinese_docs_without_old_english_docs(tmp_p
 
 
 def test_release_readiness_forbidden_legacy_paths_remain_untracked():
+    allowed_product_baseline = {
+        "docs/product/FEATURE_ACCEPTANCE_MATRIX_V3_2026-06-19.md",
+        "docs/product/PRD_V3_2026-06-19.md",
+        "docs/product/PRODUCT_ARCHITECTURE_V3_2026-06-19.md",
+    }
     result = subprocess.run(
         [
             "git",
@@ -91,4 +96,5 @@ def test_release_readiness_forbidden_legacy_paths_remain_untracked():
         capture_output=True,
         check=True,
     )
-    assert (result.stdout or "").strip() == ""
+    tracked = {line.strip() for line in (result.stdout or "").splitlines() if line.strip()}
+    assert tracked <= allowed_product_baseline

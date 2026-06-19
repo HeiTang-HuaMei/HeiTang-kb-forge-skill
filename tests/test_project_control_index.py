@@ -37,14 +37,19 @@ def test_project_control_index_replacement_preserves_forbidden_actions():
 
 def test_public_control_surface_does_not_reintroduce_legacy_directories():
     tracked = _tracked_files()
+    allowed_product_baseline = {
+        "docs/product/FEATURE_ACCEPTANCE_MATRIX_V3_2026-06-19.md",
+        "docs/product/PRD_V3_2026-06-19.md",
+        "docs/product/PRODUCT_ARCHITECTURE_V3_2026-06-19.md",
+    }
     for prefix in [
         "docs/governance/",
         "docs/testing/",
-        "docs/product/",
         "docs/bridge/",
         "docs/roadmap/",
     ]:
         assert not any(path.startswith(prefix) for path in tracked)
+    assert {path for path in tracked if path.startswith("docs/product/")} <= allowed_product_baseline
 
 
 def _tracked_files() -> set[str]:

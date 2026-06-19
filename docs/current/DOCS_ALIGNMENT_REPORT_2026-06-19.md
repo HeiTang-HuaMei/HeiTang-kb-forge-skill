@@ -78,3 +78,5 @@ Pre-existing dirty files were not rewritten or reverted:
 - Overclaim scan: only negative or boundary wording remained, such as "不得写成", "不开放", "不新增", and "scan".
 - OKF runtime scan: only boundary wording remained; no OKF runtime, page, or current user-flow implementation was added.
 - `git diff --cached --check`: passed after trimming whitespace in copied v3 baseline files.
+- Full local pytest after CI repair: `python -m pytest -q` passed, 1431 passed and 1 skipped.
+- Legacy public-surface tests were narrowed to allow only the three v3 baseline files under `docs/product/`; other legacy product/governance/testing/bridge/roadmap directories remain blocked.

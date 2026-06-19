@@ -39,6 +39,7 @@ Skill 输出面向可复用工作方法，不等于自动发布 runtime。当前
 
 单 Agent 必须基于工作区、KB、Skill、模型、记忆和权限配置创建。Agent 创建或运行产物应记录：
 
+- `manifest.json`
 - agent_profile / `agent_profile.yaml`
 - KB binding metadata
 - Skill binding metadata
@@ -76,9 +77,101 @@ A2A 是多 Agent 协作编排产物，不是无审计的普通聊天记录。A2A
 旧测试和旧文档可能仍出现以下历史口径。它们仅作追溯，不覆盖 v3：
 
 - Campaign 3 Supplement 4.0 的完整产品边界是 `Knowledge-to-Skill-to-Agent Package & Product Handoff Contract`。
+- 它替代了早期只覆盖 `Knowledge-to-Skill Template Generator` 的窄范围。
+- Plan state: `accepted_for_campaign_3_final_consistency_gate`
+- Current active phase: `Campaign 3 Supplement 4.0 Knowledge-to-Skill-to-Agent Package & Product Handoff Contract`
+- Current completed item: `Campaign 3 Supplement 4.0 Acceptance Gate`
+- Current business item: `Campaign 3 Final Consistency Gate only`
+- Supplement 3.0 Acceptance Gate、Pre-4.0 gate、bounded industrial-grade Entry Reconciliation Gate、4.0B Verified Knowledge-to-Skill Template、4.0C Skill Import & Dedicated Skill Composer、4.0D-I Product Handoff Contract Bundle、Supplement 4.0 Acceptance Gate 均已通过。
+- Campaign 3 Final Consistency Gate 是 4.0 后唯一 next safe action。
+- 4.0B 不 profile real knowledge base，不发布 Skill，不在 4.0B 创建 Agent Package。
+- 4.0C 已作为 bounded industrial-grade Skill Import & Dedicated Skill Composer implementation 通过。
 - 不是 Campaign 4 UI。
 - 不是 Campaign 5 Bridge。
 - Campaign 6 曾作为 Agent Runtime / Memory 计划名。
 - `Agent package 不等于 executable runtime`。
 - `runtime ready` 一律按“不得将 Agent Creation Package 写成 runtime ready”的否定边界理解。
 - `not_goal_complete = true`。
+
+### 历史 4.0 产品链路
+
+```text
+Verified Knowledge Base
+→ Skill Template
+→ Dedicated Skill
+→ Agent Package
+→ Workspace-bound Agent
+→ Multi-Agent Workflow Spec
+→ UI Handoff Contract
+→ Bridge Handoff Contract
+```
+
+Supplement 4.0 must not stop at `Knowledge Base -> Skill Template`。
+
+### 历史 Agent Package 边界
+
+- `agent_package_ready = true`
+- `agent_runtime_ready = false`
+- `agent_executable_platform_ready = false`
+- `agent_memory_runtime_ready = false`
+- `multi_agent_runtime_ready = false`
+- `KB + Skill -> Agent Package` 是包生成能力，不是 runtime ready。
+- `agent_package_ready` must not be written as `agent_executable`。
+- `workspace_basic_supported = true / not_proven`，`runtime_enforcement_ready = false`。
+- `agent_memory_spec_ready = true`
+- `agent_short_term_redis_runtime_ready = false`
+- `agent_long_term_vector_runtime_ready = false`
+- `agent_memory_isolation_runtime_ready = false`
+- `cross_agent_memory_leak_tests_required = true`
+- Redis config existence is not Agent short-term memory completion。
+- Vector DB config existence is not Agent long-term memory completion。
+
+### 历史 Skill 类型与状态
+
+- `domain_expert_skill`
+- `research_learning_skill`
+- `product_business_skill`
+- `operation_growth_skill`
+- `literary_skill`
+- `visual_video_skill`
+- `general_personal_skill`
+
+`visual_video_skill` is one subtype only。
+
+- `skill_draft`
+- `skill_generated_from_kb`
+- `skill_validated`
+- `skill_needs_review`
+- `skill_reference_only`
+- `skill_imported`
+- `skill_composed`
+- `skill_publish_ready`
+- `agent_draft`
+- `agent_package_ready`
+- `agent_bound_to_kb`
+- `agent_bound_to_skill`
+- `agent_runtime_not_integrated`
+- `agent_executable_not_ready`
+
+### 历史 Handoff 边界
+
+- UI Handoff Contract is not Campaign 4 UI completion。
+- Bridge Handoff Contract is not Campaign 5 Bridge completion。
+- `future_allowlist_candidate` 不会自动进入 Campaign 5 allowlist；Every new allowlist action must have separate acceptance。
+- Campaigns 4-9, EXE packaging, final release 均未在 Supplement 4.0 中启动。
+- `not_goal_complete = true`
+
+### 历史 Supplement 4.0 Acceptance Gate
+
+- Verified Knowledge-to-Skill passed
+- Skill Import / Composer passed
+- Existing Agent Package capability reconciled
+- KB + Skill -> Agent Package passed
+- Agent Workspace Binding Spec passed
+- Agent Memory Isolation Spec passed
+- Single / Multi-Agent Mode Spec passed
+- Multi-Agent Workflow Spec passed
+- Campaign 4 UI Handoff Contract generated
+- Campaign 5 Bridge Handoff Contract generated
+- Agent runtime not claimed ready
+- Redis/Vector Agent memory runtime not claimed ready
