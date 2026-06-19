@@ -445,6 +445,17 @@ void main() {
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
     expect(find.text('简单 Agent'), findsWidgets);
     expect(find.text('复杂 Agent'), findsOneWidget);
+    expect(find.text('简单 Agent 对话配置'), findsOneWidget);
+    expect(find.text('复杂 Agent 运行配置'), findsNothing);
+    expect(find.text('Redis 短期记忆'), findsNothing);
+    expect(find.text('向量长期记忆'), findsNothing);
+    expect(find.text('Tool 配置'), findsNothing);
+    await tester.tap(find.text('复杂构造'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.text('复杂 Agent 运行配置'), findsOneWidget);
+    expect(find.text('Redis 短期记忆'), findsOneWidget);
+    expect(find.text('向量长期记忆'), findsOneWidget);
+    expect(find.text('Tool 配置'), findsOneWidget);
     expect(find.text('创建 Agent 并进入对话'), findsWidgets);
     expect(find.text('复制 Agent 路径'), findsNothing);
     expect(find.text('等待真实 Agent 产物'), findsWidgets);

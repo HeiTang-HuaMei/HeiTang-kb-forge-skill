@@ -11481,6 +11481,7 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
+    final simpleMode = creationMode == 'simple';
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 900;
       final create = _ProductPanel(
@@ -11653,7 +11654,9 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
       final detail = _ProductPanel(
         keyName: 'agent-binding-detail',
         icon: Icons.link_outlined,
-        title: zh ? '绑定关系' : 'Bindings',
+        title: simpleMode
+            ? (zh ? '简单 Agent 对话配置' : 'Simple Agent Chat Config')
+            : (zh ? '复杂 Agent 运行配置' : 'Advanced Agent Runtime Config'),
         children: [
           _FieldRow(
             label: zh ? '知识库' : 'Knowledge Base',
@@ -11670,39 +11673,63 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
           ),
           const SizedBox(height: 8),
           _FieldRow(
-            label: zh ? '记忆配置' : 'Memory',
+            label: zh ? '创建后动作' : 'After creation',
             value: zh
-                ? '简单模式本地会话；复杂模式可绑定 Redis / 向量长期记忆配置'
-                : 'Simple mode uses local session memory; advanced mode can bind Redis / vector memory settings',
+                ? '创建后立即进入单 Agent 对话'
+                : 'Open single-Agent chat immediately after creation',
           ),
-          const SizedBox(height: 8),
-          _FieldRow(
-            label: zh ? '输出格式' : 'Output',
-            value: zh
-                ? 'Markdown / JSON / report / chat'
-                : 'Markdown / JSON / report / chat',
-          ),
-          const SizedBox(height: 8),
-          _FieldRow(
-            label: zh ? 'Tool 配置' : 'Tool config',
-            value: zh
-                ? '简单模式不展示 Tool；复杂模式仅允许白名单工具'
-                : 'Simple mode hides Tool config; advanced mode only allows allowlisted tools',
-          ),
-          const SizedBox(height: 8),
-          _FieldRow(
-            label: zh ? '审计策略' : 'Audit policy',
-            value: zh
-                ? '创建、对话、A2A、权限审计均写入运行记录'
-                : 'Creation, chat, A2A, and permission checks are written to run history',
-          ),
-          const SizedBox(height: 8),
-          _FieldRow(
-            label: zh ? '能力边界' : 'Boundary',
-            value: zh
-                ? '仅使用本地知识库与 Skill，高风险系统能力不开放'
-                : 'Uses local Knowledge Base and Skill only; high-risk system capabilities are not exposed',
-          ),
+          if (simpleMode) ...[
+            const SizedBox(height: 8),
+            _FieldRow(
+              label: zh ? '对话历史' : 'Dialogue history',
+              value: runtime.hasAgentDialogue
+                  ? (zh ? '已有会话记录' : 'Conversation saved')
+                  : (zh ? '首次对话后写入' : 'Written after first chat'),
+            ),
+            const SizedBox(height: 8),
+            _FieldRow(
+              label: zh ? '运行审计' : 'Run audit',
+              value: zh
+                  ? '记录模型、知识库、Skill、引用和错误状态'
+                  : 'Records model, KB, Skill, citations, and errors',
+            ),
+          ] else ...[
+            const SizedBox(height: 8),
+            _FieldRow(
+              label: zh ? 'Redis 短期记忆' : 'Redis short-term memory',
+              value: zh
+                  ? '使用运行设置中的 Redis 配置；未通过连接测试时回退本地会话'
+                  : 'Uses Run Settings Redis; falls back to local session if untested',
+            ),
+            const SizedBox(height: 8),
+            _FieldRow(
+              label: zh ? '向量长期记忆' : 'Vector long-term memory',
+              value: zh
+                  ? '绑定运行设置中的 Qdrant / 本地索引配置'
+                  : 'Binds Qdrant / local index from Run Settings',
+            ),
+            const SizedBox(height: 8),
+            _FieldRow(
+              label: zh ? 'Tool 配置' : 'Tool config',
+              value: zh
+                  ? '仅允许白名单业务工具，不开放任意系统命令'
+                  : 'Allowlisted product tools only; arbitrary system commands are not exposed',
+            ),
+            const SizedBox(height: 8),
+            _FieldRow(
+              label: zh ? '输出格式' : 'Output',
+              value: zh
+                  ? 'Markdown / JSON / report / chat'
+                  : 'Markdown / JSON / report / chat',
+            ),
+            const SizedBox(height: 8),
+            _FieldRow(
+              label: zh ? '审计策略' : 'Audit policy',
+              value: zh
+                  ? '创建、对话、A2A、权限审计均写入运行记录'
+                  : 'Creation, chat, A2A, and permission checks are written to run history',
+            ),
+          ],
         ],
       );
       if (!wide) {
