@@ -12166,10 +12166,42 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
   }
 }
 
-class _AgentDiscussionProductView extends StatelessWidget {
+class _AgentDiscussionProductView extends StatefulWidget {
   const _AgentDiscussionProductView({required this.zh});
 
   final bool zh;
+
+  @override
+  State<_AgentDiscussionProductView> createState() =>
+      _AgentDiscussionProductViewState();
+}
+
+class _AgentDiscussionProductViewState
+    extends State<_AgentDiscussionProductView> {
+  final TextEditingController _topicController =
+      TextEditingController(text: '围绕当前知识库形成产品与运营行动建议。');
+  final Set<String> _selectedParticipants = {
+    'reading_summary_agent',
+    'operation_conversion_agent',
+    'product_analysis_agent',
+  };
+
+  bool get zh => widget.zh;
+
+  @override
+  void dispose() {
+    _topicController.dispose();
+    super.dispose();
+  }
+
+  String _agentLabel(String id) => switch (id) {
+        'reading_summary_agent' => zh ? '阅读总结 Agent' : 'Reading Summary',
+        'knowledge_qa_agent' => zh ? '知识问答 Agent' : 'Knowledge QA',
+        'quality_qa_agent' => zh ? '质检 Agent' : 'Quality',
+        'operation_conversion_agent' => zh ? '运营转化 Agent' : 'Ops Conversion',
+        'product_analysis_agent' => zh ? '产品分析 Agent' : 'Product Analysis',
+        _ => id,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -12223,6 +12255,48 @@ class _AgentDiscussionProductView extends StatelessWidget {
                   ['Quality Agent', 'Parse and chunks', 'Review risks'],
                 ],
         ),
+        const SizedBox(height: _DesktopGrid.gutter),
+        TextField(
+          key: const Key('a2a-topic-input'),
+          controller: _topicController,
+          enabled: !runtime.running,
+          decoration: InputDecoration(
+            labelText: zh ? '协作议题' : 'Collaboration topic',
+            helperText: zh
+                ? '写入 A2A 会话、讨论纪要和审计清单。'
+                : 'Written to A2A session, discussion notes, and audit manifests.',
+            border: const OutlineInputBorder(),
+            isDense: true,
+          ),
+          minLines: 2,
+          maxLines: 3,
+        ),
+        const SizedBox(height: 8),
+        _SectionCaption(zh ? '选择参与 Agent' : 'Select participant Agents'),
+        const SizedBox(height: 8),
+        Wrap(spacing: 8, runSpacing: 8, children: [
+          for (final id in const [
+            'reading_summary_agent',
+            'knowledge_qa_agent',
+            'quality_qa_agent',
+            'operation_conversion_agent',
+            'product_analysis_agent',
+          ])
+            FilterChip(
+              key: Key('a2a-agent-$id'),
+              label: Text(_agentLabel(id)),
+              selected: _selectedParticipants.contains(id),
+              onSelected: runtime.running
+                  ? null
+                  : (selected) => setState(() {
+                        if (selected) {
+                          _selectedParticipants.add(id);
+                        } else if (_selectedParticipants.length > 1) {
+                          _selectedParticipants.remove(id);
+                        }
+                      }),
+            ),
+        ]),
         const SizedBox(height: _DesktopGrid.gutter),
         _FieldRow(
           label: zh ? 'A2A Session' : 'A2A Session',
@@ -12297,7 +12371,10 @@ class _AgentDiscussionProductView extends StatelessWidget {
           icon: Icons.forum_outlined,
           onPressed: runtime.running || rc6 == null
               ? null
-              : () => rc6.runMultiAgentDiscussion(),
+              : () => rc6.runMultiAgentDiscussion(
+                    topic: _topicController.text,
+                    participantAgentIds: _selectedParticipants.toList(),
+                  ),
         ),
         const SizedBox(height: _DesktopGrid.gutter),
         _DisplayAction(

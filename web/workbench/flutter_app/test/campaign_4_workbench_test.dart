@@ -690,6 +690,12 @@ void main() {
     expect(find.text('启动联合讨论'), findsOneWidget);
     expect(find.text('协作议题'), findsWidgets);
     expect(find.text('参与 Agent'), findsOneWidget);
+    expect(find.byKey(const Key('a2a-topic-input')), findsOneWidget);
+    expect(find.text('选择参与 Agent'), findsOneWidget);
+    expect(find.byKey(const Key('a2a-agent-reading_summary_agent')),
+        findsOneWidget);
+    expect(find.byKey(const Key('a2a-agent-product_analysis_agent')),
+        findsOneWidget);
     expect(find.text('证据引用'), findsOneWidget);
     expect(find.text('会话状态'), findsOneWidget);
     expect(find.text('会话审计'), findsOneWidget);

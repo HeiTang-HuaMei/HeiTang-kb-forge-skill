@@ -1838,6 +1838,35 @@ void main() {
           contains(
               '"vector_config_id":"settings_agent_memory_vector_optional"'),
         ));
+    await controller.runMultiAgentDiscussion(
+      topic: 'Owner 自定义 A2A 议题',
+      participantAgentIds: const [
+        'operation_conversion_agent',
+        'product_analysis_agent',
+      ],
+    );
+    expect(controller.state.a2aTopic, 'Owner 自定义 A2A 议题');
+    expect(controller.state.a2aParticipantAgentIds,
+        ['operation_conversion_agent', 'product_analysis_agent']);
+    final discussion = File(
+            '${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
+        .readAsStringSync();
+    expect(
+        discussion,
+        allOf(
+          contains('Owner 自定义 A2A 议题'),
+          contains('operation_conversion_agent / product_analysis_agent'),
+        ));
+    final a2aManifest = File(
+            '$agentRoot${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001${Platform.pathSeparator}a2a_session_manifest.json')
+        .readAsStringSync();
+    expect(
+        a2aManifest,
+        allOf(
+          contains('"topic": "Owner 自定义 A2A 议题"'),
+          contains('"operation_conversion_agent"'),
+          contains('"product_analysis_agent"'),
+        ));
   });
 
   test('rc6 owner input folder chain uses the fixed Owner input directory',

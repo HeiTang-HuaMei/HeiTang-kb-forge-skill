@@ -191,7 +191,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
-  Future<void> runMultiAgentDiscussion() async => initialize();
+  Future<void> runMultiAgentDiscussion({
+    String topic = '',
+    List<String> participantAgentIds = const [],
+  }) async =>
+      initialize();
   Future<void> runRealInputFolderE2E(String folderPath,
           {String query = '赚钱 小生意'}) async =>
       initialize();

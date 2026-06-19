@@ -2062,7 +2062,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> runMultiAgentDiscussion() async {
+  Future<void> runMultiAgentDiscussion({
+    String topic = '',
+    List<String> participantAgentIds = const [],
+  }) async {
     if (!_canRunDesktop()) {
       return;
     }
@@ -2070,7 +2073,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       _fail('请先在 Agent 工厂生成 Agent。');
       return;
     }
-    await _writeMultiAgentDiscussion();
+    await _writeMultiAgentDiscussion(
+      topic: topic,
+      participantAgentIds: participantAgentIds,
+    );
     await _loadExistingArtifacts();
     state = state.copyWith(
       lastMessage: '多 Agent 联合讨论纪要已生成。',
@@ -5321,7 +5327,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         encoding: utf8);
   }
 
-  Future<void> _writeMultiAgentDiscussion() async {
+  Future<void> _writeMultiAgentDiscussion({
+    String topic = '',
+    List<String> participantAgentIds = const [],
+  }) async {
     final workspace = _requireWorkspace();
     final outDir = Directory(_join(workspace.path, 'multi_agent'));
     await outDir.create(recursive: true);
@@ -5335,12 +5344,30 @@ class Rc6RuntimeController extends ChangeNotifier {
     final selected = queryRows is List
         ? queryRows.whereType<Map>().take(5).toList()
         : const <Map>[];
-    final topic = (queryReport['query'] ?? '真实输入文件夹主题').toString();
+    final discussionTopic = topic.trim().isNotEmpty
+        ? topic.trim()
+        : (queryReport['query'] ?? '真实输入文件夹主题').toString();
+    final participants = participantAgentIds
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toList(growable: false);
+    final selectedParticipants = participants.isNotEmpty
+        ? participants
+        : const [
+            'reading_summary_agent',
+            'knowledge_qa_agent',
+            'quality_qa_agent',
+            'operation_conversion_agent',
+            'product_analysis_agent',
+          ];
     final buffer = StringBuffer()
       ..writeln('# multi_agent_discussion')
       ..writeln()
       ..writeln('## Topic')
-      ..writeln(topic)
+      ..writeln(discussionTopic)
+      ..writeln()
+      ..writeln('## 参与 Agent')
+      ..writeln(selectedParticipants.join(' / '))
       ..writeln()
       ..writeln('## 每个 Agent 的观点')
       ..writeln('- 阅读总结 Agent：围绕高频主题提炼摘要，并要求引用来源。')
@@ -5374,14 +5401,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final a2aManifest = {
       'a2a_session_id': 'A2A_001',
       'parent_workspace_id': 'W_M',
-      'participant_agent_ids': [
-        'reading_summary_agent',
-        'knowledge_qa_agent',
-        'quality_qa_agent',
-        'operation_conversion_agent',
-        'product_analysis_agent',
-      ],
-      'topic': topic,
+      'participant_agent_ids': selectedParticipants,
+      'topic': discussionTopic,
       'round_limit': 1,
       'moderator_agent_id': 'reading_summary_agent',
       'summary_required': true,
@@ -5396,14 +5417,9 @@ class Rc6RuntimeController extends ChangeNotifier {
             const JsonEncoder.withIndent('  ').convert({
               'schema_version': 'rc10_real_input_multi_agent_discussion.v1',
               'status': 'pass',
-              'topic': topic,
-              'agents': [
-                '阅读总结 Agent',
-                '知识问答 Agent',
-                '质检 Agent',
-                '运营转化 Agent',
-                '产品分析 Agent',
-              ],
+              'topic': discussionTopic,
+              'participant_agent_ids': selectedParticipants,
+              'agents': selectedParticipants,
               'output': _join(outDir.path, 'multi_agent_discussion.md'),
               'evidence_count': selected.length,
               'a2a_session_manifest':
