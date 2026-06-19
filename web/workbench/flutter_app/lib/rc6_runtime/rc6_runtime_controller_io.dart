@@ -909,15 +909,6 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _exportOfficeDocumentFormats() async {
-    for (final format in const ['docx', 'pdf', 'pptx']) {
-      await exportDocumentFormat(format);
-      if (state.lastResult?.passed != true) {
-        return;
-      }
-    }
-  }
-
   Future<void> _exportStructuredDocumentFormat(String format) async {
     if (!_canRunDesktop()) {
       return;
@@ -2447,8 +2438,6 @@ class Rc6RuntimeController extends ChangeNotifier {
     await exportMarkdownDocument();
     await exportDocumentFormat('json');
     await exportDocumentFormat('csv');
-    await _exportOfficeDocumentFormats();
-    if (state.lastResult?.passed != true) return;
     await generateSkill();
     if (state.lastResult?.passed != true) return;
     await generateAgent();
@@ -2501,7 +2490,6 @@ class Rc6RuntimeController extends ChangeNotifier {
     await exportMarkdownDocument();
     await exportDocumentFormat('json');
     await exportDocumentFormat('csv');
-    await _exportOfficeDocumentFormats();
   }
 
   Future<void> runOwnerInputDocumentFlowE2E({String query = '赚钱 小生意'}) async {
@@ -5803,9 +5791,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       },
       'exporters': {
         'markdown': {'status': 'enabled_real', 'extension': 'md'},
-        'docx': {'status': 'enabled_real', 'extension': 'docx'},
-        'pdf': {'status': 'enabled_real', 'extension': 'pdf'},
-        'pptx': {'status': 'enabled_real', 'extension': 'pptx'},
+        'docx': {'status': 'requires_configuration', 'extension': 'docx'},
+        'pdf': {'status': 'requires_configuration', 'extension': 'pdf'},
+        'pptx': {'status': 'requires_configuration', 'extension': 'pptx'},
         'json': {'status': 'enabled_real', 'extension': 'json'},
         'csv': {'status': 'enabled_real', 'extension': 'csv'},
       },
@@ -5858,9 +5846,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       },
       'exporters': {
         'markdown': {'status': 'enabled_real', 'extension': 'md'},
-        'docx': {'status': 'enabled_real', 'extension': 'docx'},
-        'pdf': {'status': 'enabled_real', 'extension': 'pdf'},
-        'pptx': {'status': 'enabled_real', 'extension': 'pptx'},
+        'docx': {'status': 'requires_configuration', 'extension': 'docx'},
+        'pdf': {'status': 'requires_configuration', 'extension': 'pdf'},
+        'pptx': {'status': 'requires_configuration', 'extension': 'pptx'},
         'json': {'status': 'enabled_real', 'extension': 'json'},
         'csv': {'status': 'enabled_real', 'extension': 'csv'},
       },

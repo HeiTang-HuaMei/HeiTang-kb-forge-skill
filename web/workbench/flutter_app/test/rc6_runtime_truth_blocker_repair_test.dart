@@ -1030,9 +1030,6 @@ void main() {
       'knowledge_base_build',
       'rag_query',
       'generate_markdown',
-      'generate_docx',
-      'generate_pdf',
-      'generate_pptx',
       'package_to_skill',
       'kb_bound_agent_generation',
     ]);
@@ -1304,9 +1301,6 @@ void main() {
       'knowledge_base_build',
       'rag_query',
       'generate_markdown',
-      'generate_docx',
-      'generate_pdf',
-      'generate_pptx',
     ]);
     expect(controller.state.hasReadingNotes, isTrue);
     expect(controller.state.hasExportedDocument, isTrue);
@@ -1325,7 +1319,20 @@ void main() {
       expect(
           File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}$format${Platform.pathSeparator}generated.$format')
               .existsSync(),
-          isTrue);
+          isFalse);
+    }
+    await controller.exportDocumentFormat('docx');
+    expect(requests.last.actionId, 'generate_docx');
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}docx${Platform.pathSeparator}generated.docx')
+            .existsSync(),
+        isTrue);
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}docx${Platform.pathSeparator}generated_file_report.json')
+            .readAsStringSync(),
+        contains('"status":"pass"'));
+    for (final format in const ['pdf', 'pptx']) {
+      await controller.exportDocumentFormat(format);
       expect(
           File('${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}$format${Platform.pathSeparator}generated_file_report.json')
               .readAsStringSync(),
@@ -1970,12 +1977,15 @@ void main() {
           'knowledge_base_build',
           'rag_query',
           'generate_markdown',
-          'generate_docx',
-          'generate_pdf',
-          'generate_pptx',
           'package_to_skill',
           'kb_bound_agent_generation',
         ]));
+    expect(requests.map((request) => request.actionId),
+        isNot(contains('generate_docx')));
+    expect(requests.map((request) => request.actionId),
+        isNot(contains('generate_pdf')));
+    expect(requests.map((request) => request.actionId),
+        isNot(contains('generate_pptx')));
     expect(controller.state.hasPrdP0Evidence, isTrue);
     expectMainKnowledgeArtifacts(workspace, controller.state);
     final evidence = jsonDecode(File(
