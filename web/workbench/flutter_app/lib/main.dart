@@ -10839,6 +10839,12 @@ class _SkillBuilderProductWorkflowState
             ],
           ],
         );
+        final externalManifestPath = runtime.hasSkillGenerationManifest
+            ? '${runtime.workspacePath}/skill/external_imported_skill/S0/external_skill_manifest.json'
+            : '';
+        final localizedSkillDraftPath = runtime.hasLocalizedSkillManifest
+            ? '${runtime.workspacePath}/skill/localized_writing_skill/S2/SKILL.md'
+            : '';
         final localization = _ProductPanel(
           keyName: 'skill-external-localization',
           icon: Icons.merge_type_outlined,
@@ -10890,21 +10896,218 @@ class _SkillBuilderProductWorkflowState
                       ],
                     ],
             ),
-            const SizedBox(height: _DesktopGrid.gutter),
-            _PrimaryProductAction(
-              label: _zh ? '导入并本地化 Skill' : 'Import and localize Skill',
-              icon: Icons.merge_type_outlined,
-              onPressed: runtime.running || rc6 == null
-                  ? null
-                  : () {
-                      setState(() {
-                        configReady = true;
-                        outputPreviewReady = true;
-                        validationReady = true;
-                      });
-                      rc6.pickAndImportExternalSkill();
-                    },
+            const SizedBox(height: 8),
+            _ProductTable(
+              columns: _zh
+                  ? ['用户路径', '承接产物', '结果']
+                  : ['User path', 'Artifact', 'Result'],
+              rows: _zh
+                  ? [
+                      [
+                        '1. 导入外部 Skill',
+                        'S0 / SKILL.md',
+                        runtime.hasSkillGenerationManifest ? '已导入' : '等待选择文件'
+                      ],
+                      [
+                        '2. 解析结构',
+                        'external_skill_manifest.json',
+                        runtime.hasSkillGenerationManifest ? '可查看' : '等待导入'
+                      ],
+                      [
+                        '3. 选择本地知识库',
+                        runtime.kbManifestPath.isNotEmpty
+                            ? _displayNameForPath(runtime.kbManifestPath)
+                            : '当前知识库',
+                        runtime.hasKnowledgeBase ? '已绑定' : '请先构建知识库'
+                      ],
+                      [
+                        '4. 选择个性化目标',
+                        _personalizationGoalLabel(personalizationGoal),
+                        personalizationGoal.isEmpty ? '可选' : '已选择'
+                      ],
+                      [
+                        '5. 融合并生成草稿',
+                        'localized_writing_skill/S2/SKILL.md',
+                        runtime.hasLocalizedSkillManifest ? '已生成' : '等待融合'
+                      ],
+                      [
+                        '6. 展示改动差异',
+                        'diff_summary.md',
+                        runtime.hasLocalizedSkillDiff ? '可查看' : '等待生成'
+                      ],
+                      [
+                        '7. 验证 / 导出 / 绑定',
+                        'verification_report + export + binding',
+                        runtime.hasSkillAgentBindingManifest
+                            ? '已生成绑定清单'
+                            : runtime.hasSkillExport
+                                ? '已导出，等待 Agent'
+                                : '等待验证导出'
+                      ],
+                    ]
+                  : [
+                      [
+                        '1. Import external Skill',
+                        'S0 / SKILL.md',
+                        runtime.hasSkillGenerationManifest
+                            ? 'Imported'
+                            : 'Choose file'
+                      ],
+                      [
+                        '2. Parse structure',
+                        'external_skill_manifest.json',
+                        runtime.hasSkillGenerationManifest
+                            ? 'Viewable'
+                            : 'Waiting import'
+                      ],
+                      [
+                        '3. Select local KB',
+                        runtime.kbManifestPath.isNotEmpty
+                            ? _displayNameForPath(runtime.kbManifestPath)
+                            : 'Current KB',
+                        runtime.hasKnowledgeBase ? 'Bound' : 'Build KB first'
+                      ],
+                      [
+                        '4. Select personalization goal',
+                        _personalizationGoalLabel(personalizationGoal),
+                        personalizationGoal.isEmpty ? 'Optional' : 'Selected'
+                      ],
+                      [
+                        '5. Fuse and draft',
+                        'localized_writing_skill/S2/SKILL.md',
+                        runtime.hasLocalizedSkillManifest
+                            ? 'Generated'
+                            : 'Waiting fusion'
+                      ],
+                      [
+                        '6. Show diff',
+                        'diff_summary.md',
+                        runtime.hasLocalizedSkillDiff ? 'Viewable' : 'Waiting'
+                      ],
+                      [
+                        '7. Validate / export / bind',
+                        'verification_report + export + binding',
+                        runtime.hasSkillAgentBindingManifest
+                            ? 'Binding manifest ready'
+                            : runtime.hasSkillExport
+                                ? 'Exported, waiting Agent'
+                                : 'Waiting validation'
+                      ],
+                    ],
             ),
+            const SizedBox(height: 8),
+            _FieldRow(
+                label: _zh ? '本地知识库' : 'Local Knowledge Base',
+                value: runtime.kbManifestPath.isNotEmpty
+                    ? _displayNameForPath(runtime.kbManifestPath)
+                    : (_zh ? '请先构建知识库' : 'Build a Knowledge Base first')),
+            const SizedBox(height: 8),
+            _FieldRow(
+                label: _zh ? '个性化目标' : 'Personalization goal',
+                value: _personalizationGoalLabel(personalizationGoal)),
+            const SizedBox(height: 8),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final item in const [
+                'domain_localization',
+                'style_personalization',
+                'platform_adaptation',
+                'task_customization',
+                'enterprise_constraints',
+                'agent_specific',
+              ])
+                ChoiceChip(
+                  label: Text(_personalizationGoalLabel(item)),
+                  selected: personalizationGoal == item,
+                  onSelected: (_) => setState(() => personalizationGoal = item),
+                ),
+            ]),
+            const SizedBox(height: _DesktopGrid.gutter),
+            _EqualActionRow(children: [
+              _PrimaryProductAction(
+                label: _zh ? '导入并本地化 Skill' : 'Import and localize Skill',
+                icon: Icons.merge_type_outlined,
+                onPressed: runtime.running || rc6 == null
+                    ? null
+                    : () {
+                        setState(() {
+                          configReady = true;
+                          outputPreviewReady = true;
+                          validationReady = true;
+                        });
+                        rc6.pickAndImportExternalSkill();
+                      },
+              ),
+              _DisplayAction(
+                label: runtime.hasSkillGenerationManifest
+                    ? (_zh ? '查看外部 Skill 结构' : 'View external Skill structure')
+                    : (_zh ? '等待导入外部 Skill' : 'Waiting external Skill'),
+                icon: Icons.account_tree_outlined,
+                onPressed: runtime.hasSkillGenerationManifest
+                    ? () => _showWorkspaceArtifactPreview(
+                          context,
+                          rc6: rc6,
+                          title:
+                              _zh ? '外部 Skill 结构' : 'External Skill structure',
+                          path: externalManifestPath,
+                          unavailableMessage: _zh
+                              ? '尚未生成外部 Skill 结构清单。'
+                              : 'No external Skill manifest has been generated.',
+                          closeLabel: _zh ? '关闭' : 'Close',
+                        )
+                    : null,
+              ),
+              _DisplayAction(
+                label: runtime.hasLocalizedSkillManifest
+                    ? (_zh ? '查看本地化 Skill 草稿' : 'View localized Skill draft')
+                    : (_zh ? '等待本地化草稿' : 'Waiting localized draft'),
+                icon: Icons.article_outlined,
+                onPressed: runtime.hasLocalizedSkillManifest
+                    ? () => _showWorkspaceArtifactPreview(
+                          context,
+                          rc6: rc6,
+                          title: _zh ? '本地化 Skill 草稿' : 'Localized Skill draft',
+                          path: localizedSkillDraftPath,
+                          unavailableMessage: _zh
+                              ? '尚未生成本地化 Skill 草稿。'
+                              : 'No localized Skill draft has been generated.',
+                          closeLabel: _zh ? '关闭' : 'Close',
+                        )
+                    : null,
+              ),
+              _DisplayAction(
+                label: runtime.hasLocalizedSkillDiff
+                    ? (_zh ? '查看改动差异' : 'View change diff')
+                    : (_zh ? '等待差异说明' : 'Waiting diff summary'),
+                icon: Icons.difference_outlined,
+                onPressed: runtime.hasLocalizedSkillDiff
+                    ? () => _showWorkspaceArtifactPreview(
+                          context,
+                          rc6: rc6,
+                          title: _zh ? '本地化改动差异' : 'Localization diff',
+                          path: runtime.localizedSkillDiffPath,
+                          unavailableMessage: _zh
+                              ? '尚未生成本地化差异说明。'
+                              : 'No localization diff has been generated.',
+                          closeLabel: _zh ? '关闭' : 'Close',
+                        )
+                    : null,
+              ),
+              _DisplayAction(
+                label: runtime.hasSkillAgentBindingManifest
+                    ? (_zh ? '复制 Agent 绑定清单路径' : 'Copy Agent binding path')
+                    : (_zh ? '创建 Agent 后绑定' : 'Bind after Agent creation'),
+                icon: Icons.link_outlined,
+                onPressed: runtime.hasSkillAgentBindingManifest
+                    ? () => _copyArtifactPath(
+                          context,
+                          path: runtime.skillAgentBindingManifestPath,
+                          successMessage: _zh
+                              ? 'Agent 绑定清单路径已复制'
+                              : 'Agent binding manifest path copied',
+                        )
+                    : null,
+              ),
+            ]),
           ],
         );
         final output = _ProductPanel(

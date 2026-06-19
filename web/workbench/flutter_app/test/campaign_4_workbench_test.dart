@@ -118,6 +118,68 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('dashboard next actions route through the product flow',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1200));
+    await tester.pumpWidget(
+      HeiTangWorkbenchApp(
+        contracts: sampleWorkbenchContracts,
+        enableLocalCoreActions: false,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    Finder nextAction(String label) => find.descendant(
+          of: find.byKey(const Key('dashboard-next-actions')),
+          matching: find.text(label),
+        );
+
+    expect(find.byKey(const Key('dashboard-next-actions')), findsOneWidget);
+    expect(find.text('下一步行动'), findsOneWidget);
+    expect(nextAction('文档库导入资料'), findsOneWidget);
+    expect(nextAction('构建知识库'), findsOneWidget);
+    expect(nextAction('检索验证'), findsOneWidget);
+    expect(nextAction('生成并导出文档'), findsOneWidget);
+
+    await tester.tap(nextAction('文档库导入资料'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('dense-page-workbench-document-library')),
+        findsOneWidget);
+    expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('sidebar-dashboard')));
+    await tester.pumpAndSettle();
+    await tester.tap(nextAction('构建知识库'));
+    await tester.pumpAndSettle();
+    expect(
+        find.byKey(
+            const Key('dense-page-workbench-knowledge-package-management')),
+        findsOneWidget);
+    expect(find.text('1. 选择来源文档'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('sidebar-dashboard')));
+    await tester.pumpAndSettle();
+    await tester.tap(nextAction('检索验证'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('dense-page-workbench-retrieval-verification')),
+        findsOneWidget);
+    expect(find.byKey(const Key('retrieval-workflow')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('sidebar-dashboard')));
+    await tester.pumpAndSettle();
+    await tester.tap(nextAction('生成并导出文档'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('dense-page-workbench-document-generation')),
+        findsOneWidget);
+    expect(find.byKey(const Key('document-generation-tasks')), findsOneWidget);
+
+    expect(find.textContaining('operation-gate'), findsNothing);
+    expect(find.textContaining('capability-matrix'), findsNothing);
+    expect(find.textContaining('task-job-center'), findsNothing);
+    expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('top bar search exposes product destinations and no-match state',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1000));
@@ -338,6 +400,20 @@ void main() {
     await tester.pumpAndSettle();
     expect(
         find.byKey(const Key('skill-external-localization')), findsOneWidget);
+    expect(find.text('1. 导入外部 Skill'), findsOneWidget);
+    expect(find.text('2. 解析结构'), findsOneWidget);
+    expect(find.text('3. 选择本地知识库'), findsOneWidget);
+    expect(find.text('4. 选择个性化目标'), findsOneWidget);
+    expect(find.text('5. 融合并生成草稿'), findsOneWidget);
+    expect(find.text('6. 展示改动差异'), findsOneWidget);
+    expect(find.text('7. 验证 / 导出 / 绑定'), findsOneWidget);
+    expect(find.text('查看外部 Skill 结构'), findsNothing);
+    expect(find.text('等待导入外部 Skill'), findsOneWidget);
+    expect(find.text('查看本地化 Skill 草稿'), findsNothing);
+    expect(find.text('等待本地化草稿'), findsOneWidget);
+    expect(find.text('查看改动差异'), findsNothing);
+    expect(find.text('等待差异说明'), findsOneWidget);
+    expect(find.text('创建 Agent 后绑定'), findsOneWidget);
     await tester.tap(find.text('版本操作').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('skill-output-preview')), findsOneWidget);
