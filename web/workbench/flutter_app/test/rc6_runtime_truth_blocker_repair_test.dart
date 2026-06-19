@@ -83,6 +83,12 @@ void main() {
   String jsonl(List<Map<String, Object?>> rows) =>
       '${rows.map(jsonEncode).join('\n')}\n';
 
+  List<Map<String, dynamic>> readJsonlFile(String path) => File(path)
+      .readAsLinesSync()
+      .where((line) => line.trim().isNotEmpty)
+      .map((line) => jsonDecode(line) as Map<String, dynamic>)
+      .toList(growable: false);
+
   void expectMainKnowledgeArtifacts(
       Directory workspace, Rc6RuntimeState state) {
     final kbRoot = '${workspace.path}${Platform.pathSeparator}kb';
@@ -1134,6 +1140,35 @@ void main() {
           contains(
               '"artifact": "${dialogueExportPath.replaceAll(r'\', r'\\')}"'),
         ));
+    final orchestrationPlanPath =
+        '${workspace.path}${Platform.pathSeparator}orchestration${Platform.pathSeparator}orchestration_plan.jsonl';
+    final orchestrationRecords = readJsonlFile(orchestrationPlanPath);
+    expect(orchestrationRecords, isNotEmpty);
+    expect(
+        orchestrationRecords.every((record) =>
+            record['schema_version'] == 'prd_v3_orchestration_plan_record.v1'),
+        isTrue);
+    expect(orchestrationRecords.map((record) => record['layer']),
+        containsAll(['document', 'skill', 'agent']));
+    expect(
+        orchestrationRecords.map((record) => record['action']),
+        containsAll([
+          'generate_document',
+          'export_document',
+          'generate_skill',
+          'generate_agent',
+          'run_agent_dialogue',
+          'export_agent_dialogue',
+        ]));
+    expect(
+        orchestrationRecords.any((record) =>
+            record['action'] == 'export_document' &&
+            ((record['resources'] as Map)['format'] == 'json')),
+        isTrue);
+    expect(
+        orchestrationRecords.every((record) =>
+            ((record['boundary'] as Map)['okf_runtime_enabled']) == false),
+        isTrue);
     final reloadedController = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
         runner: (_) async => const CoreBridgeProcessResult(
@@ -2012,6 +2047,19 @@ void main() {
           contains('"action": "run_a2a_discussion"'),
           contains('Owner 自定义 A2A 议题'),
         ));
+    final orchestrationRecords = readJsonlFile(
+        '${workspace.path}${Platform.pathSeparator}orchestration${Platform.pathSeparator}orchestration_plan.jsonl');
+    expect(orchestrationRecords.map((record) => record['layer']),
+        containsAll(['agent', 'a2a']));
+    expect(
+        orchestrationRecords.map((record) => record['action']),
+        containsAll(
+            ['generate_agent', 'run_agent_dialogue', 'run_a2a_discussion']));
+    expect(
+        orchestrationRecords.any((record) =>
+            record['action'] == 'run_a2a_discussion' &&
+            ((record['resources'] as Map)['topic'] == 'Owner 自定义 A2A 议题')),
+        isTrue);
   });
 
   test('rc6 owner input folder chain uses the fixed Owner input directory',

@@ -757,6 +757,18 @@ class Rc6RuntimeController extends ChangeNotifier {
         config: config,
         existingHistory: historyBeforeClear,
       );
+      await _appendOrchestrationPlanRecord(
+        layer: 'document',
+        action: 'generate_document',
+        artifact: _join(workspace.path, 'doc', 'generation_manifest.json'),
+        status: 'completed',
+        resources: {
+          'kb_package': kbDir.path,
+          'template': config.templateMode,
+          'generation_type': config.generationType,
+          'output_format': config.outputFormat,
+        },
+      );
     }
     await _loadExistingArtifacts();
     notifyListeners();
@@ -811,6 +823,17 @@ class Rc6RuntimeController extends ChangeNotifier {
     await File(_join(exportDir.path, 'export_manifest.json')).writeAsString(
       const JsonEncoder.withIndent('  ').convert(manifest),
       encoding: utf8,
+    );
+    await _appendOrchestrationPlanRecord(
+      layer: 'document',
+      action: 'export_document',
+      artifact: _join(exportDir.path, 'export_manifest.json'),
+      status: 'completed',
+      resources: {
+        'format': 'markdown',
+        'source': source.path,
+        'output': exported.path,
+      },
     );
     state = state.copyWith(
       running: false,
@@ -1037,6 +1060,17 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     if (state.lastResult?.passed == true) {
       final generated = await _firstFileWithExtension(exportDir, normalized);
+      await _appendOrchestrationPlanRecord(
+        layer: 'document',
+        action: 'export_document',
+        artifact: _join(exportDir.path, 'generated_file_report.json'),
+        status: 'completed',
+        resources: {
+          'format': normalized,
+          'kb_package': kbDir.path,
+          'output': generated?.path ?? exportDir.path,
+        },
+      );
       state = state.copyWith(
         exportedDocumentPath: generated?.path ?? exportDir.path,
         exportManifestPath: _join(exportDir.path, 'generated_file_report.json'),
@@ -1103,6 +1137,18 @@ class Rc6RuntimeController extends ChangeNotifier {
             : _join(workspace.path, 'query', 'kb_query_result.json'),
       }),
       encoding: utf8,
+    );
+    await _appendOrchestrationPlanRecord(
+      layer: 'document',
+      action: 'export_document',
+      artifact: manifestPath,
+      status: 'completed',
+      resources: {
+        'format': format,
+        'json_output': jsonPath,
+        'csv_output': csvPath,
+        'selected_output': outputPath,
+      },
     );
     state = state.copyWith(
       running: false,
@@ -2177,6 +2223,19 @@ class Rc6RuntimeController extends ChangeNotifier {
         status: 'completed',
         details: config.toJson(),
       );
+      await _appendOrchestrationPlanRecord(
+        layer: 'skill',
+        action: 'generate_skill',
+        artifact:
+            _joinNested(workspace.path, 'skill/skill_generation_manifest.json'),
+        status: 'completed',
+        resources: {
+          'kb_package': kbDir.path,
+          'skill_name': config.skillName,
+          'skill_type': config.skillType,
+          'target_platform': config.targetPlatform,
+        },
+      );
       await _writeSkillProductOperations(agentBound: state.hasAgent);
     }
     await _loadExistingArtifacts();
@@ -2305,6 +2364,21 @@ class Rc6RuntimeController extends ChangeNotifier {
           'creation_mode': config.creationMode,
         },
       );
+      await _appendOrchestrationPlanRecord(
+        layer: 'agent',
+        action: 'generate_agent',
+        artifact:
+            _joinNested(workspace.path, 'agent/agent_generation_manifest.json'),
+        status: 'completed',
+        resources: {
+          'kb_package': kbDir.path,
+          'skill_package': skillDir.path,
+          'agent_name': config.agentName,
+          'creation_mode': config.creationMode,
+          'agent_type': config.agentType,
+          'model_config_id': config.modelConfigId,
+        },
+      );
       await _writeSkillProductOperations(agentBound: true);
       await _writeMultiAgentDiscussion();
     }
@@ -2340,6 +2414,18 @@ class Rc6RuntimeController extends ChangeNotifier {
       details: {
         'topic': topic.trim(),
         'participant_agent_ids': participantAgentIds,
+      },
+    );
+    await _appendOrchestrationPlanRecord(
+      layer: 'a2a',
+      action: 'run_a2a_discussion',
+      artifact:
+          _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md'),
+      status: 'completed',
+      resources: {
+        'topic': topic.trim(),
+        'participant_agent_ids': participantAgentIds,
+        'parent_workspace_id': 'W_M',
       },
     );
     await _loadExistingArtifacts();
@@ -2521,6 +2607,20 @@ class Rc6RuntimeController extends ChangeNotifier {
         'used_skill_ids': skillIds,
       },
     );
+    await _appendOrchestrationPlanRecord(
+      layer: 'agent',
+      action: 'run_agent_dialogue',
+      artifact: dialoguePath,
+      status: evidence.isEmpty ? 'needs_evidence' : 'completed',
+      resources: {
+        'prompt': prompt,
+        'model_config_id': modelConfigId,
+        'kb_ids': kbIds,
+        'skill_ids': skillIds,
+        'output_format': outputFormat,
+        'evidence_count': evidence.length,
+      },
+    );
     state = state.copyWith(
       agentDialoguePath: dialoguePath,
       agentDialogueManifestPath: manifestPath,
@@ -2616,6 +2716,17 @@ class Rc6RuntimeController extends ChangeNotifier {
         'used_skill_ids': usedSkillIds.isEmpty
             ? ['S1', 'reading_summary_skill']
             : usedSkillIds,
+      },
+    );
+    await _appendOrchestrationPlanRecord(
+      layer: 'agent',
+      action: 'export_agent_dialogue',
+      artifact: outputPath,
+      status: 'completed',
+      resources: {
+        'manifest_path': manifestPath,
+        'source_history': history.path,
+        'turn_count': historyLines.length,
       },
     );
     state = state.copyWith(
@@ -5772,6 +5883,42 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
     await File(historyPath).writeAsString(
       const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+  }
+
+  Future<void> _appendOrchestrationPlanRecord({
+    required String layer,
+    required String action,
+    required String artifact,
+    required String status,
+    Map<String, Object?> resources = const {},
+  }) async {
+    final workspace = _requireWorkspace();
+    final orchestrationRoot = Directory(_join(workspace.path, 'orchestration'));
+    await orchestrationRoot.create(recursive: true);
+    final planPath = _join(orchestrationRoot.path, 'orchestration_plan.jsonl');
+    final existing = await _readJsonl(File(planPath));
+    final record = {
+      'schema_version': 'prd_v3_orchestration_plan_record.v1',
+      'plan_id':
+          'orch_${action}_${(existing.length + 1).toString().padLeft(3, '0')}',
+      'layer': layer,
+      'action': action,
+      'status': status,
+      'artifact': artifact,
+      'resources': resources,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+      'boundary': {
+        'local_workspace_only': true,
+        'computer_use': false,
+        'arbitrary_shell': false,
+        'okf_runtime_enabled': false,
+      },
+    };
+    await File(planPath).writeAsString(
+      '${jsonEncode(record)}\n',
+      mode: FileMode.append,
       encoding: utf8,
     );
   }
