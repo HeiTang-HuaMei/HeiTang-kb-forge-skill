@@ -1672,30 +1672,6 @@ List<ContractAction> _rc5RuntimeActionsForPage(String pageId) {
   return const <ContractAction>[];
 }
 
-class _DisplayAction extends StatelessWidget {
-  const _DisplayAction({
-    required this.label,
-    this.icon = Icons.visibility_outlined,
-    this.onPressed,
-  });
-
-  final String label;
-  final IconData icon;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon),
-        label: Text(label, overflow: TextOverflow.ellipsis),
-      ),
-    );
-  }
-}
-
 Future<void> _copyArtifactPath(
   BuildContext context, {
   required String path,
@@ -1741,30 +1717,6 @@ Future<void> _showWorkspaceArtifactPreview(
       ],
     ),
   );
-}
-
-class _PrimaryProductAction extends StatelessWidget {
-  const _PrimaryProductAction({
-    required this.label,
-    required this.onPressed,
-    this.icon = Icons.play_arrow_outlined,
-  });
-
-  final String label;
-  final VoidCallback? onPressed;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: FilledButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon),
-        label: Text(label, overflow: TextOverflow.ellipsis),
-      ),
-    );
-  }
 }
 
 class _MetricDatum {
