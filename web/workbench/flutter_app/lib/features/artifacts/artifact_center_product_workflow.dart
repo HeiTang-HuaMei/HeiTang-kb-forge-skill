@@ -323,6 +323,8 @@ List<_ArtifactCenterItem> _artifactCenterItems(
         'diff', runtime.localizedSkillDiffPath, 'skill'),
     item('Skill 工厂', 'Skill Factory', 'Skill 操作清单', 'Skill operation manifest',
         'operations', runtime.skillOperationManifestPath, 'skill'),
+    item('Skill 工厂', 'Skill Factory', 'Skill 操作历史', 'Skill operation history',
+        'skill history', runtime.skillOperationHistoryPath, 'skill'),
     item('Skill 工厂', 'Skill Factory', 'Skill 导出包', 'Skill export package',
         'skill export', runtime.skillExportPath, 'skill'),
     item('Skill 工厂', 'Skill Factory', 'Agent 绑定清单', 'Agent binding manifest',

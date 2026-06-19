@@ -1760,6 +1760,7 @@ void main() {
             .readAsStringSync(),
         allOf(
           contains('"requested_operation": "all"'),
+          contains('"history_path"'),
           contains('"operation": "edit"'),
           contains('"operation": "version"'),
           contains('skill_edit_manifest.json'),
@@ -1779,6 +1780,48 @@ void main() {
         ));
     expect(File(skillVersionManifestPath).readAsStringSync(),
         contains('"event": "skill_operation_fusion"'));
+    final skillOperationHistoryPath =
+        '$skillRoot${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_history.json';
+    final skillOperationHistory =
+        jsonDecode(File(skillOperationHistoryPath).readAsStringSync())
+            as Map<String, dynamic>;
+    expect(skillOperationHistory['schema_version'],
+        'prd_v2_skill_operation_history.v1');
+    expect(skillOperationHistory['status'], 'pass');
+    expect(
+        skillOperationHistory['records'],
+        containsAll([
+          isA<Map>()
+              .having((record) => record['action'], 'action', 'generate_skill'),
+          isA<Map>()
+              .having((record) => record['action'], 'action', 'edit_skill'),
+          isA<Map>().having((record) => record['action'], 'action',
+              'complete_skill_product_operations'),
+          isA<Map>().having(
+              (record) => record['action'], 'action', 'skill_operation_fusion'),
+        ]));
+    expect(controller.state.hasSkillOperationHistory, isTrue);
+    expect(controller.state.skillOperationHistoryPath,
+        endsWith('skill_operation_history.json'));
+    final historyPreview =
+        await controller.readWorkspaceTextArtifact(skillOperationHistoryPath);
+    expect(historyPreview, contains('prd_v2_skill_operation_history.v1'));
+    expect(historyPreview, contains('"action": "skill_operation_fusion"'));
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    expect(reloadedController.state.hasSkillOperationHistory, isTrue);
+    expect(reloadedController.state.skillOperationHistoryPath,
+        endsWith('skill_operation_history.json'));
     expect(controller.state.skillExportPath, endsWith('skills_export.md'));
     expect(controller.state.skillOperationManifestPath,
         endsWith('skill_operation_manifest.json'));

@@ -411,6 +411,7 @@ class Rc6RuntimeState {
     required this.localizedSkillDiffPath,
     required this.skillVersionManifestPath,
     required this.skillOperationManifestPath,
+    required this.skillOperationHistoryPath,
     required this.skillExportPath,
     required this.skillAgentBindingManifestPath,
     required this.skillOperationStatus,
@@ -496,6 +497,7 @@ class Rc6RuntimeState {
         localizedSkillDiffPath: '',
         skillVersionManifestPath: '',
         skillOperationManifestPath: '',
+        skillOperationHistoryPath: '',
         skillExportPath: '',
         skillAgentBindingManifestPath: '',
         skillOperationStatus: '',
@@ -580,6 +582,7 @@ class Rc6RuntimeState {
   final String localizedSkillDiffPath;
   final String skillVersionManifestPath;
   final String skillOperationManifestPath;
+  final String skillOperationHistoryPath;
   final String skillExportPath;
   final String skillAgentBindingManifestPath;
   final String skillOperationStatus;
@@ -647,6 +650,7 @@ class Rc6RuntimeState {
   bool get hasSkillVersions => skillVersionCount > 0;
   bool get hasSkillVersionManifest => skillVersionManifestPath.isNotEmpty;
   bool get hasSkillOperationManifest => skillOperationManifestPath.isNotEmpty;
+  bool get hasSkillOperationHistory => skillOperationHistoryPath.isNotEmpty;
   bool get hasSkillExport => skillExportPath.isNotEmpty;
   bool get hasSkillAgentBindingManifest =>
       skillAgentBindingManifestPath.isNotEmpty;
@@ -704,6 +708,7 @@ class Rc6RuntimeState {
     String? localizedSkillDiffPath,
     String? skillVersionManifestPath,
     String? skillOperationManifestPath,
+    String? skillOperationHistoryPath,
     String? skillExportPath,
     String? skillAgentBindingManifestPath,
     String? skillOperationStatus,
@@ -796,6 +801,8 @@ class Rc6RuntimeState {
           skillVersionManifestPath ?? this.skillVersionManifestPath,
       skillOperationManifestPath:
           skillOperationManifestPath ?? this.skillOperationManifestPath,
+      skillOperationHistoryPath:
+          skillOperationHistoryPath ?? this.skillOperationHistoryPath,
       skillExportPath: skillExportPath ?? this.skillExportPath,
       skillAgentBindingManifestPath:
           skillAgentBindingManifestPath ?? this.skillAgentBindingManifestPath,

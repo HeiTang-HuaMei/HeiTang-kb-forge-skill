@@ -1852,6 +1852,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       localizedSkillDiffPath: '',
       skillVersionManifestPath: '',
       skillOperationManifestPath: '',
+      skillOperationHistoryPath: '',
       skillExportPath: '',
       skillAgentBindingManifestPath: '',
       skillOperationStatus: '',
@@ -2169,6 +2170,13 @@ class Rc6RuntimeController extends ChangeNotifier {
         event: 'generate_skill',
         config: config.toJson(),
       );
+      await _appendSkillOperationHistoryRecord(
+        action: 'generate_skill',
+        artifact:
+            _joinNested(workspace.path, 'skill/skill_generation_manifest.json'),
+        status: 'completed',
+        details: config.toJson(),
+      );
       await _writeSkillProductOperations(agentBound: state.hasAgent);
     }
     await _loadExistingArtifacts();
@@ -2231,6 +2239,15 @@ class Rc6RuntimeController extends ChangeNotifier {
         'source': sourceFile.path,
       },
     );
+    await _appendSkillOperationHistoryRecord(
+      action: 'localize_external_skill',
+      artifact: _joinNested(workspace.path,
+          'skill/localized_writing_skill/S2/localized_skill_manifest.json'),
+      status: 'completed',
+      details: {
+        'source': sourceFile.path,
+      },
+    );
     await _writeSkillProductOperations(agentBound: state.hasAgent);
     await _loadExistingArtifacts();
     state = state.copyWith(
@@ -2278,6 +2295,16 @@ class Rc6RuntimeController extends ChangeNotifier {
     if (state.lastResult?.passed == true) {
       await _writeAdditionalAgentPackages(config: config);
       await _writeAgentProductOperations(config: config);
+      await _appendSkillOperationHistoryRecord(
+        action: 'bind_agent',
+        artifact: _joinNested(
+            workspace.path, 'skill/operations/agent_binding_manifest.json'),
+        status: 'bound',
+        details: {
+          'agent_name': config.agentName,
+          'creation_mode': config.creationMode,
+        },
+      );
       await _writeSkillProductOperations(agentBound: true);
       await _writeMultiAgentDiscussion();
     }
@@ -2608,6 +2635,16 @@ class Rc6RuntimeController extends ChangeNotifier {
       await generateSkill();
       if (!state.hasSkill) return;
     }
+    final workspace = _requireWorkspace();
+    await _appendSkillOperationHistoryRecord(
+      action: 'complete_skill_product_operations',
+      artifact: _joinNested(
+          workspace.path, 'skill/operations/skill_operation_manifest.json'),
+      status: 'completed',
+      details: {
+        'agent_bound': state.hasAgent,
+      },
+    );
     await _writeSkillProductOperations(agentBound: state.hasAgent);
     await _loadExistingArtifacts();
     state = state.copyWith(
@@ -2642,6 +2679,17 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _appendSkillVersionRecord(
       event: 'skill_operation_$normalized',
       config: {'operation': normalized},
+    );
+    final workspace = _requireWorkspace();
+    await _appendSkillOperationHistoryRecord(
+      action: 'skill_operation_$normalized',
+      artifact: _joinNested(
+          workspace.path, 'skill/operations/skill_operation_manifest.json'),
+      status: 'completed',
+      details: {
+        'operation': normalized,
+        'agent_bound': state.hasAgent,
+      },
     );
     await _writeSkillProductOperations(
       agentBound: state.hasAgent,
@@ -2706,6 +2754,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _appendSkillVersionRecord(
       event: 'edit_skill',
       config: {
+        'edited_skill_path': primarySkill.path,
+      },
+    );
+    await _appendSkillOperationHistoryRecord(
+      action: 'edit_skill',
+      artifact: manifestPath,
+      status: 'completed',
+      details: {
         'edited_skill_path': primarySkill.path,
       },
     );
@@ -3027,6 +3083,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         workspace.path, 'skill/operations/skill_version_manifest.json');
     final skillOperationManifestPath = _joinNested(
         workspace.path, 'skill/operations/skill_operation_manifest.json');
+    final skillOperationHistoryPath = _joinNested(
+        workspace.path, 'skill/operations/skill_operation_history.json');
     final skillExportPath =
         _joinNested(workspace.path, 'skill/exports/skills_export.md');
     final skillAgentBindingManifestPath = _joinNested(
@@ -3200,6 +3258,9 @@ class Rc6RuntimeController extends ChangeNotifier {
           await File(skillOperationManifestPath).exists()
               ? skillOperationManifestPath
               : '',
+      skillOperationHistoryPath: await File(skillOperationHistoryPath).exists()
+          ? skillOperationHistoryPath
+          : '',
       skillExportPath:
           await File(skillExportPath).exists() ? skillExportPath : '',
       skillAgentBindingManifestPath:
@@ -5128,6 +5189,8 @@ class Rc6RuntimeController extends ChangeNotifier {
               'status': 'pass',
               'requested_operation': requestedOperation,
               'last_operation_at': DateTime.now().toUtc().toIso8601String(),
+              'history_path':
+                  _join(operationsRoot.path, 'skill_operation_history.json'),
               'operations': [
                 {
                   'operation': 'view',
@@ -5705,6 +5768,43 @@ class Rc6RuntimeController extends ChangeNotifier {
       'schema_version': _stringValue(
           current['schema_version'], 'prd_v2_agent_run_history.v1'),
       'status': 'pass',
+      'records': records,
+    };
+    await File(historyPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+  }
+
+  Future<void> _appendSkillOperationHistoryRecord({
+    required String action,
+    required String artifact,
+    required String status,
+    Map<String, Object?> details = const {},
+  }) async {
+    final workspace = _requireWorkspace();
+    final operationsRoot =
+        Directory(_join(workspace.path, 'skill', 'operations'));
+    await operationsRoot.create(recursive: true);
+    final historyPath =
+        _join(operationsRoot.path, 'skill_operation_history.json');
+    final current = await _readJsonObject(historyPath);
+    final records = _listOfMaps(current['records']).toList(growable: true);
+    records.add({
+      'operation_id':
+          'skill_${action}_${(records.length + 1).toString().padLeft(3, '0')}',
+      'action': action,
+      'artifact': artifact,
+      'status': status,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+      'details': details,
+    });
+    final payload = {
+      ...current,
+      'schema_version': _stringValue(
+          current['schema_version'], 'prd_v2_skill_operation_history.v1'),
+      'status': 'pass',
+      'workspace': workspace.path,
       'records': records,
     };
     await File(historyPath).writeAsString(
@@ -7330,6 +7430,7 @@ class Rc6RuntimeState {
     required this.localizedSkillDiffPath,
     required this.skillVersionManifestPath,
     required this.skillOperationManifestPath,
+    required this.skillOperationHistoryPath,
     required this.skillExportPath,
     required this.skillAgentBindingManifestPath,
     required this.skillOperationStatus,
@@ -7415,6 +7516,7 @@ class Rc6RuntimeState {
         localizedSkillDiffPath: '',
         skillVersionManifestPath: '',
         skillOperationManifestPath: '',
+        skillOperationHistoryPath: '',
         skillExportPath: '',
         skillAgentBindingManifestPath: '',
         skillOperationStatus: '',
@@ -7499,6 +7601,7 @@ class Rc6RuntimeState {
   final String localizedSkillDiffPath;
   final String skillVersionManifestPath;
   final String skillOperationManifestPath;
+  final String skillOperationHistoryPath;
   final String skillExportPath;
   final String skillAgentBindingManifestPath;
   final String skillOperationStatus;
@@ -7566,6 +7669,7 @@ class Rc6RuntimeState {
   bool get hasSkillVersions => skillVersionCount > 0;
   bool get hasSkillVersionManifest => skillVersionManifestPath.isNotEmpty;
   bool get hasSkillOperationManifest => skillOperationManifestPath.isNotEmpty;
+  bool get hasSkillOperationHistory => skillOperationHistoryPath.isNotEmpty;
   bool get hasSkillExport => skillExportPath.isNotEmpty;
   bool get hasSkillAgentBindingManifest =>
       skillAgentBindingManifestPath.isNotEmpty;
@@ -7623,6 +7727,7 @@ class Rc6RuntimeState {
     String? localizedSkillDiffPath,
     String? skillVersionManifestPath,
     String? skillOperationManifestPath,
+    String? skillOperationHistoryPath,
     String? skillExportPath,
     String? skillAgentBindingManifestPath,
     String? skillOperationStatus,
@@ -7715,6 +7820,8 @@ class Rc6RuntimeState {
           skillVersionManifestPath ?? this.skillVersionManifestPath,
       skillOperationManifestPath:
           skillOperationManifestPath ?? this.skillOperationManifestPath,
+      skillOperationHistoryPath:
+          skillOperationHistoryPath ?? this.skillOperationHistoryPath,
       skillExportPath: skillExportPath ?? this.skillExportPath,
       skillAgentBindingManifestPath:
           skillAgentBindingManifestPath ?? this.skillAgentBindingManifestPath,
