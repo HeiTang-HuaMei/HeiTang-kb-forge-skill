@@ -2,6 +2,36 @@
 
 This document records a future product architecture layer only. It does not introduce runtime behavior, UI navigation, or user-visible feature changes in the current rc10 structure-cleanup slice.
 
+## Official Baseline
+
+OKF refers to Google's Open Knowledge Format in the `GoogleCloudPlatform/knowledge-catalog` repository:
+
+- SPEC: <https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md>
+- Repository: <https://github.com/GoogleCloudPlatform/knowledge-catalog>
+
+The current baseline is OKF version 0.1 draft. The official SPEC defines OKF as an open, human- and agent-friendly knowledge representation format. Its minimal structure is a directory of Markdown files with YAML frontmatter, without requiring a schema registry, central authority, or mandatory tooling.
+
+For HeiTang KB Forge, OKF must be treated as a product architecture standardization layer, not as a new product area. Future implementation must follow these official concepts:
+
+- Knowledge Bundle: a self-contained hierarchical collection of knowledge documents and the unit of distribution.
+- Concept: one Markdown document representing one knowledge unit.
+- Concept ID: the concept file path without the `.md` suffix.
+- Frontmatter: a YAML metadata block at the top of each concept file.
+- Body: Markdown content after the frontmatter.
+- Links: standard Markdown links between concepts.
+- Citations: links from concept content to supporting external sources.
+
+Future OKF export should respect the official bundle model:
+
+- A bundle is a directory tree of Markdown files.
+- `index.md` and `log.md` are reserved filenames.
+- Bundles may be distributed as Git repositories, archive files, or subdirectories in larger repositories.
+- Every non-reserved `.md` concept should contain parseable YAML frontmatter.
+- Every concept frontmatter must contain a non-empty `type` field.
+- Consumers should tolerate optional-field gaps, unknown types, unknown frontmatter keys, broken links, and missing index files.
+
+Owner context: OKF is intended here as the executable standardization layer for the LLM Wiki style of knowledge packaging. The implementation source of truth remains the official Google OKF SPEC above.
+
 ## Placement
 
 OKF is an internal standardization layer between Document Library and Knowledge Base.
