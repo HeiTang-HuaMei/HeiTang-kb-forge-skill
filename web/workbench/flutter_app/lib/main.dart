@@ -10539,8 +10539,8 @@ class _SkillBuilderProductWorkflowState
       context,
       title: _zh ? '删除 Skill 产物？' : 'Delete Skill artifacts?',
       body: _zh
-          ? '这会删除当前工作区里的 Skill、Agent、对话和联合讨论产物；知识库和文档不会被删除。'
-          : 'This deletes Skill, Agent, dialogue, and discussion artifacts in this workspace; KB and documents are kept.',
+          ? '这会删除当前工作区里的 Skill，并清理依赖该 Skill 的对话和联合讨论输出；Agent 配置、知识库和文档不会被删除。'
+          : 'This deletes Skill artifacts and clears dialogue/discussion outputs that depend on that Skill; Agent config, KB, and documents are kept.',
     );
     if (!confirmed) return;
     await rc6.clearSkillArtifacts();
@@ -12540,9 +12540,14 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _PrimaryProductAction(
-            label: zh ? '运行最小对话' : 'Run minimal chat',
+            label: runtime.hasSkill
+                ? (zh ? '运行最小对话' : 'Run minimal chat')
+                : (zh ? '请先生成 Skill' : 'Generate Skill first'),
             icon: Icons.play_arrow_outlined,
-            onPressed: runtime.running || rc6 == null || !runtime.hasAgent
+            onPressed: runtime.running ||
+                    rc6 == null ||
+                    !runtime.hasAgent ||
+                    !runtime.hasSkill
                 ? null
                 : () => rc6.runAgentDialogue(prompt: _promptController.text),
           ),

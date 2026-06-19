@@ -1243,11 +1243,21 @@ void main() {
     expect(controller.state.hasAgent, isTrue);
     await controller.clearSkillArtifacts();
     expect(controller.state.hasSkill, isFalse);
-    expect(controller.state.hasAgent, isFalse);
+    expect(controller.state.hasAgent, isTrue);
+    expect(controller.state.hasAgentDialogue, isFalse);
+    expect(controller.state.hasMultiAgentDiscussion, isFalse);
     expect(
         Directory('${workspace.path}${Platform.pathSeparator}skill')
             .existsSync(),
         isFalse);
+    expect(
+        Directory(
+                '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}knowledge_qa_agent')
+            .existsSync(),
+        isTrue);
+    await controller.runAgentDialogue(prompt: '缺少 Skill 时不应运行');
+    expect(controller.state.hasAgentDialogueHistory, isFalse);
+    expect(controller.state.lastError, contains('请先在 Skill 工厂生成 Skill'));
   });
 
   test('rc8 document flow stops at real Markdown export without Skill or Agent',

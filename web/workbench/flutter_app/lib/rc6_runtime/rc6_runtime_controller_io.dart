@@ -1647,7 +1647,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final workspace = _requireWorkspace();
     for (final relative in const [
       'skill',
-      'agent',
+      'agent/dialogue',
+      'agent/dialogue_export',
       'multi_agent',
       'prd_p0',
     ]) {
@@ -1662,7 +1663,18 @@ class Rc6RuntimeController extends ChangeNotifier {
                   ? Rc6RuntimePhase.knowledgeBuilt
                   : Rc6RuntimePhase.imported,
       skillPath: '',
-      agentPath: '',
+      primarySkillPath: '',
+      skillConfigPath: '',
+      skillVerificationReportPath: '',
+      skillGenerationManifestPath: '',
+      localizedSkillManifestPath: '',
+      localizedSkillDiffPath: '',
+      skillVersionManifestPath: '',
+      skillOperationManifestPath: '',
+      skillExportPath: '',
+      skillAgentBindingManifestPath: '',
+      skillOperationStatus: '',
+      skillAgentBindingStatus: '',
       agentDialoguePath: '',
       agentDialogueManifestPath: '',
       agentDialogueHistoryPath: '',
@@ -1686,7 +1698,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       a2aStatus: '',
       prdP0EvidencePath: '',
       skillVersionCount: 0,
-      lastMessage: 'Skill、Agent 和讨论产物已删除。',
+      lastMessage: 'Skill 产物已删除；依赖该 Skill 的对话和协作输出已清理，Agent 配置保留。',
       lastError: '',
     );
     notifyListeners();
@@ -2121,6 +2133,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     if (!state.hasAgent) {
       _fail('请先在 Agent 工厂生成 Agent。');
+      return;
+    }
+    if (!state.hasSkill) {
+      _fail('请先在 Skill 工厂生成 Skill，再运行 Agent 对话。');
       return;
     }
     final workspace = _requireWorkspace();
