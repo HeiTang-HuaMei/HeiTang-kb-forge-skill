@@ -20,8 +20,9 @@ class _AgentProductWorkflow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['Agent 总览', '单 Agent', '多 Agent / A2A', '运行审计']
-        : ['Agent Overview', 'Single Agent', 'Multi-Agent / A2A', 'Run Audit'];
+        ? ['Agent 总览', '单 Agent', '多 Agent / A2A']
+        : ['Agent Overview', 'Single Agent', 'Multi-Agent / A2A'];
+    final activeTab = selectedTab >= tabs.length ? tabs.length - 1 : selectedTab;
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -67,16 +68,15 @@ class _AgentProductWorkflow extends StatelessWidget {
       ),
       const SizedBox(height: _DesktopGrid.gutter),
       _PageTabs(
-          tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
+          tabs: tabs, selectedIndex: activeTab, onSelected: onTabSelected),
       const SizedBox(height: _DesktopGrid.gutter),
-      switch (selectedTab) {
+      switch (activeTab) {
         1 => _SingleAgentWorkspaceView(
             zh: _zh,
             workspace: workspace,
             onAgentCreated: () => onTabSelected(1),
           ),
         2 => _AgentDiscussionProductView(zh: _zh),
-        3 => _AgentRunHistoryView(zh: _zh),
         _ => _AgentWorkspaceProductView(zh: _zh, workspace: workspace),
       },
     ]);
@@ -126,7 +126,7 @@ class _AgentWorkspaceProductView extends StatelessWidget {
       final setup = _ProductPanel(
         keyName: 'agent-workspace-setup',
         icon: Icons.account_tree_outlined,
-        title: zh ? 'Agent 与会话列表' : 'Agent and Session Lists',
+        title: zh ? 'Agent 工作区' : 'Agent Workspace',
         subtitle: runtime.hasAgent
             ? _displayNameForPath(runtime.agentPath)
             : '$workspace/workbench_runs/agent/workspaces',
@@ -139,7 +139,7 @@ class _AgentWorkspaceProductView extends StatelessWidget {
                 ? [
                     [
                       'Agent 列表',
-                      '简单 / 复杂 Agent 统一管理',
+                      '知识应用统一管理',
                       runtime.hasAgent ? 'K1 + S1' : '生成 Agent 后写入'
                     ],
                     [
@@ -149,14 +149,14 @@ class _AgentWorkspaceProductView extends StatelessWidget {
                     ],
                     [
                       '多 Agent 工作区',
-                      '总工作区与子工作区隔离',
+                      '协作会话管理',
                       runtime.hasAgent ? '各自 KB / Skill' : '等待 Agent'
                     ],
                   ]
                 : [
                     [
                       'Agent list',
-                      'Simple / advanced Agents managed together',
+                      'Knowledge apps managed together',
                       runtime.hasAgent ? 'K1 + S1' : 'Written after generate'
                     ],
                     [
@@ -168,7 +168,7 @@ class _AgentWorkspaceProductView extends StatelessWidget {
                     ],
                     [
                       'Multi-Agent workspace',
-                      'Parent and child workspaces isolated',
+                      'Collaboration session management',
                       runtime.hasAgent ? 'Own KB / Skill' : 'Waiting Agent'
                     ],
                   ],
@@ -186,28 +186,34 @@ class _AgentWorkspaceProductView extends StatelessWidget {
       final boundaries = _ProductPanel(
         keyName: 'agent-workspace-boundary',
         icon: Icons.policy_outlined,
-        title: zh ? '访问边界' : 'Access Boundary',
+        title: zh ? '运行状态' : 'Run Status',
         children: [
           _ProductTable(
-            columns: zh ? ['规则', '状态'] : ['Rule', 'Status'],
+            columns: zh ? ['项目', '状态'] : ['Item', 'Status'],
             rows: zh
                 ? [
-                    ['单 Agent 只访问自己的工作区', runtime.hasAgent ? '已写入' : '等待生成'],
-                    ['子 Agent 不覆盖彼此配置', runtime.hasAgent ? '已隔离' : '等待生成'],
-                    ['不开放高风险系统能力', '保持关闭'],
-                    ['不展示明文 secret', '保持掩码'],
+                    ['绑定知识库', runtime.hasKnowledgeBase ? '已绑定' : '等待知识库'],
+                    ['绑定 Skill', runtime.hasSkill ? '已绑定' : '等待 Skill'],
+                    ['单 Agent 对话', runtime.hasAgentDialogue ? '已有记录' : '未运行'],
+                    ['多 Agent 协作', runtime.hasMultiAgentDiscussion ? '已有纪要' : '未运行'],
                   ]
                 : [
                     [
-                      'Single Agent uses own workspace only',
-                      runtime.hasAgent ? 'Written' : 'Waiting'
+                      'Knowledge Base',
+                      runtime.hasKnowledgeBase ? 'Bound' : 'Waiting KB'
                     ],
                     [
-                      'Child Agents do not overwrite each other',
-                      runtime.hasAgent ? 'Isolated' : 'Waiting'
+                      'Skill',
+                      runtime.hasSkill ? 'Bound' : 'Waiting Skill'
                     ],
-                    ['High-risk system capabilities', 'Kept closed'],
-                    ['Plaintext secrets', 'Masked'],
+                    [
+                      'Single-Agent chat',
+                      runtime.hasAgentDialogue ? 'Has record' : 'Not run'
+                    ],
+                    [
+                      'Multi-Agent collaboration',
+                      runtime.hasMultiAgentDiscussion ? 'Has notes' : 'Not run'
+                    ],
                   ],
           ),
         ],
@@ -338,8 +344,8 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
             decoration: InputDecoration(
               labelText: zh ? 'Agent 名称' : 'Agent name',
               helperText: zh
-                  ? '写入 Agent 配置、工作区和运行审计。'
-                  : 'Written to Agent config, workspace, and run audit.',
+                  ? '创建后保存到当前 Agent 工作区。'
+                  : 'Saved to the current Agent workspace after creation.',
               border: const OutlineInputBorder(),
               isDense: true,
             ),
@@ -473,52 +479,18 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
                   },
           ),
           const SizedBox(height: _DesktopGrid.gutter),
-          _EqualActionRow(children: [
-            _DisplayAction(
-              label: runtime.hasAgent
-                  ? (zh ? '复制 Agent 路径' : 'Copy Agent path')
-                  : (zh ? '等待真实 Agent 产物' : 'Waiting for real Agent'),
-              icon: Icons.copy_outlined,
-              onPressed: runtime.hasAgent
-                  ? () => _copyArtifactPath(
-                        context,
-                        path: runtime.agentPath,
-                        successMessage:
-                            zh ? 'Agent 产物路径已复制' : 'Agent artifact path copied',
-                      )
-                  : null,
-            ),
-            _DisplayAction(
-              label: runtime.hasAgent
-                  ? (zh ? '查看 Agent 配置' : 'View Agent config')
-                  : (zh ? '等待可预览 Agent' : 'Waiting for previewable Agent'),
-              icon: Icons.article_outlined,
-              onPressed: runtime.hasAgent
-                  ? () => _showWorkspaceArtifactPreview(
-                        context,
-                        rc6: rc6,
-                        title: zh ? 'Agent 配置预览' : 'Agent config preview',
-                        path:
-                            '${runtime.agentPath}/agent_generation_manifest.json',
-                        unavailableMessage: zh
-                            ? '尚未生成可预览 Agent 配置。'
-                            : 'No previewable Agent config has been generated.',
-                        closeLabel: zh ? '关闭' : 'Close',
-                      )
-                  : null,
-            ),
-            _DisplayAction(
-              label: runtime.hasAgent
-                  ? (zh ? '删除 Agent 产物' : 'Delete Agent artifacts')
-                  : (zh ? '等待真实 Agent 产物' : 'Waiting for real Agent'),
-              icon: runtime.hasAgent
-                  ? Icons.delete_outline
-                  : Icons.smart_toy_outlined,
-              onPressed: runtime.hasAgent
-                  ? () => _confirmAndDeleteAgent(context, rc6)
-                  : null,
-            ),
-          ]),
+          _MoreActionsButton(
+            label: zh ? '更多 Agent 操作' : 'More Agent actions',
+            actions: [
+              _MoreMenuAction(
+                label: zh ? '删除 Agent 产物' : 'Delete Agent artifacts',
+                icon: Icons.delete_outline,
+                destructive: true,
+                enabled: runtime.hasAgent,
+                onSelected: () => _confirmAndDeleteAgent(context, rc6),
+              ),
+            ],
+          ),
         ],
       );
       final detail = _ProductPanel(
@@ -548,21 +520,6 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
                 ? '创建后立即进入单 Agent 对话'
                 : 'Open single-Agent chat immediately after creation',
           ),
-          const SizedBox(height: 8),
-          _FieldRow(
-            label: zh ? '包验证' : 'Package validation',
-            value: runtime.hasAgentValidationReport
-                ? _displayNameForPath(runtime.agentValidationReportPath)
-                : (zh ? '创建后写入验证报告' : 'Written after creation'),
-          ),
-          const SizedBox(height: 8),
-          _FieldRow(
-            label: zh ? '权限矩阵' : 'Permission matrix',
-            value: runtime.hasAgentWorkspacePermissionMatrix
-                ? _displayNameForPath(
-                    runtime.agentWorkspacePermissionMatrixPath)
-                : (zh ? '创建后写入权限矩阵' : 'Written after creation'),
-          ),
           if (simpleMode) ...[
             const SizedBox(height: 8),
             _FieldRow(
@@ -570,13 +527,6 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
               value: runtime.hasAgentDialogue
                   ? (zh ? '已有会话记录' : 'Conversation saved')
                   : (zh ? '首次对话后写入' : 'Written after first chat'),
-            ),
-            const SizedBox(height: 8),
-            _FieldRow(
-              label: zh ? '运行审计' : 'Run audit',
-              value: zh
-                  ? '记录模型、知识库、Skill、引用和错误状态'
-                  : 'Records model, KB, Skill, citations, and errors',
             ),
           ] else ...[
             const SizedBox(height: 8),
@@ -595,24 +545,10 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
             ),
             const SizedBox(height: 8),
             _FieldRow(
-              label: zh ? 'Tool 配置' : 'Tool config',
-              value: zh
-                  ? '仅允许白名单业务工具，不开放任意系统命令'
-                  : 'Allowlisted product tools only; arbitrary system commands are not exposed',
-            ),
-            const SizedBox(height: 8),
-            _FieldRow(
               label: zh ? '输出格式' : 'Output',
               value: zh
                   ? 'Markdown / JSON / report / chat'
                   : 'Markdown / JSON / report / chat',
-            ),
-            const SizedBox(height: 8),
-            _FieldRow(
-              label: zh ? '审计策略' : 'Audit policy',
-              value: zh
-                  ? '创建、对话、A2A、权限审计均写入运行记录'
-                  : 'Creation, chat, A2A, and permission checks are written to run history',
             ),
           ],
         ],
@@ -783,7 +719,7 @@ class _AgentDiscussionProductViewState
         ),
         const SizedBox(height: 8),
         _ProductTable(
-          columns: zh ? ['追踪项', '真实值'] : ['Trace item', 'Real value'],
+          columns: zh ? ['项目', '状态'] : ['Item', 'Status'],
           rows: zh
               ? [
                   ['参与 Agent', participants],
@@ -796,29 +732,12 @@ class _AgentDiscussionProductViewState
                   ['会话状态', a2aStatus],
                   ['运行前置', runtime.hasSkill ? 'Skill 已生成' : '请先生成 Skill'],
                   [
-                    '会话审计',
-                    runtime.hasA2aSessionManifest
-                        ? _displayNameForPath(runtime.a2aSessionManifestPath)
-                        : '启动后写入'
-                  ],
-                  [
                     '冲突报告',
-                    runtime.hasA2aConflictReport
-                        ? _displayNameForPath(runtime.a2aConflictReportPath)
-                        : '启动后写入'
+                    runtime.hasA2aConflictReport ? '已生成' : '启动后生成'
                   ],
                   [
                     '共识报告',
-                    runtime.hasA2aConsensusReport
-                        ? _displayNameForPath(runtime.a2aConsensusReportPath)
-                        : '启动后写入'
-                  ],
-                  [
-                    '讨论审计',
-                    runtime.hasMultiAgentDiscussionManifest
-                        ? _displayNameForPath(
-                            runtime.multiAgentDiscussionManifestPath)
-                        : '启动后写入'
+                    runtime.hasA2aConsensusReport ? '已生成' : '启动后生成'
                   ],
                 ]
               : [
@@ -837,29 +756,12 @@ class _AgentDiscussionProductViewState
                         : 'Generate Skill first'
                   ],
                   [
-                    'Session audit',
-                    runtime.hasA2aSessionManifest
-                        ? _displayNameForPath(runtime.a2aSessionManifestPath)
-                        : 'Written after start'
-                  ],
-                  [
                     'Conflict report',
-                    runtime.hasA2aConflictReport
-                        ? _displayNameForPath(runtime.a2aConflictReportPath)
-                        : 'Written after start'
+                    runtime.hasA2aConflictReport ? 'Generated' : 'After start'
                   ],
                   [
                     'Consensus report',
-                    runtime.hasA2aConsensusReport
-                        ? _displayNameForPath(runtime.a2aConsensusReportPath)
-                        : 'Written after start'
-                  ],
-                  [
-                    'Discussion audit',
-                    runtime.hasMultiAgentDiscussionManifest
-                        ? _displayNameForPath(
-                            runtime.multiAgentDiscussionManifestPath)
-                        : 'Written after start'
+                    runtime.hasA2aConsensusReport ? 'Generated' : 'After start'
                   ],
                 ],
         ),
@@ -880,21 +782,6 @@ class _AgentDiscussionProductViewState
         const SizedBox(height: _DesktopGrid.gutter),
         _DisplayAction(
           label: runtime.hasMultiAgentDiscussion
-              ? (zh ? '复制讨论纪要路径' : 'Copy discussion notes path')
-              : (zh ? '等待讨论纪要' : 'Waiting for discussion notes'),
-          icon: Icons.copy_outlined,
-          onPressed: runtime.hasMultiAgentDiscussion
-              ? () => _copyArtifactPath(
-                    context,
-                    path: runtime.multiAgentDiscussionPath,
-                    successMessage:
-                        zh ? '讨论纪要路径已复制' : 'Discussion notes path copied',
-                  )
-              : null,
-        ),
-        const SizedBox(height: _DesktopGrid.gutter),
-        _DisplayAction(
-          label: runtime.hasMultiAgentDiscussion
               ? (zh ? '查看讨论纪要' : 'View discussion notes')
               : (zh ? '等待可预览纪要' : 'Waiting for previewable notes'),
           icon: Icons.article_outlined,
@@ -910,45 +797,6 @@ class _AgentDiscussionProductViewState
                   )
               : null,
         ),
-        const SizedBox(height: _DesktopGrid.gutter),
-        _EqualActionRow(children: [
-          _DisplayAction(
-            label: runtime.hasA2aSessionManifest
-                ? (zh ? '查看会话审计' : 'View session audit')
-                : (zh ? '等待会话审计' : 'Waiting for session audit'),
-            icon: Icons.fact_check_outlined,
-            onPressed: runtime.hasA2aSessionManifest
-                ? () => _showWorkspaceArtifactPreview(
-                      context,
-                      rc6: rc6,
-                      title: zh ? 'A2A 会话审计' : 'A2A session audit',
-                      path: runtime.a2aSessionManifestPath,
-                      unavailableMessage: zh
-                          ? '尚未生成 A2A 会话审计。'
-                          : 'No A2A session audit generated.',
-                      closeLabel: zh ? '关闭' : 'Close',
-                    )
-                : null,
-          ),
-          _DisplayAction(
-            label: runtime.hasMultiAgentDiscussionManifest
-                ? (zh ? '查看讨论审计' : 'View discussion audit')
-                : (zh ? '等待讨论审计' : 'Waiting for discussion audit'),
-            icon: Icons.article_outlined,
-            onPressed: runtime.hasMultiAgentDiscussionManifest
-                ? () => _showWorkspaceArtifactPreview(
-                      context,
-                      rc6: rc6,
-                      title: zh ? '多 Agent 讨论审计' : 'Discussion audit',
-                      path: runtime.multiAgentDiscussionManifestPath,
-                      unavailableMessage: zh
-                          ? '尚未生成多 Agent 讨论审计。'
-                          : 'No multi-agent discussion audit generated.',
-                      closeLabel: zh ? '关闭' : 'Close',
-                    )
-                : null,
-          ),
-        ]),
       ],
     );
   }
@@ -1008,9 +856,6 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
       final modelConfig = runtime.agentDialogueModelConfigId.isEmpty
           ? (zh ? '运行后读取' : 'Read after run')
           : runtime.agentDialogueModelConfigId;
-      final outputFormat = runtime.agentDialogueOutputFormat.isEmpty
-          ? (zh ? '运行后读取' : 'Read after run')
-          : runtime.agentDialogueOutputFormat.toUpperCase();
       final memoryStatus = runtime.agentDialogueMemoryWriteStatus.isEmpty
           ? (zh ? '运行后写入' : 'Written after run')
           : runtime.agentDialogueMemoryWriteStatus;
@@ -1022,7 +867,7 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
       final chat = _ProductPanel(
         keyName: 'agent-minimal-chat',
         icon: Icons.chat_bubble_outline,
-        title: zh ? '最小对话入口' : 'Minimal Chat Entry',
+        title: zh ? 'Agent 对话' : 'Agent Chat',
         gap: true,
         children: [
           TextField(
@@ -1041,7 +886,7 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _PrimaryProductAction(
-            label: zh ? '运行最小对话' : 'Run minimal chat',
+            label: zh ? '运行对话' : 'Run chat',
             icon: Icons.play_arrow_outlined,
             onPressed: runtime.running ||
                     rc6 == null ||
@@ -1052,9 +897,9 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _FieldRow(
-            label: zh ? '对话产物' : 'Dialogue artifact',
+            label: zh ? '对话记录' : 'Dialogue',
             value: runtime.hasAgentDialogue
-                ? _displayNameForPath(runtime.agentDialoguePath)
+                ? (zh ? '已保存' : 'Saved')
                 : (zh ? '尚未生成' : 'Not generated'),
           ),
           const SizedBox(height: 8),
@@ -1062,8 +907,8 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
             label: zh ? '会话历史' : 'Chat history',
             value: runtime.hasAgentDialogueHistory
                 ? (zh
-                    ? '${runtime.agentDialogueTurnCount} 轮 · ${_displayNameForPath(runtime.agentDialogueHistoryPath)}'
-                    : '${runtime.agentDialogueTurnCount} turns · ${_displayNameForPath(runtime.agentDialogueHistoryPath)}')
+                    ? '${runtime.agentDialogueTurnCount} 轮'
+                    : '${runtime.agentDialogueTurnCount} turns')
                 : (zh ? '尚未生成' : 'Not generated'),
           ),
           const SizedBox(height: 8),
@@ -1074,21 +919,12 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                 : (zh ? '尚未导出' : 'Not exported'),
           ),
           const SizedBox(height: 8),
-          _FieldRow(
-            label: zh ? '审计清单' : 'Audit manifest',
-            value: runtime.hasAgentDialogueManifest
-                ? _displayNameForPath(runtime.agentDialogueManifestPath)
-                : (zh ? '运行后生成' : 'Generated after running chat'),
-          ),
-          const SizedBox(height: 8),
           _ProductTable(
-            columns: zh ? ['追踪项', '真实值'] : ['Trace item', 'Real value'],
+            columns: zh ? ['项目', '状态'] : ['Item', 'Status'],
             rows: zh
                 ? [
-                    ['模型配置', modelConfig],
                     ['绑定知识库', kbIds],
                     ['绑定 Skill', skillIds],
-                    ['输出格式', outputFormat],
                     [
                       '引用证据',
                       runtime.hasAgentDialogue
@@ -1099,10 +935,8 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                     ['错误状态', errorStatus],
                   ]
                 : [
-                    ['Model config', modelConfig],
                     ['Bound KB', kbIds],
                     ['Bound Skill', skillIds],
-                    ['Output format', outputFormat],
                     [
                       'Citations',
                       runtime.hasAgentDialogue
@@ -1115,20 +949,6 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _EqualActionRow(children: [
-            _DisplayAction(
-              label: runtime.hasAgentDialogue
-                  ? (zh ? '复制对话产物路径' : 'Copy dialogue artifact path')
-                  : (zh ? '等待对话产物' : 'Waiting for dialogue artifact'),
-              icon: Icons.copy_outlined,
-              onPressed: runtime.hasAgentDialogue
-                  ? () => _copyArtifactPath(
-                        context,
-                        path: runtime.agentDialoguePath,
-                        successMessage:
-                            zh ? '对话产物路径已复制' : 'Dialogue artifact path copied',
-                      )
-                  : null,
-            ),
             _DisplayAction(
               label: runtime.hasAgentDialogue
                   ? (zh ? '查看对话内容' : 'View dialogue content')
@@ -1146,37 +966,6 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                       )
                   : null,
             ),
-            _DisplayAction(
-              label: runtime.hasAgentDialogueHistory
-                  ? (zh ? '复制会话历史路径' : 'Copy chat history path')
-                  : (zh ? '等待会话历史' : 'Waiting for chat history'),
-              icon: Icons.copy_outlined,
-              onPressed: runtime.hasAgentDialogueHistory
-                  ? () => _copyArtifactPath(
-                        context,
-                        path: runtime.agentDialogueHistoryPath,
-                        successMessage:
-                            zh ? '会话历史路径已复制' : 'Chat history path copied',
-                      )
-                  : null,
-            ),
-            _DisplayAction(
-              label: runtime.hasAgentDialogueHistory
-                  ? (zh ? '查看会话历史' : 'View chat history')
-                  : (zh ? '等待可预览历史' : 'Waiting for previewable history'),
-              icon: Icons.article_outlined,
-              onPressed: runtime.hasAgentDialogueHistory
-                  ? () => _showWorkspaceArtifactPreview(
-                        context,
-                        rc6: rc6,
-                        title: zh ? '会话历史预览' : 'Chat history preview',
-                        path: runtime.agentDialogueHistoryPath,
-                        unavailableMessage:
-                            zh ? '尚未生成可预览会话历史。' : 'No chat history generated.',
-                        closeLabel: zh ? '关闭' : 'Close',
-                      )
-                  : null,
-            ),
             _PrimaryProductAction(
               label: runtime.hasAgentDialogueHistory
                   ? (zh ? '导出对话记录' : 'Export dialogue')
@@ -1188,114 +977,91 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                   ? () => rc6.exportAgentDialogue()
                   : null,
             ),
-            _DisplayAction(
-              label: runtime.hasAgentDialogueExport
-                  ? (zh ? '查看导出记录' : 'View export')
-                  : (zh ? '等待导出记录' : 'Waiting for export'),
-              icon: Icons.article_outlined,
-              onPressed: runtime.hasAgentDialogueExport
-                  ? () => _showWorkspaceArtifactPreview(
-                        context,
-                        rc6: rc6,
-                        title: zh ? '导出对话预览' : 'Dialogue export preview',
-                        path: runtime.agentDialogueExportPath,
-                        unavailableMessage:
-                            zh ? '尚未生成可预览导出。' : 'No dialogue export generated.',
-                        closeLabel: zh ? '关闭' : 'Close',
-                      )
-                  : null,
-            ),
-            _DisplayAction(
-              label: runtime.hasAgentDialogueHistory
-                  ? (zh ? '清空对话历史' : 'Clear dialogue history')
-                  : (zh ? '等待可清空历史' : 'Waiting for history'),
-              icon: Icons.delete_sweep_outlined,
-              onPressed: runtime.hasAgentDialogueHistory &&
-                      rc6 != null &&
-                      !runtime.running
-                  ? () => _confirmAndClearDialogue(context, rc6)
-                  : null,
-            ),
           ]),
+          const SizedBox(height: _DesktopGrid.gutter),
+          _MoreActionsButton(
+            label: zh ? '更多对话操作' : 'More chat actions',
+            actions: [
+              _MoreMenuAction(
+                label: zh ? '查看会话历史' : 'View chat history',
+                icon: Icons.article_outlined,
+                enabled: runtime.hasAgentDialogueHistory,
+                onSelected: () => _showWorkspaceArtifactPreview(
+                  context,
+                  rc6: rc6,
+                  title: zh ? '会话历史预览' : 'Chat history preview',
+                  path: runtime.agentDialogueHistoryPath,
+                  unavailableMessage:
+                      zh ? '尚未生成可预览会话历史。' : 'No chat history generated.',
+                  closeLabel: zh ? '关闭' : 'Close',
+                ),
+              ),
+              _MoreMenuAction(
+                label: zh ? '查看导出记录' : 'View export',
+                icon: Icons.article_outlined,
+                enabled: runtime.hasAgentDialogueExport,
+                onSelected: () => _showWorkspaceArtifactPreview(
+                  context,
+                  rc6: rc6,
+                  title: zh ? '导出对话预览' : 'Dialogue export preview',
+                  path: runtime.agentDialogueExportPath,
+                  unavailableMessage:
+                      zh ? '尚未生成可预览导出。' : 'No dialogue export generated.',
+                  closeLabel: zh ? '关闭' : 'Close',
+                ),
+              ),
+              _MoreMenuAction(
+                label: zh ? '清空对话历史' : 'Clear dialogue history',
+                icon: Icons.delete_sweep_outlined,
+                destructive: true,
+                enabled: runtime.hasAgentDialogueHistory &&
+                    rc6 != null &&
+                    !runtime.running,
+                onSelected: () => _confirmAndClearDialogue(context, rc6),
+              ),
+            ],
+          ),
         ],
       );
       final bindings = _ProductPanel(
         keyName: 'agent-chat-bindings',
         icon: Icons.link_outlined,
-        title: zh ? '对话输入来源' : 'Chat Inputs',
+        title: zh ? '绑定状态' : 'Binding Status',
         children: [
           _ProductTable(
-            columns: zh ? ['输入', '状态', '说明'] : ['Input', 'Status', 'Note'],
+            columns: zh ? ['输入', '状态'] : ['Input', 'Status'],
             rows: zh
                 ? [
                     [
                       '知识库',
                       runtime.hasKnowledgeBase ? '已绑定' : '请先构建知识库',
-                      runtime.hasKnowledgeBase
-                          ? _displayNameForPath(runtime.kbManifestPath)
-                          : '知识库页构建'
                     ],
                     [
                       'Skill',
                       runtime.hasSkill ? '已绑定' : '请先生成 Skill',
-                      runtime.hasSkill
-                          ? _displayNameForPath(runtime.skillPath)
-                          : 'Skill 工厂生成'
                     ],
                     [
                       'Agent',
                       runtime.hasAgent ? '已生成' : '请先生成 Agent',
-                      runtime.hasAgent
-                          ? _displayNameForPath(runtime.agentPath)
-                          : 'Agent 工作台创建'
                     ],
-                    ['模型', modelConfig, '密钥仅从环境/设置读取并掩码显示'],
-                    [
-                      '对话审计',
-                      runtime.hasAgentDialogueManifest ? '已写入' : '运行后写入',
-                      runtime.hasAgentDialogueManifest
-                          ? _displayNameForPath(
-                              runtime.agentDialogueManifestPath)
-                          : 'agent_dialogue_manifest.json'
-                    ],
+                    ['模型', modelConfig],
+                    ['对话记录', runtime.hasAgentDialogue ? '已保存' : '未运行'],
                   ]
                 : [
                     [
                       'Knowledge Base',
                       runtime.hasKnowledgeBase ? 'Bound' : 'Build KB first',
-                      runtime.hasKnowledgeBase
-                          ? _displayNameForPath(runtime.kbManifestPath)
-                          : 'Build on Knowledge Base page'
                     ],
                     [
                       'Skill',
                       runtime.hasSkill ? 'Bound' : 'Generate Skill first',
-                      runtime.hasSkill
-                          ? _displayNameForPath(runtime.skillPath)
-                          : 'Generate in Skill Factory'
                     ],
                     [
                       'Agent',
                       runtime.hasAgent ? 'Generated' : 'Generate Agent first',
-                      runtime.hasAgent
-                          ? _displayNameForPath(runtime.agentPath)
-                          : 'Create in Agent Workbench'
                     ],
-                    [
-                      'Model',
-                      modelConfig,
-                      'Secrets are read from environment/settings and masked'
-                    ],
-                    [
-                      'Dialogue audit',
-                      runtime.hasAgentDialogueManifest
-                          ? 'Written'
-                          : 'Written after run',
-                      runtime.hasAgentDialogueManifest
-                          ? _displayNameForPath(
-                              runtime.agentDialogueManifestPath)
-                          : 'agent_dialogue_manifest.json'
-                    ],
+                    ['Model', modelConfig],
+                    ['Dialogue', runtime.hasAgentDialogue ? 'Saved' : 'Not run'],
                   ],
           ),
         ],
@@ -1313,101 +1079,6 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
         children: [chat, bindings],
       );
     });
-  }
-}
-
-class _AgentRunHistoryView extends StatelessWidget {
-  const _AgentRunHistoryView({required this.zh});
-
-  final bool zh;
-
-  @override
-  Widget build(BuildContext context) {
-    final runtime =
-        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
-    return _ProductPanel(
-      keyName: 'agent-run-history',
-      icon: Icons.history_outlined,
-      title: zh ? '运行记录' : 'Run History',
-      children: [
-        _ProductTable(
-          columns: zh ? ['记录', '状态', '产物'] : ['Record', 'Status', 'Artifact'],
-          rows: zh
-              ? [
-                  [
-                    'Agent 创建',
-                    runtime.hasAgent ? '已完成' : '未运行',
-                    runtime.hasAgent
-                        ? _displayNameForPath(runtime.agentPath)
-                        : '无产物'
-                  ],
-                  [
-                    '最小对话',
-                    runtime.hasAgentDialogue ? '已完成' : '未运行',
-                    runtime.hasAgentDialogue
-                        ? '${runtime.agentDialogueTurnCount} 轮 · ${_displayNameForPath(runtime.agentDialoguePath)}'
-                        : '无产物'
-                  ],
-                  [
-                    '联合讨论',
-                    runtime.hasMultiAgentDiscussion ? '已完成' : '未运行',
-                    runtime.hasMultiAgentDiscussion
-                        ? _displayNameForPath(runtime.multiAgentDiscussionPath)
-                        : '无产物'
-                  ],
-                  [
-                    '多 Agent 总工作区',
-                    runtime.hasPrdP0Evidence ? '已完成' : '未运行',
-                    runtime.hasPrdP0Evidence
-                        ? _displayNameForPath(runtime.prdP0EvidencePath)
-                        : '无产物'
-                  ],
-                  [
-                    'Agent 工作区审计',
-                    runtime.hasAgent ? '已写入' : '未运行',
-                    runtime.hasAgent ? 'agent_generation_manifest.json' : '无产物'
-                  ],
-                ]
-              : [
-                  [
-                    'Agent creation',
-                    runtime.hasAgent ? 'Done' : 'Not run',
-                    runtime.hasAgent
-                        ? _displayNameForPath(runtime.agentPath)
-                        : 'No artifact'
-                  ],
-                  [
-                    'Minimal chat',
-                    runtime.hasAgentDialogue ? 'Done' : 'Not run',
-                    runtime.hasAgentDialogue
-                        ? '${runtime.agentDialogueTurnCount} turns · ${_displayNameForPath(runtime.agentDialoguePath)}'
-                        : 'No artifact'
-                  ],
-                  [
-                    'Team discussion',
-                    runtime.hasMultiAgentDiscussion ? 'Done' : 'Not run',
-                    runtime.hasMultiAgentDiscussion
-                        ? _displayNameForPath(runtime.multiAgentDiscussionPath)
-                        : 'No artifact'
-                  ],
-                  [
-                    'Multi-Agent parent workspace',
-                    runtime.hasPrdP0Evidence ? 'Done' : 'Not run',
-                    runtime.hasPrdP0Evidence
-                        ? _displayNameForPath(runtime.prdP0EvidencePath)
-                        : 'No artifact'
-                  ],
-                  [
-                    'Agent workspace audit',
-                    runtime.hasAgent ? 'Written' : 'Not run',
-                    runtime.hasAgent
-                        ? 'agent_generation_manifest.json'
-                        : 'No artifact'
-                  ],
-                ],
-        ),
-      ],
-    );
   }
 }
 

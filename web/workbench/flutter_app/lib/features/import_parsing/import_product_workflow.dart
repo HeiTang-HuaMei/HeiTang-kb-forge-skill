@@ -1,104 +1,5 @@
 part of '../../main.dart';
 
-class _ImportStepAction {
-  const _ImportStepAction(
-      this.label, this.detail, this.icon, this.done, this.onPressed);
-
-  final String label;
-  final String detail;
-  final IconData icon;
-  final bool done;
-  final VoidCallback? onPressed;
-}
-
-class _ImportStepActionGrid extends StatelessWidget {
-  const _ImportStepActionGrid({required this.steps});
-
-  final List<_ImportStepAction> steps;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return LayoutBuilder(builder: (context, constraints) {
-      final columns = constraints.maxWidth >= 760
-          ? 3
-          : constraints.maxWidth >= 480
-              ? 2
-              : 1;
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: steps.length,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: columns,
-          crossAxisSpacing: _DesktopGrid.gutter,
-          mainAxisSpacing: _DesktopGrid.gutter,
-          mainAxisExtent: 86,
-        ),
-        itemBuilder: (context, index) {
-          final step = steps[index];
-          final enabled = step.onPressed != null;
-          return Material(
-            color: step.done
-                ? colors.primary.withValues(alpha: 0.08)
-                : colors.surface,
-            borderRadius: BorderRadius.circular(8),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(8),
-              onTap: step.onPressed,
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: step.done ? colors.primary : colors.outlineVariant,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(step.done ? Icons.check_circle_outline : step.icon,
-                        color: enabled || step.done
-                            ? colors.primary
-                            : colors.onSurfaceVariant,
-                        size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(step.label,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge
-                                  ?.copyWith(fontWeight: FontWeight.w900)),
-                          const SizedBox(height: 3),
-                          Text(step.detail,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: colors.onSurfaceVariant,
-                                    fontWeight: FontWeight.w700,
-                                  )),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      );
-    });
-  }
-}
-
 class _MiniProgressBar extends StatelessWidget {
   const _MiniProgressBar({required this.value});
 
@@ -336,66 +237,6 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
     final hasSources = stagedSources > 0 || runtime.sourceCount > 0;
     final hasManifest = preparedManifests > 0 || runtime.hasImportedFile;
     final hasRealImport = runtime.hasImportedFile;
-    final steps = <_ImportStepAction>[
-      _ImportStepAction(
-        _zh ? '1. 选择来源' : '1. Choose source',
-        _zh ? '选择文件或文件夹' : 'Choose files or a folder',
-        Icons.folder_open_outlined,
-        runtime.hasImportedFile,
-        runtime.running || rc6 == null ? null : () => _chooseSource(rc6),
-      ),
-      _ImportStepAction(
-        _zh ? '2. 导入队列' : '2. Import queue',
-        hasManifest
-            ? (_zh
-                ? '${runtime.sourceCount} 个文件已入队'
-                : '${runtime.sourceCount} files queued')
-            : (_zh ? '等待来源' : 'Waiting for source'),
-        Icons.playlist_add_check_outlined,
-        hasManifest,
-        runtime.hasImportedFile ? () {} : null,
-      ),
-      _ImportStepAction(
-        _zh ? '3. 解析' : '3. Parse',
-        runtime.parseReportPath.isNotEmpty
-            ? (_zh ? '解析报告已生成' : 'Parse report generated')
-            : (_zh
-                ? '运行 Parser / OCR / Chunking'
-                : 'Run parser / OCR / chunking'),
-        Icons.document_scanner_outlined,
-        runtime.parseReportPath.isNotEmpty,
-        runtime.running || rc6 == null || !runtime.hasImportedFile
-            ? null
-            : () => rc6.parseAndChunkSources(),
-      ),
-      _ImportStepAction(
-        _zh ? '4. OCR 验收' : '4. OCR acceptance',
-        runtime.parseReportPath.isNotEmpty
-            ? (_zh ? 'OCR 记录进入 parse_report' : 'OCR record is in parse_report')
-            : (_zh ? '解析完成后验收' : 'Accepted after parsing'),
-        Icons.image_search_outlined,
-        runtime.parseReportPath.isNotEmpty,
-        runtime.parseReportPath.isNotEmpty ? () {} : null,
-      ),
-      _ImportStepAction(
-        _zh ? '5. Chunking 验收' : '5. Chunking acceptance',
-        runtime.chunkCount > 0
-            ? '${runtime.chunkCount} chunks'
-            : (_zh ? '等待切分产物' : 'Waiting for chunks'),
-        Icons.segment_outlined,
-        runtime.chunkCount > 0,
-        runtime.chunkCount > 0 ? () {} : null,
-      ),
-      _ImportStepAction(
-        _zh ? '6. 查看报告' : '6. View report',
-        runtime.parseReportPath.isNotEmpty
-            ? _displayNameForPath(runtime.parseReportPath)
-            : (_zh ? '等待 parse_report.json' : 'Waiting for parse_report.json'),
-        Icons.receipt_long_outlined,
-        runtime.parseReportPath.isNotEmpty,
-        runtime.parseReportPath.isNotEmpty ? () {} : null,
-      ),
-    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -416,42 +257,34 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
         _MetricStrip(
           items: [
             _MetricDatum(
-                label: _zh ? '排队文件' : 'Queued files',
+                label: _zh ? '来源文档' : 'Sources',
                 value: runtime.sourceCount.toString(),
-                detail: _zh ? '等待解析' : 'waiting',
+                detail: hasRealImport
+                    ? (_zh ? '已导入' : 'imported')
+                    : (_zh ? '等待导入' : 'waiting'),
                 icon: Icons.file_present_outlined),
             _MetricDatum(
-                label: _zh ? '解析后端' : 'Parser backends',
-                value: '4',
-                detail: _zh ? '证据登记' : 'registered',
+                label: _zh ? '解析状态' : 'Parse status',
+                value: runtime.parseReportPath.isNotEmpty
+                    ? (_zh ? '已完成' : 'Done')
+                    : (_zh ? '未解析' : 'Pending'),
+                detail: runtime.chunkCount > 0
+                    ? '${runtime.chunkCount} chunks'
+                    : (_zh ? '等待解析' : 'waiting'),
                 icon: Icons.document_scanner_outlined),
-            _MetricDatum(
-                label: _zh ? 'OCR' : 'OCR',
-                value: _zh ? '已验收' : 'Accepted',
-                detail: _zh ? 'PaddleOCR 本地运行' : 'PaddleOCR local',
-                icon: Icons.image_search_outlined),
-            _MetricDatum(
-                label: _zh ? '失败恢复' : 'Recovery',
-                value: hasManifest ? '2' : '0',
-                detail: _zh ? '可重试项' : 'retryable',
-                icon: Icons.restart_alt_outlined),
           ],
         ),
-        const SizedBox(height: _DesktopGrid.gutter),
-        _ImportStepActionGrid(steps: steps),
         const SizedBox(height: _DesktopGrid.gutter),
         if (hasSources || hasManifest) ...[
           _RuntimeFeedbackBanner(
             title: hasRealImport
-                ? (_zh ? '真实导入清单已生成' : 'Real import manifest created')
+                ? (_zh ? '来源已导入' : 'Sources imported')
                 : hasManifest
-                    ? (_zh ? '导入清单已准备' : 'Import manifest prepared')
+                    ? (_zh ? '来源已准备' : 'Sources prepared')
                     : (_zh ? '等待真实来源' : 'Waiting for real source'),
             detail: hasRealImport
-                ? runtime.sourceManifestPath
-                : (_zh
-                    ? '请选择真实文件或文件夹以生成 source_manifest.json。'
-                    : 'Choose real files or a folder to write source_manifest.json.'),
+                ? '${runtime.sourceCount} ${_zh ? '个来源文档' : 'source documents'}'
+                : (_zh ? '暂无来源文档' : 'No source documents'),
             tone: hasRealImport ? _StatusTone.success : _StatusTone.warning,
             icon: hasRealImport ? Icons.verified_outlined : Icons.info_outline,
           ),
@@ -465,12 +298,7 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
             icon: Icons.folder_open_outlined,
             title: _zh ? '来源入口' : 'Source Intake',
             minHeight: 410,
-            subtitle: _zh
-                ? '选择文件或文件夹后进入同一导入队列；网页链接由授权 Provider 配置后启用。'
-                : 'Files and folders enter one queue; web links require authorized Provider config.',
             children: [
-              _ImportStepActionGrid(steps: steps),
-              const SizedBox(height: _DesktopGrid.gutter),
               _PrimaryProductAction(
                 label: _zh ? '选择来源' : 'Choose source',
                 onPressed: runtime.running || rc6 == null
@@ -489,18 +317,10 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
               _PrimaryProductAction(
                 label: _zh ? '解析 / OCR / Chunking' : 'Parse / OCR / Chunking',
                 onPressed: runtime.running || rc6 == null
+                        || !runtime.hasImportedFile
                     ? null
                     : () => rc6.parseAndChunkSources(),
                 icon: Icons.document_scanner_outlined,
-              ),
-              const SizedBox(height: _DesktopGrid.gutter),
-              _DisplayAction(
-                label: _zh ? '一键完成到解析报告' : 'Run source-to-parse in one click',
-                icon: Icons.auto_mode_outlined,
-                onPressed:
-                    runtime.running || rc6 == null || !runtime.hasImportedFile
-                        ? null
-                        : () => rc6.parseAndChunkSources(),
               ),
             ],
           );
@@ -512,11 +332,11 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
             children: [
               _ProductTable(
                 columns: _zh
-                    ? ['文件', '来源类型', '进度', '状态', '失败恢复', '输出产物']
+                    ? ['文件', '来源类型', '处理状态', '状态', '失败恢复', '输出产物']
                     : [
                         'File',
                         'Source type',
-                        'Progress',
+                        'Processing',
                         'Status',
                         'Recovery',
                         'Output artifact'
@@ -528,19 +348,19 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                               ? _displayNameForPath(runtime.selectedFilePath)
                               : '等待本地文件',
                           '文件',
-                          hasManifest ? '100%' : '0%',
+                          hasManifest ? '已完成' : '未完成',
                           hasRealImport ? '已导入' : '待输入',
                           hasManifest ? '无需恢复' : '待生成清单',
-                          'source_manifest.json'
+                          '来源文档'
                         ],
                         if (hasManifest)
                           [
                             '解析 / OCR / Chunking',
                             '本地解析',
-                            runtime.parseReportPath.isNotEmpty ? '100%' : '处理中',
+                            runtime.parseReportPath.isNotEmpty ? '已完成' : '处理中',
                             runtime.parseReportPath.isNotEmpty ? '已解析' : '排队',
                             '失败可重试',
-                            'parse_report.json'
+                            '解析结果'
                           ],
                       ]
                     : [
@@ -549,57 +369,24 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                               ? _displayNameForPath(runtime.selectedFilePath)
                               : 'Waiting for local files',
                           'File',
-                          hasManifest ? '100%' : '0%',
+                          hasManifest ? 'Done' : 'Not done',
                           hasRealImport ? 'Imported' : 'Pending',
                           hasManifest ? 'No recovery' : 'Prepare manifest',
-                          'source_manifest.json'
+                          'Source documents'
                         ],
                         if (hasManifest)
                           [
                             'Parse / OCR / Chunking',
                             'Local parser',
                             runtime.parseReportPath.isNotEmpty
-                                ? '100%'
+                                ? 'Done'
                                 : 'Running',
                             runtime.parseReportPath.isNotEmpty
                                 ? 'Parsed'
                                 : 'Queued',
                             'Retryable on failure',
-                            'parse_report.json'
+                            'Parse results'
                           ],
-                      ],
-              ),
-            ],
-          );
-          final settings = _ProductPanel(
-            keyName: 'parser-settings',
-            icon: Icons.tune_outlined,
-            title: _zh ? '解析器 / OCR / 分块' : 'Parser / OCR / Chunking',
-            minHeight: 410,
-            children: [
-              _ProductTable(
-                columns:
-                    _zh ? ['配置项', '当前值', '分类'] : ['Setting', 'Value', 'Class'],
-                rows: _zh
-                    ? [
-                        ['解析器', 'HeiTang Parser / builtin', '可用'],
-                        ['OCR', 'PaddleOCR PP-OCRv6 local runtime', '可用'],
-                        ['分块', '语义切分，800 tokens，120 overlap', '可用'],
-                        ['语言', '中文 + 英文', '可用'],
-                      ]
-                    : [
-                        ['Parser', 'HeiTang Parser / builtin', 'Available'],
-                        [
-                          'OCR',
-                          'PaddleOCR PP-OCRv6 local runtime',
-                          'Available'
-                        ],
-                        [
-                          'Chunking',
-                          'Semantic, 800 tokens, 120 overlap',
-                          'Available'
-                        ],
-                        ['Language', 'Chinese + English', 'Available'],
                       ],
               ),
             ],
@@ -607,7 +394,7 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
           final manifest = _ProductPanel(
             keyName: 'manifest-preview',
             icon: Icons.description_outlined,
-            title: _zh ? '导入历史与输出清单' : 'Import History and Manifest',
+            title: _zh ? '导入历史' : 'Import History',
             minHeight: 326,
             children: [
               _ImportHistoryList(
@@ -615,14 +402,14 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                 rows: _zh
                     ? [
                         [
-                          'source_manifest.json',
+                          '来源文档',
                           hasRealImport ? '已生成' : '等待',
-                          '来源清单'
+                          '${runtime.sourceCount} 个来源'
                         ],
                         [
-                          'parse_report.json',
+                          '解析结果',
                           runtime.parseReportPath.isNotEmpty ? '已生成' : '等待',
-                          '解析报告'
+                          runtime.chunkCount > 0 ? '${runtime.chunkCount} chunks' : '等待解析'
                         ],
                         [
                           '失败恢复',
@@ -633,16 +420,18 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                       ]
                     : [
                         [
-                          'source_manifest.json',
+                          'Source documents',
                           hasRealImport ? 'Written' : 'Waiting',
-                          'Source inventory'
+                          '${runtime.sourceCount} sources'
                         ],
                         [
-                          'parse_report.json',
+                          'Parse results',
                           runtime.parseReportPath.isNotEmpty
                               ? 'Written'
                               : 'Waiting',
-                          'Parsing report'
+                          runtime.chunkCount > 0
+                              ? '${runtime.chunkCount} chunks'
+                              : 'Waiting parse'
                         ],
                         [
                           'Failure recovery',
@@ -671,8 +460,6 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
             return Column(children: [
               intake,
               const SizedBox(height: _DesktopGrid.gutter),
-              settings,
-              const SizedBox(height: _DesktopGrid.gutter),
               queue,
               const SizedBox(height: _DesktopGrid.gutter),
               manifest,
@@ -682,14 +469,10 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
             _EqualHeightRow(
               height: 410,
               flexes: const [7, 5],
-              children: [intake, settings],
+              children: [intake, queue],
             ),
             const SizedBox(height: _DesktopGrid.gutter),
-            _EqualHeightRow(
-              height: 326,
-              flexes: const [7, 5],
-              children: [queue, manifest],
-            ),
+            manifest,
           ]);
         }),
       ],

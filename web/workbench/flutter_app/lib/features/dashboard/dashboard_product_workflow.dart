@@ -772,13 +772,13 @@ class _DashboardReportSummary extends StatelessWidget {
                   [
                     '文档库导入与解析',
                     '可操作',
-                    'source_manifest.json / parse_report.json',
+                    '来源文档 / 解析结果',
                     '进入文档库'
                   ],
                   [
                     '知识库构建',
                     '可操作',
-                    'chunks / cards / qa_pairs / manifest',
+                    '知识库 / 索引 / 质量记录',
                     '检索验证'
                   ],
                   ['检索与验证', '可操作', '证据片段 / 引用 / 验证报告', '生成文档'],
@@ -790,13 +790,13 @@ class _DashboardReportSummary extends StatelessWidget {
                   [
                     'Import and parsing',
                     'Actionable',
-                    'source_manifest.json / parse_report.json',
+                    'Source documents / parse results',
                     'Open library'
                   ],
                   [
                     'Knowledge build',
                     'Actionable',
-                    'chunks / cards / qa_pairs / manifest',
+                    'Knowledge Base / index / quality records',
                     'Search'
                   ],
                   [
@@ -917,44 +917,46 @@ class _DashboardArtifactOverview extends StatelessWidget {
           rows: _zh
               ? [
                   [
-                    'source_manifest.json',
+                    '来源文档',
                     runtime.sourceManifestPath.isEmpty ? '未生成' : '已生成',
-                    _displayNameForPath(runtime.sourceManifestPath)
+                    runtime.sourceCount == 0
+                        ? '等待导入'
+                        : '${runtime.sourceCount} 个来源'
                   ],
                   [
-                    'parse_report.json',
+                    '解析结果',
                     runtime.parseReportPath.isEmpty ? '未生成' : '已生成',
-                    _displayNameForPath(runtime.parseReportPath)
+                    runtime.chunkCount == 0 ? '等待解析' : '${runtime.chunkCount} chunks'
                   ],
                   [
-                    'kb/manifest.json',
+                    '知识库',
                     runtime.kbManifestPath.isEmpty ? '未生成' : '已生成',
-                    _displayNameForPath(runtime.kbManifestPath)
+                    runtime.hasKnowledgeBase ? '可检索' : '等待构建'
                   ],
                   [
-                    'reading_notes_export.md',
+                    '导出文档',
                     runtime.exportedDocumentPath.isEmpty ? '未导出' : '已导出',
                     _displayNameForPath(runtime.exportedDocumentPath)
                   ],
                   [
-                    'SKILL.md',
+                    'Skill',
                     runtime.hasSkill ? '已生成' : '未生成',
                     _displayNameForPath(runtime.primarySkillPath)
                   ],
                   [
-                    'agent_manifest.json',
+                    'Agent',
                     runtime.hasAgent ? '已生成' : '未生成',
-                    _displayNameForPath(runtime.primaryAgentManifestPath)
+                    runtime.hasAgent ? '可对话' : '等待创建'
                   ],
                   [
-                    'agent_dialogue.md',
+                    'Agent 对话',
                     runtime.hasAgentDialogue ? '已保存' : '未生成',
-                    _displayNameForPath(runtime.agentDialoguePath)
+                    runtime.hasAgentDialogue ? '可查看' : '等待运行'
                   ],
                   [
-                    'multi_agent_discussion.md',
+                    '多 Agent 讨论',
                     runtime.hasMultiAgentDiscussion ? '已生成' : '未生成',
-                    _displayNameForPath(runtime.multiAgentDiscussionPath)
+                    runtime.hasMultiAgentDiscussion ? '可查看' : '等待运行'
                   ],
                   [
                     '知识生产链路',
@@ -964,54 +966,58 @@ class _DashboardArtifactOverview extends StatelessWidget {
                 ]
               : [
                   [
-                    'source_manifest.json',
+                    'Source documents',
                     runtime.sourceManifestPath.isEmpty
                         ? 'Not generated'
                         : 'Generated',
-                    _displayNameForPath(runtime.sourceManifestPath)
+                    runtime.sourceCount == 0
+                        ? 'Waiting import'
+                        : '${runtime.sourceCount} sources'
                   ],
                   [
-                    'parse_report.json',
+                    'Parse results',
                     runtime.parseReportPath.isEmpty
                         ? 'Not generated'
                         : 'Generated',
-                    _displayNameForPath(runtime.parseReportPath)
+                    runtime.chunkCount == 0
+                        ? 'Waiting parse'
+                        : '${runtime.chunkCount} chunks'
                   ],
                   [
-                    'kb/manifest.json',
+                    'Knowledge Base',
                     runtime.kbManifestPath.isEmpty
                         ? 'Not generated'
                         : 'Generated',
-                    _displayNameForPath(runtime.kbManifestPath)
+                    runtime.hasKnowledgeBase ? 'Searchable' : 'Waiting build'
                   ],
                   [
-                    'reading_notes_export.md',
+                    'Exported document',
                     runtime.exportedDocumentPath.isEmpty
                         ? 'Not exported'
                         : 'Exported',
                     _displayNameForPath(runtime.exportedDocumentPath)
                   ],
                   [
-                    'SKILL.md',
+                    'Skill',
                     runtime.hasSkill ? 'Generated' : 'Not generated',
                     _displayNameForPath(runtime.primarySkillPath)
                   ],
                   [
-                    'agent_manifest.json',
+                    'Agent',
                     runtime.hasAgent ? 'Generated' : 'Not generated',
-                    _displayNameForPath(runtime.primaryAgentManifestPath)
+                    runtime.hasAgent ? 'Chat ready' : 'Waiting creation'
                   ],
                   [
-                    'agent_dialogue.md',
+                    'Agent dialogue',
                     runtime.hasAgentDialogue ? 'Saved' : 'Not generated',
-                    _displayNameForPath(runtime.agentDialoguePath)
+                    runtime.hasAgentDialogue ? 'Viewable' : 'Waiting run'
                   ],
                   [
-                    'multi_agent_discussion.md',
+                    'Multi-Agent discussion',
                     runtime.hasMultiAgentDiscussion
                         ? 'Generated'
                         : 'Not generated',
-                    _displayNameForPath(runtime.multiAgentDiscussionPath)
+                    runtime.hasMultiAgentDiscussion ? 'Viewable' : 'Waiting run'
                   ],
                   [
                     'Knowledge production flow',

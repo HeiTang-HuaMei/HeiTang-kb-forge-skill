@@ -798,6 +798,108 @@ class _DisplayAction extends StatelessWidget {
   }
 }
 
+class _MoreMenuAction {
+  const _MoreMenuAction({
+    required this.label,
+    required this.icon,
+    required this.onSelected,
+    this.enabled = true,
+    this.destructive = false,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onSelected;
+  final bool enabled;
+  final bool destructive;
+}
+
+class _MoreActionsButton extends StatelessWidget {
+  const _MoreActionsButton({
+    required this.label,
+    required this.actions,
+  });
+
+  final String label;
+  final List<_MoreMenuAction> actions;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final enabled = actions.any((action) => action.enabled);
+    return SizedBox(
+      width: double.infinity,
+      child: PopupMenuButton<int>(
+        enabled: enabled,
+        tooltip: label,
+        onSelected: (index) => actions[index].onSelected(),
+        itemBuilder: (context) => [
+          for (var index = 0; index < actions.length; index++)
+            PopupMenuItem<int>(
+              value: index,
+              enabled: actions[index].enabled,
+              child: Row(
+                children: [
+                  Icon(
+                    actions[index].icon,
+                    size: 18,
+                    color: actions[index].destructive
+                        ? colors.error
+                        : colors.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      actions[index].label,
+                      overflow: TextOverflow.ellipsis,
+                      style: actions[index].destructive
+                          ? TextStyle(
+                              color: colors.error,
+                              fontWeight: FontWeight.w800,
+                            )
+                          : null,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+        child: InputDecorator(
+          decoration: InputDecoration(
+            enabled: enabled,
+            isDense: true,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            border: const OutlineInputBorder(),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.more_horiz_outlined,
+                size: 18,
+                color: enabled ? colors.primary : colors.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color:
+                            enabled ? colors.primary : colors.onSurfaceVariant,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _PrimaryProductAction extends StatelessWidget {
   const _PrimaryProductAction({
     required this.label,

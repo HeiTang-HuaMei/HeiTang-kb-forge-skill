@@ -386,69 +386,25 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
     final rows = status.capabilities.map((entry) {
       return [
         zh ? entry.zhUserVisibleName : entry.userVisibleName,
-        _providerCapabilityAreaLabel(entry.capabilityArea, zh),
         _providerCapabilityStatusLabel(entry.status, zh),
         zh ? entry.zhUserVisibleBehavior : entry.userVisibleBehavior,
-        _providerCapabilityFallbackLabel(entry.defaultFallback, zh),
-        entry.auditEventRequired && entry.rollbackSupported
-            ? (zh ? '审计 / 回滚' : 'Audit / rollback')
-            : (zh ? '仅审计' : 'Audit only'),
       ];
     }).toList(growable: false);
     return _ProductPanel(
       keyName: 'settings-provider-capability-status',
       icon: Icons.extension_outlined,
-      title: zh ? '能力 Provider 状态' : 'Capability Provider Status',
+      title: zh ? '能力状态' : 'Capability Status',
       gap: true,
       children: [
-        _FieldRow(
-          label: zh ? '产品链路' : 'Product chain',
-          value: status.productBaselineChain,
-        ),
-        const SizedBox(height: 8),
         _ProductTable(
           columns: zh
-              ? ['能力入口', '页面位置', '启用状态', '用户含义', '默认回退', '治理']
-              : [
-                  'Capability',
-                  'Area',
-                  'Enablement',
-                  'User meaning',
-                  'Fallback',
-                  'Governance'
-                ],
+              ? ['能力', '状态', '当前表现']
+              : ['Capability', 'Status', 'Current behavior'],
           rows: rows,
         ),
       ],
     );
   }
-}
-
-String _providerCapabilityAreaLabel(String area, bool zh) {
-  if (!zh) {
-    return switch (area) {
-      'document_library' => 'Document Library',
-      'knowledge_index' => 'Knowledge Base / Index',
-      'retrieval_rag' => 'Retrieval / RAG',
-      'document_generation' => 'Document Generation',
-      'skill_factory' => 'Skill Factory',
-      'agent_workbench' => 'Agent Workbench',
-      'orchestration_a2a' => 'Agent Workbench',
-      'governance_audit' => 'Governance / Audit',
-      _ => area,
-    };
-  }
-  return switch (area) {
-    'document_library' => '文档库',
-    'knowledge_index' => '知识库 / 索引',
-    'retrieval_rag' => '检索 / RAG',
-    'document_generation' => '文档生成',
-    'skill_factory' => 'Skill 工厂',
-    'agent_workbench' => 'Agent 工作台',
-    'orchestration_a2a' => 'Agent 工作台',
-    'governance_audit' => '治理与审计',
-    _ => area,
-  };
 }
 
 String _providerCapabilityStatusLabel(String status, bool zh) {
@@ -475,33 +431,6 @@ String _providerCapabilityStatusLabel(String status, bool zh) {
     'needs_verification' => '需要核验',
     'needs_provider_config' => '需要 Provider 配置',
     _ => status,
-  };
-}
-
-String _providerCapabilityFallbackLabel(String fallback, bool zh) {
-  if (!zh) {
-    return switch (fallback) {
-      'local_parser' => 'Local parser',
-      'local_keyword_index' => 'Local keyword index',
-      'local_rag_retrieval' => 'Local RAG',
-      'local_markdown_json_csv_export' => 'Local export',
-      'local_skill_factory' => 'Local Skill Factory',
-      'local_agent_workspace' => 'Local Agent workspace',
-      'local_orchestration_audit' => 'Local orchestration audit',
-      'local_audit_history' => 'Local audit history',
-      _ => fallback,
-    };
-  }
-  return switch (fallback) {
-    'local_parser' => '本地解析',
-    'local_keyword_index' => '本地关键词索引',
-    'local_rag_retrieval' => '本地 RAG',
-    'local_markdown_json_csv_export' => '本地导出',
-    'local_skill_factory' => '本地 Skill 工厂',
-    'local_agent_workspace' => '本地 Agent 工作区',
-    'local_orchestration_audit' => '本地编排审计',
-    'local_audit_history' => '本地审计历史',
-    _ => fallback,
   };
 }
 
@@ -1223,47 +1152,6 @@ class _SettingsProvidersStorageViewState
               icon: configSaved ? Icons.save_outlined : Icons.cable_outlined,
             ),
           ],
-          const SizedBox(height: 8),
-          _SectionCaption(zh ? 'Provider 运行状态' : 'Provider Runtime Status'),
-          const SizedBox(height: 6),
-          _ProductTable(
-            columns: zh
-                ? ['状态', '用户可见含义', '处理方式']
-                : ['Status', 'User meaning', 'Handling'],
-            rows: zh
-                ? [
-                    ['connected', 'official_openai 可用', '继续执行'],
-                    ['unavailable', 'Provider 暂不可达', '本地能力继续可用'],
-                    ['missing_key', '缺少安全环境变量', '提示配置，不显示明文'],
-                    ['timeout', '请求超时', '可重试并保留日志编号'],
-                    ['fallback_used', '已降级到本地路径', '显示降级原因'],
-                    ['cost_blocked', '超过成本/Token 边界', '停止外部调用'],
-                  ]
-                : [
-                    ['connected', 'official_openai available', 'Continue'],
-                    [
-                      'unavailable',
-                      'Provider temporarily unavailable',
-                      'Local capabilities continue'
-                    ],
-                    [
-                      'missing_key',
-                      'Secure env is missing',
-                      'Prompt setup, never show plaintext'
-                    ],
-                    ['timeout', 'Request timed out', 'Retry with log id'],
-                    [
-                      'fallback_used',
-                      'Local degraded path used',
-                      'Show degraded reason'
-                    ],
-                    [
-                      'cost_blocked',
-                      'Cost/token boundary exceeded',
-                      'Stop external call'
-                    ],
-                  ],
-          ),
         ],
       );
       final detail = _ProductPanel(
@@ -1314,10 +1202,6 @@ class _SettingsProvidersStorageViewState
                     ['PPTX', 'Exporter config required', 'Enable after config'],
                   ],
           ),
-          const SizedBox(height: 8),
-          _DisplayAction(
-              label: zh ? '查看 Provider 状态' : 'View Provider status',
-              icon: Icons.verified_outlined),
         ],
       );
       if (!wide) {
@@ -1580,11 +1464,6 @@ class _SettingsWorkspaceView extends StatelessWidget {
           _FieldRow(
               label: zh ? 'Secret' : 'Secret',
               value: zh ? '不直接展示明文' : 'Plaintext is never shown'),
-          const SizedBox(height: 8),
-          _DisplayAction(
-            label: zh ? '查看 Provider 验收证据' : 'View Provider evidence',
-            icon: Icons.verified_outlined,
-          ),
         ],
       );
       if (!wide) {

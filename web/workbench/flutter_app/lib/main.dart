@@ -4,8 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter/services.dart'
-    show Clipboard, ClipboardData, rootBundle;
+import 'package:flutter/services.dart' show rootBundle;
 
 import 'core_bridge/local_core_bridge.dart';
 import 'contracts/workbench_contracts.dart';
@@ -1000,20 +999,6 @@ class _ProductWorkspaceFrame extends StatelessWidget {
       child: child,
     );
   }
-}
-
-Future<void> _copyArtifactPath(
-  BuildContext context, {
-  required String path,
-  required String successMessage,
-}) async {
-  final trimmed = path.trim();
-  if (trimmed.isEmpty) return;
-  await Clipboard.setData(ClipboardData(text: trimmed));
-  if (!context.mounted) return;
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(successMessage)),
-  );
 }
 
 Future<void> _showWorkspaceArtifactPreview(

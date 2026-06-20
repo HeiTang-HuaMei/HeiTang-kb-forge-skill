@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:heitang_workbench/contracts/sample_contracts.dart';
@@ -120,7 +117,7 @@ void main() {
     expect(find.byKey(const Key('dense-page-workbench-document-library')),
         findsOneWidget);
     expect(find.text('导入与解析'), findsWidgets);
-    expect(find.text('来源文档'), findsOneWidget);
+    expect(find.text('来源文档'), findsWidgets);
     expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);
     await tester.tap(find.byKey(const Key('page-tab-1')));
     await tester.pumpAndSettle();
@@ -159,13 +156,14 @@ void main() {
 
     await tester.tap(find.byKey(const Key('sidebar-dashboard')));
     await tester.pumpAndSettle();
-    await tester.tap(nextAction('构建知识库'));
+    await tester.tap(nextAction('构建知识库'), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(
         find.byKey(
             const Key('dense-page-workbench-knowledge-package-management')),
         findsOneWidget);
-    expect(find.text('1. 选择来源文档'), findsOneWidget);
+    expect(find.text('构建知识库'), findsWidgets);
+    expect(find.text('1. 选择来源文档'), findsNothing);
 
     await tester.tap(find.byKey(const Key('sidebar-dashboard')));
     await tester.pumpAndSettle();
@@ -190,59 +188,16 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('document library hands imported sources to knowledge build',
+  testWidgets('document library keeps knowledge build unavailable before import',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(1440, 1200));
-    final workspace = Directory.systemTemp
-        .createTempSync('kb_forge_product_flow_document_handoff_');
-    addTearDown(() {
-      if (workspace.existsSync()) {
-        workspace.deleteSync(recursive: true);
-      }
-    });
-    final input = Directory('${workspace.path}${Platform.pathSeparator}input')
-      ..createSync(recursive: true);
-    final source = File('${input.path}${Platform.pathSeparator}owner-note.txt')
-      ..writeAsStringSync('product flow source document');
-    File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
-        .writeAsStringSync(
-      const JsonEncoder.withIndent('  ').convert({
-        'schema_version': 'rc10_source_manifest.v1',
-        'status': 'imported',
-        'source_path': input.path,
-        'source_name': 'input',
-        'source_count': 1,
-        'workspace': workspace.path,
-        'sources': [
-          {
-            'source_path': source.path,
-            'source_name': 'owner-note.txt',
-            'relative_path': 'owner-note.txt',
-            'source_type': 'local_file',
-            'document_id': 'doc_owner_note',
-            'extension': '.txt',
-            'size_bytes': 28,
-            'word_count': 4,
-            'image_count': 0,
-            'table_count': 0,
-            'link_count': 0,
-            'structure_status': 'local_text_scan',
-          }
-        ],
-      }),
-    );
-
     await tester.pumpWidget(
       HeiTangWorkbenchApp(
         contracts: sampleWorkbenchContracts,
         enableLocalCoreActions: false,
-        isWebRuntime: false,
-        coreWorkspace: workspace.path,
         initialSelectedIndex: 2,
       ),
     );
-    await tester.runAsync(
-        () async => Future<void>.delayed(const Duration(milliseconds: 300)));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('dense-page-workbench-document-library')),
@@ -250,18 +205,25 @@ void main() {
     await tester.tap(find.byKey(const Key('page-tab-1')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('document-library')), findsOneWidget);
+    expect(find.text('等待导入真实文档'), findsOneWidget);
 
     final buildAction = find.text('用文档构建知识库');
     await tester.ensureVisible(buildAction);
     expect(buildAction, findsOneWidget);
+    final buildButton =
+        tester.widget<FilledButton>(find.ancestor(
+      of: buildAction,
+      matching: find.byType(FilledButton),
+    ));
+    expect(buildButton.onPressed, isNull);
     await tester.tap(buildAction);
     await tester.pumpAndSettle();
 
     expect(
         find.byKey(
-            const Key('dense-page-workbench-knowledge-package-management')),
+            const Key('dense-page-workbench-document-library')),
         findsOneWidget);
-    expect(find.text('1. 选择来源文档'), findsOneWidget);
+    expect(find.text('1. 选择来源文档'), findsNothing);
     expect(find.textContaining('operation-gate'), findsNothing);
     expect(find.textContaining('capability-matrix'), findsNothing);
     expect(find.textContaining('task-job-center'), findsNothing);
@@ -440,16 +402,18 @@ void main() {
     expect(find.text('向量索引'), findsOneWidget);
     expect(find.text('存储边界'), findsOneWidget);
     expect(find.byKey(const Key('knowledge-package-list')), findsOneWidget);
-    expect(find.text('质量记录'), findsOneWidget);
+    expect(find.text('质量记录'), findsWidgets);
     expect(find.text('输出目标'), findsNothing);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
     expect(find.byKey(const Key('product-status-panel')), findsNothing);
-    expect(find.text('1. 选择来源文档'), findsOneWidget);
-    expect(find.text('开始构建知识库'), findsOneWidget);
-    expect(find.text('从标准包构建'), findsOneWidget);
+    expect(find.text('构建知识库'), findsWidgets);
+    expect(find.text('1. 选择来源文档'), findsNothing);
+    expect(find.text('开始构建知识库'), findsNothing);
+    expect(find.text('从标准包构建'), findsNothing);
+    expect(find.text('更多知识库操作'), findsOneWidget);
     expect(find.text('OKF'), findsNothing);
     expect(find.byKey(const Key('sidebar-okf')), findsNothing);
-    await tester.tap(find.text('质量记录'));
+    await tester.tap(find.byKey(const Key('page-tab-2')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('knowledge-quality-records')), findsOneWidget);
     expect(find.text('质量与验证记录'), findsOneWidget);
@@ -482,14 +446,11 @@ void main() {
     expect(find.text('生成任务'), findsWidgets);
     expect(find.byKey(const Key('document-central-preview')), findsOneWidget);
     final reopenDraft = find.widgetWithText(OutlinedButton, '重新打开生成稿');
-    final deleteLatestHistory = find.widgetWithText(OutlinedButton, '删除最近记录');
+    final moreGenerationActions = find.text('更多生成操作');
     expect(reopenDraft, findsOneWidget);
-    expect(deleteLatestHistory, findsOneWidget);
+    expect(moreGenerationActions, findsOneWidget);
     expect(tester.widget<OutlinedButton>(reopenDraft).onPressed, isNull);
-    expect(
-      tester.widget<OutlinedButton>(deleteLatestHistory).onPressed,
-      isNull,
-    );
+    expect(find.widgetWithText(OutlinedButton, '删除最近记录'), findsNothing);
     expect(find.textContaining('需要导出器配置'), findsWidgets);
     expect(find.text('DOCX（需配置）'), findsOneWidget);
     final disabledDocxChoice =
@@ -558,7 +519,7 @@ void main() {
     expect(find.text('等待本地化草稿'), findsOneWidget);
     expect(find.text('查看改动差异'), findsNothing);
     expect(find.text('等待差异说明'), findsOneWidget);
-    expect(find.text('创建 Agent 后绑定'), findsOneWidget);
+    expect(find.text('创建 Agent 后绑定'), findsNothing);
     await tester.tap(find.text('版本操作').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('skill-output-preview')), findsOneWidget);
@@ -572,15 +533,16 @@ void main() {
     expect(find.text('治理报告与验证'), findsNothing);
     expect(find.text('验证导出'), findsOneWidget);
     expect(find.text('校验 Skill'), findsOneWidget);
-    expect(find.text('复制 Skill'), findsOneWidget);
-    expect(find.text('融合 Skill'), findsOneWidget);
+    expect(find.text('更多 Skill 操作'), findsOneWidget);
+    expect(find.text('复制 Skill'), findsNothing);
+    expect(find.text('融合 Skill'), findsNothing);
     expect(find.text('导出 Skill'), findsOneWidget);
-    expect(find.text('绑定 Agent'), findsOneWidget);
+    expect(find.text('绑定 Agent'), findsNothing);
     expect(find.text('操作清单'), findsOneWidget);
     expect(find.text('Agent 绑定'), findsOneWidget);
     expect(find.text('复制 Skill 路径'), findsNothing);
-    expect(find.text('等待真实 Skill 产物'), findsWidgets);
-    expect(find.text('等待可预览 Skill'), findsOneWidget);
+    expect(find.text('等待真实 Skill 产物'), findsNothing);
+    expect(find.text('等待可预览 Skill'), findsNothing);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
     expect(find.textContaining('生成完成'), findsNothing);
     expect(tester.takeException(), isNull);
@@ -693,7 +655,7 @@ void main() {
     expect(find.text('Agent 总览'), findsOneWidget);
     expect(find.text('单 Agent'), findsOneWidget);
     expect(find.text('多 Agent / A2A'), findsOneWidget);
-    expect(find.text('Agent 与会话列表'), findsOneWidget);
+    expect(find.text('Agent 工作区'), findsOneWidget);
     expect(find.text('创建 Agent 工作区并进入对话'), findsOneWidget);
     final configTab = find.byKey(const Key('page-tab-1'));
     await tester.ensureVisible(configTab);
@@ -718,14 +680,14 @@ void main() {
     expect(find.text('复杂 Agent 运行配置'), findsOneWidget);
     expect(find.text('Redis 短期记忆'), findsOneWidget);
     expect(find.text('向量长期记忆'), findsOneWidget);
-    expect(find.text('Tool 配置'), findsOneWidget);
+    expect(find.text('Tool 配置'), findsNothing);
     expect(find.text('创建 Agent 并进入对话'), findsWidgets);
     expect(find.text('复制 Agent 路径'), findsNothing);
-    expect(find.text('等待真实 Agent 产物'), findsWidgets);
-    expect(find.text('等待可预览 Agent'), findsOneWidget);
+    expect(find.text('等待真实 Agent 产物'), findsNothing);
+    expect(find.text('等待可预览 Agent'), findsNothing);
     expect(find.text('单 Agent'), findsOneWidget);
     expect(find.text('多 Agent / A2A'), findsOneWidget);
-    expect(find.text('运行审计'), findsOneWidget);
+    expect(find.text('运行审计'), findsNothing);
     expect(find.text('选择文件夹'), findsNothing);
     expect(find.text('构建知识库'), findsNothing);
     expect(find.text('生成 Skill'), findsNothing);
@@ -738,18 +700,17 @@ void main() {
     expect(find.byKey(const Key('agent-minimal-chat')), findsOneWidget);
 
     expect(find.byKey(const Key('agent-minimal-chat')), findsOneWidget);
-    expect(find.text('审计清单'), findsOneWidget);
     expect(find.text('模型配置'), findsWidgets);
     expect(find.text('绑定知识库'), findsOneWidget);
     expect(find.text('绑定 Skill'), findsOneWidget);
     expect(find.text('引用证据'), findsOneWidget);
     expect(find.text('记忆写入'), findsOneWidget);
     expect(find.text('错误状态'), findsOneWidget);
-    expect(find.text('等待对话产物'), findsOneWidget);
-    expect(find.text('等待会话历史'), findsOneWidget);
+    expect(find.text('等待对话产物'), findsNothing);
+    expect(find.text('等待会话历史'), findsNothing);
     expect(find.text('等待可预览对话'), findsOneWidget);
-    expect(find.text('等待可预览历史'), findsOneWidget);
-    expect(find.text('等待可清空历史'), findsOneWidget);
+    expect(find.text('等待可预览历史'), findsNothing);
+    expect(find.text('等待可清空历史'), findsNothing);
 
     final discussionTab = find.byKey(const Key('page-tab-2'));
     await tester.ensureVisible(discussionTab);
@@ -768,19 +729,14 @@ void main() {
         findsOneWidget);
     expect(find.text('证据引用'), findsOneWidget);
     expect(find.text('会话状态'), findsOneWidget);
-    expect(find.text('会话审计'), findsOneWidget);
-    expect(find.text('讨论审计'), findsOneWidget);
-    expect(find.text('等待讨论纪要'), findsOneWidget);
+    expect(find.text('会话审计'), findsNothing);
+    expect(find.text('讨论审计'), findsNothing);
+    expect(find.text('等待讨论纪要'), findsNothing);
     expect(find.text('等待可预览纪要'), findsOneWidget);
-    expect(find.text('等待会话审计'), findsOneWidget);
-    expect(find.text('等待讨论审计'), findsOneWidget);
-
-    final historyTab = find.byKey(const Key('page-tab-3'));
-    await tester.ensureVisible(historyTab);
-    await tester.tap(historyTab, warnIfMissed: false);
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-run-history')), findsOneWidget);
-    expect(find.text('多 Agent 总工作区'), findsOneWidget);
+    expect(find.text('等待会话审计'), findsNothing);
+    expect(find.text('等待讨论审计'), findsNothing);
+    expect(find.byKey(const Key('page-tab-3')), findsNothing);
+    expect(find.byKey(const Key('agent-run-history')), findsNothing);
     expect(find.textContaining('Campaign'), findsNothing);
     expect(find.textContaining('disabled_boundary'), findsNothing);
     expect(find.textContaining('enabled_real'), findsNothing);

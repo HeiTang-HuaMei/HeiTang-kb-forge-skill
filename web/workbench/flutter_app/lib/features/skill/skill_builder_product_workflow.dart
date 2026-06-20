@@ -94,11 +94,6 @@ class _SkillBuilderProductWorkflowState
         : runtime.skillPath.isNotEmpty
             ? '${runtime.skillPath}/knowledge_qa_skill/SKILL.md'
             : '';
-    final skillExportPath = runtime.skillExportPath.isNotEmpty
-        ? runtime.skillExportPath
-        : runtime.skillPath.isNotEmpty
-            ? '${runtime.skillPath}/exports/skills_export.md'
-            : '';
     final skillBindingStatus = runtime.skillAgentBindingStatus.isNotEmpty
         ? runtime.skillAgentBindingStatus
         : runtime.hasAgent
@@ -421,9 +416,7 @@ class _SkillBuilderProductWorkflowState
             ],
           ],
         );
-        final externalManifestPath = runtime.hasSkillGenerationManifest
-            ? '${runtime.workspacePath}/skill/external_imported_skill/S0/external_skill_manifest.json'
-            : '';
+        final externalManifestPath = runtime.skillGenerationManifestPath;
         final localizedSkillDraftPath = runtime.hasLocalizedSkillManifest
             ? '${runtime.workspacePath}/skill/localized_writing_skill/S2/SKILL.md'
             : '';
@@ -492,7 +485,7 @@ class _SkillBuilderProductWorkflowState
                       ],
                       [
                         '2. 解析结构',
-                        'external_skill_manifest.json',
+                        '外部 Skill 结构',
                         runtime.hasSkillGenerationManifest ? '可查看' : '等待导入'
                       ],
                       [
@@ -509,17 +502,17 @@ class _SkillBuilderProductWorkflowState
                       ],
                       [
                         '5. 融合并生成草稿',
-                        'localized_writing_skill/S2/SKILL.md',
+                        '本地化 Skill 草稿',
                         runtime.hasLocalizedSkillManifest ? '已生成' : '等待融合'
                       ],
                       [
                         '6. 展示改动差异',
-                        'diff_summary.md',
+                        '差异说明',
                         runtime.hasLocalizedSkillDiff ? '可查看' : '等待生成'
                       ],
                       [
                         '7. 验证 / 导出 / 绑定',
-                        'verification_report + export + binding',
+                        '验证 / 导出 / 绑定',
                         runtime.hasSkillAgentBindingManifest
                             ? '已生成绑定清单'
                             : runtime.hasSkillExport
@@ -537,7 +530,7 @@ class _SkillBuilderProductWorkflowState
                       ],
                       [
                         '2. Parse structure',
-                        'external_skill_manifest.json',
+                        'External Skill structure',
                         runtime.hasSkillGenerationManifest
                             ? 'Viewable'
                             : 'Waiting import'
@@ -556,19 +549,19 @@ class _SkillBuilderProductWorkflowState
                       ],
                       [
                         '5. Fuse and draft',
-                        'localized_writing_skill/S2/SKILL.md',
+                        'Localized Skill draft',
                         runtime.hasLocalizedSkillManifest
                             ? 'Generated'
                             : 'Waiting fusion'
                       ],
                       [
                         '6. Show diff',
-                        'diff_summary.md',
+                        'Diff summary',
                         runtime.hasLocalizedSkillDiff ? 'Viewable' : 'Waiting'
                       ],
                       [
                         '7. Validate / export / bind',
-                        'verification_report + export + binding',
+                        'Validation / export / binding',
                         runtime.hasSkillAgentBindingManifest
                             ? 'Binding manifest ready'
                             : runtime.hasSkillExport
@@ -674,21 +667,6 @@ class _SkillBuilderProductWorkflowState
                         )
                     : null,
               ),
-              _DisplayAction(
-                label: runtime.hasSkillAgentBindingManifest
-                    ? (_zh ? '复制 Agent 绑定清单路径' : 'Copy Agent binding path')
-                    : (_zh ? '创建 Agent 后绑定' : 'Bind after Agent creation'),
-                icon: Icons.link_outlined,
-                onPressed: runtime.hasSkillAgentBindingManifest
-                    ? () => _copyArtifactPath(
-                          context,
-                          path: runtime.skillAgentBindingManifestPath,
-                          successMessage: _zh
-                              ? 'Agent 绑定清单路径已复制'
-                              : 'Agent binding manifest path copied',
-                        )
-                    : null,
-              ),
             ]),
           ],
         );
@@ -704,76 +682,24 @@ class _SkillBuilderProductWorkflowState
               zh: _zh,
               rows: _zh
                   ? [
-                      ['knowledge_qa_skill/', ''],
-                      ['SKILL.md', runtime.hasPrimarySkill ? '已生成' : '-'],
-                      [
-                        'skill_config.json',
-                        runtime.hasSkillConfig ? '已生成' : '-'
-                      ],
-                      [
-                        'verification_report.json',
-                        runtime.hasSkillVerificationReport ? '已生成' : '-'
-                      ],
-                      [
-                        'external_imported_skill/S0/',
-                        runtime.hasSkillGenerationManifest ? '已导入' : '-'
-                      ],
-                      [
-                        'localized_writing_skill/S2/',
-                        runtime.hasLocalizedSkillManifest ? '已生成' : '-'
-                      ],
-                      [
-                        'skill_generation_manifest.json',
-                        runtime.hasSkillGenerationManifest ? '已生成' : '-'
-                      ],
-                      [
-                        'operations/skill_operation_manifest.json',
-                        runtime.hasSkillOperationManifest ? '已生成' : '-'
-                      ],
-                      [
-                        'exports/skills_export.md',
-                        runtime.hasSkillExport ? '已导出' : '-'
-                      ],
-                      [
-                        'knowledge_qa_skill/skill_edit_manifest.json',
-                        savedSkillEditPath.isNotEmpty ? '已保存' : '-'
-                      ],
+                      ['Skill 草稿', runtime.hasPrimarySkill ? '已生成' : '-'],
+                      ['Skill 配置', runtime.hasSkillConfig ? '已生成' : '-'],
+                      ['验证报告', runtime.hasSkillVerificationReport ? '已生成' : '-'],
+                      ['外部 Skill', runtime.hasSkillGenerationManifest ? '已导入' : '-'],
+                      ['本地化 Skill', runtime.hasLocalizedSkillManifest ? '已生成' : '-'],
+                      ['操作历史', runtime.hasSkillOperationManifest ? '已生成' : '-'],
+                      ['导出包', runtime.hasSkillExport ? '已导出' : '-'],
+                      ['编辑稿', savedSkillEditPath.isNotEmpty ? '已保存' : '-'],
                     ]
                   : [
-                      ['knowledge_qa_skill/', ''],
-                      ['SKILL.md', runtime.hasPrimarySkill ? 'written' : '-'],
-                      [
-                        'skill_config.json',
-                        runtime.hasSkillConfig ? 'written' : '-'
-                      ],
-                      [
-                        'verification_report.json',
-                        runtime.hasSkillVerificationReport ? 'written' : '-'
-                      ],
-                      [
-                        'external_imported_skill/S0/',
-                        runtime.hasSkillGenerationManifest ? 'imported' : '-'
-                      ],
-                      [
-                        'localized_writing_skill/S2/',
-                        runtime.hasLocalizedSkillManifest ? 'written' : '-'
-                      ],
-                      [
-                        'skill_generation_manifest.json',
-                        runtime.hasSkillGenerationManifest ? 'written' : '-'
-                      ],
-                      [
-                        'operations/skill_operation_manifest.json',
-                        runtime.hasSkillOperationManifest ? 'written' : '-'
-                      ],
-                      [
-                        'exports/skills_export.md',
-                        runtime.hasSkillExport ? 'exported' : '-'
-                      ],
-                      [
-                        'knowledge_qa_skill/skill_edit_manifest.json',
-                        savedSkillEditPath.isNotEmpty ? 'saved' : '-'
-                      ],
+                      ['Skill draft', runtime.hasPrimarySkill ? 'written' : '-'],
+                      ['Skill config', runtime.hasSkillConfig ? 'written' : '-'],
+                      ['Validation report', runtime.hasSkillVerificationReport ? 'written' : '-'],
+                      ['External Skill', runtime.hasSkillGenerationManifest ? 'imported' : '-'],
+                      ['Localized Skill', runtime.hasLocalizedSkillManifest ? 'written' : '-'],
+                      ['Operation history', runtime.hasSkillOperationManifest ? 'written' : '-'],
+                      ['Export package', runtime.hasSkillExport ? 'exported' : '-'],
+                      ['Edited draft', savedSkillEditPath.isNotEmpty ? 'saved' : '-'],
                     ],
             ),
             const SizedBox(height: _DesktopGrid.gutter),
@@ -785,27 +711,27 @@ class _SkillBuilderProductWorkflowState
                   ? [
                       [
                         '查看',
-                        'knowledge_qa_skill/SKILL.md',
+                        'Skill 草稿',
                         runtime.hasPrimarySkill ? '可查看' : '等待生成'
                       ],
                       [
                         '复制',
-                        'knowledge_qa_skill_copy/',
+                        'Skill 副本',
                         runtime.hasSkill ? '已生成副本' : '等待生成'
                       ],
                       [
                         '融合',
-                        'fused_product_ops_skill/',
+                        '融合 Skill',
                         runtime.hasSkill ? '已融合' : '等待生成'
                       ],
                       [
                         '导出',
-                        'exports/skills_export.md',
+                        'Skill 导出包',
                         runtime.hasSkillExport ? '可打开' : '等待生成'
                       ],
                       [
                         '绑定 Agent',
-                        'operations/agent_binding_manifest.json',
+                        'Agent 绑定',
                         runtime.hasSkillAgentBindingManifest
                             ? (skillBindingStatus == 'bound'
                                 ? '已绑定'
@@ -816,27 +742,27 @@ class _SkillBuilderProductWorkflowState
                   : [
                       [
                         'View',
-                        'knowledge_qa_skill/SKILL.md',
+                        'Skill draft',
                         runtime.hasPrimarySkill ? 'Openable' : 'Waiting'
                       ],
                       [
                         'Copy',
-                        'knowledge_qa_skill_copy/',
+                        'Skill copy',
                         runtime.hasSkill ? 'Copied' : 'Waiting'
                       ],
                       [
                         'Fuse',
-                        'fused_product_ops_skill/',
+                        'Fused Skill',
                         runtime.hasSkill ? 'Fused' : 'Waiting'
                       ],
                       [
                         'Export',
-                        'exports/skills_export.md',
+                        'Skill export package',
                         runtime.hasSkillExport ? 'Openable' : 'Waiting'
                       ],
                       [
                         'Bind Agent',
-                        'operations/agent_binding_manifest.json',
+                        'Agent binding',
                         runtime.hasSkillAgentBindingManifest
                             ? (skillBindingStatus == 'bound'
                                 ? 'Bound'
@@ -964,34 +890,8 @@ class _SkillBuilderProductWorkflowState
                           validationReady = true;
                         });
                         rc6.runSkillOperation('validate');
-                      },
+                },
                 icon: Icons.verified_outlined,
-              ),
-              _PrimaryProductAction(
-                label: _zh ? '复制 Skill' : 'Copy Skill',
-                icon: Icons.content_copy_outlined,
-                onPressed: runtime.running || rc6 == null
-                    ? null
-                    : () {
-                        setState(() {
-                          outputPreviewReady = true;
-                          validationReady = true;
-                        });
-                        rc6.runSkillOperation('copy');
-                      },
-              ),
-              _PrimaryProductAction(
-                label: _zh ? '融合 Skill' : 'Fuse Skill',
-                icon: Icons.merge_type_outlined,
-                onPressed: runtime.running || rc6 == null
-                    ? null
-                    : () {
-                        setState(() {
-                          outputPreviewReady = true;
-                          validationReady = true;
-                        });
-                        rc6.runSkillOperation('fusion');
-                      },
               ),
               _PrimaryProductAction(
                 label: _zh ? '导出 Skill' : 'Export Skill',
@@ -1006,61 +906,68 @@ class _SkillBuilderProductWorkflowState
                         rc6.runSkillOperation('export');
                       },
               ),
-              _PrimaryProductAction(
-                label: _zh ? '绑定 Agent' : 'Bind Agent',
-                icon: Icons.link_outlined,
-                onPressed: runtime.running || rc6 == null
-                    ? null
-                    : () {
-                        setState(() {
-                          outputPreviewReady = true;
-                          validationReady = true;
-                        });
-                        rc6.runSkillOperation('bind_agent');
-                      },
-              ),
-              _DisplayAction(
-                label: runtime.hasSkillExport
-                    ? (_zh ? '复制 Skill 路径' : 'Copy Skill path')
-                    : (_zh ? '等待真实 Skill 产物' : 'Waiting for real Skill'),
-                icon: Icons.copy_outlined,
-                onPressed: runtime.hasSkillExport
-                    ? () => _copyArtifactPath(
-                          context,
-                          path: skillExportPath,
-                          successMessage: _zh
-                              ? 'Skill 产物路径已复制'
-                              : 'Skill artifact path copied',
-                        )
-                    : null,
-              ),
-              _DisplayAction(
-                label: skillDraftPath.isNotEmpty
-                    ? (_zh ? '查看 Skill 内容' : 'View Skill content')
-                    : (_zh ? '等待可预览 Skill' : 'Waiting for previewable Skill'),
-                icon: Icons.article_outlined,
-                onPressed: skillDraftPath.isNotEmpty
-                    ? () => _showWorkspaceArtifactPreview(
-                          context,
-                          rc6: rc6,
-                          title: _zh ? 'Skill 内容预览' : 'Skill content preview',
-                          path: skillDraftPath,
-                          unavailableMessage: _zh
-                              ? '尚未生成可预览 Skill。'
-                              : 'No previewable Skill has been generated.',
-                          closeLabel: _zh ? '关闭' : 'Close',
-                        )
-                    : null,
-              ),
-              _DisplayAction(
-                label: runtime.hasSkill
-                    ? (_zh ? '删除 Skill 产物' : 'Delete Skill artifacts')
-                    : (_zh ? '等待真实 Skill 产物' : 'Waiting for real Skill'),
-                icon: runtime.hasSkill
-                    ? Icons.delete_outline
-                    : Icons.assessment_outlined,
-                onPressed:
-                    runtime.hasSkill ? () => _confirmAndDeleteSkill(rc6) : null,
+              _MoreActionsButton(
+                label: _zh ? '更多 Skill 操作' : 'More Skill actions',
+                actions: [
+                  _MoreMenuAction(
+                    label: _zh ? '复制 Skill' : 'Copy Skill',
+                    icon: Icons.content_copy_outlined,
+                    enabled: !runtime.running && rc6 != null,
+                    onSelected: () {
+                      setState(() {
+                        outputPreviewReady = true;
+                        validationReady = true;
+                      });
+                      rc6?.runSkillOperation('copy');
+                    },
+                  ),
+                  _MoreMenuAction(
+                    label: _zh ? '融合 Skill' : 'Fuse Skill',
+                    icon: Icons.merge_type_outlined,
+                    enabled: !runtime.running && rc6 != null,
+                    onSelected: () {
+                      setState(() {
+                        outputPreviewReady = true;
+                        validationReady = true;
+                      });
+                      rc6?.runSkillOperation('fusion');
+                    },
+                  ),
+                  _MoreMenuAction(
+                    label: _zh ? '绑定 Agent' : 'Bind Agent',
+                    icon: Icons.link_outlined,
+                    enabled: !runtime.running && rc6 != null,
+                    onSelected: () {
+                      setState(() {
+                        outputPreviewReady = true;
+                        validationReady = true;
+                      });
+                      rc6?.runSkillOperation('bind_agent');
+                    },
+                  ),
+                  _MoreMenuAction(
+                    label: _zh ? '查看 Skill 内容' : 'View Skill content',
+                    icon: Icons.article_outlined,
+                    enabled: skillDraftPath.isNotEmpty,
+                    onSelected: () => _showWorkspaceArtifactPreview(
+                      context,
+                      rc6: rc6,
+                      title: _zh ? 'Skill 内容预览' : 'Skill content preview',
+                      path: skillDraftPath,
+                      unavailableMessage: _zh
+                          ? '尚未生成可预览 Skill。'
+                          : 'No previewable Skill has been generated.',
+                      closeLabel: _zh ? '关闭' : 'Close',
+                    ),
+                  ),
+                  _MoreMenuAction(
+                    label: _zh ? '删除 Skill 产物' : 'Delete Skill artifacts',
+                    icon: Icons.delete_outline,
+                    destructive: true,
+                    enabled: runtime.hasSkill,
+                    onSelected: () => _confirmAndDeleteSkill(rc6),
+                  ),
+                ],
               ),
             ]),
           ],

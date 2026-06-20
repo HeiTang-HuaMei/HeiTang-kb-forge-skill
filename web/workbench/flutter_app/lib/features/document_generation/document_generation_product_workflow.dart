@@ -319,7 +319,7 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
               ),
               bottom: _EqualActionRow(children: [
                 _PrimaryProductAction(
-                  label: zh ? '生成文档' : 'Generate document',
+                  label: zh ? '生成 Markdown' : 'Generate Markdown',
                   icon: Icons.notes_outlined,
                   onPressed: runtime.running || rc6 == null
                       ? null
@@ -327,14 +327,43 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                           ? openGenerationDialog
                           : null,
                 ),
-                _PrimaryProductAction(
-                  label: zh ? '重新生成' : 'Regenerate',
-                  icon: Icons.restart_alt_outlined,
-                  onPressed: runtime.running ||
-                          rc6 == null ||
-                          !runtime.hasKnowledgeBase
-                      ? null
-                      : openGenerationDialog,
+                _MoreActionsButton(
+                  label: zh ? '更多生成操作' : 'More generation actions',
+                  actions: [
+                    _MoreMenuAction(
+                      label: zh ? '重新生成' : 'Regenerate',
+                      icon: Icons.restart_alt_outlined,
+                      enabled: !runtime.running &&
+                          rc6 != null &&
+                          runtime.hasKnowledgeBase,
+                      onSelected: openGenerationDialog,
+                    ),
+                    _MoreMenuAction(
+                      label: zh ? '导出 Markdown' : 'Export Markdown',
+                      icon: Icons.download_outlined,
+                      enabled:
+                          rc6 != null && !runtime.running && runtime.hasMarkdown,
+                      onSelected: () => rc6?.exportMarkdownDocument(),
+                    ),
+                    _MoreMenuAction(
+                      label: zh ? '删除最近记录' : 'Delete latest record',
+                      icon: Icons.delete_outline,
+                      destructive: true,
+                      enabled: rc6 != null &&
+                          !runtime.running &&
+                          runtime.hasDocumentGenerationHistory,
+                      onSelected: deleteLatestGenerationHistory,
+                    ),
+                    _MoreMenuAction(
+                      label: zh ? '清空历史' : 'Clear history',
+                      icon: Icons.delete_sweep_outlined,
+                      destructive: true,
+                      enabled: rc6 != null &&
+                          !runtime.running &&
+                          runtime.hasDocumentGenerationHistory,
+                      onSelected: clearGenerationHistory,
+                    ),
+                  ],
                 ),
               ]),
             ),
@@ -396,7 +425,7 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
           if (runtime.generatedMarkdownPath.isNotEmpty) ...[
             const SizedBox(height: 8),
             _FieldRow(
-              label: zh ? '真实 Markdown 路径' : 'Real Markdown path',
+              label: zh ? 'Markdown' : 'Markdown',
               value: _displayNameForPath(runtime.generatedMarkdownPath),
             ),
           ],
@@ -444,26 +473,25 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                     [
                       '引用清单',
                       runtime.documentCitationsPath.isNotEmpty
-                          ? _displayNameForPath(runtime.documentCitationsPath)
+                          ? '已生成'
                           : runtime.queryResultPath.isNotEmpty
-                              ? _displayNameForPath(runtime.queryResultPath)
+                              ? '使用检索结果'
                               : '等待检索结果',
-                      '写入 generation_manifest.json'
+                      '随文档保存'
                     ],
                     [
                       '大纲',
                       runtime.documentOutlinePath.isNotEmpty
-                          ? _displayNameForPath(runtime.documentOutlinePath)
+                          ? '已生成'
                           : '等待生成',
-                      'outline.json'
+                      '文档结构'
                     ],
                     [
                       '文档验证',
                       runtime.documentValidationReportPath.isNotEmpty
-                          ? _displayNameForPath(
-                              runtime.documentValidationReportPath)
+                          ? '已生成'
                           : '等待生成',
-                      'document_validation_report.json'
+                      '引用与脱敏检查'
                     ],
                     [
                       '编辑保存',
@@ -495,26 +523,25 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                     [
                       'Citation list',
                       runtime.documentCitationsPath.isNotEmpty
-                          ? _displayNameForPath(runtime.documentCitationsPath)
+                          ? 'Generated'
                           : runtime.queryResultPath.isNotEmpty
-                              ? _displayNameForPath(runtime.queryResultPath)
+                              ? 'Uses retrieval result'
                               : 'Waiting retrieval',
-                      'Written to generation_manifest.json'
+                      'Saved with document'
                     ],
                     [
                       'Outline',
                       runtime.documentOutlinePath.isNotEmpty
-                          ? _displayNameForPath(runtime.documentOutlinePath)
+                          ? 'Generated'
                           : 'Waiting generation',
-                      'outline.json'
+                      'Document structure'
                     ],
                     [
                       'Document validation',
                       runtime.documentValidationReportPath.isNotEmpty
-                          ? _displayNameForPath(
-                              runtime.documentValidationReportPath)
+                          ? 'Generated'
                           : 'Waiting generation',
-                      'document_validation_report.json'
+                      'Citation and redaction checks'
                     ],
                     [
                       'History',
@@ -560,34 +587,6 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                 ? 'Markdown、JSON、CSV 为本地导出；DOCX/PDF/PPTX 需要导出器配置。'
                 : 'Markdown, JSON, and CSV export locally; DOCX/PDF/PPTX require exporter config.',
           ),
-          const SizedBox(height: 8),
-          _EqualActionRow(children: [
-            _DisplayAction(
-              label: zh ? '删除最近记录' : 'Delete latest record',
-              icon: Icons.delete_outline,
-              onPressed: rc6 == null ||
-                      runtime.running ||
-                      !runtime.hasDocumentGenerationHistory
-                  ? null
-                  : deleteLatestGenerationHistory,
-            ),
-            _DisplayAction(
-              label: zh ? '清空历史' : 'Clear history',
-              icon: Icons.delete_sweep_outlined,
-              onPressed: rc6 == null ||
-                      runtime.running ||
-                      !runtime.hasDocumentGenerationHistory
-                  ? null
-                  : clearGenerationHistory,
-            ),
-            _DisplayAction(
-              label: zh ? '导出 Markdown' : 'Export Markdown',
-              icon: Icons.download_outlined,
-              onPressed: rc6 == null || runtime.running || !runtime.hasMarkdown
-                  ? null
-                  : rc6.exportMarkdownDocument,
-            ),
-          ]),
         ],
       );
       final outputFormats = _FillProductPanel(

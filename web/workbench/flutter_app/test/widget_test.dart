@@ -523,14 +523,13 @@ void main() {
     expect(find.byKey(const Key('artifact-center-catalog')), findsOneWidget);
     expect(find.byKey(const Key('artifact-center-detail')), findsOneWidget);
     expect(find.text('产物清单'), findsOneWidget);
-    expect(find.text('SKILL.md 草稿'), findsOneWidget);
+    expect(find.text('Skill 草稿'), findsOneWidget);
     expect(find.text('Skill 验证报告'), findsOneWidget);
     expect(find.text('Skill 导出包'), findsOneWidget);
-    expect(find.text('Agent 绑定清单'), findsOneWidget);
-    expect(find.text('Agent manifest'), findsOneWidget);
-    expect(find.text('Agent 生成清单'), findsOneWidget);
-    expect(find.text('Agent 权限审计'), findsOneWidget);
-    expect(find.text('Agent 导出清单'), findsOneWidget);
+    expect(find.text('Agent'), findsWidgets);
+    expect(find.text('A2A 协作报告'), findsOneWidget);
+    expect(find.textContaining('manifest'), findsNothing);
+    expect(find.textContaining('jsonl'), findsNothing);
     expect(find.textContaining('disabled_boundary'), findsNothing);
     expect(find.textContaining('开发者诊断'), findsNothing);
     expect(tester.takeException(), isNull);
@@ -573,10 +572,13 @@ void main() {
 
     expect(find.text('知识供应链进度'), findsOneWidget);
     expect(find.text('配置状态'), findsWidgets);
-    expect(find.text('SKILL.md'), findsOneWidget);
-    expect(find.text('agent_manifest.json'), findsOneWidget);
-    expect(find.text('agent_dialogue.md'), findsOneWidget);
-    expect(find.text('multi_agent_discussion.md'), findsOneWidget);
+    expect(find.text('Skill'), findsOneWidget);
+    expect(find.text('Agent'), findsOneWidget);
+    expect(find.text('Agent 对话'), findsOneWidget);
+    expect(find.text('多 Agent 讨论'), findsOneWidget);
+    expect(find.textContaining('agent_manifest.json'), findsNothing);
+    expect(find.textContaining('agent_dialogue.md'), findsNothing);
+    expect(find.textContaining('multi_agent_discussion.md'), findsNothing);
     expect(find.text('删除最早阶段'), findsNothing);
     expect(find.text('报告摘要'), findsNothing);
     expect(find.textContaining('passed · full_gate=ready_for_v4_rc'),
@@ -646,13 +648,13 @@ void main() {
     expect(find.text('Provider 与模型'), findsOneWidget);
     expect(find.byKey(const Key('settings-provider-capability-status')),
         findsOneWidget);
-    expect(find.text('能力 Provider 状态'), findsOneWidget);
+    expect(find.text('能力状态'), findsOneWidget);
     expect(find.text('解析 / OCR'), findsOneWidget);
     expect(find.text('检索 / 召回'), findsOneWidget);
     expect(find.text('依赖待满足'), findsOneWidget);
     expect(find.text('需要网络授权'), findsOneWidget);
     expect(find.textContaining('文档库 -> 知识库 -> 索引层 -> RAG -> 编排层'),
-        findsOneWidget);
+        findsNothing);
     expect(find.textContaining('hot-swap'), findsNothing);
     expect(find.textContaining('热插拔'), findsNothing);
     expect(find.textContaining('external project'), findsNothing);
@@ -680,15 +682,15 @@ void main() {
     expect(find.byKey(const Key('dense-page-workbench-document-library')),
         findsOneWidget);
     expect(find.text('导入与解析'), findsWidgets);
-    expect(find.text('来源文档'), findsOneWidget);
+    expect(find.text('来源文档'), findsWidgets);
     expect(find.byKey(const Key('product-status-panel')), findsNothing);
     expect(find.byKey(const Key('action-capability-matrix')), findsNothing);
     expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);
     expect(find.byKey(const Key('import-queue')), findsOneWidget);
-    expect(find.byKey(const Key('parser-settings')), findsOneWidget);
+    expect(find.byKey(const Key('parser-settings')), findsNothing);
     expect(find.byKey(const Key('manifest-preview')), findsOneWidget);
     expect(find.text('文件队列与进度'), findsWidgets);
-    expect(find.text('解析器 / OCR / 分块'), findsOneWidget);
+    expect(find.text('解析器 / OCR / 分块'), findsNothing);
     expect(find.text('Parser Backend Matrix'), findsNothing);
     expect(find.text('Parser/OCR 后端证据面板'), findsNothing);
     expect(find.text('Backend Matrix Table'), findsNothing);
@@ -782,18 +784,18 @@ void main() {
     expect(find.text('Advanced Agent'), findsOneWidget);
     expect(find.text('Create Agent and open chat'), findsWidgets);
     expect(find.text('Copy Agent path'), findsNothing);
-    expect(find.text('Waiting for real Agent'), findsWidgets);
-    expect(find.text('Waiting for previewable Agent'), findsOneWidget);
+    expect(find.text('Waiting for real Agent'), findsNothing);
+    expect(find.text('Waiting for previewable Agent'), findsNothing);
     expect(find.text('Choose real folder to import'), findsNothing);
     expect(find.text('Build Knowledge Base'), findsNothing);
     expect(find.text('Generate Skill'), findsNothing);
     expect(find.text('Run real retrieval'), findsNothing);
     expect(find.text('Execution Overview'), findsNothing);
     expect(find.byKey(const Key('agent-minimal-chat')), findsOneWidget);
-    expect(find.text('Waiting for dialogue artifact'), findsOneWidget);
-    expect(find.text('Waiting for chat history'), findsOneWidget);
+    expect(find.text('Waiting for dialogue artifact'), findsNothing);
+    expect(find.text('Waiting for chat history'), findsNothing);
     expect(find.text('Waiting for previewable dialogue'), findsOneWidget);
-    expect(find.text('Waiting for previewable history'), findsOneWidget);
+    expect(find.text('Waiting for previewable history'), findsNothing);
 
     final discussionTab = find.byKey(const Key('page-tab-2'));
     await tester.ensureVisible(discussionTab);
@@ -802,14 +804,9 @@ void main() {
     expect(find.byKey(const Key('multi-agent-discussion-product-flow')),
         findsOneWidget);
     expect(find.text('Start discussion'), findsOneWidget);
-    expect(find.text('Waiting for discussion notes'), findsOneWidget);
     expect(find.text('Waiting for previewable notes'), findsOneWidget);
-
-    final historyTab = find.byKey(const Key('page-tab-3'));
-    await tester.ensureVisible(historyTab);
-    await tester.tap(historyTab, warnIfMissed: false);
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('agent-run-history')), findsOneWidget);
+    expect(find.byKey(const Key('page-tab-3')), findsNothing);
+    expect(find.byKey(const Key('agent-run-history')), findsNothing);
     expect(find.textContaining('Campaign'), findsNothing);
     expect(find.textContaining('disabled_boundary'), findsNothing);
     expect(find.textContaining('enabled_real'), findsNothing);

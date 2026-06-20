@@ -25,10 +25,10 @@ class _ArtifactCenterProductWorkflowState
       artifactLabel: item.label,
     );
     if (!mounted || manifestPath.trim().isEmpty) return;
-    await _copyArtifactPath(
-      context,
-      path: manifestPath,
-      successMessage: _zh ? '产物导出清单路径已复制' : 'Artifact export manifest copied',
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_zh ? '产物已导出' : 'Artifact exported'),
+      ),
     );
   }
 
@@ -127,8 +127,8 @@ class _ArtifactCenterProductWorkflowState
           children: [
             _ProductTable(
               columns: _zh
-                  ? ['分类', '产物', '状态', '文件']
-                  : ['Category', 'Artifact', 'Status', 'File'],
+                  ? ['分类', '产物', '状态']
+                  : ['Category', 'Artifact', 'Status'],
               rows: artifacts
                   .map((artifact) => [
                         artifact.category,
@@ -136,9 +136,6 @@ class _ArtifactCenterProductWorkflowState
                         artifact.path.trim().isEmpty
                             ? (_zh ? '未生成' : 'Not generated')
                             : (_zh ? '已生成' : 'Generated'),
-                        artifact.path.trim().isEmpty
-                            ? (_zh ? '去对应页面生成' : 'Generate on owner page')
-                            : _displayNameForPath(artifact.path),
                       ])
                   .toList(growable: false),
             ),
@@ -180,35 +177,19 @@ class _ArtifactCenterProductWorkflowState
             ),
             const SizedBox(height: 8),
             _FieldRow(
-              label: _zh ? '文件' : 'File',
+              label: _zh ? '位置' : 'Location',
               value: selected == null || selected.path.trim().isEmpty
-                  ? (_zh ? '对应业务页面完成后出现' : 'Appears after workflow run')
+                  ? (_zh ? '对应页面完成后出现' : 'Appears after workflow run')
                   : _displayNameForPath(selected.path),
             ),
             const SizedBox(height: _DesktopGrid.gutter),
             _EqualActionRow(children: [
               _DisplayAction(
-                label: selected != null && selected.path.trim().isNotEmpty
-                    ? (_zh ? '复制产物路径' : 'Copy artifact path')
-                    : (_zh ? '等待产物路径' : 'Waiting for artifact path'),
-                icon: Icons.copy_outlined,
-                onPressed: selected != null && selected.path.trim().isNotEmpty
-                    ? () => _copyArtifactPath(
-                          context,
-                          path: selected.path,
-                          successMessage:
-                              _zh ? '产物路径已复制' : 'Artifact path copied',
-                        )
-                    : null,
-              ),
-              _DisplayAction(
                 label: canPreview
-                    ? (_zh ? '预览文本产物' : 'Preview text artifact')
+                    ? (_zh ? '打开产物' : 'Open artifact')
                     : selected != null && selected.path.trim().isNotEmpty
-                        ? (_zh ? '目录产物请复制路径打开' : 'Copy path to open folder')
-                        : (_zh
-                            ? '等待可预览产物'
-                            : 'Waiting for previewable artifact'),
+                        ? (_zh ? '目录产物' : 'Folder artifact')
+                        : (_zh ? '等待产物' : 'Waiting for artifact'),
                 icon: Icons.visibility_outlined,
                 onPressed: canPreview
                     ? () => _showWorkspaceArtifactPreview(
@@ -301,206 +282,40 @@ List<_ArtifactCenterItem> _artifactCenterItems(
         previewable: previewable,
       );
   return [
-    item('文档库', 'Document Library', '导入清单 source_manifest.json',
-        'Source manifest', 'manifest', runtime.sourceManifestPath, 'import'),
-    item('文档库', 'Document Library', '解析报告 parse_report.json', 'Parse report',
-        'parse', runtime.parseReportPath, 'parse'),
-    item(
-        '标准知识包',
-        'Standard Package',
-        '标准知识包 manifest',
-        'Standard package manifest',
-        'std pkg',
-        runtime.standardKnowledgePackageManifestPath,
+    item('文档库', 'Document Library', '来源文档', 'Source documents', 'source',
+        runtime.sourceManifestPath, 'import'),
+    item('文档库', 'Document Library', '解析结果', 'Parse results', 'parse',
+        runtime.parseReportPath, 'parse'),
+    item('标准知识包', 'Standard Package', '标准知识包', 'Standard package',
+        'package', runtime.standardKnowledgePackageManifestPath,
         'standard-package'),
-    item(
-        '标准知识包',
-        'Standard Package',
-        '标准知识包内容包',
-        'Standard content package',
-        'content',
-        runtime.standardKnowledgePackageContentPath,
-        'standard-package'),
-    item(
-        '标准知识包',
-        'Standard Package',
-        '标准包审计历史',
-        'Standard package audit history',
-        'std audit',
-        runtime.standardKnowledgePackageAuditPath,
-        'standard-package'),
-    item('知识库', 'Knowledge Base', '知识库 manifest.json', 'KB manifest', 'kb',
+    item('知识库', 'Knowledge Base', '知识库', 'Knowledge Base', 'kb',
         runtime.kbManifestPath, 'kb'),
-    item('知识库', 'Knowledge Base', 'chunks.jsonl', 'Chunks', 'chunks',
-        runtime.chunksPath, 'kb'),
-    item('知识库', 'Knowledge Base', 'cards.jsonl', 'Cards', 'cards',
-        runtime.cardsPath, 'kb'),
-    item('知识库', 'Knowledge Base', 'qa_pairs.jsonl', 'QA pairs', 'qa',
-        runtime.qaPairsPath, 'kb'),
-    item('知识库', 'Knowledge Base', 'source_map.json', 'Source map', 'source map',
-        runtime.sourceMapPath, 'kb'),
-    item('知识库', 'Knowledge Base', 'index_metadata.json', 'Index metadata',
-        'index', runtime.indexMetadataPath, 'kb'),
-    item('知识库', 'Knowledge Base', 'index_profile.json', 'Index profile',
-        'profile', runtime.indexProfilePath, 'kb'),
-    item('知识库', 'Knowledge Base', 'keyword_index.json', 'Keyword index',
-        'keyword', runtime.keywordIndexPath, 'kb'),
-    item(
-        '知识库',
-        'Knowledge Base',
-        'vector_index_reference.json',
-        'Vector index reference',
-        'vector',
-        runtime.vectorIndexReferencePath,
-        'kb'),
-    item('知识库', 'Knowledge Base', 'metadata_index.json', 'Metadata index',
-        'metadata', runtime.metadataIndexPath, 'kb'),
-    item('知识库', 'Knowledge Base', 'citation_index.json', 'Citation index',
-        'citation', runtime.citationIndexPath, 'kb'),
-    item(
-        '知识库',
-        'Knowledge Base',
-        'memory_index_reference.json',
-        'Memory index reference',
-        'memory',
-        runtime.memoryIndexReferencePath,
-        'kb'),
-    item(
-        '知识库',
-        'Knowledge Base',
-        'index_build_report.json',
-        'Index build report',
-        'index report',
-        runtime.indexBuildReportPath,
-        'kb'),
-    item('知识库', 'Knowledge Base', 'quality_report.json', 'Quality report',
+    item('知识库', 'Knowledge Base', '索引与质量记录', 'Index and quality records',
         'quality', runtime.qualityReportPath, 'kb'),
-    item('知识库', 'Knowledge Base', 'build.log', 'Build log', 'build log',
-        runtime.buildLogPath, 'kb'),
-    item('知识库', 'Knowledge Base', 'error.log', 'Error log', 'error log',
-        runtime.errorLogPath, 'kb'),
     item('检索验证', 'Retrieval', '检索结果', 'Retrieval result', 'retrieval',
         runtime.queryResultPath, 'search'),
-    item('检索验证', 'Retrieval', 'retrieval_plan.json', 'Retrieval plan', 'plan',
-        runtime.retrievalPlanPath, 'search'),
-    item('检索验证', 'Retrieval', 'rerank_report.json', 'Rerank report', 'rerank',
-        runtime.retrievalRerankReportPath, 'search'),
-    item(
-        '检索验证',
-        'Retrieval',
-        'citation_coverage_report.json',
-        'Citation coverage report',
-        'coverage',
-        runtime.retrievalCitationCoveragePath,
+    item('检索验证', 'Retrieval', '验证报告', 'Validation report', 'validation',
+        runtime.retrievalValidationMarkdownPath.isNotEmpty
+            ? runtime.retrievalValidationMarkdownPath
+            : runtime.retrievalValidationReportPath,
         'search'),
-    item('检索验证', 'Retrieval', 'conflict_report.json', 'Conflict report',
-        'conflict', runtime.retrievalConflictReportPath, 'search'),
-    item(
-        '检索验证',
-        'Retrieval',
-        'external_validation_boundary.json',
-        'External validation boundary',
-        'boundary',
-        runtime.externalValidationBoundaryPath,
-        'search'),
-    item('检索验证', 'Retrieval', 'validation_report.json', 'Validation report',
-        'validation', runtime.retrievalValidationReportPath, 'search'),
-    item('检索验证', 'Retrieval', 'validation_report.md', 'Validation markdown',
-        'validation md', runtime.retrievalValidationMarkdownPath, 'search'),
-    item('检索验证', 'Retrieval', 'validation_history.jsonl', 'Validation history',
-        'history', runtime.retrievalValidationHistoryPath, 'search'),
-    item('文档生成', 'Document Generation', 'Markdown 草稿', 'Markdown draft', 'md',
+    item('文档生成', 'Document Generation', '生成文档', 'Generated document', 'doc',
         runtime.generatedMarkdownPath, 'doc'),
     item('文档生成', 'Document Generation', '读书笔记', 'Reading notes', 'notes',
         runtime.readingNotesPath, 'doc'),
-    item('文档生成', 'Document Generation', 'outline.json', 'Document outline',
-        'outline', runtime.documentOutlinePath, 'doc'),
-    item('文档生成', 'Document Generation', 'citations.json', 'Document citations',
-        'citations', runtime.documentCitationsPath, 'doc'),
-    item(
-        '文档生成',
-        'Document Generation',
-        'document_validation_report.json',
-        'Document validation report',
-        'doc validation',
-        runtime.documentValidationReportPath,
-        'doc'),
     item('文档生成', 'Document Generation', '导出文档', 'Exported document', 'export',
         runtime.exportedDocumentPath, 'doc'),
-    item('文档生成', 'Document Generation', '导出清单', 'Export manifest',
-        'export manifest', runtime.exportManifestPath, 'doc'),
-    item('Skill 工厂', 'Skill Factory', 'SKILL.md 草稿', 'SKILL.md draft', 'skill',
+    item('Skill 工厂', 'Skill Factory', 'Skill 草稿', 'Skill draft', 'skill',
         runtime.primarySkillPath, 'skill'),
-    item('Skill 工厂', 'Skill Factory', 'Skill metadata', 'Skill metadata',
-        'metadata', runtime.skillConfigPath, 'skill'),
     item('Skill 工厂', 'Skill Factory', 'Skill 验证报告', 'Skill validation report',
         'validation', runtime.skillVerificationReportPath, 'skill'),
-    item('Skill 工厂', 'Skill Factory', 'Skill 生成清单', 'Skill generation manifest',
-        'skill manifest', runtime.skillGenerationManifestPath, 'skill'),
-    item('Skill 工厂', 'Skill Factory', 'Skill 包清单', 'Skill package manifest',
-        'skill package', runtime.skillPackageManifestPath, 'skill'),
-    item('Skill 工厂', 'Skill Factory', 'Skill 工厂验证', 'Skill factory validation',
-        'factory validation', runtime.skillValidationReportPath, 'skill'),
-    item(
-        'Skill 工厂',
-        'Skill Factory',
-        '本地化 Skill 清单',
-        'Localized Skill manifest',
-        'localized',
-        runtime.localizedSkillManifestPath,
-        'skill'),
-    item('Skill 工厂', 'Skill Factory', '本地化差异说明', 'Localization diff summary',
-        'diff', runtime.localizedSkillDiffPath, 'skill'),
-    item('Skill 工厂', 'Skill Factory', 'Skill 操作清单', 'Skill operation manifest',
-        'operations', runtime.skillOperationManifestPath, 'skill'),
-    item('Skill 工厂', 'Skill Factory', 'Skill 操作历史', 'Skill operation history',
-        'skill history', runtime.skillOperationHistoryPath, 'skill'),
-    item('Skill 工厂', 'Skill Factory', 'Skill 工厂审计', 'Skill factory audit',
-        'factory audit', runtime.skillFactoryAuditPath, 'skill'),
     item('Skill 工厂', 'Skill Factory', 'Skill 导出包', 'Skill export package',
         'skill export', runtime.skillExportPath, 'skill'),
-    item('Skill 工厂', 'Skill Factory', 'Agent 绑定清单', 'Agent binding manifest',
-        'agent binding', runtime.skillAgentBindingManifestPath, 'skill'),
-    item('Agent 工作台', 'Agent Workbench', 'Agent manifest', 'Agent manifest',
-        'agent', runtime.primaryAgentManifestPath, 'agent'),
-    item('Agent 工作台', 'Agent Workbench', 'Agent profile', 'Agent profile',
-        'profile', runtime.agentProfilePath, 'agent'),
-    item(
-        'Agent 工作台',
-        'Agent Workbench',
-        'Agent 生成清单',
-        'Agent generation manifest',
-        'agent manifest',
-        runtime.agentGenerationManifestPath,
-        'agent'),
-    item('Agent 工作台', 'Agent Workbench', '复杂 Agent 配置', 'Advanced Agent config',
-        'advanced config', runtime.agentAdvancedConfigPath, 'agent'),
-    item('Agent 工作台', 'Agent Workbench', 'Agent 权限审计', 'Agent permission audit',
-        'permission', runtime.agentPermissionAuditPath, 'agent'),
-    item(
-        'Agent 工作台',
-        'Agent Workbench',
-        '工作区权限矩阵',
-        'Workspace permission matrix',
-        'permission matrix',
-        runtime.agentWorkspacePermissionMatrixPath,
-        'agent'),
-    item(
-        'Agent 工作台',
-        'Agent Workbench',
-        'Agent 验证报告',
-        'Agent validation report',
-        'agent validation',
-        runtime.agentValidationReportPath,
-        'agent'),
-    item('Agent 工作台', 'Agent Workbench', 'Agent 导出清单', 'Agent export manifest',
-        'agent export', runtime.agentPackageManifestPath, 'agent'),
-    item('Agent 工作台', 'Agent Workbench', 'Agent 导出说明', 'Agent export README',
-        'agent readme', runtime.agentPackageReadmePath, 'agent'),
+    item('Agent 工作台', 'Agent Workbench', 'Agent', 'Agent', 'agent',
+        runtime.primaryAgentManifestPath, 'agent'),
     item('Agent 工作台', 'Agent Workbench', 'Agent 对话记录', 'Agent dialogue', 'chat',
         runtime.agentDialoguePath, 'agent'),
-    item('Agent 工作台', 'Agent Workbench', 'Agent 会话历史', 'Agent chat history',
-        'history', runtime.agentDialogueHistoryPath, 'agent'),
     item('Agent 工作台', 'Agent Workbench', 'Agent 对话导出', 'Agent dialogue export',
         'chat export', runtime.agentDialogueExportPath, 'agent'),
     item(
@@ -511,30 +326,16 @@ List<_ArtifactCenterItem> _artifactCenterItems(
         'a2a',
         runtime.multiAgentDiscussionPath,
         'agent'),
-    item('Agent 工作台', 'Agent Workbench', 'A2A 会话清单', 'A2A session manifest',
-        'a2a session', runtime.a2aSessionManifestPath, 'agent'),
     item('Agent 工作台', 'Agent Workbench', 'A2A 协作报告', 'A2A collaboration report',
         'a2a report', runtime.a2aWorkspaceReportPath, 'agent'),
-    item('Agent 工作台', 'Agent Workbench', 'A2A 冲突报告', 'A2A conflict report',
-        'a2a conflict', runtime.a2aConflictReportPath, 'agent'),
-    item('Agent 工作台', 'Agent Workbench', 'A2A 共识报告', 'A2A consensus report',
-        'a2a consensus', runtime.a2aConsensusReportPath, 'agent'),
-    item('治理', 'Governance', '产品链路验证证据', 'Product-flow evidence', 'evidence',
+    item('治理', 'Governance', '产品链路记录', 'Product-flow record', 'flow',
         runtime.prdP0EvidencePath, 'doc'),
-    item('设置', 'Settings', 'Provider 运行配置', 'Provider runtime settings',
-        'provider', runtime.providerRuntimeSettingsPath, 'settings'),
-    item('设置', 'Settings', '存储 Provider 配置', 'Storage provider settings',
-        'storage cfg', runtime.storageProviderSettingsPath, 'settings'),
-    item('设置', 'Settings', 'Provider 验证报告', 'Provider validation report',
-        'provider val', runtime.providerValidationReportPath, 'settings'),
-    item('设置', 'Settings', '导出器验证报告', 'Exporter validation report',
-        'exporter val', runtime.exporterValidationReportPath, 'settings'),
-    item('治理', 'Governance', '并行任务容量报告', 'Parallel task capacity report',
+    item('设置', 'Settings', 'Provider 配置', 'Provider settings', 'provider',
+        runtime.providerRuntimeSettingsPath, 'settings'),
+    item('设置', 'Settings', '存储配置', 'Storage settings', 'storage',
+        runtime.storageProviderSettingsPath, 'settings'),
+    item('治理', 'Governance', '并行任务报告', 'Parallel task report',
         'parallel', runtime.parallelTaskCapacityReportPath, 'parallel-tasks'),
-    item('治理', 'Governance', '任务隔离矩阵', 'Task isolation matrix', 'isolation',
-        runtime.taskIsolationMatrixPath, 'parallel-tasks'),
-    item('治理', 'Governance', '任务恢复报告', 'Task recovery report', 'recovery',
-        runtime.taskRecoveryReportPath, 'parallel-tasks'),
     item('治理', 'Governance', '知识库目录', 'Knowledge Base catalog', 'catalog',
         runtime.knowledgeBaseCatalogPath, 'kb'),
   ];

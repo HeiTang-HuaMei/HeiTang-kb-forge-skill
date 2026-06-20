@@ -264,12 +264,9 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
             ],
           ),
           bottom: _PrimaryProductAction(
-            label: zh ? '刷新文档列表' : 'Refresh document list',
-            icon: Icons.refresh_outlined,
-            onPressed: () => setState(() {
-              indexed = true;
-              selectedDocuments.clear();
-            }),
+            label: zh ? '用文档构建知识库' : 'Build KB from documents',
+            icon: Icons.account_tree_outlined,
+            onPressed: hasRealDocument ? widget.onBuildKnowledgeBase : null,
           ),
         ),
       );
@@ -349,12 +346,37 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
               ),
             ],
           ),
-          bottom: _DisplayAction(
-            label: zh ? '重新解析当前文档' : 'Re-parse selected document',
-            icon: Icons.restart_alt_outlined,
-            onPressed: hasRealDocument && rc6 != null && !runtime.running
-                ? () => rc6.parseAndChunkSources()
-                : null,
+          bottom: _MoreActionsButton(
+            label: zh ? '更多文档操作' : 'More document actions',
+            actions: [
+              _MoreMenuAction(
+                label: zh ? '重新解析当前文档' : 'Re-parse selected document',
+                icon: Icons.restart_alt_outlined,
+                enabled: hasRealDocument && rc6 != null && !runtime.running,
+                onSelected: () => rc6?.parseAndChunkSources(),
+              ),
+              _MoreMenuAction(
+                label: selectedDocuments.isEmpty
+                    ? (zh ? '删除当前文档' : 'Delete current document')
+                    : (zh
+                        ? '删除已选 ${selectedDocuments.length} 个文档'
+                        : 'Delete ${selectedDocuments.length} selected docs'),
+                icon: Icons.delete_outline,
+                destructive: true,
+                enabled: selectedDocuments.isEmpty
+                    ? selectedKey.isNotEmpty
+                    : selectedDocuments.isNotEmpty,
+                onSelected: selectedDocuments.isEmpty
+                    ? deleteSelectedDocument
+                    : deleteSelectedDocuments,
+              ),
+              _MoreMenuAction(
+                label: zh ? '生成标准知识包' : 'Create standard package',
+                icon: Icons.inventory_2_outlined,
+                enabled: hasRealDocument && parsed && rc6 != null && !runtime.running,
+                onSelected: () => rc6?.exportStandardKnowledgePackage(),
+              ),
+            ],
           ),
         ),
       );
@@ -412,29 +434,6 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
           ),
         ),
       );
-      final deleteAction = _DisplayAction(
-        label: selectedDocuments.isEmpty
-            ? (zh ? '删除当前文档' : 'Delete current document')
-            : (zh
-                ? '删除已选 ${selectedDocuments.length} 个文档'
-                : 'Delete ${selectedDocuments.length} selected docs'),
-        icon: Icons.delete_outline,
-        onPressed: selectedDocuments.isEmpty
-            ? (selectedKey.isEmpty ? null : deleteSelectedDocument)
-            : deleteSelectedDocuments,
-      );
-      final buildKnowledgeAction = _PrimaryProductAction(
-        label: zh ? '用文档构建知识库' : 'Build KB from documents',
-        icon: Icons.account_tree_outlined,
-        onPressed: widget.onBuildKnowledgeBase,
-      );
-      final standardPackageAction = _PrimaryProductAction(
-        label: zh ? '生成标准知识包' : 'Create standard package',
-        icon: Icons.inventory_2_outlined,
-        onPressed: hasRealDocument && parsed && rc6 != null && !runtime.running
-            ? () => rc6.exportStandardKnowledgePackage()
-            : null,
-      );
       if (!wide) {
         return Column(children: [
           SizedBox(height: 620, child: docs),
@@ -442,12 +441,6 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
           SizedBox(height: 500, child: preview),
           const SizedBox(height: _DesktopGrid.gutter),
           SizedBox(height: 460, child: detail),
-          const SizedBox(height: _DesktopGrid.gutter),
-          _EqualActionRow(children: [
-            deleteAction,
-            standardPackageAction,
-            buildKnowledgeAction
-          ]),
         ]);
       }
       return Column(children: [
@@ -455,18 +448,6 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
           height: 672,
           flexes: const [4, 4, 4],
           children: [docs, preview, detail],
-        ),
-        const SizedBox(height: _DesktopGrid.gutter),
-        Align(
-          alignment: Alignment.centerRight,
-          child: SizedBox(
-            width: 720,
-            child: _EqualActionRow(children: [
-              deleteAction,
-              standardPackageAction,
-              buildKnowledgeAction,
-            ]),
-          ),
         ),
       ]);
     });

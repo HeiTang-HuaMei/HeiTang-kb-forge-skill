@@ -442,20 +442,6 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
           ),
           _DisplayAction(
             label: auditReportPath.isEmpty
-                ? (zh ? '等待审计报告路径' : 'Waiting for audit report path')
-                : (zh ? '复制审计报告路径' : 'Copy audit report path'),
-            icon: Icons.copy_outlined,
-            onPressed: auditReportPath.isEmpty
-                ? null
-                : () => _copyArtifactPath(
-                      context,
-                      path: auditReportPath,
-                      successMessage:
-                          zh ? '审计报告路径已复制' : 'Audit report path copied',
-                    ),
-          ),
-          _DisplayAction(
-            label: auditReportPath.isEmpty
                 ? (zh ? '等待可预览报告' : 'Waiting for previewable report')
                 : (zh ? '预览审计报告' : 'Preview audit report'),
             icon: Icons.visibility_outlined,
