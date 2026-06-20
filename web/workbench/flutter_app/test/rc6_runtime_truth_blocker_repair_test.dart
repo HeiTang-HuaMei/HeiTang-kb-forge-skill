@@ -655,6 +655,7 @@ void main() {
         containsAll([
           'storage_path',
           'llm_provider',
+          'model_gateway_provider',
           'embedding_provider',
           'search_provider',
           'ocr_provider',
@@ -666,6 +667,8 @@ void main() {
           'agent_memory_tool_policy',
         ]));
     expect((assets['storage_path'] as Map)['path_write_test'], '连接成功');
+    expect((assets['model_gateway_provider'] as Map)['status'], '未配置');
+    expect((assets['model_gateway_provider'] as Map)['secret_masked'], isTrue);
     expect((assets['exporter_provider'] as Map)['formats'], isA<Map>());
     expect(((assets['exporter_provider'] as Map)['formats'] as Map)['docx'],
         containsPair('button_enabled', false));
@@ -796,6 +799,140 @@ void main() {
     expect(testLog, contains('"secret_masked":true'));
     expect(testLog, isNot(contains('qdrant-secret-token')));
     expect(testLog, isNot(contains('HEITANG_REDIS_PASSWORD=')));
+  });
+
+  test('model gateway provider persists masked config and syncs runtime status',
+      () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final settingsPath = await controller.saveModelGatewayProviderConfig(
+      displayName: 'AI Relay Gateway',
+      gatewayType: 'custom_openai_compatible',
+      baseUrl: 'https://relay.example.test/v1?sample=opaque-param',
+      credential: 'runtime-input-token',
+      adminUrl: 'https://relay.example.test/admin?sample=opaque-param',
+      supportsStreaming: true,
+      supportsEmbeddings: true,
+      supportsFallback: true,
+      supportsUsageStats: true,
+    );
+    final successReportPath =
+        await controller.testModelGatewayProvider(simulatedStatus: 'success');
+    final successReport =
+        jsonDecode(File(successReportPath).readAsStringSync()) as Map;
+    expect(
+        successReport['schema_version'], 'prd_v3_model_gateway_test_report.v1');
+    expect(successReport['status'], '连接成功');
+    expect(successReport['external_call_performed'], isFalse);
+    expect(successReport['paid_api_called'], isFalse);
+    expect(successReport['secret_plaintext_written'], isFalse);
+    expect(
+        successReport['affected_modules'],
+        containsAll(
+            ['document_generation', 'skill_factory', 'agent_workbench']));
+
+    final authReportPath = await controller.testModelGatewayProvider(
+        simulatedStatus: 'auth_failure');
+    final authReport =
+        jsonDecode(File(authReportPath).readAsStringSync()) as Map;
+    expect(authReport['status'], '鉴权失败');
+    await controller.testModelGatewayProvider(simulatedStatus: 'timeout');
+    await controller.testModelGatewayProvider(simulatedStatus: 'rate_limited');
+    await controller.testModelGatewayProvider(
+        simulatedStatus: 'upstream_unavailable');
+    final fallbackReportPath =
+        await controller.testModelGatewayProvider(simulatedStatus: 'fallback');
+
+    final settingsRaw = File(settingsPath).readAsStringSync();
+    expect(settingsRaw, contains('"model_gateway"'));
+    expect(settingsRaw, contains('runtime_input_not_persisted'));
+    expect(settingsRaw, isNot(contains('runtime-input-token')));
+    expect(settingsRaw, isNot(contains('opaque-param')));
+    expect(settingsRaw, isNot(contains('RELAY_' 'API_KEY')));
+
+    final settings = jsonDecode(settingsRaw) as Map;
+    final gateway = settings['model_gateway'] as Map;
+    expect(gateway['gateway_type'], 'custom_openai_compatible');
+    expect(gateway['base_url'], 'https://relay.example.test/v1');
+    expect(gateway['admin_url'], 'https://relay.example.test/admin');
+    expect(gateway['api_key_ref'], 'runtime_input_not_persisted');
+    expect(gateway['secret_plaintext_written'], isFalse);
+
+    final fallbackReport =
+        jsonDecode(File(fallbackReportPath).readAsStringSync()) as Map;
+    expect(fallbackReport['status'], 'fallback 已触发');
+    expect(fallbackReport['fallback_triggered'], isTrue);
+
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final modelGatewayDir = '$configDir${Platform.pathSeparator}model_gateway';
+    final usageReport = jsonDecode(File(
+            '$modelGatewayDir${Platform.pathSeparator}model_gateway_usage_report.json')
+        .readAsStringSync()) as Map;
+    expect(
+        usageReport['schema_version'], 'prd_v3_model_gateway_usage_report.v1');
+    expect(usageReport['secret_plaintext_written'], isFalse);
+    final gatewayFallbackReport = jsonDecode(File(
+            '$modelGatewayDir${Platform.pathSeparator}model_gateway_fallback_report.json')
+        .readAsStringSync()) as Map;
+    expect(
+        (gatewayFallbackReport['local_degradation']
+            as Map)['local_import_available'],
+        isTrue);
+    final referenceRegistry = jsonDecode(File(
+            '$modelGatewayDir${Platform.pathSeparator}model_gateway_reference_registry.json')
+        .readAsStringSync()) as Map;
+    final referenceStatuses =
+        ((referenceRegistry['registered_references'] as List).cast<Map>())
+            .map((entry) => entry['status'])
+            .toList(growable: false);
+    expect(referenceStatuses, contains('needs_verification'));
+    expect(referenceStatuses, contains('reference_only'));
+    expect(referenceRegistry['runtime_dependency'], isFalse);
+
+    final runtimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    final activeProfile = runtimeStatus['active_profile'] as Map;
+    expect(
+        activeProfile['model_gateway_config_id'], 'gateway_openai_compatible');
+    final moduleStatus = runtimeStatus['module_status'] as Map;
+    expect((moduleStatus['document_generation'] as Map)['model_gateway_status'],
+        'fallback 已触发');
+    expect((moduleStatus['skill_factory'] as Map)['model_gateway_status'],
+        'fallback 已触发');
+    expect((moduleStatus['agent_workbench'] as Map)['active_model_gateway'],
+        'gateway_openai_compatible');
+    expect((runtimeStatus['degradation'] as Map)['model_gateway_failure'],
+        contains('本地导入'));
+    final configAssetsPath = runtimeStatus['config_assets_path'] as String;
+    final configAssets =
+        jsonDecode(File(configAssetsPath).readAsStringSync()) as Map;
+    expect((configAssets['config_assets'] as Map)['model_gateway_provider'],
+        containsPair('reference_status', 'needs_verification'));
+
+    final testLog =
+        File('$configDir${Platform.pathSeparator}config_test_log.jsonl')
+            .readAsStringSync();
+    expect(testLog, contains('"config_type":"model_gateway_provider"'));
+    expect(testLog, contains('"secret_masked":true'));
+    expect(testLog, isNot(contains('runtime-input-token')));
+    expect(testLog, isNot(contains('opaque-param')));
+    expect(
+        File('$modelGatewayDir${Platform.pathSeparator}model_gateway_audit.jsonl')
+            .readAsStringSync(),
+        isNot(contains('runtime-input-token')));
   });
 
   test(

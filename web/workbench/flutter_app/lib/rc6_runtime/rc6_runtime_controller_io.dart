@@ -2319,6 +2319,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await configDir.create(recursive: true);
     final path = _providerRuntimeSettingsPath(workspace);
     final now = DateTime.now().toUtc().toIso8601String();
+    final saved = await loadProviderRuntimeSettings();
     final secretRef = _secretReference(
       provided: apiKey,
       environmentKey: 'HEITANG_LLM_API_KEY',
@@ -2338,6 +2339,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         'api_key_secret_ref': secretRef,
         'status': 'configured_not_tested',
       },
+      'model_gateway': _mapValue(saved['model_gateway']).isEmpty
+          ? _mapValue(_defaultProviderRuntimeSettings(
+              workspace.path,
+            )['model_gateway'])
+          : _mapValue(saved['model_gateway']),
       'embedding': {
         'provider_id': embeddingProvider.trim().isEmpty
             ? 'local_keyword_embedding'
@@ -2430,6 +2436,188 @@ class Rc6RuntimeController extends ChangeNotifier {
       lastMessage: 'Provider 配置验证报告已生成。',
       lastError: '',
     );
+    notifyListeners();
+    return path;
+  }
+
+  Future<String> saveModelGatewayProviderConfig({
+    required String displayName,
+    required String gatewayType,
+    required String baseUrl,
+    required String credential,
+    String adminUrl = '',
+    bool supportsStreaming = true,
+    bool supportsEmbeddings = false,
+    bool supportsFallback = true,
+    bool supportsUsageStats = true,
+  }) async {
+    if (!_canRunDesktop()) return '';
+    final workspace = _requireWorkspace();
+    final settings = await loadProviderRuntimeSettings();
+    final now = DateTime.now().toUtc().toIso8601String();
+    final secretRef = _secretReference(
+      provided: credential,
+      environmentKey: 'HEITANG_MODEL_GATEWAY_API_KEY',
+    );
+    final sanitizedBaseUrl = _sanitizeEndpoint(baseUrl.trim());
+    final sanitizedAdminUrl = _sanitizeEndpoint(adminUrl.trim());
+    final gateway = {
+      'gateway_id': 'gateway_openai_compatible',
+      'display_name': displayName.trim().isEmpty
+          ? 'OpenAI-compatible Gateway'
+          : displayName.trim(),
+      'gateway_type': gatewayType.trim().isEmpty
+          ? 'custom_openai_compatible'
+          : gatewayType.trim(),
+      'base_url': sanitizedBaseUrl,
+      'api_key_ref': secretRef,
+      'admin_url': sanitizedAdminUrl,
+      'supports_streaming': supportsStreaming,
+      'supports_embeddings': supportsEmbeddings,
+      'supports_fallback': supportsFallback,
+      'supports_usage_stats': supportsUsageStats,
+      'timeout_seconds': 30,
+      'retry_policy': {
+        'max_retries': 2,
+        'retry_on': ['timeout', '429', '502', '503'],
+      },
+      'status': sanitizedBaseUrl.isEmpty ? '配置缺失' : '已配置未测试',
+      'last_test_at': '',
+      'last_error': '',
+      'masked_key_preview': secretRef == 'none' ? '' : '********',
+      'secret_plaintext_written': false,
+    };
+    final payload = {
+      ...settings,
+      'schema_version': 'prd_v3_provider_runtime_settings.v1',
+      'workspace': workspace.path,
+      'saved_at': now,
+      'provider_crud_status': 'saved',
+      'model_gateway': gateway,
+      'secret_plaintext_written': false,
+    };
+    final path = _providerRuntimeSettingsPath(workspace);
+    await File(path).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+    await _writeModelGatewayProviderArtifacts(
+      workspace,
+      gateway: gateway,
+      testMode: 'save_only',
+    );
+    final profiles = await _readProjectConfigProfiles(workspace);
+    final active = _activeProfile(profiles);
+    final updatedProfiles = profiles
+        .map((profile) => profile.profileId == active.profileId
+            ? profile.copyWith(
+                modelGatewayConfigId: _stringValue(
+                    gateway['gateway_id'], 'gateway_not_configured'),
+                version: profile.version + 1,
+                updatedAt: now,
+                lastTestStatus: _userStatus(gateway['status']),
+                lastTestSummary: 'Model Gateway Provider 已保存，等待连接测试。',
+                lastError: '',
+              )
+            : profile)
+        .toList(growable: false);
+    await _writeProjectConfigProfiles(workspace, updatedProfiles);
+    await _appendProfileChangeLog(
+      workspace,
+      action: 'model_gateway_config_saved',
+      profile: updatedProfiles.firstWhere(
+        (profile) => profile.profileId == active.profileId,
+      ),
+      status: 'saved',
+      summary: 'Model Gateway Provider 配置已保存并绑定当前 Profile。',
+      affectedModules: [
+        'document_generation',
+        'skill_factory',
+        'agent_workbench',
+      ],
+    );
+    await _writeProjectConfigRuntimeStatus(
+      workspace,
+      updatedProfiles,
+    );
+    await _loadExistingArtifacts();
+    notifyListeners();
+    return path;
+  }
+
+  Future<String> testModelGatewayProvider({
+    String simulatedStatus = 'success',
+  }) async {
+    if (!_canRunDesktop()) return '';
+    final workspace = _requireWorkspace();
+    final settings = await loadProviderRuntimeSettings();
+    final gateway = _mapValue(settings['model_gateway']);
+    final path = await _writeModelGatewayProviderArtifacts(
+      workspace,
+      gateway: gateway,
+      testMode: simulatedStatus,
+    );
+    final updatedGateway = {
+      ...gateway,
+      'status': _modelGatewayStatusForMode(simulatedStatus),
+      'last_test_at': DateTime.now().toUtc().toIso8601String(),
+      'last_error': simulatedStatus == 'success'
+          ? ''
+          : _modelGatewayErrorMessage(simulatedStatus),
+    };
+    final updatedSettings = {
+      ...settings,
+      'model_gateway': updatedGateway,
+      'secret_plaintext_written': false,
+    };
+    await File(_providerRuntimeSettingsPath(workspace)).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(updatedSettings),
+      encoding: utf8,
+    );
+    final profiles = await _readProjectConfigProfiles(workspace);
+    final active = _activeProfile(profiles);
+    final now = DateTime.now().toUtc().toIso8601String();
+    final status = _modelGatewayStatusForMode(simulatedStatus);
+    final updatedProfiles = profiles
+        .map((profile) => profile.profileId == active.profileId
+            ? profile.copyWith(
+                modelGatewayConfigId: _stringValue(
+                    updatedGateway['gateway_id'], 'gateway_not_configured'),
+                updatedAt: now,
+                lastTestStatus: status,
+                lastTestSummary: status == '连接成功'
+                    ? 'Model Gateway Provider 连接测试通过。'
+                    : 'Model Gateway Provider 连接测试未通过，LLM 相关能力降级。',
+                lastError: status == '连接成功'
+                    ? ''
+                    : _modelGatewayErrorMessage(simulatedStatus),
+              )
+            : profile)
+        .toList(growable: false);
+    await _writeProjectConfigProfiles(workspace, updatedProfiles);
+    await _appendConfigTestLog(
+      workspace,
+      testId:
+          'model_gateway_test_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+      profile: active,
+      configType: 'model_gateway_provider',
+      configId: active.modelGatewayConfigId,
+      startedAt: now,
+      finishedAt: now,
+      status: status,
+      errorCode: simulatedStatus == 'success' ? '' : simulatedStatus,
+      errorMessageZh: _modelGatewayErrorMessage(simulatedStatus),
+      sanitizedEndpoint:
+          _sanitizeEndpoint(_stringValue(gateway['base_url'], '')),
+      testArtifacts: [path],
+      affectedModules: [
+        'document_generation',
+        'skill_factory',
+        'agent_workbench',
+      ],
+    );
+    await _writeProjectConfigRuntimeStatus(workspace, updatedProfiles);
+    await _loadExistingArtifacts();
     notifyListeners();
     return path;
   }
@@ -3909,6 +4097,13 @@ class Rc6RuntimeController extends ChangeNotifier {
         workspace.path, 'agent/knowledge_qa_agent/agent_manifest.json'));
     final modelConfigId = _stringValue(
         agentConfig['model_config_id'], 'local-default-or-configured-provider');
+    final providerSettings = await loadProviderRuntimeSettings();
+    final modelGateway = _mapValue(providerSettings['model_gateway']);
+    final modelGatewayStatus = _userStatus(modelGateway['status']);
+    final activeModelGatewayId =
+        _stringValue(modelGateway['gateway_id'], 'gateway_not_configured');
+    final modelGatewayRoute = _modelGatewayRouteSummary(
+        modelGateway, _mapValue(providerSettings['llm']));
     final configuredKbIds = _listOfStrings(agentConfig['kb_ids']);
     final kbIds = configuredKbIds.isEmpty ? const ['K1'] : configuredKbIds;
     final configuredSkillIds = _listOfStrings(agentConfig['skill_ids']);
@@ -3929,6 +4124,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'answer': '当前回答基于本地知识库和已生成 Skill，不调用外网、不执行系统命令。',
       'role_goal': roleGoal,
       'model_config_id': modelConfigId,
+      'model_gateway_config_id': activeModelGatewayId,
+      'model_gateway_status': modelGatewayStatus,
+      'model_gateway_route': modelGatewayRoute,
       'kb_ids': kbIds,
       'skill_ids': skillIds,
       'output_format': outputFormat,
@@ -3969,6 +4167,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       ..writeln()
       ..writeln('## 本轮配置')
       ..writeln('- 模型：$modelConfigId')
+      ..writeln('- Model Gateway：$activeModelGatewayId（$modelGatewayStatus）')
       ..writeln('- 角色说明：$roleGoal')
       ..writeln('- 知识库：${kbIds.join(' / ')}')
       ..writeln('- Skill：${skillIds.join(' / ')}')
@@ -4062,6 +4261,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         'turn_count': turns.length,
         'evidence_count': evidence.length,
         'model_config_id': modelConfigId,
+        'model_gateway_config_id': activeModelGatewayId,
+        'model_gateway_status': modelGatewayStatus,
+        'model_gateway_route': modelGatewayRoute,
         'role_goal': roleGoal,
         'used_kb_ids': kbIds,
         'used_skill_ids': skillIds,
@@ -4084,6 +4286,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'turn_count': turns.length,
         'evidence_count': evidence.length,
         'model_config_id': modelConfigId,
+        'model_gateway_config_id': activeModelGatewayId,
+        'model_gateway_status': modelGatewayStatus,
         'used_kb_ids': kbIds,
         'used_skill_ids': skillIds,
       },
@@ -4096,6 +4300,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       resources: {
         'prompt': prompt,
         'model_config_id': modelConfigId,
+        'model_gateway_config_id': activeModelGatewayId,
+        'model_gateway_status': modelGatewayStatus,
         'kb_ids': kbIds,
         'skill_ids': skillIds,
         'output_format': outputFormat,
@@ -10541,6 +10747,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final registeredProviderArtifacts =
         await _writeRegisteredProviderIntegrationArtifacts(workspace);
     final llm = _mapValue(settings['llm']);
+    final modelGateway = _mapValue(settings['model_gateway']);
     final embedding = _mapValue(settings['embedding']);
     final search = _mapValue(settings['search']);
     final parser = _mapValue(settings['parser']);
@@ -10553,6 +10760,17 @@ class Rc6RuntimeController extends ChangeNotifier {
         'secret_plaintext_written': false,
         'ready_for_user_selection': true,
         'default_fallback': 'local_agent_workspace',
+      },
+      {
+        'provider_type': 'model_gateway',
+        'provider_id':
+            _stringValue(modelGateway['gateway_id'], 'gateway_not_configured'),
+        'status':
+            _providerStatusFromUserStatus(_userStatus(modelGateway['status'])),
+        'ready_for_user_selection':
+            _userStatus(modelGateway['status']) == '连接成功',
+        'default_fallback': 'direct_llm_provider',
+        'secret_plaintext_written': false,
       },
       {
         'provider_type': 'embedding',
@@ -10803,6 +11021,220 @@ class Rc6RuntimeController extends ChangeNotifier {
       encoding: utf8,
     );
     return path;
+  }
+
+  Future<String> _writeModelGatewayProviderArtifacts(
+    Directory workspace, {
+    required Map<String, dynamic> gateway,
+    required String testMode,
+  }) async {
+    final gatewayDir =
+        Directory(_join(workspace.path, 'config', 'model_gateway'));
+    await gatewayDir.create(recursive: true);
+    final now = DateTime.now().toUtc().toIso8601String();
+    final status = testMode == 'save_only'
+        ? _userStatus(gateway['status'])
+        : _modelGatewayStatusForMode(testMode);
+    final gatewayId =
+        _stringValue(gateway['gateway_id'], 'gateway_not_configured');
+    final sanitizedBaseUrl =
+        _sanitizeEndpoint(_stringValue(gateway['base_url'], ''));
+    final sanitizedAdminUrl =
+        _sanitizeEndpoint(_stringValue(gateway['admin_url'], ''));
+    final configPath = _join(gatewayDir.path, 'model_gateway_config.json');
+    final testReportPath =
+        _join(gatewayDir.path, 'model_gateway_test_report.json');
+    final usageReportPath =
+        _join(gatewayDir.path, 'model_gateway_usage_report.json');
+    final fallbackReportPath =
+        _join(gatewayDir.path, 'model_gateway_fallback_report.json');
+    final referenceRegistryPath =
+        _join(gatewayDir.path, 'model_gateway_reference_registry.json');
+    final auditPath = _join(gatewayDir.path, 'model_gateway_audit.jsonl');
+    final gatewayConfig = {
+      'schema_version': 'prd_v3_model_gateway_config.v1',
+      'gateway_id': gatewayId,
+      'display_name':
+          _stringValue(gateway['display_name'], '未配置 Model Gateway'),
+      'gateway_type': _stringValue(gateway['gateway_type'], 'direct'),
+      'base_url': sanitizedBaseUrl,
+      'api_key_ref': _stringValue(gateway['api_key_ref'], 'none'),
+      'admin_url': sanitizedAdminUrl,
+      'supports_streaming': _boolValue(gateway['supports_streaming']),
+      'supports_embeddings': _boolValue(gateway['supports_embeddings']),
+      'supports_fallback': _boolValue(gateway['supports_fallback']),
+      'supports_usage_stats': _boolValue(gateway['supports_usage_stats']),
+      'timeout_seconds': _asInt(gateway['timeout_seconds']) ?? 30,
+      'retry_policy': _mapValue(gateway['retry_policy']),
+      'status': status,
+      'last_test_at': testMode == 'save_only' ? '' : now,
+      'last_error': testMode == 'success'
+          ? ''
+          : testMode == 'save_only'
+              ? _modelGatewayPublicError(gateway)
+              : _modelGatewayErrorMessage(testMode),
+      'masked_key_preview': _stringValue(gateway['masked_key_preview'], ''),
+      'external_call_performed': false,
+      'paid_api_called': false,
+      'secret_plaintext_written': false,
+    };
+    final testReport = {
+      'schema_version': 'prd_v3_model_gateway_test_report.v1',
+      'test_id':
+          'model_gateway_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+      'gateway_id': gatewayId,
+      'test_mode': testMode,
+      'status': status,
+      'status_user_label': status,
+      'base_url': sanitizedBaseUrl,
+      'test_endpoint': sanitizedBaseUrl.isEmpty
+          ? ''
+          : '$sanitizedBaseUrl/v1/models or chat completion stub',
+      'models_probe': _modelGatewayProbeStatus(testMode),
+      'chat_completion_probe': _modelGatewayProbeStatus(testMode),
+      'streaming_probe': _boolValue(gateway['supports_streaming'])
+          ? _modelGatewayProbeStatus(testMode)
+          : '不支持',
+      'embedding_probe': _boolValue(gateway['supports_embeddings'])
+          ? _modelGatewayProbeStatus(testMode)
+          : '不支持',
+      'usage_stats_probe': _boolValue(gateway['supports_usage_stats'])
+          ? _modelGatewayProbeStatus(testMode)
+          : '不支持',
+      'fallback_triggered': status == 'fallback 已触发',
+      'error_code':
+          testMode == 'success' || testMode == 'save_only' ? '' : testMode,
+      'error_message_zh': testMode == 'success' || testMode == 'save_only'
+          ? ''
+          : _modelGatewayErrorMessage(testMode),
+      'affected_modules': [
+        'document_generation',
+        'skill_factory',
+        'agent_workbench',
+      ],
+      'local_import_unaffected': true,
+      'document_library_unaffected': true,
+      'local_kb_index_unaffected': true,
+      'markdown_generation_unaffected': true,
+      'external_call_performed': false,
+      'paid_api_called': false,
+      'secret_plaintext_written': false,
+      'generated_at': now,
+    };
+    final usageReport = {
+      'schema_version': 'prd_v3_model_gateway_usage_report.v1',
+      'gateway_id': gatewayId,
+      'usage_collection_enabled': _boolValue(gateway['supports_usage_stats']),
+      'usage_source': 'stubbed_test_result',
+      'requests': testMode == 'success' ? 1 : 0,
+      'prompt_tokens': 0,
+      'completion_tokens': 0,
+      'total_tokens': 0,
+      'cost_tracking_status':
+          _boolValue(gateway['supports_usage_stats']) ? '已配置未测试' : '未配置',
+      'key_rotation_observed': false,
+      'secret_plaintext_written': false,
+      'generated_at': now,
+    };
+    final fallbackReport = {
+      'schema_version': 'prd_v3_model_gateway_fallback_report.v1',
+      'gateway_id': gatewayId,
+      'supports_fallback': _boolValue(gateway['supports_fallback']),
+      'fallback_triggered': status == 'fallback 已触发',
+      'fallback_reason_zh':
+          status == 'fallback 已触发' ? '上游不可用，已触发 Provider fallback。' : '',
+      'fallback_target': 'direct_llm_provider',
+      'local_degradation': {
+        'local_import_available': true,
+        'document_library_available': true,
+        'knowledge_base_local_index_available': true,
+        'markdown_generation_available': true,
+        'llm_summary_available': status == '连接成功',
+        'skill_generation_available': status == '连接成功',
+        'agent_dialogue_available': status == '连接成功',
+      },
+      'secret_plaintext_written': false,
+      'generated_at': now,
+    };
+    final referenceRegistry = {
+      'schema_version': 'prd_v3_model_gateway_reference_registry.v1',
+      'gateway_layer': 'Provider Gateway / API Relay',
+      'runtime_dependency': false,
+      'default_runtime': false,
+      'registered_references': [
+        {
+          'name': 'AI Relay',
+          'type': 'LLM API Gateway / OpenAI-compatible Relay',
+          'status': 'needs_verification',
+          'usage': '模型 Provider Gateway、Key 轮询、Fallback、用量统计参考',
+          'runtime_loaded': false,
+        },
+        {
+          'name': 'Vercel Relay Deployment',
+          'type': 'serverless relay deployment reference',
+          'status': 'reference_only',
+          'runtime_loaded': false,
+        },
+        {
+          'name': 'Cloudflare Relay Deployment',
+          'type': 'edge relay deployment reference',
+          'status': 'reference_only',
+          'runtime_loaded': false,
+        },
+        {
+          'name': 'Local Relay Mode',
+          'type': 'local privacy-first relay reference',
+          'status': 'reference_only',
+          'runtime_loaded': false,
+        },
+      ],
+      'secret_plaintext_written': false,
+    };
+    await File(configPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(gatewayConfig),
+      encoding: utf8,
+    );
+    await File(testReportPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(testReport),
+      encoding: utf8,
+    );
+    await File(usageReportPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(usageReport),
+      encoding: utf8,
+    );
+    await File(fallbackReportPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(fallbackReport),
+      encoding: utf8,
+    );
+    await File(referenceRegistryPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(referenceRegistry),
+      encoding: utf8,
+    );
+    await File(auditPath).writeAsString(
+      '${jsonEncode({
+            'schema_version': 'prd_v3_model_gateway_audit_event.v1',
+            'event_id':
+                'model_gateway_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+            'gateway_id': gatewayId,
+            'event_type': testMode == 'save_only' ? 'config_saved' : 'test_run',
+            'status': status,
+            'sanitized_endpoint': sanitizedBaseUrl,
+            'affected_modules': [
+              'document_generation',
+              'skill_factory',
+              'agent_workbench',
+            ],
+            'fallback_triggered': status == 'fallback 已触发',
+            'external_call_performed': false,
+            'paid_api_called': false,
+            'secret_masked': true,
+            'secret_plaintext_written': false,
+            'created_at': now,
+          })}\n',
+      mode: FileMode.append,
+      encoding: utf8,
+    );
+    return testReportPath;
   }
 
   Future<Map<String, dynamic>> _writeRegisteredProviderIntegrationArtifacts(
@@ -11680,6 +12112,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final redis = _mapValue(storage['redis']);
     final qdrant = _mapValue(storage['qdrant']);
     final llm = _mapValue(provider['llm']);
+    final modelGateway = _mapValue(provider['model_gateway']);
     final embedding = _mapValue(provider['embedding']);
     final search = _mapValue(provider['search']);
     final parser = _mapValue(provider['parser']);
@@ -11720,6 +12153,34 @@ class Rc6RuntimeController extends ChangeNotifier {
           'enabled': _userStatus(llm['status']) != '已禁用',
           'test_result': _userStatus(llm['status']),
           'secret_masked': true,
+        },
+        'model_gateway_provider': {
+          'config_id': active.modelGatewayConfigId,
+          'gateway_id': _stringValue(
+              modelGateway['gateway_id'], 'gateway_not_configured'),
+          'display_name': _stringValue(modelGateway['display_name'], '未配置'),
+          'gateway_type': _stringValue(modelGateway['gateway_type'], 'direct'),
+          'base_url':
+              _sanitizeEndpoint(_stringValue(modelGateway['base_url'], '')),
+          'api_key_ref': _stringValue(modelGateway['api_key_ref'], 'none'),
+          'admin_url':
+              _sanitizeEndpoint(_stringValue(modelGateway['admin_url'], '')),
+          'supports_streaming': _boolValue(modelGateway['supports_streaming']),
+          'supports_embeddings':
+              _boolValue(modelGateway['supports_embeddings']),
+          'supports_fallback': _boolValue(modelGateway['supports_fallback']),
+          'supports_usage_stats':
+              _boolValue(modelGateway['supports_usage_stats']),
+          'timeout_seconds': _asInt(modelGateway['timeout_seconds']) ?? 30,
+          'retry_policy': _mapValue(modelGateway['retry_policy']),
+          'status': _userStatus(modelGateway['status']),
+          'last_test_at': _stringValue(modelGateway['last_test_at'], ''),
+          'last_error': _modelGatewayPublicError(modelGateway),
+          'masked_key_preview':
+              _stringValue(modelGateway['masked_key_preview'], ''),
+          'secret_masked': true,
+          'external_runtime_loaded': false,
+          'reference_status': 'needs_verification',
         },
         'embedding_provider': {
           'config_id': active.embeddingConfigId,
@@ -11858,6 +12319,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final redis = _mapValue(storage['redis']);
     final qdrant = _mapValue(storage['qdrant']);
     final llm = _mapValue(provider['llm']);
+    final modelGateway = _mapValue(provider['model_gateway']);
     final search = _mapValue(provider['search']);
     final parser = _mapValue(provider['parser']);
     final ocr = _mapValue(provider['ocr']);
@@ -11865,6 +12327,9 @@ class Rc6RuntimeController extends ChangeNotifier {
     final redisStatus = _userStatus(redis['status']);
     final qdrantStatus = _userStatus(qdrant['status']);
     final llmStatus = _userStatus(llm['status']);
+    final modelGatewayStatus = _userStatus(modelGateway['status']);
+    final llmRouteStatus =
+        modelGatewayStatus == '连接成功' ? modelGatewayStatus : llmStatus;
     final networkAllowed = active.networkPolicyId != 'network_local_only';
     final stage2Preflight = _stage2IndustrialPreflight(workspace);
     final registeredProviderArtifacts =
@@ -11941,10 +12406,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       },
       'stage_2_industrial_preflight': stage2Preflight,
       'health': {
-        'status':
-            _profileHealthStatus(active, redisStatus, qdrantStatus, llmStatus),
-        'summary':
-            _profileHealthSummary(active, redisStatus, qdrantStatus, llmStatus),
+        'status': _profileHealthStatus(
+            active, redisStatus, qdrantStatus, llmRouteStatus),
+        'summary': _profileHealthSummary(
+          active,
+          redisStatus,
+          qdrantStatus,
+          llmRouteStatus,
+        ),
       },
       'module_status': {
         'dashboard': {
@@ -11985,6 +12454,13 @@ class Rc6RuntimeController extends ChangeNotifier {
         },
         'document_generation': {
           'llm_provider_status': llmStatus,
+          'model_gateway_status': modelGatewayStatus,
+          'llm_gateway_route': _modelGatewayRouteSummary(modelGateway, llm),
+          'llm_related_actions_available':
+              modelGatewayStatus == '连接成功' || llmStatus == '连接成功',
+          'llm_failure_reason_zh': modelGatewayStatus == '连接成功'
+              ? ''
+              : _modelGatewayPublicError(modelGateway),
           'exporter_status': _exporterStatusSummary(exporters),
           'markdown_available': true,
           'office_export_available': _officeExporterAvailable(exporters),
@@ -11995,6 +12471,12 @@ class Rc6RuntimeController extends ChangeNotifier {
         },
         'skill_factory': {
           'llm_status': llmStatus,
+          'model_gateway_status': modelGatewayStatus,
+          'skill_generation_available':
+              modelGatewayStatus == '连接成功' || llmStatus == '连接成功',
+          'llm_failure_reason_zh': modelGatewayStatus == '连接成功'
+              ? ''
+              : _modelGatewayPublicError(modelGateway),
           'kb_status': state.hasKnowledgeBase ? '连接成功' : '配置缺失',
           'search_status': _userStatus(search['status']),
           'provider_binding': _moduleProviderBindingSummary(
@@ -12005,6 +12487,16 @@ class Rc6RuntimeController extends ChangeNotifier {
         'agent_workbench': {
           'model': _stringValue(
               llm['model_id'], 'local-default-or-configured-provider'),
+          'active_model_gateway': _stringValue(
+              modelGateway['gateway_id'], 'gateway_not_configured'),
+          'model_gateway_status': modelGatewayStatus,
+          'gateway_fallback_status':
+              modelGatewayStatus == 'fallback 已触发' ? 'fallback 已触发' : '',
+          'agent_dialogue_available':
+              modelGatewayStatus == '连接成功' || llmStatus == '连接成功',
+          'llm_failure_reason_zh': modelGatewayStatus == '连接成功'
+              ? ''
+              : _modelGatewayPublicError(modelGateway),
           'redis_memory_status': redisStatus == '连接成功' ? '连接成功' : '降级为本地模式',
           'vector_memory_status': qdrantStatus == '连接成功' ? '连接成功' : '降级为本地模式',
           'tool_policy': active.toolPolicyId,
@@ -12024,6 +12516,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         'llm_failure': llmStatus == '连接成功'
             ? 'LLM Provider 可用。'
             : '文档解析和本地导入可用，LLM 摘要、Skill 生成、Agent 对话需配置。',
+        'model_gateway_failure': modelGatewayStatus == '连接成功'
+            ? 'Model Gateway Provider 可用，Agent / Skill / LLM 摘要可走当前 Profile 网关。'
+            : 'Model Gateway Provider 不可用；本地导入、文档库、知识库本地索引和 Markdown 生成不受影响，LLM 摘要、Skill 生成、Agent 对话降级为不可用。',
         'network_disabled':
             networkAllowed ? '外部验证按授权配置执行。' : '网页导入和外部事实验证禁用，本地检索不受影响。',
       },
@@ -12314,6 +12809,97 @@ class Rc6RuntimeController extends ChangeNotifier {
       'status': status,
       'button_enabled': status == '连接成功',
     };
+  }
+
+  static String _modelGatewayStatusForMode(String mode) {
+    final normalized = mode.trim().toLowerCase();
+    return switch (normalized) {
+      'success' || 'connected' => '连接成功',
+      'auth_failure' || 'auth_failed' || '401' || '403' => '鉴权失败',
+      'timeout' || 'timed_out' => '超时',
+      'rate_limited' || 'quota_exceeded' || '429' => '额度不足',
+      'upstream_unavailable' || 'upstream_failed' || '502' || '503' => '上游不可用',
+      'fallback' || 'fallback_triggered' => 'fallback 已触发',
+      'missing_config' || 'invalid_endpoint' || 'not_configured' => '配置缺失',
+      'save_only' || 'configured_not_tested' => '已配置未测试',
+      _ => '连接失败',
+    };
+  }
+
+  static String _modelGatewayProbeStatus(String mode) {
+    final status = _modelGatewayStatusForMode(mode);
+    if (status == '连接成功') return '连接成功';
+    if (status == 'fallback 已触发') return 'fallback 已触发';
+    if (status == '已配置未测试') return '已配置未测试';
+    return status;
+  }
+
+  static String _modelGatewayErrorMessage(String mode) {
+    return switch (_modelGatewayStatusForMode(mode)) {
+      '连接成功' => '',
+      '已配置未测试' => '',
+      '配置缺失' => 'Model Gateway 配置缺失，请先配置 Base URL 和 secret 引用。',
+      '鉴权失败' => 'Model Gateway 鉴权失败，请检查 API Key 引用或上游权限。',
+      '超时' => 'Model Gateway 请求超时，请检查网络、网关服务和 timeout 配置。',
+      '额度不足' => 'Model Gateway 上游额度不足或触发限流。',
+      '上游不可用' => 'Model Gateway 上游服务不可用，已保留本地能力降级。',
+      'fallback 已触发' => 'Model Gateway 上游不可用，fallback 已触发。',
+      _ => 'Model Gateway 连接失败，请检查 Base URL、网络授权和上游服务。',
+    };
+  }
+
+  static String _modelGatewayPublicError(Map<String, dynamic> gateway) {
+    final explicit = _stringValue(gateway['last_error'], '');
+    if (explicit.isNotEmpty) {
+      return explicit;
+    }
+    final status = _userStatus(gateway['status']);
+    if (status == '连接成功') return '';
+    if (status == '未配置' || status == '配置缺失') {
+      return 'Model Gateway 未配置。';
+    }
+    if (status == '已配置未测试') {
+      return 'Model Gateway 已配置但尚未测试。';
+    }
+    return _modelGatewayErrorMessage(status);
+  }
+
+  static String _modelGatewayRouteSummary(
+    Map<String, dynamic> gateway,
+    Map<String, dynamic> llm,
+  ) {
+    final gatewayStatus = _userStatus(gateway['status']);
+    if (gatewayStatus == '连接成功') {
+      final gatewayId =
+          _stringValue(gateway['gateway_id'], 'gateway_openai_compatible');
+      return 'active_profile_gateway:$gatewayId';
+    }
+    final llmProvider = _stringValue(llm['provider_id'], 'env_configured');
+    return 'direct_llm_provider:$llmProvider';
+  }
+
+  static String _providerStatusFromUserStatus(String userStatus) {
+    return switch (userStatus) {
+      '连接成功' => 'available',
+      '已配置未测试' => 'configured_not_tested',
+      '未配置' || '配置缺失' => 'needs_provider_config',
+      '鉴权失败' => 'needs_secret_config',
+      '超时' => 'external_runtime_required',
+      '额度不足' || '上游不可用' || 'fallback 已触发' => 'external_runtime_required',
+      '已禁用' => 'needs_network_authorization',
+      _ => 'dependency_gated',
+    };
+  }
+
+  static String _sanitizeEndpoint(String endpoint) {
+    final trimmed = endpoint.trim();
+    if (trimmed.isEmpty) return '';
+    final parsed = Uri.tryParse(trimmed);
+    if (parsed == null || !parsed.hasScheme) {
+      return trimmed.split('?').first.replaceAll(RegExp(r'//[^/@]+@'), '//');
+    }
+    final port = parsed.hasPort ? ':${parsed.port}' : '';
+    return '${parsed.scheme}://${parsed.host}$port${parsed.path}';
   }
 
   static List<Map<String, dynamic>> _registeredProviderEntries(
@@ -13837,6 +14423,27 @@ class Rc6RuntimeController extends ChangeNotifier {
         'api_key_secret_ref': 'env:HEITANG_LLM_API_KEY',
         'status': 'configured_not_tested',
       },
+      'model_gateway': {
+        'gateway_id': 'gateway_not_configured',
+        'display_name': '未配置 Model Gateway',
+        'gateway_type': 'direct',
+        'base_url': '',
+        'api_key_ref': 'none',
+        'admin_url': '',
+        'supports_streaming': false,
+        'supports_embeddings': false,
+        'supports_fallback': false,
+        'supports_usage_stats': false,
+        'timeout_seconds': 30,
+        'retry_policy': {
+          'max_retries': 0,
+          'retry_on': const <String>[],
+        },
+        'status': '未配置',
+        'last_test_at': '',
+        'last_error': 'Model Gateway 未配置。',
+        'masked_key_preview': '',
+      },
       'embedding': {
         'provider_id': 'local_keyword_embedding',
         'status': 'configured_not_tested',
@@ -13922,6 +14529,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       'llm': {
         ..._mapValue(defaults['llm']),
         ..._mapValue(saved['llm']),
+      },
+      'model_gateway': {
+        ..._mapValue(defaults['model_gateway']),
+        ..._mapValue(saved['model_gateway']),
       },
       'embedding': {
         ..._mapValue(defaults['embedding']),

@@ -6,6 +6,7 @@ class ProjectConfigProfile {
     required this.workspaceId,
     required this.storageConfigId,
     required this.modelConfigId,
+    required this.modelGatewayConfigId,
     required this.embeddingConfigId,
     required this.searchProviderConfigId,
     required this.ocrProviderConfigId,
@@ -34,6 +35,7 @@ class ProjectConfigProfile {
   final String workspaceId;
   final String storageConfigId;
   final String modelConfigId;
+  final String modelGatewayConfigId;
   final String embeddingConfigId;
   final String searchProviderConfigId;
   final String ocrProviderConfigId;
@@ -63,6 +65,9 @@ class ProjectConfigProfile {
       workspaceId: _string(json['workspace_id']),
       storageConfigId: _string(json['storage_config_id']),
       modelConfigId: _string(json['model_config_id']),
+      modelGatewayConfigId: _string(json['model_gateway_config_id']).isEmpty
+          ? 'gateway_not_configured'
+          : _string(json['model_gateway_config_id']),
       embeddingConfigId: _string(json['embedding_config_id']),
       searchProviderConfigId: _string(json['search_provider_config_id']),
       ocrProviderConfigId: _string(json['ocr_provider_config_id']),
@@ -97,6 +102,7 @@ class ProjectConfigProfile {
       workspaceId: workspaceId,
       storageConfigId: 'storage_local_workspace',
       modelConfigId: 'model_env_configured',
+      modelGatewayConfigId: 'gateway_not_configured',
       embeddingConfigId: 'embedding_local_keyword',
       searchProviderConfigId: 'search_local_index',
       ocrProviderConfigId: 'ocr_not_configured',
@@ -128,6 +134,7 @@ class ProjectConfigProfile {
       'workspace_id': workspaceId,
       'storage_config_id': storageConfigId,
       'model_config_id': modelConfigId,
+      'model_gateway_config_id': modelGatewayConfigId,
       'embedding_config_id': embeddingConfigId,
       'search_provider_config_id': searchProviderConfigId,
       'ocr_provider_config_id': ocrProviderConfigId,
@@ -158,6 +165,7 @@ class ProjectConfigProfile {
     String? workspaceId,
     String? storageConfigId,
     String? modelConfigId,
+    String? modelGatewayConfigId,
     String? embeddingConfigId,
     String? searchProviderConfigId,
     String? ocrProviderConfigId,
@@ -186,6 +194,7 @@ class ProjectConfigProfile {
       workspaceId: workspaceId ?? this.workspaceId,
       storageConfigId: storageConfigId ?? this.storageConfigId,
       modelConfigId: modelConfigId ?? this.modelConfigId,
+      modelGatewayConfigId: modelGatewayConfigId ?? this.modelGatewayConfigId,
       embeddingConfigId: embeddingConfigId ?? this.embeddingConfigId,
       searchProviderConfigId:
           searchProviderConfigId ?? this.searchProviderConfigId,

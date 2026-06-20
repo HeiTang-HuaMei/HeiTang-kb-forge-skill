@@ -280,6 +280,27 @@ class Rc6RuntimeController extends ChangeNotifier {
           'api_key_secret_ref': 'env:HEITANG_LLM_API_KEY',
           'status': 'desktop_runtime_required',
         },
+        'model_gateway': {
+          'gateway_id': 'gateway_not_configured',
+          'display_name': '未配置 Model Gateway',
+          'gateway_type': 'direct',
+          'base_url': '',
+          'api_key_ref': 'none',
+          'admin_url': '',
+          'supports_streaming': false,
+          'supports_embeddings': false,
+          'supports_fallback': false,
+          'supports_usage_stats': false,
+          'timeout_seconds': 30,
+          'retry_policy': {
+            'max_retries': 0,
+            'retry_on': const <String>[],
+          },
+          'status': '需启动外部服务',
+          'last_test_at': '',
+          'last_error': '真实 Model Gateway 配置只能在 Windows EXE 中执行。',
+          'masked_key_preview': '',
+        },
         'embedding': {
           'provider_id': 'local_keyword_embedding',
           'status': 'desktop_runtime_required',
@@ -313,6 +334,28 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   Future<String> validateProviderRuntimeSettings() async {
+    await initialize();
+    return '';
+  }
+
+  Future<String> saveModelGatewayProviderConfig({
+    required String displayName,
+    required String gatewayType,
+    required String baseUrl,
+    required String credential,
+    String adminUrl = '',
+    bool supportsStreaming = true,
+    bool supportsEmbeddings = false,
+    bool supportsFallback = true,
+    bool supportsUsageStats = true,
+  }) async {
+    await initialize();
+    return '';
+  }
+
+  Future<String> testModelGatewayProvider({
+    String simulatedStatus = 'success',
+  }) async {
     await initialize();
     return '';
   }
