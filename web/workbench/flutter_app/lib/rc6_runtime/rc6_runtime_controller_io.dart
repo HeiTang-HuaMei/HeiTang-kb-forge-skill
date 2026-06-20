@@ -11586,6 +11586,34 @@ class Rc6RuntimeController extends ChangeNotifier {
         'runtime_loaded': false,
       };
     }
+    if (_stringValue(contract['provider_ref'], '') == 'llm_wiki_v2') {
+      final probe = _probeLlmWikiAgentMemoryFusion(workspace);
+      if (_boolValue(probe['passed'])) {
+        return {
+          'status': '连接成功',
+          'error_code': '',
+          'error_message_zh': '',
+          'missing_config_refs': <String>[],
+          'blocked_reasons': <String>[],
+          'test_artifacts': [probe['probe_path']],
+          'ready_for_user_selection': true,
+          'runtime_loaded': false,
+        };
+      }
+      return {
+        'status': '已配置未测试',
+        'error_code': 'llm_wiki_agent_memory_probe_requires_agent_assets',
+        'error_message_zh': _stringValue(
+          probe['error_message_zh'],
+          '需要先生成 Agent、权限审计、验证报告和记忆索引后才能启用 Agent 记忆能力增强。',
+        ),
+        'missing_config_refs': <String>[],
+        'blocked_reasons': ['需要 Agent 本地产物、权限审计、验证报告和 memory index'],
+        'test_artifacts': [probe['probe_path']],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
+      };
+    }
     final missingRefs = <String>[];
     final blockedReasons = <String>[];
     final requiredRefs = _listOfStrings(contract['required_config_refs']);
@@ -11818,6 +11846,89 @@ class Rc6RuntimeController extends ChangeNotifier {
       'secret_plaintext_written': false,
       'normal_ui_project_name_visible': false,
       'external_runtime_executed': false,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return {
+      ...payload,
+      'probe_path': probePath,
+    };
+  }
+
+  static Map<String, dynamic> _probeLlmWikiAgentMemoryFusion(
+    Directory workspace,
+  ) {
+    final probePath = _providerAdapterProbePath(workspace, 'llm_wiki_v2');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final requiredAssets = <String>[
+      _joinNested(workspace.path, 'agent/agent_generation_manifest.json'),
+      _joinNested(workspace.path, 'agent/audit/permission_audit.json'),
+      _joinNested(workspace.path, 'agent/audit/agent_validation_report.json'),
+      _joinNested(workspace.path, 'kb/memory_index_reference.json'),
+    ];
+    final checkedAssets = requiredAssets.map((path) {
+      final exists = File(path).existsSync();
+      var schemaVersion = '';
+      var hasAgentMemoryEvidence = false;
+      if (exists) {
+        try {
+          final decoded =
+              jsonDecode(File(path).readAsStringSync(encoding: utf8));
+          if (decoded is Map) {
+            schemaVersion = _stringValue(decoded['schema_version'], '');
+            final serialized = jsonEncode(decoded).toLowerCase();
+            hasAgentMemoryEvidence = serialized.contains('agent') ||
+                serialized.contains('memory') ||
+                serialized.contains('permission') ||
+                serialized.contains('validation');
+          }
+        } on FormatException {
+          final text =
+              File(path).readAsStringSync(encoding: utf8).toLowerCase();
+          hasAgentMemoryEvidence =
+              text.contains('agent') || text.contains('memory');
+        }
+      }
+      return {
+        'path': path,
+        'exists': exists,
+        'schema_version': schemaVersion,
+        'has_agent_memory_evidence': hasAgentMemoryEvidence,
+      };
+    }).toList(growable: false);
+    final missingAssets = checkedAssets
+        .where((asset) => asset['exists'] != true)
+        .map((asset) => asset['path'].toString())
+        .toList(growable: false);
+    final invalidAssets = checkedAssets
+        .where((asset) =>
+            asset['exists'] == true &&
+            asset['has_agent_memory_evidence'] != true)
+        .map((asset) => asset['path'].toString())
+        .toList(growable: false);
+    final passed = missingAssets.isEmpty && invalidAssets.isEmpty;
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_probe_llm_wiki_v2.v1',
+      'provider_ref': 'llm_wiki_v2',
+      'adapter_type': 'agent_capability_adapter',
+      'executed_at': now,
+      'probe_kind': 'local_agent_memory_lifecycle_fusion',
+      'workspace_boundary': workspace.path,
+      'checked_assets': checkedAssets,
+      'missing_assets': missingAssets,
+      'invalid_assets': invalidAssets,
+      'passed': passed,
+      'status': passed ? '连接成功' : '已配置未测试',
+      'error_message_zh': passed ? '' : 'Agent 记忆生命周期证据不完整，暂不能启用 Agent 记忆能力增强。',
+      'network_used': false,
+      'secret_plaintext_written': false,
+      'normal_ui_project_name_visible': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
     };
     File(probePath)
       ..parent.createSync(recursive: true)

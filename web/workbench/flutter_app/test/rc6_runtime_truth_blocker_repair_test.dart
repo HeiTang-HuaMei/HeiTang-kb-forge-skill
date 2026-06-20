@@ -1428,6 +1428,146 @@ void main() {
     expect(health['ready_for_user_selection_count'], 2);
   });
 
+  test('llm wiki agent memory adapter requires local agent lifecycle evidence',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.testAllRegisteredProviderCapabilities();
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final runtimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    final readinessPath =
+        runtimeStatus['provider_adapter_readiness_report_path'] as String;
+    var readiness = jsonDecode(File(readinessPath).readAsStringSync()) as Map;
+    var llmWikiReadiness = (readiness['readiness_entries'] as List)
+        .cast<Map>()
+        .firstWhere((entry) => entry['provider_ref'] == 'llm_wiki_v2');
+    expect(llmWikiReadiness['status'], '已配置未测试');
+    expect(llmWikiReadiness['ready_for_user_selection'], isFalse);
+    var probePath =
+        (llmWikiReadiness['test_artifacts'] as List).first as String;
+    var probe = jsonDecode(File(probePath).readAsStringSync()) as Map;
+    expect(probe['schema_version'],
+        'prd_v3_provider_adapter_probe_llm_wiki_v2.v1');
+    expect(probe['passed'], isFalse);
+    expect((probe['missing_assets'] as List), isNotEmpty);
+
+    final agentRoot =
+        Directory('${workspace.path}${Platform.pathSeparator}agent')
+          ..createSync(recursive: true);
+    final auditRoot =
+        Directory('${agentRoot.path}${Platform.pathSeparator}audit')
+          ..createSync(recursive: true);
+    final kbRoot = Directory('${workspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    File('${agentRoot.path}${Platform.pathSeparator}agent_generation_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_agent_generation_manifest.v1',
+      'agent_id': 'agent_memory_probe',
+      'memory': {
+        'short_term': 'local_session',
+        'long_term': 'memory_index_reference',
+      },
+    }));
+    File('${auditRoot.path}${Platform.pathSeparator}permission_audit.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v2_agent_permission_audit.v1',
+      'agent_id': 'agent_memory_probe',
+      'permission_checks': [
+        'knowledge_base_and_memory_vector_store_separated',
+      ],
+    }));
+    File('${auditRoot.path}${Platform.pathSeparator}agent_validation_report.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_agent_validation_report.v1',
+      'agent_id': 'agent_memory_probe',
+      'checks': [
+        {
+          'check_id': 'memory_separated_from_kb_index',
+          'status': 'pass',
+        },
+      ],
+    }));
+    File('${kbRoot.path}${Platform.pathSeparator}memory_index_reference.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_memory_index_reference.v1',
+      'memory_scope': 'agent_long_term_memory',
+      'memory_store': 'separate_from_kb_index',
+    }));
+
+    final healthPath = await controller.testAllRegisteredProviderCapabilities();
+    final refreshedStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    expect(
+        (refreshedStatus['registered_provider_summary']
+            as Map)['adapter_ready_for_user_selection_count'],
+        2);
+    expect(
+        (refreshedStatus['registered_provider_summary']
+            as Map)['adapter_runtime_loaded_count'],
+        0);
+    readiness = jsonDecode(File(
+            refreshedStatus['provider_adapter_readiness_report_path'] as String)
+        .readAsStringSync()) as Map;
+    llmWikiReadiness = (readiness['readiness_entries'] as List)
+        .cast<Map>()
+        .firstWhere((entry) => entry['provider_ref'] == 'llm_wiki_v2');
+    expect(llmWikiReadiness['status'], '连接成功');
+    expect(llmWikiReadiness['ready_for_user_selection'], isTrue);
+    expect(llmWikiReadiness['runtime_loaded'], isFalse);
+    probePath = (llmWikiReadiness['test_artifacts'] as List).first as String;
+    probe = jsonDecode(File(probePath).readAsStringSync()) as Map;
+    expect(probe['passed'], isTrue);
+    expect(probe['network_used'], isFalse);
+    expect(probe['secret_plaintext_written'], isFalse);
+    expect(probe['external_runtime_executed'], isFalse);
+    expect(probe['vendor_runtime_loaded'], isFalse);
+    expect((probe['checked_assets'] as List), hasLength(4));
+
+    final bindingPath =
+        refreshedStatus['provider_capability_binding_manifest_path'] as String;
+    final binding = jsonDecode(File(bindingPath).readAsStringSync()) as Map;
+    final agentBinding = (binding['bindings'] as List).cast<Map>().firstWhere(
+        (entry) => entry['capability_id'] == 'agent_model_tools_memory');
+    expect(agentBinding['active_provider_ref'], 'llm_wiki_v2');
+    expect(agentBinding['active_provider_kind'], 'registered_provider');
+    expect(agentBinding['selection_allowed'], isTrue);
+    expect(agentBinding['runtime_loaded'], isFalse);
+
+    final activated =
+        await controller.activateRegisteredProviderCapability('llm_wiki_v2');
+    expect(activated, isTrue);
+    final activatedBinding =
+        jsonDecode(File(bindingPath).readAsStringSync()) as Map;
+    expect(activatedBinding['action'], 'activate');
+    expect(activatedBinding['selected_provider_ref'], 'llm_wiki_v2');
+    expect(activatedBinding['selected_provider_runtime_loaded'], isFalse);
+    final selectionLog = File(
+            '$configDir${Platform.pathSeparator}registered_provider_selection_log.jsonl')
+        .readAsLinesSync()
+        .map((line) => jsonDecode(line) as Map)
+        .toList(growable: false);
+    expect(selectionLog.last['status'], '连接成功');
+    expect(selectionLog.last['runtime_loaded_after_event'], isFalse);
+    expect(selectionLog.last['secret_masked'], isTrue);
+
+    final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
+    expect(health['ready_for_user_selection_count'], 3);
+  });
+
   test('prd multi knowledge base catalog supports copy merge split delete',
       () async {
     final workspace = await createWorkspace();

@@ -83,6 +83,7 @@ Coverage:
 - 0 entries marked ready for user selection without config/test evidence
 - 1 local retrieval adapter can become selectable after real KB chunks are present
 - 1 local governance rule-pack adapter can become selectable from repository-owned governance/test assets
+- 1 local Agent memory lifecycle adapter can become selectable after Agent and memory-index evidence exists
 
 Capability areas:
 
@@ -147,6 +148,16 @@ Local governance adapter proof:
 - Because the Provider asset maps this Provider to both Skill template governance and governance/audit, the binding manifest can select it for `skill_template_provider` and `governance_audit_provider`.
 - `runtime_loaded` remains `false`; no third-party repository code, prompts, scripts, Agent binding, or external workflow is bundled or executed.
 - The probe records `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, and `normal_ui_project_name_visible=false`.
+
+Local Agent memory adapter proof:
+
+- `llm_wiki_v2` has a workspace-owned Agent memory lifecycle probe at `config/provider_adapter_probe_llm_wiki_v2.json`.
+- The probe requires `agent/agent_generation_manifest.json`, `agent/audit/permission_audit.json`, `agent/audit/agent_validation_report.json`, and `kb/memory_index_reference.json`.
+- Before those artifacts exist, readiness remains `已配置未测试` and activation is blocked.
+- When the probe succeeds, `provider_adapter_readiness_report.json` marks `llm_wiki_v2` as `连接成功` and `ready_for_user_selection=true`.
+- `provider_capability_binding_manifest.json` can then bind `agent_model_tools_memory` to `llm_wiki_v2` for Agent Workbench memory/tool capability status.
+- `runtime_loaded` remains `false`; no LLM Wiki vendor runtime, external code, network call, or arbitrary execution is bundled or executed.
+- The probe records `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, `vendor_runtime_loaded=false`, and `normal_ui_project_name_visible=false`.
 
 Adapter readiness:
 
