@@ -9707,6 +9707,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       },
       'capability_summaries': capabilitySummaries,
       'provider_entries': entries,
+      'provider_adapter_contracts_path':
+          await _writeProviderAdapterContracts(workspace, entries),
       'secret_plaintext_written': false,
     };
     final activationEvents = entries.map((entry) {
@@ -9822,6 +9824,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'generated_at': now,
       'workspace_boundary': workspace.path,
       'matrix_path': matrixPath,
+      'provider_adapter_contracts_path':
+          _providerAdapterContractsPath(workspace),
       'health_log_path': healthLogPath,
       'stability_report_path': stabilityReportPath,
       'provider_entry_count': healthEntries.length,
@@ -9970,6 +9974,95 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
     await File(path).writeAsString(
       const JsonEncoder.withIndent('  ').convert(manifest),
+      encoding: utf8,
+    );
+    return path;
+  }
+
+  Future<String> _writeProviderAdapterContracts(
+    Directory workspace,
+    List<Map<String, dynamic>> entries,
+  ) async {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final grouped = <String, List<Map<String, dynamic>>>{};
+    for (final entry in entries) {
+      final providerRef = _stringValue(entry['provider_ref'], '');
+      if (providerRef.isEmpty) continue;
+      grouped.putIfAbsent(providerRef, () => []).add(entry);
+    }
+    final contracts = grouped.entries.map((group) {
+      final providerEntries = group.value;
+      final first = providerEntries.first;
+      final requiresNetwork =
+          providerEntries.any((entry) => _boolValue(entry['requires_network']));
+      final requiresSecret =
+          providerEntries.any((entry) => _boolValue(entry['requires_secret']));
+      final requiresExternalRuntime = providerEntries
+          .any((entry) => _boolValue(entry['requires_external_runtime']));
+      final contractStatuses = providerEntries
+          .expand((entry) => _listOfStrings(entry['contract_status']))
+          .toSet()
+          .toList(growable: false)
+        ..sort();
+      final capabilityIds = providerEntries
+          .map((entry) => _stringValue(entry['capability_id'], ''))
+          .where((value) => value.isNotEmpty)
+          .toSet()
+          .toList(growable: false)
+        ..sort();
+      final affectedModules = providerEntries
+          .expand(_registeredProviderAffectedModules)
+          .toSet()
+          .toList(growable: false)
+        ..sort();
+      final status = _registeredProviderHealthStatus(first);
+      return {
+        'provider_ref': group.key,
+        'adapter_type': _providerAdapterType(first),
+        'capability_ids': capabilityIds,
+        'affected_modules': affectedModules,
+        'contract_status': contractStatuses,
+        'runtime_execution_mode': requiresExternalRuntime
+            ? 'external_runtime'
+            : requiresNetwork
+                ? 'network_authorized_provider'
+                : 'local_optional_adapter',
+        'requires_network': requiresNetwork,
+        'requires_secret_ref': requiresSecret,
+        'requires_external_runtime': requiresExternalRuntime,
+        'requires_dependency_install':
+            status == '需安装外部服务' || contractStatuses.contains('planned_adapter'),
+        'required_config_refs': _providerRequiredConfigRefs(first),
+        'health_check_actions': _providerHealthCheckActions(first),
+        'activation_prerequisites':
+            _providerActivationPrerequisites(first, status),
+        'current_health_status': status,
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
+        'user_visible_entry': first['user_visible_entry'],
+        'fallback_provider': first['fallback_provider'],
+        'rollback_supported': _boolValue(first['rollback_supported']),
+        'rollback_requires_restart': false,
+        'normal_ui_project_name_visible': false,
+        'secret_masked': true,
+      };
+    }).toList(growable: false);
+    final path = _providerAdapterContractsPath(workspace);
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_contracts.v1',
+      'generated_at': now,
+      'workspace_boundary': workspace.path,
+      'source_asset': 'assets/external/provider_capability_status.json',
+      'contract_count': contracts.length,
+      'provider_mapping_count': entries.length,
+      'runtime_loaded_count': 0,
+      'ready_for_user_selection_count': 0,
+      'contracts': contracts,
+      'normal_ui_project_names_visible': false,
+      'secret_plaintext_written': false,
+    };
+    await File(path).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
       encoding: utf8,
     );
     return path;
@@ -10179,6 +10272,10 @@ class Rc6RuntimeController extends ChangeNotifier {
   static String _providerCapabilityBindingManifestPath(Directory workspace) {
     return _join(
         workspace.path, 'config', 'provider_capability_binding_manifest.json');
+  }
+
+  static String _providerAdapterContractsPath(Directory workspace) {
+    return _join(workspace.path, 'config', 'provider_adapter_contracts.json');
   }
 
   Future<List<ProjectConfigProfile>> _ensureProjectConfigProfiles(
@@ -10504,6 +10601,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           _registeredProviderHealthLogPath(workspace),
       'registered_provider_hot_swap_stability_report_path':
           _registeredProviderHotSwapStabilityReportPath(workspace),
+      'provider_adapter_contracts_path':
+          _providerAdapterContractsPath(workspace),
       'provider_capability_binding_manifest_path':
           providerCapabilityBindingPath,
       'registered_provider_summary': {
@@ -11140,6 +11239,105 @@ class Rc6RuntimeController extends ChangeNotifier {
       'unavailable_provider_blocks_module': false,
       'secret_masked': true,
     };
+  }
+
+  static String _providerAdapterType(Map<String, dynamic> entry) {
+    return switch (_stringValue(entry['capability_id'], '')) {
+      'document_parser_ocr' => 'parser_ocr_adapter',
+      'knowledge_embedding_vector' => 'embedding_vector_adapter',
+      'retrieval_provider' => 'retrieval_adapter',
+      'document_exporter' => 'exporter_adapter',
+      'skill_template_provider' => 'skill_template_adapter',
+      'agent_model_tools_memory' => 'agent_capability_adapter',
+      'workflow_collaboration_export' => 'workflow_export_adapter',
+      'governance_audit_provider' => 'governance_audit_adapter',
+      _ => 'provider_adapter',
+    };
+  }
+
+  static List<String> _providerRequiredConfigRefs(Map<String, dynamic> entry) {
+    final refs = <String>[];
+    switch (_stringValue(entry['capability_id'], '')) {
+      case 'document_parser_ocr':
+        refs.addAll(
+            ['pdf_parser_provider_config_id', 'ocr_provider_config_id']);
+      case 'knowledge_embedding_vector':
+        refs.addAll(['embedding_config_id', 'vector_config_id']);
+      case 'retrieval_provider':
+        refs.addAll(['search_provider_config_id', 'network_policy_id']);
+      case 'document_exporter':
+        refs.add('exporter_config_id');
+      case 'skill_template_provider':
+        refs.addAll(['model_config_id', 'tool_policy_id']);
+      case 'agent_model_tools_memory':
+        refs.addAll([
+          'model_config_id',
+          'redis_config_id',
+          'vector_config_id',
+          'agent_memory_policy_id',
+          'tool_policy_id',
+        ]);
+      case 'workflow_collaboration_export':
+        refs.addAll(['agent_memory_policy_id', 'exporter_config_id']);
+      case 'governance_audit_provider':
+        refs.addAll(['storage_config_id', 'network_policy_id']);
+    }
+    if (_boolValue(entry['requires_secret'])) {
+      refs.add('secret_ref');
+    }
+    return refs.toSet().toList(growable: false)..sort();
+  }
+
+  static List<String> _providerHealthCheckActions(Map<String, dynamic> entry) {
+    final actions = <String>[
+      'contract_schema_check',
+      'rollback_manifest_check'
+    ];
+    switch (_stringValue(entry['capability_id'], '')) {
+      case 'document_parser_ocr':
+        actions.addAll(['dependency_probe', 'sample_parse_check']);
+      case 'knowledge_embedding_vector':
+        actions.addAll(['embedding_dimension_check', 'vector_roundtrip_check']);
+      case 'retrieval_provider':
+        actions.addAll(['network_authorization_check', 'query_probe']);
+      case 'document_exporter':
+        actions.addAll(['format_availability_check', 'sample_export_check']);
+      case 'skill_template_provider':
+        actions.addAll(['template_schema_check', 'localization_probe']);
+      case 'agent_model_tools_memory':
+        actions.addAll(['model_config_check', 'memory_policy_check']);
+      case 'workflow_collaboration_export':
+        actions.addAll(['workflow_schema_check', 'a2a_report_export_check']);
+      case 'governance_audit_provider':
+        actions.addAll(['audit_schema_check', 'evaluator_availability_check']);
+    }
+    if (_boolValue(entry['requires_network'])) {
+      actions.add('network_allowlist_check');
+    }
+    if (_boolValue(entry['requires_secret'])) {
+      actions.add('secret_ref_check');
+    }
+    if (_boolValue(entry['requires_external_runtime'])) {
+      actions.add('external_runtime_health_check');
+    }
+    return actions.toSet().toList(growable: false)..sort();
+  }
+
+  static List<String> _providerActivationPrerequisites(
+    Map<String, dynamic> entry,
+    String healthStatus,
+  ) {
+    final prerequisites = <String>[];
+    final blockedReason = _registeredProviderBlockedReason(entry);
+    if (blockedReason.isNotEmpty) {
+      prerequisites.add(blockedReason);
+    }
+    if (healthStatus != '连接成功') {
+      prerequisites.add('需要健康检查通过');
+    }
+    prerequisites
+        .addAll(_providerRequiredConfigRefs(entry).map((ref) => '需要配置 $ref'));
+    return prerequisites.toSet().toList(growable: false)..sort();
   }
 
   Future<Map<String, dynamic>> _readProviderCapabilityStatusAsset(

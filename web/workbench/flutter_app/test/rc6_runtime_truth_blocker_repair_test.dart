@@ -967,11 +967,55 @@ void main() {
         (registeredMatrix['registered_project_boundary']
             as Map)['registered_project_names_visible_to_user'],
         isFalse);
+    expect(runtimeStatus['provider_adapter_contracts_path'], isA<String>());
     final providerEntries =
         (registeredMatrix['provider_entries'] as List).cast<Map>();
     expect(providerEntries, hasLength(30));
     expect(providerEntries.map((entry) => entry['provider_ref']).toSet(),
         hasLength(26));
+    final providerAdapterContractsPath =
+        registeredMatrix['provider_adapter_contracts_path'] as String;
+    expect(runtimeStatus['provider_adapter_contracts_path'],
+        providerAdapterContractsPath);
+    final providerAdapterContracts =
+        jsonDecode(File(providerAdapterContractsPath).readAsStringSync())
+            as Map;
+    expect(providerAdapterContracts['schema_version'],
+        'prd_v3_provider_adapter_contracts.v1');
+    expect(providerAdapterContracts['contract_count'], 26);
+    expect(providerAdapterContracts['provider_mapping_count'], 30);
+    expect(providerAdapterContracts['runtime_loaded_count'], 0);
+    expect(providerAdapterContracts['ready_for_user_selection_count'], 0);
+    expect(
+        providerAdapterContracts['normal_ui_project_names_visible'], isFalse);
+    expect(providerAdapterContracts['secret_plaintext_written'], isFalse);
+    final adapterContracts =
+        (providerAdapterContracts['contracts'] as List).cast<Map>();
+    expect(adapterContracts.map((contract) => contract['provider_ref']).toSet(),
+        hasLength(26));
+    expect(
+        adapterContracts.every((contract) =>
+            (contract['health_check_actions'] as List).isNotEmpty),
+        isTrue);
+    expect(
+        adapterContracts.every((contract) =>
+            (contract['required_config_refs'] as List).isNotEmpty),
+        isTrue);
+    expect(
+        adapterContracts.every((contract) =>
+            (contract['activation_prerequisites'] as List).isNotEmpty),
+        isTrue);
+    expect(
+        adapterContracts
+            .every((contract) => contract['runtime_loaded'] == false),
+        isTrue);
+    expect(
+        adapterContracts
+            .every((contract) => contract['ready_for_user_selection'] == false),
+        isTrue);
+    expect(
+        adapterContracts.every((contract) => contract['secret_masked'] == true),
+        isTrue);
     expect(providerEntries.every((entry) => entry['runtime_loaded'] == false),
         isTrue);
     expect(
@@ -1035,6 +1079,8 @@ void main() {
         jsonDecode(File(providerHealthPath).readAsStringSync()) as Map;
     expect(providerHealth['schema_version'],
         'prd_v3_registered_provider_health_report.v1');
+    expect(providerHealth['provider_adapter_contracts_path'],
+        providerAdapterContractsPath);
     expect(providerHealth['provider_entry_count'], 30);
     expect(providerHealth['unique_provider_ref_count'], 26);
     expect(providerHealth['capability_area_count'], 8);

@@ -33,6 +33,7 @@ Runtime configuration assets are written to:
 - `config/registered_provider_health_log.jsonl`
 - `config/registered_provider_hot_swap_stability_report.json`
 - `config/provider_capability_binding_manifest.json`
+- `config/provider_adapter_contracts.json`
 - `config/config_test_log.jsonl`
 - `config/profile_change_log.jsonl`
 - `config/profile_activation_log.jsonl`
@@ -67,6 +68,7 @@ Runtime evidence:
 - `registered_provider_health_log.jsonl`
 - `registered_provider_hot_swap_stability_report.json`
 - `provider_capability_binding_manifest.json`
+- `provider_adapter_contracts.json`
 
 Coverage:
 
@@ -115,6 +117,13 @@ Runtime binding:
 - Blocked activation and rollback both refresh this binding manifest and keep `selected_provider_runtime_loaded=false`.
 - `project_config_runtime_status.json` includes the binding manifest path and downstream module binding summaries for Document Library, Knowledge Base, Retrieval Verification, Document Generation, Skill Factory, and Agent Workbench.
 
+Adapter contracts:
+
+- `provider_adapter_contracts.json` turns the 26 unique registered Provider references into explicit adapter contracts.
+- Each contract records adapter type, capability IDs, affected modules, runtime execution mode, required config refs, health check actions, activation prerequisites, fallback Provider, rollback support, and masking policy.
+- The contracts cover all 30 provider-to-capability mappings while keeping `runtime_loaded_count=0` and `ready_for_user_selection_count=0` until real readiness checks pass.
+- `registered_provider_health_report.json` and `project_config_runtime_status.json` both reference the adapter contract path.
+
 ## Profile Schema
 
 `ProjectConfigProfile` includes:
@@ -143,6 +152,7 @@ Lifecycle behavior implemented:
 | Storage | `_probeStoragePath` | Real write probe and Windows free-space query; failure records Chinese permission reason |
 | Registered Provider health | `testAllRegisteredProviderCapabilities` | Checks 30 mappings, writes health JSON/JSONL, blocks unverified runtime load, proves rollback/fallback |
 | Provider capability binding | `provider_capability_binding_manifest.json` | Binds 8 product capability areas to local fallback or proven Provider and syncs downstream runtime status |
+| Provider adapter contracts | `provider_adapter_contracts.json` | Defines 26 Provider adapter contracts with required config refs, health checks, fallback, and rollback |
 
 The CI-safe tests cover failure and config-state paths without requiring external services. Real Redis/Qdrant success checks remain part of EXE smoke when Docker services are available.
 
@@ -179,6 +189,7 @@ Profile activation refreshes `project_config_runtime_status.json` for:
 - Registered Provider summary: provider count, selectable count, and capability-enhancement boundary
 - Registered Provider health: health report path, health log path, hot-swap stability report path
 - Provider capability binding: current local fallback vs proven Provider binding per downstream module
+- Provider adapter contracts: contract path for all registered Provider refs and their activation prerequisites
 
 Automated tests verify activation from local Profile to hybrid Profile synchronizes these module states.
 
