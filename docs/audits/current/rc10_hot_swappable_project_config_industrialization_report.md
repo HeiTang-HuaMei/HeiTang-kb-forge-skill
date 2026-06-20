@@ -81,6 +81,7 @@ Coverage:
 - 8 product capability areas
 - 0 entries marked runtime-loaded by default
 - 0 entries marked ready for user selection without config/test evidence
+- 1 local retrieval adapter can become selectable after real KB chunks are present
 
 Capability areas:
 
@@ -117,7 +118,7 @@ Runtime binding:
 
 - `provider_capability_binding_manifest.json` is the active Provider binding authority for product capabilities.
 - It records each capability's current active Provider kind, fallback Provider, user-readable status, blocked reason, affected modules, and unauthorized resource guard.
-- Current evidence keeps all 8 product capability bindings on local fallback because no registered Provider has passed real readiness checks.
+- Current evidence keeps unverified capabilities on local fallback. `sirchmunk` can become the active `retrieval_provider` binding only after a real `kb/chunks.jsonl` probe succeeds.
 - Blocked activation and rollback both refresh this binding manifest and keep `selected_provider_runtime_loaded=false`.
 - `project_config_runtime_status.json` includes the binding manifest path and downstream module binding summaries for Document Library, Knowledge Base, Retrieval Verification, Document Generation, Skill Factory, and Agent Workbench.
 
@@ -125,8 +126,17 @@ Adapter contracts:
 
 - `provider_adapter_contracts.json` turns the 26 unique registered Provider references into explicit adapter contracts.
 - Each contract records adapter type, capability IDs, affected modules, runtime execution mode, required config refs, health check actions, activation prerequisites, fallback Provider, rollback support, and masking policy.
-- The contracts cover all 30 provider-to-capability mappings while keeping `runtime_loaded_count=0` and `ready_for_user_selection_count=0` until real readiness checks pass.
+- The contracts cover all 30 provider-to-capability mappings while keeping `runtime_loaded_count=0`. Readiness remains blocked unless a real readiness check passes.
 - `registered_provider_health_report.json` and `project_config_runtime_status.json` both reference the adapter contract path.
+
+Local retrieval adapter proof:
+
+- `sirchmunk` has a bounded direct-file-search probe at `config/provider_adapter_probe_sirchmunk.json`.
+- The probe reads only workspace-owned `kb/chunks.jsonl` and requires at least one chunk with real text or content.
+- When the probe succeeds, `provider_adapter_readiness_report.json` marks `sirchmunk` as `连接成功` and `ready_for_user_selection=true`.
+- `provider_capability_binding_manifest.json` then binds `retrieval_provider` to `sirchmunk` with `selection_allowed=true`.
+- `runtime_loaded` remains `false`; this is a verified local adapter readiness path, not arbitrary external project execution.
+- The probe records `network_used=false`, `secret_plaintext_written=false`, and `normal_ui_project_name_visible=false`.
 
 Adapter readiness:
 

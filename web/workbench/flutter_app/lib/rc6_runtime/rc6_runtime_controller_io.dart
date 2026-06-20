@@ -2112,7 +2112,17 @@ class Rc6RuntimeController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
-    final ready = _boolValue(entry['ready_for_user_selection']);
+    final contractsPath =
+        _stringValue(matrix['provider_adapter_contracts_path'], '');
+    if (contractsPath.isNotEmpty) {
+      await _writeProviderAdapterReadinessReport(
+        workspace,
+        await _readProjectConfigProfiles(workspace),
+        contractsPath,
+      );
+    }
+    final readinessByProvider = await _providerReadinessByProvider(workspace);
+    final ready = _providerReadyForSelection(entry, readinessByProvider);
     await _appendRegisteredProviderSelectionLog(
       workspace,
       action: 'activate',
@@ -2131,6 +2141,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       _listOfMaps(matrix['provider_entries']),
       action: ready ? 'activate' : 'blocked_activate',
       selectedEntry: entry,
+      readinessByProvider: readinessByProvider,
     );
     await _loadExistingArtifacts();
     state = state.copyWith(
@@ -2175,6 +2186,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       _listOfMaps(matrix['provider_entries']),
       action: 'rollback',
       selectedEntry: entry,
+      readinessByProvider: await _providerReadinessByProvider(workspace),
     );
     await _loadExistingArtifacts();
     state = state.copyWith(
@@ -9781,13 +9793,17 @@ class Rc6RuntimeController extends ChangeNotifier {
             await _readProjectConfigProfiles(workspace),
             contractsPath,
           );
+    final readinessByProvider = await _providerReadinessByProvider(workspace);
     final activeProfile =
         _activeProfile(await _readProjectConfigProfiles(workspace));
     final now = DateTime.now().toUtc().toIso8601String();
     final healthEntries = entries.map((entry) {
       final status = _registeredProviderHealthStatus(entry);
+      final readiness =
+          readinessByProvider[_stringValue(entry['provider_ref'], '')];
+      final effectiveStatus = _stringValue(readiness?['status'], status);
       final readyForSelection =
-          status == '连接成功' && _boolValue(entry['ready_for_user_selection']);
+          _providerReadyForSelection(entry, readinessByProvider);
       return {
         'test_id':
             'registered_provider_health_${DateTime.now().toUtc().microsecondsSinceEpoch}_${entry['provider_ref']}',
@@ -9798,9 +9814,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         'user_visible_entry': entry['user_visible_entry'],
         'started_at': now,
         'finished_at': now,
-        'health_status': status,
-        'blocked_reason_zh':
-            status == '连接成功' ? '' : _registeredProviderBlockedReason(entry),
+        'health_status': effectiveStatus,
+        'blocked_reason_zh': effectiveStatus == '连接成功'
+            ? ''
+            : _registeredProviderBlockedReason(entry),
         'fallback_provider': entry['fallback_provider'],
         'rollback_supported': _boolValue(entry['rollback_supported']),
         'runtime_loaded': false,
@@ -9917,6 +9934,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     List<Map<String, dynamic>> entries, {
     required String action,
     Map<String, dynamic>? selectedEntry,
+    Map<String, Map<String, dynamic>> readinessByProvider = const {},
   }) async {
     final activeProfile = _activeProfile(profiles);
     final now = DateTime.now().toUtc().toIso8601String();
@@ -9929,12 +9947,16 @@ class Rc6RuntimeController extends ChangeNotifier {
     final bindings = grouped.entries.map((group) {
       final candidates = group.value;
       final selected = candidates.firstWhere(
-        (entry) => _boolValue(entry['ready_for_user_selection']),
+        (entry) => _providerReadyForSelection(entry, readinessByProvider),
         orElse: () => candidates.first,
       );
-      final selectedStatus = _registeredProviderHealthStatus(selected);
-      final selectedReady = _boolValue(selected['ready_for_user_selection']) &&
-          selectedStatus == '连接成功';
+      final readiness =
+          readinessByProvider[_stringValue(selected['provider_ref'], '')] ??
+              const <String, dynamic>{};
+      final selectedStatus = _stringValue(
+          readiness['status'], _registeredProviderHealthStatus(selected));
+      final selectedReady =
+          _providerReadyForSelection(selected, readinessByProvider);
       return {
         'capability_id': group.key,
         'user_visible_entry': selected['user_visible_entry'],
@@ -9946,13 +9968,15 @@ class Rc6RuntimeController extends ChangeNotifier {
         'fallback_provider': selected['fallback_provider'],
         'user_status': selectedReady ? '连接成功' : '降级为本地模式',
         'provider_health_status': selectedStatus,
+        'adapter_readiness_status': selectedStatus,
         'selection_allowed': selectedReady,
         'runtime_loaded': false,
         'blocked_reason_zh':
             selectedReady ? '' : _registeredProviderBlockedReason(selected),
         'candidate_provider_count': candidates.length,
         'ready_candidate_count': candidates
-            .where((entry) => _boolValue(entry['ready_for_user_selection']))
+            .where((entry) =>
+                _providerReadyForSelection(entry, readinessByProvider))
             .length,
         'affected_modules': _registeredProviderAffectedModules(selected),
         'unauthorized_resources_selectable': false,
@@ -10102,6 +10126,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         contract,
         active,
         config,
+        workspace,
       );
       return {
         'readiness_id':
@@ -10117,8 +10142,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         'missing_config_refs': result['missing_config_refs'],
         'blocked_reasons': result['blocked_reasons'],
         'degradation_target': contract['fallback_provider'],
-        'ready_for_user_selection': false,
-        'runtime_loaded': false,
+        'test_artifacts': result['test_artifacts'],
+        'ready_for_user_selection': result['ready_for_user_selection'],
+        'runtime_loaded': result['runtime_loaded'],
         'secret_masked': true,
         'evaluated_at': now,
       };
@@ -10139,8 +10165,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       'readiness_log_path': logPath,
       'contract_count': contracts.length,
       'readiness_entry_count': readinessEntries.length,
-      'runtime_loaded_count': 0,
-      'ready_for_user_selection_count': 0,
+      'runtime_loaded_count': readinessEntries
+          .where((entry) => entry['runtime_loaded'] == true)
+          .length,
+      'ready_for_user_selection_count': readinessEntries
+          .where((entry) => entry['ready_for_user_selection'] == true)
+          .length,
       'status_counts': statusCounts,
       'readiness_entries': readinessEntries,
       'normal_ui_project_names_visible': false,
@@ -10155,6 +10185,20 @@ class Rc6RuntimeController extends ChangeNotifier {
       encoding: utf8,
     );
     return reportPath;
+  }
+
+  Future<Map<String, Map<String, dynamic>>> _providerReadinessByProvider(
+    Directory workspace,
+  ) async {
+    final report =
+        await _readJsonObject(_providerAdapterReadinessReportPath(workspace));
+    final result = <String, Map<String, dynamic>>{};
+    for (final entry in _listOfMaps(report['readiness_entries'])) {
+      final providerRef = _stringValue(entry['provider_ref'], '');
+      if (providerRef.isEmpty) continue;
+      result[providerRef] = entry;
+    }
+    return result;
   }
 
   Future<void> _appendRegisteredProviderSelectionLog(
@@ -10375,6 +10419,14 @@ class Rc6RuntimeController extends ChangeNotifier {
   static String _providerAdapterReadinessLogPath(Directory workspace) {
     return _join(
         workspace.path, 'config', 'provider_adapter_readiness_log.jsonl');
+  }
+
+  static String _providerAdapterProbePath(
+    Directory workspace,
+    String providerRef,
+  ) {
+    return _join(
+        workspace.path, 'config', 'provider_adapter_probe_$providerRef.json');
   }
 
   Future<List<ProjectConfigProfile>> _ensureProjectConfigProfiles(
@@ -10675,12 +10727,16 @@ class Rc6RuntimeController extends ChangeNotifier {
       profiles,
       providerAdapterContractsPath,
     );
+    final providerAdapterReadiness =
+        await _readJsonObject(providerAdapterReadinessPath);
+    final readinessByProvider = await _providerReadinessByProvider(workspace);
     final providerCapabilityBindingPath =
         await _writeProviderCapabilityBindingManifest(
       workspace,
       profiles,
       _listOfMaps(registeredProviderMatrix['provider_entries']),
       action: 'runtime_status_refresh',
+      readinessByProvider: readinessByProvider,
     );
     final providerCapabilityBinding =
         await _readJsonObject(providerCapabilityBindingPath);
@@ -10720,6 +10776,10 @@ class Rc6RuntimeController extends ChangeNotifier {
             registeredProviderArtifacts['registered_provider_count'],
         'ready_for_user_selection_count':
             registeredProviderArtifacts['ready_for_user_selection_count'],
+        'adapter_ready_for_user_selection_count':
+            providerAdapterReadiness['ready_for_user_selection_count'],
+        'adapter_runtime_loaded_count':
+            providerAdapterReadiness['runtime_loaded_count'],
         'visible_to_user_as_capability_enhancement': true,
         'external_project_names_visible_in_normal_ui': false,
       },
@@ -11351,6 +11411,20 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
   }
 
+  static bool _providerReadyForSelection(
+    Map<String, dynamic> entry,
+    Map<String, Map<String, dynamic>> readinessByProvider,
+  ) {
+    final providerRef = _stringValue(entry['provider_ref'], '');
+    final readiness = readinessByProvider[providerRef];
+    if (readiness == null) {
+      return _boolValue(entry['ready_for_user_selection']) &&
+          _registeredProviderHealthStatus(entry) == '连接成功';
+    }
+    return _stringValue(readiness['status'], '') == '连接成功' &&
+        _boolValue(readiness['ready_for_user_selection']);
+  }
+
   static String _providerAdapterType(Map<String, dynamic> entry) {
     return switch (_stringValue(entry['capability_id'], '')) {
       'document_parser_ocr' => 'parser_ocr_adapter',
@@ -11454,7 +11528,36 @@ class Rc6RuntimeController extends ChangeNotifier {
     Map<String, dynamic> contract,
     ProjectConfigProfile profile,
     Map<String, dynamic> config,
+    Directory workspace,
   ) {
+    if (_stringValue(contract['provider_ref'], '') == 'sirchmunk') {
+      final probe = _probeSirchmunkDirectFileSearch(workspace);
+      if (_boolValue(probe['passed'])) {
+        return {
+          'status': '连接成功',
+          'error_code': '',
+          'error_message_zh': '',
+          'missing_config_refs': <String>[],
+          'blocked_reasons': <String>[],
+          'test_artifacts': [probe['probe_path']],
+          'ready_for_user_selection': true,
+          'runtime_loaded': false,
+        };
+      }
+      return {
+        'status': '已配置未测试',
+        'error_code': 'sirchmunk_probe_requires_kb',
+        'error_message_zh': _stringValue(
+          probe['error_message_zh'],
+          '需要先构建知识库后才能启用本地直连检索 Provider。',
+        ),
+        'missing_config_refs': <String>[],
+        'blocked_reasons': ['需要先构建知识库并生成 chunks.jsonl'],
+        'test_artifacts': [probe['probe_path']],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
+      };
+    }
     final missingRefs = <String>[];
     final blockedReasons = <String>[];
     final requiredRefs = _listOfStrings(contract['required_config_refs']);
@@ -11481,6 +11584,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         'error_message_zh': blockedReasons.join(' '),
         'missing_config_refs': missingRefs,
         'blocked_reasons': blockedReasons,
+        'test_artifacts': <String>[],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
       };
     }
     if (blockedReasons.any((reason) => reason.contains('网络授权'))) {
@@ -11490,6 +11596,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         'error_message_zh': blockedReasons.join(' '),
         'missing_config_refs': missingRefs,
         'blocked_reasons': blockedReasons,
+        'test_artifacts': <String>[],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
       };
     }
     if (blockedReasons.any((reason) => reason.contains('启动外部服务'))) {
@@ -11499,6 +11608,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         'error_message_zh': blockedReasons.join(' '),
         'missing_config_refs': missingRefs,
         'blocked_reasons': blockedReasons,
+        'test_artifacts': <String>[],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
       };
     }
     if (blockedReasons.any((reason) => reason.contains('安装依赖'))) {
@@ -11508,6 +11620,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         'error_message_zh': blockedReasons.join(' '),
         'missing_config_refs': missingRefs,
         'blocked_reasons': blockedReasons,
+        'test_artifacts': <String>[],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
       };
     }
     return {
@@ -11516,6 +11631,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'error_message_zh': 'Provider 适配器配置存在，仍需真实健康检查通过后才能启用。',
       'missing_config_refs': missingRefs,
       'blocked_reasons': ['需要健康检查通过'],
+      'test_artifacts': <String>[],
+      'ready_for_user_selection': false,
+      'runtime_loaded': false,
     };
   }
 
@@ -11552,6 +11670,62 @@ class Rc6RuntimeController extends ChangeNotifier {
               _mapValue(provider['llm'])['api_key_secret_ref'], 'none') !=
           'none',
       _ => false,
+    };
+  }
+
+  static Map<String, dynamic> _probeSirchmunkDirectFileSearch(
+    Directory workspace,
+  ) {
+    final probePath = _providerAdapterProbePath(workspace, 'sirchmunk');
+    final kbChunksPath = _join(workspace.path, 'kb', 'chunks.jsonl');
+    final chunksFile = File(kbChunksPath);
+    final now = DateTime.now().toUtc().toIso8601String();
+    var chunkCount = 0;
+    var sampleHasText = false;
+    if (chunksFile.existsSync()) {
+      final lines = chunksFile.readAsLinesSync(encoding: utf8);
+      for (final line in lines) {
+        if (line.trim().isEmpty) continue;
+        chunkCount += 1;
+        if (!sampleHasText) {
+          try {
+            final decoded = jsonDecode(line);
+            if (decoded is Map) {
+              sampleHasText = _stringValue(decoded['text'], '').isNotEmpty ||
+                  _stringValue(decoded['content'], '').isNotEmpty;
+            }
+          } on FormatException {
+            sampleHasText = false;
+          }
+        }
+      }
+    }
+    final passed = chunkCount > 0 && sampleHasText;
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_probe_sirchmunk.v1',
+      'provider_ref': 'sirchmunk',
+      'adapter_type': 'retrieval_adapter',
+      'executed_at': now,
+      'probe_kind': 'bounded_direct_file_search',
+      'input_artifact': kbChunksPath,
+      'chunk_count': chunkCount,
+      'sample_text_available': sampleHasText,
+      'passed': passed,
+      'status': passed ? '连接成功' : '已配置未测试',
+      'error_message_zh': passed ? '' : '需要先构建知识库并生成可检索 chunks.jsonl。',
+      'network_used': false,
+      'secret_plaintext_written': false,
+      'normal_ui_project_name_visible': false,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return {
+      ...payload,
+      'probe_path': probePath,
     };
   }
 

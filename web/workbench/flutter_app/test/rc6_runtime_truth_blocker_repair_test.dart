@@ -1148,10 +1148,12 @@ void main() {
         containsAll([
           '需安装外部服务',
           '已配置未测试',
-          '配置缺失',
           '已禁用',
           '需启动外部服务',
         ]));
+    expect(
+        healthEntries.every((entry) => entry.containsKey('blocked_reason_zh')),
+        isTrue);
     final healthLogPath = providerHealth['health_log_path'] as String;
     expect(File(healthLogPath).readAsLinesSync(), hasLength(30));
     final stabilityPath = providerHealth['stability_report_path'] as String;
@@ -1222,6 +1224,102 @@ void main() {
         endsWith('task_isolation_matrix.json'));
     expect(reloaded.state.taskRecoveryReportPath,
         endsWith('task_recovery_report.json'));
+  });
+
+  test('sirchmunk local retrieval adapter becomes selectable after real chunks',
+      () async {
+    final workspace = await createWorkspace();
+    final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    File('${kbDir.path}${Platform.pathSeparator}chunks.jsonl')
+        .writeAsStringSync(jsonl([
+      {
+        'chunk_id': 'c_sirchmunk_1',
+        'source_path': 'input/local_search.md',
+        'text': 'sirchmunk local direct file search needle',
+      },
+    ]));
+    File('${kbDir.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'status': 'searchable',
+      'source_count': 1,
+      'chunk_count': 1,
+    }));
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final healthPath = await controller.testAllRegisteredProviderCapabilities();
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final runtimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    expect(
+        (runtimeStatus['registered_provider_summary']
+            as Map)['adapter_ready_for_user_selection_count'],
+        1);
+    expect(
+        (runtimeStatus['registered_provider_summary']
+            as Map)['adapter_runtime_loaded_count'],
+        0);
+
+    final readinessPath =
+        runtimeStatus['provider_adapter_readiness_report_path'] as String;
+    final readiness = jsonDecode(File(readinessPath).readAsStringSync()) as Map;
+    final sirchmunkReadiness = (readiness['readiness_entries'] as List)
+        .cast<Map>()
+        .firstWhere((entry) => entry['provider_ref'] == 'sirchmunk');
+    expect(sirchmunkReadiness['status'], '连接成功');
+    expect(sirchmunkReadiness['ready_for_user_selection'], isTrue);
+    expect(sirchmunkReadiness['runtime_loaded'], isFalse);
+    expect(sirchmunkReadiness['test_artifacts'], isNotEmpty);
+    final probePath =
+        (sirchmunkReadiness['test_artifacts'] as List).first as String;
+    final probe = jsonDecode(File(probePath).readAsStringSync()) as Map;
+    expect(
+        probe['schema_version'], 'prd_v3_provider_adapter_probe_sirchmunk.v1');
+    expect(probe['passed'], isTrue);
+    expect(probe['network_used'], isFalse);
+    expect(probe['secret_plaintext_written'], isFalse);
+
+    final bindingPath =
+        runtimeStatus['provider_capability_binding_manifest_path'] as String;
+    final binding = jsonDecode(File(bindingPath).readAsStringSync()) as Map;
+    final retrievalBinding = (binding['bindings'] as List)
+        .cast<Map>()
+        .firstWhere((entry) => entry['capability_id'] == 'retrieval_provider');
+    expect(retrievalBinding['active_provider_ref'], 'sirchmunk');
+    expect(retrievalBinding['active_provider_kind'], 'registered_provider');
+    expect(retrievalBinding['selection_allowed'], isTrue);
+    expect(retrievalBinding['runtime_loaded'], isFalse);
+
+    final activated =
+        await controller.activateRegisteredProviderCapability('sirchmunk');
+    expect(activated, isTrue);
+    final activatedBinding =
+        jsonDecode(File(bindingPath).readAsStringSync()) as Map;
+    expect(activatedBinding['action'], 'activate');
+    expect(activatedBinding['selected_provider_ref'], 'sirchmunk');
+    expect(activatedBinding['selected_provider_runtime_loaded'], isFalse);
+    final selectionLog = File(
+            '$configDir${Platform.pathSeparator}registered_provider_selection_log.jsonl')
+        .readAsLinesSync()
+        .map((line) => jsonDecode(line) as Map)
+        .toList(growable: false);
+    expect(selectionLog.last['status'], '连接成功');
+    expect(selectionLog.last['runtime_loaded_after_event'], isFalse);
+    expect(selectionLog.last['secret_masked'], isTrue);
+
+    final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
+    expect(health['ready_for_user_selection_count'], 1);
   });
 
   test('prd multi knowledge base catalog supports copy merge split delete',
