@@ -648,6 +648,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Provider 与模型'), findsOneWidget);
+    expect(find.byKey(const Key('settings-project-config-profile')),
+        findsOneWidget);
+    expect(find.text('配置 Profile'), findsOneWidget);
+    expect(find.text('创建 Profile'), findsOneWidget);
+    expect(find.text('测试 Profile'), findsOneWidget);
     expect(find.byKey(const Key('settings-provider-capability-status')),
         findsOneWidget);
     expect(find.text('能力状态'), findsOneWidget);

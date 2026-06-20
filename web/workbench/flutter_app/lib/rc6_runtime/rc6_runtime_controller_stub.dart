@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../core_bridge/local_core_bridge.dart';
+import 'project_config_profile.dart';
 
 class Rc6RuntimeController extends ChangeNotifier {
   Rc6RuntimeController({
@@ -171,7 +172,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           'last_test_detail': '',
         },
         'exporters': {
-          'markdown': {'status': 'enabled_real', 'extension': 'md'},
+          'markdown': {'status': 'connected', 'extension': 'md'},
           'docx': {'status': 'desktop_runtime_required', 'extension': 'docx'},
           'pdf': {'status': 'desktop_runtime_required', 'extension': 'pdf'},
           'pptx': {'status': 'desktop_runtime_required', 'extension': 'pptx'},
@@ -179,6 +180,61 @@ class Rc6RuntimeController extends ChangeNotifier {
           'csv': {'status': 'desktop_runtime_required', 'extension': 'csv'},
         },
       };
+
+  Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async => [
+        ProjectConfigProfile.localDefault(
+          workspaceId: '',
+          createdAt: '',
+        ).copyWith(
+          lastTestStatus: '需启动外部服务',
+          lastTestSummary: '真实 Profile 配置需要 Windows EXE 桌面端。',
+        ),
+      ];
+
+  Future<ProjectConfigProfile> createProjectConfigProfile({
+    required String displayName,
+    String mode = 'local',
+  }) async {
+    await initialize();
+    return ProjectConfigProfile.localDefault(workspaceId: '', createdAt: '');
+  }
+
+  Future<ProjectConfigProfile> copyProjectConfigProfile(
+      String sourceProfileId) async {
+    await initialize();
+    return ProjectConfigProfile.localDefault(workspaceId: '', createdAt: '');
+  }
+
+  Future<ProjectConfigProfile> updateProjectConfigProfile(
+    String profileId, {
+    required String displayName,
+    required String mode,
+  }) async {
+    await initialize();
+    return ProjectConfigProfile.localDefault(workspaceId: '', createdAt: '');
+  }
+
+  Future<ProjectConfigProfile> activateProjectConfigProfile(
+      String profileId) async {
+    await initialize();
+    return ProjectConfigProfile.localDefault(workspaceId: '', createdAt: '');
+  }
+
+  Future<bool> deleteProjectConfigProfile(String profileId) async {
+    await initialize();
+    return false;
+  }
+
+  Future<ProjectConfigProfile> rollbackProjectConfigProfile() async {
+    await initialize();
+    return ProjectConfigProfile.localDefault(workspaceId: '', createdAt: '');
+  }
+
+  Future<String> testProjectConfigProfile(String profileId) async {
+    await initialize();
+    return '';
+  }
+
   Future<String> saveStorageProviderSettings({
     required String redisHost,
     required int redisPort,
@@ -246,9 +302,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         'workspace': '',
         'export_root': '',
         'exporters': {
-          'markdown': {'provider': 'local_markdown', 'status': 'enabled_real'},
-          'json': {'provider': 'local_json', 'status': 'enabled_real'},
-          'csv': {'provider': 'local_csv', 'status': 'enabled_real'},
+          'markdown': {'provider': 'local_markdown', 'status': 'connected'},
+          'json': {'provider': 'local_json', 'status': 'connected'},
+          'csv': {'provider': 'local_csv', 'status': 'connected'},
           'docx': {
             'provider': 'requires_configuration',
             'status': 'desktop_runtime_required',

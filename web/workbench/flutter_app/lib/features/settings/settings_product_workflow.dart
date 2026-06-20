@@ -113,8 +113,11 @@ class _SettingsProviderModelEditorState
   bool loading = false;
   bool saved = false;
   bool validated = false;
+  bool profileLoading = false;
   String savedPath = '';
   String validationPath = '';
+  String profileMessage = '';
+  List<ProjectConfigProfile> profiles = const [];
   final TextEditingController _llmProviderController =
       TextEditingController(text: 'env_configured');
   final TextEditingController _modelController =
@@ -136,6 +139,7 @@ class _SettingsProviderModelEditorState
   void initState() {
     super.initState();
     _loadSettings();
+    _loadProfiles();
   }
 
   @override
@@ -186,6 +190,99 @@ class _SettingsProviderModelEditorState
     });
   }
 
+  Future<void> _loadProfiles() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null) return;
+    setState(() => profileLoading = true);
+    final loaded = await rc6.loadProjectConfigProfiles();
+    if (!mounted) return;
+    setState(() {
+      profiles = loaded;
+      profileLoading = false;
+    });
+  }
+
+  ProjectConfigProfile? get _activeProfile {
+    for (final profile in profiles) {
+      if (profile.isActive) return profile;
+    }
+    return profiles.isEmpty ? null : profiles.first;
+  }
+
+  Future<void> _createProfile() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null) return;
+    await rc6.createProjectConfigProfile(
+      displayName: zh ? '云机/外部服务配置' : 'Cloud / external service profile',
+      mode: 'hybrid',
+    );
+    if (!mounted) return;
+    setState(() => profileMessage = zh ? 'Profile 已创建' : 'Profile created');
+    await _loadProfiles();
+  }
+
+  Future<void> _copyProfile() async {
+    final rc6 = widget.runtimeController;
+    final active = _activeProfile;
+    if (rc6 == null || active == null) return;
+    await rc6.copyProjectConfigProfile(active.profileId);
+    if (!mounted) return;
+    setState(() => profileMessage = zh ? 'Profile 已复制' : 'Profile copied');
+    await _loadProfiles();
+  }
+
+  Future<void> _testProfile() async {
+    final rc6 = widget.runtimeController;
+    final active = _activeProfile;
+    if (rc6 == null || active == null) return;
+    final testId = await rc6.testProjectConfigProfile(active.profileId);
+    if (!mounted) return;
+    setState(() => profileMessage =
+        testId.isEmpty ? '' : (zh ? 'Profile 测试已记录' : 'Profile test logged'));
+    await _loadProfiles();
+  }
+
+  Future<void> _activateNextProfile() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null || profiles.length < 2) return;
+    final active = _activeProfile;
+    final currentIndex = profiles
+        .indexWhere((profile) => profile.profileId == active?.profileId);
+    final next = profiles[(currentIndex + 1) % profiles.length];
+    await rc6.activateProjectConfigProfile(next.profileId);
+    if (!mounted) return;
+    setState(() => profileMessage = zh ? 'Profile 已切换' : 'Profile activated');
+    await _loadProfiles();
+  }
+
+  Future<void> _rollbackProfile() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null) return;
+    await rc6.rollbackProjectConfigProfile();
+    if (!mounted) return;
+    setState(() => profileMessage = zh ? 'Profile 已回滚' : 'Profile rolled back');
+    await _loadProfiles();
+  }
+
+  Future<void> _deleteInactiveProfile() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null) return;
+    final inactive = profiles.where((profile) => !profile.isActive).toList();
+    if (inactive.isEmpty) {
+      setState(() => profileMessage = zh
+          ? '当前 Profile 或最后一个 Profile 不能删除'
+          : 'No inactive profile to delete');
+      return;
+    }
+    final deleted =
+        await rc6.deleteProjectConfigProfile(inactive.last.profileId);
+    if (!mounted) return;
+    setState(() => profileMessage = deleted
+        ? (zh ? '非 active Profile 已删除' : 'Inactive profile deleted')
+        : (zh ? '删除被阻止' : 'Delete blocked'));
+    await _loadProfiles();
+  }
+
   Future<void> _saveSettings() async {
     final rc6 = widget.runtimeController;
     if (rc6 == null) return;
@@ -224,6 +321,18 @@ class _SettingsProviderModelEditorState
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 900;
+      final profilePanel = _SettingsProjectProfilePanel(
+        zh: zh,
+        profiles: profiles,
+        loading: profileLoading,
+        message: profileMessage,
+        onCreate: _createProfile,
+        onCopy: _copyProfile,
+        onTest: _testProfile,
+        onActivateNext: _activateNextProfile,
+        onRollback: _rollbackProfile,
+        onDeleteInactive: _deleteInactiveProfile,
+      );
       final provider = _ProductPanel(
         keyName: 'settings-provider-model',
         icon: Icons.memory_outlined,
@@ -350,6 +459,8 @@ class _SettingsProviderModelEditorState
       );
       if (!wide) {
         return Column(children: [
+          profilePanel,
+          const SizedBox(height: _DesktopGrid.gutter),
           provider,
           const SizedBox(height: _DesktopGrid.gutter),
           model,
@@ -359,6 +470,8 @@ class _SettingsProviderModelEditorState
       }
       return Column(
         children: [
+          profilePanel,
+          const SizedBox(height: _DesktopGrid.gutter),
           _EqualHeightRow(
             height: 310,
             flexes: const [7, 5],
@@ -407,10 +520,165 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
   }
 }
 
+class _SettingsProjectProfilePanel extends StatelessWidget {
+  const _SettingsProjectProfilePanel({
+    required this.zh,
+    required this.profiles,
+    required this.loading,
+    required this.message,
+    required this.onCreate,
+    required this.onCopy,
+    required this.onTest,
+    required this.onActivateNext,
+    required this.onRollback,
+    required this.onDeleteInactive,
+  });
+
+  final bool zh;
+  final List<ProjectConfigProfile> profiles;
+  final bool loading;
+  final String message;
+  final VoidCallback onCreate;
+  final VoidCallback onCopy;
+  final VoidCallback onTest;
+  final VoidCallback onActivateNext;
+  final VoidCallback onRollback;
+  final VoidCallback onDeleteInactive;
+
+  ProjectConfigProfile? get active {
+    for (final profile in profiles) {
+      if (profile.isActive) return profile;
+    }
+    return profiles.isEmpty ? null : profiles.first;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final activeProfile = active;
+    final rows = profiles.isEmpty
+        ? [
+            [
+              zh ? '暂无 Profile' : 'No profile',
+              zh ? '未配置' : 'Not configured',
+              zh ? '需要 Windows EXE' : 'Windows EXE required',
+              '',
+            ]
+          ]
+        : profiles
+            .map((profile) => [
+                  profile.displayName,
+                  _profileModeLabel(profile.mode, zh),
+                  profile.isActive
+                      ? (zh ? '当前 active' : 'Active')
+                      : (zh ? '未启用' : 'Inactive'),
+                  profile.lastTestStatus,
+                ])
+            .toList(growable: false);
+    return _ProductPanel(
+      keyName: 'settings-project-config-profile',
+      icon: Icons.account_tree_outlined,
+      title: zh ? '配置 Profile' : 'Config Profile',
+      gap: true,
+      children: [
+        _ProductTable(
+          columns: zh
+              ? ['Profile', '模式', '启用状态', '最近测试']
+              : ['Profile', 'Mode', 'Active', 'Last test'],
+          rows: rows,
+        ),
+        const SizedBox(height: 8),
+        _FieldRow(
+          label: zh ? '当前 Profile' : 'Active profile',
+          value: loading
+              ? (zh ? '正在加载' : 'Loading')
+              : activeProfile?.displayName ?? (zh ? '未配置' : 'Not configured'),
+        ),
+        const SizedBox(height: 8),
+        _FieldRow(
+          label: zh ? '健康度' : 'Health',
+          value: activeProfile == null
+              ? (zh ? '未配置' : 'Not configured')
+              : '${activeProfile.lastTestStatus} / v${activeProfile.version}',
+        ),
+        const SizedBox(height: 8),
+        _FieldRow(
+          label: zh ? '失败摘要' : 'Failure summary',
+          value: activeProfile?.lastError.isNotEmpty == true
+              ? activeProfile!.lastError
+              : (zh
+                  ? '无明文 secret；失败进入审计日志'
+                  : 'No plaintext secrets; failures go to audit logs'),
+        ),
+        const SizedBox(height: 8),
+        _EqualActionRow(children: [
+          _PrimaryProductAction(
+            label: zh ? '创建 Profile' : 'Create profile',
+            icon: Icons.add_circle_outline,
+            onPressed: onCreate,
+          ),
+          _PrimaryProductAction(
+            label: zh ? '复制 Profile' : 'Copy profile',
+            icon: Icons.copy_outlined,
+            onPressed: activeProfile == null ? null : onCopy,
+          ),
+        ]),
+        const SizedBox(height: 8),
+        _EqualActionRow(children: [
+          _PrimaryProductAction(
+            label: zh ? '测试 Profile' : 'Test profile',
+            icon: Icons.fact_check_outlined,
+            onPressed: activeProfile == null ? null : onTest,
+          ),
+          _PrimaryProductAction(
+            label: zh ? '切换 Profile' : 'Switch profile',
+            icon: Icons.swap_horiz_outlined,
+            onPressed: profiles.length < 2 ? null : onActivateNext,
+          ),
+        ]),
+        const SizedBox(height: 8),
+        _EqualActionRow(children: [
+          _PrimaryProductAction(
+            label: zh ? '回滚 Profile' : 'Rollback profile',
+            icon: Icons.restore_outlined,
+            onPressed: activeProfile == null ? null : onRollback,
+          ),
+          _PrimaryProductAction(
+            label: zh ? '删除非 active' : 'Delete inactive',
+            icon: Icons.delete_outline,
+            onPressed: profiles.where((profile) => !profile.isActive).isEmpty
+                ? null
+                : onDeleteInactive,
+          ),
+        ]),
+        if (message.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          _RuntimeFeedbackBanner(
+            title: message,
+            detail: zh
+                ? 'Profile、测试、切换、回滚会写入 config 资产和审计日志。'
+                : 'Profile changes, tests, activation, and rollback write config assets and audit logs.',
+            tone: _StatusTone.success,
+            icon: Icons.verified_outlined,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+String _profileModeLabel(String mode, bool zh) {
+  return switch (mode) {
+    'cloud' => zh ? '云机模式' : 'Cloud',
+    'hybrid' => zh ? '混合模式' : 'Hybrid',
+    _ => zh ? '本地模式' : 'Local',
+  };
+}
+
 String _providerCapabilityStatusLabel(String status, bool zh) {
   if (!zh) {
     return switch (status) {
       'available' => 'Available',
+      'available_with_gated_options' => 'Available, options gated',
       'configured_not_tested' => 'Configured, test required',
       'dependency_gated' => 'Dependency gated',
       'external_runtime_required' => 'User runtime required',
@@ -423,6 +691,7 @@ String _providerCapabilityStatusLabel(String status, bool zh) {
   }
   return switch (status) {
     'available' => '可用',
+    'available_with_gated_options' => '可用，扩展项受控',
     'configured_not_tested' => '已配置，需测试',
     'dependency_gated' => '依赖待满足',
     'external_runtime_required' => '需要自有运行时',

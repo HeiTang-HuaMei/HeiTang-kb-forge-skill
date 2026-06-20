@@ -562,6 +562,242 @@ void main() {
     expect((reloaded['provider'] as Map)['api_key_display'], contains('*'));
   });
 
+  test('project config profile lifecycle persists and protects active profile',
+      () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    var profiles = await controller.loadProjectConfigProfiles();
+    expect(profiles, hasLength(1));
+    expect(profiles.single.profileId, 'default_local');
+    expect(profiles.single.isActive, isTrue);
+
+    final blockedDelete =
+        await controller.deleteProjectConfigProfile('default_local');
+    expect(blockedDelete, isFalse);
+
+    final cloud = await controller.createProjectConfigProfile(
+      displayName: '云机服务配置',
+      mode: 'hybrid',
+    );
+    expect(cloud.mode, 'hybrid');
+    final copy = await controller.copyProjectConfigProfile(cloud.profileId);
+    expect(copy.rollbackFromProfileId, cloud.profileId);
+    final edited = await controller.updateProjectConfigProfile(
+      cloud.profileId,
+      displayName: '云机服务配置 v2',
+      mode: 'cloud',
+    );
+    expect(edited.version, 2);
+    expect(edited.mode, 'cloud');
+
+    final testId = await controller.testProjectConfigProfile(cloud.profileId);
+    expect(testId, startsWith('profile_test_'));
+    final activated =
+        await controller.activateProjectConfigProfile(cloud.profileId);
+    expect(activated.isActive, isTrue);
+
+    profiles = await controller.loadProjectConfigProfiles();
+    expect(profiles.where((profile) => profile.isActive), hasLength(1));
+    expect(profiles.firstWhere((profile) => profile.isActive).profileId,
+        cloud.profileId);
+    final activeDelete =
+        await controller.deleteProjectConfigProfile(cloud.profileId);
+    expect(activeDelete, isFalse);
+    final inactiveDelete =
+        await controller.deleteProjectConfigProfile(copy.profileId);
+    expect(inactiveDelete, isTrue);
+
+    await controller.rollbackProjectConfigProfile();
+    profiles = await controller.loadProjectConfigProfiles();
+    expect(profiles.firstWhere((profile) => profile.isActive).profileId,
+        'default_local');
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    final reloadedProfiles = await reloaded.loadProjectConfigProfiles();
+    expect(reloadedProfiles.firstWhere((profile) => profile.isActive).profileId,
+        'default_local');
+
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final profileRaw =
+        File('$configDir${Platform.pathSeparator}project_config_profiles.json')
+            .readAsStringSync();
+    expect(profileRaw, contains('prd_v3_project_config_profiles.v1'));
+    expect(profileRaw, isNot(contains('super-secret-password')));
+    final runtimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    expect(runtimeStatus['schema_version'],
+        'prd_v3_project_config_runtime_status.v1');
+    expect((runtimeStatus['active_profile'] as Map)['profile_id'],
+        'default_local');
+    expect(
+        (runtimeStatus['module_status'] as Map)['agent_workbench'], isA<Map>());
+    final configAssetsPath = runtimeStatus['config_assets_path'] as String;
+    final configAssets =
+        jsonDecode(File(configAssetsPath).readAsStringSync()) as Map;
+    expect(configAssets['schema_version'], 'prd_v3_project_config_assets.v1');
+    final assets = configAssets['config_assets'] as Map;
+    expect(
+        assets.keys,
+        containsAll([
+          'storage_path',
+          'llm_provider',
+          'embedding_provider',
+          'search_provider',
+          'ocr_provider',
+          'pdf_parser_provider',
+          'exporter_provider',
+          'redis',
+          'vector_db',
+          'network_authorization',
+          'agent_memory_tool_policy',
+        ]));
+    expect((assets['storage_path'] as Map)['path_write_test'], '连接成功');
+    expect((assets['exporter_provider'] as Map)['formats'], isA<Map>());
+    expect(((assets['exporter_provider'] as Map)['formats'] as Map)['docx'],
+        containsPair('button_enabled', false));
+    expect(configAssets, isNot(contains('enabled_real')));
+    final activationLog =
+        File('$configDir${Platform.pathSeparator}profile_activation_log.jsonl')
+            .readAsStringSync();
+    expect(activationLog, contains('previous_profile_id'));
+    expect(activationLog, isNot(contains('super-secret-password')));
+    final changeLog =
+        File('$configDir${Platform.pathSeparator}profile_change_log.jsonl')
+            .readAsStringSync();
+    expect(changeLog, contains('"action":"copy"'));
+    final testLog =
+        File('$configDir${Platform.pathSeparator}config_test_log.jsonl')
+            .readAsStringSync();
+    expect(testLog, contains('"config_type":"project_config_profile"'));
+    expect(testLog, isNot(contains('super-secret-password')));
+  });
+
+  test('project config activation synchronizes downstream module status',
+      () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final cloud = await controller.createProjectConfigProfile(
+      displayName: '外部服务配置',
+      mode: 'hybrid',
+    );
+    await controller.saveStorageProviderSettings(
+      redisHost: '127.0.0.1',
+      redisPort: 6379,
+      redisKeyPrefix: 'heitang:',
+      redisPassword: '',
+      qdrantEndpoint: 'http://127.0.0.1:6333',
+      qdrantCollection: 'heitang_kb',
+      qdrantDimension: 768,
+      qdrantApiKey: '',
+    );
+    await controller.activateProjectConfigProfile(cloud.profileId);
+
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final runtimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    final moduleStatus = runtimeStatus['module_status'] as Map;
+    expect((runtimeStatus['active_profile'] as Map)['profile_id'],
+        cloud.profileId);
+    expect((moduleStatus['dashboard'] as Map)['current_profile'], '外部服务配置');
+    expect((moduleStatus['document_library'] as Map)['storage_path'],
+        workspace.path);
+    expect((moduleStatus['knowledge_base'] as Map)['index_backend'], '本地索引');
+    expect((moduleStatus['knowledge_base'] as Map)['embedding_dimension'], 768);
+    expect(
+        (moduleStatus['retrieval_verification']
+            as Map)['external_fact_verification'],
+        '已配置未测试');
+    expect(
+        (moduleStatus['document_generation'] as Map)['office_export_available'],
+        isFalse);
+    expect(
+        (moduleStatus['agent_workbench']
+            as Map)['unauthorized_resources_selectable'],
+        isFalse);
+    expect((runtimeStatus['degradation'] as Map)['vector_failure'],
+        contains('知识库回退本地索引'));
+  });
+
+  test('provider failure degradation writes masked config test logs', () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final redisMissing = await controller.testRedisConnection(
+      host: '127.0.0.1',
+      port: 6379,
+      keyPrefix: 'heitang:',
+      password: '',
+    );
+    expect(redisMissing.status, 'missing_password');
+    final vectorInvalid = await controller.testQdrantConnection(
+      endpoint: 'not-a-url',
+      collection: 'heitang_kb',
+      dimension: 0,
+      apiKey: 'qdrant-secret-token',
+    );
+    expect(vectorInvalid.status, 'invalid_endpoint');
+
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final runtimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    final moduleStatus = runtimeStatus['module_status'] as Map;
+    expect((moduleStatus['agent_workbench'] as Map)['redis_memory_status'],
+        '降级为本地模式');
+    expect((moduleStatus['knowledge_base'] as Map)['index_backend'], '本地索引');
+    expect((runtimeStatus['degradation'] as Map)['redis_failure'],
+        contains('A2A 会话状态降级为本地文件'));
+    expect((runtimeStatus['degradation'] as Map)['llm_failure'],
+        contains('文档解析和本地导入可用'));
+
+    final testLog =
+        File('$configDir${Platform.pathSeparator}config_test_log.jsonl')
+            .readAsStringSync();
+    expect(testLog, contains('"config_type":"redis"'));
+    expect(testLog, contains('"config_type":"vector_db"'));
+    expect(testLog, contains('"secret_masked":true'));
+    expect(testLog, isNot(contains('qdrant-secret-token')));
+    expect(testLog, isNot(contains('HEITANG_REDIS_PASSWORD=')));
+  });
+
   test(
       'prd settings and parallel task validation produce industrial audit artifacts',
       () async {
@@ -599,6 +835,8 @@ void main() {
     final exporterValidationPath = await controller.validateExporterSettings();
     final parallelReportPath =
         await controller.runParallelTaskCapacityValidation(taskCount: 8);
+    final profiles = await controller.loadProjectConfigProfiles();
+    expect(profiles, isNotEmpty);
 
     final providerRaw = File(providerSettingsPath).readAsStringSync();
     expect(providerRaw, isNot(contains('redacted-runtime-input')));
@@ -608,7 +846,47 @@ void main() {
     expect(providerValidation['schema_version'],
         'prd_v3_provider_validation_report.v1');
     expect(providerValidation['secret_plaintext_written'], isFalse);
-    expect(providerValidation['stage_3_hot_swap_not_started'], isTrue);
+    expect(providerValidation['stage_3_provider_capability_activation'],
+        'validated');
+    expect(providerValidation['registered_project_loading_visible_to_user'],
+        isFalse);
+    final activationMatrixPath =
+        providerValidation['provider_activation_matrix_path'] as String;
+    final lifecycleHistoryPath =
+        providerValidation['provider_lifecycle_history_path'] as String;
+    final rollbackManifestPath =
+        providerValidation['provider_rollback_manifest_path'] as String;
+    final activationMatrix =
+        jsonDecode(File(activationMatrixPath).readAsStringSync()) as Map;
+    expect(activationMatrix['schema_version'],
+        'prd_v3_provider_activation_matrix.v1');
+    expect(activationMatrix['status'], 'validated');
+    expect(
+        (activationMatrix['user_concept_boundary']
+            as Map)['hot_swap_project_concept_visible'],
+        isFalse);
+    expect(
+        (activationMatrix['registered_project_boundary']
+            as Map)['loaded_project_count'],
+        0);
+    expect(activationMatrix['activation_entries'], hasLength(8));
+    final lifecycleHistory = File(lifecycleHistoryPath)
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map)
+        .toList(growable: false);
+    expect(lifecycleHistory.map((event) => event['event_type']),
+        containsAll(['validated', 'fallback_confirmed']));
+    expect(
+        lifecycleHistory
+            .every((event) => event['secret_plaintext_written'] == false),
+        isTrue);
+    final rollbackManifest =
+        jsonDecode(File(rollbackManifestPath).readAsStringSync()) as Map;
+    expect(rollbackManifest['schema_version'],
+        'prd_v3_provider_rollback_manifest.v1');
+    expect(rollbackManifest['rollback_supported'], isTrue);
+    expect(rollbackManifest['rollback_targets'], hasLength(8));
 
     final exporter = jsonDecode(File(exporterSettingsPath).readAsStringSync())
         as Map<String, dynamic>;
@@ -628,7 +906,8 @@ void main() {
     expect(parallelReport['supports_multi_task_parallelism'], isTrue);
     expect(parallelReport['supports_failure_isolation'], isTrue);
     expect(parallelReport['supports_recovery_retry'], isTrue);
-    expect(parallelReport['stage_3_provider_hot_swap_required'], isTrue);
+    expect(parallelReport['provider_capability_isolation_status'], 'validated');
+    expect(parallelReport['providerized_task_execution_ready'], isTrue);
 
     final isolationMatrix = jsonDecode(File(
             '${workspace.path}${Platform.pathSeparator}tasks${Platform.pathSeparator}parallel_validation${Platform.pathSeparator}task_isolation_matrix.json')
@@ -642,6 +921,22 @@ void main() {
         .readAsStringSync()) as Map;
     expect(recoveryReport['schema_version'], 'prd_v3_task_recovery_report.v1');
     expect(recoveryReport['retry_status'], 'succeeded');
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final runtimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    expect(runtimeStatus['schema_version'],
+        'prd_v3_project_config_runtime_status.v1');
+    expect((runtimeStatus['module_status'] as Map)['document_generation'],
+        isA<Map>());
+    expect((runtimeStatus['degradation'] as Map)['redis_failure'],
+        contains('Agent 短期记忆'));
+    final configTestLog =
+        File('$configDir${Platform.pathSeparator}config_test_log.jsonl')
+            .readAsStringSync();
+    expect(configTestLog, contains('"config_type":"provider_runtime"'));
+    expect(configTestLog, contains('"config_type":"exporter"'));
+    expect(configTestLog, isNot(contains('redacted-runtime-input')));
 
     final reloaded = buildController();
     await reloaded.initialize();

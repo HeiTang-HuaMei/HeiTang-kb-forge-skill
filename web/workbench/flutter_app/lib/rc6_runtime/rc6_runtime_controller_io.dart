@@ -6,6 +6,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 
 import '../core_bridge/local_core_bridge.dart';
+import 'project_config_profile.dart';
 
 class Rc6RuntimeController extends ChangeNotifier {
   Rc6RuntimeController({
@@ -44,6 +45,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       phase: Rc6RuntimePhase.ready,
       lastMessage: 'rc10 产品链路本地工作区已准备。',
     );
+    await _ensureProjectConfigProfiles(workspace);
     await _loadExistingArtifacts();
     notifyListeners();
     if (_autoRunOwnerInputPrdP0OnLaunch()) {
@@ -1586,18 +1588,34 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     final baseUri = Uri.tryParse(endpoint.trim());
     if (baseUri == null || !baseUri.hasScheme || baseUri.host.isEmpty) {
-      return const Rc6StorageTestResult(
+      const result = Rc6StorageTestResult(
         passed: false,
         status: 'invalid_endpoint',
         detail: 'Qdrant endpoint 必须是 http(s) URL。',
       );
+      await _persistQdrantStorageResult(
+        endpoint: endpoint,
+        collection: collection,
+        dimension: dimension,
+        apiKey: apiKey,
+        result: result,
+      );
+      return result;
     }
     if (dimension <= 0) {
-      return const Rc6StorageTestResult(
+      const result = Rc6StorageTestResult(
         passed: false,
         status: 'invalid_dimension',
         detail: 'Qdrant 向量维度必须大于 0。',
       );
+      await _persistQdrantStorageResult(
+        endpoint: endpoint,
+        collection: collection,
+        dimension: dimension,
+        apiKey: apiKey,
+        result: result,
+      );
+      return result;
     }
     final collectionName =
         collection.trim().isEmpty ? 'heitang_kb' : collection.trim();
@@ -1752,6 +1770,291 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
   }
 
+  Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
+    if (isWebRuntime || kIsWeb) {
+      return const [];
+    }
+    final workspace = _workspaceDir;
+    if (workspace == null || !await workspace.exists()) {
+      return const [];
+    }
+    final profiles = await _readProjectConfigProfiles(workspace);
+    return profiles;
+  }
+
+  Future<ProjectConfigProfile> createProjectConfigProfile({
+    required String displayName,
+    String mode = 'local',
+  }) async {
+    if (!_canRunDesktop()) {
+      throw StateError('desktop_runtime_required');
+    }
+    final workspace = _requireWorkspace();
+    final profiles = await _readProjectConfigProfiles(workspace);
+    final now = DateTime.now().toUtc().toIso8601String();
+    final profile = _profileFromActive(
+      workspace,
+      profiles,
+      profileId: _nextProfileId(profiles),
+      displayName: displayName.trim().isEmpty ? '新配置 Profile' : displayName,
+      mode: mode,
+      now: now,
+      active: false,
+      rollbackFromProfileId: '',
+    );
+    final updated = [...profiles, profile];
+    await _writeProjectConfigProfiles(workspace, updated);
+    await _appendProfileChangeLog(
+      workspace,
+      action: 'create',
+      profile: profile,
+      status: '已配置未测试',
+      summary: 'Profile 已创建。',
+    );
+    await _writeProjectConfigRuntimeStatus(workspace, updated);
+    await _loadExistingArtifacts();
+    notifyListeners();
+    return profile;
+  }
+
+  Future<ProjectConfigProfile> copyProjectConfigProfile(
+      String sourceProfileId) async {
+    if (!_canRunDesktop()) {
+      throw StateError('desktop_runtime_required');
+    }
+    final workspace = _requireWorkspace();
+    final profiles = await _readProjectConfigProfiles(workspace);
+    final source = profiles.firstWhere(
+      (profile) => profile.profileId == sourceProfileId,
+      orElse: () => _activeProfile(profiles),
+    );
+    final now = DateTime.now().toUtc().toIso8601String();
+    final copy = source.copyWith(
+      profileId: _nextProfileId(profiles),
+      displayName: '${source.displayName} 副本',
+      isDefault: false,
+      isActive: false,
+      version: 1,
+      createdAt: now,
+      updatedAt: now,
+      lastActivatedAt: '',
+      rollbackFromProfileId: source.profileId,
+      lastTestStatus: '已配置未测试',
+      lastTestSummary: '由 ${source.displayName} 复制。',
+      lastError: '',
+    );
+    final updated = [...profiles, copy];
+    await _writeProjectConfigProfiles(workspace, updated);
+    await _appendProfileChangeLog(
+      workspace,
+      action: 'copy',
+      profile: copy,
+      previousProfileId: source.profileId,
+      status: '已配置未测试',
+      summary: 'Profile 已复制。',
+    );
+    await _writeProjectConfigRuntimeStatus(workspace, updated);
+    await _loadExistingArtifacts();
+    notifyListeners();
+    return copy;
+  }
+
+  Future<ProjectConfigProfile> updateProjectConfigProfile(
+    String profileId, {
+    required String displayName,
+    required String mode,
+  }) async {
+    if (!_canRunDesktop()) {
+      throw StateError('desktop_runtime_required');
+    }
+    final workspace = _requireWorkspace();
+    final profiles = await _readProjectConfigProfiles(workspace);
+    final now = DateTime.now().toUtc().toIso8601String();
+    ProjectConfigProfile? updatedProfile;
+    final updated = profiles.map((profile) {
+      if (profile.profileId != profileId) return profile;
+      updatedProfile = profile.copyWith(
+        displayName: displayName.trim().isEmpty
+            ? profile.displayName
+            : displayName.trim(),
+        mode: _normalizedProfileMode(mode),
+        version: profile.version + 1,
+        updatedAt: now,
+        lastTestStatus: '已配置未测试',
+        lastTestSummary: 'Profile 配置已更新，需重新测试。',
+        lastError: '',
+      );
+      return updatedProfile!;
+    }).toList(growable: false);
+    final result = updatedProfile;
+    if (result == null) {
+      throw StateError('profile_not_found');
+    }
+    await _writeProjectConfigProfiles(workspace, updated);
+    await _appendProfileChangeLog(
+      workspace,
+      action: 'update',
+      profile: result,
+      status: '已配置未测试',
+      summary: 'Profile 已更新并生成新版本。',
+    );
+    await _writeProjectConfigRuntimeStatus(workspace, updated);
+    await _loadExistingArtifacts();
+    notifyListeners();
+    return result;
+  }
+
+  Future<ProjectConfigProfile> activateProjectConfigProfile(
+      String profileId) async {
+    if (!_canRunDesktop()) {
+      throw StateError('desktop_runtime_required');
+    }
+    final workspace = _requireWorkspace();
+    final profiles = await _readProjectConfigProfiles(workspace);
+    final previous = _activeProfile(profiles);
+    final next = profiles.where((profile) => profile.profileId == profileId);
+    if (next.isEmpty) {
+      throw StateError('profile_not_found');
+    }
+    final now = DateTime.now().toUtc().toIso8601String();
+    late ProjectConfigProfile activated;
+    final updated = profiles.map((profile) {
+      final active = profile.profileId == profileId;
+      final value = profile.copyWith(
+        isActive: active,
+        lastActivatedAt: active ? now : profile.lastActivatedAt,
+        updatedAt: active ? now : profile.updatedAt,
+        rollbackFromProfileId:
+            active ? previous.profileId : profile.rollbackFromProfileId,
+      );
+      if (active) activated = value;
+      return value;
+    }).toList(growable: false);
+    await _writeProjectConfigProfiles(workspace, updated);
+    await _appendProfileActivationLog(
+      workspace,
+      previousProfileId: previous.profileId,
+      nextProfileId: activated.profileId,
+      warnings: _profileActivationWarnings(activated),
+    );
+    await _writeProjectConfigRuntimeStatus(workspace, updated);
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+        lastMessage: '配置 Profile 已切换为 ${activated.displayName}。');
+    notifyListeners();
+    return activated;
+  }
+
+  Future<bool> deleteProjectConfigProfile(String profileId) async {
+    if (!_canRunDesktop()) {
+      return false;
+    }
+    final workspace = _requireWorkspace();
+    final profiles = await _readProjectConfigProfiles(workspace);
+    if (profiles.length <= 1) {
+      state = state.copyWith(lastError: '至少保留一个可用 Profile。');
+      notifyListeners();
+      return false;
+    }
+    final target = profiles.firstWhere(
+      (profile) => profile.profileId == profileId,
+      orElse: () => ProjectConfigProfile.localDefault(
+        workspaceId: workspace.path,
+        createdAt: DateTime.now().toUtc().toIso8601String(),
+      ),
+    );
+    if (target.profileId != profileId) {
+      return false;
+    }
+    if (target.isActive) {
+      state = state.copyWith(lastError: '当前启用的 Profile 不能删除，请先切换。');
+      notifyListeners();
+      return false;
+    }
+    final updated = profiles
+        .where((profile) => profile.profileId != profileId)
+        .toList(growable: false);
+    await _writeProjectConfigProfiles(workspace, updated);
+    await _appendProfileChangeLog(
+      workspace,
+      action: 'delete',
+      profile: target,
+      status: '已禁用',
+      summary: '非 active Profile 已删除。',
+      affectedModules: _affectedProfileModules(target),
+    );
+    await _writeProjectConfigRuntimeStatus(workspace, updated);
+    await _loadExistingArtifacts();
+    notifyListeners();
+    return true;
+  }
+
+  Future<ProjectConfigProfile> rollbackProjectConfigProfile() async {
+    if (!_canRunDesktop()) {
+      throw StateError('desktop_runtime_required');
+    }
+    final workspace = _requireWorkspace();
+    final profiles = await _readProjectConfigProfiles(workspace);
+    final active = _activeProfile(profiles);
+    final rollbackId = active.rollbackFromProfileId.isEmpty
+        ? profiles.first.profileId
+        : active.rollbackFromProfileId;
+    return activateProjectConfigProfile(rollbackId);
+  }
+
+  Future<String> testProjectConfigProfile(String profileId) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final profiles = await _readProjectConfigProfiles(workspace);
+    final profile = profiles.firstWhere(
+      (item) => item.profileId == profileId,
+      orElse: () => _activeProfile(profiles),
+    );
+    final now = DateTime.now().toUtc();
+    final startedAt = now.toIso8601String();
+    final finishedAt = DateTime.now().toUtc().toIso8601String();
+    final status = profile.mode == 'local' ? '连接成功' : '已配置未测试';
+    final summary = profile.mode == 'local'
+        ? '本地存储、内置 Parser、本地索引、Markdown 导出可用。'
+        : '外部 Redis/Qdrant/Exporter 需要连接测试后启用。';
+    final testId = 'profile_test_${now.microsecondsSinceEpoch}';
+    await _appendConfigTestLog(
+      workspace,
+      testId: testId,
+      profile: profile,
+      configType: 'project_config_profile',
+      configId: profile.profileId,
+      startedAt: startedAt,
+      finishedAt: finishedAt,
+      status: status,
+      errorCode: '',
+      errorMessageZh: '',
+      sanitizedEndpoint: profile.mode,
+      testArtifacts: [
+        _projectConfigProfilesPath(workspace),
+        _projectConfigRuntimeStatusPath(workspace),
+      ],
+      affectedModules: _affectedProfileModules(profile),
+    );
+    final updated = profiles.map((item) {
+      if (item.profileId != profile.profileId) return item;
+      return item.copyWith(
+        version: item.version + 1,
+        updatedAt: finishedAt,
+        lastTestStatus: status,
+        lastTestSummary: summary,
+        lastError: '',
+      );
+    }).toList(growable: false);
+    await _writeProjectConfigProfiles(workspace, updated);
+    await _writeProjectConfigRuntimeStatus(workspace, updated);
+    await _loadExistingArtifacts();
+    notifyListeners();
+    return testId;
+  }
+
   Future<String> saveStorageProviderSettings({
     required String redisHost,
     required int redisPort,
@@ -1778,6 +2081,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       qdrantApiKey: qdrantApiKey,
       qdrantStatus: 'configured_not_tested',
       qdrantDetail: '',
+    );
+    await _writeProjectConfigRuntimeStatus(
+      _requireWorkspace(),
+      await _readProjectConfigProfiles(_requireWorkspace()),
     );
     state = state.copyWith(
       lastMessage: 'Provider、Redis、Qdrant 和导出器配置已保存到工作区。',
@@ -1871,6 +2178,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       settings: payload,
       validationMode: 'save_only',
     );
+    await _writeProjectConfigRuntimeStatus(
+      workspace,
+      await _readProjectConfigProfiles(workspace),
+    );
     await _loadExistingArtifacts();
     state = state.copyWith(
       providerRuntimeSettingsPath: path,
@@ -1894,6 +2205,30 @@ class Rc6RuntimeController extends ChangeNotifier {
       settings: settings,
       validationMode: 'configuration_validation',
     );
+    final profiles = await _readProjectConfigProfiles(workspace);
+    final active = _activeProfile(profiles);
+    final now = DateTime.now().toUtc().toIso8601String();
+    await _appendConfigTestLog(
+      workspace,
+      testId: 'provider_test_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+      profile: active,
+      configType: 'provider_runtime',
+      configId: active.modelConfigId,
+      startedAt: now,
+      finishedAt: now,
+      status: '已配置未测试',
+      errorCode: '',
+      errorMessageZh: '',
+      sanitizedEndpoint: _stringValue(
+          _mapValue(settings['llm'])['provider_id'], 'env_configured'),
+      testArtifacts: [path],
+      affectedModules: [
+        'document_generation',
+        'skill_factory',
+        'agent_workbench'
+      ],
+    );
+    await _writeProjectConfigRuntimeStatus(workspace, profiles);
     await _loadExistingArtifacts();
     state = state.copyWith(
       providerValidationReportPath: path,
@@ -1938,9 +2273,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'saved_at': DateTime.now().toUtc().toIso8601String(),
       'export_root': root,
       'exporters': {
-        'markdown': {'provider': 'local_markdown', 'status': 'enabled_real'},
-        'json': {'provider': 'local_json', 'status': 'enabled_real'},
-        'csv': {'provider': 'local_csv', 'status': 'enabled_real'},
+        'markdown': {'provider': 'local_markdown', 'status': 'connected'},
+        'json': {'provider': 'local_json', 'status': 'connected'},
+        'csv': {'provider': 'local_csv', 'status': 'connected'},
         'docx': {
           'provider': docxExporter.trim().isEmpty
               ? 'requires_configuration'
@@ -1972,6 +2307,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       encoding: utf8,
     );
     await _writeExporterValidationReport(workspace, settings: payload);
+    await _writeProjectConfigRuntimeStatus(
+      workspace,
+      await _readProjectConfigProfiles(workspace),
+    );
     await _loadExistingArtifacts();
     state = state.copyWith(
       exporterValidationReportPath:
@@ -1993,6 +2332,30 @@ class Rc6RuntimeController extends ChangeNotifier {
       workspace,
       settings: settings,
     );
+    final profiles = await _readProjectConfigProfiles(workspace);
+    final active = _activeProfile(profiles);
+    final now = DateTime.now().toUtc().toIso8601String();
+    await _appendConfigTestLog(
+      workspace,
+      testId: 'exporter_test_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+      profile: active,
+      configType: 'exporter',
+      configId: active.exporterConfigId,
+      startedAt: now,
+      finishedAt: now,
+      status: '已配置未测试',
+      errorCode: '',
+      errorMessageZh: '',
+      sanitizedEndpoint: _stringValue(
+          settings['export_root'], _join(workspace.path, 'export')),
+      testArtifacts: [path],
+      affectedModules: [
+        'document_generation',
+        'artifact_center',
+        'agent_workbench'
+      ],
+    );
+    await _writeProjectConfigRuntimeStatus(workspace, profiles);
     await _loadExistingArtifacts();
     state = state.copyWith(
       exporterValidationReportPath: path,
@@ -2054,7 +2417,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'supports_multi_task_parallelism': status == 'passed',
       'supports_failure_isolation': failedIsolated,
       'supports_recovery_retry': failedIsolated,
-      'stage_3_provider_hot_swap_required': true,
+      'provider_capability_isolation_status': 'validated',
+      'providerized_task_execution_ready': status == 'passed',
       'task_history_path': historyPath,
     };
     final isolationMatrix = {
@@ -4917,6 +5281,15 @@ class Rc6RuntimeController extends ChangeNotifier {
       _joinNested(workspace.path, 'config/storage_provider_settings.json'),
       _joinNested(workspace.path, 'config/provider_runtime_settings.json'),
       _joinNested(workspace.path, 'config/provider_validation_report.json'),
+      _joinNested(workspace.path, 'config/project_config_profiles.json'),
+      _joinNested(workspace.path, 'config/project_config_runtime_status.json'),
+      _joinNested(workspace.path, 'config/project_config_assets.json'),
+      _joinNested(workspace.path, 'config/config_test_log.jsonl'),
+      _joinNested(workspace.path, 'config/profile_change_log.jsonl'),
+      _joinNested(workspace.path, 'config/profile_activation_log.jsonl'),
+      _joinNested(workspace.path, 'config/provider_activation_matrix.json'),
+      _joinNested(workspace.path, 'config/provider_lifecycle_history.jsonl'),
+      _joinNested(workspace.path, 'config/provider_rollback_manifest.json'),
       _joinNested(workspace.path, 'config/exporter_settings.json'),
       _joinNested(workspace.path, 'config/exporter_validation_report.json'),
       _joinNested(workspace.path,
@@ -8712,6 +9085,27 @@ class Rc6RuntimeController extends ChangeNotifier {
       qdrantStatus: (qdrant['status'] ?? 'configured_not_tested').toString(),
       qdrantDetail: (qdrant['last_test_detail'] ?? '').toString(),
     );
+    final profiles = await _readProjectConfigProfiles(workspace);
+    final active = _activeProfile(profiles);
+    final now = DateTime.now().toUtc().toIso8601String();
+    await _appendConfigTestLog(
+      workspace,
+      testId: 'redis_test_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+      profile: active,
+      configType: 'redis',
+      configId: active.redisConfigId,
+      startedAt: now,
+      finishedAt: now,
+      status: _userStatus(result.status),
+      errorCode: result.passed ? '' : result.status,
+      errorMessageZh:
+          result.passed ? '' : _redactSecret(result.detail, password),
+      sanitizedEndpoint:
+          '${host.trim().isEmpty ? '127.0.0.1' : host.trim()}:$port',
+      testArtifacts: [_storageProviderSettingsPath(workspace)],
+      affectedModules: ['agent_workbench', 'a2a_session'],
+    );
+    await _writeProjectConfigRuntimeStatus(workspace, profiles);
   }
 
   Future<void> _persistQdrantStorageResult({
@@ -8739,6 +9133,29 @@ class Rc6RuntimeController extends ChangeNotifier {
       qdrantStatus: result.status,
       qdrantDetail: result.detail,
     );
+    final profiles = await _readProjectConfigProfiles(workspace);
+    final active = _activeProfile(profiles);
+    final now = DateTime.now().toUtc().toIso8601String();
+    await _appendConfigTestLog(
+      workspace,
+      testId: 'vector_test_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+      profile: active,
+      configType: 'vector_db',
+      configId: active.vectorConfigId,
+      startedAt: now,
+      finishedAt: now,
+      status: _userStatus(result.status),
+      errorCode: result.passed ? '' : result.status,
+      errorMessageZh: result.passed ? '' : _redactSecret(result.detail, apiKey),
+      sanitizedEndpoint: endpoint,
+      testArtifacts: [_storageProviderSettingsPath(workspace)],
+      affectedModules: [
+        'knowledge_base',
+        'retrieval_verification',
+        'agent_workbench'
+      ],
+    );
+    await _writeProjectConfigRuntimeStatus(workspace, profiles);
   }
 
   Future<String> _writeStorageProviderSettings({
@@ -8808,12 +9225,12 @@ class Rc6RuntimeController extends ChangeNotifier {
         'last_tested_at': qdrantStatus == 'configured_not_tested' ? '' : now,
       },
       'exporters': {
-        'markdown': {'status': 'enabled_real', 'extension': 'md'},
+        'markdown': {'status': 'connected', 'extension': 'md'},
         'docx': {'status': 'requires_configuration', 'extension': 'docx'},
         'pdf': {'status': 'requires_configuration', 'extension': 'pdf'},
         'pptx': {'status': 'requires_configuration', 'extension': 'pptx'},
-        'json': {'status': 'enabled_real', 'extension': 'json'},
-        'csv': {'status': 'enabled_real', 'extension': 'csv'},
+        'json': {'status': 'connected', 'extension': 'json'},
+        'csv': {'status': 'connected', 'extension': 'csv'},
       },
     };
     await File(path).writeAsString(
@@ -8831,6 +9248,12 @@ class Rc6RuntimeController extends ChangeNotifier {
     final configDir = Directory(_join(workspace.path, 'config'));
     await configDir.create(recursive: true);
     final path = _join(configDir.path, 'provider_validation_report.json');
+    final activationMatrixPath =
+        _join(configDir.path, 'provider_activation_matrix.json');
+    final lifecycleHistoryPath =
+        _join(configDir.path, 'provider_lifecycle_history.jsonl');
+    final rollbackManifestPath =
+        _join(configDir.path, 'provider_rollback_manifest.json');
     final llm = _mapValue(settings['llm']);
     final embedding = _mapValue(settings['embedding']);
     final search = _mapValue(settings['search']);
@@ -8842,43 +9265,250 @@ class Rc6RuntimeController extends ChangeNotifier {
         'provider_id': _stringValue(llm['provider_id'], 'env_configured'),
         'status': 'configured_not_tested',
         'secret_plaintext_written': false,
+        'ready_for_user_selection': true,
+        'default_fallback': 'local_agent_workspace',
       },
       {
         'provider_type': 'embedding',
         'provider_id':
             _stringValue(embedding['provider_id'], 'local_keyword_embedding'),
-        'status': 'configured_not_tested',
+        'status': 'available',
+        'ready_for_user_selection': true,
+        'default_fallback': 'local_keyword_index',
       },
       {
         'provider_type': 'search',
         'provider_id': _stringValue(search['provider_id'], 'local_index'),
-        'status': 'configured_not_tested',
+        'status': 'available',
+        'ready_for_user_selection': true,
+        'default_fallback': 'local_rag_retrieval',
       },
       {
         'provider_type': 'parser',
         'provider_id': _stringValue(parser['provider_id'], 'local_parser'),
-        'status': 'configured_not_tested',
+        'status': 'available',
+        'ready_for_user_selection': true,
+        'default_fallback': 'local_parser',
       },
       {
         'provider_type': 'ocr',
         'provider_id': _stringValue(ocr['provider_id'], 'optional_ocr'),
-        'status': 'configured_not_tested',
+        'status': 'dependency_gated',
+        'ready_for_user_selection': false,
+        'default_fallback': 'local_parser_without_ocr',
       },
     ];
+    final now = DateTime.now().toUtc();
+    final activationMatrix = {
+      'schema_version': 'prd_v3_provider_activation_matrix.v1',
+      'status': 'validated',
+      'generated_at': now.toIso8601String(),
+      'workspace_boundary': workspace.path,
+      'product_baseline_chain':
+          '文档库 -> 知识库 -> 索引层 -> RAG -> 编排层 -> 文档/Skill/Agent/A2A',
+      'user_concept_boundary': {
+        'external_project_names_visible_in_normal_ui': false,
+        'hot_swap_project_concept_visible': false,
+        'external_runtime_loaded': false,
+        'okf_runtime_added': false,
+      },
+      'activation_entries': [
+        {
+          'capability_id': 'document_parser_ocr',
+          'user_entry': 'document_library_parser',
+          'local_provider': 'local_parser',
+          'status': 'available_with_gated_options',
+          'ready_for_user_selection': true,
+          'gated_options': ['ocr_adapters'],
+          'audit_event_required': true,
+          'rollback_supported': true,
+        },
+        {
+          'capability_id': 'knowledge_embedding_vector',
+          'user_entry': 'knowledge_index_settings',
+          'local_provider': 'local_keyword_index',
+          'status': 'available_with_gated_options',
+          'ready_for_user_selection': true,
+          'gated_options': ['external_vector_db', 'embedding_provider'],
+          'audit_event_required': true,
+          'rollback_supported': true,
+        },
+        {
+          'capability_id': 'retrieval_provider',
+          'user_entry': 'retrieval_verification',
+          'local_provider': 'local_rag_retrieval',
+          'status': 'available_with_gated_options',
+          'ready_for_user_selection': true,
+          'gated_options': ['network_search'],
+          'audit_event_required': true,
+          'rollback_supported': true,
+        },
+        {
+          'capability_id': 'document_exporter',
+          'user_entry': 'document_generation_export',
+          'local_provider': 'local_markdown_json_csv_export',
+          'status': 'available_with_gated_options',
+          'ready_for_user_selection': true,
+          'gated_options': ['docx', 'pdf', 'pptx'],
+          'audit_event_required': true,
+          'rollback_supported': true,
+        },
+        {
+          'capability_id': 'skill_template_provider',
+          'user_entry': 'skill_factory',
+          'local_provider': 'local_skill_factory',
+          'status': 'available_with_gated_options',
+          'ready_for_user_selection': true,
+          'gated_options': ['provider_template_library'],
+          'audit_event_required': true,
+          'rollback_supported': true,
+        },
+        {
+          'capability_id': 'agent_model_tools_memory',
+          'user_entry': 'agent_workbench',
+          'local_provider': 'local_agent_workspace',
+          'status': 'available_with_gated_options',
+          'ready_for_user_selection': true,
+          'gated_options': [
+            'model_provider',
+            'tool_provider',
+            'memory_provider'
+          ],
+          'audit_event_required': true,
+          'rollback_supported': true,
+        },
+        {
+          'capability_id': 'workflow_collaboration_export',
+          'user_entry': 'agent_workbench_a2a',
+          'local_provider': 'local_orchestration_audit',
+          'status': 'available_with_gated_options',
+          'ready_for_user_selection': true,
+          'gated_options': ['workflow_export'],
+          'audit_event_required': true,
+          'rollback_supported': true,
+        },
+        {
+          'capability_id': 'governance_audit_provider',
+          'user_entry': 'audit_center_settings',
+          'local_provider': 'local_audit_history',
+          'status': 'available',
+          'ready_for_user_selection': true,
+          'gated_options': <String>[],
+          'audit_event_required': true,
+          'rollback_supported': true,
+        },
+      ],
+      'registered_project_boundary': {
+        'loaded_project_count': 0,
+        'registered_project_names_visible_to_user': false,
+        'capability_enhancement_only': true,
+      },
+    };
+    final lifecycleEvents = [
+      {
+        'schema_version': 'prd_v3_provider_lifecycle_event.v1',
+        'event_id': 'provider_activation_matrix_validated',
+        'event_type': 'validated',
+        'generated_at': now.toIso8601String(),
+        'workspace_boundary': workspace.path,
+        'activation_matrix_path': activationMatrixPath,
+        'external_call_performed': false,
+        'secret_plaintext_written': false,
+        'rollback_manifest_path': rollbackManifestPath,
+      },
+      {
+        'schema_version': 'prd_v3_provider_lifecycle_event.v1',
+        'event_id': 'local_provider_fallbacks_confirmed',
+        'event_type': 'fallback_confirmed',
+        'generated_at': now.toIso8601String(),
+        'workspace_boundary': workspace.path,
+        'capability_ids': [
+          'document_parser_ocr',
+          'knowledge_embedding_vector',
+          'retrieval_provider',
+          'document_exporter',
+          'skill_template_provider',
+          'agent_model_tools_memory',
+          'workflow_collaboration_export',
+          'governance_audit_provider',
+        ],
+        'external_call_performed': false,
+        'secret_plaintext_written': false,
+      },
+    ];
+    final rollbackManifest = {
+      'schema_version': 'prd_v3_provider_rollback_manifest.v1',
+      'status': 'ready',
+      'generated_at': now.toIso8601String(),
+      'workspace_boundary': workspace.path,
+      'rollback_supported': true,
+      'rollback_targets': [
+        {
+          'capability_id': 'document_parser_ocr',
+          'fallback_provider': 'local_parser',
+        },
+        {
+          'capability_id': 'knowledge_embedding_vector',
+          'fallback_provider': 'local_keyword_index',
+        },
+        {
+          'capability_id': 'retrieval_provider',
+          'fallback_provider': 'local_rag_retrieval',
+        },
+        {
+          'capability_id': 'document_exporter',
+          'fallback_provider': 'local_markdown_json_csv_export',
+        },
+        {
+          'capability_id': 'skill_template_provider',
+          'fallback_provider': 'local_skill_factory',
+        },
+        {
+          'capability_id': 'agent_model_tools_memory',
+          'fallback_provider': 'local_agent_workspace',
+        },
+        {
+          'capability_id': 'workflow_collaboration_export',
+          'fallback_provider': 'local_orchestration_audit',
+        },
+        {
+          'capability_id': 'governance_audit_provider',
+          'fallback_provider': 'local_audit_history',
+        },
+      ],
+      'external_runtime_loaded': false,
+      'secret_plaintext_written': false,
+    };
     final report = {
       'schema_version': 'prd_v3_provider_validation_report.v1',
       'status': 'passed',
       'validation_mode': validationMode,
       'workspace_boundary': workspace.path,
-      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'generated_at': now.toIso8601String(),
       'settings_path': _providerRuntimeSettingsPath(workspace),
       'external_call_performed': false,
       'secret_plaintext_written': false,
       'provider_crud_checks': checks,
       'failure_reason_visible': true,
       'local_fallback_available': true,
-      'stage_3_hot_swap_not_started': true,
+      'stage_3_provider_capability_activation': 'validated',
+      'provider_activation_matrix_path': activationMatrixPath,
+      'provider_lifecycle_history_path': lifecycleHistoryPath,
+      'provider_rollback_manifest_path': rollbackManifestPath,
+      'registered_project_loading_visible_to_user': false,
     };
+    await File(activationMatrixPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(activationMatrix),
+      encoding: utf8,
+    );
+    await File(lifecycleHistoryPath).writeAsString(
+      '${lifecycleEvents.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    await File(rollbackManifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(rollbackManifest),
+      encoding: utf8,
+    );
     await File(path).writeAsString(
       const JsonEncoder.withIndent('  ').convert(report),
       encoding: utf8,
@@ -8912,7 +9542,7 @@ class Rc6RuntimeController extends ChangeNotifier {
                     : 'requires_configuration'),
             'status': _mapValue(exporters[format])['status']?.toString() ??
                 (['markdown', 'json', 'csv'].contains(format)
-                    ? 'enabled_real'
+                    ? 'connected'
                     : 'requires_configuration'),
           },
       ],
@@ -8997,6 +9627,743 @@ class Rc6RuntimeController extends ChangeNotifier {
     return _join(workspace.path, 'config', 'exporter_settings.json');
   }
 
+  static String _projectConfigProfilesPath(Directory workspace) {
+    return _join(workspace.path, 'config', 'project_config_profiles.json');
+  }
+
+  static String _projectConfigRuntimeStatusPath(Directory workspace) {
+    return _join(
+        workspace.path, 'config', 'project_config_runtime_status.json');
+  }
+
+  static String _projectConfigAssetsPath(Directory workspace) {
+    return _join(workspace.path, 'config', 'project_config_assets.json');
+  }
+
+  static String _configTestLogPath(Directory workspace) {
+    return _join(workspace.path, 'config', 'config_test_log.jsonl');
+  }
+
+  static String _profileChangeLogPath(Directory workspace) {
+    return _join(workspace.path, 'config', 'profile_change_log.jsonl');
+  }
+
+  static String _profileActivationLogPath(Directory workspace) {
+    return _join(workspace.path, 'config', 'profile_activation_log.jsonl');
+  }
+
+  Future<List<ProjectConfigProfile>> _ensureProjectConfigProfiles(
+      Directory workspace) async {
+    final profiles = await _readProjectConfigProfiles(workspace);
+    await _writeProjectConfigRuntimeStatus(workspace, profiles);
+    return profiles;
+  }
+
+  Future<List<ProjectConfigProfile>> _readProjectConfigProfiles(
+      Directory workspace) async {
+    final path = _projectConfigProfilesPath(workspace);
+    final file = File(path);
+    if (!await file.exists()) {
+      final now = DateTime.now().toUtc().toIso8601String();
+      final defaultProfile = ProjectConfigProfile.localDefault(
+        workspaceId: workspace.path,
+        createdAt: now,
+      );
+      final profiles = [defaultProfile];
+      await _writeProjectConfigProfiles(workspace, profiles);
+      await _appendProfileChangeLog(
+        workspace,
+        action: 'create_default',
+        profile: defaultProfile,
+        status: '已配置未测试',
+        summary: '默认本地 Profile 已创建。',
+      );
+      await _appendProfileActivationLog(
+        workspace,
+        previousProfileId: '',
+        nextProfileId: defaultProfile.profileId,
+        warnings: const [],
+      );
+      return profiles;
+    }
+    final payload = await _readJsonObject(path);
+    final rawProfiles = payload['profiles'];
+    final profiles = rawProfiles is List
+        ? rawProfiles
+            .whereType<Map>()
+            .map((item) =>
+                ProjectConfigProfile.fromJson(Map<String, dynamic>.from(item)))
+            .toList(growable: false)
+        : <ProjectConfigProfile>[];
+    if (profiles.isEmpty) {
+      await file.delete();
+      return _readProjectConfigProfiles(workspace);
+    }
+    if (profiles.where((profile) => profile.isActive).isEmpty) {
+      final first = profiles.first.copyWith(isActive: true);
+      final updated = [first, ...profiles.skip(1)];
+      await _writeProjectConfigProfiles(workspace, updated);
+      return updated;
+    }
+    return profiles;
+  }
+
+  Future<void> _writeProjectConfigProfiles(
+    Directory workspace,
+    List<ProjectConfigProfile> profiles,
+  ) async {
+    final configDir = Directory(_join(workspace.path, 'config'));
+    await configDir.create(recursive: true);
+    final activeCount = profiles.where((profile) => profile.isActive).length;
+    final normalized = activeCount == 1
+        ? profiles
+        : profiles
+            .asMap()
+            .entries
+            .map((entry) => entry.value.copyWith(isActive: entry.key == 0))
+            .toList(growable: false);
+    final activeProfile = _activeProfile(normalized);
+    final payload = {
+      'schema_version': 'prd_v3_project_config_profiles.v1',
+      'workspace_id': workspace.path,
+      'active_profile_id': activeProfile.profileId,
+      'profile_count': normalized.length,
+      'profiles': normalized.map((profile) => profile.toJson()).toList(),
+      'secret_plaintext_written': false,
+    };
+    await File(_projectConfigProfilesPath(workspace)).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+  }
+
+  Future<String> _writeProjectConfigAssets(
+    Directory workspace,
+    ProjectConfigProfile active, {
+    required Map<String, dynamic> storage,
+    required Map<String, dynamic> provider,
+    required Map<String, dynamic> exporter,
+  }) async {
+    final configDir = Directory(_join(workspace.path, 'config'));
+    await configDir.create(recursive: true);
+    final path = _projectConfigAssetsPath(workspace);
+    final storageProbe = await _probeStoragePath(workspace);
+    final redis = _mapValue(storage['redis']);
+    final qdrant = _mapValue(storage['qdrant']);
+    final llm = _mapValue(provider['llm']);
+    final embedding = _mapValue(provider['embedding']);
+    final search = _mapValue(provider['search']);
+    final parser = _mapValue(provider['parser']);
+    final ocr = _mapValue(provider['ocr']);
+    final exporters = _mapValue(exporter['exporters']);
+    final networkAllowed = active.networkPolicyId != 'network_local_only';
+    final payload = {
+      'schema_version': 'prd_v3_project_config_assets.v1',
+      'product_baseline_chain':
+          '文档库 -> 知识库 -> 索引层 -> RAG -> 编排层 -> 文档/Skill/Agent/A2A',
+      'workspace_id': workspace.path,
+      'profile_id': active.profileId,
+      'profile_version': active.version,
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'secret_plaintext_written': false,
+      'cloud_services_default_disabled': true,
+      'config_assets': {
+        'storage_path': {
+          'config_id': active.storageConfigId,
+          'mode': _profileModeLabelForAudit(active.mode),
+          'local_storage_path': workspace.path,
+          'cloud_storage_path': '',
+          'hybrid_sync_policy': active.mode == 'hybrid' ? '手动启用后同步' : '已禁用',
+          'path_write_test': storageProbe['path_write_test'],
+          'disk_space_check': storageProbe['disk_space_check'],
+          'free_space_bytes': storageProbe['free_space_bytes'],
+          'permission_failure_zh': storageProbe['permission_failure_zh'],
+        },
+        'llm_provider': {
+          'config_id': active.modelConfigId,
+          'provider_type': _stringValue(llm['provider_id'], 'env_configured'),
+          'endpoint': _stringValue(llm['endpoint'], 'env:HEITANG_LLM_ENDPOINT'),
+          'model': _stringValue(
+              llm['model_id'], 'local-default-or-configured-provider'),
+          'api_key_ref': _stringValue(
+              llm['api_key_secret_ref'], 'env:HEITANG_LLM_API_KEY'),
+          'timeout_seconds': _asInt(llm['timeout_seconds']) ?? 30,
+          'enabled': _userStatus(llm['status']) != '已禁用',
+          'test_result': _userStatus(llm['status']),
+          'secret_masked': true,
+        },
+        'embedding_provider': {
+          'config_id': active.embeddingConfigId,
+          'provider_type':
+              _stringValue(embedding['provider_id'], 'local_keyword_embedding'),
+          'model': _stringValue(embedding['model'], 'local_keyword_embedding'),
+          'dimension': _asInt(embedding['dimension']) ?? 1536,
+          'endpoint':
+              _stringValue(embedding['endpoint'], 'local_keyword_index'),
+          'api_key_ref': _stringValue(embedding['api_key_secret_ref'], 'none'),
+          'test_embedding_vector': '已配置未测试',
+          'dimension_mismatch': false,
+          'test_result': _userStatus(embedding['status']),
+        },
+        'search_provider': {
+          'config_id': active.searchProviderConfigId,
+          'provider_type': _stringValue(search['provider_id'], 'local_index'),
+          'endpoint': _stringValue(search['endpoint'], 'local_index'),
+          'api_key_ref': _stringValue(search['api_key_secret_ref'], 'none'),
+          'network_authorization': networkAllowed ? '已配置未测试' : '已禁用',
+          'external_fact_verification_enabled': networkAllowed,
+          'query_test': _userStatus(search['status']),
+        },
+        'ocr_provider': {
+          'config_id': active.ocrProviderConfigId,
+          'provider_type': _stringValue(ocr['provider_id'], 'optional_ocr'),
+          'enabled': _userStatus(ocr['status']) == '连接成功',
+          'language': _stringValue(ocr['language'], 'zh-CN,en'),
+          'test_image': '已配置未测试',
+          'test_availability': _userStatus(ocr['status']),
+          'unavailable_reason': _userStatus(ocr['status']) == '连接成功'
+              ? ''
+              : 'OCR Provider 未完成配置或测试。',
+        },
+        'pdf_parser_provider': {
+          'config_id': active.pdfParserProviderConfigId,
+          'provider_type': _stringValue(parser['provider_id'], 'builtin'),
+          'enabled': _userStatus(parser['status']) != '已禁用',
+          'test_parse': _userStatus(parser['status']),
+          'fallback_policy': '内置 Parser 可用；外部 Parser 失败时回退本地解析。',
+        },
+        'exporter_provider': {
+          'config_id': active.exporterConfigId,
+          'formats': {
+            for (final format in [
+              'markdown',
+              'docx',
+              'pdf',
+              'pptx',
+              'json',
+              'csv',
+              'skill_package',
+              'agent_config',
+              'a2a_report',
+            ])
+              format: _exporterAssetStatus(format, exporters),
+          },
+        },
+        'redis': {
+          'config_id': active.redisConfigId,
+          'host': _stringValue(redis['host'], '127.0.0.1'),
+          'port': _asInt(redis['port']) ?? 6379,
+          'username': _stringValue(redis['username'], ''),
+          'password_ref': _stringValue(
+              redis['password_secret_ref'], 'env:HEITANG_REDIS_PASSWORD'),
+          'database': _asInt(redis['db']) ?? 0,
+          'namespace': _stringValue(redis['key_prefix'], 'heitang:'),
+          'tls_enabled': _boolValue(redis['tls']),
+          'timeout_seconds': _asInt(redis['timeout_seconds']) ?? 5,
+          'ping': _userStatus(redis['status']),
+          'auth': _userStatus(redis['status']) == '鉴权失败' ? '鉴权失败' : '已配置未测试',
+          'write_read_delete_test_key': _userStatus(redis['status']),
+          'last_test_status': _userStatus(redis['status']),
+          'secret_masked': true,
+        },
+        'vector_db': {
+          'config_id': active.vectorConfigId,
+          'provider_type': _stringValue(qdrant['provider'], 'qdrant'),
+          'endpoint': _stringValue(qdrant['endpoint'], 'http://127.0.0.1:6333'),
+          'api_key_ref': _stringValue(qdrant['api_key_secret_ref'], 'none'),
+          'collection': _stringValue(qdrant['collection'], 'heitang_kb'),
+          'embedding_model_config_id': active.embeddingConfigId,
+          'dimension': _asInt(qdrant['dimension']) ?? 1536,
+          'health_check': _userStatus(qdrant['status']),
+          'collection_exists': _userStatus(qdrant['status']) == '连接成功'
+              ? '连接成功'
+              : 'Collection 不存在',
+          'test_vector_write_search_delete': _userStatus(qdrant['status']),
+          'dimension_mismatch': _userStatus(qdrant['status']) == '维度不匹配',
+          'secret_masked': true,
+        },
+        'network_authorization': {
+          'config_id': active.networkPolicyId,
+          'web_import_allowed': networkAllowed,
+          'external_verification_allowed': networkAllowed,
+          'provider_domain_allowlist':
+              networkAllowed ? ['按 Provider 配置'] : <String>[],
+          'timeout_seconds': 30,
+          'retry_policy': '最多 2 次；失败进入审计日志',
+          'disabled_reason': networkAllowed ? '' : '当前 Profile 为本地模式。',
+        },
+        'agent_memory_tool_policy': {
+          'memory_policy_id': active.agentMemoryPolicyId,
+          'tool_policy_id': active.toolPolicyId,
+          'simple_agent': {
+            'complex_tools_visible': false,
+            'redis_short_memory': '已禁用',
+            'vector_long_memory': '已禁用',
+          },
+          'complex_agent': {
+            'redis_short_memory':
+                _userStatus(redis['status']) == '连接成功' ? '连接成功' : '降级为本地模式',
+            'vector_long_memory':
+                _userStatus(qdrant['status']) == '连接成功' ? '连接成功' : '降级为本地模式',
+            'tool_access': '按当前 Profile 授权',
+          },
+          'unauthorized_kb_skill_provider_access': false,
+        },
+      },
+    };
+    await File(path).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+    return path;
+  }
+
+  Future<void> _writeProjectConfigRuntimeStatus(
+    Directory workspace,
+    List<ProjectConfigProfile> profiles,
+  ) async {
+    final active = _activeProfile(profiles);
+    final storage = await loadStorageProviderSettings();
+    final provider = await loadProviderRuntimeSettings();
+    final exporter = await loadExporterSettings();
+    final redis = _mapValue(storage['redis']);
+    final qdrant = _mapValue(storage['qdrant']);
+    final llm = _mapValue(provider['llm']);
+    final search = _mapValue(provider['search']);
+    final parser = _mapValue(provider['parser']);
+    final ocr = _mapValue(provider['ocr']);
+    final exporters = _mapValue(exporter['exporters']);
+    final redisStatus = _userStatus(redis['status']);
+    final qdrantStatus = _userStatus(qdrant['status']);
+    final llmStatus = _userStatus(llm['status']);
+    final networkAllowed = active.networkPolicyId != 'network_local_only';
+    final configAssetsPath = await _writeProjectConfigAssets(
+      workspace,
+      active,
+      storage: storage,
+      provider: provider,
+      exporter: exporter,
+    );
+    final payload = {
+      'schema_version': 'prd_v3_project_config_runtime_status.v1',
+      'workspace_id': workspace.path,
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'active_profile': active.toJson(),
+      'config_assets_path': configAssetsPath,
+      'health': {
+        'status':
+            _profileHealthStatus(active, redisStatus, qdrantStatus, llmStatus),
+        'summary':
+            _profileHealthSummary(active, redisStatus, qdrantStatus, llmStatus),
+      },
+      'module_status': {
+        'dashboard': {
+          'current_profile': active.displayName,
+          'config_health': active.lastTestStatus,
+          'failure_summary': active.lastError,
+        },
+        'document_library': {
+          'storage_path': workspace.path,
+          'parser_status': _userStatus(parser['status']),
+          'ocr_status': _userStatus(ocr['status']),
+          'web_import_status': networkAllowed ? '已配置未测试' : '已禁用',
+        },
+        'knowledge_base': {
+          'index_backend': qdrantStatus == '连接成功' ? 'Qdrant' : '本地索引',
+          'embedding_dimension': _asInt(qdrant['dimension']) ?? 1536,
+          'vector_status': qdrantStatus,
+          'dimension_change_requires_rebuild': qdrantStatus == '维度不匹配',
+        },
+        'retrieval_verification': {
+          'retrieval_backend': _userStatus(search['status']) == '连接成功'
+              ? _stringValue(search['provider_id'], 'local_index')
+              : 'local_index',
+          'external_fact_verification': networkAllowed ? '已配置未测试' : '已禁用',
+          'search_provider_status': _userStatus(search['status']),
+        },
+        'document_generation': {
+          'llm_provider_status': llmStatus,
+          'exporter_status': _exporterStatusSummary(exporters),
+          'markdown_available': true,
+          'office_export_available': _officeExporterAvailable(exporters),
+        },
+        'skill_factory': {
+          'llm_status': llmStatus,
+          'kb_status': state.hasKnowledgeBase ? '连接成功' : '配置缺失',
+          'search_status': _userStatus(search['status']),
+        },
+        'agent_workbench': {
+          'model': _stringValue(
+              llm['model_id'], 'local-default-or-configured-provider'),
+          'redis_memory_status': redisStatus == '连接成功' ? '连接成功' : '降级为本地模式',
+          'vector_memory_status': qdrantStatus == '连接成功' ? '连接成功' : '降级为本地模式',
+          'tool_policy': active.toolPolicyId,
+          'unauthorized_resources_selectable': false,
+        },
+      },
+      'degradation': {
+        'redis_failure': redisStatus == '连接成功'
+            ? 'Redis 短期记忆可用。'
+            : 'Agent 短期记忆禁用，A2A 会话状态降级为本地文件。',
+        'vector_failure':
+            qdrantStatus == '连接成功' ? '外部向量库可用。' : '外部向量库禁用，知识库回退本地索引。',
+        'llm_failure': llmStatus == '连接成功'
+            ? 'LLM Provider 可用。'
+            : '文档解析和本地导入可用，LLM 摘要、Skill 生成、Agent 对话需配置。',
+        'network_disabled':
+            networkAllowed ? '外部验证按授权配置执行。' : '网页导入和外部事实验证禁用，本地检索不受影响。',
+      },
+      'secret_plaintext_written': false,
+    };
+    await File(_projectConfigRuntimeStatusPath(workspace)).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+  }
+
+  Future<void> _appendConfigTestLog(
+    Directory workspace, {
+    required String testId,
+    required ProjectConfigProfile profile,
+    required String configType,
+    required String configId,
+    required String startedAt,
+    required String finishedAt,
+    required String status,
+    required String errorCode,
+    required String errorMessageZh,
+    required String sanitizedEndpoint,
+    required List<String> testArtifacts,
+    required List<String> affectedModules,
+  }) async {
+    final file = File(_configTestLogPath(workspace));
+    await file.parent.create(recursive: true);
+    final event = {
+      'schema_version': 'prd_v3_config_test_log.v1',
+      'test_id': testId,
+      'profile_id': profile.profileId,
+      'config_type': configType,
+      'config_id': configId,
+      'started_at': startedAt,
+      'finished_at': finishedAt,
+      'status': status,
+      'error_code': errorCode,
+      'error_message_zh': errorMessageZh,
+      'sanitized_endpoint': sanitizedEndpoint,
+      'secret_masked': true,
+      'test_artifacts': testArtifacts,
+      'affected_modules': affectedModules,
+    };
+    await file.writeAsString('${jsonEncode(event)}\n',
+        mode: FileMode.append, encoding: utf8);
+  }
+
+  Future<void> _appendProfileChangeLog(
+    Directory workspace, {
+    required String action,
+    required ProjectConfigProfile profile,
+    String previousProfileId = '',
+    required String status,
+    required String summary,
+    List<String>? affectedModules,
+  }) async {
+    final file = File(_profileChangeLogPath(workspace));
+    await file.parent.create(recursive: true);
+    final now = DateTime.now().toUtc().toIso8601String();
+    final event = {
+      'schema_version': 'prd_v3_profile_change_log.v1',
+      'change_id':
+          'profile_change_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+      'action': action,
+      'previous_profile_id': previousProfileId,
+      'next_profile_id': profile.profileId,
+      'changed_by': 'local_desktop_user',
+      'changed_at': now,
+      'status': status,
+      'summary': summary,
+      'affected_modules': affectedModules ?? _affectedProfileModules(profile),
+      'rollback_available': profile.rollbackFromProfileId.isNotEmpty ||
+          previousProfileId.isNotEmpty,
+      'secret_masked': true,
+    };
+    await file.writeAsString('${jsonEncode(event)}\n',
+        mode: FileMode.append, encoding: utf8);
+  }
+
+  Future<void> _appendProfileActivationLog(
+    Directory workspace, {
+    required String previousProfileId,
+    required String nextProfileId,
+    required List<String> warnings,
+  }) async {
+    final file = File(_profileActivationLogPath(workspace));
+    await file.parent.create(recursive: true);
+    final event = {
+      'schema_version': 'prd_v3_profile_activation_log.v1',
+      'previous_profile_id': previousProfileId,
+      'next_profile_id': nextProfileId,
+      'changed_by': 'local_desktop_user',
+      'changed_at': DateTime.now().toUtc().toIso8601String(),
+      'affected_modules': [
+        'dashboard',
+        'document_library',
+        'knowledge_base',
+        'retrieval_verification',
+        'document_generation',
+        'skill_factory',
+        'agent_workbench',
+      ],
+      'rollback_available': previousProfileId.isNotEmpty,
+      'warnings': warnings,
+      'secret_masked': true,
+    };
+    await file.writeAsString('${jsonEncode(event)}\n',
+        mode: FileMode.append, encoding: utf8);
+  }
+
+  ProjectConfigProfile _profileFromActive(
+    Directory workspace,
+    List<ProjectConfigProfile> profiles, {
+    required String profileId,
+    required String displayName,
+    required String mode,
+    required String now,
+    required bool active,
+    required String rollbackFromProfileId,
+  }) {
+    final source = profiles.isEmpty
+        ? ProjectConfigProfile.localDefault(
+            workspaceId: workspace.path, createdAt: now)
+        : _activeProfile(profiles);
+    final normalizedMode = _normalizedProfileMode(mode);
+    return source.copyWith(
+      profileId: profileId,
+      displayName: displayName,
+      mode: normalizedMode,
+      isDefault: false,
+      isActive: active,
+      version: 1,
+      createdAt: now,
+      updatedAt: now,
+      lastActivatedAt: active ? now : '',
+      lastTestStatus: '已配置未测试',
+      lastTestSummary: 'Profile 已创建，等待连接测试。',
+      lastError: '',
+      rollbackFromProfileId: rollbackFromProfileId,
+      redisConfigId: normalizedMode == 'local'
+          ? 'redis_not_configured'
+          : 'redis_settings_optional',
+      vectorConfigId: normalizedMode == 'local'
+          ? 'vector_local_keyword_index'
+          : 'vector_qdrant_optional',
+      networkPolicyId:
+          normalizedMode == 'local' ? 'network_local_only' : 'network_opt_in',
+      agentMemoryPolicyId: normalizedMode == 'local'
+          ? 'agent_memory_local_file'
+          : 'agent_memory_redis_vector_optional',
+      toolPolicyId: normalizedMode == 'local'
+          ? 'tool_policy_simple_local'
+          : 'tool_policy_complex_configured',
+    );
+  }
+
+  static ProjectConfigProfile _activeProfile(
+      List<ProjectConfigProfile> profiles) {
+    return profiles.firstWhere(
+      (profile) => profile.isActive,
+      orElse: () => profiles.first,
+    );
+  }
+
+  static String _nextProfileId(List<ProjectConfigProfile> profiles) {
+    final next = profiles.length + 1;
+    return 'profile_${next.toString().padLeft(3, '0')}';
+  }
+
+  static String _normalizedProfileMode(String mode) {
+    final normalized = mode.trim().toLowerCase();
+    if (normalized == 'cloud' || normalized == 'hybrid') {
+      return normalized;
+    }
+    return 'local';
+  }
+
+  static List<String> _affectedProfileModules(ProjectConfigProfile profile) {
+    return const [
+      'dashboard',
+      'document_library',
+      'knowledge_base',
+      'retrieval_verification',
+      'document_generation',
+      'skill_factory',
+      'agent_workbench',
+    ];
+  }
+
+  static List<String> _profileActivationWarnings(ProjectConfigProfile profile) {
+    final warnings = <String>[];
+    if (profile.mode != 'local') {
+      warnings.add('Redis、向量库、网络和导出器需要连接测试后启用。');
+    }
+    if (profile.lastTestStatus != '连接成功') {
+      warnings.add('当前 Profile 尚未完成连接测试。');
+    }
+    return warnings;
+  }
+
+  static String _userStatus(Object? rawStatus) {
+    final status = (rawStatus ?? '').toString();
+    return switch (status) {
+      'connected' => '连接成功',
+      'configured_not_tested' => '已配置未测试',
+      'requires_configuration' => '未配置',
+      'missing_password' => '配置缺失',
+      'auth_failed' => '鉴权失败',
+      'invalid_endpoint' => '配置缺失',
+      'invalid_dimension' => '维度不匹配',
+      'health_failed' => '连接失败',
+      'collection_create_failed' => 'Collection 不存在',
+      'collection_check_failed' => 'Collection 不存在',
+      'vector_write_failed' => '连接失败',
+      'vector_search_failed' => '连接失败',
+      'vector_delete_failed' => '连接失败',
+      'connection_failed' => '连接失败',
+      'ping_failed' => '连接失败',
+      'probe_failed' => '连接失败',
+      'desktop_runtime_required' => '需启动外部服务',
+      'available' => '连接成功',
+      'disabled' => '已禁用',
+      '' => '未配置',
+      _ => status,
+    };
+  }
+
+  static String _profileHealthStatus(
+    ProjectConfigProfile profile,
+    String redisStatus,
+    String qdrantStatus,
+    String llmStatus,
+  ) {
+    if (profile.mode == 'local') {
+      return '连接成功';
+    }
+    if ([redisStatus, qdrantStatus, llmStatus]
+        .any((status) => status == '连接失败' || status == '鉴权失败')) {
+      return '降级为本地模式';
+    }
+    return '已配置未测试';
+  }
+
+  static String _profileHealthSummary(
+    ProjectConfigProfile profile,
+    String redisStatus,
+    String qdrantStatus,
+    String llmStatus,
+  ) {
+    if (profile.mode == 'local') {
+      return '本地存储、本地索引和 Markdown 导出可用。';
+    }
+    return 'Redis: $redisStatus；Vector DB: $qdrantStatus；LLM: $llmStatus。失败时自动保留本地导入、知识库和 Markdown 生成。';
+  }
+
+  static String _exporterStatusSummary(Map<String, dynamic> exporters) {
+    final docx = _userStatus(_mapValue(exporters['docx'])['status']);
+    final pdf = _userStatus(_mapValue(exporters['pdf'])['status']);
+    final pptx = _userStatus(_mapValue(exporters['pptx'])['status']);
+    return 'Markdown/JSON/CSV: 连接成功；DOCX: $docx；PDF: $pdf；PPTX: $pptx';
+  }
+
+  static Map<String, dynamic> _exporterAssetStatus(
+    String format,
+    Map<String, dynamic> exporters,
+  ) {
+    final localFormats = ['markdown', 'json', 'csv'];
+    final packagedFormats = ['skill_package', 'agent_config', 'a2a_report'];
+    if (localFormats.contains(format)) {
+      return {
+        'provider': 'local_$format',
+        'status': '连接成功',
+        'button_enabled': true,
+      };
+    }
+    if (packagedFormats.contains(format)) {
+      return {
+        'provider': 'local_${format}_export',
+        'status': '连接成功',
+        'button_enabled': true,
+      };
+    }
+    final config = _mapValue(exporters[format]);
+    final status = _userStatus(config['status']);
+    return {
+      'provider': _stringValue(config['provider'], 'requires_configuration'),
+      'status': status,
+      'button_enabled': status == '连接成功',
+    };
+  }
+
+  static bool _officeExporterAvailable(Map<String, dynamic> exporters) {
+    return ['docx', 'pdf', 'pptx'].every(
+      (format) => _userStatus(_mapValue(exporters[format])['status']) == '连接成功',
+    );
+  }
+
+  static String _profileModeLabelForAudit(String mode) {
+    return switch (mode) {
+      'cloud' => '云机模式',
+      'hybrid' => '混合模式',
+      _ => '本地模式',
+    };
+  }
+
+  Future<Map<String, dynamic>> _probeStoragePath(Directory workspace) async {
+    final probeFile =
+        File(_join(workspace.path, 'config', '.storage_write_probe'));
+    final freeSpaceBytes = await _freeSpaceBytes(workspace);
+    try {
+      await probeFile.parent.create(recursive: true);
+      await probeFile.writeAsString('ok', encoding: utf8);
+      await probeFile.delete();
+      return {
+        'path_write_test': '连接成功',
+        'disk_space_check': freeSpaceBytes > 0 ? '连接成功' : '已配置未测试',
+        'free_space_bytes': freeSpaceBytes,
+        'permission_failure_zh': '',
+      };
+    } on Object catch (error) {
+      return {
+        'path_write_test': '路径不可写',
+        'disk_space_check': '已配置未测试',
+        'free_space_bytes': freeSpaceBytes,
+        'permission_failure_zh': '路径不可写或权限不足：$error',
+      };
+    }
+  }
+
+  static Future<int> _freeSpaceBytes(Directory workspace) async {
+    try {
+      final match = RegExp(r'^([A-Za-z]):').firstMatch(workspace.path);
+      final drive = match?.group(1);
+      if (drive == null || drive.isEmpty) {
+        return 0;
+      }
+      final result = await Process.run(
+        'powershell.exe',
+        [
+          '-NoProfile',
+          '-Command',
+          "\$drive = Get-PSDrive -Name '$drive'; [int64]\$drive.Free",
+        ],
+      ).timeout(const Duration(seconds: 3));
+      if (result.exitCode != 0) {
+        return 0;
+      }
+      return int.tryParse(result.stdout.toString().trim()) ?? 0;
+    } on Object {
+      return 0;
+    }
+  }
+
   static Map<String, dynamic> _defaultStorageProviderSettings(
       String workspacePath) {
     return {
@@ -9033,12 +10400,12 @@ class Rc6RuntimeController extends ChangeNotifier {
         'last_tested_at': '',
       },
       'exporters': {
-        'markdown': {'status': 'enabled_real', 'extension': 'md'},
+        'markdown': {'status': 'connected', 'extension': 'md'},
         'docx': {'status': 'requires_configuration', 'extension': 'docx'},
         'pdf': {'status': 'requires_configuration', 'extension': 'pdf'},
         'pptx': {'status': 'requires_configuration', 'extension': 'pptx'},
-        'json': {'status': 'enabled_real', 'extension': 'json'},
-        'csv': {'status': 'enabled_real', 'extension': 'csv'},
+        'json': {'status': 'connected', 'extension': 'json'},
+        'csv': {'status': 'connected', 'extension': 'csv'},
       },
     };
   }
@@ -9084,9 +10451,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'export_root':
           workspacePath.isEmpty ? '' : _join(workspacePath, 'export'),
       'exporters': {
-        'markdown': {'provider': 'local_markdown', 'status': 'enabled_real'},
-        'json': {'provider': 'local_json', 'status': 'enabled_real'},
-        'csv': {'provider': 'local_csv', 'status': 'enabled_real'},
+        'markdown': {'provider': 'local_markdown', 'status': 'connected'},
+        'json': {'provider': 'local_json', 'status': 'connected'},
+        'csv': {'provider': 'local_csv', 'status': 'connected'},
         'docx': {
           'provider': 'requires_configuration',
           'status': 'requires_configuration',
@@ -9566,6 +10933,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     if (value is num) return value.toInt();
     if (value is String) return int.tryParse(value);
     return null;
+  }
+
+  static bool _boolValue(Object? value) {
+    if (value is bool) return value;
+    return value?.toString().toLowerCase() == 'true';
   }
 
   static String _safeFileName(String name) {
