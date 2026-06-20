@@ -4040,6 +4040,16 @@ class Rc6RuntimeController extends ChangeNotifier {
       participantAgentIds: participantAgentIds,
     );
     final workspace = _requireWorkspace();
+    final a2aRouteEvidence = _modelRouteEvidenceForScopes(
+      await _currentModelRouteModuleBinding('a2a'),
+      [
+        'a2a_task_dispatch',
+        'a2a_review',
+        'a2a_conflict_detection',
+        'a2a_consensus',
+        'a2a_report',
+      ],
+    );
     await _appendAgentRunHistoryRecord(
       action: 'run_a2a_discussion',
       artifact:
@@ -4048,6 +4058,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       details: {
         'topic': topic.trim(),
         'participant_agent_ids': participantAgentIds,
+        'model_route_evidence': a2aRouteEvidence,
       },
     );
     await _appendOrchestrationPlanRecord(
@@ -4060,6 +4071,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'topic': topic.trim(),
         'participant_agent_ids': participantAgentIds,
         'parent_workspace_id': 'W_M',
+        'model_route_evidence': a2aRouteEvidence,
       },
     );
     await _loadExistingArtifacts();
@@ -4118,6 +4130,12 @@ class Rc6RuntimeController extends ChangeNotifier {
         _stringValue(modelGateway['gateway_id'], 'gateway_not_configured');
     final modelGatewayRoute = _modelGatewayRouteSummary(
         modelGateway, _mapValue(providerSettings['llm']));
+    final agentModelRouteBinding =
+        await _currentModelRouteModuleBinding('agent_workbench');
+    final agentChatRoute = _modelRouteEvidenceForScopes(
+      agentModelRouteBinding,
+      ['agent_chat', 'agent_reasoning', 'agent_summarization'],
+    );
     final configuredKbIds = _listOfStrings(agentConfig['kb_ids']);
     final kbIds = configuredKbIds.isEmpty ? const ['K1'] : configuredKbIds;
     final configuredSkillIds = _listOfStrings(agentConfig['skill_ids']);
@@ -4141,6 +4159,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'model_gateway_config_id': activeModelGatewayId,
       'model_gateway_status': modelGatewayStatus,
       'model_gateway_route': modelGatewayRoute,
+      'model_route_binding': agentModelRouteBinding,
+      'model_route_evidence': agentChatRoute,
       'kb_ids': kbIds,
       'skill_ids': skillIds,
       'output_format': outputFormat,
@@ -4278,6 +4298,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'model_gateway_config_id': activeModelGatewayId,
         'model_gateway_status': modelGatewayStatus,
         'model_gateway_route': modelGatewayRoute,
+        'model_route_binding': agentModelRouteBinding,
+        'model_route_evidence': agentChatRoute,
         'role_goal': roleGoal,
         'used_kb_ids': kbIds,
         'used_skill_ids': skillIds,
@@ -4302,6 +4324,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'model_config_id': modelConfigId,
         'model_gateway_config_id': activeModelGatewayId,
         'model_gateway_status': modelGatewayStatus,
+        'model_route_evidence': agentChatRoute,
         'used_kb_ids': kbIds,
         'used_skill_ids': skillIds,
       },
@@ -4316,6 +4339,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'model_config_id': modelConfigId,
         'model_gateway_config_id': activeModelGatewayId,
         'model_gateway_status': modelGatewayStatus,
+        'model_route_evidence': agentChatRoute,
         'kb_ids': kbIds,
         'skill_ids': skillIds,
         'output_format': outputFormat,
@@ -4369,6 +4393,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final usedSkillIds = _listOfStrings(dialogueManifest['used_skill_ids']);
     final modelConfigId = _stringValue(dialogueManifest['model_config_id'],
         'local-default-or-configured-provider');
+    final modelRouteEvidence =
+        _mapValue(dialogueManifest['model_route_evidence']);
     await File(outputPath).writeAsString(
       [
         '# Agent 对话导出',
@@ -4400,6 +4426,7 @@ class Rc6RuntimeController extends ChangeNotifier {
             ? ['S1', 'reading_summary_skill']
             : usedSkillIds,
         'model_config_id': modelConfigId,
+        'model_route_evidence': modelRouteEvidence,
         'audit_included': true,
         'secret_plaintext_written': false,
       }),
@@ -4417,6 +4444,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'used_skill_ids': usedSkillIds.isEmpty
             ? ['S1', 'reading_summary_skill']
             : usedSkillIds,
+        'model_route_evidence': modelRouteEvidence,
       },
     );
     await _appendOrchestrationPlanRecord(
@@ -7367,6 +7395,21 @@ class Rc6RuntimeController extends ChangeNotifier {
     await skillRoot.create(recursive: true);
     final kbManifestPath = _join(workspace.path, 'kb', 'manifest.json');
     final sourceManifestPath = _join(workspace.path, 'source_manifest.json');
+    final skillModelRouteBinding =
+        await _currentModelRouteModuleBinding('skill_factory');
+    final skillGenerationRoute = _modelRouteEvidenceForScopes(
+      skillModelRouteBinding,
+      ['skill_generation', 'skill_validation'],
+    );
+    final externalSkillRoute = _modelRouteEvidenceForScopes(
+      skillModelRouteBinding,
+      [
+        'external_skill_analysis',
+        'external_skill_localization',
+        'external_skill_tool_requirement',
+        'skill_validation',
+      ],
+    );
     final primaryDir = Directory(_join(skillRoot.path, 'knowledge_qa_skill'));
     await primaryDir.create(recursive: true);
     final primarySkill = File(_join(primaryDir.path, 'SKILL.md'));
@@ -7413,6 +7456,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'export_path': primaryDir.path,
       'instruction_path': primarySkill.path,
       'sample_task': '基于当前知识库回答一个需要引用的问题。',
+      'model_route_binding': skillGenerationRoute,
       'version': '1.0.0',
       'status': 'validated',
     };
@@ -7568,6 +7612,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       'instruction_path': externalSkill.path,
       'content_size_bytes': utf8.encode(externalSkillText).length,
       'content_preview': _compact(externalSkillText),
+      'model_route_binding': _modelRouteEvidenceForScopes(
+        skillModelRouteBinding,
+        ['external_skill_analysis', 'external_skill_tool_requirement'],
+      ),
       'status': 'imported',
     };
     await File(_join(externalRoot.path, 'external_skill_manifest.json'))
@@ -7625,6 +7673,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'export_path': localizedRoot.path,
       'instruction_path': localizedSkill.path,
       'personalization_diff_path': _join(localizedRoot.path, 'diff_summary.md'),
+      'model_route_binding': externalSkillRoute,
       'version': '1.0.0',
       'status': 'validated',
     };
@@ -7688,6 +7737,11 @@ class Rc6RuntimeController extends ChangeNotifier {
                 'internal_agent',
               ],
               'selected_generation_config': config.toJson(),
+              'model_route_binding': skillModelRouteBinding,
+              'model_route_evidence': {
+                'skill_generation': skillGenerationRoute,
+                'external_skill_localization': externalSkillRoute,
+              },
               'skills': manifest,
               'external_skills': [externalManifest],
               'localized_skills': [localizedManifest],
@@ -7920,6 +7974,20 @@ class Rc6RuntimeController extends ChangeNotifier {
         .toList(growable: false);
     final sourceKbIds =
         catalogKbIds.isEmpty ? const ['current_kb'] : catalogKbIds;
+    final skillModelRouteBinding =
+        await _currentModelRouteModuleBinding('skill_factory');
+    final skillGenerationRoute = _modelRouteEvidenceForScopes(
+      skillModelRouteBinding,
+      ['skill_generation', 'skill_validation', 'skill_refinement'],
+    );
+    final externalSkillRoute = _modelRouteEvidenceForScopes(
+      skillModelRouteBinding,
+      [
+        'external_skill_analysis',
+        'external_skill_localization',
+        'external_skill_tool_requirement',
+      ],
+    );
     final artifacts = <Map<String, Object?>>[
       {
         'artifact_id': 'primary_skill',
@@ -8069,6 +8137,11 @@ class Rc6RuntimeController extends ChangeNotifier {
           _join(operationsRoot.path, 'skill_operation_manifest.json'),
       'operation_history_path':
           _join(operationsRoot.path, 'skill_operation_history.json'),
+      'model_route_binding': skillModelRouteBinding,
+      'model_route_evidence': {
+        'skill_generation': skillGenerationRoute,
+        'external_skill_localization': externalSkillRoute,
+      },
       'export_path': _join(exportRoot.path, 'skills_export.md'),
       'agent_binding': {
         'status': agentBound ? 'bound' : 'waiting_agent',
@@ -8126,6 +8199,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       'requested_operation': requestedOperation,
       'package_manifest_path': packageManifestPath,
       'source_kb_ids': sourceKbIds,
+      'model_route_binding': skillModelRouteBinding,
+      'model_route_evidence': {
+        'skill_generation': skillGenerationRoute,
+        'external_skill_localization': externalSkillRoute,
+      },
       'checks': checks,
       'missing_required_artifacts': missingRequired,
       'agent_binding_status': agentBound ? 'bound' : 'waiting_agent',
@@ -8179,6 +8257,20 @@ class Rc6RuntimeController extends ChangeNotifier {
       _joinNested(operationsRoot.path, 'skill_operation_history.json'),
       _joinNested(operationsRoot.path, 'agent_binding_manifest.json'),
     ].where((path) => File(path).existsSync()).toList(growable: false);
+    final skillModelRouteBinding =
+        await _currentModelRouteModuleBinding('skill_factory');
+    final skillGenerationRoute = _modelRouteEvidenceForScopes(
+      skillModelRouteBinding,
+      ['skill_generation', 'skill_validation', 'skill_refinement'],
+    );
+    final externalSkillRoute = _modelRouteEvidenceForScopes(
+      skillModelRouteBinding,
+      [
+        'external_skill_analysis',
+        'external_skill_localization',
+        'external_skill_tool_requirement',
+      ],
+    );
     final payload = {
       'schema_version': 'prd_v3_skill_factory_audit.v1',
       'status': _stringValue(validationReport['status'], 'fail'),
@@ -8197,6 +8289,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         'export',
         'agent_binding',
       ],
+      'model_route_binding': skillModelRouteBinding,
+      'model_route_evidence': {
+        'skill_generation': skillGenerationRoute,
+        'external_skill_localization': externalSkillRoute,
+      },
       'artifact_count': artifacts.length,
       'artifacts': artifacts,
       'missing_required_artifacts':
@@ -8260,6 +8357,17 @@ class Rc6RuntimeController extends ChangeNotifier {
     final operationHistoryPath =
         _join(operationsRoot.path, 'skill_operation_history.json');
     final sourceKbIds = _listOfStrings(validationReport['source_kb_ids']);
+    final skillModelRouteBinding =
+        await _currentModelRouteModuleBinding('skill_factory');
+    final skillRuntimeRoute = _modelRouteEvidenceForScopes(
+      skillModelRouteBinding,
+      [
+        'skill_generation',
+        'skill_validation',
+        'skill_refinement',
+        'external_skill_localization',
+      ],
+    );
     final diff = {
       'schema_version': 'prd_v3_skill_version_diff_report.v1',
       'status': versions.length > 1 ? 'pass' : 'needs_previous_version',
@@ -8325,6 +8433,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'operation_conversion_skill',
         'product_analysis_skill',
       ],
+      'model_route_binding': skillModelRouteBinding,
+      'model_route_evidence': skillRuntimeRoute,
       'fused_skill_path': fusedSkillPath,
       'fused_manifest_path': fusedManifestPath,
       'package_manifest_path': packageManifestPath,
@@ -8359,6 +8469,7 @@ class Rc6RuntimeController extends ChangeNotifier {
             'version_diff_report_path': diffPath,
             'rollback_manifest_path': rollbackPath,
             'version_count': versions.length,
+            'model_route_evidence': skillRuntimeRoute,
             'secondary_fusion_runtime_available':
                 runtime['secondary_fusion_runtime_available'],
             'multi_version_runtime_available':
@@ -8474,6 +8585,12 @@ class Rc6RuntimeController extends ChangeNotifier {
     await agentRoot.create(recursive: true);
     final kbManifestPath = _join(workspace.path, 'kb', 'manifest.json');
     final skillRoot = _join(workspace.path, 'skill');
+    final agentModelRouteBinding =
+        await _currentModelRouteModuleBinding('agent_workbench');
+    final agentGenerationRoute = _modelRouteEvidenceForScopes(
+      agentModelRouteBinding,
+      ['agent_chat', 'agent_reasoning', 'agent_tool_planning'],
+    );
     const specs = [
       {
         'id': 'reading_summary_agent',
@@ -8558,6 +8675,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'model_config_id': selectedPrimary
             ? config.modelConfigId
             : 'local-default-or-configured-provider',
+        'model_route_binding': agentGenerationRoute,
         'kb_ids': kbIds,
         'skill_ids': skillIds,
         'tool_ids': creationMode == 'advanced'
@@ -8606,6 +8724,7 @@ class Rc6RuntimeController extends ChangeNotifier {
             'model': selectedPrimary
                 ? config.modelConfigId
                 : 'local-default-or-configured-provider',
+            'model_route_binding': agentGenerationRoute,
             'role_goal': goal,
           }),
           encoding: utf8);
@@ -8624,6 +8743,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       kbIds: const ['K1'],
       skillIds: const ['S1'],
       model: 'local-default-or-configured-provider',
+      modelRouteBinding: agentGenerationRoute,
       status: 'chat_ready',
     );
     await File(_join(singleWorkspace.path, 'dialogue.md')).writeAsString(
@@ -8663,6 +8783,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       kbIds: const ['K2'],
       skillIds: const ['S2', 'operation_conversion_skill'],
       model: 'local-default-or-configured-provider',
+      modelRouteBinding: agentGenerationRoute,
       status: 'chat_ready',
     );
     await _writePrdAgentWorkspace(
@@ -8674,6 +8795,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       kbIds: const ['K3'],
       skillIds: const ['product_analysis_skill'],
       model: 'local-default-or-configured-provider',
+      modelRouteBinding: agentGenerationRoute,
       status: 'chat_ready',
     );
 
@@ -8683,6 +8805,8 @@ class Rc6RuntimeController extends ChangeNotifier {
               'schema_version': 'rc10_real_input_agent_generation.v1',
               'status': 'pass',
               'selected_generation_config': config.toJson(),
+              'model_route_binding': agentModelRouteBinding,
+              'model_route_evidence': agentGenerationRoute,
               'workspace_types': [
                 'single_agent',
                 'parent_multi_agent',
@@ -9755,11 +9879,17 @@ class Rc6RuntimeController extends ChangeNotifier {
       'created_at': DateTime.now().toUtc().toIso8601String(),
       'details': details,
     });
+    final modelRouteEvidenceRecorded = records.any((record) {
+      final recordDetails = _mapValue(record['details']);
+      return recordDetails.containsKey('model_route_evidence') ||
+          recordDetails.containsKey('model_route_binding');
+    });
     final payload = {
       ...current,
       'schema_version': _stringValue(
           current['schema_version'], 'prd_v2_agent_run_history.v1'),
       'status': 'pass',
+      'model_route_evidence_recorded': modelRouteEvidenceRecorded,
       'records': records,
     };
     await File(historyPath).writeAsString(
@@ -9875,6 +10005,17 @@ class Rc6RuntimeController extends ChangeNotifier {
             'operation_conversion_agent',
             'product_analysis_agent',
           ];
+    final a2aModelRouteBinding = await _currentModelRouteModuleBinding('a2a');
+    final a2aRouteEvidence = _modelRouteEvidenceForScopes(
+      a2aModelRouteBinding,
+      [
+        'a2a_task_dispatch',
+        'a2a_review',
+        'a2a_conflict_detection',
+        'a2a_consensus',
+        'a2a_report',
+      ],
+    );
     final buffer = StringBuffer()
       ..writeln('# multi_agent_discussion')
       ..writeln()
@@ -9978,6 +10119,7 @@ class Rc6RuntimeController extends ChangeNotifier {
               'input_recorded': true,
               'output_recorded': true,
               'conflict_detection_enabled': true,
+              'model_route_evidence': a2aRouteEvidence,
               'workspace_boundary': workspace.path,
               'created_at': DateTime.now().toUtc().toIso8601String(),
               'secret_plaintext_written': false,
@@ -9992,6 +10134,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'round_count': rounds.length,
       'round_log_path': roundLogPath,
       'runtime_audit_path': runtimeAuditPath,
+      'model_route_evidence': a2aRouteEvidence,
       'conflicts': [
         {
           'conflict_id': 'C1',
@@ -10029,6 +10172,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'round_count': rounds.length,
       'round_log_path': roundLogPath,
       'runtime_audit_path': runtimeAuditPath,
+      'model_route_evidence': a2aRouteEvidence,
       'consensus_items': [
         {
           'consensus_id': 'S1',
@@ -10076,6 +10220,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'moderator_agent_id': 'reading_summary_agent',
       'summary_required': true,
       'conflict_detection_enabled': true,
+      'model_route_binding': a2aModelRouteBinding,
+      'model_route_evidence': a2aRouteEvidence,
       'conflict_report_path': conflictReportPath,
       'consensus_report_path': consensusReportPath,
       'output_report_path': _join(outDir.path, 'multi_agent_discussion.md'),
@@ -10096,6 +10242,8 @@ class Rc6RuntimeController extends ChangeNotifier {
               'round_count': rounds.length,
               'round_log_path': roundLogPath,
               'runtime_audit_path': runtimeAuditPath,
+              'model_route_binding': a2aModelRouteBinding,
+              'model_route_evidence': a2aRouteEvidence,
               'conflict_report_path': conflictReportPath,
               'consensus_report_path': consensusReportPath,
               'unresolved_conflict_count': selected.isEmpty ? 1 : 0,
@@ -10317,6 +10465,8 @@ class Rc6RuntimeController extends ChangeNotifier {
 
     final agentRoot = Directory(_join(root.path, 'agent_workspaces'));
     await agentRoot.create(recursive: true);
+    final agentModelRouteBinding =
+        await _currentModelRouteModuleBinding('agent_workbench');
     final singleAgentDir = Directory(_join(agentRoot.path, 'W_A'));
     await singleAgentDir.create(recursive: true);
     await _writePrdAgentWorkspace(
@@ -10328,6 +10478,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       kbIds: const ['K1'],
       skillIds: const ['S1'],
       model: 'local-default-or-configured-provider',
+      modelRouteBinding: agentModelRouteBinding,
       status: 'chat_ready',
     );
     await File(_join(singleAgentDir.path, 'dialogue.md')).writeAsString(
@@ -10358,6 +10509,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       kbIds: const ['K2'],
       skillIds: const ['S2'],
       model: 'local-default-or-configured-provider',
+      modelRouteBinding: agentModelRouteBinding,
       status: 'chat_ready',
     );
     await _writePrdAgentWorkspace(
@@ -10369,6 +10521,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       kbIds: const ['K3'],
       skillIds: const [],
       model: 'local-default-or-configured-provider',
+      modelRouteBinding: agentModelRouteBinding,
       status: 'chat_ready',
     );
 
@@ -10735,8 +10888,26 @@ class Rc6RuntimeController extends ChangeNotifier {
     required List<String> kbIds,
     required List<String> skillIds,
     required String model,
+    Map<String, dynamic> modelRouteBinding = const <String, dynamic>{},
     required String status,
   }) async {
+    final routeBinding = modelRouteBinding.isEmpty
+        ? {
+            'module': 'agent_workbench',
+            'route_ids': const <String>[],
+            'route_scopes': const <String>[
+              'agent_chat',
+              'agent_reasoning',
+              'agent_tool_planning',
+              'agent_summarization',
+            ],
+            'status': '未配置',
+            'available': false,
+            'gateway_id': 'gateway_not_configured',
+            'fallback_policy': '模型路线未配置。',
+            'secret_masked': true,
+          }
+        : modelRouteBinding;
     await dir.create(recursive: true);
     await File(_join(dir.path, 'agent_manifest.json')).writeAsString(
         const JsonEncoder.withIndent('  ').convert({
@@ -10747,6 +10918,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           'agent_type': agentName,
           'creation_mode': 'simple',
           'model_config_id': model,
+          'model_route_binding': routeBinding,
           'kb_ids': kbIds,
           'skill_ids': skillIds,
           'memory_config': {'short_term': 'local_session'},
@@ -10764,6 +10936,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           'called_skills': skillIds,
           'called_tools': const <String>[],
           'model': model,
+          'model_route_binding': routeBinding,
         }),
         encoding: utf8);
   }
@@ -14092,6 +14265,62 @@ class Rc6RuntimeController extends ChangeNotifier {
       'fallback_policy': _stringValue(binding['fallback_policy'], ''),
       'gateway_id':
           _stringValue(binding['gateway_id'], 'gateway_not_configured'),
+      'secret_masked': true,
+    };
+  }
+
+  Future<Map<String, dynamic>> _currentModelRouteModuleBinding(
+      String module) async {
+    final workspace = _requireWorkspace();
+    var matrix = await _readJsonObject(_joinNested(workspace.path,
+        'config/model_gateway/model_route_binding_matrix.json'));
+    if (_listOfMaps(matrix['bindings']).isEmpty) {
+      final providerSettings = await loadProviderRuntimeSettings();
+      final gateway = _mapValue(providerSettings['model_gateway']);
+      final status = _userStatus(gateway['status']);
+      final routeEntries = _modelRoutePoolEntries(
+        gateway,
+        status: status,
+        baseUrl: _sanitizeEndpoint(_stringValue(gateway['base_url'], '')),
+      );
+      matrix = _modelRouteBindingMatrix(
+        workspace,
+        gatewayId:
+            _stringValue(gateway['gateway_id'], 'gateway_not_configured'),
+        routeEntries: routeEntries,
+        status: status,
+        generatedAt: DateTime.now().toUtc().toIso8601String(),
+      );
+    }
+    return _modelRouteModuleBinding(matrix, module);
+  }
+
+  static Map<String, dynamic> _modelRouteEvidenceForScopes(
+    Map<String, dynamic> binding,
+    List<String> scopes,
+  ) {
+    final bindingScopes = _listOfStrings(binding['route_scopes']);
+    final bindingIds = _listOfStrings(binding['route_ids']);
+    final selectedScopes = <String>[];
+    final selectedIds = <String>[];
+    for (final scope in scopes) {
+      final index = bindingScopes.indexOf(scope);
+      if (index >= 0) {
+        selectedScopes.add(scope);
+        if (index < bindingIds.length && bindingIds[index].isNotEmpty) {
+          selectedIds.add(bindingIds[index]);
+        }
+      }
+    }
+    return {
+      'module': _stringValue(binding['module'], ''),
+      'route_scopes': selectedScopes.isEmpty ? scopes : selectedScopes,
+      'route_ids': selectedIds,
+      'status': _stringValue(binding['status'], '未配置'),
+      'available': _boolValue(binding['available']),
+      'gateway_id':
+          _stringValue(binding['gateway_id'], 'gateway_not_configured'),
+      'fallback_policy': _stringValue(binding['fallback_policy'], ''),
       'secret_masked': true,
     };
   }

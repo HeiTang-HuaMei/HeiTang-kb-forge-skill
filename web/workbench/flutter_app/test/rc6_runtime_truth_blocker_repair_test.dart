@@ -4452,13 +4452,33 @@ void main() {
     expect(
         File('$skillRoot${Platform.pathSeparator}skill_generation_manifest.json')
             .readAsStringSync(),
-        allOf(
+        allOf([
           contains('"selected_generation_config"'),
+          contains('"model_route_binding"'),
+          contains('"model_route_evidence"'),
+          contains('"skill_generation"'),
+          contains('"external_skill_localization"'),
           contains('"skill_type": "product"'),
           contains('"target_platform": "markdown"'),
           contains('"personalization_goal": "agent_specific"'),
           contains('"custom_skill_name": "Owner 产品方法论 Skill"'),
-        ));
+        ]));
+    final skillGenerationManifest = jsonDecode(File(
+            '$skillRoot${Platform.pathSeparator}skill_generation_manifest.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final skillRouteBinding =
+        skillGenerationManifest['model_route_binding'] as Map;
+    expect(skillRouteBinding['module'], 'skill_factory');
+    expect(skillRouteBinding['route_scopes'],
+        containsAll(['skill_generation', 'external_skill_localization']));
+    final skillRouteEvidence =
+        skillGenerationManifest['model_route_evidence'] as Map;
+    expect((skillRouteEvidence['skill_generation'] as Map)['route_scopes'],
+        containsAll(['skill_generation', 'skill_validation']));
+    expect(
+        (skillRouteEvidence['external_skill_localization']
+            as Map)['route_scopes'],
+        contains('external_skill_localization'));
     final skillVersionManifestPath =
         '$skillRoot${Platform.pathSeparator}operations${Platform.pathSeparator}skill_version_manifest.json';
     expect(
@@ -4579,6 +4599,12 @@ void main() {
         endsWith('skill_validation_report.json'));
     expect(factoryAudit['generation_modes'],
         containsAll(['from_kb', 'external_skill_fusion', 'export']));
+    expect((factoryAudit['model_route_binding'] as Map)['module'],
+        'skill_factory');
+    expect(
+        ((factoryAudit['model_route_evidence'] as Map)['skill_generation']
+            as Map)['route_scopes'],
+        contains('skill_refinement'));
     expect(factoryAudit['artifacts'], isA<List>());
     expect(factoryAudit['artifact_count'], greaterThan(0));
     expect(factoryAudit['missing_required_artifacts'], isEmpty);
@@ -4601,6 +4627,11 @@ void main() {
     expect(skillRuntimeManifest['runtime_loaded'], isTrue);
     expect(skillRuntimeManifest['secondary_fusion_runtime_available'], isTrue);
     expect(skillRuntimeManifest['multi_version_runtime_available'], isTrue);
+    expect((skillRuntimeManifest['model_route_binding'] as Map)['module'],
+        'skill_factory');
+    expect(
+        (skillRuntimeManifest['model_route_evidence'] as Map)['route_scopes'],
+        containsAll(['skill_generation', 'external_skill_localization']));
     expect(skillRuntimeManifest['version_count'], greaterThan(1));
     final skillRuntimeVersions =
         skillRuntimeManifest['versions'] as List<dynamic>;
@@ -4778,15 +4809,27 @@ void main() {
     expect(
         File('$agentRoot${Platform.pathSeparator}agent_generation_manifest.json')
             .readAsStringSync(),
-        allOf(
+        allOf([
           contains('"selected_generation_config"'),
+          contains('"model_route_binding"'),
+          contains('"model_route_evidence"'),
+          contains('"agent_chat"'),
           contains('"custom_agent_name": "Owner 产品分析 Agent"'),
           contains('"creation_mode": "advanced"'),
           contains('"agent_type": "product_analysis"'),
           contains('"model_config_id": "owner-provider-model"'),
           contains('"output_format": "json"'),
           contains('"role_goal": "以产品经理视角分析证据并输出可执行结论。"'),
-        ));
+        ]));
+    final agentGenerationManifest = jsonDecode(File(
+            '$agentRoot${Platform.pathSeparator}agent_generation_manifest.json')
+        .readAsStringSync()) as Map;
+    expect((agentGenerationManifest['model_route_binding'] as Map)['module'],
+        'agent_workbench');
+    expect(
+        (agentGenerationManifest['model_route_evidence']
+            as Map)['route_scopes'],
+        containsAll(['agent_chat', 'agent_reasoning']));
     expect(
         File('$agentRoot${Platform.pathSeparator}product_config${Platform.pathSeparator}advanced_agent_config.json')
             .readAsStringSync(),
@@ -4823,14 +4866,17 @@ void main() {
         .readAsStringSync();
     expect(
         dialogueManifest,
-        allOf(
+        allOf([
           contains('"model_config_id": "owner-provider-model"'),
+          contains('"model_route_binding"'),
+          contains('"model_route_evidence"'),
+          contains('"agent_chat"'),
           contains('"role_goal": "以产品经理视角分析证据并输出可执行结论。"'),
           contains('"used_kb_ids"'),
           contains('"K1"'),
           contains('"used_skill_ids"'),
           contains('"S1"'),
-        ));
+        ]));
     expect(
         dialogueManifest,
         allOf(
@@ -4839,6 +4885,12 @@ void main() {
           contains(
               '"vector_config_id": "settings_agent_memory_vector_optional"'),
         ));
+    final dialogueManifestJson = jsonDecode(dialogueManifest) as Map;
+    expect((dialogueManifestJson['model_route_binding'] as Map)['module'],
+        'agent_workbench');
+    expect(
+        (dialogueManifestJson['model_route_evidence'] as Map)['route_scopes'],
+        containsAll(['agent_chat', 'agent_reasoning']));
     expect(
         File('$agentRoot${Platform.pathSeparator}dialogue${Platform.pathSeparator}chat_history.jsonl')
             .readAsStringSync(),
@@ -4875,15 +4927,24 @@ void main() {
         a2aManifest,
         allOf(
           contains('"topic": "Owner 自定义 A2A 议题"'),
+          contains('"model_route_binding"'),
+          contains('"model_route_evidence"'),
+          contains('"a2a_consensus"'),
           contains('"operation_conversion_agent"'),
           contains('"product_analysis_agent"'),
         ));
+    final a2aManifestJson = jsonDecode(a2aManifest) as Map;
+    expect((a2aManifestJson['model_route_binding'] as Map)['module'], 'a2a');
+    expect((a2aManifestJson['model_route_evidence'] as Map)['route_scopes'],
+        containsAll(['a2a_conflict_detection', 'a2a_consensus']));
     expect(
         File('$agentRoot${Platform.pathSeparator}audit${Platform.pathSeparator}run_history.json')
             .readAsStringSync(),
         allOf(
           contains('"action": "run_agent_dialogue"'),
           contains('"action": "run_a2a_discussion"'),
+          contains('"model_route_evidence_recorded": true'),
+          contains('"model_route_evidence"'),
           contains('Owner 自定义 A2A 议题'),
         ));
     final orchestrationRecords = readJsonlFile(

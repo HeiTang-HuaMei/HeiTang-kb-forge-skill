@@ -47,6 +47,7 @@ Runtime configuration assets are written to:
 | --- | --- |
 | Storage Path | Persisted with local path, hybrid policy, write test, disk-space check, permission error field |
 | LLM Provider | Provider type, endpoint reference, model, API key ref, timeout, enabled flag, test result, masked secret |
+| Model Gateway / API Relay | Gateway pool, direct provider pool, ModelRoute pool, route binding matrix, fallback, usage/cost policy, masked key refs |
 | Embedding Provider | Provider type, model, dimension, endpoint, API key ref, test vector status, dimension mismatch flag |
 | Search Provider | Provider type, endpoint, API key ref, network authorization, external verification flag, query test status |
 | OCR Provider | Provider type, enabled flag, language, test availability, unavailable reason |
@@ -56,6 +57,37 @@ Runtime configuration assets are written to:
 | Vector DB | Provider type, endpoint, API key ref, collection, embedding config id, dimension, health, collection, vector test |
 | Network Authorization | Web import, external verification, allowlist, timeout, retry, disabled reason |
 | Agent Memory / Tool Policy | Simple/complex Agent memory and tool access policy, unauthorized resource guard |
+
+## Model Gateway / ModelRoute Scope
+
+The large-model configuration object is `模型网关与大模型接入配置能力补全计划`, not an Agent-only plan.
+
+Implemented runtime evidence:
+
+- `config/model_gateway/model_gateway_config.json`
+- `config/model_gateway/model_gateway_test_report.json`
+- `config/model_gateway/model_gateway_usage_report.json`
+- `config/model_gateway/model_gateway_fallback_report.json`
+- `config/model_gateway/model_gateway_reference_registry.json`
+- `config/model_gateway/model_route_pool.json`
+- `config/model_gateway/model_route_binding_matrix.json`
+- `config/model_gateway/model_usage_cost_policy.json`
+- `config/model_gateway/model_gateway_audit.jsonl`
+- `config/model_gateway/model_route_audit.jsonl`
+
+Runtime boundary:
+
+- Gateway is the Provider Gateway / API Relay layer, not an Agent runtime.
+- Provider is the upstream model service or OpenAI-compatible relay target.
+- ModelRoute is the business-facing route consumed by document pipeline, OKF, document generation, Skill Factory, Agent Workbench, A2A, Tool reasoning, and embedding.
+- Embedding route is separated from chat routes.
+- API keys are stored only as refs or masked previews; test/audit artifacts do not write plaintext secrets.
+
+Stage 2 runtime binding proof:
+
+- Skill generation, external Skill analysis/localization, Skill validation, Skill runtime manifest, and Skill factory audit now write `model_route_binding` / `model_route_evidence`.
+- Agent generation, single-Agent dialogue, dialogue export, Agent run history, A2A conflict/consensus/session artifacts, and orchestration records now write `model_route_binding` / `model_route_evidence`.
+- This makes the LLM/Gateway layer auditable across KB-to-Skill, Skill-to-Agent, and A2A paths without exposing gateway mechanics as normal product pages.
 
 ## Registered Provider Integration
 
@@ -243,6 +275,7 @@ Lifecycle behavior implemented:
 | Redis | `testRedisConnection` | Missing password, auth failure, connection failure, ping/write/read/delete result persistence, masked logs |
 | Vector DB / Qdrant | `testQdrantConnection` | Invalid endpoint, invalid dimension, health/collection/vector write-search-delete path, masked logs |
 | Provider runtime | `validateProviderRuntimeSettings` | Writes validation report, activation matrix, lifecycle log, rollback manifest |
+| Model Gateway / ModelRoute | `saveModelGatewayProviderConfig`, `testModelGatewayProvider` | Writes gateway config/test/usage/fallback/reference registry, route pool, binding matrix, route audit, and downstream route evidence |
 | Exporter | `validateExporterSettings` | Markdown/JSON/CSV local availability, DOCX/PDF/PPTX gated until configured |
 | Storage | `_probeStoragePath` | Real write probe and Windows free-space query; failure records Chinese permission reason |
 | Registered Provider health | `testAllRegisteredProviderCapabilities` | Checks 30 mappings, writes health JSON/JSONL, blocks unverified runtime load, proves rollback/fallback |
