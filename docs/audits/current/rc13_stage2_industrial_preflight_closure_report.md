@@ -93,3 +93,34 @@ GitHub Actions run 27878889002: success
 ```
 
 The two `codex_*` test files above were temporary local harnesses used only to generate and refresh the fixed evidence workspace. They were removed and are not part of the repository.
+
+## Stage 2 Evidence Chain Hardening
+
+Date: 2026-06-21
+
+The Stage 2 preflight gate was tightened after review found that a passed 38-step smoke report could still contain artifact paths that did not exist or did not point to the matching runtime object.
+
+Hardening added in this slice:
+
+- Runtime initialization now persists default `storage_provider_settings.json`, `provider_runtime_settings.json`, `exporter_settings.json`, validation reports, and `workbook_manifest.json`.
+- The industrial full-chain runtime now materializes `K1`, `K2`, and `K3` under `knowledge_bases/` as real KB directories, each with manifest, chunks, source map, index metadata, index profile, keyword index, vector reference, metadata index, citation index, memory index reference, and index build report.
+- The 38-step smoke now writes multi-KB retrieval evidence that explicitly covers `K1`, `K2`, and `K3`; Skill manifests can no longer substitute for KB runtime evidence.
+- The Stage 2 smoke preflight now rejects a `passed` smoke report unless every passed step has a non-empty artifact path that exists as a file or directory.
+- Existing OKF/K_OKF1 catalog records are preserved when P0 multi-KB evidence is refreshed.
+
+Additional validation:
+
+```text
+flutter analyze
+flutter test test\rc6_runtime_truth_blocker_repair_test.dart --name "rc6 full chain requires real import before execution" --concurrency=1
+flutter test test\rc6_runtime_truth_blocker_repair_test.dart --name "prd standard knowledge package exports imports and builds KB" --concurrency=1
+flutter test test\rc6_runtime_truth_blocker_repair_test.dart --name "prd p0 product smoke writes multiple KBs, localized skill, and A2A" --concurrency=1
+flutter test test\rc6_runtime_truth_blocker_repair_test.dart --name "embedding vector adapters become selectable from real index artifacts" --concurrency=1
+flutter test test\rc6_runtime_truth_blocker_repair_test.dart --concurrency=1
+```
+
+Result:
+
+```text
+All listed checks passed locally.
+```

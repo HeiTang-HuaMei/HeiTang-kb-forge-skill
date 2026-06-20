@@ -3964,6 +3964,49 @@ void main() {
     expect(smokeReport['failed_step_ids'], isEmpty);
     expect(smokeReport['secret_plaintext_written'], isFalse);
     expect(smokeReport['external_runtime_loaded'], isFalse);
+    for (final step
+        in (smokeReport['step_results'] as List).cast<Map<String, dynamic>>()) {
+      expect(step['status'], 'passed', reason: jsonEncode(step));
+      final artifact = (step['artifact'] ?? '').toString();
+      expect(artifact, isNotEmpty, reason: jsonEncode(step));
+      expect(
+        File(artifact).existsSync() || Directory(artifact).existsSync(),
+        isTrue,
+        reason: artifact,
+      );
+    }
+    for (final kbId in ['K1', 'K2', 'K3']) {
+      final kbRoot =
+          '${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}$kbId';
+      expect(File('$kbRoot${Platform.pathSeparator}manifest.json').existsSync(),
+          isTrue);
+      expect(
+          File('$kbRoot${Platform.pathSeparator}prd_kb_manifest.json')
+              .existsSync(),
+          isTrue);
+      expectIndustrialIndexArtifacts(kbRoot, kbId: kbId);
+      expect(readJsonlFile('$kbRoot${Platform.pathSeparator}chunks.jsonl'),
+          isNotEmpty);
+    }
+    final multiKbQuery = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}query${Platform.pathSeparator}multi_kb_query_result.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(multiKbQuery['schema_version'], 'prd_v3_multi_kb_query_result.v1');
+    expect(multiKbQuery['selected_kb_ids'], containsAll(['K1', 'K2', 'K3']));
+    final multiRows = (multiKbQuery['results'] as List).cast<Map>();
+    expect(multiRows.map((row) => row['kb_id']).toSet(),
+        containsAll(['K1', 'K2', 'K3']));
+    for (final relative in [
+      'config${Platform.pathSeparator}provider_runtime_settings.json',
+      'config${Platform.pathSeparator}storage_provider_settings.json',
+      'config${Platform.pathSeparator}exporter_settings.json',
+      'workbooks${Platform.pathSeparator}workbook_manifest.json',
+    ]) {
+      expect(
+          File('${workspace.path}${Platform.pathSeparator}$relative')
+              .existsSync(),
+          isTrue);
+    }
 
     expect(requests.map((request) => request.actionId), [
       'batch_import_documents',

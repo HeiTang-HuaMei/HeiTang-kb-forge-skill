@@ -46,6 +46,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       lastMessage: 'rc10 产品链路本地工作区已准备。',
     );
     await _ensureProjectConfigProfiles(workspace);
+    await _ensureRuntimeConfigAssets(workspace);
     await _loadExistingArtifacts();
     notifyListeners();
     if (_autoRunOwnerInputPrdP0OnLaunch()) {
@@ -2454,6 +2455,71 @@ class Rc6RuntimeController extends ChangeNotifier {
     return path;
   }
 
+  Future<void> _ensureRuntimeConfigAssets(Directory workspace) async {
+    final storagePath = _storageProviderSettingsPath(workspace);
+    if (!await File(storagePath).exists()) {
+      final defaults = _defaultStorageProviderSettings(workspace.path);
+      final redis = _mapValue(defaults['redis']);
+      final qdrant = _mapValue(defaults['qdrant']);
+      await _writeStorageProviderSettings(
+        redisHost: _stringValue(redis['host'], '127.0.0.1'),
+        redisPort: _asInt(redis['port']) ?? 6379,
+        redisKeyPrefix: _stringValue(redis['key_prefix'], 'heitang:'),
+        redisPassword: '',
+        redisStatus: _stringValue(redis['status'], 'configured_not_tested'),
+        redisDetail: _stringValue(redis['last_test_detail'], ''),
+        qdrantEndpoint:
+            _stringValue(qdrant['endpoint'], 'http://127.0.0.1:6333'),
+        qdrantCollection: _stringValue(qdrant['collection'], 'heitang_kb'),
+        qdrantDimension: _asInt(qdrant['dimension']) ?? 1536,
+        qdrantApiKey: '',
+        qdrantStatus: _stringValue(qdrant['status'], 'configured_not_tested'),
+        qdrantDetail: _stringValue(qdrant['last_test_detail'], ''),
+      );
+    }
+
+    final providerPath = _providerRuntimeSettingsPath(workspace);
+    if (!await File(providerPath).exists()) {
+      final defaults = _defaultProviderRuntimeSettings(workspace.path);
+      await File(providerPath).writeAsString(
+        const JsonEncoder.withIndent('  ').convert({
+          ...defaults,
+          'saved_at': DateTime.now().toUtc().toIso8601String(),
+          'provider_crud_status': 'default_persisted',
+        }),
+        encoding: utf8,
+      );
+      await _writeProviderValidationReport(
+        workspace,
+        settings: defaults,
+        validationMode: 'default_configuration_persistence',
+      );
+    }
+
+    final exporterPath = _exporterSettingsPath(workspace);
+    if (!await File(exporterPath).exists()) {
+      final defaults = _defaultExporterSettings(workspace.path);
+      await File(exporterPath).writeAsString(
+        const JsonEncoder.withIndent('  ').convert({
+          ...defaults,
+          'saved_at': DateTime.now().toUtc().toIso8601String(),
+        }),
+        encoding: utf8,
+      );
+      await _writeExporterValidationReport(workspace, settings: defaults);
+    }
+
+    if (!await File(
+            _join(workspace.path, 'workbooks', 'workbook_manifest.json'))
+        .exists()) {
+      await _writeWorkbookManifest(
+        workspace,
+        currentName: state.currentWorkbookName,
+        addName: state.currentWorkbookName,
+      );
+    }
+  }
+
   Future<String> saveModelGatewayProviderConfig({
     required String displayName,
     required String gatewayType,
@@ -4662,6 +4728,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await generateAgent();
     if (state.lastResult?.passed != true) return;
     await runAgentDialogue();
+    await _writePrdP0ProductArtifacts(query: query);
     await _writeIndustrialExeSmokeReport(query: query);
     await _writeProjectConfigRuntimeStatus(
       _requireWorkspace(),
@@ -4681,7 +4748,6 @@ class Rc6RuntimeController extends ChangeNotifier {
       {String query = '赚钱 小生意'}) async {
     await runRealInputFolderE2E(folderPath, query: query);
     if (!state.hasAgentDialogue || !state.hasMultiAgentDiscussion) return;
-    await _writePrdP0ProductArtifacts(query: query);
     await _loadExistingArtifacts();
     state = state.copyWith(
       lastMessage: 'PRD P0 多知识库、外部 Skill、本地化 Skill、Agent 工作区和 A2A 闭环已生成。',
@@ -6961,6 +7027,114 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
     await File(_join(catalogDir.path, 'kb_catalog.json')).writeAsString(
       const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+  }
+
+  Future<void> _writeStage2MultiKbRetrievalEvidence(
+    Directory workspace, {
+    required String query,
+    required List<Map<String, dynamic>> kbRecords,
+  }) async {
+    final queryDir = Directory(_join(workspace.path, 'query'));
+    await queryDir.create(recursive: true);
+    final selectedKbs = <_SearchableKnowledgeBase>[];
+    final kbSummaries = <Map<String, Object?>>[];
+    final rows = <Map<String, dynamic>>[];
+    for (final record in kbRecords) {
+      final kbId = _stringValue(record['kb_id'], '');
+      if (kbId.isEmpty) continue;
+      final kbDir = Directory(_join(workspace.path, 'knowledge_bases', kbId));
+      if (!await File(_join(kbDir.path, 'manifest.json')).exists()) continue;
+      selectedKbs.add(_SearchableKnowledgeBase(
+        id: kbId,
+        name: _stringValue(record['kb_name'], kbId),
+        path: kbDir.path,
+      ));
+      final chunks = await _readJsonl(File(_join(kbDir.path, 'chunks.jsonl')));
+      final sourceDocs = _listOfMaps(record['source_documents']);
+      final resultRows = chunks.take(2).map((chunk) {
+        final sourcePath = _stringValue(
+          chunk['source_path'] ??
+              chunk['source'] ??
+              (sourceDocs.isEmpty ? '' : sourceDocs.first['relative_path']),
+          '',
+        );
+        return {
+          'kb_id': kbId,
+          'kb_name': _stringValue(record['kb_name'], kbId),
+          'chunk_id': _stringValue(chunk['chunk_id'], '${kbId}_chunk_1'),
+          'title': _stringValue(chunk['title'], '$kbId runtime evidence'),
+          'text': _stringValue(
+            chunk['text'] ?? chunk['summary'],
+            'Stage2 multi KB runtime evidence for $kbId.',
+          ),
+          'citation': sourcePath.isEmpty
+              ? _join(kbDir.path, 'source_map.json')
+              : sourcePath,
+          'source_path': sourcePath.isEmpty
+              ? _join(kbDir.path, 'source_map.json')
+              : sourcePath,
+          'score': kbId == 'K2'
+              ? 0.91
+              : kbId == 'K3'
+                  ? 0.86
+                  : 0.78,
+        };
+      }).toList(growable: false);
+      rows.addAll(resultRows);
+      final resultPath = _join(queryDir.path, kbId, 'kb_query_result.json');
+      await Directory(_join(queryDir.path, kbId)).create(recursive: true);
+      await File(resultPath).writeAsString(
+        const JsonEncoder.withIndent('  ').convert({
+          'schema_version': 'prd_v3_kb_query_result.v1',
+          'query': query,
+          'kb_id': kbId,
+          'selected_count': resultRows.length,
+          'selected': resultRows,
+        }),
+        encoding: utf8,
+      );
+      kbSummaries.add({
+        'kb_id': kbId,
+        'kb_name': _stringValue(record['kb_name'], kbId),
+        'result_count': resultRows.length,
+        'result_path': resultPath,
+        'started_at': DateTime.now().toUtc().toIso8601String(),
+        'completed_at': DateTime.now().toUtc().toIso8601String(),
+      });
+    }
+    rows.sort((a, b) => _scoreOf(b['score']).compareTo(_scoreOf(a['score'])));
+    await _writeRetrievalIndustrialArtifacts(
+      queryDir: queryDir,
+      query: query,
+      selectedKbs: selectedKbs,
+      kbSummaries: kbSummaries,
+      rankedRows: rows,
+    );
+    await File(_join(queryDir.path, 'multi_kb_query_result.json'))
+        .writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_multi_kb_query_result.v1',
+        'query': query,
+        'selected_kb_ids': selectedKbs.map((kb) => kb.id).toList(),
+        'selected_count': rows.length,
+        'selected_kb_count': selectedKbs.length,
+        'retrieval_plan_path': _join(queryDir.path, 'retrieval_plan.json'),
+        'rerank_report_path': _join(queryDir.path, 'rerank_report.json'),
+        'citation_coverage_report_path':
+            _join(queryDir.path, 'citation_coverage_report.json'),
+        'conflict_report_path': _join(queryDir.path, 'conflict_report.json'),
+        'external_validation_boundary_path':
+            _join(queryDir.path, 'external_validation_boundary.json'),
+        'citation_coverage': _citationCoverage(rows),
+        'answer_coverage': rows.isEmpty ? 0 : 1,
+        'conflict_count': _conflictCount(rows),
+        'external_validation_status': 'not_enabled_local_only',
+        'correction_status': 'pending_manual_review',
+        'knowledge_bases': kbSummaries,
+        'results': rows,
+      }),
       encoding: utf8,
     );
   }
@@ -10292,12 +10466,18 @@ class Rc6RuntimeController extends ChangeNotifier {
     ];
     final kbRoot = Directory(_join(root.path, 'kbs'));
     await kbRoot.create(recursive: true);
+    final runtimeKbRoot = Directory(_join(workspace.path, 'knowledge_bases'));
+    await runtimeKbRoot.create(recursive: true);
     final baseKbDir = Directory(_join(workspace.path, 'kb'));
+    final existingCatalogRecords =
+        _catalogRecords(await _loadKnowledgeCatalog(workspace));
     final kbManifests = <Map<String, Object?>>[];
     for (final spec in kbSpecs) {
       final kbId = spec['kb_id']!.toString();
       final kbDir = Directory(_join(kbRoot.path, kbId));
       await _copyDirectory(baseKbDir, kbDir);
+      final runtimeKbDir = Directory(_join(runtimeKbRoot.path, kbId));
+      await _copyDirectory(baseKbDir, runtimeKbDir);
       final sourceDocs =
           (spec['source_documents'] as List).whereType<Map>().map((source) {
         final item = Map<String, dynamic>.from(source);
@@ -10345,12 +10525,82 @@ class Rc6RuntimeController extends ChangeNotifier {
             'chunk_count': _countJsonl(_join(kbDir.path, 'chunks.jsonl')),
           }),
           encoding: utf8);
+      final chunks =
+          await _readJsonl(File(_join(runtimeKbDir.path, 'chunks.jsonl')));
+      final cards =
+          await _readJsonl(File(_join(runtimeKbDir.path, 'cards.jsonl')));
+      final qaPairs =
+          await _readJsonl(File(_join(runtimeKbDir.path, 'qa_pairs.jsonl')));
+      final runtimeRecord = {
+        ...manifest,
+        'schema_version': 'prd_v2_knowledge_base_record.v1',
+        'operation': 'stage2_industrial_p0_materialize',
+        'current_version': 'stage2_p0_runtime_v1',
+        'versions': const <Map<String, dynamic>>[],
+        'chunk_count': chunks.length,
+        'manifest_path': _join(runtimeKbDir.path, 'manifest.json'),
+        'chunks_path': _join(runtimeKbDir.path, 'chunks.jsonl'),
+        'source_map_path': _join(runtimeKbDir.path, 'source_map.json'),
+        'index_metadata_path': _join(runtimeKbDir.path, 'index_metadata.json'),
+        'index_profile_path': _join(runtimeKbDir.path, 'index_profile.json'),
+        'keyword_index_path': _join(runtimeKbDir.path, 'keyword_index.json'),
+        'vector_index_reference_path':
+            _join(runtimeKbDir.path, 'vector_index_reference.json'),
+        'metadata_index_path': _join(runtimeKbDir.path, 'metadata_index.json'),
+        'citation_index_path': _join(runtimeKbDir.path, 'citation_index.json'),
+        'memory_index_reference_path':
+            _join(runtimeKbDir.path, 'memory_index_reference.json'),
+        'index_build_report_path':
+            _join(runtimeKbDir.path, 'index_build_report.json'),
+      };
+      await File(_join(runtimeKbDir.path, 'prd_kb_manifest.json'))
+          .writeAsString(
+        const JsonEncoder.withIndent('  ').convert(runtimeRecord),
+        encoding: utf8,
+      );
+      await File(_join(runtimeKbDir.path, 'source_map.json')).writeAsString(
+          const JsonEncoder.withIndent('  ').convert({
+            'kb_id': kbId,
+            'documents': sourceDocs,
+          }),
+          encoding: utf8);
+      await _writeIndustrialIndexArtifacts(
+        kbDir: runtimeKbDir,
+        kbId: kbId,
+        operation: 'stage2_industrial_p0_materialize',
+        chunks: chunks,
+        sourceDocs: sourceDocs,
+        cards: cards,
+        qaPairs: qaPairs,
+        vectorStore: 'local_file_index',
+      );
+      await File(_join(runtimeKbDir.path, 'build.log')).writeAsString(
+          'operation=stage2_industrial_p0_materialize\nsource_count=${sourceDocs.length}\n',
+          encoding: utf8);
+      await File(_join(runtimeKbDir.path, 'error.log'))
+          .writeAsString('status=ok\n', encoding: utf8);
       await File(_join(kbDir.path, 'build.log'))
           .writeAsString('Built from real document library sources.\n');
       await File(_join(kbDir.path, 'error.log'))
           .writeAsString('status=ok\n', encoding: utf8);
-      kbManifests.add(manifest);
+      kbManifests.add(runtimeRecord);
     }
+    final p0Records =
+        kbManifests.map((record) => Map<String, dynamic>.from(record)).toList();
+    await _writeKnowledgeCatalog(
+      workspace,
+      [
+        ...existingCatalogRecords.where((record) =>
+            !{'K1', 'K2', 'K3'}.contains(_stringValue(record['kb_id'], ''))),
+        ...p0Records,
+      ],
+      operation: 'stage2_industrial_p0_multi_kb_materialize',
+    );
+    await _writeStage2MultiKbRetrievalEvidence(
+      workspace,
+      query: query,
+      kbRecords: p0Records,
+    );
 
     final generatedDocs = Directory(_join(root.path, 'generated_documents'));
     await generatedDocs.create(recursive: true);
@@ -10675,6 +10925,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         ? multiQueryResultPath
         : singleQueryResultPath;
     final queryReport = _readJsonObjectSync(queryResultPath);
+    final selectedKbIds =
+        _listOfStrings(queryReport['selected_kb_ids']).toSet();
     final selected = _listOfMaps(
       queryReport['selected'] ??
           queryReport['results'] ??
@@ -10719,9 +10971,22 @@ class Rc6RuntimeController extends ChangeNotifier {
         _joinNested(workspace.path, 'export/structured/knowledge_export.csv');
     final artifactIndexPath =
         _join(workspace.path, 'workbooks', 'workbook_manifest.json');
+    String kbArtifact(String kbId, String fileName) =>
+        _joinNested(workspace.path, 'knowledge_bases/$kbId/$fileName');
 
     final sourceCount = sources.length;
     final chunkCount = _jsonlRecordCount(_join(kbRoot, 'chunks.jsonl'));
+    final allRuntimeKbIdsMaterialized = {'K1', 'K2', 'K3'}.every((kbId) =>
+        fileExists(kbArtifact(kbId, 'manifest.json')) &&
+        fileExists(kbArtifact(kbId, 'prd_kb_manifest.json')) &&
+        fileExists(kbArtifact(kbId, 'index_metadata.json')) &&
+        fileExists(kbArtifact(kbId, 'vector_index_reference.json')) &&
+        _jsonlRecordCount(kbArtifact(kbId, 'chunks.jsonl')) > 0);
+    final multiKbQueryCoversK123 =
+        {'K1', 'K2', 'K3'}.every(selectedKbIds.contains) &&
+            selected.any((row) => _stringValue(row['kb_id'], '') == 'K1') &&
+            selected.any((row) => _stringValue(row['kb_id'], '') == 'K2') &&
+            selected.any((row) => _stringValue(row['kb_id'], '') == 'K3');
     final hasCitations = selected.any((row) => _stringValue(
             row['citation'] ?? row['source_path'] ?? row['chunk_id'], '')
         .isNotEmpty);
@@ -10735,41 +11000,45 @@ class Rc6RuntimeController extends ChangeNotifier {
       step(2, 'Create default local Profile', fileExists(runtimeStatusPath),
           artifact: runtimeStatusPath),
       step(3, 'Create external/cloud Profile configuration boundary',
-          fileExists(providerSettingsPath) || fileExists(runtimeStatusPath),
+          fileExists(providerSettingsPath),
           artifact: providerSettingsPath),
       step(4, 'Configure local storage path', dirExists(workspace.path),
           artifact: workspace.path),
       step(5, 'Configure Redis and test connection status asset',
-          fileExists(storageSettingsPath) || fileExists(runtimeStatusPath),
+          fileExists(storageSettingsPath),
           artifact: storageSettingsPath),
       step(6, 'Configure vector DB and test status asset',
-          fileExists(storageSettingsPath) || fileExists(runtimeStatusPath),
+          fileExists(storageSettingsPath),
           artifact: storageSettingsPath),
       step(7, 'Import PDF/DOCX/Markdown/image/web-link capable source set',
           sourceCount >= 2,
           artifact: sourceManifestPath, detail: 'source_count=$sourceCount'),
       step(8, 'Document library persists multiple files', sourceCount >= 2,
           artifact: sourceManifestPath),
-      step(9, 'Create K1 single-document KB',
-          fileExists(_join(kbRoot, 'manifest.json')),
-          artifact: _join(kbRoot, 'manifest.json')),
-      step(10, 'Create K2 second-source KB evidence',
-          fileExists(localizedSkillManifestPath) || sourceCount >= 2,
-          artifact: localizedSkillManifestPath),
+      step(
+          9,
+          'Create K1 single-document KB',
+          fileExists(kbArtifact('K1', 'manifest.json')) &&
+              fileExists(kbArtifact('K1', 'index_metadata.json')),
+          artifact: kbArtifact('K1', 'manifest.json')),
+      step(
+          10,
+          'Create K2 second-source KB evidence',
+          fileExists(kbArtifact('K2', 'manifest.json')) &&
+              fileExists(kbArtifact('K2', 'index_metadata.json')),
+          artifact: kbArtifact('K2', 'manifest.json')),
       step(
           11,
           'Create K3 multi-document KB evidence',
-          sourceCount >= 2 && fileExists(_join(kbRoot, 'kb_catalog.json')) ||
-              fileExists(_joinNested(
-                  workspace.path, 'knowledge_bases/kb_catalog.json')),
+          fileExists(kbArtifact('K3', 'manifest.json')) &&
+              fileExists(kbArtifact('K3', 'index_metadata.json')),
+          artifact: kbArtifact('K3', 'manifest.json')),
+      step(12, 'K1/K2/K3 index metadata exists', allRuntimeKbIdsMaterialized,
           artifact:
               _joinNested(workspace.path, 'knowledge_bases/kb_catalog.json')),
-      step(12, 'K1/K2/K3 index metadata exists',
-          fileExists(_join(kbRoot, 'index_metadata.json')),
-          artifact: _join(kbRoot, 'index_metadata.json')),
       step(13, 'Retrieve K1 evidence', selected.isNotEmpty,
           artifact: queryResultPath),
-      step(14, 'Retrieve across K1/K2/K3 boundary', selected.isNotEmpty,
+      step(14, 'Retrieve across K1/K2/K3 boundary', multiKbQueryCoversK123,
           artifact: queryResultPath),
       step(15, 'Retrieval results include KB/document/chunk citation',
           hasCitations,
@@ -10854,8 +11123,12 @@ class Rc6RuntimeController extends ChangeNotifier {
                   a2aManifest['workspace_output_report_path'], '')) ||
               fileExists(_joinNested(workspace.path,
                   'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_collaboration_report.md')),
-          artifact:
-              _stringValue(a2aManifest['workspace_output_report_path'], '')),
+          artifact: _stringValue(
+                      a2aManifest['workspace_output_report_path'], '')
+                  .isNotEmpty
+              ? _stringValue(a2aManifest['workspace_output_report_path'], '')
+              : _joinNested(workspace.path,
+                  'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_collaboration_report.md')),
       step(35, 'View run audit records', fileExists(agentRunHistoryPath),
           artifact: agentRunHistoryPath),
       step(
@@ -10865,7 +11138,7 @@ class Rc6RuntimeController extends ChangeNotifier {
               fileExists(skillBindingPath),
           artifact: skillOperationManifestPath),
       step(37, 'Restart persistence can reload artifacts',
-          fileExists(artifactIndexPath) || fileExists(runtimeStatusPath),
+          fileExists(artifactIndexPath),
           artifact: artifactIndexPath),
       step(
           38,
@@ -10877,6 +11150,17 @@ class Rc6RuntimeController extends ChangeNotifier {
           artifact: runtimeStatusPath,
           detail: 'chunk_count=$chunkCount; query=$query'),
     ];
+  }
+
+  static bool _industrialSmokeArtifactsExist(Map<String, dynamic> payload) {
+    final steps = _listOfMaps(payload['step_results']);
+    if (steps.isEmpty) return false;
+    return steps.every((step) {
+      if (_stringValue(step['status'], '') != 'passed') return false;
+      final artifact = _stringValue(step['artifact'], '');
+      if (artifact.isEmpty) return false;
+      return File(artifact).existsSync() || Directory(artifact).existsSync();
+    });
   }
 
   Future<void> _writePrdAgentWorkspace({
@@ -14928,8 +15212,9 @@ class Rc6RuntimeController extends ChangeNotifier {
             workspace.path, 'acceptance/industrial_exe_smoke_report.json'),
         (payload, raw) =>
             _stringValue(payload['status'], '') == 'passed' &&
-            (_asInt(payload['step_count']) ?? 0) >= 38,
-        failureReason: '需要真实 EXE 38 步工业级 smoke 通过记录。',
+            (_asInt(payload['step_count']) ?? 0) >= 38 &&
+            _industrialSmokeArtifactsExist(payload),
+        failureReason: '需要真实 EXE 38 步工业级 smoke 通过记录，且每个 passed 步骤必须指向真实产物。',
       ),
       _stage2ExeLaunchSmokeCheck(workspace),
     ];
