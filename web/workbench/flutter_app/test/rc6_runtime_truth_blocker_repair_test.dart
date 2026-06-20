@@ -2189,6 +2189,24 @@ void main() {
     expect(selectionLog.last['status'], '连接成功');
     expect(selectionLog.last['runtime_loaded_after_event'], isFalse);
     expect(selectionLog.last['secret_masked'], isTrue);
+    final activatedRuntimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    final lifecycleAudit = jsonDecode(File(
+            activatedRuntimeStatus['provider_lifecycle_audit_summary_path']
+                as String)
+        .readAsStringSync()) as Map;
+    final downstreamBindingAudit =
+        (lifecycleAudit['downstream_binding_audit'] as List).cast<Map>();
+    final retrievalAudit = downstreamBindingAudit
+        .firstWhere((entry) => entry['capability_id'] == 'retrieval_provider');
+    expect(retrievalAudit['active_provider_ref'], 'sirchmunk');
+    expect(retrievalAudit['active_provider_kind'], 'registered_provider');
+    expect((retrievalAudit['affected_modules'] as List),
+        contains('retrieval_verification'));
+    expect(retrievalAudit['runtime_loaded'], isFalse);
+    expect(retrievalAudit['unauthorized_resources_selectable'], isFalse);
+    expect(retrievalAudit['secret_masked'], isTrue);
 
     final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
     expect(health['ready_for_user_selection_count'], 4);

@@ -575,6 +575,21 @@ Latest Stage 3 Provider audit visibility slice:
   `settings renders provider capability status without project-loading language`
   and `prd settings and parallel task validation produce industrial audit artifacts`.
 
+Latest Stage 3 Provider downstream binding audit slice:
+
+- `provider_lifecycle_audit_summary.json` now includes
+  `downstream_binding_audit`.
+- The audit records capability id, affected product modules, active provider,
+  fallback state, runtime-load eligibility, runtime-loaded state, rollback
+  suppression, authorization boundary, and secret masking for each capability
+  binding.
+- The retrieval Provider slice verifies that activating `sirchmunk` binds it to
+  the Retrieval product surface as a local capability enhancement while keeping
+  `runtime_loaded=false`, unauthorized resources unavailable, and secrets
+  masked.
+- Targeted test:
+  `sirchmunk local retrieval adapter becomes selectable after real chunks`.
+
 Latest validation for controlled n8n runtime-load slice:
 
 - `flutter analyze`

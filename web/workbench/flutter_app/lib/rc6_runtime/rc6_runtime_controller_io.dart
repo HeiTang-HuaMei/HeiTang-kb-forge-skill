@@ -13173,6 +13173,27 @@ class Rc6RuntimeController extends ChangeNotifier {
     final providerRows = _listOfMaps(registrySummary['provider_rows']);
     final eligibilityEntries = _listOfMaps(eligibility['entries']);
     final bindings = _listOfMaps(binding['bindings']);
+    final downstreamBindingAudit = bindings
+        .map((entry) => {
+              'capability_id': _stringValue(entry['capability_id'], ''),
+              'affected_modules': _listOfStrings(entry['affected_modules']),
+              'active_provider_ref':
+                  _stringValue(entry['active_provider_ref'], ''),
+              'active_provider_kind':
+                  _stringValue(entry['active_provider_kind'], ''),
+              'user_status': _stringValue(entry['user_status'], ''),
+              'selection_allowed': _boolValue(entry['selection_allowed']),
+              'runtime_load_allowed': _boolValue(entry['runtime_load_allowed']),
+              'runtime_loaded': _boolValue(entry['runtime_loaded']),
+              'local_fallback_active':
+                  _stringValue(entry['active_provider_kind'], '') ==
+                      'local_fallback',
+              'rollback_suppressed': _boolValue(entry['rollback_suppressed']),
+              'unauthorized_resources_selectable':
+                  _boolValue(entry['unauthorized_resources_selectable']),
+              'secret_masked': _boolValue(entry['secret_masked']),
+            })
+        .toList(growable: false);
     final selectionActions = <String, int>{};
     for (final event in selectionEvents) {
       final action = _stringValue(event['action'], 'unknown');
@@ -13238,6 +13259,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'rollback_event_count': rollbackEvents,
       },
       'runtime_load_summary': providerRuntimeLoad,
+      'downstream_binding_audit': downstreamBindingAudit,
       'rollback_summary': {
         'registered_provider_rollback_manifest_path': rollbackManifestPath,
         'rollback_supported':
