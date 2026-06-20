@@ -3934,6 +3934,23 @@ void main() {
             .readAsStringSync()) as Map<String, dynamic>;
     expect(activatedBinding['selected_provider_ref'], 'n8n');
     expect(activatedBinding['selected_provider_runtime_loaded'], isFalse);
+    final activatedRuntimeStatus = runtimeStatus();
+    final lifecycleAudit = jsonDecode(File(
+            activatedRuntimeStatus['provider_lifecycle_audit_summary_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    final downstreamBindingAudit =
+        (lifecycleAudit['downstream_binding_audit'] as List)
+            .cast<Map<String, dynamic>>();
+    final workflowAudit = downstreamBindingAudit.firstWhere(
+        (entry) => entry['capability_id'] == 'workflow_collaboration_export');
+    expect(workflowAudit['active_provider_ref'], 'n8n');
+    expect(workflowAudit['active_provider_kind'], 'registered_provider');
+    expect((workflowAudit['affected_modules'] as List),
+        containsAll(['agent_workbench', 'artifact_center']));
+    expect(workflowAudit['runtime_loaded'], isFalse);
+    expect(workflowAudit['unauthorized_resources_selectable'], isFalse);
+    expect(workflowAudit['secret_masked'], isTrue);
     final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
     expect(health['ready_for_user_selection_count'], greaterThanOrEqualTo(4));
   });

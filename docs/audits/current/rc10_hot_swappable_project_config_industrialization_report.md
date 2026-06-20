@@ -594,10 +594,15 @@ Latest Stage 3 Provider downstream binding audit slice:
 - The Agent Workbench slice verifies that activating `llm_wiki_v2` binds it to
   Agent model/tool/memory capability status while keeping `runtime_loaded=false`,
   unauthorized resources unavailable, and secrets masked.
+- The Workflow/A2A slice verifies that activating `n8n` binds it to Agent
+  Workbench and Artifact Center workflow collaboration export status while
+  keeping `runtime_loaded=false`, unauthorized resources unavailable, and
+  secrets masked.
 - Targeted tests:
   `sirchmunk local retrieval adapter becomes selectable after real chunks`,
   `exporter adapters become selectable from real export artifacts`, and
-  `llm wiki agent memory adapter requires local agent lifecycle evidence`.
+  `llm wiki agent memory adapter requires local agent lifecycle evidence`, and
+  `workflow collaboration adapter becomes selectable from real A2A exports`.
 
 Latest validation for controlled n8n runtime-load slice:
 
