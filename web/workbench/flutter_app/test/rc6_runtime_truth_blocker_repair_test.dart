@@ -3429,6 +3429,23 @@ void main() {
     expect(activatedExporterBinding['active_provider_ref'], 'story_flicks');
     expect(activatedExporterBinding['explicit_selection_applied'], isTrue);
     expect(activatedExporterBinding['runtime_loaded'], isFalse);
+    final activatedRuntimeStatus = runtimeStatus();
+    final lifecycleAudit = jsonDecode(File(
+            activatedRuntimeStatus['provider_lifecycle_audit_summary_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    final downstreamBindingAudit =
+        (lifecycleAudit['downstream_binding_audit'] as List)
+            .cast<Map<String, dynamic>>();
+    final exporterAudit = downstreamBindingAudit.firstWhere(
+        (entry) => entry['capability_id'] == 'document_exporter');
+    expect(exporterAudit['active_provider_ref'], 'story_flicks');
+    expect(exporterAudit['active_provider_kind'], 'registered_provider');
+    expect((exporterAudit['affected_modules'] as List),
+        containsAll(['document_generation', 'artifact_center']));
+    expect(exporterAudit['runtime_loaded'], isFalse);
+    expect(exporterAudit['unauthorized_resources_selectable'], isFalse);
+    expect(exporterAudit['secret_masked'], isTrue);
 
     final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
     expect(health['ready_for_user_selection_count'], greaterThanOrEqualTo(5));

@@ -587,8 +587,13 @@ Latest Stage 3 Provider downstream binding audit slice:
   the Retrieval product surface as a local capability enhancement while keeping
   `runtime_loaded=false`, unauthorized resources unavailable, and secrets
   masked.
-- Targeted test:
-  `sirchmunk local retrieval adapter becomes selectable after real chunks`.
+- The Document Exporter slice verifies that activating `story_flicks` binds it
+  to Document Generation and Artifact Center surfaces while keeping
+  `runtime_loaded=false`, unauthorized resources unavailable, and secrets
+  masked.
+- Targeted tests:
+  `sirchmunk local retrieval adapter becomes selectable after real chunks` and
+  `exporter adapters become selectable from real export artifacts`.
 
 Latest validation for controlled n8n runtime-load slice:
 
