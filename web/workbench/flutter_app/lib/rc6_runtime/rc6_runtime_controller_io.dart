@@ -12894,6 +12894,54 @@ class Rc6RuntimeController extends ChangeNotifier {
         mode: FileMode.append, encoding: utf8);
   }
 
+  Future<Map<String, dynamic>> _providerRuntimeLoadStatusSummary(
+    Directory workspace,
+  ) async {
+    final manifestPath = _providerRuntimeLoadManifestPath(workspace);
+    final manifest = await _readJsonObject(manifestPath);
+    if (manifest.isEmpty) {
+      return {
+        'schema_version': 'prd_v3_provider_runtime_load_summary.v1',
+        'provider_ref': 'n8n',
+        'capability_id': 'workflow_collaboration_export',
+        'status': '未配置',
+        'runtime_loaded': false,
+        'runtime_loaded_count': 0,
+        'external_runtime_connected': false,
+        'external_runtime_executed': false,
+        'workflow_executed': false,
+        'fallback': 'A2A 本地协作报告导出继续可用。',
+        'manifest_path': manifestPath,
+        'log_path': _providerRuntimeLoadLogPath(workspace),
+        'normal_ui_project_name_visible': false,
+        'secret_masked': true,
+        'secret_plaintext_written': false,
+      };
+    }
+    return {
+      'schema_version': 'prd_v3_provider_runtime_load_summary.v1',
+      'provider_ref': _stringValue(manifest['provider_ref'], 'n8n'),
+      'capability_id': _stringValue(
+          manifest['capability_id'], 'workflow_collaboration_export'),
+      'status': _stringValue(manifest['status'], '未配置'),
+      'runtime_loaded': _boolValue(manifest['runtime_loaded']),
+      'runtime_loaded_count': _asInt(manifest['runtime_loaded_count']) ?? 0,
+      'external_runtime_connected':
+          _boolValue(manifest['external_runtime_connected']),
+      'external_runtime_executed': false,
+      'workflow_executed': false,
+      'fallback': _stringValue(manifest['fallback'], ''),
+      'error_code': _stringValue(manifest['error_code'], ''),
+      'error_message_zh': _stringValue(manifest['error_message_zh'], ''),
+      'sanitized_endpoint': _stringValue(manifest['sanitized_endpoint'], ''),
+      'manifest_path': manifestPath,
+      'log_path': _providerRuntimeLoadLogPath(workspace),
+      'normal_ui_project_name_visible': false,
+      'secret_masked': true,
+      'secret_plaintext_written': false,
+    };
+  }
+
   Future<String> _writeProviderCapabilityBindingManifest(
     Directory workspace,
     List<ProjectConfigProfile> profiles,
@@ -13910,6 +13958,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         await _readJsonObject(providerCapabilityBindingPath);
     final registeredProviderHealthArtifacts =
         await _writeRegisteredProviderHealthArtifacts(workspace);
+    final providerRuntimeLoad =
+        await _providerRuntimeLoadStatusSummary(workspace);
     final configAssetsPath = await _writeProjectConfigAssets(
       workspace,
       active,
@@ -13946,6 +13996,10 @@ class Rc6RuntimeController extends ChangeNotifier {
           providerCapabilityBindingPath,
       'provider_capability_selection_state_path':
           _providerCapabilitySelectionStatePath(workspace),
+      'provider_runtime_load_manifest_path':
+          _providerRuntimeLoadManifestPath(workspace),
+      'provider_runtime_load_log_path': _providerRuntimeLoadLogPath(workspace),
+      'provider_runtime_load_summary': providerRuntimeLoad,
       'registered_provider_summary': {
         'registered_provider_count':
             registeredProviderArtifacts['registered_provider_count'],
@@ -13955,6 +14009,9 @@ class Rc6RuntimeController extends ChangeNotifier {
             providerAdapterReadiness['ready_for_user_selection_count'],
         'adapter_runtime_loaded_count':
             providerAdapterReadiness['runtime_loaded_count'],
+        'external_runtime_loaded_count':
+            providerRuntimeLoad['runtime_loaded_count'],
+        'external_runtime_health_status': providerRuntimeLoad['status'],
         'external_runtime_load_allowed':
             stage2Preflight['runtime_load_allowed'],
         'stage_2_preflight_status': stage2Preflight['status'],
@@ -13995,8 +14052,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       'module_status': {
         'dashboard': {
           'current_profile': active.displayName,
-          'config_health': active.lastTestStatus,
-          'failure_summary': active.lastError,
+          'config_health': providerRuntimeLoad['runtime_loaded'] == true
+              ? '连接成功'
+              : active.lastTestStatus,
+          'failure_summary': providerRuntimeLoad['runtime_loaded'] == true
+              ? ''
+              : (providerRuntimeLoad['error_message_zh'] ?? active.lastError),
+          'external_runtime_health': providerRuntimeLoad,
         },
         'document_library': {
           'storage_path': workspace.path,
@@ -14092,6 +14154,12 @@ class Rc6RuntimeController extends ChangeNotifier {
               : _modelGatewayPublicError(modelGateway),
           'redis_memory_status': redisStatus == '连接成功' ? '连接成功' : '降级为本地模式',
           'vector_memory_status': qdrantStatus == '连接成功' ? '连接成功' : '降级为本地模式',
+          'a2a_workflow_runtime_status': providerRuntimeLoad['status'],
+          'a2a_workflow_runtime_loaded': providerRuntimeLoad['runtime_loaded'],
+          'a2a_workflow_external_execution': false,
+          'a2a_workflow_fallback': providerRuntimeLoad['runtime_loaded'] == true
+              ? ''
+              : 'A2A 本地协作报告导出继续可用。',
           'tool_policy': active.toolPolicyId,
           'unauthorized_resources_selectable': false,
           'provider_binding': _moduleProviderBindingSummary(
@@ -14114,6 +14182,9 @@ class Rc6RuntimeController extends ChangeNotifier {
             : 'Model Gateway Provider 不可用；本地导入、文档库、知识库本地索引和 Markdown 生成不受影响，LLM 摘要、Skill 生成、Agent 对话降级为不可用。',
         'network_disabled':
             networkAllowed ? '外部验证按授权配置执行。' : '网页导入和外部事实验证禁用，本地检索不受影响。',
+        'n8n_runtime_failure': providerRuntimeLoad['runtime_loaded'] == true
+            ? '工作流协作 Provider 健康连接可用；未执行外部 workflow。'
+            : '工作流协作 Provider 未加载，A2A 导出降级为本地协作报告。',
       },
       'secret_plaintext_written': false,
     };

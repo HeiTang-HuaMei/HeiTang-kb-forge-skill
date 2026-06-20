@@ -3854,6 +3854,27 @@ void main() {
     expect(logRows.single['runtime_loaded_after_event'], isFalse);
     expect(logRows.single['fallback'], contains('A2A 本地协作报告导出继续可用'));
     expect(logRows.single['secret_plaintext_written'], isFalse);
+
+    final runtimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final loadSummary =
+        runtimeStatus['provider_runtime_load_summary'] as Map<String, dynamic>;
+    expect(loadSummary['runtime_loaded'], isFalse);
+    expect(loadSummary['status'], '配置缺失');
+    expect(loadSummary['workflow_executed'], isFalse);
+    expect(
+        (runtimeStatus['registered_provider_summary']
+            as Map)['external_runtime_loaded_count'],
+        0);
+    final agentStatus =
+        (runtimeStatus['module_status'] as Map)['agent_workbench'] as Map;
+    expect(agentStatus['a2a_workflow_runtime_status'], '配置缺失');
+    expect(agentStatus['a2a_workflow_runtime_loaded'], isFalse);
+    expect(agentStatus['a2a_workflow_external_execution'], isFalse);
+    expect(agentStatus['a2a_workflow_fallback'], contains('本地协作报告'));
+    expect((runtimeStatus['degradation'] as Map)['n8n_runtime_failure'],
+        contains('降级为本地协作报告'));
   });
 
   test('stage3 n8n runtime load records safe health success only', () async {
@@ -3939,6 +3960,32 @@ void main() {
     expect(configLog, isNot(contains('credential=redacted')));
     expect(
         File(manifestPath).readAsStringSync(), isNot(contains(sensitiveValue)));
+
+    final runtimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final loadSummary =
+        runtimeStatus['provider_runtime_load_summary'] as Map<String, dynamic>;
+    expect(loadSummary['runtime_loaded'], isTrue);
+    expect(loadSummary['runtime_loaded_count'], 1);
+    expect(loadSummary['external_runtime_executed'], isFalse);
+    expect(loadSummary['workflow_executed'], isFalse);
+    expect(
+        (runtimeStatus['registered_provider_summary']
+            as Map)['external_runtime_loaded_count'],
+        1);
+    final dashboard =
+        (runtimeStatus['module_status'] as Map)['dashboard'] as Map;
+    expect((dashboard['external_runtime_health'] as Map)['runtime_loaded'],
+        isTrue);
+    final agentStatus =
+        (runtimeStatus['module_status'] as Map)['agent_workbench'] as Map;
+    expect(agentStatus['a2a_workflow_runtime_status'], '连接成功');
+    expect(agentStatus['a2a_workflow_runtime_loaded'], isTrue);
+    expect(agentStatus['a2a_workflow_external_execution'], isFalse);
+    expect(agentStatus['a2a_workflow_fallback'], '');
+    expect((runtimeStatus['degradation'] as Map)['n8n_runtime_failure'],
+        contains('未执行外部 workflow'));
   });
 
   test('prd multi knowledge base catalog supports copy merge split delete',
