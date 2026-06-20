@@ -2587,6 +2587,24 @@ void main() {
     expect(selectionLog.last['status'], '连接成功');
     expect(selectionLog.last['runtime_loaded_after_event'], isFalse);
     expect(selectionLog.last['secret_masked'], isTrue);
+    final activatedRuntimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    final lifecycleAudit = jsonDecode(File(
+            activatedRuntimeStatus['provider_lifecycle_audit_summary_path']
+                as String)
+        .readAsStringSync()) as Map;
+    final downstreamBindingAudit =
+        (lifecycleAudit['downstream_binding_audit'] as List).cast<Map>();
+    final agentAudit = downstreamBindingAudit.firstWhere(
+        (entry) => entry['capability_id'] == 'agent_model_tools_memory');
+    expect(agentAudit['active_provider_ref'], 'llm_wiki_v2');
+    expect(agentAudit['active_provider_kind'], 'registered_provider');
+    expect(
+        (agentAudit['affected_modules'] as List), contains('agent_workbench'));
+    expect(agentAudit['runtime_loaded'], isFalse);
+    expect(agentAudit['unauthorized_resources_selectable'], isFalse);
+    expect(agentAudit['secret_masked'], isTrue);
 
     final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
     expect(health['ready_for_user_selection_count'], 4);
