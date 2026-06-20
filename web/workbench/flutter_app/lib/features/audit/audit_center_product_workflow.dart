@@ -544,6 +544,13 @@ List<List<String>> _auditRecordRows(Rc6RuntimeState runtime, bool zh) {
     row(
         '设置',
         'Settings',
+        '能力审计汇总',
+        'Capability audit summary',
+        runtime.providerLifecycleAuditSummaryPath.isNotEmpty,
+        runtime.providerLifecycleAuditSummaryPath),
+    row(
+        '设置',
+        'Settings',
         '导出器验证',
         'Exporter validation',
         runtime.exporterValidationReportPath.isNotEmpty,
@@ -619,6 +626,7 @@ String _firstAuditPreviewPath(Rc6RuntimeState runtime) {
     runtime.skillExportPath,
     runtime.agentGenerationManifestPath,
     runtime.agentPermissionAuditPath,
+    runtime.providerLifecycleAuditSummaryPath,
     runtime.agentPackageManifestPath,
     runtime.generatedMarkdownPath,
     runtime.agentDialoguePath,

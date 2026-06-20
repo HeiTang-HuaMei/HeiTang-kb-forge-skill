@@ -561,6 +561,20 @@ Latest Stage 3 Provider lifecycle audit summary slice:
   `prd settings and parallel task validation produce industrial audit artifacts`
   and `stage3 n8n runtime load`.
 
+Latest Stage 3 Provider audit visibility slice:
+
+- `Rc6RuntimeState` now exposes `providerLifecycleAuditSummaryPath`, so the
+  generated lifecycle audit summary participates in normal runtime state.
+- Settings shows a compact capability audit summary state without exposing
+  registered project names, hot-swap language, or external runtime internals.
+- Artifact Center lists the capability audit summary as a Settings artifact.
+- Governance & Audit includes the same summary in execution and artifact
+  records, so Provider activation, blocking, load, and rollback evidence is
+  reachable from normal product audit surfaces.
+- Targeted tests:
+  `settings renders provider capability status without project-loading language`
+  and `prd settings and parallel task validation produce industrial audit artifacts`.
+
 Latest validation for controlled n8n runtime-load slice:
 
 - `flutter analyze`

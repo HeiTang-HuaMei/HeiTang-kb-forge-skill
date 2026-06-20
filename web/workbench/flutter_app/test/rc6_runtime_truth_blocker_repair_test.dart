@@ -2086,6 +2086,8 @@ void main() {
         endsWith('provider_runtime_settings.json'));
     expect(reloaded.state.providerValidationReportPath,
         endsWith('provider_validation_report.json'));
+    expect(reloaded.state.providerLifecycleAuditSummaryPath,
+        endsWith('provider_lifecycle_audit_summary.json'));
     expect(reloaded.state.exporterValidationReportPath,
         endsWith('exporter_validation_report.json'));
     expect(reloaded.state.parallelTaskCapacityReportPath,

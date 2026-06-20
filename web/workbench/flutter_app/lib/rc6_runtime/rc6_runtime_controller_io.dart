@@ -5284,6 +5284,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(workspace.path, 'config', 'provider_runtime_settings.json');
     final providerValidationReportPath =
         _join(workspace.path, 'config', 'provider_validation_report.json');
+    final providerLifecycleAuditSummaryPath = _join(
+        workspace.path, 'config', 'provider_lifecycle_audit_summary.json');
     final exporterValidationReportPath =
         _join(workspace.path, 'config', 'exporter_validation_report.json');
     final parallelTaskCapacityReportPath = _joinNested(workspace.path,
@@ -5614,6 +5616,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       providerValidationReportPath:
           await File(providerValidationReportPath).exists()
               ? providerValidationReportPath
+              : '',
+      providerLifecycleAuditSummaryPath:
+          await File(providerLifecycleAuditSummaryPath).exists()
+              ? providerLifecycleAuditSummaryPath
               : '',
       exporterValidationReportPath:
           await File(exporterValidationReportPath).exists()
@@ -6034,6 +6040,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           workspace.path, 'config/registered_provider_rollback_manifest.json'),
       _joinNested(
           workspace.path, 'config/provider_lifecycle_audit_summary.json'),
+      _joinNested(workspace.path, 'config/provider_runtime_load_manifest.json'),
+      _joinNested(workspace.path, 'config/provider_runtime_load_log.jsonl'),
       _joinNested(workspace.path, 'config/config_test_log.jsonl'),
       _joinNested(workspace.path, 'config/profile_change_log.jsonl'),
       _joinNested(workspace.path, 'config/profile_activation_log.jsonl'),
@@ -19870,6 +19878,7 @@ class Rc6RuntimeState {
     required this.providerRuntimeSettingsPath,
     required this.storageProviderSettingsPath,
     required this.providerValidationReportPath,
+    required this.providerLifecycleAuditSummaryPath,
     required this.exporterValidationReportPath,
     required this.parallelTaskCapacityReportPath,
     required this.taskIsolationMatrixPath,
@@ -19992,6 +20001,7 @@ class Rc6RuntimeState {
         providerRuntimeSettingsPath: '',
         storageProviderSettingsPath: '',
         providerValidationReportPath: '',
+        providerLifecycleAuditSummaryPath: '',
         exporterValidationReportPath: '',
         parallelTaskCapacityReportPath: '',
         taskIsolationMatrixPath: '',
@@ -20113,6 +20123,7 @@ class Rc6RuntimeState {
   final String providerRuntimeSettingsPath;
   final String storageProviderSettingsPath;
   final String providerValidationReportPath;
+  final String providerLifecycleAuditSummaryPath;
   final String exporterValidationReportPath;
   final String parallelTaskCapacityReportPath;
   final String taskIsolationMatrixPath;
@@ -20184,6 +20195,8 @@ class Rc6RuntimeState {
   bool get hasProviderRuntimeSettings => providerRuntimeSettingsPath.isNotEmpty;
   bool get hasProviderValidationReport =>
       providerValidationReportPath.isNotEmpty;
+  bool get hasProviderLifecycleAuditSummary =>
+      providerLifecycleAuditSummaryPath.isNotEmpty;
   bool get hasParallelTaskCapacityReport =>
       parallelTaskCapacityReportPath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
@@ -20290,6 +20303,7 @@ class Rc6RuntimeState {
     String? providerRuntimeSettingsPath,
     String? storageProviderSettingsPath,
     String? providerValidationReportPath,
+    String? providerLifecycleAuditSummaryPath,
     String? exporterValidationReportPath,
     String? parallelTaskCapacityReportPath,
     String? taskIsolationMatrixPath,
@@ -20471,6 +20485,8 @@ class Rc6RuntimeState {
           storageProviderSettingsPath ?? this.storageProviderSettingsPath,
       providerValidationReportPath:
           providerValidationReportPath ?? this.providerValidationReportPath,
+      providerLifecycleAuditSummaryPath: providerLifecycleAuditSummaryPath ??
+          this.providerLifecycleAuditSummaryPath,
       exporterValidationReportPath:
           exporterValidationReportPath ?? this.exporterValidationReportPath,
       parallelTaskCapacityReportPath:

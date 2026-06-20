@@ -564,6 +564,9 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
         .fold<int>(0, (total, entry) => total + entry.providerStateCount);
     final readyProviderStateCount = status.capabilities
         .fold<int>(0, (total, entry) => total + entry.readyProviderStateCount);
+    final runtime = _Rc6RuntimeScope.of(context)?.state;
+    final lifecycleAuditReady =
+        runtime?.hasProviderLifecycleAuditSummary == true;
     return _ProductPanel(
       keyName: 'settings-provider-capability-status',
       icon: Icons.extension_outlined,
@@ -575,6 +578,13 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
           value: zh
               ? '$providerStateCount 项已登记，$readyProviderStateCount 项可选'
               : '$providerStateCount registered, $readyProviderStateCount selectable',
+        ),
+        const SizedBox(height: 8),
+        _FieldRow(
+          label: zh ? '审计汇总' : 'Audit summary',
+          value: lifecycleAuditReady
+              ? (zh ? '已生成' : 'Generated')
+              : (zh ? '未生成' : 'Not generated'),
         ),
         const SizedBox(height: 8),
         _ProductTable(

@@ -708,6 +708,7 @@ class Rc6RuntimeState {
     required this.providerRuntimeSettingsPath,
     required this.storageProviderSettingsPath,
     required this.providerValidationReportPath,
+    required this.providerLifecycleAuditSummaryPath,
     required this.exporterValidationReportPath,
     required this.parallelTaskCapacityReportPath,
     required this.taskIsolationMatrixPath,
@@ -830,6 +831,7 @@ class Rc6RuntimeState {
         providerRuntimeSettingsPath: '',
         storageProviderSettingsPath: '',
         providerValidationReportPath: '',
+        providerLifecycleAuditSummaryPath: '',
         exporterValidationReportPath: '',
         parallelTaskCapacityReportPath: '',
         taskIsolationMatrixPath: '',
@@ -951,6 +953,7 @@ class Rc6RuntimeState {
   final String providerRuntimeSettingsPath;
   final String storageProviderSettingsPath;
   final String providerValidationReportPath;
+  final String providerLifecycleAuditSummaryPath;
   final String exporterValidationReportPath;
   final String parallelTaskCapacityReportPath;
   final String taskIsolationMatrixPath;
@@ -1022,6 +1025,8 @@ class Rc6RuntimeState {
   bool get hasProviderRuntimeSettings => providerRuntimeSettingsPath.isNotEmpty;
   bool get hasProviderValidationReport =>
       providerValidationReportPath.isNotEmpty;
+  bool get hasProviderLifecycleAuditSummary =>
+      providerLifecycleAuditSummaryPath.isNotEmpty;
   bool get hasParallelTaskCapacityReport =>
       parallelTaskCapacityReportPath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
@@ -1128,6 +1133,7 @@ class Rc6RuntimeState {
     String? providerRuntimeSettingsPath,
     String? storageProviderSettingsPath,
     String? providerValidationReportPath,
+    String? providerLifecycleAuditSummaryPath,
     String? exporterValidationReportPath,
     String? parallelTaskCapacityReportPath,
     String? taskIsolationMatrixPath,
@@ -1309,6 +1315,8 @@ class Rc6RuntimeState {
           storageProviderSettingsPath ?? this.storageProviderSettingsPath,
       providerValidationReportPath:
           providerValidationReportPath ?? this.providerValidationReportPath,
+      providerLifecycleAuditSummaryPath: providerLifecycleAuditSummaryPath ??
+          this.providerLifecycleAuditSummaryPath,
       exporterValidationReportPath:
           exporterValidationReportPath ?? this.exporterValidationReportPath,
       parallelTaskCapacityReportPath:

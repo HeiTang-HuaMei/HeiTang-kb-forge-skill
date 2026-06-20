@@ -126,9 +126,8 @@ class _ArtifactCenterProductWorkflowState
               : (_zh ? '用户工作区' : 'User workspace'),
           children: [
             _ProductTable(
-              columns: _zh
-                  ? ['分类', '产物', '状态']
-                  : ['Category', 'Artifact', 'Status'],
+              columns:
+                  _zh ? ['分类', '产物', '状态'] : ['Category', 'Artifact', 'Status'],
               rows: artifacts
                   .map((artifact) => [
                         artifact.category,
@@ -286,16 +285,20 @@ List<_ArtifactCenterItem> _artifactCenterItems(
         runtime.sourceManifestPath, 'import'),
     item('文档库', 'Document Library', '解析结果', 'Parse results', 'parse',
         runtime.parseReportPath, 'parse'),
-    item('标准知识包', 'Standard Package', '标准知识包', 'Standard package',
-        'package', runtime.standardKnowledgePackageManifestPath,
-        'standard-package'),
+    item('标准知识包', 'Standard Package', '标准知识包', 'Standard package', 'package',
+        runtime.standardKnowledgePackageManifestPath, 'standard-package'),
     item('知识库', 'Knowledge Base', '知识库', 'Knowledge Base', 'kb',
         runtime.kbManifestPath, 'kb'),
     item('知识库', 'Knowledge Base', '索引与质量记录', 'Index and quality records',
         'quality', runtime.qualityReportPath, 'kb'),
     item('检索验证', 'Retrieval', '检索结果', 'Retrieval result', 'retrieval',
         runtime.queryResultPath, 'search'),
-    item('检索验证', 'Retrieval', '验证报告', 'Validation report', 'validation',
+    item(
+        '检索验证',
+        'Retrieval',
+        '验证报告',
+        'Validation report',
+        'validation',
         runtime.retrievalValidationMarkdownPath.isNotEmpty
             ? runtime.retrievalValidationMarkdownPath
             : runtime.retrievalValidationReportPath,
@@ -334,8 +337,10 @@ List<_ArtifactCenterItem> _artifactCenterItems(
         runtime.providerRuntimeSettingsPath, 'settings'),
     item('设置', 'Settings', '存储配置', 'Storage settings', 'storage',
         runtime.storageProviderSettingsPath, 'settings'),
-    item('治理', 'Governance', '并行任务报告', 'Parallel task report',
-        'parallel', runtime.parallelTaskCapacityReportPath, 'parallel-tasks'),
+    item('设置', 'Settings', '能力审计汇总', 'Capability audit summary', 'audit',
+        runtime.providerLifecycleAuditSummaryPath, 'settings'),
+    item('治理', 'Governance', '并行任务报告', 'Parallel task report', 'parallel',
+        runtime.parallelTaskCapacityReportPath, 'parallel-tasks'),
     item('治理', 'Governance', '知识库目录', 'Knowledge Base catalog', 'catalog',
         runtime.knowledgeBaseCatalogPath, 'kb'),
   ];
