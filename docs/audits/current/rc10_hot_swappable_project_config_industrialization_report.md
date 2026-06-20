@@ -450,6 +450,27 @@ Latest Stage 3 Workflow/A2A Export Provider slice:
 
 - Targeted test: `workflow collaboration adapter becomes selectable from real A2A exports`
 
+Latest Stage 3 high-risk Provider gate slice:
+
+- High-risk registered Provider refs now write explicit readiness probes before
+  activation can be attempted: `anysearchskill`, `last30days_skill`,
+  `seedance2_skill`, and `rtk`.
+- Probe artifact:
+  `config/provider_adapter_probe_<provider_ref>.json` with schema
+  `prd_v3_provider_adapter_probe_high_risk_gate.v1`.
+- The probes record network authorization status, secret-ref status, external
+  runtime status, missing config refs, blocked reasons, local degradation
+  target, rollback support, and affected modules.
+- The gate keeps `ready_for_user_selection=false`,
+  `runtime_loaded=false`, `runtime_load_allowed=false`,
+  `network_call_attempted=false`, `external_runtime_executed=false`,
+  `vendor_runtime_loaded=false`, and `secret_plaintext_written=false`.
+- Activation audit now uses the Provider readiness status and blocked reasons
+  instead of a generic blocked state, so Settings, readiness, binding, and
+  selection logs stay consistent.
+- Targeted test:
+  `prd settings and parallel task validation produce industrial audit artifacts`.
+
 Pending after push:
 
 - remote CI green confirmation

@@ -1308,6 +1308,56 @@ void main() {
             entry['ready_for_user_selection'] == false &&
             entry['runtime_loaded'] == false),
         isTrue);
+    final highRiskProviderExpectations = {
+      'anysearchskill': {
+        'status': '已禁用',
+        'error_code': 'network_authorization_disabled',
+        'gate_kind': 'network_search_provider_gate',
+      },
+      'last30days_skill': {
+        'status': '需安装外部服务',
+        'error_code': 'dependency_or_network_gate_required',
+        'gate_kind': 'network_time_window_adapter_gate',
+      },
+      'seedance2_skill': {
+        'status': '已禁用',
+        'error_code': 'network_authorization_disabled',
+        'gate_kind': 'secret_masked_video_skill_gate',
+      },
+      'rtk': {
+        'status': '需启动外部服务',
+        'error_code': 'external_runtime_required',
+        'gate_kind': 'external_runtime_agent_tool_gate',
+      },
+    };
+    for (final expectation in highRiskProviderExpectations.entries) {
+      final entry = readinessEntries
+          .firstWhere((item) => item['provider_ref'] == expectation.key);
+      expect(entry['status'], expectation.value['status']);
+      expect(entry['error_code'], expectation.value['error_code']);
+      expect(entry['ready_for_user_selection'], isFalse);
+      expect(entry['runtime_loaded'], isFalse);
+      expect(entry['runtime_load_allowed'], isFalse);
+      expect((entry['blocked_reasons'] as List), isNotEmpty);
+      final probe = jsonDecode(
+          File((entry['test_artifacts'] as List).cast<String>().single)
+              .readAsStringSync()) as Map<String, dynamic>;
+      expect(probe['schema_version'],
+          'prd_v3_provider_adapter_probe_high_risk_gate.v1');
+      expect(probe['provider_ref'], expectation.key);
+      expect(probe['gate_kind'], expectation.value['gate_kind']);
+      expect(probe['passed'], isFalse);
+      expect(probe['ready_for_user_selection'], isFalse);
+      expect(probe['runtime_loaded'], isFalse);
+      expect(probe['selection_allowed'], isFalse);
+      expect(probe['fallback_preserves_local_chain'], isTrue);
+      expect(probe['network_call_attempted'], isFalse);
+      expect(probe['external_runtime_executed'], isFalse);
+      expect(probe['vendor_runtime_loaded'], isFalse);
+      expect(probe['normal_ui_project_name_visible'], isFalse);
+      expect(probe['secret_masked'], isTrue);
+      expect(probe['secret_plaintext_written'], isFalse);
+    }
     expect(
         readinessEntries
             .every((entry) => entry.containsKey('missing_config_refs')),
@@ -1448,6 +1498,19 @@ void main() {
             entry['ready_for_user_selection'] == false &&
             entry['runtime_loaded'] == false),
         isTrue);
+    for (final expectation in highRiskProviderExpectations.entries) {
+      final highRiskHealth = healthEntries
+          .where((entry) => entry['provider_ref'] == expectation.key)
+          .toList(growable: false);
+      expect(highRiskHealth, isNotEmpty);
+      expect(
+          highRiskHealth.every((entry) =>
+              entry['health_status'] == expectation.value['status'] &&
+              entry['selection_allowed'] == false &&
+              entry['runtime_loaded'] == false &&
+              entry['runtime_load_allowed'] == false),
+          isTrue);
+    }
     expect(
         healthEntries.every((entry) => entry.containsKey('blocked_reason_zh')),
         isTrue);
@@ -1486,6 +1549,16 @@ void main() {
     expect(rollbackBindingManifest['action'], 'rollback');
     expect(
         rollbackBindingManifest['selected_provider_runtime_loaded'], isFalse);
+    final highRiskActivated = await controller
+        .activateRegisteredProviderCapability('seedance2_skill');
+    expect(highRiskActivated, isFalse);
+    final highRiskBlockedBindingManifest =
+        jsonDecode(File(bindingPath).readAsStringSync()) as Map;
+    expect(highRiskBlockedBindingManifest['action'], 'blocked_activate');
+    expect(highRiskBlockedBindingManifest['selected_provider_ref'],
+        'seedance2_skill');
+    expect(highRiskBlockedBindingManifest['selected_provider_runtime_loaded'],
+        isFalse);
     final selectionLog = File(
             '$configDir${Platform.pathSeparator}registered_provider_selection_log.jsonl')
         .readAsLinesSync()
@@ -1493,14 +1566,19 @@ void main() {
         .toList(growable: false);
     expect(selectionLog.map((event) => event['action']),
         containsAll(['activate', 'rollback']));
-    expect(
-        selectionLog
-            .firstWhere((event) => event['action'] == 'activate')['status'],
-        '配置缺失');
+    final doclingSelectionEvent =
+        selectionLog.firstWhere((event) => event['provider_ref'] == 'docling');
+    expect(doclingSelectionEvent['action'], 'activate');
+    expect(doclingSelectionEvent['status'], '已配置未测试');
     expect(
         selectionLog
             .every((event) => event['runtime_loaded_after_event'] == false),
         isTrue);
+    final highRiskSelectionEvent = selectionLog
+        .lastWhere((event) => event['provider_ref'] == 'seedance2_skill');
+    expect(highRiskSelectionEvent['action'], 'activate');
+    expect(highRiskSelectionEvent['status'], '已禁用');
+    expect(highRiskSelectionEvent['blocked_reason'], contains('网络授权'));
     expect(
         selectionLog.every((event) => event['secret_masked'] == true), isTrue);
     final configTestLog =

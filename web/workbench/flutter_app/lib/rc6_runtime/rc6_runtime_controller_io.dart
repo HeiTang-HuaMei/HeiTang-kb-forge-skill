@@ -2177,6 +2177,24 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     final readinessByProvider = await _providerReadinessByProvider(workspace);
     final ready = _providerReadyForSelection(entry, readinessByProvider);
+    final readiness =
+        readinessByProvider[_stringValue(entry['provider_ref'], '')] ??
+            const <String, dynamic>{};
+    final blockedReasons = _listOfStrings(readiness['blocked_reasons']);
+    final effectiveStatus = ready
+        ? '连接成功'
+        : _stringValue(
+            readiness['status'],
+            _registeredProviderHealthStatus(entry),
+          );
+    final effectiveBlockedReason = ready
+        ? ''
+        : blockedReasons.isNotEmpty
+            ? blockedReasons.join(' ')
+            : _stringValue(
+                readiness['error_message_zh'],
+                _stringValue(entry['activation_condition'], ''),
+              );
     if (ready) {
       await _writeProviderCapabilitySelectionState(
         workspace,
@@ -2189,9 +2207,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       workspace,
       action: 'activate',
       entry: entry,
-      status: ready ? '连接成功' : '配置缺失',
-      blockedReason:
-          ready ? '' : _stringValue(entry['activation_condition'], ''),
+      status: effectiveStatus,
+      blockedReason: effectiveBlockedReason,
     );
     await _writeProjectConfigRuntimeStatus(
       workspace,
@@ -12631,8 +12648,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         'requires_network': requiresNetwork,
         'requires_secret_ref': requiresSecret,
         'requires_external_runtime': requiresExternalRuntime,
-        'requires_dependency_install':
-            status == '需安装外部服务' || contractStatuses.contains('planned_adapter'),
+        'requires_dependency_install': status == '需安装外部服务' ||
+            contractStatuses.contains('planned_adapter') ||
+            contractStatuses.contains('future_adapter'),
         'required_config_refs': _providerRequiredConfigRefs(first),
         'health_check_actions': _providerHealthCheckActions(first),
         'activation_prerequisites':
@@ -14728,6 +14746,24 @@ class Rc6RuntimeController extends ChangeNotifier {
     Map<String, dynamic> config,
     Directory workspace,
   ) {
+    final highRiskGate = _probeHighRiskRegisteredProviderGate(
+      workspace,
+      contract,
+      profile,
+      config,
+    );
+    if (highRiskGate.isNotEmpty) {
+      return {
+        'status': highRiskGate['status'],
+        'error_code': highRiskGate['error_code'],
+        'error_message_zh': highRiskGate['error_message_zh'],
+        'missing_config_refs': highRiskGate['missing_config_refs'],
+        'blocked_reasons': highRiskGate['blocked_reasons'],
+        'test_artifacts': [highRiskGate['probe_path']],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
+      };
+    }
     if (_listOfStrings(contract['capability_ids'])
         .contains('document_parser_ocr')) {
       final providerRef = _stringValue(contract['provider_ref'], '');
@@ -15178,6 +15214,136 @@ class Rc6RuntimeController extends ChangeNotifier {
       'test_artifacts': <String>[],
       'ready_for_user_selection': false,
       'runtime_loaded': false,
+    };
+  }
+
+  static Map<String, dynamic> _probeHighRiskRegisteredProviderGate(
+    Directory workspace,
+    Map<String, dynamic> contract,
+    ProjectConfigProfile profile,
+    Map<String, dynamic> config,
+  ) {
+    final providerRef = _stringValue(contract['provider_ref'], '');
+    const gatedProviders = {
+      'anysearchskill',
+      'last30days_skill',
+      'seedance2_skill',
+      'rtk',
+    };
+    if (!gatedProviders.contains(providerRef)) {
+      return const <String, dynamic>{};
+    }
+    final probePath = _providerAdapterProbePath(workspace, providerRef);
+    final requiredRefs = _listOfStrings(contract['required_config_refs']);
+    final missingRefs = requiredRefs
+        .where((ref) => !_profileConfigRefAvailable(profile, ref, config))
+        .toList(growable: false)
+      ..sort();
+    final blockedReasons = <String>[];
+    final requiresNetwork = _boolValue(contract['requires_network']);
+    final requiresSecretRef = _boolValue(contract['requires_secret_ref']);
+    final requiresExternalRuntime =
+        _boolValue(contract['requires_external_runtime']);
+    final requiresDependencyInstall =
+        _boolValue(contract['requires_dependency_install']);
+    if (requiresNetwork && profile.networkPolicyId == 'network_local_only') {
+      blockedReasons.add('当前 Profile 未开启网络授权。');
+    }
+    if (requiresSecretRef && missingRefs.contains('secret_ref')) {
+      blockedReasons.add('需要 secret 引用，不能写入或展示明文密钥。');
+    }
+    if (requiresExternalRuntime) {
+      blockedReasons.add('需要启动外部服务并通过健康检查。');
+    }
+    if (requiresDependencyInstall) {
+      blockedReasons.add('需要安装依赖或完成本地适配。');
+    }
+    if (missingRefs.any((ref) => ref != 'secret_ref')) {
+      blockedReasons.add('需要补齐 Provider 配置引用。');
+    }
+    final status = requiresSecretRef && missingRefs.contains('secret_ref')
+        ? '配置缺失'
+        : requiresExternalRuntime
+            ? '需启动外部服务'
+            : requiresDependencyInstall
+                ? '需安装外部服务'
+                : requiresNetwork
+                    ? '已禁用'
+                    : '已配置未测试';
+    final errorCode = requiresSecretRef && missingRefs.contains('secret_ref')
+        ? 'secret_ref_missing'
+        : requiresExternalRuntime
+            ? 'external_runtime_required'
+            : requiresDependencyInstall
+                ? 'dependency_or_network_gate_required'
+                : requiresNetwork
+                    ? 'network_authorization_disabled'
+                    : 'provider_gate_required';
+    final gateKind = switch (providerRef) {
+      'anysearchskill' => 'network_search_provider_gate',
+      'last30days_skill' => 'network_time_window_adapter_gate',
+      'seedance2_skill' => 'secret_masked_video_skill_gate',
+      'rtk' => 'external_runtime_agent_tool_gate',
+      _ => 'provider_gate',
+    };
+    final errorMessageZh = switch (providerRef) {
+      'anysearchskill' => '需要在设置中开启网络授权并通过检索 Provider 查询测试后才能启用。',
+      'last30days_skill' => '需要安装/适配时间窗口检索 Provider，并在网络授权后通过查询测试。',
+      'seedance2_skill' => '需要配置 secret 引用和网络授权；禁止写入或展示明文密钥。',
+      'rtk' => '需要外部服务启动、配置引用完整并通过健康检查后才能启用 Agent 工具能力增强。',
+      _ => '需要完成 Provider gate 后才能启用。',
+    };
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_probe_high_risk_gate.v1',
+      'provider_ref': providerRef,
+      'gate_kind': gateKind,
+      'status': status,
+      'error_code': errorCode,
+      'error_message_zh': errorMessageZh,
+      'capability_ids': _listOfStrings(contract['capability_ids']),
+      'affected_modules': _listOfStrings(contract['affected_modules']),
+      'runtime_execution_mode':
+          _stringValue(contract['runtime_execution_mode'], 'provider_adapter'),
+      'requires_network': requiresNetwork,
+      'requires_secret_ref': requiresSecretRef,
+      'requires_external_runtime': requiresExternalRuntime,
+      'requires_dependency_install': requiresDependencyInstall,
+      'network_authorization': requiresNetwork
+          ? (profile.networkPolicyId == 'network_local_only' ? '已禁用' : '已配置未测试')
+          : '不需要',
+      'secret_ref_status': requiresSecretRef
+          ? (missingRefs.contains('secret_ref') ? '配置缺失' : '已配置')
+          : '不需要',
+      'external_runtime_status': requiresExternalRuntime ? '需启动外部服务' : '不需要',
+      'missing_config_refs': missingRefs,
+      'blocked_reasons':
+          blockedReasons.isEmpty ? ['需要完成真实健康检查后才能启用。'] : blockedReasons,
+      'degradation_target':
+          _stringValue(contract['fallback_provider'], 'local_provider'),
+      'ready_for_user_selection': false,
+      'runtime_loaded': false,
+      'runtime_load_allowed': false,
+      'selection_allowed': false,
+      'fallback_preserves_local_chain': true,
+      'rollback_supported': _boolValue(contract['rollback_supported']),
+      'normal_ui_project_name_visible': false,
+      'network_call_attempted': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
+      'secret_masked': true,
+      'secret_plaintext_written': false,
+      'passed': false,
+      'evaluated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return {
+      ...payload,
+      'probe_path': probePath,
     };
   }
 
