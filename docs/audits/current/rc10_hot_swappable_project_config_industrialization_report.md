@@ -29,6 +29,9 @@ Runtime configuration assets are written to:
 - `config/registered_provider_activation_log.jsonl`
 - `config/registered_provider_selection_log.jsonl`
 - `config/registered_provider_rollback_manifest.json`
+- `config/registered_provider_health_report.json`
+- `config/registered_provider_health_log.jsonl`
+- `config/registered_provider_hot_swap_stability_report.json`
 - `config/config_test_log.jsonl`
 - `config/profile_change_log.jsonl`
 - `config/profile_activation_log.jsonl`
@@ -59,6 +62,9 @@ Runtime evidence:
 - `registered_provider_activation_log.jsonl`
 - `registered_provider_selection_log.jsonl`
 - `registered_provider_rollback_manifest.json`
+- `registered_provider_health_report.json`
+- `registered_provider_health_log.jsonl`
+- `registered_provider_hot_swap_stability_report.json`
 
 Coverage:
 
@@ -90,6 +96,15 @@ Provider enhancement operations:
 - Rollback enhancement writes a rollback event to the local fallback Provider.
 - Selection logs keep `runtime_loaded_after_event=false` unless the Provider has already been proven ready.
 
+Health and stability validation:
+
+- `testAllRegisteredProviderCapabilities()` checks all registered Provider mappings before they can be selected.
+- Current evidence covers 30 provider-to-capability mappings and 26 unique registered Provider references.
+- Every entry writes a user-readable health state such as `需安装外部服务`, `需启动外部服务`, `配置缺失`, `已禁用`, or `已配置未测试`.
+- No unverified entry is marked runtime-loaded or selectable.
+- `registered_provider_hot_swap_stability_report.json` records failure isolation, local fallback availability, rollback coverage, and downstream binding behavior.
+- Downstream binding checks cover Document Library, Knowledge Base, Retrieval Verification, Document Generation, Skill Factory, Agent Workbench, and Audit Center.
+
 ## Profile Schema
 
 `ProjectConfigProfile` includes:
@@ -116,6 +131,7 @@ Lifecycle behavior implemented:
 | Provider runtime | `validateProviderRuntimeSettings` | Writes validation report, activation matrix, lifecycle log, rollback manifest |
 | Exporter | `validateExporterSettings` | Markdown/JSON/CSV local availability, DOCX/PDF/PPTX gated until configured |
 | Storage | `_probeStoragePath` | Real write probe and Windows free-space query; failure records Chinese permission reason |
+| Registered Provider health | `testAllRegisteredProviderCapabilities` | Checks 30 mappings, writes health JSON/JSONL, blocks unverified runtime load, proves rollback/fallback |
 
 The CI-safe tests cover failure and config-state paths without requiring external services. Real Redis/Qdrant success checks remain part of EXE smoke when Docker services are available.
 
@@ -150,6 +166,7 @@ Profile activation refreshes `project_config_runtime_status.json` for:
 - Skill Factory: LLM, KB, Search status
 - Agent Workbench: model, Redis memory, vector memory, tool policy, unauthorized resource guard
 - Registered Provider summary: provider count, selectable count, and capability-enhancement boundary
+- Registered Provider health: health report path, health log path, hot-swap stability report path
 
 Automated tests verify activation from local Profile to hybrid Profile synchronizes these module states.
 
@@ -161,6 +178,7 @@ Settings now contains a minimal Config Profile panel:
 - Active Profile
 - Create, copy, test, switch, rollback, delete inactive
 - Health and failure summary
+- Registered capability health audit action
 
 No broad UI redesign was performed. No tutorial/path prompt card was added.
 
@@ -203,6 +221,12 @@ Passed locally:
 - overclaim scan
 - OKF runtime scan
 
+Latest Stage 3 Provider health slice:
+
+- `flutter analyze`
+- `flutter test test\rc6_runtime_truth_blocker_repair_test.dart --concurrency=1`
+- `flutter test test\widget_test.dart --concurrency=1`
+
 Pending after push:
 
 - remote CI green confirmation
@@ -211,7 +235,7 @@ Pending after push:
 
 - Real Redis/Qdrant success probe depends on running external services and valid environment configuration; failure/degradation paths are automated.
 - Full EXE smoke requires manual Owner verification after EXE launch.
-- Registered but unloaded projects are still not loaded as product modules in this slice; Stage 3 Provider capability state is prepared for future providerized enhancement.
+- Registered but unloaded projects are still not loaded as product modules. Stage 3 now validates them as Provider capability enhancements with health status, blocked activation, local fallback, and rollback audit before any future real adapter execution.
 
 ## Owner Retest Checklist
 

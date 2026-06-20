@@ -334,6 +334,18 @@ class _SettingsProviderModelEditorState
     });
   }
 
+  Future<void> _testAllCapabilityEnhancements() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null) return;
+    final path = await rc6.testAllRegisteredProviderCapabilities();
+    if (!mounted) return;
+    setState(() {
+      capabilityMessage = path.isEmpty
+          ? (zh ? '需要 Windows EXE 执行健康检查' : 'Windows EXE required')
+          : (zh ? '全部能力增强项健康检查已记录' : 'Capability health audit written');
+    });
+  }
+
   Future<void> _rollbackCapabilityEnhancement() async {
     final rc6 = widget.runtimeController;
     if (rc6 == null) return;
@@ -490,6 +502,7 @@ class _SettingsProviderModelEditorState
         status: widget.providerCapabilityStatus,
         message: capabilityMessage,
         onTestCapability: _testCapabilityEnhancement,
+        onTestAllCapabilities: _testAllCapabilityEnhancements,
         onRollbackCapability: _rollbackCapabilityEnhancement,
       );
       if (!wide) {
@@ -526,6 +539,7 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
     required this.status,
     required this.message,
     required this.onTestCapability,
+    required this.onTestAllCapabilities,
     required this.onRollbackCapability,
   });
 
@@ -533,6 +547,7 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
   final ProviderCapabilityStatus status;
   final String message;
   final VoidCallback onTestCapability;
+  final VoidCallback onTestAllCapabilities;
   final VoidCallback onRollbackCapability;
 
   @override
@@ -574,6 +589,12 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
             label: zh ? '测试增强项' : 'Test enhancement',
             icon: Icons.fact_check_outlined,
             onPressed: status.capabilities.isEmpty ? null : onTestCapability,
+          ),
+          _PrimaryProductAction(
+            label: zh ? '测试全部增强项' : 'Test all enhancements',
+            icon: Icons.rule_folder_outlined,
+            onPressed:
+                status.capabilities.isEmpty ? null : onTestAllCapabilities,
           ),
           _PrimaryProductAction(
             label: zh ? '回滚增强项' : 'Rollback enhancement',

@@ -835,6 +835,8 @@ void main() {
     final exporterValidationPath = await controller.validateExporterSettings();
     final parallelReportPath =
         await controller.runParallelTaskCapacityValidation(taskCount: 8);
+    final providerHealthPath =
+        await controller.testAllRegisteredProviderCapabilities();
     final profiles = await controller.loadProjectConfigProfiles();
     expect(profiles, isNotEmpty);
 
@@ -992,6 +994,55 @@ void main() {
     expect(registeredRollback['schema_version'],
         'prd_v3_registered_provider_rollback_manifest.v1');
     expect((registeredRollback['rollback_targets'] as List), hasLength(30));
+    expect(runtimeStatus['registered_provider_health_report_path'],
+        providerHealthPath);
+    final providerHealth =
+        jsonDecode(File(providerHealthPath).readAsStringSync()) as Map;
+    expect(providerHealth['schema_version'],
+        'prd_v3_registered_provider_health_report.v1');
+    expect(providerHealth['provider_entry_count'], 30);
+    expect(providerHealth['unique_provider_ref_count'], 26);
+    expect(providerHealth['capability_area_count'], 8);
+    expect(providerHealth['all_entries_checked'], isTrue);
+    expect(providerHealth['runtime_loaded_count'], 0);
+    expect(providerHealth['ready_for_user_selection_count'], 0);
+    expect(providerHealth['normal_ui_project_names_visible'], isFalse);
+    expect(providerHealth['unverified_entries_marked_ready'], isFalse);
+    expect(providerHealth['secret_plaintext_written'], isFalse);
+    final healthEntries =
+        (providerHealth['health_entries'] as List).cast<Map>();
+    expect(healthEntries, hasLength(30));
+    expect(healthEntries.every((entry) => entry['runtime_loaded'] == false),
+        isTrue);
+    expect(healthEntries.every((entry) => entry['selection_allowed'] == false),
+        isTrue);
+    expect(
+        healthEntries.every((entry) => entry['secret_masked'] == true), isTrue);
+    expect(
+        healthEntries.map((entry) => entry['health_status']).toSet(),
+        containsAll([
+          '需安装外部服务',
+          '已配置未测试',
+          '配置缺失',
+          '已禁用',
+          '需启动外部服务',
+        ]));
+    final healthLogPath = providerHealth['health_log_path'] as String;
+    expect(File(healthLogPath).readAsLinesSync(), hasLength(30));
+    final stabilityPath = providerHealth['stability_report_path'] as String;
+    final stability = jsonDecode(File(stabilityPath).readAsStringSync()) as Map;
+    expect(stability['schema_version'],
+        'prd_v3_registered_provider_hot_swap_stability_report.v1');
+    expect(stability['provider_entry_count'], 30);
+    expect(stability['runtime_loaded_count'], 0);
+    expect(stability['failure_isolation_validated'], isTrue);
+    expect(stability['local_fallback_available'], isTrue);
+    expect(stability['rollback_supported_count'], 30);
+    expect(
+        stability['unavailable_provider_does_not_block_local_chain'], isTrue);
+    expect(stability['registered_project_names_visible_in_normal_ui'], isFalse);
+    expect(stability['secret_plaintext_written'], isFalse);
+    expect((stability['downstream_binding_checks'] as List), isNotEmpty);
 
     final activated =
         await controller.activateRegisteredProviderCapability('docling');

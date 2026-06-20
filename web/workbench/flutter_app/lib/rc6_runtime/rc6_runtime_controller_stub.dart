@@ -240,6 +240,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> testAllRegisteredProviderCapabilities() async {
+    await initialize();
+    return '';
+  }
+
   Future<bool> activateRegisteredProviderCapability(String providerRef) async {
     await initialize();
     return false;
