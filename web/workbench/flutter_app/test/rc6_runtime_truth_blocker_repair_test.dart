@@ -1291,11 +1291,23 @@ void main() {
     expect(
         readinessEntries.map((entry) => entry['status']).toSet(),
         containsAll([
-          '需安装外部服务',
+          '配置缺失',
           '已配置未测试',
           '已禁用',
           '需启动外部服务',
         ]));
+    final blockedRagEvaluationReadiness = readinessEntries
+        .where((entry) =>
+            ['ragas', 'deepeval'].contains(entry['provider_ref']) &&
+            (entry['capability_ids'] as List).contains('retrieval_provider'))
+        .toList(growable: false);
+    expect(blockedRagEvaluationReadiness, hasLength(2));
+    expect(
+        blockedRagEvaluationReadiness.every((entry) =>
+            entry['status'] == '已配置未测试' &&
+            entry['ready_for_user_selection'] == false &&
+            entry['runtime_loaded'] == false),
+        isTrue);
     expect(
         readinessEntries
             .every((entry) => entry.containsKey('missing_config_refs')),
@@ -1419,11 +1431,23 @@ void main() {
     expect(
         healthEntries.map((entry) => entry['health_status']).toSet(),
         containsAll([
-          '需安装外部服务',
+          '配置缺失',
           '已配置未测试',
           '已禁用',
           '需启动外部服务',
         ]));
+    final blockedRagEvaluationHealth = healthEntries
+        .where((entry) =>
+            ['ragas', 'deepeval'].contains(entry['provider_ref']) &&
+            entry['capability_id'] == 'retrieval_provider')
+        .toList(growable: false);
+    expect(blockedRagEvaluationHealth, hasLength(2));
+    expect(
+        blockedRagEvaluationHealth.every((entry) =>
+            entry['health_status'] == '已配置未测试' &&
+            entry['ready_for_user_selection'] == false &&
+            entry['runtime_loaded'] == false),
+        isTrue);
     expect(
         healthEntries.every((entry) => entry.containsKey('blocked_reason_zh')),
         isTrue);
@@ -1596,6 +1620,163 @@ void main() {
 
     final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
     expect(health['ready_for_user_selection_count'], 4);
+  });
+
+  test('rag evaluation adapters become selectable from retrieval validation',
+      () async {
+    final workspace = await createWorkspace();
+    final kbRoot =
+        Directory('${workspace.path}${Platform.pathSeparator}knowledge_bases')
+          ..createSync(recursive: true);
+    for (final id in ['K1', 'K2']) {
+      final dir = Directory('${kbRoot.path}${Platform.pathSeparator}$id')
+        ..createSync(recursive: true);
+      File('${dir.path}${Platform.pathSeparator}manifest.json')
+          .writeAsStringSync('{"status":"searchable"}');
+      File('${dir.path}${Platform.pathSeparator}chunks.jsonl')
+          .writeAsStringSync('{"chunk_id":"$id-c1"}\n');
+    }
+    File('${kbRoot.path}${Platform.pathSeparator}kb_catalog.json')
+        .writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
+      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
+      'knowledge_bases': [
+        {
+          'kb_id': 'K1',
+          'kb_name': 'Alpha KB',
+          'kb_type': '基础知识库',
+          'status': 'searchable',
+          'operation': 'build',
+          'source_documents': [
+            {'source_name': 'alpha.md'}
+          ],
+          'chunk_count': 1,
+        },
+        {
+          'kb_id': 'K2',
+          'kb_name': 'Beta KB',
+          'kb_type': '基础知识库',
+          'status': 'searchable',
+          'operation': 'build',
+          'source_documents': [
+            {'source_name': 'beta.md'}
+          ],
+          'chunk_count': 1,
+        },
+      ],
+    }));
+
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          final kbId = request.outputPath!.split(Platform.pathSeparator).last;
+          final score = kbId == 'K2' ? 0.91 : 0.62;
+          File('${output.path}${Platform.pathSeparator}kb_query_result.json')
+              .writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
+            'selected_count': 1,
+            'selected': [
+              {
+                'chunk_id': '$kbId-c1',
+                'source_path': '$kbId-source.md',
+                'text': '$kbId contains rag evaluation needle',
+                'score': score,
+              }
+            ],
+          }));
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.testAllRegisteredProviderCapabilities();
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    Map<String, dynamic> runtimeStatus() => jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    Map<String, dynamic> readinessReport(
+            Map<String, dynamic> status) =>
+        jsonDecode(
+            File(status['provider_adapter_readiness_report_path'] as String)
+                .readAsStringSync()) as Map<String, dynamic>;
+    Map<String, dynamic> readinessEntry(
+            Map<String, dynamic> readiness, String providerRef) =>
+        (readiness['readiness_entries'] as List)
+            .cast<Map<String, dynamic>>()
+            .firstWhere((entry) => entry['provider_ref'] == providerRef);
+
+    var readiness = readinessReport(runtimeStatus());
+    expect(readinessEntry(readiness, 'ragas')['ready_for_user_selection'],
+        isFalse);
+    expect(readinessEntry(readiness, 'deepeval')['ready_for_user_selection'],
+        isFalse);
+
+    await controller.searchKnowledgeBases('rag evaluation needle', [
+      'K1',
+      'K2',
+    ]);
+    await controller.saveRetrievalValidationReport({
+      0: 'keep',
+      1: 'contradiction',
+    });
+    final healthPath = await controller.testAllRegisteredProviderCapabilities();
+    readiness = readinessReport(runtimeStatus());
+
+    for (final providerRef in ['ragas', 'deepeval']) {
+      final entry = readinessEntry(readiness, providerRef);
+      expect(entry['status'], '连接成功');
+      expect(entry['ready_for_user_selection'], isTrue);
+      expect(entry['runtime_loaded'], isFalse);
+      expect(entry['capability_ids'],
+          containsAll(['governance_audit_provider', 'retrieval_provider']));
+      final probe = jsonDecode(
+          File((entry['test_artifacts'] as List).cast<String>().single)
+              .readAsStringSync()) as Map<String, dynamic>;
+      expect(probe['schema_version'],
+          'prd_v3_provider_adapter_probe_rag_evaluation.v1');
+      expect(probe['provider_ref'], providerRef);
+      expect(probe['passed'], isTrue);
+      expect(probe['result_count'], 2);
+      expect(probe['conflict_count'], 1);
+      expect(probe['network_used'], isFalse);
+      expect(probe['secret_plaintext_written'], isFalse);
+      expect(probe['external_runtime_executed'], isFalse);
+      expect(probe['vendor_runtime_loaded'], isFalse);
+    }
+
+    final activated =
+        await controller.activateRegisteredProviderCapability('ragas');
+    expect(activated, isTrue);
+    final binding = jsonDecode(File(
+            runtimeStatus()['provider_capability_binding_manifest_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    final retrievalBinding = (binding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) => entry['capability_id'] == 'retrieval_provider');
+    expect(retrievalBinding['active_provider_ref'], 'ragas');
+    expect(retrievalBinding['active_provider_kind'], 'registered_provider');
+    expect(retrievalBinding['explicit_selection_applied'], isTrue);
+    expect(retrievalBinding['runtime_loaded'], isFalse);
+
+    final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
+    final ragasHealth = (health['health_entries'] as List)
+        .cast<Map<String, dynamic>>()
+        .where((entry) => entry['provider_ref'] == 'ragas')
+        .toList(growable: false);
+    expect(ragasHealth, hasLength(2));
+    expect(
+        ragasHealth.every((entry) =>
+            entry['health_status'] == '连接成功' &&
+            entry['ready_for_user_selection'] == true &&
+            entry['runtime_loaded'] == false),
+        isTrue);
   });
 
   test(

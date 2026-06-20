@@ -14532,6 +14532,36 @@ class Rc6RuntimeController extends ChangeNotifier {
         'runtime_loaded': false,
       };
     }
+    if (const {'ragas', 'deepeval'}
+        .contains(_stringValue(contract['provider_ref'], ''))) {
+      final providerRef = _stringValue(contract['provider_ref'], '');
+      final probe = _probeRagEvaluationAdapter(workspace, providerRef);
+      if (_boolValue(probe['passed'])) {
+        return {
+          'status': '连接成功',
+          'error_code': '',
+          'error_message_zh': '',
+          'missing_config_refs': <String>[],
+          'blocked_reasons': <String>[],
+          'test_artifacts': [probe['probe_path']],
+          'ready_for_user_selection': true,
+          'runtime_loaded': false,
+        };
+      }
+      return {
+        'status': '已配置未测试',
+        'error_code': 'rag_evaluation_probe_requires_retrieval_validation',
+        'error_message_zh': _stringValue(
+          probe['error_message_zh'],
+          '需要真实检索验证、引用覆盖、冲突检测和人工校验记录后才能启用 RAG 评测能力增强。',
+        ),
+        'missing_config_refs': <String>[],
+        'blocked_reasons': _listOfStrings(probe['blocked_reasons']),
+        'test_artifacts': [probe['probe_path']],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
+      };
+    }
     if (_stringValue(contract['provider_ref'], '') == 'mattpocock_skills') {
       final probe = _probeMattpocockGovernanceRulePack(workspace);
       if (_boolValue(probe['passed'])) {
@@ -15590,6 +15620,200 @@ class Rc6RuntimeController extends ChangeNotifier {
       'status': passed ? '连接成功' : '已配置未测试',
       'blocked_reasons': blockedReasons,
       'error_message_zh': passed ? '' : '解析/OCR 本地产物证据不完整，暂不能启用解析能力增强。',
+      'network_used': false,
+      'secret_plaintext_written': false,
+      'normal_ui_project_name_visible': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return {
+      ...payload,
+      'probe_path': probePath,
+    };
+  }
+
+  static Map<String, dynamic> _probeRagEvaluationAdapter(
+    Directory workspace,
+    String providerRef,
+  ) {
+    final normalizedProvider = providerRef.trim().isEmpty
+        ? 'rag_evaluation'
+        : providerRef.trim().toLowerCase();
+    final probePath = _providerAdapterProbePath(workspace, normalizedProvider);
+    final now = DateTime.now().toUtc().toIso8601String();
+    final queryDir = _join(workspace.path, 'query');
+    final queryResultPath = _join(queryDir, 'multi_kb_query_result.json');
+    final retrievalPlanPath = _join(queryDir, 'retrieval_plan.json');
+    final rerankReportPath = _join(queryDir, 'rerank_report.json');
+    final citationCoveragePath =
+        _join(queryDir, 'citation_coverage_report.json');
+    final conflictReportPath = _join(queryDir, 'conflict_report.json');
+    final externalBoundaryPath =
+        _join(queryDir, 'external_validation_boundary.json');
+    final validationReportPath = _join(queryDir, 'validation_report.json');
+    final validationHistoryPath = _join(queryDir, 'validation_history.jsonl');
+    final markdownReportPath = _join(queryDir, 'validation_report.md');
+    final queryResult = _readJsonObjectSync(queryResultPath);
+    final retrievalPlan = _readJsonObjectSync(retrievalPlanPath);
+    final rerankReport = _readJsonObjectSync(rerankReportPath);
+    final citationCoverage = _readJsonObjectSync(citationCoveragePath);
+    final conflictReport = _readJsonObjectSync(conflictReportPath);
+    final externalBoundary = _readJsonObjectSync(externalBoundaryPath);
+    final validationReport = _readJsonObjectSync(validationReportPath);
+    final resultCount = _asInt(queryResult['result_count']) ??
+        _listOfMaps(queryResult['results']).length;
+    final validationResultCount = _asInt(validationReport['result_count']) ?? 0;
+    final rerankResultCount = _asInt(rerankReport['result_count']) ?? 0;
+    final citationResultCount = _asInt(citationCoverage['result_count']) ?? 0;
+    final conflictCount = _asInt(validationReport['conflict_count']) ??
+        _asInt(conflictReport['conflict_count']) ??
+        0;
+    final historyCount = _jsonlRecordCount(validationHistoryPath);
+    final markdownBytes = File(markdownReportPath).existsSync()
+        ? File(markdownReportPath).readAsBytesSync().length
+        : 0;
+    final requiredArtifacts = [
+      {
+        'path': queryResultPath,
+        'exists': File(queryResultPath).existsSync(),
+        'schema_version': _stringValue(queryResult['schema_version'], ''),
+        'result_count': resultCount,
+      },
+      {
+        'path': retrievalPlanPath,
+        'exists': File(retrievalPlanPath).existsSync(),
+        'schema_version': _stringValue(retrievalPlan['schema_version'], ''),
+        'selected_kb_count': _asInt(retrievalPlan['selected_kb_count']) ?? 0,
+      },
+      {
+        'path': rerankReportPath,
+        'exists': File(rerankReportPath).existsSync(),
+        'schema_version': _stringValue(rerankReport['schema_version'], ''),
+        'result_count': rerankResultCount,
+      },
+      {
+        'path': citationCoveragePath,
+        'exists': File(citationCoveragePath).existsSync(),
+        'schema_version': _stringValue(citationCoverage['schema_version'], ''),
+        'result_count': citationResultCount,
+        'citation_coverage': citationCoverage['citation_coverage'],
+      },
+      {
+        'path': conflictReportPath,
+        'exists': File(conflictReportPath).existsSync(),
+        'schema_version': _stringValue(conflictReport['schema_version'], ''),
+        'conflict_count': _asInt(conflictReport['conflict_count']) ?? 0,
+      },
+      {
+        'path': externalBoundaryPath,
+        'exists': File(externalBoundaryPath).existsSync(),
+        'schema_version': _stringValue(externalBoundary['schema_version'], ''),
+        'external_calls_made':
+            _boolValue(externalBoundary['external_calls_made']),
+      },
+      {
+        'path': validationReportPath,
+        'exists': File(validationReportPath).existsSync(),
+        'schema_version': _stringValue(validationReport['schema_version'], ''),
+        'result_count': validationResultCount,
+        'correction_status':
+            _stringValue(validationReport['correction_status'], ''),
+      },
+      {
+        'path': validationHistoryPath,
+        'exists': File(validationHistoryPath).existsSync(),
+        'record_count': historyCount,
+      },
+      {
+        'path': markdownReportPath,
+        'exists': File(markdownReportPath).existsSync(),
+        'bytes': markdownBytes,
+      },
+    ];
+    final missingArtifacts = requiredArtifacts
+        .where((artifact) => artifact['exists'] != true)
+        .map((artifact) => artifact['path'].toString())
+        .toList(growable: false);
+    final validQueryResult = _stringValue(queryResult['schema_version'], '') ==
+            'prd_v3_multi_kb_query_result.v1' &&
+        resultCount > 0 &&
+        _listOfMaps(queryResult['results']).isNotEmpty;
+    final validRetrievalPlan =
+        _stringValue(retrievalPlan['schema_version'], '') ==
+                'prd_v3_retrieval_plan.v1' &&
+            (_asInt(retrievalPlan['selected_kb_count']) ?? 0) > 0;
+    final validRerank = _stringValue(rerankReport['schema_version'], '') ==
+            'prd_v3_retrieval_rerank_report.v1' &&
+        rerankResultCount == resultCount &&
+        rerankResultCount > 0;
+    final validCitation =
+        _stringValue(citationCoverage['schema_version'], '') ==
+                'prd_v3_retrieval_citation_coverage.v1' &&
+            citationResultCount == resultCount &&
+            (_asDouble(citationCoverage['citation_coverage']) ?? -1) >= 0;
+    final validConflict = _stringValue(conflictReport['schema_version'], '') ==
+        'prd_v3_retrieval_conflict_report.v1';
+    final validExternalBoundary =
+        _stringValue(externalBoundary['schema_version'], '') ==
+                'prd_v3_external_validation_boundary.v1' &&
+            _boolValue(externalBoundary['external_calls_made']) == false &&
+            _boolValue(externalBoundary['secret_plaintext_written']) == false;
+    final validValidation = _stringValue(
+                validationReport['schema_version'], '') ==
+            'prd_v3_retrieval_validation_report.v1' &&
+        validationResultCount == resultCount &&
+        _stringValue(validationReport['correction_status'], '') == 'reviewed' &&
+        _stringValue(validationReport['retrieval_plan_path'], '') ==
+            retrievalPlanPath &&
+        _stringValue(validationReport['rerank_report_path'], '') ==
+            rerankReportPath &&
+        _stringValue(validationReport['citation_coverage_report_path'], '') ==
+            citationCoveragePath &&
+        _stringValue(validationReport['conflict_report_path'], '') ==
+            conflictReportPath;
+    final validHistory = historyCount > 0 && markdownBytes > 0;
+    final validProviderScope =
+        const {'ragas', 'deepeval'}.contains(normalizedProvider);
+    final invalidReasons = <String>[
+      if (!validProviderScope) 'provider_ref_not_supported',
+      if (!validQueryResult) 'query_result_invalid',
+      if (!validRetrievalPlan) 'retrieval_plan_invalid',
+      if (!validRerank) 'rerank_report_invalid',
+      if (!validCitation) 'citation_coverage_invalid',
+      if (!validConflict) 'conflict_report_invalid',
+      if (!validExternalBoundary) 'external_validation_boundary_invalid',
+      if (!validValidation) 'validation_report_invalid',
+      if (!validHistory) 'validation_history_or_markdown_missing',
+    ];
+    final passed = missingArtifacts.isEmpty && invalidReasons.isEmpty;
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_probe_rag_evaluation.v1',
+      'provider_ref': normalizedProvider,
+      'adapter_type': 'rag_evaluation_adapter',
+      'executed_at': now,
+      'probe_kind': normalizedProvider == 'ragas'
+          ? 'local_rag_faithfulness_evaluation_assets'
+          : 'local_deepeval_retrieval_quality_assets',
+      'workspace_boundary': workspace.path,
+      'required_artifacts': requiredArtifacts,
+      'missing_artifacts': missingArtifacts,
+      'invalid_reasons': invalidReasons,
+      'blocked_reasons': [
+        ...missingArtifacts.map((path) => 'missing:$path'),
+        ...invalidReasons,
+      ],
+      'result_count': resultCount,
+      'conflict_count': conflictCount,
+      'history_count': historyCount,
+      'passed': passed,
+      'status': passed ? '连接成功' : '已配置未测试',
+      'error_message_zh': passed ? '' : 'RAG 评测需要真实检索验证、引用覆盖、冲突检测和人工校验产物后才能启用。',
       'network_used': false,
       'secret_plaintext_written': false,
       'normal_ui_project_name_visible': false,
@@ -17337,6 +17561,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     if (value is int) return value;
     if (value is num) return value.toInt();
     if (value is String) return int.tryParse(value);
+    return null;
+  }
+
+  static double? _asDouble(Object? value) {
+    if (value is double) return value;
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
     return null;
   }
 
