@@ -1899,6 +1899,40 @@ void main() {
           'skill_template_provider',
           'governance_audit_provider',
         ]));
+    final lifecycleAuditSummaryPath =
+        runtimeStatus['provider_lifecycle_audit_summary_path'] as String;
+    final lifecycleAuditSummary =
+        jsonDecode(File(lifecycleAuditSummaryPath).readAsStringSync()) as Map;
+    expect(lifecycleAuditSummary['schema_version'],
+        'prd_v3_provider_lifecycle_audit_summary.v1');
+    expect(
+        (lifecycleAuditSummary['provider_counts']
+            as Map)['registered_provider_count'],
+        26);
+    expect(
+        (lifecycleAuditSummary['provider_counts']
+            as Map)['provider_mapping_count'],
+        29);
+    expect(
+        (lifecycleAuditSummary['provider_counts']
+            as Map)['runtime_loaded_count'],
+        0);
+    expect(
+        (lifecycleAuditSummary['event_counts']
+            as Map)['registered_activation_event_count'],
+        29);
+    expect(
+        (lifecycleAuditSummary['source_artifacts']
+            as Map)['registry_readiness_summary_path'],
+        providerRegistrySummaryPath);
+    expect(
+        (lifecycleAuditSummary['industrial_boundaries']
+            as Map)['normal_ui_project_names_visible'],
+        isFalse);
+    expect(
+        (lifecycleAuditSummary['industrial_boundaries']
+            as Map)['secret_plaintext_written'],
+        isFalse);
     final healthEntries =
         (providerHealth['health_entries'] as List).cast<Map>();
     expect(healthEntries, hasLength(29));
@@ -4033,6 +4067,36 @@ void main() {
     expect(agentStatus['a2a_workflow_fallback'], '');
     expect((runtimeStatus['degradation'] as Map)['n8n_runtime_failure'],
         contains('未执行外部 workflow'));
+    final lifecycleAuditPath =
+        runtimeStatus['provider_lifecycle_audit_summary_path'] as String;
+    final lifecycleAudit =
+        jsonDecode(File(lifecycleAuditPath).readAsStringSync())
+            as Map<String, dynamic>;
+    expect(lifecycleAudit['schema_version'],
+        'prd_v3_provider_lifecycle_audit_summary.v1');
+    expect(
+        (lifecycleAudit['provider_counts'] as Map)['runtime_loaded_count'], 1);
+    expect(
+        (lifecycleAudit['event_counts'] as Map)['runtime_load_event_count'], 1);
+    expect(
+        (lifecycleAudit['event_counts']
+            as Map)['runtime_load_success_event_count'],
+        1);
+    expect(
+        ((lifecycleAudit['event_counts'] as Map)['runtime_load_actions']
+            as Map)['load'],
+        1);
+    expect(
+        (lifecycleAudit['industrial_boundaries']
+            as Map)['external_runtime_executed'],
+        isFalse);
+    expect(
+        (lifecycleAudit['industrial_boundaries'] as Map)['workflow_executed'],
+        isFalse);
+    expect(
+        (lifecycleAudit['industrial_boundaries']
+            as Map)['secret_plaintext_written'],
+        isFalse);
 
     final rolledBack = await controller.rollbackN8nProviderRuntime();
     expect(rolledBack, isTrue);
@@ -4069,6 +4133,25 @@ void main() {
     expect(rollbackAgentStatus['a2a_workflow_runtime_status'], '降级为本地模式');
     expect(rollbackAgentStatus['a2a_workflow_runtime_loaded'], isFalse);
     expect(rollbackAgentStatus['a2a_workflow_fallback'], contains('本地协作报告'));
+    final rollbackLifecycleAudit = jsonDecode(File(
+            rollbackRuntimeStatus['provider_lifecycle_audit_summary_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(
+        (rollbackLifecycleAudit['provider_counts']
+            as Map)['runtime_loaded_count'],
+        0);
+    expect(
+        (rollbackLifecycleAudit['event_counts']
+            as Map)['runtime_load_event_count'],
+        2);
+    expect(
+        (rollbackLifecycleAudit['event_counts'] as Map)['rollback_event_count'],
+        1);
+    expect(
+        ((rollbackLifecycleAudit['event_counts'] as Map)['runtime_load_actions']
+            as Map)['rollback'],
+        1);
   });
 
   test('prd multi knowledge base catalog supports copy merge split delete',

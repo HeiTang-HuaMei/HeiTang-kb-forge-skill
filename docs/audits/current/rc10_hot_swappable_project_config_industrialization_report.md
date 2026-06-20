@@ -545,6 +545,22 @@ Latest Stage 3 high-risk Provider gate slice:
 - Targeted test:
   `prd settings and parallel task validation produce industrial audit artifacts`.
 
+Latest Stage 3 Provider lifecycle audit summary slice:
+
+- Runtime status now writes `config/provider_lifecycle_audit_summary.json`.
+- The summary aggregates Provider readiness, runtime-load eligibility,
+  capability binding, activation logs, selection logs, runtime-load logs, and
+  rollback manifest state into one audit artifact.
+- It records registered Provider counts, mapping counts, ready/eligible/loaded
+  counts, fallback binding count, activation/selection/load/rollback event
+  counts, source artifact paths, and industrial boundaries.
+- The boundary remains unchanged: normal UI does not expose external project
+  names or hot-swap project concepts, secrets remain masked, and controlled n8n
+  loading still performs health checks only without workflow execution.
+- Targeted tests:
+  `prd settings and parallel task validation produce industrial audit artifacts`
+  and `stage3 n8n runtime load`.
+
 Latest validation for controlled n8n runtime-load slice:
 
 - `flutter analyze`

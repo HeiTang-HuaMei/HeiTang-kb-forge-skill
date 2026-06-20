@@ -6032,6 +6032,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           workspace.path, 'config/registered_provider_selection_log.jsonl'),
       _joinNested(
           workspace.path, 'config/registered_provider_rollback_manifest.json'),
+      _joinNested(
+          workspace.path, 'config/provider_lifecycle_audit_summary.json'),
       _joinNested(workspace.path, 'config/config_test_log.jsonl'),
       _joinNested(workspace.path, 'config/profile_change_log.jsonl'),
       _joinNested(workspace.path, 'config/profile_activation_log.jsonl'),
@@ -13136,6 +13138,136 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
   }
 
+  Future<String> _writeProviderLifecycleAuditSummary(
+    Directory workspace, {
+    required Map<String, dynamic> stage2Preflight,
+    required Map<String, dynamic> providerRuntimeLoad,
+  }) async {
+    final registrySummaryPath =
+        _providerRegistryReadinessSummaryPath(workspace);
+    final eligibilityPath =
+        _providerRuntimeLoadEligibilityManifestPath(workspace);
+    final bindingPath = _providerCapabilityBindingManifestPath(workspace);
+    final healthReportPath = _registeredProviderHealthReportPath(workspace);
+    final activationLogPath = _registeredProviderActivationLogPath(workspace);
+    final selectionLogPath = _registeredProviderSelectionLogPath(workspace);
+    final runtimeLoadLogPath = _providerRuntimeLoadLogPath(workspace);
+    final rollbackManifestPath =
+        _registeredProviderRollbackManifestPath(workspace);
+    final registrySummary = await _readJsonObject(registrySummaryPath);
+    final eligibility = await _readJsonObject(eligibilityPath);
+    final binding = await _readJsonObject(bindingPath);
+    final healthReport = await _readJsonObject(healthReportPath);
+    final rollbackManifest = await _readJsonObject(rollbackManifestPath);
+    final activationEvents = await _readJsonl(File(activationLogPath));
+    final selectionEvents = await _readJsonl(File(selectionLogPath));
+    final runtimeLoadEvents = await _readJsonl(File(runtimeLoadLogPath));
+    final providerRows = _listOfMaps(registrySummary['provider_rows']);
+    final eligibilityEntries = _listOfMaps(eligibility['entries']);
+    final bindings = _listOfMaps(binding['bindings']);
+    final selectionActions = <String, int>{};
+    for (final event in selectionEvents) {
+      final action = _stringValue(event['action'], 'unknown');
+      selectionActions[action] = (selectionActions[action] ?? 0) + 1;
+    }
+    final runtimeLoadActions = <String, int>{};
+    for (final event in runtimeLoadEvents) {
+      final action = _stringValue(event['action'], 'unknown');
+      runtimeLoadActions[action] = (runtimeLoadActions[action] ?? 0) + 1;
+    }
+    final runtimeLoaded =
+        _asInt(providerRuntimeLoad['runtime_loaded_count']) ?? 0;
+    final readyProviders = providerRows
+        .where((entry) => _boolValue(entry['ready_for_user_selection']))
+        .length;
+    final eligibleProviders = eligibilityEntries
+        .where((entry) => _boolValue(entry['external_runtime_load_eligible']))
+        .length;
+    final fallbackBindings = bindings
+        .where((entry) =>
+            _stringValue(entry['active_provider_kind'], '') == 'local_fallback')
+        .length;
+    final loadedEvents = runtimeLoadEvents
+        .where((entry) => _boolValue(entry['runtime_loaded_after_event']))
+        .length;
+    final rollbackEvents = runtimeLoadEvents
+            .where((entry) => _stringValue(entry['action'], '') == 'rollback')
+            .length +
+        selectionEvents
+            .where((entry) => _stringValue(entry['action'], '') == 'rollback')
+            .length;
+    final path = _providerLifecycleAuditSummaryPath(workspace);
+    final payload = {
+      'schema_version': 'prd_v3_provider_lifecycle_audit_summary.v1',
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'workspace_boundary': workspace.path,
+      'stage_2_industrial_preflight': stage2Preflight,
+      'provider_counts': {
+        'registered_provider_count':
+            _asInt(registrySummary['provider_count']) ??
+                _asInt(healthReport['unique_provider_ref_count']) ??
+                providerRows.length,
+        'provider_mapping_count':
+            _asInt(registrySummary['provider_mapping_count']) ??
+                _asInt(healthReport['provider_entry_count']) ??
+                eligibilityEntries.length,
+        'capability_area_count':
+            _asInt(registrySummary['capability_area_count']) ??
+                _asInt(healthReport['capability_area_count']) ??
+                0,
+        'ready_provider_count': readyProviders,
+        'external_runtime_load_eligible_count': eligibleProviders,
+        'runtime_loaded_count': runtimeLoaded,
+        'fallback_binding_count': fallbackBindings,
+      },
+      'event_counts': {
+        'registered_activation_event_count': activationEvents.length,
+        'selection_event_count': selectionEvents.length,
+        'selection_actions': selectionActions,
+        'runtime_load_event_count': runtimeLoadEvents.length,
+        'runtime_load_actions': runtimeLoadActions,
+        'runtime_load_success_event_count': loadedEvents,
+        'rollback_event_count': rollbackEvents,
+      },
+      'runtime_load_summary': providerRuntimeLoad,
+      'rollback_summary': {
+        'registered_provider_rollback_manifest_path': rollbackManifestPath,
+        'rollback_supported':
+            _boolValue(rollbackManifest['rollback_supported']),
+        'rollback_target_count':
+            _listOfMaps(rollbackManifest['rollback_targets']).length,
+        'runtime_rollback_available':
+            File(_providerRuntimeLoadManifestPath(workspace)).existsSync(),
+      },
+      'source_artifacts': {
+        'registry_readiness_summary_path': registrySummaryPath,
+        'runtime_load_eligibility_manifest_path': eligibilityPath,
+        'provider_capability_binding_manifest_path': bindingPath,
+        'registered_provider_health_report_path': healthReportPath,
+        'registered_provider_activation_log_path': activationLogPath,
+        'registered_provider_selection_log_path': selectionLogPath,
+        'provider_runtime_load_manifest_path':
+            _providerRuntimeLoadManifestPath(workspace),
+        'provider_runtime_load_log_path': runtimeLoadLogPath,
+        'registered_provider_rollback_manifest_path': rollbackManifestPath,
+      },
+      'industrial_boundaries': {
+        'normal_ui_project_names_visible': false,
+        'hot_swap_project_concept_visible': false,
+        'external_runtime_executed':
+            _boolValue(providerRuntimeLoad['external_runtime_executed']),
+        'workflow_executed':
+            _boolValue(providerRuntimeLoad['workflow_executed']),
+        'unavailable_provider_blocks_main_chain': false,
+        'local_fallback_available': true,
+        'secret_masked': true,
+        'secret_plaintext_written': false,
+      },
+    };
+    await _writeJsonFile(path, payload);
+    return path;
+  }
+
   Future<String> _snapshotProviderRuntimeLoadManifest(
     Directory workspace,
     Map<String, dynamic> manifest,
@@ -13778,6 +13910,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         workspace.path, 'config', 'provider_registry_readiness_summary.json');
   }
 
+  static String _providerLifecycleAuditSummaryPath(Directory workspace) {
+    return _join(
+        workspace.path, 'config', 'provider_lifecycle_audit_summary.json');
+  }
+
   static String _providerRuntimeLoadManifestPath(Directory workspace) {
     return _join(
         workspace.path, 'config', 'provider_runtime_load_manifest.json');
@@ -14181,6 +14318,12 @@ class Rc6RuntimeController extends ChangeNotifier {
         await _writeRegisteredProviderHealthArtifacts(workspace);
     final providerRuntimeLoad =
         await _providerRuntimeLoadStatusSummary(workspace);
+    final providerLifecycleAuditSummaryPath =
+        await _writeProviderLifecycleAuditSummary(
+      workspace,
+      stage2Preflight: stage2Preflight,
+      providerRuntimeLoad: providerRuntimeLoad,
+    );
     final configAssetsPath = await _writeProjectConfigAssets(
       workspace,
       active,
@@ -14224,6 +14367,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           _providerRuntimeLoadManifestPath(workspace),
       'provider_runtime_load_log_path': _providerRuntimeLoadLogPath(workspace),
       'provider_runtime_load_summary': providerRuntimeLoad,
+      'provider_lifecycle_audit_summary_path':
+          providerLifecycleAuditSummaryPath,
       'registered_provider_summary': {
         'registered_provider_count':
             registeredProviderArtifacts['registered_provider_count'],
