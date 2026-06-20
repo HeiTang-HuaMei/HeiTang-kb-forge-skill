@@ -393,8 +393,8 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
     _TopBarSearchSuggestion(
       title: zh ? 'Agent 工作台' : 'Agent Workbench',
       subtitle: zh
-          ? 'Agent 总览、单 Agent 和多 Agent / A2A'
-          : 'Agent overview, single Agent, and Multi-Agent / A2A',
+          ? 'Agent 总览、单 Agent、多 Agent / A2A 和运行审计'
+          : 'Agent overview, single Agent, Multi-Agent / A2A, and run audit',
       category: zh ? '页面' : 'Page',
       pageId: 'agent-factory-runtime',
       icon: Icons.smart_toy_outlined,

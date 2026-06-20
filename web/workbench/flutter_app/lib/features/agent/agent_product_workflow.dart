@@ -20,9 +20,10 @@ class _AgentProductWorkflow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['Agent 总览', '单 Agent', '多 Agent / A2A']
-        : ['Agent Overview', 'Single Agent', 'Multi-Agent / A2A'];
-    final activeTab = selectedTab >= tabs.length ? tabs.length - 1 : selectedTab;
+        ? ['Agent 总览', '单 Agent', '多 Agent / A2A', '运行审计']
+        : ['Agent Overview', 'Single Agent', 'Multi-Agent / A2A', 'Run Audit'];
+    final activeTab =
+        selectedTab >= tabs.length ? tabs.length - 1 : selectedTab;
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -77,9 +78,165 @@ class _AgentProductWorkflow extends StatelessWidget {
             onAgentCreated: () => onTabSelected(1),
           ),
         2 => _AgentDiscussionProductView(zh: _zh),
+        3 => _AgentRunAuditView(zh: _zh),
         _ => _AgentWorkspaceProductView(zh: _zh, workspace: workspace),
       },
     ]);
+  }
+}
+
+class _AgentRunAuditView extends StatelessWidget {
+  const _AgentRunAuditView({required this.zh});
+
+  final bool zh;
+
+  @override
+  Widget build(BuildContext context) {
+    final rc6 = _Rc6RuntimeScope.of(context);
+    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
+    final dialogueStatus = runtime.hasAgentDialogueHistory
+        ? (zh ? '已记录' : 'Recorded')
+        : (zh ? '未运行' : 'Not run');
+    final exportStatus = runtime.hasAgentDialogueExport
+        ? (zh ? '已导出' : 'Exported')
+        : (zh ? '未导出' : 'Not exported');
+    final a2aStatus = runtime.hasA2aSessionManifest
+        ? (zh ? '已记录' : 'Recorded')
+        : (zh ? '未运行' : 'Not run');
+    final permissionStatus = runtime.hasAgentWorkspacePermissionMatrix
+        ? (zh ? '已校验' : 'Checked')
+        : (zh ? '等待 Agent 工作区' : 'Waiting Agent workspace');
+    return LayoutBuilder(builder: (context, constraints) {
+      final wide = constraints.maxWidth >= 900;
+      final runRecords = _ProductPanel(
+        keyName: 'agent-run-history',
+        icon: Icons.fact_check_outlined,
+        title: zh ? '运行审计' : 'Run Audit',
+        subtitle: zh
+            ? '查看 Agent 对话、导出、A2A 和权限审计状态。'
+            : 'Review Agent chat, export, A2A, and permission audit status.',
+        children: [
+          _ProductTable(
+            columns: zh ? ['对象', '状态', '用户可见结果'] : ['Item', 'Status', 'Result'],
+            rows: zh
+                ? [
+                    [
+                      '单 Agent 对话',
+                      dialogueStatus,
+                      '${runtime.agentDialogueTurnCount} 轮'
+                    ],
+                    [
+                      '对话导出',
+                      exportStatus,
+                      runtime.hasAgentDialogueExport ? '可在产物中心查看' : '等待导出'
+                    ],
+                    [
+                      '多 Agent / A2A',
+                      a2aStatus,
+                      runtime.a2aTopic.isEmpty ? '等待协作议题' : runtime.a2aTopic
+                    ],
+                    [
+                      '权限审计',
+                      permissionStatus,
+                      runtime.hasAgentWorkspacePermissionMatrix
+                          ? '工作区权限已留痕'
+                          : '创建 Agent 后生成'
+                    ],
+                  ]
+                : [
+                    [
+                      'Single-Agent dialogue',
+                      dialogueStatus,
+                      '${runtime.agentDialogueTurnCount} turns'
+                    ],
+                    [
+                      'Dialogue export',
+                      exportStatus,
+                      runtime.hasAgentDialogueExport
+                          ? 'Visible in Artifact Center'
+                          : 'Waiting export'
+                    ],
+                    [
+                      'Multi-Agent / A2A',
+                      a2aStatus,
+                      runtime.a2aTopic.isEmpty
+                          ? 'Waiting topic'
+                          : runtime.a2aTopic
+                    ],
+                    [
+                      'Permission audit',
+                      permissionStatus,
+                      runtime.hasAgentWorkspacePermissionMatrix
+                          ? 'Workspace permissions recorded'
+                          : 'Generated after Agent creation'
+                    ],
+                  ],
+          ),
+        ],
+      );
+      final recovery = _ProductPanel(
+        keyName: 'agent-audit-recovery',
+        icon: Icons.restore_outlined,
+        title: zh ? '异常审计' : 'Exception Audit',
+        children: [
+          _ProductTable(
+            columns: zh ? ['检查项', '状态'] : ['Check', 'Status'],
+            rows: zh
+                ? [
+                    ['配置缺失', runtime.lastError.isEmpty ? '未发现' : '已记录'],
+                    [
+                      '对话失败',
+                      runtime.hasAgentDialogueHistory ? '有运行记录' : '无运行记录'
+                    ],
+                    [
+                      'A2A 冲突',
+                      runtime.hasA2aSessionManifest ? '有协作记录' : '无协作记录'
+                    ],
+                    [
+                      '权限异常',
+                      runtime.hasAgentWorkspacePermissionMatrix ? '已审计' : '等待审计'
+                    ],
+                  ]
+                : [
+                    [
+                      'Missing configuration',
+                      runtime.lastError.isEmpty ? 'Not detected' : 'Recorded'
+                    ],
+                    [
+                      'Dialogue failure',
+                      runtime.hasAgentDialogueHistory
+                          ? 'Run recorded'
+                          : 'No run record'
+                    ],
+                    [
+                      'A2A conflict',
+                      runtime.hasA2aSessionManifest
+                          ? 'Collaboration recorded'
+                          : 'No collaboration record'
+                    ],
+                    [
+                      'Permission issue',
+                      runtime.hasAgentWorkspacePermissionMatrix
+                          ? 'Audited'
+                          : 'Waiting audit'
+                    ],
+                  ],
+          ),
+        ],
+      );
+      if (!wide) {
+        return Column(children: [
+          runRecords,
+          const SizedBox(height: _DesktopGrid.gutter),
+          recovery,
+        ]);
+      }
+      return _EqualHeightRow(
+        height: 420,
+        flexes: const [7, 4],
+        children: [runRecords, recovery],
+      );
+    });
   }
 }
 
@@ -195,17 +352,17 @@ class _AgentWorkspaceProductView extends StatelessWidget {
                     ['绑定知识库', runtime.hasKnowledgeBase ? '已绑定' : '等待知识库'],
                     ['绑定 Skill', runtime.hasSkill ? '已绑定' : '等待 Skill'],
                     ['单 Agent 对话', runtime.hasAgentDialogue ? '已有记录' : '未运行'],
-                    ['多 Agent 协作', runtime.hasMultiAgentDiscussion ? '已有纪要' : '未运行'],
+                    [
+                      '多 Agent 协作',
+                      runtime.hasMultiAgentDiscussion ? '已有纪要' : '未运行'
+                    ],
                   ]
                 : [
                     [
                       'Knowledge Base',
                       runtime.hasKnowledgeBase ? 'Bound' : 'Waiting KB'
                     ],
-                    [
-                      'Skill',
-                      runtime.hasSkill ? 'Bound' : 'Waiting Skill'
-                    ],
+                    ['Skill', runtime.hasSkill ? 'Bound' : 'Waiting Skill'],
                     [
                       'Single-Agent chat',
                       runtime.hasAgentDialogue ? 'Has record' : 'Not run'
@@ -731,14 +888,8 @@ class _AgentDiscussionProductViewState
                   ],
                   ['会话状态', a2aStatus],
                   ['运行前置', runtime.hasSkill ? 'Skill 已生成' : '请先生成 Skill'],
-                  [
-                    '冲突报告',
-                    runtime.hasA2aConflictReport ? '已生成' : '启动后生成'
-                  ],
-                  [
-                    '共识报告',
-                    runtime.hasA2aConsensusReport ? '已生成' : '启动后生成'
-                  ],
+                  ['冲突报告', runtime.hasA2aConflictReport ? '已生成' : '启动后生成'],
+                  ['共识报告', runtime.hasA2aConsensusReport ? '已生成' : '启动后生成'],
                 ]
               : [
                   ['Participant Agents', participants],
@@ -1061,7 +1212,10 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                       runtime.hasAgent ? 'Generated' : 'Generate Agent first',
                     ],
                     ['Model', modelConfig],
-                    ['Dialogue', runtime.hasAgentDialogue ? 'Saved' : 'Not run'],
+                    [
+                      'Dialogue',
+                      runtime.hasAgentDialogue ? 'Saved' : 'Not run'
+                    ],
                   ],
           ),
         ],

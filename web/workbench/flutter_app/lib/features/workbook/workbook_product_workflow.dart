@@ -80,7 +80,7 @@ class _WorkbookProductWorkflowState extends State<_WorkbookProductWorkflow> {
         icon: Icons.workspaces_outline,
         title: _zh ? '工作本管理' : 'Workbook',
         description: _zh
-            ? '工作本隔离文档、知识库、应用产物和审计记录，并承接下一步任务。'
+            ? '工作本隔离文档、知识库、应用产物和审计记录。'
             : 'The workbook isolates documents, knowledge bases, application artifacts, and audit records.',
       ),
       const SizedBox(height: _DesktopGrid.gutter),
@@ -169,7 +169,11 @@ class _WorkbookProductWorkflowState extends State<_WorkbookProductWorkflow> {
                         '${runtime.workbookNames.length}',
                         runtime.workbookNames.join(' / ')
                       ],
-                      ['下一步', _dashboardNextStep(runtime, true), '从右侧入口继续'],
+                      [
+                        '当前阶段',
+                        _dashboardCurrentStage(runtime, true),
+                        _dashboardCurrentStageDetail(runtime, true)
+                      ],
                     ]
                   : [
                       [
@@ -202,9 +206,9 @@ class _WorkbookProductWorkflowState extends State<_WorkbookProductWorkflow> {
                         runtime.workbookNames.join(' / ')
                       ],
                       [
-                        'Next',
-                        _dashboardNextStep(runtime, false),
-                        'Continue from the actions panel'
+                        'Current stage',
+                        _dashboardCurrentStage(runtime, false),
+                        _dashboardCurrentStageDetail(runtime, false)
                       ],
                     ],
             ),
@@ -302,8 +306,8 @@ class _WorkbookProductWorkflowState extends State<_WorkbookProductWorkflow> {
           children: [
             _ProductTable(
               columns: _zh
-                  ? ['阶段', '输入', '输出', '下一步']
-                  : ['Stage', 'Input', 'Output', 'Next'],
+                  ? ['资产层', '输入', '输出', '应用入口']
+                  : ['Asset Layer', 'Input', 'Output', 'Entry'],
               rows: _zh
                   ? [
                       ['文档库', '本地资料', '来源文档 / 解析报告', '知识库'],

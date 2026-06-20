@@ -150,9 +150,9 @@ class _DashboardMetricGrid extends StatelessWidget {
       ),
       _DashboardMetricData(
         icon: Icons.route_outlined,
-        label: _zh ? '下一步' : 'Next Step',
-        value: _zh ? '继续' : 'Continue',
-        detail: _dashboardNextStep(runtime, _zh),
+        label: _zh ? '工作状态' : 'Work Status',
+        value: _dashboardCurrentStage(runtime, _zh),
+        detail: _dashboardCurrentStageDetail(runtime, _zh),
         pageId: _dashboardNextPageId(runtime),
       ),
     ];
@@ -195,16 +195,32 @@ String _dashboardNextPageId(Rc6RuntimeState runtime) {
   return 'document-generation';
 }
 
-String _dashboardNextStep(Rc6RuntimeState runtime, bool zh) {
-  if (!runtime.hasImportedFile) return zh ? '导入文件夹' : 'import folder';
-  if (runtime.parseReportPath.isEmpty) return zh ? '解析/OCR' : 'parse/OCR';
-  if (!runtime.hasKnowledgeBase) return zh ? '构建知识库' : 'build KB';
+String _dashboardCurrentStage(Rc6RuntimeState runtime, bool zh) {
+  if (!runtime.hasImportedFile) return zh ? '文档库' : 'Library';
+  if (runtime.parseReportPath.isEmpty) return zh ? '解析中' : 'Parsing';
+  if (!runtime.hasKnowledgeBase) return zh ? '知识库' : 'Knowledge';
   if (runtime.searchStatus != Rc6SearchStatus.success) {
-    return zh ? '检索验证' : 'search';
+    return zh ? '检索' : 'Retrieval';
   }
-  if (!runtime.hasMarkdown) return zh ? '生成文档' : 'generate doc';
-  if (!runtime.hasExportedDocument) return zh ? '导出文件' : 'export file';
-  return zh ? '产物可复用' : 'artifacts reusable';
+  if (!runtime.hasMarkdown) return zh ? '文档' : 'Docs';
+  if (!runtime.hasExportedDocument) return zh ? '待导出' : 'Export';
+  return zh ? '可交付' : 'Ready';
+}
+
+String _dashboardCurrentStageDetail(Rc6RuntimeState runtime, bool zh) {
+  if (!runtime.hasImportedFile) return zh ? '等待来源文档' : 'waiting source docs';
+  if (runtime.parseReportPath.isEmpty) {
+    return zh ? '等待解析记录' : 'waiting parse record';
+  }
+  if (!runtime.hasKnowledgeBase) return zh ? '等待索引记录' : 'waiting index record';
+  if (runtime.searchStatus != Rc6SearchStatus.success) {
+    return zh ? '等待证据记录' : 'waiting evidence record';
+  }
+  if (!runtime.hasMarkdown) return zh ? '等待文档产物' : 'waiting document artifact';
+  if (!runtime.hasExportedDocument) {
+    return zh ? 'Markdown 已生成' : 'Markdown generated';
+  }
+  return zh ? '导出文件已生成' : 'exported file ready';
 }
 
 class _DashboardMetricData {
@@ -566,7 +582,7 @@ class _DashboardNextActions extends StatelessWidget {
     return _FillProductPanel(
       keyName: 'dashboard-next-actions',
       icon: Icons.route_outlined,
-      title: _zh ? '下一步行动' : 'Next Actions',
+      title: _zh ? '工作入口' : 'Work Entrypoints',
       child: _LocalScrollBox(
         child: Column(
           children: [
@@ -765,22 +781,12 @@ class _DashboardReportSummary extends StatelessWidget {
       children: [
         _ProductTable(
           columns: _zh
-              ? ['环节', '状态', '用户可见结果', '下一步']
-              : ['Step', 'Status', 'User result', 'Next'],
+              ? ['环节', '状态', '用户可见结果', '入口']
+              : ['Stage', 'Status', 'User result', 'Entry'],
           rows: _zh
               ? [
-                  [
-                    '文档库导入与解析',
-                    '可操作',
-                    '来源文档 / 解析结果',
-                    '进入文档库'
-                  ],
-                  [
-                    '知识库构建',
-                    '可操作',
-                    '知识库 / 索引 / 质量记录',
-                    '检索验证'
-                  ],
+                  ['文档库导入与解析', '可操作', '来源文档 / 解析结果', '进入文档库'],
+                  ['知识库构建', '可操作', '知识库 / 索引 / 质量记录', '检索验证'],
                   ['检索与验证', '可操作', '证据片段 / 引用 / 验证报告', '生成文档'],
                   ['文档生成', '可操作', 'Markdown 草稿与导出文件', '生成 Skill'],
                   ['Skill 工厂', '可操作', 'SKILL.md / 验证报告 / 绑定清单', '进入 Agent 工作台'],
@@ -926,7 +932,9 @@ class _DashboardArtifactOverview extends StatelessWidget {
                   [
                     '解析结果',
                     runtime.parseReportPath.isEmpty ? '未生成' : '已生成',
-                    runtime.chunkCount == 0 ? '等待解析' : '${runtime.chunkCount} chunks'
+                    runtime.chunkCount == 0
+                        ? '等待解析'
+                        : '${runtime.chunkCount} chunks'
                   ],
                   [
                     '知识库',

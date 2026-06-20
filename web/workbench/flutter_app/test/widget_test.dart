@@ -259,7 +259,8 @@ void main() {
     expect(matrix['external_project_count'], registry.externalProjectCount);
   });
 
-  test('provider capability status asset parses as product-facing settings data',
+  test(
+      'provider capability status asset parses as product-facing settings data',
       () async {
     final status = ProviderCapabilityStatus.fromJsonString(await rootBundle
         .loadString('assets/external/provider_capability_status.json'));
@@ -273,15 +274,16 @@ void main() {
     expect(status.providerNetworkApiReady, isFalse);
     expect(status.readyForUserSelectionCount, 0);
     expect(
-        status.userConceptBoundary['external_project_names_visible_in_normal_ui'],
+        status
+            .userConceptBoundary['external_project_names_visible_in_normal_ui'],
         isFalse);
     expect(status.userConceptBoundary['hot_swap_project_concept_visible'],
         isFalse);
     expect(entries['document_parser_ocr']!.status, 'dependency_gated');
     expect(entries['document_parser_ocr']!.requiresDependencyInstall, isTrue);
     expect(entries['retrieval_provider']!.requiresNetwork, isTrue);
-    expect(entries.values.every((entry) => !entry.readyForUserSelection),
-        isTrue);
+    expect(
+        entries.values.every((entry) => !entry.readyForUserSelection), isTrue);
     expect(entries.values.every((entry) => entry.auditEventRequired), isTrue);
     expect(entries.values.every((entry) => entry.rollbackSupported), isTrue);
   });
@@ -653,8 +655,8 @@ void main() {
     expect(find.text('检索 / 召回'), findsOneWidget);
     expect(find.text('依赖待满足'), findsOneWidget);
     expect(find.text('需要网络授权'), findsOneWidget);
-    expect(find.textContaining('文档库 -> 知识库 -> 索引层 -> RAG -> 编排层'),
-        findsNothing);
+    expect(
+        find.textContaining('文档库 -> 知识库 -> 索引层 -> RAG -> 编排层'), findsNothing);
     expect(find.textContaining('hot-swap'), findsNothing);
     expect(find.textContaining('热插拔'), findsNothing);
     expect(find.textContaining('external project'), findsNothing);
@@ -805,8 +807,14 @@ void main() {
         findsOneWidget);
     expect(find.text('Start discussion'), findsOneWidget);
     expect(find.text('Waiting for previewable notes'), findsOneWidget);
-    expect(find.byKey(const Key('page-tab-3')), findsNothing);
-    expect(find.byKey(const Key('agent-run-history')), findsNothing);
+    final auditTab = find.byKey(const Key('page-tab-3'));
+    await tester.ensureVisible(auditTab);
+    await tester.tap(auditTab, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('agent-run-history')), findsOneWidget);
+    expect(find.byKey(const Key('agent-audit-recovery')), findsOneWidget);
+    expect(find.text('Failure and Recovery'), findsNothing);
+    expect(find.text('Exception Audit'), findsOneWidget);
     expect(find.textContaining('Campaign'), findsNothing);
     expect(find.textContaining('disabled_boundary'), findsNothing);
     expect(find.textContaining('enabled_real'), findsNothing);

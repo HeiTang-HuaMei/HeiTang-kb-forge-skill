@@ -474,44 +474,44 @@ class _SkillBuilderProductWorkflowState
             const SizedBox(height: 8),
             _ProductTable(
               columns: _zh
-                  ? ['用户路径', '承接产物', '结果']
-                  : ['User path', 'Artifact', 'Result'],
+                  ? ['能力项', '承接产物', '状态']
+                  : ['Capability', 'Artifact', 'Status'],
               rows: _zh
                   ? [
                       [
-                        '1. 导入外部 Skill',
+                        '外部 Skill',
                         'S0 / SKILL.md',
                         runtime.hasSkillGenerationManifest ? '已导入' : '等待选择文件'
                       ],
                       [
-                        '2. 解析结构',
+                        '结构解析',
                         '外部 Skill 结构',
                         runtime.hasSkillGenerationManifest ? '可查看' : '等待导入'
                       ],
                       [
-                        '3. 选择本地知识库',
+                        '本地知识库',
                         runtime.kbManifestPath.isNotEmpty
                             ? _displayNameForPath(runtime.kbManifestPath)
                             : '当前知识库',
-                        runtime.hasKnowledgeBase ? '已绑定' : '请先构建知识库'
+                        runtime.hasKnowledgeBase ? '已绑定' : '等待知识库'
                       ],
                       [
-                        '4. 选择个性化目标',
+                        '个性化目标',
                         _personalizationGoalLabel(personalizationGoal),
                         personalizationGoal.isEmpty ? '可选' : '已选择'
                       ],
                       [
-                        '5. 融合并生成草稿',
+                        '本地化草稿',
                         '本地化 Skill 草稿',
                         runtime.hasLocalizedSkillManifest ? '已生成' : '等待融合'
                       ],
                       [
-                        '6. 展示改动差异',
+                        '改动差异',
                         '差异说明',
                         runtime.hasLocalizedSkillDiff ? '可查看' : '等待生成'
                       ],
                       [
-                        '7. 验证 / 导出 / 绑定',
+                        '验证导出绑定',
                         '验证 / 导出 / 绑定',
                         runtime.hasSkillAgentBindingManifest
                             ? '已生成绑定清单'
@@ -522,45 +522,45 @@ class _SkillBuilderProductWorkflowState
                     ]
                   : [
                       [
-                        '1. Import external Skill',
+                        'External Skill',
                         'S0 / SKILL.md',
                         runtime.hasSkillGenerationManifest
                             ? 'Imported'
                             : 'Choose file'
                       ],
                       [
-                        '2. Parse structure',
+                        'Structure parsing',
                         'External Skill structure',
                         runtime.hasSkillGenerationManifest
                             ? 'Viewable'
                             : 'Waiting import'
                       ],
                       [
-                        '3. Select local KB',
+                        'Local KB',
                         runtime.kbManifestPath.isNotEmpty
                             ? _displayNameForPath(runtime.kbManifestPath)
                             : 'Current KB',
-                        runtime.hasKnowledgeBase ? 'Bound' : 'Build KB first'
+                        runtime.hasKnowledgeBase ? 'Bound' : 'Waiting KB'
                       ],
                       [
-                        '4. Select personalization goal',
+                        'Personalization goal',
                         _personalizationGoalLabel(personalizationGoal),
                         personalizationGoal.isEmpty ? 'Optional' : 'Selected'
                       ],
                       [
-                        '5. Fuse and draft',
+                        'Localized draft',
                         'Localized Skill draft',
                         runtime.hasLocalizedSkillManifest
                             ? 'Generated'
                             : 'Waiting fusion'
                       ],
                       [
-                        '6. Show diff',
+                        'Change diff',
                         'Diff summary',
                         runtime.hasLocalizedSkillDiff ? 'Viewable' : 'Waiting'
                       ],
                       [
-                        '7. Validate / export / bind',
+                        'Validate export bind',
                         'Validation / export / binding',
                         runtime.hasSkillAgentBindingManifest
                             ? 'Binding manifest ready'
@@ -684,22 +684,55 @@ class _SkillBuilderProductWorkflowState
                   ? [
                       ['Skill 草稿', runtime.hasPrimarySkill ? '已生成' : '-'],
                       ['Skill 配置', runtime.hasSkillConfig ? '已生成' : '-'],
-                      ['验证报告', runtime.hasSkillVerificationReport ? '已生成' : '-'],
-                      ['外部 Skill', runtime.hasSkillGenerationManifest ? '已导入' : '-'],
-                      ['本地化 Skill', runtime.hasLocalizedSkillManifest ? '已生成' : '-'],
+                      [
+                        '验证报告',
+                        runtime.hasSkillVerificationReport ? '已生成' : '-'
+                      ],
+                      [
+                        '外部 Skill',
+                        runtime.hasSkillGenerationManifest ? '已导入' : '-'
+                      ],
+                      [
+                        '本地化 Skill',
+                        runtime.hasLocalizedSkillManifest ? '已生成' : '-'
+                      ],
                       ['操作历史', runtime.hasSkillOperationManifest ? '已生成' : '-'],
                       ['导出包', runtime.hasSkillExport ? '已导出' : '-'],
                       ['编辑稿', savedSkillEditPath.isNotEmpty ? '已保存' : '-'],
                     ]
                   : [
-                      ['Skill draft', runtime.hasPrimarySkill ? 'written' : '-'],
-                      ['Skill config', runtime.hasSkillConfig ? 'written' : '-'],
-                      ['Validation report', runtime.hasSkillVerificationReport ? 'written' : '-'],
-                      ['External Skill', runtime.hasSkillGenerationManifest ? 'imported' : '-'],
-                      ['Localized Skill', runtime.hasLocalizedSkillManifest ? 'written' : '-'],
-                      ['Operation history', runtime.hasSkillOperationManifest ? 'written' : '-'],
-                      ['Export package', runtime.hasSkillExport ? 'exported' : '-'],
-                      ['Edited draft', savedSkillEditPath.isNotEmpty ? 'saved' : '-'],
+                      [
+                        'Skill draft',
+                        runtime.hasPrimarySkill ? 'written' : '-'
+                      ],
+                      [
+                        'Skill config',
+                        runtime.hasSkillConfig ? 'written' : '-'
+                      ],
+                      [
+                        'Validation report',
+                        runtime.hasSkillVerificationReport ? 'written' : '-'
+                      ],
+                      [
+                        'External Skill',
+                        runtime.hasSkillGenerationManifest ? 'imported' : '-'
+                      ],
+                      [
+                        'Localized Skill',
+                        runtime.hasLocalizedSkillManifest ? 'written' : '-'
+                      ],
+                      [
+                        'Operation history',
+                        runtime.hasSkillOperationManifest ? 'written' : '-'
+                      ],
+                      [
+                        'Export package',
+                        runtime.hasSkillExport ? 'exported' : '-'
+                      ],
+                      [
+                        'Edited draft',
+                        savedSkillEditPath.isNotEmpty ? 'saved' : '-'
+                      ],
                     ],
             ),
             const SizedBox(height: _DesktopGrid.gutter),
@@ -714,16 +747,8 @@ class _SkillBuilderProductWorkflowState
                         'Skill 草稿',
                         runtime.hasPrimarySkill ? '可查看' : '等待生成'
                       ],
-                      [
-                        '复制',
-                        'Skill 副本',
-                        runtime.hasSkill ? '已生成副本' : '等待生成'
-                      ],
-                      [
-                        '融合',
-                        '融合 Skill',
-                        runtime.hasSkill ? '已融合' : '等待生成'
-                      ],
+                      ['复制', 'Skill 副本', runtime.hasSkill ? '已生成副本' : '等待生成'],
+                      ['融合', '融合 Skill', runtime.hasSkill ? '已融合' : '等待生成'],
                       [
                         '导出',
                         'Skill 导出包',
@@ -890,7 +915,7 @@ class _SkillBuilderProductWorkflowState
                           validationReady = true;
                         });
                         rc6.runSkillOperation('validate');
-                },
+                      },
                 icon: Icons.verified_outlined,
               ),
               _PrimaryProductAction(
