@@ -389,6 +389,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       action: 'export_standard_knowledge_package',
       artifact: _join(packageDir.path, 'standard_package_manifest.json'),
       status: 'completed',
+      okfRuntimeEnabled: true,
       resources: {
         'source_manifest': _join(workspace.path, 'source_manifest.json'),
         'package_path': packageDir.path,
@@ -460,6 +461,18 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _markStandardPackageRuntimeEnabled(
       File(_join(target.path, 'standard_package_manifest.json')),
     );
+    await _appendOrchestrationPlanRecord(
+      layer: 'standard_knowledge_package',
+      action: 'import_standard_knowledge_package',
+      artifact: _join(target.path, 'standard_package_manifest.json'),
+      status: 'completed',
+      okfRuntimeEnabled: true,
+      resources: {
+        'source_path': source.path,
+        'target_path': target.path,
+        'okf_candidate': true,
+      },
+    );
     await _appendStandardPackageAuditRecord(
       action: 'import_standard_knowledge_package',
       artifact: _join(target.path, 'standard_package_manifest.json'),
@@ -525,6 +538,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       action: 'build_kb_from_standard_package',
       artifact: _join(workspace.path, 'kb', 'manifest.json'),
       status: 'completed',
+      okfRuntimeEnabled: true,
       resources: {
         'standard_package_manifest': manifestPath,
         'content_package': contentPath,
@@ -8595,6 +8609,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     required String action,
     required String artifact,
     required String status,
+    bool okfRuntimeEnabled = false,
     Map<String, Object?> resources = const {},
   }) async {
     final workspace = _requireWorkspace();
@@ -8616,7 +8631,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'local_workspace_only': true,
         'computer_use': false,
         'arbitrary_shell': false,
-        'okf_runtime_enabled': false,
+        'okf_runtime_enabled': okfRuntimeEnabled,
       },
     };
     await File(planPath).writeAsString(
@@ -11928,27 +11943,8 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   static Map<String, dynamic> _stage2IndustrialPreflight(Directory workspace) {
     final checks = <Map<String, dynamic>>[
-      _stage2FileCheck(
-        'okf_bundle_runtime_export_import',
-        _joinNested(
-            workspace.path, 'standard_packages/okf_runtime_manifest.json'),
-        (raw) =>
-            raw.contains('prd_v3_okf_runtime_manifest.v1') &&
-            raw.contains('"runtime_loaded": true') &&
-            raw.contains('"export_import_runtime_available": true'),
-        failureReason:
-            'OKF Bundle 需要 runtime export/import 能力证据，标准包 manifest 不等于 runtime 已接入。',
-      ),
-      _stage2FileCheck(
-        'okf_runtime_to_kb_build',
-        _joinNested(
-            workspace.path, 'standard_packages/okf_runtime_manifest.json'),
-        (raw) =>
-            raw.contains('prd_v3_okf_runtime_manifest.v1') &&
-            raw.contains('"runtime_loaded": true') &&
-            raw.contains('"kb_build_runtime_available": true'),
-        failureReason: 'OKF 到 KB 构建需要 runtime 能力证据，标准包构建记录不等于工业级接入。',
-      ),
+      _stage2OkfBundleRuntimeCheck(workspace),
+      _stage2OkfKbRuntimeCheck(workspace),
       _stage2JsonCheck(
         'a2a_multi_round_collaboration',
         _joinNested(workspace.path,
@@ -12011,28 +12007,146 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
   }
 
-  static Map<String, dynamic> _stage2FileCheck(
-    String checkId,
-    String path,
-    bool Function(String raw) predicate, {
-    required String failureReason,
-  }) {
-    final file = File(path);
-    if (!file.existsSync()) {
-      return {
-        'check_id': checkId,
-        'status': 'missing',
-        'artifact_path': path,
-        'reason_zh': failureReason,
-      };
-    }
-    final raw = file.readAsStringSync(encoding: utf8);
-    final passed = predicate(raw);
+  static Map<String, dynamic> _stage2OkfBundleRuntimeCheck(
+      Directory workspace) {
+    const checkId = 'okf_bundle_runtime_export_import';
+    final runtimePath = _joinNested(
+        workspace.path, 'standard_packages/okf_runtime_manifest.json');
+    final runtime = _readJsonObjectSync(runtimePath);
+    final packageManifestPath =
+        _stringValue(runtime['package_manifest_path'], '');
+    final contentPackagePath =
+        _stringValue(runtime['content_package_path'], '');
+    final auditPath =
+        _joinNested(workspace.path, 'standard_packages/audit_history.jsonl');
+    final orchestrationPath =
+        _joinNested(workspace.path, 'orchestration/orchestration_plan.jsonl');
+    final packageManifest = _readJsonObjectSync(packageManifestPath);
+    final required = {
+      'runtime_manifest_schema': _stringValue(runtime['schema_version'], '') ==
+          'prd_v3_okf_runtime_manifest.v1',
+      'runtime_loaded': runtime['runtime_loaded'] == true,
+      'export_import_runtime_available':
+          runtime['export_import_runtime_available'] == true,
+      'external_runtime_not_required': runtime['external_runtime'] == false,
+      'package_manifest_exists': packageManifestPath.isNotEmpty &&
+          File(packageManifestPath).existsSync(),
+      'content_package_exists': contentPackagePath.isNotEmpty &&
+          File(contentPackagePath).existsSync(),
+      'content_package_has_records': _jsonlRecordCount(contentPackagePath) > 0,
+      'package_marked_runtime':
+          packageManifest['okf_runtime_enabled'] == true &&
+              _stringValue(packageManifest['standard'], '') == 'okf_candidate',
+      'runtime_audit_written': _jsonlContains(
+        auditPath,
+        (record) =>
+            _stringValue(record['status'], '') == 'completed' &&
+            {
+              'export_standard_knowledge_package',
+              'import_standard_knowledge_package',
+            }.contains(_stringValue(record['action'], '')),
+      ),
+      'runtime_orchestration_written': _jsonlContains(
+        orchestrationPath,
+        (record) {
+          final boundary = _mapValue(record['boundary']);
+          return _stringValue(record['status'], '') == 'completed' &&
+              {
+                'export_standard_knowledge_package',
+                'import_standard_knowledge_package',
+              }.contains(_stringValue(record['action'], '')) &&
+              boundary['okf_runtime_enabled'] == true;
+        },
+      ),
+    };
+    final missing = required.entries
+        .where((entry) => !entry.value)
+        .map((entry) => entry.key)
+        .toList(growable: false);
     return {
       'check_id': checkId,
-      'status': passed ? 'passed' : 'failed',
-      'artifact_path': path,
-      'reason_zh': passed ? '' : failureReason,
+      'status': missing.isEmpty ? 'passed' : 'failed',
+      'artifact_path': runtimePath,
+      'reason_zh': missing.isEmpty
+          ? ''
+          : 'OKF Bundle 需要真实 runtime 导出/导入执行链路；标准包 manifest 不等于 runtime 已接入。',
+      'runtime_evidence': {
+        'required': required,
+        'missing': missing,
+      },
+    };
+  }
+
+  static Map<String, dynamic> _stage2OkfKbRuntimeCheck(Directory workspace) {
+    const checkId = 'okf_runtime_to_kb_build';
+    final runtimePath = _joinNested(
+        workspace.path, 'standard_packages/okf_runtime_manifest.json');
+    final runtime = _readJsonObjectSync(runtimePath);
+    final kbManifestPath = _stringValue(runtime['kb_manifest_path'], '');
+    final kbCatalogPath =
+        _joinNested(workspace.path, 'knowledge_bases/kb_catalog.json');
+    final auditPath =
+        _joinNested(workspace.path, 'standard_packages/audit_history.jsonl');
+    final orchestrationPath =
+        _joinNested(workspace.path, 'orchestration/orchestration_plan.jsonl');
+    final kbManifest = _readJsonObjectSync(kbManifestPath);
+    final kbCatalog = _readJsonObjectSync(kbCatalogPath);
+    final catalogRecords = _listOfMaps(kbCatalog['knowledge_bases']);
+    final okfRecord = catalogRecords
+        .where((record) => _stringValue(record['kb_id'], '') == 'K_OKF1')
+        .cast<Map<String, dynamic>?>()
+        .firstWhere((record) => record != null, orElse: () => null);
+    final chunksPath = _joinNested(workspace.path, 'kb/chunks.jsonl');
+    final required = {
+      'runtime_manifest_schema': _stringValue(runtime['schema_version'], '') ==
+          'prd_v3_okf_runtime_manifest.v1',
+      'runtime_loaded': runtime['runtime_loaded'] == true,
+      'kb_build_runtime_available':
+          runtime['kb_build_runtime_available'] == true,
+      'kb_manifest_exists':
+          kbManifestPath.isNotEmpty && File(kbManifestPath).existsSync(),
+      'kb_manifest_runtime_schema':
+          _stringValue(kbManifest['schema_version'], '') ==
+              'prd_v3_kb_from_standard_package.v1',
+      'kb_manifest_passed': _stringValue(kbManifest['status'], '') == 'pass' &&
+          kbManifest['okf_runtime_enabled'] == true,
+      'kb_chunks_written': _jsonlRecordCount(chunksPath) > 0,
+      'kb_catalog_bound_to_okf_runtime': okfRecord != null &&
+          okfRecord['okf_runtime_enabled'] == true &&
+          _stringValue(okfRecord['source_standard_package_manifest'], '')
+              .isNotEmpty,
+      'runtime_audit_written': _jsonlContains(
+        auditPath,
+        (record) =>
+            _stringValue(record['status'], '') == 'completed' &&
+            _stringValue(record['action'], '') ==
+                'build_kb_from_standard_package',
+      ),
+      'runtime_orchestration_written': _jsonlContains(
+        orchestrationPath,
+        (record) {
+          final boundary = _mapValue(record['boundary']);
+          return _stringValue(record['status'], '') == 'completed' &&
+              _stringValue(record['action'], '') ==
+                  'build_kb_from_standard_package' &&
+              boundary['okf_runtime_enabled'] == true;
+        },
+      ),
+    };
+    final missing = required.entries
+        .where((entry) => !entry.value)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    return {
+      'check_id': checkId,
+      'status': missing.isEmpty ? 'passed' : 'failed',
+      'artifact_path': runtimePath,
+      'reason_zh':
+          missing.isEmpty ? '' : 'OKF 到 KB 构建需要真实 runtime 构建、审计、编排和下游 KB 可用证据。',
+      'runtime_evidence': {
+        'required': required,
+        'missing': missing,
+      },
     };
   }
 
@@ -12084,6 +12198,46 @@ class Rc6RuntimeController extends ChangeNotifier {
         .readAsLinesSync(encoding: utf8)
         .where((line) => line.trim().isNotEmpty)
         .length;
+  }
+
+  static bool _jsonlContains(
+    String path,
+    bool Function(Map<String, dynamic> record) predicate,
+  ) {
+    final file = File(path);
+    if (!file.existsSync()) return false;
+    for (final line in file.readAsLinesSync(encoding: utf8)) {
+      final trimmed = line.trim();
+      if (trimmed.isEmpty) continue;
+      try {
+        final decoded = jsonDecode(trimmed);
+        final record = decoded is Map<String, dynamic>
+            ? decoded
+            : decoded is Map
+                ? decoded.cast<String, dynamic>()
+                : <String, dynamic>{};
+        if (predicate(record)) return true;
+      } on FormatException {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  static Map<String, dynamic> _readJsonObjectSync(String path) {
+    if (path.trim().isEmpty) return <String, dynamic>{};
+    final file = File(path);
+    if (!file.existsSync()) return <String, dynamic>{};
+    try {
+      final decoded = jsonDecode(file.readAsStringSync(encoding: utf8));
+      return decoded is Map<String, dynamic>
+          ? decoded
+          : decoded is Map
+              ? decoded.cast<String, dynamic>()
+              : <String, dynamic>{};
+    } on FormatException {
+      return <String, dynamic>{};
+    }
   }
 
   static bool _profileConfigRefAvailable(

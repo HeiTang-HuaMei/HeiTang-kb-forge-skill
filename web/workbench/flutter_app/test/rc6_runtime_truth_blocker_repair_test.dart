@@ -2946,6 +2946,18 @@ void main() {
         isNot(contains('okf_bundle_runtime_export_import')));
     expect(
         preflight['failed_checks'], isNot(contains('okf_runtime_to_kb_build')));
+    final checks = preflight['checks'] as List;
+    final okfBundleCheck = checks.cast<Map>().firstWhere(
+        (check) => check['check_id'] == 'okf_bundle_runtime_export_import');
+    final okfBuildCheck = checks
+        .cast<Map>()
+        .firstWhere((check) => check['check_id'] == 'okf_runtime_to_kb_build');
+    expect(okfBundleCheck['status'], 'passed');
+    expect(okfBuildCheck['status'], 'passed');
+    expect(((okfBundleCheck['runtime_evidence'] as Map)['missing'] as List),
+        isEmpty);
+    expect(((okfBuildCheck['runtime_evidence'] as Map)['missing'] as List),
+        isEmpty);
     final orchestrationRecords = readJsonlFile(
         '${workspace.path}${Platform.pathSeparator}orchestration${Platform.pathSeparator}orchestration_plan.jsonl');
     expect(
@@ -2954,6 +2966,16 @@ void main() {
           'export_standard_knowledge_package',
           'build_kb_from_standard_package',
         ]));
+    expect(
+        orchestrationRecords.any((record) =>
+            record['action'] == 'export_standard_knowledge_package' &&
+            ((record['boundary'] as Map)['okf_runtime_enabled']) == true),
+        isTrue);
+    expect(
+        orchestrationRecords.any((record) =>
+            record['action'] == 'build_kb_from_standard_package' &&
+            ((record['boundary'] as Map)['okf_runtime_enabled']) == true),
+        isTrue);
 
     final reloadedController = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(

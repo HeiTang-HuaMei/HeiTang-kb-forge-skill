@@ -26,8 +26,8 @@ The reports also include `external_runtime_load_allowed=false` while the preflig
 
 The preflight requires runtime evidence for:
 
-1. OKF Bundle runtime export/import. Current implementation writes runtime evidence.
-2. OKF runtime to KB build. Current implementation writes runtime evidence after KB build.
+1. OKF Bundle runtime export/import. Current implementation must prove runtime execution, not only a standard package manifest.
+2. OKF runtime to KB build. Current implementation must prove downstream KB materialization, catalog binding, orchestration, and audit records.
 3. A2A multi-round collaboration and conflict detection. Current implementation writes runtime evidence.
 4. Skill secondary fusion plus multi-version management.
 5. Agent workspace permission enforcement and unauthorized access blocking.
@@ -44,7 +44,16 @@ The runtime now requires `standard_packages/okf_runtime_manifest.json` with:
 - `export_import_runtime_available=true`
 - `kb_build_runtime_available=true`
 
-This is an internal product runtime for `document_library_to_knowledge_base`. It is not an external OKF service, not an independent Agent runtime, and not a top-level UI page.
+The Stage 2 gate also requires runtime execution evidence outside the manifest:
+
+- `standard_packages/audit_history.jsonl` contains completed OKF export/import and KB build events.
+- `orchestration/orchestration_plan.jsonl` contains OKF runtime-enabled orchestration records for OKF export/import and KB build.
+- `standard_packages/current/content_package.jsonl` contains real records.
+- `kb/manifest.json` is `prd_v3_kb_from_standard_package.v1` and passes.
+- `kb/chunks.jsonl` contains materialized chunks.
+- `knowledge_bases/kb_catalog.json` binds `K_OKF1` to the source standard package manifest.
+
+This is an internal product runtime for `document_library_to_knowledge_base`. It is not an external OKF service, not an independent Agent runtime, and not a top-level UI page. For P2 industrial completion, OKF must remain invisible as a top-level product module while still being a real runtime capability in the document library to knowledge base path.
 
 ## Validation
 
@@ -63,7 +72,7 @@ Result:
 - `rc6_runtime_truth_blocker_repair_test.dart`: 36/36 passed.
 - `git diff --check`: only Windows line-ending warnings.
 - Secret scan: no plaintext secrets found in this slice.
-- OKF runtime scan: no claim that OKF runtime is complete; only preflight checks for required future runtime evidence.
+- OKF runtime scan: standard package files alone do not pass the Stage 2 preflight; runtime execution, audit, orchestration, and downstream KB evidence are required.
 
 ## Current Status
 
