@@ -1028,17 +1028,18 @@ void main() {
     expect(providerAdapterReadiness['contract_count'], 26);
     expect(providerAdapterReadiness['readiness_entry_count'], 26);
     expect(providerAdapterReadiness['runtime_loaded_count'], 0);
-    expect(providerAdapterReadiness['ready_for_user_selection_count'], 0);
+    expect(providerAdapterReadiness['ready_for_user_selection_count'], 1);
     expect(
         providerAdapterReadiness['normal_ui_project_names_visible'], isFalse);
     expect(providerAdapterReadiness['secret_plaintext_written'], isFalse);
     final readinessEntries =
         (providerAdapterReadiness['readiness_entries'] as List).cast<Map>();
     expect(readinessEntries, hasLength(26));
-    expect(
-        readinessEntries
-            .every((entry) => entry['ready_for_user_selection'] == false),
-        isTrue);
+    final readyProviderRefs = readinessEntries
+        .where((entry) => entry['ready_for_user_selection'] == true)
+        .map((entry) => entry['provider_ref'])
+        .toSet();
+    expect(readyProviderRefs, {'mattpocock_skills'});
     expect(readinessEntries.every((entry) => entry['runtime_loaded'] == false),
         isTrue);
     expect(readinessEntries.every((entry) => entry['secret_masked'] == true),
@@ -1096,16 +1097,35 @@ void main() {
         'prd_v3_provider_capability_binding_manifest.v1');
     expect(bindingManifest['binding_count'], 8);
     expect(bindingManifest['registered_provider_loaded_count'], 0);
-    expect(bindingManifest['local_fallback_binding_count'], 8);
+    expect(bindingManifest['local_fallback_binding_count'], 6);
     expect(bindingManifest['normal_ui_project_names_visible'], isFalse);
     expect(bindingManifest['secret_plaintext_written'], isFalse);
     final bindings = (bindingManifest['bindings'] as List).cast<Map>();
     expect(bindings, hasLength(8));
+    final skillTemplateBinding = bindings.firstWhere(
+        (binding) => binding['capability_id'] == 'skill_template_provider');
+    expect(skillTemplateBinding['active_provider_ref'], 'mattpocock_skills');
+    expect(skillTemplateBinding['active_provider_kind'], 'registered_provider');
+    expect(skillTemplateBinding['selection_allowed'], isTrue);
+    final governanceBinding = bindings.firstWhere(
+        (binding) => binding['capability_id'] == 'governance_audit_provider');
+    expect(governanceBinding['active_provider_ref'], 'mattpocock_skills');
+    expect(governanceBinding['active_provider_kind'], 'registered_provider');
+    expect(governanceBinding['selection_allowed'], isTrue);
     expect(
-        bindings.every(
-            (binding) => binding['active_provider_kind'] == 'local_fallback'),
+        bindings
+            .where((binding) =>
+                binding['capability_id'] != 'skill_template_provider' &&
+                binding['capability_id'] != 'governance_audit_provider')
+            .every((binding) =>
+                binding['active_provider_kind'] == 'local_fallback'),
         isTrue);
-    expect(bindings.every((binding) => binding['selection_allowed'] == false),
+    expect(
+        bindings
+            .where((binding) =>
+                binding['capability_id'] != 'skill_template_provider' &&
+                binding['capability_id'] != 'governance_audit_provider')
+            .every((binding) => binding['selection_allowed'] == false),
         isTrue);
     expect(bindings.every((binding) => binding['runtime_loaded'] == false),
         isTrue);
@@ -1130,7 +1150,7 @@ void main() {
     expect(providerHealth['capability_area_count'], 8);
     expect(providerHealth['all_entries_checked'], isTrue);
     expect(providerHealth['runtime_loaded_count'], 0);
-    expect(providerHealth['ready_for_user_selection_count'], 0);
+    expect(providerHealth['ready_for_user_selection_count'], 2);
     expect(providerHealth['normal_ui_project_names_visible'], isFalse);
     expect(providerHealth['unverified_entries_marked_ready'], isFalse);
     expect(providerHealth['secret_plaintext_written'], isFalse);
@@ -1139,8 +1159,11 @@ void main() {
     expect(healthEntries, hasLength(30));
     expect(healthEntries.every((entry) => entry['runtime_loaded'] == false),
         isTrue);
-    expect(healthEntries.every((entry) => entry['selection_allowed'] == false),
-        isTrue);
+    final selectableHealthRefs = healthEntries
+        .where((entry) => entry['selection_allowed'] == true)
+        .map((entry) => entry['provider_ref'])
+        .toSet();
+    expect(selectableHealthRefs, {'mattpocock_skills'});
     expect(
         healthEntries.every((entry) => entry['secret_masked'] == true), isTrue);
     expect(
@@ -1265,7 +1288,7 @@ void main() {
     expect(
         (runtimeStatus['registered_provider_summary']
             as Map)['adapter_ready_for_user_selection_count'],
-        1);
+        2);
     expect(
         (runtimeStatus['registered_provider_summary']
             as Map)['adapter_runtime_loaded_count'],
@@ -1319,7 +1342,90 @@ void main() {
     expect(selectionLog.last['secret_masked'], isTrue);
 
     final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
-    expect(health['ready_for_user_selection_count'], 1);
+    expect(health['ready_for_user_selection_count'], 3);
+  });
+
+  test(
+      'mattpocock governance adapter becomes selectable from local rule assets',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final healthPath = await controller.testAllRegisteredProviderCapabilities();
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final runtimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    expect(
+        (runtimeStatus['registered_provider_summary']
+            as Map)['adapter_ready_for_user_selection_count'],
+        1);
+    expect(
+        (runtimeStatus['registered_provider_summary']
+            as Map)['adapter_runtime_loaded_count'],
+        0);
+
+    final readinessPath =
+        runtimeStatus['provider_adapter_readiness_report_path'] as String;
+    final readiness = jsonDecode(File(readinessPath).readAsStringSync()) as Map;
+    final governanceReadiness = (readiness['readiness_entries'] as List)
+        .cast<Map>()
+        .firstWhere((entry) => entry['provider_ref'] == 'mattpocock_skills');
+    expect(governanceReadiness['status'], '连接成功');
+    expect(governanceReadiness['ready_for_user_selection'], isTrue);
+    expect(governanceReadiness['runtime_loaded'], isFalse);
+    final probePath =
+        (governanceReadiness['test_artifacts'] as List).first as String;
+    final probe = jsonDecode(File(probePath).readAsStringSync()) as Map;
+    expect(probe['schema_version'],
+        'prd_v3_provider_adapter_probe_mattpocock_skills.v1');
+    expect(probe['passed'], isTrue);
+    expect(probe['network_used'], isFalse);
+    expect(probe['secret_plaintext_written'], isFalse);
+    expect(probe['external_runtime_executed'], isFalse);
+    expect((probe['checked_assets'] as List), hasLength(4));
+
+    final bindingPath =
+        runtimeStatus['provider_capability_binding_manifest_path'] as String;
+    final binding = jsonDecode(File(bindingPath).readAsStringSync()) as Map;
+    final governanceBinding = (binding['bindings'] as List)
+        .cast<Map>()
+        .firstWhere(
+            (entry) => entry['capability_id'] == 'governance_audit_provider');
+    expect(governanceBinding['active_provider_ref'], 'mattpocock_skills');
+    expect(governanceBinding['active_provider_kind'], 'registered_provider');
+    expect(governanceBinding['selection_allowed'], isTrue);
+    expect(governanceBinding['runtime_loaded'], isFalse);
+
+    final activated = await controller
+        .activateRegisteredProviderCapability('mattpocock_skills');
+    expect(activated, isTrue);
+    final activatedBinding =
+        jsonDecode(File(bindingPath).readAsStringSync()) as Map;
+    expect(activatedBinding['action'], 'activate');
+    expect(activatedBinding['selected_provider_ref'], 'mattpocock_skills');
+    expect(activatedBinding['selected_provider_runtime_loaded'], isFalse);
+    final selectionLog = File(
+            '$configDir${Platform.pathSeparator}registered_provider_selection_log.jsonl')
+        .readAsLinesSync()
+        .map((line) => jsonDecode(line) as Map)
+        .toList(growable: false);
+    expect(selectionLog.last['status'], '连接成功');
+    expect(selectionLog.last['runtime_loaded_after_event'], isFalse);
+    expect(selectionLog.last['secret_masked'], isTrue);
+
+    final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
+    expect(health['ready_for_user_selection_count'], 2);
   });
 
   test('prd multi knowledge base catalog supports copy merge split delete',

@@ -11558,6 +11558,34 @@ class Rc6RuntimeController extends ChangeNotifier {
         'runtime_loaded': false,
       };
     }
+    if (_stringValue(contract['provider_ref'], '') == 'mattpocock_skills') {
+      final probe = _probeMattpocockGovernanceRulePack(workspace);
+      if (_boolValue(probe['passed'])) {
+        return {
+          'status': '连接成功',
+          'error_code': '',
+          'error_message_zh': '',
+          'missing_config_refs': <String>[],
+          'blocked_reasons': <String>[],
+          'test_artifacts': [probe['probe_path']],
+          'ready_for_user_selection': true,
+          'runtime_loaded': false,
+        };
+      }
+      return {
+        'status': '已配置未测试',
+        'error_code': 'mattpocock_governance_probe_requires_local_assets',
+        'error_message_zh': _stringValue(
+          probe['error_message_zh'],
+          '需要本地治理规则包证据完整后才能启用治理能力增强。',
+        ),
+        'missing_config_refs': <String>[],
+        'blocked_reasons': ['需要本地治理规则、测试治理和安全审计资产完整'],
+        'test_artifacts': [probe['probe_path']],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
+      };
+    }
     final missingRefs = <String>[];
     final blockedReasons = <String>[];
     final requiredRefs = _listOfStrings(contract['required_config_refs']);
@@ -11716,6 +11744,80 @@ class Rc6RuntimeController extends ChangeNotifier {
       'network_used': false,
       'secret_plaintext_written': false,
       'normal_ui_project_name_visible': false,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return {
+      ...payload,
+      'probe_path': probePath,
+    };
+  }
+
+  static Map<String, dynamic> _probeMattpocockGovernanceRulePack(
+    Directory workspace,
+  ) {
+    final probePath = _providerAdapterProbePath(workspace, 'mattpocock_skills');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final repoRoot = _resolveRepoRootForProviderProbe();
+    final requiredAssets = <String>[
+      _joinNested(repoRoot.path, 'heitang_kb_forge/quality_gate/rules.py'),
+      _joinNested(repoRoot.path, 'heitang_kb_forge/test_governance/gates.py'),
+      _joinNested(repoRoot.path, 'heitang_kb_forge/provider_security/audit.py'),
+      _join(repoRoot.path, 'tests', 'test_test_governance_manifest.py'),
+    ];
+    final checkedAssets = requiredAssets.map((path) {
+      final exists = File(path).existsSync();
+      var bytes = 0;
+      var hasRuleEvidence = false;
+      if (exists) {
+        final content = File(path).readAsStringSync(encoding: utf8);
+        bytes = utf8.encode(content).length;
+        final lower = content.toLowerCase();
+        hasRuleEvidence = lower.contains('gate') ||
+            lower.contains('audit') ||
+            lower.contains('governance') ||
+            lower.contains('policy') ||
+            lower.contains('rule');
+      }
+      return {
+        'path': path,
+        'exists': exists,
+        'bytes': bytes,
+        'has_rule_evidence': hasRuleEvidence,
+      };
+    }).toList(growable: false);
+    final missingAssets = checkedAssets
+        .where((asset) => asset['exists'] != true)
+        .map((asset) => asset['path'].toString())
+        .toList(growable: false);
+    final invalidAssets = checkedAssets
+        .where((asset) =>
+            asset['exists'] == true && asset['has_rule_evidence'] != true)
+        .map((asset) => asset['path'].toString())
+        .toList(growable: false);
+    final passed = missingAssets.isEmpty && invalidAssets.isEmpty;
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_probe_mattpocock_skills.v1',
+      'provider_ref': 'mattpocock_skills',
+      'adapter_type': 'governance_audit_adapter',
+      'executed_at': now,
+      'probe_kind': 'local_governance_rule_pack',
+      'workspace_boundary': workspace.path,
+      'repo_boundary': repoRoot.path,
+      'checked_assets': checkedAssets,
+      'missing_assets': missingAssets,
+      'invalid_assets': invalidAssets,
+      'passed': passed,
+      'status': passed ? '连接成功' : '已配置未测试',
+      'error_message_zh': passed ? '' : '本地治理规则包证据不完整，暂不能启用治理能力增强。',
+      'network_used': false,
+      'secret_plaintext_written': false,
+      'normal_ui_project_name_visible': false,
+      'external_runtime_executed': false,
     };
     File(probePath)
       ..parent.createSync(recursive: true)
@@ -12143,6 +12245,23 @@ class Rc6RuntimeController extends ChangeNotifier {
   static String _redisStatus(String response) {
     final firstLine = response.split('\r\n').first.trim();
     return firstLine.isEmpty ? 'empty Redis response' : firstLine;
+  }
+
+  static Directory _resolveRepoRootForProviderProbe() {
+    Directory cursor = Directory.current.absolute;
+    while (true) {
+      final marker = File(_join(cursor.path, 'heitang_kb_forge', 'cli.py'));
+      final appMarker = File(
+          _joinNested(cursor.path, 'web/workbench/flutter_app/pubspec.yaml'));
+      if (marker.existsSync() && appMarker.existsSync()) {
+        return cursor;
+      }
+      final parent = cursor.parent;
+      if (parent.path == cursor.path) {
+        return Directory.current.absolute;
+      }
+      cursor = parent;
+    }
   }
 
   static Future<_QdrantResponse> _qdrantRequest(

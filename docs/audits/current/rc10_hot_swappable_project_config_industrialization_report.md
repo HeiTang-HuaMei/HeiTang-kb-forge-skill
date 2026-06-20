@@ -82,6 +82,7 @@ Coverage:
 - 0 entries marked runtime-loaded by default
 - 0 entries marked ready for user selection without config/test evidence
 - 1 local retrieval adapter can become selectable after real KB chunks are present
+- 1 local governance rule-pack adapter can become selectable from repository-owned governance/test assets
 
 Capability areas:
 
@@ -138,12 +139,21 @@ Local retrieval adapter proof:
 - `runtime_loaded` remains `false`; this is a verified local adapter readiness path, not arbitrary external project execution.
 - The probe records `network_used=false`, `secret_plaintext_written=false`, and `normal_ui_project_name_visible=false`.
 
+Local governance adapter proof:
+
+- `mattpocock_skills` has a repository-owned governance rule-pack probe at `config/provider_adapter_probe_mattpocock_skills.json`.
+- The probe checks only local HeiTang governance/test assets: `quality_gate/rules.py`, `test_governance/gates.py`, `provider_security/audit.py`, and `tests/test_test_governance_manifest.py`.
+- When the probe succeeds, `provider_adapter_readiness_report.json` marks `mattpocock_skills` as `连接成功` and `ready_for_user_selection=true`.
+- Because the Provider asset maps this Provider to both Skill template governance and governance/audit, the binding manifest can select it for `skill_template_provider` and `governance_audit_provider`.
+- `runtime_loaded` remains `false`; no third-party repository code, prompts, scripts, Agent binding, or external workflow is bundled or executed.
+- The probe records `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, and `normal_ui_project_name_visible=false`.
+
 Adapter readiness:
 
 - `provider_adapter_readiness_report.json` evaluates the 26 adapter contracts against the active Profile and current workspace configuration.
 - It records missing config refs, blocked reasons, Chinese error messages, degradation targets, affected modules, and masked status for each Provider.
 - The readiness report feeds audit/runtime status without exposing external project names in normal UI.
-- Current evidence keeps `runtime_loaded_count=0` and `ready_for_user_selection_count=0`; adapters remain blocked, disabled, or test-required until real checks pass.
+- Current evidence keeps `runtime_loaded_count=0`. Adapters remain blocked, disabled, or test-required unless a local bounded probe has produced evidence.
 
 ## Profile Schema
 
