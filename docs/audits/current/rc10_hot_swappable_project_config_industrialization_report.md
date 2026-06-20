@@ -119,6 +119,7 @@ Coverage:
 - 2 local RAG evaluation adapters can become selectable after retrieval validation, citation, conflict, and review evidence exists
 - 1 local governance rule-pack adapter can become selectable from repository-owned governance/test assets
 - 1 local Agent memory lifecycle adapter can become selectable after Agent and memory-index evidence exists
+- 1 local teaching/reasoning Skill template adapter can become selectable from Skill Factory runtime evidence
 - 1 local marketing Skill pattern adapter can become selectable from repository-owned template/demo assets
 - 1 local Skill schema/package adapter can become selectable after Skill package, validation, fusion, version, and Agent binding evidence exists
 - 1 local workflow collaboration export adapter can become selectable after A2A multi-round, conflict, consensus, runtime-audit, and collaboration-report evidence exists
@@ -216,6 +217,15 @@ Local marketing Skill adapter proof:
 - When the probe succeeds, `provider_adapter_readiness_report.json` marks `ai_marketing_skills` as `连接成功` and `ready_for_user_selection=true`.
 - The Provider remains a Skill Factory/template capability enhancement. It does not create a new page and does not replace the existing Skill Factory chain.
 - `runtime_loaded` remains `false`; no ai-marketing-skills repository code, prompts, scripts, crawler, paid-media operation, account operation, network call, or external runtime is bundled or executed.
+- The probe records `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, `vendor_runtime_loaded=false`, and `normal_ui_project_name_visible=false`.
+
+Local teaching/reasoning Skill adapter proof:
+
+- `andrej_karpathy_skills` has a workspace-owned teaching/reasoning Skill probe at `config/provider_adapter_probe_andrej_karpathy_skills.json`.
+- The probe requires real Skill Factory runtime evidence: `skill_generation_manifest.json`, primary `SKILL.md`, `skill_config.json`, `skill_validation_report.json`, `skill_runtime_manifest.json`, version snapshots, and `skill_version_diff_report.json`.
+- Passing readiness requires a KB-generated teaching/reasoning Skill, validation pass, selected generation config, multi-version runtime, version diff, version snapshots, and ModelRoute evidence.
+- When the probe succeeds, `provider_adapter_readiness_report.json` marks `andrej_karpathy_skills` as `连接成功` and `ready_for_user_selection=true`, and `provider_capability_binding_manifest.json` can bind `skill_template_provider` to it after explicit activation.
+- `runtime_loaded` remains `false`; no external Andrej Karpathy Skill repository, course asset, script, network call, arbitrary execution, or vendor runtime is bundled or executed.
 - The probe records `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, `vendor_runtime_loaded=false`, and `normal_ui_project_name_visible=false`.
 
 Local Skill Prompt Generator adapter proof:
