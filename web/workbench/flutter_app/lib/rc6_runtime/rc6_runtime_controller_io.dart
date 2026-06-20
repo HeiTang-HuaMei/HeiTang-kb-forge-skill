@@ -14560,6 +14560,35 @@ class Rc6RuntimeController extends ChangeNotifier {
         'runtime_loaded': false,
       };
     }
+    if (_stringValue(contract['provider_ref'], '') ==
+        'skill_prompt_generator') {
+      final probe = _probeSkillPromptGeneratorTemplateAssets(workspace);
+      if (_boolValue(probe['passed'])) {
+        return {
+          'status': '连接成功',
+          'error_code': '',
+          'error_message_zh': '',
+          'missing_config_refs': <String>[],
+          'blocked_reasons': <String>[],
+          'test_artifacts': [probe['probe_path']],
+          'ready_for_user_selection': true,
+          'runtime_loaded': false,
+        };
+      }
+      return {
+        'status': '已配置未测试',
+        'error_code': 'skill_prompt_generator_probe_requires_skill_assets',
+        'error_message_zh': _stringValue(
+          probe['error_message_zh'],
+          '需要真实 Skill 生成、本土化、融合、验证和多版本运行产物后才能启用模板提示能力增强。',
+        ),
+        'missing_config_refs': <String>[],
+        'blocked_reasons': _listOfStrings(probe['blocked_reasons']),
+        'test_artifacts': [probe['probe_path']],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
+      };
+    }
     if (_stringValue(contract['provider_ref'], '') == 'llm_wiki_v2') {
       final probe = _probeLlmWikiAgentMemoryFusion(workspace);
       if (_boolValue(probe['passed'])) {
@@ -15720,6 +15749,198 @@ class Rc6RuntimeController extends ChangeNotifier {
       'secret_plaintext_written': false,
       'normal_ui_project_name_visible': false,
       'external_runtime_executed': false,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return {
+      ...payload,
+      'probe_path': probePath,
+    };
+  }
+
+  static Map<String, dynamic> _probeSkillPromptGeneratorTemplateAssets(
+    Directory workspace,
+  ) {
+    final probePath =
+        _providerAdapterProbePath(workspace, 'skill_prompt_generator');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final skillGenerationPath =
+        _joinNested(workspace.path, 'skill/skill_generation_manifest.json');
+    final primarySkillPath =
+        _joinNested(workspace.path, 'skill/knowledge_qa_skill/SKILL.md');
+    final primaryConfigPath = _joinNested(
+        workspace.path, 'skill/knowledge_qa_skill/skill_config.json');
+    final validationPath =
+        _joinNested(workspace.path, 'skill/skill_validation_report.json');
+    final localizedManifestPath = _joinNested(workspace.path,
+        'skill/localized_writing_skill/S2/localized_skill_manifest.json');
+    final localizedDiffPath = _joinNested(
+        workspace.path, 'skill/localized_writing_skill/S2/diff_summary.md');
+    final fusedSkillPath =
+        _joinNested(workspace.path, 'skill/fused_product_ops_skill/SKILL.md');
+    final runtimeManifestPath = _joinNested(
+        workspace.path, 'skill/operations/skill_runtime_manifest.json');
+    final versionDiffPath = _joinNested(
+        workspace.path, 'skill/operations/skill_version_diff_report.json');
+    final generationManifest = _readJsonObjectSync(skillGenerationPath);
+    final primaryConfig = _readJsonObjectSync(primaryConfigPath);
+    final validation = _readJsonObjectSync(validationPath);
+    final localizedManifest = _readJsonObjectSync(localizedManifestPath);
+    final runtimeManifest = _readJsonObjectSync(runtimeManifestPath);
+    final versionDiff = _readJsonObjectSync(versionDiffPath);
+    final primaryText = File(primarySkillPath).existsSync()
+        ? File(primarySkillPath).readAsStringSync(encoding: utf8)
+        : '';
+    final localizedDiffText = File(localizedDiffPath).existsSync()
+        ? File(localizedDiffPath).readAsStringSync(encoding: utf8)
+        : '';
+    final fusedText = File(fusedSkillPath).existsSync()
+        ? File(fusedSkillPath).readAsStringSync(encoding: utf8)
+        : '';
+    final versions = _listOfMaps(runtimeManifest['versions']);
+    final versionSnapshotsExist = versions.length > 1 &&
+        versions.every((version) {
+          final snapshot = _stringValue(version['snapshot_path'], '');
+          return snapshot.isNotEmpty && File(snapshot).existsSync();
+        });
+    final checkedAssets = [
+      {
+        'path': skillGenerationPath,
+        'exists': File(skillGenerationPath).existsSync(),
+        'schema_version':
+            _stringValue(generationManifest['schema_version'], ''),
+        'source_modes': _listOfStrings(generationManifest['source_modes']),
+        'has_selected_generation_config':
+            _mapValue(generationManifest['selected_generation_config'])
+                .isNotEmpty,
+      },
+      {
+        'path': primarySkillPath,
+        'exists': File(primarySkillPath).existsSync(),
+        'bytes': utf8.encode(primaryText).length,
+      },
+      {
+        'path': primaryConfigPath,
+        'exists': File(primaryConfigPath).existsSync(),
+        'source_mode': _stringValue(primaryConfig['source_mode'], ''),
+        'target_platform': _stringValue(primaryConfig['target_platform'], ''),
+      },
+      {
+        'path': validationPath,
+        'exists': File(validationPath).existsSync(),
+        'schema_version': _stringValue(validation['schema_version'], ''),
+        'status': _stringValue(validation['status'], ''),
+        'ready_for_agent_binding':
+            _boolValue(validation['ready_for_agent_binding']),
+      },
+      {
+        'path': localizedManifestPath,
+        'exists': File(localizedManifestPath).existsSync(),
+        'source_mode': _stringValue(localizedManifest['source_mode'], ''),
+      },
+      {
+        'path': localizedDiffPath,
+        'exists': File(localizedDiffPath).existsSync(),
+        'bytes': utf8.encode(localizedDiffText).length,
+      },
+      {
+        'path': fusedSkillPath,
+        'exists': File(fusedSkillPath).existsSync(),
+        'bytes': utf8.encode(fusedText).length,
+      },
+      {
+        'path': runtimeManifestPath,
+        'exists': File(runtimeManifestPath).existsSync(),
+        'schema_version': _stringValue(runtimeManifest['schema_version'], ''),
+        'runtime_loaded': _boolValue(runtimeManifest['runtime_loaded']),
+        'secondary_fusion_runtime_available':
+            _boolValue(runtimeManifest['secondary_fusion_runtime_available']),
+        'multi_version_runtime_available':
+            _boolValue(runtimeManifest['multi_version_runtime_available']),
+        'version_count': _asInt(runtimeManifest['version_count']) ?? 0,
+        'version_snapshots_exist': versionSnapshotsExist,
+      },
+      {
+        'path': versionDiffPath,
+        'exists': File(versionDiffPath).existsSync(),
+        'schema_version': _stringValue(versionDiff['schema_version'], ''),
+        'status': _stringValue(versionDiff['status'], ''),
+      },
+    ];
+    final required = {
+      'generation_manifest_schema':
+          _stringValue(generationManifest['schema_version'], '') ==
+              'rc10_real_input_skill_generation.v1',
+      'generation_manifest_has_config':
+          _mapValue(generationManifest['selected_generation_config'])
+              .isNotEmpty,
+      'generation_modes_include_kb_and_localization':
+          _listOfStrings(generationManifest['source_modes'])
+                  .contains('from_kb') &&
+              _listOfStrings(generationManifest['source_modes'])
+                  .contains('external_skill_fusion'),
+      'primary_skill_nonempty':
+          File(primarySkillPath).existsSync() && primaryText.trim().isNotEmpty,
+      'primary_config_from_kb':
+          _stringValue(primaryConfig['source_mode'], '') == 'from_kb',
+      'validation_passed': _stringValue(validation['schema_version'], '') ==
+              'prd_v3_skill_factory_validation.v1' &&
+          _stringValue(validation['status'], '') == 'pass' &&
+          _boolValue(validation['ready_for_agent_binding']),
+      'localized_skill_fusion':
+          _stringValue(localizedManifest['source_mode'], '') ==
+                  'external_skill_fusion' &&
+              File(localizedDiffPath).existsSync() &&
+              localizedDiffText.trim().isNotEmpty,
+      'fused_skill_nonempty':
+          File(fusedSkillPath).existsSync() && fusedText.trim().isNotEmpty,
+      'skill_runtime_manifest_passed': _stringValue(
+                  runtimeManifest['schema_version'], '') ==
+              'prd_v3_skill_runtime_manifest.v1' &&
+          _boolValue(runtimeManifest['runtime_loaded']) &&
+          _boolValue(runtimeManifest['secondary_fusion_runtime_available']) &&
+          _boolValue(runtimeManifest['multi_version_runtime_available']) &&
+          ((_asInt(runtimeManifest['version_count']) ?? 0) > 1) &&
+          versionSnapshotsExist,
+      'version_diff_passed': _stringValue(versionDiff['schema_version'], '') ==
+              'prd_v3_skill_version_diff_report.v1' &&
+          _stringValue(versionDiff['status'], '') == 'pass',
+      'model_route_evidence_recorded':
+          _mapValue(generationManifest['model_route_evidence']).isNotEmpty &&
+              _mapValue(runtimeManifest['model_route_evidence']).isNotEmpty,
+      'secret_plaintext_absent':
+          generationManifest['secret_plaintext_written'] != true &&
+              runtimeManifest['secret_plaintext_written'] == false,
+    };
+    final blockedReasons = required.entries
+        .where((entry) => !entry.value)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final passed = blockedReasons.isEmpty;
+    final payload = {
+      'schema_version':
+          'prd_v3_provider_adapter_probe_skill_prompt_generator.v1',
+      'provider_ref': 'skill_prompt_generator',
+      'adapter_type': 'skill_template_adapter',
+      'executed_at': now,
+      'probe_kind': 'local_skill_prompt_template_generation_assets',
+      'workspace_boundary': workspace.path,
+      'checked_assets': checkedAssets,
+      'required': required,
+      'blocked_reasons': blockedReasons,
+      'passed': passed,
+      'status': passed ? '连接成功' : '已配置未测试',
+      'error_message_zh':
+          passed ? '' : '本地 Skill 生成、本土化、融合、验证或多版本运行证据不完整，暂不能启用模板提示能力增强。',
+      'network_used': false,
+      'secret_plaintext_written': false,
+      'normal_ui_project_name_visible': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
     };
     File(probePath)
       ..parent.createSync(recursive: true)

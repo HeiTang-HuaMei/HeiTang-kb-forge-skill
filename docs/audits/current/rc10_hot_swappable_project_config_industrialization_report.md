@@ -207,6 +207,15 @@ Local marketing Skill adapter proof:
 - `runtime_loaded` remains `false`; no ai-marketing-skills repository code, prompts, scripts, crawler, paid-media operation, account operation, network call, or external runtime is bundled or executed.
 - The probe records `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, `vendor_runtime_loaded=false`, and `normal_ui_project_name_visible=false`.
 
+Local Skill Prompt Generator adapter proof:
+
+- `skill_prompt_generator` has a workspace-owned Skill prompt/template probe at `config/provider_adapter_probe_skill_prompt_generator.json`.
+- The probe requires real Skill Factory runtime evidence: `skill_generation_manifest.json`, primary `SKILL.md`, `skill_config.json`, `skill_validation_report.json`, localized Skill manifest and diff, fused Skill output, `skill_runtime_manifest.json`, version snapshots, and `skill_version_diff_report.json`.
+- Passing readiness requires from-KB generation, external Skill fusion/localization, validation pass, secondary fusion, multi-version runtime, version snapshots, and ModelRoute evidence.
+- When the probe succeeds, `provider_adapter_readiness_report.json` marks `skill_prompt_generator` as `连接成功` and `ready_for_user_selection=true`, and `provider_capability_binding_manifest.json` can bind `skill_template_provider` to it after explicit activation.
+- `runtime_loaded` remains `false`; no external prompt-generator repository code, network call, arbitrary execution, or vendor runtime is bundled or executed.
+- The probe records `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, `vendor_runtime_loaded=false`, and `normal_ui_project_name_visible=false`.
+
 Local Parser / OCR adapter proof:
 
 - Parser/OCR Provider refs now write bounded probes at `config/provider_adapter_probe_<provider_ref>.json`.
