@@ -313,21 +313,6 @@
       "boundary": "User-facing capability status only. Registered project names and external runtimes are not exposed as normal product modules.",
       "related_provider_states": [
         {
-          "provider_ref": "n8n",
-          "status": "external_runtime_required",
-          "contract_status": [
-            "workflow_export_adapter",
-            "export_validation_passed",
-            "runtime_not_bundled"
-          ],
-          "requires_network": false,
-          "requires_secret": false,
-          "requires_external_runtime": true,
-          "ready_for_user_selection": false,
-          "audit_event_required": true,
-          "rollback_supported": true
-        },
-        {
           "provider_ref": "jellyfish",
           "status": "configured_not_tested",
           "contract_status": [

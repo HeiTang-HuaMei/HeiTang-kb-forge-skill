@@ -231,8 +231,26 @@ void main() {
     expect(n8nProbe['passed'], isTrue);
     expect(n8nProbe['external_runtime_executed'], isFalse);
     expect(n8nProbe['vendor_runtime_loaded'], isFalse);
+    final jellyfish = readinessEntry('jellyfish');
+    expect(jellyfish['status'], '连接成功');
+    expect(jellyfish['ready_for_user_selection'], isTrue);
+    expect(jellyfish['runtime_loaded'], isFalse);
+    final jellyfishProbe =
+        _readJson((jellyfish['test_artifacts'] as List).single);
+    expect(jellyfishProbe['schema_version'],
+        'prd_v3_provider_adapter_probe_jellyfish.v1');
+    expect(jellyfishProbe['passed'], isTrue);
+    expect(jellyfishProbe['external_runtime_executed'], isFalse);
+    expect(jellyfishProbe['vendor_runtime_loaded'], isFalse);
     final binding = _readJson(
         '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}provider_capability_binding_manifest.json');
+    final exporterBinding = (binding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) => entry['capability_id'] == 'document_exporter');
+    expect(exporterBinding['active_provider_ref'], 'jellyfish');
+    expect(exporterBinding['active_provider_kind'], 'registered_provider');
+    expect(exporterBinding['selection_allowed'], isTrue);
+    expect(exporterBinding['runtime_loaded'], isFalse);
     final workflowBinding = (binding['bindings'] as List)
         .cast<Map<String, dynamic>>()
         .firstWhere((entry) =>

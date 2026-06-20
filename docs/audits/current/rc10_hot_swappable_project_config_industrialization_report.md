@@ -111,7 +111,7 @@ Runtime evidence:
 Coverage:
 
 - 26 unique registered provider references
-- 30 provider-to-capability mappings
+- 29 provider-to-capability mappings
 - 8 product capability areas
 - 0 entries marked runtime-loaded by default
 - 0 entries marked ready for user selection without config/test evidence
@@ -149,7 +149,7 @@ Provider enhancement operations:
 Health and stability validation:
 
 - `testAllRegisteredProviderCapabilities()` checks all registered Provider mappings before they can be selected.
-- Current evidence covers 30 provider-to-capability mappings and 26 unique registered Provider references.
+- Current evidence covers 29 provider-to-capability mappings and 26 unique registered Provider references.
 - Every entry writes a user-readable health state such as `需安装外部服务`, `需启动外部服务`, `配置缺失`, `已禁用`, or `已配置未测试`.
 - No unverified entry is marked runtime-loaded or selectable.
 - `registered_provider_hot_swap_stability_report.json` records failure isolation, local fallback availability, rollback coverage, and downstream binding behavior.
@@ -170,7 +170,7 @@ Adapter contracts:
 
 - `provider_adapter_contracts.json` turns the 26 unique registered Provider references into explicit adapter contracts.
 - Each contract records adapter type, capability IDs, affected modules, runtime execution mode, required config refs, health check actions, activation prerequisites, fallback Provider, rollback support, and masking policy.
-- The contracts cover all 30 provider-to-capability mappings while keeping `runtime_loaded_count=0`. Readiness remains blocked unless a real readiness check passes.
+- The contracts cover all 29 provider-to-capability mappings while keeping `runtime_loaded_count=0`. Readiness remains blocked unless a real readiness check passes.
 - `registered_provider_health_report.json` and `project_config_runtime_status.json` both reference the adapter contract path.
 
 Local retrieval adapter proof:
@@ -281,6 +281,7 @@ Local Workflow / A2A export adapter proof:
 - The probe requires real A2A workflow artifacts: `agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json`, `a2a_rounds.jsonl`, `a2a_runtime_audit.jsonl`, `multi_agent/a2a_conflict_report.json`, `multi_agent/a2a_consensus_report.json`, `multi_agent/multi_agent_discussion_manifest.json`, and the collaboration report markdown.
 - The probe requires multi-round evidence, runtime-audit records for each round, conflict and consensus reports, and export-ready collaboration output before the Provider can be selected.
 - Passing the probe marks `workflow_collaboration_export` as `连接成功` and selectable while keeping `runtime_loaded=false`.
+- `n8n` is intentionally excluded from `document_exporter`; document export binds to document/content export Providers such as `jellyfish` or `story_flicks`.
 - This validates a local workflow export boundary only. It does not bundle n8n, call n8n, expose n8n as a normal product module, or execute any external workflow runtime.
 
 Adapter readiness:
@@ -317,7 +318,7 @@ Lifecycle behavior implemented:
 | Model Gateway / ModelRoute | `saveModelGatewayProviderConfig`, `testModelGatewayProvider` | Writes gateway config/test/usage/fallback/reference registry, route pool, binding matrix, route audit, and downstream route evidence |
 | Exporter | `validateExporterSettings` | Markdown/JSON/CSV local availability, DOCX/PDF/PPTX gated until configured |
 | Storage | `_probeStoragePath` | Real write probe and Windows free-space query; failure records Chinese permission reason |
-| Registered Provider health | `testAllRegisteredProviderCapabilities` | Checks 30 mappings, writes health JSON/JSONL, blocks unverified runtime load, proves rollback/fallback |
+| Registered Provider health | `testAllRegisteredProviderCapabilities` | Checks 29 mappings, writes health JSON/JSONL, blocks unverified runtime load, proves rollback/fallback |
 | Provider capability binding | `provider_capability_binding_manifest.json` | Binds 8 product capability areas to local fallback or proven Provider and syncs downstream runtime status |
 | Provider active selection | `provider_capability_selection_state.json` | Persists explicit Provider selection, survives runtime refresh/restart, and suppresses auto-selection after rollback |
 | Provider adapter contracts | `provider_adapter_contracts.json` | Defines 26 Provider adapter contracts with required config refs, health checks, fallback, and rollback |
@@ -435,6 +436,12 @@ Latest Stage 3 Exporter Provider slice:
 - `flutter analyze`
 - `flutter test test\rc6_runtime_truth_blocker_repair_test.dart --concurrency=1`
 - Targeted test: `exporter adapters become selectable from real export artifacts`
+- Fixed industrial evidence refresh now requires `jellyfish` to pass against
+  the current structured export payload shape: `sources`,
+  `retrieval.results`, JSON/CSV outputs, manifest `status=pass`, and
+  `secret_plaintext_written=false`.
+- This proves local structured content export readiness only; Jellyfish vendor
+  runtime remains unloaded.
 
 Latest Stage 3 Parser/OCR Provider slice:
 

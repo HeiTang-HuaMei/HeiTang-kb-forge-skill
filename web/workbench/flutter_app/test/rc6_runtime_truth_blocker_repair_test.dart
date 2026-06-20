@@ -1160,7 +1160,7 @@ void main() {
     expect(
         (runtimeStatus['registered_provider_summary']
             as Map)['registered_provider_count'],
-        30);
+        29);
     expect(
         (runtimeStatus['registered_provider_summary']
             as Map)['ready_for_user_selection_count'],
@@ -1197,7 +1197,7 @@ void main() {
     expect(
         (registeredMatrix['registered_project_boundary']
             as Map)['registered_provider_count'],
-        30);
+        29);
     expect(
         (registeredMatrix['registered_project_boundary']
             as Map)['loaded_project_count'],
@@ -1209,7 +1209,7 @@ void main() {
     expect(runtimeStatus['provider_adapter_contracts_path'], isA<String>());
     final providerEntries =
         (registeredMatrix['provider_entries'] as List).cast<Map>();
-    expect(providerEntries, hasLength(30));
+    expect(providerEntries, hasLength(29));
     expect(providerEntries.map((entry) => entry['provider_ref']).toSet(),
         hasLength(26));
     final providerAdapterContractsPath =
@@ -1222,7 +1222,7 @@ void main() {
     expect(providerAdapterContracts['schema_version'],
         'prd_v3_provider_adapter_contracts.v1');
     expect(providerAdapterContracts['contract_count'], 26);
-    expect(providerAdapterContracts['provider_mapping_count'], 30);
+    expect(providerAdapterContracts['provider_mapping_count'], 29);
     expect(providerAdapterContracts['runtime_loaded_count'], 0);
     expect(providerAdapterContracts['ready_for_user_selection_count'], 0);
     expect(
@@ -1383,18 +1383,28 @@ void main() {
           'workflow_collaboration_export',
           'governance_audit_provider',
         ]));
+    expect(
+        providerEntries.where((entry) =>
+            entry['capability_id'] == 'document_exporter' &&
+            entry['provider_ref'] == 'n8n'),
+        isEmpty);
+    expect(
+        providerEntries.where((entry) =>
+            entry['capability_id'] == 'workflow_collaboration_export' &&
+            entry['provider_ref'] == 'n8n'),
+        hasLength(1));
     final registeredActivationLogPath =
         runtimeStatus['registered_provider_activation_log_path'] as String;
     final registeredActivationLog =
         File(registeredActivationLogPath).readAsLinesSync();
-    expect(registeredActivationLog, hasLength(30));
+    expect(registeredActivationLog, hasLength(29));
     final registeredRollbackPath =
         runtimeStatus['registered_provider_rollback_manifest_path'] as String;
     final registeredRollback =
         jsonDecode(File(registeredRollbackPath).readAsStringSync()) as Map;
     expect(registeredRollback['schema_version'],
         'prd_v3_registered_provider_rollback_manifest.v1');
-    expect((registeredRollback['rollback_targets'] as List), hasLength(30));
+    expect((registeredRollback['rollback_targets'] as List), hasLength(29));
     final bindingPath =
         runtimeStatus['provider_capability_binding_manifest_path'] as String;
     final bindingManifest =
@@ -1454,7 +1464,7 @@ void main() {
         providerAdapterContractsPath);
     expect(providerHealth['provider_adapter_readiness_report_path'],
         providerAdapterReadinessPath);
-    expect(providerHealth['provider_entry_count'], 30);
+    expect(providerHealth['provider_entry_count'], 29);
     expect(providerHealth['unique_provider_ref_count'], 26);
     expect(providerHealth['capability_area_count'], 8);
     expect(providerHealth['all_entries_checked'], isTrue);
@@ -1468,7 +1478,7 @@ void main() {
     expect(providerHealth['secret_plaintext_written'], isFalse);
     final healthEntries =
         (providerHealth['health_entries'] as List).cast<Map>();
-    expect(healthEntries, hasLength(30));
+    expect(healthEntries, hasLength(29));
     expect(healthEntries.every((entry) => entry['runtime_loaded'] == false),
         isTrue);
     final selectableHealthRefs = healthEntries
@@ -1515,19 +1525,19 @@ void main() {
         healthEntries.every((entry) => entry.containsKey('blocked_reason_zh')),
         isTrue);
     final healthLogPath = providerHealth['health_log_path'] as String;
-    expect(File(healthLogPath).readAsLinesSync(), hasLength(30));
+    expect(File(healthLogPath).readAsLinesSync(), hasLength(29));
     final stabilityPath = providerHealth['stability_report_path'] as String;
     final stability = jsonDecode(File(stabilityPath).readAsStringSync()) as Map;
     expect(stability['schema_version'],
         'prd_v3_registered_provider_hot_swap_stability_report.v1');
-    expect(stability['provider_entry_count'], 30);
+    expect(stability['provider_entry_count'], 29);
     expect(stability['runtime_loaded_count'], 0);
     expect(stability['external_runtime_load_allowed'], isFalse);
     expect((stability['stage_2_industrial_preflight'] as Map)['status'],
         'blocked');
     expect(stability['failure_isolation_validated'], isTrue);
     expect(stability['local_fallback_available'], isTrue);
-    expect(stability['rollback_supported_count'], 30);
+    expect(stability['rollback_supported_count'], 29);
     expect(
         stability['unavailable_provider_does_not_block_local_chain'], isTrue);
     expect(stability['registered_project_names_visible_in_normal_ui'], isFalse);
@@ -2795,12 +2805,25 @@ void main() {
         '${structuredDir.path}${Platform.pathSeparator}structured_export_manifest.json';
     File(jsonPath).writeAsStringSync(jsonEncode({
       'schema_version': 'prd_v2_structured_document_export_payload.v1',
+      'status': 'pass',
+      'sources': [
+        {'source_name': 'source.md', 'relative_path': 'input/source.md'}
+      ],
+      'retrieval': {
+        'results': [
+          {
+            'title': 'real export evidence',
+            'citation': 'input/source.md#chunk=1',
+          }
+        ],
+      },
       'retrieval_results': [
         {
           'title': 'real export evidence',
           'citation': 'input/source.md#chunk=1',
         }
       ],
+      'redaction': {'secret_plaintext_written': false},
     }));
     File(csvPath).writeAsStringSync(
         'record_type,title,citation\nretrieval_result,real export evidence,input/source.md#chunk=1\n');

@@ -14311,6 +14311,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       for (final provider in providerStates) {
         final providerRef = _stringValue(provider['provider_ref'], '');
         if (providerRef.isEmpty) continue;
+        if (!_registeredProviderMatchesCapability(capabilityId, provider)) {
+          continue;
+        }
         final ready = _boolValue(provider['ready_for_user_selection']);
         final status = _stringValue(provider['status'], 'needs_verification');
         entries.add({
@@ -14339,6 +14342,20 @@ class Rc6RuntimeController extends ChangeNotifier {
       }
     }
     return entries;
+  }
+
+  static bool _registeredProviderMatchesCapability(
+    String capabilityId,
+    Map<String, dynamic> provider,
+  ) {
+    final contractStatus = _listOfStrings(provider['contract_status']).toSet();
+    return switch (capabilityId) {
+      'document_exporter' =>
+        !contractStatus.contains('workflow_export_adapter'),
+      'workflow_collaboration_export' =>
+        contractStatus.contains('workflow_export_adapter'),
+      _ => true,
+    };
   }
 
   static Map<String, dynamic> _registeredProviderEntry(
@@ -17267,9 +17284,19 @@ class Rc6RuntimeController extends ChangeNotifier {
         .where((artifact) => artifact['exists'] != true)
         .map((artifact) => artifact['path'].toString())
         .toList(growable: false);
+    final retrievalPayload = _mapValue(jsonPayload['retrieval']);
+    final retrievalRows = [
+      ..._listOfMaps(jsonPayload['retrieval_results']),
+      ..._listOfMaps(retrievalPayload['results']),
+    ];
     final validJson = _stringValue(jsonPayload['schema_version'], '') ==
             'prd_v2_structured_document_export_payload.v1' &&
-        _listOfMaps(jsonPayload['retrieval_results']).isNotEmpty;
+        _stringValue(jsonPayload['status'], '') == 'pass' &&
+        _listOfMaps(jsonPayload['sources']).isNotEmpty &&
+        retrievalRows.isNotEmpty &&
+        _boolValue(_mapValue(
+                jsonPayload['redaction'])['secret_plaintext_written']) ==
+            false;
     final validCsv = csvRecordCount > 0;
     final validManifest = _stringValue(manifest['schema_version'], '') ==
             'prd_v2_structured_document_export.v1' &&
