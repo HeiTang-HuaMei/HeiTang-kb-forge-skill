@@ -9796,6 +9796,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final readinessByProvider = await _providerReadinessByProvider(workspace);
     final activeProfile =
         _activeProfile(await _readProjectConfigProfiles(workspace));
+    final stage2Preflight = _stage2IndustrialPreflight(workspace);
     final now = DateTime.now().toUtc().toIso8601String();
     final healthEntries = entries.map((entry) {
       final status = _registeredProviderHealthStatus(entry);
@@ -9823,6 +9824,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'runtime_loaded': false,
         'ready_for_user_selection': readyForSelection,
         'selection_allowed': readyForSelection,
+        'runtime_load_allowed': false,
+        'stage_2_preflight_status': stage2Preflight['status'],
         'secret_masked': true,
         'secret_plaintext_written': false,
         'affected_modules': _registeredProviderAffectedModules(entry),
@@ -9865,6 +9868,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'ready_for_user_selection_count': healthEntries
           .where((entry) => entry['ready_for_user_selection'] == true)
           .length,
+      'external_runtime_load_allowed': stage2Preflight['runtime_load_allowed'],
+      'stage_2_industrial_preflight': stage2Preflight,
       'status_counts': statusCounts,
       'health_entries': healthEntries,
       'normal_ui_project_names_visible': false,
@@ -9879,6 +9884,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'health_report_path': healthReportPath,
       'provider_entry_count': healthEntries.length,
       'runtime_loaded_count': 0,
+      'external_runtime_load_allowed': stage2Preflight['runtime_load_allowed'],
+      'stage_2_industrial_preflight': stage2Preflight,
       'ready_for_user_selection_count':
           healthReport['ready_for_user_selection_count'],
       'failure_isolation_validated': true,
@@ -9899,9 +9906,10 @@ class Rc6RuntimeController extends ChangeNotifier {
                 'provider_ref': entry['provider_ref'],
                 'health_status': entry['health_status'],
                 'selection_result': entry['health_status'] == '连接成功'
-                    ? 'requires_activation_audit'
+                    ? 'candidate_ready_runtime_blocked_by_stage2_preflight'
                     : 'blocked_before_runtime_load',
                 'runtime_loaded_after_check': false,
+                'runtime_load_allowed': false,
                 'fallback_provider': entry['fallback_provider'],
                 'rollback_supported': entry['rollback_supported'],
               })
@@ -9937,6 +9945,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     Map<String, Map<String, dynamic>> readinessByProvider = const {},
   }) async {
     final activeProfile = _activeProfile(profiles);
+    final stage2Preflight = _stage2IndustrialPreflight(workspace);
     final now = DateTime.now().toUtc().toIso8601String();
     final grouped = <String, List<Map<String, dynamic>>>{};
     for (final entry in entries) {
@@ -9971,6 +9980,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'adapter_readiness_status': selectedStatus,
         'selection_allowed': selectedReady,
         'runtime_loaded': false,
+        'runtime_load_allowed': false,
+        'stage_2_preflight_status': stage2Preflight['status'],
         'blocked_reason_zh':
             selectedReady ? '' : _registeredProviderBlockedReason(selected),
         'candidate_provider_count': candidates.length,
@@ -10000,6 +10011,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'selected_provider_runtime_loaded': false,
       'binding_count': bindings.length,
       'registered_provider_loaded_count': 0,
+      'external_runtime_load_allowed': stage2Preflight['runtime_load_allowed'],
+      'stage_2_industrial_preflight': stage2Preflight,
       'local_fallback_binding_count': bindings
           .where(
               (binding) => binding['active_provider_kind'] == 'local_fallback')
@@ -10112,6 +10125,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final active = _activeProfile(profiles);
     final contractsDoc = await _readJsonObject(contractsPath);
     final contracts = _listOfMaps(contractsDoc['contracts']);
+    final stage2Preflight = _stage2IndustrialPreflight(workspace);
     final storage = await loadStorageProviderSettings();
     final provider = await loadProviderRuntimeSettings();
     final exporter = await loadExporterSettings();
@@ -10145,6 +10159,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'test_artifacts': result['test_artifacts'],
         'ready_for_user_selection': result['ready_for_user_selection'],
         'runtime_loaded': result['runtime_loaded'],
+        'runtime_load_allowed': false,
+        'stage_2_preflight_status': stage2Preflight['status'],
         'secret_masked': true,
         'evaluated_at': now,
       };
@@ -10171,6 +10187,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'ready_for_user_selection_count': readinessEntries
           .where((entry) => entry['ready_for_user_selection'] == true)
           .length,
+      'external_runtime_load_allowed': stage2Preflight['runtime_load_allowed'],
+      'stage_2_industrial_preflight': stage2Preflight,
       'status_counts': statusCounts,
       'readiness_entries': readinessEntries,
       'normal_ui_project_names_visible': false,
@@ -10714,6 +10732,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final qdrantStatus = _userStatus(qdrant['status']);
     final llmStatus = _userStatus(llm['status']);
     final networkAllowed = active.networkPolicyId != 'network_local_only';
+    final stage2Preflight = _stage2IndustrialPreflight(workspace);
     final registeredProviderArtifacts =
         await _writeRegisteredProviderIntegrationArtifacts(workspace);
     final registeredProviderMatrix = await _readJsonObject(
@@ -10780,9 +10799,13 @@ class Rc6RuntimeController extends ChangeNotifier {
             providerAdapterReadiness['ready_for_user_selection_count'],
         'adapter_runtime_loaded_count':
             providerAdapterReadiness['runtime_loaded_count'],
+        'external_runtime_load_allowed':
+            stage2Preflight['runtime_load_allowed'],
+        'stage_2_preflight_status': stage2Preflight['status'],
         'visible_to_user_as_capability_enhancement': true,
         'external_project_names_visible_in_normal_ui': false,
       },
+      'stage_2_industrial_preflight': stage2Preflight,
       'health': {
         'status':
             _profileHealthStatus(active, redisStatus, qdrantStatus, llmStatus),
@@ -11719,6 +11742,145 @@ class Rc6RuntimeController extends ChangeNotifier {
       'ready_for_user_selection': false,
       'runtime_loaded': false,
     };
+  }
+
+  static Map<String, dynamic> _stage2IndustrialPreflight(Directory workspace) {
+    final checks = <Map<String, dynamic>>[
+      _stage2FileCheck(
+        'okf_bundle_runtime_export_import',
+        _joinNested(workspace.path,
+            'standard_packages/current/standard_package_manifest.json'),
+        (raw) =>
+            raw.contains('prd_v3_standard_knowledge_package_manifest.v1') &&
+            raw.contains('"okf_runtime_enabled": true'),
+        failureReason:
+            'OKF Bundle 需要 runtime export/import 能力证据，标准包 manifest 不等于 runtime 已接入。',
+      ),
+      _stage2FileCheck(
+        'okf_runtime_to_kb_build',
+        _joinNested(workspace.path, 'kb/manifest.json'),
+        (raw) =>
+            raw.contains('prd_v3_kb_from_standard_package.v1') &&
+            raw.contains('"okf_runtime_enabled": true'),
+        failureReason: 'OKF 到 KB 构建需要 runtime 能力证据，标准包构建记录不等于工业级接入。',
+      ),
+      _stage2JsonCheck(
+        'a2a_multi_round_collaboration',
+        _joinNested(workspace.path,
+            'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json'),
+        (payload, raw) {
+          final rounds =
+              _asInt(payload['round_limit']) ?? _asInt(payload['rounds']) ?? 0;
+          return rounds > 1 && raw.contains('conflict');
+        },
+        failureReason: 'A2A 需要多轮协作和冲突检测证据。',
+      ),
+      _stage2JsonCheck(
+        'skill_secondary_fusion_version_management',
+        _joinNested(
+            workspace.path, 'skill/operations/skill_version_manifest.json'),
+        (payload, raw) {
+          final versions = _listOfMaps(payload['versions']);
+          return versions.length > 1 && raw.toLowerCase().contains('fusion');
+        },
+        failureReason: 'Skill 需要二次融合和多版本管理证据。',
+      ),
+      _stage2JsonCheck(
+        'agent_workspace_permission_enforcement',
+        _joinNested(
+            workspace.path, 'agent/audit/workspace_permission_matrix.json'),
+        (payload, raw) =>
+            raw.contains('unauthorized') &&
+            raw.contains('false') &&
+            raw.contains('allowed'),
+        failureReason: 'Agent 需要工作区权限矩阵和越权阻断证据。',
+      ),
+      _stage2JsonCheck(
+        'industrial_exe_smoke_38_step',
+        _joinNested(
+            workspace.path, 'acceptance/industrial_exe_smoke_report.json'),
+        (payload, raw) =>
+            _stringValue(payload['status'], '') == 'passed' &&
+            (_asInt(payload['step_count']) ?? 0) >= 38,
+        failureReason: '需要真实 EXE 38 步工业级 smoke 通过记录。',
+      ),
+    ];
+    final failedChecks = checks
+        .where((check) => check['status'] != 'passed')
+        .map((check) => check['check_id'])
+        .toList(growable: false);
+    return {
+      'schema_version': 'prd_v3_stage2_industrial_preflight.v1',
+      'status': failedChecks.isEmpty ? 'passed' : 'blocked',
+      'runtime_load_allowed': failedChecks.isEmpty,
+      'failed_checks': failedChecks,
+      'checks': checks,
+    };
+  }
+
+  static Map<String, dynamic> _stage2FileCheck(
+    String checkId,
+    String path,
+    bool Function(String raw) predicate, {
+    required String failureReason,
+  }) {
+    final file = File(path);
+    if (!file.existsSync()) {
+      return {
+        'check_id': checkId,
+        'status': 'missing',
+        'artifact_path': path,
+        'reason_zh': failureReason,
+      };
+    }
+    final raw = file.readAsStringSync(encoding: utf8);
+    final passed = predicate(raw);
+    return {
+      'check_id': checkId,
+      'status': passed ? 'passed' : 'failed',
+      'artifact_path': path,
+      'reason_zh': passed ? '' : failureReason,
+    };
+  }
+
+  static Map<String, dynamic> _stage2JsonCheck(
+    String checkId,
+    String path,
+    bool Function(Map<String, dynamic> payload, String raw) predicate, {
+    required String failureReason,
+  }) {
+    final file = File(path);
+    if (!file.existsSync()) {
+      return {
+        'check_id': checkId,
+        'status': 'missing',
+        'artifact_path': path,
+        'reason_zh': failureReason,
+      };
+    }
+    final raw = file.readAsStringSync(encoding: utf8);
+    try {
+      final decoded = jsonDecode(raw);
+      final payload = decoded is Map<String, dynamic>
+          ? decoded
+          : decoded is Map
+              ? decoded.cast<String, dynamic>()
+              : <String, dynamic>{};
+      final passed = predicate(payload, raw);
+      return {
+        'check_id': checkId,
+        'status': passed ? 'passed' : 'failed',
+        'artifact_path': path,
+        'reason_zh': passed ? '' : failureReason,
+      };
+    } on FormatException {
+      return {
+        'check_id': checkId,
+        'status': 'failed',
+        'artifact_path': path,
+        'reason_zh': '验收产物不是有效 JSON。',
+      };
+    }
   }
 
   static bool _profileConfigRefAvailable(

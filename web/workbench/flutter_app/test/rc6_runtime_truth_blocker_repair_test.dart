@@ -949,6 +949,28 @@ void main() {
         (runtimeStatus['registered_provider_summary']
             as Map)['ready_for_user_selection_count'],
         0);
+    expect(
+        (runtimeStatus['registered_provider_summary']
+            as Map)['external_runtime_load_allowed'],
+        isFalse);
+    expect(
+        (runtimeStatus['registered_provider_summary']
+            as Map)['stage_2_preflight_status'],
+        'blocked');
+    final runtimePreflight =
+        (runtimeStatus['stage_2_industrial_preflight'] as Map);
+    expect(runtimePreflight['schema_version'],
+        'prd_v3_stage2_industrial_preflight.v1');
+    expect(runtimePreflight['status'], 'blocked');
+    expect(runtimePreflight['runtime_load_allowed'], isFalse);
+    expect(
+        runtimePreflight['failed_checks'],
+        containsAll([
+          'okf_bundle_runtime_export_import',
+          'okf_runtime_to_kb_build',
+          'a2a_multi_round_collaboration',
+          'industrial_exe_smoke_38_step'
+        ]));
     final registeredMatrixPath =
         runtimeStatus['registered_provider_integration_matrix_path'] as String;
     final registeredMatrix =
@@ -1029,6 +1051,11 @@ void main() {
     expect(providerAdapterReadiness['readiness_entry_count'], 26);
     expect(providerAdapterReadiness['runtime_loaded_count'], 0);
     expect(providerAdapterReadiness['ready_for_user_selection_count'], 2);
+    expect(providerAdapterReadiness['external_runtime_load_allowed'], isFalse);
+    expect(
+        (providerAdapterReadiness['stage_2_industrial_preflight']
+            as Map)['status'],
+        'blocked');
     expect(
         providerAdapterReadiness['normal_ui_project_names_visible'], isFalse);
     expect(providerAdapterReadiness['secret_plaintext_written'], isFalse);
@@ -1097,6 +1124,9 @@ void main() {
         'prd_v3_provider_capability_binding_manifest.v1');
     expect(bindingManifest['binding_count'], 8);
     expect(bindingManifest['registered_provider_loaded_count'], 0);
+    expect(bindingManifest['external_runtime_load_allowed'], isFalse);
+    expect((bindingManifest['stage_2_industrial_preflight'] as Map)['status'],
+        'blocked');
     expect(bindingManifest['local_fallback_binding_count'], 6);
     expect(bindingManifest['normal_ui_project_names_visible'], isFalse);
     expect(bindingManifest['secret_plaintext_written'], isFalse);
@@ -1151,6 +1181,9 @@ void main() {
     expect(providerHealth['all_entries_checked'], isTrue);
     expect(providerHealth['runtime_loaded_count'], 0);
     expect(providerHealth['ready_for_user_selection_count'], 3);
+    expect(providerHealth['external_runtime_load_allowed'], isFalse);
+    expect((providerHealth['stage_2_industrial_preflight'] as Map)['status'],
+        'blocked');
     expect(providerHealth['normal_ui_project_names_visible'], isFalse);
     expect(providerHealth['unverified_entries_marked_ready'], isFalse);
     expect(providerHealth['secret_plaintext_written'], isFalse);
@@ -1185,6 +1218,9 @@ void main() {
         'prd_v3_registered_provider_hot_swap_stability_report.v1');
     expect(stability['provider_entry_count'], 30);
     expect(stability['runtime_loaded_count'], 0);
+    expect(stability['external_runtime_load_allowed'], isFalse);
+    expect((stability['stage_2_industrial_preflight'] as Map)['status'],
+        'blocked');
     expect(stability['failure_isolation_validated'], isTrue);
     expect(stability['local_fallback_available'], isTrue);
     expect(stability['rollback_supported_count'], 30);
