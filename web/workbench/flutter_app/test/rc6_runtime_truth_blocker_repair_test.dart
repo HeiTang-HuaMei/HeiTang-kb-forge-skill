@@ -192,13 +192,20 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);
-    await tester.tap(find.text('来源文档'), warnIfMissed: false);
+    await tester.tap(find.byKey(const Key('document-library-tab-1')),
+        warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('document-library')), findsOneWidget);
     expect(find.text('等待导入真实文档'), findsOneWidget);
     expect(find.textContaining('display_only'), findsNothing);
     expect(find.textContaining('示例行保持'), findsNothing);
-    expect(find.text('刷新文档列表'), findsOneWidget);
+    expect(find.text('刷新文档列表'), findsNothing);
+    expect(find.text('用文档构建知识库'), findsOneWidget);
+    final buildButton = tester.widget<FilledButton>(find.ancestor(
+      of: find.text('用文档构建知识库'),
+      matching: find.byType(FilledButton),
+    ));
+    expect(buildButton.onPressed, isNull);
     expect(tester.takeException(), isNull);
   });
 
@@ -245,7 +252,8 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-document-library')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('来源文档').first, warnIfMissed: false);
+    await tester.tap(find.byKey(const Key('document-library-tab-1')),
+        warnIfMissed: false);
     await tester.pumpAndSettle();
 
     expect(
@@ -254,7 +262,8 @@ void main() {
     expect(find.text('名称降序'), findsOneWidget);
     expect(find.text('类型排序'), findsOneWidget);
     expect(find.text('导入文档后可在这里多选、预览和批量删除。'), findsOneWidget);
-    expect(find.text('删除当前文档'), findsOneWidget);
+    expect(find.text('删除当前文档'), findsNothing);
+    expect(find.text('更多文档操作'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

@@ -494,6 +494,7 @@ class _DocumentLibraryProductWorkflowState
       _PageTabs(
         tabs: tabs,
         selectedIndex: selectedTab,
+        keyPrefix: 'document-library-tab',
         onSelected: (index) => setState(() => selectedTab = index),
       ),
       const SizedBox(height: _DesktopGrid.gutter),
