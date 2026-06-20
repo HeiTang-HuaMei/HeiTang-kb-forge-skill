@@ -2294,6 +2294,82 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '${text.substring(0, maxCharacters)}\n\n... 预览已截断，完整内容请复制路径后在本地查看。';
   }
 
+  Future<String> exportWorkspaceArtifact({
+    required String artifactPath,
+    required String artifactLabel,
+  }) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final workspacePath = workspace.absolute.path;
+    final sourcePath = artifactPath.trim();
+    if (sourcePath.isEmpty) {
+      _fail('尚未生成可导出的产物。');
+      return '';
+    }
+    final sourceFile = File(sourcePath).absolute;
+    final sourceDir = Directory(sourcePath).absolute;
+    if (!_isInsideDirectory(sourceFile.path, workspacePath)) {
+      _fail('无法导出：产物路径不在当前工作区内。');
+      return '';
+    }
+    final isFile = await sourceFile.exists();
+    final isDirectory = !isFile && await sourceDir.exists();
+    if (!isFile && !isDirectory) {
+      _fail('无法导出：产物文件不存在。');
+      return '';
+    }
+
+    final exportRoot = Directory(_join(workspace.path, 'artifact_exports'));
+    await exportRoot.create(recursive: true);
+    final baseName = _safeFileName(artifactLabel.trim().isEmpty
+        ? sourcePath.split(RegExp(r'[\\/]')).last
+        : artifactLabel.trim());
+    final exportDir = await _uniqueExportDirectory(exportRoot, baseName);
+    await exportDir.create(recursive: true);
+    final copiedName = sourcePath.split(RegExp(r'[\\/]')).last;
+    final targetPath = _joinNested(exportDir.path, copiedName);
+    if (isFile) {
+      await Directory(targetPath).parent.create(recursive: true);
+      await sourceFile.copy(targetPath);
+    } else {
+      await _copyDirectory(sourceDir, Directory(targetPath));
+    }
+
+    final manifestPath = _join(exportDir.path, 'export_manifest.json');
+    final manifest = {
+      'schema_version': 'prd_v3_artifact_center_export.v1',
+      'artifact_label': artifactLabel,
+      'source_path': sourceFile.path,
+      'exported_path': targetPath,
+      'export_dir': exportDir.path,
+      'artifact_kind': isFile ? 'file' : 'directory',
+      'workspace_path': workspace.path,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+      'bounded_to_workspace': true,
+    };
+    await File(manifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(manifest),
+      encoding: utf8,
+    );
+
+    final historyDir = Directory(_join(workspace.path, 'audit'));
+    await historyDir.create(recursive: true);
+    final history =
+        File(_join(historyDir.path, 'artifact_export_history.jsonl'));
+    await history.writeAsString('${jsonEncode(manifest)}\n',
+        mode: FileMode.append, encoding: utf8);
+
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: '产物已导出到工作区。',
+      lastError: '',
+    );
+    notifyListeners();
+    return manifestPath;
+  }
+
   static String _retrievalValidationMarkdown(Map<String, dynamic> payload) {
     final results = _listOfMaps(payload['results']);
     final corrections = _listOfMaps(payload['manual_corrections']);
@@ -9571,6 +9647,17 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   static String _normalizePathKey(Object? value) {
     return (value ?? '').toString().replaceAll('\\', '/').trim().toLowerCase();
+  }
+
+  static Future<Directory> _uniqueExportDirectory(
+      Directory root, String baseName) async {
+    var candidate = Directory(_join(root.path, baseName));
+    var suffix = 1;
+    while (await candidate.exists()) {
+      candidate = Directory(_join(root.path, '${baseName}_$suffix'));
+      suffix += 1;
+    }
+    return candidate;
   }
 
   static Future<void> _copyDirectory(

@@ -17,6 +17,21 @@ class _ArtifactCenterProductWorkflowState
 
   bool get _zh => widget.localeCode == 'zh-CN';
 
+  Future<void> _exportSelectedArtifact(
+      Rc6RuntimeController? rc6, _ArtifactCenterItem item) async {
+    if (rc6 == null || rc6.state.running || item.path.trim().isEmpty) return;
+    final manifestPath = await rc6.exportWorkspaceArtifact(
+      artifactPath: item.path,
+      artifactLabel: item.label,
+    );
+    if (!mounted || manifestPath.trim().isEmpty) return;
+    await _copyArtifactPath(
+      context,
+      path: manifestPath,
+      successMessage: _zh ? '产物导出清单路径已复制' : 'Artifact export manifest copied',
+    );
+  }
+
   Future<void> _deleteSelectedArtifact(
       Rc6RuntimeController? rc6, _ArtifactCenterItem item) async {
     if (rc6 == null || rc6.state.running || item.path.trim().isEmpty) return;
@@ -206,6 +221,21 @@ class _ArtifactCenterProductWorkflowState
                           closeLabel: _zh ? '关闭' : 'Close',
                         )
                     : null,
+              ),
+              KeyedSubtree(
+                key: const Key('artifact-center-export-selected'),
+                child: _DisplayAction(
+                  label: selected != null && selected.path.trim().isNotEmpty
+                      ? (_zh ? '导出选中产物' : 'Export selected artifact')
+                      : (_zh ? '等待可导出产物' : 'Waiting for exportable artifact'),
+                  icon: Icons.file_download_outlined,
+                  onPressed: selected != null &&
+                          selected.path.trim().isNotEmpty &&
+                          rc6 != null &&
+                          !runtime.running
+                      ? () => _exportSelectedArtifact(rc6, selected)
+                      : null,
+                ),
               ),
               _DisplayAction(
                 label: selected != null && selected.path.trim().isNotEmpty

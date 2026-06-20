@@ -2880,7 +2880,13 @@ void main() {
 
   testWidgets('prd artifact center lists exported Agent dialogue',
       (tester) async {
-    await pumpWorkbench(tester);
+    await pumpWorkbench(tester, setupWorkspace: (workspace) async {
+      final dialogueExportDir = Directory(
+          '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue_export')
+        ..createSync(recursive: true);
+      File('${dialogueExportDir.path}${Platform.pathSeparator}agent_dialogue_export.md')
+          .writeAsStringSync('# Agent dialogue export');
+    });
 
     await tester
         .ensureVisible(find.byKey(const Key('sidebar-artifact-center')));
@@ -2891,7 +2897,71 @@ void main() {
     expect(find.byKey(const Key('artifact-center-catalog')), findsOneWidget);
     expect(find.text('Agent 对话导出'), findsOneWidget);
     expect(find.textContaining('chat export'), findsOneWidget);
+    expect(find.byKey(const Key('artifact-center-export-selected')),
+        findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  test('prd artifact center exports bounded file and directory artifacts',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final skillDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}knowledge_qa_skill')
+      ..createSync(recursive: true);
+    final skillFile = File('${skillDir.path}${Platform.pathSeparator}SKILL.md')
+      ..writeAsStringSync('# Real Skill');
+    final fileManifestPath = await controller.exportWorkspaceArtifact(
+      artifactPath: skillFile.path,
+      artifactLabel: 'SKILL.md 草稿',
+    );
+    final fileManifest =
+        jsonDecode(File(fileManifestPath).readAsStringSync()) as Map;
+    expect(fileManifest['schema_version'], 'prd_v3_artifact_center_export.v1');
+    expect(fileManifest['artifact_kind'], 'file');
+    expect(fileManifest['bounded_to_workspace'], isTrue);
+    expect(File(fileManifest['exported_path'] as String).readAsStringSync(),
+        contains('# Real Skill'));
+
+    final directoryManifestPath = await controller.exportWorkspaceArtifact(
+      artifactPath: skillDir.path,
+      artifactLabel: 'Skill 目录导出',
+    );
+    final directoryManifest =
+        jsonDecode(File(directoryManifestPath).readAsStringSync()) as Map;
+    expect(directoryManifest['artifact_kind'], 'directory');
+    expect(
+        File('${directoryManifest['exported_path']}${Platform.pathSeparator}SKILL.md')
+            .existsSync(),
+        isTrue);
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}artifact_export_history.jsonl')
+            .readAsStringSync(),
+        contains('prd_v3_artifact_center_export.v1'));
+
+    final outside = File(
+        '${Directory.systemTemp.path}${Platform.pathSeparator}outside_artifact.md')
+      ..writeAsStringSync('# outside');
+    addTearDown(() {
+      if (outside.existsSync()) outside.deleteSync();
+    });
+    final rejected = await controller.exportWorkspaceArtifact(
+      artifactPath: outside.path,
+      artifactLabel: 'outside',
+    );
+    expect(rejected, isEmpty);
+    expect(controller.state.lastError, contains('不在当前工作区'));
   });
 
   test('prd artifact center deletion uses owned generated document scope',

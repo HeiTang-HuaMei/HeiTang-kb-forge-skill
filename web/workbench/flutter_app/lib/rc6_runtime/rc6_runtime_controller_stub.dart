@@ -112,6 +112,14 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<String> readWorkspaceTextArtifact(String path,
           {int maxCharacters = 6000}) async =>
       '真实产物预览需要 Windows EXE 桌面端。';
+  Future<String> exportWorkspaceArtifact({
+    required String artifactPath,
+    required String artifactLabel,
+  }) async {
+    await initialize();
+    return '';
+  }
+
   Future<Rc6StorageTestResult> testRedisConnection({
     required String host,
     required int port,
