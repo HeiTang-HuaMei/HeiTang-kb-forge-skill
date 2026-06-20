@@ -3616,6 +3616,23 @@ void main() {
     expect(activatedParserBinding['active_provider_ref'], 'docling');
     expect(activatedParserBinding['explicit_selection_applied'], isTrue);
     expect(activatedParserBinding['runtime_loaded'], isFalse);
+    final activatedRuntimeStatus = runtimeStatus();
+    final lifecycleAudit = jsonDecode(File(
+            activatedRuntimeStatus['provider_lifecycle_audit_summary_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    final downstreamBindingAudit =
+        (lifecycleAudit['downstream_binding_audit'] as List)
+            .cast<Map<String, dynamic>>();
+    final parserAudit = downstreamBindingAudit.firstWhere(
+        (entry) => entry['capability_id'] == 'document_parser_ocr');
+    expect(parserAudit['active_provider_ref'], 'docling');
+    expect(parserAudit['active_provider_kind'], 'registered_provider');
+    expect((parserAudit['affected_modules'] as List),
+        contains('document_library'));
+    expect(parserAudit['runtime_loaded'], isFalse);
+    expect(parserAudit['unauthorized_resources_selectable'], isFalse);
+    expect(parserAudit['secret_masked'], isTrue);
 
     final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
     expect(health['ready_for_user_selection_count'], greaterThanOrEqualTo(8));
@@ -3759,6 +3776,23 @@ void main() {
     expect(activatedVectorBinding['active_provider_ref'], 'weknora');
     expect(activatedVectorBinding['explicit_selection_applied'], isTrue);
     expect(activatedVectorBinding['runtime_loaded'], isFalse);
+    final activatedRuntimeStatus = runtimeStatus();
+    final lifecycleAudit = jsonDecode(File(
+            activatedRuntimeStatus['provider_lifecycle_audit_summary_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    final downstreamBindingAudit =
+        (lifecycleAudit['downstream_binding_audit'] as List)
+            .cast<Map<String, dynamic>>();
+    final vectorAudit = downstreamBindingAudit.firstWhere(
+        (entry) => entry['capability_id'] == 'knowledge_embedding_vector');
+    expect(vectorAudit['active_provider_ref'], 'weknora');
+    expect(vectorAudit['active_provider_kind'], 'registered_provider');
+    expect(
+        (vectorAudit['affected_modules'] as List), contains('knowledge_base'));
+    expect(vectorAudit['runtime_loaded'], isFalse);
+    expect(vectorAudit['unauthorized_resources_selectable'], isFalse);
+    expect(vectorAudit['secret_masked'], isTrue);
 
     final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
     expect(health['ready_for_user_selection_count'], greaterThanOrEqualTo(5));

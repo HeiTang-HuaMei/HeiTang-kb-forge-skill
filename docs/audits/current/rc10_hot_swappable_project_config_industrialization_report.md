@@ -587,6 +587,14 @@ Latest Stage 3 Provider downstream binding audit slice:
   the Retrieval product surface as a local capability enhancement while keeping
   `runtime_loaded=false`, unauthorized resources unavailable, and secrets
   masked.
+- The Parser/OCR slice verifies that activating `docling` binds it to the
+  Document Library parsing/OCR capability status while keeping
+  `runtime_loaded=false`, unauthorized resources unavailable, and secrets
+  masked.
+- The Embedding/Vector slice verifies that activating `weknora` binds it to the
+  Knowledge Base embedding/vector capability status while keeping
+  `runtime_loaded=false`, unauthorized resources unavailable, and secrets
+  masked.
 - The Document Exporter slice verifies that activating `story_flicks` binds it
   to Document Generation and Artifact Center surfaces while keeping
   `runtime_loaded=false`, unauthorized resources unavailable, and secrets
@@ -600,6 +608,8 @@ Latest Stage 3 Provider downstream binding audit slice:
   secrets masked.
 - Targeted tests:
   `sirchmunk local retrieval adapter becomes selectable after real chunks`,
+  `parser ocr adapters become selectable from real parse artifacts`,
+  `embedding vector adapters become selectable from real index artifacts`,
   `exporter adapters become selectable from real export artifacts`, and
   `llm wiki agent memory adapter requires local agent lifecycle evidence`, and
   `workflow collaboration adapter becomes selectable from real A2A exports`.
