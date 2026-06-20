@@ -84,6 +84,7 @@ Coverage:
 - 1 local retrieval adapter can become selectable after real KB chunks are present
 - 1 local governance rule-pack adapter can become selectable from repository-owned governance/test assets
 - 1 local Agent memory lifecycle adapter can become selectable after Agent and memory-index evidence exists
+- 1 local marketing Skill pattern adapter can become selectable from repository-owned template/demo assets
 
 Capability areas:
 
@@ -157,6 +158,15 @@ Local Agent memory adapter proof:
 - When the probe succeeds, `provider_adapter_readiness_report.json` marks `llm_wiki_v2` as `连接成功` and `ready_for_user_selection=true`.
 - `provider_capability_binding_manifest.json` can then bind `agent_model_tools_memory` to `llm_wiki_v2` for Agent Workbench memory/tool capability status.
 - `runtime_loaded` remains `false`; no LLM Wiki vendor runtime, external code, network call, or arbitrary execution is bundled or executed.
+- The probe records `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, `vendor_runtime_loaded=false`, and `normal_ui_project_name_visible=false`.
+
+Local marketing Skill adapter proof:
+
+- `ai_marketing_skills` has a repository-owned marketing Skill pattern probe at `config/provider_adapter_probe_ai_marketing_skills.json`.
+- The probe checks local template/demo evidence: `p1_core_contract_fixture.json`, `agent/templates.py`, `skill_templates/catalog.py`, and `examples/demo_shopping_guide_agent/output_sample/manifest.json`.
+- When the probe succeeds, `provider_adapter_readiness_report.json` marks `ai_marketing_skills` as `连接成功` and `ready_for_user_selection=true`.
+- The Provider remains a Skill Factory/template capability enhancement. It does not create a new page and does not replace the existing Skill Factory chain.
+- `runtime_loaded` remains `false`; no ai-marketing-skills repository code, prompts, scripts, crawler, paid-media operation, account operation, network call, or external runtime is bundled or executed.
 - The probe records `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, `vendor_runtime_loaded=false`, and `normal_ui_project_name_visible=false`.
 
 Adapter readiness:

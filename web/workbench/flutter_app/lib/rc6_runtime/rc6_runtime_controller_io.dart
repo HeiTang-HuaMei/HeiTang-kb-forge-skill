@@ -11614,6 +11614,34 @@ class Rc6RuntimeController extends ChangeNotifier {
         'runtime_loaded': false,
       };
     }
+    if (_stringValue(contract['provider_ref'], '') == 'ai_marketing_skills') {
+      final probe = _probeAiMarketingSkillPatternLibrary(workspace);
+      if (_boolValue(probe['passed'])) {
+        return {
+          'status': '连接成功',
+          'error_code': '',
+          'error_message_zh': '',
+          'missing_config_refs': <String>[],
+          'blocked_reasons': <String>[],
+          'test_artifacts': [probe['probe_path']],
+          'ready_for_user_selection': true,
+          'runtime_loaded': false,
+        };
+      }
+      return {
+        'status': '已配置未测试',
+        'error_code': 'ai_marketing_probe_requires_local_patterns',
+        'error_message_zh': _stringValue(
+          probe['error_message_zh'],
+          '需要本地导购/运营模板和样例证据完整后才能启用营销 Skill 模式增强。',
+        ),
+        'missing_config_refs': <String>[],
+        'blocked_reasons': ['需要本地导购/运营模板、Agent 模板和样例证据'],
+        'test_artifacts': [probe['probe_path']],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
+      };
+    }
     final missingRefs = <String>[];
     final blockedReasons = <String>[];
     final requiredRefs = _listOfStrings(contract['required_config_refs']);
@@ -11924,6 +11952,86 @@ class Rc6RuntimeController extends ChangeNotifier {
       'passed': passed,
       'status': passed ? '连接成功' : '已配置未测试',
       'error_message_zh': passed ? '' : 'Agent 记忆生命周期证据不完整，暂不能启用 Agent 记忆能力增强。',
+      'network_used': false,
+      'secret_plaintext_written': false,
+      'normal_ui_project_name_visible': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return {
+      ...payload,
+      'probe_path': probePath,
+    };
+  }
+
+  static Map<String, dynamic> _probeAiMarketingSkillPatternLibrary(
+    Directory workspace,
+  ) {
+    final probePath =
+        _providerAdapterProbePath(workspace, 'ai_marketing_skills');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final repoRoot = _resolveRepoRootForProviderProbe();
+    final requiredAssets = <String>[
+      _joinNested(repoRoot.path,
+          'web/workbench/flutter_app/assets/contracts/p1_core_contract_fixture.json'),
+      _joinNested(repoRoot.path, 'heitang_kb_forge/agent/templates.py'),
+      _joinNested(repoRoot.path, 'heitang_kb_forge/skill_templates/catalog.py'),
+      _joinNested(repoRoot.path,
+          'examples/demo_shopping_guide_agent/output_sample/manifest.json'),
+    ];
+    final checkedAssets = requiredAssets.map((path) {
+      final exists = File(path).existsSync();
+      var bytes = 0;
+      var hasMarketingEvidence = false;
+      if (exists) {
+        final content = File(path).readAsStringSync(encoding: utf8);
+        bytes = utf8.encode(content).length;
+        final lower = content.toLowerCase();
+        hasMarketingEvidence = lower.contains('shopping') ||
+            lower.contains('marketing') ||
+            lower.contains('operations') ||
+            lower.contains('template_shopping_ops_agent') ||
+            lower.contains('运营') ||
+            lower.contains('导购');
+      }
+      return {
+        'path': path,
+        'exists': exists,
+        'bytes': bytes,
+        'has_marketing_pattern_evidence': hasMarketingEvidence,
+      };
+    }).toList(growable: false);
+    final missingAssets = checkedAssets
+        .where((asset) => asset['exists'] != true)
+        .map((asset) => asset['path'].toString())
+        .toList(growable: false);
+    final invalidAssets = checkedAssets
+        .where((asset) =>
+            asset['exists'] == true &&
+            asset['has_marketing_pattern_evidence'] != true)
+        .map((asset) => asset['path'].toString())
+        .toList(growable: false);
+    final passed = missingAssets.isEmpty && invalidAssets.isEmpty;
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_probe_ai_marketing_skills.v1',
+      'provider_ref': 'ai_marketing_skills',
+      'adapter_type': 'skill_template_adapter',
+      'executed_at': now,
+      'probe_kind': 'local_marketing_skill_pattern_library',
+      'workspace_boundary': workspace.path,
+      'repo_boundary': repoRoot.path,
+      'checked_assets': checkedAssets,
+      'missing_assets': missingAssets,
+      'invalid_assets': invalidAssets,
+      'passed': passed,
+      'status': passed ? '连接成功' : '已配置未测试',
+      'error_message_zh': passed ? '' : '本地营销 Skill 模式库证据不完整，暂不能启用模板能力增强。',
       'network_used': false,
       'secret_plaintext_written': false,
       'normal_ui_project_name_visible': false,
