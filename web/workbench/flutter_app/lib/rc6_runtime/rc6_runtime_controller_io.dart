@@ -2035,6 +2035,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       testArtifacts: [
         _projectConfigProfilesPath(workspace),
         _projectConfigRuntimeStatusPath(workspace),
+        _registeredProviderIntegrationMatrixPath(workspace),
       ],
       affectedModules: _affectedProfileModules(profile),
     );
@@ -2053,6 +2054,26 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _loadExistingArtifacts();
     notifyListeners();
     return testId;
+  }
+
+  Future<String> syncRegisteredProviderCapabilities() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final artifacts =
+        await _writeRegisteredProviderIntegrationArtifacts(workspace);
+    await _writeProjectConfigRuntimeStatus(
+      workspace,
+      await _readProjectConfigProfiles(workspace),
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: 'Provider 能力增强状态已同步到配置审计资产。',
+      lastError: '',
+    );
+    notifyListeners();
+    return artifacts['matrix_path']?.toString() ?? '';
   }
 
   Future<String> saveStorageProviderSettings({
@@ -5284,6 +5305,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       _joinNested(workspace.path, 'config/project_config_profiles.json'),
       _joinNested(workspace.path, 'config/project_config_runtime_status.json'),
       _joinNested(workspace.path, 'config/project_config_assets.json'),
+      _joinNested(
+          workspace.path, 'config/registered_provider_integration_matrix.json'),
+      _joinNested(
+          workspace.path, 'config/registered_provider_activation_log.jsonl'),
+      _joinNested(
+          workspace.path, 'config/registered_provider_rollback_manifest.json'),
       _joinNested(workspace.path, 'config/config_test_log.jsonl'),
       _joinNested(workspace.path, 'config/profile_change_log.jsonl'),
       _joinNested(workspace.path, 'config/profile_activation_log.jsonl'),
@@ -9254,6 +9281,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(configDir.path, 'provider_lifecycle_history.jsonl');
     final rollbackManifestPath =
         _join(configDir.path, 'provider_rollback_manifest.json');
+    final registeredProviderArtifacts =
+        await _writeRegisteredProviderIntegrationArtifacts(workspace);
     final llm = _mapValue(settings['llm']);
     final embedding = _mapValue(settings['embedding']);
     final search = _mapValue(settings['search']);
@@ -9398,11 +9427,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           'rollback_supported': true,
         },
       ],
-      'registered_project_boundary': {
-        'loaded_project_count': 0,
-        'registered_project_names_visible_to_user': false,
-        'capability_enhancement_only': true,
-      },
+      'registered_project_boundary':
+          registeredProviderArtifacts['registered_project_boundary'],
     };
     final lifecycleEvents = [
       {
@@ -9495,6 +9521,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       'provider_activation_matrix_path': activationMatrixPath,
       'provider_lifecycle_history_path': lifecycleHistoryPath,
       'provider_rollback_manifest_path': rollbackManifestPath,
+      'registered_provider_integration_matrix_path':
+          registeredProviderArtifacts['matrix_path'],
+      'registered_provider_activation_log_path':
+          registeredProviderArtifacts['activation_log_path'],
+      'registered_provider_rollback_manifest_path':
+          registeredProviderArtifacts['rollback_manifest_path'],
       'registered_project_loading_visible_to_user': false,
     };
     await File(activationMatrixPath).writeAsString(
@@ -9514,6 +9546,108 @@ class Rc6RuntimeController extends ChangeNotifier {
       encoding: utf8,
     );
     return path;
+  }
+
+  Future<Map<String, dynamic>> _writeRegisteredProviderIntegrationArtifacts(
+      Directory workspace) async {
+    final configDir = Directory(_join(workspace.path, 'config'));
+    await configDir.create(recursive: true);
+    final matrixPath = _registeredProviderIntegrationMatrixPath(workspace);
+    final activationLogPath = _registeredProviderActivationLogPath(workspace);
+    final rollbackManifestPath =
+        _registeredProviderRollbackManifestPath(workspace);
+    final now = DateTime.now().toUtc().toIso8601String();
+    Map<String, dynamic> status;
+    try {
+      status = await _readProviderCapabilityStatusAsset(workspace);
+    } on Object catch (error) {
+      status = {
+        'schema_version': 'prd_v3_provider_capability_status.unavailable',
+        'capabilities': <Object>[],
+        'asset_load_error': error.toString(),
+      };
+    }
+    final entries = _registeredProviderEntries(status);
+    final capabilitySummaries = _registeredCapabilitySummaries(status);
+    final loadedProjectCount =
+        entries.where((entry) => entry['runtime_loaded'] == true).length;
+    final selectableCount = entries
+        .where((entry) => entry['ready_for_user_selection'] == true)
+        .length;
+    final matrix = {
+      'schema_version': 'prd_v3_registered_provider_integration_matrix.v1',
+      'generated_at': now,
+      'workspace_boundary': workspace.path,
+      'source_asset': 'assets/external/provider_capability_status.json',
+      'product_baseline_chain':
+          '文档库 -> 知识库 -> 索引层 -> RAG -> 编排层 -> 文档/Skill/Agent/A2A',
+      'user_concept_boundary': {
+        'external_project_names_visible_in_normal_ui': false,
+        'hot_swap_project_concept_visible': false,
+        'registered_project_loading_visible_to_user': false,
+        'capability_enhancement_only': true,
+      },
+      'registered_project_boundary': {
+        'registered_provider_count': entries.length,
+        'loaded_project_count': loadedProjectCount,
+        'ready_for_user_selection_count': selectableCount,
+        'registered_project_names_visible_to_user': false,
+        'capability_enhancement_only': true,
+      },
+      'capability_summaries': capabilitySummaries,
+      'provider_entries': entries,
+      'secret_plaintext_written': false,
+    };
+    final activationEvents = entries.map((entry) {
+      return jsonEncode({
+        'schema_version': 'prd_v3_registered_provider_activation_event.v1',
+        'event_id': 'registered_provider_${entry['provider_ref']}',
+        'changed_at': now,
+        'capability_id': entry['capability_id'],
+        'provider_ref': entry['provider_ref'],
+        'status': entry['status'],
+        'runtime_loaded': entry['runtime_loaded'],
+        'ready_for_user_selection': entry['ready_for_user_selection'],
+        'user_visible_entry': entry['user_visible_entry'],
+        'rollback_target': entry['fallback_provider'],
+        'secret_masked': true,
+      });
+    }).join('\n');
+    final rollbackManifest = {
+      'schema_version': 'prd_v3_registered_provider_rollback_manifest.v1',
+      'generated_at': now,
+      'workspace_boundary': workspace.path,
+      'rollback_supported': true,
+      'rollback_targets': entries
+          .map((entry) => {
+                'capability_id': entry['capability_id'],
+                'provider_ref': entry['provider_ref'],
+                'fallback_provider': entry['fallback_provider'],
+                'rollback_requires_restart': false,
+              })
+          .toList(growable: false),
+      'secret_plaintext_written': false,
+    };
+    await File(matrixPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(matrix),
+      encoding: utf8,
+    );
+    await File(activationLogPath).writeAsString(
+      activationEvents.isEmpty ? '' : '$activationEvents\n',
+      encoding: utf8,
+    );
+    await File(rollbackManifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(rollbackManifest),
+      encoding: utf8,
+    );
+    return {
+      'matrix_path': matrixPath,
+      'activation_log_path': activationLogPath,
+      'rollback_manifest_path': rollbackManifestPath,
+      'registered_project_boundary': matrix['registered_project_boundary'],
+      'registered_provider_count': entries.length,
+      'ready_for_user_selection_count': selectableCount,
+    };
   }
 
   Future<String> _writeExporterValidationReport(
@@ -9650,6 +9784,21 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   static String _profileActivationLogPath(Directory workspace) {
     return _join(workspace.path, 'config', 'profile_activation_log.jsonl');
+  }
+
+  static String _registeredProviderIntegrationMatrixPath(Directory workspace) {
+    return _join(workspace.path, 'config',
+        'registered_provider_integration_matrix.json');
+  }
+
+  static String _registeredProviderActivationLogPath(Directory workspace) {
+    return _join(
+        workspace.path, 'config', 'registered_provider_activation_log.jsonl');
+  }
+
+  static String _registeredProviderRollbackManifestPath(Directory workspace) {
+    return _join(
+        workspace.path, 'config', 'registered_provider_rollback_manifest.json');
   }
 
   Future<List<ProjectConfigProfile>> _ensureProjectConfigProfiles(
@@ -9937,6 +10086,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final qdrantStatus = _userStatus(qdrant['status']);
     final llmStatus = _userStatus(llm['status']);
     final networkAllowed = active.networkPolicyId != 'network_local_only';
+    final registeredProviderArtifacts =
+        await _writeRegisteredProviderIntegrationArtifacts(workspace);
     final configAssetsPath = await _writeProjectConfigAssets(
       workspace,
       active,
@@ -9950,6 +10101,20 @@ class Rc6RuntimeController extends ChangeNotifier {
       'generated_at': DateTime.now().toUtc().toIso8601String(),
       'active_profile': active.toJson(),
       'config_assets_path': configAssetsPath,
+      'registered_provider_integration_matrix_path':
+          registeredProviderArtifacts['matrix_path'],
+      'registered_provider_activation_log_path':
+          registeredProviderArtifacts['activation_log_path'],
+      'registered_provider_rollback_manifest_path':
+          registeredProviderArtifacts['rollback_manifest_path'],
+      'registered_provider_summary': {
+        'registered_provider_count':
+            registeredProviderArtifacts['registered_provider_count'],
+        'ready_for_user_selection_count':
+            registeredProviderArtifacts['ready_for_user_selection_count'],
+        'visible_to_user_as_capability_enhancement': true,
+        'external_project_names_visible_in_normal_ui': false,
+      },
       'health': {
         'status':
             _profileHealthStatus(active, redisStatus, qdrantStatus, llmStatus),
@@ -10300,6 +10465,150 @@ class Rc6RuntimeController extends ChangeNotifier {
       'status': status,
       'button_enabled': status == '连接成功',
     };
+  }
+
+  static List<Map<String, dynamic>> _registeredProviderEntries(
+      Map<String, dynamic> status) {
+    final entries = <Map<String, dynamic>>[];
+    for (final capability in _listOfMaps(status['capabilities'])) {
+      final capabilityId = _stringValue(capability['capability_id'], '');
+      final capabilityArea = _stringValue(capability['capability_area'], '');
+      final userVisibleName = _stringValue(capability['user_visible_name'], '');
+      final defaultFallback =
+          _stringValue(capability['default_fallback'], 'local_provider');
+      final providerStates = _listOfMaps(capability['related_provider_states']);
+      for (final provider in providerStates) {
+        final providerRef = _stringValue(provider['provider_ref'], '');
+        if (providerRef.isEmpty) continue;
+        final ready = _boolValue(provider['ready_for_user_selection']);
+        final status = _stringValue(provider['status'], 'needs_verification');
+        entries.add({
+          'capability_id': capabilityId,
+          'capability_area': capabilityArea,
+          'provider_ref': providerRef,
+          'user_visible_entry':
+              _providerUserEntry(capabilityId, userVisibleName),
+          'status': _providerStatusLabel(status),
+          'raw_status': status,
+          'ready_for_user_selection': ready,
+          'runtime_loaded': ready,
+          'requires_network': _boolValue(provider['requires_network']),
+          'requires_secret': _boolValue(provider['requires_secret']),
+          'requires_external_runtime':
+              _boolValue(provider['requires_external_runtime']),
+          'contract_status': _listOfStrings(provider['contract_status']),
+          'test_status': ready ? '连接成功' : _providerStatusLabel(status),
+          'activation_condition': _providerActivationCondition(provider),
+          'fallback_provider': defaultFallback,
+          'audit_event_required': _boolValue(provider['audit_event_required']),
+          'rollback_supported': _boolValue(provider['rollback_supported']),
+          'visible_in_normal_ui': false,
+          'secret_masked': true,
+        });
+      }
+    }
+    return entries;
+  }
+
+  static List<Map<String, dynamic>> _registeredCapabilitySummaries(
+      Map<String, dynamic> status) {
+    return _listOfMaps(status['capabilities']).map((capability) {
+      final providers = _listOfMaps(capability['related_provider_states']);
+      final readyCount = providers
+          .where((provider) => _boolValue(provider['ready_for_user_selection']))
+          .length;
+      return {
+        'capability_id': _stringValue(capability['capability_id'], ''),
+        'capability_area': _stringValue(capability['capability_area'], ''),
+        'user_visible_name': _stringValue(capability['user_visible_name'], ''),
+        'provider_count': providers.length,
+        'ready_for_user_selection_count': readyCount,
+        'status': _providerStatusLabel(capability['status']),
+        'fallback_provider':
+            _stringValue(capability['default_fallback'], 'local_provider'),
+      };
+    }).toList(growable: false);
+  }
+
+  static String _providerUserEntry(
+    String capabilityId,
+    String fallbackName,
+  ) {
+    return switch (capabilityId) {
+      'document_parser_ocr' => '文档库：解析 / OCR',
+      'knowledge_embedding_vector' => '知识库：Embedding / 向量库',
+      'retrieval_provider' => '检索验证：检索 / 召回',
+      'document_exporter' => '文档生成：导出器',
+      'skill_template_provider' => 'Skill 工厂：模板 / 本地化',
+      'agent_model_tools_memory' => 'Agent 工作台：模型 / 工具 / 记忆',
+      'workflow_collaboration_export' => 'Agent 工作台：A2A / 工作流导出',
+      'governance_audit_provider' => '审计中心：评测 / 治理',
+      _ => fallbackName,
+    };
+  }
+
+  static String _providerActivationCondition(Map<String, dynamic> provider) {
+    final conditions = <String>[];
+    if (_boolValue(provider['requires_network'])) {
+      conditions.add('需要网络授权');
+    }
+    if (_boolValue(provider['requires_secret'])) {
+      conditions.add('需要 secret 引用');
+    }
+    if (_boolValue(provider['requires_external_runtime'])) {
+      conditions.add('需要启动外部服务');
+    }
+    final status = _stringValue(provider['status'], '');
+    if (status.contains('dependency')) {
+      conditions.add('需要安装依赖');
+    }
+    if (status.contains('test') || status.contains('configured')) {
+      conditions.add('需要连接测试');
+    }
+    if (status.contains('verification')) {
+      conditions.add('需要验证');
+    }
+    return conditions.isEmpty ? '已配置未测试' : conditions.join('；');
+  }
+
+  static String _providerStatusLabel(Object? rawStatus) {
+    final status = rawStatus?.toString() ?? '';
+    return switch (status) {
+      'available' => '连接成功',
+      'available_with_gated_options' => '已配置未测试',
+      'configured_not_tested' => '已配置未测试',
+      'dependency_gated' => '需安装外部服务',
+      'external_runtime_required' => '需启动外部服务',
+      'needs_secret_config' => '配置缺失',
+      'needs_network_authorization' => '已禁用',
+      'needs_verification' => '已配置未测试',
+      'needs_provider_config' => '配置缺失',
+      '' => '未配置',
+      _ => status,
+    };
+  }
+
+  Future<Map<String, dynamic>> _readProviderCapabilityStatusAsset(
+      Directory workspace) async {
+    final candidates = <String>[
+      _joinNested(Directory.current.path,
+          'assets/external/provider_capability_status.json'),
+      _joinNested(coreWorkingDirectory,
+          'web/workbench/flutter_app/assets/external/provider_capability_status.json'),
+      _joinNested(_resolvedCoreWorkingDirectory ?? coreWorkingDirectory,
+          'web/workbench/flutter_app/assets/external/provider_capability_status.json'),
+      _joinNested(workspace.parent.path,
+          'assets/external/provider_capability_status.json'),
+    ];
+    for (final candidate in candidates) {
+      final file = File(candidate);
+      if (!await file.exists()) continue;
+      final decoded = jsonDecode(await file.readAsString(encoding: utf8));
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+    }
+    throw StateError('provider_capability_status_asset_not_found');
   }
 
   static bool _officeExporterAvailable(Map<String, dynamic> exporters) {

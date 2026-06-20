@@ -274,12 +274,21 @@ void main() {
     expect(status.providerNetworkApiReady, isFalse);
     expect(status.readyForUserSelectionCount, 0);
     expect(
+        status.capabilities
+            .fold<int>(0, (sum, entry) => sum + entry.providerStateCount),
+        30);
+    expect(
+        status.capabilities
+            .fold<int>(0, (sum, entry) => sum + entry.readyProviderStateCount),
+        0);
+    expect(
         status
             .userConceptBoundary['external_project_names_visible_in_normal_ui'],
         isFalse);
     expect(status.userConceptBoundary['hot_swap_project_concept_visible'],
         isFalse);
     expect(entries['document_parser_ocr']!.status, 'dependency_gated');
+    expect(entries['document_parser_ocr']!.providerStateCount, 7);
     expect(entries['document_parser_ocr']!.requiresDependencyInstall, isTrue);
     expect(entries['retrieval_provider']!.requiresNetwork, isTrue);
     expect(
@@ -656,6 +665,8 @@ void main() {
     expect(find.byKey(const Key('settings-provider-capability-status')),
         findsOneWidget);
     expect(find.text('能力状态'), findsOneWidget);
+    expect(find.text('能力增强项'), findsOneWidget);
+    expect(find.textContaining('2 项已登记，0 项可选'), findsOneWidget);
     expect(find.text('解析 / OCR'), findsOneWidget);
     expect(find.text('检索 / 召回'), findsOneWidget);
     expect(find.text('依赖待满足'), findsOneWidget);

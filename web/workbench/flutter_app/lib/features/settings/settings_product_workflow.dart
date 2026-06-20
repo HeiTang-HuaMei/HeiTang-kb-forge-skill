@@ -309,6 +309,7 @@ class _SettingsProviderModelEditorState
     final rc6 = widget.runtimeController;
     if (rc6 == null) return;
     final path = await rc6.validateProviderRuntimeSettings();
+    await rc6.syncRegisteredProviderCapabilities();
     if (!mounted) return;
     setState(() {
       validated = path.isNotEmpty;
@@ -499,20 +500,32 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
     final rows = status.capabilities.map((entry) {
       return [
         zh ? entry.zhUserVisibleName : entry.userVisibleName,
+        '${entry.readyProviderStateCount}/${entry.providerStateCount}',
         _providerCapabilityStatusLabel(entry.status, zh),
         zh ? entry.zhUserVisibleBehavior : entry.userVisibleBehavior,
       ];
     }).toList(growable: false);
+    final providerStateCount = status.capabilities
+        .fold<int>(0, (total, entry) => total + entry.providerStateCount);
+    final readyProviderStateCount = status.capabilities
+        .fold<int>(0, (total, entry) => total + entry.readyProviderStateCount);
     return _ProductPanel(
       keyName: 'settings-provider-capability-status',
       icon: Icons.extension_outlined,
       title: zh ? '能力状态' : 'Capability Status',
       gap: true,
       children: [
+        _FieldRow(
+          label: zh ? '能力增强项' : 'Capability enhancements',
+          value: zh
+              ? '$providerStateCount 项已登记，$readyProviderStateCount 项可选'
+              : '$providerStateCount registered, $readyProviderStateCount selectable',
+        ),
+        const SizedBox(height: 8),
         _ProductTable(
           columns: zh
-              ? ['能力', '状态', '当前表现']
-              : ['Capability', 'Status', 'Current behavior'],
+              ? ['能力', '增强项', '状态', '当前表现']
+              : ['Capability', 'Options', 'Status', 'Current behavior'],
           rows: rows,
         ),
       ],

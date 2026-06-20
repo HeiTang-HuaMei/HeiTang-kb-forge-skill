@@ -931,6 +931,67 @@ void main() {
         isA<Map>());
     expect((runtimeStatus['degradation'] as Map)['redis_failure'],
         contains('Agent 短期记忆'));
+    expect(
+        (runtimeStatus['registered_provider_summary']
+            as Map)['registered_provider_count'],
+        30);
+    expect(
+        (runtimeStatus['registered_provider_summary']
+            as Map)['ready_for_user_selection_count'],
+        0);
+    final registeredMatrixPath =
+        runtimeStatus['registered_provider_integration_matrix_path'] as String;
+    final registeredMatrix =
+        jsonDecode(File(registeredMatrixPath).readAsStringSync()) as Map;
+    expect(registeredMatrix['schema_version'],
+        'prd_v3_registered_provider_integration_matrix.v1');
+    expect(
+        (registeredMatrix['registered_project_boundary']
+            as Map)['registered_provider_count'],
+        30);
+    expect(
+        (registeredMatrix['registered_project_boundary']
+            as Map)['loaded_project_count'],
+        0);
+    expect(
+        (registeredMatrix['registered_project_boundary']
+            as Map)['registered_project_names_visible_to_user'],
+        isFalse);
+    final providerEntries =
+        (registeredMatrix['provider_entries'] as List).cast<Map>();
+    expect(providerEntries, hasLength(30));
+    expect(providerEntries.map((entry) => entry['provider_ref']).toSet(),
+        hasLength(26));
+    expect(providerEntries.every((entry) => entry['runtime_loaded'] == false),
+        isTrue);
+    expect(
+        providerEntries
+            .every((entry) => entry['visible_in_normal_ui'] == false),
+        isTrue);
+    expect(
+        providerEntries.map((entry) => entry['capability_id']).toSet(),
+        containsAll([
+          'document_parser_ocr',
+          'knowledge_embedding_vector',
+          'retrieval_provider',
+          'document_exporter',
+          'skill_template_provider',
+          'agent_model_tools_memory',
+          'workflow_collaboration_export',
+          'governance_audit_provider',
+        ]));
+    final registeredActivationLogPath =
+        runtimeStatus['registered_provider_activation_log_path'] as String;
+    final registeredActivationLog =
+        File(registeredActivationLogPath).readAsLinesSync();
+    expect(registeredActivationLog, hasLength(30));
+    final registeredRollbackPath =
+        runtimeStatus['registered_provider_rollback_manifest_path'] as String;
+    final registeredRollback =
+        jsonDecode(File(registeredRollbackPath).readAsStringSync()) as Map;
+    expect(registeredRollback['schema_version'],
+        'prd_v3_registered_provider_rollback_manifest.v1');
+    expect((registeredRollback['rollback_targets'] as List), hasLength(30));
     final configTestLog =
         File('$configDir${Platform.pathSeparator}config_test_log.jsonl')
             .readAsStringSync();

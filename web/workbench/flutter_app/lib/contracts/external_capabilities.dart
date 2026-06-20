@@ -26,7 +26,8 @@ class ExternalCapabilityRegistry {
   factory ExternalCapabilityRegistry.fromJsonString(String source) {
     final decoded = jsonDecode(source);
     if (decoded is! Map<String, dynamic>) {
-      throw const FormatException('External capability registry must be a JSON object.');
+      throw const FormatException(
+          'External capability registry must be a JSON object.');
     }
     return ExternalCapabilityRegistry.fromJson(decoded);
   }
@@ -39,20 +40,32 @@ class ExternalCapabilityRegistry {
       sProjectCount: _int(counts['S']),
       aProjectCount: _int(counts['A']),
       externalProjectCount: _int(json['external_project_count']),
-      internalCapabilityAnchorCount: _int(json['internal_capability_anchor_count']),
-      projects: _list(json['projects']).map((item) => ExternalCapabilityProject.fromJson(_map(item))).toList(growable: false),
+      internalCapabilityAnchorCount:
+          _int(json['internal_capability_anchor_count']),
+      projects: _list(json['projects'])
+          .map((item) => ExternalCapabilityProject.fromJson(_map(item)))
+          .toList(growable: false),
       releaseBoundary: _map(json['release_boundary']),
     );
   }
 
-  int get plannedAdapterCount => projects.where((project) => project.contractStatus.contains('planned_adapter')).length;
+  int get plannedAdapterCount => projects
+      .where((project) => project.contractStatus.contains('planned_adapter'))
+      .length;
 
-  int get futureAdapterCount => projects.where((project) => project.contractStatus.contains('future_adapter')).length;
+  int get futureAdapterCount => projects
+      .where((project) => project.contractStatus.contains('future_adapter'))
+      .length;
 
-  int get providerRequiredCount => projects.where((project) => project.contractStatus.contains('provider_required')).length;
+  int get providerRequiredCount => projects
+      .where((project) => project.contractStatus.contains('provider_required'))
+      .length;
 
   List<ExternalCapabilityProject> projectsForCorePage(String corePageId) {
-    return projects.where((project) => project.relatedWorkbenchPageIds.contains(corePageId)).toList(growable: false);
+    return projects
+        .where(
+            (project) => project.relatedWorkbenchPageIds.contains(corePageId))
+        .toList(growable: false);
   }
 }
 
@@ -104,7 +117,10 @@ class ExternalCapabilityProject {
       canExecuteLocallyBeforeV4: _bool(json['can_execute_locally_before_v4']),
       postV4Target: _string(json['post_v4_target']),
       uiVisibility: _string(json['ui_visibility']),
-      relatedWorkbenchPageIds: _list(json['related_workbench_pages']).map((item) => _string(_map(item)['page_id'])).where((value) => value.isNotEmpty).toList(growable: false),
+      relatedWorkbenchPageIds: _list(json['related_workbench_pages'])
+          .map((item) => _string(_map(item)['page_id']))
+          .where((value) => value.isNotEmpty)
+          .toList(growable: false),
     );
   }
 }
@@ -171,6 +187,8 @@ class ProviderCapabilityEntry {
     required this.rollbackSupported,
     required this.userVisibleBehavior,
     required this.zhUserVisibleBehavior,
+    required this.providerStateCount,
+    required this.readyProviderStateCount,
   });
 
   final String capabilityId;
@@ -190,6 +208,8 @@ class ProviderCapabilityEntry {
   final bool rollbackSupported;
   final String userVisibleBehavior;
   final String zhUserVisibleBehavior;
+  final int providerStateCount;
+  final int readyProviderStateCount;
 
   factory ProviderCapabilityEntry.fromJson(Map<String, dynamic> json) {
     return ProviderCapabilityEntry(
@@ -210,6 +230,10 @@ class ProviderCapabilityEntry {
       rollbackSupported: _bool(json['rollback_supported']),
       userVisibleBehavior: _string(json['user_visible_behavior']),
       zhUserVisibleBehavior: _string(json['zh_user_visible_behavior']),
+      providerStateCount: _list(json['related_provider_states']).length,
+      readyProviderStateCount: _list(json['related_provider_states'])
+          .where((item) => _bool(_map(item)['ready_for_user_selection']))
+          .length,
     );
   }
 }
@@ -218,7 +242,8 @@ class ExternalCapabilityLoader {
   const ExternalCapabilityLoader();
 
   Future<ExternalCapabilityRegistry> loadFromAsset(String path) async {
-    return ExternalCapabilityRegistry.fromJsonString(await rootBundle.loadString(path));
+    return ExternalCapabilityRegistry.fromJsonString(
+        await rootBundle.loadString(path));
   }
 }
 
@@ -252,7 +277,11 @@ final sampleExternalCapabilityRegistry = ExternalCapabilityRegistry.fromJson({
       'github_url': 'https://github.com/karpathy/llm-wiki',
       'contract_status': ['future_adapter', 'capability_anchor'],
       'blocked_reason': 'external_project_registry_only',
-      'blocked_reasons': ['external_project_registry_only', 'future_adapter_after_v4', 'not_p1_blocker'],
+      'blocked_reasons': [
+        'external_project_registry_only',
+        'future_adapter_after_v4',
+        'not_p1_blocker'
+      ],
       'requires_api_key': false,
       'requires_network': false,
       'requires_external_runtime': false,
@@ -270,7 +299,12 @@ final sampleExternalCapabilityRegistry = ExternalCapabilityRegistry.fromJson({
       'github_url': 'https://github.com/anysearch-ai/anysearch-skill',
       'contract_status': ['provider_required', 'planned_adapter'],
       'blocked_reason': 'external_project_registry_only',
-      'blocked_reasons': ['external_project_registry_only', 'provider_required', 'network_required', 'secret_required'],
+      'blocked_reasons': [
+        'external_project_registry_only',
+        'provider_required',
+        'network_required',
+        'secret_required'
+      ],
       'requires_api_key': true,
       'requires_network': true,
       'requires_external_runtime': false,
@@ -287,7 +321,8 @@ final sampleExternalCapabilityRegistry = ExternalCapabilityRegistry.fromJson({
 
 final sampleProviderCapabilityStatus = ProviderCapabilityStatus.fromJson({
   'schema_version': 'prd_v3_provider_capability_status.v1',
-  'product_baseline_chain': '文档库 -> 知识库 -> 索引层 -> RAG -> 编排层 -> 文档/Skill/Agent/A2A',
+  'product_baseline_chain':
+      '文档库 -> 知识库 -> 索引层 -> RAG -> 编排层 -> 文档/Skill/Agent/A2A',
   'capability_count': 2,
   'ready_for_user_selection_count': 0,
   'provider_network_api_ready': false,
@@ -315,8 +350,12 @@ final sampleProviderCapabilityStatus = ProviderCapabilityStatus.fromJson({
       'needs_verification': false,
       'audit_event_required': true,
       'rollback_supported': true,
-      'user_visible_behavior': 'Requires dependency install or adapter completion',
+      'user_visible_behavior':
+          'Requires dependency install or adapter completion',
       'zh_user_visible_behavior': '需要安装或完成适配后启用',
+      'related_provider_states': [
+        {'provider_ref': 'docling', 'ready_for_user_selection': false},
+      ],
     },
     {
       'capability_id': 'retrieval_provider',
@@ -336,18 +375,25 @@ final sampleProviderCapabilityStatus = ProviderCapabilityStatus.fromJson({
       'rollback_supported': true,
       'user_visible_behavior': 'Requires network authorization and validation',
       'zh_user_visible_behavior': '需要网络授权与验证',
+      'related_provider_states': [
+        {'provider_ref': 'anysearchskill', 'ready_for_user_selection': false},
+      ],
     },
   ],
 });
 
-Map<String, dynamic> _map(Object? value) => value is Map<String, dynamic> ? value : <String, dynamic>{};
+Map<String, dynamic> _map(Object? value) =>
+    value is Map<String, dynamic> ? value : <String, dynamic>{};
 
 List<dynamic> _list(Object? value) => value is List ? value : <dynamic>[];
 
-List<String> _strings(Object? value) => _list(value).map((item) => item.toString()).toList(growable: false);
+List<String> _strings(Object? value) =>
+    _list(value).map((item) => item.toString()).toList(growable: false);
 
 String _string(Object? value) => value?.toString() ?? '';
 
-int _int(Object? value) => value is int ? value : int.tryParse(value?.toString() ?? '') ?? 0;
+int _int(Object? value) =>
+    value is int ? value : int.tryParse(value?.toString() ?? '') ?? 0;
 
-bool _bool(Object? value) => value is bool ? value : value?.toString().toLowerCase() == 'true';
+bool _bool(Object? value) =>
+    value is bool ? value : value?.toString().toLowerCase() == 'true';

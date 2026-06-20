@@ -235,6 +235,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> syncRegisteredProviderCapabilities() async {
+    await initialize();
+    return '';
+  }
+
   Future<String> saveStorageProviderSettings({
     required String redisHost,
     required int redisPort,

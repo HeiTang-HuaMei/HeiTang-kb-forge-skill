@@ -25,6 +25,9 @@ Runtime configuration assets are written to:
 - `config/project_config_profiles.json`
 - `config/project_config_assets.json`
 - `config/project_config_runtime_status.json`
+- `config/registered_provider_integration_matrix.json`
+- `config/registered_provider_activation_log.jsonl`
+- `config/registered_provider_rollback_manifest.json`
 - `config/config_test_log.jsonl`
 - `config/profile_change_log.jsonl`
 - `config/profile_activation_log.jsonl`
@@ -44,6 +47,39 @@ Runtime configuration assets are written to:
 | Vector DB | Provider type, endpoint, API key ref, collection, embedding config id, dimension, health, collection, vector test |
 | Network Authorization | Web import, external verification, allowlist, timeout, retry, disabled reason |
 | Agent Memory / Tool Policy | Simple/complex Agent memory and tool access policy, unauthorized resource guard |
+
+## Registered Provider Integration
+
+The registered but previously unloaded projects are now represented as Provider capability enhancement entries, not as standalone user-facing modules.
+
+Runtime evidence:
+
+- `registered_provider_integration_matrix.json`
+- `registered_provider_activation_log.jsonl`
+- `registered_provider_rollback_manifest.json`
+
+Coverage:
+
+- 26 unique registered provider references
+- 30 provider-to-capability mappings
+- 8 product capability areas
+- 0 entries marked runtime-loaded by default
+- 0 entries marked ready for user selection without config/test evidence
+
+Capability areas:
+
+| Product capability | User entry | Provider mappings |
+| --- | --- | --- |
+| Parser / OCR | 文档库：解析 / OCR | 7 |
+| Embedding / Vector DB | 知识库：Embedding / 向量库 | 3 |
+| Search / Retrieval | 检索验证：检索 / 召回 | 5 |
+| Exporter | 文档生成：导出器 | 3 |
+| Skill templates / localization | Skill 工厂：模板 / 本地化 | 6 |
+| Agent model / tools / memory | Agent 工作台：模型 / 工具 / 记忆 | 2 |
+| Workflow / A2A export | Agent 工作台：A2A / 工作流导出 | 1 |
+| Governance / audit | 审计中心：评测 / 治理 | 3 |
+
+The Settings UI shows aggregate enhancement counts and capability status. It does not expose registered project names in normal business pages.
 
 ## Profile Schema
 
@@ -104,6 +140,7 @@ Profile activation refreshes `project_config_runtime_status.json` for:
 - Document Generation: LLM status, exporter status, Office exporter availability
 - Skill Factory: LLM, KB, Search status
 - Agent Workbench: model, Redis memory, vector memory, tool policy, unauthorized resource guard
+- Registered Provider summary: provider count, selectable count, and capability-enhancement boundary
 
 Automated tests verify activation from local Profile to hybrid Profile synchronizes these module states.
 
