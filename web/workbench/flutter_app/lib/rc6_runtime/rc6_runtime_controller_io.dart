@@ -12282,6 +12282,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final activeProfile =
         _activeProfile(await _readProjectConfigProfiles(workspace));
     final stage2Preflight = _stage2IndustrialPreflight(workspace);
+    final stage2RuntimeLoadAllowed =
+        _boolValue(stage2Preflight['runtime_load_allowed']);
     final now = DateTime.now().toUtc().toIso8601String();
     final healthEntries = entries.map((entry) {
       final status = _registeredProviderHealthStatus(entry);
@@ -12309,7 +12311,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'runtime_loaded': false,
         'ready_for_user_selection': readyForSelection,
         'selection_allowed': readyForSelection,
-        'runtime_load_allowed': false,
+        'runtime_load_allowed': readyForSelection && stage2RuntimeLoadAllowed,
         'stage_2_preflight_status': stage2Preflight['status'],
         'secret_masked': true,
         'secret_plaintext_written': false,
@@ -12391,10 +12393,12 @@ class Rc6RuntimeController extends ChangeNotifier {
                 'provider_ref': entry['provider_ref'],
                 'health_status': entry['health_status'],
                 'selection_result': entry['health_status'] == '连接成功'
-                    ? 'candidate_ready_runtime_blocked_by_stage2_preflight'
+                    ? 'candidate_ready_external_runtime_not_loaded'
                     : 'blocked_before_runtime_load',
                 'runtime_loaded_after_check': false,
-                'runtime_load_allowed': false,
+                'runtime_load_allowed':
+                    entry['ready_for_user_selection'] == true &&
+                        stage2RuntimeLoadAllowed,
                 'fallback_provider': entry['fallback_provider'],
                 'rollback_supported': entry['rollback_supported'],
               })
@@ -12431,6 +12435,8 @@ class Rc6RuntimeController extends ChangeNotifier {
   }) async {
     final activeProfile = _activeProfile(profiles);
     final stage2Preflight = _stage2IndustrialPreflight(workspace);
+    final stage2RuntimeLoadAllowed =
+        _boolValue(stage2Preflight['runtime_load_allowed']);
     final selectionState =
         await _readProviderCapabilitySelectionState(workspace);
     final selectedProviders =
@@ -12497,7 +12503,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'rollback_suppressed': rollbackSuppressed,
         'selection_allowed': selectedReady,
         'runtime_loaded': false,
-        'runtime_load_allowed': false,
+        'runtime_load_allowed': selectedReady && stage2RuntimeLoadAllowed,
         'stage_2_preflight_status': stage2Preflight['status'],
         'blocked_reason_zh':
             selectedReady ? '' : _registeredProviderBlockedReason(selected),
@@ -12714,6 +12720,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'provider': provider,
       'exporter': exporter,
     };
+    final stage2RuntimeLoadAllowed =
+        _boolValue(stage2Preflight['runtime_load_allowed']);
     final now = DateTime.now().toUtc().toIso8601String();
     final readinessEntries = contracts.map((contract) {
       final result = _providerAdapterReadiness(
@@ -12739,7 +12747,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         'test_artifacts': result['test_artifacts'],
         'ready_for_user_selection': result['ready_for_user_selection'],
         'runtime_loaded': result['runtime_loaded'],
-        'runtime_load_allowed': false,
+        'runtime_load_allowed':
+            _boolValue(result['ready_for_user_selection']) &&
+                stage2RuntimeLoadAllowed,
         'stage_2_preflight_status': stage2Preflight['status'],
         'secret_masked': true,
         'evaluated_at': now,

@@ -234,6 +234,7 @@ void main() {
     final jellyfish = readinessEntry('jellyfish');
     expect(jellyfish['status'], '连接成功');
     expect(jellyfish['ready_for_user_selection'], isTrue);
+    expect(jellyfish['runtime_load_allowed'], isFalse);
     expect(jellyfish['runtime_loaded'], isFalse);
     final jellyfishProbe =
         _readJson((jellyfish['test_artifacts'] as List).single);
@@ -250,6 +251,7 @@ void main() {
     expect(exporterBinding['active_provider_ref'], 'jellyfish');
     expect(exporterBinding['active_provider_kind'], 'registered_provider');
     expect(exporterBinding['selection_allowed'], isTrue);
+    expect(exporterBinding['runtime_load_allowed'], isFalse);
     expect(exporterBinding['runtime_loaded'], isFalse);
     final workflowBinding = (binding['bindings'] as List)
         .cast<Map<String, dynamic>>()
@@ -258,6 +260,7 @@ void main() {
     expect(workflowBinding['active_provider_ref'], 'n8n');
     expect(workflowBinding['active_provider_kind'], 'registered_provider');
     expect(workflowBinding['selection_allowed'], isTrue);
+    expect(workflowBinding['runtime_load_allowed'], isFalse);
     expect(workflowBinding['runtime_loaded'], isFalse);
     for (final relative in [
       'config${Platform.pathSeparator}provider_runtime_settings.json',
@@ -319,6 +322,29 @@ void main() {
     for (final check in checks) {
       expect(check['status'], 'passed', reason: jsonEncode(check));
     }
+    final readiness = _readJson(
+        '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}provider_adapter_readiness_report.json');
+    final jellyfish = (readiness['readiness_entries'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) => entry['provider_ref'] == 'jellyfish');
+    expect(jellyfish['ready_for_user_selection'], isTrue);
+    expect(jellyfish['runtime_load_allowed'], isTrue);
+    expect(jellyfish['runtime_loaded'], isFalse);
+    final binding = _readJson(
+        '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}provider_capability_binding_manifest.json');
+    final exporterBinding = (binding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) => entry['capability_id'] == 'document_exporter');
+    expect(exporterBinding['active_provider_ref'], 'jellyfish');
+    expect(exporterBinding['runtime_load_allowed'], isTrue);
+    expect(exporterBinding['runtime_loaded'], isFalse);
+    final workflowBinding = (binding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) =>
+            entry['capability_id'] == 'workflow_collaboration_export');
+    expect(workflowBinding['active_provider_ref'], 'n8n');
+    expect(workflowBinding['runtime_load_allowed'], isTrue);
+    expect(workflowBinding['runtime_loaded'], isFalse);
   }, skip: Platform.environment['STAGE2_VERIFY_EXE_SMOKE'] != '1');
 
   test('proves live Redis and Qdrant provider runtime when configured',

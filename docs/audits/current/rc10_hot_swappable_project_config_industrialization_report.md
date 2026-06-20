@@ -144,7 +144,7 @@ Provider enhancement operations:
 - Test enhancement attempts activation for one registered Provider enhancement.
 - If dependency, network, secret, runtime, or verification conditions are missing, activation is denied and audited.
 - Rollback enhancement writes a rollback event to the local fallback Provider.
-- Selection logs keep `runtime_loaded_after_event=false` unless the Provider has already been proven ready.
+- Selection logs keep `runtime_loaded_after_event=false` until a future external-runtime loading gate proves real runtime execution.
 
 Health and stability validation:
 
@@ -289,7 +289,7 @@ Adapter readiness:
 - `provider_adapter_readiness_report.json` evaluates the 26 adapter contracts against the active Profile and current workspace configuration.
 - It records missing config refs, blocked reasons, Chinese error messages, degradation targets, affected modules, and masked status for each Provider.
 - The readiness report feeds audit/runtime status without exposing external project names in normal UI.
-- Current evidence keeps `runtime_loaded_count=0`. Adapters remain blocked, disabled, or test-required unless a local bounded probe has produced evidence.
+- Current evidence keeps `runtime_loaded_count=0`. After Stage 2 preflight passes, locally proven Provider enhancements may record `runtime_load_allowed=true`, but they still remain `runtime_loaded=false` until a later Stage 3 gate proves real external runtime execution.
 
 ## Profile Schema
 
