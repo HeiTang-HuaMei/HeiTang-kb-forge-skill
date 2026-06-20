@@ -14245,6 +14245,36 @@ class Rc6RuntimeController extends ChangeNotifier {
         'runtime_loaded': false,
       };
     }
+    if (_listOfStrings(contract['capability_ids'])
+        .contains('knowledge_embedding_vector')) {
+      final providerRef = _stringValue(contract['provider_ref'], '');
+      final probe = _probeEmbeddingVectorAdapter(workspace, providerRef);
+      if (_boolValue(probe['passed'])) {
+        return {
+          'status': '连接成功',
+          'error_code': '',
+          'error_message_zh': '',
+          'missing_config_refs': <String>[],
+          'blocked_reasons': <String>[],
+          'test_artifacts': [probe['probe_path']],
+          'ready_for_user_selection': true,
+          'runtime_loaded': false,
+        };
+      }
+      return {
+        'status': _stringValue(probe['status'], '已配置未测试'),
+        'error_code': 'embedding_vector_probe_requires_index_artifacts',
+        'error_message_zh': _stringValue(
+          probe['error_message_zh'],
+          '需要先生成真实知识库索引和向量引用产物后才能启用 Embedding / Vector 能力增强。',
+        ),
+        'missing_config_refs': <String>[],
+        'blocked_reasons': _listOfStrings(probe['blocked_reasons']),
+        'test_artifacts': [probe['probe_path']],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
+      };
+    }
     if (_stringValue(contract['provider_ref'], '') == 'sirchmunk') {
       final probe = _probeSirchmunkDirectFileSearch(workspace);
       if (_boolValue(probe['passed'])) {
@@ -15178,6 +15208,140 @@ class Rc6RuntimeController extends ChangeNotifier {
       'status': passed ? '连接成功' : '已配置未测试',
       'blocked_reasons': blockedReasons,
       'error_message_zh': passed ? '' : '解析/OCR 本地产物证据不完整，暂不能启用解析能力增强。',
+      'network_used': false,
+      'secret_plaintext_written': false,
+      'normal_ui_project_name_visible': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return {
+      ...payload,
+      'probe_path': probePath,
+    };
+  }
+
+  static Map<String, dynamic> _probeEmbeddingVectorAdapter(
+    Directory workspace,
+    String providerRef,
+  ) {
+    final normalizedProvider =
+        providerRef.trim().isEmpty ? 'embedding_vector' : providerRef.trim();
+    final probePath = _providerAdapterProbePath(workspace, normalizedProvider);
+    final now = DateTime.now().toUtc().toIso8601String();
+    final kbRoot = _join(workspace.path, 'kb');
+    final chunksPath = _join(kbRoot, 'chunks.jsonl');
+    final indexProfilePath = _join(kbRoot, 'index_profile.json');
+    final vectorReferencePath = _join(kbRoot, 'vector_index_reference.json');
+    final indexBuildReportPath = _join(kbRoot, 'index_build_report.json');
+    final indexMetadataPath = _join(kbRoot, 'index_metadata.json');
+    final chunks = _jsonlRecordCount(chunksPath);
+    final indexProfile = _readJsonObjectSync(indexProfilePath);
+    final vectorReference = _readJsonObjectSync(vectorReferencePath);
+    final indexBuildReport = _readJsonObjectSync(indexBuildReportPath);
+    final indexMetadata = _readJsonObjectSync(indexMetadataPath);
+    final vectorChunkCount = _asInt(vectorReference['chunk_count']) ?? 0;
+    final buildChunkCount = _asInt(indexBuildReport['chunk_count']) ?? 0;
+    final metadataChunkCount = _asInt(indexMetadata['chunk_count']) ?? 0;
+    final hasIndexArtifacts = File(indexProfilePath).existsSync() &&
+        File(vectorReferencePath).existsSync() &&
+        File(indexBuildReportPath).existsSync() &&
+        File(indexMetadataPath).existsSync() &&
+        _stringValue(indexProfile['schema_version'], '') ==
+            'prd_v3_index_profile.v1' &&
+        _stringValue(vectorReference['schema_version'], '') ==
+            'prd_v3_vector_index_reference.v1' &&
+        _stringValue(indexBuildReport['schema_version'], '') ==
+            'prd_v3_index_build_report.v1' &&
+        _stringValue(indexMetadata['schema_version'], '') ==
+            'prd_v3_index_metadata.v1';
+    final hasConsistentChunks = chunks > 0 &&
+        vectorChunkCount == chunks &&
+        buildChunkCount == chunks &&
+        metadataChunkCount == chunks;
+    final vectorEnabled = _boolValue(indexProfile['vector_index_enabled']) &&
+        _stringValue(vectorReference['vector_store'], '').isNotEmpty;
+    final isBenchmarkOnly = normalizedProvider.toLowerCase() == 'llamaindex';
+    final passed = !isBenchmarkOnly &&
+        hasIndexArtifacts &&
+        hasConsistentChunks &&
+        vectorEnabled;
+    final blockedReasons = <String>[
+      if (!hasIndexArtifacts) '需要完整 KB index metadata/profile/vector/build 产物',
+      if (!hasConsistentChunks) '需要 chunks 与 vector/index 计数一致',
+      if (!vectorEnabled) '需要 vector index reference 可用',
+      if (isBenchmarkOnly) 'benchmark-only Provider 需要外部配置或基准证据',
+    ];
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_probe_embedding_vector.v1',
+      'provider_ref': normalizedProvider,
+      'adapter_type': 'embedding_vector_adapter',
+      'executed_at': now,
+      'probe_kind': isBenchmarkOnly
+          ? 'benchmark_only_vector_boundary'
+          : 'local_kb_embedding_vector_reference',
+      'workspace_boundary': workspace.path,
+      'required_artifacts': [
+        {
+          'path': chunksPath,
+          'exists': File(chunksPath).existsSync(),
+          'record_count': chunks,
+        },
+        {
+          'path': indexProfilePath,
+          'exists': File(indexProfilePath).existsSync(),
+          'schema_version': _stringValue(indexProfile['schema_version'], ''),
+          'vector_index_enabled': _boolValue(
+            indexProfile['vector_index_enabled'],
+          ),
+        },
+        {
+          'path': vectorReferencePath,
+          'exists': File(vectorReferencePath).existsSync(),
+          'schema_version': _stringValue(vectorReference['schema_version'], ''),
+          'chunk_count': vectorChunkCount,
+          'vector_store': _stringValue(vectorReference['vector_store'], ''),
+          'external_vector_db_required':
+              _boolValue(vectorReference['external_vector_db_required']),
+        },
+        {
+          'path': indexBuildReportPath,
+          'exists': File(indexBuildReportPath).existsSync(),
+          'schema_version':
+              _stringValue(indexBuildReport['schema_version'], ''),
+          'chunk_count': buildChunkCount,
+          'status': _stringValue(indexBuildReport['status'], ''),
+        },
+        {
+          'path': indexMetadataPath,
+          'exists': File(indexMetadataPath).existsSync(),
+          'schema_version': _stringValue(indexMetadata['schema_version'], ''),
+          'chunk_count': metadataChunkCount,
+          'index_type': _stringValue(indexMetadata['index_type'], ''),
+        },
+      ],
+      'chunk_count': chunks,
+      'vector_chunk_count': vectorChunkCount,
+      'has_index_artifacts': hasIndexArtifacts,
+      'has_consistent_chunks': hasConsistentChunks,
+      'vector_enabled': vectorEnabled,
+      'passed': passed,
+      'status': passed
+          ? '连接成功'
+          : isBenchmarkOnly
+              ? '配置缺失'
+              : '已配置未测试',
+      'blocked_reasons': blockedReasons,
+      'error_message_zh': passed
+          ? ''
+          : isBenchmarkOnly
+              ? 'benchmark-only Provider 需要外部配置或基准证据后才能启用。'
+              : 'Embedding / Vector 本地索引引用证据不完整，暂不能启用能力增强。',
       'network_used': false,
       'secret_plaintext_written': false,
       'normal_ui_project_name_visible': false,

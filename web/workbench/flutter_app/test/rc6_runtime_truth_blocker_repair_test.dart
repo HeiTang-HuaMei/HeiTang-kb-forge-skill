@@ -2297,6 +2297,149 @@ void main() {
     expect(health['ready_for_user_selection_count'], greaterThanOrEqualTo(8));
   });
 
+  test('embedding vector adapters become selectable from real index artifacts',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.testAllRegisteredProviderCapabilities();
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    Map<String, dynamic> runtimeStatus() => jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    Map<String, dynamic> readinessReport(
+            Map<String, dynamic> status) =>
+        jsonDecode(
+            File(status['provider_adapter_readiness_report_path'] as String)
+                .readAsStringSync()) as Map<String, dynamic>;
+    Map<String, dynamic> readinessEntry(
+            Map<String, dynamic> readiness, String providerRef) =>
+        (readiness['readiness_entries'] as List)
+            .cast<Map<String, dynamic>>()
+            .firstWhere((entry) => entry['provider_ref'] == providerRef);
+
+    var readiness = readinessReport(runtimeStatus());
+    expect(
+        readinessEntry(readiness, 'rag_anything')['ready_for_user_selection'],
+        isFalse);
+    expect(readinessEntry(readiness, 'weknora')['ready_for_user_selection'],
+        isFalse);
+    expect(readinessEntry(readiness, 'llamaindex')['status'], '配置缺失');
+
+    final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    File('${kbDir.path}${Platform.pathSeparator}chunks.jsonl')
+        .writeAsStringSync(jsonl([
+      {
+        'chunk_id': 'c_embedding_vector_1',
+        'source_path': 'input/vector-source.md',
+        'text': 'real kb vector reference evidence',
+      },
+    ]));
+    File('${kbDir.path}${Platform.pathSeparator}index_profile.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_index_profile.v1',
+      'status': 'ready',
+      'vector_index_enabled': true,
+      'vector_store': 'local_vector_reference',
+    }));
+    File('${kbDir.path}${Platform.pathSeparator}vector_index_reference.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_vector_index_reference.v1',
+      'vector_store': 'local_vector_reference',
+      'chunk_count': 1,
+      'external_vector_db_required': false,
+      'secret_plaintext_written': false,
+    }));
+    File('${kbDir.path}${Platform.pathSeparator}index_build_report.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_index_build_report.v1',
+      'status': 'pass',
+      'chunk_count': 1,
+    }));
+    File('${kbDir.path}${Platform.pathSeparator}index_metadata.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_index_metadata.v1',
+      'index_type': 'hybrid_local',
+      'chunk_count': 1,
+    }));
+
+    final healthPath = await controller.testAllRegisteredProviderCapabilities();
+    final status = runtimeStatus();
+    readiness = readinessReport(status);
+    final ragAnything = readinessEntry(readiness, 'rag_anything');
+    final weknora = readinessEntry(readiness, 'weknora');
+    final llamaindex = readinessEntry(readiness, 'llamaindex');
+    expect(ragAnything['status'], '连接成功');
+    expect(ragAnything['ready_for_user_selection'], isTrue);
+    expect(ragAnything['runtime_loaded'], isFalse);
+    expect(weknora['status'], '连接成功');
+    expect(weknora['ready_for_user_selection'], isTrue);
+    expect(weknora['runtime_loaded'], isFalse);
+    expect(llamaindex['status'], '配置缺失');
+    expect(llamaindex['ready_for_user_selection'], isFalse);
+
+    final ragProbe = jsonDecode(
+        File((ragAnything['test_artifacts'] as List).cast<String>().single)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(ragProbe['schema_version'],
+        'prd_v3_provider_adapter_probe_embedding_vector.v1');
+    expect(ragProbe['passed'], isTrue);
+    expect(ragProbe['has_index_artifacts'], isTrue);
+    expect(ragProbe['has_consistent_chunks'], isTrue);
+    expect(ragProbe['vector_enabled'], isTrue);
+    expect(ragProbe['external_runtime_executed'], isFalse);
+    expect(ragProbe['vendor_runtime_loaded'], isFalse);
+    expect(ragProbe['secret_plaintext_written'], isFalse);
+
+    final llamaProbe = jsonDecode(
+        File((llamaindex['test_artifacts'] as List).cast<String>().single)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(llamaProbe['passed'], isFalse);
+    expect(llamaProbe['probe_kind'], 'benchmark_only_vector_boundary');
+    expect(llamaProbe['vendor_runtime_loaded'], isFalse);
+
+    final binding = jsonDecode(
+        File(status['provider_capability_binding_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    final vectorBinding = (binding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere(
+            (entry) => entry['capability_id'] == 'knowledge_embedding_vector');
+    expect(vectorBinding['active_provider_ref'], 'rag_anything');
+    expect(vectorBinding['active_provider_kind'], 'registered_provider');
+    expect(vectorBinding['selection_allowed'], isTrue);
+    expect(vectorBinding['ready_candidate_count'], greaterThanOrEqualTo(2));
+    expect(vectorBinding['runtime_loaded'], isFalse);
+
+    final activated =
+        await controller.activateRegisteredProviderCapability('weknora');
+    expect(activated, isTrue);
+    final activatedBinding = jsonDecode(
+        File(status['provider_capability_binding_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    final activatedVectorBinding = (activatedBinding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere(
+            (entry) => entry['capability_id'] == 'knowledge_embedding_vector');
+    expect(activatedVectorBinding['active_provider_ref'], 'weknora');
+    expect(activatedVectorBinding['explicit_selection_applied'], isTrue);
+    expect(activatedVectorBinding['runtime_loaded'], isFalse);
+
+    final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
+    expect(health['ready_for_user_selection_count'], greaterThanOrEqualTo(5));
+  });
+
   test('prd multi knowledge base catalog supports copy merge split delete',
       () async {
     final workspace = await createWorkspace();

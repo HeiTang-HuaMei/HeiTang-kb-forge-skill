@@ -183,6 +183,16 @@ Local Parser / OCR adapter proof:
 - Missing DU artifacts or missing OCR input evidence keep the Provider at `已配置未测试` with Chinese blocked reasons.
 - No external parser/OCR runtime is executed, no dependency is silently installed, and normal UI still exposes only the Parser/OCR capability status.
 
+Local Embedding / Vector adapter proof:
+
+- Embedding/Vector Provider refs now write bounded probes at `config/provider_adapter_probe_<provider_ref>.json`.
+- `rag_anything` and `weknora` require real local KB index evidence: `kb/chunks.jsonl`, `kb/index_profile.json`, `kb/vector_index_reference.json`, `kb/index_build_report.json`, and `kb/index_metadata.json`.
+- The probe requires PRD v3 schema versions, consistent chunk counts across chunks/vector/build/metadata, `vector_index_enabled=true`, and a nonempty vector-store reference.
+- When the probe succeeds, `provider_adapter_readiness_report.json` marks the Provider as `连接成功` and `ready_for_user_selection=true`, and `provider_capability_binding_manifest.json` can bind `knowledge_embedding_vector` to the selected Provider.
+- `llamaindex` remains benchmark/config gated and is not selectable from local KB artifacts alone.
+- `runtime_loaded` remains `false`; no external embedding/vector runtime, vendor code, network call, vector service mutation, or arbitrary execution is bundled or executed.
+- The probe records `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, `vendor_runtime_loaded=false`, and `normal_ui_project_name_visible=false`.
+
 Local Exporter adapter proof:
 
 - `jellyfish` has a workspace-owned content asset export probe at `config/provider_adapter_probe_jellyfish.json`.
@@ -232,6 +242,7 @@ Lifecycle behavior implemented:
 | Provider adapter contracts | `provider_adapter_contracts.json` | Defines 26 Provider adapter contracts with required config refs, health checks, fallback, and rollback |
 | Provider adapter readiness | `provider_adapter_readiness_report.json` | Evaluates 26 adapter contracts against active Profile/config and keeps unverified adapters blocked |
 | Parser/OCR adapter probes | `provider_adapter_probe_<provider_ref>.json` | Verifies real DU manifest, records, normalized markdown, and OCR input evidence before allowing Parser/OCR enhancements to be selected |
+| Embedding/Vector adapter probes | `provider_adapter_probe_<provider_ref>.json` | Verifies real KB chunks, index profile, vector reference, build report, metadata, and chunk-count consistency before allowing Embedding/Vector enhancements to be selected |
 | Exporter adapter probes | `provider_adapter_probe_jellyfish.json`, `provider_adapter_probe_story_flicks.json` | Verifies real structured export and video handoff boundary artifacts before allowing exporter enhancements to be selected |
 
 The CI-safe tests cover failure and config-state paths without requiring external services. Real Redis/Qdrant success checks remain part of EXE smoke when Docker services are available.
@@ -348,6 +359,10 @@ Latest Stage 3 Parser/OCR Provider slice:
 - `flutter analyze`
 - `flutter test test\rc6_runtime_truth_blocker_repair_test.dart --concurrency=1`
 - Targeted test: `parser ocr adapters become selectable from real parse artifacts`
+
+Latest Stage 3 Embedding/Vector Provider slice:
+
+- Targeted test: `embedding vector adapters become selectable from real index artifacts`
 
 Pending after push:
 
