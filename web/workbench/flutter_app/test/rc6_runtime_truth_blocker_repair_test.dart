@@ -1464,6 +1464,11 @@ void main() {
         providerAdapterContractsPath);
     expect(providerHealth['provider_adapter_readiness_report_path'],
         providerAdapterReadinessPath);
+    final runtimeLoadEligibilityPath =
+        runtimeStatus['provider_runtime_load_eligibility_manifest_path']
+            as String;
+    expect(providerHealth['provider_runtime_load_eligibility_manifest_path'],
+        runtimeLoadEligibilityPath);
     expect(providerHealth['provider_entry_count'], 29);
     expect(providerHealth['unique_provider_ref_count'], 26);
     expect(providerHealth['capability_area_count'], 8);
@@ -1543,6 +1548,31 @@ void main() {
     expect(stability['registered_project_names_visible_in_normal_ui'], isFalse);
     expect(stability['secret_plaintext_written'], isFalse);
     expect((stability['downstream_binding_checks'] as List), isNotEmpty);
+    final runtimeLoadEligibility =
+        jsonDecode(File(runtimeLoadEligibilityPath).readAsStringSync()) as Map;
+    expect(runtimeLoadEligibility['schema_version'],
+        'prd_v3_provider_runtime_load_eligibility_manifest.v1');
+    expect(runtimeLoadEligibility['stage_2_runtime_load_allowed'], isFalse);
+    expect(runtimeLoadEligibility['provider_entry_count'], 29);
+    expect(runtimeLoadEligibility['runtime_loaded_count'], 0);
+    expect(runtimeLoadEligibility['external_runtime_load_eligible_count'], 0);
+    expect(runtimeLoadEligibility['normal_ui_project_names_visible'], isFalse);
+    expect(runtimeLoadEligibility['secret_plaintext_written'], isFalse);
+    final eligibilityEntries =
+        (runtimeLoadEligibility['entries'] as List).cast<Map>();
+    expect(eligibilityEntries, hasLength(29));
+    expect(
+        eligibilityEntries
+            .where((entry) =>
+                entry['provider_ref'] == 'n8n' &&
+                entry['requires_external_runtime'] == true)
+            .length,
+        1);
+    expect(
+        eligibilityEntries.every((entry) =>
+            entry['runtime_loaded'] == false &&
+            entry['external_runtime_load_eligible'] == false),
+        isTrue);
 
     final activated =
         await controller.activateRegisteredProviderCapability('docling');

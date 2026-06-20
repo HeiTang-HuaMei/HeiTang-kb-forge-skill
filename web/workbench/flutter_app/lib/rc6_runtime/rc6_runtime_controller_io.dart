@@ -12308,6 +12308,10 @@ class Rc6RuntimeController extends ChangeNotifier {
             : _registeredProviderBlockedReason(entry),
         'fallback_provider': entry['fallback_provider'],
         'rollback_supported': _boolValue(entry['rollback_supported']),
+        'requires_network': _boolValue(entry['requires_network']),
+        'requires_secret': _boolValue(entry['requires_secret']),
+        'requires_external_runtime':
+            _boolValue(entry['requires_external_runtime']),
         'runtime_loaded': false,
         'ready_for_user_selection': readyForSelection,
         'selection_allowed': readyForSelection,
@@ -12345,6 +12349,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'provider_adapter_readiness_report_path': readinessPath,
       'provider_adapter_readiness_log_path':
           _providerAdapterReadinessLogPath(workspace),
+      'provider_runtime_load_eligibility_manifest_path':
+          _providerRuntimeLoadEligibilityManifestPath(workspace),
       'health_log_path': healthLogPath,
       'stability_report_path': stabilityReportPath,
       'provider_entry_count': healthEntries.length,
@@ -12416,13 +12422,93 @@ class Rc6RuntimeController extends ChangeNotifier {
       const JsonEncoder.withIndent('  ').convert(stabilityReport),
       encoding: utf8,
     );
+    await _writeProviderRuntimeLoadEligibilityManifest(
+      workspace,
+      stage2Preflight,
+      healthEntries,
+      readinessByProvider,
+    );
     return {
       'health_report_path': healthReportPath,
       'health_log_path': healthLogPath,
       'stability_report_path': stabilityReportPath,
+      'runtime_load_eligibility_manifest_path':
+          _providerRuntimeLoadEligibilityManifestPath(workspace),
       'provider_entry_count': healthEntries.length,
       'unique_provider_ref_count': providerRefs.length,
     };
+  }
+
+  Future<String> _writeProviderRuntimeLoadEligibilityManifest(
+    Directory workspace,
+    Map<String, dynamic> stage2Preflight,
+    List<Map<String, dynamic>> healthEntries,
+    Map<String, Map<String, dynamic>> readinessByProvider,
+  ) async {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final stage2Allowed = _boolValue(stage2Preflight['runtime_load_allowed']);
+    final entries = healthEntries.map((entry) {
+      final providerRef = _stringValue(entry['provider_ref'], '');
+      final readiness = readinessByProvider[providerRef] ?? const {};
+      final ready = _boolValue(entry['ready_for_user_selection']);
+      final requiresExternalRuntime =
+          _boolValue(entry['requires_external_runtime']);
+      final loadEligible = stage2Allowed && ready && requiresExternalRuntime;
+      final executionMode = requiresExternalRuntime
+          ? 'user_owned_external_runtime_required'
+          : 'local_capability_enhancement_only';
+      final blockedReasons = <String>[
+        if (!stage2Allowed) 'Stage2 工业级预检未通过。',
+        if (!ready) _stringValue(entry['blocked_reason_zh'], '能力增强尚未通过验证。'),
+        if (!requiresExternalRuntime) '该能力增强不需要外部 runtime 加载。',
+      ].where((value) => value.trim().isNotEmpty).toList(growable: false);
+      return {
+        'provider_ref': providerRef,
+        'capability_id': entry['capability_id'],
+        'affected_modules': entry['affected_modules'],
+        'ready_for_user_selection': ready,
+        'runtime_load_allowed': stage2Allowed && ready,
+        'external_runtime_load_eligible': loadEligible,
+        'runtime_loaded': false,
+        'requires_external_runtime': requiresExternalRuntime,
+        'execution_mode': executionMode,
+        'load_state':
+            loadEligible ? 'eligible_not_loaded' : 'not_runtime_load_target',
+        'blocked_reasons': blockedReasons,
+        'readiness_status':
+            _stringValue(readiness['status'], entry['health_status']),
+        'test_artifacts': _listOfStrings(readiness['test_artifacts']),
+        'normal_ui_project_name_visible': false,
+        'secret_masked': true,
+        'secret_plaintext_written': false,
+      };
+    }).toList(growable: false);
+    final eligibleEntries = entries
+        .where((entry) => entry['external_runtime_load_eligible'] == true)
+        .toList(growable: false);
+    final path = _providerRuntimeLoadEligibilityManifestPath(workspace);
+    final payload = {
+      'schema_version': 'prd_v3_provider_runtime_load_eligibility_manifest.v1',
+      'generated_at': now,
+      'workspace_boundary': workspace.path,
+      'stage_2_industrial_preflight': stage2Preflight,
+      'stage_2_runtime_load_allowed': stage2Allowed,
+      'provider_entry_count': entries.length,
+      'runtime_loaded_count': 0,
+      'external_runtime_load_eligible_count': eligibleEntries.length,
+      'local_capability_enhancement_only_count': entries
+          .where((entry) =>
+              entry['execution_mode'] == 'local_capability_enhancement_only')
+          .length,
+      'normal_ui_project_names_visible': false,
+      'secret_plaintext_written': false,
+      'entries': entries,
+    };
+    await File(path).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+    return path;
   }
 
   Future<String> _writeProviderCapabilityBindingManifest(
@@ -13034,6 +13120,12 @@ class Rc6RuntimeController extends ChangeNotifier {
         workspace.path, 'config', 'provider_adapter_readiness_log.jsonl');
   }
 
+  static String _providerRuntimeLoadEligibilityManifestPath(
+      Directory workspace) {
+    return _join(workspace.path, 'config',
+        'provider_runtime_load_eligibility_manifest.json');
+  }
+
   static String _providerAdapterProbePath(
     Directory workspace,
     String providerRef,
@@ -13416,6 +13508,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     final providerCapabilityBinding =
         await _readJsonObject(providerCapabilityBindingPath);
+    final registeredProviderHealthArtifacts =
+        await _writeRegisteredProviderHealthArtifacts(workspace);
     final configAssetsPath = await _writeProjectConfigAssets(
       workspace,
       active,
@@ -13436,11 +13530,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       'registered_provider_rollback_manifest_path':
           registeredProviderArtifacts['rollback_manifest_path'],
       'registered_provider_health_report_path':
-          _registeredProviderHealthReportPath(workspace),
+          registeredProviderHealthArtifacts['health_report_path'],
       'registered_provider_health_log_path':
-          _registeredProviderHealthLogPath(workspace),
+          registeredProviderHealthArtifacts['health_log_path'],
       'registered_provider_hot_swap_stability_report_path':
-          _registeredProviderHotSwapStabilityReportPath(workspace),
+          registeredProviderHealthArtifacts['stability_report_path'],
+      'provider_runtime_load_eligibility_manifest_path':
+          registeredProviderHealthArtifacts[
+              'runtime_load_eligibility_manifest_path'],
       'provider_adapter_contracts_path': providerAdapterContractsPath,
       'provider_adapter_readiness_report_path': providerAdapterReadinessPath,
       'provider_adapter_readiness_log_path':

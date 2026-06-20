@@ -345,6 +345,24 @@ void main() {
     expect(workflowBinding['active_provider_ref'], 'n8n');
     expect(workflowBinding['runtime_load_allowed'], isTrue);
     expect(workflowBinding['runtime_loaded'], isFalse);
+    final eligibility = _readJson(
+        '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}provider_runtime_load_eligibility_manifest.json');
+    expect(eligibility['schema_version'],
+        'prd_v3_provider_runtime_load_eligibility_manifest.v1');
+    expect(eligibility['stage_2_runtime_load_allowed'], isTrue);
+    expect(eligibility['runtime_loaded_count'], 0);
+    expect(eligibility['external_runtime_load_eligible_count'], 1);
+    final eligibilityEntries =
+        (eligibility['entries'] as List).cast<Map<String, dynamic>>();
+    final n8nEligibility = eligibilityEntries
+        .firstWhere((entry) => entry['provider_ref'] == 'n8n');
+    expect(n8nEligibility['external_runtime_load_eligible'], isTrue);
+    expect(n8nEligibility['runtime_loaded'], isFalse);
+    final jellyfishEligibility = eligibilityEntries
+        .firstWhere((entry) => entry['provider_ref'] == 'jellyfish');
+    expect(jellyfishEligibility['external_runtime_load_eligible'], isFalse);
+    expect(jellyfishEligibility['execution_mode'],
+        'local_capability_enhancement_only');
   }, skip: Platform.environment['STAGE2_VERIFY_EXE_SMOKE'] != '1');
 
   test('proves live Redis and Qdrant provider runtime when configured',

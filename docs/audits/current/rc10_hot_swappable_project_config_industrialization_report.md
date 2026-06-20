@@ -37,6 +37,7 @@ Runtime configuration assets are written to:
 - `config/provider_adapter_contracts.json`
 - `config/provider_adapter_readiness_report.json`
 - `config/provider_adapter_readiness_log.jsonl`
+- `config/provider_runtime_load_eligibility_manifest.json`
 - `config/config_test_log.jsonl`
 - `config/profile_change_log.jsonl`
 - `config/profile_activation_log.jsonl`
@@ -290,6 +291,7 @@ Adapter readiness:
 - It records missing config refs, blocked reasons, Chinese error messages, degradation targets, affected modules, and masked status for each Provider.
 - The readiness report feeds audit/runtime status without exposing external project names in normal UI.
 - Current evidence keeps `runtime_loaded_count=0`. After Stage 2 preflight passes, locally proven Provider enhancements may record `runtime_load_allowed=true`, but they still remain `runtime_loaded=false` until a later Stage 3 gate proves real external runtime execution.
+- `provider_runtime_load_eligibility_manifest.json` separates local capability enhancements from Provider refs that require user-owned external runtime loading. In the current evidence workspace, Stage 2 preflight allows runtime loading, `n8n` is the only external-runtime eligible Provider, and `runtime_loaded_count` remains `0`.
 
 ## Profile Schema
 
