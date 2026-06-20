@@ -10404,6 +10404,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await File(_join(agentA2aDir.path, 'a2a_collaboration_report.md'))
         .writeAsString(buffer.toString(), encoding: utf8);
     final a2aManifest = {
+      'schema_version': 'prd_v3_a2a_session_manifest.v1',
       'a2a_session_id': 'A2A_001',
       'parent_workspace_id': 'W_M',
       'participant_agent_ids': selectedParticipants,

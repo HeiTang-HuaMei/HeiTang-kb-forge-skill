@@ -222,6 +222,25 @@ void main() {
       expect(probe['external_runtime_executed'], isFalse);
       expect(probe['vendor_runtime_loaded'], isFalse);
     }
+    final n8n = readinessEntry('n8n');
+    expect(n8n['status'], '连接成功');
+    expect(n8n['ready_for_user_selection'], isTrue);
+    expect(n8n['runtime_loaded'], isFalse);
+    final n8nProbe = _readJson((n8n['test_artifacts'] as List).single);
+    expect(n8nProbe['schema_version'], 'prd_v3_provider_adapter_probe_n8n.v1');
+    expect(n8nProbe['passed'], isTrue);
+    expect(n8nProbe['external_runtime_executed'], isFalse);
+    expect(n8nProbe['vendor_runtime_loaded'], isFalse);
+    final binding = _readJson(
+        '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}provider_capability_binding_manifest.json');
+    final workflowBinding = (binding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) =>
+            entry['capability_id'] == 'workflow_collaboration_export');
+    expect(workflowBinding['active_provider_ref'], 'n8n');
+    expect(workflowBinding['active_provider_kind'], 'registered_provider');
+    expect(workflowBinding['selection_allowed'], isTrue);
+    expect(workflowBinding['runtime_loaded'], isFalse);
     for (final relative in [
       'config${Platform.pathSeparator}provider_runtime_settings.json',
       'config${Platform.pathSeparator}storage_provider_settings.json',

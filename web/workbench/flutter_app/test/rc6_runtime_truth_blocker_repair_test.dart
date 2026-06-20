@@ -4534,6 +4534,8 @@ void main() {
     final a2aSessionManifest = jsonDecode(File(
             '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001${Platform.pathSeparator}a2a_session_manifest.json')
         .readAsStringSync()) as Map<String, dynamic>;
+    expect(
+        a2aSessionManifest['schema_version'], 'prd_v3_a2a_session_manifest.v1');
     expect(a2aSessionManifest['rounds'], 3);
     expect(a2aSessionManifest['round_limit'], 3);
     final roundLog = File(a2aSessionManifest['round_log_path'] as String)
@@ -5753,6 +5755,7 @@ void main() {
           contains('"product_analysis_agent"'),
         ));
     final a2aManifestJson = jsonDecode(a2aManifest) as Map;
+    expect(a2aManifestJson['schema_version'], 'prd_v3_a2a_session_manifest.v1');
     expect((a2aManifestJson['model_route_binding'] as Map)['module'], 'a2a');
     expect((a2aManifestJson['model_route_evidence'] as Map)['route_scopes'],
         containsAll(['a2a_conflict_detection', 'a2a_consensus']));

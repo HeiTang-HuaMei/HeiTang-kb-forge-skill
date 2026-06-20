@@ -463,6 +463,13 @@ Latest Stage 3 Embedding/Vector Provider slice:
 Latest Stage 3 Workflow/A2A Export Provider slice:
 
 - Targeted test: `workflow collaboration adapter becomes selectable from real A2A exports`
+- Fixed industrial evidence refresh now requires the real Agent Workbench A2A
+  session manifest to carry `schema_version=prd_v3_a2a_session_manifest.v1`.
+- `provider_adapter_probe_n8n.json` must pass from the fixed Stage 2 evidence
+  workspace before `workflow_collaboration_export` can bind to `n8n`.
+- The binding remains a workflow export capability enhancement:
+  `runtime_loaded=false`, `external_runtime_executed=false`, and
+  `vendor_runtime_loaded=false`.
 
 Latest Stage 3 high-risk Provider gate slice:
 
