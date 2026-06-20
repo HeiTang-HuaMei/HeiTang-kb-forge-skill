@@ -11050,6 +11050,12 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(gatewayDir.path, 'model_gateway_fallback_report.json');
     final referenceRegistryPath =
         _join(gatewayDir.path, 'model_gateway_reference_registry.json');
+    final routePoolPath = _join(gatewayDir.path, 'model_route_pool.json');
+    final routeBindingMatrixPath =
+        _join(gatewayDir.path, 'model_route_binding_matrix.json');
+    final usageCostPolicyPath =
+        _join(gatewayDir.path, 'model_usage_cost_policy.json');
+    final routeAuditPath = _join(gatewayDir.path, 'model_route_audit.jsonl');
     final auditPath = _join(gatewayDir.path, 'model_gateway_audit.jsonl');
     final gatewayConfig = {
       'schema_version': 'prd_v3_model_gateway_config.v1',
@@ -11077,7 +11083,26 @@ class Rc6RuntimeController extends ChangeNotifier {
       'external_call_performed': false,
       'paid_api_called': false,
       'secret_plaintext_written': false,
+      'model_route_pool_path': routePoolPath,
+      'model_route_binding_matrix_path': routeBindingMatrixPath,
+      'model_usage_cost_policy_path': usageCostPolicyPath,
     };
+    final routeEntries = _modelRoutePoolEntries(
+      gatewayConfig,
+      status: status,
+      baseUrl: sanitizedBaseUrl,
+    );
+    final routeBindingMatrix = _modelRouteBindingMatrix(
+      workspace,
+      gatewayId: gatewayId,
+      routeEntries: routeEntries,
+      status: status,
+      generatedAt: now,
+    );
+    final usageCostPolicy = _modelUsageCostPolicy(
+      routeEntries,
+      generatedAt: now,
+    );
     final testReport = {
       'schema_version': 'prd_v3_model_gateway_test_report.v1',
       'test_id':
@@ -11119,6 +11144,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'external_call_performed': false,
       'paid_api_called': false,
       'secret_plaintext_written': false,
+      'model_route_pool_path': routePoolPath,
+      'model_route_binding_matrix_path': routeBindingMatrixPath,
+      'model_usage_cost_policy_path': usageCostPolicyPath,
       'generated_at': now,
     };
     final usageReport = {
@@ -11130,6 +11158,16 @@ class Rc6RuntimeController extends ChangeNotifier {
       'prompt_tokens': 0,
       'completion_tokens': 0,
       'total_tokens': 0,
+      'route_usage_summary': routeEntries
+          .map((route) => {
+                'model_route_id': route['model_route_id'],
+                'route_scope': route['route_scope'],
+                'requests': testMode == 'success' ? 1 : 0,
+                'prompt_tokens': 0,
+                'completion_tokens': 0,
+                'estimated_cost': 0,
+              })
+          .toList(growable: false),
       'cost_tracking_status':
           _boolValue(gateway['supports_usage_stats']) ? '已配置未测试' : '未配置',
       'key_rotation_observed': false,
@@ -11206,8 +11244,101 @@ class Rc6RuntimeController extends ChangeNotifier {
       const JsonEncoder.withIndent('  ').convert(fallbackReport),
       encoding: utf8,
     );
+    await File(routePoolPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_model_route_pool.v1',
+        'plan_name': '模型网关与大模型接入配置能力补全计划',
+        'gateway_pool': [
+          {
+            'gateway_id': gatewayId,
+            'display_name': gatewayConfig['display_name'],
+            'gateway_type': gatewayConfig['gateway_type'],
+            'status': status,
+            'runtime_loaded': false,
+            'secret_masked': true,
+          },
+          {
+            'gateway_id': 'gateway_vercel_reference',
+            'display_name': 'Vercel Relay',
+            'gateway_type': 'vercel_relay',
+            'status': 'reference_only',
+            'runtime_loaded': false,
+            'secret_masked': true,
+          },
+          {
+            'gateway_id': 'gateway_cloudflare_reference',
+            'display_name': 'Cloudflare Relay',
+            'gateway_type': 'cloudflare_relay',
+            'status': 'reference_only',
+            'runtime_loaded': false,
+            'secret_masked': true,
+          },
+          {
+            'gateway_id': 'gateway_local_reference',
+            'display_name': 'Local Relay',
+            'gateway_type': 'local_relay',
+            'status': 'reference_only',
+            'runtime_loaded': false,
+            'secret_masked': true,
+          },
+        ],
+        'direct_provider_pool': [
+          for (final provider in [
+            'openai',
+            'claude',
+            'deepseek',
+            'qwen',
+            'gemini',
+            'siliconflow',
+            'custom_provider',
+          ])
+            {
+              'provider_config_id': 'direct_provider_$provider',
+              'provider_type': provider,
+              'status': '已配置未测试',
+              'runtime_loaded': false,
+              'secret_masked': true,
+            }
+        ],
+        'model_route_count': routeEntries.length,
+        'model_routes': routeEntries,
+        'embedding_route_separated_from_chat': true,
+        'secret_plaintext_written': false,
+      }),
+      encoding: utf8,
+    );
+    await File(routeBindingMatrixPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(routeBindingMatrix),
+      encoding: utf8,
+    );
+    await File(usageCostPolicyPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(usageCostPolicy),
+      encoding: utf8,
+    );
     await File(referenceRegistryPath).writeAsString(
       const JsonEncoder.withIndent('  ').convert(referenceRegistry),
+      encoding: utf8,
+    );
+    await File(routeAuditPath).writeAsString(
+      '${jsonEncode({
+            'schema_version': 'prd_v3_model_route_audit_event.v1',
+            'event_id':
+                'model_route_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+            'event_type': testMode == 'save_only'
+                ? 'route_pool_saved'
+                : 'route_pool_tested',
+            'gateway_id': gatewayId,
+            'route_count': routeEntries.length,
+            'status': status,
+            'route_binding_matrix_path': routeBindingMatrixPath,
+            'usage_cost_policy_path': usageCostPolicyPath,
+            'external_call_performed': false,
+            'paid_api_called': false,
+            'secret_masked': true,
+            'secret_plaintext_written': false,
+            'created_at': now,
+          })}\n',
+      mode: FileMode.append,
       encoding: utf8,
     );
     await File(auditPath).writeAsString(
@@ -11229,6 +11360,8 @@ class Rc6RuntimeController extends ChangeNotifier {
             'paid_api_called': false,
             'secret_masked': true,
             'secret_plaintext_written': false,
+            'model_route_pool_path': routePoolPath,
+            'model_route_binding_matrix_path': routeBindingMatrixPath,
             'created_at': now,
           })}\n',
       mode: FileMode.append,
@@ -12118,6 +12251,12 @@ class Rc6RuntimeController extends ChangeNotifier {
     final parser = _mapValue(provider['parser']);
     final ocr = _mapValue(provider['ocr']);
     final exporters = _mapValue(exporter['exporters']);
+    final modelRoutePoolPath = _joinNested(
+        workspace.path, 'config/model_gateway/model_route_pool.json');
+    final modelRouteBindingMatrixPath = _joinNested(
+        workspace.path, 'config/model_gateway/model_route_binding_matrix.json');
+    final modelUsageCostPolicyPath = _joinNested(
+        workspace.path, 'config/model_gateway/model_usage_cost_policy.json');
     final networkAllowed = active.networkPolicyId != 'network_local_only';
     final payload = {
       'schema_version': 'prd_v3_project_config_assets.v1',
@@ -12181,6 +12320,24 @@ class Rc6RuntimeController extends ChangeNotifier {
           'secret_masked': true,
           'external_runtime_loaded': false,
           'reference_status': 'needs_verification',
+        },
+        'model_route_pool': {
+          'config_id': 'model_route_pool_default',
+          'plan_name': '模型网关与大模型接入配置能力补全计划',
+          'route_pool_path': modelRoutePoolPath,
+          'route_binding_matrix_path': modelRouteBindingMatrixPath,
+          'usage_cost_policy_path': modelUsageCostPolicyPath,
+          'gateway_pool_enabled': true,
+          'direct_provider_pool_enabled': true,
+          'model_route_pool_enabled': true,
+          'pipeline_routes_enabled': true,
+          'skill_routes_enabled': true,
+          'agent_routes_enabled': true,
+          'a2a_routes_enabled': true,
+          'tool_routes_enabled': true,
+          'embedding_route_separated_from_chat': true,
+          'status': _userStatus(modelGateway['status']),
+          'secret_masked': true,
         },
         'embedding_provider': {
           'config_id': active.embeddingConfigId,
@@ -12330,6 +12487,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     final modelGatewayStatus = _userStatus(modelGateway['status']);
     final llmRouteStatus =
         modelGatewayStatus == '连接成功' ? modelGatewayStatus : llmStatus;
+    final modelRouteBindingMatrix = await _readJsonObject(_joinNested(
+        workspace.path,
+        'config/model_gateway/model_route_binding_matrix.json'));
+    final modelRoutePool = await _readJsonObject(_joinNested(
+        workspace.path, 'config/model_gateway/model_route_pool.json'));
     final networkAllowed = active.networkPolicyId != 'network_local_only';
     final stage2Preflight = _stage2IndustrialPreflight(workspace);
     final registeredProviderArtifacts =
@@ -12405,6 +12567,26 @@ class Rc6RuntimeController extends ChangeNotifier {
         'external_project_names_visible_in_normal_ui': false,
       },
       'stage_2_industrial_preflight': stage2Preflight,
+      'model_route_summary': {
+        'plan_name': '模型网关与大模型接入配置能力补全计划',
+        'gateway_pool_configured':
+            _listOfMaps(modelRoutePool['gateway_pool']).isNotEmpty,
+        'direct_provider_pool_configured':
+            _listOfMaps(modelRoutePool['direct_provider_pool']).isNotEmpty,
+        'model_route_count': _asInt(modelRoutePool['model_route_count']) ?? 0,
+        'binding_count':
+            _listOfMaps(modelRouteBindingMatrix['bindings']).length,
+        'embedding_route_separated_from_chat':
+            modelRouteBindingMatrix['embedding_route_separated_from_chat'] ==
+                true,
+        'route_pool_path': _joinNested(
+            workspace.path, 'config/model_gateway/model_route_pool.json'),
+        'route_binding_matrix_path': _joinNested(workspace.path,
+            'config/model_gateway/model_route_binding_matrix.json'),
+        'usage_cost_policy_path': _joinNested(workspace.path,
+            'config/model_gateway/model_usage_cost_policy.json'),
+        'secret_masked': true,
+      },
       'health': {
         'status': _profileHealthStatus(
             active, redisStatus, qdrantStatus, llmRouteStatus),
@@ -12425,6 +12607,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           'storage_path': workspace.path,
           'parser_status': _userStatus(parser['status']),
           'ocr_status': _userStatus(ocr['status']),
+          'model_routes': _modelRouteModuleBinding(
+              modelRouteBindingMatrix, 'document_library_pipeline'),
           'web_import_status': networkAllowed ? '已配置未测试' : '已禁用',
           'provider_binding': _moduleProviderBindingSummary(
             providerCapabilityBinding,
@@ -12435,6 +12619,10 @@ class Rc6RuntimeController extends ChangeNotifier {
           'index_backend': qdrantStatus == '连接成功' ? 'Qdrant' : '本地索引',
           'embedding_dimension': _asInt(qdrant['dimension']) ?? 1536,
           'vector_status': qdrantStatus,
+          'embedding_model_route':
+              _modelRouteModuleBinding(modelRouteBindingMatrix, 'embedding'),
+          'okf_model_routes':
+              _modelRouteModuleBinding(modelRouteBindingMatrix, 'okf_pipeline'),
           'dimension_change_requires_rebuild': qdrantStatus == '维度不匹配',
           'provider_binding': _moduleProviderBindingSummary(
             providerCapabilityBinding,
@@ -12456,6 +12644,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           'llm_provider_status': llmStatus,
           'model_gateway_status': modelGatewayStatus,
           'llm_gateway_route': _modelGatewayRouteSummary(modelGateway, llm),
+          'model_routes': _modelRouteModuleBinding(
+              modelRouteBindingMatrix, 'document_generation'),
           'llm_related_actions_available':
               modelGatewayStatus == '连接成功' || llmStatus == '连接成功',
           'llm_failure_reason_zh': modelGatewayStatus == '连接成功'
@@ -12472,6 +12662,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'skill_factory': {
           'llm_status': llmStatus,
           'model_gateway_status': modelGatewayStatus,
+          'model_routes': _modelRouteModuleBinding(
+              modelRouteBindingMatrix, 'skill_factory'),
           'skill_generation_available':
               modelGatewayStatus == '连接成功' || llmStatus == '连接成功',
           'llm_failure_reason_zh': modelGatewayStatus == '连接成功'
@@ -12490,6 +12682,12 @@ class Rc6RuntimeController extends ChangeNotifier {
           'active_model_gateway': _stringValue(
               modelGateway['gateway_id'], 'gateway_not_configured'),
           'model_gateway_status': modelGatewayStatus,
+          'model_routes': _modelRouteModuleBinding(
+              modelRouteBindingMatrix, 'agent_workbench'),
+          'a2a_model_routes':
+              _modelRouteModuleBinding(modelRouteBindingMatrix, 'a2a'),
+          'tool_reasoning_routes': _modelRouteModuleBinding(
+              modelRouteBindingMatrix, 'tool_reasoning'),
           'gateway_fallback_status':
               modelGatewayStatus == 'fallback 已触发' ? 'fallback 已触发' : '',
           'agent_dialogue_available':
@@ -12878,6 +13076,316 @@ class Rc6RuntimeController extends ChangeNotifier {
     return 'direct_llm_provider:$llmProvider';
   }
 
+  static List<Map<String, dynamic>> _modelRoutePoolEntries(
+    Map<String, dynamic> gateway, {
+    required String status,
+    required String baseUrl,
+  }) {
+    final gatewayId =
+        _stringValue(gateway['gateway_id'], 'gateway_not_configured');
+    final apiKeyRef = _stringValue(gateway['api_key_ref'], 'none');
+    final maskedKeyPreview = _stringValue(gateway['masked_key_preview'], '');
+    final routeSpecs = <Map<String, dynamic>>[
+      ..._modelRouteSpecs('pipeline', [
+        'ocr_enhancement',
+        'layout_understanding',
+        'document_summary',
+        'metadata_extraction',
+        'okf_compilation',
+        'relation_extraction',
+        'conflict_detection',
+        'quality_review',
+        'chunk_rewrite',
+        'qa_generation',
+      ]),
+      ..._modelRouteSpecs('skill', [
+        'skill_generation',
+        'skill_validation',
+        'skill_refinement',
+        'external_skill_analysis',
+        'external_skill_localization',
+        'external_skill_platform_adaptation',
+        'external_skill_tool_requirement',
+      ]),
+      ..._modelRouteSpecs('document', [
+        'document_outline',
+        'document_generation',
+        'document_revision',
+        'document_quality_review',
+      ]),
+      ..._modelRouteSpecs('agent', [
+        'agent_chat',
+        'agent_reasoning',
+        'agent_tool_planning',
+        'agent_summarization',
+      ]),
+      ..._modelRouteSpecs('a2a', [
+        'a2a_task_dispatch',
+        'a2a_review',
+        'a2a_conflict_detection',
+        'a2a_consensus',
+        'a2a_report',
+      ]),
+      ..._modelRouteSpecs('tool', [
+        'tool_reasoning',
+        'tool_parameter_repair',
+        'tool_failure_explanation',
+      ]),
+      ..._modelRouteSpecs('embedding', ['embedding']),
+    ];
+    return routeSpecs.map((spec) {
+      final routeScope = _stringValue(spec['route_scope'], '');
+      final isEmbedding = routeScope == 'embedding';
+      return {
+        'model_route_id': 'route_$routeScope',
+        'display_name': _modelRouteDisplayName(routeScope),
+        'route_group': spec['route_group'],
+        'route_scope': routeScope,
+        'route_type': gatewayId == 'gateway_not_configured'
+            ? 'direct_provider'
+            : 'gateway',
+        'gateway_id': gatewayId,
+        'provider_config_id': isEmbedding
+            ? 'embedding_provider_configured'
+            : 'direct_provider_llm',
+        'model_name': isEmbedding
+            ? 'embedding-model-configured-separately'
+            : 'local-default-or-configured-provider',
+        'base_url': baseUrl,
+        'api_key_ref': apiKeyRef,
+        'capabilities': {
+          'chat': !isEmbedding,
+          'streaming':
+              !isEmbedding && _boolValue(gateway['supports_streaming']),
+          'vision': routeScope.contains('ocr') ||
+              routeScope.contains('layout') ||
+              routeScope.contains('vision'),
+          'tool_calling':
+              routeScope.startsWith('agent_') || routeScope.startsWith('tool_'),
+          'embedding': isEmbedding,
+          'json_schema': true,
+        },
+        'fallback_route_ids':
+            isEmbedding ? <String>[] : ['route_${routeScope}_fallback'],
+        'budget_policy_id': 'budget_$routeScope',
+        'rate_limit_policy_id': 'rate_$routeScope',
+        'timeout_seconds': routeScope.startsWith('skill_') ? 120 : 60,
+        'max_retries': 2,
+        'status': status,
+        'last_test_at': _stringValue(gateway['last_test_at'], ''),
+        'last_error': _modelGatewayPublicError(gateway),
+        'masked_key_preview': maskedKeyPreview,
+        'secret_masked': true,
+        'external_call_performed': false,
+      };
+    }).toList(growable: false);
+  }
+
+  static List<Map<String, dynamic>> _modelRouteSpecs(
+    String routeGroup,
+    List<String> routeScopes,
+  ) {
+    return routeScopes
+        .map((scope) => {
+              'route_group': routeGroup,
+              'route_scope': scope,
+            })
+        .toList(growable: false);
+  }
+
+  static Map<String, dynamic> _modelRouteBindingMatrix(
+    Directory workspace, {
+    required String gatewayId,
+    required List<Map<String, dynamic>> routeEntries,
+    required String status,
+    required String generatedAt,
+  }) {
+    final byScope = {
+      for (final route in routeEntries)
+        _stringValue(route['route_scope'], ''): route,
+    };
+    Map<String, dynamic> binding(
+      String module,
+      List<String> scopes, {
+      required String fallbackPolicy,
+    }) {
+      return {
+        'module': module,
+        'route_ids': scopes
+            .map((scope) => _stringValue(byScope[scope]?['model_route_id'], ''))
+            .where((id) => id.isNotEmpty)
+            .toList(growable: false),
+        'route_scopes': scopes,
+        'status': status,
+        'available': status == '连接成功',
+        'fallback_policy': fallbackPolicy,
+        'gateway_id': gatewayId,
+        'secret_masked': true,
+      };
+    }
+
+    return {
+      'schema_version': 'prd_v3_model_route_binding_matrix.v1',
+      'plan_name': '模型网关与大模型接入配置能力补全计划',
+      'workspace_id': workspace.path,
+      'generated_at': generatedAt,
+      'gateway_id': gatewayId,
+      'bindings': [
+        binding(
+          'document_library_pipeline',
+          [
+            'ocr_enhancement',
+            'layout_understanding',
+            'document_summary',
+            'metadata_extraction',
+          ],
+          fallbackPolicy: '基础解析/OCR 可继续，本地导入不受影响。',
+        ),
+        binding(
+          'okf_pipeline',
+          [
+            'okf_compilation',
+            'metadata_extraction',
+            'relation_extraction',
+            'conflict_detection',
+            'quality_review',
+          ],
+          fallbackPolicy: '未配置 LLM route 时回退 rule_based_okf。',
+        ),
+        binding(
+          'document_generation',
+          [
+            'document_outline',
+            'document_generation',
+            'document_revision',
+            'document_quality_review',
+          ],
+          fallbackPolicy: 'Markdown 导出器保留；正文 LLM 生成需 route 可用。',
+        ),
+        binding(
+          'skill_factory',
+          [
+            'skill_generation',
+            'skill_validation',
+            'skill_refinement',
+            'external_skill_analysis',
+            'external_skill_localization',
+            'external_skill_platform_adaptation',
+            'external_skill_tool_requirement',
+          ],
+          fallbackPolicy: '基础导入可继续；深度解析、本土化、验证需 Skill route。',
+        ),
+        binding(
+          'agent_workbench',
+          [
+            'agent_chat',
+            'agent_reasoning',
+            'agent_tool_planning',
+            'agent_summarization',
+          ],
+          fallbackPolicy: 'Agent 工作区保留；对话和推理需 Agent route。',
+        ),
+        binding(
+          'a2a',
+          [
+            'a2a_task_dispatch',
+            'a2a_review',
+            'a2a_conflict_detection',
+            'a2a_consensus',
+            'a2a_report',
+          ],
+          fallbackPolicy: 'A2A 会话状态可本地保存；汇总/冲突增强需 A2A route。',
+        ),
+        binding(
+          'tool_reasoning',
+          [
+            'tool_reasoning',
+            'tool_parameter_repair',
+            'tool_failure_explanation',
+          ],
+          fallbackPolicy: 'Tool Provider 执行不由 LLM route 代替；LLM 只做参数和解释。',
+        ),
+        binding(
+          'embedding',
+          ['embedding'],
+          fallbackPolicy: 'Embedding route 独立配置，不能复用 chat route。',
+        ),
+      ],
+      'embedding_route_separated_from_chat': true,
+      'normal_ui_project_names_visible': false,
+      'secret_plaintext_written': false,
+    };
+  }
+
+  static Map<String, dynamic> _modelUsageCostPolicy(
+    List<Map<String, dynamic>> routeEntries, {
+    required String generatedAt,
+  }) {
+    return {
+      'schema_version': 'prd_v3_model_usage_cost_policy.v1',
+      'generated_at': generatedAt,
+      'budget_policy_enabled': true,
+      'rate_limit_policy_enabled': true,
+      'usage_audit_enabled': true,
+      'cost_audit_enabled': true,
+      'export_plaintext_secret': false,
+      'route_policies': routeEntries
+          .map((route) => {
+                'model_route_id': route['model_route_id'],
+                'route_scope': route['route_scope'],
+                'budget_policy_id': route['budget_policy_id'],
+                'rate_limit_policy_id': route['rate_limit_policy_id'],
+                'timeout_seconds': route['timeout_seconds'],
+                'max_retries': route['max_retries'],
+                'usage_record_required': true,
+                'cost_record_required': true,
+                'secret_masked': true,
+              })
+          .toList(growable: false),
+      'secret_plaintext_written': false,
+    };
+  }
+
+  static String _modelRouteDisplayName(String routeScope) {
+    return switch (routeScope) {
+      'ocr_enhancement' => 'OCR LLM 增强模型路线',
+      'layout_understanding' => '版面理解模型路线',
+      'document_summary' => '文档摘要模型路线',
+      'metadata_extraction' => '元数据抽取模型路线',
+      'okf_compilation' => 'OKF 标准化模型路线',
+      'relation_extraction' => '关系抽取模型路线',
+      'conflict_detection' => '冲突检测模型路线',
+      'quality_review' => '质量复核模型路线',
+      'chunk_rewrite' => 'Chunk 改写模型路线',
+      'qa_generation' => '问答生成模型路线',
+      'skill_generation' => 'Skill 生成模型路线',
+      'skill_validation' => 'Skill 验证模型路线',
+      'skill_refinement' => 'Skill 优化模型路线',
+      'external_skill_analysis' => '外部 Skill 解析模型路线',
+      'external_skill_localization' => '外部 Skill 本土化模型路线',
+      'external_skill_platform_adaptation' => '外部 Skill 平台适配模型路线',
+      'external_skill_tool_requirement' => '外部 Skill Tool 需求抽取模型路线',
+      'document_outline' => '文档大纲模型路线',
+      'document_generation' => '文档生成模型路线',
+      'document_revision' => '文档修订模型路线',
+      'document_quality_review' => '文档质量复核模型路线',
+      'agent_chat' => 'Agent 对话模型路线',
+      'agent_reasoning' => 'Agent 推理模型路线',
+      'agent_tool_planning' => 'Agent Tool 规划模型路线',
+      'agent_summarization' => 'Agent 摘要模型路线',
+      'a2a_task_dispatch' => 'A2A 任务分发模型路线',
+      'a2a_review' => 'A2A 复核模型路线',
+      'a2a_conflict_detection' => 'A2A 冲突检测模型路线',
+      'a2a_consensus' => 'A2A 共识模型路线',
+      'a2a_report' => 'A2A 报告模型路线',
+      'tool_reasoning' => 'Tool 推理模型路线',
+      'tool_parameter_repair' => 'Tool 参数修正模型路线',
+      'tool_failure_explanation' => 'Tool 失败解释模型路线',
+      'embedding' => 'Embedding 模型路线',
+      _ => routeScope,
+    };
+  }
+
   static String _providerStatusFromUserStatus(String userStatus) {
     return switch (userStatus) {
       '连接成功' => 'available',
@@ -13150,6 +13658,37 @@ class Rc6RuntimeController extends ChangeNotifier {
               ? '连接成功'
               : '降级为本地模式',
       'unavailable_provider_blocks_module': false,
+      'secret_masked': true,
+    };
+  }
+
+  static Map<String, dynamic> _modelRouteModuleBinding(
+    Map<String, dynamic> matrix,
+    String module,
+  ) {
+    final binding = _listOfMaps(matrix['bindings']).firstWhere(
+      (item) => _stringValue(item['module'], '') == module,
+      orElse: () => const <String, dynamic>{},
+    );
+    if (binding.isEmpty) {
+      return {
+        'module': module,
+        'route_ids': const <String>[],
+        'status': '未配置',
+        'available': false,
+        'fallback_policy': '模型路线未配置。',
+        'secret_masked': true,
+      };
+    }
+    return {
+      'module': module,
+      'route_ids': _listOfStrings(binding['route_ids']),
+      'route_scopes': _listOfStrings(binding['route_scopes']),
+      'status': _stringValue(binding['status'], '未配置'),
+      'available': _boolValue(binding['available']),
+      'fallback_policy': _stringValue(binding['fallback_policy'], ''),
+      'gateway_id':
+          _stringValue(binding['gateway_id'], 'gateway_not_configured'),
       'secret_masked': true,
     };
   }

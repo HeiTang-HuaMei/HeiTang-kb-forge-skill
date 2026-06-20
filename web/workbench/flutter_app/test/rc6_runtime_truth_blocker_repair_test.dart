@@ -883,6 +883,7 @@ void main() {
     expect(
         usageReport['schema_version'], 'prd_v3_model_gateway_usage_report.v1');
     expect(usageReport['secret_plaintext_written'], isFalse);
+    expect(usageReport['route_usage_summary'], isA<List>());
     final gatewayFallbackReport = jsonDecode(File(
             '$modelGatewayDir${Platform.pathSeparator}model_gateway_fallback_report.json')
         .readAsStringSync()) as Map;
@@ -900,6 +901,56 @@ void main() {
     expect(referenceStatuses, contains('needs_verification'));
     expect(referenceStatuses, contains('reference_only'));
     expect(referenceRegistry['runtime_dependency'], isFalse);
+    final routePool = jsonDecode(
+        File('$modelGatewayDir${Platform.pathSeparator}model_route_pool.json')
+            .readAsStringSync()) as Map;
+    expect(routePool['schema_version'], 'prd_v3_model_route_pool.v1');
+    expect(routePool['plan_name'], '模型网关与大模型接入配置能力补全计划');
+    expect((routePool['gateway_pool'] as List), isNotEmpty);
+    expect((routePool['direct_provider_pool'] as List), hasLength(7));
+    expect(routePool['model_route_count'], greaterThanOrEqualTo(34));
+    final modelRoutes = (routePool['model_routes'] as List).cast<Map>();
+    expect(modelRoutes.map((route) => route['route_scope']),
+        containsAll(['skill_generation', 'external_skill_localization']));
+    expect(modelRoutes.map((route) => route['route_scope']),
+        containsAll(['document_generation', 'okf_compilation']));
+    expect(modelRoutes.map((route) => route['route_scope']),
+        containsAll(['agent_chat', 'a2a_consensus', 'tool_reasoning']));
+    final embeddingRoute = modelRoutes
+        .firstWhere((route) => route['model_route_id'] == 'route_embedding');
+    expect((embeddingRoute['capabilities'] as Map)['embedding'], isTrue);
+    expect((embeddingRoute['capabilities'] as Map)['chat'], isFalse);
+    expect(routePool['embedding_route_separated_from_chat'], isTrue);
+
+    final routeBinding = jsonDecode(File(
+            '$modelGatewayDir${Platform.pathSeparator}model_route_binding_matrix.json')
+        .readAsStringSync()) as Map;
+    expect(
+        routeBinding['schema_version'], 'prd_v3_model_route_binding_matrix.v1');
+    final routeBindingModules = ((routeBinding['bindings'] as List).cast<Map>())
+        .map((binding) => binding['module'])
+        .toList(growable: false);
+    expect(
+        routeBindingModules,
+        containsAll([
+          'document_library_pipeline',
+          'okf_pipeline',
+          'document_generation',
+          'skill_factory',
+          'agent_workbench',
+          'a2a',
+          'tool_reasoning',
+          'embedding',
+        ]));
+    expect(routeBinding['embedding_route_separated_from_chat'], isTrue);
+    final usageCostPolicy = jsonDecode(File(
+            '$modelGatewayDir${Platform.pathSeparator}model_usage_cost_policy.json')
+        .readAsStringSync()) as Map;
+    expect(
+        usageCostPolicy['schema_version'], 'prd_v3_model_usage_cost_policy.v1');
+    expect(usageCostPolicy['usage_audit_enabled'], isTrue);
+    expect(usageCostPolicy['cost_audit_enabled'], isTrue);
+    expect(usageCostPolicy['export_plaintext_secret'], isFalse);
 
     final runtimeStatus = jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
@@ -914,6 +965,25 @@ void main() {
         'fallback 已触发');
     expect((moduleStatus['agent_workbench'] as Map)['active_model_gateway'],
         'gateway_openai_compatible');
+    expect((runtimeStatus['model_route_summary'] as Map)['model_route_count'],
+        greaterThanOrEqualTo(34));
+    expect(
+        (runtimeStatus['model_route_summary']
+            as Map)['embedding_route_separated_from_chat'],
+        isTrue);
+    expect(
+        (moduleStatus['document_library'] as Map)['model_routes'], isA<Map>());
+    expect((moduleStatus['knowledge_base'] as Map)['okf_model_routes'],
+        isA<Map>());
+    expect((moduleStatus['document_generation'] as Map)['model_routes'],
+        isA<Map>());
+    expect((moduleStatus['skill_factory'] as Map)['model_routes'], isA<Map>());
+    expect(
+        (moduleStatus['agent_workbench'] as Map)['model_routes'], isA<Map>());
+    expect((moduleStatus['agent_workbench'] as Map)['a2a_model_routes'],
+        isA<Map>());
+    expect((moduleStatus['agent_workbench'] as Map)['tool_reasoning_routes'],
+        isA<Map>());
     expect((runtimeStatus['degradation'] as Map)['model_gateway_failure'],
         contains('本地导入'));
     final configAssetsPath = runtimeStatus['config_assets_path'] as String;
@@ -921,6 +991,8 @@ void main() {
         jsonDecode(File(configAssetsPath).readAsStringSync()) as Map;
     expect((configAssets['config_assets'] as Map)['model_gateway_provider'],
         containsPair('reference_status', 'needs_verification'));
+    expect((configAssets['config_assets'] as Map)['model_route_pool'],
+        containsPair('model_route_pool_enabled', true));
 
     final testLog =
         File('$configDir${Platform.pathSeparator}config_test_log.jsonl')
@@ -933,6 +1005,13 @@ void main() {
         File('$modelGatewayDir${Platform.pathSeparator}model_gateway_audit.jsonl')
             .readAsStringSync(),
         isNot(contains('runtime-input-token')));
+    expect(
+        File('$modelGatewayDir${Platform.pathSeparator}model_route_audit.jsonl')
+            .readAsStringSync(),
+        allOf(
+          contains('prd_v3_model_route_audit_event.v1'),
+          isNot(contains('runtime-input-token')),
+        ));
   });
 
   test(
