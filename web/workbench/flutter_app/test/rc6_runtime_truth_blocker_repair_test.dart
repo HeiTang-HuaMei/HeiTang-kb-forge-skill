@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -6,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:heitang_workbench/core_bridge/local_core_bridge.dart';
 import 'package:heitang_workbench/contracts/sample_contracts.dart';
 import 'package:heitang_workbench/main.dart';
-import 'package:heitang_workbench/rc6_runtime/rc6_runtime_controller.dart';
+import 'package:heitang_workbench/rc6_runtime/rc6_runtime_controller_io.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -88,6 +89,376 @@ void main() {
       .where((line) => line.trim().isNotEmpty)
       .map((line) => jsonDecode(line) as Map<String, dynamic>)
       .toList(growable: false);
+
+  void writeStage2PreflightFixture(Directory workspace) {
+    final standardDir =
+        Directory('${workspace.path}${Platform.pathSeparator}standard_packages')
+          ..createSync(recursive: true);
+    final orchestrationDir =
+        Directory('${workspace.path}${Platform.pathSeparator}orchestration')
+          ..createSync(recursive: true);
+    final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    final knowledgeBasesDir =
+        Directory('${workspace.path}${Platform.pathSeparator}knowledge_bases')
+          ..createSync(recursive: true);
+    final packageManifestPath =
+        '${standardDir.path}${Platform.pathSeparator}package_manifest.json';
+    final contentPackagePath =
+        '${standardDir.path}${Platform.pathSeparator}content_package.jsonl';
+    final okfKbManifestPath =
+        '${kbDir.path}${Platform.pathSeparator}okf_kb_manifest.json';
+    File(packageManifestPath).writeAsStringSync(jsonEncode({
+      'standard': 'okf_candidate',
+      'okf_runtime_enabled': true,
+    }));
+    File(contentPackagePath).writeAsStringSync(jsonl([
+      {'chunk_id': 'okf_c1', 'text': 'okf runtime content'}
+    ]));
+    File('${kbDir.path}${Platform.pathSeparator}chunks.jsonl')
+        .writeAsStringSync(jsonl([
+      {'chunk_id': 'okf_kb_c1', 'text': 'okf kb chunk'}
+    ]));
+    File(okfKbManifestPath).writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_kb_from_standard_package.v1',
+      'status': 'pass',
+      'okf_runtime_enabled': true,
+    }));
+    File('${standardDir.path}${Platform.pathSeparator}okf_runtime_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_okf_runtime_manifest.v1',
+      'runtime_loaded': true,
+      'export_import_runtime_available': true,
+      'kb_build_runtime_available': true,
+      'external_runtime': false,
+      'package_manifest_path': packageManifestPath,
+      'content_package_path': contentPackagePath,
+      'kb_manifest_path': okfKbManifestPath,
+    }));
+    File('${standardDir.path}${Platform.pathSeparator}audit_history.jsonl')
+        .writeAsStringSync(jsonl([
+      {
+        'action': 'export_standard_knowledge_package',
+        'status': 'completed',
+      },
+      {
+        'action': 'import_standard_knowledge_package',
+        'status': 'completed',
+      },
+      {
+        'action': 'build_kb_from_standard_package',
+        'status': 'completed',
+      },
+    ]));
+    File('${orchestrationDir.path}${Platform.pathSeparator}orchestration_plan.jsonl')
+        .writeAsStringSync(jsonl([
+      {
+        'action': 'export_standard_knowledge_package',
+        'status': 'completed',
+        'boundary': {'okf_runtime_enabled': true},
+      },
+      {
+        'action': 'import_standard_knowledge_package',
+        'status': 'completed',
+        'boundary': {'okf_runtime_enabled': true},
+      },
+      {
+        'action': 'build_kb_from_standard_package',
+        'status': 'completed',
+        'boundary': {'okf_runtime_enabled': true},
+      },
+    ]));
+    File('${knowledgeBasesDir.path}${Platform.pathSeparator}kb_catalog.json')
+        .writeAsStringSync(jsonEncode({
+      'knowledge_bases': [
+        {
+          'kb_id': 'K_OKF1',
+          'okf_runtime_enabled': true,
+          'source_standard_package_manifest': packageManifestPath,
+        }
+      ],
+    }));
+  }
+
+  void writeStage2SkillRuntimeFixture(Directory workspace) {
+    final operationsDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations')
+      ..createSync(recursive: true);
+    final versionDir =
+        Directory('${operationsDir.path}${Platform.pathSeparator}versions')
+          ..createSync(recursive: true);
+    final snapshot1 = '${versionDir.path}${Platform.pathSeparator}v1.md';
+    final snapshot2 = '${versionDir.path}${Platform.pathSeparator}v2.md';
+    final fusedSkillPath =
+        '${operationsDir.path}${Platform.pathSeparator}fused_skill.md';
+    final fusedManifestPath =
+        '${operationsDir.path}${Platform.pathSeparator}fused_manifest.json';
+    final operationManifestPath =
+        '${operationsDir.path}${Platform.pathSeparator}skill_operation_manifest.json';
+    final operationHistoryPath =
+        '${operationsDir.path}${Platform.pathSeparator}skill_operation_history.json';
+    final versionManifestPath =
+        '${operationsDir.path}${Platform.pathSeparator}skill_version_manifest.json';
+    final diffPath =
+        '${operationsDir.path}${Platform.pathSeparator}skill_version_diff_report.json';
+    final rollbackPath =
+        '${operationsDir.path}${Platform.pathSeparator}skill_rollback_manifest.json';
+    final auditPath =
+        '${operationsDir.path}${Platform.pathSeparator}skill_runtime_audit.jsonl';
+    File(snapshot1).writeAsStringSync('# v1');
+    File(snapshot2).writeAsStringSync('# v2');
+    File(fusedSkillPath).writeAsStringSync('# fused');
+    File(fusedManifestPath).writeAsStringSync(jsonEncode({
+      'source_mode': 'skill_plus_kb_fusion',
+      'secret_plaintext_written': false,
+    }));
+    File(operationManifestPath).writeAsStringSync(jsonEncode({
+      'requested_operation': 'fusion',
+    }));
+    File(operationHistoryPath).writeAsStringSync(jsonEncode({
+      'records': [
+        {'action': 'skill_operation_fusion', 'status': 'completed'}
+      ],
+    }));
+    File(versionManifestPath).writeAsStringSync(jsonEncode({
+      'versions': [
+        {'version': 'v1', 'snapshot_path': snapshot1},
+        {'version': 'v2', 'snapshot_path': snapshot2},
+      ],
+    }));
+    File(diffPath).writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_skill_version_diff_report.v1',
+      'status': 'pass',
+      'secret_plaintext_written': false,
+    }));
+    File(rollbackPath).writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_skill_rollback_manifest.v1',
+      'rollback_supported': true,
+      'rollback_target_snapshot_path': snapshot1,
+      'secret_plaintext_written': false,
+    }));
+    File(auditPath).writeAsStringSync(jsonl([
+      {
+        'action': 'skill_secondary_fusion',
+        'secondary_fusion_runtime_available': true,
+        'multi_version_runtime_available': true,
+      }
+    ]));
+    File('${operationsDir.path}${Platform.pathSeparator}skill_runtime_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_skill_runtime_manifest.v1',
+      'runtime_loaded': true,
+      'secondary_fusion_runtime_available': true,
+      'multi_version_runtime_available': true,
+      'version_count': 2,
+      'fused_skill_path': fusedSkillPath,
+      'fused_manifest_path': fusedManifestPath,
+      'operation_manifest_path': operationManifestPath,
+      'operation_history_path': operationHistoryPath,
+      'version_manifest_path': versionManifestPath,
+      'version_diff_report_path': diffPath,
+      'rollback_manifest_path': rollbackPath,
+      'runtime_audit_path': auditPath,
+      'secret_plaintext_written': false,
+    }));
+  }
+
+  void writeStage2AgentPermissionFixture(Directory workspace) {
+    final auditDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit')
+      ..createSync(recursive: true);
+    final matrixPath =
+        '${auditDir.path}${Platform.pathSeparator}workspace_permission_matrix.json';
+    final permissionAuditPath =
+        '${auditDir.path}${Platform.pathSeparator}permission_audit.json';
+    final blockReportPath =
+        '${auditDir.path}${Platform.pathSeparator}unauthorized_access_block_report.json';
+    final runtimeAuditPath =
+        '${auditDir.path}${Platform.pathSeparator}authorization_runtime_audit.jsonl';
+    final validationReportPath =
+        '${auditDir.path}${Platform.pathSeparator}agent_validation_report.json';
+    final runHistoryPath =
+        '${auditDir.path}${Platform.pathSeparator}run_history.json';
+    File(matrixPath).writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_agent_workspace_permission_matrix.v1',
+      'status': 'pass',
+      'matrix': [
+        {'workspace_id': 'W_A'},
+        {'workspace_id': 'W_M'},
+        {
+          'workspace_id': 'W_B',
+          'can_read_sibling_workspace': false,
+          'can_write_sibling_workspace': false,
+        },
+        {
+          'workspace_id': 'W_C',
+          'can_read_sibling_workspace': false,
+          'can_write_sibling_workspace': false,
+        },
+      ],
+      'blocked_capabilities': [
+        'cross_workspace_write',
+        'sibling_workspace_access',
+        'plaintext_secret_read',
+        'arbitrary_shell',
+        'computer_use',
+      ],
+    }));
+    File(permissionAuditPath).writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v2_agent_permission_audit.v1',
+      'status': 'pass',
+      'workspace_permission_matrix_path': matrixPath,
+    }));
+    final cases = [
+      {'expected_decision': 'allow', 'decision': 'allow'},
+      for (final code in [
+        'tool_not_allowlisted',
+        'sibling_workspace_access',
+        'plaintext_secret_read',
+        'arbitrary_shell',
+      ])
+        {
+          'expected_decision': 'deny',
+          'decision': 'deny',
+          'error_code': code,
+        },
+    ];
+    File(blockReportPath).writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_agent_unauthorized_access_block_report.v1',
+      'status': 'pass',
+      'case_count': cases.length,
+      'cases': cases,
+      'unauthorized_resources_selectable': false,
+      'secret_plaintext_written': false,
+    }));
+    File(runtimeAuditPath).writeAsStringSync(jsonl([
+      for (final item in cases)
+        {
+          'decision': item['decision'],
+          if (item['error_code'] != null) 'error_code': item['error_code'],
+        }
+    ]));
+    File(validationReportPath).writeAsStringSync(jsonEncode({
+      'status': 'pass',
+      'block_report_path': blockReportPath,
+      'runtime_audit_path': runtimeAuditPath,
+    }));
+    File(runHistoryPath).writeAsStringSync(jsonEncode({
+      'records': [
+        {'action': 'authorization_runtime_audit', 'status': 'pass'}
+      ],
+    }));
+  }
+
+  void writeStage2IndustrialSmokeFixture(Directory workspace) {
+    final acceptanceDir =
+        Directory('${workspace.path}${Platform.pathSeparator}acceptance')
+          ..createSync(recursive: true);
+    final artifact = File(
+        '${acceptanceDir.path}${Platform.pathSeparator}industrial_smoke_artifact.txt')
+      ..writeAsStringSync('artifact');
+    File('${acceptanceDir.path}${Platform.pathSeparator}industrial_exe_smoke_report.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_industrial_exe_smoke_report.v1',
+      'status': 'passed',
+      'step_count': 38,
+      'step_results': [
+        for (var index = 1; index <= 38; index += 1)
+          {
+            'step_id': index,
+            'status': 'passed',
+            'artifact': artifact.path,
+          }
+      ],
+    }));
+  }
+
+  void writeStage2ExeLaunchSmokeFixture(Directory workspace) {
+    final acceptanceDir =
+        Directory('${workspace.path}${Platform.pathSeparator}acceptance')
+          ..createSync(recursive: true);
+    final exePath =
+        '${acceptanceDir.path}${Platform.pathSeparator}heitang_workbench.exe';
+    final exeBytes = <int>[0x4d, 0x5a, ...List<int>.filled(32769, 0)];
+    File(exePath).writeAsBytesSync(exeBytes);
+    final logPath =
+        '${acceptanceDir.path}${Platform.pathSeparator}exe_launch_smoke.log';
+    File(logPath).writeAsStringSync('launched');
+    File('${acceptanceDir.path}${Platform.pathSeparator}exe_launch_smoke_report.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_exe_launch_smoke_report.v1',
+      'status': 'passed',
+      'platform': 'windows',
+      'generated_by': 'scripts/smoke_windows_exe_launch.ps1',
+      'exe_path': exePath,
+      'exe_size_bytes': exeBytes.length,
+      'exe_sha256':
+          'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      'launched': true,
+      'process_started': true,
+      'process_id': 1000,
+      'crashed': false,
+      'startup_timeout': false,
+      'log_path': logPath,
+      'secret_plaintext_written': false,
+    }));
+  }
+
+  void writeN8nReadinessFixture(Directory workspace) {
+    final a2aDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001')
+      ..createSync(recursive: true);
+    final multiAgentDir =
+        Directory('${workspace.path}${Platform.pathSeparator}multi_agent')
+          ..createSync(recursive: true);
+    final roundLogPath =
+        '${a2aDir.path}${Platform.pathSeparator}a2a_rounds.jsonl';
+    final runtimeAuditPath =
+        '${a2aDir.path}${Platform.pathSeparator}a2a_runtime_audit.jsonl';
+    final conflictPath =
+        '${multiAgentDir.path}${Platform.pathSeparator}a2a_conflict_report.json';
+    final consensusPath =
+        '${multiAgentDir.path}${Platform.pathSeparator}a2a_consensus_report.json';
+    final workflowReportPath =
+        '${a2aDir.path}${Platform.pathSeparator}a2a_collaboration_report.md';
+    final discussionManifestPath =
+        '${multiAgentDir.path}${Platform.pathSeparator}multi_agent_discussion_manifest.json';
+    File(roundLogPath).writeAsStringSync(jsonl([
+      {'round': 1, 'output': 'one'},
+      {'round': 2, 'output': 'two'},
+      {'round': 3, 'output': 'three'},
+    ]));
+    File(runtimeAuditPath).writeAsStringSync(jsonl([
+      {'round': 1, 'status': 'completed'},
+      {'round': 2, 'status': 'completed'},
+      {'round': 3, 'status': 'completed'},
+    ]));
+    File(conflictPath).writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_a2a_conflict_report.v1',
+      'round_count': 3,
+    }));
+    File(consensusPath).writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_a2a_consensus_report.v1',
+      'status': 'pass',
+      'ready_for_export': true,
+    }));
+    File(workflowReportPath).writeAsStringSync('# A2A export');
+    File(discussionManifestPath).writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_multi_agent_discussion_manifest.v1',
+      'a2a_conflict_report_path': conflictPath,
+      'a2a_consensus_report_path': consensusPath,
+    }));
+    File('${a2aDir.path}${Platform.pathSeparator}a2a_session_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_a2a_session_manifest.v1',
+      'status': 'report_generated',
+      'round_limit': 3,
+      'round_log_path': roundLogPath,
+      'runtime_audit_path': runtimeAuditPath,
+      'conflict_report_path': conflictPath,
+      'consensus_report_path': consensusPath,
+    }));
+  }
 
   void expectIndustrialIndexArtifacts(String kbRoot,
       {String? kbId, Rc6RuntimeState? state}) {
@@ -3429,6 +3800,145 @@ void main() {
     expect(activatedBinding['selected_provider_runtime_loaded'], isFalse);
     final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
     expect(health['ready_for_user_selection_count'], greaterThanOrEqualTo(4));
+  });
+
+  test('stage3 n8n runtime load degrades when endpoint is missing', () async {
+    final workspace = await createWorkspace();
+    writeStage2PreflightFixture(workspace);
+    writeStage2SkillRuntimeFixture(workspace);
+    writeStage2AgentPermissionFixture(workspace);
+    writeStage2IndustrialSmokeFixture(workspace);
+    writeStage2ExeLaunchSmokeFixture(workspace);
+    writeN8nReadinessFixture(workspace);
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.testAllRegisteredProviderCapabilities();
+    final loaded = await controller.loadN8nProviderRuntime();
+    expect(loaded, isFalse);
+
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final manifest = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}provider_runtime_load_manifest.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(
+        manifest['schema_version'], 'prd_v3_provider_runtime_load_manifest.v1');
+    expect(manifest['provider_ref'], 'n8n');
+    expect(manifest['capability_id'], 'workflow_collaboration_export');
+    expect(manifest['eligible_before_load'], isTrue);
+    expect(manifest['runtime_loaded'], isFalse);
+    expect(manifest['runtime_loaded_count'], 0);
+    expect(manifest['status'], '配置缺失');
+    expect(manifest['error_code'], 'n8n_endpoint_missing_or_invalid');
+    expect(manifest['external_runtime_executed'], isFalse);
+    expect(manifest['workflow_executed'], isFalse);
+    expect(manifest['normal_ui_project_name_visible'], isFalse);
+    expect(manifest['secret_plaintext_written'], isFalse);
+    expect(
+        (manifest['downstream_binding']
+            as Map)['agent_workbench_a2a_workflow_export'],
+        contains('降级为本地 A2A'));
+
+    final logRows = readJsonlFile(
+        '$configDir${Platform.pathSeparator}provider_runtime_load_log.jsonl');
+    expect(logRows, hasLength(1));
+    expect(logRows.single['runtime_loaded_after_event'], isFalse);
+    expect(logRows.single['fallback'], contains('A2A 本地协作报告导出继续可用'));
+    expect(logRows.single['secret_plaintext_written'], isFalse);
+  });
+
+  test('stage3 n8n runtime load records safe health success only', () async {
+    final workspace = await createWorkspace();
+    writeStage2PreflightFixture(workspace);
+    writeStage2SkillRuntimeFixture(workspace);
+    writeStage2AgentPermissionFixture(workspace);
+    writeStage2IndustrialSmokeFixture(workspace);
+    writeStage2ExeLaunchSmokeFixture(workspace);
+    writeN8nReadinessFixture(workspace);
+    final previousHttpOverride = HttpOverrides.current;
+    HttpOverrides.global = null;
+    addTearDown(() {
+      HttpOverrides.global = previousHttpOverride;
+    });
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    addTearDown(() async {
+      await server.close(force: true);
+    });
+    final requests = <String>[];
+    unawaited(() async {
+      await for (final request in server) {
+        requests.add(request.uri.path);
+        request.response
+          ..statusCode = 200
+          ..headers.contentType = ContentType.json
+          ..write('{"status":"ok"}');
+        await request.response.close();
+      }
+    }());
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.testAllRegisteredProviderCapabilities();
+    const sensitiveValue = 'stage3-sensitive-value';
+    final endpoint =
+        'http://${server.address.host}:${server.port}?credential=redacted';
+    final loaded = await controller.loadN8nProviderRuntime(
+      endpoint: endpoint,
+      apiKey: sensitiveValue,
+    );
+    expect(loaded, isTrue);
+
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final manifestPath =
+        '$configDir${Platform.pathSeparator}provider_runtime_load_manifest.json';
+    final manifest = jsonDecode(File(manifestPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(manifest['runtime_loaded'], isTrue);
+    expect(manifest['runtime_loaded_count'], 1);
+    expect(manifest['status'], '连接成功');
+    expect(manifest['sanitized_endpoint'],
+        'http://${server.address.host}:${server.port}');
+    expect(manifest['external_runtime_connected'], isTrue);
+    expect(manifest['external_runtime_executed'], isFalse);
+    expect(manifest['workflow_executed'], isFalse);
+    expect(manifest['secret_plaintext_written'], isFalse);
+    final probe =
+        jsonDecode(File(manifest['probe_path'] as String).readAsStringSync())
+            as Map<String, dynamic>;
+    expect(
+        probe['schema_version'], 'prd_v3_provider_runtime_load_probe_n8n.v1');
+    expect(probe['runtime_loaded'], isTrue);
+    expect(probe['health_path'], '/healthz');
+    expect(probe['workflow_executed'], isFalse);
+    expect(probe['secret_plaintext_written'], isFalse);
+    expect(requests, ['/healthz']);
+
+    final configLog =
+        File('$configDir${Platform.pathSeparator}config_test_log.jsonl')
+            .readAsStringSync();
+    expect(configLog, contains('"config_type":"provider_runtime_load"'));
+    expect(configLog, isNot(contains(sensitiveValue)));
+    expect(configLog, isNot(contains('credential=redacted')));
+    expect(
+        File(manifestPath).readAsStringSync(), isNot(contains(sensitiveValue)));
   });
 
   test('prd multi knowledge base catalog supports copy merge split delete',

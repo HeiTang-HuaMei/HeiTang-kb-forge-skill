@@ -2286,6 +2286,102 @@ class Rc6RuntimeController extends ChangeNotifier {
     return true;
   }
 
+  Future<bool> loadN8nProviderRuntime({
+    String endpoint = '',
+    String apiKey = '',
+  }) async {
+    if (!_canRunDesktop()) {
+      return false;
+    }
+    final workspace = _requireWorkspace();
+    final startedAt = DateTime.now().toUtc().toIso8601String();
+    final active = _activeProfile(await _readProjectConfigProfiles(workspace));
+    final artifacts =
+        await _writeRegisteredProviderIntegrationArtifacts(workspace);
+    final matrix = await _readJsonObject(artifacts['matrix_path'].toString());
+    final contractsPath =
+        _stringValue(matrix['provider_adapter_contracts_path'], '');
+    if (contractsPath.isNotEmpty) {
+      await _writeProviderAdapterReadinessReport(
+        workspace,
+        await _readProjectConfigProfiles(workspace),
+        contractsPath,
+      );
+    }
+    final entry = _registeredProviderEntry(matrix, 'n8n');
+    final readinessByProvider = await _providerReadinessByProvider(workspace);
+    final readiness = readinessByProvider['n8n'] ?? const <String, dynamic>{};
+    final eligible = _boolValue(
+            _stage2IndustrialPreflight(workspace)['runtime_load_allowed']) &&
+        entry.isNotEmpty &&
+        _providerReadyForSelection(entry, readinessByProvider) &&
+        _boolValue(entry['requires_external_runtime']);
+    final effectiveEndpoint =
+        endpoint.trim().isEmpty ? _n8nEndpointFromEnvironment() : endpoint;
+    final probe = eligible
+        ? await _probeN8nRuntimeConnection(
+            workspace,
+            endpoint: effectiveEndpoint,
+            apiKey: apiKey,
+          )
+        : _blockedN8nRuntimeLoadProbe(
+            workspace,
+            readiness: readiness,
+            endpoint: effectiveEndpoint,
+          );
+    final loaded = _boolValue(probe['runtime_loaded']);
+    final finishedAt = DateTime.now().toUtc().toIso8601String();
+    final manifestPath = await _writeProviderRuntimeLoadManifest(
+      workspace,
+      providerRef: 'n8n',
+      capabilityId: 'workflow_collaboration_export',
+      startedAt: startedAt,
+      finishedAt: finishedAt,
+      eligible: eligible,
+      probe: probe,
+    );
+    await _appendProviderRuntimeLoadLog(
+      workspace,
+      providerRef: 'n8n',
+      capabilityId: 'workflow_collaboration_export',
+      startedAt: startedAt,
+      finishedAt: finishedAt,
+      eligible: eligible,
+      probe: probe,
+      manifestPath: manifestPath,
+    );
+    await _appendConfigTestLog(
+      workspace,
+      testId:
+          'provider_runtime_load_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+      profile: active,
+      configType: 'provider_runtime_load',
+      configId: 'n8n',
+      startedAt: startedAt,
+      finishedAt: finishedAt,
+      status: _stringValue(probe['status'], loaded ? '连接成功' : '连接失败'),
+      errorCode: _stringValue(probe['error_code'], ''),
+      errorMessageZh: _stringValue(probe['error_message_zh'], ''),
+      sanitizedEndpoint: _stringValue(
+          probe['sanitized_endpoint'], _sanitizeEndpoint(endpoint)),
+      testArtifacts: [manifestPath, _stringValue(probe['probe_path'], '')]
+          .where((path) => path.isNotEmpty)
+          .toList(growable: false),
+      affectedModules: ['agent_workbench', 'audit_center'],
+    );
+    await _writeProjectConfigRuntimeStatus(
+      workspace,
+      await _readProjectConfigProfiles(workspace),
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: loaded ? '工作流协作 Provider 连接已通过。' : '',
+      lastError: loaded ? '' : '工作流协作 Provider 未完成连接，已降级为本地 A2A 导出。',
+    );
+    notifyListeners();
+    return loaded;
+  }
+
   Future<String> saveStorageProviderSettings({
     required String redisHost,
     required int redisPort,
@@ -12511,6 +12607,293 @@ class Rc6RuntimeController extends ChangeNotifier {
     return path;
   }
 
+  Future<Map<String, dynamic>> _probeN8nRuntimeConnection(
+    Directory workspace, {
+    required String endpoint,
+    required String apiKey,
+  }) async {
+    final probePath = _providerRuntimeLoadProbePath(workspace, 'n8n');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final base = Uri.tryParse(endpoint.trim());
+    final sanitizedEndpoint = _sanitizeEndpoint(endpoint);
+    if (base == null || !base.hasScheme || base.host.isEmpty) {
+      final payload = {
+        'schema_version': 'prd_v3_provider_runtime_load_probe_n8n.v1',
+        'provider_ref': 'n8n',
+        'capability_id': 'workflow_collaboration_export',
+        'executed_at': now,
+        'probe_kind': 'safe_health_check_only',
+        'workspace_boundary': workspace.path,
+        'status': '配置缺失',
+        'error_code': 'n8n_endpoint_missing_or_invalid',
+        'error_message_zh': '需要配置 n8n endpoint 后才能连接工作流协作 Provider。',
+        'sanitized_endpoint': sanitizedEndpoint,
+        'runtime_loaded': false,
+        'external_runtime_connected': false,
+        'external_runtime_executed': false,
+        'workflow_executed': false,
+        'local_fallback': 'A2A 本地协作报告导出继续可用。',
+        'secret_masked': true,
+        'secret_plaintext_written': false,
+      };
+      await _writeJsonFile(probePath, payload);
+      return {
+        ...payload,
+        'probe_path': probePath,
+      };
+    }
+
+    final effectiveKey = _effectiveSecret(
+      provided: apiKey,
+      environmentKey: 'HEITANG_N8N_API_KEY',
+    );
+    final client = HttpClient()..connectionTimeout = const Duration(seconds: 5);
+    try {
+      final candidates = _n8nHealthUris(base);
+      Map<String, dynamic>? lastFailure;
+      for (final candidate in candidates) {
+        final request =
+            await client.getUrl(candidate).timeout(const Duration(seconds: 5));
+        request.headers.set(HttpHeaders.acceptHeader, 'application/json');
+        if (effectiveKey.isNotEmpty) {
+          request.headers.set('X-N8N-API-KEY', effectiveKey);
+        }
+        final response =
+            await request.close().timeout(const Duration(seconds: 5));
+        final body = await response.transform(utf8.decoder).join();
+        final ok = response.statusCode < 400;
+        if (ok) {
+          final payload = {
+            'schema_version': 'prd_v3_provider_runtime_load_probe_n8n.v1',
+            'provider_ref': 'n8n',
+            'capability_id': 'workflow_collaboration_export',
+            'executed_at': now,
+            'probe_kind': 'safe_health_check_only',
+            'workspace_boundary': workspace.path,
+            'status': '连接成功',
+            'error_code': '',
+            'error_message_zh': '',
+            'sanitized_endpoint': sanitizedEndpoint,
+            'health_path': candidate.path,
+            'http_status': response.statusCode,
+            'response_bytes': body.length,
+            'runtime_loaded': true,
+            'external_runtime_connected': true,
+            'external_runtime_executed': false,
+            'workflow_executed': false,
+            'local_fallback': '',
+            'secret_masked': true,
+            'secret_plaintext_written': false,
+          };
+          await _writeJsonFile(probePath, payload);
+          return {
+            ...payload,
+            'probe_path': probePath,
+          };
+        }
+        lastFailure = {
+          'status': response.statusCode == 401 || response.statusCode == 403
+              ? '鉴权失败'
+              : '连接失败',
+          'error_code': response.statusCode == 401 || response.statusCode == 403
+              ? 'n8n_auth_failed'
+              : 'n8n_health_check_failed',
+          'error_message_zh':
+              'n8n 健康检查返回 HTTP ${response.statusCode}，已降级为本地 A2A 导出。',
+          'health_path': candidate.path,
+          'http_status': response.statusCode,
+        };
+      }
+      final failure = lastFailure ??
+          const {
+            'status': '连接失败',
+            'error_code': 'n8n_health_check_failed',
+            'error_message_zh': 'n8n 健康检查失败，已降级为本地 A2A 导出。',
+            'health_path': '',
+            'http_status': 0,
+          };
+      final payload = {
+        'schema_version': 'prd_v3_provider_runtime_load_probe_n8n.v1',
+        'provider_ref': 'n8n',
+        'capability_id': 'workflow_collaboration_export',
+        'executed_at': now,
+        'probe_kind': 'safe_health_check_only',
+        'workspace_boundary': workspace.path,
+        ...failure,
+        'sanitized_endpoint': sanitizedEndpoint,
+        'runtime_loaded': false,
+        'external_runtime_connected': false,
+        'external_runtime_executed': false,
+        'workflow_executed': false,
+        'local_fallback': 'A2A 本地协作报告导出继续可用。',
+        'secret_masked': true,
+        'secret_plaintext_written': false,
+      };
+      await _writeJsonFile(probePath, payload);
+      return {
+        ...payload,
+        'probe_path': probePath,
+      };
+    } on TimeoutException catch (error) {
+      final payload = _n8nRuntimeProbeFailure(
+        workspace,
+        now: now,
+        sanitizedEndpoint: sanitizedEndpoint,
+        status: '超时',
+        errorCode: 'n8n_health_check_timeout',
+        errorMessageZh: 'n8n 健康检查超时，已降级为本地 A2A 导出。',
+        detail: error.toString(),
+      );
+      await _writeJsonFile(probePath, payload);
+      return {
+        ...payload,
+        'probe_path': probePath,
+      };
+    } on Object catch (error) {
+      final payload = _n8nRuntimeProbeFailure(
+        workspace,
+        now: now,
+        sanitizedEndpoint: sanitizedEndpoint,
+        status: '连接失败',
+        errorCode: 'n8n_connection_failed',
+        errorMessageZh: 'n8n 连接失败，已降级为本地 A2A 导出。',
+        detail: _redactSecret(error.toString(), effectiveKey),
+      );
+      await _writeJsonFile(probePath, payload);
+      return {
+        ...payload,
+        'probe_path': probePath,
+      };
+    } finally {
+      client.close(force: true);
+    }
+  }
+
+  Map<String, dynamic> _blockedN8nRuntimeLoadProbe(
+    Directory workspace, {
+    required Map<String, dynamic> readiness,
+    required String endpoint,
+  }) {
+    final probePath = _providerRuntimeLoadProbePath(workspace, 'n8n');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final blockedReasons = _listOfStrings(readiness['blocked_reasons']);
+    final payload = {
+      'schema_version': 'prd_v3_provider_runtime_load_probe_n8n.v1',
+      'provider_ref': 'n8n',
+      'capability_id': 'workflow_collaboration_export',
+      'executed_at': now,
+      'probe_kind': 'blocked_before_external_connection',
+      'workspace_boundary': workspace.path,
+      'status': '配置缺失',
+      'error_code': 'n8n_runtime_load_not_eligible',
+      'error_message_zh': blockedReasons.isEmpty
+          ? 'Stage2 工业级预检或 n8n readiness 未通过，禁止加载外部 runtime。'
+          : blockedReasons.join(' '),
+      'sanitized_endpoint': _sanitizeEndpoint(endpoint),
+      'runtime_loaded': false,
+      'external_runtime_connected': false,
+      'external_runtime_executed': false,
+      'workflow_executed': false,
+      'local_fallback': 'A2A 本地协作报告导出继续可用。',
+      'secret_masked': true,
+      'secret_plaintext_written': false,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return {
+      ...payload,
+      'probe_path': probePath,
+    };
+  }
+
+  Future<String> _writeProviderRuntimeLoadManifest(
+    Directory workspace, {
+    required String providerRef,
+    required String capabilityId,
+    required String startedAt,
+    required String finishedAt,
+    required bool eligible,
+    required Map<String, dynamic> probe,
+  }) async {
+    final loaded = _boolValue(probe['runtime_loaded']);
+    final manifestPath = _providerRuntimeLoadManifestPath(workspace);
+    final payload = {
+      'schema_version': 'prd_v3_provider_runtime_load_manifest.v1',
+      'provider_ref': providerRef,
+      'capability_id': capabilityId,
+      'started_at': startedAt,
+      'finished_at': finishedAt,
+      'workspace_boundary': workspace.path,
+      'eligible_before_load': eligible,
+      'runtime_loaded': loaded,
+      'runtime_loaded_count': loaded ? 1 : 0,
+      'status': _stringValue(probe['status'], loaded ? '连接成功' : '连接失败'),
+      'error_code': _stringValue(probe['error_code'], ''),
+      'error_message_zh': _stringValue(probe['error_message_zh'], ''),
+      'sanitized_endpoint': _stringValue(probe['sanitized_endpoint'], ''),
+      'probe_path': _stringValue(probe['probe_path'], ''),
+      'external_runtime_connected':
+          _boolValue(probe['external_runtime_connected']),
+      'external_runtime_executed': false,
+      'workflow_executed': false,
+      'downstream_binding': {
+        'agent_workbench_a2a_workflow_export':
+            loaded ? '外部工作流协作 Provider 可用。' : '降级为本地 A2A 导出。',
+        'document_library': '不受影响',
+        'knowledge_base': '不受影响',
+        'document_generation': '不受影响',
+      },
+      'fallback': loaded ? '' : 'A2A 本地协作报告导出继续可用。',
+      'normal_ui_project_name_visible': false,
+      'secret_masked': true,
+      'secret_plaintext_written': false,
+    };
+    await _writeJsonFile(manifestPath, payload);
+    return manifestPath;
+  }
+
+  Future<void> _appendProviderRuntimeLoadLog(
+    Directory workspace, {
+    required String providerRef,
+    required String capabilityId,
+    required String startedAt,
+    required String finishedAt,
+    required bool eligible,
+    required Map<String, dynamic> probe,
+    required String manifestPath,
+  }) async {
+    final event = {
+      'schema_version': 'prd_v3_provider_runtime_load_event.v1',
+      'event_id':
+          'provider_runtime_load_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+      'provider_ref': providerRef,
+      'capability_id': capabilityId,
+      'started_at': startedAt,
+      'finished_at': finishedAt,
+      'eligible_before_load': eligible,
+      'runtime_loaded_after_event': _boolValue(probe['runtime_loaded']),
+      'status': _stringValue(probe['status'], '连接失败'),
+      'error_code': _stringValue(probe['error_code'], ''),
+      'error_message_zh': _stringValue(probe['error_message_zh'], ''),
+      'sanitized_endpoint': _stringValue(probe['sanitized_endpoint'], ''),
+      'manifest_path': manifestPath,
+      'probe_path': _stringValue(probe['probe_path'], ''),
+      'external_runtime_executed': false,
+      'workflow_executed': false,
+      'fallback': _stringValue(probe['local_fallback'], ''),
+      'secret_masked': true,
+      'secret_plaintext_written': false,
+    };
+    final file = File(_providerRuntimeLoadLogPath(workspace));
+    await file.parent.create(recursive: true);
+    await file.writeAsString('${jsonEncode(event)}\n',
+        mode: FileMode.append, encoding: utf8);
+  }
+
   Future<String> _writeProviderCapabilityBindingManifest(
     Directory workspace,
     List<ProjectConfigProfile> profiles,
@@ -13124,6 +13507,23 @@ class Rc6RuntimeController extends ChangeNotifier {
       Directory workspace) {
     return _join(workspace.path, 'config',
         'provider_runtime_load_eligibility_manifest.json');
+  }
+
+  static String _providerRuntimeLoadManifestPath(Directory workspace) {
+    return _join(
+        workspace.path, 'config', 'provider_runtime_load_manifest.json');
+  }
+
+  static String _providerRuntimeLoadLogPath(Directory workspace) {
+    return _join(workspace.path, 'config', 'provider_runtime_load_log.jsonl');
+  }
+
+  static String _providerRuntimeLoadProbePath(
+    Directory workspace,
+    String providerRef,
+  ) {
+    return _join(workspace.path, 'config',
+        'provider_runtime_load_probe_$providerRef.json');
   }
 
   static String _providerAdapterProbePath(
@@ -18105,6 +18505,69 @@ class Rc6RuntimeController extends ChangeNotifier {
       return text;
     }
     return text.replaceAll(secret, '********');
+  }
+
+  static String _n8nEndpointFromEnvironment() {
+    return Platform.environment['HEITANG_N8N_ENDPOINT']?.trim() ??
+        Platform.environment['N8N_ENDPOINT']?.trim() ??
+        '';
+  }
+
+  static List<Uri> _n8nHealthUris(Uri baseUri) {
+    final normalizedBase = baseUri.path.endsWith('/')
+        ? baseUri.path.substring(0, baseUri.path.length - 1)
+        : baseUri.path;
+    final paths = <String>[
+      '/healthz',
+      '/health',
+      '/rest/settings',
+    ];
+    return paths
+        .map((path) => baseUri.replace(path: '$normalizedBase$path', query: ''))
+        .toList(growable: false);
+  }
+
+  static Map<String, dynamic> _n8nRuntimeProbeFailure(
+    Directory workspace, {
+    required String now,
+    required String sanitizedEndpoint,
+    required String status,
+    required String errorCode,
+    required String errorMessageZh,
+    required String detail,
+  }) {
+    return {
+      'schema_version': 'prd_v3_provider_runtime_load_probe_n8n.v1',
+      'provider_ref': 'n8n',
+      'capability_id': 'workflow_collaboration_export',
+      'executed_at': now,
+      'probe_kind': 'safe_health_check_only',
+      'workspace_boundary': workspace.path,
+      'status': status,
+      'error_code': errorCode,
+      'error_message_zh': errorMessageZh,
+      'sanitized_endpoint': sanitizedEndpoint,
+      'detail': detail,
+      'runtime_loaded': false,
+      'external_runtime_connected': false,
+      'external_runtime_executed': false,
+      'workflow_executed': false,
+      'local_fallback': 'A2A 本地协作报告导出继续可用。',
+      'secret_masked': true,
+      'secret_plaintext_written': false,
+    };
+  }
+
+  static Future<void> _writeJsonFile(
+    String path,
+    Map<String, dynamic> payload,
+  ) async {
+    final file = File(path);
+    await file.parent.create(recursive: true);
+    await file.writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
   }
 
   static String _redisCommand(List<String> parts) {

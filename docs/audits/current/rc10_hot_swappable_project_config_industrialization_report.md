@@ -285,12 +285,23 @@ Local Workflow / A2A export adapter proof:
 - `n8n` is intentionally excluded from `document_exporter`; document export binds to document/content export Providers such as `jellyfish` or `story_flicks`.
 - This validates a local workflow export boundary only. It does not bundle n8n, call n8n, expose n8n as a normal product module, or execute any external workflow runtime.
 
+Controlled n8n runtime load boundary:
+
+- Stage 3 now has a separate controlled runtime-load path for the only current external-runtime eligible Provider: `n8n`.
+- Runtime load is gated by Stage 2 industrial preflight, Provider readiness, and `requires_external_runtime=true`.
+- The load path accepts a user-owned n8n endpoint from explicit input or environment configuration and performs safe health checks only: `/healthz`, `/health`, then `/rest/settings`.
+- A successful health response writes `config/provider_runtime_load_manifest.json`, `config/provider_runtime_load_probe_n8n.json`, and `config/provider_runtime_load_log.jsonl` with `runtime_loaded=true` and `runtime_loaded_count=1`.
+- The success state does not execute any workflow, does not bundle n8n, does not run arbitrary shell, and records `external_runtime_executed=false` and `workflow_executed=false`.
+- Missing, invalid, unreachable, unauthorized, or timed-out endpoints keep `runtime_loaded=false` and degrade to local A2A collaboration report export.
+- Endpoint query strings and credentials are sanitized. Logs and manifests keep `secret_masked=true` and `secret_plaintext_written=false`.
+- Normal UI boundary remains unchanged: users see workflow collaboration capability status, not an external project-loading product module.
+
 Adapter readiness:
 
 - `provider_adapter_readiness_report.json` evaluates the 26 adapter contracts against the active Profile and current workspace configuration.
 - It records missing config refs, blocked reasons, Chinese error messages, degradation targets, affected modules, and masked status for each Provider.
 - The readiness report feeds audit/runtime status without exposing external project names in normal UI.
-- Current evidence keeps `runtime_loaded_count=0`. After Stage 2 preflight passes, locally proven Provider enhancements may record `runtime_load_allowed=true`, but they still remain `runtime_loaded=false` until a later Stage 3 gate proves real external runtime execution.
+- Current default readiness evidence keeps `runtime_loaded_count=0`. After Stage 2 preflight passes, locally proven Provider enhancements may record `runtime_load_allowed=true`, but they still remain `runtime_loaded=false` until the separate Stage 3 runtime-load health gate succeeds for a user-owned external endpoint.
 - `provider_runtime_load_eligibility_manifest.json` separates local capability enhancements from Provider refs that require user-owned external runtime loading. In the current evidence workspace, Stage 2 preflight allows runtime loading, `n8n` is the only external-runtime eligible Provider, and `runtime_loaded_count` remains `0`.
 
 ## Profile Schema
@@ -329,6 +340,7 @@ Lifecycle behavior implemented:
 | Embedding/Vector adapter probes | `provider_adapter_probe_<provider_ref>.json` | Verifies real KB chunks, index profile, vector reference, build report, metadata, and chunk-count consistency before allowing Embedding/Vector enhancements to be selected |
 | Exporter adapter probes | `provider_adapter_probe_jellyfish.json`, `provider_adapter_probe_story_flicks.json` | Verifies real structured export and video handoff boundary artifacts before allowing exporter enhancements to be selected |
 | Workflow/A2A export adapter probes | `provider_adapter_probe_n8n.json` | Verifies real A2A session, rounds, runtime audit, conflict, consensus, and collaboration report artifacts before allowing workflow export enhancements to be selected |
+| Controlled n8n runtime load | `loadN8nProviderRuntime`, `provider_runtime_load_manifest.json`, `provider_runtime_load_log.jsonl` | Performs safe health-check-only connection to a user-owned n8n endpoint after Stage 2 preflight and readiness pass; success records runtime loaded, failure records local A2A fallback |
 
 The CI-safe tests cover failure and config-state paths without requiring external services. Real Redis/Qdrant success checks remain part of EXE smoke when Docker services are available.
 
@@ -341,6 +353,7 @@ The CI-safe tests cover failure and config-state paths without requiring externa
 | LLM failure | Local import and parsing stay available; LLM summary, Skill generation, Agent dialogue require configured provider |
 | Exporter failure | Markdown/JSON/CSV stay available; DOCX/PDF/PPTX remain disabled or failed until configured |
 | Network authorization off | Web import and external fact verification disabled; local retrieval unaffected |
+| n8n endpoint missing/unreachable | Workflow collaboration external runtime remains unloaded; Agent Workbench A2A export falls back to local collaboration report artifacts |
 
 ## Secret Masking Proof
 
@@ -350,6 +363,7 @@ Implemented:
 - `project_config_profiles.json`, `project_config_assets.json`, validation reports, and JSONL logs set `secret_plaintext_written=false` or `secret_masked=true`.
 - Tests assert raw secrets are not written to storage settings or test logs.
 - Config export paths do not include plaintext secret values.
+- n8n runtime-load tests assert explicit sensitive values and endpoint query strings are absent from `config_test_log.jsonl` and runtime-load manifests.
 
 ## Runtime State Sync Proof
 
@@ -480,6 +494,24 @@ Latest Stage 3 Workflow/A2A Export Provider slice:
   `runtime_loaded=false`, `external_runtime_executed=false`, and
   `vendor_runtime_loaded=false`.
 
+Latest Stage 3 controlled n8n runtime-load slice:
+
+- `loadN8nProviderRuntime` writes:
+  `config/provider_runtime_load_manifest.json`,
+  `config/provider_runtime_load_probe_n8n.json`, and
+  `config/provider_runtime_load_log.jsonl`.
+- Missing endpoint path is covered by:
+  `stage3 n8n runtime load degrades when endpoint is missing`.
+- Safe health-success path is covered by:
+  `stage3 n8n runtime load records safe health success only`.
+- The success test uses a local HTTP health endpoint and verifies
+  `runtime_loaded=true`, `runtime_loaded_count=1`,
+  `external_runtime_executed=false`, `workflow_executed=false`,
+  sanitized endpoint output, and absence of sensitive values in logs/manifests.
+- This is the first Stage 3 external runtime load proof, limited to controlled
+  health connection. It is not workflow execution and does not expose n8n as a
+  normal product module.
+
 Latest Stage 3 high-risk Provider gate slice:
 
 - High-risk registered Provider refs now write explicit readiness probes before
@@ -501,6 +533,15 @@ Latest Stage 3 high-risk Provider gate slice:
 - Targeted test:
   `prd settings and parallel task validation produce industrial audit artifacts`.
 
+Latest validation for controlled n8n runtime-load slice:
+
+- `flutter analyze`
+- `flutter test test\rc6_runtime_truth_blocker_repair_test.dart --plain-name "stage3 n8n runtime load" --concurrency=1`
+- `flutter test test\rc6_runtime_truth_blocker_repair_test.dart --concurrency=1`
+- `STAGE2_VERIFY_EXE_SMOKE=1 flutter test test\stage2_industrial_evidence_refresh_test.dart --plain-name "refreshes Stage2 preflight after independent EXE smoke" --concurrency=1`
+- `git diff --check`
+- diff-only no-secret / overclaim review completed; findings are expected test sentinel text and the new Stage 3 `runtime_loaded_count=1` assertion for the controlled health-success path, not default readiness overclaim.
+
 Pending after push:
 
 - remote CI green confirmation
@@ -509,7 +550,8 @@ Pending after push:
 
 - Real Redis/Qdrant success probe depends on running external services and valid environment configuration; failure/degradation paths are automated.
 - Full EXE smoke requires manual Owner verification after EXE launch.
-- Registered but unloaded projects are still not loaded as product modules. Stage 3 now validates them as Provider capability enhancements with health status, blocked activation, local fallback, and rollback audit before any future real adapter execution.
+- Registered projects are still not loaded as product modules. Stage 3 now validates them as Provider capability enhancements with health status, controlled runtime-load audit, blocked activation/fallback, and rollback audit.
+- n8n external runtime loading is health-check-only. Workflow execution through n8n remains intentionally not implemented in this slice.
 
 ## Owner Retest Checklist
 
