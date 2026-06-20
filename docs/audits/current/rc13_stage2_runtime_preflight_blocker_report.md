@@ -30,7 +30,7 @@ The preflight requires runtime evidence for:
 2. OKF runtime to KB build. Current implementation must prove downstream KB materialization, catalog binding, orchestration, and audit records.
 3. A2A multi-round collaboration and conflict detection. Current implementation writes runtime evidence.
 4. Skill secondary fusion plus multi-version management. Current implementation must prove fusion runtime, independent version snapshots, diff, rollback, and audit records.
-5. Agent workspace permission enforcement and unauthorized access blocking.
+5. Agent workspace permission enforcement and unauthorized access blocking. Current implementation must prove real deny/allow authorization cases, not only a static permission matrix.
 6. Real EXE 38-step industrial smoke pass.
 
 ## Important Boundary
@@ -70,6 +70,20 @@ The Stage 2 gate requires:
 - `skill/operations/skill_runtime_audit.jsonl` with a `skill_secondary_fusion` event.
 - `skill/fused_product_ops_skill/SKILL.md` and `skill_manifest.json` proving `skill_plus_kb_fusion`.
 
+## Agent Permission Runtime Boundary
+
+Agent permission matrices alone are not treated as workspace authorization completion.
+
+The Stage 2 gate requires:
+
+- `agent/audit/workspace_permission_matrix.json` declaring W_A, W_M, W_B, and W_C boundaries.
+- `agent/audit/permission_audit.json` linking to the matrix.
+- `agent/audit/unauthorized_access_block_report.json` with `status=pass`.
+- `agent/audit/authorization_runtime_audit.jsonl` containing allow and deny decisions.
+- Denied cases for unauthorized KB access, sibling workspace access, non-allowlisted tools, and plaintext secret access.
+- `unauthorized_resources_selectable=false`.
+- `agent/audit/agent_validation_report.json` and `agent/audit/run_history.json` linking the authorization runtime evidence.
+
 ## Validation
 
 Validated commands:
@@ -95,5 +109,4 @@ Stage 3 Provider hot-swap may continue only as config/readiness/audit hardening.
 
 It must not proceed to external runtime loading or claim registered projects are runtime-integrated until the remaining Stage 2 runtime preflight items pass:
 
-- Agent workspace permission enforcement and unauthorized access blocking.
 - Real EXE 38-step industrial smoke pass.

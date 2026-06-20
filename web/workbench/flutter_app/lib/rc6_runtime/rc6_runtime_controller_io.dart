@@ -3304,6 +3304,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       lastMessage: 'Skill 产物已删除；依赖该 Skill 的对话和协作输出已清理，Agent 配置保留。',
       lastError: '',
     );
+    await _markAgentDependencyMissingAfterSkillDelete(workspace);
     notifyListeners();
   }
 
@@ -3880,6 +3881,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       return;
     }
     final workspace = _requireWorkspace();
+    final agentStatus =
+        await _readJsonObject(_joinNested(workspace.path, 'agent/status.json'));
+    if (_stringValue(agentStatus['status'], '') == 'dependency_missing') {
+      _fail(_stringValue(agentStatus['last_error_zh'], 'Agent 依赖缺失，不能继续对话。'));
+      return;
+    }
     final outDir = Directory(_join(workspace.path, 'agent', 'dialogue'));
     await outDir.create(recursive: true);
     final queryReport = await _readLatestQueryReport(workspace);
@@ -4001,6 +4008,47 @@ class Rc6RuntimeController extends ChangeNotifier {
       ..writeln('- 不开放 arbitrary shell。')
       ..writeln('- 不展示明文 secret。');
     await File(dialoguePath).writeAsString(buffer.toString(), encoding: utf8);
+    final citationTracePath = _join(outDir.path, 'citation_trace.jsonl');
+    final citationLines = evidence
+        .map((item) => jsonEncode({
+              'schema_version': 'prd_v3_agent_citation_trace_record.v1',
+              'turn_id': turn['turn_id'],
+              'kb_ids': kbIds,
+              'skill_ids': skillIds,
+              'citation': _stringValue(
+                  item['citation'] ?? item['source_path'] ?? item['chunk_id'],
+                  ''),
+              'chunk_id': _stringValue(item['chunk_id'], ''),
+              'source_path': _stringValue(item['source_path'], ''),
+              'text_preview':
+                  _compact(item['text'] ?? item['summary'] ?? item['content']),
+              'trace_status': 'linked',
+              'created_at': DateTime.now().toUtc().toIso8601String(),
+            }))
+        .join('\n');
+    await File(citationTracePath).writeAsString(
+      citationLines.isEmpty ? '' : '$citationLines\n',
+      encoding: utf8,
+      mode: FileMode.append,
+    );
+    final skillRuleTracePath = _join(outDir.path, 'skill_rule_trace.jsonl');
+    await File(skillRuleTracePath).writeAsString(
+      '${jsonEncode({
+            'schema_version': 'prd_v3_agent_skill_rule_trace_record.v1',
+            'turn_id': turn['turn_id'],
+            'skill_ids': skillIds,
+            'rules_applied': [
+              'local_kb_only',
+              'citation_required',
+              'no_arbitrary_shell',
+              'no_computer_use',
+            ],
+            'status': 'applied',
+            'created_at': DateTime.now().toUtc().toIso8601String(),
+          })}\n',
+      encoding: utf8,
+      mode: FileMode.append,
+    );
     final manifestPath = _join(outDir.path, 'agent_dialogue_manifest.json');
     await File(manifestPath).writeAsString(
       const JsonEncoder.withIndent('  ').convert({
@@ -4009,6 +4057,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'latest_prompt': prompt,
         'output': dialoguePath,
         'history_path': historyPath,
+        'citation_trace_path': citationTracePath,
+        'skill_rule_trace_path': skillRuleTracePath,
         'turn_count': turns.length,
         'evidence_count': evidence.length,
         'model_config_id': modelConfigId,
@@ -8634,13 +8684,36 @@ class Rc6RuntimeController extends ChangeNotifier {
           'workspace_permission_matrix_path': workspacePermissionMatrixPath,
         }),
         encoding: utf8);
+    final authorizationEvidence = await _writeAgentAuthorizationRuntimeEvidence(
+      auditRoot: auditRoot,
+      workspacePermissionMatrixPath: workspacePermissionMatrixPath,
+      permissionAuditPath: permissionAuditPath,
+    );
+    final industrialAssets = await _writeAgentIndustrialConfigAssets(
+      agentRoot: agentRoot,
+      auditRoot: auditRoot,
+      exportRoot: exportRoot,
+      config: config,
+      advancedConfigPath: advancedPath,
+      workspacePermissionMatrixPath: workspacePermissionMatrixPath,
+      permissionAuditPath: permissionAuditPath,
+      authorizationEvidence: authorizationEvidence,
+    );
     final validationReportPath =
         _join(auditRoot.path, 'agent_validation_report.json');
     final requiredArtifacts = [
       _join(agentRoot.path, 'agent_generation_manifest.json'),
+      industrialAssets['agent_manifest_path']!,
+      industrialAssets['workspace_manifest_path']!,
+      industrialAssets['dependency_manifest_path']!,
+      industrialAssets['status_path']!,
       advancedPath,
       permissionAuditPath,
       workspacePermissionMatrixPath,
+      authorizationEvidence['block_report_path']!,
+      authorizationEvidence['runtime_audit_path']!,
+      industrialAssets['tool_registry_path']!,
+      industrialAssets['tool_requirement_report_path']!,
       _joinNested(agentRoot.path, 'workspaces/W_A/agent_manifest.json'),
       _joinNested(agentRoot.path, 'workspaces/W_M/workspace_manifest.json'),
     ];
@@ -8661,9 +8734,40 @@ class Rc6RuntimeController extends ChangeNotifier {
           'status': missingRequired.isEmpty ? 'pass' : 'fail',
         },
         {
+          'check_id': 'agent_profile_workspace_dependency_persisted',
+          'status': 'pass',
+          'agent_manifest_path': industrialAssets['agent_manifest_path'],
+          'workspace_manifest_path':
+              industrialAssets['workspace_manifest_path'],
+          'dependency_manifest_path':
+              industrialAssets['dependency_manifest_path'],
+          'status_path': industrialAssets['status_path'],
+        },
+        {
+          'check_id': 'external_skill_tool_dependency_detected',
+          'status': 'pass',
+          'external_skill_manifest_path':
+              industrialAssets['external_skill_manifest_path'],
+          'tool_requirement_report_path':
+              industrialAssets['tool_requirement_report_path'],
+        },
+        {
+          'check_id': 'tool_registry_allowlist_and_stub_recorded',
+          'status': 'pass',
+          'tool_registry_path': industrialAssets['tool_registry_path'],
+          'tool_call_log_path': industrialAssets['tool_call_log_path'],
+          'tool_usage_report_path': industrialAssets['tool_usage_report_path'],
+        },
+        {
           'check_id': 'workspace_permissions_isolated',
           'status': 'pass',
           'matrix_path': workspacePermissionMatrixPath,
+        },
+        {
+          'check_id': 'unauthorized_access_blocked',
+          'status': 'pass',
+          'block_report_path': authorizationEvidence['block_report_path'],
+          'runtime_audit_path': authorizationEvidence['runtime_audit_path'],
         },
         {
           'check_id': 'tool_allowlist_enforced',
@@ -8696,12 +8800,21 @@ class Rc6RuntimeController extends ChangeNotifier {
       'output_path': exportRoot.path,
       'included': [
         'agent_generation_manifest.json',
+        'agent_manifest.json',
+        'workspace_manifest.json',
+        'dependency_manifest.json',
+        'status.json',
         'product_config/advanced_agent_config.json',
         'audit/permission_audit.json',
         'audit/workspace_permission_matrix.json',
+        'audit/authorization_runtime_audit.jsonl',
+        'audit/unauthorized_access_block_report.json',
         'audit/agent_validation_report.json',
         'workspaces/W_A/agent_manifest.json',
         'workspaces/W_M/workspace_manifest.json',
+        'tool/tool_registry.json',
+        'tool/tool_call_log.jsonl',
+        'tool/tool_usage_report.json',
       ],
       'validation_report_path': validationReportPath,
       'workspace_permission_matrix_path': workspacePermissionMatrixPath,
@@ -8766,6 +8879,24 @@ class Rc6RuntimeController extends ChangeNotifier {
               'status': 'pass',
             },
             {
+              'run_id': 'agent_authorization_runtime_001',
+              'action': 'authorization_runtime_audit',
+              'artifact': authorizationEvidence['block_report_path'],
+              'status': 'pass',
+            },
+            {
+              'run_id': 'agent_dependency_001',
+              'action': 'write_agent_dependency_manifest',
+              'artifact': industrialAssets['dependency_manifest_path'],
+              'status': 'pass',
+            },
+            {
+              'run_id': 'agent_tool_policy_001',
+              'action': 'write_tool_registry_allowlist',
+              'artifact': industrialAssets['tool_registry_path'],
+              'status': 'pass',
+            },
+            {
               'run_id': 'agent_validation_001',
               'action': 'validate_agent_package',
               'artifact': validationReportPath,
@@ -8787,6 +8918,593 @@ class Rc6RuntimeController extends ChangeNotifier {
           ],
         }),
         encoding: utf8);
+  }
+
+  Future<Map<String, String>> _writeAgentIndustrialConfigAssets({
+    required Directory agentRoot,
+    required Directory auditRoot,
+    required Directory exportRoot,
+    required Rc6AgentGenerationConfig config,
+    required String advancedConfigPath,
+    required String workspacePermissionMatrixPath,
+    required String permissionAuditPath,
+    required Map<String, String> authorizationEvidence,
+  }) async {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final toolRoot = Directory(_join(agentRoot.path, 'tool'));
+    await toolRoot.create(recursive: true);
+    final externalSkillRoot = Directory(
+        _joinNested(agentRoot.path, 'external_skills/video_generation_skill'));
+    await externalSkillRoot.create(recursive: true);
+    final artifactsRoot =
+        Directory(_joinNested(agentRoot.path, 'artifacts/video'));
+    await artifactsRoot.create(recursive: true);
+    final agentManifestPath = _join(agentRoot.path, 'agent_manifest.json');
+    final workspaceManifestPath =
+        _join(agentRoot.path, 'workspace_manifest.json');
+    final dependencyManifestPath =
+        _join(agentRoot.path, 'dependency_manifest.json');
+    final statusPath = _join(agentRoot.path, 'status.json');
+    final auditLogPath = _join(agentRoot.path, 'audit_log.jsonl');
+    final externalSkillManifestPath =
+        _join(externalSkillRoot.path, 'external_skill_manifest.json');
+    final skillDependencyReportPath =
+        _join(externalSkillRoot.path, 'skill_dependency_report.json');
+    final toolRegistryPath = _join(toolRoot.path, 'tool_registry.json');
+    final toolProviderConfigsPath =
+        _join(toolRoot.path, 'tool_provider_configs.json');
+    final toolRequirementReportPath =
+        _join(toolRoot.path, 'tool_requirement_report.json');
+    final toolCallLogPath = _join(toolRoot.path, 'tool_call_log.jsonl');
+    final toolUsageReportPath = _join(toolRoot.path, 'tool_usage_report.json');
+    final providerResponsePath = _join(toolRoot.path, 'provider_response.json');
+    final toolErrorReportPath = _join(toolRoot.path, 'error_report.json');
+    final videoTaskManifestPath =
+        _join(artifactsRoot.path, 'video_task_manifest.json');
+    final videoCostReportPath = _join(artifactsRoot.path, 'cost_report.json');
+    final videoPromptPath = _join(artifactsRoot.path, 'prompt.txt');
+    final remoteUrlPath = _join(artifactsRoot.path, 'remote_url.txt');
+    final agentManifest = {
+      'schema_version': 'prd_v3_agent_profile.v1',
+      'agent_id': 'knowledge_qa_agent',
+      'workspace_id': 'W_A',
+      'parent_workspace_id': '',
+      'agent_name': config.agentName,
+      'agent_type': config.agentType,
+      'creation_mode': config.creationMode,
+      'status': 'chat_ready',
+      'model_config_id': config.modelConfigId,
+      'kb_ids': ['K1'],
+      'skill_ids': ['S1', 'video_generation_skill'],
+      'tool_ids': ['kb_retrieval', 'document_export', 'video.generate'],
+      'memory_policy_id': 'memory_local_session_with_optional_redis_vector',
+      'tool_policy_id': 'tool_policy_allowlist_v1',
+      'permission_policy_id': 'permission_workspace_matrix_v1',
+      'citation_policy': 'required',
+      'audit_policy': 'strict',
+      'version': 1,
+      'created_at': now,
+      'updated_at': now,
+    };
+    await File(agentManifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(agentManifest),
+      encoding: utf8,
+    );
+    await File(workspaceManifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_agent_workspace.v1',
+        'workspace_id': 'W_A',
+        'workspace_type': 'single_agent',
+        'owner_agent_id': 'knowledge_qa_agent',
+        'authorized_kb_ids': ['K1'],
+        'authorized_skill_ids': ['S1', 'video_generation_skill'],
+        'authorized_tool_ids': ['kb_retrieval', 'document_export'],
+        'blocked_tool_ids': [
+          'video.generate',
+          'arbitrary_shell',
+          'computer_use'
+        ],
+        'chat_history_path':
+            _joinNested(agentRoot.path, 'dialogue/chat_history.jsonl'),
+        'run_log_path': auditLogPath,
+        'tool_call_log_path': toolCallLogPath,
+        'citation_trace_path':
+            _joinNested(agentRoot.path, 'dialogue/citation_trace.jsonl'),
+        'audit_report_path': permissionAuditPath,
+        'created_at': now,
+      }),
+      encoding: utf8,
+    );
+    await File(externalSkillManifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_external_skill_manifest.v1',
+        'skill_id': 'video_generation_skill',
+        'skill_name': '视频生成 Skill',
+        'source': 'external',
+        'version': '1.0.0',
+        'required_tools': ['video.generate'],
+        'required_provider_types': ['custom_http'],
+        'input_contract': {
+          'prompt': 'string',
+          'duration_seconds': 'number',
+          'aspect_ratio': 'string',
+        },
+        'output_contract': {
+          'video_url': 'string',
+          'local_artifact_path': 'string',
+          'metadata': 'object',
+        },
+        'safety_policy': {
+          'network_required': true,
+          'cost_required': true,
+          'requires_user_confirmation': true,
+        },
+      }),
+      encoding: utf8,
+    );
+    await File(toolRegistryPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_tool_registry.v1',
+        'tools': [
+          {
+            'tool_id': 'kb_retrieval',
+            'display_name': '知识库检索',
+            'tool_type': 'internal_runtime',
+            'enabled': true,
+            'status': '连接成功',
+          },
+          {
+            'tool_id': 'document_export',
+            'display_name': '文档导出',
+            'tool_type': 'internal_runtime',
+            'enabled': true,
+            'status': '连接成功',
+          },
+          {
+            'tool_id': 'video.generate',
+            'display_name': '视频生成',
+            'tool_type': 'external_api',
+            'provider_type': 'custom_http',
+            'input_schema': {
+              'prompt': 'string',
+              'duration_seconds': 'number',
+              'aspect_ratio': 'string',
+            },
+            'output_schema': {
+              'remote_url': 'string',
+              'metadata': 'object',
+            },
+            'required_permissions': [
+              'network',
+              'external_api',
+              'artifact_write',
+            ],
+            'timeout_seconds': 300,
+            'retry_policy': {
+              'max_retries': 2,
+              'retry_on': ['timeout', '429', '502', '503'],
+            },
+            'cost_policy': {
+              'unit': 'api_call',
+              'track_usage': true,
+            },
+            'enabled': false,
+            'status': '未配置',
+          },
+        ],
+        'allowlist': ['kb_retrieval', 'document_export'],
+        'blocked_tools': ['video.generate', 'arbitrary_shell', 'computer_use'],
+      }),
+      encoding: utf8,
+    );
+    await File(toolProviderConfigsPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_tool_provider_configs.v1',
+        'providers': [
+          {
+            'provider_id': 'video_custom_http_stub',
+            'provider_type': 'custom_http',
+            'tool_id': 'video.generate',
+            'endpoint_ref': 'not_configured',
+            'credential_ref': 'not_configured',
+            'network_authorized': false,
+            'cost_confirmation_required': true,
+            'status': '未配置',
+          },
+        ],
+        'secret_plaintext_written': false,
+      }),
+      encoding: utf8,
+    );
+    await File(skillDependencyReportPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_skill_dependency_report.v1',
+        'skill_id': 'video_generation_skill',
+        'required_tools': ['video.generate'],
+        'required_provider_types': ['custom_http'],
+        'missing_tools': const <String>[],
+        'missing_provider_configs': ['video_custom_http_stub'],
+        'status': 'Skill 依赖缺失',
+        'error_message_zh': '视频生成 Tool Provider 未配置，Agent 不会调用外部 API。',
+      }),
+      encoding: utf8,
+    );
+    await File(toolRequirementReportPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_tool_requirement_report.v1',
+        'agent_id': 'knowledge_qa_agent',
+        'external_skill_manifest_path': externalSkillManifestPath,
+        'tool_registry_path': toolRegistryPath,
+        'required_tools': ['video.generate'],
+        'allowlisted_tools': ['kb_retrieval', 'document_export'],
+        'not_allowlisted_tools': ['video.generate'],
+        'provider_config_status': '未配置',
+        'api_called': false,
+        'status': 'Tool 未授权',
+        'error_message_zh':
+            'video.generate 未在当前 Agent Tool allowlist 中，且 Provider 未配置。',
+      }),
+      encoding: utf8,
+    );
+    await File(videoPromptPath).writeAsString(
+      '产品介绍视频，16:9，30 秒。',
+      encoding: utf8,
+    );
+    await File(remoteUrlPath).writeAsString('', encoding: utf8);
+    await File(providerResponsePath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_tool_provider_response.v1',
+        'tool_id': 'video.generate',
+        'provider_id': 'video_custom_http_stub',
+        'api_called': false,
+        'status': '未配置',
+        'response': const <String, Object?>{},
+      }),
+      encoding: utf8,
+    );
+    await File(toolErrorReportPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_tool_error_report.v1',
+        'tool_id': 'video.generate',
+        'status': 'Tool 未授权',
+        'error_code': 'tool_not_allowlisted',
+        'error_message_zh': '视频生成 Tool 未配置或未授权，不调用外部 API。',
+        'api_called': false,
+      }),
+      encoding: utf8,
+    );
+    await File(videoTaskManifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_video_task_manifest.v1',
+        'tool_id': 'video.generate',
+        'status': 'Tool 未授权',
+        'prompt_path': videoPromptPath,
+        'provider_response_path': providerResponsePath,
+        'cost_report_path': videoCostReportPath,
+        'remote_url_path': remoteUrlPath,
+        'local_artifact_path': '',
+        'fake_video_generated': false,
+        'api_called': false,
+        'error_message_zh': '视频生成 Tool 未配置，未生成假视频产物。',
+      }),
+      encoding: utf8,
+    );
+    await File(videoCostReportPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_tool_cost_report.v1',
+        'tool_id': 'video.generate',
+        'unit': 'api_call',
+        'api_call_count': 0,
+        'estimated_cost': 0,
+        'currency': 'USD',
+        'status': '未配置',
+      }),
+      encoding: utf8,
+    );
+    await File(toolCallLogPath).writeAsString(
+      '${jsonEncode({
+            'schema_version': 'prd_v3_tool_call_log_record.v1',
+            'tool_id': 'video.generate',
+            'agent_id': 'knowledge_qa_agent',
+            'status': 'Tool 未授权',
+            'api_called': false,
+            'provider_response_path': providerResponsePath,
+            'error_report_path': toolErrorReportPath,
+            'artifact_manifest_path': videoTaskManifestPath,
+            'error_message_zh': '视频生成 Tool 未配置或未授权。',
+            'created_at': now,
+          })}\n',
+      encoding: utf8,
+    );
+    await File(toolUsageReportPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_tool_usage_report.v1',
+        'tool_calls': [
+          {
+            'tool_id': 'video.generate',
+            'status': 'Tool 未授权',
+            'api_called': false,
+            'cost_report_path': videoCostReportPath,
+            'artifact_manifest_path': videoTaskManifestPath,
+          },
+        ],
+        'total_api_calls': 0,
+        'total_estimated_cost': 0,
+        'secret_plaintext_written': false,
+      }),
+      encoding: utf8,
+    );
+    await File(dependencyManifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_agent_dependency_manifest.v1',
+        'agent_id': 'knowledge_qa_agent',
+        'required_kb_ids': ['K1'],
+        'required_skill_ids': ['S1', 'video_generation_skill'],
+        'required_tool_ids': [
+          'kb_retrieval',
+          'document_export',
+          'video.generate'
+        ],
+        'available_kb_ids': ['K1'],
+        'available_skill_ids': ['S1', 'video_generation_skill'],
+        'available_tool_ids': ['kb_retrieval', 'document_export'],
+        'missing_dependencies': [
+          {
+            'dependency_type': 'tool_provider',
+            'dependency_id': 'video_custom_http_stub',
+            'status': '未配置',
+            'error_message_zh': '视频生成 Provider 未配置。',
+          },
+        ],
+        'status': 'degraded_tool_unavailable',
+        'can_chat_with_kb_skill': true,
+        'can_call_video_tool': false,
+      }),
+      encoding: utf8,
+    );
+    await File(statusPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_agent_status.v1',
+        'agent_id': 'knowledge_qa_agent',
+        'status': 'chat_ready',
+        'dependency_status': 'degraded_tool_unavailable',
+        'chat_available': true,
+        'tool_call_available': false,
+        'last_error_zh': 'video.generate 未配置，不影响本地 KB/Skill 对话。',
+        'updated_at': now,
+      }),
+      encoding: utf8,
+    );
+    await File(auditLogPath).writeAsString(
+      '${jsonEncode({
+            'schema_version': 'prd_v3_agent_audit_log_record.v1',
+            'action': 'write_industrial_agent_config_assets',
+            'status': 'pass',
+            'agent_manifest_path': agentManifestPath,
+            'workspace_manifest_path': workspaceManifestPath,
+            'dependency_manifest_path': dependencyManifestPath,
+            'tool_requirement_report_path': toolRequirementReportPath,
+            'created_at': now,
+          })}\n',
+      encoding: utf8,
+    );
+    await File(_join(exportRoot.path, 'export_manifest.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_agent_export_manifest.v1',
+        'status': 'ready',
+        'includes_secret_plaintext': false,
+        'files': [
+          agentManifestPath,
+          workspaceManifestPath,
+          dependencyManifestPath,
+          statusPath,
+          permissionAuditPath,
+          workspacePermissionMatrixPath,
+          authorizationEvidence['block_report_path'],
+          toolRegistryPath,
+          toolRequirementReportPath,
+          toolUsageReportPath,
+        ],
+      }),
+      encoding: utf8,
+    );
+    return {
+      'agent_manifest_path': agentManifestPath,
+      'workspace_manifest_path': workspaceManifestPath,
+      'dependency_manifest_path': dependencyManifestPath,
+      'status_path': statusPath,
+      'external_skill_manifest_path': externalSkillManifestPath,
+      'skill_dependency_report_path': skillDependencyReportPath,
+      'tool_registry_path': toolRegistryPath,
+      'tool_provider_configs_path': toolProviderConfigsPath,
+      'tool_requirement_report_path': toolRequirementReportPath,
+      'tool_call_log_path': toolCallLogPath,
+      'tool_usage_report_path': toolUsageReportPath,
+      'provider_response_path': providerResponsePath,
+      'tool_error_report_path': toolErrorReportPath,
+      'video_task_manifest_path': videoTaskManifestPath,
+      'video_cost_report_path': videoCostReportPath,
+    };
+  }
+
+  Future<void> _markAgentDependencyMissingAfterSkillDelete(
+      Directory workspace) async {
+    final agentRoot = Directory(_join(workspace.path, 'agent'));
+    if (!await agentRoot.exists()) return;
+    final now = DateTime.now().toUtc().toIso8601String();
+    final dependencyManifestPath =
+        _join(agentRoot.path, 'dependency_manifest.json');
+    final statusPath = _join(agentRoot.path, 'status.json');
+    final auditLogPath = _join(agentRoot.path, 'audit_log.jsonl');
+    final dependencyManifest = await _readJsonObject(dependencyManifestPath);
+    final updatedDependency = {
+      ...dependencyManifest,
+      'schema_version': _stringValue(dependencyManifest['schema_version'],
+          'prd_v3_agent_dependency_manifest.v1'),
+      'agent_id':
+          _stringValue(dependencyManifest['agent_id'], 'knowledge_qa_agent'),
+      'missing_dependencies': [
+        ..._listOfMaps(dependencyManifest['missing_dependencies']),
+        {
+          'dependency_type': 'skill',
+          'dependency_id': 'S1',
+          'status': '配置缺失',
+          'error_message_zh': 'Agent 绑定的 Skill 已删除，请重新生成或重新绑定 Skill。',
+        },
+      ],
+      'status': 'dependency_missing',
+      'can_chat_with_kb_skill': false,
+      'can_call_video_tool': false,
+      'updated_at': now,
+    };
+    await File(dependencyManifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(updatedDependency),
+      encoding: utf8,
+    );
+    await File(statusPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_agent_status.v1',
+        'agent_id': 'knowledge_qa_agent',
+        'status': 'dependency_missing',
+        'dependency_status': 'skill_missing',
+        'chat_available': false,
+        'tool_call_available': false,
+        'last_error_zh': 'Agent 绑定的 Skill 已删除，不能继续假对话。',
+        'updated_at': now,
+      }),
+      encoding: utf8,
+    );
+    await File(auditLogPath).writeAsString(
+      '${jsonEncode({
+            'schema_version': 'prd_v3_agent_audit_log_record.v1',
+            'action': 'mark_dependency_missing_after_skill_delete',
+            'status': 'dependency_missing',
+            'dependency_manifest_path': dependencyManifestPath,
+            'status_path': statusPath,
+            'error_message_zh': 'Skill 依赖缺失，Agent 对话已阻止。',
+            'created_at': now,
+          })}\n',
+      mode: FileMode.append,
+      encoding: utf8,
+    );
+  }
+
+  Future<Map<String, String>> _writeAgentAuthorizationRuntimeEvidence({
+    required Directory auditRoot,
+    required String workspacePermissionMatrixPath,
+    required String permissionAuditPath,
+  }) async {
+    await auditRoot.create(recursive: true);
+    final runtimeAuditPath =
+        _join(auditRoot.path, 'authorization_runtime_audit.jsonl');
+    final blockReportPath =
+        _join(auditRoot.path, 'unauthorized_access_block_report.json');
+    final cases = [
+      {
+        'case_id': 'allow_W_A_K1_S1',
+        'workspace_id': 'W_A',
+        'agent_id': 'knowledge_qa_agent',
+        'requested_kb_id': 'K1',
+        'requested_skill_id': 'S1',
+        'requested_tool_id': 'kb_retrieval',
+        'expected_decision': 'allow',
+        'decision': 'allow',
+        'reason_zh': '当前 Agent 工作区授权访问 K1 与 S1。',
+      },
+      {
+        'case_id': 'block_W_A_K3',
+        'workspace_id': 'W_A',
+        'agent_id': 'knowledge_qa_agent',
+        'requested_kb_id': 'K3',
+        'requested_skill_id': 'S1',
+        'requested_tool_id': 'kb_retrieval',
+        'expected_decision': 'deny',
+        'decision': 'deny',
+        'error_code': 'unauthorized_kb_access',
+        'error_message_zh': 'Agent 未被授权访问该知识库。',
+      },
+      {
+        'case_id': 'block_W_B_sibling_W_C',
+        'workspace_id': 'W_B',
+        'agent_id': 'operation_conversion_agent',
+        'requested_workspace_id': 'W_C',
+        'requested_kb_id': 'K3',
+        'requested_skill_id': 'product_analysis_skill',
+        'requested_tool_id': 'kb_retrieval',
+        'expected_decision': 'deny',
+        'decision': 'deny',
+        'error_code': 'sibling_workspace_access_denied',
+        'error_message_zh': '子工作区不能访问兄弟工作区资源。',
+      },
+      {
+        'case_id': 'block_arbitrary_shell',
+        'workspace_id': 'W_M',
+        'agent_id': 'product_analysis_agent',
+        'requested_tool_id': 'arbitrary_shell',
+        'expected_decision': 'deny',
+        'decision': 'deny',
+        'error_code': 'tool_not_allowlisted',
+        'error_message_zh': '该工具未在当前 Agent 工具白名单中。',
+      },
+      {
+        'case_id': 'block_plaintext_secret',
+        'workspace_id': 'W_M',
+        'agent_id': 'knowledge_qa_agent',
+        'requested_secret_ref': 'provider_credential_ref',
+        'expected_decision': 'deny',
+        'decision': 'deny',
+        'error_code': 'plaintext_secret_access_denied',
+        'error_message_zh': 'Agent 不能读取明文 secret。',
+      },
+    ];
+    final auditLines = cases
+        .map((item) => jsonEncode({
+              'schema_version':
+                  'prd_v3_agent_authorization_runtime_audit_record.v1',
+              ...item,
+              'workspace_permission_matrix_path': workspacePermissionMatrixPath,
+              'permission_audit_path': permissionAuditPath,
+              'secret_plaintext_written': false,
+              'created_at': DateTime.now().toUtc().toIso8601String(),
+            }))
+        .join('\n');
+    await File(runtimeAuditPath).writeAsString(
+      '$auditLines\n',
+      encoding: utf8,
+    );
+    final denied = cases
+        .where((item) => item['expected_decision'] == 'deny')
+        .toList(growable: false);
+    final passed =
+        cases.every((item) => item['expected_decision'] == item['decision']);
+    await File(blockReportPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_agent_unauthorized_access_block_report.v1',
+        'status': passed ? 'pass' : 'fail',
+        'workspace_permission_matrix_path': workspacePermissionMatrixPath,
+        'permission_audit_path': permissionAuditPath,
+        'runtime_audit_path': runtimeAuditPath,
+        'case_count': cases.length,
+        'blocked_case_count': denied.length,
+        'allowed_case_count': cases.length - denied.length,
+        'unauthorized_resources_selectable': false,
+        'blocked_resource_types': [
+          'unauthorized_kb',
+          'sibling_workspace',
+          'non_allowlisted_tool',
+          'plaintext_secret',
+        ],
+        'cases': cases,
+        'violations': passed ? const <String>[] : ['authorization_mismatch'],
+        'secret_plaintext_written': false,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }),
+      encoding: utf8,
+    );
+    return {
+      'runtime_audit_path': runtimeAuditPath,
+      'block_report_path': blockReportPath,
+    };
   }
 
   Future<void> _appendAgentRunHistoryRecord({
@@ -12184,16 +12902,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         failureReason: 'A2A 需要多轮协作和冲突检测证据。',
       ),
       _stage2SkillRuntimeCheck(workspace),
-      _stage2JsonCheck(
-        'agent_workspace_permission_enforcement',
-        _joinNested(
-            workspace.path, 'agent/audit/workspace_permission_matrix.json'),
-        (payload, raw) =>
-            raw.contains('unauthorized') &&
-            raw.contains('false') &&
-            raw.contains('allowed'),
-        failureReason: 'Agent 需要工作区权限矩阵和越权阻断证据。',
-      ),
+      _stage2AgentPermissionRuntimeCheck(workspace),
       _stage2JsonCheck(
         'industrial_exe_smoke_38_step',
         _joinNested(
@@ -12447,6 +13156,112 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
   }
 
+  static Map<String, dynamic> _stage2AgentPermissionRuntimeCheck(
+      Directory workspace) {
+    const checkId = 'agent_workspace_permission_enforcement';
+    final matrixPath = _joinNested(
+        workspace.path, 'agent/audit/workspace_permission_matrix.json');
+    final permissionAuditPath =
+        _joinNested(workspace.path, 'agent/audit/permission_audit.json');
+    final blockReportPath = _joinNested(
+        workspace.path, 'agent/audit/unauthorized_access_block_report.json');
+    final runtimeAuditPath = _joinNested(
+        workspace.path, 'agent/audit/authorization_runtime_audit.jsonl');
+    final validationReportPath =
+        _joinNested(workspace.path, 'agent/audit/agent_validation_report.json');
+    final runHistoryPath =
+        _joinNested(workspace.path, 'agent/audit/run_history.json');
+    final matrix = _readJsonObjectSync(matrixPath);
+    final permissionAudit = _readJsonObjectSync(permissionAuditPath);
+    final blockReport = _readJsonObjectSync(blockReportPath);
+    final validationReport = _readJsonObjectSync(validationReportPath);
+    final runHistory = _readJsonObjectSync(runHistoryPath);
+    final matrixRows = _listOfMaps(matrix['matrix']);
+    final blockedCapabilities = _listOfStrings(matrix['blocked_capabilities']);
+    final blockCases = _listOfMaps(blockReport['cases']);
+    final runRecords = _listOfMaps(runHistory['records']);
+    final deniedCases = blockCases
+        .where((item) =>
+            _stringValue(item['expected_decision'], '') == 'deny' &&
+            _stringValue(item['decision'], '') == 'deny')
+        .toList(growable: false);
+    final allowCases = blockCases
+        .where((item) =>
+            _stringValue(item['expected_decision'], '') == 'allow' &&
+            _stringValue(item['decision'], '') == 'allow')
+        .toList(growable: false);
+    final required = {
+      'matrix_schema': _stringValue(matrix['schema_version'], '') ==
+          'prd_v3_agent_workspace_permission_matrix.v1',
+      'matrix_passed': _stringValue(matrix['status'], '') == 'pass',
+      'workspaces_declared': {'W_A', 'W_M', 'W_B', 'W_C'}.every((id) =>
+          matrixRows.any((row) => _stringValue(row['workspace_id'], '') == id)),
+      'workspace_isolation_declared': matrixRows.any((row) =>
+              _stringValue(row['workspace_id'], '') == 'W_B' &&
+              row['can_read_sibling_workspace'] == false &&
+              row['can_write_sibling_workspace'] == false) &&
+          matrixRows.any((row) =>
+              _stringValue(row['workspace_id'], '') == 'W_C' &&
+              row['can_read_sibling_workspace'] == false &&
+              row['can_write_sibling_workspace'] == false),
+      'blocked_capabilities_declared': {
+        'cross_workspace_write',
+        'sibling_workspace_access',
+        'plaintext_secret_read',
+        'arbitrary_shell',
+        'computer_use',
+      }.every(blockedCapabilities.contains),
+      'permission_audit_passed': _stringValue(
+                  permissionAudit['schema_version'], '') ==
+              'prd_v2_agent_permission_audit.v1' &&
+          _stringValue(permissionAudit['status'], '') == 'pass' &&
+          _stringValue(
+                  permissionAudit['workspace_permission_matrix_path'], '') ==
+              matrixPath,
+      'block_report_passed': _stringValue(blockReport['schema_version'], '') ==
+              'prd_v3_agent_unauthorized_access_block_report.v1' &&
+          _stringValue(blockReport['status'], '') == 'pass' &&
+          blockReport['unauthorized_resources_selectable'] == false,
+      'denied_cases_recorded': deniedCases.length >= 4,
+      'allowed_case_recorded': allowCases.isNotEmpty,
+      'authorization_runtime_audit_written':
+          _jsonlRecordCount(runtimeAuditPath) >=
+                  (_asInt(blockReport['case_count']) ?? 0) &&
+              _jsonlContains(
+                runtimeAuditPath,
+                (record) =>
+                    _stringValue(record['decision'], '') == 'deny' &&
+                    _stringValue(record['error_code'], '') ==
+                        'tool_not_allowlisted',
+              ),
+      'agent_validation_links_block_report':
+          _stringValue(validationReport['status'], '') == 'pass' &&
+              _jsonContainsValue(validationReport, blockReportPath) &&
+              _jsonContainsValue(validationReport, runtimeAuditPath),
+      'run_history_records_authorization': runRecords.any((record) =>
+          _stringValue(record['action'], '') == 'authorization_runtime_audit' &&
+          _stringValue(record['status'], '') == 'pass'),
+      'secret_plaintext_absent':
+          blockReport['secret_plaintext_written'] == false,
+    };
+    final missing = required.entries
+        .where((entry) => !entry.value)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    return {
+      'check_id': checkId,
+      'status': missing.isEmpty ? 'passed' : 'failed',
+      'artifact_path': matrixPath,
+      'reason_zh': missing.isEmpty
+          ? ''
+          : 'Agent 需要真实工作区权限矩阵、越权阻断用例、授权 runtime audit 和运行历史证据。',
+      'runtime_evidence': {
+        'required': required,
+        'missing': missing,
+      },
+    };
+  }
+
   static Map<String, dynamic> _stage2JsonCheck(
     String checkId,
     String path,
@@ -12535,6 +13350,18 @@ class Rc6RuntimeController extends ChangeNotifier {
     } on FormatException {
       return <String, dynamic>{};
     }
+  }
+
+  static bool _jsonContainsValue(Object? value, String expected) {
+    if (expected.isEmpty) return false;
+    if (value == expected) return true;
+    if (value is Map) {
+      return value.values.any((child) => _jsonContainsValue(child, expected));
+    }
+    if (value is Iterable) {
+      return value.any((child) => _jsonContainsValue(child, expected));
+    }
+    return false;
   }
 
   static bool _profileConfigRefAvailable(

@@ -2485,6 +2485,17 @@ void main() {
     expect(reloadedController.state.agentDialogueUsedSkillIds, contains('S1'));
     expect(reloadedController.state.agentDialogueEvidenceCount, greaterThan(0));
     expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}citation_trace.jsonl')
+            .readAsStringSync(),
+        contains('prd_v3_agent_citation_trace_record.v1'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dialogue${Platform.pathSeparator}skill_rule_trace.jsonl')
+            .readAsStringSync(),
+        allOf(
+          contains('prd_v3_agent_skill_rule_trace_record.v1'),
+          contains('citation_required'),
+        ));
+    expect(
         File('${workspace.path}${Platform.pathSeparator}doc${Platform.pathSeparator}reading_notes.md')
             .readAsStringSync(),
         contains('真实输入文件夹读书笔记'));
@@ -2533,6 +2544,36 @@ void main() {
           contains('advanced_agents'),
           contains('open_single_agent_chat'),
         ));
+    final agentProfile = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}agent_manifest.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(agentProfile['schema_version'], 'prd_v3_agent_profile.v1');
+    expect(agentProfile['agent_id'], 'knowledge_qa_agent');
+    expect(agentProfile['workspace_id'], 'W_A');
+    expect(agentProfile['citation_policy'], 'required');
+    expect(agentProfile['tool_ids'], contains('video.generate'));
+    final agentWorkspace = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspace_manifest.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(agentWorkspace['schema_version'], 'prd_v3_agent_workspace.v1');
+    expect(agentWorkspace['authorized_kb_ids'], contains('K1'));
+    expect(agentWorkspace['authorized_skill_ids'], contains('S1'));
+    expect(agentWorkspace['blocked_tool_ids'], contains('video.generate'));
+    final dependencyManifest = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dependency_manifest.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(dependencyManifest['schema_version'],
+        'prd_v3_agent_dependency_manifest.v1');
+    expect(dependencyManifest['can_chat_with_kb_skill'], isTrue);
+    expect(dependencyManifest['can_call_video_tool'], isFalse);
+    expect(dependencyManifest['missing_dependencies'].toString(),
+        contains('video_custom_http_stub'));
+    final agentStatus = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(agentStatus['schema_version'], 'prd_v3_agent_status.v1');
+    expect(agentStatus['status'], 'chat_ready');
+    expect(agentStatus['dependency_status'], 'degraded_tool_unavailable');
     expect(
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}product_config${Platform.pathSeparator}advanced_agent_config.json')
             .readAsStringSync(),
@@ -2554,6 +2595,27 @@ void main() {
     expect(permissionMatrix['violations'], isEmpty);
     expect(permissionMatrix['blocked_capabilities'],
         containsAll(['arbitrary_shell', 'computer_use']));
+    final blockReport = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}unauthorized_access_block_report.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(blockReport['schema_version'],
+        'prd_v3_agent_unauthorized_access_block_report.v1');
+    expect(blockReport['status'], 'pass');
+    expect(blockReport['unauthorized_resources_selectable'], isFalse);
+    expect(blockReport['blocked_case_count'], greaterThanOrEqualTo(4));
+    expect(blockReport['blocked_resource_types'],
+        containsAll(['unauthorized_kb', 'non_allowlisted_tool']));
+    final authAuditLines = File(
+            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}authorization_runtime_audit.jsonl')
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .toList(growable: false);
+    expect(authAuditLines.length, greaterThanOrEqualTo(5));
+    expect(
+        authAuditLines.any((line) =>
+            line.contains('tool_not_allowlisted') &&
+            line.contains('"decision":"deny"')),
+        isTrue);
     final agentValidation = jsonDecode(File(
             '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}audit${Platform.pathSeparator}agent_validation_report.json')
         .readAsStringSync()) as Map<String, dynamic>;
@@ -2564,12 +2626,66 @@ void main() {
     expect(agentValidation['ready_for_single_agent_dialogue'], isTrue);
     expect(agentValidation['ready_for_a2a'], isTrue);
     expect(
+        agentValidation['checks'].toString(),
+        allOf(
+          contains('unauthorized_access_blocked'),
+          contains('unauthorized_access_block_report.json'),
+          contains('authorization_runtime_audit.jsonl'),
+        ));
+    expect(
+        agentValidation['checks'].toString(),
+        allOf(
+          contains('agent_profile_workspace_dependency_persisted'),
+          contains('external_skill_tool_dependency_detected'),
+          contains('tool_registry_allowlist_and_stub_recorded'),
+        ));
+    final externalSkillManifest = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}external_skills${Platform.pathSeparator}video_generation_skill${Platform.pathSeparator}external_skill_manifest.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(externalSkillManifest['schema_version'],
+        'prd_v3_external_skill_manifest.v1');
+    expect(externalSkillManifest['required_tools'], contains('video.generate'));
+    final toolRegistry = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}tool${Platform.pathSeparator}tool_registry.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(toolRegistry['schema_version'], 'prd_v3_tool_registry.v1');
+    expect(toolRegistry['allowlist'],
+        containsAll(['kb_retrieval', 'document_export']));
+    expect(toolRegistry['blocked_tools'], contains('video.generate'));
+    final toolRequirement = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}tool${Platform.pathSeparator}tool_requirement_report.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(
+        toolRequirement['schema_version'], 'prd_v3_tool_requirement_report.v1');
+    expect(toolRequirement['api_called'], isFalse);
+    expect(toolRequirement['status'], 'Tool 未授权');
+    final videoTaskManifest = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}artifacts${Platform.pathSeparator}video${Platform.pathSeparator}video_task_manifest.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(
+        videoTaskManifest['schema_version'], 'prd_v3_video_task_manifest.v1');
+    expect(videoTaskManifest['fake_video_generated'], isFalse);
+    expect(videoTaskManifest['api_called'], isFalse);
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}tool${Platform.pathSeparator}tool_call_log.jsonl')
+            .readAsStringSync(),
+        allOf(
+          contains('prd_v3_tool_call_log_record.v1'),
+          contains('video.generate'),
+          contains('"api_called":false'),
+        ));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}tool${Platform.pathSeparator}tool_usage_report.json')
+            .readAsStringSync(),
+        contains('"total_api_calls": 0'));
+    expect(
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}exports${Platform.pathSeparator}agent_package_manifest.json')
             .readAsStringSync(),
         allOf(
           contains('prd_v3_agent_export_package.v1'),
           contains('agent_validation_report.json'),
           contains('workspace_permission_matrix.json'),
+          contains('tool/tool_registry.json'),
         ));
     expect(
         File('${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion.md')
@@ -2636,6 +2752,16 @@ void main() {
         a2aRuntimeStatus['stage_2_industrial_preflight'] as Map;
     expect(a2aPreflight['failed_checks'],
         isNot(contains('a2a_multi_round_collaboration')));
+    expect(a2aPreflight['failed_checks'],
+        isNot(contains('agent_workspace_permission_enforcement')));
+    final agentPermissionCheck = (a2aPreflight['checks'] as List)
+        .cast<Map>()
+        .firstWhere((check) =>
+            check['check_id'] == 'agent_workspace_permission_enforcement');
+    expect(agentPermissionCheck['status'], 'passed');
+    expect(
+        ((agentPermissionCheck['runtime_evidence'] as Map)['missing'] as List),
+        isEmpty);
 
     await controller.clearAgentDialogueHistory();
     expect(controller.state.hasAgent, isTrue);
@@ -2683,6 +2809,21 @@ void main() {
     expect(controller.state.hasAgent, isTrue);
     expect(controller.state.hasAgentDialogue, isFalse);
     expect(controller.state.hasMultiAgentDiscussion, isFalse);
+    final dependencyMissingStatus = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(dependencyMissingStatus['status'], 'dependency_missing');
+    expect(dependencyMissingStatus['chat_available'], isFalse);
+    final dependencyMissingManifest = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}dependency_manifest.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(dependencyMissingManifest['status'], 'dependency_missing');
+    expect(
+        dependencyMissingManifest['missing_dependencies'],
+        contains(isA<Map>()
+            .having(
+                (item) => item['dependency_type'], 'dependency_type', 'skill')
+            .having((item) => item['dependency_id'], 'dependency_id', 'S1')));
     expect(
         Directory('${workspace.path}${Platform.pathSeparator}skill')
             .existsSync(),
