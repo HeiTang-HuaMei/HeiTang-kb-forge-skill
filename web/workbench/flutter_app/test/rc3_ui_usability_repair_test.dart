@@ -103,4 +103,43 @@ void main() {
     expect(find.text('桌面交付'), findsNothing);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('ordinary product pages do not expose internal gate language',
+      (tester) async {
+    await pumpWorkbench(tester, const Size(1366, 768));
+
+    for (final label in <String>[
+      '首页',
+      '文档库',
+      '知识库',
+      '检索与验证',
+      '文档生成',
+      'Skill 工厂',
+      'Agent 工作台',
+      '产物中心',
+      '治理与审计',
+      '设置',
+    ]) {
+      await tester.ensureVisible(find.text(label).first);
+      await tester.tap(find.text(label).first, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      for (final forbidden in <String>[
+        'Campaign',
+        'campaign',
+        'Gate',
+        'gate',
+        'disabled_boundary',
+        'enabled_real',
+        'Core 操作',
+        '后端矩阵',
+        'backend matrix',
+        'Parser/OCR 后端证据面板',
+      ]) {
+        expect(find.textContaining(forbidden), findsNothing,
+            reason: '$label exposes $forbidden');
+      }
+      expect(tester.takeException(), isNull, reason: label);
+    }
+  });
 }

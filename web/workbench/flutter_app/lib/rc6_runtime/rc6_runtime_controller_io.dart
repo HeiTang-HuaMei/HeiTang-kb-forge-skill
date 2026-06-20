@@ -1545,13 +1545,17 @@ class Rc6RuntimeController extends ChangeNotifier {
       provided: password,
       environmentKey: 'HEITANG_REDIS_PASSWORD',
     );
+    final persistedPasswordInput =
+        password.trim().isEmpty && effectivePassword.isNotEmpty
+            ? '********'
+            : password;
     final safePrefix = keyPrefix.trim().isEmpty ? 'heitang:' : keyPrefix.trim();
     Future<Rc6StorageTestResult> persist(Rc6StorageTestResult result) async {
       await _persistRedisStorageResult(
         host: host,
         port: port,
         keyPrefix: safePrefix,
-        password: password,
+        password: persistedPasswordInput,
         result: result,
       );
       return result;
@@ -11347,7 +11351,9 @@ class Rc6RuntimeController extends ChangeNotifier {
           (qdrant['endpoint'] ?? 'http://127.0.0.1:6333').toString(),
       qdrantCollection: (qdrant['collection'] ?? 'heitang_kb').toString(),
       qdrantDimension: _asInt(qdrant['dimension']) ?? 1536,
-      qdrantApiKey: '',
+      qdrantApiKey: _stringValue(qdrant['api_key_secret_ref'], 'none') == 'none'
+          ? ''
+          : '********',
       qdrantStatus: (qdrant['status'] ?? 'configured_not_tested').toString(),
       qdrantDetail: (qdrant['last_test_detail'] ?? '').toString(),
     );
@@ -11389,7 +11395,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       redisHost: (redis['host'] ?? '127.0.0.1').toString(),
       redisPort: _asInt(redis['port']) ?? 6379,
       redisKeyPrefix: (redis['key_prefix'] ?? 'heitang:').toString(),
-      redisPassword: '',
+      redisPassword:
+          _stringValue(redis['password_secret_ref'], 'none') == 'none'
+              ? ''
+              : '********',
       redisStatus: (redis['status'] ?? 'configured_not_tested').toString(),
       redisDetail: (redis['last_test_detail'] ?? '').toString(),
       qdrantEndpoint: endpoint,
@@ -18008,7 +18017,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     final normalizedBase = baseUri.path.endsWith('/')
         ? baseUri.path.substring(0, baseUri.path.length - 1)
         : baseUri.path;
-    final uri = baseUri.replace(path: '$normalizedBase$path');
+    final queryIndex = path.indexOf('?');
+    final requestPath = queryIndex >= 0 ? path.substring(0, queryIndex) : path;
+    final requestQuery =
+        queryIndex >= 0 ? path.substring(queryIndex + 1) : null;
+    final uri = baseUri.replace(
+      path: '$normalizedBase$requestPath',
+      query: requestQuery,
+    );
     final request =
         await client.openUrl(method, uri).timeout(const Duration(seconds: 8));
     request.headers.set(HttpHeaders.acceptHeader, 'application/json');

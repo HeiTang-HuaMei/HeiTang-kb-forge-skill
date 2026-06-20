@@ -283,6 +283,92 @@ void main() {
       expect(check['status'], 'passed', reason: jsonEncode(check));
     }
   }, skip: Platform.environment['STAGE2_VERIFY_EXE_SMOKE'] != '1');
+
+  test('proves live Redis and Qdrant provider runtime when configured',
+      () async {
+    final redisPassword =
+        Platform.environment['HEITANG_REDIS_PASSWORD']?.trim() ?? '';
+    expect(redisPassword, isNotEmpty,
+        reason:
+            'Set HEITANG_REDIS_PASSWORD to run live Redis industrial evidence.');
+
+    final appRoot = Directory.current;
+    final outputRoot =
+        Directory('${appRoot.path}${Platform.pathSeparator}output');
+    final workspace = Directory(
+        '${outputRoot.path}${Platform.pathSeparator}stage2_live_provider_runtime_workspace');
+    if (!workspace.absolute.path
+        .toLowerCase()
+        .startsWith(outputRoot.absolute.path.toLowerCase())) {
+      fail(
+          'Stage2 live provider workspace must stay under flutter_app/output.');
+    }
+    if (workspace.existsSync()) {
+      workspace.deleteSync(recursive: true);
+    }
+    workspace.createSync(recursive: true);
+
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final previousHttpOverride = HttpOverrides.current;
+    HttpOverrides.global = null;
+    addTearDown(() {
+      HttpOverrides.global = previousHttpOverride;
+    });
+    final redis = await controller.testRedisConnection(
+      host: '127.0.0.1',
+      port: 6379,
+      keyPrefix: 'heitang:stage2:',
+      password: '',
+    );
+    expect(redis.status, 'connected', reason: redis.detail);
+    final qdrant = await controller.testQdrantConnection(
+      endpoint: 'http://127.0.0.1:6333',
+      collection: 'heitang_stage2_live_provider',
+      dimension: 8,
+      apiKey: '',
+    );
+    expect(qdrant.status, 'connected', reason: qdrant.detail);
+
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final storage = _readJson(
+        '$configDir${Platform.pathSeparator}storage_provider_settings.json');
+    final redisSettings = storage['redis'] as Map<String, dynamic>;
+    final qdrantSettings = storage['qdrant'] as Map<String, dynamic>;
+    expect(redisSettings['status'], 'connected');
+    expect(redisSettings['password_secret_ref'], 'env:HEITANG_REDIS_PASSWORD');
+    expect(jsonEncode(storage), isNot(contains(redisPassword)));
+    expect(qdrantSettings['status'], 'connected');
+
+    final runtimeStatus = _readJson(
+        '$configDir${Platform.pathSeparator}project_config_runtime_status.json');
+    final modules = runtimeStatus['module_status'] as Map<String, dynamic>;
+    expect((modules['knowledge_base'] as Map)['index_backend'], 'Qdrant');
+    expect((modules['agent_workbench'] as Map)['redis_memory_status'], '连接成功');
+    expect((modules['agent_workbench'] as Map)['vector_memory_status'], '连接成功');
+    expect((runtimeStatus['degradation'] as Map)['redis_failure'],
+        contains('Redis 短期记忆可用'));
+    expect((runtimeStatus['degradation'] as Map)['vector_failure'],
+        contains('外部向量库可用'));
+
+    final testLog =
+        File('$configDir${Platform.pathSeparator}config_test_log.jsonl')
+            .readAsStringSync();
+    expect(testLog, contains('"config_type":"redis"'));
+    expect(testLog, contains('"config_type":"vector_db"'));
+    expect(testLog, contains('"status":"连接成功"'));
+    expect(testLog, isNot(contains(redisPassword)));
+  }, skip: Platform.environment['STAGE2_VERIFY_LIVE_PROVIDERS'] != '1');
 }
 
 String _jsonl(List<Map<String, Object?>> rows) =>

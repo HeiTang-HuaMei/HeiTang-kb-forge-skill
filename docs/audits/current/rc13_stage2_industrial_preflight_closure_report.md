@@ -178,3 +178,67 @@ scripts\smoke_windows_exe_launch.ps1 -WorkspacePath web\workbench\flutter_app\ou
 STAGE2_VERIFY_EXE_SMOKE=1 flutter test test\stage2_industrial_evidence_refresh_test.dart --plain-name "refreshes Stage2 preflight after independent EXE smoke" --concurrency=1
 strict Python evidence audit: passed, failed_count=0
 ```
+
+## Full P0/P1/P2 Evidence Recheck
+
+Date: 2026-06-21
+
+The latest recheck distinguishes `stage_2_industrial_preflight.status=passed`
+from full P0/P1/P2 industrial acceptance. The prior weak spots have been
+closed or bounded as follows:
+
+| Area | Current result | Evidence |
+| --- | --- | --- |
+| 38-step smoke artifact existence | Closed | `acceptance/industrial_exe_smoke_report.json` now has `missing_artifacts=0`; every passed step points to an existing file or directory. |
+| K2/K3 multi-KB materialization | Closed | `knowledge_bases/K1`, `K2`, and `K3` each include manifest, chunks, index metadata/profile, keyword index, vector reference, metadata/citation/memory references, and index build report. |
+| Redis live runtime | Closed when local Redis is configured | `STAGE2_VERIFY_LIVE_PROVIDERS=1 flutter test test\stage2_industrial_evidence_refresh_test.dart --plain-name "proves live Redis and Qdrant provider runtime when configured" --concurrency=1` proves Redis `PING` plus write/read/delete with `HEITANG_REDIS_PASSWORD` from environment. Secrets remain masked. |
+| Qdrant live runtime | Closed when local Qdrant is running | The same live Provider test proves Qdrant health, collection, vector write/search/delete. A real URI query-string bug in Qdrant `?wait=true` handling was fixed. |
+| Provider secret ref persistence | Closed | Redis and Qdrant tests no longer erase each other's existing secret refs when persisting connection results. |
+| Normal user UI internal wording | Closed by widget contract | `rc3_ui_usability_repair_test.dart` now verifies ordinary pages do not render `Campaign`, `Gate`, `disabled_boundary`, `enabled_real`, `Core 操作`, `后端矩阵`, or `backend matrix`. |
+
+The live Provider proof writes evidence to:
+
+```text
+web/workbench/flutter_app/output/stage2_live_provider_runtime_workspace/config/storage_provider_settings.json
+web/workbench/flutter_app/output/stage2_live_provider_runtime_workspace/config/project_config_runtime_status.json
+web/workbench/flutter_app/output/stage2_live_provider_runtime_workspace/config/config_test_log.jsonl
+```
+
+Observed live statuses:
+
+```text
+redis.status = connected
+qdrant.status = connected
+module_status.knowledge_base.index_backend = Qdrant
+module_status.agent_workbench.redis_memory_status = 连接成功
+module_status.agent_workbench.vector_memory_status = 连接成功
+secret_plaintext_written = false
+```
+
+Important boundary:
+
+- This closes the Stage 2 Provider runtime evidence gap for Redis and Qdrant.
+- It does not claim Stage 3 external project runtime loading is complete.
+- `runtime_loaded_count=0` for registered external projects remains valid until a later Stage 3 gate proves real external runtime loading.
+
+Validation for this full recheck:
+
+```text
+flutter analyze
+flutter test test\stage2_industrial_evidence_refresh_test.dart --plain-name "refreshes fixed Stage2 industrial evidence workspace" --concurrency=1
+STAGE2_VERIFY_LIVE_PROVIDERS=1 flutter test test\stage2_industrial_evidence_refresh_test.dart --plain-name "proves live Redis and Qdrant provider runtime when configured" --concurrency=1
+flutter test test\rc3_ui_usability_repair_test.dart --plain-name "ordinary product pages do not expose internal gate language" --concurrency=1
+flutter test test\rc6_runtime_truth_blocker_repair_test.dart --concurrency=1
+scripts\smoke_windows_exe_launch.ps1 -WorkspacePath web\workbench\flutter_app\output\stage2_industrial_runtime_workspace -StartupSeconds 5
+STAGE2_VERIFY_EXE_SMOKE=1 flutter test test\stage2_industrial_evidence_refresh_test.dart --plain-name "refreshes Stage2 preflight after independent EXE smoke" --concurrency=1
+git diff --check
+diff secret scan
+diff overclaim scan
+OKF/runtime boundary scan
+```
+
+Result:
+
+```text
+All listed checks passed locally.
+```
