@@ -33,6 +33,7 @@ Runtime configuration assets are written to:
 - `config/registered_provider_health_log.jsonl`
 - `config/registered_provider_hot_swap_stability_report.json`
 - `config/provider_capability_binding_manifest.json`
+- `config/provider_capability_selection_state.json`
 - `config/provider_adapter_contracts.json`
 - `config/provider_adapter_readiness_report.json`
 - `config/provider_adapter_readiness_log.jsonl`
@@ -70,6 +71,7 @@ Runtime evidence:
 - `registered_provider_health_log.jsonl`
 - `registered_provider_hot_swap_stability_report.json`
 - `provider_capability_binding_manifest.json`
+- `provider_capability_selection_state.json`
 - `provider_adapter_contracts.json`
 - `provider_adapter_readiness_report.json`
 - `provider_adapter_readiness_log.jsonl`
@@ -124,6 +126,9 @@ Runtime binding:
 - Current evidence keeps unverified capabilities on local fallback. `sirchmunk` can become the active `retrieval_provider` binding only after a real `kb/chunks.jsonl` probe succeeds.
 - Blocked activation and rollback both refresh this binding manifest and keep `selected_provider_runtime_loaded=false`.
 - `project_config_runtime_status.json` includes the binding manifest path and downstream module binding summaries for Document Library, Knowledge Base, Retrieval Verification, Document Generation, Skill Factory, and Agent Workbench.
+- `provider_capability_selection_state.json` persists explicit capability-to-Provider selection. Runtime refresh and EXE restart keep the explicit selection applied while readiness remains proven.
+- Rollback removes the explicit selection and suppresses automatic selection of another ready Provider for that same capability, returning the product capability to local fallback until the user explicitly enables a Provider again.
+- Binding rows record `explicit_selected_provider_ref`, `explicit_selection_applied`, `explicit_selection_stale`, and `rollback_suppressed` so hot-swap state is auditable.
 
 Adapter contracts:
 
@@ -204,6 +209,7 @@ Lifecycle behavior implemented:
 | Storage | `_probeStoragePath` | Real write probe and Windows free-space query; failure records Chinese permission reason |
 | Registered Provider health | `testAllRegisteredProviderCapabilities` | Checks 30 mappings, writes health JSON/JSONL, blocks unverified runtime load, proves rollback/fallback |
 | Provider capability binding | `provider_capability_binding_manifest.json` | Binds 8 product capability areas to local fallback or proven Provider and syncs downstream runtime status |
+| Provider active selection | `provider_capability_selection_state.json` | Persists explicit Provider selection, survives runtime refresh/restart, and suppresses auto-selection after rollback |
 | Provider adapter contracts | `provider_adapter_contracts.json` | Defines 26 Provider adapter contracts with required config refs, health checks, fallback, and rollback |
 | Provider adapter readiness | `provider_adapter_readiness_report.json` | Evaluates 26 adapter contracts against active Profile/config and keeps unverified adapters blocked |
 
@@ -303,6 +309,12 @@ Latest Stage 3 Provider health slice:
 - `flutter analyze`
 - `flutter test test\rc6_runtime_truth_blocker_repair_test.dart --concurrency=1`
 - `flutter test test\widget_test.dart --concurrency=1`
+
+Latest Stage 3 Provider active-selection slice:
+
+- `flutter analyze`
+- `flutter test test\rc6_runtime_truth_blocker_repair_test.dart --concurrency=1`
+- Targeted test: `provider hot swap selection persists across runtime refresh and rollback`
 
 Pending after push:
 

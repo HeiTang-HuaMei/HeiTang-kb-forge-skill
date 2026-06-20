@@ -2176,6 +2176,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     final readinessByProvider = await _providerReadinessByProvider(workspace);
     final ready = _providerReadyForSelection(entry, readinessByProvider);
+    if (ready) {
+      await _writeProviderCapabilitySelectionState(
+        workspace,
+        action: 'activate',
+        entry: entry,
+        readinessByProvider: readinessByProvider,
+      );
+    }
     await _appendRegisteredProviderSelectionLog(
       workspace,
       action: 'activate',
@@ -2228,6 +2236,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       entry: entry,
       status: '降级为本地模式',
       blockedReason: '',
+    );
+    await _writeProviderCapabilitySelectionState(
+      workspace,
+      action: 'rollback',
+      entry: entry,
+      readinessByProvider: await _providerReadinessByProvider(workspace),
     );
     await _writeProjectConfigRuntimeStatus(
       workspace,
@@ -11933,6 +11947,13 @@ class Rc6RuntimeController extends ChangeNotifier {
   }) async {
     final activeProfile = _activeProfile(profiles);
     final stage2Preflight = _stage2IndustrialPreflight(workspace);
+    final selectionState =
+        await _readProviderCapabilitySelectionState(workspace);
+    final selectedProviders =
+        _mapValue(selectionState['selected_providers_by_capability']);
+    final rollbackSuppressedCapabilities =
+        _listOfStrings(selectionState['rollback_suppressed_capability_ids'])
+            .toSet();
     final now = DateTime.now().toUtc().toIso8601String();
     final grouped = <String, List<Map<String, dynamic>>>{};
     for (final entry in entries) {
@@ -11942,17 +11963,38 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     final bindings = grouped.entries.map((group) {
       final candidates = group.value;
-      final selected = candidates.firstWhere(
-        (entry) => _providerReadyForSelection(entry, readinessByProvider),
-        orElse: () => candidates.first,
-      );
+      final explicitProviderRef =
+          _stringValue(selectedProviders[group.key], '');
+      final explicitlySelected = explicitProviderRef.isEmpty
+          ? const <String, dynamic>{}
+          : candidates.firstWhere(
+              (entry) =>
+                  _stringValue(entry['provider_ref'], '') ==
+                  explicitProviderRef,
+              orElse: () => const <String, dynamic>{},
+            );
+      final explicitSelectionReady = explicitlySelected.isNotEmpty &&
+          _providerReadyForSelection(explicitlySelected, readinessByProvider);
+      final rollbackSuppressed =
+          rollbackSuppressedCapabilities.contains(group.key);
+      final selected = rollbackSuppressed
+          ? candidates.first
+          : explicitSelectionReady
+              ? explicitlySelected
+              : candidates.firstWhere(
+                  (entry) =>
+                      _providerReadyForSelection(entry, readinessByProvider),
+                  orElse: () => candidates.first,
+                );
       final readiness =
           readinessByProvider[_stringValue(selected['provider_ref'], '')] ??
               const <String, dynamic>{};
       final selectedStatus = _stringValue(
           readiness['status'], _registeredProviderHealthStatus(selected));
-      final selectedReady =
+      final selectedReady = !rollbackSuppressed &&
           _providerReadyForSelection(selected, readinessByProvider);
+      final explicitSelectionStale =
+          explicitProviderRef.isNotEmpty && !explicitSelectionReady;
       return {
         'capability_id': group.key,
         'user_visible_entry': selected['user_visible_entry'],
@@ -11965,6 +12007,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         'user_status': selectedReady ? '连接成功' : '降级为本地模式',
         'provider_health_status': selectedStatus,
         'adapter_readiness_status': selectedStatus,
+        'explicit_selected_provider_ref': explicitProviderRef,
+        'explicit_selection_applied': explicitSelectionReady,
+        'explicit_selection_stale': explicitSelectionStale,
+        'rollback_suppressed': rollbackSuppressed,
         'selection_allowed': selectedReady,
         'runtime_loaded': false,
         'runtime_load_allowed': false,
@@ -11996,6 +12042,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           ? ''
           : _stringValue(selectedEntry['provider_ref'], ''),
       'selected_provider_runtime_loaded': false,
+      'provider_capability_selection_state_path':
+          _providerCapabilitySelectionStatePath(workspace),
       'binding_count': bindings.length,
       'registered_provider_loaded_count': 0,
       'external_runtime_load_allowed': stage2Preflight['runtime_load_allowed'],
@@ -12010,6 +12058,66 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
     await File(path).writeAsString(
       const JsonEncoder.withIndent('  ').convert(manifest),
+      encoding: utf8,
+    );
+    return path;
+  }
+
+  Future<Map<String, dynamic>> _readProviderCapabilitySelectionState(
+    Directory workspace,
+  ) async {
+    final file = File(_providerCapabilitySelectionStatePath(workspace));
+    if (!await file.exists()) {
+      return const <String, dynamic>{
+        'selected_providers_by_capability': <String, dynamic>{},
+      };
+    }
+    return _readJsonObject(file.path);
+  }
+
+  Future<String> _writeProviderCapabilitySelectionState(
+    Directory workspace, {
+    required String action,
+    required Map<String, dynamic> entry,
+    required Map<String, Map<String, dynamic>> readinessByProvider,
+  }) async {
+    final current = await _readProviderCapabilitySelectionState(workspace);
+    final selectedProviders = Map<String, dynamic>.from(
+        _mapValue(current['selected_providers_by_capability']));
+    final rollbackSuppressedCapabilityIds =
+        _listOfStrings(current['rollback_suppressed_capability_ids']).toSet();
+    final capabilityId = _stringValue(entry['capability_id'], '');
+    final providerRef = _stringValue(entry['provider_ref'], '');
+    final ready = _providerReadyForSelection(entry, readinessByProvider);
+    final now = DateTime.now().toUtc().toIso8601String();
+    if (action == 'rollback') {
+      selectedProviders.remove(capabilityId);
+      if (capabilityId.isNotEmpty) {
+        rollbackSuppressedCapabilityIds.add(capabilityId);
+      }
+    } else if (action == 'activate' && ready) {
+      selectedProviders[capabilityId] = providerRef;
+      rollbackSuppressedCapabilityIds.remove(capabilityId);
+    }
+    final path = _providerCapabilitySelectionStatePath(workspace);
+    final payload = {
+      'schema_version': 'prd_v3_provider_capability_selection_state.v1',
+      'updated_at': now,
+      'workspace_boundary': workspace.path,
+      'action': action,
+      'selected_capability_id': capabilityId,
+      'selected_provider_ref': action == 'rollback' ? '' : providerRef,
+      'fallback_provider': _stringValue(entry['fallback_provider'], ''),
+      'ready_for_user_selection_at_change': ready,
+      'rollback_suppressed_capability_ids':
+          rollbackSuppressedCapabilityIds.toList(growable: false)..sort(),
+      'runtime_loaded_after_change': false,
+      'normal_ui_project_names_visible': false,
+      'secret_plaintext_written': false,
+      'selected_providers_by_capability': selectedProviders,
+    };
+    await File(path).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
       encoding: utf8,
     );
     return path;
@@ -12410,6 +12518,11 @@ class Rc6RuntimeController extends ChangeNotifier {
   static String _providerCapabilityBindingManifestPath(Directory workspace) {
     return _join(
         workspace.path, 'config', 'provider_capability_binding_manifest.json');
+  }
+
+  static String _providerCapabilitySelectionStatePath(Directory workspace) {
+    return _join(
+        workspace.path, 'config', 'provider_capability_selection_state.json');
   }
 
   static String _providerAdapterContractsPath(Directory workspace) {
@@ -12839,6 +12952,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           _providerAdapterReadinessLogPath(workspace),
       'provider_capability_binding_manifest_path':
           providerCapabilityBindingPath,
+      'provider_capability_selection_state_path':
+          _providerCapabilitySelectionStatePath(workspace),
       'registered_provider_summary': {
         'registered_provider_count':
             registeredProviderArtifacts['registered_provider_count'],

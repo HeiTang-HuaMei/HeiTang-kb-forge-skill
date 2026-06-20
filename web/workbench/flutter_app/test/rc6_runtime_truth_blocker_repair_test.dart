@@ -1901,6 +1901,89 @@ void main() {
     expect(health['ready_for_user_selection_count'], 3);
   });
 
+  test(
+      'provider hot swap selection persists across runtime refresh and rollback',
+      () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    await controller.testAllRegisteredProviderCapabilities();
+    final activated = await controller
+        .activateRegisteredProviderCapability('ai_marketing_skills');
+    expect(activated, isTrue);
+
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    Map<String, dynamic> runtimeStatus() => jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    Map<String, dynamic> bindingManifest(
+            Map<String, dynamic> status) =>
+        jsonDecode(
+            File(status['provider_capability_binding_manifest_path'] as String)
+                .readAsStringSync()) as Map<String, dynamic>;
+    Map<String, dynamic> skillTemplateBinding(Map<String, dynamic> binding) =>
+        (binding['bindings'] as List).cast<Map<String, dynamic>>().firstWhere(
+            (entry) => entry['capability_id'] == 'skill_template_provider');
+
+    var status = runtimeStatus();
+    final selectionPath =
+        status['provider_capability_selection_state_path'] as String;
+    var selectionState =
+        jsonDecode(File(selectionPath).readAsStringSync()) as Map;
+    expect(selectionState['schema_version'],
+        'prd_v3_provider_capability_selection_state.v1');
+    expect(
+        (selectionState['selected_providers_by_capability']
+            as Map)['skill_template_provider'],
+        'ai_marketing_skills');
+    expect(selectionState['runtime_loaded_after_change'], isFalse);
+    expect(selectionState['secret_plaintext_written'], isFalse);
+    var skillBinding = skillTemplateBinding(bindingManifest(status));
+    expect(skillBinding['active_provider_ref'], 'ai_marketing_skills');
+    expect(skillBinding['explicit_selection_applied'], isTrue);
+    expect(skillBinding['explicit_selection_stale'], isFalse);
+    expect(skillBinding['runtime_loaded'], isFalse);
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    await reloaded.syncRegisteredProviderCapabilities();
+    status = runtimeStatus();
+    skillBinding = skillTemplateBinding(bindingManifest(status));
+    expect(skillBinding['active_provider_ref'], 'ai_marketing_skills');
+    expect(
+        skillBinding['explicit_selected_provider_ref'], 'ai_marketing_skills');
+    expect(skillBinding['explicit_selection_applied'], isTrue);
+
+    final rolledBack = await reloaded
+        .rollbackRegisteredProviderCapability('ai_marketing_skills');
+    expect(rolledBack, isTrue);
+    status = runtimeStatus();
+    selectionState = jsonDecode(File(selectionPath).readAsStringSync()) as Map;
+    expect(
+        (selectionState['selected_providers_by_capability'] as Map)
+            .containsKey('skill_template_provider'),
+        isFalse);
+    expect(selectionState['rollback_suppressed_capability_ids'],
+        contains('skill_template_provider'));
+    skillBinding = skillTemplateBinding(bindingManifest(status));
+    expect(skillBinding['active_provider_ref'], 'local_skill_factory');
+    expect(skillBinding['active_provider_kind'], 'local_fallback');
+    expect(skillBinding['explicit_selected_provider_ref'], '');
+    expect(skillBinding['rollback_suppressed'], isTrue);
+    expect(skillBinding['selection_allowed'], isFalse);
+  });
+
   test('prd multi knowledge base catalog supports copy merge split delete',
       () async {
     final workspace = await createWorkspace();
