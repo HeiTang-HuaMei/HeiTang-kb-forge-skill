@@ -3450,6 +3450,63 @@ void main() {
     expect(factoryAudit['secret_plaintext_written'], isFalse);
     expect(File(skillVersionManifestPath).readAsStringSync(),
         contains('"event": "skill_operation_fusion"'));
+    final skillRuntimeManifestPath =
+        '$skillRoot${Platform.pathSeparator}operations${Platform.pathSeparator}skill_runtime_manifest.json';
+    final skillRuntimeManifest =
+        jsonDecode(File(skillRuntimeManifestPath).readAsStringSync())
+            as Map<String, dynamic>;
+    expect(skillRuntimeManifest['schema_version'],
+        'prd_v3_skill_runtime_manifest.v1');
+    expect(skillRuntimeManifest['runtime_loaded'], isTrue);
+    expect(skillRuntimeManifest['secondary_fusion_runtime_available'], isTrue);
+    expect(skillRuntimeManifest['multi_version_runtime_available'], isTrue);
+    expect(skillRuntimeManifest['version_count'], greaterThan(1));
+    final skillRuntimeVersions =
+        skillRuntimeManifest['versions'] as List<dynamic>;
+    expect(
+        skillRuntimeVersions.every((version) =>
+            File((version as Map)['snapshot_path'].toString()).existsSync()),
+        isTrue);
+    final skillDiffReport = jsonDecode(
+        File(skillRuntimeManifest['version_diff_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(skillDiffReport['schema_version'],
+        'prd_v3_skill_version_diff_report.v1');
+    expect(skillDiffReport['status'], 'pass');
+    final skillRollbackManifest = jsonDecode(
+        File(skillRuntimeManifest['rollback_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(skillRollbackManifest['schema_version'],
+        'prd_v3_skill_rollback_manifest.v1');
+    expect(skillRollbackManifest['rollback_supported'], isTrue);
+    expect(
+        File(skillRollbackManifest['rollback_target_snapshot_path'] as String)
+            .existsSync(),
+        isTrue);
+    expect(
+        File(skillRuntimeManifest['runtime_audit_path'] as String)
+            .readAsStringSync(),
+        allOf(
+          contains('prd_v3_skill_runtime_audit_record.v1'),
+          contains('"action":"skill_secondary_fusion"'),
+          contains('"secondary_fusion_runtime_available":true'),
+          contains('"multi_version_runtime_available":true'),
+        ));
+    final skillRuntimeStatus = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    final skillPreflight =
+        skillRuntimeStatus['stage_2_industrial_preflight'] as Map;
+    expect(skillPreflight['failed_checks'],
+        isNot(contains('skill_secondary_fusion_version_management')));
+    final skillPreflightChecks = skillPreflight['checks'] as List;
+    final skillPreflightCheck = skillPreflightChecks.cast<Map>().firstWhere(
+        (check) =>
+            check['check_id'] == 'skill_secondary_fusion_version_management');
+    expect(skillPreflightCheck['status'], 'passed');
+    expect(
+        ((skillPreflightCheck['runtime_evidence'] as Map)['missing'] as List),
+        isEmpty);
     final skillOperationHistoryPath =
         '$skillRoot${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_history.json';
     final skillOperationHistory =

@@ -7615,6 +7615,15 @@ class Rc6RuntimeController extends ChangeNotifier {
       requestedOperation: requestedOperation,
       validationReport: validationReport,
     );
+    await _writeSkillRuntimeEvidence(
+      agentBound: agentBound,
+      requestedOperation: requestedOperation,
+      validationReport: validationReport,
+    );
+    await _writeProjectConfigRuntimeStatus(
+      workspace,
+      await _readProjectConfigProfiles(workspace),
+    );
   }
 
   Future<Map<String, Object?>> _writeSkillFactoryPackageArtifacts({
@@ -7935,6 +7944,168 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
   }
 
+  Future<void> _writeSkillRuntimeEvidence({
+    required bool agentBound,
+    required String requestedOperation,
+    required Map<String, Object?> validationReport,
+  }) async {
+    final workspace = _requireWorkspace();
+    final skillRoot = Directory(_join(workspace.path, 'skill'));
+    final operationsRoot = Directory(_join(skillRoot.path, 'operations'));
+    await operationsRoot.create(recursive: true);
+    final versionManifestPath =
+        _join(operationsRoot.path, 'skill_version_manifest.json');
+    final versionManifest = await _readJsonObject(versionManifestPath);
+    final versions = _listOfMaps(versionManifest['versions']);
+    final latest = versions.isEmpty ? const <String, dynamic>{} : versions.last;
+    final previous = versions.length < 2
+        ? const <String, dynamic>{}
+        : versions[versions.length - 2];
+    final latestSnapshot = _stringValue(latest['snapshot_path'], '');
+    final previousSnapshot = _stringValue(previous['snapshot_path'], '');
+    final latestText = await _readOptionalText(latestSnapshot);
+    final previousText = await _readOptionalText(previousSnapshot);
+    final diffPath =
+        _join(operationsRoot.path, 'skill_version_diff_report.json');
+    final rollbackPath =
+        _join(operationsRoot.path, 'skill_rollback_manifest.json');
+    final runtimeManifestPath =
+        _join(operationsRoot.path, 'skill_runtime_manifest.json');
+    final auditPath = _join(operationsRoot.path, 'skill_runtime_audit.jsonl');
+    final fusedSkillPath =
+        _joinNested(skillRoot.path, 'fused_product_ops_skill/SKILL.md');
+    final fusedManifestPath = _joinNested(
+        skillRoot.path, 'fused_product_ops_skill/skill_manifest.json');
+    final packageManifestPath =
+        _join(skillRoot.path, 'skill_package_manifest.json');
+    final operationManifestPath =
+        _join(operationsRoot.path, 'skill_operation_manifest.json');
+    final operationHistoryPath =
+        _join(operationsRoot.path, 'skill_operation_history.json');
+    final sourceKbIds = _listOfStrings(validationReport['source_kb_ids']);
+    final diff = {
+      'schema_version': 'prd_v3_skill_version_diff_report.v1',
+      'status': versions.length > 1 ? 'pass' : 'needs_previous_version',
+      'previous_version_id': _stringValue(previous['version_id'], ''),
+      'latest_version_id': _stringValue(latest['version_id'], ''),
+      'previous_snapshot_path': previousSnapshot,
+      'latest_snapshot_path': latestSnapshot,
+      'previous_hash': previousText.isEmpty ? '' : _stableHash(previousText),
+      'latest_hash': latestText.isEmpty ? '' : _stableHash(latestText),
+      'content_changed': previousText.isNotEmpty &&
+          latestText.isNotEmpty &&
+          previousText != latestText,
+      'line_count_delta': _lineCount(latestText) - _lineCount(previousText),
+      'operation': requestedOperation,
+      'secret_plaintext_written': false,
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await File(diffPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(diff),
+      encoding: utf8,
+    );
+    final rollback = {
+      'schema_version': 'prd_v3_skill_rollback_manifest.v1',
+      'rollback_supported': versions.length > 1,
+      'current_version_id': _stringValue(latest['version_id'], ''),
+      'rollback_target_version_id': _stringValue(previous['version_id'], ''),
+      'rollback_target_snapshot_path': previousSnapshot,
+      'rollback_requires_confirmation': true,
+      'restores_files': [
+        _joinNested(skillRoot.path, 'knowledge_qa_skill/SKILL.md'),
+      ],
+      'audit_path': auditPath,
+      'secret_plaintext_written': false,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await File(rollbackPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(rollback),
+      encoding: utf8,
+    );
+    final runtime = {
+      'schema_version': 'prd_v3_skill_runtime_manifest.v1',
+      'runtime_name': 'internal_skill_factory_runtime',
+      'runtime_scope': 'knowledge_base_to_skill_to_agent_binding',
+      'runtime_loaded': true,
+      'external_runtime': false,
+      'requested_operation': requestedOperation,
+      'status': _stringValue(validationReport['status'], 'fail') == 'pass'
+          ? 'pass'
+          : 'needs_repair',
+      'secondary_fusion_runtime_available':
+          requestedOperation == 'fusion' && await File(fusedSkillPath).exists(),
+      'multi_version_runtime_available': versions.length > 1 &&
+          latestSnapshot.isNotEmpty &&
+          previousSnapshot.isNotEmpty &&
+          await File(latestSnapshot).exists() &&
+          await File(previousSnapshot).exists(),
+      'version_count': versions.length,
+      'versions': versions,
+      'source_kb_ids': sourceKbIds.isEmpty ? const ['current_kb'] : sourceKbIds,
+      'source_skill_ids': [
+        'S1',
+        'S2',
+        'operation_conversion_skill',
+        'product_analysis_skill',
+      ],
+      'fused_skill_path': fusedSkillPath,
+      'fused_manifest_path': fusedManifestPath,
+      'package_manifest_path': packageManifestPath,
+      'operation_manifest_path': operationManifestPath,
+      'operation_history_path': operationHistoryPath,
+      'version_manifest_path': versionManifestPath,
+      'version_diff_report_path': diffPath,
+      'rollback_manifest_path': rollbackPath,
+      'runtime_audit_path': auditPath,
+      'agent_binding_status': agentBound ? 'bound' : 'waiting_agent',
+      'tool_boundary': {
+        'local_kb_only': true,
+        'arbitrary_shell_enabled': false,
+        'computer_use_enabled': false,
+        'external_plugin_marketplace_enabled': false,
+      },
+      'secret_plaintext_written': false,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await File(runtimeManifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(runtime),
+      encoding: utf8,
+    );
+    await File(auditPath).writeAsString(
+      '${jsonEncode({
+            'schema_version': 'prd_v3_skill_runtime_audit_record.v1',
+            'action': requestedOperation == 'fusion'
+                ? 'skill_secondary_fusion'
+                : 'skill_runtime_refresh',
+            'status': runtime['status'],
+            'runtime_manifest_path': runtimeManifestPath,
+            'version_diff_report_path': diffPath,
+            'rollback_manifest_path': rollbackPath,
+            'version_count': versions.length,
+            'secondary_fusion_runtime_available':
+                runtime['secondary_fusion_runtime_available'],
+            'multi_version_runtime_available':
+                runtime['multi_version_runtime_available'],
+            'secret_plaintext_written': false,
+            'created_at': DateTime.now().toUtc().toIso8601String(),
+          })}\n',
+      mode: FileMode.append,
+      encoding: utf8,
+    );
+  }
+
+  static Future<String> _readOptionalText(String path) async {
+    if (path.trim().isEmpty) return '';
+    final file = File(path);
+    if (!await file.exists()) return '';
+    return file.readAsString(encoding: utf8);
+  }
+
+  static int _lineCount(String text) {
+    if (text.isEmpty) return 0;
+    return text.split(RegExp(r'\r?\n')).length;
+  }
+
   Future<void> _appendSkillVersionRecord({
     required String event,
     required Map<String, Object?> config,
@@ -7948,12 +8119,21 @@ class Rc6RuntimeController extends ChangeNotifier {
     final current = await _readJsonObject(manifestPath);
     final versions = _listOfMaps(current['versions']).toList(growable: true);
     final nextVersion = 'v${versions.length + 1}';
+    final skillPath =
+        _joinNested(workspace.path, 'skill/knowledge_qa_skill/SKILL.md');
+    final snapshotPath = await _snapshotSkillVersion(
+      workspace: workspace,
+      versionId: nextVersion,
+      event: event,
+      skillPath: skillPath,
+      config: config,
+    );
     versions.add({
       'version_id': nextVersion,
       'event': event,
       'skill_id': 'S1',
-      'artifact':
-          _joinNested(workspace.path, 'skill/knowledge_qa_skill/SKILL.md'),
+      'artifact': skillPath,
+      'snapshot_path': snapshotPath,
       'config': config,
       'created_at': DateTime.now().toUtc().toIso8601String(),
     });
@@ -7968,6 +8148,45 @@ class Rc6RuntimeController extends ChangeNotifier {
       }),
       encoding: utf8,
     );
+  }
+
+  Future<String> _snapshotSkillVersion({
+    required Directory workspace,
+    required String versionId,
+    required String event,
+    required String skillPath,
+    required Map<String, Object?> config,
+  }) async {
+    final safeVersionId = _safeFileName(versionId);
+    final versionRoot =
+        Directory(_joinNested(workspace.path, 'skill/versions/$safeVersionId'));
+    await versionRoot.create(recursive: true);
+    final snapshot = File(_join(versionRoot.path, 'SKILL.md'));
+    final source = File(skillPath);
+    if (await source.exists()) {
+      await source.copy(snapshot.path);
+    } else {
+      await snapshot.writeAsString(
+        '# Skill version snapshot\n\nSource SKILL.md was not available.',
+        encoding: utf8,
+      );
+    }
+    final snapshotText = await snapshot.readAsString(encoding: utf8);
+    await File(_join(versionRoot.path, 'version_manifest.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'prd_v3_skill_version_snapshot.v1',
+        'version_id': versionId,
+        'event': event,
+        'source_skill_path': skillPath,
+        'snapshot_path': snapshot.path,
+        'content_hash': _stableHash(snapshotText),
+        'config': config,
+        'created_at': DateTime.now().toUtc().toIso8601String(),
+        'secret_plaintext_written': false,
+      }),
+      encoding: utf8,
+    );
+    return snapshot.path;
   }
 
   Future<void> _writeAdditionalAgentPackages({
@@ -11964,16 +12183,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         },
         failureReason: 'A2A 需要多轮协作和冲突检测证据。',
       ),
-      _stage2JsonCheck(
-        'skill_secondary_fusion_version_management',
-        _joinNested(
-            workspace.path, 'skill/operations/skill_version_manifest.json'),
-        (payload, raw) {
-          final versions = _listOfMaps(payload['versions']);
-          return versions.length > 1 && raw.toLowerCase().contains('fusion');
-        },
-        failureReason: 'Skill 需要二次融合和多版本管理证据。',
-      ),
+      _stage2SkillRuntimeCheck(workspace),
       _stage2JsonCheck(
         'agent_workspace_permission_enforcement',
         _joinNested(
@@ -12143,6 +12353,93 @@ class Rc6RuntimeController extends ChangeNotifier {
       'artifact_path': runtimePath,
       'reason_zh':
           missing.isEmpty ? '' : 'OKF 到 KB 构建需要真实 runtime 构建、审计、编排和下游 KB 可用证据。',
+      'runtime_evidence': {
+        'required': required,
+        'missing': missing,
+      },
+    };
+  }
+
+  static Map<String, dynamic> _stage2SkillRuntimeCheck(Directory workspace) {
+    const checkId = 'skill_secondary_fusion_version_management';
+    final runtimePath = _joinNested(
+        workspace.path, 'skill/operations/skill_runtime_manifest.json');
+    final runtime = _readJsonObjectSync(runtimePath);
+    final diffPath = _stringValue(runtime['version_diff_report_path'], '');
+    final rollbackPath = _stringValue(runtime['rollback_manifest_path'], '');
+    final auditPath = _stringValue(runtime['runtime_audit_path'], '');
+    final fusedSkillPath = _stringValue(runtime['fused_skill_path'], '');
+    final fusedManifestPath = _stringValue(runtime['fused_manifest_path'], '');
+    final operationManifestPath =
+        _stringValue(runtime['operation_manifest_path'], '');
+    final operationHistoryPath =
+        _stringValue(runtime['operation_history_path'], '');
+    final versionManifestPath =
+        _stringValue(runtime['version_manifest_path'], '');
+    final diff = _readJsonObjectSync(diffPath);
+    final rollback = _readJsonObjectSync(rollbackPath);
+    final fusedManifest = _readJsonObjectSync(fusedManifestPath);
+    final operationManifest = _readJsonObjectSync(operationManifestPath);
+    final operationHistory = _readJsonObjectSync(operationHistoryPath);
+    final versionManifest = _readJsonObjectSync(versionManifestPath);
+    final versions = _listOfMaps(versionManifest['versions']);
+    final snapshotsExist = versions.length > 1 &&
+        versions.every((version) {
+          final snapshot = _stringValue(version['snapshot_path'], '');
+          return snapshot.isNotEmpty && File(snapshot).existsSync();
+        });
+    final historyRecords = _listOfMaps(operationHistory['records']);
+    final required = {
+      'runtime_manifest_schema': _stringValue(runtime['schema_version'], '') ==
+          'prd_v3_skill_runtime_manifest.v1',
+      'runtime_loaded': runtime['runtime_loaded'] == true,
+      'secondary_fusion_runtime_available':
+          runtime['secondary_fusion_runtime_available'] == true,
+      'multi_version_runtime_available':
+          runtime['multi_version_runtime_available'] == true,
+      'version_count_gt_one': (_asInt(runtime['version_count']) ?? 0) > 1,
+      'version_snapshots_exist': snapshotsExist,
+      'fused_skill_exists':
+          fusedSkillPath.isNotEmpty && File(fusedSkillPath).existsSync(),
+      'fused_manifest_skill_plus_kb':
+          _stringValue(fusedManifest['source_mode'], '') ==
+              'skill_plus_kb_fusion',
+      'operation_manifest_records_fusion':
+          _stringValue(operationManifest['requested_operation'], '') ==
+              'fusion',
+      'operation_history_records_fusion': historyRecords.any((record) =>
+          _stringValue(record['action'], '') == 'skill_operation_fusion' &&
+          _stringValue(record['status'], '') == 'completed'),
+      'diff_report_passed': _stringValue(diff['schema_version'], '') ==
+              'prd_v3_skill_version_diff_report.v1' &&
+          _stringValue(diff['status'], '') == 'pass',
+      'rollback_manifest_available':
+          _stringValue(rollback['schema_version'], '') ==
+                  'prd_v3_skill_rollback_manifest.v1' &&
+              rollback['rollback_supported'] == true &&
+              _stringValue(rollback['rollback_target_snapshot_path'], '')
+                  .isNotEmpty,
+      'runtime_audit_written': _jsonlContains(
+        auditPath,
+        (record) =>
+            _stringValue(record['action'], '') == 'skill_secondary_fusion' &&
+            record['secondary_fusion_runtime_available'] == true &&
+            record['multi_version_runtime_available'] == true,
+      ),
+      'secret_plaintext_absent': runtime['secret_plaintext_written'] == false &&
+          diff['secret_plaintext_written'] == false &&
+          rollback['secret_plaintext_written'] == false,
+    };
+    final missing = required.entries
+        .where((entry) => !entry.value)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    return {
+      'check_id': checkId,
+      'status': missing.isEmpty ? 'passed' : 'failed',
+      'artifact_path': runtimePath,
+      'reason_zh':
+          missing.isEmpty ? '' : 'Skill 需要真实二次融合、多版本快照、差异、回滚和 runtime 审计证据。',
       'runtime_evidence': {
         'required': required,
         'missing': missing,

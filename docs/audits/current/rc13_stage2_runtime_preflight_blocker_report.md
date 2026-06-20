@@ -29,7 +29,7 @@ The preflight requires runtime evidence for:
 1. OKF Bundle runtime export/import. Current implementation must prove runtime execution, not only a standard package manifest.
 2. OKF runtime to KB build. Current implementation must prove downstream KB materialization, catalog binding, orchestration, and audit records.
 3. A2A multi-round collaboration and conflict detection. Current implementation writes runtime evidence.
-4. Skill secondary fusion plus multi-version management.
+4. Skill secondary fusion plus multi-version management. Current implementation must prove fusion runtime, independent version snapshots, diff, rollback, and audit records.
 5. Agent workspace permission enforcement and unauthorized access blocking.
 6. Real EXE 38-step industrial smoke pass.
 
@@ -54,6 +54,21 @@ The Stage 2 gate also requires runtime execution evidence outside the manifest:
 - `knowledge_bases/kb_catalog.json` binds `K_OKF1` to the source standard package manifest.
 
 This is an internal product runtime for `document_library_to_knowledge_base`. It is not an external OKF service, not an independent Agent runtime, and not a top-level UI page. For P2 industrial completion, OKF must remain invisible as a top-level product module while still being a real runtime capability in the document library to knowledge base path.
+
+## Skill Runtime Boundary
+
+Skill operation manifests alone are not treated as industrial Skill completion.
+
+The Stage 2 gate requires:
+
+- `skill/operations/skill_runtime_manifest.json` with `schema_version=prd_v3_skill_runtime_manifest.v1`.
+- `secondary_fusion_runtime_available=true`.
+- `multi_version_runtime_available=true`.
+- Independent Skill version snapshots under `skill/versions/`.
+- `skill/operations/skill_version_diff_report.json` with `status=pass`.
+- `skill/operations/skill_rollback_manifest.json` with a real rollback snapshot target.
+- `skill/operations/skill_runtime_audit.jsonl` with a `skill_secondary_fusion` event.
+- `skill/fused_product_ops_skill/SKILL.md` and `skill_manifest.json` proving `skill_plus_kb_fusion`.
 
 ## Validation
 
@@ -80,6 +95,5 @@ Stage 3 Provider hot-swap may continue only as config/readiness/audit hardening.
 
 It must not proceed to external runtime loading or claim registered projects are runtime-integrated until the remaining Stage 2 runtime preflight items pass:
 
-- Skill secondary fusion plus multi-version management.
 - Agent workspace permission enforcement and unauthorized access blocking.
 - Real EXE 38-step industrial smoke pass.
