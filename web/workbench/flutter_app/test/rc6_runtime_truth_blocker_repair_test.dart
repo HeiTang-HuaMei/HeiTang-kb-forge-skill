@@ -2441,6 +2441,180 @@ void main() {
     expect(health['ready_for_user_selection_count'], greaterThanOrEqualTo(5));
   });
 
+  test(
+      'workflow collaboration adapter becomes selectable from real A2A exports',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.testAllRegisteredProviderCapabilities();
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    Map<String, dynamic> runtimeStatus() => jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    Map<String, dynamic> readinessReport(
+            Map<String, dynamic> status) =>
+        jsonDecode(
+            File(status['provider_adapter_readiness_report_path'] as String)
+                .readAsStringSync()) as Map<String, dynamic>;
+    Map<String, dynamic> readinessEntry(
+            Map<String, dynamic> readiness, String providerRef) =>
+        (readiness['readiness_entries'] as List)
+            .cast<Map<String, dynamic>>()
+            .firstWhere((entry) => entry['provider_ref'] == providerRef);
+
+    var readiness = readinessReport(runtimeStatus());
+    expect(
+        readinessEntry(readiness, 'n8n')['ready_for_user_selection'], isFalse);
+
+    final a2aDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001')
+      ..createSync(recursive: true);
+    final multiAgentDir =
+        Directory('${workspace.path}${Platform.pathSeparator}multi_agent')
+          ..createSync(recursive: true);
+    final roundLogPath =
+        '${a2aDir.path}${Platform.pathSeparator}a2a_rounds.jsonl';
+    final runtimeAuditPath =
+        '${a2aDir.path}${Platform.pathSeparator}a2a_runtime_audit.jsonl';
+    final conflictPath =
+        '${multiAgentDir.path}${Platform.pathSeparator}a2a_conflict_report.json';
+    final consensusPath =
+        '${multiAgentDir.path}${Platform.pathSeparator}a2a_consensus_report.json';
+    final workflowReportPath =
+        '${a2aDir.path}${Platform.pathSeparator}a2a_collaboration_report.md';
+    final discussionManifestPath =
+        '${multiAgentDir.path}${Platform.pathSeparator}multi_agent_discussion_manifest.json';
+    File(roundLogPath).writeAsStringSync(jsonl([
+      {
+        'schema_version': 'prd_v3_a2a_round_record.v1',
+        'round': 1,
+        'agent_id': 'B',
+        'output': 'B output',
+      },
+      {
+        'schema_version': 'prd_v3_a2a_round_record.v1',
+        'round': 2,
+        'agent_id': 'C',
+        'output': 'C review',
+      },
+      {
+        'schema_version': 'prd_v3_a2a_round_record.v1',
+        'round': 3,
+        'agent_id': 'B',
+        'output': 'B response',
+      },
+    ]));
+    File(runtimeAuditPath).writeAsStringSync(jsonl([
+      {
+        'schema_version': 'prd_v3_a2a_runtime_audit_record.v1',
+        'round': 1,
+        'status': 'completed',
+      },
+      {
+        'schema_version': 'prd_v3_a2a_runtime_audit_record.v1',
+        'round': 2,
+        'status': 'completed',
+      },
+      {
+        'schema_version': 'prd_v3_a2a_runtime_audit_record.v1',
+        'round': 3,
+        'status': 'completed',
+      },
+    ]));
+    File(conflictPath).writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_a2a_conflict_report.v1',
+      'round_count': 3,
+      'round_log_path': roundLogPath,
+      'runtime_audit_path': runtimeAuditPath,
+      'conflicts': ['scope_priority'],
+      'secret_plaintext_written': false,
+    }));
+    File(consensusPath).writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_a2a_consensus_report.v1',
+      'status': 'pass',
+      'round_count': 3,
+      'ready_for_export': true,
+    }));
+    File(workflowReportPath)
+        .writeAsStringSync('# A2A workflow collaboration export\n');
+    File(discussionManifestPath).writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_multi_agent_discussion_manifest.v1',
+      'status': 'report_generated',
+      'topic': 'workflow export',
+      'a2a_conflict_report_path': conflictPath,
+      'a2a_consensus_report_path': consensusPath,
+      'round_log_path': roundLogPath,
+      'runtime_audit_path': runtimeAuditPath,
+    }));
+    File('${a2aDir.path}${Platform.pathSeparator}a2a_session_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_a2a_session_manifest.v1',
+      'a2a_session_id': 'A2A_001',
+      'parent_workspace_id': 'W_M',
+      'participant_agent_ids': ['B', 'C'],
+      'topic': 'workflow export',
+      'rounds': 3,
+      'round_limit': 3,
+      'round_log_path': roundLogPath,
+      'runtime_audit_path': runtimeAuditPath,
+      'conflict_report_path': conflictPath,
+      'consensus_report_path': consensusPath,
+      'workspace_output_report_path': workflowReportPath,
+      'status': 'report_generated',
+    }));
+
+    final healthPath = await controller.testAllRegisteredProviderCapabilities();
+    final status = runtimeStatus();
+    readiness = readinessReport(status);
+    final n8n = readinessEntry(readiness, 'n8n');
+    expect(n8n['status'], '连接成功');
+    expect(n8n['ready_for_user_selection'], isTrue);
+    expect(n8n['runtime_loaded'], isFalse);
+    final probe = jsonDecode(
+        File((n8n['test_artifacts'] as List).cast<String>().single)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(probe['schema_version'], 'prd_v3_provider_adapter_probe_n8n.v1');
+    expect(probe['passed'], isTrue);
+    expect(probe['round_limit'], 3);
+    expect(probe['external_runtime_executed'], isFalse);
+    expect(probe['vendor_runtime_loaded'], isFalse);
+    expect(probe['secret_plaintext_written'], isFalse);
+
+    final binding = jsonDecode(
+        File(status['provider_capability_binding_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    final workflowBinding = (binding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) =>
+            entry['capability_id'] == 'workflow_collaboration_export');
+    expect(workflowBinding['active_provider_ref'], 'n8n');
+    expect(workflowBinding['active_provider_kind'], 'registered_provider');
+    expect(workflowBinding['selection_allowed'], isTrue);
+    expect(workflowBinding['runtime_loaded'], isFalse);
+
+    final activated =
+        await controller.activateRegisteredProviderCapability('n8n');
+    expect(activated, isTrue);
+    final activatedBinding = jsonDecode(
+        File(status['provider_capability_binding_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(activatedBinding['selected_provider_ref'], 'n8n');
+    expect(activatedBinding['selected_provider_runtime_loaded'], isFalse);
+    final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
+    expect(health['ready_for_user_selection_count'], greaterThanOrEqualTo(4));
+  });
+
   test('prd multi knowledge base catalog supports copy merge split delete',
       () async {
     final workspace = await createWorkspace();

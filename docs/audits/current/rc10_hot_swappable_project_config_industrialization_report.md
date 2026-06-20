@@ -87,6 +87,7 @@ Coverage:
 - 1 local governance rule-pack adapter can become selectable from repository-owned governance/test assets
 - 1 local Agent memory lifecycle adapter can become selectable after Agent and memory-index evidence exists
 - 1 local marketing Skill pattern adapter can become selectable from repository-owned template/demo assets
+- 1 local workflow collaboration export adapter can become selectable after A2A multi-round, conflict, consensus, runtime-audit, and collaboration-report evidence exists
 
 Capability areas:
 
@@ -203,6 +204,14 @@ Local Exporter adapter proof:
 - The `story_flicks` probe explicitly requires `fake_video_generated=false` and `api_called=false`; it validates an export/handoff boundary, not real video generation.
 - Both Provider refs remain Document Exporter capability enhancements. They do not create new pages, do not execute external runtimes, do not call network APIs, and keep `runtime_loaded=false`.
 
+Local Workflow / A2A export adapter proof:
+
+- `n8n` has a workspace-owned workflow collaboration export probe at `config/provider_adapter_probe_n8n.json`.
+- The probe requires real A2A workflow artifacts: `agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json`, `a2a_rounds.jsonl`, `a2a_runtime_audit.jsonl`, `multi_agent/a2a_conflict_report.json`, `multi_agent/a2a_consensus_report.json`, `multi_agent/multi_agent_discussion_manifest.json`, and the collaboration report markdown.
+- The probe requires multi-round evidence, runtime-audit records for each round, conflict and consensus reports, and export-ready collaboration output before the Provider can be selected.
+- Passing the probe marks `workflow_collaboration_export` as `连接成功` and selectable while keeping `runtime_loaded=false`.
+- This validates a local workflow export boundary only. It does not bundle n8n, call n8n, expose n8n as a normal product module, or execute any external workflow runtime.
+
 Adapter readiness:
 
 - `provider_adapter_readiness_report.json` evaluates the 26 adapter contracts against the active Profile and current workspace configuration.
@@ -244,6 +253,7 @@ Lifecycle behavior implemented:
 | Parser/OCR adapter probes | `provider_adapter_probe_<provider_ref>.json` | Verifies real DU manifest, records, normalized markdown, and OCR input evidence before allowing Parser/OCR enhancements to be selected |
 | Embedding/Vector adapter probes | `provider_adapter_probe_<provider_ref>.json` | Verifies real KB chunks, index profile, vector reference, build report, metadata, and chunk-count consistency before allowing Embedding/Vector enhancements to be selected |
 | Exporter adapter probes | `provider_adapter_probe_jellyfish.json`, `provider_adapter_probe_story_flicks.json` | Verifies real structured export and video handoff boundary artifacts before allowing exporter enhancements to be selected |
+| Workflow/A2A export adapter probes | `provider_adapter_probe_n8n.json` | Verifies real A2A session, rounds, runtime audit, conflict, consensus, and collaboration report artifacts before allowing workflow export enhancements to be selected |
 
 The CI-safe tests cover failure and config-state paths without requiring external services. Real Redis/Qdrant success checks remain part of EXE smoke when Docker services are available.
 
@@ -363,6 +373,10 @@ Latest Stage 3 Parser/OCR Provider slice:
 Latest Stage 3 Embedding/Vector Provider slice:
 
 - Targeted test: `embedding vector adapters become selectable from real index artifacts`
+
+Latest Stage 3 Workflow/A2A Export Provider slice:
+
+- Targeted test: `workflow collaboration adapter becomes selectable from real A2A exports`
 
 Pending after push:
 

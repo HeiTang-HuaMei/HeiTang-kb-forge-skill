@@ -14443,6 +14443,36 @@ class Rc6RuntimeController extends ChangeNotifier {
         'runtime_loaded': false,
       };
     }
+    if (_stringValue(contract['provider_ref'], '') == 'n8n') {
+      final probe = _probeN8nWorkflowCollaborationExport(workspace);
+      if (_boolValue(probe['passed'])) {
+        return {
+          'status': '连接成功',
+          'error_code': '',
+          'error_message_zh': '',
+          'missing_config_refs': <String>[],
+          'blocked_reasons': <String>[],
+          'test_artifacts': [probe['probe_path']],
+          'ready_for_user_selection': true,
+          'runtime_loaded': false,
+        };
+      }
+      return {
+        'status': '已配置未测试',
+        'error_code': 'n8n_probe_requires_a2a_workflow_exports',
+        'error_message_zh': _stringValue(
+          probe['error_message_zh'],
+          '需要先生成真实 A2A 多轮协作和工作流导出产物后才能启用工作流协作导出能力增强。',
+        ),
+        'missing_config_refs': <String>[],
+        'blocked_reasons': [
+          '需要 A2A session、round log、runtime audit、冲突/共识报告和协作导出报告'
+        ],
+        'test_artifacts': [probe['probe_path']],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
+      };
+    }
     final missingRefs = <String>[];
     final blockedReasons = <String>[];
     final requiredRefs = _listOfStrings(contract['required_config_refs']);
@@ -15810,6 +15840,137 @@ class Rc6RuntimeController extends ChangeNotifier {
       'vendor_runtime_loaded': false,
       'fake_video_generated': false,
       'api_called': false,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return {
+      ...payload,
+      'probe_path': probePath,
+    };
+  }
+
+  static Map<String, dynamic> _probeN8nWorkflowCollaborationExport(
+    Directory workspace,
+  ) {
+    final probePath = _providerAdapterProbePath(workspace, 'n8n');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final sessionManifestPath = _joinNested(workspace.path,
+        'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json');
+    final workflowReportPath = _joinNested(workspace.path,
+        'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_collaboration_report.md');
+    final conflictReportPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_conflict_report.json');
+    final consensusReportPath =
+        _joinNested(workspace.path, 'multi_agent/a2a_consensus_report.json');
+    final discussionManifestPath = _joinNested(
+        workspace.path, 'multi_agent/multi_agent_discussion_manifest.json');
+    final sessionManifest = _readJsonObjectSync(sessionManifestPath);
+    final conflictReport = _readJsonObjectSync(conflictReportPath);
+    final consensusReport = _readJsonObjectSync(consensusReportPath);
+    final discussionManifest = _readJsonObjectSync(discussionManifestPath);
+    final roundLogPath = _stringValue(sessionManifest['round_log_path'], '');
+    final runtimeAuditPath =
+        _stringValue(sessionManifest['runtime_audit_path'], '');
+    final roundLimit = _asInt(sessionManifest['round_limit']) ??
+        _asInt(sessionManifest['rounds']) ??
+        0;
+    final requiredArtifacts = [
+      {
+        'path': sessionManifestPath,
+        'exists': File(sessionManifestPath).existsSync(),
+        'schema_version': _stringValue(sessionManifest['schema_version'], ''),
+        'round_limit': roundLimit,
+      },
+      {
+        'path': roundLogPath,
+        'exists': File(roundLogPath).existsSync(),
+        'record_count': _jsonlRecordCount(roundLogPath),
+      },
+      {
+        'path': runtimeAuditPath,
+        'exists': File(runtimeAuditPath).existsSync(),
+        'record_count': _jsonlRecordCount(runtimeAuditPath),
+      },
+      {
+        'path': conflictReportPath,
+        'exists': File(conflictReportPath).existsSync(),
+        'schema_version': _stringValue(conflictReport['schema_version'], ''),
+      },
+      {
+        'path': consensusReportPath,
+        'exists': File(consensusReportPath).existsSync(),
+        'schema_version': _stringValue(consensusReport['schema_version'], ''),
+      },
+      {
+        'path': workflowReportPath,
+        'exists': File(workflowReportPath).existsSync(),
+        'bytes': File(workflowReportPath).existsSync()
+            ? File(workflowReportPath).readAsBytesSync().length
+            : 0,
+      },
+      {
+        'path': discussionManifestPath,
+        'exists': File(discussionManifestPath).existsSync(),
+        'schema_version':
+            _stringValue(discussionManifest['schema_version'], ''),
+      },
+    ];
+    final missingArtifacts = requiredArtifacts
+        .where((artifact) => artifact['exists'] != true)
+        .map((artifact) => artifact['path'].toString())
+        .toList(growable: false);
+    final validSession = _stringValue(sessionManifest['schema_version'], '') ==
+            'prd_v3_a2a_session_manifest.v1' &&
+        _stringValue(sessionManifest['status'], '') == 'report_generated' &&
+        roundLimit > 1 &&
+        _jsonlRecordCount(roundLogPath) >= roundLimit &&
+        _jsonlRecordCount(runtimeAuditPath) >= roundLimit;
+    final validConflict = _stringValue(conflictReport['schema_version'], '') ==
+            'prd_v3_a2a_conflict_report.v1' &&
+        (_asInt(conflictReport['round_count']) ?? 0) >= roundLimit;
+    final validConsensus =
+        _stringValue(consensusReport['schema_version'], '') ==
+                'prd_v3_a2a_consensus_report.v1' &&
+            _stringValue(consensusReport['status'], '') == 'pass' &&
+            consensusReport['ready_for_export'] == true;
+    final discussionSerialized = jsonEncode(discussionManifest);
+    final validDiscussion =
+        discussionSerialized.contains('a2a_conflict_report.json') &&
+            discussionSerialized.contains('a2a_consensus_report.json');
+    final workflowReportBytes = File(workflowReportPath).existsSync()
+        ? File(workflowReportPath).readAsBytesSync().length
+        : 0;
+    final invalidReasons = <String>[
+      if (!validSession) 'a2a_session_or_rounds_invalid',
+      if (!validConflict) 'conflict_report_invalid',
+      if (!validConsensus) 'consensus_report_invalid',
+      if (!validDiscussion) 'discussion_manifest_missing_exports',
+      if (workflowReportBytes == 0) 'workflow_report_empty',
+    ];
+    final passed = missingArtifacts.isEmpty && invalidReasons.isEmpty;
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_probe_n8n.v1',
+      'provider_ref': 'n8n',
+      'adapter_type': 'workflow_export_adapter',
+      'executed_at': now,
+      'probe_kind': 'local_a2a_workflow_collaboration_export',
+      'workspace_boundary': workspace.path,
+      'required_artifacts': requiredArtifacts,
+      'missing_artifacts': missingArtifacts,
+      'invalid_reasons': invalidReasons,
+      'round_limit': roundLimit,
+      'passed': passed,
+      'status': passed ? '连接成功' : '已配置未测试',
+      'error_message_zh': passed ? '' : 'A2A 工作流协作导出证据不完整，暂不能启用工作流导出能力增强。',
+      'network_used': false,
+      'secret_plaintext_written': false,
+      'normal_ui_project_name_visible': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
     };
     File(probePath)
       ..parent.createSync(recursive: true)
