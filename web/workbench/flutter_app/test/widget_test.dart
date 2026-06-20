@@ -259,6 +259,33 @@ void main() {
     expect(matrix['external_project_count'], registry.externalProjectCount);
   });
 
+  test('provider capability status asset parses as product-facing settings data',
+      () async {
+    final status = ProviderCapabilityStatus.fromJsonString(await rootBundle
+        .loadString('assets/external/provider_capability_status.json'));
+    final entries = {
+      for (final entry in status.capabilities) entry.capabilityId: entry
+    };
+
+    expect(status.schemaVersion, 'prd_v3_provider_capability_status.v1');
+    expect(status.productBaselineChain,
+        '文档库 -> 知识库 -> 索引层 -> RAG -> 编排层 -> 文档/Skill/Agent/A2A');
+    expect(status.providerNetworkApiReady, isFalse);
+    expect(status.readyForUserSelectionCount, 0);
+    expect(
+        status.userConceptBoundary['external_project_names_visible_in_normal_ui'],
+        isFalse);
+    expect(status.userConceptBoundary['hot_swap_project_concept_visible'],
+        isFalse);
+    expect(entries['document_parser_ocr']!.status, 'dependency_gated');
+    expect(entries['document_parser_ocr']!.requiresDependencyInstall, isTrue);
+    expect(entries['retrieval_provider']!.requiresNetwork, isTrue);
+    expect(entries.values.every((entry) => !entry.readyForUserSelection),
+        isTrue);
+    expect(entries.values.every((entry) => entry.auditEventRequired), isTrue);
+    expect(entries.values.every((entry) => entry.rollbackSupported), isTrue);
+  });
+
   test('p2.1 parser backend matrix asset parses with release boundaries',
       () async {
     final matrix = ParserBackendMatrix.fromJsonString(await rootBundle
@@ -595,6 +622,43 @@ void main() {
     expect(
         find.textContaining('future_adapter/capability_anchor'), findsNothing);
     expect(find.text('开发者诊断'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+      'settings renders provider capability status without project-loading language',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1100));
+    await tester.pumpWidget(HeiTangWorkbenchApp(
+      contracts: sampleWorkbenchContracts,
+      providerCapabilityStatus: sampleProviderCapabilityStatus,
+      isWebRuntime: false,
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byKey(const Key('sidebar-workspace')));
+    await tester.tap(find.byKey(const Key('sidebar-workspace')),
+        warnIfMissed: false);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Provider / 模型').first, warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Provider 与模型'), findsOneWidget);
+    expect(find.byKey(const Key('settings-provider-capability-status')),
+        findsOneWidget);
+    expect(find.text('能力 Provider 状态'), findsOneWidget);
+    expect(find.text('解析 / OCR'), findsOneWidget);
+    expect(find.text('检索 / 召回'), findsOneWidget);
+    expect(find.text('依赖待满足'), findsOneWidget);
+    expect(find.text('需要网络授权'), findsOneWidget);
+    expect(find.textContaining('文档库 -> 知识库 -> 索引层 -> RAG -> 编排层'),
+        findsOneWidget);
+    expect(find.textContaining('hot-swap'), findsNothing);
+    expect(find.textContaining('热插拔'), findsNothing);
+    expect(find.textContaining('external project'), findsNothing);
+    expect(find.textContaining('AnySearchSkill'), findsNothing);
+    expect(find.textContaining('Docling'), findsNothing);
+    expect(find.textContaining('n8n'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

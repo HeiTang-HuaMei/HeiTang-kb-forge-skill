@@ -6,6 +6,7 @@ class _WorkbenchScaffold extends StatelessWidget {
     required this.workflowEvidence,
     required this.workflowV2Evidence,
     required this.externalCapabilities,
+    required this.providerCapabilityStatus,
     required this.parserBackends,
     required this.campaign6AgentRuntimeStatus,
     required this.campaign7ConfigurationStatus,
@@ -32,6 +33,7 @@ class _WorkbenchScaffold extends StatelessWidget {
   final P1WorkflowEvidence workflowEvidence;
   final P1WorkflowEvidence workflowV2Evidence;
   final ExternalCapabilityRegistry externalCapabilities;
+  final ProviderCapabilityStatus providerCapabilityStatus;
   final ParserBackendMatrix parserBackends;
   final Map<String, dynamic> campaign6AgentRuntimeStatus;
   final Map<String, dynamic> campaign7ConfigurationStatus;
@@ -63,6 +65,7 @@ class _WorkbenchScaffold extends StatelessWidget {
           workflowEvidence: workflowEvidence,
           workflowV2Evidence: workflowV2Evidence,
           externalCapabilities: externalCapabilities,
+          providerCapabilityStatus: providerCapabilityStatus,
           parserBackends: parserBackends,
           campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
           campaign7ConfigurationStatus: campaign7ConfigurationStatus,

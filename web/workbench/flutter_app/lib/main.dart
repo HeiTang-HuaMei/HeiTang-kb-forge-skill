@@ -202,6 +202,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
     this.workflowEvidence,
     this.workflowV2Evidence,
     this.externalCapabilities,
+    this.providerCapabilityStatus,
     this.parserBackends,
     this.campaign6AgentRuntimeStatus,
     this.campaign7ConfigurationStatus,
@@ -222,6 +223,7 @@ class HeiTangWorkbenchApp extends StatefulWidget {
   final P1WorkflowEvidence? workflowEvidence;
   final P1WorkflowEvidence? workflowV2Evidence;
   final ExternalCapabilityRegistry? externalCapabilities;
+  final ProviderCapabilityStatus? providerCapabilityStatus;
   final ParserBackendMatrix? parserBackends;
   final Map<String, dynamic>? campaign6AgentRuntimeStatus;
   final Map<String, dynamic>? campaign7ConfigurationStatus;
@@ -274,6 +276,14 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
               .catchError((_) => sampleExternalCapabilityRegistry)
           : Future<ExternalCapabilityRegistry>.value(
               widget.externalCapabilities);
+  late final Future<ProviderCapabilityStatus> _providerCapabilityStatusFuture =
+      widget.providerCapabilityStatus == null
+          ? const ProviderCapabilityStatusLoader()
+              .loadFromAsset(
+                  'assets/external/provider_capability_status.json')
+              .catchError((_) => sampleProviderCapabilityStatus)
+          : Future<ProviderCapabilityStatus>.value(
+              widget.providerCapabilityStatus);
   late final Future<ParserBackendMatrix> _parserBackendsFuture = widget
               .parserBackends ==
           null
@@ -392,11 +402,17 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
               initialData: widget.externalCapabilities ??
                   sampleExternalCapabilityRegistry,
               builder: (context, externalSnapshot) =>
-                  FutureBuilder<ParserBackendMatrix>(
-                future: _parserBackendsFuture,
-                initialData: widget.parserBackends ?? sampleParserBackendMatrix,
-                builder: (context, parserSnapshot) =>
-                    FutureBuilder<Map<String, dynamic>>(
+                  FutureBuilder<ProviderCapabilityStatus>(
+                future: _providerCapabilityStatusFuture,
+                initialData: widget.providerCapabilityStatus ??
+                    sampleProviderCapabilityStatus,
+                builder: (context, providerStatusSnapshot) =>
+                    FutureBuilder<ParserBackendMatrix>(
+                  future: _parserBackendsFuture,
+                  initialData:
+                      widget.parserBackends ?? sampleParserBackendMatrix,
+                  builder: (context, parserSnapshot) =>
+                      FutureBuilder<Map<String, dynamic>>(
                   future: _campaign6AgentRuntimeStatusFuture,
                   initialData: widget.campaign6AgentRuntimeStatus ??
                       sampleCampaign6AgentRuntimeStatus,
@@ -427,6 +443,9 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
                                 v2Snapshot.data ?? sampleP1WorkflowV2Evidence,
                             externalCapabilities: externalSnapshot.data ??
                                 sampleExternalCapabilityRegistry,
+                            providerCapabilityStatus:
+                                providerStatusSnapshot.data ??
+                                    sampleProviderCapabilityStatus,
                             parserBackends: parserSnapshot.data ??
                                 sampleParserBackendMatrix,
                             campaign6AgentRuntimeStatus:
@@ -471,6 +490,7 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
@@ -533,6 +553,7 @@ class _DesktopWorkbench extends StatelessWidget {
     required this.workflowEvidence,
     required this.workflowV2Evidence,
     required this.externalCapabilities,
+    required this.providerCapabilityStatus,
     required this.parserBackends,
     required this.campaign6AgentRuntimeStatus,
     required this.campaign7ConfigurationStatus,
@@ -560,6 +581,7 @@ class _DesktopWorkbench extends StatelessWidget {
   final P1WorkflowEvidence workflowEvidence;
   final P1WorkflowEvidence workflowV2Evidence;
   final ExternalCapabilityRegistry externalCapabilities;
+  final ProviderCapabilityStatus providerCapabilityStatus;
   final ParserBackendMatrix parserBackends;
   final Map<String, dynamic> campaign6AgentRuntimeStatus;
   final Map<String, dynamic> campaign7ConfigurationStatus;
@@ -614,6 +636,7 @@ class _DesktopWorkbench extends StatelessWidget {
                     workflowEvidence: workflowEvidence,
                     workflowV2Evidence: workflowV2Evidence,
                     externalCapabilities: externalCapabilities,
+                    providerCapabilityStatus: providerCapabilityStatus,
                     parserBackends: parserBackends,
                     campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
                     campaign7ConfigurationStatus: campaign7ConfigurationStatus,
@@ -667,6 +690,7 @@ class _PageSurface extends StatefulWidget {
     required this.workflowEvidence,
     required this.workflowV2Evidence,
     required this.externalCapabilities,
+    required this.providerCapabilityStatus,
     required this.parserBackends,
     required this.campaign6AgentRuntimeStatus,
     required this.campaign7ConfigurationStatus,
@@ -695,6 +719,7 @@ class _PageSurface extends StatefulWidget {
   final P1WorkflowEvidence workflowEvidence;
   final P1WorkflowEvidence workflowV2Evidence;
   final ExternalCapabilityRegistry externalCapabilities;
+  final ProviderCapabilityStatus providerCapabilityStatus;
   final ParserBackendMatrix parserBackends;
   final Map<String, dynamic> campaign6AgentRuntimeStatus;
   final Map<String, dynamic> campaign7ConfigurationStatus;
@@ -749,6 +774,7 @@ class _PageSurfaceState extends State<_PageSurface> {
     final contracts = widget.contracts;
     final workflowV2Evidence = widget.workflowV2Evidence;
     final externalCapabilities = widget.externalCapabilities;
+    final providerCapabilityStatus = widget.providerCapabilityStatus;
     final parserBackends = widget.parserBackends;
     final campaign6AgentRuntimeStatus = widget.campaign6AgentRuntimeStatus;
     final coreWorkspace = widget.coreWorkspace;
@@ -817,6 +843,7 @@ class _PageSurfaceState extends State<_PageSurface> {
                       localeCode: localeCode,
                       page: page,
                       workspace: coreWorkspace,
+                      providerCapabilityStatus: providerCapabilityStatus,
                       campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
                       isWebRuntime: isWebRuntime,
                       onPageChanged: onPageChanged,
@@ -839,6 +866,7 @@ class _ProductPageOverview extends StatefulWidget {
     required this.localeCode,
     required this.page,
     required this.workspace,
+    required this.providerCapabilityStatus,
     required this.campaign6AgentRuntimeStatus,
     required this.isWebRuntime,
     required this.onPageChanged,
@@ -847,6 +875,7 @@ class _ProductPageOverview extends StatefulWidget {
   final String localeCode;
   final WorkbenchPage page;
   final String workspace;
+  final ProviderCapabilityStatus providerCapabilityStatus;
   final Map<String, dynamic> campaign6AgentRuntimeStatus;
   final bool isWebRuntime;
   final ValueChanged<int> onPageChanged;
@@ -943,6 +972,7 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
                 localeCode: widget.localeCode,
                 workspace: widget.workspace,
                 runtimeController: rc6,
+                providerCapabilityStatus: widget.providerCapabilityStatus,
                 selectedTab: selectedTab,
                 onTabSelected: (index) => setState(() => selectedTab = index),
                 isWebRuntime: widget.isWebRuntime,

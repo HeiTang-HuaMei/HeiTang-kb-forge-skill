@@ -1,0 +1,629 @@
+{
+  "status_id": "provider_capability_status",
+  "version": "s_a_contract_inclusion.1",
+  "schema_version": "prd_v3_provider_capability_status.v1",
+  "product_baseline_chain": "文档库 -> 知识库 -> 索引层 -> RAG -> 编排层 -> 文档/Skill/Agent/A2A",
+  "scope": "Maps registered capability evidence to product-facing Provider statuses. This does not load external projects, bundle external runtimes, or add top-level pages.",
+  "user_concept_boundary": {
+    "external_project_names_visible_in_normal_ui": false,
+    "hot_swap_project_concept_visible": false,
+    "unverified_entries_marked_ready": false,
+    "planned_adapters_marked_ready": false,
+    "okf_runtime_added": false
+  },
+  "capability_count": 8,
+  "ready_for_user_selection_count": 0,
+  "provider_network_api_ready": false,
+  "capabilities": [
+    {
+      "capability_id": "document_parser_ocr",
+      "capability_area": "document_library",
+      "user_visible_name": "Parser / OCR",
+      "zh_user_visible_name": "解析 / OCR",
+      "provider_type": "parser_ocr",
+      "status": "dependency_gated",
+      "ready_for_user_selection": false,
+      "default_fallback": "local_parser",
+      "requires_network": false,
+      "requires_secret": false,
+      "requires_external_runtime": false,
+      "requires_dependency_install": true,
+      "needs_verification": false,
+      "audit_event_required": true,
+      "rollback_supported": true,
+      "user_visible_behavior": "Requires dependency install or adapter completion",
+      "zh_user_visible_behavior": "需要安装或完成适配后启用",
+      "boundary": "User-facing capability status only. Registered project names and external runtimes are not exposed as normal product modules.",
+      "related_provider_states": [
+        {
+          "provider_ref": "docling",
+          "status": "dependency_gated",
+          "contract_status": [
+            "planned_adapter",
+            "optional_runtime_adapter"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "paddleocr",
+          "status": "dependency_gated",
+          "contract_status": [
+            "planned_adapter",
+            "optional_runtime_adapter"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "unstructured",
+          "status": "dependency_gated",
+          "contract_status": [
+            "planned_adapter",
+            "optional_runtime_adapter"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "opendataloader",
+          "status": "dependency_gated",
+          "contract_status": [
+            "planned_adapter"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "mineru",
+          "status": "dependency_gated",
+          "contract_status": [
+            "planned_adapter"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "marker",
+          "status": "dependency_gated",
+          "contract_status": [
+            "planned_adapter"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "surya",
+          "status": "dependency_gated",
+          "contract_status": [
+            "planned_adapter"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        }
+      ]
+    },
+    {
+      "capability_id": "knowledge_embedding_vector",
+      "capability_area": "knowledge_index",
+      "user_visible_name": "Embedding / Vector DB",
+      "zh_user_visible_name": "Embedding / 向量库",
+      "provider_type": "embedding_vector",
+      "status": "configured_not_tested",
+      "ready_for_user_selection": false,
+      "default_fallback": "local_keyword_index",
+      "requires_network": false,
+      "requires_secret": false,
+      "requires_external_runtime": false,
+      "requires_dependency_install": false,
+      "needs_verification": false,
+      "audit_event_required": true,
+      "rollback_supported": true,
+      "user_visible_behavior": "Local capability reference exists; test before enabling",
+      "zh_user_visible_behavior": "已有本地能力参考，启用前需测试",
+      "boundary": "User-facing capability status only. Registered project names and external runtimes are not exposed as normal product modules.",
+      "related_provider_states": [
+        {
+          "provider_ref": "rag_anything",
+          "status": "configured_not_tested",
+          "contract_status": [
+            "cross_modal_rag_schema_reference",
+            "reference_only",
+            "runtime_not_bundled"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "llamaindex",
+          "status": "needs_provider_config",
+          "contract_status": [
+            "benchmark_only"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "weknora",
+          "status": "configured_not_tested",
+          "contract_status": [
+            "capability_fusion",
+            "real_integration",
+            "runtime_not_bundled"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        }
+      ]
+    },
+    {
+      "capability_id": "retrieval_provider",
+      "capability_area": "retrieval_rag",
+      "user_visible_name": "Search / Retrieval",
+      "zh_user_visible_name": "检索 / 召回",
+      "provider_type": "search_retrieval",
+      "status": "dependency_gated",
+      "ready_for_user_selection": false,
+      "default_fallback": "local_rag_retrieval",
+      "requires_network": true,
+      "requires_secret": false,
+      "requires_external_runtime": false,
+      "requires_dependency_install": false,
+      "needs_verification": false,
+      "audit_event_required": true,
+      "rollback_supported": true,
+      "user_visible_behavior": "Requires dependency install or adapter completion",
+      "zh_user_visible_behavior": "需要安装或完成适配后启用",
+      "boundary": "User-facing capability status only. Registered project names and external runtimes are not exposed as normal product modules.",
+      "related_provider_states": [
+        {
+          "provider_ref": "anysearchskill",
+          "status": "needs_network_authorization",
+          "contract_status": [
+            "provider_adapter",
+            "real_smoke_passed",
+            "needs_strengthening"
+          ],
+          "requires_network": true,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "last30days_skill",
+          "status": "dependency_gated",
+          "contract_status": [
+            "provider_required",
+            "future_adapter"
+          ],
+          "requires_network": true,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "sirchmunk",
+          "status": "configured_not_tested",
+          "contract_status": [
+            "bounded_direct_file_search_provider",
+            "real_integration",
+            "runtime_not_bundled",
+            "embedding_free",
+            "vector_db_not_required"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "ragas",
+          "status": "dependency_gated",
+          "contract_status": [
+            "benchmark_only",
+            "future_adapter"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "deepeval",
+          "status": "dependency_gated",
+          "contract_status": [
+            "benchmark_only",
+            "future_adapter"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        }
+      ]
+    },
+    {
+      "capability_id": "document_exporter",
+      "capability_area": "document_generation",
+      "user_visible_name": "Document Exporter",
+      "zh_user_visible_name": "文档导出器",
+      "provider_type": "exporter",
+      "status": "external_runtime_required",
+      "ready_for_user_selection": false,
+      "default_fallback": "local_markdown_json_csv_export",
+      "requires_network": false,
+      "requires_secret": false,
+      "requires_external_runtime": true,
+      "requires_dependency_install": false,
+      "needs_verification": false,
+      "audit_event_required": true,
+      "rollback_supported": true,
+      "user_visible_behavior": "Requires a user-owned runtime",
+      "zh_user_visible_behavior": "需要用户自有运行时",
+      "boundary": "User-facing capability status only. Registered project names and external runtimes are not exposed as normal product modules.",
+      "related_provider_states": [
+        {
+          "provider_ref": "n8n",
+          "status": "external_runtime_required",
+          "contract_status": [
+            "workflow_export_adapter",
+            "export_validation_passed",
+            "runtime_not_bundled"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": true,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "jellyfish",
+          "status": "configured_not_tested",
+          "contract_status": [
+            "content_asset_schema_reference",
+            "reference_only",
+            "runtime_not_bundled"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "story_flicks",
+          "status": "configured_not_tested",
+          "contract_status": [
+            "aigc_video_pipeline_schema_reference",
+            "reference_only",
+            "runtime_not_bundled"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        }
+      ]
+    },
+    {
+      "capability_id": "skill_template_provider",
+      "capability_area": "skill_factory",
+      "user_visible_name": "Skill Template / Governance",
+      "zh_user_visible_name": "Skill 模板 / 治理",
+      "provider_type": "skill_template",
+      "status": "needs_secret_config",
+      "ready_for_user_selection": false,
+      "default_fallback": "local_skill_factory",
+      "requires_network": true,
+      "requires_secret": true,
+      "requires_external_runtime": false,
+      "requires_dependency_install": false,
+      "needs_verification": false,
+      "audit_event_required": true,
+      "rollback_supported": true,
+      "user_visible_behavior": "Requires secure secret configuration",
+      "zh_user_visible_behavior": "需要安全配置密钥",
+      "boundary": "User-facing capability status only. Registered project names and external runtimes are not exposed as normal product modules.",
+      "related_provider_states": [
+        {
+          "provider_ref": "andrej_karpathy_skills",
+          "status": "needs_provider_config",
+          "contract_status": [
+            "benchmark_only",
+            "capability_anchor"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "skill_prompt_generator",
+          "status": "configured_not_tested",
+          "contract_status": [
+            "prompt_asset_library_enhancer",
+            "real_integration",
+            "runtime_not_bundled",
+            "license_gate_pending"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "mmskills",
+          "status": "configured_not_tested",
+          "contract_status": [
+            "schema_package_reference",
+            "reference_only",
+            "runtime_not_bundled"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "mattpocock_skills",
+          "status": "configured_not_tested",
+          "contract_status": [
+            "engineering_governance_rule_pack",
+            "real_integration",
+            "runtime_not_bundled"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "ai_marketing_skills",
+          "status": "configured_not_tested",
+          "contract_status": [
+            "marketing_skill_pattern_library",
+            "real_integration",
+            "runtime_not_bundled"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "seedance2_skill",
+          "status": "needs_secret_config",
+          "contract_status": [
+            "verified_video_skill_template_metadata",
+            "reference_only",
+            "template_reference",
+            "provider_not_integrated",
+            "runtime_not_bundled"
+          ],
+          "requires_network": true,
+          "requires_secret": true,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        }
+      ]
+    },
+    {
+      "capability_id": "agent_model_tools_memory",
+      "capability_area": "agent_workbench",
+      "user_visible_name": "Agent Model / Tools / Memory",
+      "zh_user_visible_name": "Agent 模型 / 工具 / 记忆",
+      "provider_type": "agent_capability",
+      "status": "external_runtime_required",
+      "ready_for_user_selection": false,
+      "default_fallback": "local_agent_workspace",
+      "requires_network": false,
+      "requires_secret": false,
+      "requires_external_runtime": true,
+      "requires_dependency_install": false,
+      "needs_verification": false,
+      "audit_event_required": true,
+      "rollback_supported": true,
+      "user_visible_behavior": "Requires a user-owned runtime",
+      "zh_user_visible_behavior": "需要用户自有运行时",
+      "boundary": "User-facing capability status only. Registered project names and external runtimes are not exposed as normal product modules.",
+      "related_provider_states": [
+        {
+          "provider_ref": "llm_wiki_v2",
+          "status": "configured_not_tested",
+          "contract_status": [
+            "capability_fusion",
+            "real_integration",
+            "runtime_not_bundled"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "rtk",
+          "status": "external_runtime_required",
+          "contract_status": [
+            "benchmark_only"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": true,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        }
+      ]
+    },
+    {
+      "capability_id": "workflow_collaboration_export",
+      "capability_area": "orchestration_a2a",
+      "user_visible_name": "Workflow / Collaboration Export",
+      "zh_user_visible_name": "工作流 / 协作导出",
+      "provider_type": "workflow_collaboration",
+      "status": "external_runtime_required",
+      "ready_for_user_selection": false,
+      "default_fallback": "local_orchestration_audit",
+      "requires_network": false,
+      "requires_secret": false,
+      "requires_external_runtime": true,
+      "requires_dependency_install": false,
+      "needs_verification": false,
+      "audit_event_required": true,
+      "rollback_supported": true,
+      "user_visible_behavior": "Requires a user-owned runtime",
+      "zh_user_visible_behavior": "需要用户自有运行时",
+      "boundary": "User-facing capability status only. Registered project names and external runtimes are not exposed as normal product modules.",
+      "related_provider_states": [
+        {
+          "provider_ref": "n8n",
+          "status": "external_runtime_required",
+          "contract_status": [
+            "workflow_export_adapter",
+            "export_validation_passed",
+            "runtime_not_bundled"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": true,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        }
+      ]
+    },
+    {
+      "capability_id": "governance_audit_provider",
+      "capability_area": "governance_audit",
+      "user_visible_name": "Governance / Audit",
+      "zh_user_visible_name": "治理 / 审计",
+      "provider_type": "governance_audit",
+      "status": "dependency_gated",
+      "ready_for_user_selection": false,
+      "default_fallback": "local_audit_history",
+      "requires_network": false,
+      "requires_secret": false,
+      "requires_external_runtime": false,
+      "requires_dependency_install": false,
+      "needs_verification": false,
+      "audit_event_required": true,
+      "rollback_supported": true,
+      "user_visible_behavior": "Requires dependency install or adapter completion",
+      "zh_user_visible_behavior": "需要安装或完成适配后启用",
+      "boundary": "User-facing capability status only. Registered project names and external runtimes are not exposed as normal product modules.",
+      "related_provider_states": [
+        {
+          "provider_ref": "mattpocock_skills",
+          "status": "configured_not_tested",
+          "contract_status": [
+            "engineering_governance_rule_pack",
+            "real_integration",
+            "runtime_not_bundled"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "ragas",
+          "status": "dependency_gated",
+          "contract_status": [
+            "benchmark_only",
+            "future_adapter"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
+          "provider_ref": "deepeval",
+          "status": "dependency_gated",
+          "contract_status": [
+            "benchmark_only",
+            "future_adapter"
+          ],
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": false,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        }
+      ]
+    }
+  ]
+}
