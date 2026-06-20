@@ -12492,6 +12492,15 @@ class Rc6RuntimeController extends ChangeNotifier {
         .map((entry) => _stringValue(entry['capability_id'], ''))
         .where((value) => value.isNotEmpty)
         .toSet();
+    final registrySummaryPath = await _writeProviderRegistryReadinessSummary(
+      workspace,
+      healthEntries: healthEntries,
+      statusCounts: statusCounts,
+      stage2Preflight: stage2Preflight,
+      readinessPath: readinessPath,
+      matrixPath: matrixPath,
+      contractsPath: contractsPath,
+    );
     final healthReport = {
       'schema_version': 'prd_v3_registered_provider_health_report.v1',
       'generated_at': now,
@@ -12504,6 +12513,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           _providerAdapterReadinessLogPath(workspace),
       'provider_runtime_load_eligibility_manifest_path':
           _providerRuntimeLoadEligibilityManifestPath(workspace),
+      'provider_registry_readiness_summary_path': registrySummaryPath,
       'health_log_path': healthLogPath,
       'stability_report_path': stabilityReportPath,
       'provider_entry_count': healthEntries.length,
@@ -12587,6 +12597,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'stability_report_path': stabilityReportPath,
       'runtime_load_eligibility_manifest_path':
           _providerRuntimeLoadEligibilityManifestPath(workspace),
+      'provider_registry_readiness_summary_path': registrySummaryPath,
       'provider_entry_count': healthEntries.length,
       'unique_provider_ref_count': providerRefs.length,
     };
@@ -12661,6 +12672,126 @@ class Rc6RuntimeController extends ChangeNotifier {
       const JsonEncoder.withIndent('  ').convert(payload),
       encoding: utf8,
     );
+    return path;
+  }
+
+  Future<String> _writeProviderRegistryReadinessSummary(
+    Directory workspace, {
+    required List<Map<String, dynamic>> healthEntries,
+    required Map<String, int> statusCounts,
+    required Map<String, dynamic> stage2Preflight,
+    required String readinessPath,
+    required String matrixPath,
+    required String contractsPath,
+  }) async {
+    final providerRefs = healthEntries
+        .map((entry) => _stringValue(entry['provider_ref'], ''))
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList(growable: false)
+      ..sort();
+    final capabilityIds = healthEntries
+        .map((entry) => _stringValue(entry['capability_id'], ''))
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList(growable: false)
+      ..sort();
+    final stage2Allowed = _boolValue(stage2Preflight['runtime_load_allowed']);
+    final providerRows = providerRefs.map((providerRef) {
+      final related = healthEntries
+          .where(
+              (entry) => _stringValue(entry['provider_ref'], '') == providerRef)
+          .toList(growable: false);
+      final ready =
+          related.any((entry) => entry['ready_for_user_selection'] == true);
+      final requiresExternalRuntime = related
+          .any((entry) => _boolValue(entry['requires_external_runtime']));
+      final runtimeLoadEligible =
+          stage2Allowed && ready && requiresExternalRuntime;
+      final statuses = related
+          .map((entry) => _stringValue(entry['health_status'], '未配置'))
+          .toSet()
+          .toList(growable: false)
+        ..sort();
+      return {
+        'provider_ref': providerRef,
+        'capability_ids': related
+            .map((entry) => _stringValue(entry['capability_id'], ''))
+            .where((value) => value.isNotEmpty)
+            .toSet()
+            .toList(growable: false)
+          ..sort(),
+        'affected_modules': related
+            .expand((entry) => _listOfStrings(entry['affected_modules']))
+            .toSet()
+            .toList(growable: false)
+          ..sort(),
+        'statuses': statuses,
+        'user_status': ready ? '连接成功' : statuses.firstOrNull ?? '未配置',
+        'ready_for_user_selection': ready,
+        'selection_allowed': ready,
+        'requires_external_runtime': requiresExternalRuntime,
+        'runtime_load_allowed': ready && stage2Allowed,
+        'external_runtime_load_eligible': runtimeLoadEligible,
+        'runtime_loaded': false,
+        'fallback_providers': related
+            .map((entry) => _stringValue(entry['fallback_provider'], ''))
+            .where((value) => value.isNotEmpty)
+            .toSet()
+            .toList(growable: false)
+          ..sort(),
+        'rollback_supported':
+            related.any((entry) => _boolValue(entry['rollback_supported'])),
+        'blocked_reasons': related
+            .map((entry) => _stringValue(entry['blocked_reason_zh'], ''))
+            .where((value) => value.isNotEmpty)
+            .toSet()
+            .toList(growable: false)
+          ..sort(),
+        'normal_ui_project_name_visible': false,
+        'secret_masked': true,
+        'secret_plaintext_written': false,
+      };
+    }).toList(growable: false);
+    final path = _providerRegistryReadinessSummaryPath(workspace);
+    final payload = {
+      'schema_version': 'prd_v3_provider_registry_readiness_summary.v1',
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'workspace_boundary': workspace.path,
+      'matrix_path': matrixPath,
+      'contracts_path': contractsPath,
+      'readiness_report_path': readinessPath,
+      'health_report_path': _registeredProviderHealthReportPath(workspace),
+      'runtime_load_eligibility_manifest_path':
+          _providerRuntimeLoadEligibilityManifestPath(workspace),
+      'provider_count': providerRows.length,
+      'provider_mapping_count': healthEntries.length,
+      'capability_area_count': capabilityIds.length,
+      'ready_provider_count': providerRows
+          .where((entry) => entry['ready_for_user_selection'] == true)
+          .length,
+      'runtime_loaded_count': 0,
+      'external_runtime_load_eligible_count': providerRows
+          .where((entry) => entry['external_runtime_load_eligible'] == true)
+          .length,
+      'status_counts': statusCounts,
+      'capability_ids': capabilityIds,
+      'stage_2_industrial_preflight': stage2Preflight,
+      'user_concept_boundary': {
+        'visible_as_provider_capability_enhancement': true,
+        'external_project_names_visible_in_normal_ui': false,
+        'hot_swap_project_concept_visible': false,
+        'unverified_entries_marked_ready': false,
+      },
+      'failure_isolation': {
+        'unavailable_provider_blocks_main_chain': false,
+        'local_fallback_available': true,
+        'rollback_supported': true,
+      },
+      'provider_rows': providerRows,
+      'secret_plaintext_written': false,
+    };
+    await _writeJsonFile(path, payload);
     return path;
   }
 
@@ -13642,6 +13773,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         'provider_runtime_load_eligibility_manifest.json');
   }
 
+  static String _providerRegistryReadinessSummaryPath(Directory workspace) {
+    return _join(
+        workspace.path, 'config', 'provider_registry_readiness_summary.json');
+  }
+
   static String _providerRuntimeLoadManifestPath(Directory workspace) {
     return _join(
         workspace.path, 'config', 'provider_runtime_load_manifest.json');
@@ -14070,6 +14206,9 @@ class Rc6RuntimeController extends ChangeNotifier {
           registeredProviderHealthArtifacts['health_log_path'],
       'registered_provider_hot_swap_stability_report_path':
           registeredProviderHealthArtifacts['stability_report_path'],
+      'provider_registry_readiness_summary_path':
+          registeredProviderHealthArtifacts[
+              'provider_registry_readiness_summary_path'],
       'provider_runtime_load_eligibility_manifest_path':
           registeredProviderHealthArtifacts[
               'runtime_load_eligibility_manifest_path'],

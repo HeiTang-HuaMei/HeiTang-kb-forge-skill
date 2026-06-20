@@ -1835,6 +1835,10 @@ void main() {
         providerAdapterContractsPath);
     expect(providerHealth['provider_adapter_readiness_report_path'],
         providerAdapterReadinessPath);
+    final providerRegistrySummaryPath =
+        providerHealth['provider_registry_readiness_summary_path'] as String;
+    expect(runtimeStatus['provider_registry_readiness_summary_path'],
+        providerRegistrySummaryPath);
     final runtimeLoadEligibilityPath =
         runtimeStatus['provider_runtime_load_eligibility_manifest_path']
             as String;
@@ -1852,6 +1856,49 @@ void main() {
     expect(providerHealth['normal_ui_project_names_visible'], isFalse);
     expect(providerHealth['unverified_entries_marked_ready'], isFalse);
     expect(providerHealth['secret_plaintext_written'], isFalse);
+    final registrySummary =
+        jsonDecode(File(providerRegistrySummaryPath).readAsStringSync()) as Map;
+    expect(registrySummary['schema_version'],
+        'prd_v3_provider_registry_readiness_summary.v1');
+    expect(registrySummary['provider_count'], 26);
+    expect(registrySummary['provider_mapping_count'], 29);
+    expect(registrySummary['capability_area_count'], 8);
+    expect(registrySummary['ready_provider_count'], 2);
+    expect(registrySummary['runtime_loaded_count'], 0);
+    expect(registrySummary['external_runtime_load_eligible_count'], 0);
+    expect(
+        (registrySummary['user_concept_boundary']
+            as Map)['external_project_names_visible_in_normal_ui'],
+        isFalse);
+    expect(
+        (registrySummary['user_concept_boundary']
+            as Map)['hot_swap_project_concept_visible'],
+        isFalse);
+    expect(
+        (registrySummary['failure_isolation']
+            as Map)['unavailable_provider_blocks_main_chain'],
+        isFalse);
+    final providerRows = (registrySummary['provider_rows'] as List).cast<Map>();
+    expect(providerRows, hasLength(26));
+    final n8nSummary =
+        providerRows.firstWhere((entry) => entry['provider_ref'] == 'n8n');
+    expect(n8nSummary['requires_external_runtime'], isTrue);
+    expect(n8nSummary['runtime_load_allowed'], isFalse);
+    expect(n8nSummary['external_runtime_load_eligible'], isFalse);
+    expect(n8nSummary['runtime_loaded'], isFalse);
+    expect(n8nSummary['rollback_supported'], isTrue);
+    expect(n8nSummary['normal_ui_project_name_visible'], isFalse);
+    expect(n8nSummary['secret_plaintext_written'], isFalse);
+    final mattpocockSummary = providerRows
+        .firstWhere((entry) => entry['provider_ref'] == 'mattpocock_skills');
+    expect(mattpocockSummary['ready_for_user_selection'], isTrue);
+    expect(mattpocockSummary['runtime_loaded'], isFalse);
+    expect(
+        (mattpocockSummary['capability_ids'] as List),
+        containsAll([
+          'skill_template_provider',
+          'governance_audit_provider',
+        ]));
     final healthEntries =
         (providerHealth['health_entries'] as List).cast<Map>();
     expect(healthEntries, hasLength(29));

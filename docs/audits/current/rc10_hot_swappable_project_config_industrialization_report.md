@@ -303,6 +303,7 @@ Adapter readiness:
 
 - `provider_adapter_readiness_report.json` evaluates the 26 adapter contracts against the active Profile and current workspace configuration.
 - It records missing config refs, blocked reasons, Chinese error messages, degradation targets, affected modules, and masked status for each Provider.
+- `provider_registry_readiness_summary.json` consolidates the 29 Provider mappings into 26 Provider rows with capability IDs, affected modules, readiness, runtime-load eligibility, rollback support, local fallback, user-boundary, and secret-boundary fields.
 - The readiness report feeds audit/runtime status without exposing external project names in normal UI.
 - Current default readiness evidence keeps `runtime_loaded_count=0`. After Stage 2 preflight passes, locally proven Provider enhancements may record `runtime_load_allowed=true`, but they still remain `runtime_loaded=false` until the separate Stage 3 runtime-load health gate succeeds for a user-owned external endpoint.
 - `provider_runtime_load_eligibility_manifest.json` separates local capability enhancements from Provider refs that require user-owned external runtime loading. In the current evidence workspace, Stage 2 preflight allows runtime loading, `n8n` is the only external-runtime eligible Provider, and `runtime_loaded_count` remains `0`.
@@ -339,6 +340,7 @@ Lifecycle behavior implemented:
 | Provider active selection | `provider_capability_selection_state.json` | Persists explicit Provider selection, survives runtime refresh/restart, and suppresses auto-selection after rollback |
 | Provider adapter contracts | `provider_adapter_contracts.json` | Defines 26 Provider adapter contracts with required config refs, health checks, fallback, and rollback |
 | Provider adapter readiness | `provider_adapter_readiness_report.json` | Evaluates 26 adapter contracts against active Profile/config and keeps unverified adapters blocked |
+| Provider registry summary | `provider_registry_readiness_summary.json` | Consolidates 26 Provider rows for Settings/Audit consumption without exposing external project names as product modules |
 | Parser/OCR adapter probes | `provider_adapter_probe_<provider_ref>.json` | Verifies real DU manifest, records, normalized markdown, and OCR input evidence before allowing Parser/OCR enhancements to be selected |
 | Embedding/Vector adapter probes | `provider_adapter_probe_<provider_ref>.json` | Verifies real KB chunks, index profile, vector reference, build report, metadata, and chunk-count consistency before allowing Embedding/Vector enhancements to be selected |
 | Exporter adapter probes | `provider_adapter_probe_jellyfish.json`, `provider_adapter_probe_story_flicks.json` | Verifies real structured export and video handoff boundary artifacts before allowing exporter enhancements to be selected |
