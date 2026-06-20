@@ -30,6 +30,8 @@ S_A_CONTRACT_OUTPUT_FILES = [
     "planned_adapter_status_report.md",
     "provider_boundary_report.json",
     "provider_boundary_report.md",
+    "provider_capability_status.json",
+    "provider_capability_status.md",
 ]
 
 BLOCKED_REASON_TAXONOMY = [
@@ -298,6 +300,88 @@ PROJECT_ERROR_MAPPING = {
     "bounded_direct_file_search_provider": ["tool_call_failed"],
 }
 
+PROVIDER_CAPABILITY_AREAS = [
+    {
+        "capability_id": "document_parser_ocr",
+        "capability_area": "document_library",
+        "user_visible_name": "Parser / OCR",
+        "zh_user_visible_name": "解析 / OCR",
+        "provider_type": "parser_ocr",
+        "project_ids": ["docling", "paddleocr", "unstructured", "opendataloader", "mineru", "marker", "surya"],
+        "fallback": "local_parser",
+    },
+    {
+        "capability_id": "knowledge_embedding_vector",
+        "capability_area": "knowledge_index",
+        "user_visible_name": "Embedding / Vector DB",
+        "zh_user_visible_name": "Embedding / 向量库",
+        "provider_type": "embedding_vector",
+        "project_ids": ["rag_anything", "llamaindex", "weknora"],
+        "fallback": "local_keyword_index",
+    },
+    {
+        "capability_id": "retrieval_provider",
+        "capability_area": "retrieval_rag",
+        "user_visible_name": "Search / Retrieval",
+        "zh_user_visible_name": "检索 / 召回",
+        "provider_type": "search_retrieval",
+        "project_ids": ["anysearchskill", "last30days_skill", "sirchmunk", "ragas", "deepeval"],
+        "fallback": "local_rag_retrieval",
+    },
+    {
+        "capability_id": "document_exporter",
+        "capability_area": "document_generation",
+        "user_visible_name": "Document Exporter",
+        "zh_user_visible_name": "文档导出器",
+        "provider_type": "exporter",
+        "project_ids": ["n8n", "jellyfish", "story_flicks"],
+        "fallback": "local_markdown_json_csv_export",
+    },
+    {
+        "capability_id": "skill_template_provider",
+        "capability_area": "skill_factory",
+        "user_visible_name": "Skill Template / Governance",
+        "zh_user_visible_name": "Skill 模板 / 治理",
+        "provider_type": "skill_template",
+        "project_ids": [
+            "andrej_karpathy_skills",
+            "skill_prompt_generator",
+            "mmskills",
+            "mattpocock_skills",
+            "ai_marketing_skills",
+            "seedance2_skill",
+        ],
+        "fallback": "local_skill_factory",
+    },
+    {
+        "capability_id": "agent_model_tools_memory",
+        "capability_area": "agent_workbench",
+        "user_visible_name": "Agent Model / Tools / Memory",
+        "zh_user_visible_name": "Agent 模型 / 工具 / 记忆",
+        "provider_type": "agent_capability",
+        "project_ids": ["llm_wiki_v2", "rtk"],
+        "fallback": "local_agent_workspace",
+    },
+    {
+        "capability_id": "workflow_collaboration_export",
+        "capability_area": "orchestration_a2a",
+        "user_visible_name": "Workflow / Collaboration Export",
+        "zh_user_visible_name": "工作流 / 协作导出",
+        "provider_type": "workflow_collaboration",
+        "project_ids": ["n8n"],
+        "fallback": "local_orchestration_audit",
+    },
+    {
+        "capability_id": "governance_audit_provider",
+        "capability_area": "governance_audit",
+        "user_visible_name": "Governance / Audit",
+        "zh_user_visible_name": "治理 / 审计",
+        "provider_type": "governance_audit",
+        "project_ids": ["mattpocock_skills", "ragas", "deepeval"],
+        "fallback": "local_audit_history",
+    },
+]
+
 
 def load_external_project_registry(repo_root: Path | None = None) -> dict[str, Any]:
     root = repo_root or Path.cwd()
@@ -499,6 +583,7 @@ def make_external_capability_bundle(repo_root: Path | None = None) -> dict[str, 
     gate_report = _workbench_p1_gate_report(registry_payload)
     planned_report = _planned_adapter_status_report(projects)
     provider_report = _provider_boundary_report(projects)
+    provider_status = _provider_capability_status(projects)
 
     return {
         "external_capability_registry.json": registry_payload,
@@ -518,6 +603,8 @@ def make_external_capability_bundle(repo_root: Path | None = None) -> dict[str, 
         "planned_adapter_status_report.md": _render_planned_adapter_md(planned_report),
         "provider_boundary_report.json": provider_report,
         "provider_boundary_report.md": _render_provider_boundary_md(provider_report),
+        "provider_capability_status.json": provider_status,
+        "provider_capability_status.md": _render_provider_capability_status_md(provider_status),
     }
 
 
@@ -929,6 +1016,139 @@ def _provider_boundary_report(projects: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _provider_capability_status(projects: list[dict[str, Any]]) -> dict[str, Any]:
+    project_by_id = {project["project_id"]: project for project in projects}
+    capabilities = []
+    for spec in PROVIDER_CAPABILITY_AREAS:
+        related = [
+            project_by_id[project_id]
+            for project_id in spec["project_ids"]
+            if project_id in project_by_id
+        ]
+        blocked_reasons = _unique(
+            [reason for project in related for reason in project["blocked_reasons"]]
+        )
+        related_states = [_provider_project_state(project) for project in related]
+        status = _provider_capability_state(related, blocked_reasons)
+        ready_for_user_selection = status == "available"
+        capabilities.append(
+            {
+                "capability_id": spec["capability_id"],
+                "capability_area": spec["capability_area"],
+                "user_visible_name": spec["user_visible_name"],
+                "zh_user_visible_name": spec["zh_user_visible_name"],
+                "provider_type": spec["provider_type"],
+                "status": status,
+                "ready_for_user_selection": ready_for_user_selection,
+                "default_fallback": spec["fallback"],
+                "requires_network": any(project["requires_network"] for project in related),
+                "requires_secret": any(project["requires_api_key"] for project in related),
+                "requires_external_runtime": any(project["requires_external_runtime"] for project in related),
+                "requires_dependency_install": any(
+                    "optional_runtime_dependency_missing" in project["blocked_reasons"]
+                    or "planned_adapter_not_implemented" in project["blocked_reasons"]
+                    for project in related
+                ),
+                "needs_verification": any(
+                    "needs_verification" in project["blocked_reasons"]
+                    or "needs_verification" in project["contract_status"]
+                    for project in related
+                ),
+                "audit_event_required": True,
+                "rollback_supported": True,
+                "user_visible_behavior": _provider_user_behavior(status),
+                "zh_user_visible_behavior": _provider_user_behavior(status, zh=True),
+                "boundary": (
+                    "User-facing capability status only. Registered project names and "
+                    "external runtimes are not exposed as normal product modules."
+                ),
+                "related_provider_states": related_states,
+            }
+        )
+    ready_count = sum(1 for entry in capabilities if entry["ready_for_user_selection"])
+    return {
+        "status_id": "provider_capability_status",
+        "version": S_A_CONTRACT_INCLUSION_VERSION,
+        "schema_version": "prd_v3_provider_capability_status.v1",
+        "product_baseline_chain": "文档库 -> 知识库 -> 索引层 -> RAG -> 编排层 -> 文档/Skill/Agent/A2A",
+        "scope": (
+            "Maps registered capability evidence to product-facing Provider statuses. "
+            "This does not load external projects, bundle external runtimes, or add top-level pages."
+        ),
+        "user_concept_boundary": {
+            "external_project_names_visible_in_normal_ui": False,
+            "hot_swap_project_concept_visible": False,
+            "unverified_entries_marked_ready": False,
+            "planned_adapters_marked_ready": False,
+            "okf_runtime_added": False,
+        },
+        "capability_count": len(capabilities),
+        "ready_for_user_selection_count": ready_count,
+        "provider_network_api_ready": False,
+        "capabilities": capabilities,
+    }
+
+
+def _provider_project_state(project: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "provider_ref": project["project_id"],
+        "status": _provider_capability_state([project], project["blocked_reasons"]),
+        "contract_status": project["contract_status"],
+        "requires_network": project["requires_network"],
+        "requires_secret": project["requires_api_key"],
+        "requires_external_runtime": project["requires_external_runtime"],
+        "ready_for_user_selection": False,
+        "audit_event_required": True,
+        "rollback_supported": True,
+    }
+
+
+def _provider_capability_state(projects: list[dict[str, Any]], blocked_reasons: list[str]) -> str:
+    if not projects:
+        return "needs_provider_config"
+    if "needs_verification" in blocked_reasons:
+        return "needs_verification"
+    if any(
+        "planned_adapter" in project["contract_status"]
+        or "future_adapter" in project["contract_status"]
+        for project in projects
+    ):
+        return "dependency_gated"
+    if any(project["requires_external_runtime"] for project in projects):
+        return "external_runtime_required"
+    if any(project["requires_api_key"] for project in projects):
+        return "needs_secret_config"
+    if any(project["requires_network"] for project in projects):
+        return "needs_network_authorization"
+    if any(project["local_ready"] for project in projects):
+        return "configured_not_tested"
+    return "needs_provider_config"
+
+
+def _provider_user_behavior(status: str, *, zh: bool = False) -> str:
+    zh_labels = {
+        "available": "可选择并可审计",
+        "configured_not_tested": "已有本地能力参考，启用前需测试",
+        "dependency_gated": "需要安装或完成适配后启用",
+        "external_runtime_required": "需要用户自有运行时",
+        "needs_secret_config": "需要安全配置密钥",
+        "needs_network_authorization": "需要网络授权与验证",
+        "needs_verification": "需要完成登记核验",
+        "needs_provider_config": "需要 Provider 配置",
+    }
+    en_labels = {
+        "available": "Selectable with audit trail",
+        "configured_not_tested": "Local capability reference exists; test before enabling",
+        "dependency_gated": "Requires dependency install or adapter completion",
+        "external_runtime_required": "Requires a user-owned runtime",
+        "needs_secret_config": "Requires secure secret configuration",
+        "needs_network_authorization": "Requires network authorization and validation",
+        "needs_verification": "Requires registry verification",
+        "needs_provider_config": "Requires Provider configuration",
+    }
+    return (zh_labels if zh else en_labels).get(status, status)
+
+
 def _compact_project(project: dict[str, Any]) -> dict[str, Any]:
     return {
         "project_id": project["project_id"],
@@ -1054,6 +1274,32 @@ def _render_provider_boundary_md(payload: dict[str, Any]) -> str:
     lines.extend(
         f"| {entry['project_name']} | {str(entry['requires_api_key']).lower()} | {str(entry['requires_network']).lower()} | {str(entry['requires_external_runtime']).lower()} |"
         for entry in payload["entries"]
+    )
+    return "\n".join(lines) + "\n"
+
+
+def _render_provider_capability_status_md(payload: dict[str, Any]) -> str:
+    lines = [
+        "# Provider Capability Status",
+        "",
+        "Product-facing Provider capability status. This report does not expose registered external projects as product modules and does not load external runtimes.",
+        "",
+        f"- Capability count: {payload['capability_count']}",
+        f"- Ready for user selection: {payload['ready_for_user_selection_count']}",
+        f"- Provider network API ready: {str(payload['provider_network_api_ready']).lower()}",
+        "",
+        "| Capability | Area | Status | User behavior | Ready |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    lines.extend(
+        "| {name} | {area} | {status} | {behavior} | {ready} |".format(
+            name=entry["user_visible_name"],
+            area=entry["capability_area"],
+            status=entry["status"],
+            behavior=entry["user_visible_behavior"],
+            ready=str(entry["ready_for_user_selection"]).lower(),
+        )
+        for entry in payload["capabilities"]
     )
     return "\n".join(lines) + "\n"
 

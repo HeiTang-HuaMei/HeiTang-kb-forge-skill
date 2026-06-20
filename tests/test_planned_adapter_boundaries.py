@@ -66,3 +66,70 @@ def test_verified_closure_entries_are_not_executable():
         assert "needs_verification" not in projects[project_id]["blocked_reasons"]
         assert projects[project_id]["executable_action"] is False
         assert projects[project_id]["can_execute_locally_before_v4"] is False
+
+
+def test_provider_capability_status_is_user_facing_and_not_project_loading():
+    payload = _json("provider_capability_status.json")
+
+    assert payload["schema_version"] == "prd_v3_provider_capability_status.v1"
+    assert payload["product_baseline_chain"] == "文档库 -> 知识库 -> 索引层 -> RAG -> 编排层 -> 文档/Skill/Agent/A2A"
+    assert payload["user_concept_boundary"] == {
+        "external_project_names_visible_in_normal_ui": False,
+        "hot_swap_project_concept_visible": False,
+        "unverified_entries_marked_ready": False,
+        "planned_adapters_marked_ready": False,
+        "okf_runtime_added": False,
+    }
+    assert payload["capability_count"] >= 8
+    assert payload["ready_for_user_selection_count"] == 0
+    labels = [
+        entry["user_visible_name"].lower()
+        for entry in payload["capabilities"]
+    ]
+    forbidden = [
+        "hot-swap",
+        "external project",
+        "llm wiki",
+        "weknora",
+        "anysearchskill",
+        "n8n",
+        "docling",
+        "paddleocr",
+        "unstructured",
+    ]
+    for label in labels:
+        for term in forbidden:
+            assert term not in label
+
+
+def test_provider_capability_status_preserves_dependency_and_audit_boundaries():
+    payload = _json("provider_capability_status.json")
+    entries = {entry["capability_id"]: entry for entry in payload["capabilities"]}
+
+    parser = entries["document_parser_ocr"]
+    assert parser["status"] == "dependency_gated"
+    assert parser["requires_dependency_install"] is True
+    assert parser["ready_for_user_selection"] is False
+
+    retrieval = entries["retrieval_provider"]
+    assert retrieval["requires_network"] is True
+    assert retrieval["ready_for_user_selection"] is False
+    assert retrieval["status"] in {
+        "dependency_gated",
+        "needs_network_authorization",
+        "needs_secret_config",
+        "configured_not_tested",
+    }
+
+    exporter = entries["document_exporter"]
+    assert exporter["requires_external_runtime"] is True
+    assert exporter["ready_for_user_selection"] is False
+
+    for entry in entries.values():
+        assert entry["audit_event_required"] is True
+        assert entry["rollback_supported"] is True
+        assert entry["boundary"].startswith("User-facing capability status only.")
+        for provider_state in entry["related_provider_states"]:
+            assert provider_state["ready_for_user_selection"] is False
+            assert provider_state["audit_event_required"] is True
+            assert provider_state["rollback_supported"] is True
