@@ -26,8 +26,8 @@ The reports also include `external_runtime_load_allowed=false` while the preflig
 
 The preflight requires runtime evidence for:
 
-1. OKF Bundle runtime export/import.
-2. OKF runtime to KB build.
+1. OKF Bundle runtime export/import. Current implementation writes runtime evidence.
+2. OKF runtime to KB build. Current implementation writes runtime evidence after KB build.
 3. A2A multi-round collaboration and conflict detection.
 4. Skill secondary fusion plus multi-version management.
 5. Agent workspace permission enforcement and unauthorized access blocking.
@@ -35,9 +35,16 @@ The preflight requires runtime evidence for:
 
 ## Important Boundary
 
-Standard knowledge package artifacts are not treated as OKF runtime completion.
+Standard knowledge package artifacts alone are not treated as OKF runtime completion.
 
-Current standard package records that contain `okf_runtime_enabled=false` correctly block Stage 3 external runtime loading. They remain valid asset-layer evidence, not runtime industrial completion evidence.
+The runtime now requires `standard_packages/okf_runtime_manifest.json` with:
+
+- `schema_version=prd_v3_okf_runtime_manifest.v1`
+- `runtime_loaded=true`
+- `export_import_runtime_available=true`
+- `kb_build_runtime_available=true`
+
+This is an internal product runtime for `document_library_to_knowledge_base`. It is not an external OKF service, not an independent Agent runtime, and not a top-level UI page.
 
 ## Validation
 
@@ -62,4 +69,9 @@ Result:
 
 Stage 3 Provider hot-swap may continue only as config/readiness/audit hardening.
 
-It must not proceed to external runtime loading or claim registered projects are runtime-integrated until the Stage 2 runtime preflight passes.
+It must not proceed to external runtime loading or claim registered projects are runtime-integrated until the remaining Stage 2 runtime preflight items pass:
+
+- A2A multi-round collaboration and conflict detection.
+- Skill secondary fusion plus multi-version management.
+- Agent workspace permission enforcement and unauthorized access blocking.
+- Real EXE 38-step industrial smoke pass.

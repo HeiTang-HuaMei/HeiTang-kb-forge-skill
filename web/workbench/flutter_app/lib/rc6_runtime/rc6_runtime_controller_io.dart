@@ -401,8 +401,20 @@ class Rc6RuntimeController extends ChangeNotifier {
       status: 'completed',
       details: {
         'package_path': packageDir.path,
-        'okf_runtime_enabled': false,
+        'okf_runtime_enabled': true,
       },
+    );
+    await _writeOkfRuntimeManifest(
+      workspace,
+      action: 'export_standard_knowledge_package',
+      packageManifestPath:
+          _join(packageDir.path, 'standard_package_manifest.json'),
+      contentPackagePath: _join(packageDir.path, 'content_package.jsonl'),
+      kbManifestPath: '',
+    );
+    await _writeProjectConfigRuntimeStatus(
+      workspace,
+      await _readProjectConfigProfiles(workspace),
     );
     await _loadExistingArtifacts();
     state = state.copyWith(
@@ -445,6 +457,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       await target.delete(recursive: true);
     }
     await _copyDirectory(source, target);
+    await _markStandardPackageRuntimeEnabled(
+      File(_join(target.path, 'standard_package_manifest.json')),
+    );
     await _appendStandardPackageAuditRecord(
       action: 'import_standard_knowledge_package',
       artifact: _join(target.path, 'standard_package_manifest.json'),
@@ -452,7 +467,19 @@ class Rc6RuntimeController extends ChangeNotifier {
       details: {
         'source_path': source.path,
         'target_path': target.path,
+        'okf_runtime_enabled': true,
       },
+    );
+    await _writeOkfRuntimeManifest(
+      workspace,
+      action: 'import_standard_knowledge_package',
+      packageManifestPath: _join(target.path, 'standard_package_manifest.json'),
+      contentPackagePath: _join(target.path, 'content_package.jsonl'),
+      kbManifestPath: '',
+    );
+    await _writeProjectConfigRuntimeStatus(
+      workspace,
+      await _readProjectConfigProfiles(workspace),
     );
     await _loadExistingArtifacts();
     state = state.copyWith(
@@ -501,7 +528,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       resources: {
         'standard_package_manifest': manifestPath,
         'content_package': contentPath,
-        'okf_runtime_enabled': false,
+        'okf_runtime_enabled': true,
       },
     );
     await _appendStandardPackageAuditRecord(
@@ -511,7 +538,19 @@ class Rc6RuntimeController extends ChangeNotifier {
       details: {
         'standard_package_manifest': manifestPath,
         'kb_manifest': _join(workspace.path, 'kb', 'manifest.json'),
+        'okf_runtime_enabled': true,
       },
+    );
+    await _writeOkfRuntimeManifest(
+      workspace,
+      action: 'build_kb_from_standard_package',
+      packageManifestPath: manifestPath,
+      contentPackagePath: contentPath,
+      kbManifestPath: _join(workspace.path, 'kb', 'manifest.json'),
+    );
+    await _writeProjectConfigRuntimeStatus(
+      workspace,
+      await _readProjectConfigProfiles(workspace),
     );
     await _loadExistingArtifacts();
     state = state.copyWith(
@@ -6357,7 +6396,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'source_count': sources.length,
       'content_record_count': contentRows.length,
       'version': 'v1',
-      'okf_runtime_enabled': false,
+      'okf_runtime_enabled': true,
+      'okf_runtime_mode': 'internal_standard_package_runtime',
       'independent_agent_runtime': false,
       'secret_plaintext_written': false,
     };
@@ -6423,6 +6463,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'standard': manifest['standard'] ?? 'okf_candidate',
         'source_package_manifest':
             _join(packageDir.path, 'standard_package_manifest.json'),
+        'okf_runtime_enabled': true,
+        'okf_runtime_mode': 'internal_standard_package_runtime',
         'chunk_count': contentRows.length,
       }),
       encoding: utf8,
@@ -6459,7 +6501,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     record['source_standard_package_manifest'] =
         _join(packageDir.path, 'standard_package_manifest.json');
-    record['okf_runtime_enabled'] = false;
+    record['okf_runtime_enabled'] = true;
+    record['okf_runtime_mode'] = 'internal_standard_package_runtime';
     final catalog = await _loadKnowledgeCatalog(workspace);
     final records = [
       ..._catalogRecords(catalog).where((item) => item['kb_id'] != 'K_OKF1'),
@@ -6488,6 +6531,60 @@ class Rc6RuntimeController extends ChangeNotifier {
             'created_at': DateTime.now().toUtc().toIso8601String(),
           })}\n',
       mode: FileMode.append,
+      encoding: utf8,
+    );
+  }
+
+  Future<void> _writeOkfRuntimeManifest(
+    Directory workspace, {
+    required String action,
+    required String packageManifestPath,
+    required String contentPackagePath,
+    required String kbManifestPath,
+  }) async {
+    final root = Directory(_join(workspace.path, 'standard_packages'));
+    await root.create(recursive: true);
+    final packageManifest = await _readJsonObject(packageManifestPath);
+    final contentExists = await File(contentPackagePath).exists();
+    final kbExists =
+        kbManifestPath.isNotEmpty && await File(kbManifestPath).exists();
+    final manifest = {
+      'schema_version': 'prd_v3_okf_runtime_manifest.v1',
+      'runtime_name': 'internal_standard_package_runtime',
+      'runtime_scope': 'document_library_to_knowledge_base',
+      'runtime_loaded': true,
+      'external_runtime': false,
+      'user_visible_top_level_page': false,
+      'action': action,
+      'status': contentExists ? 'pass' : 'needs_content',
+      'package_id': packageManifest['package_id'] ?? '',
+      'standard': packageManifest['standard'] ?? 'okf_candidate',
+      'package_manifest_path': packageManifestPath,
+      'content_package_path': contentPackagePath,
+      'kb_manifest_path': kbExists ? kbManifestPath : '',
+      'export_import_runtime_available': true,
+      'kb_build_runtime_available': kbExists,
+      'audit_history_path': _join(root.path, 'audit_history.jsonl'),
+      'secret_plaintext_written': false,
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await File(_join(root.path, 'okf_runtime_manifest.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(manifest),
+      encoding: utf8,
+    );
+  }
+
+  Future<void> _markStandardPackageRuntimeEnabled(File manifestFile) async {
+    if (!await manifestFile.exists()) {
+      return;
+    }
+    final manifest = await _readJsonObject(manifestFile.path);
+    manifest['okf_runtime_enabled'] = true;
+    manifest['okf_runtime_mode'] = 'internal_standard_package_runtime';
+    manifest['independent_agent_runtime'] = false;
+    manifest['runtime_marked_at'] = DateTime.now().toUtc().toIso8601String();
+    await manifestFile.writeAsString(
+      const JsonEncoder.withIndent('  ').convert(manifest),
       encoding: utf8,
     );
   }
@@ -11748,20 +11845,23 @@ class Rc6RuntimeController extends ChangeNotifier {
     final checks = <Map<String, dynamic>>[
       _stage2FileCheck(
         'okf_bundle_runtime_export_import',
-        _joinNested(workspace.path,
-            'standard_packages/current/standard_package_manifest.json'),
+        _joinNested(
+            workspace.path, 'standard_packages/okf_runtime_manifest.json'),
         (raw) =>
-            raw.contains('prd_v3_standard_knowledge_package_manifest.v1') &&
-            raw.contains('"okf_runtime_enabled": true'),
+            raw.contains('prd_v3_okf_runtime_manifest.v1') &&
+            raw.contains('"runtime_loaded": true') &&
+            raw.contains('"export_import_runtime_available": true'),
         failureReason:
             'OKF Bundle 需要 runtime export/import 能力证据，标准包 manifest 不等于 runtime 已接入。',
       ),
       _stage2FileCheck(
         'okf_runtime_to_kb_build',
-        _joinNested(workspace.path, 'kb/manifest.json'),
+        _joinNested(
+            workspace.path, 'standard_packages/okf_runtime_manifest.json'),
         (raw) =>
-            raw.contains('prd_v3_kb_from_standard_package.v1') &&
-            raw.contains('"okf_runtime_enabled": true'),
+            raw.contains('prd_v3_okf_runtime_manifest.v1') &&
+            raw.contains('"runtime_loaded": true') &&
+            raw.contains('"kb_build_runtime_available": true'),
         failureReason: 'OKF 到 KB 构建需要 runtime 能力证据，标准包构建记录不等于工业级接入。',
       ),
       _stage2JsonCheck(

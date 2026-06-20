@@ -2845,7 +2845,8 @@ void main() {
         allOf(
           contains('prd_v3_standard_knowledge_package_manifest.v1'),
           contains('"standard": "okf_candidate"'),
-          contains('"okf_runtime_enabled": false'),
+          contains('"okf_runtime_enabled": true'),
+          contains('"okf_runtime_mode": "internal_standard_package_runtime"'),
           contains('"independent_agent_runtime": false'),
         ));
     expect(
@@ -2860,6 +2861,17 @@ void main() {
         File('${workspace.path}${Platform.pathSeparator}standard_packages${Platform.pathSeparator}audit_history.jsonl')
             .readAsStringSync(),
         contains('export_standard_knowledge_package'));
+    final okfRuntimePath =
+        '${workspace.path}${Platform.pathSeparator}standard_packages${Platform.pathSeparator}okf_runtime_manifest.json';
+    expect(
+        File(okfRuntimePath).readAsStringSync(),
+        allOf(
+          contains('prd_v3_okf_runtime_manifest.v1'),
+          contains('"runtime_loaded": true'),
+          contains('"export_import_runtime_available": true'),
+          contains('"kb_build_runtime_available": false'),
+          contains('"external_runtime": false'),
+        ));
 
     await controller.buildKnowledgeBaseFromStandardPackage();
     expect(controller.state.hasKnowledgeBase, isTrue);
@@ -2870,12 +2882,32 @@ void main() {
             .readAsStringSync(),
         contains('prd_v3_kb_from_standard_package.v1'));
     expect(
+        File('${workspace.path}${Platform.pathSeparator}kb${Platform.pathSeparator}manifest.json')
+            .readAsStringSync(),
+        contains('"okf_runtime_enabled": true'));
+    expect(
         File('${workspace.path}${Platform.pathSeparator}knowledge_bases${Platform.pathSeparator}kb_catalog.json')
             .readAsStringSync(),
         allOf(
           contains('build_from_standard_package:K_OKF1'),
-          contains('"okf_runtime_enabled": false'),
+          contains('"okf_runtime_enabled": true'),
         ));
+    expect(
+        File(okfRuntimePath).readAsStringSync(),
+        allOf(
+          contains('"runtime_loaded": true'),
+          contains('"kb_build_runtime_available": true'),
+          contains('build_kb_from_standard_package'),
+        ));
+    final standardRuntimeStatus = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    final preflight =
+        standardRuntimeStatus['stage_2_industrial_preflight'] as Map;
+    expect(preflight['failed_checks'],
+        isNot(contains('okf_bundle_runtime_export_import')));
+    expect(
+        preflight['failed_checks'], isNot(contains('okf_runtime_to_kb_build')));
     final orchestrationRecords = readJsonlFile(
         '${workspace.path}${Platform.pathSeparator}orchestration${Platform.pathSeparator}orchestration_plan.jsonl');
     expect(
