@@ -52,7 +52,9 @@ Stage 2 runtime evidence has been strengthened for:
 
 The remaining Stage 2 blocker before Stage 3 external runtime loading is:
 
-- Real EXE 38-step industrial smoke pass.
+- Independent Windows EXE launch smoke pass via `acceptance/exe_launch_smoke_report.json`.
+
+The 38-step product-chain smoke is runtime evidence for the full PRD path. It is not accepted as proof that the packaged desktop EXE launches.
 
 ## Validation
 
@@ -75,6 +77,6 @@ Expected final verification for this slice:
 
 - Real paid or live video Provider call.
 - Full custom HTTP Tool Adapter against a live network endpoint.
-- Real EXE 31/38-step industrial smoke.
+- Independent Owner-observed EXE full smoke beyond launch.
 - Stage 3 registered external project runtime loading.
 - Stable tag or GitHub Release.

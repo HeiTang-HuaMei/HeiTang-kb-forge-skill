@@ -14556,6 +14556,7 @@ class Rc6RuntimeController extends ChangeNotifier {
             (_asInt(payload['step_count']) ?? 0) >= 38,
         failureReason: '需要真实 EXE 38 步工业级 smoke 通过记录。',
       ),
+      _stage2ExeLaunchSmokeCheck(workspace),
     ];
     final failedChecks = checks
         .where((check) => check['status'] != 'passed')
@@ -14899,6 +14900,45 @@ class Rc6RuntimeController extends ChangeNotifier {
       'reason_zh': missing.isEmpty
           ? ''
           : 'Agent 需要真实工作区权限矩阵、越权阻断用例、授权 runtime audit 和运行历史证据。',
+      'runtime_evidence': {
+        'required': required,
+        'missing': missing,
+      },
+    };
+  }
+
+  static Map<String, dynamic> _stage2ExeLaunchSmokeCheck(Directory workspace) {
+    const checkId = 'industrial_exe_launch_smoke';
+    final smokePath =
+        _joinNested(workspace.path, 'acceptance/exe_launch_smoke_report.json');
+    final payload = _readJsonObjectSync(smokePath);
+    final exePath = _stringValue(payload['exe_path'], '');
+    final logPath = _stringValue(payload['log_path'], '');
+    final required = {
+      'schema_version': _stringValue(payload['schema_version'], '') ==
+          'prd_v3_exe_launch_smoke_report.v1',
+      'status_passed': _stringValue(payload['status'], '') == 'passed',
+      'platform_windows':
+          _stringValue(payload['platform'], '').toLowerCase() == 'windows',
+      'exe_exists': exePath.isNotEmpty && File(exePath).existsSync(),
+      'launched': payload['launched'] == true,
+      'process_started': (_asInt(payload['process_id']) ?? 0) > 0 ||
+          payload['process_started'] == true,
+      'no_crash_observed': payload['crashed'] == false,
+      'startup_timeout_absent': payload['startup_timeout'] == false,
+      'log_written': logPath.isNotEmpty && File(logPath).existsSync(),
+      'secret_plaintext_absent': payload['secret_plaintext_written'] == false,
+    };
+    final missing = required.entries
+        .where((entry) => !entry.value)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    return {
+      'check_id': checkId,
+      'status': missing.isEmpty ? 'passed' : 'failed',
+      'artifact_path': smokePath,
+      'reason_zh':
+          missing.isEmpty ? '' : '需要真实 Windows EXE 启动 smoke 证据，不能用链路单测报告代替。',
       'runtime_evidence': {
         'required': required,
         'missing': missing,

@@ -31,7 +31,8 @@ The preflight requires runtime evidence for:
 3. A2A multi-round collaboration and conflict detection. Current implementation writes runtime evidence.
 4. Skill secondary fusion plus multi-version management. Current implementation must prove fusion runtime, independent version snapshots, diff, rollback, and audit records.
 5. Agent workspace permission enforcement and unauthorized access blocking. Current implementation must prove real deny/allow authorization cases, not only a static permission matrix.
-6. Real EXE 38-step industrial smoke pass.
+6. Real 38-step industrial chain smoke pass.
+7. Independent Windows EXE launch smoke pass. The 38-step runtime artifact report cannot be used as a substitute for launching the desktop EXE.
 
 ## Important Boundary
 
@@ -84,6 +85,37 @@ The Stage 2 gate requires:
 - `unauthorized_resources_selectable=false`.
 - `agent/audit/agent_validation_report.json` and `agent/audit/run_history.json` linking the authorization runtime evidence.
 
+## EXE Launch Runtime Boundary
+
+The Stage 2 gate now separates product-chain smoke from desktop launch smoke.
+
+The 38-step chain report remains:
+
+- `acceptance/industrial_exe_smoke_report.json`
+- `schema_version=prd_v3_industrial_exe_smoke_report.v1`
+- `status=passed`
+- `step_count>=38`
+
+The EXE launch evidence must be a separate report:
+
+- `acceptance/exe_launch_smoke_report.json`
+- `schema_version=prd_v3_exe_launch_smoke_report.v1`
+- `status=passed`
+- `platform=windows`
+- `exe_path` points to an existing `heitang_workbench.exe`
+- `launched=true`
+- `process_started=true` or `process_id>0`
+- `crashed=false`
+- `startup_timeout=false`
+- `log_path` points to an existing launch log
+- `secret_plaintext_written=false`
+
+Helper script:
+
+- `scripts/smoke_windows_exe_launch.ps1`
+
+This keeps the preflight from treating a unit/runtime chain report as proof that the packaged desktop EXE can launch.
+
 ## Validation
 
 Validated commands:
@@ -107,6 +139,6 @@ Result:
 
 Stage 3 Provider hot-swap may continue only as config/readiness/audit hardening.
 
-It must not proceed to external runtime loading or claim registered projects are runtime-integrated until the remaining Stage 2 runtime preflight items pass:
+It must not proceed to external runtime loading or claim registered projects are runtime-integrated until the remaining Stage 2 runtime preflight item passes:
 
-- Real EXE 38-step industrial smoke pass.
+- Independent Windows EXE launch smoke pass.

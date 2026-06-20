@@ -1185,7 +1185,8 @@ void main() {
           'okf_bundle_runtime_export_import',
           'okf_runtime_to_kb_build',
           'a2a_multi_round_collaboration',
-          'industrial_exe_smoke_38_step'
+          'industrial_exe_smoke_38_step',
+          'industrial_exe_launch_smoke',
         ]));
     final registeredMatrixPath =
         runtimeStatus['registered_provider_integration_matrix_path'] as String;
@@ -3457,9 +3458,52 @@ void main() {
         runtimeStatus['stage_2_industrial_preflight'] as Map<String, dynamic>;
     expect(preflight['failed_checks'],
         isNot(contains('industrial_exe_smoke_38_step')));
+    expect(preflight['failed_checks'], contains('industrial_exe_launch_smoke'));
     final exeSmokeCheck = (preflight['checks'] as List).cast<Map>().firstWhere(
         (check) => check['check_id'] == 'industrial_exe_smoke_38_step');
     expect(exeSmokeCheck['status'], 'passed');
+    final missingLaunchCheck = (preflight['checks'] as List)
+        .cast<Map>()
+        .firstWhere(
+            (check) => check['check_id'] == 'industrial_exe_launch_smoke');
+    expect(missingLaunchCheck['status'], 'failed');
+    final acceptanceDir =
+        Directory('${workspace.path}${Platform.pathSeparator}acceptance');
+    final launchLogPath =
+        '${acceptanceDir.path}${Platform.pathSeparator}exe_launch_smoke.log';
+    File(launchLogPath).writeAsStringSync('CI-safe EXE launch smoke evidence');
+    final fakeExePath =
+        '${acceptanceDir.path}${Platform.pathSeparator}heitang_workbench.exe';
+    File(fakeExePath).writeAsStringSync('windows exe placeholder for smoke');
+    File('${acceptanceDir.path}${Platform.pathSeparator}exe_launch_smoke_report.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_exe_launch_smoke_report.v1',
+      'status': 'passed',
+      'platform': 'windows',
+      'exe_path': fakeExePath,
+      'workspace_path': workspace.path,
+      'log_path': launchLogPath,
+      'launched': true,
+      'process_started': true,
+      'process_id': 4242,
+      'exit_code': null,
+      'crashed': false,
+      'startup_timeout': false,
+      'secret_plaintext_written': false,
+    }));
+    await controller.testAllRegisteredProviderCapabilities();
+    final launchRuntimeStatus = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final launchPreflight = launchRuntimeStatus['stage_2_industrial_preflight']
+        as Map<String, dynamic>;
+    expect(launchPreflight['failed_checks'],
+        isNot(contains('industrial_exe_launch_smoke')));
+    final exeLaunchCheck = (launchPreflight['checks'] as List)
+        .cast<Map>()
+        .firstWhere(
+            (check) => check['check_id'] == 'industrial_exe_launch_smoke');
+    expect(exeLaunchCheck['status'], 'passed');
     expect(
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}exports${Platform.pathSeparator}agent_package_manifest.json')
             .readAsStringSync(),
