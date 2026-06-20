@@ -931,6 +931,14 @@ void main() {
         'prd_v3_project_config_runtime_status.v1');
     expect((runtimeStatus['module_status'] as Map)['document_generation'],
         isA<Map>());
+    expect(
+        ((runtimeStatus['module_status'] as Map)['document_generation']
+            as Map)['provider_binding'],
+        isA<Map>());
+    expect(
+        (((runtimeStatus['module_status'] as Map)['document_generation']
+            as Map)['provider_binding'] as Map)['user_status'],
+        '降级为本地模式');
     expect((runtimeStatus['degradation'] as Map)['redis_failure'],
         contains('Agent 短期记忆'));
     expect(
@@ -994,6 +1002,33 @@ void main() {
     expect(registeredRollback['schema_version'],
         'prd_v3_registered_provider_rollback_manifest.v1');
     expect((registeredRollback['rollback_targets'] as List), hasLength(30));
+    final bindingPath =
+        runtimeStatus['provider_capability_binding_manifest_path'] as String;
+    final bindingManifest =
+        jsonDecode(File(bindingPath).readAsStringSync()) as Map;
+    expect(bindingManifest['schema_version'],
+        'prd_v3_provider_capability_binding_manifest.v1');
+    expect(bindingManifest['binding_count'], 8);
+    expect(bindingManifest['registered_provider_loaded_count'], 0);
+    expect(bindingManifest['local_fallback_binding_count'], 8);
+    expect(bindingManifest['normal_ui_project_names_visible'], isFalse);
+    expect(bindingManifest['secret_plaintext_written'], isFalse);
+    final bindings = (bindingManifest['bindings'] as List).cast<Map>();
+    expect(bindings, hasLength(8));
+    expect(
+        bindings.every(
+            (binding) => binding['active_provider_kind'] == 'local_fallback'),
+        isTrue);
+    expect(bindings.every((binding) => binding['selection_allowed'] == false),
+        isTrue);
+    expect(bindings.every((binding) => binding['runtime_loaded'] == false),
+        isTrue);
+    expect(
+        bindings.every(
+            (binding) => binding['unauthorized_resources_selectable'] == false),
+        isTrue);
+    expect(
+        bindings.every((binding) => binding['secret_masked'] == true), isTrue);
     expect(runtimeStatus['registered_provider_health_report_path'],
         providerHealthPath);
     final providerHealth =
@@ -1047,9 +1082,18 @@ void main() {
     final activated =
         await controller.activateRegisteredProviderCapability('docling');
     expect(activated, isFalse);
+    final blockedBindingManifest =
+        jsonDecode(File(bindingPath).readAsStringSync()) as Map;
+    expect(blockedBindingManifest['action'], 'blocked_activate');
+    expect(blockedBindingManifest['selected_provider_runtime_loaded'], isFalse);
     final rolledBack =
         await controller.rollbackRegisteredProviderCapability('docling');
     expect(rolledBack, isTrue);
+    final rollbackBindingManifest =
+        jsonDecode(File(bindingPath).readAsStringSync()) as Map;
+    expect(rollbackBindingManifest['action'], 'rollback');
+    expect(
+        rollbackBindingManifest['selected_provider_runtime_loaded'], isFalse);
     final selectionLog = File(
             '$configDir${Platform.pathSeparator}registered_provider_selection_log.jsonl')
         .readAsLinesSync()

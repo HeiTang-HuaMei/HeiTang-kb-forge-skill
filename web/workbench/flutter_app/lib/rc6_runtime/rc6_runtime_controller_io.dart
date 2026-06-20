@@ -2125,6 +2125,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       workspace,
       await _readProjectConfigProfiles(workspace),
     );
+    await _writeProviderCapabilityBindingManifest(
+      workspace,
+      await _readProjectConfigProfiles(workspace),
+      _listOfMaps(matrix['provider_entries']),
+      action: ready ? 'activate' : 'blocked_activate',
+      selectedEntry: entry,
+    );
     await _loadExistingArtifacts();
     state = state.copyWith(
       lastMessage: ready ? '能力增强项已启用。' : '',
@@ -2161,6 +2168,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _writeProjectConfigRuntimeStatus(
       workspace,
       await _readProjectConfigProfiles(workspace),
+    );
+    await _writeProviderCapabilityBindingManifest(
+      workspace,
+      await _readProjectConfigProfiles(workspace),
+      _listOfMaps(matrix['provider_entries']),
+      action: 'rollback',
+      selectedEntry: entry,
     );
     await _loadExistingArtifacts();
     state = state.copyWith(
@@ -9881,6 +9895,86 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
   }
 
+  Future<String> _writeProviderCapabilityBindingManifest(
+    Directory workspace,
+    List<ProjectConfigProfile> profiles,
+    List<Map<String, dynamic>> entries, {
+    required String action,
+    Map<String, dynamic>? selectedEntry,
+  }) async {
+    final activeProfile = _activeProfile(profiles);
+    final now = DateTime.now().toUtc().toIso8601String();
+    final grouped = <String, List<Map<String, dynamic>>>{};
+    for (final entry in entries) {
+      final capabilityId = _stringValue(entry['capability_id'], '');
+      if (capabilityId.isEmpty) continue;
+      grouped.putIfAbsent(capabilityId, () => []).add(entry);
+    }
+    final bindings = grouped.entries.map((group) {
+      final candidates = group.value;
+      final selected = candidates.firstWhere(
+        (entry) => _boolValue(entry['ready_for_user_selection']),
+        orElse: () => candidates.first,
+      );
+      final selectedStatus = _registeredProviderHealthStatus(selected);
+      final selectedReady = _boolValue(selected['ready_for_user_selection']) &&
+          selectedStatus == '连接成功';
+      return {
+        'capability_id': group.key,
+        'user_visible_entry': selected['user_visible_entry'],
+        'active_provider_ref': selectedReady
+            ? selected['provider_ref']
+            : selected['fallback_provider'],
+        'active_provider_kind':
+            selectedReady ? 'registered_provider' : 'local_fallback',
+        'fallback_provider': selected['fallback_provider'],
+        'user_status': selectedReady ? '连接成功' : '降级为本地模式',
+        'provider_health_status': selectedStatus,
+        'selection_allowed': selectedReady,
+        'runtime_loaded': false,
+        'blocked_reason_zh':
+            selectedReady ? '' : _registeredProviderBlockedReason(selected),
+        'candidate_provider_count': candidates.length,
+        'ready_candidate_count': candidates
+            .where((entry) => _boolValue(entry['ready_for_user_selection']))
+            .length,
+        'affected_modules': _registeredProviderAffectedModules(selected),
+        'unauthorized_resources_selectable': false,
+        'secret_masked': true,
+      };
+    }).toList(growable: false);
+    final path = _providerCapabilityBindingManifestPath(workspace);
+    final manifest = {
+      'schema_version': 'prd_v3_provider_capability_binding_manifest.v1',
+      'generated_at': now,
+      'workspace_boundary': workspace.path,
+      'active_profile_id': activeProfile.profileId,
+      'active_profile_mode': activeProfile.mode,
+      'action': action,
+      'selected_capability_id': selectedEntry == null
+          ? ''
+          : _stringValue(selectedEntry['capability_id'], ''),
+      'selected_provider_ref': selectedEntry == null
+          ? ''
+          : _stringValue(selectedEntry['provider_ref'], ''),
+      'selected_provider_runtime_loaded': false,
+      'binding_count': bindings.length,
+      'registered_provider_loaded_count': 0,
+      'local_fallback_binding_count': bindings
+          .where(
+              (binding) => binding['active_provider_kind'] == 'local_fallback')
+          .length,
+      'normal_ui_project_names_visible': false,
+      'secret_plaintext_written': false,
+      'bindings': bindings,
+    };
+    await File(path).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(manifest),
+      encoding: utf8,
+    );
+    return path;
+  }
+
   Future<void> _appendRegisteredProviderSelectionLog(
     Directory workspace, {
     required String action,
@@ -10080,6 +10174,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       Directory workspace) {
     return _join(workspace.path, 'config',
         'registered_provider_hot_swap_stability_report.json');
+  }
+
+  static String _providerCapabilityBindingManifestPath(Directory workspace) {
+    return _join(
+        workspace.path, 'config', 'provider_capability_binding_manifest.json');
   }
 
   Future<List<ProjectConfigProfile>> _ensureProjectConfigProfiles(
@@ -10369,6 +10468,17 @@ class Rc6RuntimeController extends ChangeNotifier {
     final networkAllowed = active.networkPolicyId != 'network_local_only';
     final registeredProviderArtifacts =
         await _writeRegisteredProviderIntegrationArtifacts(workspace);
+    final registeredProviderMatrix = await _readJsonObject(
+        registeredProviderArtifacts['matrix_path'].toString());
+    final providerCapabilityBindingPath =
+        await _writeProviderCapabilityBindingManifest(
+      workspace,
+      profiles,
+      _listOfMaps(registeredProviderMatrix['provider_entries']),
+      action: 'runtime_status_refresh',
+    );
+    final providerCapabilityBinding =
+        await _readJsonObject(providerCapabilityBindingPath);
     final configAssetsPath = await _writeProjectConfigAssets(
       workspace,
       active,
@@ -10394,6 +10504,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           _registeredProviderHealthLogPath(workspace),
       'registered_provider_hot_swap_stability_report_path':
           _registeredProviderHotSwapStabilityReportPath(workspace),
+      'provider_capability_binding_manifest_path':
+          providerCapabilityBindingPath,
       'registered_provider_summary': {
         'registered_provider_count':
             registeredProviderArtifacts['registered_provider_count'],
@@ -10419,12 +10531,20 @@ class Rc6RuntimeController extends ChangeNotifier {
           'parser_status': _userStatus(parser['status']),
           'ocr_status': _userStatus(ocr['status']),
           'web_import_status': networkAllowed ? '已配置未测试' : '已禁用',
+          'provider_binding': _moduleProviderBindingSummary(
+            providerCapabilityBinding,
+            'document_library',
+          ),
         },
         'knowledge_base': {
           'index_backend': qdrantStatus == '连接成功' ? 'Qdrant' : '本地索引',
           'embedding_dimension': _asInt(qdrant['dimension']) ?? 1536,
           'vector_status': qdrantStatus,
           'dimension_change_requires_rebuild': qdrantStatus == '维度不匹配',
+          'provider_binding': _moduleProviderBindingSummary(
+            providerCapabilityBinding,
+            'knowledge_base',
+          ),
         },
         'retrieval_verification': {
           'retrieval_backend': _userStatus(search['status']) == '连接成功'
@@ -10432,17 +10552,29 @@ class Rc6RuntimeController extends ChangeNotifier {
               : 'local_index',
           'external_fact_verification': networkAllowed ? '已配置未测试' : '已禁用',
           'search_provider_status': _userStatus(search['status']),
+          'provider_binding': _moduleProviderBindingSummary(
+            providerCapabilityBinding,
+            'retrieval_verification',
+          ),
         },
         'document_generation': {
           'llm_provider_status': llmStatus,
           'exporter_status': _exporterStatusSummary(exporters),
           'markdown_available': true,
           'office_export_available': _officeExporterAvailable(exporters),
+          'provider_binding': _moduleProviderBindingSummary(
+            providerCapabilityBinding,
+            'document_generation',
+          ),
         },
         'skill_factory': {
           'llm_status': llmStatus,
           'kb_status': state.hasKnowledgeBase ? '连接成功' : '配置缺失',
           'search_status': _userStatus(search['status']),
+          'provider_binding': _moduleProviderBindingSummary(
+            providerCapabilityBinding,
+            'skill_factory',
+          ),
         },
         'agent_workbench': {
           'model': _stringValue(
@@ -10451,6 +10583,10 @@ class Rc6RuntimeController extends ChangeNotifier {
           'vector_memory_status': qdrantStatus == '连接成功' ? '连接成功' : '降级为本地模式',
           'tool_policy': active.toolPolicyId,
           'unauthorized_resources_selectable': false,
+          'provider_binding': _moduleProviderBindingSummary(
+            providerCapabilityBinding,
+            'agent_workbench',
+          ),
         },
       },
       'degradation': {
@@ -10977,6 +11113,33 @@ class Rc6RuntimeController extends ChangeNotifier {
         'unavailable_provider_blocks_module': false,
       };
     }).toList(growable: false);
+  }
+
+  static Map<String, dynamic> _moduleProviderBindingSummary(
+    Map<String, dynamic> manifest,
+    String module,
+  ) {
+    final bindings = _listOfMaps(manifest['bindings'])
+        .where((binding) =>
+            _listOfStrings(binding['affected_modules']).contains(module))
+        .toList(growable: false);
+    return {
+      'binding_count': bindings.length,
+      'local_fallback_count': bindings
+          .where(
+              (binding) => binding['active_provider_kind'] == 'local_fallback')
+          .length,
+      'registered_provider_count': bindings
+          .where((binding) =>
+              binding['active_provider_kind'] == 'registered_provider')
+          .length,
+      'user_status':
+          bindings.any((binding) => binding['selection_allowed'] == true)
+              ? '连接成功'
+              : '降级为本地模式',
+      'unavailable_provider_blocks_module': false,
+      'secret_masked': true,
+    };
   }
 
   Future<Map<String, dynamic>> _readProviderCapabilityStatusAsset(

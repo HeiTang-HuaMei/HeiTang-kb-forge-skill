@@ -32,6 +32,7 @@ Runtime configuration assets are written to:
 - `config/registered_provider_health_report.json`
 - `config/registered_provider_health_log.jsonl`
 - `config/registered_provider_hot_swap_stability_report.json`
+- `config/provider_capability_binding_manifest.json`
 - `config/config_test_log.jsonl`
 - `config/profile_change_log.jsonl`
 - `config/profile_activation_log.jsonl`
@@ -65,6 +66,7 @@ Runtime evidence:
 - `registered_provider_health_report.json`
 - `registered_provider_health_log.jsonl`
 - `registered_provider_hot_swap_stability_report.json`
+- `provider_capability_binding_manifest.json`
 
 Coverage:
 
@@ -105,6 +107,14 @@ Health and stability validation:
 - `registered_provider_hot_swap_stability_report.json` records failure isolation, local fallback availability, rollback coverage, and downstream binding behavior.
 - Downstream binding checks cover Document Library, Knowledge Base, Retrieval Verification, Document Generation, Skill Factory, Agent Workbench, and Audit Center.
 
+Runtime binding:
+
+- `provider_capability_binding_manifest.json` is the active Provider binding authority for product capabilities.
+- It records each capability's current active Provider kind, fallback Provider, user-readable status, blocked reason, affected modules, and unauthorized resource guard.
+- Current evidence keeps all 8 product capability bindings on local fallback because no registered Provider has passed real readiness checks.
+- Blocked activation and rollback both refresh this binding manifest and keep `selected_provider_runtime_loaded=false`.
+- `project_config_runtime_status.json` includes the binding manifest path and downstream module binding summaries for Document Library, Knowledge Base, Retrieval Verification, Document Generation, Skill Factory, and Agent Workbench.
+
 ## Profile Schema
 
 `ProjectConfigProfile` includes:
@@ -132,6 +142,7 @@ Lifecycle behavior implemented:
 | Exporter | `validateExporterSettings` | Markdown/JSON/CSV local availability, DOCX/PDF/PPTX gated until configured |
 | Storage | `_probeStoragePath` | Real write probe and Windows free-space query; failure records Chinese permission reason |
 | Registered Provider health | `testAllRegisteredProviderCapabilities` | Checks 30 mappings, writes health JSON/JSONL, blocks unverified runtime load, proves rollback/fallback |
+| Provider capability binding | `provider_capability_binding_manifest.json` | Binds 8 product capability areas to local fallback or proven Provider and syncs downstream runtime status |
 
 The CI-safe tests cover failure and config-state paths without requiring external services. Real Redis/Qdrant success checks remain part of EXE smoke when Docker services are available.
 
@@ -167,6 +178,7 @@ Profile activation refreshes `project_config_runtime_status.json` for:
 - Agent Workbench: model, Redis memory, vector memory, tool policy, unauthorized resource guard
 - Registered Provider summary: provider count, selectable count, and capability-enhancement boundary
 - Registered Provider health: health report path, health log path, hot-swap stability report path
+- Provider capability binding: current local fallback vs proven Provider binding per downstream module
 
 Automated tests verify activation from local Profile to hybrid Profile synchronizes these module states.
 
