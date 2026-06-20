@@ -3185,6 +3185,15 @@ void main() {
     final a2aDir = Directory(
         '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001')
       ..createSync(recursive: true);
+    final a2aSessionManifestPath =
+        '${a2aDir.path}${Platform.pathSeparator}a2a_session_manifest.json';
+    File(a2aSessionManifestPath).writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_a2a_session_manifest.v1',
+      'a2a_session_id': 'A2A_001',
+      'topic': 'industrial collaboration',
+      'participant_agent_ids': ['B', 'C'],
+      'status': 'completed',
+    }));
     final a2aReportPath =
         '${a2aDir.path}${Platform.pathSeparator}a2a_collaboration_report.md';
     File(a2aReportPath).writeAsStringSync('# A2A report');
@@ -3208,7 +3217,11 @@ void main() {
     expect(refreshedIndex['skill_artifacts'], contains(skillExportPath));
     expect(refreshedIndex['agent_artifacts'], contains(dialogueExportPath));
     expect(refreshedIndex['agent_artifacts'], contains(discussionPath));
+    expect(refreshedIndex['agent_artifacts'], contains(a2aSessionManifestPath));
     expect(refreshedIndex['agent_artifacts'], contains(a2aReportPath));
+    expect(reloaded.state.a2aSessionManifestPath, a2aSessionManifestPath);
+    expect(reloaded.state.a2aWorkspaceReportPath, a2aReportPath);
+    expect(reloaded.state.a2aTopic, 'industrial collaboration');
     expect(activeWorkbook['updated_at'], isNotNull);
   });
 }

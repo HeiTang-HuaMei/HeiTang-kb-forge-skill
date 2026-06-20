@@ -539,8 +539,15 @@ List<List<String>> _auditRecordRows(Rc6RuntimeState runtime, bool zh) {
         runtime.hasAgent, runtime.agentPath),
     row('Agent 工作台', 'Agent Workbench', 'Agent 对话', 'Agent dialogue',
         runtime.hasAgentDialogue, runtime.agentDialoguePath),
-    row('Agent 工作台', 'Agent Workbench', '多 Agent / A2A', 'Multi-Agent / A2A',
-        runtime.hasMultiAgentDiscussion, runtime.multiAgentDiscussionPath),
+    row(
+        'Agent 工作台',
+        'Agent Workbench',
+        '多 Agent / A2A',
+        'Multi-Agent / A2A',
+        runtime.hasMultiAgentDiscussion || runtime.hasA2aSessionManifest,
+        runtime.a2aWorkspaceReportPath.isNotEmpty
+            ? runtime.a2aWorkspaceReportPath
+            : runtime.multiAgentDiscussionPath),
     row(
         '设置',
         'Settings',
@@ -630,7 +637,11 @@ String _firstAuditPreviewPath(Rc6RuntimeState runtime) {
     runtime.generatedMarkdownPath,
     runtime.agentDialoguePath,
     runtime.agentDialogueExportPath,
+    runtime.a2aWorkspaceReportPath,
+    runtime.a2aSessionManifestPath,
     runtime.multiAgentDiscussionPath,
+    runtime.a2aConflictReportPath,
+    runtime.a2aConsensusReportPath,
   ]) {
     if (path.trim().isNotEmpty) return path;
   }
