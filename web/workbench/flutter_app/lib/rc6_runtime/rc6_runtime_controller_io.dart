@@ -14327,6 +14327,62 @@ class Rc6RuntimeController extends ChangeNotifier {
         'runtime_loaded': false,
       };
     }
+    if (_stringValue(contract['provider_ref'], '') == 'jellyfish') {
+      final probe = _probeJellyfishContentAssetExport(workspace);
+      if (_boolValue(probe['passed'])) {
+        return {
+          'status': '连接成功',
+          'error_code': '',
+          'error_message_zh': '',
+          'missing_config_refs': <String>[],
+          'blocked_reasons': <String>[],
+          'test_artifacts': [probe['probe_path']],
+          'ready_for_user_selection': true,
+          'runtime_loaded': false,
+        };
+      }
+      return {
+        'status': '已配置未测试',
+        'error_code': 'jellyfish_probe_requires_structured_exports',
+        'error_message_zh': _stringValue(
+          probe['error_message_zh'],
+          '需要先生成真实结构化导出产物后才能启用内容资产导出能力增强。',
+        ),
+        'missing_config_refs': <String>[],
+        'blocked_reasons': ['需要真实 JSON/CSV 结构化导出和导出 manifest'],
+        'test_artifacts': [probe['probe_path']],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
+      };
+    }
+    if (_stringValue(contract['provider_ref'], '') == 'story_flicks') {
+      final probe = _probeStoryFlicksVideoHandoffExport(workspace);
+      if (_boolValue(probe['passed'])) {
+        return {
+          'status': '连接成功',
+          'error_code': '',
+          'error_message_zh': '',
+          'missing_config_refs': <String>[],
+          'blocked_reasons': <String>[],
+          'test_artifacts': [probe['probe_path']],
+          'ready_for_user_selection': true,
+          'runtime_loaded': false,
+        };
+      }
+      return {
+        'status': '已配置未测试',
+        'error_code': 'story_flicks_probe_requires_video_handoff_exports',
+        'error_message_zh': _stringValue(
+          probe['error_message_zh'],
+          '需要先生成视频任务 handoff 导出边界后才能启用视频工作流导出能力增强。',
+        ),
+        'missing_config_refs': <String>[],
+        'blocked_reasons': ['需要视频任务 manifest、prompt、成本报告和 Tool 边界审计'],
+        'test_artifacts': [probe['probe_path']],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
+      };
+    }
     final missingRefs = <String>[];
     final blockedReasons = <String>[];
     final requiredRefs = _listOfStrings(contract['required_config_refs']);
@@ -14840,6 +14896,18 @@ class Rc6RuntimeController extends ChangeNotifier {
         .length;
   }
 
+  static int _csvDataRecordCount(String path) {
+    if (path.trim().isEmpty) return 0;
+    final file = File(path);
+    if (!file.existsSync()) return 0;
+    final lines = file
+        .readAsLinesSync(encoding: utf8)
+        .where((line) => line.trim().isNotEmpty)
+        .toList(growable: false);
+    if (lines.length <= 1) return 0;
+    return lines.length - 1;
+  }
+
   static bool _jsonlContains(
     String path,
     bool Function(Map<String, dynamic> record) predicate,
@@ -15208,6 +15276,192 @@ class Rc6RuntimeController extends ChangeNotifier {
       'normal_ui_project_name_visible': false,
       'external_runtime_executed': false,
       'vendor_runtime_loaded': false,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return {
+      ...payload,
+      'probe_path': probePath,
+    };
+  }
+
+  static Map<String, dynamic> _probeJellyfishContentAssetExport(
+    Directory workspace,
+  ) {
+    final probePath = _providerAdapterProbePath(workspace, 'jellyfish');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final jsonPath =
+        _joinNested(workspace.path, 'export/structured/knowledge_export.json');
+    final csvPath =
+        _joinNested(workspace.path, 'export/structured/knowledge_export.csv');
+    final manifestPath = _joinNested(
+        workspace.path, 'export/structured/structured_export_manifest.json');
+    final jsonPayload = _readJsonObjectSync(jsonPath);
+    final manifest = _readJsonObjectSync(manifestPath);
+    final csvRecordCount = _csvDataRecordCount(csvPath);
+    final requiredArtifacts = [
+      {
+        'path': jsonPath,
+        'exists': File(jsonPath).existsSync(),
+        'schema_version': _stringValue(jsonPayload['schema_version'], ''),
+      },
+      {
+        'path': csvPath,
+        'exists': File(csvPath).existsSync(),
+        'record_count': csvRecordCount,
+      },
+      {
+        'path': manifestPath,
+        'exists': File(manifestPath).existsSync(),
+        'schema_version': _stringValue(manifest['schema_version'], ''),
+      },
+    ];
+    final missingArtifacts = requiredArtifacts
+        .where((artifact) => artifact['exists'] != true)
+        .map((artifact) => artifact['path'].toString())
+        .toList(growable: false);
+    final validJson = _stringValue(jsonPayload['schema_version'], '') ==
+            'prd_v2_structured_document_export_payload.v1' &&
+        _listOfMaps(jsonPayload['retrieval_results']).isNotEmpty;
+    final validCsv = csvRecordCount > 0;
+    final validManifest = _stringValue(manifest['schema_version'], '') ==
+            'prd_v2_structured_document_export.v1' &&
+        _stringValue(manifest['status'], '') == 'pass';
+    final invalidReasons = <String>[
+      if (!validJson) 'structured_json_missing_or_empty',
+      if (!validCsv) 'structured_csv_empty',
+      if (!validManifest) 'structured_manifest_invalid',
+    ];
+    final passed = missingArtifacts.isEmpty && invalidReasons.isEmpty;
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_probe_jellyfish.v1',
+      'provider_ref': 'jellyfish',
+      'adapter_type': 'exporter_adapter',
+      'executed_at': now,
+      'probe_kind': 'local_content_asset_structured_export',
+      'workspace_boundary': workspace.path,
+      'required_artifacts': requiredArtifacts,
+      'missing_artifacts': missingArtifacts,
+      'invalid_reasons': invalidReasons,
+      'passed': passed,
+      'status': passed ? '连接成功' : '已配置未测试',
+      'error_message_zh': passed ? '' : '结构化内容资产导出证据不完整，暂不能启用导出器能力增强。',
+      'network_used': false,
+      'secret_plaintext_written': false,
+      'normal_ui_project_name_visible': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return {
+      ...payload,
+      'probe_path': probePath,
+    };
+  }
+
+  static Map<String, dynamic> _probeStoryFlicksVideoHandoffExport(
+    Directory workspace,
+  ) {
+    final probePath = _providerAdapterProbePath(workspace, 'story_flicks');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final videoManifestPath = _joinNested(
+        workspace.path, 'agent/artifacts/video/video_task_manifest.json');
+    final promptPath =
+        _joinNested(workspace.path, 'agent/artifacts/video/prompt.txt');
+    final costReportPath =
+        _joinNested(workspace.path, 'agent/artifacts/video/cost_report.json');
+    final toolCallLogPath =
+        _joinNested(workspace.path, 'agent/tool/tool_call_log.jsonl');
+    final dependencyReportPath = _joinNested(workspace.path,
+        'agent/external_skills/video_generation_skill/skill_dependency_report.json');
+    final videoManifest = _readJsonObjectSync(videoManifestPath);
+    final costReport = _readJsonObjectSync(costReportPath);
+    final dependencyReport = _readJsonObjectSync(dependencyReportPath);
+    final requiredArtifacts = [
+      {
+        'path': videoManifestPath,
+        'exists': File(videoManifestPath).existsSync(),
+        'schema_version': _stringValue(videoManifest['schema_version'], ''),
+      },
+      {
+        'path': promptPath,
+        'exists': File(promptPath).existsSync(),
+        'bytes': File(promptPath).existsSync()
+            ? File(promptPath).readAsBytesSync().length
+            : 0,
+      },
+      {
+        'path': costReportPath,
+        'exists': File(costReportPath).existsSync(),
+        'schema_version': _stringValue(costReport['schema_version'], ''),
+      },
+      {
+        'path': toolCallLogPath,
+        'exists': File(toolCallLogPath).existsSync(),
+        'record_count': _jsonlRecordCount(toolCallLogPath),
+      },
+      {
+        'path': dependencyReportPath,
+        'exists': File(dependencyReportPath).existsSync(),
+        'schema_version': _stringValue(dependencyReport['schema_version'], ''),
+      },
+    ];
+    final missingArtifacts = requiredArtifacts
+        .where((artifact) => artifact['exists'] != true)
+        .map((artifact) => artifact['path'].toString())
+        .toList(growable: false);
+    final toolBoundaryRecorded = _jsonlContains(toolCallLogPath, (record) {
+      return _stringValue(record['tool_id'], '') == 'video.generate' &&
+          _boolValue(record['api_called']) == false;
+    });
+    final validVideoManifest =
+        _stringValue(videoManifest['schema_version'], '') ==
+                'prd_v3_video_task_manifest.v1' &&
+            _boolValue(videoManifest['fake_video_generated']) == false &&
+            _boolValue(videoManifest['api_called']) == false;
+    final validCostReport = _stringValue(costReport['schema_version'], '') ==
+            'prd_v3_tool_cost_report.v1' &&
+        (_asInt(costReport['api_call_count']) ?? -1) == 0;
+    final validDependencyReport =
+        _stringValue(dependencyReport['schema_version'], '') ==
+                'prd_v3_skill_dependency_report.v1' &&
+            jsonEncode(dependencyReport).contains('video_custom_http_stub');
+    final invalidReasons = <String>[
+      if (!validVideoManifest) 'video_manifest_invalid',
+      if (!validCostReport) 'cost_report_invalid',
+      if (!validDependencyReport) 'dependency_report_missing_provider_boundary',
+      if (!toolBoundaryRecorded) 'tool_call_boundary_missing',
+    ];
+    final passed = missingArtifacts.isEmpty && invalidReasons.isEmpty;
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_probe_story_flicks.v1',
+      'provider_ref': 'story_flicks',
+      'adapter_type': 'exporter_adapter',
+      'executed_at': now,
+      'probe_kind': 'local_video_workflow_handoff_export',
+      'workspace_boundary': workspace.path,
+      'required_artifacts': requiredArtifacts,
+      'missing_artifacts': missingArtifacts,
+      'invalid_reasons': invalidReasons,
+      'passed': passed,
+      'status': passed ? '连接成功' : '已配置未测试',
+      'error_message_zh': passed ? '' : '视频工作流 handoff 导出边界不完整，暂不能启用导出器能力增强。',
+      'network_used': false,
+      'secret_plaintext_written': false,
+      'normal_ui_project_name_visible': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
+      'fake_video_generated': false,
+      'api_called': false,
     };
     File(probePath)
       ..parent.createSync(recursive: true)

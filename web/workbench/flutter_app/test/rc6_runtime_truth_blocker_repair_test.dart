@@ -1984,6 +1984,169 @@ void main() {
     expect(skillBinding['selection_allowed'], isFalse);
   });
 
+  test('exporter adapters become selectable from real export artifacts',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.testAllRegisteredProviderCapabilities();
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    Map<String, dynamic> runtimeStatus() => jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    Map<String, dynamic> readinessReport(
+            Map<String, dynamic> status) =>
+        jsonDecode(
+            File(status['provider_adapter_readiness_report_path'] as String)
+                .readAsStringSync()) as Map<String, dynamic>;
+    Map<String, dynamic> readinessEntry(
+            Map<String, dynamic> readiness, String providerRef) =>
+        (readiness['readiness_entries'] as List)
+            .cast<Map<String, dynamic>>()
+            .firstWhere((entry) => entry['provider_ref'] == providerRef);
+
+    var readiness = readinessReport(runtimeStatus());
+    expect(readinessEntry(readiness, 'jellyfish')['ready_for_user_selection'],
+        isFalse);
+    expect(
+        readinessEntry(readiness, 'story_flicks')['ready_for_user_selection'],
+        isFalse);
+
+    final structuredDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}structured')
+      ..createSync(recursive: true);
+    final jsonPath =
+        '${structuredDir.path}${Platform.pathSeparator}knowledge_export.json';
+    final csvPath =
+        '${structuredDir.path}${Platform.pathSeparator}knowledge_export.csv';
+    final structuredManifestPath =
+        '${structuredDir.path}${Platform.pathSeparator}structured_export_manifest.json';
+    File(jsonPath).writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v2_structured_document_export_payload.v1',
+      'retrieval_results': [
+        {
+          'title': 'real export evidence',
+          'citation': 'input/source.md#chunk=1',
+        }
+      ],
+    }));
+    File(csvPath).writeAsStringSync(
+        'record_type,title,citation\nretrieval_result,real export evidence,input/source.md#chunk=1\n');
+    File(structuredManifestPath).writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v2_structured_document_export.v1',
+      'status': 'pass',
+      'json_output': jsonPath,
+      'csv_output': csvPath,
+    }));
+
+    final videoDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}artifacts${Platform.pathSeparator}video')
+      ..createSync(recursive: true);
+    final toolDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}tool')
+      ..createSync(recursive: true);
+    final externalSkillDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}external_skills${Platform.pathSeparator}video_generation_skill')
+      ..createSync(recursive: true);
+    File('${videoDir.path}${Platform.pathSeparator}prompt.txt')
+        .writeAsStringSync('产品介绍视频 handoff prompt');
+    File('${videoDir.path}${Platform.pathSeparator}cost_report.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_tool_cost_report.v1',
+      'tool_id': 'video.generate',
+      'api_call_count': 0,
+      'estimated_cost': 0,
+    }));
+    File('${videoDir.path}${Platform.pathSeparator}video_task_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_video_task_manifest.v1',
+      'tool_id': 'video.generate',
+      'fake_video_generated': false,
+      'api_called': false,
+      'prompt_path': '${videoDir.path}${Platform.pathSeparator}prompt.txt',
+    }));
+    File('${toolDir.path}${Platform.pathSeparator}tool_call_log.jsonl')
+        .writeAsStringSync(jsonl([
+      {
+        'schema_version': 'prd_v3_tool_call_log_record.v1',
+        'tool_id': 'video.generate',
+        'api_called': false,
+        'status': 'Tool 未授权',
+      }
+    ]));
+    File('${externalSkillDir.path}${Platform.pathSeparator}skill_dependency_report.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_skill_dependency_report.v1',
+      'skill_id': 'video_generation_skill',
+      'missing_provider_configs': ['video_custom_http_stub'],
+    }));
+
+    final healthPath = await controller.testAllRegisteredProviderCapabilities();
+    final status = runtimeStatus();
+    readiness = readinessReport(status);
+    final jellyfish = readinessEntry(readiness, 'jellyfish');
+    final storyFlicks = readinessEntry(readiness, 'story_flicks');
+    expect(jellyfish['status'], '连接成功');
+    expect(jellyfish['ready_for_user_selection'], isTrue);
+    expect(jellyfish['runtime_loaded'], isFalse);
+    expect(storyFlicks['status'], '连接成功');
+    expect(storyFlicks['ready_for_user_selection'], isTrue);
+    expect(storyFlicks['runtime_loaded'], isFalse);
+
+    final jellyfishProbe = jsonDecode(
+        File((jellyfish['test_artifacts'] as List).cast<String>().single)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(jellyfishProbe['schema_version'],
+        'prd_v3_provider_adapter_probe_jellyfish.v1');
+    expect(jellyfishProbe['passed'], isTrue);
+    expect(jellyfishProbe['external_runtime_executed'], isFalse);
+    final storyProbe = jsonDecode(
+        File((storyFlicks['test_artifacts'] as List).cast<String>().single)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(storyProbe['schema_version'],
+        'prd_v3_provider_adapter_probe_story_flicks.v1');
+    expect(storyProbe['passed'], isTrue);
+    expect(storyProbe['fake_video_generated'], isFalse);
+    expect(storyProbe['api_called'], isFalse);
+
+    final binding = jsonDecode(
+        File(status['provider_capability_binding_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    final exporterBinding = (binding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) => entry['capability_id'] == 'document_exporter');
+    expect(exporterBinding['active_provider_ref'], 'jellyfish');
+    expect(exporterBinding['active_provider_kind'], 'registered_provider');
+    expect(exporterBinding['selection_allowed'], isTrue);
+    expect(exporterBinding['ready_candidate_count'], greaterThanOrEqualTo(2));
+
+    final activated =
+        await controller.activateRegisteredProviderCapability('story_flicks');
+    expect(activated, isTrue);
+    final activatedBinding = jsonDecode(
+        File(status['provider_capability_binding_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    final activatedExporterBinding = (activatedBinding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) => entry['capability_id'] == 'document_exporter');
+    expect(activatedExporterBinding['active_provider_ref'], 'story_flicks');
+    expect(activatedExporterBinding['explicit_selection_applied'], isTrue);
+    expect(activatedExporterBinding['runtime_loaded'], isFalse);
+
+    final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
+    expect(health['ready_for_user_selection_count'], greaterThanOrEqualTo(5));
+  });
+
   test('prd multi knowledge base catalog supports copy merge split delete',
       () async {
     final workspace = await createWorkspace();

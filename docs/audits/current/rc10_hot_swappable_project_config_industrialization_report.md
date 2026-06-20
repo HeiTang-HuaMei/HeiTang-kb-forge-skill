@@ -174,6 +174,16 @@ Local marketing Skill adapter proof:
 - `runtime_loaded` remains `false`; no ai-marketing-skills repository code, prompts, scripts, crawler, paid-media operation, account operation, network call, or external runtime is bundled or executed.
 - The probe records `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, `vendor_runtime_loaded=false`, and `normal_ui_project_name_visible=false`.
 
+Local Exporter adapter proof:
+
+- `jellyfish` has a workspace-owned content asset export probe at `config/provider_adapter_probe_jellyfish.json`.
+- The probe requires real structured export artifacts: `export/structured/knowledge_export.json`, `export/structured/knowledge_export.csv`, and `export/structured/structured_export_manifest.json`.
+- When those artifacts exist and contain retrieval result evidence, `provider_adapter_readiness_report.json` marks `jellyfish` as `连接成功` and `ready_for_user_selection=true`.
+- `story_flicks` has a workspace-owned video workflow handoff probe at `config/provider_adapter_probe_story_flicks.json`.
+- The probe requires the video task boundary artifacts under `agent/artifacts/video/`, plus `agent/tool/tool_call_log.jsonl` and the external video Skill dependency report.
+- The `story_flicks` probe explicitly requires `fake_video_generated=false` and `api_called=false`; it validates an export/handoff boundary, not real video generation.
+- Both Provider refs remain Document Exporter capability enhancements. They do not create new pages, do not execute external runtimes, do not call network APIs, and keep `runtime_loaded=false`.
+
 Adapter readiness:
 
 - `provider_adapter_readiness_report.json` evaluates the 26 adapter contracts against the active Profile and current workspace configuration.
@@ -212,6 +222,7 @@ Lifecycle behavior implemented:
 | Provider active selection | `provider_capability_selection_state.json` | Persists explicit Provider selection, survives runtime refresh/restart, and suppresses auto-selection after rollback |
 | Provider adapter contracts | `provider_adapter_contracts.json` | Defines 26 Provider adapter contracts with required config refs, health checks, fallback, and rollback |
 | Provider adapter readiness | `provider_adapter_readiness_report.json` | Evaluates 26 adapter contracts against active Profile/config and keeps unverified adapters blocked |
+| Exporter adapter probes | `provider_adapter_probe_jellyfish.json`, `provider_adapter_probe_story_flicks.json` | Verifies real structured export and video handoff boundary artifacts before allowing exporter enhancements to be selected |
 
 The CI-safe tests cover failure and config-state paths without requiring external services. Real Redis/Qdrant success checks remain part of EXE smoke when Docker services are available.
 
@@ -315,6 +326,12 @@ Latest Stage 3 Provider active-selection slice:
 - `flutter analyze`
 - `flutter test test\rc6_runtime_truth_blocker_repair_test.dart --concurrency=1`
 - Targeted test: `provider hot swap selection persists across runtime refresh and rollback`
+
+Latest Stage 3 Exporter Provider slice:
+
+- `flutter analyze`
+- `flutter test test\rc6_runtime_truth_blocker_repair_test.dart --concurrency=1`
+- Targeted test: `exporter adapters become selectable from real export artifacts`
 
 Pending after push:
 
