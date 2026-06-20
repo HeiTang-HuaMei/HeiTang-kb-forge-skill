@@ -16033,6 +16033,30 @@ class Rc6RuntimeController extends ChangeNotifier {
       0,
       (sum, file) => sum + file.lengthSync(),
     );
+    var duOcrRecordCount = 0;
+    final recordsFile = File(recordsPath);
+    if (recordsFile.existsSync()) {
+      for (final line in recordsFile.readAsLinesSync(encoding: utf8)) {
+        if (line.trim().isEmpty) continue;
+        try {
+          final decoded = jsonDecode(line);
+          final record = decoded is Map<String, dynamic>
+              ? decoded
+              : decoded is Map
+                  ? decoded.cast<String, dynamic>()
+                  : <String, dynamic>{};
+          if (_stringValue(record['ocr_text'], '').isNotEmpty ||
+              _stringValue(record['ocr_confidence'], '').isNotEmpty ||
+              _stringValue(record['ocr_provider'], '').isNotEmpty) {
+            duOcrRecordCount += 1;
+          }
+        } on FormatException {
+          // Invalid rows are ignored; the DU record count check still fails if
+          // no valid OCR evidence remains.
+        }
+      }
+    }
+    final duOcrInputEvidence = duOcrRecordCount > 0;
     final sourceCount = _asInt(manifest['success_count']) ??
         _asInt(manifest['normalized_source_count']) ??
         sourceRecords.length;
@@ -16041,12 +16065,14 @@ class Rc6RuntimeController extends ChangeNotifier {
         normalizedFiles.isNotEmpty &&
         normalizedTextBytes > 0 &&
         sourceCount > 0;
-    final hasOcrInputEvidence = sourceRecords.any((source) {
+    final sourceManifestOcrInputEvidence = sourceRecords.any((source) {
       final imageCount = _asInt(source['image_count']) ?? 0;
       final extension = _stringValue(source['extension'], '').toLowerCase();
       return imageCount > 0 ||
           ['.png', '.jpg', '.jpeg', '.webp', '.bmp'].contains(extension);
     });
+    final hasOcrInputEvidence =
+        sourceManifestOcrInputEvidence || duOcrInputEvidence;
     final isOcrProvider = const {'paddleocr', 'surya'}.contains(
       normalizedProvider.toLowerCase(),
     );
@@ -16089,6 +16115,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           'exists': File(sourceManifestPath).existsSync(),
           'source_count': sourceRecords.length,
           'has_ocr_input_evidence': hasOcrInputEvidence,
+          'source_manifest_ocr_input_evidence': sourceManifestOcrInputEvidence,
+          'du_ocr_input_evidence': duOcrInputEvidence,
         },
       ],
       'source_count': sourceCount,
@@ -16096,6 +16124,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'normalized_markdown_count': normalizedFiles.length,
       'has_parser_evidence': hasParserEvidence,
       'has_ocr_input_evidence': hasOcrInputEvidence,
+      'source_manifest_ocr_input_evidence': sourceManifestOcrInputEvidence,
+      'du_ocr_input_evidence': duOcrInputEvidence,
+      'du_ocr_record_count': duOcrRecordCount,
       'passed': passed,
       'status': passed ? '连接成功' : '已配置未测试',
       'blocked_reasons': blockedReasons,

@@ -3030,6 +3030,8 @@ void main() {
             .readAsStringSync()) as Map<String, dynamic>;
     expect(ocrProbe['passed'], isTrue);
     expect(ocrProbe['has_ocr_input_evidence'], isTrue);
+    expect(ocrProbe['du_ocr_input_evidence'], isTrue);
+    expect(ocrProbe['du_ocr_record_count'], greaterThanOrEqualTo(1));
     expect(ocrProbe['vendor_runtime_loaded'], isFalse);
 
     final binding = jsonDecode(

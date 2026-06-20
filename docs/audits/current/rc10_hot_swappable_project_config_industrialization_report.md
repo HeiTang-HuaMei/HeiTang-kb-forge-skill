@@ -442,6 +442,20 @@ Latest Stage 3 Parser/OCR Provider slice:
 - `flutter test test\rc6_runtime_truth_blocker_repair_test.dart --concurrency=1`
 - Targeted test: `parser ocr adapters become selectable from real parse artifacts`
 
+Latest Stage 3 OCR evidence refresh slice:
+
+- OCR Provider readiness now accepts real DU OCR evidence from
+  `du/document_understanding_records.jsonl` in addition to image metadata from
+  `source_manifest.json`.
+- `provider_adapter_probe_paddleocr.json` and
+  `provider_adapter_probe_surya.json` record `du_ocr_input_evidence` and
+  `du_ocr_record_count`.
+- The fixed industrial evidence refresh includes an OCR record so PaddleOCR and
+  Surya can be proven as selectable Parser/OCR enhancements without loading
+  vendor runtimes.
+- Runtime boundary remains `external_runtime_executed=false`,
+  `vendor_runtime_loaded=false`, and `secret_plaintext_written=false`.
+
 Latest Stage 3 Embedding/Vector Provider slice:
 
 - Targeted test: `embedding vector adapters become selectable from real index artifacts`

@@ -29,6 +29,25 @@ void main() {
           ..createSync(recursive: true);
     File('${input.path}${Platform.pathSeparator}alpha.pdf')
         .writeAsStringSync('alpha pdf text 赚钱 小生意');
+    File('${input.path}${Platform.pathSeparator}scan.png')
+        .writeAsBytesSync(<int>[
+      0x89,
+      0x50,
+      0x4e,
+      0x47,
+      0x0d,
+      0x0a,
+      0x1a,
+      0x0a,
+      0x00,
+      0x00,
+      0x00,
+      0x0d,
+      0x49,
+      0x48,
+      0x44,
+      0x52,
+    ]);
     final nested = Directory('${input.path}${Platform.pathSeparator}nested')
       ..createSync(recursive: true);
     File('${nested.path}${Platform.pathSeparator}beta.txt')
@@ -47,13 +66,14 @@ void main() {
                 'imported_count': 2,
               }));
             case 'document_understanding':
-              _writeDuRecords(workspace, ['alpha.pdf', 'nested/beta.txt']);
+              _writeDuRecords(
+                  workspace, ['alpha.pdf', 'scan.png', 'nested/beta.txt']);
               File('${output.path}${Platform.pathSeparator}document_understanding_manifest.json')
                   .writeAsStringSync(jsonEncode({
                 'status': 'completed',
-                'success_count': 2,
+                'success_count': 3,
                 'failed_count': 0,
-                'normalized_source_count': 2,
+                'normalized_source_count': 3,
               }));
               Directory(
                       '${output.path}${Platform.pathSeparator}normalized_sources')
@@ -182,6 +202,26 @@ void main() {
     final rows = (query['results'] as List).cast<Map>();
     expect(rows.map((row) => row['kb_id']).toSet(),
         containsAll(['K1', 'K2', 'K3']));
+    final readiness = _readJson(
+        '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}provider_adapter_readiness_report.json');
+    Map<String, dynamic> readinessEntry(String providerRef) =>
+        (readiness['readiness_entries'] as List)
+            .cast<Map<String, dynamic>>()
+            .firstWhere((entry) => entry['provider_ref'] == providerRef);
+    for (final providerRef in ['paddleocr', 'surya']) {
+      final entry = readinessEntry(providerRef);
+      expect(entry['status'], '连接成功');
+      expect(entry['ready_for_user_selection'], isTrue);
+      expect(entry['runtime_loaded'], isFalse);
+      final probe = _readJson((entry['test_artifacts'] as List).single);
+      expect(probe['schema_version'],
+          'prd_v3_provider_adapter_probe_document_parser_ocr.v1');
+      expect(probe['has_ocr_input_evidence'], isTrue);
+      expect(probe['du_ocr_input_evidence'], isTrue);
+      expect(probe['du_ocr_record_count'], greaterThanOrEqualTo(1));
+      expect(probe['external_runtime_executed'], isFalse);
+      expect(probe['vendor_runtime_loaded'], isFalse);
+    }
     for (final relative in [
       'config${Platform.pathSeparator}provider_runtime_settings.json',
       'config${Platform.pathSeparator}storage_provider_settings.json',
@@ -283,6 +323,8 @@ void _writeDuRecords(Directory workspace, List<String> relativePaths) {
     rows.add(jsonEncode({
       'relative_path': relativePaths[index],
       'normalized_path': normalizedPath,
+      if (relativePaths[index].toLowerCase().endsWith('.png'))
+        'ocr_text': 'normalized OCR image text',
     }));
   }
   File('${du.path}${Platform.pathSeparator}document_understanding_records.jsonl')
