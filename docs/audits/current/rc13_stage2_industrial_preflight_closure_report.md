@@ -124,3 +124,57 @@ Result:
 ```text
 All listed checks passed locally.
 ```
+
+## Current Evidence Refresh
+
+Date: 2026-06-21
+
+The fixed Stage 2 evidence workspace was refreshed again after review found the
+local `project_config_runtime_status.json` could remain stale after the
+independent EXE launch smoke.
+
+Additional hardening in this slice:
+
+- Added `test/stage2_industrial_evidence_refresh_test.dart` to rebuild the fixed
+  evidence workspace deterministically and fail if any Stage 2 preflight check
+  other than the independent EXE launch smoke is not `passed`.
+- Reordered the evidence refresh so the second full-chain smoke cannot delete
+  the OKF runtime export/import evidence before the final preflight refresh.
+- Added Skill fusion execution to the refresh path so secondary fusion,
+  multi-version snapshots, diff, rollback, and runtime audit are proven by the
+  same workspace.
+- Added an opt-in post-EXE assertion
+  `STAGE2_VERIFY_EXE_SMOKE=1` that refreshes runtime status after
+  `scripts/smoke_windows_exe_launch.ps1` and requires
+  `failed_checks=[]`.
+- Updated `scripts/smoke_windows_exe_launch.ps1` to write log and JSON evidence
+  as UTF-8 without BOM so the runtime JSON reader can parse the EXE report.
+
+Final local runtime status after the EXE smoke refresh:
+
+```text
+stage_2_industrial_preflight.status = passed
+stage_2_industrial_preflight.runtime_load_allowed = true
+stage_2_industrial_preflight.failed_checks = []
+```
+
+Checks proven in the final runtime status:
+
+```text
+okf_bundle_runtime_export_import = passed
+okf_runtime_to_kb_build = passed
+a2a_multi_round_collaboration = passed
+skill_secondary_fusion_version_management = passed
+agent_workspace_permission_enforcement = passed
+industrial_exe_smoke_38_step = passed
+industrial_exe_launch_smoke = passed
+```
+
+Validation added for this refresh:
+
+```text
+flutter test test\stage2_industrial_evidence_refresh_test.dart --concurrency=1
+scripts\smoke_windows_exe_launch.ps1 -WorkspacePath web\workbench\flutter_app\output\stage2_industrial_runtime_workspace -StartupSeconds 5
+STAGE2_VERIFY_EXE_SMOKE=1 flutter test test\stage2_industrial_evidence_refresh_test.dart --plain-name "refreshes Stage2 preflight after independent EXE smoke" --concurrency=1
+strict Python evidence audit: passed, failed_count=0
+```

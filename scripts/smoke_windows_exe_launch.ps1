@@ -18,6 +18,7 @@ $AcceptanceDir = Join-Path $WorkspacePath "acceptance"
 $LogPath = Join-Path $AcceptanceDir "exe_launch_smoke.log"
 $ReportPath = Join-Path $AcceptanceDir "exe_launch_smoke_report.json"
 New-Item -ItemType Directory -Force -Path $AcceptanceDir | Out-Null
+$Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 $started = $false
 $crashed = $false
@@ -43,7 +44,7 @@ try {
     $exeHeader = [System.Text.Encoding]::ASCII.GetString($headerBytes, 0, 2)
   }
 
-  "Starting EXE: $ExePath" | Set-Content -LiteralPath $LogPath -Encoding UTF8
+  [System.IO.File]::WriteAllText($LogPath, "Starting EXE: $ExePath`n", $Utf8NoBom)
   $process = Start-Process -FilePath $ExePath -PassThru -WindowStyle Hidden
   $started = $true
   $processId = $process.Id
@@ -54,12 +55,12 @@ try {
     $crashed = $exitCode -ne 0
   } else {
     Stop-Process -Id $process.Id -Force
-    "Stopped smoke process after startup window." | Add-Content -LiteralPath $LogPath -Encoding UTF8
+    [System.IO.File]::AppendAllText($LogPath, "Stopped smoke process after startup window.`n", $Utf8NoBom)
   }
 } catch {
   $errorMessage = $_.Exception.Message
   $crashed = $true
-  $errorMessage | Add-Content -LiteralPath $LogPath -Encoding UTF8
+  [System.IO.File]::AppendAllText($LogPath, "$errorMessage`n", $Utf8NoBom)
 }
 
 $status = if ($started -and -not $crashed -and -not $startupTimeout -and (Test-Path -LiteralPath $LogPath)) { "passed" } else { "failed" }
@@ -85,7 +86,11 @@ $report = [ordered]@{
   generated_at = (Get-Date).ToUniversalTime().ToString("o")
   secret_plaintext_written = $false
 }
-$report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $ReportPath -Encoding UTF8
+[System.IO.File]::WriteAllText(
+  $ReportPath,
+  (($report | ConvertTo-Json -Depth 5) + "`n"),
+  $Utf8NoBom
+)
 Write-Host "EXE launch smoke report: $ReportPath"
 if ($status -ne "passed") {
   exit 1
