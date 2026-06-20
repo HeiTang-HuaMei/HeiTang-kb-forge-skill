@@ -992,6 +992,30 @@ void main() {
     expect(registeredRollback['schema_version'],
         'prd_v3_registered_provider_rollback_manifest.v1');
     expect((registeredRollback['rollback_targets'] as List), hasLength(30));
+
+    final activated =
+        await controller.activateRegisteredProviderCapability('docling');
+    expect(activated, isFalse);
+    final rolledBack =
+        await controller.rollbackRegisteredProviderCapability('docling');
+    expect(rolledBack, isTrue);
+    final selectionLog = File(
+            '$configDir${Platform.pathSeparator}registered_provider_selection_log.jsonl')
+        .readAsLinesSync()
+        .map((line) => jsonDecode(line) as Map)
+        .toList(growable: false);
+    expect(selectionLog.map((event) => event['action']),
+        containsAll(['activate', 'rollback']));
+    expect(
+        selectionLog
+            .firstWhere((event) => event['action'] == 'activate')['status'],
+        '配置缺失');
+    expect(
+        selectionLog
+            .every((event) => event['runtime_loaded_after_event'] == false),
+        isTrue);
+    expect(
+        selectionLog.every((event) => event['secret_masked'] == true), isTrue);
     final configTestLog =
         File('$configDir${Platform.pathSeparator}config_test_log.jsonl')
             .readAsStringSync();

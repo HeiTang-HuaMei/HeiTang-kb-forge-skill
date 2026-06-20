@@ -117,6 +117,7 @@ class _SettingsProviderModelEditorState
   String savedPath = '';
   String validationPath = '';
   String profileMessage = '';
+  String capabilityMessage = '';
   List<ProjectConfigProfile> profiles = const [];
   final TextEditingController _llmProviderController =
       TextEditingController(text: 'env_configured');
@@ -318,6 +319,36 @@ class _SettingsProviderModelEditorState
     });
   }
 
+  Future<void> _testCapabilityEnhancement() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null) return;
+    final providerRef = _firstProviderRef(widget.providerCapabilityStatus);
+    if (providerRef.isEmpty) return;
+    final activated =
+        await rc6.activateRegisteredProviderCapability(providerRef);
+    if (!mounted) return;
+    setState(() {
+      capabilityMessage = activated
+          ? (zh ? '能力增强项已启用' : 'Capability enhancement enabled')
+          : (zh ? '未满足启用条件，已写入审计' : 'Blocked; audit log written');
+    });
+  }
+
+  Future<void> _rollbackCapabilityEnhancement() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null) return;
+    final providerRef = _firstProviderRef(widget.providerCapabilityStatus);
+    if (providerRef.isEmpty) return;
+    final rolledBack =
+        await rc6.rollbackRegisteredProviderCapability(providerRef);
+    if (!mounted) return;
+    setState(() {
+      capabilityMessage = rolledBack
+          ? (zh ? '已回滚到本地默认能力' : 'Rolled back to local default')
+          : (zh ? '没有可回滚的能力增强项' : 'No enhancement to roll back');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
@@ -457,6 +488,9 @@ class _SettingsProviderModelEditorState
       final capabilityStatus = _SettingsProviderCapabilityStatusPanel(
         zh: zh,
         status: widget.providerCapabilityStatus,
+        message: capabilityMessage,
+        onTestCapability: _testCapabilityEnhancement,
+        onRollbackCapability: _rollbackCapabilityEnhancement,
       );
       if (!wide) {
         return Column(children: [
@@ -490,10 +524,16 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
   const _SettingsProviderCapabilityStatusPanel({
     required this.zh,
     required this.status,
+    required this.message,
+    required this.onTestCapability,
+    required this.onRollbackCapability,
   });
 
   final bool zh;
   final ProviderCapabilityStatus status;
+  final String message;
+  final VoidCallback onTestCapability;
+  final VoidCallback onRollbackCapability;
 
   @override
   Widget build(BuildContext context) {
@@ -528,6 +568,31 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
               : ['Capability', 'Options', 'Status', 'Current behavior'],
           rows: rows,
         ),
+        const SizedBox(height: 8),
+        _EqualActionRow(children: [
+          _PrimaryProductAction(
+            label: zh ? '测试增强项' : 'Test enhancement',
+            icon: Icons.fact_check_outlined,
+            onPressed: status.capabilities.isEmpty ? null : onTestCapability,
+          ),
+          _PrimaryProductAction(
+            label: zh ? '回滚增强项' : 'Rollback enhancement',
+            icon: Icons.restore_outlined,
+            onPressed:
+                status.capabilities.isEmpty ? null : onRollbackCapability,
+          ),
+        ]),
+        if (message.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          _RuntimeFeedbackBanner(
+            title: message,
+            detail: zh
+                ? '能力增强项启用、阻止和回滚都会写入配置审计资产。'
+                : 'Enhancement activation, blocking, and rollback write config audit assets.',
+            tone: _StatusTone.neutral,
+            icon: Icons.rule_folder_outlined,
+          ),
+        ],
       ],
     );
   }
@@ -685,6 +750,15 @@ String _profileModeLabel(String mode, bool zh) {
     'hybrid' => zh ? '混合模式' : 'Hybrid',
     _ => zh ? '本地模式' : 'Local',
   };
+}
+
+String _firstProviderRef(ProviderCapabilityStatus status) {
+  for (final capability in status.capabilities) {
+    if (capability.providerRefs.isNotEmpty) {
+      return capability.providerRefs.first;
+    }
+  }
+  return '';
 }
 
 String _providerCapabilityStatusLabel(String status, bool zh) {

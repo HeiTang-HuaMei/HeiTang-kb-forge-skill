@@ -189,6 +189,7 @@ class ProviderCapabilityEntry {
     required this.zhUserVisibleBehavior,
     required this.providerStateCount,
     required this.readyProviderStateCount,
+    required this.providerRefs,
   });
 
   final String capabilityId;
@@ -210,6 +211,7 @@ class ProviderCapabilityEntry {
   final String zhUserVisibleBehavior;
   final int providerStateCount;
   final int readyProviderStateCount;
+  final List<String> providerRefs;
 
   factory ProviderCapabilityEntry.fromJson(Map<String, dynamic> json) {
     return ProviderCapabilityEntry(
@@ -234,6 +236,10 @@ class ProviderCapabilityEntry {
       readyProviderStateCount: _list(json['related_provider_states'])
           .where((item) => _bool(_map(item)['ready_for_user_selection']))
           .length,
+      providerRefs: _list(json['related_provider_states'])
+          .map((item) => _string(_map(item)['provider_ref']))
+          .where((value) => value.isNotEmpty)
+          .toList(growable: false),
     );
   }
 }

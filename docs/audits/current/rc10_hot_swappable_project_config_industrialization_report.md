@@ -27,6 +27,7 @@ Runtime configuration assets are written to:
 - `config/project_config_runtime_status.json`
 - `config/registered_provider_integration_matrix.json`
 - `config/registered_provider_activation_log.jsonl`
+- `config/registered_provider_selection_log.jsonl`
 - `config/registered_provider_rollback_manifest.json`
 - `config/config_test_log.jsonl`
 - `config/profile_change_log.jsonl`
@@ -56,6 +57,7 @@ Runtime evidence:
 
 - `registered_provider_integration_matrix.json`
 - `registered_provider_activation_log.jsonl`
+- `registered_provider_selection_log.jsonl`
 - `registered_provider_rollback_manifest.json`
 
 Coverage:
@@ -80,6 +82,13 @@ Capability areas:
 | Governance / audit | 审计中心：评测 / 治理 | 3 |
 
 The Settings UI shows aggregate enhancement counts and capability status. It does not expose registered project names in normal business pages.
+
+Provider enhancement operations:
+
+- Test enhancement attempts activation for one registered Provider enhancement.
+- If dependency, network, secret, runtime, or verification conditions are missing, activation is denied and audited.
+- Rollback enhancement writes a rollback event to the local fallback Provider.
+- Selection logs keep `runtime_loaded_after_event=false` unless the Provider has already been proven ready.
 
 ## Profile Schema
 

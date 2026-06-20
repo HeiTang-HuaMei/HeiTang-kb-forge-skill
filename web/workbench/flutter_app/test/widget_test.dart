@@ -667,6 +667,8 @@ void main() {
     expect(find.text('能力状态'), findsOneWidget);
     expect(find.text('能力增强项'), findsOneWidget);
     expect(find.textContaining('2 项已登记，0 项可选'), findsOneWidget);
+    expect(find.text('测试增强项'), findsOneWidget);
+    expect(find.text('回滚增强项'), findsOneWidget);
     expect(find.text('解析 / OCR'), findsOneWidget);
     expect(find.text('检索 / 召回'), findsOneWidget);
     expect(find.text('依赖待满足'), findsOneWidget);

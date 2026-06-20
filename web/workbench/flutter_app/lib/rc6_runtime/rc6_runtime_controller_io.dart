@@ -2076,6 +2076,82 @@ class Rc6RuntimeController extends ChangeNotifier {
     return artifacts['matrix_path']?.toString() ?? '';
   }
 
+  Future<bool> activateRegisteredProviderCapability(String providerRef) async {
+    if (!_canRunDesktop()) {
+      return false;
+    }
+    final workspace = _requireWorkspace();
+    final artifacts =
+        await _writeRegisteredProviderIntegrationArtifacts(workspace);
+    final matrix = await _readJsonObject(artifacts['matrix_path'].toString());
+    final entry = _registeredProviderEntry(matrix, providerRef);
+    if (entry.isEmpty) {
+      state = state.copyWith(
+        lastError: '未找到对应的能力增强项。',
+        lastMessage: '',
+      );
+      notifyListeners();
+      return false;
+    }
+    final ready = _boolValue(entry['ready_for_user_selection']);
+    await _appendRegisteredProviderSelectionLog(
+      workspace,
+      action: 'activate',
+      entry: entry,
+      status: ready ? '连接成功' : '配置缺失',
+      blockedReason:
+          ready ? '' : _stringValue(entry['activation_condition'], ''),
+    );
+    await _writeProjectConfigRuntimeStatus(
+      workspace,
+      await _readProjectConfigProfiles(workspace),
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: ready ? '能力增强项已启用。' : '',
+      lastError: ready ? '' : '能力增强项未满足启用条件，已阻止并写入审计日志。',
+    );
+    notifyListeners();
+    return ready;
+  }
+
+  Future<bool> rollbackRegisteredProviderCapability(String providerRef) async {
+    if (!_canRunDesktop()) {
+      return false;
+    }
+    final workspace = _requireWorkspace();
+    final artifacts =
+        await _writeRegisteredProviderIntegrationArtifacts(workspace);
+    final matrix = await _readJsonObject(artifacts['matrix_path'].toString());
+    final entry = _registeredProviderEntry(matrix, providerRef);
+    if (entry.isEmpty) {
+      state = state.copyWith(
+        lastError: '未找到可回滚的能力增强项。',
+        lastMessage: '',
+      );
+      notifyListeners();
+      return false;
+    }
+    await _appendRegisteredProviderSelectionLog(
+      workspace,
+      action: 'rollback',
+      entry: entry,
+      status: '降级为本地模式',
+      blockedReason: '',
+    );
+    await _writeProjectConfigRuntimeStatus(
+      workspace,
+      await _readProjectConfigProfiles(workspace),
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: '能力增强项已回滚到本地默认能力。',
+      lastError: '',
+    );
+    notifyListeners();
+    return true;
+  }
+
   Future<String> saveStorageProviderSettings({
     required String redisHost,
     required int redisPort,
@@ -5309,6 +5385,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           workspace.path, 'config/registered_provider_integration_matrix.json'),
       _joinNested(
           workspace.path, 'config/registered_provider_activation_log.jsonl'),
+      _joinNested(
+          workspace.path, 'config/registered_provider_selection_log.jsonl'),
       _joinNested(
           workspace.path, 'config/registered_provider_rollback_manifest.json'),
       _joinNested(workspace.path, 'config/config_test_log.jsonl'),
@@ -9650,6 +9728,35 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
   }
 
+  Future<void> _appendRegisteredProviderSelectionLog(
+    Directory workspace, {
+    required String action,
+    required Map<String, dynamic> entry,
+    required String status,
+    required String blockedReason,
+  }) async {
+    final file = File(_registeredProviderSelectionLogPath(workspace));
+    await file.parent.create(recursive: true);
+    final event = {
+      'schema_version': 'prd_v3_registered_provider_selection_event.v1',
+      'event_id':
+          'registered_provider_selection_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+      'action': action,
+      'changed_at': DateTime.now().toUtc().toIso8601String(),
+      'capability_id': entry['capability_id'],
+      'provider_ref': entry['provider_ref'],
+      'user_visible_entry': entry['user_visible_entry'],
+      'status': status,
+      'blocked_reason': blockedReason,
+      'runtime_loaded_after_event': false,
+      'fallback_provider': entry['fallback_provider'],
+      'rollback_supported': true,
+      'secret_masked': true,
+    };
+    await file.writeAsString('${jsonEncode(event)}\n',
+        mode: FileMode.append, encoding: utf8);
+  }
+
   Future<String> _writeExporterValidationReport(
     Directory workspace, {
     required Map<String, dynamic> settings,
@@ -9794,6 +9901,11 @@ class Rc6RuntimeController extends ChangeNotifier {
   static String _registeredProviderActivationLogPath(Directory workspace) {
     return _join(
         workspace.path, 'config', 'registered_provider_activation_log.jsonl');
+  }
+
+  static String _registeredProviderSelectionLogPath(Directory workspace) {
+    return _join(
+        workspace.path, 'config', 'registered_provider_selection_log.jsonl');
   }
 
   static String _registeredProviderRollbackManifestPath(Directory workspace) {
@@ -10508,6 +10620,20 @@ class Rc6RuntimeController extends ChangeNotifier {
       }
     }
     return entries;
+  }
+
+  static Map<String, dynamic> _registeredProviderEntry(
+    Map<String, dynamic> matrix,
+    String providerRef,
+  ) {
+    final normalized = providerRef.trim().toLowerCase();
+    if (normalized.isEmpty) return const {};
+    for (final entry in _listOfMaps(matrix['provider_entries'])) {
+      if (_stringValue(entry['provider_ref'], '').toLowerCase() == normalized) {
+        return entry;
+      }
+    }
+    return const {};
   }
 
   static List<Map<String, dynamic>> _registeredCapabilitySummaries(
