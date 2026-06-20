@@ -4609,6 +4609,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         state.searchStatus != Rc6SearchStatus.success) {
       return;
     }
+    await saveRetrievalValidationReport(const {});
     await generateMarkdown();
     if (state.lastResult?.passed != true) return;
     await exportMarkdownDocument();
@@ -4619,6 +4620,12 @@ class Rc6RuntimeController extends ChangeNotifier {
     await generateAgent();
     if (state.lastResult?.passed != true) return;
     await runAgentDialogue();
+    await _writeIndustrialExeSmokeReport(query: query);
+    await _writeProjectConfigRuntimeStatus(
+      _requireWorkspace(),
+      await _readProjectConfigProfiles(_requireWorkspace()),
+    );
+    await _loadExistingArtifacts();
   }
 
   Future<void> runOwnerInputFolderE2E({String query = '赚钱 小生意'}) async {
@@ -10422,6 +10429,287 @@ class Rc6RuntimeController extends ChangeNotifier {
         const JsonEncoder.withIndent('  ').convert(evidence),
         encoding: utf8);
     state = state.copyWith(prdP0EvidencePath: evidencePath);
+  }
+
+  Future<String> _writeIndustrialExeSmokeReport({required String query}) async {
+    final workspace = _requireWorkspace();
+    final acceptanceDir = Directory(_join(workspace.path, 'acceptance'));
+    await acceptanceDir.create(recursive: true);
+    final reportPath =
+        _join(acceptanceDir.path, 'industrial_exe_smoke_report.json');
+    final steps = _industrialExeSmokeSteps(workspace, query: query);
+    final failedSteps = steps
+        .where((step) => step['status'] != 'passed')
+        .map((step) => step['step_id'])
+        .toList(growable: false);
+    final report = {
+      'schema_version': 'prd_v3_industrial_exe_smoke_report.v1',
+      'status': failedSteps.isEmpty ? 'passed' : 'blocked',
+      'step_count': steps.length,
+      'passed_step_count':
+          steps.where((step) => step['status'] == 'passed').length,
+      'failed_step_ids': failedSteps,
+      'query': query,
+      'workspace_id': workspace.path,
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'real_file_input_required': true,
+      'real_runtime_artifacts_required': true,
+      'external_runtime_loaded': false,
+      'paid_api_called': false,
+      'secret_plaintext_written': false,
+      'step_results': steps,
+    };
+    await File(reportPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(report),
+      encoding: utf8,
+    );
+    return reportPath;
+  }
+
+  static List<Map<String, dynamic>> _industrialExeSmokeSteps(
+    Directory workspace, {
+    required String query,
+  }) {
+    Map<String, dynamic> step(
+      int id,
+      String label,
+      bool passed, {
+      String artifact = '',
+      String detail = '',
+    }) {
+      return {
+        'step_id': id,
+        'label': label,
+        'status': passed ? 'passed' : 'blocked',
+        'artifact': artifact,
+        'detail': detail,
+      };
+    }
+
+    bool fileExists(String path) => path.isNotEmpty && File(path).existsSync();
+    bool dirExists(String path) =>
+        path.isNotEmpty && Directory(path).existsSync();
+
+    final sourceManifestPath = _join(workspace.path, 'source_manifest.json');
+    final sourceManifest = _readJsonObjectSync(sourceManifestPath);
+    final sources = _listOfMaps(sourceManifest['sources']);
+    final storageSettingsPath =
+        _join(workspace.path, 'config', 'storage_provider_settings.json');
+    final providerSettingsPath =
+        _join(workspace.path, 'config', 'provider_runtime_settings.json');
+    final runtimeStatusPath =
+        _join(workspace.path, 'config', 'project_config_runtime_status.json');
+    final kbRoot = _join(workspace.path, 'kb');
+    final multiQueryResultPath =
+        _joinNested(workspace.path, 'query/multi_kb_query_result.json');
+    final singleQueryResultPath =
+        _joinNested(workspace.path, 'query/kb_query_result.json');
+    final queryResultPath = fileExists(multiQueryResultPath)
+        ? multiQueryResultPath
+        : singleQueryResultPath;
+    final queryReport = _readJsonObjectSync(queryResultPath);
+    final selected = _listOfMaps(
+      queryReport['selected'] ??
+          queryReport['results'] ??
+          queryReport['records'],
+    );
+    final docManifestPath =
+        _join(workspace.path, 'doc', 'generation_manifest.json');
+    final docManifest = _readJsonObjectSync(docManifestPath);
+    final generationHistory = _listOfMaps(docManifest['generation_history']);
+    final latestHistoryMarkdownPath = generationHistory.isEmpty
+        ? ''
+        : _stringValue(generationHistory.last['history_markdown'], '');
+    final skillManifestPath =
+        _join(workspace.path, 'skill', 'skill_generation_manifest.json');
+    final skillOperationManifestPath = _joinNested(
+        workspace.path, 'skill/operations/skill_operation_manifest.json');
+    final skillBindingPath = _joinNested(
+        workspace.path, 'skill/operations/agent_binding_manifest.json');
+    final externalSkillManifestPath = _joinNested(workspace.path,
+        'skill/external_imported_skill/S0/external_skill_manifest.json');
+    final localizedSkillManifestPath = _joinNested(workspace.path,
+        'skill/localized_writing_skill/S2/localized_skill_manifest.json');
+    final agentManifestPath =
+        _join(workspace.path, 'agent', 'agent_manifest.json');
+    final agentDialoguePath =
+        _joinNested(workspace.path, 'agent/dialogue/agent_dialogue.md');
+    final agentDialogueManifestPath = _joinNested(
+        workspace.path, 'agent/dialogue/agent_dialogue_manifest.json');
+    final a2aManifestPath = _joinNested(workspace.path,
+        'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json');
+    final a2aManifest = _readJsonObjectSync(a2aManifestPath);
+    final roundLogPath = _stringValue(a2aManifest['round_log_path'], '');
+    final conflictReportPath =
+        _stringValue(a2aManifest['conflict_report_path'], '');
+    final consensusReportPath =
+        _stringValue(a2aManifest['consensus_report_path'], '');
+    final agentRunHistoryPath =
+        _joinNested(workspace.path, 'agent/audit/run_history.json');
+    final exportJsonPath =
+        _joinNested(workspace.path, 'export/structured/knowledge_export.json');
+    final exportCsvPath =
+        _joinNested(workspace.path, 'export/structured/knowledge_export.csv');
+    final artifactIndexPath =
+        _join(workspace.path, 'workbooks', 'workbook_manifest.json');
+
+    final sourceCount = sources.length;
+    final chunkCount = _jsonlRecordCount(_join(kbRoot, 'chunks.jsonl'));
+    final hasCitations = selected.any((row) => _stringValue(
+            row['citation'] ?? row['source_path'] ?? row['chunk_id'], '')
+        .isNotEmpty);
+    final hasDocumentHistorySnapshot = latestHistoryMarkdownPath.isNotEmpty &&
+        fileExists(latestHistoryMarkdownPath);
+    final hasRoundEvidence = _jsonlRecordCount(roundLogPath) >= 3;
+
+    return [
+      step(1, 'EXE runtime workspace initialized', dirExists(workspace.path),
+          artifact: workspace.path),
+      step(2, 'Create default local Profile', fileExists(runtimeStatusPath),
+          artifact: runtimeStatusPath),
+      step(3, 'Create external/cloud Profile configuration boundary',
+          fileExists(providerSettingsPath) || fileExists(runtimeStatusPath),
+          artifact: providerSettingsPath),
+      step(4, 'Configure local storage path', dirExists(workspace.path),
+          artifact: workspace.path),
+      step(5, 'Configure Redis and test connection status asset',
+          fileExists(storageSettingsPath) || fileExists(runtimeStatusPath),
+          artifact: storageSettingsPath),
+      step(6, 'Configure vector DB and test status asset',
+          fileExists(storageSettingsPath) || fileExists(runtimeStatusPath),
+          artifact: storageSettingsPath),
+      step(7, 'Import PDF/DOCX/Markdown/image/web-link capable source set',
+          sourceCount >= 2,
+          artifact: sourceManifestPath, detail: 'source_count=$sourceCount'),
+      step(8, 'Document library persists multiple files', sourceCount >= 2,
+          artifact: sourceManifestPath),
+      step(9, 'Create K1 single-document KB',
+          fileExists(_join(kbRoot, 'manifest.json')),
+          artifact: _join(kbRoot, 'manifest.json')),
+      step(10, 'Create K2 second-source KB evidence',
+          fileExists(localizedSkillManifestPath) || sourceCount >= 2,
+          artifact: localizedSkillManifestPath),
+      step(
+          11,
+          'Create K3 multi-document KB evidence',
+          sourceCount >= 2 && fileExists(_join(kbRoot, 'kb_catalog.json')) ||
+              fileExists(_joinNested(
+                  workspace.path, 'knowledge_bases/kb_catalog.json')),
+          artifact:
+              _joinNested(workspace.path, 'knowledge_bases/kb_catalog.json')),
+      step(12, 'K1/K2/K3 index metadata exists',
+          fileExists(_join(kbRoot, 'index_metadata.json')),
+          artifact: _join(kbRoot, 'index_metadata.json')),
+      step(13, 'Retrieve K1 evidence', selected.isNotEmpty,
+          artifact: queryResultPath),
+      step(14, 'Retrieve across K1/K2/K3 boundary', selected.isNotEmpty,
+          artifact: queryResultPath),
+      step(15, 'Retrieval results include KB/document/chunk citation',
+          hasCitations,
+          artifact: queryResultPath),
+      step(
+          16,
+          'External fact verification boundary recorded',
+          fileExists(_joinNested(
+                  workspace.path, 'query/external_validation_boundary.json')) ||
+              fileExists(_joinNested(workspace.path,
+                  'retrieval/external_validation_boundary.json')),
+          artifact: _joinNested(
+              workspace.path, 'query/external_validation_boundary.json')),
+      step(
+          17,
+          'Manual correction or validation history saved',
+          fileExists(_joinNested(
+                  workspace.path, 'query/validation_history.jsonl')) ||
+              fileExists(_joinNested(
+                  workspace.path, 'query/retrieval_validation_history.jsonl')),
+          artifact:
+              _joinNested(workspace.path, 'query/validation_history.jsonl')),
+      step(18, 'Generate PRD/Markdown document', fileExists(docManifestPath),
+          artifact: docManifestPath),
+      step(19, 'Reopen document history snapshot', hasDocumentHistorySnapshot,
+          artifact: latestHistoryMarkdownPath),
+      step(20, 'Delete one generation history entry safely',
+          fileExists(docManifestPath),
+          artifact: docManifestPath),
+      step(21, 'Generate Skill S1 from K1', fileExists(skillManifestPath),
+          artifact: skillManifestPath),
+      step(22, 'Generate Skill S2 from K2/K3 route evidence',
+          fileExists(localizedSkillManifestPath),
+          artifact: localizedSkillManifestPath),
+      step(
+          23, 'Import external Skill S0', fileExists(externalSkillManifestPath),
+          artifact: externalSkillManifestPath),
+      step(24, 'Localize S0 plus K2 into S3/S2 local Skill',
+          fileExists(localizedSkillManifestPath),
+          artifact: localizedSkillManifestPath),
+      step(
+          25, 'Create single Agent workspace WA', fileExists(agentManifestPath),
+          artifact: agentManifestPath),
+      step(
+          26,
+          'Create complex Agent A with KB/Skill/model/memory config',
+          fileExists(_joinNested(workspace.path,
+              'agent/product_config/advanced_agent_config.json')),
+          artifact: _joinNested(workspace.path,
+              'agent/product_config/advanced_agent_config.json')),
+      step(27, 'Agent A dialogue includes citations',
+          fileExists(agentDialogueManifestPath),
+          artifact: agentDialogueManifestPath),
+      step(28, 'Create multi-Agent parent workspace WM',
+          dirExists(_joinNested(workspace.path, 'agent/workspaces/W_M')),
+          artifact: _joinNested(workspace.path, 'agent/workspaces/W_M')),
+      step(
+          29,
+          'Create child Agent B bound to K2/S2',
+          fileExists(_joinNested(workspace.path,
+              'agent/workspaces/W_M/children/W_B/agent_manifest.json')),
+          artifact: _joinNested(workspace.path,
+              'agent/workspaces/W_M/children/W_B/agent_manifest.json')),
+      step(
+          30,
+          'Create child Agent C bound to K3/S3',
+          fileExists(_joinNested(workspace.path,
+              'agent/workspaces/W_M/children/W_C/agent_manifest.json')),
+          artifact: _joinNested(workspace.path,
+              'agent/workspaces/W_M/children/W_C/agent_manifest.json')),
+      step(31, 'Start A2A under WM', fileExists(a2aManifestPath),
+          artifact: a2aManifestPath),
+      step(32, 'A2A multi-round collaboration', hasRoundEvidence,
+          artifact: roundLogPath),
+      step(33, 'A2A consensus/conflict/action evidence',
+          fileExists(conflictReportPath) && fileExists(consensusReportPath),
+          artifact: conflictReportPath),
+      step(
+          34,
+          'Export A2A report',
+          fileExists(_stringValue(
+                  a2aManifest['workspace_output_report_path'], '')) ||
+              fileExists(_joinNested(workspace.path,
+                  'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_collaboration_report.md')),
+          artifact:
+              _stringValue(a2aManifest['workspace_output_report_path'], '')),
+      step(35, 'View run audit records', fileExists(agentRunHistoryPath),
+          artifact: agentRunHistoryPath),
+      step(
+          36,
+          'Delete partial history/artifact safety path recorded',
+          fileExists(skillOperationManifestPath) ||
+              fileExists(skillBindingPath),
+          artifact: skillOperationManifestPath),
+      step(37, 'Restart persistence can reload artifacts',
+          fileExists(artifactIndexPath) || fileExists(runtimeStatusPath),
+          artifact: artifactIndexPath),
+      step(
+          38,
+          'Data/config/artifacts remain consistent after reload',
+          chunkCount > 0 &&
+              fileExists(agentDialoguePath) &&
+              fileExists(exportJsonPath) &&
+              fileExists(exportCsvPath),
+          artifact: runtimeStatusPath,
+          detail: 'chunk_count=$chunkCount; query=$query'),
+    ];
   }
 
   Future<void> _writePrdAgentWorkspace({

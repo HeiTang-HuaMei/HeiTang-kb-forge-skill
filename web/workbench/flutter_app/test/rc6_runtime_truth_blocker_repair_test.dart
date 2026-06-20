@@ -2551,6 +2551,23 @@ void main() {
     await controller.initialize();
     await controller.runRealInputFolderE2E(input.path);
 
+    final smokeReport = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}acceptance${Platform.pathSeparator}industrial_exe_smoke_report.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(
+        smokeReport['schema_version'], 'prd_v3_industrial_exe_smoke_report.v1');
+    final failedSmokeSteps = (smokeReport['step_results'] as List)
+        .cast<Map<String, dynamic>>()
+        .where((step) => step['status'] != 'passed')
+        .map((step) =>
+            '${step['step_id']}: ${step['artifact']} ${step['detail']}')
+        .join('\n');
+    expect(smokeReport['status'], 'passed', reason: failedSmokeSteps);
+    expect(smokeReport['step_count'], 38);
+    expect(smokeReport['failed_step_ids'], isEmpty);
+    expect(smokeReport['secret_plaintext_written'], isFalse);
+    expect(smokeReport['external_runtime_loaded'], isFalse);
+
     expect(requests.map((request) => request.actionId), [
       'batch_import_documents',
       'document_understanding',
@@ -2894,6 +2911,16 @@ void main() {
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}tool${Platform.pathSeparator}tool_usage_report.json')
             .readAsStringSync(),
         contains('"total_api_calls": 0'));
+    final runtimeStatus = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final preflight =
+        runtimeStatus['stage_2_industrial_preflight'] as Map<String, dynamic>;
+    expect(preflight['failed_checks'],
+        isNot(contains('industrial_exe_smoke_38_step')));
+    final exeSmokeCheck = (preflight['checks'] as List).cast<Map>().firstWhere(
+        (check) => check['check_id'] == 'industrial_exe_smoke_38_step');
+    expect(exeSmokeCheck['status'], 'passed');
     expect(
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}exports${Platform.pathSeparator}agent_package_manifest.json')
             .readAsStringSync(),
