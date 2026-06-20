@@ -8,6 +8,7 @@ from heitang_kb_forge.campaign_3_closure import (
     validate_repository_public_surface_cleanup_gate,
     write_repository_public_surface_cleanup_gate,
 )
+from heitang_kb_forge.campaign_3_closure.repository_surface_cleanup import _tree_surface_report
 from heitang_kb_forge.cli_runtime import app
 
 
@@ -71,6 +72,22 @@ def test_repository_cleanup_gate_generates_inventory_and_safety_reports(tmp_path
     assert safety["push_allowed"] is True
     assert safety["tag_allowed"] is False
     assert safety["ci_check_allowed"] is False
+
+
+def test_tree_surface_report_ignores_transient_atomic_write_files(tmp_path):
+    artifacts = tmp_path / "artifacts" / "audits"
+    artifacts.mkdir(parents=True)
+    (artifacts / "stable.json").write_text("{}", encoding="utf-8")
+    (artifacts / ".stable.json.123.tmp").write_text("partial", encoding="utf-8")
+    stale = artifacts / ".generated_documents.stale.123"
+    stale.mkdir()
+    (stale / "old.docx").write_bytes(b"old")
+
+    report = _tree_surface_report(tmp_path, "artifacts")
+
+    assert report["status"] == "passed"
+    assert report["file_count"] == 1
+    assert report["total_bytes"] == 2
 
 
 def test_repository_cleanup_gate_renames_public_surface_without_package_rename():

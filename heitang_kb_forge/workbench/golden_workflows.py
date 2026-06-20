@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from time import perf_counter
@@ -365,8 +366,25 @@ def _redact_document_generation_outputs(output: Path, workspace: Path) -> None:
 
 def _reset_generated_directory(path: Path) -> None:
     if path.exists():
-        shutil.rmtree(path)
+        _remove_tree_with_retry(path)
     path.mkdir(parents=True, exist_ok=True)
+
+
+def _remove_tree_with_retry(path: Path) -> None:
+    last_error: PermissionError | None = None
+    for _ in range(5):
+        try:
+            shutil.rmtree(path)
+            return
+        except PermissionError as exc:
+            last_error = exc
+            time.sleep(0.05)
+    stale = path.with_name(f".{path.name}.stale.{int(time.time() * 1000)}")
+    try:
+        path.replace(stale)
+    except PermissionError:
+        if last_error is not None:
+            raise last_error
 
 
 def _redact_text_file(path: Path, replacements: dict[str, str]) -> None:

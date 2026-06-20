@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from time import perf_counter
@@ -395,11 +396,12 @@ def _command_output_manifest(command_output: Path) -> dict:
             continue
         suffix = path.suffix.lower()
         omitted = suffix in BINARY_OUTPUT_SUFFIXES
+        size_bytes = path.stat().st_size
         files.append(
             {
                 "path": _relative_to(path, command_output),
                 "suffix": suffix,
-                "size_bytes": path.stat().st_size,
+                "size_bytes": size_bytes,
                 "committed_to_repo": False,
                 "commit_policy": "omitted_binary_or_raw_command_output" if omitted else "summarized_only",
             }
@@ -433,7 +435,17 @@ def _redact_plan(plan: dict) -> dict:
 def _read_json(path: Path) -> dict:
     if not path.exists():
         return {}
-    return json.loads(path.read_text(encoding="utf-8"))
+    last_error: json.JSONDecodeError | None = None
+    for _ in range(3):
+        text = path.read_text(encoding="utf-8")
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError as exc:
+            last_error = exc
+            time.sleep(0.02)
+    if last_error is not None:
+        raise last_error
+    return {}
 
 
 def _relative_to(path: Path, root: Path) -> str:

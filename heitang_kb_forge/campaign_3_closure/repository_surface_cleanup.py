@@ -424,8 +424,20 @@ def _root_surface_report(repo_root: Path) -> dict[str, Any]:
 
 def _tree_surface_report(repo_root: Path, relative: str) -> dict[str, Any]:
     root = repo_root / relative
-    files = [path for path in root.rglob("*") if path.is_file()] if root.exists() else []
-    total_bytes = sum(path.stat().st_size for path in files)
+    files = []
+    total_bytes = 0
+    if root.exists():
+        for path in root.rglob("*"):
+            if _is_transient_file(path):
+                continue
+            try:
+                if not path.is_file():
+                    continue
+                size = path.stat().st_size
+            except FileNotFoundError:
+                continue
+            files.append(path)
+            total_bytes += size
     return {
         "schema_version": f"{relative.replace('/', '_')}_surface_report.v1",
         "status": "passed",
@@ -433,6 +445,13 @@ def _tree_surface_report(repo_root: Path, relative: str) -> dict[str, Any]:
         "file_count": len(files),
         "total_bytes": total_bytes,
     }
+
+
+def _is_transient_file(path: Path) -> bool:
+    if any(part.startswith(".") and ".stale." in part for part in path.parts):
+        return True
+    name = path.name
+    return name.endswith(".tmp") or (name.startswith(".") and ".tmp" in name) or (name.startswith(".") and ".stale." in name)
 
 
 def _renaming_compatibility_matrix(repo_root: Path) -> dict[str, Any]:
