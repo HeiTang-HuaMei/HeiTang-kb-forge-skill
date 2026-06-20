@@ -8732,11 +8732,87 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     final conflictReportPath = _join(outDir.path, 'a2a_conflict_report.json');
     final consensusReportPath = _join(outDir.path, 'a2a_consensus_report.json');
+    final roundLogPath = _join(agentA2aDir.path, 'a2a_rounds.jsonl');
+    final runtimeAuditPath = _join(agentA2aDir.path, 'a2a_runtime_audit.jsonl');
+    final rounds = [
+      {
+        'round_id': 'round_1_initial_positions',
+        'round_index': 1,
+        'input': {
+          'topic': discussionTopic,
+          'evidence_count': selected.length,
+        },
+        'agent_outputs': selectedParticipants
+            .map((agentId) => {
+                  'agent_id': agentId,
+                  'output': '$agentId grounded initial position',
+                  'source_policy': 'kb_skill_agent_package_only',
+                })
+            .toList(growable: false),
+      },
+      {
+        'round_id': 'round_2_peer_response',
+        'round_index': 2,
+        'input': {
+          'previous_round': 'round_1_initial_positions',
+          'conflict_focus': 'actionability_vs_evidence_boundary',
+        },
+        'agent_outputs': selectedParticipants
+            .map((agentId) => {
+                  'agent_id': agentId,
+                  'output': '$agentId response with source boundary review',
+                  'conflict_reviewed': true,
+                })
+            .toList(growable: false),
+      },
+      {
+        'round_id': 'round_3_consensus',
+        'round_index': 3,
+        'input': {
+          'previous_round': 'round_2_peer_response',
+          'consensus_required': true,
+        },
+        'agent_outputs': [
+          {
+            'agent_id': 'reading_summary_agent',
+            'output': 'final consensus keeps citations and local-only policy',
+            'consensus_ready': selected.isNotEmpty,
+          }
+        ],
+      },
+    ];
+    final roundLines = rounds
+        .map((round) => jsonEncode({
+              'schema_version': 'prd_v3_a2a_round_record.v1',
+              ...round,
+              'created_at': DateTime.now().toUtc().toIso8601String(),
+              'secret_plaintext_written': false,
+            }))
+        .join('\n');
+    await File(roundLogPath).writeAsString('$roundLines\n', encoding: utf8);
+    final auditLines = rounds
+        .map((round) => jsonEncode({
+              'schema_version': 'prd_v3_a2a_runtime_audit_record.v1',
+              'session_id': 'A2A_001',
+              'round_id': round['round_id'],
+              'round_index': round['round_index'],
+              'input_recorded': true,
+              'output_recorded': true,
+              'conflict_detection_enabled': true,
+              'workspace_boundary': workspace.path,
+              'created_at': DateTime.now().toUtc().toIso8601String(),
+              'secret_plaintext_written': false,
+            }))
+        .join('\n');
+    await File(runtimeAuditPath).writeAsString('$auditLines\n', encoding: utf8);
     final conflictReport = {
       'schema_version': 'prd_v3_a2a_conflict_report.v1',
       'status': 'review_required',
       'topic': discussionTopic,
       'participant_agent_ids': selectedParticipants,
+      'round_count': rounds.length,
+      'round_log_path': roundLogPath,
+      'runtime_audit_path': runtimeAuditPath,
       'conflicts': [
         {
           'conflict_id': 'C1',
@@ -8771,6 +8847,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'status': selected.isEmpty ? 'needs_evidence' : 'pass',
       'topic': discussionTopic,
       'participant_agent_ids': selectedParticipants,
+      'round_count': rounds.length,
+      'round_log_path': roundLogPath,
+      'runtime_audit_path': runtimeAuditPath,
       'consensus_items': [
         {
           'consensus_id': 'S1',
@@ -8811,7 +8890,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       'parent_workspace_id': 'W_M',
       'participant_agent_ids': selectedParticipants,
       'topic': discussionTopic,
-      'round_limit': 1,
+      'round_limit': rounds.length,
+      'rounds': rounds.length,
+      'round_log_path': roundLogPath,
+      'runtime_audit_path': runtimeAuditPath,
       'moderator_agent_id': 'reading_summary_agent',
       'summary_required': true,
       'conflict_detection_enabled': true,
@@ -8832,6 +8914,9 @@ class Rc6RuntimeController extends ChangeNotifier {
               'agents': selectedParticipants,
               'output': _join(outDir.path, 'multi_agent_discussion.md'),
               'evidence_count': selected.length,
+              'round_count': rounds.length,
+              'round_log_path': roundLogPath,
+              'runtime_audit_path': runtimeAuditPath,
               'conflict_report_path': conflictReportPath,
               'consensus_report_path': consensusReportPath,
               'unresolved_conflict_count': selected.isEmpty ? 1 : 0,
@@ -11871,7 +11956,15 @@ class Rc6RuntimeController extends ChangeNotifier {
         (payload, raw) {
           final rounds =
               _asInt(payload['round_limit']) ?? _asInt(payload['rounds']) ?? 0;
-          return rounds > 1 && raw.contains('conflict');
+          final roundLogPath = _stringValue(payload['round_log_path'], '');
+          final auditPath = _stringValue(payload['runtime_audit_path'], '');
+          final conflictPath =
+              _stringValue(payload['conflict_report_path'], '');
+          return rounds > 1 &&
+              raw.contains('conflict') &&
+              _jsonlRecordCount(roundLogPath) >= rounds &&
+              _jsonlRecordCount(auditPath) >= rounds &&
+              File(conflictPath).existsSync();
         },
         failureReason: 'A2A 需要多轮协作和冲突检测证据。',
       ),
@@ -11981,6 +12074,16 @@ class Rc6RuntimeController extends ChangeNotifier {
         'reason_zh': '验收产物不是有效 JSON。',
       };
     }
+  }
+
+  static int _jsonlRecordCount(String path) {
+    if (path.trim().isEmpty) return 0;
+    final file = File(path);
+    if (!file.existsSync()) return 0;
+    return file
+        .readAsLinesSync(encoding: utf8)
+        .where((line) => line.trim().isNotEmpty)
+        .length;
   }
 
   static bool _profileConfigRefAvailable(

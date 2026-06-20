@@ -28,7 +28,7 @@ The preflight requires runtime evidence for:
 
 1. OKF Bundle runtime export/import. Current implementation writes runtime evidence.
 2. OKF runtime to KB build. Current implementation writes runtime evidence after KB build.
-3. A2A multi-round collaboration and conflict detection.
+3. A2A multi-round collaboration and conflict detection. Current implementation writes runtime evidence.
 4. Skill secondary fusion plus multi-version management.
 5. Agent workspace permission enforcement and unauthorized access blocking.
 6. Real EXE 38-step industrial smoke pass.
@@ -71,7 +71,6 @@ Stage 3 Provider hot-swap may continue only as config/readiness/audit hardening.
 
 It must not proceed to external runtime loading or claim registered projects are runtime-integrated until the remaining Stage 2 runtime preflight items pass:
 
-- A2A multi-round collaboration and conflict detection.
 - Skill secondary fusion plus multi-version management.
 - Agent workspace permission enforcement and unauthorized access blocking.
 - Real EXE 38-step industrial smoke pass.

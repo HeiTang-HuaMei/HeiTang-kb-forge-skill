@@ -2583,6 +2583,10 @@ void main() {
             '${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}a2a_conflict_report.json')
         .readAsStringSync()) as Map<String, dynamic>;
     expect(a2aConflict['schema_version'], 'prd_v3_a2a_conflict_report.v1');
+    expect(a2aConflict['round_count'], 3);
+    expect(File(a2aConflict['round_log_path'] as String).existsSync(), isTrue);
+    expect(
+        File(a2aConflict['runtime_audit_path'] as String).existsSync(), isTrue);
     expect(a2aConflict['conflicts'], isA<List>());
     expect(a2aConflict['secret_plaintext_written'], isFalse);
     final a2aConsensus = jsonDecode(File(
@@ -2590,14 +2594,48 @@ void main() {
         .readAsStringSync()) as Map<String, dynamic>;
     expect(a2aConsensus['schema_version'], 'prd_v3_a2a_consensus_report.v1');
     expect(a2aConsensus['status'], 'pass');
+    expect(a2aConsensus['round_count'], 3);
     expect(a2aConsensus['ready_for_export'], isTrue);
+    final a2aSessionManifest = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}workspaces${Platform.pathSeparator}W_M${Platform.pathSeparator}a2a_sessions${Platform.pathSeparator}A2A_001${Platform.pathSeparator}a2a_session_manifest.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(a2aSessionManifest['rounds'], 3);
+    expect(a2aSessionManifest['round_limit'], 3);
+    final roundLog = File(a2aSessionManifest['round_log_path'] as String)
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .toList(growable: false);
+    final runtimeAudit =
+        File(a2aSessionManifest['runtime_audit_path'] as String)
+            .readAsLinesSync()
+            .where((line) => line.trim().isNotEmpty)
+            .toList(growable: false);
+    expect(roundLog, hasLength(3));
+    expect(runtimeAudit, hasLength(3));
+    expect(
+        roundLog.every((line) => line.contains('prd_v3_a2a_round_record.v1')),
+        isTrue);
+    expect(
+        runtimeAudit.every(
+            (line) => line.contains('prd_v3_a2a_runtime_audit_record.v1')),
+        isTrue);
     expect(
         File('${workspace.path}${Platform.pathSeparator}multi_agent${Platform.pathSeparator}multi_agent_discussion_manifest.json')
             .readAsStringSync(),
         allOf(
           contains('a2a_conflict_report.json'),
           contains('a2a_consensus_report.json'),
+          contains('a2a_rounds.jsonl'),
+          contains('a2a_runtime_audit.jsonl'),
         ));
+    await controller.testAllRegisteredProviderCapabilities();
+    final a2aRuntimeStatus = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final a2aPreflight =
+        a2aRuntimeStatus['stage_2_industrial_preflight'] as Map;
+    expect(a2aPreflight['failed_checks'],
+        isNot(contains('a2a_multi_round_collaboration')));
 
     await controller.clearAgentDialogueHistory();
     expect(controller.state.hasAgent, isTrue);
