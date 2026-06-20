@@ -15202,13 +15202,28 @@ class Rc6RuntimeController extends ChangeNotifier {
     final payload = _readJsonObjectSync(smokePath);
     final exePath = _stringValue(payload['exe_path'], '');
     final logPath = _stringValue(payload['log_path'], '');
+    final exeFile = exePath.isEmpty ? null : File(exePath);
+    final exeBytes =
+        exeFile != null && exeFile.existsSync() ? exeFile.lengthSync() : 0;
+    final exeHeader = _exeHeader(exeFile);
+    final generatedBy = _stringValue(payload['generated_by'], '');
     final required = {
       'schema_version': _stringValue(payload['schema_version'], '') ==
           'prd_v3_exe_launch_smoke_report.v1',
       'status_passed': _stringValue(payload['status'], '') == 'passed',
       'platform_windows':
           _stringValue(payload['platform'], '').toLowerCase() == 'windows',
-      'exe_exists': exePath.isNotEmpty && File(exePath).existsSync(),
+      'generated_by_launch_script':
+          generatedBy == 'scripts/smoke_windows_exe_launch.ps1',
+      'exe_exists': exeFile != null && exeFile.existsSync(),
+      'exe_name_matches':
+          exePath.split(RegExp(r'[\\/]')).last == 'heitang_workbench.exe',
+      'exe_header_mz': exeHeader == 'MZ',
+      'exe_size_matches':
+          (_asInt(payload['exe_size_bytes']) ?? 0) == exeBytes &&
+              exeBytes > 32768,
+      'exe_sha256_recorded': RegExp(r'^[a-f0-9]{64}$')
+          .hasMatch(_stringValue(payload['exe_sha256'], '')),
       'launched': payload['launched'] == true,
       'process_started': (_asInt(payload['process_id']) ?? 0) > 0 ||
           payload['process_started'] == true,
@@ -15318,6 +15333,17 @@ class Rc6RuntimeController extends ChangeNotifier {
       }
     }
     return false;
+  }
+
+  static String _exeHeader(File? file) {
+    if (file == null || !file.existsSync()) return '';
+    final bytes = file.openSync();
+    try {
+      if (bytes.lengthSync() < 2) return '';
+      return String.fromCharCodes(bytes.readSync(2));
+    } finally {
+      bytes.closeSync();
+    }
   }
 
   static Map<String, dynamic> _readJsonObjectSync(String path) {

@@ -3814,7 +3814,8 @@ void main() {
         Directory('${workspace.path}${Platform.pathSeparator}acceptance');
     final launchLogPath =
         '${acceptanceDir.path}${Platform.pathSeparator}exe_launch_smoke.log';
-    File(launchLogPath).writeAsStringSync('CI-safe EXE launch smoke evidence');
+    File(launchLogPath)
+        .writeAsStringSync('invalid placeholder EXE launch smoke evidence');
     final fakeExePath =
         '${acceptanceDir.path}${Platform.pathSeparator}heitang_workbench.exe';
     File(fakeExePath).writeAsStringSync('windows exe placeholder for smoke');
@@ -3824,6 +3825,11 @@ void main() {
       'status': 'passed',
       'platform': 'windows',
       'exe_path': fakeExePath,
+      'generated_by': 'manual_placeholder',
+      'exe_size_bytes': 32,
+      'exe_sha256':
+          '0000000000000000000000000000000000000000000000000000000000000000',
+      'exe_header': 'te',
       'workspace_path': workspace.path,
       'log_path': launchLogPath,
       'launched': true,
@@ -3841,12 +3847,19 @@ void main() {
     final launchPreflight = launchRuntimeStatus['stage_2_industrial_preflight']
         as Map<String, dynamic>;
     expect(launchPreflight['failed_checks'],
-        isNot(contains('industrial_exe_launch_smoke')));
+        contains('industrial_exe_launch_smoke'));
     final exeLaunchCheck = (launchPreflight['checks'] as List)
         .cast<Map>()
         .firstWhere(
             (check) => check['check_id'] == 'industrial_exe_launch_smoke');
-    expect(exeLaunchCheck['status'], 'passed');
+    expect(exeLaunchCheck['status'], 'failed');
+    expect(
+        ((exeLaunchCheck['runtime_evidence'] as Map)['missing'] as List),
+        containsAll([
+          'generated_by_launch_script',
+          'exe_header_mz',
+          'exe_size_matches',
+        ]));
     expect(
         File('${workspace.path}${Platform.pathSeparator}agent${Platform.pathSeparator}exports${Platform.pathSeparator}agent_package_manifest.json')
             .readAsStringSync(),

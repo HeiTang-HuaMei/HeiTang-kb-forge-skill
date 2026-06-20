@@ -25,10 +25,22 @@ $startupTimeout = $false
 $exitCode = $null
 $processId = 0
 $errorMessage = ""
+$resolvedExePath = ""
+$exeSizeBytes = 0
+$exeSha256 = ""
+$exeHeader = ""
 
 try {
   if (-not (Test-Path -LiteralPath $ExePath)) {
     throw "EXE not found: $ExePath"
+  }
+  $resolvedExePath = (Resolve-Path -LiteralPath $ExePath).Path
+  $exeItem = Get-Item -LiteralPath $resolvedExePath
+  $exeSizeBytes = $exeItem.Length
+  $exeSha256 = (Get-FileHash -LiteralPath $resolvedExePath -Algorithm SHA256).Hash.ToLowerInvariant()
+  $headerBytes = [System.IO.File]::ReadAllBytes($resolvedExePath)
+  if ($headerBytes.Length -ge 2) {
+    $exeHeader = [System.Text.Encoding]::ASCII.GetString($headerBytes, 0, 2)
   }
 
   "Starting EXE: $ExePath" | Set-Content -LiteralPath $LogPath -Encoding UTF8
@@ -55,7 +67,11 @@ $report = [ordered]@{
   schema_version = "prd_v3_exe_launch_smoke_report.v1"
   status = $status
   platform = "windows"
-  exe_path = (Resolve-Path -LiteralPath $ExePath -ErrorAction SilentlyContinue).Path
+  generated_by = "scripts/smoke_windows_exe_launch.ps1"
+  exe_path = $resolvedExePath
+  exe_size_bytes = $exeSizeBytes
+  exe_sha256 = $exeSha256
+  exe_header = $exeHeader
   workspace_path = (Resolve-Path -LiteralPath $WorkspacePath).Path
   log_path = (Resolve-Path -LiteralPath $LogPath).Path
   launched = $started
