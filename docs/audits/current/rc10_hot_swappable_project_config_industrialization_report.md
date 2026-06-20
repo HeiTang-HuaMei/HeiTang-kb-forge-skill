@@ -296,6 +296,7 @@ Controlled n8n runtime load boundary:
 - Endpoint query strings and credentials are sanitized. Logs and manifests keep `secret_masked=true` and `secret_plaintext_written=false`.
 - `project_config_runtime_status.json` now reads the runtime-load manifest and publishes a separate `provider_runtime_load_summary`.
 - The runtime-load summary syncs into dashboard health, registered Provider summary, Agent Workbench A2A workflow status, and degradation messaging.
+- `rollbackN8nProviderRuntime` records a controlled rollback to local A2A export, snapshots the previous load manifest under `config/provider_runtime_load_history/`, appends a rollback event, and refreshes runtime status.
 - Normal UI boundary remains unchanged: users see workflow collaboration capability status, not an external project-loading product module.
 
 Adapter readiness:
@@ -514,6 +515,9 @@ Latest Stage 3 controlled n8n runtime-load slice:
   `provider_runtime_load_summary`, `registered_provider_summary.external_runtime_loaded_count`,
   dashboard external runtime health, Agent Workbench A2A workflow status, and
   `degradation.n8n_runtime_failure`.
+- The same test verifies rollback from a health-connected state back to local
+  A2A export: rollback manifest action, history snapshot, load log event order,
+  `runtime_loaded=false`, and Agent Workbench fallback sync.
 - This is the first Stage 3 external runtime load proof, limited to controlled
   health connection. It is not workflow execution and does not expose n8n as a
   normal product module.

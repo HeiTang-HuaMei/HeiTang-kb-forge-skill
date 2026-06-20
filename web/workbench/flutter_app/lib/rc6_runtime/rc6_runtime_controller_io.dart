@@ -2382,6 +2382,63 @@ class Rc6RuntimeController extends ChangeNotifier {
     return loaded;
   }
 
+  Future<bool> rollbackN8nProviderRuntime() async {
+    if (!_canRunDesktop()) {
+      return false;
+    }
+    final workspace = _requireWorkspace();
+    final startedAt = DateTime.now().toUtc().toIso8601String();
+    final manifest = await _readJsonObject(
+      _providerRuntimeLoadManifestPath(workspace),
+    );
+    final wasLoaded = _boolValue(manifest['runtime_loaded']);
+    final rollbackFromManifestPath =
+        await _snapshotProviderRuntimeLoadManifest(workspace, manifest);
+    final probe = {
+      'status': '降级为本地模式',
+      'error_code': '',
+      'error_message_zh': '',
+      'sanitized_endpoint': _stringValue(manifest['sanitized_endpoint'], ''),
+      'runtime_loaded': false,
+      'external_runtime_connected': false,
+      'local_fallback': 'A2A 本地协作报告导出继续可用。',
+    };
+    final finishedAt = DateTime.now().toUtc().toIso8601String();
+    final manifestPath = await _writeProviderRuntimeLoadManifest(
+      workspace,
+      providerRef: 'n8n',
+      capabilityId: 'workflow_collaboration_export',
+      startedAt: startedAt,
+      finishedAt: finishedAt,
+      eligible: wasLoaded,
+      probe: probe,
+      action: 'rollback',
+      rollbackFromManifestPath: rollbackFromManifestPath,
+    );
+    await _appendProviderRuntimeLoadLog(
+      workspace,
+      providerRef: 'n8n',
+      capabilityId: 'workflow_collaboration_export',
+      startedAt: startedAt,
+      finishedAt: finishedAt,
+      eligible: wasLoaded,
+      probe: probe,
+      manifestPath: manifestPath,
+      action: 'rollback',
+    );
+    await _writeProjectConfigRuntimeStatus(
+      workspace,
+      await _readProjectConfigProfiles(workspace),
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: '工作流协作 Provider 已回滚到本地 A2A 导出。',
+      lastError: '',
+    );
+    notifyListeners();
+    return true;
+  }
+
   Future<String> saveStorageProviderSettings({
     required String redisHost,
     required int redisPort,
@@ -12818,6 +12875,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     required String finishedAt,
     required bool eligible,
     required Map<String, dynamic> probe,
+    String action = 'load',
+    String rollbackFromManifestPath = '',
   }) async {
     final loaded = _boolValue(probe['runtime_loaded']);
     final manifestPath = _providerRuntimeLoadManifestPath(workspace);
@@ -12828,6 +12887,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'started_at': startedAt,
       'finished_at': finishedAt,
       'workspace_boundary': workspace.path,
+      'action': action,
+      'rollback_from_manifest_path': rollbackFromManifestPath,
       'eligible_before_load': eligible,
       'runtime_loaded': loaded,
       'runtime_loaded_count': loaded ? 1 : 0,
@@ -12865,6 +12926,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     required bool eligible,
     required Map<String, dynamic> probe,
     required String manifestPath,
+    String action = 'load',
   }) async {
     final event = {
       'schema_version': 'prd_v3_provider_runtime_load_event.v1',
@@ -12872,6 +12934,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           'provider_runtime_load_${DateTime.now().toUtc().microsecondsSinceEpoch}',
       'provider_ref': providerRef,
       'capability_id': capabilityId,
+      'action': action,
       'started_at': startedAt,
       'finished_at': finishedAt,
       'eligible_before_load': eligible,
@@ -12940,6 +13003,28 @@ class Rc6RuntimeController extends ChangeNotifier {
       'secret_masked': true,
       'secret_plaintext_written': false,
     };
+  }
+
+  Future<String> _snapshotProviderRuntimeLoadManifest(
+    Directory workspace,
+    Map<String, dynamic> manifest,
+  ) async {
+    if (manifest.isEmpty) {
+      return '';
+    }
+    final historyDir = Directory(
+        _join(workspace.path, 'config', 'provider_runtime_load_history'));
+    await historyDir.create(recursive: true);
+    final path = _join(
+      historyDir.path,
+      'provider_runtime_load_${DateTime.now().toUtc().microsecondsSinceEpoch}.json',
+    );
+    await _writeJsonFile(path, {
+      ...manifest,
+      'snapshot_created_at': DateTime.now().toUtc().toIso8601String(),
+      'secret_plaintext_written': false,
+    });
+    return path;
   }
 
   Future<String> _writeProviderCapabilityBindingManifest(

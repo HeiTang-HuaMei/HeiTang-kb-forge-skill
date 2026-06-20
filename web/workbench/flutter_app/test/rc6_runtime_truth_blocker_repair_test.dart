@@ -3986,6 +3986,42 @@ void main() {
     expect(agentStatus['a2a_workflow_fallback'], '');
     expect((runtimeStatus['degradation'] as Map)['n8n_runtime_failure'],
         contains('未执行外部 workflow'));
+
+    final rolledBack = await controller.rollbackN8nProviderRuntime();
+    expect(rolledBack, isTrue);
+    final rollbackManifest = jsonDecode(File(manifestPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(rollbackManifest['action'], 'rollback');
+    expect(rollbackManifest['runtime_loaded'], isFalse);
+    expect(rollbackManifest['runtime_loaded_count'], 0);
+    expect(rollbackManifest['status'], '降级为本地模式');
+    final rollbackFromManifestPath =
+        rollbackManifest['rollback_from_manifest_path'] as String;
+    expect(File(rollbackFromManifestPath).existsSync(), isTrue);
+    final runtimeLoadLog = readJsonlFile(
+        '$configDir${Platform.pathSeparator}provider_runtime_load_log.jsonl');
+    expect(runtimeLoadLog.map((row) => row['action']).toList(),
+        containsAllInOrder(['load', 'rollback']));
+    expect(runtimeLoadLog.last['runtime_loaded_after_event'], isFalse);
+    expect(runtimeLoadLog.last['workflow_executed'], isFalse);
+
+    final rollbackRuntimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final rollbackSummary =
+        rollbackRuntimeStatus['provider_runtime_load_summary']
+            as Map<String, dynamic>;
+    expect(rollbackSummary['runtime_loaded'], isFalse);
+    expect(rollbackSummary['runtime_loaded_count'], 0);
+    expect(
+        (rollbackRuntimeStatus['registered_provider_summary']
+            as Map)['external_runtime_loaded_count'],
+        0);
+    final rollbackAgentStatus = (rollbackRuntimeStatus['module_status']
+        as Map)['agent_workbench'] as Map;
+    expect(rollbackAgentStatus['a2a_workflow_runtime_status'], '降级为本地模式');
+    expect(rollbackAgentStatus['a2a_workflow_runtime_loaded'], isFalse);
+    expect(rollbackAgentStatus['a2a_workflow_fallback'], contains('本地协作报告'));
   });
 
   test('prd multi knowledge base catalog supports copy merge split delete',
