@@ -34,6 +34,8 @@ Runtime configuration assets are written to:
 - `config/registered_provider_hot_swap_stability_report.json`
 - `config/provider_capability_binding_manifest.json`
 - `config/provider_adapter_contracts.json`
+- `config/provider_adapter_readiness_report.json`
+- `config/provider_adapter_readiness_log.jsonl`
 - `config/config_test_log.jsonl`
 - `config/profile_change_log.jsonl`
 - `config/profile_activation_log.jsonl`
@@ -69,6 +71,8 @@ Runtime evidence:
 - `registered_provider_hot_swap_stability_report.json`
 - `provider_capability_binding_manifest.json`
 - `provider_adapter_contracts.json`
+- `provider_adapter_readiness_report.json`
+- `provider_adapter_readiness_log.jsonl`
 
 Coverage:
 
@@ -124,6 +128,13 @@ Adapter contracts:
 - The contracts cover all 30 provider-to-capability mappings while keeping `runtime_loaded_count=0` and `ready_for_user_selection_count=0` until real readiness checks pass.
 - `registered_provider_health_report.json` and `project_config_runtime_status.json` both reference the adapter contract path.
 
+Adapter readiness:
+
+- `provider_adapter_readiness_report.json` evaluates the 26 adapter contracts against the active Profile and current workspace configuration.
+- It records missing config refs, blocked reasons, Chinese error messages, degradation targets, affected modules, and masked status for each Provider.
+- The readiness report feeds audit/runtime status without exposing external project names in normal UI.
+- Current evidence keeps `runtime_loaded_count=0` and `ready_for_user_selection_count=0`; adapters remain blocked, disabled, or test-required until real checks pass.
+
 ## Profile Schema
 
 `ProjectConfigProfile` includes:
@@ -153,6 +164,7 @@ Lifecycle behavior implemented:
 | Registered Provider health | `testAllRegisteredProviderCapabilities` | Checks 30 mappings, writes health JSON/JSONL, blocks unverified runtime load, proves rollback/fallback |
 | Provider capability binding | `provider_capability_binding_manifest.json` | Binds 8 product capability areas to local fallback or proven Provider and syncs downstream runtime status |
 | Provider adapter contracts | `provider_adapter_contracts.json` | Defines 26 Provider adapter contracts with required config refs, health checks, fallback, and rollback |
+| Provider adapter readiness | `provider_adapter_readiness_report.json` | Evaluates 26 adapter contracts against active Profile/config and keeps unverified adapters blocked |
 
 The CI-safe tests cover failure and config-state paths without requiring external services. Real Redis/Qdrant success checks remain part of EXE smoke when Docker services are available.
 
@@ -190,6 +202,7 @@ Profile activation refreshes `project_config_runtime_status.json` for:
 - Registered Provider health: health report path, health log path, hot-swap stability report path
 - Provider capability binding: current local fallback vs proven Provider binding per downstream module
 - Provider adapter contracts: contract path for all registered Provider refs and their activation prerequisites
+- Provider adapter readiness: readiness report/log paths and blocked/degraded Provider reasons
 
 Automated tests verify activation from local Profile to hybrid Profile synchronizes these module states.
 

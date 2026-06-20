@@ -9772,6 +9772,15 @@ class Rc6RuntimeController extends ChangeNotifier {
     final matrixPath = integrationArtifacts['matrix_path'].toString();
     final matrix = await _readJsonObject(matrixPath);
     final entries = _listOfMaps(matrix['provider_entries']);
+    final contractsPath =
+        _stringValue(matrix['provider_adapter_contracts_path'], '');
+    final readinessPath = contractsPath.isEmpty
+        ? ''
+        : await _writeProviderAdapterReadinessReport(
+            workspace,
+            await _readProjectConfigProfiles(workspace),
+            contractsPath,
+          );
     final activeProfile =
         _activeProfile(await _readProjectConfigProfiles(workspace));
     final now = DateTime.now().toUtc().toIso8601String();
@@ -9826,6 +9835,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'matrix_path': matrixPath,
       'provider_adapter_contracts_path':
           _providerAdapterContractsPath(workspace),
+      'provider_adapter_readiness_report_path': readinessPath,
+      'provider_adapter_readiness_log_path':
+          _providerAdapterReadinessLogPath(workspace),
       'health_log_path': healthLogPath,
       'stability_report_path': stabilityReportPath,
       'provider_entry_count': healthEntries.length,
@@ -10068,6 +10080,83 @@ class Rc6RuntimeController extends ChangeNotifier {
     return path;
   }
 
+  Future<String> _writeProviderAdapterReadinessReport(
+    Directory workspace,
+    List<ProjectConfigProfile> profiles,
+    String contractsPath,
+  ) async {
+    final active = _activeProfile(profiles);
+    final contractsDoc = await _readJsonObject(contractsPath);
+    final contracts = _listOfMaps(contractsDoc['contracts']);
+    final storage = await loadStorageProviderSettings();
+    final provider = await loadProviderRuntimeSettings();
+    final exporter = await loadExporterSettings();
+    final config = {
+      'storage': storage,
+      'provider': provider,
+      'exporter': exporter,
+    };
+    final now = DateTime.now().toUtc().toIso8601String();
+    final readinessEntries = contracts.map((contract) {
+      final result = _providerAdapterReadiness(
+        contract,
+        active,
+        config,
+      );
+      return {
+        'readiness_id':
+            'provider_adapter_readiness_${DateTime.now().toUtc().microsecondsSinceEpoch}_${contract['provider_ref']}',
+        'profile_id': active.profileId,
+        'provider_ref': contract['provider_ref'],
+        'adapter_type': contract['adapter_type'],
+        'capability_ids': contract['capability_ids'],
+        'affected_modules': contract['affected_modules'],
+        'status': result['status'],
+        'error_code': result['error_code'],
+        'error_message_zh': result['error_message_zh'],
+        'missing_config_refs': result['missing_config_refs'],
+        'blocked_reasons': result['blocked_reasons'],
+        'degradation_target': contract['fallback_provider'],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
+        'secret_masked': true,
+        'evaluated_at': now,
+      };
+    }).toList(growable: false);
+    final statusCounts = <String, int>{};
+    for (final entry in readinessEntries) {
+      final status = _stringValue(entry['status'], '配置缺失');
+      statusCounts[status] = (statusCounts[status] ?? 0) + 1;
+    }
+    final reportPath = _providerAdapterReadinessReportPath(workspace);
+    final logPath = _providerAdapterReadinessLogPath(workspace);
+    final report = {
+      'schema_version': 'prd_v3_provider_adapter_readiness_report.v1',
+      'generated_at': now,
+      'workspace_boundary': workspace.path,
+      'active_profile_id': active.profileId,
+      'contracts_path': contractsPath,
+      'readiness_log_path': logPath,
+      'contract_count': contracts.length,
+      'readiness_entry_count': readinessEntries.length,
+      'runtime_loaded_count': 0,
+      'ready_for_user_selection_count': 0,
+      'status_counts': statusCounts,
+      'readiness_entries': readinessEntries,
+      'normal_ui_project_names_visible': false,
+      'secret_plaintext_written': false,
+    };
+    await File(reportPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(report),
+      encoding: utf8,
+    );
+    await File(logPath).writeAsString(
+      '${readinessEntries.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    return reportPath;
+  }
+
   Future<void> _appendRegisteredProviderSelectionLog(
     Directory workspace, {
     required String action,
@@ -10276,6 +10365,16 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   static String _providerAdapterContractsPath(Directory workspace) {
     return _join(workspace.path, 'config', 'provider_adapter_contracts.json');
+  }
+
+  static String _providerAdapterReadinessReportPath(Directory workspace) {
+    return _join(
+        workspace.path, 'config', 'provider_adapter_readiness_report.json');
+  }
+
+  static String _providerAdapterReadinessLogPath(Directory workspace) {
+    return _join(
+        workspace.path, 'config', 'provider_adapter_readiness_log.jsonl');
   }
 
   Future<List<ProjectConfigProfile>> _ensureProjectConfigProfiles(
@@ -10567,6 +10666,15 @@ class Rc6RuntimeController extends ChangeNotifier {
         await _writeRegisteredProviderIntegrationArtifacts(workspace);
     final registeredProviderMatrix = await _readJsonObject(
         registeredProviderArtifacts['matrix_path'].toString());
+    final providerAdapterContractsPath = _stringValue(
+        registeredProviderMatrix['provider_adapter_contracts_path'],
+        _providerAdapterContractsPath(workspace));
+    final providerAdapterReadinessPath =
+        await _writeProviderAdapterReadinessReport(
+      workspace,
+      profiles,
+      providerAdapterContractsPath,
+    );
     final providerCapabilityBindingPath =
         await _writeProviderCapabilityBindingManifest(
       workspace,
@@ -10601,8 +10709,10 @@ class Rc6RuntimeController extends ChangeNotifier {
           _registeredProviderHealthLogPath(workspace),
       'registered_provider_hot_swap_stability_report_path':
           _registeredProviderHotSwapStabilityReportPath(workspace),
-      'provider_adapter_contracts_path':
-          _providerAdapterContractsPath(workspace),
+      'provider_adapter_contracts_path': providerAdapterContractsPath,
+      'provider_adapter_readiness_report_path': providerAdapterReadinessPath,
+      'provider_adapter_readiness_log_path':
+          _providerAdapterReadinessLogPath(workspace),
       'provider_capability_binding_manifest_path':
           providerCapabilityBindingPath,
       'registered_provider_summary': {
@@ -11338,6 +11448,111 @@ class Rc6RuntimeController extends ChangeNotifier {
     prerequisites
         .addAll(_providerRequiredConfigRefs(entry).map((ref) => '需要配置 $ref'));
     return prerequisites.toSet().toList(growable: false)..sort();
+  }
+
+  static Map<String, dynamic> _providerAdapterReadiness(
+    Map<String, dynamic> contract,
+    ProjectConfigProfile profile,
+    Map<String, dynamic> config,
+  ) {
+    final missingRefs = <String>[];
+    final blockedReasons = <String>[];
+    final requiredRefs = _listOfStrings(contract['required_config_refs']);
+    for (final ref in requiredRefs) {
+      if (!_profileConfigRefAvailable(profile, ref, config)) {
+        missingRefs.add(ref);
+      }
+    }
+    if (_boolValue(contract['requires_network']) &&
+        profile.networkPolicyId == 'network_local_only') {
+      blockedReasons.add('当前 Profile 未开启网络授权。');
+    }
+    if (_boolValue(contract['requires_external_runtime'])) {
+      blockedReasons.add('需要启动外部服务并通过健康检查。');
+    }
+    if (_boolValue(contract['requires_dependency_install'])) {
+      blockedReasons.add('需要安装依赖或完成本地适配。');
+    }
+    if (missingRefs.isNotEmpty) {
+      blockedReasons.add('需要补齐 Provider 配置引用。');
+      return {
+        'status': '配置缺失',
+        'error_code': 'provider_config_missing',
+        'error_message_zh': blockedReasons.join(' '),
+        'missing_config_refs': missingRefs,
+        'blocked_reasons': blockedReasons,
+      };
+    }
+    if (blockedReasons.any((reason) => reason.contains('网络授权'))) {
+      return {
+        'status': '已禁用',
+        'error_code': 'network_authorization_disabled',
+        'error_message_zh': blockedReasons.join(' '),
+        'missing_config_refs': missingRefs,
+        'blocked_reasons': blockedReasons,
+      };
+    }
+    if (blockedReasons.any((reason) => reason.contains('启动外部服务'))) {
+      return {
+        'status': '需启动外部服务',
+        'error_code': 'external_runtime_required',
+        'error_message_zh': blockedReasons.join(' '),
+        'missing_config_refs': missingRefs,
+        'blocked_reasons': blockedReasons,
+      };
+    }
+    if (blockedReasons.any((reason) => reason.contains('安装依赖'))) {
+      return {
+        'status': '需安装外部服务',
+        'error_code': 'dependency_required',
+        'error_message_zh': blockedReasons.join(' '),
+        'missing_config_refs': missingRefs,
+        'blocked_reasons': blockedReasons,
+      };
+    }
+    return {
+      'status': '已配置未测试',
+      'error_code': 'adapter_test_required',
+      'error_message_zh': 'Provider 适配器配置存在，仍需真实健康检查通过后才能启用。',
+      'missing_config_refs': missingRefs,
+      'blocked_reasons': ['需要健康检查通过'],
+    };
+  }
+
+  static bool _profileConfigRefAvailable(
+    ProjectConfigProfile profile,
+    String ref,
+    Map<String, dynamic> config,
+  ) {
+    final storage = _mapValue(config['storage']);
+    final provider = _mapValue(config['provider']);
+    final exporter = _mapValue(config['exporter']);
+    final redis = _mapValue(storage['redis']);
+    final qdrant = _mapValue(storage['qdrant']);
+    final exporters = _mapValue(exporter['exporters']);
+    return switch (ref) {
+      'storage_config_id' => profile.storageConfigId.isNotEmpty,
+      'model_config_id' => profile.modelConfigId.isNotEmpty &&
+          _mapValue(provider['llm']).isNotEmpty,
+      'embedding_config_id' => profile.embeddingConfigId.isNotEmpty,
+      'search_provider_config_id' => profile.searchProviderConfigId.isNotEmpty,
+      'ocr_provider_config_id' => profile.ocrProviderConfigId.isNotEmpty,
+      'pdf_parser_provider_config_id' =>
+        profile.pdfParserProviderConfigId.isNotEmpty,
+      'exporter_config_id' => profile.exporterConfigId.isNotEmpty &&
+          _mapValue(exporters['markdown']).isNotEmpty,
+      'redis_config_id' => profile.redisConfigId.isNotEmpty &&
+          _stringValue(redis['host'], '').isNotEmpty,
+      'vector_config_id' => profile.vectorConfigId.isNotEmpty &&
+          _stringValue(qdrant['endpoint'], '').isNotEmpty,
+      'network_policy_id' => profile.networkPolicyId.isNotEmpty,
+      'agent_memory_policy_id' => profile.agentMemoryPolicyId.isNotEmpty,
+      'tool_policy_id' => profile.toolPolicyId.isNotEmpty,
+      'secret_ref' => _stringValue(
+              _mapValue(provider['llm'])['api_key_secret_ref'], 'none') !=
+          'none',
+      _ => false,
+    };
   }
 
   Future<Map<String, dynamic>> _readProviderCapabilityStatusAsset(

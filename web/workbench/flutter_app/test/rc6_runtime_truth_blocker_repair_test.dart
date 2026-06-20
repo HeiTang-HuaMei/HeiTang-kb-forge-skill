@@ -1016,6 +1016,48 @@ void main() {
     expect(
         adapterContracts.every((contract) => contract['secret_masked'] == true),
         isTrue);
+    final providerAdapterReadinessPath =
+        runtimeStatus['provider_adapter_readiness_report_path'] as String;
+    final providerAdapterReadiness =
+        jsonDecode(File(providerAdapterReadinessPath).readAsStringSync())
+            as Map;
+    expect(providerAdapterReadiness['schema_version'],
+        'prd_v3_provider_adapter_readiness_report.v1');
+    expect(providerAdapterReadiness['contracts_path'],
+        providerAdapterContractsPath);
+    expect(providerAdapterReadiness['contract_count'], 26);
+    expect(providerAdapterReadiness['readiness_entry_count'], 26);
+    expect(providerAdapterReadiness['runtime_loaded_count'], 0);
+    expect(providerAdapterReadiness['ready_for_user_selection_count'], 0);
+    expect(
+        providerAdapterReadiness['normal_ui_project_names_visible'], isFalse);
+    expect(providerAdapterReadiness['secret_plaintext_written'], isFalse);
+    final readinessEntries =
+        (providerAdapterReadiness['readiness_entries'] as List).cast<Map>();
+    expect(readinessEntries, hasLength(26));
+    expect(
+        readinessEntries
+            .every((entry) => entry['ready_for_user_selection'] == false),
+        isTrue);
+    expect(readinessEntries.every((entry) => entry['runtime_loaded'] == false),
+        isTrue);
+    expect(readinessEntries.every((entry) => entry['secret_masked'] == true),
+        isTrue);
+    expect(
+        readinessEntries.map((entry) => entry['status']).toSet(),
+        containsAll([
+          '需安装外部服务',
+          '已配置未测试',
+          '已禁用',
+          '需启动外部服务',
+        ]));
+    expect(
+        readinessEntries
+            .every((entry) => entry.containsKey('missing_config_refs')),
+        isTrue);
+    final readinessLogPath =
+        providerAdapterReadiness['readiness_log_path'] as String;
+    expect(File(readinessLogPath).readAsLinesSync(), hasLength(26));
     expect(providerEntries.every((entry) => entry['runtime_loaded'] == false),
         isTrue);
     expect(
@@ -1081,6 +1123,8 @@ void main() {
         'prd_v3_registered_provider_health_report.v1');
     expect(providerHealth['provider_adapter_contracts_path'],
         providerAdapterContractsPath);
+    expect(providerHealth['provider_adapter_readiness_report_path'],
+        providerAdapterReadinessPath);
     expect(providerHealth['provider_entry_count'], 30);
     expect(providerHealth['unique_provider_ref_count'], 26);
     expect(providerHealth['capability_area_count'], 8);
