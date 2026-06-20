@@ -14589,6 +14589,34 @@ class Rc6RuntimeController extends ChangeNotifier {
         'runtime_loaded': false,
       };
     }
+    if (_stringValue(contract['provider_ref'], '') == 'mmskills') {
+      final probe = _probeMmskillsSchemaPackageAssets(workspace);
+      if (_boolValue(probe['passed'])) {
+        return {
+          'status': '连接成功',
+          'error_code': '',
+          'error_message_zh': '',
+          'missing_config_refs': <String>[],
+          'blocked_reasons': <String>[],
+          'test_artifacts': [probe['probe_path']],
+          'ready_for_user_selection': true,
+          'runtime_loaded': false,
+        };
+      }
+      return {
+        'status': '已配置未测试',
+        'error_code': 'mmskills_probe_requires_schema_package_assets',
+        'error_message_zh': _stringValue(
+          probe['error_message_zh'],
+          '需要真实 Skill 包、schema、验证、融合和 Agent 绑定证据后才能启用 schema package 能力增强。',
+        ),
+        'missing_config_refs': <String>[],
+        'blocked_reasons': _listOfStrings(probe['blocked_reasons']),
+        'test_artifacts': [probe['probe_path']],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
+      };
+    }
     if (_stringValue(contract['provider_ref'], '') == 'llm_wiki_v2') {
       final probe = _probeLlmWikiAgentMemoryFusion(workspace);
       if (_boolValue(probe['passed'])) {
@@ -15962,6 +15990,160 @@ class Rc6RuntimeController extends ChangeNotifier {
       'status': passed ? '连接成功' : '已配置未测试',
       'error_message_zh':
           passed ? '' : '本地 Skill 生成、本土化、融合、验证或多版本运行证据不完整，暂不能启用模板提示能力增强。',
+      'network_used': false,
+      'secret_plaintext_written': false,
+      'normal_ui_project_name_visible': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return {
+      ...payload,
+      'probe_path': probePath,
+    };
+  }
+
+  static Map<String, dynamic> _probeMmskillsSchemaPackageAssets(
+    Directory workspace,
+  ) {
+    final probePath = _providerAdapterProbePath(workspace, 'mmskills');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final packageManifestPath =
+        _joinNested(workspace.path, 'skill/skill_package_manifest.json');
+    final validationPath =
+        _joinNested(workspace.path, 'skill/skill_validation_report.json');
+    final primaryConfigPath = _joinNested(
+        workspace.path, 'skill/knowledge_qa_skill/skill_config.json');
+    final localizedManifestPath = _joinNested(workspace.path,
+        'skill/localized_writing_skill/S2/localized_skill_manifest.json');
+    final fusedManifestPath = _joinNested(
+        workspace.path, 'skill/fused_product_ops_skill/skill_manifest.json');
+    final runtimeManifestPath = _joinNested(
+        workspace.path, 'skill/operations/skill_runtime_manifest.json');
+    final bindingManifestPath = _joinNested(
+        workspace.path, 'skill/operations/agent_binding_manifest.json');
+    final packageManifest = _readJsonObjectSync(packageManifestPath);
+    final validation = _readJsonObjectSync(validationPath);
+    final primaryConfig = _readJsonObjectSync(primaryConfigPath);
+    final localizedManifest = _readJsonObjectSync(localizedManifestPath);
+    final fusedManifest = _readJsonObjectSync(fusedManifestPath);
+    final runtimeManifest = _readJsonObjectSync(runtimeManifestPath);
+    final bindingManifest = _readJsonObjectSync(bindingManifestPath);
+    final versions = _listOfMaps(runtimeManifest['versions']);
+    final snapshotsExist = versions.length > 1 &&
+        versions.every((version) {
+          final snapshot = _stringValue(version['snapshot_path'], '');
+          return snapshot.isNotEmpty && File(snapshot).existsSync();
+        });
+    final checkedAssets = [
+      {
+        'path': packageManifestPath,
+        'exists': File(packageManifestPath).existsSync(),
+        'schema_version': _stringValue(packageManifest['schema_version'], ''),
+        'status': _stringValue(packageManifest['status'], ''),
+      },
+      {
+        'path': validationPath,
+        'exists': File(validationPath).existsSync(),
+        'schema_version': _stringValue(validation['schema_version'], ''),
+        'status': _stringValue(validation['status'], ''),
+      },
+      {
+        'path': primaryConfigPath,
+        'exists': File(primaryConfigPath).existsSync(),
+        'source_mode': _stringValue(primaryConfig['source_mode'], ''),
+      },
+      {
+        'path': localizedManifestPath,
+        'exists': File(localizedManifestPath).existsSync(),
+        'source_mode': _stringValue(localizedManifest['source_mode'], ''),
+      },
+      {
+        'path': fusedManifestPath,
+        'exists': File(fusedManifestPath).existsSync(),
+        'source_mode': _stringValue(fusedManifest['source_mode'], ''),
+      },
+      {
+        'path': runtimeManifestPath,
+        'exists': File(runtimeManifestPath).existsSync(),
+        'schema_version': _stringValue(runtimeManifest['schema_version'], ''),
+        'runtime_loaded': _boolValue(runtimeManifest['runtime_loaded']),
+        'secondary_fusion_runtime_available':
+            _boolValue(runtimeManifest['secondary_fusion_runtime_available']),
+        'multi_version_runtime_available':
+            _boolValue(runtimeManifest['multi_version_runtime_available']),
+        'version_count': _asInt(runtimeManifest['version_count']) ?? 0,
+        'snapshots_exist': snapshotsExist,
+      },
+      {
+        'path': bindingManifestPath,
+        'exists': File(bindingManifestPath).existsSync(),
+        'status': _stringValue(bindingManifest['status'], ''),
+      },
+    ];
+    final required = {
+      'package_manifest_schema':
+          _stringValue(packageManifest['schema_version'], '') ==
+              'prd_v3_skill_package_manifest.v1',
+      'package_manifest_ready':
+          _stringValue(packageManifest['status'], '') == 'ready' &&
+              _listOfMaps(packageManifest['skill_packages']).isNotEmpty,
+      'validation_passed': _stringValue(validation['schema_version'], '') ==
+              'prd_v3_skill_factory_validation.v1' &&
+          _stringValue(validation['status'], '') == 'pass' &&
+          _boolValue(validation['ready_for_agent_binding']),
+      'primary_skill_from_kb':
+          _stringValue(primaryConfig['source_mode'], '') == 'from_kb',
+      'localized_external_skill_fusion':
+          _stringValue(localizedManifest['source_mode'], '') ==
+              'external_skill_fusion',
+      'fused_skill_plus_kb': _stringValue(fusedManifest['source_mode'], '') ==
+          'skill_plus_kb_fusion',
+      'runtime_manifest_schema':
+          _stringValue(runtimeManifest['schema_version'], '') ==
+              'prd_v3_skill_runtime_manifest.v1',
+      'runtime_has_secondary_fusion':
+          _boolValue(runtimeManifest['runtime_loaded']) &&
+              _boolValue(runtimeManifest['secondary_fusion_runtime_available']),
+      'runtime_has_multi_version':
+          _boolValue(runtimeManifest['multi_version_runtime_available']) &&
+              ((_asInt(runtimeManifest['version_count']) ?? 0) > 1) &&
+              snapshotsExist,
+      'agent_binding_recorded':
+          _stringValue(bindingManifest['status'], '').isNotEmpty,
+      'model_route_evidence_recorded':
+          _mapValue(packageManifest['model_route_evidence']).isNotEmpty &&
+              _mapValue(runtimeManifest['model_route_evidence']).isNotEmpty,
+      'secret_plaintext_absent':
+          packageManifest['secret_plaintext_written'] == false &&
+              validation['secret_plaintext_written'] == false &&
+              runtimeManifest['secret_plaintext_written'] == false,
+    };
+    final blockedReasons = required.entries
+        .where((entry) => !entry.value)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final passed = blockedReasons.isEmpty;
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_probe_mmskills.v1',
+      'provider_ref': 'mmskills',
+      'adapter_type': 'skill_template_adapter',
+      'executed_at': now,
+      'probe_kind': 'local_skill_schema_package_assets',
+      'workspace_boundary': workspace.path,
+      'checked_assets': checkedAssets,
+      'required': required,
+      'blocked_reasons': blockedReasons,
+      'passed': passed,
+      'status': passed ? '连接成功' : '已配置未测试',
+      'error_message_zh': passed
+          ? ''
+          : '本地 Skill schema/package/runtime/Agent 绑定证据不完整，暂不能启用 schema package 能力增强。',
       'network_used': false,
       'secret_plaintext_written': false,
       'normal_ui_project_name_visible': false,

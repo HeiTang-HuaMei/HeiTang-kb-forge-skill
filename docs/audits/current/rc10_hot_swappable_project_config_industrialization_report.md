@@ -119,6 +119,7 @@ Coverage:
 - 1 local governance rule-pack adapter can become selectable from repository-owned governance/test assets
 - 1 local Agent memory lifecycle adapter can become selectable after Agent and memory-index evidence exists
 - 1 local marketing Skill pattern adapter can become selectable from repository-owned template/demo assets
+- 1 local Skill schema/package adapter can become selectable after Skill package, validation, fusion, version, and Agent binding evidence exists
 - 1 local workflow collaboration export adapter can become selectable after A2A multi-round, conflict, consensus, runtime-audit, and collaboration-report evidence exists
 
 Capability areas:
@@ -214,6 +215,15 @@ Local Skill Prompt Generator adapter proof:
 - Passing readiness requires from-KB generation, external Skill fusion/localization, validation pass, secondary fusion, multi-version runtime, version snapshots, and ModelRoute evidence.
 - When the probe succeeds, `provider_adapter_readiness_report.json` marks `skill_prompt_generator` as `连接成功` and `ready_for_user_selection=true`, and `provider_capability_binding_manifest.json` can bind `skill_template_provider` to it after explicit activation.
 - `runtime_loaded` remains `false`; no external prompt-generator repository code, network call, arbitrary execution, or vendor runtime is bundled or executed.
+- The probe records `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, `vendor_runtime_loaded=false`, and `normal_ui_project_name_visible=false`.
+
+Local MMSkills schema/package adapter proof:
+
+- `mmskills` has a workspace-owned Skill schema/package probe at `config/provider_adapter_probe_mmskills.json`.
+- The probe requires real Skill Factory evidence: `skill_package_manifest.json`, `skill_validation_report.json`, primary KB Skill config, localized Skill manifest, fused Skill manifest, `skill_runtime_manifest.json`, version snapshots, and `agent_binding_manifest.json`.
+- Passing readiness requires a ready package manifest, validation pass, KB-generated primary Skill, external Skill fusion/localization, Skill+KB fusion, secondary fusion runtime, multi-version runtime, ModelRoute evidence, and Agent binding evidence.
+- When the probe succeeds, `provider_adapter_readiness_report.json` marks `mmskills` as `连接成功` and `ready_for_user_selection=true`, and `provider_capability_binding_manifest.json` can bind `skill_template_provider` to it after explicit activation.
+- `runtime_loaded` remains `false`; this is a schema/package capability readiness proof, not external MMSkills runtime loading.
 - The probe records `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, `vendor_runtime_loaded=false`, and `normal_ui_project_name_visible=false`.
 
 Local Parser / OCR adapter proof:

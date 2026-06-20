@@ -2071,6 +2071,180 @@ void main() {
     expect(health['ready_for_user_selection_count'], greaterThanOrEqualTo(4));
   });
 
+  test('mmskills schema package adapter becomes selectable from local assets',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.testAllRegisteredProviderCapabilities();
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    Map<String, dynamic> runtimeStatus() => jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    Map<String, dynamic> readinessReport(
+            Map<String, dynamic> status) =>
+        jsonDecode(
+            File(status['provider_adapter_readiness_report_path'] as String)
+                .readAsStringSync()) as Map<String, dynamic>;
+    Map<String, dynamic> readinessEntry(
+            Map<String, dynamic> readiness, String providerRef) =>
+        (readiness['readiness_entries'] as List)
+            .cast<Map<String, dynamic>>()
+            .firstWhere((entry) => entry['provider_ref'] == providerRef);
+
+    var readiness = readinessReport(runtimeStatus());
+    expect(readinessEntry(readiness, 'mmskills')['ready_for_user_selection'],
+        isFalse);
+
+    final skillRoot =
+        Directory('${workspace.path}${Platform.pathSeparator}skill')
+          ..createSync(recursive: true);
+    final primaryDir = Directory(
+        '${skillRoot.path}${Platform.pathSeparator}knowledge_qa_skill')
+      ..createSync(recursive: true);
+    final localizedDir = Directory(
+        '${skillRoot.path}${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2')
+      ..createSync(recursive: true);
+    final fusedDir = Directory(
+        '${skillRoot.path}${Platform.pathSeparator}fused_product_ops_skill')
+      ..createSync(recursive: true);
+    final operationsDir =
+        Directory('${skillRoot.path}${Platform.pathSeparator}operations')
+          ..createSync(recursive: true);
+    final versionsDir =
+        Directory('${skillRoot.path}${Platform.pathSeparator}versions')
+          ..createSync(recursive: true);
+    final v1 = Directory('${versionsDir.path}${Platform.pathSeparator}v1')
+      ..createSync(recursive: true);
+    final v2 = Directory('${versionsDir.path}${Platform.pathSeparator}v2')
+      ..createSync(recursive: true);
+    final v1Snapshot = '${v1.path}${Platform.pathSeparator}SKILL.md';
+    final v2Snapshot = '${v2.path}${Platform.pathSeparator}SKILL.md';
+    File(v1Snapshot).writeAsStringSync('# Skill v1\n');
+    File(v2Snapshot).writeAsStringSync('# Skill v2 fused\n');
+    File('${primaryDir.path}${Platform.pathSeparator}SKILL.md')
+        .writeAsStringSync('# Knowledge QA Skill\n');
+    File('${primaryDir.path}${Platform.pathSeparator}skill_config.json')
+        .writeAsStringSync(jsonEncode({
+      'skill_config_id': 'S1',
+      'source_mode': 'from_kb',
+      'target_platform': 'codex',
+      'status': 'validated',
+    }));
+    File('${localizedDir.path}${Platform.pathSeparator}localized_skill_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'skill_config_id': 'S2',
+      'source_mode': 'external_skill_fusion',
+      'status': 'validated',
+    }));
+    File('${fusedDir.path}${Platform.pathSeparator}skill_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'skill_id': 'S3',
+      'source_mode': 'skill_plus_kb_fusion',
+      'status': 'validated',
+    }));
+    File('${skillRoot.path}${Platform.pathSeparator}skill_package_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_skill_package_manifest.v1',
+      'status': 'ready',
+      'skill_packages': [
+        {'skill_id': 'S1', 'schema_id': 'mmskills_local_schema.v1'}
+      ],
+      'model_route_evidence': {
+        'route_scopes': ['skill_generation', 'skill_validation'],
+      },
+      'secret_plaintext_written': false,
+    }));
+    File('${skillRoot.path}${Platform.pathSeparator}skill_validation_report.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_skill_factory_validation.v1',
+      'status': 'pass',
+      'ready_for_agent_binding': true,
+      'secret_plaintext_written': false,
+    }));
+    File('${operationsDir.path}${Platform.pathSeparator}agent_binding_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_skill_agent_binding_manifest.v1',
+      'status': 'bound',
+      'agent_id': 'knowledge_qa_agent',
+    }));
+    File('${operationsDir.path}${Platform.pathSeparator}skill_runtime_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_skill_runtime_manifest.v1',
+      'runtime_loaded': true,
+      'external_runtime': false,
+      'secondary_fusion_runtime_available': true,
+      'multi_version_runtime_available': true,
+      'version_count': 2,
+      'versions': [
+        {
+          'version_id': 'v1',
+          'snapshot_path': v1Snapshot,
+        },
+        {
+          'version_id': 'v2',
+          'snapshot_path': v2Snapshot,
+        },
+      ],
+      'model_route_evidence': {
+        'route_scopes': ['skill_generation', 'external_skill_localization'],
+      },
+      'secret_plaintext_written': false,
+    }));
+
+    final healthPath = await controller.testAllRegisteredProviderCapabilities();
+    readiness = readinessReport(runtimeStatus());
+    final mmskills = readinessEntry(readiness, 'mmskills');
+    expect(mmskills['status'], '连接成功');
+    expect(mmskills['ready_for_user_selection'], isTrue);
+    expect(mmskills['runtime_loaded'], isFalse);
+    final probe = jsonDecode(
+        File((mmskills['test_artifacts'] as List).cast<String>().single)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(
+        probe['schema_version'], 'prd_v3_provider_adapter_probe_mmskills.v1');
+    expect(probe['passed'], isTrue);
+    expect(probe['blocked_reasons'], isEmpty);
+    expect(probe['network_used'], isFalse);
+    expect(probe['secret_plaintext_written'], isFalse);
+    expect(probe['normal_ui_project_name_visible'], isFalse);
+    expect(probe['external_runtime_executed'], isFalse);
+    expect(probe['vendor_runtime_loaded'], isFalse);
+
+    final activated =
+        await controller.activateRegisteredProviderCapability('mmskills');
+    expect(activated, isTrue);
+    final binding = jsonDecode(File(
+            runtimeStatus()['provider_capability_binding_manifest_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    final skillBinding = (binding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere(
+            (entry) => entry['capability_id'] == 'skill_template_provider');
+    expect(skillBinding['active_provider_ref'], 'mmskills');
+    expect(skillBinding['explicit_selection_applied'], isTrue);
+    expect(skillBinding['runtime_loaded'], isFalse);
+
+    final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
+    final mmskillsHealth = (health['health_entries'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) => entry['provider_ref'] == 'mmskills');
+    expect(mmskillsHealth['health_status'], '连接成功');
+    expect(mmskillsHealth['ready_for_user_selection'], isTrue);
+    expect(mmskillsHealth['runtime_loaded'], isFalse);
+  });
+
   test(
       'provider hot swap selection persists across runtime refresh and rollback',
       () async {
