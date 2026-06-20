@@ -174,6 +174,15 @@ Local marketing Skill adapter proof:
 - `runtime_loaded` remains `false`; no ai-marketing-skills repository code, prompts, scripts, crawler, paid-media operation, account operation, network call, or external runtime is bundled or executed.
 - The probe records `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, `vendor_runtime_loaded=false`, and `normal_ui_project_name_visible=false`.
 
+Local Parser / OCR adapter proof:
+
+- Parser/OCR Provider refs now write bounded probes at `config/provider_adapter_probe_<provider_ref>.json`.
+- Parser-style refs such as `docling`, `unstructured`, `opendataloader`, `mineru`, and `marker` require real DU artifacts: `du/document_understanding_manifest.json`, `du/document_understanding_records.jsonl`, `du/normalized_sources/*.md`, and `source_manifest.json`.
+- OCR-style refs such as `paddleocr` and `surya` additionally require image/OCR input evidence from `source_manifest.json`, for example `image_count > 0` or an image extension.
+- Passing probes mark the Provider as `连接成功` and `ready_for_user_selection=true`, while keeping `runtime_loaded=false`.
+- Missing DU artifacts or missing OCR input evidence keep the Provider at `已配置未测试` with Chinese blocked reasons.
+- No external parser/OCR runtime is executed, no dependency is silently installed, and normal UI still exposes only the Parser/OCR capability status.
+
 Local Exporter adapter proof:
 
 - `jellyfish` has a workspace-owned content asset export probe at `config/provider_adapter_probe_jellyfish.json`.
@@ -222,6 +231,7 @@ Lifecycle behavior implemented:
 | Provider active selection | `provider_capability_selection_state.json` | Persists explicit Provider selection, survives runtime refresh/restart, and suppresses auto-selection after rollback |
 | Provider adapter contracts | `provider_adapter_contracts.json` | Defines 26 Provider adapter contracts with required config refs, health checks, fallback, and rollback |
 | Provider adapter readiness | `provider_adapter_readiness_report.json` | Evaluates 26 adapter contracts against active Profile/config and keeps unverified adapters blocked |
+| Parser/OCR adapter probes | `provider_adapter_probe_<provider_ref>.json` | Verifies real DU manifest, records, normalized markdown, and OCR input evidence before allowing Parser/OCR enhancements to be selected |
 | Exporter adapter probes | `provider_adapter_probe_jellyfish.json`, `provider_adapter_probe_story_flicks.json` | Verifies real structured export and video handoff boundary artifacts before allowing exporter enhancements to be selected |
 
 The CI-safe tests cover failure and config-state paths without requiring external services. Real Redis/Qdrant success checks remain part of EXE smoke when Docker services are available.
@@ -332,6 +342,12 @@ Latest Stage 3 Exporter Provider slice:
 - `flutter analyze`
 - `flutter test test\rc6_runtime_truth_blocker_repair_test.dart --concurrency=1`
 - Targeted test: `exporter adapters become selectable from real export artifacts`
+
+Latest Stage 3 Parser/OCR Provider slice:
+
+- `flutter analyze`
+- `flutter test test\rc6_runtime_truth_blocker_repair_test.dart --concurrency=1`
+- Targeted test: `parser ocr adapters become selectable from real parse artifacts`
 
 Pending after push:
 

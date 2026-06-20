@@ -14215,6 +14215,36 @@ class Rc6RuntimeController extends ChangeNotifier {
     Map<String, dynamic> config,
     Directory workspace,
   ) {
+    if (_listOfStrings(contract['capability_ids'])
+        .contains('document_parser_ocr')) {
+      final providerRef = _stringValue(contract['provider_ref'], '');
+      final probe = _probeDocumentParserOcrAdapter(workspace, providerRef);
+      if (_boolValue(probe['passed'])) {
+        return {
+          'status': '连接成功',
+          'error_code': '',
+          'error_message_zh': '',
+          'missing_config_refs': <String>[],
+          'blocked_reasons': <String>[],
+          'test_artifacts': [probe['probe_path']],
+          'ready_for_user_selection': true,
+          'runtime_loaded': false,
+        };
+      }
+      return {
+        'status': '已配置未测试',
+        'error_code': 'parser_ocr_probe_requires_real_parse_artifacts',
+        'error_message_zh': _stringValue(
+          probe['error_message_zh'],
+          '需要先生成真实解析/OCR 产物后才能启用解析能力增强。',
+        ),
+        'missing_config_refs': <String>[],
+        'blocked_reasons': _listOfStrings(probe['blocked_reasons']),
+        'test_artifacts': [probe['probe_path']],
+        'ready_for_user_selection': false,
+        'runtime_loaded': false,
+      };
+    }
     if (_stringValue(contract['provider_ref'], '') == 'sirchmunk') {
       final probe = _probeSirchmunkDirectFileSearch(workspace);
       if (_boolValue(probe['passed'])) {
@@ -15039,6 +15069,120 @@ class Rc6RuntimeController extends ChangeNotifier {
       'network_used': false,
       'secret_plaintext_written': false,
       'normal_ui_project_name_visible': false,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return {
+      ...payload,
+      'probe_path': probePath,
+    };
+  }
+
+  static Map<String, dynamic> _probeDocumentParserOcrAdapter(
+    Directory workspace,
+    String providerRef,
+  ) {
+    final normalizedProvider =
+        providerRef.trim().isEmpty ? 'document_parser' : providerRef.trim();
+    final probePath = _providerAdapterProbePath(workspace, normalizedProvider);
+    final now = DateTime.now().toUtc().toIso8601String();
+    final manifestPath =
+        _joinNested(workspace.path, 'du/document_understanding_manifest.json');
+    final recordsPath =
+        _joinNested(workspace.path, 'du/document_understanding_records.jsonl');
+    final normalizedRoot = _joinNested(workspace.path, 'du/normalized_sources');
+    final sourceManifestPath = _join(workspace.path, 'source_manifest.json');
+    final manifest = _readJsonObjectSync(manifestPath);
+    final sourceManifest = _readJsonObjectSync(sourceManifestPath);
+    final sourceRecords = _listOfMaps(sourceManifest['sources']);
+    final duRecordCount = _jsonlRecordCount(recordsPath);
+    final normalizedFiles = Directory(normalizedRoot).existsSync()
+        ? Directory(normalizedRoot)
+            .listSync(recursive: true, followLinks: false)
+            .whereType<File>()
+            .where((file) => _extension(file.path).toLowerCase() == '.md')
+            .toList(growable: false)
+        : const <File>[];
+    final normalizedTextBytes = normalizedFiles.fold<int>(
+      0,
+      (sum, file) => sum + file.lengthSync(),
+    );
+    final sourceCount = _asInt(manifest['success_count']) ??
+        _asInt(manifest['normalized_source_count']) ??
+        sourceRecords.length;
+    final hasParserEvidence = File(manifestPath).existsSync() &&
+        duRecordCount > 0 &&
+        normalizedFiles.isNotEmpty &&
+        normalizedTextBytes > 0 &&
+        sourceCount > 0;
+    final hasOcrInputEvidence = sourceRecords.any((source) {
+      final imageCount = _asInt(source['image_count']) ?? 0;
+      final extension = _stringValue(source['extension'], '').toLowerCase();
+      return imageCount > 0 ||
+          ['.png', '.jpg', '.jpeg', '.webp', '.bmp'].contains(extension);
+    });
+    final isOcrProvider = const {'paddleocr', 'surya'}.contains(
+      normalizedProvider.toLowerCase(),
+    );
+    final passed = isOcrProvider
+        ? hasParserEvidence && hasOcrInputEvidence
+        : hasParserEvidence;
+    final blockedReasons = <String>[
+      if (!hasParserEvidence) '需要真实 DU manifest、records 和 normalized markdown',
+      if (isOcrProvider && !hasOcrInputEvidence) '需要图片或 OCR 输入证据',
+    ];
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_probe_document_parser_ocr.v1',
+      'provider_ref': normalizedProvider,
+      'adapter_type': isOcrProvider ? 'ocr_adapter' : 'parser_adapter',
+      'executed_at': now,
+      'probe_kind': isOcrProvider
+          ? 'local_ocr_input_boundary'
+          : 'local_document_parse_boundary',
+      'workspace_boundary': workspace.path,
+      'required_artifacts': [
+        {
+          'path': manifestPath,
+          'exists': File(manifestPath).existsSync(),
+          'schema_version': _stringValue(manifest['schema_version'], ''),
+          'status': _stringValue(manifest['status'], ''),
+        },
+        {
+          'path': recordsPath,
+          'exists': File(recordsPath).existsSync(),
+          'record_count': duRecordCount,
+        },
+        {
+          'path': normalizedRoot,
+          'exists': Directory(normalizedRoot).existsSync(),
+          'markdown_file_count': normalizedFiles.length,
+          'text_bytes': normalizedTextBytes,
+        },
+        {
+          'path': sourceManifestPath,
+          'exists': File(sourceManifestPath).existsSync(),
+          'source_count': sourceRecords.length,
+          'has_ocr_input_evidence': hasOcrInputEvidence,
+        },
+      ],
+      'source_count': sourceCount,
+      'du_record_count': duRecordCount,
+      'normalized_markdown_count': normalizedFiles.length,
+      'has_parser_evidence': hasParserEvidence,
+      'has_ocr_input_evidence': hasOcrInputEvidence,
+      'passed': passed,
+      'status': passed ? '连接成功' : '已配置未测试',
+      'blocked_reasons': blockedReasons,
+      'error_message_zh': passed ? '' : '解析/OCR 本地产物证据不完整，暂不能启用解析能力增强。',
+      'network_used': false,
+      'secret_plaintext_written': false,
+      'normal_ui_project_name_visible': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
     };
     File(probePath)
       ..parent.createSync(recursive: true)

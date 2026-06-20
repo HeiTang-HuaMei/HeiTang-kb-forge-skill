@@ -2147,6 +2147,156 @@ void main() {
     expect(health['ready_for_user_selection_count'], greaterThanOrEqualTo(5));
   });
 
+  test('parser ocr adapters become selectable from real parse artifacts',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.testAllRegisteredProviderCapabilities();
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    Map<String, dynamic> runtimeStatus() => jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    Map<String, dynamic> readinessReport(
+            Map<String, dynamic> status) =>
+        jsonDecode(
+            File(status['provider_adapter_readiness_report_path'] as String)
+                .readAsStringSync()) as Map<String, dynamic>;
+    Map<String, dynamic> readinessEntry(
+            Map<String, dynamic> readiness, String providerRef) =>
+        (readiness['readiness_entries'] as List)
+            .cast<Map<String, dynamic>>()
+            .firstWhere((entry) => entry['provider_ref'] == providerRef);
+
+    var readiness = readinessReport(runtimeStatus());
+    expect(readinessEntry(readiness, 'docling')['ready_for_user_selection'],
+        isFalse);
+    expect(readinessEntry(readiness, 'paddleocr')['ready_for_user_selection'],
+        isFalse);
+
+    final duDir = Directory('${workspace.path}${Platform.pathSeparator}du')
+      ..createSync(recursive: true);
+    final normalizedDir =
+        Directory('${duDir.path}${Platform.pathSeparator}normalized_sources')
+          ..createSync(recursive: true);
+    final normalizedAlpha =
+        '${normalizedDir.path}${Platform.pathSeparator}alpha.md';
+    final normalizedImage =
+        '${normalizedDir.path}${Platform.pathSeparator}image.md';
+    File(normalizedAlpha).writeAsStringSync('normalized real parser text');
+    File(normalizedImage).writeAsStringSync('normalized OCR image text');
+    File('${duDir.path}${Platform.pathSeparator}document_understanding_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_document_understanding_manifest.v1',
+      'status': 'completed',
+      'success_count': 2,
+      'failed_count': 0,
+      'normalized_source_count': 2,
+    }));
+    File('${duDir.path}${Platform.pathSeparator}document_understanding_records.jsonl')
+        .writeAsStringSync(jsonl([
+      {
+        'relative_path': 'alpha.pdf',
+        'normalized_path': normalizedAlpha,
+      },
+      {
+        'relative_path': 'scan.png',
+        'normalized_path': normalizedImage,
+        'ocr_text': 'normalized OCR image text',
+      },
+    ]));
+    File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'rc10_source_manifest.v1',
+      'status': 'imported',
+      'source_count': 2,
+      'sources': [
+        {
+          'document_id': 'doc_alpha',
+          'source_name': 'alpha.pdf',
+          'relative_path': 'alpha.pdf',
+          'extension': '.pdf',
+          'image_count': 0,
+          'structure_status': 'requires_parser',
+        },
+        {
+          'document_id': 'doc_scan',
+          'source_name': 'scan.png',
+          'relative_path': 'scan.png',
+          'extension': '.png',
+          'image_count': 1,
+          'structure_status': 'requires_parser',
+        },
+      ],
+    }));
+
+    final healthPath = await controller.testAllRegisteredProviderCapabilities();
+    final status = runtimeStatus();
+    readiness = readinessReport(status);
+    final docling = readinessEntry(readiness, 'docling');
+    final unstructured = readinessEntry(readiness, 'unstructured');
+    final paddleocr = readinessEntry(readiness, 'paddleocr');
+    final surya = readinessEntry(readiness, 'surya');
+    expect(docling['status'], '连接成功');
+    expect(docling['ready_for_user_selection'], isTrue);
+    expect(unstructured['ready_for_user_selection'], isTrue);
+    expect(paddleocr['status'], '连接成功');
+    expect(paddleocr['ready_for_user_selection'], isTrue);
+    expect(surya['ready_for_user_selection'], isTrue);
+    expect(paddleocr['runtime_loaded'], isFalse);
+
+    final doclingProbe = jsonDecode(
+        File((docling['test_artifacts'] as List).cast<String>().single)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(doclingProbe['schema_version'],
+        'prd_v3_provider_adapter_probe_document_parser_ocr.v1');
+    expect(doclingProbe['passed'], isTrue);
+    expect(doclingProbe['has_parser_evidence'], isTrue);
+    expect(doclingProbe['external_runtime_executed'], isFalse);
+    final ocrProbe = jsonDecode(
+        File((paddleocr['test_artifacts'] as List).cast<String>().single)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(ocrProbe['passed'], isTrue);
+    expect(ocrProbe['has_ocr_input_evidence'], isTrue);
+    expect(ocrProbe['vendor_runtime_loaded'], isFalse);
+
+    final binding = jsonDecode(
+        File(status['provider_capability_binding_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    final parserBinding = (binding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) => entry['capability_id'] == 'document_parser_ocr');
+    expect(parserBinding['active_provider_kind'], 'registered_provider');
+    expect(parserBinding['selection_allowed'], isTrue);
+    expect(parserBinding['ready_candidate_count'], greaterThanOrEqualTo(4));
+
+    final activated =
+        await controller.activateRegisteredProviderCapability('docling');
+    expect(activated, isTrue);
+    final activatedBinding = jsonDecode(
+        File(status['provider_capability_binding_manifest_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    final activatedParserBinding = (activatedBinding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) => entry['capability_id'] == 'document_parser_ocr');
+    expect(activatedParserBinding['active_provider_ref'], 'docling');
+    expect(activatedParserBinding['explicit_selection_applied'], isTrue);
+    expect(activatedParserBinding['runtime_loaded'], isFalse);
+
+    final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
+    expect(health['ready_for_user_selection_count'], greaterThanOrEqualTo(8));
+  });
+
   test('prd multi knowledge base catalog supports copy merge split delete',
       () async {
     final workspace = await createWorkspace();
