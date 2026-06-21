@@ -681,14 +681,18 @@ Latest validation for controlled n8n runtime-load slice:
 - `flutter analyze`
 - `flutter test test\rc6_runtime_truth_blocker_repair_test.dart --plain-name "stage3 n8n runtime load" --concurrency=1`
 - `flutter test test\rc6_runtime_truth_blocker_repair_test.dart --concurrency=1`
+- `scripts\smoke_windows_exe_launch.ps1 -WorkspacePath web\workbench\flutter_app\output\stage2_industrial_runtime_workspace -StartupSeconds 5`
 - `STAGE2_VERIFY_EXE_SMOKE=1 flutter test test\stage2_industrial_evidence_refresh_test.dart --plain-name "refreshes Stage2 preflight after independent EXE smoke" --concurrency=1`
 - `STAGE2_VERIFY_LIVE_PROVIDERS=1 flutter test test\stage2_industrial_evidence_refresh_test.dart --plain-name "proves live Redis and Qdrant provider runtime when configured" --concurrency=1`
 - `git diff --check`
 - diff-only no-secret / overclaim review completed; findings are expected test sentinel text and the new Stage 3 `runtime_loaded_count=1` assertion for the controlled health-success path, not default readiness overclaim.
 
-Pending after push:
+Current checked state:
 
-- remote CI green confirmation
+- Latest pushed commit: `7bf4f11 Support live Redis provider proof`.
+- Remote CI: `27889818122`, `success`.
+- Current refreshed Stage 2 preflight: `status=passed`, `runtime_load_allowed=true`, `failed_checks=[]`.
+- Current local environment has no `HEITANG_N8N_ENDPOINT` / `N8N_ENDPOINT` and no n8n container, so live n8n external runtime health-load is not asserted from the Owner machine in this report. The automated safe-health success path remains covered by the local HTTP health-server test.
 
 ## Unfinished Items
 
