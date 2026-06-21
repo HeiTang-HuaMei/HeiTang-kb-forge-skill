@@ -2648,6 +2648,35 @@ void main() {
     expect(retrievalBinding['active_provider_ref'], 'anysearchskill');
     expect(retrievalBinding['runtime_loaded'], isFalse);
     expect(retrievalBinding['selection_allowed'], isTrue);
+
+    final rolledBack =
+        await controller.rollbackRegisteredProviderCapability('anysearchskill');
+    expect(rolledBack, isTrue);
+    final rollbackRuntimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    final rollbackBinding = jsonDecode(File(
+            rollbackRuntimeStatus['provider_capability_binding_manifest_path']
+                as String)
+        .readAsStringSync()) as Map;
+    final rollbackRetrievalBinding = (rollbackBinding['bindings'] as List)
+        .cast<Map>()
+        .firstWhere((entry) => entry['capability_id'] == 'retrieval_provider');
+    expect(rollbackRetrievalBinding['active_provider_kind'], 'local_fallback');
+    expect(rollbackRetrievalBinding['active_provider_ref'],
+        rollbackRetrievalBinding['fallback_provider']);
+    expect(rollbackRetrievalBinding['rollback_suppressed'], isTrue);
+    expect(rollbackRetrievalBinding['runtime_loaded'], isFalse);
+    expect(rollbackRetrievalBinding['external_runtime_executed'], isFalse);
+    final rollbackSelectionState = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}provider_capability_selection_state.json')
+        .readAsStringSync()) as Map;
+    expect(rollbackSelectionState['rollback_suppressed_capability_ids'],
+        contains('retrieval_provider'));
+    expect(
+        (rollbackSelectionState['selected_providers_by_capability'] as Map)
+            .containsKey('retrieval_provider'),
+        isFalse);
   });
 
   test('last30days skill requires authorized time window retrieval evidence',
@@ -2734,10 +2763,10 @@ void main() {
     expect(last30daysReadiness['runtime_load_allowed'], isFalse);
     expect(
         last30daysReadiness['gate_kind'], 'network_time_window_adapter_gate');
-    final probe = jsonDecode(File((last30daysReadiness['test_artifacts']
-                as List)
-            .cast<String>()
-            .single)
+    final probe = jsonDecode(File(
+            (last30daysReadiness['test_artifacts'] as List)
+                .cast<String>()
+                .single)
         .readAsStringSync()) as Map;
     expect(probe['passed'], isTrue);
     expect(probe['network_authorization'], '连接成功');
@@ -2747,8 +2776,8 @@ void main() {
     expect(probe['vendor_runtime_loaded'], isFalse);
     expect(probe['secret_plaintext_written'], isFalse);
 
-    final activated =
-        await controller.activateRegisteredProviderCapability('last30days_skill');
+    final activated = await controller
+        .activateRegisteredProviderCapability('last30days_skill');
     expect(activated, isTrue);
     final binding = jsonDecode(File(
             runtimeStatus['provider_capability_binding_manifest_path']
@@ -2760,6 +2789,35 @@ void main() {
     expect(retrievalBinding['active_provider_ref'], 'last30days_skill');
     expect(retrievalBinding['runtime_loaded'], isFalse);
     expect(retrievalBinding['selection_allowed'], isTrue);
+
+    final rolledBack = await controller
+        .rollbackRegisteredProviderCapability('last30days_skill');
+    expect(rolledBack, isTrue);
+    final rollbackRuntimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    final rollbackBinding = jsonDecode(File(
+            rollbackRuntimeStatus['provider_capability_binding_manifest_path']
+                as String)
+        .readAsStringSync()) as Map;
+    final rollbackRetrievalBinding = (rollbackBinding['bindings'] as List)
+        .cast<Map>()
+        .firstWhere((entry) => entry['capability_id'] == 'retrieval_provider');
+    expect(rollbackRetrievalBinding['active_provider_kind'], 'local_fallback');
+    expect(rollbackRetrievalBinding['active_provider_ref'],
+        rollbackRetrievalBinding['fallback_provider']);
+    expect(rollbackRetrievalBinding['rollback_suppressed'], isTrue);
+    expect(rollbackRetrievalBinding['runtime_loaded'], isFalse);
+    expect(rollbackRetrievalBinding['external_runtime_executed'], isFalse);
+    final rollbackSelectionState = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}provider_capability_selection_state.json')
+        .readAsStringSync()) as Map;
+    expect(rollbackSelectionState['rollback_suppressed_capability_ids'],
+        contains('retrieval_provider'));
+    expect(
+        (rollbackSelectionState['selected_providers_by_capability'] as Map)
+            .containsKey('retrieval_provider'),
+        isFalse);
   });
 
   test('seedance2 skill remains template asset with masked authorized config',
@@ -2767,8 +2825,8 @@ void main() {
     final workspace = await createWorkspace();
     final controller = Rc6RuntimeController(
       coreBridge: LocalCoreBridge(
-        runner: (_) async =>
-            const CoreBridgeProcessResult(exitCode: 0, stdout: 'ok', stderr: ''),
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
       ),
       coreCli: 'heitang-kb-forge',
       coreWorkingDirectory: Directory.current.path,
@@ -2809,8 +2867,8 @@ void main() {
     expect(seedanceReadiness['runtime_loaded'], isFalse);
     expect(seedanceReadiness['runtime_load_allowed'], isFalse);
     expect(seedanceReadiness['gate_kind'], 'secret_masked_video_skill_gate');
-    expect((seedanceReadiness['gate_audit'] as Map)['secret_ref_status'],
-        '已配置');
+    expect(
+        (seedanceReadiness['gate_audit'] as Map)['secret_ref_status'], '已配置');
     expect((seedanceReadiness['gate_audit'] as Map)['network_call_attempted'],
         isFalse);
     final probePath =
@@ -2828,35 +2886,68 @@ void main() {
     expect(probe['secret_plaintext_written'], isFalse);
     final templateManifestPath =
         probe['template_asset_manifest_path'] as String;
-    final templateManifestRaw =
-        File(templateManifestPath).readAsStringSync();
+    final templateManifestRaw = File(templateManifestPath).readAsStringSync();
     expect(templateManifestRaw, isNot(contains(seedanceCredential)));
     final templateManifest =
         jsonDecode(templateManifestRaw) as Map<String, dynamic>;
     expect(templateManifest['schema_version'],
         'prd_v3_skill_template_asset_manifest.v1');
     expect(templateManifest['provider_ref'], 'seedance2_skill');
-    expect((templateManifest['binding_boundary']
-        as Map)['runtime_load_required'], isFalse);
-    expect((templateManifest['binding_boundary']
-        as Map)['video_generation_executed'], isFalse);
-    expect((templateManifest['audit'] as Map)['network_call_attempted'],
+    expect(
+        (templateManifest['binding_boundary'] as Map)['runtime_load_required'],
         isFalse);
+    expect(
+        (templateManifest['binding_boundary']
+            as Map)['video_generation_executed'],
+        isFalse);
+    expect(
+        (templateManifest['audit'] as Map)['network_call_attempted'], isFalse);
     expect((templateManifest['audit'] as Map)['secret_masked'], isTrue);
 
-    final activated =
-        await controller.activateRegisteredProviderCapability('seedance2_skill');
+    final activated = await controller
+        .activateRegisteredProviderCapability('seedance2_skill');
     expect(activated, isTrue);
     final binding = jsonDecode(File(
             runtimeStatus['provider_capability_binding_manifest_path']
                 as String)
         .readAsStringSync()) as Map;
-    final skillBinding = (binding['bindings'] as List)
-        .cast<Map>()
-        .firstWhere((entry) => entry['capability_id'] == 'skill_template_provider');
+    final skillBinding = (binding['bindings'] as List).cast<Map>().firstWhere(
+        (entry) => entry['capability_id'] == 'skill_template_provider');
     expect(skillBinding['active_provider_ref'], 'seedance2_skill');
     expect(skillBinding['runtime_loaded'], isFalse);
     expect(skillBinding['selection_allowed'], isTrue);
+
+    final rolledBack = await controller
+        .rollbackRegisteredProviderCapability('seedance2_skill');
+    expect(rolledBack, isTrue);
+    final rollbackRuntimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    final rollbackBinding = jsonDecode(File(
+            rollbackRuntimeStatus['provider_capability_binding_manifest_path']
+                as String)
+        .readAsStringSync()) as Map;
+    final rollbackSkillBinding = (rollbackBinding['bindings'] as List)
+        .cast<Map>()
+        .firstWhere(
+            (entry) => entry['capability_id'] == 'skill_template_provider');
+    expect(rollbackSkillBinding['active_provider_kind'], 'local_fallback');
+    expect(rollbackSkillBinding['active_provider_ref'],
+        rollbackSkillBinding['fallback_provider']);
+    expect(rollbackSkillBinding['rollback_suppressed'], isTrue);
+    expect(rollbackSkillBinding['runtime_loaded'], isFalse);
+    expect(rollbackSkillBinding['external_runtime_executed'], isFalse);
+    final rollbackSelectionState = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}provider_capability_selection_state.json')
+        .readAsStringSync()) as Map;
+    expect(rollbackSelectionState['rollback_suppressed_capability_ids'],
+        contains('skill_template_provider'));
+    expect(
+        (rollbackSelectionState['selected_providers_by_capability'] as Map)
+            .containsKey('skill_template_provider'),
+        isFalse);
+    expect(File(templateManifestPath).readAsStringSync(),
+        isNot(contains(seedanceCredential)));
   });
 
   test('rag evaluation adapters become selectable from retrieval validation',
@@ -4914,8 +5005,7 @@ void main() {
     expect(configLog, contains('"config_type":"provider_runtime_load"'));
     expect(configLog, isNot(contains(sensitiveValue)));
     expect(configLog, isNot(contains('credential=redacted')));
-    expect(
-        File(manifestPath).readAsStringSync(), isNot(contains(sensitiveValue)));
+    expect(File(manifestPath).readAsStringSync(), isNot(contains(sensitiveValue)));
 
     final runtimeStatus = jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
@@ -5059,8 +5149,8 @@ void main() {
     final rollbackFromManifestPath =
         rollbackManifest['rollback_from_manifest_path'] as String;
     expect(File(rollbackFromManifestPath).existsSync(), isTrue);
-    final runtimeLoadLog = readJsonlFile(
-        '$configDir${Platform.pathSeparator}provider_runtime_load_log.jsonl');
+    final runtimeLoadLog =
+        readJsonlFile('$configDir${Platform.pathSeparator}provider_runtime_load_log.jsonl');
     expect(runtimeLoadLog.map((row) => row['action']).toList(),
         containsAllInOrder(['load', 'rollback']));
     expect(runtimeLoadLog.last['runtime_loaded_after_event'], isFalse);
@@ -5219,7 +5309,8 @@ void main() {
     expect(manifest['secret_plaintext_written'], isFalse);
     expect(manifest['sanitized_endpoint'],
         'http://${server.address.host}:${server.port}');
-    expect(File(manifestPath).readAsStringSync(), isNot(contains(sensitiveValue)));
+    expect(
+        File(manifestPath).readAsStringSync(), isNot(contains(sensitiveValue)));
     final probe =
         jsonDecode(File(manifest['probe_path'] as String).readAsStringSync())
             as Map<String, dynamic>;
@@ -5286,8 +5377,8 @@ void main() {
     final rollbackFromManifestPath =
         rollbackManifest['rollback_from_manifest_path'] as String;
     expect(File(rollbackFromManifestPath).existsSync(), isTrue);
-    final runtimeLoadLog =
-        readJsonlFile('$configDir${Platform.pathSeparator}provider_runtime_load_log.jsonl');
+    final runtimeLoadLog = readJsonlFile(
+        '$configDir${Platform.pathSeparator}provider_runtime_load_log.jsonl');
     expect(runtimeLoadLog.map((row) => row['action']).toList(),
         containsAllInOrder(['load', 'rollback']));
     expect(runtimeLoadLog.last['runtime_loaded_after_event'], isFalse);

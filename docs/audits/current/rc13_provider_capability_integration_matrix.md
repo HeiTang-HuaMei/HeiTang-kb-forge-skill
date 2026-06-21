@@ -130,6 +130,14 @@ Architecture reference statuses are now explicit:
   selectable as a Skill template asset. It remains `runtime_loaded=false`, does
   not execute video generation, does not perform network calls during readiness,
   and does not write plaintext secrets.
+- Authorized high-risk activation paths are now rollback-tested. Rollback of
+  `anysearchskill` and `last30days_skill` removes the explicit
+  `retrieval_provider` selection, suppresses automatic reselection, and returns
+  Retrieval Verification to local fallback. Rollback of `seedance2_skill`
+  removes the `skill_template_provider` selection and returns Skill Factory to
+  local template behavior. All three rollback paths keep
+  `runtime_loaded=false`, `external_runtime_executed=false`, and no plaintext
+  secret evidence.
 - RTK is an Agent tool/runtime capability Provider. Its default readiness stays
   blocked with `external_runtime_required` until Stage2 Agent permission
   boundary evidence, a user-owned endpoint, and the RTK health gate pass. The

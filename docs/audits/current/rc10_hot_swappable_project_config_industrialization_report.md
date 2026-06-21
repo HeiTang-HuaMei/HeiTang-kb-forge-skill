@@ -655,6 +655,14 @@ Latest Stage 3 high-risk Provider gate slice:
   can mark it `连接成功`. The probe still records `network_call_attempted=false`
   because readiness proves authorization and query evidence, not a live vendor
   network call.
+- `anysearchskill` and `last30days_skill` activation now have explicit rollback
+  evidence: rollback removes the `retrieval_provider` selection, suppresses
+  auto-reselection, returns the capability binding to local fallback, and keeps
+  `runtime_loaded=false` and `external_runtime_executed=false`.
+- `seedance2_skill` activation now has explicit template-asset rollback
+  evidence: rollback removes the `skill_template_provider` selection, returns
+  the binding to local Skill Factory behavior, keeps the template manifest
+  secret-masked, and does not execute video generation or vendor runtime code.
 - Activation audit now uses the Provider readiness status and blocked reasons
   instead of a generic blocked state, so Settings, readiness, binding, and
   selection logs stay consistent.
