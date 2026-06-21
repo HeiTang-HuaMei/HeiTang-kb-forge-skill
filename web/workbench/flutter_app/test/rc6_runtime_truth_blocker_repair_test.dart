@@ -1933,6 +1933,39 @@ void main() {
         (lifecycleAuditSummary['industrial_boundaries']
             as Map)['secret_plaintext_written'],
         isFalse);
+    final coverageAuditPath =
+        runtimeStatus['provider_integration_coverage_audit_path'] as String;
+    final coverageAudit =
+        jsonDecode(File(coverageAuditPath).readAsStringSync()) as Map;
+    expect(coverageAudit['schema_version'],
+        'prd_v3_provider_integration_coverage_audit.v1');
+    expect(coverageAudit['status'], 'passed');
+    expect(coverageAudit['provider_mapping_count'], 29);
+    expect(coverageAudit['unique_provider_ref_count'], 26);
+    expect(coverageAudit['capability_area_count'], 8);
+    expect(coverageAudit['covered_mapping_count'], 29);
+    expect(coverageAudit['failed_mapping_count'], 0);
+    expect(coverageAudit['failed_mappings'], isEmpty);
+    expect(coverageAudit['normal_ui_project_names_visible'], isFalse);
+    expect(coverageAudit['hot_swap_project_concept_visible'], isFalse);
+    expect(coverageAudit['external_runtime_executed'], isFalse);
+    expect(coverageAudit['workflow_executed'], isFalse);
+    expect(coverageAudit['secret_plaintext_written'], isFalse);
+    final coverageRows =
+        (coverageAudit['coverage_rows'] as List).cast<Map>();
+    expect(coverageRows, hasLength(29));
+    expect(
+        coverageRows.every((row) =>
+            row['coverage_status'] == 'passed' &&
+            (row['missing_evidence'] as List).isEmpty),
+        isTrue);
+    final n8nCoverage = coverageRows.firstWhere((row) =>
+        row['provider_ref'] == 'n8n' &&
+        row['capability_id'] == 'workflow_collaboration_export');
+    expect(n8nCoverage['requires_external_runtime'], isTrue);
+    expect(n8nCoverage['runtime_loaded'], isFalse);
+    expect((n8nCoverage['affected_modules'] as List),
+        containsAll(['agent_workbench', 'artifact_center']));
     final healthEntries =
         (providerHealth['health_entries'] as List).cast<Map>();
     expect(healthEntries, hasLength(29));
@@ -4284,6 +4317,23 @@ void main() {
     expect(workflowAudit['runtime_loaded'], isTrue);
     expect(workflowAudit['external_runtime_executed'], isFalse);
     expect(workflowAudit['workflow_executed'], isFalse);
+    final coverageAudit = jsonDecode(File(
+            runtimeStatus['provider_integration_coverage_audit_path'] as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(coverageAudit['status'], 'passed');
+    expect(coverageAudit['provider_mapping_count'], 29);
+    expect(coverageAudit['covered_mapping_count'], 29);
+    expect(coverageAudit['failed_mapping_count'], 0);
+    expect(coverageAudit['external_runtime_executed'], isFalse);
+    expect(coverageAudit['workflow_executed'], isFalse);
+    final n8nCoverage = (coverageAudit['coverage_rows'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) =>
+            entry['provider_ref'] == 'n8n' &&
+            entry['capability_id'] == 'workflow_collaboration_export');
+    expect(n8nCoverage['runtime_loaded'], isTrue);
+    expect(n8nCoverage['coverage_status'], 'passed');
+    expect(n8nCoverage['missing_evidence'], isEmpty);
 
     final rolledBack = await controller.rollbackN8nProviderRuntime();
     expect(rolledBack, isTrue);
@@ -4345,6 +4395,18 @@ void main() {
         .firstWhere((entry) =>
             entry['capability_id'] == 'workflow_collaboration_export');
     expect(rollbackWorkflowBinding['runtime_loaded'], isFalse);
+    final rollbackCoverageAudit = jsonDecode(File(rollbackRuntimeStatus[
+                'provider_integration_coverage_audit_path']
+            as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(rollbackCoverageAudit['status'], 'passed');
+    final rollbackN8nCoverage =
+        (rollbackCoverageAudit['coverage_rows'] as List)
+            .cast<Map<String, dynamic>>()
+            .firstWhere((entry) =>
+                entry['provider_ref'] == 'n8n' &&
+                entry['capability_id'] == 'workflow_collaboration_export');
+    expect(rollbackN8nCoverage['runtime_loaded'], isFalse);
     final rollbackAgentStatus = (rollbackRuntimeStatus['module_status']
         as Map)['agent_workbench'] as Map;
     expect(rollbackAgentStatus['a2a_workflow_runtime_status'], '降级为本地模式');

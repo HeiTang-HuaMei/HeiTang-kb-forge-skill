@@ -13465,6 +13465,162 @@ class Rc6RuntimeController extends ChangeNotifier {
     return path;
   }
 
+  Future<String> _writeProviderIntegrationCoverageAudit(
+    Directory workspace, {
+    required Map<String, dynamic> stage2Preflight,
+    required Map<String, dynamic> providerRuntimeLoad,
+  }) async {
+    final matrixPath = _registeredProviderIntegrationMatrixPath(workspace);
+    final contractsPath = _providerAdapterContractsPath(workspace);
+    final readinessPath = _providerAdapterReadinessReportPath(workspace);
+    final healthPath = _registeredProviderHealthReportPath(workspace);
+    final eligibilityPath =
+        _providerRuntimeLoadEligibilityManifestPath(workspace);
+    final bindingPath = _providerCapabilityBindingManifestPath(workspace);
+    final lifecyclePath = _providerLifecycleAuditSummaryPath(workspace);
+    final activationLogPath = _registeredProviderActivationLogPath(workspace);
+    final rollbackPath = _registeredProviderRollbackManifestPath(workspace);
+    final matrix = await _readJsonObject(matrixPath);
+    final contracts = await _readJsonObject(contractsPath);
+    final readiness = await _readJsonObject(readinessPath);
+    final health = await _readJsonObject(healthPath);
+    final eligibility = await _readJsonObject(eligibilityPath);
+    final binding = await _readJsonObject(bindingPath);
+    final lifecycle = await _readJsonObject(lifecyclePath);
+    final rollback = await _readJsonObject(rollbackPath);
+    final activationEvents = await _readJsonl(File(activationLogPath));
+    final providerEntries = _listOfMaps(matrix['provider_entries']);
+    final contractRows = _listOfMaps(contracts['contracts']);
+    final readinessRows = _listOfMaps(readiness['readiness_entries']);
+    final healthRows = _listOfMaps(health['health_entries']);
+    final eligibilityRows = _listOfMaps(eligibility['entries']);
+    final bindingRows = _listOfMaps(binding['bindings']);
+    final downstreamAudits = _listOfMaps(lifecycle['downstream_binding_audit']);
+    final rollbackRows = _listOfMaps(rollback['rollback_targets']);
+    final contractRefs = contractRows
+        .map((entry) => _stringValue(entry['provider_ref'], ''))
+        .where((value) => value.isNotEmpty)
+        .toSet();
+    final readinessRefs = readinessRows
+        .map((entry) => _stringValue(entry['provider_ref'], ''))
+        .where((value) => value.isNotEmpty)
+        .toSet();
+    final healthKeys = healthRows
+        .map((entry) =>
+            '${_stringValue(entry['capability_id'], '')}|${_stringValue(entry['provider_ref'], '')}')
+        .toSet();
+    final eligibilityKeys = eligibilityRows
+        .map((entry) =>
+            '${_stringValue(entry['capability_id'], '')}|${_stringValue(entry['provider_ref'], '')}')
+        .toSet();
+    final rollbackKeys = rollbackRows
+        .map((entry) =>
+            '${_stringValue(entry['capability_id'], '')}|${_stringValue(entry['provider_ref'], '')}')
+        .toSet();
+    final activationKeys = activationEvents
+        .map((entry) =>
+            '${_stringValue(entry['capability_id'], '')}|${_stringValue(entry['provider_ref'], '')}')
+        .toSet();
+    final bindingCapabilityIds = bindingRows
+        .map((entry) => _stringValue(entry['capability_id'], ''))
+        .where((value) => value.isNotEmpty)
+        .toSet();
+    final downstreamCapabilityIds = downstreamAudits
+        .map((entry) => _stringValue(entry['capability_id'], ''))
+        .where((value) => value.isNotEmpty)
+        .toSet();
+    final coverageRows = providerEntries.map((entry) {
+      final capabilityId = _stringValue(entry['capability_id'], '');
+      final providerRef = _stringValue(entry['provider_ref'], '');
+      final key = '$capabilityId|$providerRef';
+      final checks = {
+        'matrix_entry_present': true,
+        'adapter_contract_present': contractRefs.contains(providerRef),
+        'readiness_entry_present': readinessRefs.contains(providerRef),
+        'health_entry_present': healthKeys.contains(key),
+        'eligibility_entry_present': eligibilityKeys.contains(key),
+        'activation_event_present': activationKeys.contains(key),
+        'rollback_target_present': rollbackKeys.contains(key),
+        'capability_binding_present':
+            bindingCapabilityIds.contains(capabilityId),
+        'downstream_lifecycle_audit_present':
+            downstreamCapabilityIds.contains(capabilityId),
+        'normal_ui_project_name_hidden':
+            _boolValue(entry['visible_in_normal_ui']) == false,
+        'secret_masked': _boolValue(entry['secret_masked']),
+      };
+      final missing = checks.entries
+          .where((check) => check.value != true)
+          .map((check) => check.key)
+          .toList(growable: false);
+      return {
+        'capability_id': capabilityId,
+        'provider_ref': providerRef,
+        'affected_modules': _registeredProviderAffectedModules(entry),
+        'requires_external_runtime':
+            _boolValue(entry['requires_external_runtime']),
+        'runtime_loaded': _boolValue(entry['runtime_loaded']),
+        'ready_for_user_selection':
+            _boolValue(entry['ready_for_user_selection']),
+        'coverage_status': missing.isEmpty ? 'passed' : 'blocked',
+        'missing_evidence': missing,
+        'checks': checks,
+      };
+    }).toList(growable: false);
+    final failedRows = coverageRows
+        .where((entry) => entry['coverage_status'] != 'passed')
+        .toList(growable: false);
+    final capabilityIds = providerEntries
+        .map((entry) => _stringValue(entry['capability_id'], ''))
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList(growable: false)
+      ..sort();
+    final providerRefs = providerEntries
+        .map((entry) => _stringValue(entry['provider_ref'], ''))
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList(growable: false)
+      ..sort();
+    final path = _providerIntegrationCoverageAuditPath(workspace);
+    final payload = {
+      'schema_version': 'prd_v3_provider_integration_coverage_audit.v1',
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'workspace_boundary': workspace.path,
+      'status': failedRows.isEmpty ? 'passed' : 'blocked',
+      'stage_2_industrial_preflight': stage2Preflight,
+      'provider_runtime_load_summary': providerRuntimeLoad,
+      'provider_mapping_count': providerEntries.length,
+      'unique_provider_ref_count': providerRefs.length,
+      'capability_area_count': capabilityIds.length,
+      'covered_mapping_count': coverageRows.length - failedRows.length,
+      'failed_mapping_count': failedRows.length,
+      'capability_ids': capabilityIds,
+      'provider_refs': providerRefs,
+      'normal_ui_project_names_visible': false,
+      'hot_swap_project_concept_visible': false,
+      'external_runtime_executed':
+          _boolValue(providerRuntimeLoad['external_runtime_executed']),
+      'workflow_executed': _boolValue(providerRuntimeLoad['workflow_executed']),
+      'secret_plaintext_written': false,
+      'source_artifacts': {
+        'registered_provider_integration_matrix_path': matrixPath,
+        'provider_adapter_contracts_path': contractsPath,
+        'provider_adapter_readiness_report_path': readinessPath,
+        'registered_provider_health_report_path': healthPath,
+        'provider_runtime_load_eligibility_manifest_path': eligibilityPath,
+        'provider_capability_binding_manifest_path': bindingPath,
+        'provider_lifecycle_audit_summary_path': lifecyclePath,
+        'registered_provider_activation_log_path': activationLogPath,
+        'registered_provider_rollback_manifest_path': rollbackPath,
+      },
+      'failed_mappings': failedRows,
+      'coverage_rows': coverageRows,
+    };
+    await _writeJsonFile(path, payload);
+    return path;
+  }
+
   Future<String> _snapshotProviderRuntimeLoadManifest(
     Directory workspace,
     Map<String, dynamic> manifest,
@@ -14121,6 +14277,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         workspace.path, 'config', 'provider_lifecycle_audit_summary.json');
   }
 
+  static String _providerIntegrationCoverageAuditPath(Directory workspace) {
+    return _join(
+        workspace.path, 'config', 'provider_integration_coverage_audit.json');
+  }
+
   static String _providerRuntimeLoadManifestPath(Directory workspace) {
     return _join(
         workspace.path, 'config', 'provider_runtime_load_manifest.json');
@@ -14530,6 +14691,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       stage2Preflight: stage2Preflight,
       providerRuntimeLoad: providerRuntimeLoad,
     );
+    final providerIntegrationCoverageAuditPath =
+        await _writeProviderIntegrationCoverageAudit(
+      workspace,
+      stage2Preflight: stage2Preflight,
+      providerRuntimeLoad: providerRuntimeLoad,
+    );
     final configAssetsPath = await _writeProjectConfigAssets(
       workspace,
       active,
@@ -14575,6 +14742,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'provider_runtime_load_summary': providerRuntimeLoad,
       'provider_lifecycle_audit_summary_path':
           providerLifecycleAuditSummaryPath,
+      'provider_integration_coverage_audit_path':
+          providerIntegrationCoverageAuditPath,
       'registered_provider_summary': {
         'registered_provider_count':
             registeredProviderArtifacts['registered_provider_count'],
