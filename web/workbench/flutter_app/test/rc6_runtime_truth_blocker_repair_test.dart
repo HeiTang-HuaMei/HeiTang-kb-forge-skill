@@ -1309,8 +1309,10 @@ void main() {
         ((referenceRegistry['registered_references'] as List).cast<Map>())
             .map((entry) => entry['status'])
             .toList(growable: false);
-    expect(referenceStatuses, contains('needs_verification'));
-    expect(referenceStatuses, contains('reference_only'));
+    expect(referenceStatuses, contains('absorbed_into_architecture'));
+    expect(referenceStatuses, contains('deferred_with_blocker'));
+    expect(referenceStatuses, isNot(contains('reference_only')));
+    expect(referenceStatuses, isNot(contains('needs_verification')));
     expect(referenceRegistry['runtime_dependency'], isFalse);
     final routePool = jsonDecode(
         File('$modelGatewayDir${Platform.pathSeparator}model_route_pool.json')
@@ -1885,11 +1887,25 @@ void main() {
     expect(providerHealth['provider_runtime_load_eligibility_manifest_path'],
         runtimeLoadEligibilityPath);
     expect(providerHealth['provider_entry_count'], 29);
+    expect(providerHealth['provider_mapping_count'], 29);
     expect(providerHealth['unique_provider_ref_count'], 26);
+    expect(providerHealth['registry_class_counts'], {
+      'capability_provider': 16,
+      'template_asset': 7,
+      'architecture_reference': 6,
+    });
+    expect(providerHealth['architecture_reference_status_counts'], {
+      'candidate_reference': 0,
+      'absorbed_into_architecture': 24,
+      'rejected_no_architecture_gain': 0,
+      'deferred_with_blocker': 5,
+    });
     expect(providerHealth['capability_area_count'], 8);
     expect(providerHealth['all_entries_checked'], isTrue);
     expect(providerHealth['runtime_loaded_count'], 0);
     expect(providerHealth['ready_for_user_selection_count'], 3);
+    expect(providerHealth['ready_mapping_count'], 3);
+    expect(providerHealth['ready_unique_provider_count'], 2);
     expect(providerHealth['external_runtime_load_allowed'], isFalse);
     expect((providerHealth['stage_2_industrial_preflight'] as Map)['status'],
         'blocked');
@@ -2005,6 +2021,44 @@ void main() {
     expect(n8nCoverage['runtime_loaded'], isFalse);
     expect((n8nCoverage['affected_modules'] as List),
         containsAll(['agent_workbench', 'artifact_center']));
+    final templateRows = coverageRows
+        .where((row) => row['registry_entry_class'] == 'template_asset')
+        .toList(growable: false);
+    expect(templateRows, hasLength(7));
+    expect(
+        templateRows.every((row) =>
+            row['runtime_load_class'] == 'template_manifest_only' &&
+            (row['architecture_absorption'] as Map)['status'] ==
+                'absorbed_into_architecture'),
+        isTrue);
+    final architectureReferenceRows = coverageRows
+        .where((row) => row['registry_entry_class'] == 'architecture_reference')
+        .toList(growable: false);
+    expect(architectureReferenceRows, hasLength(6));
+    expect(
+        architectureReferenceRows
+            .every((row) => row['runtime_load_class'] != 'reference_only'),
+        isTrue);
+    expect(
+        architectureReferenceRows.every((row) =>
+            row['runtime_load_class'] == 'architecture_reference_no_runtime'),
+        isTrue);
+    final llamaindexCoverage = architectureReferenceRows
+        .firstWhere((row) => row['provider_ref'] == 'llamaindex');
+    expect(llamaindexCoverage['architecture_reference_status'],
+        'absorbed_into_architecture');
+    for (final providerRef in ['rtk', 'ragas', 'deepeval']) {
+      final rows = architectureReferenceRows
+          .where((row) => row['provider_ref'] == providerRef)
+          .toList(growable: false);
+      expect(rows, isNotEmpty);
+      expect(
+          rows.every((row) =>
+              row['architecture_reference_status'] == 'deferred_with_blocker' &&
+              ((row['architecture_absorption'] as Map)['blocker'] as String)
+                  .isNotEmpty),
+          isTrue);
+    }
     final userCatalogPath =
         runtimeStatus['provider_capability_user_catalog_path'] as String;
     final userCatalog =
@@ -2060,6 +2114,20 @@ void main() {
     expect(selectableHealthRefs, {'mattpocock_skills', 'ai_marketing_skills'});
     expect(
         healthEntries.every((entry) => entry['secret_masked'] == true), isTrue);
+    final templateHealthEntries = healthEntries
+        .where((entry) => entry['registry_entry_class'] == 'template_asset')
+        .toList(growable: false);
+    expect(templateHealthEntries, hasLength(7));
+    expect(
+        templateHealthEntries.every((entry) =>
+            entry['runtime_load_class'] == 'template_manifest_only' &&
+            (entry['template_asset_contract']
+                    as Map)['runtime_load_required'] ==
+                false &&
+            (entry['template_asset_contract'] as Map)['validation_required'] ==
+                true &&
+            entry['requires_external_runtime'] == false),
+        isTrue);
     expect(
         healthEntries.map((entry) => entry['health_status']).toSet(),
         containsAll([
@@ -2139,6 +2207,26 @@ void main() {
         eligibilityEntries.every((entry) =>
             entry['runtime_loaded'] == false &&
             entry['external_runtime_load_eligible'] == false),
+        isTrue);
+    final templateEligibilityEntries = eligibilityEntries
+        .where((entry) => entry['registry_entry_class'] == 'template_asset')
+        .toList(growable: false);
+    expect(templateEligibilityEntries, hasLength(7));
+    expect(
+        templateEligibilityEntries.every((entry) =>
+            entry['execution_mode'] == 'template_asset_manifest_only' &&
+            entry['external_runtime_load_eligible'] == false &&
+            (entry['template_asset_contract']
+                    as Map)['runtime_load_required'] ==
+                false),
+        isTrue);
+    expect(
+        eligibilityEntries
+            .where((entry) =>
+                entry['registry_entry_class'] == 'architecture_reference')
+            .every((entry) =>
+                entry['execution_mode'] == 'architecture_reference' &&
+                entry['runtime_load_class'] != 'reference_only'),
         isTrue);
 
     final activated =
@@ -4537,14 +4625,14 @@ void main() {
         1);
   });
 
-  test('stage3 live n8n endpoint runtime load uses health check only', () async {
+  test('stage3 live n8n endpoint runtime load uses health check only',
+      () async {
     final endpoint = (Platform.environment['HEITANG_N8N_ENDPOINT'] ??
             Platform.environment['N8N_ENDPOINT'] ??
             '')
         .trim();
     expect(endpoint, isNotEmpty,
-        reason:
-            'Set HEITANG_N8N_ENDPOINT or N8N_ENDPOINT for live n8n proof.');
+        reason: 'Set HEITANG_N8N_ENDPOINT or N8N_ENDPOINT for live n8n proof.');
 
     final workspace = await createWorkspace();
     writeStage2PreflightFixture(workspace);

@@ -9,12 +9,35 @@ This report is generated from the current runtime evidence workspace. It treats 
 ## Summary
 
 - Provider refs evaluated: `26`
-- Ready for user selection: `18`
+- Provider-to-capability mappings evaluated: `29`
+- Ready provider-to-capability mappings: `19`
+- Ready unique Provider refs: `18`
+- Registry class counts: `capability_provider=16`, `template_asset=7`, `architecture_reference=6`
+- Architecture reference status counts: `absorbed_into_architecture=24`, `deferred_with_blocker=5`, `candidate_reference=0`, `rejected_no_architecture_gain=0`
 - Runtime loaded by default: `0`
 - Stage2 preflight: `passed`
 - Runtime load allowed: `true`
 - Failed Stage2 checks: ``
 - Normal UI boundary: no external project names, no hot-swap terminology, no workflow execution claim.
+
+## Classification Model
+
+Registered projects are split before they can affect product behavior:
+
+| Lane | Runtime behavior | User-facing behavior | Current count |
+| --- | --- | --- | --- |
+| Capability Provider | Can become a configurable Provider only after config, health/readiness, fallback, audit, and rollback evidence exists. | Users see capability options such as Parser/OCR, index backend, exporter, Agent memory, or A2A export. | `16` mappings |
+| Template Asset | Never requires external runtime load. Must provide template manifest, source, version, validation, and Skill/Agent binding boundary. | Users see template/style/method options inside Skill Factory, document generation, or Agent binding surfaces. | `7` mappings |
+| Architecture Reference | Does not enter normal UI or runtime loading. It must be absorbed into architecture, explicitly rejected, or deferred with a blocker. | Users do not see project names. Only improved contracts, schema, gates, audit, or fallback behavior may surface indirectly. | `6` mappings |
+
+Architecture reference statuses are now explicit:
+
+- `absorbed_into_architecture`: reference has been converted into Provider contracts, schema, UI information architecture boundary, test gate, audit model, fallback/degradation rule, or loading rule.
+- `deferred_with_blocker`: reference may be valuable but lacks a concrete blocker such as external runtime proof, retrieval evaluation evidence, network authorization, or permission boundary proof.
+- `rejected_no_architecture_gain`: reference is not retained when it does not improve the v3 main chain or is covered by existing abstractions.
+- `candidate_reference`: must remain `0` in current Stage3 runtime reports. It is not a long-term holding state.
+
+`reference_only` is not a final runtime classification. Older source asset labels can still exist as historical input metadata, but generated runtime reports must emit one of the statuses above.
 
 ## Capability Binding State
 
@@ -66,6 +89,11 @@ This report is generated from the current runtime evidence workspace. It treats 
 ## Current Industrial Boundary
 
 - Ready local capability enhancements may be selected in Settings and reflected downstream in capability status.
+- Readiness counts are split intentionally: `ready_mapping_count=19` counts
+  provider-to-capability rows, while `ready_unique_provider_count=18` counts
+  unique Provider refs. `mattpocock_skills` is ready for both Skill templates
+  and governance/audit, so it appears in two mappings but one unique Provider
+  ref.
 - External runtime loading remains separate from local readiness. Current external-runtime eligible Provider is n8n only.
 - Default refreshed runtime status keeps external runtime unloaded until an
   explicit endpoint health-load is requested.

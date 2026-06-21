@@ -239,12 +239,68 @@ void main() {
         (integrationMatrix['registered_project_boundary']
             as Map)['ready_for_user_selection_count'],
         providerHealth['ready_for_user_selection_count']);
+    expect(
+        (integrationMatrix['registered_project_boundary']
+            as Map)['ready_mapping_count'],
+        providerHealth['ready_mapping_count']);
+    expect(
+        (integrationMatrix['registered_project_boundary']
+            as Map)['ready_unique_provider_count'],
+        providerHealth['ready_unique_provider_count']);
+    expect(providerHealth['provider_mapping_count'], 29);
+    expect(providerHealth['unique_provider_ref_count'], 26);
+    expect(providerHealth['registry_class_counts'], {
+      'capability_provider': 16,
+      'template_asset': 7,
+      'architecture_reference': 6,
+    });
+    expect(providerHealth['architecture_reference_status_counts'], {
+      'candidate_reference': 0,
+      'absorbed_into_architecture': 24,
+      'rejected_no_architecture_gain': 0,
+      'deferred_with_blocker': 5,
+    });
+    expect(providerHealth['ready_mapping_count'], 19);
+    expect(providerHealth['ready_unique_provider_count'], 18);
     expect(integrationMatrix['provider_adapter_readiness_report_path'],
         '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}provider_adapter_readiness_report.json');
     expect(integrationMatrix['provider_registry_readiness_summary_path'],
         '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}provider_registry_readiness_summary.json');
     final integrationEntries =
         (integrationMatrix['provider_entries'] as List).cast<Map>();
+    expect(integrationMatrix['registry_class_counts'], {
+      'capability_provider': 16,
+      'template_asset': 7,
+      'architecture_reference': 6,
+    });
+    expect(integrationMatrix['architecture_reference_status_counts'], {
+      'candidate_reference': 0,
+      'absorbed_into_architecture': 24,
+      'rejected_no_architecture_gain': 0,
+      'deferred_with_blocker': 5,
+    });
+    final templateEntries = integrationEntries
+        .where((entry) => entry['registry_entry_class'] == 'template_asset')
+        .toList(growable: false);
+    expect(templateEntries, hasLength(7));
+    expect(
+        templateEntries.every((entry) =>
+            entry['runtime_load_class'] == 'template_manifest_only' &&
+            (entry['template_asset_contract']
+                    as Map)['runtime_load_required'] ==
+                false &&
+            (entry['template_asset_contract'] as Map)['validation_required'] ==
+                true),
+        isTrue);
+    final architectureReferenceEntries = integrationEntries
+        .where((entry) =>
+            entry['registry_entry_class'] == 'architecture_reference')
+        .toList(growable: false);
+    expect(architectureReferenceEntries, hasLength(6));
+    expect(
+        architectureReferenceEntries.every((entry) =>
+            entry['runtime_load_class'] == 'architecture_reference_no_runtime'),
+        isTrue);
     final integrationN8n = integrationEntries.firstWhere((entry) =>
         entry['provider_ref'] == 'n8n' &&
         entry['capability_id'] == 'workflow_collaboration_export');
@@ -358,8 +414,8 @@ void main() {
     expect(runtimeLoadManifest['runtime_loaded'], isFalse);
     expect(runtimeLoadManifest['runtime_loaded_count'], 0);
     expect(runtimeLoadManifest['status'], '未配置');
-    expect(runtimeLoadManifest['error_code'],
-        'n8n_endpoint_missing_or_invalid');
+    expect(
+        runtimeLoadManifest['error_code'], 'n8n_endpoint_missing_or_invalid');
     expect(runtimeLoadManifest['external_runtime_executed'], isFalse);
     expect(runtimeLoadManifest['workflow_executed'], isFalse);
     expect(runtimeLoadManifest['secret_plaintext_written'], isFalse);
@@ -367,6 +423,19 @@ void main() {
         runtimeStatus['stage_2_industrial_preflight'] as Map<String, dynamic>;
     final registeredSummary =
         runtimeStatus['registered_provider_summary'] as Map<String, dynamic>;
+    expect(registeredSummary['ready_mapping_count'], 19);
+    expect(registeredSummary['ready_unique_provider_count'], 18);
+    expect(registeredSummary['registry_class_counts'], {
+      'capability_provider': 16,
+      'template_asset': 7,
+      'architecture_reference': 6,
+    });
+    expect(registeredSummary['architecture_reference_status_counts'], {
+      'candidate_reference': 0,
+      'absorbed_into_architecture': 24,
+      'rejected_no_architecture_gain': 0,
+      'deferred_with_blocker': 5,
+    });
     expect(registeredSummary['runtime_ready_for_user_selection_count'], 18);
     expect(
       registeredSummary['runtime_ready_for_user_selection_count'],
@@ -420,6 +489,22 @@ void main() {
     expect(jellyfishEligibility['external_runtime_load_eligible'], isFalse);
     expect(jellyfishEligibility['execution_mode'],
         'local_capability_enhancement_only');
+    expect(
+        eligibilityEntries
+            .where((entry) => entry['registry_entry_class'] == 'template_asset')
+            .every((entry) =>
+                entry['execution_mode'] == 'template_asset_manifest_only' &&
+                entry['external_runtime_load_eligible'] == false),
+        isTrue);
+    expect(
+        eligibilityEntries
+            .where((entry) =>
+                entry['registry_entry_class'] == 'architecture_reference')
+            .every((entry) =>
+                entry['execution_mode'] == 'architecture_reference' &&
+                entry['runtime_load_class'] ==
+                    'architecture_reference_no_runtime'),
+        isTrue);
   }, skip: Platform.environment['STAGE2_VERIFY_EXE_SMOKE'] != '1');
 
   test('proves live Redis and Qdrant provider runtime when configured',

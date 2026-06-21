@@ -12289,26 +12289,39 @@ class Rc6RuntimeController extends ChangeNotifier {
         {
           'name': 'AI Relay',
           'type': 'LLM API Gateway / OpenAI-compatible Relay',
-          'status': 'needs_verification',
+          'status': 'absorbed_into_architecture',
           'usage': '模型 Provider Gateway、Key 轮询、Fallback、用量统计参考',
+          'absorbed_targets': [
+            'provider_gateway_contract',
+            'model_route_schema',
+            'fallback_policy',
+            'usage_cost_audit',
+          ],
           'runtime_loaded': false,
         },
         {
           'name': 'Vercel Relay Deployment',
           'type': 'serverless relay deployment reference',
-          'status': 'reference_only',
+          'status': 'deferred_with_blocker',
+          'blocker': '需要用户自有部署、域名 allowlist、secret ref 与健康检查证明。',
           'runtime_loaded': false,
         },
         {
           'name': 'Cloudflare Relay Deployment',
           'type': 'edge relay deployment reference',
-          'status': 'reference_only',
+          'status': 'deferred_with_blocker',
+          'blocker': '需要用户自有部署、域名 allowlist、secret ref 与健康检查证明。',
           'runtime_loaded': false,
         },
         {
           'name': 'Local Relay Mode',
           'type': 'local privacy-first relay reference',
-          'status': 'reference_only',
+          'status': 'absorbed_into_architecture',
+          'absorbed_targets': [
+            'local_provider_gateway_boundary',
+            'secret_masking_policy',
+            'offline_fallback_policy',
+          ],
           'runtime_loaded': false,
         },
       ],
@@ -12347,7 +12360,7 @@ class Rc6RuntimeController extends ChangeNotifier {
             'gateway_id': 'gateway_vercel_reference',
             'display_name': 'Vercel Relay',
             'gateway_type': 'vercel_relay',
-            'status': 'reference_only',
+            'status': 'deferred_with_blocker',
             'runtime_loaded': false,
             'secret_masked': true,
           },
@@ -12355,7 +12368,7 @@ class Rc6RuntimeController extends ChangeNotifier {
             'gateway_id': 'gateway_cloudflare_reference',
             'display_name': 'Cloudflare Relay',
             'gateway_type': 'cloudflare_relay',
-            'status': 'reference_only',
+            'status': 'deferred_with_blocker',
             'runtime_loaded': false,
             'secret_masked': true,
           },
@@ -12363,7 +12376,7 @@ class Rc6RuntimeController extends ChangeNotifier {
             'gateway_id': 'gateway_local_reference',
             'display_name': 'Local Relay',
             'gateway_type': 'local_relay',
-            'status': 'reference_only',
+            'status': 'absorbed_into_architecture',
             'runtime_loaded': false,
             'secret_masked': true,
           },
@@ -12477,11 +12490,25 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     final entries = _registeredProviderEntries(status);
     final capabilitySummaries = _registeredCapabilitySummaries(status);
+    final providerRefCount = entries
+        .map((entry) => _stringValue(entry['provider_ref'], ''))
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .length;
     final loadedProjectCount =
         entries.where((entry) => entry['runtime_loaded'] == true).length;
     final selectableCount = entries
         .where((entry) => entry['ready_for_user_selection'] == true)
         .length;
+    final uniqueSelectableCount = entries
+        .where((entry) => entry['ready_for_user_selection'] == true)
+        .map((entry) => _stringValue(entry['provider_ref'], ''))
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .length;
+    final registryClassCounts = _registryClassCounts(entries);
+    final architectureReferenceCounts =
+        _architectureReferenceStatusCounts(entries);
     final matrix = {
       'schema_version': 'prd_v3_registered_provider_integration_matrix.v1',
       'generated_at': now,
@@ -12497,12 +12524,24 @@ class Rc6RuntimeController extends ChangeNotifier {
       },
       'registered_project_boundary': {
         'registered_provider_count': entries.length,
+        'registered_provider_mapping_count': entries.length,
+        'unique_provider_ref_count': providerRefCount,
+        'capability_provider_mapping_count':
+            registryClassCounts['capability_provider'] ?? 0,
+        'template_asset_mapping_count':
+            registryClassCounts['template_asset'] ?? 0,
+        'architecture_reference_mapping_count':
+            registryClassCounts['architecture_reference'] ?? 0,
         'loaded_project_count': loadedProjectCount,
         'ready_for_user_selection_count': selectableCount,
+        'ready_mapping_count': selectableCount,
+        'ready_unique_provider_count': uniqueSelectableCount,
         'registered_project_names_visible_to_user': false,
         'capability_enhancement_only': true,
       },
       'capability_summaries': capabilitySummaries,
+      'registry_class_counts': registryClassCounts,
+      'architecture_reference_status_counts': architectureReferenceCounts,
       'provider_entries': entries,
       'provider_adapter_contracts_path':
           await _writeProviderAdapterContracts(workspace, entries),
@@ -12556,7 +12595,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       'rollback_manifest_path': rollbackManifestPath,
       'registered_project_boundary': matrix['registered_project_boundary'],
       'registered_provider_count': entries.length,
+      'registered_provider_mapping_count': entries.length,
+      'unique_provider_ref_count': providerRefCount,
+      'registry_class_counts': registryClassCounts,
+      'architecture_reference_status_counts': architectureReferenceCounts,
       'ready_for_user_selection_count': selectableCount,
+      'ready_mapping_count': selectableCount,
+      'ready_unique_provider_count': uniqueSelectableCount,
     };
   }
 
@@ -12601,6 +12646,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         'capability_id': entry['capability_id'],
         'capability_area': entry['capability_area'],
         'provider_ref': entry['provider_ref'],
+        'registry_entry_class': entry['registry_entry_class'],
+        'runtime_load_class': entry['runtime_load_class'],
+        'architecture_reference_status': entry['architecture_reference_status'],
+        'architecture_absorption': entry['architecture_absorption'],
+        'template_asset_contract': entry['template_asset_contract'],
         'user_visible_entry': entry['user_visible_entry'],
         'started_at': now,
         'finished_at': now,
@@ -12641,6 +12691,20 @@ class Rc6RuntimeController extends ChangeNotifier {
         .map((entry) => _stringValue(entry['capability_id'], ''))
         .where((value) => value.isNotEmpty)
         .toSet();
+    final readyHealthEntries = healthEntries
+        .where((entry) => entry['ready_for_user_selection'] == true)
+        .toList(growable: false);
+    final readyMappingCount = readyHealthEntries.length;
+    final readyUniqueProviderCount = readyHealthEntries
+        .map((entry) => _stringValue(entry['provider_ref'], ''))
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .length;
+    final runtimeLoadedCount =
+        healthEntries.where((entry) => entry['runtime_loaded'] == true).length;
+    final registryClassCounts = _registryClassCounts(healthEntries);
+    final architectureReferenceCounts =
+        _architectureReferenceStatusCounts(healthEntries);
     final registrySummaryPath = await _writeProviderRegistryReadinessSummary(
       workspace,
       healthEntries: healthEntries,
@@ -12676,15 +12740,22 @@ class Rc6RuntimeController extends ChangeNotifier {
       'health_log_path': healthLogPath,
       'stability_report_path': stabilityReportPath,
       'provider_entry_count': healthEntries.length,
+      'provider_mapping_count': healthEntries.length,
       'unique_provider_ref_count': providerRefs.length,
+      'registry_class_counts': registryClassCounts,
+      'architecture_reference_status_counts': architectureReferenceCounts,
+      'capability_provider_mapping_count':
+          registryClassCounts['capability_provider'] ?? 0,
+      'template_asset_mapping_count':
+          registryClassCounts['template_asset'] ?? 0,
+      'architecture_reference_mapping_count':
+          registryClassCounts['architecture_reference'] ?? 0,
       'capability_area_count': capabilityIds.length,
       'all_entries_checked': healthEntries.length == entries.length,
-      'runtime_loaded_count': healthEntries
-          .where((entry) => entry['runtime_loaded'] == true)
-          .length,
-      'ready_for_user_selection_count': healthEntries
-          .where((entry) => entry['ready_for_user_selection'] == true)
-          .length,
+      'runtime_loaded_count': runtimeLoadedCount,
+      'ready_for_user_selection_count': readyMappingCount,
+      'ready_mapping_count': readyMappingCount,
+      'ready_unique_provider_count': readyUniqueProviderCount,
       'external_runtime_load_allowed': stage2Preflight['runtime_load_allowed'],
       'stage_2_industrial_preflight': stage2Preflight,
       'status_counts': statusCounts,
@@ -12700,13 +12771,17 @@ class Rc6RuntimeController extends ChangeNotifier {
       'workspace_boundary': workspace.path,
       'health_report_path': healthReportPath,
       'provider_entry_count': healthEntries.length,
-      'runtime_loaded_count': healthEntries
-          .where((entry) => entry['runtime_loaded'] == true)
-          .length,
+      'provider_mapping_count': healthEntries.length,
+      'unique_provider_ref_count': providerRefs.length,
+      'registry_class_counts': registryClassCounts,
+      'architecture_reference_status_counts': architectureReferenceCounts,
+      'runtime_loaded_count': runtimeLoadedCount,
       'external_runtime_load_allowed': stage2Preflight['runtime_load_allowed'],
       'stage_2_industrial_preflight': stage2Preflight,
       'ready_for_user_selection_count':
           healthReport['ready_for_user_selection_count'],
+      'ready_mapping_count': readyMappingCount,
+      'ready_unique_provider_count': readyUniqueProviderCount,
       'failure_isolation_validated': true,
       'local_fallback_available': true,
       'rollback_supported_count': healthEntries
@@ -12762,7 +12837,12 @@ class Rc6RuntimeController extends ChangeNotifier {
           _providerRuntimeLoadEligibilityManifestPath(workspace),
       'provider_registry_readiness_summary_path': registrySummaryPath,
       'provider_entry_count': healthEntries.length,
+      'provider_mapping_count': healthEntries.length,
       'unique_provider_ref_count': providerRefs.length,
+      'registry_class_counts': registryClassCounts,
+      'architecture_reference_status_counts': architectureReferenceCounts,
+      'ready_mapping_count': readyMappingCount,
+      'ready_unique_provider_count': readyUniqueProviderCount,
     };
   }
 
@@ -12797,6 +12877,22 @@ class Rc6RuntimeController extends ChangeNotifier {
         'selection_allowed': _boolValue(health['selection_allowed']),
         'runtime_load_allowed': _boolValue(health['runtime_load_allowed']),
         'runtime_loaded': _boolValue(health['runtime_loaded']),
+        'registry_entry_class': _stringValue(
+            health['registry_entry_class'], entry['registry_entry_class']),
+        'runtime_load_class': _stringValue(
+            health['runtime_load_class'], entry['runtime_load_class']),
+        'architecture_reference_status': _stringValue(
+          health['architecture_reference_status'],
+          entry['architecture_reference_status'],
+        ),
+        'architecture_absorption':
+            _mapValue(health['architecture_absorption']).isNotEmpty
+                ? _mapValue(health['architecture_absorption'])
+                : _mapValue(entry['architecture_absorption']),
+        'template_asset_contract':
+            _mapValue(health['template_asset_contract']).isNotEmpty
+                ? _mapValue(health['template_asset_contract'])
+                : _mapValue(entry['template_asset_contract']),
         'blocked_reason_zh': _stringValue(health['blocked_reason_zh'], ''),
         'stage_2_preflight_status': stage2Preflight['status'],
         'affected_modules': _listOfStrings(health['affected_modules']),
@@ -12836,6 +12932,20 @@ class Rc6RuntimeController extends ChangeNotifier {
     final readyCount = refreshedEntries
         .where((entry) => entry['ready_for_user_selection'] == true)
         .length;
+    final readyUniqueProviderCount = refreshedEntries
+        .where((entry) => entry['ready_for_user_selection'] == true)
+        .map((entry) => _stringValue(entry['provider_ref'], ''))
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .length;
+    final uniqueProviderRefCount = refreshedEntries
+        .map((entry) => _stringValue(entry['provider_ref'], ''))
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .length;
+    final registryClassCounts = _registryClassCounts(refreshedEntries);
+    final architectureReferenceCounts =
+        _architectureReferenceStatusCounts(refreshedEntries);
     final loadedCount = refreshedEntries
         .where((entry) => entry['runtime_loaded'] == true)
         .length;
@@ -12849,11 +12959,23 @@ class Rc6RuntimeController extends ChangeNotifier {
       'registered_project_boundary': {
         ..._mapValue(matrix['registered_project_boundary']),
         'registered_provider_count': refreshedEntries.length,
+        'registered_provider_mapping_count': refreshedEntries.length,
+        'unique_provider_ref_count': uniqueProviderRefCount,
+        'capability_provider_mapping_count':
+            registryClassCounts['capability_provider'] ?? 0,
+        'template_asset_mapping_count':
+            registryClassCounts['template_asset'] ?? 0,
+        'architecture_reference_mapping_count':
+            registryClassCounts['architecture_reference'] ?? 0,
         'loaded_project_count': loadedCount,
         'ready_for_user_selection_count': readyCount,
+        'ready_mapping_count': readyCount,
+        'ready_unique_provider_count': readyUniqueProviderCount,
         'registered_project_names_visible_to_user': false,
         'capability_enhancement_only': true,
       },
+      'registry_class_counts': registryClassCounts,
+      'architecture_reference_status_counts': architectureReferenceCounts,
       'capability_summaries': refreshedSummaries,
       'provider_entries': refreshedEntries,
       'secret_plaintext_written': false,
@@ -12876,19 +12998,39 @@ class Rc6RuntimeController extends ChangeNotifier {
       final ready = _boolValue(entry['ready_for_user_selection']);
       final requiresExternalRuntime =
           _boolValue(entry['requires_external_runtime']);
+      final entryClass =
+          _stringValue(entry['registry_entry_class'], 'capability_provider');
+      final runtimeLoadClass = _stringValue(
+        entry['runtime_load_class'],
+        requiresExternalRuntime
+            ? 'external_health_check_required'
+            : 'local_capability_enhancement',
+      );
       final loadEligible = stage2Allowed && ready && requiresExternalRuntime;
       final runtimeLoaded = _boolValue(entry['runtime_loaded']);
-      final executionMode = requiresExternalRuntime
-          ? 'user_owned_external_runtime_required'
-          : 'local_capability_enhancement_only';
+      final executionMode = switch (runtimeLoadClass) {
+        'template_manifest_only' => 'template_asset_manifest_only',
+        'architecture_reference_no_runtime' => 'architecture_reference',
+        'external_health_check_required' =>
+          'user_owned_external_runtime_required',
+        _ => 'local_capability_enhancement_only',
+      };
       final blockedReasons = <String>[
         if (!stage2Allowed) 'Stage2 工业级预检未通过。',
         if (!ready) _stringValue(entry['blocked_reason_zh'], '能力增强尚未通过验证。'),
-        if (!requiresExternalRuntime) '该能力增强不需要外部 runtime 加载。',
+        if (entryClass == 'template_asset') '模板资产不需要 runtime load。',
+        if (entryClass == 'architecture_reference') '架构参考不进入产品能力启用。',
+        if (!requiresExternalRuntime && entryClass == 'capability_provider')
+          '该能力增强不需要外部 runtime 加载。',
       ].where((value) => value.trim().isNotEmpty).toList(growable: false);
       return {
         'provider_ref': providerRef,
         'capability_id': entry['capability_id'],
+        'registry_entry_class': entryClass,
+        'runtime_load_class': runtimeLoadClass,
+        'architecture_reference_status': entry['architecture_reference_status'],
+        'architecture_absorption': entry['architecture_absorption'],
+        'template_asset_contract': entry['template_asset_contract'],
         'affected_modules': entry['affected_modules'],
         'ready_for_user_selection': ready,
         'runtime_load_allowed': stage2Allowed && ready,
@@ -12898,9 +13040,15 @@ class Rc6RuntimeController extends ChangeNotifier {
         'execution_mode': executionMode,
         'load_state': runtimeLoaded
             ? 'loaded_health_check_only'
-            : loadEligible
-                ? 'eligible_not_loaded'
-                : 'not_runtime_load_target',
+            : entryClass == 'template_asset'
+                ? (ready
+                    ? 'template_asset_ready'
+                    : 'template_asset_needs_validation')
+                : entryClass == 'architecture_reference'
+                    ? 'architecture_reference'
+                    : loadEligible
+                        ? 'eligible_not_loaded'
+                        : 'not_runtime_load_target',
         'blocked_reasons': blockedReasons,
         'readiness_status':
             _stringValue(readiness['status'], entry['health_status']),
@@ -13369,9 +13517,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       final readinessByProvider = await _providerReadinessByProvider(workspace);
       final n8nReadiness =
           readinessByProvider['n8n'] ?? const <String, dynamic>{};
-      final eligible =
-          _boolValue(stage2Preflight['runtime_load_allowed']) &&
-              _boolValue(n8nReadiness['ready_for_user_selection']);
+      final eligible = _boolValue(stage2Preflight['runtime_load_allowed']) &&
+          _boolValue(n8nReadiness['ready_for_user_selection']);
       await _writeProviderRuntimeLoadManifest(
         workspace,
         providerRef: 'n8n',
@@ -13725,6 +13872,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       return {
         'capability_id': capabilityId,
         'provider_ref': providerRef,
+        'registry_entry_class': entry['registry_entry_class'],
+        'runtime_load_class': entry['runtime_load_class'],
+        'architecture_reference_status': entry['architecture_reference_status'],
+        'architecture_absorption': entry['architecture_absorption'],
         'affected_modules': _registeredProviderAffectedModules(entry),
         'requires_external_runtime':
             _boolValue(entry['requires_external_runtime']),
@@ -13751,6 +13902,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         .toSet()
         .toList(growable: false)
       ..sort();
+    final registryClassCounts = _registryClassCounts(providerEntries);
+    final architectureReferenceCounts =
+        _architectureReferenceStatusCounts(providerEntries);
     final path = _providerIntegrationCoverageAuditPath(workspace);
     final payload = {
       'schema_version': 'prd_v3_provider_integration_coverage_audit.v1',
@@ -13761,6 +13915,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       'provider_runtime_load_summary': providerRuntimeLoad,
       'provider_mapping_count': providerEntries.length,
       'unique_provider_ref_count': providerRefs.length,
+      'registry_class_counts': registryClassCounts,
+      'architecture_reference_status_counts': architectureReferenceCounts,
+      'capability_provider_mapping_count':
+          registryClassCounts['capability_provider'] ?? 0,
+      'template_asset_mapping_count':
+          registryClassCounts['template_asset'] ?? 0,
+      'architecture_reference_mapping_count':
+          registryClassCounts['architecture_reference'] ?? 0,
       'capability_area_count': capabilityIds.length,
       'covered_mapping_count': coverageRows.length - failedRows.length,
       'failed_mapping_count': failedRows.length,
@@ -13798,6 +13960,9 @@ class Rc6RuntimeController extends ChangeNotifier {
     required String coverageAuditPath,
   }) async {
     final bindings = _listOfMaps(bindingManifest['bindings']);
+    final coverageAudit = coverageAuditPath.isEmpty
+        ? const <String, dynamic>{}
+        : await _readJsonObject(coverageAuditPath);
     final entries = bindings.map((binding) {
       final capabilityId = _stringValue(binding['capability_id'], '');
       final runtimeLoaded = _boolValue(binding['runtime_loaded']);
@@ -13827,6 +13992,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         ),
         'affected_modules': _listOfStrings(binding['affected_modules']),
         'audit_status': coverageAuditPath.isEmpty ? '未生成' : '已生成',
+        'registry_class_summary':
+            _mapValue(coverageAudit['registry_class_counts']),
+        'architecture_reference_summary': _mapValue(
+          coverageAudit['architecture_reference_status_counts'],
+        ),
         'rollback_available': selectionAllowed || runtimeLoaded,
         'runtime_loaded': runtimeLoaded,
         'external_runtime_executed': false,
@@ -14150,6 +14320,32 @@ class Rc6RuntimeController extends ChangeNotifier {
       final status = _registeredProviderHealthStatus(first);
       return {
         'provider_ref': group.key,
+        'registry_entry_classes': providerEntries
+            .map((entry) => _stringValue(
+                entry['registry_entry_class'], 'capability_provider'))
+            .toSet()
+            .toList(growable: false)
+          ..sort(),
+        'runtime_load_classes': providerEntries
+            .map((entry) => _stringValue(entry['runtime_load_class'], ''))
+            .where((value) => value.isNotEmpty)
+            .toSet()
+            .toList(growable: false)
+          ..sort(),
+        'architecture_reference_statuses': providerEntries
+            .map((entry) =>
+                _stringValue(entry['architecture_reference_status'], ''))
+            .where((value) => value.isNotEmpty)
+            .toSet()
+            .toList(growable: false)
+          ..sort(),
+        'architecture_absorption': providerEntries
+            .map((entry) => _mapValue(entry['architecture_absorption']))
+            .where((entry) => entry.isNotEmpty)
+            .toList(growable: false),
+        'template_asset_contract': providerEntries
+            .map((entry) => _mapValue(entry['template_asset_contract']))
+            .firstWhere((entry) => entry.isNotEmpty, orElse: () => const {}),
         'adapter_type': _providerAdapterType(first),
         'capability_ids': capabilityIds,
         'affected_modules': affectedModules,
@@ -15033,8 +15229,21 @@ class Rc6RuntimeController extends ChangeNotifier {
       'registered_provider_summary': {
         'registered_provider_count':
             registeredProviderArtifacts['registered_provider_count'],
+        'registered_provider_mapping_count':
+            registeredProviderArtifacts['registered_provider_mapping_count'],
+        'unique_provider_ref_count':
+            registeredProviderArtifacts['unique_provider_ref_count'],
+        'registry_class_counts':
+            registeredProviderHealthArtifacts['registry_class_counts'],
+        'architecture_reference_status_counts':
+            registeredProviderHealthArtifacts[
+                'architecture_reference_status_counts'],
         'ready_for_user_selection_count':
             registeredProviderArtifacts['ready_for_user_selection_count'],
+        'ready_mapping_count':
+            registeredProviderHealthArtifacts['ready_mapping_count'],
+        'ready_unique_provider_count':
+            registeredProviderHealthArtifacts['ready_unique_provider_count'],
         'adapter_ready_for_user_selection_count':
             providerAdapterReadiness['ready_for_user_selection_count'],
         'runtime_ready_for_user_selection_count':
@@ -15926,10 +16135,37 @@ class Rc6RuntimeController extends ChangeNotifier {
         }
         final ready = _boolValue(provider['ready_for_user_selection']);
         final status = _stringValue(provider['status'], 'needs_verification');
+        final entryClass = _registeredProviderEntryClass(
+          capabilityId,
+          providerRef,
+          provider,
+        );
         entries.add({
           'capability_id': capabilityId,
           'capability_area': capabilityArea,
           'provider_ref': providerRef,
+          'registry_entry_class': entryClass,
+          'architecture_reference_status': _architectureReferenceStatus(
+            capabilityId,
+            providerRef,
+            provider,
+            entryClass,
+          ),
+          'architecture_absorption': _architectureAbsorptionRecord(
+            capabilityId,
+            providerRef,
+            provider,
+            entryClass,
+          ),
+          'template_asset_contract': _templateAssetContract(
+            capabilityId,
+            providerRef,
+            entryClass,
+          ),
+          'runtime_load_class': _providerRuntimeLoadClass(
+            entryClass,
+            provider,
+          ),
           'user_visible_entry':
               _providerUserEntry(capabilityId, userVisibleName),
           'status': _providerStatusLabel(status),
@@ -15965,6 +16201,261 @@ class Rc6RuntimeController extends ChangeNotifier {
       'workflow_collaboration_export' =>
         contractStatus.contains('workflow_export_adapter'),
       _ => true,
+    };
+  }
+
+  static Map<String, int> _registryClassCounts(
+    List<Map<String, dynamic>> entries,
+  ) {
+    final counts = <String, int>{
+      'capability_provider': 0,
+      'template_asset': 0,
+      'architecture_reference': 0,
+    };
+    for (final entry in entries) {
+      final entryClass =
+          _stringValue(entry['registry_entry_class'], 'capability_provider');
+      counts[entryClass] = (counts[entryClass] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  static Map<String, int> _architectureReferenceStatusCounts(
+    List<Map<String, dynamic>> entries,
+  ) {
+    final counts = <String, int>{
+      'candidate_reference': 0,
+      'absorbed_into_architecture': 0,
+      'rejected_no_architecture_gain': 0,
+      'deferred_with_blocker': 0,
+    };
+    for (final entry in entries) {
+      final status = _stringValue(
+        entry['architecture_reference_status'],
+        'candidate_reference',
+      );
+      counts[status] = (counts[status] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  static String _registeredProviderEntryClass(
+    String capabilityId,
+    String providerRef,
+    Map<String, dynamic> provider,
+  ) {
+    final contractStatus = _listOfStrings(provider['contract_status']).toSet();
+    if (capabilityId == 'skill_template_provider') {
+      return 'template_asset';
+    }
+    if (capabilityId == 'governance_audit_provider' &&
+        providerRef == 'mattpocock_skills') {
+      return 'template_asset';
+    }
+    if (contractStatus.contains('benchmark_only')) {
+      return 'architecture_reference';
+    }
+    if (contractStatus.contains('reference_only')) {
+      return switch (providerRef) {
+        'rag_anything' ||
+        'jellyfish' ||
+        'story_flicks' =>
+          'capability_provider',
+        'mmskills' || 'seedance2_skill' => 'template_asset',
+        _ => 'architecture_reference',
+      };
+    }
+    return 'capability_provider';
+  }
+
+  static String _architectureReferenceStatus(
+    String capabilityId,
+    String providerRef,
+    Map<String, dynamic> provider,
+    String entryClass,
+  ) {
+    final contractStatus = _listOfStrings(provider['contract_status']).toSet();
+    if (entryClass == 'capability_provider' || entryClass == 'template_asset') {
+      return 'absorbed_into_architecture';
+    }
+    if (providerRef == 'llamaindex') {
+      return 'absorbed_into_architecture';
+    }
+    if (providerRef == 'rtk' ||
+        providerRef == 'ragas' ||
+        providerRef == 'deepeval' ||
+        contractStatus.contains('future_adapter')) {
+      return 'deferred_with_blocker';
+    }
+    return switch (capabilityId) {
+      'retrieval_provider' ||
+      'knowledge_embedding_vector' ||
+      'governance_audit_provider' =>
+        'deferred_with_blocker',
+      _ => 'rejected_no_architecture_gain',
+    };
+  }
+
+  static Map<String, dynamic> _architectureAbsorptionRecord(
+    String capabilityId,
+    String providerRef,
+    Map<String, dynamic> provider,
+    String entryClass,
+  ) {
+    final status = _architectureReferenceStatus(
+      capabilityId,
+      providerRef,
+      provider,
+      entryClass,
+    );
+    final absorbedTargets = switch (status) {
+      'absorbed_into_architecture' => _architectureAbsorptionTargets(
+          capabilityId,
+          entryClass,
+        ),
+      _ => <String>[],
+    };
+    return {
+      'status': status,
+      'absorbed_targets': absorbedTargets,
+      'blocker': status == 'deferred_with_blocker'
+          ? _architectureReferenceBlocker(providerRef, provider)
+          : '',
+      'rejection_reason': status == 'rejected_no_architecture_gain'
+          ? '对 v3 主链路无明确增益或被现有能力覆盖。'
+          : '',
+      'must_not_surface_to_normal_ui': true,
+    };
+  }
+
+  static List<String> _architectureAbsorptionTargets(
+    String capabilityId,
+    String entryClass,
+  ) {
+    if (entryClass == 'template_asset') {
+      return const [
+        'template_manifest',
+        'source_version_validation',
+        'skill_agent_binding_boundary',
+        'audit_model',
+      ];
+    }
+    return switch (capabilityId) {
+      'document_parser_ocr' => const [
+          'provider_contract',
+          'parser_ocr_schema',
+          'health_check_gate',
+          'fallback_policy',
+          'audit_model',
+        ],
+      'knowledge_embedding_vector' => const [
+          'provider_contract',
+          'index_vector_schema',
+          'dimension_check_gate',
+          'fallback_policy',
+          'audit_model',
+        ],
+      'retrieval_provider' => const [
+          'provider_contract',
+          'rag_retrieval_schema',
+          'network_policy_gate',
+          'fallback_policy',
+          'audit_model',
+        ],
+      'document_exporter' => const [
+          'exporter_contract',
+          'artifact_schema',
+          'format_availability_gate',
+          'fallback_policy',
+          'audit_model',
+        ],
+      'agent_model_tools_memory' => const [
+          'agent_capability_contract',
+          'memory_policy_schema',
+          'permission_gate',
+          'fallback_policy',
+          'audit_model',
+        ],
+      'workflow_collaboration_export' => const [
+          'workflow_export_contract',
+          'safe_health_check_boundary',
+          'a2a_export_fallback',
+          'rollback_audit',
+        ],
+      'governance_audit_provider' => const [
+          'evaluation_contract',
+          'quality_gate_schema',
+          'audit_model',
+          'fallback_policy',
+        ],
+      _ => const ['provider_contract', 'audit_model'],
+    };
+  }
+
+  static String _architectureReferenceBlocker(
+    String providerRef,
+    Map<String, dynamic> provider,
+  ) {
+    if (_boolValue(provider['requires_external_runtime'])) {
+      return '需要用户自有外部服务健康检查通过。';
+    }
+    if (providerRef == 'ragas' || providerRef == 'deepeval') {
+      return '需要真实检索验证、引用覆盖、冲突检测、人工复验记录和评测 gate 证明。';
+    }
+    if (providerRef == 'llamaindex') {
+      return '需要证明其 pipeline 抽象能降低当前 RAG/索引复杂度且不替代既有 Provider 合同。';
+    }
+    if (_boolValue(provider['requires_network'])) {
+      return '需要网络授权与域名 allowlist。';
+    }
+    if (_boolValue(provider['requires_secret'])) {
+      return '需要 secret ref 配置，不能写入明文密钥。';
+    }
+    if (providerRef == 'rtk') {
+      return '需要外部 Agent runtime 服务与权限边界证明。';
+    }
+    return '需要补齐真实 runtime 证据后才能吸收。';
+  }
+
+  static String _providerRuntimeLoadClass(
+    String entryClass,
+    Map<String, dynamic> provider,
+  ) {
+    if (entryClass == 'template_asset') {
+      return 'template_manifest_only';
+    }
+    if (entryClass == 'architecture_reference') {
+      return 'architecture_reference_no_runtime';
+    }
+    if (_boolValue(provider['requires_external_runtime'])) {
+      return 'external_health_check_required';
+    }
+    return 'local_capability_enhancement';
+  }
+
+  static Map<String, dynamic> _templateAssetContract(
+    String capabilityId,
+    String providerRef,
+    String entryClass,
+  ) {
+    if (entryClass != 'template_asset') {
+      return const <String, dynamic>{};
+    }
+    return {
+      'contract_id': 'template_asset_${capabilityId}_$providerRef',
+      'asset_manifest_required': true,
+      'source_required': true,
+      'version_required': true,
+      'validation_required': true,
+      'skill_agent_binding_boundary': true,
+      'runtime_load_required': false,
+      'external_health_check_required': false,
+      'ordinary_ui_project_name_visible': false,
+      'accepted_entry_points': [
+        'skill_factory_template_catalog',
+        'agent_workbench_template_binding',
+        'document_generation_style_template',
+      ],
     };
   }
 

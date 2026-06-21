@@ -117,6 +117,17 @@ Coverage:
 
 - 26 unique registered provider references
 - 29 provider-to-capability mappings
+- 16 capability-provider mappings
+- 7 template-asset mappings
+- 6 architecture-reference mappings
+- Architecture reference status counts are `absorbed_into_architecture=24`,
+  `deferred_with_blocker=5`, `candidate_reference=0`, and
+  `rejected_no_architecture_gain=0`.
+- Generated runtime reports do not use `reference_only` as a final
+  classification. Worthwhile references must be absorbed into architecture
+  contracts/schema/gates/audit/fallback/loading rules; blocked references must
+  carry a blocker; non-useful references must be rejected instead of retained as
+  indefinite notes.
 - 8 product capability areas
 - 0 entries marked runtime-loaded by default
 - 0 entries marked ready for user selection without config/test evidence
@@ -175,6 +186,13 @@ Adapter contracts:
 
 - `provider_adapter_contracts.json` turns the 26 unique registered Provider references into explicit adapter contracts.
 - Each contract records adapter type, capability IDs, affected modules, runtime execution mode, required config refs, health check actions, activation prerequisites, fallback Provider, rollback support, and masking policy.
+- Template assets carry a `template_asset_contract` requiring manifest, source,
+  version, validation, and Skill/Agent binding boundary while explicitly
+  setting `runtime_load_required=false` and
+  `external_health_check_required=false`.
+- Architecture references carry `architecture_absorption` with status, absorbed
+  targets, blocker, rejection reason, and normal-UI hiding boundary. Runtime
+  load class is `architecture_reference_no_runtime`, not `reference_only`.
 - The contracts cover all 29 provider-to-capability mappings while keeping `runtime_loaded_count=0`. Readiness remains blocked unless a real readiness check passes.
 - `registered_provider_health_report.json` and `project_config_runtime_status.json` both reference the adapter contract path.
 
@@ -720,11 +738,15 @@ Latest Stage 3 ordinary business-page status slice:
 
 Current checked state:
 
-- Latest pushed commit: `92d15d1 Surface provider capability status on business pages`.
-- Remote CI: `27890906519`, `success`.
+- Checked base commit before this report update: `b8ca688 Add live n8n provider health-load proof`.
+- Checked base remote CI: `27891522675`, `success`.
 - Current refreshed Stage 2 preflight: `status=passed`, `runtime_load_allowed=true`, `failed_checks=[]`.
-- Current Provider readiness: `26` refs evaluated, `18` ready for user
-  selection, `0` runtime loaded.
+- Current Provider readiness: `29` provider-to-capability mappings evaluated,
+  `26` unique Provider refs, `19` ready mappings, `18` ready unique Provider
+  refs, `0` runtime loaded.
+- The count split is intentional: `mattpocock_skills` is ready for both Skill
+  templates and governance/audit, so it contributes two ready mappings but one
+  unique Provider ref.
 - Current capability catalog: `8` capability areas, `8` available capability
   rows, `0` runtime-loaded capability rows.
 - Current runtime-load manifest: `action=status_refresh`,
