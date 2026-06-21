@@ -320,6 +320,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         },
         'secret_plaintext_written': false,
       };
+
+  Future<Map<String, dynamic>> loadProviderCapabilityUserCatalog() async =>
+      const <String, dynamic>{};
+
   Future<String> saveProviderRuntimeSettings({
     required String llmProvider,
     required String modelId,
@@ -709,6 +713,7 @@ class Rc6RuntimeState {
     required this.storageProviderSettingsPath,
     required this.providerValidationReportPath,
     required this.providerLifecycleAuditSummaryPath,
+    required this.providerCapabilityUserCatalogPath,
     required this.exporterValidationReportPath,
     required this.parallelTaskCapacityReportPath,
     required this.taskIsolationMatrixPath,
@@ -832,6 +837,7 @@ class Rc6RuntimeState {
         storageProviderSettingsPath: '',
         providerValidationReportPath: '',
         providerLifecycleAuditSummaryPath: '',
+        providerCapabilityUserCatalogPath: '',
         exporterValidationReportPath: '',
         parallelTaskCapacityReportPath: '',
         taskIsolationMatrixPath: '',
@@ -954,6 +960,7 @@ class Rc6RuntimeState {
   final String storageProviderSettingsPath;
   final String providerValidationReportPath;
   final String providerLifecycleAuditSummaryPath;
+  final String providerCapabilityUserCatalogPath;
   final String exporterValidationReportPath;
   final String parallelTaskCapacityReportPath;
   final String taskIsolationMatrixPath;
@@ -1027,6 +1034,8 @@ class Rc6RuntimeState {
       providerValidationReportPath.isNotEmpty;
   bool get hasProviderLifecycleAuditSummary =>
       providerLifecycleAuditSummaryPath.isNotEmpty;
+  bool get hasProviderCapabilityUserCatalog =>
+      providerCapabilityUserCatalogPath.isNotEmpty;
   bool get hasParallelTaskCapacityReport =>
       parallelTaskCapacityReportPath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
@@ -1134,6 +1143,7 @@ class Rc6RuntimeState {
     String? storageProviderSettingsPath,
     String? providerValidationReportPath,
     String? providerLifecycleAuditSummaryPath,
+    String? providerCapabilityUserCatalogPath,
     String? exporterValidationReportPath,
     String? parallelTaskCapacityReportPath,
     String? taskIsolationMatrixPath,
@@ -1317,6 +1327,8 @@ class Rc6RuntimeState {
           providerValidationReportPath ?? this.providerValidationReportPath,
       providerLifecycleAuditSummaryPath: providerLifecycleAuditSummaryPath ??
           this.providerLifecycleAuditSummaryPath,
+      providerCapabilityUserCatalogPath: providerCapabilityUserCatalogPath ??
+          this.providerCapabilityUserCatalogPath,
       exporterValidationReportPath:
           exporterValidationReportPath ?? this.exporterValidationReportPath,
       parallelTaskCapacityReportPath:

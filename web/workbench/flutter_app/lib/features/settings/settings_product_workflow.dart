@@ -119,6 +119,7 @@ class _SettingsProviderModelEditorState
   String profileMessage = '';
   String capabilityMessage = '';
   List<ProjectConfigProfile> profiles = const [];
+  List<Map<String, dynamic>> runtimeCapabilityEntries = const [];
   final TextEditingController _llmProviderController =
       TextEditingController(text: 'env_configured');
   final TextEditingController _modelController =
@@ -189,6 +190,7 @@ class _SettingsProviderModelEditorState
           ? ''
           : 'config/provider_validation_report.json';
     });
+    await _loadRuntimeCapabilityCatalog();
   }
 
   Future<void> _loadProfiles() async {
@@ -317,6 +319,7 @@ class _SettingsProviderModelEditorState
       validationPath =
           path.isEmpty ? '' : 'config/provider_validation_report.json';
     });
+    await _loadRuntimeCapabilityCatalog();
   }
 
   Future<void> _testCapabilityEnhancement() async {
@@ -344,6 +347,7 @@ class _SettingsProviderModelEditorState
           ? (zh ? '需要 Windows EXE 执行健康检查' : 'Windows EXE required')
           : (zh ? '全部能力增强项健康检查已记录' : 'Capability health audit written');
     });
+    await _loadRuntimeCapabilityCatalog();
   }
 
   Future<void> _rollbackCapabilityEnhancement() async {
@@ -358,6 +362,22 @@ class _SettingsProviderModelEditorState
       capabilityMessage = rolledBack
           ? (zh ? '已回滚到本地默认能力' : 'Rolled back to local default')
           : (zh ? '没有可回滚的能力增强项' : 'No enhancement to roll back');
+    });
+    await _loadRuntimeCapabilityCatalog();
+  }
+
+  Future<void> _loadRuntimeCapabilityCatalog() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null) return;
+    final catalog = await rc6.loadProviderCapabilityUserCatalog();
+    final entries = catalog['entries'];
+    if (entries is! List) return;
+    if (!mounted) return;
+    setState(() {
+      runtimeCapabilityEntries = entries
+          .whereType<Map>()
+          .map((entry) => Map<String, dynamic>.from(entry))
+          .toList(growable: false);
     });
   }
 
@@ -500,6 +520,7 @@ class _SettingsProviderModelEditorState
       final capabilityStatus = _SettingsProviderCapabilityStatusPanel(
         zh: zh,
         status: widget.providerCapabilityStatus,
+        runtimeEntries: runtimeCapabilityEntries,
         message: capabilityMessage,
         onTestCapability: _testCapabilityEnhancement,
         onTestAllCapabilities: _testAllCapabilityEnhancements,
@@ -537,6 +558,7 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
   const _SettingsProviderCapabilityStatusPanel({
     required this.zh,
     required this.status,
+    required this.runtimeEntries,
     required this.message,
     required this.onTestCapability,
     required this.onTestAllCapabilities,
@@ -545,6 +567,7 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
 
   final bool zh;
   final ProviderCapabilityStatus status;
+  final List<Map<String, dynamic>> runtimeEntries;
   final String message;
   final VoidCallback onTestCapability;
   final VoidCallback onTestAllCapabilities;
@@ -567,6 +590,17 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
     final runtime = _Rc6RuntimeScope.of(context)?.state;
     final lifecycleAuditReady =
         runtime?.hasProviderLifecycleAuditSummary == true;
+    final runtimeCatalogReady =
+        runtime?.hasProviderCapabilityUserCatalog == true;
+    final runtimeRows = runtimeEntries
+        .map((entry) => [
+              _settingsText(entry, 'display_name', ''),
+              _settingsText(entry, 'status', zh ? '未配置' : 'Not configured'),
+              _settingsText(entry, 'current_behavior', ''),
+              _settingsText(entry, 'configuration_entry', zh ? '设置' : 'Settings'),
+            ])
+        .where((row) => row.every((value) => value.isNotEmpty))
+        .toList(growable: false);
     return _ProductPanel(
       keyName: 'settings-provider-capability-status',
       icon: Icons.extension_outlined,
@@ -586,6 +620,22 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
               ? (zh ? '已生成' : 'Generated')
               : (zh ? '未生成' : 'Not generated'),
         ),
+        const SizedBox(height: 8),
+        _FieldRow(
+          label: zh ? '当前能力目录' : 'Current capability catalog',
+          value: runtimeCatalogReady
+              ? (zh ? '已生成' : 'Generated')
+              : (zh ? '未生成' : 'Not generated'),
+        ),
+        if (runtimeRows.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          _ProductTable(
+            columns: zh
+                ? ['能力', '状态', '当前表现', '入口']
+                : ['Capability', 'Status', 'Current behavior', 'Entry'],
+            rows: runtimeRows,
+          ),
+        ],
         const SizedBox(height: 8),
         _ProductTable(
           columns: zh

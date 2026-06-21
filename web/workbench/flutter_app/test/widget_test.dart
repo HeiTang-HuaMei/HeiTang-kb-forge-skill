@@ -667,6 +667,7 @@ void main() {
     expect(find.text('能力状态'), findsOneWidget);
     expect(find.text('能力增强项'), findsOneWidget);
     expect(find.text('审计汇总'), findsOneWidget);
+    expect(find.text('当前能力目录'), findsOneWidget);
     expect(find.textContaining('2 项已登记，0 项可选'), findsOneWidget);
     expect(find.text('测试增强项'), findsOneWidget);
     expect(find.text('测试全部增强项'), findsOneWidget);

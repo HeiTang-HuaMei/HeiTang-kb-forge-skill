@@ -1966,6 +1966,50 @@ void main() {
     expect(n8nCoverage['runtime_loaded'], isFalse);
     expect((n8nCoverage['affected_modules'] as List),
         containsAll(['agent_workbench', 'artifact_center']));
+    final userCatalogPath =
+        runtimeStatus['provider_capability_user_catalog_path'] as String;
+    final userCatalog =
+        jsonDecode(File(userCatalogPath).readAsStringSync()) as Map;
+    expect(userCatalog['schema_version'],
+        'prd_v3_provider_capability_user_catalog.v1');
+    expect(userCatalog['status'], 'passed');
+    expect(userCatalog['capability_count'], 8);
+    expect(userCatalog['runtime_loaded_capability_count'], 0);
+    expect(userCatalog['normal_ui_project_names_visible'], isFalse);
+    expect(userCatalog['hot_swap_project_concept_visible'], isFalse);
+    expect(userCatalog['external_runtime_executed'], isFalse);
+    expect(userCatalog['workflow_executed'], isFalse);
+    expect(userCatalog['secret_plaintext_written'], isFalse);
+    final userCatalogEntries =
+        (userCatalog['entries'] as List).cast<Map>();
+    expect(userCatalogEntries, hasLength(8));
+    expect(
+        userCatalogEntries.map((entry) => entry['display_name']).toSet(),
+        containsAll([
+          '解析 / OCR',
+          'Embedding / 向量库',
+          '文档导出',
+          'Agent 模型 / 工具 / 记忆',
+          'A2A / 工作流导出',
+        ]));
+    expect(
+        jsonEncode(userCatalogEntries),
+        isNot(anyOf(
+          contains('n8n'),
+          contains('docling'),
+          contains('paddleocr'),
+          contains('sirchmunk'),
+          contains('hot-swap'),
+          contains('热插拔'),
+        )));
+    final parserCatalogEntry = userCatalogEntries.firstWhere(
+        (entry) => entry['capability_id'] == 'document_parser_ocr');
+    expect(parserCatalogEntry['configuration_entry'], '文档库');
+    expect(parserCatalogEntry['current_behavior'], contains('本地解析'));
+    final agentCatalogEntry = userCatalogEntries.firstWhere(
+        (entry) => entry['capability_id'] == 'agent_model_tools_memory');
+    expect(agentCatalogEntry['configuration_entry'], 'Agent 工作台');
+    expect(agentCatalogEntry['normal_ui_project_name_visible'], isFalse);
     final healthEntries =
         (providerHealth['health_entries'] as List).cast<Map>();
     expect(healthEntries, hasLength(29));
@@ -4334,6 +4378,18 @@ void main() {
     expect(n8nCoverage['runtime_loaded'], isTrue);
     expect(n8nCoverage['coverage_status'], 'passed');
     expect(n8nCoverage['missing_evidence'], isEmpty);
+    final userCatalog = jsonDecode(File(
+            runtimeStatus['provider_capability_user_catalog_path'] as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(userCatalog['runtime_loaded_capability_count'], 1);
+    final workflowCatalogEntry = (userCatalog['entries'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) =>
+            entry['capability_id'] == 'workflow_collaboration_export');
+    expect(workflowCatalogEntry['display_name'], 'A2A / 工作流导出');
+    expect(workflowCatalogEntry['runtime_loaded'], isTrue);
+    expect(workflowCatalogEntry['current_behavior'], contains('健康检查通过'));
+    expect(jsonEncode(userCatalog), isNot(contains('n8n')));
 
     final rolledBack = await controller.rollbackN8nProviderRuntime();
     expect(rolledBack, isTrue);
@@ -4407,6 +4463,18 @@ void main() {
                 entry['provider_ref'] == 'n8n' &&
                 entry['capability_id'] == 'workflow_collaboration_export');
     expect(rollbackN8nCoverage['runtime_loaded'], isFalse);
+    final rollbackUserCatalog = jsonDecode(File(rollbackRuntimeStatus[
+                'provider_capability_user_catalog_path']
+            as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(rollbackUserCatalog['runtime_loaded_capability_count'], 0);
+    final rollbackWorkflowCatalogEntry =
+        (rollbackUserCatalog['entries'] as List)
+            .cast<Map<String, dynamic>>()
+            .firstWhere((entry) =>
+                entry['capability_id'] == 'workflow_collaboration_export');
+    expect(rollbackWorkflowCatalogEntry['runtime_loaded'], isFalse);
+    expect(rollbackWorkflowCatalogEntry['current_behavior'], contains('本地协作报告'));
     final rollbackAgentStatus = (rollbackRuntimeStatus['module_status']
         as Map)['agent_workbench'] as Map;
     expect(rollbackAgentStatus['a2a_workflow_runtime_status'], '降级为本地模式');

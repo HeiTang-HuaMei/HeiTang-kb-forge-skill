@@ -2491,6 +2491,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
   }
 
+  Future<Map<String, dynamic>> loadProviderCapabilityUserCatalog() async {
+    final workspace = _workspaceDir;
+    if (workspace == null || !await workspace.exists()) {
+      return const <String, dynamic>{};
+    }
+    return _readJsonObject(_providerCapabilityUserCatalogPath(workspace));
+  }
+
   Future<String> saveProviderRuntimeSettings({
     required String llmProvider,
     required String modelId,
@@ -5286,6 +5294,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(workspace.path, 'config', 'provider_validation_report.json');
     final providerLifecycleAuditSummaryPath = _join(
         workspace.path, 'config', 'provider_lifecycle_audit_summary.json');
+    final providerCapabilityUserCatalogPath = _join(
+        workspace.path, 'config', 'provider_capability_user_catalog.json');
     final exporterValidationReportPath =
         _join(workspace.path, 'config', 'exporter_validation_report.json');
     final parallelTaskCapacityReportPath = _joinNested(workspace.path,
@@ -5620,6 +5630,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       providerLifecycleAuditSummaryPath:
           await File(providerLifecycleAuditSummaryPath).exists()
               ? providerLifecycleAuditSummaryPath
+              : '',
+      providerCapabilityUserCatalogPath:
+          await File(providerCapabilityUserCatalogPath).exists()
+              ? providerCapabilityUserCatalogPath
               : '',
       exporterValidationReportPath:
           await File(exporterValidationReportPath).exists()
@@ -13621,6 +13635,110 @@ class Rc6RuntimeController extends ChangeNotifier {
     return path;
   }
 
+  Future<String> _writeProviderCapabilityUserCatalog(
+    Directory workspace,
+    Map<String, dynamic> bindingManifest, {
+    required Map<String, dynamic> stage2Preflight,
+    required Map<String, dynamic> providerRuntimeLoad,
+    required String coverageAuditPath,
+  }) async {
+    final bindings = _listOfMaps(bindingManifest['bindings']);
+    final entries = bindings.map((binding) {
+      final capabilityId = _stringValue(binding['capability_id'], '');
+      final runtimeLoaded = _boolValue(binding['runtime_loaded']);
+      final selectionAllowed = _boolValue(binding['selection_allowed']);
+      final activeKind = _stringValue(binding['active_provider_kind'], '');
+      final userStatus = runtimeLoaded
+          ? '连接成功'
+          : selectionAllowed
+              ? '已配置未测试'
+              : _stringValue(binding['user_status'], '降级为本地模式');
+      return {
+        'capability_id': capabilityId,
+        'user_entry': _providerUserEntry(capabilityId, capabilityId),
+        'display_name': _providerCapabilityDisplayName(capabilityId),
+        'status': userStatus,
+        'current_behavior': _providerCapabilityCurrentBehavior(
+          capabilityId,
+          status: userStatus,
+          activeProviderKind: activeKind,
+          runtimeLoaded: runtimeLoaded,
+        ),
+        'available_option_count':
+            _asInt(binding['ready_candidate_count']) ?? 0,
+        'candidate_option_count':
+            _asInt(binding['candidate_provider_count']) ?? 0,
+        'configuration_entry': _providerCapabilityConfigurationEntry(
+          capabilityId,
+        ),
+        'affected_modules': _listOfStrings(binding['affected_modules']),
+        'audit_status': coverageAuditPath.isEmpty ? '未生成' : '已生成',
+        'rollback_available': selectionAllowed || runtimeLoaded,
+        'runtime_loaded': runtimeLoaded,
+        'external_runtime_executed': false,
+        'workflow_executed': false,
+        'normal_ui_project_name_visible': false,
+        'hot_swap_project_concept_visible': false,
+        'secret_masked': true,
+      };
+    }).toList(growable: false);
+    final readyCount = entries
+        .where((entry) =>
+            _stringValue(entry['status'], '') == '连接成功' ||
+            _stringValue(entry['status'], '') == '已配置未测试')
+        .length;
+    final loadedCount =
+        entries.where((entry) => entry['runtime_loaded'] == true).length;
+    final path = _providerCapabilityUserCatalogPath(workspace);
+    final payload = {
+      'schema_version': 'prd_v3_provider_capability_user_catalog.v1',
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'workspace_boundary': workspace.path,
+      'status': 'passed',
+      'stage_2_industrial_preflight': stage2Preflight,
+      'runtime_load_user_summary':
+          _providerRuntimeLoadUserSummary(providerRuntimeLoad),
+      'capability_count': entries.length,
+      'available_capability_count': readyCount,
+      'runtime_loaded_capability_count': loadedCount,
+      'normal_ui_project_names_visible': false,
+      'hot_swap_project_concept_visible': false,
+      'external_runtime_executed':
+          _boolValue(providerRuntimeLoad['external_runtime_executed']),
+      'workflow_executed': _boolValue(providerRuntimeLoad['workflow_executed']),
+      'secret_plaintext_written': false,
+      'source_artifacts': {
+        'provider_capability_binding_manifest_path':
+            _providerCapabilityBindingManifestPath(workspace),
+        'provider_integration_coverage_audit_path': coverageAuditPath,
+        'provider_runtime_load_manifest_path':
+            _providerRuntimeLoadManifestPath(workspace),
+      },
+      'entries': entries,
+    };
+    await _writeJsonFile(path, payload);
+    return path;
+  }
+
+  static Map<String, dynamic> _providerRuntimeLoadUserSummary(
+    Map<String, dynamic> providerRuntimeLoad,
+  ) {
+    return {
+      'status': _stringValue(providerRuntimeLoad['status'], '未配置'),
+      'runtime_loaded': _boolValue(providerRuntimeLoad['runtime_loaded']),
+      'runtime_loaded_count':
+          _asInt(providerRuntimeLoad['runtime_loaded_count']) ?? 0,
+      'external_runtime_connected':
+          _boolValue(providerRuntimeLoad['external_runtime_connected']),
+      'external_runtime_executed': false,
+      'workflow_executed': false,
+      'fallback': _stringValue(providerRuntimeLoad['fallback'], ''),
+      'normal_ui_project_name_visible': false,
+      'secret_masked': true,
+      'secret_plaintext_written': false,
+    };
+  }
+
   Future<String> _snapshotProviderRuntimeLoadManifest(
     Directory workspace,
     Map<String, dynamic> manifest,
@@ -14282,6 +14400,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         workspace.path, 'config', 'provider_integration_coverage_audit.json');
   }
 
+  static String _providerCapabilityUserCatalogPath(Directory workspace) {
+    return _join(
+        workspace.path, 'config', 'provider_capability_user_catalog.json');
+  }
+
   static String _providerRuntimeLoadManifestPath(Directory workspace) {
     return _join(
         workspace.path, 'config', 'provider_runtime_load_manifest.json');
@@ -14697,6 +14820,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       stage2Preflight: stage2Preflight,
       providerRuntimeLoad: providerRuntimeLoad,
     );
+    final providerCapabilityUserCatalogPath =
+        await _writeProviderCapabilityUserCatalog(
+      workspace,
+      providerCapabilityBinding,
+      stage2Preflight: stage2Preflight,
+      providerRuntimeLoad: providerRuntimeLoad,
+      coverageAuditPath: providerIntegrationCoverageAuditPath,
+    );
     final configAssetsPath = await _writeProjectConfigAssets(
       workspace,
       active,
@@ -14744,6 +14875,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           providerLifecycleAuditSummaryPath,
       'provider_integration_coverage_audit_path':
           providerIntegrationCoverageAuditPath,
+      'provider_capability_user_catalog_path':
+          providerCapabilityUserCatalogPath,
       'registered_provider_summary': {
         'registered_provider_count':
             registeredProviderArtifacts['registered_provider_count'],
@@ -15728,6 +15861,69 @@ class Rc6RuntimeController extends ChangeNotifier {
       'workflow_collaboration_export' => 'Agent 工作台：A2A / 工作流导出',
       'governance_audit_provider' => '审计中心：评测 / 治理',
       _ => fallbackName,
+    };
+  }
+
+  static String _providerCapabilityDisplayName(String capabilityId) {
+    return switch (capabilityId) {
+      'document_parser_ocr' => '解析 / OCR',
+      'knowledge_embedding_vector' => 'Embedding / 向量库',
+      'retrieval_provider' => '检索 / 召回',
+      'document_exporter' => '文档导出',
+      'skill_template_provider' => 'Skill 模板 / 本地化',
+      'agent_model_tools_memory' => 'Agent 模型 / 工具 / 记忆',
+      'workflow_collaboration_export' => 'A2A / 工作流导出',
+      'governance_audit_provider' => '评测 / 治理',
+      _ => capabilityId,
+    };
+  }
+
+  static String _providerCapabilityConfigurationEntry(String capabilityId) {
+    return switch (capabilityId) {
+      'document_parser_ocr' => '文档库',
+      'knowledge_embedding_vector' => '知识库',
+      'retrieval_provider' => '检索验证',
+      'document_exporter' => '文档生成',
+      'skill_template_provider' => 'Skill 工厂',
+      'agent_model_tools_memory' => 'Agent 工作台',
+      'workflow_collaboration_export' => 'Agent 工作台',
+      'governance_audit_provider' => '审计中心',
+      _ => '设置',
+    };
+  }
+
+  static String _providerCapabilityCurrentBehavior(
+    String capabilityId, {
+    required String status,
+    required String activeProviderKind,
+    required bool runtimeLoaded,
+  }) {
+    if (runtimeLoaded) {
+      return switch (capabilityId) {
+        'workflow_collaboration_export' => '外部协作健康检查通过，本地审计仍保留。',
+        _ => '增强能力可用，本地回退仍保留。',
+      };
+    }
+    final localFallback = activeProviderKind == 'local_fallback' ||
+        status == '降级为本地模式';
+    return switch (capabilityId) {
+      'document_parser_ocr' =>
+        localFallback ? '使用本地解析；OCR/Parser 可在设置中配置。' : '增强解析可选。',
+      'knowledge_embedding_vector' =>
+        localFallback ? '使用本地索引；Embedding/向量库可在设置中配置。' : '增强索引可选。',
+      'retrieval_provider' =>
+        localFallback ? '使用本地检索；外部检索按网络授权启用。' : '增强检索可选。',
+      'document_exporter' =>
+        localFallback ? 'Markdown/JSON/CSV 可用；Office 导出需配置。' : '增强导出可选。',
+      'skill_template_provider' =>
+        localFallback ? '使用本地 Skill 生成；模板增强需验证后启用。' : '模板增强可选。',
+      'agent_model_tools_memory' =>
+        localFallback ? '使用本地 Agent 状态；模型/工具/记忆按授权配置。' : 'Agent 增强可选。',
+      'workflow_collaboration_export' =>
+        'A2A 本地协作报告可用；外部工作流需健康检查。',
+      'governance_audit_provider' =>
+        localFallback ? '使用本地审计；治理增强需验证后启用。' : '治理增强可选。',
+      _ => localFallback ? '使用本地能力。' : '增强能力可选。',
     };
   }
 
@@ -20246,6 +20442,7 @@ class Rc6RuntimeState {
     required this.storageProviderSettingsPath,
     required this.providerValidationReportPath,
     required this.providerLifecycleAuditSummaryPath,
+    required this.providerCapabilityUserCatalogPath,
     required this.exporterValidationReportPath,
     required this.parallelTaskCapacityReportPath,
     required this.taskIsolationMatrixPath,
@@ -20369,6 +20566,7 @@ class Rc6RuntimeState {
         storageProviderSettingsPath: '',
         providerValidationReportPath: '',
         providerLifecycleAuditSummaryPath: '',
+        providerCapabilityUserCatalogPath: '',
         exporterValidationReportPath: '',
         parallelTaskCapacityReportPath: '',
         taskIsolationMatrixPath: '',
@@ -20491,6 +20689,7 @@ class Rc6RuntimeState {
   final String storageProviderSettingsPath;
   final String providerValidationReportPath;
   final String providerLifecycleAuditSummaryPath;
+  final String providerCapabilityUserCatalogPath;
   final String exporterValidationReportPath;
   final String parallelTaskCapacityReportPath;
   final String taskIsolationMatrixPath;
@@ -20564,6 +20763,8 @@ class Rc6RuntimeState {
       providerValidationReportPath.isNotEmpty;
   bool get hasProviderLifecycleAuditSummary =>
       providerLifecycleAuditSummaryPath.isNotEmpty;
+  bool get hasProviderCapabilityUserCatalog =>
+      providerCapabilityUserCatalogPath.isNotEmpty;
   bool get hasParallelTaskCapacityReport =>
       parallelTaskCapacityReportPath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
@@ -20671,6 +20872,7 @@ class Rc6RuntimeState {
     String? storageProviderSettingsPath,
     String? providerValidationReportPath,
     String? providerLifecycleAuditSummaryPath,
+    String? providerCapabilityUserCatalogPath,
     String? exporterValidationReportPath,
     String? parallelTaskCapacityReportPath,
     String? taskIsolationMatrixPath,
@@ -20854,6 +21056,8 @@ class Rc6RuntimeState {
           providerValidationReportPath ?? this.providerValidationReportPath,
       providerLifecycleAuditSummaryPath: providerLifecycleAuditSummaryPath ??
           this.providerLifecycleAuditSummaryPath,
+      providerCapabilityUserCatalogPath: providerCapabilityUserCatalogPath ??
+          this.providerCapabilityUserCatalogPath,
       exporterValidationReportPath:
           exporterValidationReportPath ?? this.exporterValidationReportPath,
       parallelTaskCapacityReportPath:

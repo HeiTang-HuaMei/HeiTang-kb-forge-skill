@@ -39,6 +39,7 @@ Runtime configuration assets are written to:
 - `config/provider_adapter_readiness_log.jsonl`
 - `config/provider_runtime_load_eligibility_manifest.json`
 - `config/provider_integration_coverage_audit.json`
+- `config/provider_capability_user_catalog.json`
 - `config/config_test_log.jsonl`
 - `config/profile_change_log.jsonl`
 - `config/profile_activation_log.jsonl`
@@ -110,6 +111,7 @@ Runtime evidence:
 - `provider_adapter_readiness_report.json`
 - `provider_adapter_readiness_log.jsonl`
 - `provider_integration_coverage_audit.json`
+- `provider_capability_user_catalog.json`
 
 Coverage:
 
@@ -183,6 +185,13 @@ Provider integration coverage audit:
 - The audit currently covers 29 mappings, 26 unique Provider refs, and 8 product capability areas.
 - A mapping only passes when its matrix entry, contract, readiness row, health row, eligibility row, activation event, rollback target, capability binding, downstream lifecycle audit, hidden normal-UI project-name boundary, and secret masking evidence are all present.
 - Controlled n8n health-load success updates the coverage row for `workflow_collaboration_export` to `runtime_loaded=true`; rollback returns it to `false`. Both states keep `external_runtime_executed=false` and `workflow_executed=false`.
+
+Provider capability user catalog:
+
+- `provider_capability_user_catalog.json` is generated from the active capability binding manifest for ordinary Settings UI consumption.
+- It exposes product capability entries such as Parser/OCR, Embedding/Vector, document export, Skill templates, Agent model/tools/memory, A2A/workflow export, and governance/audit.
+- It intentionally does not expose external project names or hot-swap terminology. Users see capability status, current behavior, configuration entry, available option count, audit status, and rollback availability.
+- Controlled n8n health-load success changes only the A2A/workflow export catalog entry to `runtime_loaded=true`; rollback returns it to local A2A report behavior.
 
 Local retrieval adapter proof:
 
@@ -352,6 +361,7 @@ Lifecycle behavior implemented:
 | Provider adapter readiness | `provider_adapter_readiness_report.json` | Evaluates 26 adapter contracts against active Profile/config and keeps unverified adapters blocked |
 | Provider registry summary | `provider_registry_readiness_summary.json` | Consolidates 26 Provider rows for Settings/Audit consumption without exposing external project names as product modules |
 | Provider integration coverage | `provider_integration_coverage_audit.json` | Verifies every registered provider-to-capability mapping has matrix, contract, readiness, health, eligibility, activation, rollback, binding, lifecycle, UI-boundary, and secret-boundary evidence |
+| Provider capability user catalog | `provider_capability_user_catalog.json` | Shows ordinary users product capability status and configuration entry without provider refs, external project names, or hot-swap language |
 | Parser/OCR adapter probes | `provider_adapter_probe_<provider_ref>.json` | Verifies real DU manifest, records, normalized markdown, and OCR input evidence before allowing Parser/OCR enhancements to be selected |
 | Embedding/Vector adapter probes | `provider_adapter_probe_<provider_ref>.json` | Verifies real KB chunks, index profile, vector reference, build report, metadata, and chunk-count consistency before allowing Embedding/Vector enhancements to be selected |
 | Exporter adapter probes | `provider_adapter_probe_jellyfish.json`, `provider_adapter_probe_story_flicks.json` | Verifies real structured export and video handoff boundary artifacts before allowing exporter enhancements to be selected |
