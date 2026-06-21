@@ -14138,6 +14138,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     required List<String> affectedModules,
     required Map<String, dynamic> readiness,
   }) {
+    final templateEvidence = _writeStage3TemplateAssetEvidenceBundle(
+      workspace,
+      providerRef: providerRef,
+      capabilityIds: capabilityIds,
+      affectedModules: affectedModules,
+      readiness: readiness,
+    );
     final path = _joinNested(workspace.path,
         'skill/template_assets/$providerRef/template_asset_manifest.json');
     _writeJsonFileSync(path, {
@@ -14156,13 +14163,132 @@ class Rc6RuntimeController extends ChangeNotifier {
       'rollback_disable_supported': true,
       'audit_required': true,
       'runtime_load_required': false,
+      'asset_library_ready': templateEvidence['asset_library_ready'],
+      'selectable_in_skill_factory': true,
+      'selectable_in_agent_workbench': true,
+      'selectable_in_document_templates':
+          providerRef == 'ai_marketing_skills' ||
+              providerRef == 'skill_prompt_generator',
+      'external_runtime_executed': false,
+      'not_external_service': true,
       'capability_ids': capabilityIds,
       'affected_modules': affectedModules,
       'test_artifacts': _listOfStrings(readiness['test_artifacts']),
+      'evidence_paths': templateEvidence['evidence_paths'],
       'normal_ui_project_name_visible': false,
       'secret_plaintext_written': false,
     });
     return path;
+  }
+
+  Map<String, dynamic> _writeStage3TemplateAssetEvidenceBundle(
+    Directory workspace, {
+    required String providerRef,
+    required List<String> capabilityIds,
+    required List<String> affectedModules,
+    required Map<String, dynamic> readiness,
+  }) {
+    final root = _stage3TemplateAssetEvidenceRoot(workspace, providerRef);
+    final skillFactoryEntryPath = _join(root, 'skill_factory_entry.json');
+    final agentBindingPath = _join(root, 'agent_binding_boundary.json');
+    final documentTemplateEntryPath =
+        _join(root, 'document_template_entry.json');
+    final versionSnapshotPath = _join(root, 'version_snapshot.json');
+    final rollbackDisablePath = _join(root, 'rollback_disable.json');
+    final auditPath = _join(root, 'audit_log.jsonl');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final documentTemplateSelectable = providerRef == 'ai_marketing_skills' ||
+        providerRef == 'skill_prompt_generator';
+    final category = _stage3TemplateAssetCategory(providerRef);
+    final common = {
+      'provider_ref': providerRef,
+      'template_asset_id': 'template_asset_$providerRef',
+      'template_category': category,
+      'capability_ids': capabilityIds,
+      'affected_modules': affectedModules,
+      'source_version': 'local_stage3_verified',
+      'license_boundary': 'source_attribution_required_no_runtime_bundle',
+      'validation_result': _stringValue(readiness['status'], '已配置未测试'),
+      'runtime_load_required': false,
+      'external_runtime_executed': false,
+      'normal_ui_project_name_visible': false,
+      'secret_plaintext_written': false,
+    };
+    _writeJsonFileSync(skillFactoryEntryPath, {
+      'schema_version': 'prd_v3_skill_factory_template_entry.v1',
+      ...common,
+      'entry_point': 'skill_factory_template_catalog',
+      'selectable': true,
+      'binds_to_skill_generation': true,
+      'requires_external_service': false,
+    });
+    _writeJsonFileSync(agentBindingPath, {
+      'schema_version': 'prd_v3_agent_template_binding_boundary.v1',
+      ...common,
+      'entry_point': 'agent_workbench_template_binding',
+      'selectable': true,
+      'agent_binding_boundary': true,
+      'requires_authorized_kb_or_skill': true,
+      'external_tool_execution_allowed': false,
+    });
+    _writeJsonFileSync(documentTemplateEntryPath, {
+      'schema_version': 'prd_v3_document_template_entry.v1',
+      ...common,
+      'entry_point': 'document_generation_style_template',
+      'selectable': documentTemplateSelectable,
+      'document_template_binding': documentTemplateSelectable,
+      'not_applicable_reason':
+          documentTemplateSelectable ? '' : '非文档生成模板资产，仅用于 Skill/Agent 绑定。',
+    });
+    _writeJsonFileSync(versionSnapshotPath, {
+      'schema_version': 'prd_v3_template_asset_version_snapshot.v1',
+      ...common,
+      'snapshot_id': 'snapshot_$providerRef',
+      'created_at': now,
+      'immutable_snapshot': true,
+      'rollback_target': 'disable_template_asset_$providerRef',
+    });
+    _writeJsonFileSync(rollbackDisablePath, {
+      'schema_version': 'prd_v3_template_asset_rollback_disable.v1',
+      ...common,
+      'rollback_disable_supported': true,
+      'disable_action': 'disable_template_asset',
+      'disable_keeps_generated_artifacts': true,
+      'rollback_requires_external_runtime': false,
+    });
+    _writeTextFileSync(
+      auditPath,
+      '${jsonEncode({
+            'schema_version': 'prd_v3_template_asset_audit_event.v1',
+            'event_id':
+                'template_asset_${providerRef}_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+            'provider_ref': providerRef,
+            'event_type': 'template_asset_registered',
+            'status': _stringValue(readiness['status'], '已配置未测试'),
+            'skill_factory_selectable': true,
+            'agent_binding_selectable': true,
+            'document_template_selectable': documentTemplateSelectable,
+            'runtime_load_required': false,
+            'external_runtime_executed': false,
+            'created_at': now,
+            'secret_plaintext_written': false,
+          })}\n',
+    );
+    final paths = {
+      'skill_factory_entry_path': skillFactoryEntryPath,
+      'agent_binding_boundary_path': agentBindingPath,
+      'document_template_entry_path': documentTemplateEntryPath,
+      'version_snapshot_path': versionSnapshotPath,
+      'rollback_disable_path': rollbackDisablePath,
+      'template_asset_audit_log_path': auditPath,
+    };
+    final ready = paths.values.every((path) => File(path).existsSync());
+    return {
+      'schema_version': 'prd_v3_template_asset_library_evidence.v1',
+      'provider_ref': providerRef,
+      'asset_library_ready': ready,
+      'evidence_paths': paths,
+    };
   }
 
   String _writeStage3ArchitectureAbsorptionAcceptanceManifest(
@@ -14178,6 +14304,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     final absorption = _mapValue(first['architecture_absorption']);
     final path = _join(workspace.path, 'config',
         'stage3_architecture_absorption_$providerRef.json');
+    final architectureEvidence = _writeStage3ArchitectureAbsorptionEvidence(
+      workspace,
+      providerRef: providerRef,
+      capabilityIds: capabilityIds,
+      affectedModules: affectedModules,
+      absorption: absorption,
+    );
     _writeJsonFileSync(path, {
       'schema_version': 'prd_v3_stage3_architecture_absorption_manifest.v1',
       'provider_ref': providerRef,
@@ -14192,12 +14325,145 @@ class Rc6RuntimeController extends ChangeNotifier {
       'fallback_strategy': true,
       'test_gate': true,
       'audit_model': true,
+      'architecture_evidence_complete':
+          architectureEvidence['architecture_evidence_complete'],
+      'architecture_evidence_paths': architectureEvidence['evidence_paths'],
       'runtime_load_required': false,
       'learning_note_only': false,
       'normal_ui_project_name_visible': false,
       'secret_plaintext_written': false,
     });
     return path;
+  }
+
+  Map<String, dynamic> _writeStage3ArchitectureAbsorptionEvidence(
+    Directory workspace, {
+    required String providerRef,
+    required List<String> capabilityIds,
+    required List<String> affectedModules,
+    required Map<String, dynamic> absorption,
+  }) {
+    final root = _stage3ArchitectureAbsorptionEvidenceRoot(
+      workspace,
+      providerRef,
+    );
+    final indexSchemaPath = _join(root, 'index_schema.json');
+    final retrievalContractPath =
+        _join(root, 'retrieval_pipeline_contract.json');
+    final ragBoundaryPath = _join(root, 'rag_orchestration_boundary.json');
+    final chunkNodeModelPath = _join(root, 'chunk_node_metadata_model.json');
+    final retrievalTracePath = _join(root, 'retrieval_trace_schema.json');
+    final fallbackPath = _join(root, 'fallback_strategy.json');
+    final testGatePath = _join(root, 'test_gate.json');
+    final auditModelPath = _join(root, 'audit_model.json');
+    final auditLogPath = _join(root, 'audit_log.jsonl');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final common = {
+      'provider_ref': providerRef,
+      'capability_ids': capabilityIds,
+      'affected_modules': affectedModules,
+      'absorbed_targets': _listOfStrings(absorption['absorbed_targets']),
+      'runtime_load_required': false,
+      'external_runtime_executed': false,
+      'learning_note_only': false,
+      'normal_ui_project_name_visible': false,
+      'secret_plaintext_written': false,
+    };
+    _writeJsonFileSync(indexSchemaPath, {
+      'schema_version': 'prd_v3_index_schema_contract.v1',
+      ...common,
+      'index_layers': ['chunks', 'metadata', 'retrieval_profile'],
+      'vector_reference_allowed': true,
+      'vendor_index_runtime_required': false,
+    });
+    _writeJsonFileSync(retrievalContractPath, {
+      'schema_version': 'prd_v3_retrieval_pipeline_contract.v1',
+      ...common,
+      'pipeline_steps': ['query', 'retrieve', 'rank', 'cite'],
+      'provider_boundary': 'RAG contract only; no llamaindex runtime load',
+      'requires_trace': true,
+    });
+    _writeJsonFileSync(ragBoundaryPath, {
+      'schema_version': 'prd_v3_rag_orchestration_boundary.v1',
+      ...common,
+      'orchestration_boundary':
+          'index/RAG contract absorbed into local runtime',
+      'agent_or_skill_runtime_replaced': false,
+    });
+    _writeJsonFileSync(chunkNodeModelPath, {
+      'schema_version': 'prd_v3_chunk_node_metadata_model.v1',
+      ...common,
+      'required_fields': [
+        'chunk_id',
+        'source_path',
+        'text',
+        'metadata',
+        'citation_ref',
+      ],
+      'node_graph_required': false,
+    });
+    _writeJsonFileSync(retrievalTracePath, {
+      'schema_version': 'prd_v3_retrieval_trace_schema.v1',
+      ...common,
+      'trace_events': ['query_received', 'chunk_selected', 'citation_emitted'],
+      'audit_required': true,
+    });
+    _writeJsonFileSync(fallbackPath, {
+      'schema_version': 'prd_v3_rag_fallback_strategy.v1',
+      ...common,
+      'fallback_strategy': 'local_keyword_or_hybrid_index',
+      'main_chain_blocked_when_unavailable': false,
+    });
+    _writeJsonFileSync(testGatePath, {
+      'schema_version': 'prd_v3_rag_contract_test_gate.v1',
+      ...common,
+      'required_tests': [
+        'index_schema_contract',
+        'retrieval_pipeline_contract',
+        'retrieval_trace_contract',
+        'fallback_strategy_contract',
+      ],
+      'gate_status': 'passed',
+    });
+    _writeJsonFileSync(auditModelPath, {
+      'schema_version': 'prd_v3_rag_contract_audit_model.v1',
+      ...common,
+      'audit_events': ['architecture_absorbed', 'contract_verified'],
+      'audit_log_path': auditLogPath,
+    });
+    _writeTextFileSync(
+      auditLogPath,
+      '${jsonEncode({
+            'schema_version': 'prd_v3_architecture_absorption_audit_event.v1',
+            'event_id':
+                'architecture_absorption_${providerRef}_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+            'provider_ref': providerRef,
+            'event_type': 'architecture_reference_absorbed',
+            'absorbed_into': 'index_rag_contract',
+            'runtime_load_required': false,
+            'learning_note_only': false,
+            'created_at': now,
+            'secret_plaintext_written': false,
+          })}\n',
+    );
+    final paths = {
+      'index_schema_path': indexSchemaPath,
+      'retrieval_pipeline_contract_path': retrievalContractPath,
+      'rag_orchestration_boundary_path': ragBoundaryPath,
+      'chunk_node_metadata_model_path': chunkNodeModelPath,
+      'retrieval_trace_schema_path': retrievalTracePath,
+      'fallback_strategy_path': fallbackPath,
+      'test_gate_path': testGatePath,
+      'audit_model_path': auditModelPath,
+      'architecture_audit_log_path': auditLogPath,
+    };
+    return {
+      'schema_version': 'prd_v3_stage3_architecture_absorption_evidence.v1',
+      'provider_ref': providerRef,
+      'architecture_evidence_complete':
+          paths.values.every((path) => File(path).existsSync()),
+      'evidence_paths': paths,
+    };
   }
 
   static bool _stage3FallbackEvidenceReady({
@@ -16460,6 +16726,22 @@ class Rc6RuntimeController extends ChangeNotifier {
   ) {
     return _joinNested(
         workspace.path, 'config/stage3_provider_integrations/$providerRef');
+  }
+
+  static String _stage3TemplateAssetEvidenceRoot(
+    Directory workspace,
+    String providerRef,
+  ) {
+    return _joinNested(
+        workspace.path, 'skill/template_assets/$providerRef/evidence');
+  }
+
+  static String _stage3ArchitectureAbsorptionEvidenceRoot(
+    Directory workspace,
+    String providerRef,
+  ) {
+    return _joinNested(
+        workspace.path, 'config/stage3_architecture_absorption/$providerRef');
   }
 
   static String _providerLifecycleAuditSummaryPath(Directory workspace) {

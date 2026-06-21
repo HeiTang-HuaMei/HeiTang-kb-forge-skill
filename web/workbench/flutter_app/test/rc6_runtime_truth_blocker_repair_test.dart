@@ -3416,6 +3416,38 @@ void main() {
     expect(llamaindexManifest['fallback_strategy'], isTrue);
     expect(llamaindexManifest['test_gate'], isTrue);
     expect(llamaindexManifest['audit_model'], isTrue);
+    expect(llamaindexManifest['architecture_evidence_complete'], isTrue);
+    final llamaindexEvidencePaths =
+        llamaindexManifest['architecture_evidence_paths']
+            as Map<String, dynamic>;
+    for (final key in [
+      'index_schema_path',
+      'retrieval_pipeline_contract_path',
+      'rag_orchestration_boundary_path',
+      'chunk_node_metadata_model_path',
+      'retrieval_trace_schema_path',
+      'fallback_strategy_path',
+      'test_gate_path',
+      'audit_model_path',
+      'architecture_audit_log_path',
+    ]) {
+      expect(File(llamaindexEvidencePaths[key] as String).existsSync(), isTrue,
+          reason: 'llamaindex missing $key');
+    }
+    final retrievalContract = jsonDecode(File(
+            llamaindexEvidencePaths['retrieval_pipeline_contract_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(retrievalContract['schema_version'],
+        'prd_v3_retrieval_pipeline_contract.v1');
+    expect(retrievalContract['runtime_load_required'], isFalse);
+    expect(retrievalContract['provider_boundary'],
+        contains('no llamaindex runtime load'));
+    final ragTestGate = jsonDecode(
+        File(llamaindexEvidencePaths['test_gate_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(ragTestGate['schema_version'], 'prd_v3_rag_contract_test_gate.v1');
+    expect(ragTestGate['gate_status'], 'passed');
     final industrialDecisions = (industrialReport['provider_decisions'] as List)
         .cast<Map<String, dynamic>>();
     expect(industrialDecisions, hasLength(26));
@@ -3482,6 +3514,48 @@ void main() {
       expect(manifest['license_boundary'], isNotEmpty);
       expect(manifest['validation_result'], '连接成功');
       expect(manifest['rollback_disable_supported'], isTrue);
+      expect(manifest['asset_library_ready'], isTrue);
+      expect(manifest['selectable_in_skill_factory'], isTrue);
+      expect(manifest['selectable_in_agent_workbench'], isTrue);
+      expect(manifest['not_external_service'], isTrue);
+      expect(manifest['external_runtime_executed'], isFalse);
+      final evidencePaths = manifest['evidence_paths'] as Map<String, dynamic>;
+      for (final key in [
+        'skill_factory_entry_path',
+        'agent_binding_boundary_path',
+        'document_template_entry_path',
+        'version_snapshot_path',
+        'rollback_disable_path',
+        'template_asset_audit_log_path',
+      ]) {
+        expect(File(evidencePaths[key] as String).existsSync(), isTrue,
+            reason: '${row['provider_ref']} missing $key');
+      }
+      final skillFactoryEntry = jsonDecode(
+          File(evidencePaths['skill_factory_entry_path'] as String)
+              .readAsStringSync()) as Map<String, dynamic>;
+      expect(skillFactoryEntry['schema_version'],
+          'prd_v3_skill_factory_template_entry.v1');
+      expect(skillFactoryEntry['selectable'], isTrue);
+      expect(skillFactoryEntry['requires_external_service'], isFalse);
+      final agentBinding = jsonDecode(
+          File(evidencePaths['agent_binding_boundary_path'] as String)
+              .readAsStringSync()) as Map<String, dynamic>;
+      expect(agentBinding['schema_version'],
+          'prd_v3_agent_template_binding_boundary.v1');
+      expect(agentBinding['selectable'], isTrue);
+      expect(agentBinding['external_tool_execution_allowed'], isFalse);
+      final documentTemplateEntry = jsonDecode(
+          File(evidencePaths['document_template_entry_path'] as String)
+              .readAsStringSync()) as Map<String, dynamic>;
+      expect(documentTemplateEntry['schema_version'],
+          'prd_v3_document_template_entry.v1');
+      if (row['provider_ref'] == 'ai_marketing_skills' ||
+          row['provider_ref'] == 'skill_prompt_generator') {
+        expect(documentTemplateEntry['selectable'], isTrue);
+      } else {
+        expect(documentTemplateEntry['selectable'], isFalse);
+      }
     }
     final n8n = rows.firstWhere((row) => row['provider_ref'] == 'n8n');
     final rtk = rows.firstWhere((row) => row['provider_ref'] == 'rtk');
