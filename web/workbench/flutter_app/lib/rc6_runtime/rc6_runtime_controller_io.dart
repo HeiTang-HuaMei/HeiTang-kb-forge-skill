@@ -12511,11 +12511,21 @@ class Rc6RuntimeController extends ChangeNotifier {
       matrixPath: matrixPath,
       contractsPath: contractsPath,
     );
+    final refreshedMatrixPath =
+        await _refreshRegisteredProviderIntegrationMatrix(
+      workspace,
+      matrixPath: matrixPath,
+      healthEntries: healthEntries,
+      stage2Preflight: stage2Preflight,
+      contractsPath: contractsPath,
+      readinessPath: readinessPath,
+      registrySummaryPath: registrySummaryPath,
+    );
     final healthReport = {
       'schema_version': 'prd_v3_registered_provider_health_report.v1',
       'generated_at': now,
       'workspace_boundary': workspace.path,
-      'matrix_path': matrixPath,
+      'matrix_path': refreshedMatrixPath,
       'provider_adapter_contracts_path':
           _providerAdapterContractsPath(workspace),
       'provider_adapter_readiness_report_path': readinessPath,
@@ -12611,6 +12621,104 @@ class Rc6RuntimeController extends ChangeNotifier {
       'provider_entry_count': healthEntries.length,
       'unique_provider_ref_count': providerRefs.length,
     };
+  }
+
+  Future<String> _refreshRegisteredProviderIntegrationMatrix(
+    Directory workspace, {
+    required String matrixPath,
+    required List<Map<String, dynamic>> healthEntries,
+    required Map<String, dynamic> stage2Preflight,
+    required String contractsPath,
+    required String readinessPath,
+    required String registrySummaryPath,
+  }) async {
+    final matrix = await _readJsonObject(matrixPath);
+    final healthByKey = {
+      for (final entry in healthEntries)
+        '${_stringValue(entry['capability_id'], '')}|${_stringValue(entry['provider_ref'], '')}':
+            entry,
+    };
+    final refreshedEntries = _listOfMaps(matrix['provider_entries'])
+        .map((entry) {
+          final key =
+              '${_stringValue(entry['capability_id'], '')}|${_stringValue(entry['provider_ref'], '')}';
+          final health = healthByKey[key];
+          if (health == null) return entry;
+          return {
+            ...entry,
+            'status': _stringValue(health['health_status'], entry['status']),
+            'test_status':
+                _stringValue(health['health_status'], entry['test_status']),
+            'ready_for_user_selection':
+                _boolValue(health['ready_for_user_selection']),
+            'selection_allowed': _boolValue(health['selection_allowed']),
+            'runtime_load_allowed': _boolValue(health['runtime_load_allowed']),
+            'runtime_loaded': _boolValue(health['runtime_loaded']),
+            'blocked_reason_zh':
+                _stringValue(health['blocked_reason_zh'], ''),
+            'stage_2_preflight_status': stage2Preflight['status'],
+            'affected_modules': _listOfStrings(health['affected_modules']),
+            'secret_masked': true,
+          };
+        })
+        .toList(growable: false);
+    final capabilityGroups = <String, List<Map<String, dynamic>>>{};
+    for (final entry in refreshedEntries) {
+      final capabilityId = _stringValue(entry['capability_id'], '');
+      if (capabilityId.isEmpty) continue;
+      capabilityGroups.putIfAbsent(capabilityId, () => []).add(entry);
+    }
+    final refreshedSummaries = capabilityGroups.entries.map((group) {
+      final entries = group.value;
+      final readyCount = entries
+          .where((entry) => entry['ready_for_user_selection'] == true)
+          .length;
+      final statuses = entries
+          .map((entry) => _stringValue(entry['status'], '未配置'))
+          .toSet()
+          .toList(growable: false)
+        ..sort();
+      final first = entries.first;
+      return {
+        'capability_id': group.key,
+        'capability_area': first['capability_area'],
+        'user_visible_name':
+            _providerUserEntry(group.key, _stringValue(group.key, '')),
+        'provider_count': entries.length,
+        'ready_for_user_selection_count': readyCount,
+        'status': readyCount > 0 ? '连接成功' : statuses.firstOrNull ?? '未配置',
+        'fallback_provider': first['fallback_provider'],
+      };
+    }).toList(growable: false)
+      ..sort((a, b) => _stringValue(a['capability_id'], '')
+          .compareTo(_stringValue(b['capability_id'], '')));
+    final readyCount = refreshedEntries
+        .where((entry) => entry['ready_for_user_selection'] == true)
+        .length;
+    final loadedCount = refreshedEntries
+        .where((entry) => entry['runtime_loaded'] == true)
+        .length;
+    final payload = {
+      ...matrix,
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'provider_adapter_contracts_path': contractsPath,
+      'provider_adapter_readiness_report_path': readinessPath,
+      'provider_registry_readiness_summary_path': registrySummaryPath,
+      'stage_2_industrial_preflight': stage2Preflight,
+      'registered_project_boundary': {
+        ..._mapValue(matrix['registered_project_boundary']),
+        'registered_provider_count': refreshedEntries.length,
+        'loaded_project_count': loadedCount,
+        'ready_for_user_selection_count': readyCount,
+        'registered_project_names_visible_to_user': false,
+        'capability_enhancement_only': true,
+      },
+      'capability_summaries': refreshedSummaries,
+      'provider_entries': refreshedEntries,
+      'secret_plaintext_written': false,
+    };
+    await _writeJsonFile(matrixPath, payload);
+    return matrixPath;
   }
 
   Future<String> _writeProviderRuntimeLoadEligibilityManifest(

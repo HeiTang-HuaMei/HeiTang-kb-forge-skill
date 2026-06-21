@@ -231,6 +231,30 @@ void main() {
     expect(n8nProbe['passed'], isTrue);
     expect(n8nProbe['external_runtime_executed'], isFalse);
     expect(n8nProbe['vendor_runtime_loaded'], isFalse);
+    final integrationMatrix = _readJson(
+        '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}registered_provider_integration_matrix.json');
+    final providerHealth = _readJson(
+        '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}registered_provider_health_report.json');
+    expect(
+        (integrationMatrix['registered_project_boundary']
+            as Map)['ready_for_user_selection_count'],
+        providerHealth['ready_for_user_selection_count']);
+    expect(integrationMatrix['provider_adapter_readiness_report_path'],
+        '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}provider_adapter_readiness_report.json');
+    expect(integrationMatrix['provider_registry_readiness_summary_path'],
+        '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}provider_registry_readiness_summary.json');
+    final integrationEntries =
+        (integrationMatrix['provider_entries'] as List).cast<Map>();
+    final integrationN8n = integrationEntries.firstWhere(
+        (entry) =>
+            entry['provider_ref'] == 'n8n' &&
+            entry['capability_id'] == 'workflow_collaboration_export');
+    expect(integrationN8n['status'], '连接成功');
+    expect(integrationN8n['ready_for_user_selection'], isTrue);
+    expect(integrationN8n['runtime_load_allowed'], isFalse);
+    expect(integrationN8n['runtime_loaded'], isFalse);
+    expect(integrationN8n['affected_modules'],
+        containsAll(['agent_workbench', 'artifact_center']));
     final jellyfish = readinessEntry('jellyfish');
     expect(jellyfish['status'], '连接成功');
     expect(jellyfish['ready_for_user_selection'], isTrue);

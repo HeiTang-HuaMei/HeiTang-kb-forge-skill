@@ -626,6 +626,11 @@ Latest Stage 3 Provider downstream binding audit slice:
   Embedding/Vector, Retrieval Validation, Document Generation/Artifact Center
   Exporter, Skill Factory, Agent Workbench model/tool/memory, Agent Workbench
   A2A workflow export, and Audit Center governance.
+- `registered_provider_integration_matrix.json` is now refreshed after
+  Provider readiness probes, so its Provider rows, capability summaries,
+  ready counts, runtime-load flags, affected modules, and source report paths
+  match the current runtime evidence instead of the initial static registry
+  snapshot.
 
 Latest validation for controlled n8n runtime-load slice:
 
