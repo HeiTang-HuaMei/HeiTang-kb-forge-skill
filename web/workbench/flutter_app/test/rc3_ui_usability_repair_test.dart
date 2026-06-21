@@ -142,4 +142,40 @@ void main() {
       expect(tester.takeException(), isNull, reason: label);
     }
   });
+
+  testWidgets('business pages expose natural capability status only',
+      (tester) async {
+    await pumpWorkbench(tester, const Size(1366, 768));
+
+    final expectations = <String, List<String>>{
+      '文档库': ['Parser', 'OCR', '网页导入'],
+      '知识库': ['索引后端', 'Embedding', '向量库'],
+      '文档生成': ['Markdown', 'JSON / CSV', 'DOCX / PDF / PPTX'],
+      'Agent 工作台': ['模型', '短期记忆', '长期记忆', '协作导出'],
+    };
+
+    for (final entry in expectations.entries) {
+      await tester.ensureVisible(find.text(entry.key).first);
+      await tester.tap(find.text(entry.key).first, warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      for (final expected in entry.value) {
+        expect(find.text(expected), findsWidgets,
+            reason: '${entry.key} missing $expected');
+      }
+      for (final forbidden in <String>[
+        '热插拔',
+        'hot-swap',
+        'external project',
+        'n8n',
+        'paddleocr',
+        'qdrant',
+        'provider_ref',
+      ]) {
+        expect(find.textContaining(forbidden), findsNothing,
+            reason: '${entry.key} exposes $forbidden');
+      }
+      expect(tester.takeException(), isNull, reason: entry.key);
+    }
+  });
 }

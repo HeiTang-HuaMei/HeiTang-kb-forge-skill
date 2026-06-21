@@ -237,6 +237,18 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
     final hasSources = stagedSources > 0 || runtime.sourceCount > 0;
     final hasManifest = preparedManifests > 0 || runtime.hasImportedFile;
     final hasRealImport = runtime.hasImportedFile;
+    final capabilityAuditReady = runtime.hasProviderCapabilityUserCatalog;
+    final parserCapabilityStatus = runtime.parseReportPath.isNotEmpty
+        ? (_zh ? '已连接当前解析能力' : 'Current parser connected')
+        : capabilityAuditReady
+            ? (_zh ? '已配置，等待解析' : 'Configured, waiting parse')
+            : (_zh ? '使用本地解析' : 'Using local parser');
+    final ocrCapabilityStatus = capabilityAuditReady
+        ? (_zh ? '按当前配置可切换' : 'Configurable in current profile')
+        : (_zh ? '未配置，图片走本地降级' : 'Not configured, local fallback');
+    final webImportStatus = capabilityAuditReady
+        ? (_zh ? '按网络授权显示' : 'Controlled by network authorization')
+        : (_zh ? '本地资料可用' : 'Local sources available');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -387,6 +399,35 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                             'Retryable on failure',
                             'Parse results'
                           ],
+                    ],
+              ),
+              const SizedBox(height: _DesktopGrid.gutter),
+              _ProductTable(
+                columns: _zh
+                    ? ['能力', '当前状态', '用户可见结果']
+                    : ['Capability', 'Current status', 'User result'],
+                rows: _zh
+                    ? [
+                        ['Parser', parserCapabilityStatus, '解析后进入文档库'],
+                        ['OCR', ocrCapabilityStatus, '图片文本随解析记录留痕'],
+                        ['网页导入', webImportStatus, '关闭时本地导入不受影响'],
+                      ]
+                    : [
+                        [
+                          'Parser',
+                          parserCapabilityStatus,
+                          'Parsed content enters the library'
+                        ],
+                        [
+                          'OCR',
+                          ocrCapabilityStatus,
+                          'Image text is recorded with parsing'
+                        ],
+                        [
+                          'Web import',
+                          webImportStatus,
+                          'Local import remains available when disabled'
+                        ],
                       ],
               ),
             ],

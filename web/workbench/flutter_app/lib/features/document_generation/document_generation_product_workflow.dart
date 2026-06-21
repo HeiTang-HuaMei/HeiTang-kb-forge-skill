@@ -84,6 +84,17 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
             : (zh ? '需要知识库' : 'Needs KB');
     final officeExporterStatus = zh ? '需要导出器配置' : 'Exporter config required';
     final officeExporterDetail = zh ? '在设置启用后可导出' : 'Enable in Settings';
+    final exporterAuditReady = runtime.exporterValidationReportPath.isNotEmpty ||
+        runtime.hasProviderCapabilityUserCatalog;
+    final markdownCapabilityStatus = runtime.hasKnowledgeBase
+        ? (zh ? 'Markdown 可生成' : 'Markdown available')
+        : (zh ? '需要知识库' : 'Needs KB');
+    final structuredExportStatus = runtime.hasMarkdown
+        ? (zh ? 'JSON / CSV 可导出' : 'JSON / CSV available')
+        : (zh ? '生成 Markdown 后可用' : 'Available after Markdown');
+    final officeCapabilityStatus = exporterAuditReady
+        ? officeExporterStatus
+        : (zh ? '未配置，按钮不可执行' : 'Not configured, disabled');
     String statusForOutputFormat(String format) {
       if (format == 'md') return markdownStatus;
       if (format == 'json' || format == 'csv') {
@@ -222,6 +233,9 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                                 outputFormat.toUpperCase(),
                                 statusForOutputFormat(outputFormat)
                               ],
+                              ['Markdown', '默认输出', markdownCapabilityStatus],
+                              ['JSON / CSV', '结构化导出', structuredExportStatus],
+                              ['DOCX / PDF / PPTX', 'Office 导出器', officeCapabilityStatus],
                               [
                                 '引用策略',
                                 _citationStrategyLabel(citationStrategy, zh),
@@ -258,6 +272,21 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                                 'Output format',
                                 outputFormat.toUpperCase(),
                                 statusForOutputFormat(outputFormat)
+                              ],
+                              [
+                                'Markdown',
+                                'Default output',
+                                markdownCapabilityStatus
+                              ],
+                              [
+                                'JSON / CSV',
+                                'Structured export',
+                                structuredExportStatus
+                              ],
+                              [
+                                'DOCX / PDF / PPTX',
+                                'Office exporter',
+                                officeCapabilityStatus
                               ],
                               [
                                 'Citation strategy',

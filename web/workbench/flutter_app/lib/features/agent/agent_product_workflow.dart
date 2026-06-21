@@ -278,6 +278,25 @@ class _AgentWorkspaceProductView extends StatelessWidget {
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
+    final capabilityAuditReady = runtime.hasProviderCapabilityUserCatalog;
+    final modelStatus = capabilityAuditReady
+        ? (zh ? '按当前配置执行' : 'Uses current configuration')
+        : (zh ? '未配置模型时仅本地产物可用' : 'Local artifacts only without model');
+    final memoryStatus = runtime.agentDialogueMemoryWriteStatus.isNotEmpty
+        ? runtime.agentDialogueMemoryWriteStatus
+        : capabilityAuditReady
+            ? (zh ? '按当前配置，可降级本地文件' : 'Configured, local file fallback')
+            : (zh ? '本地文件记忆' : 'Local file memory');
+    final vectorMemoryStatus = runtime.memoryIndexReferencePath.isNotEmpty
+        ? (zh ? '长期记忆索引已生成' : 'Long-term memory index generated')
+        : capabilityAuditReady
+            ? (zh ? '未连接时不影响单 Agent 对话' : 'Dialogue continues without vector memory')
+            : (zh ? '未配置外部向量记忆' : 'External vector memory not configured');
+    final collaborationStatus = runtime.hasA2aSessionManifest
+        ? (zh ? '协作记录已生成' : 'Collaboration recorded')
+        : capabilityAuditReady
+            ? (zh ? '本地 A2A 报告可用' : 'Local A2A report available')
+            : (zh ? '等待创建 Agent' : 'Waiting for Agent');
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 900;
       final setup = _ProductPanel(
@@ -294,6 +313,10 @@ class _AgentWorkspaceProductView extends StatelessWidget {
                 : ['List', 'Purpose', 'Current state'],
             rows: zh
                 ? [
+                    ['模型', '单 Agent / A2A 推理', modelStatus],
+                    ['短期记忆', '对话上下文', memoryStatus],
+                    ['长期记忆', '向量记忆', vectorMemoryStatus],
+                    ['协作导出', '多 Agent / A2A', collaborationStatus],
                     [
                       'Agent 列表',
                       '知识应用统一管理',
@@ -311,6 +334,14 @@ class _AgentWorkspaceProductView extends StatelessWidget {
                     ],
                   ]
                 : [
+                    ['Model', 'Single Agent / A2A reasoning', modelStatus],
+                    ['Short-term memory', 'Dialogue context', memoryStatus],
+                    ['Long-term memory', 'Vector memory', vectorMemoryStatus],
+                    [
+                      'Collaboration export',
+                      'Multi-Agent / A2A',
+                      collaborationStatus
+                    ],
                     [
                       'Agent list',
                       'Knowledge apps managed together',

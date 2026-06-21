@@ -179,6 +179,20 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
         hasKbName &&
         localStorageReady;
     final knowledgeBases = runtime.knowledgeBases;
+    final capabilityAuditReady = runtime.hasProviderCapabilityUserCatalog;
+    final indexBackendStatus = runtime.vectorIndexReferencePath.isNotEmpty
+        ? (zh ? '索引已生成' : 'Index generated')
+        : capabilityAuditReady
+            ? (zh ? '当前配置可用，等待构建' : 'Configured, waiting build')
+            : (zh ? '本地索引可用' : 'Local index available');
+    final embeddingStatus = capabilityAuditReady
+        ? (zh ? '按当前配置写入审计' : 'Audited by current profile')
+        : (zh ? '本地关键词向量降级' : 'Local keyword fallback');
+    final vectorStatus = runtime.vectorIndexReferencePath.isNotEmpty
+        ? (zh ? '已绑定知识库索引' : 'Bound to KB index')
+        : capabilityAuditReady
+            ? (zh ? '未连接时回退本地索引' : 'Falls back to local index')
+            : (zh ? '未配置外部向量库' : 'External vector DB not configured');
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 900;
       final builder = _FillProductPanel(
@@ -273,6 +287,35 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                             storageTarget == 'local'
                                 ? 'Local ready'
                                 : 'Connection test required'
+                          ],
+                        ],
+                ),
+                const SizedBox(height: _DesktopGrid.gutter),
+                _ProductTable(
+                  columns: zh
+                      ? ['能力', '当前状态', '用户可见结果']
+                      : ['Capability', 'Current status', 'User result'],
+                  rows: zh
+                      ? [
+                          ['索引后端', indexBackendStatus, '知识库可构建和更新'],
+                          ['Embedding', embeddingStatus, '维度变化时需要重建知识库'],
+                          ['向量库', vectorStatus, '连接失败不影响本地检索'],
+                        ]
+                      : [
+                          [
+                            'Index backend',
+                            indexBackendStatus,
+                            'KB can be built and updated'
+                          ],
+                          [
+                            'Embedding',
+                            embeddingStatus,
+                            'Dimension changes require KB rebuild'
+                          ],
+                          [
+                            'Vector DB',
+                            vectorStatus,
+                            'Local retrieval remains available on failure'
                           ],
                         ],
                 ),
