@@ -1954,6 +1954,102 @@ void main() {
         (registrySummary['failure_isolation']
             as Map)['unavailable_provider_blocks_main_chain'],
         isFalse);
+    final fullLoadingMatrixPath =
+        runtimeStatus['stage3_full_provider_loading_matrix_path'] as String;
+    expect(
+        providerHealth['stage3_full_provider_loading_matrix_path'],
+        fullLoadingMatrixPath);
+    final fullLoadingMatrix =
+        jsonDecode(File(fullLoadingMatrixPath).readAsStringSync()) as Map;
+    expect(fullLoadingMatrix['schema_version'],
+        'prd_v3_stage3_full_provider_loading_matrix.v1');
+    expect(fullLoadingMatrix['status'], 'matrix_ready');
+    expect(fullLoadingMatrix['provider_count'], 26);
+    expect(fullLoadingMatrix['target_counts'], {
+      'capability_provider': 19,
+      'template_asset': 6,
+      'architecture_reference': 1,
+    });
+    expect(fullLoadingMatrix['actual_counts'], {
+      'capability_provider': 19,
+      'template_asset': 6,
+      'architecture_reference': 1,
+    });
+    expect(fullLoadingMatrix['normal_ui_project_names_visible'], isFalse);
+    expect(fullLoadingMatrix['hot_swap_project_concept_visible'], isFalse);
+    expect(fullLoadingMatrix['secret_plaintext_written'], isFalse);
+    final fullLoadingRows =
+        (fullLoadingMatrix['rows'] as List).cast<Map<String, dynamic>>();
+    expect(fullLoadingRows, hasLength(26));
+    expect(
+        fullLoadingRows
+            .map((row) => row['provider_ref'])
+            .toSet()
+            .length,
+        26);
+    expect(
+        fullLoadingRows.every((row) =>
+            row.containsKey('loaded_configured') &&
+            row.containsKey('runtime_ready') &&
+            row.containsKey('downstream_bound') &&
+            row.containsKey('fallback_verified') &&
+            row.containsKey('audit_verified') &&
+            row.containsKey('rollback_verified') &&
+            row.containsKey('exe_verified') &&
+            row.containsKey('source_artifacts')),
+        isTrue);
+    for (final row in fullLoadingRows) {
+      final artifacts = row['source_artifacts'] as Map;
+      expect(artifacts['config_schema_path'], providerAdapterContractsPath);
+      expect(artifacts['profile_binding_path'], providerRegistrySummaryPath);
+      expect(artifacts['readiness_report_path'], providerAdapterReadinessPath);
+      expect(artifacts['health_report_path'], providerHealthPath);
+      expect(artifacts['rollback_manifest_path'],
+          runtimeStatus['registered_provider_rollback_manifest_path']);
+      expect(artifacts['audit_log_path'],
+          runtimeStatus['registered_provider_activation_log_path']);
+      expect(artifacts['exe_preflight_path'], isA<String>());
+    }
+    expect(
+        fullLoadingRows.every(
+            (row) => row['normal_ui_project_name_visible'] == false),
+        isTrue);
+    expect(
+        fullLoadingRows.every(
+            (row) => row['hot_swap_project_concept_visible'] == false),
+        isTrue);
+    expect(
+        fullLoadingRows
+            .every((row) => row['secret_plaintext_written'] == false),
+        isTrue);
+    expect(
+        fullLoadingRows
+            .where((row) => row['registry_entry_class'] == 'capability_provider'),
+        hasLength(19));
+    expect(
+        fullLoadingRows
+            .where((row) => row['registry_entry_class'] == 'template_asset'),
+        hasLength(6));
+    expect(
+        fullLoadingRows.where(
+            (row) => row['registry_entry_class'] == 'architecture_reference'),
+        hasLength(1));
+    final llamaIndexRow = fullLoadingRows
+        .firstWhere((row) => row['provider_ref'] == 'llamaindex');
+    expect(llamaIndexRow['registry_entry_class'], 'architecture_reference');
+    expect(llamaIndexRow['architecture_reference_status'],
+        'absorbed_into_architecture');
+    expect(llamaIndexRow['runtime_loaded'], isFalse);
+    expect(llamaIndexRow['runtime_ready'], isTrue);
+    final fullLoadingTemplateRows = fullLoadingRows
+        .where((row) => row['registry_entry_class'] == 'template_asset')
+        .toList(growable: false);
+    expect(
+        fullLoadingTemplateRows.every((row) =>
+            row['runtime_loaded'] == false &&
+            (row['runtime_load_class'] == 'template_manifest_only' ||
+                row['runtime_load_class'] == 'template_asset_manifest_only')),
+        isTrue);
     final providerRows = (registrySummary['provider_rows'] as List).cast<Map>();
     expect(providerRows, hasLength(26));
     final n8nSummary =

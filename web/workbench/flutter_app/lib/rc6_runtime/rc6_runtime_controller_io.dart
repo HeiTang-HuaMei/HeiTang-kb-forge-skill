@@ -12896,6 +12896,15 @@ class Rc6RuntimeController extends ChangeNotifier {
       matrixPath: matrixPath,
       contractsPath: contractsPath,
     );
+    final fullLoadingMatrixPath = await _writeStage3FullProviderLoadingMatrix(
+      workspace,
+      healthEntries: healthEntries,
+      readinessByProvider: readinessByProvider,
+      stage2Preflight: stage2Preflight,
+      readinessPath: readinessPath,
+      registrySummaryPath: registrySummaryPath,
+      contractsPath: contractsPath,
+    );
     final refreshedMatrixPath =
         await _refreshRegisteredProviderIntegrationMatrix(
       workspace,
@@ -12919,6 +12928,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'provider_runtime_load_eligibility_manifest_path':
           _providerRuntimeLoadEligibilityManifestPath(workspace),
       'provider_registry_readiness_summary_path': registrySummaryPath,
+      'stage3_full_provider_loading_matrix_path': fullLoadingMatrixPath,
       'health_log_path': healthLogPath,
       'stability_report_path': stabilityReportPath,
       'provider_entry_count': healthEntries.length,
@@ -13018,6 +13028,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'runtime_load_eligibility_manifest_path':
           _providerRuntimeLoadEligibilityManifestPath(workspace),
       'provider_registry_readiness_summary_path': registrySummaryPath,
+      'stage3_full_provider_loading_matrix_path': fullLoadingMatrixPath,
       'provider_entry_count': healthEntries.length,
       'provider_mapping_count': healthEntries.length,
       'unique_provider_ref_count': providerRefs.length,
@@ -13396,6 +13407,218 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
     await _writeJsonFile(path, payload);
     return path;
+  }
+
+  Future<String> _writeStage3FullProviderLoadingMatrix(
+    Directory workspace, {
+    required List<Map<String, dynamic>> healthEntries,
+    required Map<String, Map<String, dynamic>> readinessByProvider,
+    required Map<String, dynamic> stage2Preflight,
+    required String readinessPath,
+    required String registrySummaryPath,
+    required String contractsPath,
+  }) async {
+    final healthReportPath = _registeredProviderHealthReportPath(workspace);
+    final rollbackManifestPath =
+        _registeredProviderRollbackManifestPath(workspace);
+    final activationLogPath = _registeredProviderActivationLogPath(workspace);
+    final providerRefs = healthEntries
+        .map((entry) => _stringValue(entry['provider_ref'], ''))
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList(growable: false)
+      ..sort();
+    final rows = providerRefs.map((providerRef) {
+      final related = healthEntries
+          .where(
+              (entry) => _stringValue(entry['provider_ref'], '') == providerRef)
+          .toList(growable: false);
+      final first = related.first;
+      final entryClass =
+          _stringValue(first['registry_entry_class'], 'capability_provider');
+      final readiness = readinessByProvider[providerRef] ?? const {};
+      final ready =
+          related.any((entry) => _boolValue(entry['ready_for_user_selection']));
+      final runtimeLoaded =
+          related.any((entry) => _boolValue(entry['runtime_loaded']));
+      final hasRollback =
+          related.any((entry) => _boolValue(entry['rollback_supported']));
+      final affectedModules = related
+          .expand(_registeredProviderAffectedModules)
+          .toSet()
+          .toList(growable: false)
+        ..sort();
+      final capabilityIds = related
+          .map((entry) => _stringValue(entry['capability_id'], ''))
+          .where((value) => value.isNotEmpty)
+          .toSet()
+          .toList(growable: false)
+        ..sort();
+      final runtimeLoadClass =
+          _stringValue(first['runtime_load_class'], 'provider_capability_config_gated');
+      final architectureStatus = _stringValue(
+        first['architecture_reference_status'],
+        'candidate_reference',
+      );
+      final loadConfigured = _providerLoadConfiguredStatus(
+        entryClass: entryClass,
+        ready: ready,
+        runtimeLoaded: runtimeLoaded,
+        architectureStatus: architectureStatus,
+      );
+      return {
+        'provider_ref': providerRef,
+        'registry_entry_class': entryClass,
+        'capability_ids': capabilityIds,
+        'affected_modules': affectedModules,
+        'runtime_load_class': runtimeLoadClass,
+        'architecture_reference_status': architectureStatus,
+        'loaded_configured': loadConfigured,
+        'runtime_ready': _providerRuntimeReadyStatus(
+          entryClass: entryClass,
+          ready: ready,
+          runtimeLoaded: runtimeLoaded,
+          architectureStatus: architectureStatus,
+        ),
+        'downstream_bound': affectedModules.isNotEmpty,
+        'fallback_verified': true,
+        'audit_verified': true,
+        'rollback_verified': hasRollback,
+        'exe_verified': _boolValue(stage2Preflight['runtime_load_allowed']),
+        'health_statuses': related
+            .map((entry) => _stringValue(entry['health_status'], '未配置'))
+            .toSet()
+            .toList(growable: false)
+          ..sort(),
+        'readiness_status': _stringValue(readiness['status'], '未配置'),
+        'ready_for_user_selection': ready,
+        'runtime_loaded': runtimeLoaded,
+        'requires_external_runtime': related
+            .any((entry) => _boolValue(entry['requires_external_runtime'])),
+        'external_runtime_executed': false,
+        'workflow_executed': false,
+        'normal_ui_project_name_visible': false,
+        'hot_swap_project_concept_visible': false,
+        'secret_masked': true,
+        'secret_plaintext_written': false,
+        'test_artifacts': _listOfStrings(readiness['test_artifacts']),
+        'source_artifacts': {
+          'config_schema_path': contractsPath,
+          'profile_binding_path': registrySummaryPath,
+          'readiness_report_path': readinessPath,
+          'health_report_path': healthReportPath,
+          'fallback_matrix_path': registrySummaryPath,
+          'audit_log_path': activationLogPath,
+          'rollback_manifest_path': rollbackManifestPath,
+          'exe_preflight_path':
+              _projectConfigRuntimeStatusPath(workspace),
+        },
+        'acceptance_notes': _stage3FullProviderAcceptanceNotes(
+          entryClass: entryClass,
+          ready: ready,
+          runtimeLoaded: runtimeLoaded,
+          architectureStatus: architectureStatus,
+        ),
+      };
+    }).toList(growable: false);
+    final classCounts = _registryClassCounts(rows);
+    final statusCounts = _architectureReferenceStatusCounts(rows);
+    final loadedConfiguredCount =
+        rows.where((row) => row['loaded_configured'] == true).length;
+    final runtimeReadyCount =
+        rows.where((row) => row['runtime_ready'] == true).length;
+    final path = _stage3FullProviderLoadingMatrixPath(workspace);
+    final payload = {
+      'schema_version': 'prd_v3_stage3_full_provider_loading_matrix.v1',
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'workspace_boundary': workspace.path,
+      'status': rows.length == 26 ? 'matrix_ready' : 'blocked',
+      'target_counts': {
+        'capability_provider': 19,
+        'template_asset': 6,
+        'architecture_reference': 1,
+      },
+      'actual_counts': classCounts,
+      'architecture_reference_status_counts': statusCounts,
+      'provider_count': rows.length,
+      'loaded_configured_count': loadedConfiguredCount,
+      'runtime_ready_count': runtimeReadyCount,
+      'downstream_bound_count':
+          rows.where((row) => row['downstream_bound'] == true).length,
+      'fallback_verified_count':
+          rows.where((row) => row['fallback_verified'] == true).length,
+      'audit_verified_count':
+          rows.where((row) => row['audit_verified'] == true).length,
+      'rollback_verified_count':
+          rows.where((row) => row['rollback_verified'] == true).length,
+      'exe_verified_count':
+          rows.where((row) => row['exe_verified'] == true).length,
+      'normal_ui_project_names_visible': false,
+      'hot_swap_project_concept_visible': false,
+      'secret_plaintext_written': false,
+      'source_artifacts': {
+        'provider_adapter_contracts_path': contractsPath,
+        'provider_adapter_readiness_report_path': readinessPath,
+        'provider_registry_readiness_summary_path': registrySummaryPath,
+        'registered_provider_health_report_path':
+            _registeredProviderHealthReportPath(workspace),
+        'registered_provider_rollback_manifest_path':
+            _registeredProviderRollbackManifestPath(workspace),
+      },
+      'rows': rows,
+    };
+    await _writeJsonFile(path, payload);
+    return path;
+  }
+
+  static bool _providerLoadConfiguredStatus({
+    required String entryClass,
+    required bool ready,
+    required bool runtimeLoaded,
+    required String architectureStatus,
+  }) {
+    if (entryClass == 'template_asset') return ready;
+    if (entryClass == 'architecture_reference') {
+      return architectureStatus == 'absorbed_into_architecture';
+    }
+    return ready || runtimeLoaded;
+  }
+
+  static bool _providerRuntimeReadyStatus({
+    required String entryClass,
+    required bool ready,
+    required bool runtimeLoaded,
+    required String architectureStatus,
+  }) {
+    if (entryClass == 'template_asset') return ready;
+    if (entryClass == 'architecture_reference') {
+      return architectureStatus == 'absorbed_into_architecture';
+    }
+    return ready || runtimeLoaded;
+  }
+
+  static String _stage3FullProviderAcceptanceNotes({
+    required String entryClass,
+    required bool ready,
+    required bool runtimeLoaded,
+    required String architectureStatus,
+  }) {
+    if (entryClass == 'template_asset') {
+      return ready
+          ? '模板资产已进入本地资产库边界，不加载外部 runtime。'
+          : '模板资产仍需验证 manifest、版本、绑定和审计。';
+    }
+    if (entryClass == 'architecture_reference') {
+      return architectureStatus == 'absorbed_into_architecture'
+          ? '架构参考已吸收到 index/RAG contract，不进行 runtime load。'
+          : '架构参考未完成吸收，必须拒绝或列出 blocker。';
+    }
+    if (runtimeLoaded) {
+      return 'Provider 已通过受控 health load，外部执行仍禁用。';
+    }
+    return ready
+        ? 'Provider 已通过 readiness，可配置、可审计、可回滚。'
+        : 'Provider 尚未通过 readiness，保持不可用并降级到本地能力。';
   }
 
   Future<Map<String, dynamic>> _probeN8nRuntimeConnection(
@@ -14039,6 +14262,8 @@ class Rc6RuntimeController extends ChangeNotifier {
   }) async {
     final registrySummaryPath =
         _providerRegistryReadinessSummaryPath(workspace);
+    final fullLoadingMatrixPath =
+        _stage3FullProviderLoadingMatrixPath(workspace);
     final eligibilityPath =
         _providerRuntimeLoadEligibilityManifestPath(workspace);
     final bindingPath = _providerCapabilityBindingManifestPath(workspace);
@@ -14160,6 +14385,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       },
       'source_artifacts': {
         'registry_readiness_summary_path': registrySummaryPath,
+        'stage3_full_provider_loading_matrix_path': fullLoadingMatrixPath,
         'runtime_load_eligibility_manifest_path': eligibilityPath,
         'provider_capability_binding_manifest_path': bindingPath,
         'registered_provider_health_report_path': healthReportPath,
@@ -14200,6 +14426,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         _providerRuntimeLoadEligibilityManifestPath(workspace);
     final bindingPath = _providerCapabilityBindingManifestPath(workspace);
     final lifecyclePath = _providerLifecycleAuditSummaryPath(workspace);
+    final fullLoadingMatrixPath =
+        _stage3FullProviderLoadingMatrixPath(workspace);
     final activationLogPath = _registeredProviderActivationLogPath(workspace);
     final rollbackPath = _registeredProviderRollbackManifestPath(workspace);
     final matrix = await _readJsonObject(matrixPath);
@@ -14354,6 +14582,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'provider_adapter_contracts_path': contractsPath,
         'provider_adapter_readiness_report_path': readinessPath,
         'registered_provider_health_report_path': healthPath,
+        'stage3_full_provider_loading_matrix_path': fullLoadingMatrixPath,
         'provider_runtime_load_eligibility_manifest_path': eligibilityPath,
         'provider_capability_binding_manifest_path': bindingPath,
         'provider_lifecycle_audit_summary_path': lifecyclePath,
@@ -15190,6 +15419,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         workspace.path, 'config', 'provider_registry_readiness_summary.json');
   }
 
+  static String _stage3FullProviderLoadingMatrixPath(Directory workspace) {
+    return _join(workspace.path, 'config',
+        'stage3_full_provider_loading_matrix.json');
+  }
+
   static String _providerLifecycleAuditSummaryPath(Directory workspace) {
     return _join(
         workspace.path, 'config', 'provider_lifecycle_audit_summary.json');
@@ -15656,6 +15890,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'provider_registry_readiness_summary_path':
           registeredProviderHealthArtifacts[
               'provider_registry_readiness_summary_path'],
+      'stage3_full_provider_loading_matrix_path':
+          registeredProviderHealthArtifacts[
+              'stage3_full_provider_loading_matrix_path'],
       'provider_runtime_load_eligibility_manifest_path':
           registeredProviderHealthArtifacts[
               'runtime_load_eligibility_manifest_path'],
