@@ -93,6 +93,26 @@ def test_provider_capability_status_is_user_facing_and_not_project_loading():
         "rejected_no_architecture_gain": 0,
         "deferred_with_blocker": 0,
     }
+    assert payload["architecture_reference_resolution_policy"] == {
+        "candidate_reference_allowed": False,
+        "learning_note_only_allowed": False,
+        "indefinite_reference_allowed": False,
+        "absorbed_requires_parallel_architecture_delivery": True,
+        "deferred_requires_named_blocker": True,
+        "rejected_requires_rejection_reason": True,
+    }
+    assert payload["future_reference_resolution_count"] == 7
+    assert payload["future_reference_class_counts"] == {
+        "capability_provider": 0,
+        "template_asset": 1,
+        "architecture_reference": 6,
+    }
+    assert payload["future_reference_status_counts"] == {
+        "candidate_reference": 0,
+        "absorbed_into_architecture": 1,
+        "rejected_no_architecture_gain": 4,
+        "deferred_with_blocker": 2,
+    }
     assert payload["capability_count"] >= 8
     assert payload["ready_for_user_selection_count"] == 0
     labels = [
@@ -162,3 +182,51 @@ def test_provider_capability_status_preserves_dependency_and_audit_boundaries():
             assert provider_state["ready_for_user_selection"] is False
             assert provider_state["audit_event_required"] is True
             assert provider_state["rollback_supported"] is True
+
+
+def test_future_references_are_resolved_not_kept_as_notes():
+    payload = _json("provider_capability_status.json")
+    rows = {
+        entry["project_id"]: entry
+        for entry in payload["future_reference_resolutions"]
+    }
+
+    assert rows["andrej_karpathy_skills"]["architecture_reference_status"] == "absorbed_into_architecture"
+    assert rows["andrej_karpathy_skills"]["registry_entry_class"] == "template_asset"
+    assert rows["andrej_karpathy_skills"]["architecture_delivery_required"] is True
+    assert set(rows["andrej_karpathy_skills"]["absorbed_targets"]) == {
+        "contract",
+        "schema",
+        "runtime_boundary",
+        "ui_information_architecture",
+        "test_gate",
+        "audit_model",
+        "fallback_strategy",
+        "provider_loading_rule",
+    }
+
+    for project_id in ["presenton", "pi_mono"]:
+        row = rows[project_id]
+        assert row["architecture_reference_status"] == "deferred_with_blocker"
+        assert row["blocker"]
+        assert row["rejection_reason"] == ""
+        assert row["runtime_dependency_added"] is False
+        assert row["normal_ui_visible"] is False
+
+    for project_id in [
+        "codegraph",
+        "understand_anything",
+        "nvlabs_longlive",
+        "claude_plugins_official",
+    ]:
+        row = rows[project_id]
+        assert row["architecture_reference_status"] == "rejected_no_architecture_gain"
+        assert row["rejection_reason"]
+        assert row["blocker"] == ""
+        assert row["runtime_dependency_added"] is False
+        assert row["normal_ui_visible"] is False
+
+    for row in rows.values():
+        assert row["learning_note_only"] is False
+        assert row["indefinite_reference_allowed"] is False
+        assert row["architecture_reference_status"] != "candidate_reference"

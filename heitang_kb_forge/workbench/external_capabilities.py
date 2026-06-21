@@ -783,7 +783,10 @@ def make_external_capability_bundle(repo_root: Path | None = None) -> dict[str, 
     gate_report = _workbench_p1_gate_report(registry_payload)
     planned_report = _planned_adapter_status_report(projects)
     provider_report = _provider_boundary_report(projects)
-    provider_status = _provider_capability_status(projects)
+    provider_status = _provider_capability_status(
+        projects,
+        registry.get("future_reference_queue", []),
+    )
 
     return {
         "external_capability_registry.json": registry_payload,
@@ -1348,7 +1351,10 @@ def _provider_boundary_report(projects: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def _provider_capability_status(projects: list[dict[str, Any]]) -> dict[str, Any]:
+def _provider_capability_status(
+    projects: list[dict[str, Any]],
+    future_reference_queue: list[dict[str, Any]],
+) -> dict[str, Any]:
     project_by_id = {project["project_id"]: project for project in projects}
     capabilities = []
     for spec in PROVIDER_CAPABILITY_AREAS:
@@ -1402,6 +1408,9 @@ def _provider_capability_status(projects: list[dict[str, Any]]) -> dict[str, Any
     ready_count = sum(1 for entry in capabilities if entry["ready_for_user_selection"])
     registry_class_counts = _stage3_registry_counts(projects)
     architecture_status_counts = _stage3_architecture_counts(projects)
+    future_reference_resolutions = _future_reference_resolutions(
+        future_reference_queue
+    )
     return {
         "status_id": "provider_capability_status",
         "version": S_A_CONTRACT_INCLUSION_VERSION,
@@ -1428,10 +1437,73 @@ def _provider_capability_status(projects: list[dict[str, Any]]) -> dict[str, Any
         },
         "registry_entry_class_counts": registry_class_counts,
         "architecture_reference_status_counts": architecture_status_counts,
+        "architecture_reference_resolution_policy": {
+            "candidate_reference_allowed": False,
+            "learning_note_only_allowed": False,
+            "indefinite_reference_allowed": False,
+            "absorbed_requires_parallel_architecture_delivery": True,
+            "deferred_requires_named_blocker": True,
+            "rejected_requires_rejection_reason": True,
+        },
+        "future_reference_resolution_count": len(future_reference_resolutions),
+        "future_reference_class_counts": _stage3_registry_counts(
+            future_reference_resolutions
+        ),
+        "future_reference_status_counts": _stage3_architecture_counts(
+            future_reference_resolutions
+        ),
+        "future_reference_resolutions": future_reference_resolutions,
         "indefinite_reference_state_allowed": False,
         "legacy_reference_only_contracts_are_trace_only": True,
         "capabilities": capabilities,
     }
+
+
+def _future_reference_resolutions(queue: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows = []
+    for item in sorted(queue, key=lambda row: row.get("project_id", "")):
+        absorption = item.get("architecture_absorption", {})
+        status = item.get("architecture_reference_status", item.get("status", ""))
+        rows.append(
+            {
+                "project_id": item.get("project_id", ""),
+                "project_name": item.get("project_name", ""),
+                "legacy_status": item.get("legacy_status", ""),
+                "stage3_current_classification": item.get(
+                    "stage3_current_classification", ""
+                ),
+                "registry_entry_class": item.get("registry_entry_class", ""),
+                "architecture_reference_status": status,
+                "runtime_load_class": item.get("runtime_load_class", ""),
+                "worth_absorbing": bool(absorption.get("worth_absorbing")),
+                "architecture_delivery_required": bool(
+                    absorption.get("architecture_delivery_required")
+                ),
+                "learning_note_only": bool(absorption.get("learning_note_only")),
+                "indefinite_reference_allowed": bool(
+                    absorption.get("indefinite_reference_allowed")
+                ),
+                "absorbed_targets": list(absorption.get("absorbed_targets", [])),
+                "blocker": absorption.get("blocker", ""),
+                "rejection_reason": absorption.get("rejection_reason", ""),
+                "runtime_dependency_added": bool(
+                    item.get("runtime_dependency_added", False)
+                ),
+                "normal_ui_visible": False,
+                "product_behavior": _future_reference_product_behavior(status),
+            }
+        )
+    return rows
+
+
+def _future_reference_product_behavior(status: str) -> str:
+    if status == "absorbed_into_architecture":
+        return "architecture_rule_absorbed_no_runtime"
+    if status == "deferred_with_blocker":
+        return "blocked_until_named_evidence_exists"
+    if status == "rejected_no_architecture_gain":
+        return "not_retained_as_product_capability"
+    return "invalid_unresolved_reference"
 
 
 def _provider_project_state(project: dict[str, Any]) -> dict[str, Any]:
@@ -1668,10 +1740,38 @@ def _render_provider_capability_status_md(payload: dict[str, Any]) -> str:
         f"- Indefinite reference state allowed: {str(payload['indefinite_reference_state_allowed']).lower()}",
         f"- Registry classes: {payload['registry_entry_class_counts']}",
         f"- Architecture reference statuses: {payload['architecture_reference_status_counts']}",
+        f"- Future reference resolutions: {payload['future_reference_status_counts']}",
         "",
+        "## Future Reference Resolution Policy",
+        "",
+        "| Rule | Required |",
+        "| --- | --- |",
+        "| Candidate reference allowed | false |",
+        "| Learning-note-only allowed | false |",
+        "| Indefinite reference allowed | false |",
+        "| Absorbed reference requires parallel architecture delivery | true |",
+        "| Deferred reference requires named blocker | true |",
+        "| Rejected reference requires rejection reason | true |",
+        "",
+        "| Project | Class | Resolution | Product behavior |",
+        "| --- | --- | --- | --- |",
+    ]
+    lines.extend(
+        "| {project} | {entry_class} | {status} | {behavior} |".format(
+            project=entry["project_name"],
+            entry_class=entry["registry_entry_class"],
+            status=entry["architecture_reference_status"],
+            behavior=entry["product_behavior"],
+        )
+        for entry in payload["future_reference_resolutions"]
+    )
+    lines.extend(
+        [
+            "",
         "| Capability | Area | Status | User behavior | Ready |",
         "| --- | --- | --- | --- | --- |",
-    ]
+        ]
+    )
     lines.extend(
         "| {name} | {area} | {status} | {behavior} | {ready} |".format(
             name=entry["user_visible_name"],
