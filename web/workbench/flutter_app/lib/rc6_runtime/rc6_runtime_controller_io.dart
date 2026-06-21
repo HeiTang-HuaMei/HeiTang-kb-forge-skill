@@ -12905,6 +12905,16 @@ class Rc6RuntimeController extends ChangeNotifier {
       registrySummaryPath: registrySummaryPath,
       contractsPath: contractsPath,
     );
+    final industrialProviderLoadingReportPath =
+        await _writeStage3IndustrialProviderLoadingReport(
+      workspace,
+      healthEntries: healthEntries,
+      stage2Preflight: stage2Preflight,
+      readinessPath: readinessPath,
+      registrySummaryPath: registrySummaryPath,
+      contractsPath: contractsPath,
+      fullLoadingMatrixPath: fullLoadingMatrixPath,
+    );
     final refreshedMatrixPath =
         await _refreshRegisteredProviderIntegrationMatrix(
       workspace,
@@ -12929,6 +12939,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           _providerRuntimeLoadEligibilityManifestPath(workspace),
       'provider_registry_readiness_summary_path': registrySummaryPath,
       'stage3_full_provider_loading_matrix_path': fullLoadingMatrixPath,
+      'stage3_industrial_provider_loading_report_path':
+          industrialProviderLoadingReportPath,
       'health_log_path': healthLogPath,
       'stability_report_path': stabilityReportPath,
       'provider_entry_count': healthEntries.length,
@@ -13029,6 +13041,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           _providerRuntimeLoadEligibilityManifestPath(workspace),
       'provider_registry_readiness_summary_path': registrySummaryPath,
       'stage3_full_provider_loading_matrix_path': fullLoadingMatrixPath,
+      'stage3_industrial_provider_loading_report_path':
+          industrialProviderLoadingReportPath,
       'provider_entry_count': healthEntries.length,
       'provider_mapping_count': healthEntries.length,
       'unique_provider_ref_count': providerRefs.length,
@@ -13454,8 +13468,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           .toSet()
           .toList(growable: false)
         ..sort();
-      final runtimeLoadClass =
-          _stringValue(first['runtime_load_class'], 'provider_capability_config_gated');
+      final runtimeLoadClass = _stringValue(
+          first['runtime_load_class'], 'provider_capability_config_gated');
       final architectureStatus = _stringValue(
         first['architecture_reference_status'],
         'candidate_reference',
@@ -13510,8 +13524,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           'fallback_matrix_path': registrySummaryPath,
           'audit_log_path': activationLogPath,
           'rollback_manifest_path': rollbackManifestPath,
-          'exe_preflight_path':
-              _projectConfigRuntimeStatusPath(workspace),
+          'exe_preflight_path': _projectConfigRuntimeStatusPath(workspace),
         },
         'acceptance_notes': _stage3FullProviderAcceptanceNotes(
           entryClass: entryClass,
@@ -13571,6 +13584,163 @@ class Rc6RuntimeController extends ChangeNotifier {
     return path;
   }
 
+  Future<String> _writeStage3IndustrialProviderLoadingReport(
+    Directory workspace, {
+    required List<Map<String, dynamic>> healthEntries,
+    required Map<String, dynamic> stage2Preflight,
+    required String readinessPath,
+    required String registrySummaryPath,
+    required String contractsPath,
+    required String fullLoadingMatrixPath,
+  }) async {
+    final providerRefs = healthEntries
+        .map((entry) => _stringValue(entry['provider_ref'], ''))
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList(growable: false)
+      ..sort();
+    final decisions = providerRefs.map((providerRef) {
+      final related = healthEntries
+          .where(
+              (entry) => _stringValue(entry['provider_ref'], '') == providerRef)
+          .toList(growable: false);
+      final first = related.first;
+      final entryClass =
+          _stringValue(first['registry_entry_class'], 'capability_provider');
+      final architectureStatus = _stringValue(
+        first['architecture_reference_status'],
+        'candidate_reference',
+      );
+      final absorption = _mapValue(first['architecture_absorption']);
+      final templateContract = _mapValue(first['template_asset_contract']);
+      final ready =
+          related.any((entry) => _boolValue(entry['ready_for_user_selection']));
+      final runtimeLoaded =
+          related.any((entry) => _boolValue(entry['runtime_loaded']));
+      final capabilityIds = related
+          .map((entry) => _stringValue(entry['capability_id'], ''))
+          .where((value) => value.isNotEmpty)
+          .toSet()
+          .toList(growable: false)
+        ..sort();
+      final affectedModules = related
+          .expand(_registeredProviderAffectedModules)
+          .toSet()
+          .toList(growable: false)
+        ..sort();
+      return {
+        'provider_ref': providerRef,
+        'registry_entry_class': entryClass,
+        'capability_ids': capabilityIds,
+        'affected_modules': affectedModules,
+        'architecture_reference_status': architectureStatus,
+        'stage3_decision': entryClass == 'architecture_reference'
+            ? architectureStatus
+            : entryClass,
+        'worthiness_criteria': _stage3WorthinessCriteria(
+          entryClass: entryClass,
+          capabilityIds: capabilityIds,
+          architectureStatus: architectureStatus,
+        ),
+        'must_absorb_now': entryClass == 'architecture_reference' &&
+            architectureStatus == 'absorbed_into_architecture',
+        'must_reject_when_no_gain': entryClass == 'architecture_reference' &&
+            architectureStatus == 'rejected_no_architecture_gain',
+        'deferred_requires_blocker': entryClass == 'architecture_reference' &&
+            architectureStatus == 'deferred_with_blocker',
+        'blocker': _stringValue(absorption['blocker'], ''),
+        'rejection_reason': _stringValue(absorption['rejection_reason'], ''),
+        'architecture_absorption': absorption,
+        'template_asset_contract': templateContract,
+        'parallel_delivery': entryClass == 'architecture_reference'
+            ? _stage3ArchitectureParallelDelivery(
+                absorption,
+                capabilityIds,
+                entryClass,
+              )
+            : _stage3ProviderParallelDelivery(entryClass),
+        'learning_note_only': false,
+        'reference_only_allowed': false,
+        'indefinite_reference_allowed': false,
+        'normal_ui_project_name_visible': false,
+        'hot_swap_project_concept_visible': false,
+        'runtime_loaded': runtimeLoaded,
+        'runtime_load_class': first['runtime_load_class'],
+        'ready_for_user_selection': ready,
+        'external_runtime_executed': false,
+        'workflow_executed': false,
+        'secret_masked': true,
+        'secret_plaintext_written': false,
+        'acceptance_state': _stage3IndustrialDecisionAccepted(
+          entryClass: entryClass,
+          architectureStatus: architectureStatus,
+          absorption: absorption,
+          templateContract: templateContract,
+          ready: ready,
+        )
+            ? 'accepted'
+            : 'blocked',
+      };
+    }).toList(growable: false);
+    final failedDecisions = decisions
+        .where((entry) => entry['acceptance_state'] != 'accepted')
+        .toList(growable: false);
+    final architectureDecisions = decisions
+        .where((entry) =>
+            entry['registry_entry_class'] == 'architecture_reference')
+        .toList(growable: false);
+    final registryClassCounts = _registryClassCounts(healthEntries);
+    final providerRegistryClassCounts = _registryClassCounts(decisions);
+    final architectureReferenceCounts =
+        _architectureReferenceStatusCounts(healthEntries);
+    final providerArchitectureReferenceCounts =
+        _architectureReferenceStatusCounts(decisions);
+    final path = _stage3IndustrialProviderLoadingReportPath(workspace);
+    final payload = {
+      'schema_version': 'prd_v3_stage3_industrial_provider_loading_report.v1',
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'workspace_boundary': workspace.path,
+      'status': failedDecisions.isEmpty ? 'passed' : 'blocked',
+      'provider_ref_count': decisions.length,
+      'provider_mapping_count': healthEntries.length,
+      'registry_class_counts': providerRegistryClassCounts,
+      'provider_mapping_class_counts': registryClassCounts,
+      'architecture_reference_status_counts':
+          providerArchitectureReferenceCounts,
+      'provider_mapping_architecture_reference_status_counts':
+          architectureReferenceCounts,
+      'stage_2_industrial_preflight': stage2Preflight,
+      'classification_policy': {
+        'candidate_reference_allowed_as_final_state': false,
+        'reference_only_allowed_as_final_state': false,
+        'learning_note_only_accepted': false,
+        'absorbed_references_require_parallel_architecture_delivery': true,
+        'rejected_references_require_reason': true,
+        'deferred_references_require_named_blocker': true,
+        'ordinary_users_see_capability_enhancement_not_external_project': true,
+      },
+      'source_artifacts': {
+        'provider_adapter_contracts_path': contractsPath,
+        'provider_adapter_readiness_report_path': readinessPath,
+        'provider_registry_readiness_summary_path': registrySummaryPath,
+        'stage3_full_provider_loading_matrix_path': fullLoadingMatrixPath,
+        'registered_provider_health_report_path':
+            _registeredProviderHealthReportPath(workspace),
+        'registered_provider_rollback_manifest_path':
+            _registeredProviderRollbackManifestPath(workspace),
+        'exe_preflight_path': _projectConfigRuntimeStatusPath(workspace),
+      },
+      'architecture_reference_decisions': architectureDecisions,
+      'provider_decisions': decisions,
+      'failed_decisions': failedDecisions,
+      'normal_ui_project_names_visible': false,
+      'hot_swap_project_concept_visible': false,
+      'secret_plaintext_written': false,
+    };
+    await _writeJsonFile(path, payload);
+    return path;
+  }
+
   static bool _providerLoadConfiguredStatus({
     required String entryClass,
     required bool ready,
@@ -13619,6 +13789,124 @@ class Rc6RuntimeController extends ChangeNotifier {
     return ready
         ? 'Provider 已通过 readiness，可配置、可审计、可回滚。'
         : 'Provider 尚未通过 readiness，保持不可用并降级到本地能力。';
+  }
+
+  static List<String> _stage3WorthinessCriteria({
+    required String entryClass,
+    required List<String> capabilityIds,
+    required String architectureStatus,
+  }) {
+    if (entryClass == 'template_asset') {
+      return const [
+        'improves_skill_agent_template_reuse',
+        'adds_versioned_asset_boundary',
+      ];
+    }
+    if (entryClass == 'architecture_reference') {
+      return architectureStatus == 'rejected_no_architecture_gain'
+          ? const <String>[]
+          : const [
+              'improves_provider_rag_agent_or_a2a_abstraction',
+              'strengthens_contract_schema_audit_or_fallback',
+            ];
+    }
+    final criteria = <String>{
+      'enhances_main_product_chain_capability',
+      'supports_configuration_health_audit_and_rollback',
+    };
+    if (capabilityIds
+        .any((id) => id.contains('knowledge') || id.contains('retrieval'))) {
+      criteria.add('improves_rag_index_or_retrieval_quality');
+    }
+    if (capabilityIds
+        .any((id) => id.contains('agent') || id.contains('workflow'))) {
+      criteria.add('improves_agent_a2a_or_tool_boundary');
+    }
+    return criteria.toList(growable: false)..sort();
+  }
+
+  static Map<String, dynamic> _stage3ProviderParallelDelivery(
+    String entryClass,
+  ) {
+    if (entryClass == 'template_asset') {
+      return const {
+        'template_manifest': true,
+        'source_version_validation': true,
+        'skill_agent_binding_boundary': true,
+        'audit_model': true,
+        'runtime_load_required': false,
+      };
+    }
+    return const {
+      'provider_contract': true,
+      'config_schema': true,
+      'runtime_boundary': true,
+      'health_check_gate': true,
+      'audit_model': true,
+      'fallback_or_degradation': true,
+      'rollback_rule': true,
+    };
+  }
+
+  static Map<String, dynamic> _stage3ArchitectureParallelDelivery(
+    Map<String, dynamic> absorption,
+    List<String> capabilityIds,
+    String entryClass,
+  ) {
+    final source = Map<String, dynamic>.from(
+        _mapValue(absorption['parallel_architecture_delivery']));
+    final targets = _listOfStrings(absorption['absorbed_targets']);
+    final derived = targets.isEmpty
+        ? const <String, dynamic>{}
+        : _parallelArchitectureDelivery(
+            capabilityIds.isEmpty ? '' : capabilityIds.first,
+            entryClass,
+            targets,
+          );
+    bool mergedBool(String key) =>
+        _boolValue(source[key]) || _boolValue(derived[key]);
+    return {
+      ...derived,
+      ...source,
+      'contract': mergedBool('contract'),
+      'schema': mergedBool('schema'),
+      'runtime_boundary': mergedBool('runtime_boundary'),
+      'ui_information_architecture': mergedBool('ui_information_architecture'),
+      'test_gate': mergedBool('test_gate'),
+      'audit_model': mergedBool('audit_model'),
+      'fallback_or_degradation': mergedBool('fallback_or_degradation'),
+      'provider_loading_rule': mergedBool('provider_loading_rule'),
+    };
+  }
+
+  static bool _stage3IndustrialDecisionAccepted({
+    required String entryClass,
+    required String architectureStatus,
+    required Map<String, dynamic> absorption,
+    required Map<String, dynamic> templateContract,
+    required bool ready,
+  }) {
+    if (entryClass == 'template_asset') {
+      return ready &&
+          _boolValue(templateContract['asset_manifest_required']) &&
+          _boolValue(templateContract['version_required']) &&
+          _boolValue(templateContract['validation_required']) &&
+          _boolValue(templateContract['runtime_load_required']) == false;
+    }
+    if (entryClass != 'architecture_reference') {
+      return ready;
+    }
+    return switch (architectureStatus) {
+      'absorbed_into_architecture' => _architectureAbsorptionDecisionValid({
+          'architecture_reference_status': architectureStatus,
+          'architecture_absorption': absorption,
+        }),
+      'rejected_no_architecture_gain' =>
+        _stringValue(absorption['rejection_reason'], '').isNotEmpty,
+      'deferred_with_blocker' =>
+        _stringValue(absorption['blocker'], '').isNotEmpty,
+      _ => false,
+    };
   }
 
   Future<Map<String, dynamic>> _probeN8nRuntimeConnection(
@@ -15420,8 +15708,14 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   static String _stage3FullProviderLoadingMatrixPath(Directory workspace) {
+    return _join(
+        workspace.path, 'config', 'stage3_full_provider_loading_matrix.json');
+  }
+
+  static String _stage3IndustrialProviderLoadingReportPath(
+      Directory workspace) {
     return _join(workspace.path, 'config',
-        'stage3_full_provider_loading_matrix.json');
+        'stage3_industrial_provider_loading_report.json');
   }
 
   static String _providerLifecycleAuditSummaryPath(Directory workspace) {
@@ -15893,6 +16187,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'stage3_full_provider_loading_matrix_path':
           registeredProviderHealthArtifacts[
               'stage3_full_provider_loading_matrix_path'],
+      'stage3_industrial_provider_loading_report_path':
+          registeredProviderHealthArtifacts[
+              'stage3_industrial_provider_loading_report_path'],
       'provider_runtime_load_eligibility_manifest_path':
           registeredProviderHealthArtifacts[
               'runtime_load_eligibility_manifest_path'],

@@ -3076,10 +3076,10 @@ void main() {
         readinessEntries
             .where((entry) => entry['provider_ref'] != 'llamaindex')
             .every((entry) =>
-            entry['status'] == '连接成功' &&
-            entry['ready_for_user_selection'] == true &&
-            entry['secret_masked'] == true &&
-            (entry['test_artifacts'] as List).isNotEmpty),
+                entry['status'] == '连接成功' &&
+                entry['ready_for_user_selection'] == true &&
+                entry['secret_masked'] == true &&
+                (entry['test_artifacts'] as List).isNotEmpty),
         isTrue);
     final llamaindexReadiness = readinessEntries
         .firstWhere((entry) => entry['provider_ref'] == 'llamaindex');
@@ -3162,6 +3162,37 @@ void main() {
     expect(fullMatrix['hot_swap_project_concept_visible'], isFalse);
     expect(fullMatrix['secret_plaintext_written'], isFalse);
 
+    final industrialReport = jsonDecode(File(
+            runtimeStatus['stage3_industrial_provider_loading_report_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(industrialReport['schema_version'],
+        'prd_v3_stage3_industrial_provider_loading_report.v1');
+    expect(industrialReport['status'], 'passed');
+    expect(industrialReport['provider_ref_count'], 26);
+    expect(industrialReport['provider_mapping_count'], 29);
+    expect(industrialReport['registry_class_counts'], {
+      'capability_provider': 19,
+      'template_asset': 6,
+      'architecture_reference': 1,
+    });
+    final classificationPolicy =
+        industrialReport['classification_policy'] as Map<String, dynamic>;
+    expect(
+        classificationPolicy['reference_only_allowed_as_final_state'], isFalse);
+    expect(classificationPolicy['learning_note_only_accepted'], isFalse);
+    expect(
+        classificationPolicy[
+            'absorbed_references_require_parallel_architecture_delivery'],
+        isTrue);
+    expect(classificationPolicy['rejected_references_require_reason'], isTrue);
+    expect(classificationPolicy['deferred_references_require_named_blocker'],
+        isTrue);
+    expect(industrialReport['normal_ui_project_names_visible'], isFalse);
+    expect(industrialReport['hot_swap_project_concept_visible'], isFalse);
+    expect(industrialReport['secret_plaintext_written'], isFalse);
+    expect(industrialReport['failed_decisions'], isEmpty);
+
     final rows = (fullMatrix['rows'] as List).cast<Map<String, dynamic>>();
     expect(rows, hasLength(26));
     expect(rows.map((row) => row['provider_ref']).toSet(),
@@ -3203,6 +3234,46 @@ void main() {
         'architecture_reference_no_runtime');
     expect((llamaindex['acceptance_notes'] as String),
         contains('index/RAG contract'));
+    final industrialDecisions = (industrialReport['provider_decisions'] as List)
+        .cast<Map<String, dynamic>>();
+    expect(industrialDecisions, hasLength(26));
+    expect(industrialDecisions.map((row) => row['provider_ref']).toSet(),
+        expectedProviderRefs);
+    expect(
+        industrialDecisions.every((row) =>
+            row['learning_note_only'] == false &&
+            row['reference_only_allowed'] == false &&
+            row['indefinite_reference_allowed'] == false &&
+            row['normal_ui_project_name_visible'] == false &&
+            row['hot_swap_project_concept_visible'] == false &&
+            row['external_runtime_executed'] == false &&
+            row['workflow_executed'] == false &&
+            row['secret_plaintext_written'] == false &&
+            row['acceptance_state'] == 'accepted'),
+        isTrue);
+    final architectureDecisions =
+        (industrialReport['architecture_reference_decisions'] as List)
+            .cast<Map<String, dynamic>>();
+    expect(architectureDecisions, hasLength(1));
+    final llamaindexDecision = architectureDecisions.single;
+    expect(llamaindexDecision['provider_ref'], 'llamaindex');
+    expect(llamaindexDecision['stage3_decision'], 'absorbed_into_architecture');
+    expect(llamaindexDecision['must_absorb_now'], isTrue);
+    expect(llamaindexDecision['must_reject_when_no_gain'], isFalse);
+    expect(llamaindexDecision['deferred_requires_blocker'], isFalse);
+    expect(llamaindexDecision['blocker'], '');
+    expect(llamaindexDecision['rejection_reason'], '');
+    expect(llamaindexDecision['worthiness_criteria'],
+        contains('improves_provider_rag_agent_or_a2a_abstraction'));
+    final llamaindexDelivery =
+        llamaindexDecision['parallel_delivery'] as Map<String, dynamic>;
+    expect(llamaindexDelivery['contract'], isTrue);
+    expect(llamaindexDelivery['schema'], isTrue);
+    expect(llamaindexDelivery['runtime_boundary'], isTrue);
+    expect(llamaindexDelivery['ui_information_architecture'], isTrue);
+    expect(llamaindexDelivery['test_gate'], isTrue);
+    expect(llamaindexDelivery['audit_model'], isTrue);
+    expect(llamaindexDelivery['fallback_or_degradation'], isTrue);
 
     final templateRows = rows
         .where((row) => row['registry_entry_class'] == 'template_asset')
