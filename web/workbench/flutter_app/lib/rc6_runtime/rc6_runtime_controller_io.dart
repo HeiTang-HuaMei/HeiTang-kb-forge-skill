@@ -16428,12 +16428,24 @@ class Rc6RuntimeController extends ChangeNotifier {
         ),
       _ => <String>[],
     };
+    final worthAbsorbing =
+        status == 'absorbed_into_architecture' ||
+        status == 'deferred_with_blocker';
     return {
       'status': status,
       'decision_source': 'stage3_architecture_absorption_gate',
+      'worth_absorbing': worthAbsorbing,
+      'absorption_required_now': status == 'absorbed_into_architecture',
       'learning_note_only': false,
       'indefinite_reference_allowed': false,
       'absorbed_targets': absorbedTargets,
+      'parallel_architecture_delivery': status == 'absorbed_into_architecture'
+          ? _parallelArchitectureDelivery(
+              capabilityId,
+              entryClass,
+              absorbedTargets,
+            )
+          : const <String, dynamic>{},
       'blocker': status == 'deferred_with_blocker'
           ? _architectureReferenceBlocker(providerRef, provider)
           : '',
@@ -16466,19 +16478,53 @@ class Rc6RuntimeController extends ChangeNotifier {
     return switch (status) {
       'absorbed_into_architecture' =>
         _boolValue(absorption['architecture_delivery_required']) &&
+            _boolValue(absorption['worth_absorbing']) &&
+            _boolValue(absorption['absorption_required_now']) &&
             absorbedTargets.isNotEmpty &&
+            _mapValue(absorption['parallel_architecture_delivery'])
+                .isNotEmpty &&
             blocker.isEmpty &&
             rejectionReason.isEmpty,
       'deferred_with_blocker' =>
         !_boolValue(absorption['architecture_delivery_required']) &&
+            _boolValue(absorption['worth_absorbing']) &&
+            !_boolValue(absorption['absorption_required_now']) &&
             absorbedTargets.isEmpty &&
+            _mapValue(absorption['parallel_architecture_delivery']).isEmpty &&
             blocker.isNotEmpty &&
             rejectionReason.isEmpty,
       'rejected_no_architecture_gain' =>
         !_boolValue(absorption['architecture_delivery_required']) &&
+            !_boolValue(absorption['worth_absorbing']) &&
+            !_boolValue(absorption['absorption_required_now']) &&
             absorbedTargets.isEmpty &&
+            _mapValue(absorption['parallel_architecture_delivery']).isEmpty &&
             rejectionReason.isNotEmpty,
       _ => false,
+    };
+  }
+
+  static Map<String, dynamic> _parallelArchitectureDelivery(
+    String capabilityId,
+    String entryClass,
+    List<String> absorbedTargets,
+  ) {
+    if (absorbedTargets.isEmpty) {
+      return const <String, dynamic>{};
+    }
+    return {
+      'contract': absorbedTargets.any((target) => target.contains('contract')),
+      'schema': absorbedTargets.any((target) =>
+          target.contains('schema') || target == 'template_manifest'),
+      'runtime_boundary': true,
+      'ui_information_architecture': true,
+      'test_gate': absorbedTargets.any((target) =>
+          target.contains('gate') || target == 'source_version_validation'),
+      'audit_model': absorbedTargets.any((target) => target.contains('audit')),
+      'fallback_or_degradation': absorbedTargets.any((target) =>
+          target.contains('fallback') || target.contains('rollback')),
+      'provider_classification': entryClass,
+      'capability_id': capabilityId,
     };
   }
 

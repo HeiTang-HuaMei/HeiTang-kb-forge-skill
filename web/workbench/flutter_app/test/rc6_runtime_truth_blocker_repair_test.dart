@@ -2037,20 +2037,39 @@ void main() {
       expect(absorption['indefinite_reference_allowed'], isFalse);
       expect(status, isNot(anyOf('reference_only', 'needs_verification')));
       if (status == 'absorbed_into_architecture') {
+        expect(absorption['worth_absorbing'], isTrue);
+        expect(absorption['absorption_required_now'], isTrue);
         expect(absorption['architecture_delivery_required'], isTrue);
         expect(absorption['absorbed_targets'] as List, isNotEmpty);
+        final delivery =
+            absorption['parallel_architecture_delivery'] as Map;
+        expect(delivery['runtime_boundary'], isTrue);
+        expect(delivery['ui_information_architecture'], isTrue);
+        expect(delivery['capability_id'], row['capability_id']);
+        expect(delivery['provider_classification'],
+            row['registry_entry_class']);
         expect(absorption['blocker'], '');
         expect(absorption['rejection_reason'], '');
       } else if (status == 'deferred_with_blocker') {
+        expect(absorption['worth_absorbing'], isTrue);
+        expect(absorption['absorption_required_now'], isFalse);
         expect(absorption['blocker'] as String, isNotEmpty);
         expect(absorption['absorbed_targets'] as List, isEmpty);
+        expect(absorption['parallel_architecture_delivery'] as Map, isEmpty);
       } else if (status == 'rejected_no_architecture_gain') {
+        expect(absorption['worth_absorbing'], isFalse);
+        expect(absorption['absorption_required_now'], isFalse);
         expect(absorption['rejection_reason'] as String, isNotEmpty);
         expect(absorption['absorbed_targets'] as List, isEmpty);
+        expect(absorption['parallel_architecture_delivery'] as Map, isEmpty);
       } else {
         fail('Unexpected architecture reference status: $status');
       }
     }
+    final sourceRegistryPath =
+        '${Directory.current.path}${Platform.pathSeparator}assets${Platform.pathSeparator}external${Platform.pathSeparator}provider_capability_status.json';
+    final sourceRegistryRaw = File(sourceRegistryPath).readAsStringSync();
+    expect(sourceRegistryRaw, isNot(contains('"reference_only"')));
     final n8nCoverage = coverageRows.firstWhere((row) =>
         row['provider_ref'] == 'n8n' &&
         row['capability_id'] == 'workflow_collaboration_export');

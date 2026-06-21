@@ -32,12 +32,12 @@ Registered projects are split before they can affect product behavior:
 
 Architecture reference statuses are now explicit:
 
-- `absorbed_into_architecture`: reference has been converted into Provider contracts, schema, UI information architecture boundary, test gate, audit model, fallback/degradation rule, or loading rule. It is not accepted as a learning note only.
+- `absorbed_into_architecture`: reference has been converted into Provider contracts, schema, UI information architecture boundary, test gate, audit model, fallback/degradation rule, or loading rule. It is not accepted as a learning note only, and the runtime absorption record must include `parallel_architecture_delivery`.
 - `deferred_with_blocker`: reference may be valuable but cannot yet be absorbed because a named blocker remains, such as external runtime proof, retrieval evaluation evidence, network authorization, or permission boundary proof.
 - `rejected_no_architecture_gain`: reference is not retained when it does not improve the v3 main chain or is covered by existing abstractions.
 - `candidate_reference`: must remain `0` in current Stage3 runtime reports. It is not a long-term holding state.
 
-`reference_only` is not a final runtime classification. Older source asset labels can still exist as historical input metadata, but generated runtime reports must emit one of the statuses above.
+`reference_only` is not a current source or runtime classification. Registered projects must resolve to Provider capability, template asset, absorbed architecture reference, rejected reference, or deferred reference with a named blocker.
 
 ## Capability Binding State
 

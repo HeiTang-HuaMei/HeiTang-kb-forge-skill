@@ -123,10 +123,11 @@ Coverage:
 - Architecture reference status counts are `absorbed_into_architecture=28`,
   `deferred_with_blocker=1`, `candidate_reference=0`, and
   `rejected_no_architecture_gain=0`.
-- Generated runtime reports do not use `reference_only` as a final
-  classification. Worthwhile references must be absorbed into architecture
-  contracts/schema/gates/audit/fallback/loading rules; blocked references must
-  carry a blocker; non-useful references must be rejected instead of retained as
+- Source registry and generated runtime reports do not use `reference_only` as
+  a current classification. Worthwhile references must be absorbed into
+  architecture contracts/schema/gates/audit/fallback/loading rules and carry a
+  `parallel_architecture_delivery` record; blocked references must carry a
+  named blocker; non-useful references must be rejected instead of retained as
   indefinite notes. `llamaindex` is currently deferred because benchmark-only
   evidence does not yet prove a net architecture gain over the existing
   Provider contract, index schema, fallback, and audit gates.
@@ -200,9 +201,10 @@ Adapter contracts:
   version, validation, and Skill/Agent binding boundary while explicitly
   setting `runtime_load_required=false` and
   `external_health_check_required=false`.
-- Architecture references carry `architecture_absorption` with status, absorbed
-  targets, blocker, rejection reason, and normal-UI hiding boundary. Runtime
-  load class is `architecture_reference_no_runtime`, not `reference_only`.
+- Architecture references carry `architecture_absorption` with status,
+  worth-absorbing decision, absorbed targets, parallel architecture delivery,
+  blocker, rejection reason, and normal-UI hiding boundary. Runtime load class
+  is `architecture_reference_no_runtime`, not `reference_only`.
 - The contracts cover all 29 provider-to-capability mappings while keeping `runtime_loaded_count=0`. Readiness remains blocked unless a real readiness check passes.
 - `registered_provider_health_report.json` and `project_config_runtime_status.json` both reference the adapter contract path.
 

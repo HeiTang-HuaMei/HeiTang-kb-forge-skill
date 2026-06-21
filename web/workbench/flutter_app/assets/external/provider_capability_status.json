@@ -156,7 +156,7 @@
           "status": "configured_not_tested",
           "contract_status": [
             "cross_modal_rag_schema_reference",
-            "reference_only",
+            "absorbed_architecture_reference",
             "runtime_not_bundled"
           ],
           "requires_network": false,
@@ -317,7 +317,7 @@
           "status": "configured_not_tested",
           "contract_status": [
             "content_asset_schema_reference",
-            "reference_only",
+            "absorbed_architecture_reference",
             "runtime_not_bundled"
           ],
           "requires_network": false,
@@ -332,7 +332,7 @@
           "status": "configured_not_tested",
           "contract_status": [
             "aigc_video_pipeline_schema_reference",
-            "reference_only",
+            "absorbed_architecture_reference",
             "runtime_not_bundled"
           ],
           "requires_network": false,
@@ -400,7 +400,7 @@
           "status": "configured_not_tested",
           "contract_status": [
             "schema_package_reference",
-            "reference_only",
+            "template_asset_reference",
             "runtime_not_bundled"
           ],
           "requires_network": false,
@@ -445,7 +445,7 @@
           "status": "needs_secret_config",
           "contract_status": [
             "verified_video_skill_template_metadata",
-            "reference_only",
+            "template_asset_reference",
             "template_reference",
             "provider_not_integrated",
             "runtime_not_bundled"
