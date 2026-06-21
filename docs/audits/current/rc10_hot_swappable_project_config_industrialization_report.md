@@ -142,6 +142,10 @@ Coverage:
 - 1 local teaching/reasoning Skill template asset is selectable from a workspace-owned template manifest
 - 1 local marketing Skill pattern adapter can become selectable from repository-owned template/demo assets
 - 1 local Skill schema/package adapter can become selectable after Skill package, validation, fusion, version, and Agent binding evidence exists
+- 1 network/secret-gated video Skill template asset can become selectable only
+  after a non-local Profile, masked secret ref, network authorization, and
+  template manifest validation pass; it remains manifest-only and does not run
+  video generation or external runtime code
 - 1 local workflow collaboration export adapter can become selectable after A2A multi-round, conflict, consensus, runtime-audit, and collaboration-report evidence exists
 
 Capability areas:

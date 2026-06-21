@@ -2630,6 +2630,103 @@ void main() {
     expect(retrievalBinding['selection_allowed'], isTrue);
   });
 
+  test('seedance2 skill remains template asset with masked authorized config',
+      () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async =>
+            const CoreBridgeProcessResult(exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    const seedanceCredential = 'seedance-runtime-input-secret';
+    await controller.saveProviderRuntimeSettings(
+      llmProvider: 'official_openai',
+      modelId: 'gpt-seedance-template',
+      embeddingProvider: 'local_keyword_embedding',
+      searchProvider: 'local_index',
+      parserProvider: 'local_parser',
+      ocrProvider: 'optional_ocr',
+      apiKey: seedanceCredential,
+    );
+    final cloud = await controller.createProjectConfigProfile(
+      displayName: '视频模板授权配置',
+      mode: 'hybrid',
+    );
+    await controller.activateProjectConfigProfile(cloud.profileId);
+    await controller.testAllRegisteredProviderCapabilities();
+
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final runtimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    final readiness = jsonDecode(
+        File(runtimeStatus['provider_adapter_readiness_report_path'] as String)
+            .readAsStringSync()) as Map;
+    final seedanceReadiness = (readiness['readiness_entries'] as List)
+        .cast<Map>()
+        .firstWhere((entry) => entry['provider_ref'] == 'seedance2_skill');
+    expect(seedanceReadiness['status'], '连接成功');
+    expect(seedanceReadiness['ready_for_user_selection'], isTrue);
+    expect(seedanceReadiness['runtime_loaded'], isFalse);
+    expect(seedanceReadiness['runtime_load_allowed'], isFalse);
+    expect(seedanceReadiness['gate_kind'], 'secret_masked_video_skill_gate');
+    expect((seedanceReadiness['gate_audit'] as Map)['secret_ref_status'],
+        '已配置');
+    expect((seedanceReadiness['gate_audit'] as Map)['network_call_attempted'],
+        isFalse);
+    final probePath =
+        (seedanceReadiness['test_artifacts'] as List).cast<String>().single;
+    final probeRaw = File(probePath).readAsStringSync();
+    expect(probeRaw, isNot(contains(seedanceCredential)));
+    final probe = jsonDecode(probeRaw) as Map;
+    expect(probe['passed'], isTrue);
+    expect(probe['runtime_execution_mode'], 'template_asset_manifest_only');
+    expect(probe['network_authorization'], '连接成功');
+    expect(probe['secret_ref_status'], '已配置');
+    expect(probe['network_call_attempted'], isFalse);
+    expect(probe['external_runtime_executed'], isFalse);
+    expect(probe['vendor_runtime_loaded'], isFalse);
+    expect(probe['secret_plaintext_written'], isFalse);
+    final templateManifestPath =
+        probe['template_asset_manifest_path'] as String;
+    final templateManifestRaw =
+        File(templateManifestPath).readAsStringSync();
+    expect(templateManifestRaw, isNot(contains(seedanceCredential)));
+    final templateManifest =
+        jsonDecode(templateManifestRaw) as Map<String, dynamic>;
+    expect(templateManifest['schema_version'],
+        'prd_v3_skill_template_asset_manifest.v1');
+    expect(templateManifest['provider_ref'], 'seedance2_skill');
+    expect((templateManifest['binding_boundary']
+        as Map)['runtime_load_required'], isFalse);
+    expect((templateManifest['binding_boundary']
+        as Map)['video_generation_executed'], isFalse);
+    expect((templateManifest['audit'] as Map)['network_call_attempted'],
+        isFalse);
+    expect((templateManifest['audit'] as Map)['secret_masked'], isTrue);
+
+    final activated =
+        await controller.activateRegisteredProviderCapability('seedance2_skill');
+    expect(activated, isTrue);
+    final binding = jsonDecode(File(
+            runtimeStatus['provider_capability_binding_manifest_path']
+                as String)
+        .readAsStringSync()) as Map;
+    final skillBinding = (binding['bindings'] as List)
+        .cast<Map>()
+        .firstWhere((entry) => entry['capability_id'] == 'skill_template_provider');
+    expect(skillBinding['active_provider_ref'], 'seedance2_skill');
+    expect(skillBinding['runtime_loaded'], isFalse);
+    expect(skillBinding['selection_allowed'], isTrue);
+  });
+
   test('rag evaluation adapters become selectable from retrieval validation',
       () async {
     final workspace = await createWorkspace();

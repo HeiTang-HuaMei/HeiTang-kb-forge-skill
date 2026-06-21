@@ -113,6 +113,12 @@ Architecture reference statuses are now explicit:
   tested authorized-network path: non-local Profile, network authorization,
   Provider domain allowlist, local query evidence, and a clean external boundary
   can make it selectable while still avoiding live vendor calls during readiness.
+- `seedance2_skill` remains blocked in the default local Profile, but now has a
+  tested authorized template-asset path: non-local Profile, network
+  authorization, masked secret ref, and validated template manifest can make it
+  selectable as a Skill template asset. It remains `runtime_loaded=false`, does
+  not execute video generation, does not perform network calls during readiness,
+  and does not write plaintext secrets.
 - RTK is an Agent tool/runtime capability Provider. It remains blocked until a user-owned external runtime and permission boundary health gate pass.
 - LlamaIndex remains an architecture reference with `deferred_with_blocker`;
   current benchmark-only evidence does not yet prove a net architecture gain

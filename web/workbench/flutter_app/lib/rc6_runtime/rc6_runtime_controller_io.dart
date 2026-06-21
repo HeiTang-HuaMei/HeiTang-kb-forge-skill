@@ -17666,6 +17666,23 @@ class Rc6RuntimeController extends ChangeNotifier {
         'probe_path': probePath,
       };
     }
+    if (providerRef == 'seedance2_skill' &&
+        requiresNetwork &&
+        requiresSecretRef &&
+        profile.networkPolicyId != 'network_local_only' &&
+        blockedReasons.isEmpty) {
+      final probe = _probeSeedance2SkillAuthorizedTemplateAsset(
+        workspace,
+        contract,
+        profile,
+        config,
+        probePath,
+      );
+      return {
+        ...probe,
+        'probe_path': probePath,
+      };
+    }
     final status = requiresSecretRef && missingRefs.contains('secret_ref')
         ? '配置缺失'
         : requiresExternalRuntime
@@ -17771,6 +17788,214 @@ class Rc6RuntimeController extends ChangeNotifier {
       ...payload,
       'probe_path': probePath,
     };
+  }
+
+  static Map<String, dynamic> _probeSeedance2SkillAuthorizedTemplateAsset(
+    Directory workspace,
+    Map<String, dynamic> contract,
+    ProjectConfigProfile profile,
+    Map<String, dynamic> config,
+    String probePath,
+  ) {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final network = _mapValue(config['network_authorization']);
+    final provider = _mapValue(config['provider']);
+    final llm = _mapValue(provider['llm']);
+    final secretRef = _stringValue(llm['api_key_secret_ref'], 'none');
+    final allowlist = _listOfStrings(network['provider_domain_allowlist']);
+    final networkAuthorized = _boolValue(network['web_import_allowed']) &&
+        _boolValue(network['external_verification_allowed']) &&
+        allowlist.isNotEmpty &&
+        profile.networkPolicyId != 'network_local_only';
+    final secretRefConfigured = secretRef.isNotEmpty && secretRef != 'none';
+    final manifestPath = _joinNested(workspace.path,
+        'skill/template_assets/seedance2_skill/template_asset_manifest.json');
+    final manifest = {
+      'schema_version': 'prd_v3_skill_template_asset_manifest.v1',
+      'provider_ref': 'seedance2_skill',
+      'asset_class': 'video_skill_template_metadata',
+      'version': '1.0.0',
+      'source': {
+        'kind': 'registered_reference_absorbed_as_template_asset',
+        'external_code_bundled': false,
+        'external_runtime_required': false,
+        'network_required_for_activation': true,
+        'secret_required_for_activation': true,
+        'secret_ref_configured': secretRefConfigured,
+      },
+      'templates': [
+        {
+          'template_id': 'template_video_skill_handoff',
+          'display_name': '视频 Skill 任务模板',
+          'capability_id': 'skill_template_provider',
+          'entry_points': [
+            'skill_factory_template_catalog',
+            'agent_workbench_template_binding',
+          ],
+          'requires_kb_binding': true,
+          'requires_agent_binding_validation': true,
+          'runtime_generation_allowed': false,
+        }
+      ],
+      'validation': {
+        'status': networkAuthorized && secretRefConfigured ? 'pass' : 'blocked',
+        'validated_at': now,
+        'checks': [
+          'manifest_schema',
+          'source_version',
+          'network_authorization',
+          'secret_ref_masked',
+          'skill_agent_binding_boundary',
+          'normal_ui_boundary',
+        ],
+      },
+      'binding_boundary': {
+        'skill_factory': true,
+        'agent_workbench': true,
+        'document_generation': false,
+        'ordinary_ui_project_name_visible': false,
+        'runtime_load_required': false,
+        'external_health_check_required': false,
+        'video_generation_executed': false,
+      },
+      'audit': {
+        'network_authorization': networkAuthorized ? '连接成功' : '已配置未测试',
+        'network_call_attempted': false,
+        'external_runtime_executed': false,
+        'vendor_runtime_loaded': false,
+        'secret_masked': true,
+        'secret_plaintext_written': false,
+      },
+    };
+    File(manifestPath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(manifest),
+        encoding: utf8,
+      );
+    final templateManifest = _readJsonObjectSync(manifestPath);
+    final templates = _listOfMaps(templateManifest['templates']);
+    final validation = _mapValue(templateManifest['validation']);
+    final bindingBoundary = _mapValue(templateManifest['binding_boundary']);
+    final audit = _mapValue(templateManifest['audit']);
+    final checkedAssets = [
+      {
+        'path': manifestPath,
+        'exists': File(manifestPath).existsSync(),
+        'schema_version': _stringValue(templateManifest['schema_version'], ''),
+        'template_count': templates.length,
+        'validation_status': _stringValue(validation['status'], ''),
+        'runtime_load_required':
+            _boolValue(bindingBoundary['runtime_load_required']),
+      },
+    ];
+    final required = {
+      'network_authorized': networkAuthorized,
+      'secret_ref_configured': secretRefConfigured,
+      'template_manifest_schema':
+          _stringValue(templateManifest['schema_version'], '') ==
+              'prd_v3_skill_template_asset_manifest.v1',
+      'source_version_recorded':
+          _stringValue(templateManifest['version'], '').isNotEmpty &&
+              _mapValue(templateManifest['source']).isNotEmpty,
+      'template_manifest_has_assets': templates.isNotEmpty &&
+          templates.every((template) =>
+              _stringValue(template['template_id'], '').isNotEmpty &&
+              _listOfStrings(template['entry_points']).isNotEmpty),
+      'validation_passed': _stringValue(validation['status'], '') == 'pass' &&
+          _listOfStrings(validation['checks']).isNotEmpty,
+      'skill_agent_binding_boundary':
+          _boolValue(bindingBoundary['skill_factory']) &&
+              _boolValue(bindingBoundary['agent_workbench']) &&
+              _boolValue(bindingBoundary['ordinary_ui_project_name_visible']) ==
+                  false,
+      'runtime_load_not_required':
+          _boolValue(bindingBoundary['runtime_load_required']) == false &&
+              _boolValue(bindingBoundary['external_health_check_required']) ==
+                  false,
+      'no_video_or_external_runtime_execution':
+          _boolValue(bindingBoundary['video_generation_executed']) == false &&
+              _boolValue(audit['network_call_attempted']) == false &&
+              _boolValue(audit['external_runtime_executed']) == false &&
+              _boolValue(audit['vendor_runtime_loaded']) == false,
+      'secret_plaintext_absent':
+          _boolValue(audit['secret_plaintext_written']) == false,
+    };
+    final blockedReasons = required.entries
+        .where((entry) => !entry.value)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final passed = blockedReasons.isEmpty;
+    final gateAudit = {
+      'gate_kind': 'secret_masked_video_skill_gate',
+      'provider_ref': 'seedance2_skill',
+      'requires_network': true,
+      'requires_secret_ref': true,
+      'requires_external_runtime': false,
+      'requires_dependency_install': false,
+      'network_authorization': networkAuthorized ? '连接成功' : '已配置未测试',
+      'secret_ref_status': secretRefConfigured ? '已配置' : '配置缺失',
+      'external_runtime_status': '不需要',
+      'missing_config_refs':
+          secretRefConfigured ? const <String>[] : const ['secret_ref'],
+      'blocked_reasons': blockedReasons,
+      'template_asset_manifest_path': manifestPath,
+      'fallback_preserves_local_chain': true,
+      'network_call_attempted': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
+      'normal_ui_project_name_visible': false,
+      'secret_masked': true,
+      'secret_plaintext_written': false,
+    };
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_probe_high_risk_gate.v1',
+      'provider_ref': 'seedance2_skill',
+      'gate_kind': 'secret_masked_video_skill_gate',
+      'gate_audit': gateAudit,
+      'status': passed ? '连接成功' : '已配置未测试',
+      'error_code': passed ? '' : 'seedance2_template_asset_gate_required',
+      'error_message_zh':
+          passed ? '' : '需要网络授权、secret ref 和模板资产 manifest 校验通过后才能启用。',
+      'capability_ids': _listOfStrings(contract['capability_ids']),
+      'affected_modules': _listOfStrings(contract['affected_modules']),
+      'runtime_execution_mode': 'template_asset_manifest_only',
+      'requires_network': true,
+      'requires_secret_ref': true,
+      'requires_external_runtime': false,
+      'requires_dependency_install': false,
+      'network_authorization': gateAudit['network_authorization'],
+      'secret_ref_status': gateAudit['secret_ref_status'],
+      'external_runtime_status': '不需要',
+      'missing_config_refs': gateAudit['missing_config_refs'],
+      'blocked_reasons': blockedReasons,
+      'degradation_target':
+          _stringValue(contract['fallback_provider'], 'local_skill_factory'),
+      'ready_for_user_selection': passed,
+      'runtime_loaded': false,
+      'runtime_load_allowed': false,
+      'selection_allowed': passed,
+      'fallback_preserves_local_chain': true,
+      'rollback_supported': _boolValue(contract['rollback_supported']),
+      'normal_ui_project_name_visible': false,
+      'network_call_attempted': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
+      'secret_masked': true,
+      'secret_plaintext_written': false,
+      'template_asset_manifest_path': manifestPath,
+      'checked_assets': checkedAssets,
+      'required': required,
+      'passed': passed,
+      'evaluated_at': now,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return payload;
   }
 
   static Map<String, dynamic> _probeAnySearchSkillAuthorizedAdapter(
