@@ -110,8 +110,10 @@ Architecture reference statuses are now explicit:
 - RAG evaluation entries are capability Providers for governance/evaluation
   gates. They are ready only after local retrieval validation has reviewed
   result counts, citation coverage, conflict evidence, and the no-external-call
-  boundary; `ragas` and `deepeval` remain `runtime_loaded=false` and do not
-  execute vendor runtimes.
+  boundary. When explicitly activated, the selection state binds both
+  `retrieval_provider` and `governance_audit_provider` to the same evaluated
+  Provider, while `ragas` and `deepeval` remain `runtime_loaded=false` and do
+  not execute vendor runtimes.
 - `anysearchskill` remains blocked in the default local Profile, but now has a
   tested authorized-network path: non-local Profile, network authorization,
   Provider domain allowlist, local query evidence, and a clean external boundary

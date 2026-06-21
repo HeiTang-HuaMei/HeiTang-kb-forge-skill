@@ -14593,15 +14593,24 @@ class Rc6RuntimeController extends ChangeNotifier {
     final capabilityId = _stringValue(entry['capability_id'], '');
     final providerRef = _stringValue(entry['provider_ref'], '');
     final ready = _providerReadyForSelection(entry, readinessByProvider);
+    final readiness = readinessByProvider[providerRef] ?? const {};
+    final capabilityIds = _listOfStrings(readiness['capability_ids'])
+        .where((value) => value.isNotEmpty)
+        .toSet();
+    if (capabilityIds.isEmpty && capabilityId.isNotEmpty) {
+      capabilityIds.add(capabilityId);
+    }
     final now = DateTime.now().toUtc().toIso8601String();
     if (action == 'rollback') {
-      selectedProviders.remove(capabilityId);
-      if (capabilityId.isNotEmpty) {
-        rollbackSuppressedCapabilityIds.add(capabilityId);
+      for (final id in capabilityIds) {
+        selectedProviders.remove(id);
+        rollbackSuppressedCapabilityIds.add(id);
       }
     } else if (action == 'activate' && ready) {
-      selectedProviders[capabilityId] = providerRef;
-      rollbackSuppressedCapabilityIds.remove(capabilityId);
+      for (final id in capabilityIds) {
+        selectedProviders[id] = providerRef;
+        rollbackSuppressedCapabilityIds.remove(id);
+      }
     }
     final path = _providerCapabilitySelectionStatePath(workspace);
     final payload = {
@@ -14610,6 +14619,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'workspace_boundary': workspace.path,
       'action': action,
       'selected_capability_id': capabilityId,
+      'selected_capability_ids': capabilityIds.toList(growable: false)..sort(),
       'selected_provider_ref': action == 'rollback' ? '' : providerRef,
       'fallback_provider': _stringValue(entry['fallback_provider'], ''),
       'ready_for_user_selection_at_change': ready,

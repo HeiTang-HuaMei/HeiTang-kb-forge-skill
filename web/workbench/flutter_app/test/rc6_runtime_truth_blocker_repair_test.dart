@@ -3009,6 +3009,28 @@ void main() {
     expect(retrievalBinding['active_provider_kind'], 'registered_provider');
     expect(retrievalBinding['explicit_selection_applied'], isTrue);
     expect(retrievalBinding['runtime_loaded'], isFalse);
+    final governanceBinding = (binding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere(
+            (entry) => entry['capability_id'] == 'governance_audit_provider');
+    expect(governanceBinding['active_provider_ref'], 'ragas');
+    expect(governanceBinding['active_provider_kind'], 'registered_provider');
+    expect(governanceBinding['explicit_selection_applied'], isTrue);
+    expect(governanceBinding['runtime_loaded'], isFalse);
+    expect(governanceBinding['external_runtime_executed'], isFalse);
+    final selectionState = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}provider_capability_selection_state.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(selectionState['selected_capability_ids'],
+        containsAll(['retrieval_provider', 'governance_audit_provider']));
+    expect(
+        (selectionState['selected_providers_by_capability'] as Map)[
+            'retrieval_provider'],
+        'ragas');
+    expect(
+        (selectionState['selected_providers_by_capability'] as Map)[
+            'governance_audit_provider'],
+        'ragas');
 
     final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
     final ragasHealth = (health['health_entries'] as List)

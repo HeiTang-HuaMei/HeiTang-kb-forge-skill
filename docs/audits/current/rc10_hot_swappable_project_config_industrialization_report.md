@@ -247,7 +247,7 @@ Local RAG evaluation adapter proof:
 - The probes require real retrieval validation evidence: `query/multi_kb_query_result.json`, retrieval plan, rerank report, citation coverage report, conflict report, external validation boundary, validation report, validation history, and validation markdown.
 - Passing readiness requires nonempty retrieval results, selected KB evidence, rerank count consistency, full citation coverage, conflict schema evidence, reviewed validation status, validation history, and `external_calls_made=false`.
 - If no manual corrections are supplied and local retrieval evidence has full citation coverage, zero conflicts, no external calls, and no plaintext secret, the runtime writes `review_mode=local_evaluation_gate` with `review_evidence` instead of leaving the report at `pending_manual_review`.
-- When a probe succeeds, `provider_adapter_readiness_report.json` marks that Provider as `连接成功` and `ready_for_user_selection=true`; explicit activation can bind `retrieval_provider` to `ragas` or `deepeval`.
+- When a probe succeeds, `provider_adapter_readiness_report.json` marks that Provider as `连接成功` and `ready_for_user_selection=true`; explicit activation binds both `retrieval_provider` and `governance_audit_provider` to `ragas` or `deepeval` through `provider_capability_selection_state.json`, so Retrieval Verification and Audit Center see the same quality-gate capability enhancement.
 - `runtime_loaded` remains `false`; no RAGAS or DeepEval package, evaluator runtime, network call, or vendor code is bundled or executed.
 - The probes record `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, `vendor_runtime_loaded=false`, and `normal_ui_project_name_visible=false`.
 
