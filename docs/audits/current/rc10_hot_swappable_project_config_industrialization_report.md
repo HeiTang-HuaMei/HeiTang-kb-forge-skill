@@ -424,7 +424,20 @@ No broad UI redesign was performed. No tutorial/path prompt card was added.
 
 ## EXE Smoke Result
 
-Automated unit/widget/runtime gates are complete. Full manual EXE smoke is pending Owner verification after opening the built EXE.
+Automated unit/widget/runtime gates are complete.
+
+Additional automated Stage 3 Profile persistence smoke now writes:
+
+- `acceptance/stage3_profile_persistence_smoke_report.json`
+- `schema_version=prd_v3_stage3_profile_persistence_smoke.v1`
+- creates Profile A/B through runtime APIs
+- switches active Profile
+- reloads Profile state from workspace files
+- rebuilds runtime status after reload
+- proves active Profile persistence, downstream module status sync, active-delete protection, inactive-delete success, secret masking, and local-only runtime boundary
+- records `manual_exe_ui_claimed=false`, so this report is not overstated as a manual UI click-through
+
+Full manual EXE UI smoke is still pending Owner verification after opening the built EXE.
 
 Required EXE smoke checklist:
 

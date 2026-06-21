@@ -1058,6 +1058,38 @@ void main() {
             .readAsStringSync();
     expect(testLog, contains('"config_type":"project_config_profile"'));
     expect(testLog, isNot(contains('super-secret-password')));
+
+    final smokePath = await reloaded.runStage3ProfilePersistenceSmoke();
+    final smokeReport =
+        jsonDecode(File(smokePath).readAsStringSync()) as Map<String, dynamic>;
+    expect(smokeReport['schema_version'],
+        'prd_v3_stage3_profile_persistence_smoke.v1');
+    expect(smokeReport['status'], 'passed');
+    expect(smokeReport['profile_a_id'], 'default_local');
+    expect(smokeReport['profile_b_id'], isNot(''));
+    expect(smokeReport['active_profile_persisted'], isTrue);
+    expect(smokeReport['profile_count_protected'], isTrue);
+    expect(smokeReport['delete_active_blocked'], isTrue);
+    expect(smokeReport['delete_inactive_succeeded'], isTrue);
+    expect(smokeReport['runtime_status_synced'], isTrue);
+    expect(smokeReport['downstream_modules_synced'], isTrue);
+    expect(
+        (smokeReport['restart_simulation']
+            as Map)['profiles_reloaded_from_disk'],
+        isTrue);
+    expect(smokeReport['manual_exe_ui_claimed'], isFalse);
+    expect(smokeReport['secret_plaintext_written'], isFalse);
+    expect(smokeReport['normal_ui_project_name_visible'], isFalse);
+    expect(smokeReport['hot_swap_project_concept_visible'], isFalse);
+    expect(smokeReport['external_runtime_executed'], isFalse);
+    expect(smokeReport['workflow_executed'], isFalse);
+    expect(jsonEncode(smokeReport), isNot(contains('super-secret-password')));
+    expect(jsonEncode(smokeReport), isNot(contains('热插拔')));
+    final smokeLog =
+        File('$configDir${Platform.pathSeparator}config_test_log.jsonl')
+            .readAsStringSync();
+    expect(
+        smokeLog, contains('"config_type":"stage3_profile_persistence_smoke"'));
   });
 
   test('project config activation synchronizes downstream module status',
@@ -1951,8 +1983,7 @@ void main() {
     expect(coverageAudit['external_runtime_executed'], isFalse);
     expect(coverageAudit['workflow_executed'], isFalse);
     expect(coverageAudit['secret_plaintext_written'], isFalse);
-    final coverageRows =
-        (coverageAudit['coverage_rows'] as List).cast<Map>();
+    final coverageRows = (coverageAudit['coverage_rows'] as List).cast<Map>();
     expect(coverageRows, hasLength(29));
     expect(
         coverageRows.every((row) =>
@@ -1980,8 +2011,7 @@ void main() {
     expect(userCatalog['external_runtime_executed'], isFalse);
     expect(userCatalog['workflow_executed'], isFalse);
     expect(userCatalog['secret_plaintext_written'], isFalse);
-    final userCatalogEntries =
-        (userCatalog['entries'] as List).cast<Map>();
+    final userCatalogEntries = (userCatalog['entries'] as List).cast<Map>();
     expect(userCatalogEntries, hasLength(8));
     expect(
         userCatalogEntries.map((entry) => entry['display_name']).toSet(),
@@ -2002,8 +2032,8 @@ void main() {
           contains('hot-swap'),
           contains('热插拔'),
         )));
-    final parserCatalogEntry = userCatalogEntries.firstWhere(
-        (entry) => entry['capability_id'] == 'document_parser_ocr');
+    final parserCatalogEntry = userCatalogEntries
+        .firstWhere((entry) => entry['capability_id'] == 'document_parser_ocr');
     expect(parserCatalogEntry['configuration_entry'], '文档库');
     expect(parserCatalogEntry['current_behavior'], contains('本地解析'));
     final agentCatalogEntry = userCatalogEntries.firstWhere(
@@ -2537,8 +2567,8 @@ void main() {
         (entry) => entry['capability_id'] == 'governance_audit_provider');
     expect(governanceAudit['active_provider_ref'], 'mattpocock_skills');
     expect(governanceAudit['active_provider_kind'], 'registered_provider');
-    expect(
-        (governanceAudit['affected_modules'] as List), contains('audit_center'));
+    expect((governanceAudit['affected_modules'] as List),
+        contains('audit_center'));
     expect(governanceAudit['runtime_loaded'], isFalse);
     expect(governanceAudit['unauthorized_resources_selectable'], isFalse);
     expect(governanceAudit['secret_masked'], isTrue);
@@ -3567,8 +3597,8 @@ void main() {
     final downstreamBindingAudit =
         (lifecycleAudit['downstream_binding_audit'] as List)
             .cast<Map<String, dynamic>>();
-    final exporterAudit = downstreamBindingAudit.firstWhere(
-        (entry) => entry['capability_id'] == 'document_exporter');
+    final exporterAudit = downstreamBindingAudit
+        .firstWhere((entry) => entry['capability_id'] == 'document_exporter');
     expect(exporterAudit['active_provider_ref'], 'story_flicks');
     expect(exporterAudit['active_provider_kind'], 'registered_provider');
     expect((exporterAudit['affected_modules'] as List),
@@ -3736,8 +3766,8 @@ void main() {
     final downstreamBindingAudit =
         (lifecycleAudit['downstream_binding_audit'] as List)
             .cast<Map<String, dynamic>>();
-    final parserAudit = downstreamBindingAudit.firstWhere(
-        (entry) => entry['capability_id'] == 'document_parser_ocr');
+    final parserAudit = downstreamBindingAudit
+        .firstWhere((entry) => entry['capability_id'] == 'document_parser_ocr');
     expect(parserAudit['active_provider_ref'], 'docling');
     expect(parserAudit['active_provider_kind'], 'registered_provider');
     expect((parserAudit['affected_modules'] as List),
@@ -4378,9 +4408,9 @@ void main() {
     expect(n8nCoverage['runtime_loaded'], isTrue);
     expect(n8nCoverage['coverage_status'], 'passed');
     expect(n8nCoverage['missing_evidence'], isEmpty);
-    final userCatalog = jsonDecode(File(
-            runtimeStatus['provider_capability_user_catalog_path'] as String)
-        .readAsStringSync()) as Map<String, dynamic>;
+    final userCatalog = jsonDecode(
+        File(runtimeStatus['provider_capability_user_catalog_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(userCatalog['runtime_loaded_capability_count'], 1);
     final workflowCatalogEntry = (userCatalog['entries'] as List)
         .cast<Map<String, dynamic>>()
@@ -4421,29 +4451,27 @@ void main() {
         (rollbackRuntimeStatus['registered_provider_summary']
             as Map)['external_runtime_loaded_count'],
         0);
-    final rollbackMatrix = jsonDecode(File(rollbackRuntimeStatus[
-                'registered_provider_integration_matrix_path']
-            as String)
+    final rollbackMatrix = jsonDecode(File(
+            rollbackRuntimeStatus['registered_provider_integration_matrix_path']
+                as String)
         .readAsStringSync()) as Map<String, dynamic>;
-    final rollbackN8nMatrixEntry =
-        (rollbackMatrix['provider_entries'] as List)
-            .cast<Map<String, dynamic>>()
-            .firstWhere((entry) =>
-                entry['provider_ref'] == 'n8n' &&
-                entry['capability_id'] == 'workflow_collaboration_export');
+    final rollbackN8nMatrixEntry = (rollbackMatrix['provider_entries'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) =>
+            entry['provider_ref'] == 'n8n' &&
+            entry['capability_id'] == 'workflow_collaboration_export');
     expect(rollbackN8nMatrixEntry['runtime_loaded'], isFalse);
     expect(
         (rollbackMatrix['registered_project_boundary']
             as Map)['loaded_project_count'],
         0);
     final rollbackEligibility = jsonDecode(File(rollbackRuntimeStatus[
-                'provider_runtime_load_eligibility_manifest_path']
-            as String)
+            'provider_runtime_load_eligibility_manifest_path'] as String)
         .readAsStringSync()) as Map<String, dynamic>;
     expect(rollbackEligibility['runtime_loaded_count'], 0);
-    final rollbackBinding = jsonDecode(File(rollbackRuntimeStatus[
-                'provider_capability_binding_manifest_path']
-            as String)
+    final rollbackBinding = jsonDecode(File(
+            rollbackRuntimeStatus['provider_capability_binding_manifest_path']
+                as String)
         .readAsStringSync()) as Map<String, dynamic>;
     expect(rollbackBinding['registered_provider_loaded_count'], 0);
     final rollbackWorkflowBinding = (rollbackBinding['bindings'] as List)
@@ -4451,21 +4479,20 @@ void main() {
         .firstWhere((entry) =>
             entry['capability_id'] == 'workflow_collaboration_export');
     expect(rollbackWorkflowBinding['runtime_loaded'], isFalse);
-    final rollbackCoverageAudit = jsonDecode(File(rollbackRuntimeStatus[
-                'provider_integration_coverage_audit_path']
-            as String)
+    final rollbackCoverageAudit = jsonDecode(File(
+            rollbackRuntimeStatus['provider_integration_coverage_audit_path']
+                as String)
         .readAsStringSync()) as Map<String, dynamic>;
     expect(rollbackCoverageAudit['status'], 'passed');
-    final rollbackN8nCoverage =
-        (rollbackCoverageAudit['coverage_rows'] as List)
-            .cast<Map<String, dynamic>>()
-            .firstWhere((entry) =>
-                entry['provider_ref'] == 'n8n' &&
-                entry['capability_id'] == 'workflow_collaboration_export');
+    final rollbackN8nCoverage = (rollbackCoverageAudit['coverage_rows'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) =>
+            entry['provider_ref'] == 'n8n' &&
+            entry['capability_id'] == 'workflow_collaboration_export');
     expect(rollbackN8nCoverage['runtime_loaded'], isFalse);
-    final rollbackUserCatalog = jsonDecode(File(rollbackRuntimeStatus[
-                'provider_capability_user_catalog_path']
-            as String)
+    final rollbackUserCatalog = jsonDecode(File(
+            rollbackRuntimeStatus['provider_capability_user_catalog_path']
+                as String)
         .readAsStringSync()) as Map<String, dynamic>;
     expect(rollbackUserCatalog['runtime_loaded_capability_count'], 0);
     final rollbackWorkflowCatalogEntry =
@@ -4474,7 +4501,8 @@ void main() {
             .firstWhere((entry) =>
                 entry['capability_id'] == 'workflow_collaboration_export');
     expect(rollbackWorkflowCatalogEntry['runtime_loaded'], isFalse);
-    expect(rollbackWorkflowCatalogEntry['current_behavior'], contains('本地协作报告'));
+    expect(
+        rollbackWorkflowCatalogEntry['current_behavior'], contains('本地协作报告'));
     final rollbackAgentStatus = (rollbackRuntimeStatus['module_status']
         as Map)['agent_workbench'] as Map;
     expect(rollbackAgentStatus['a2a_workflow_runtime_status'], '降级为本地模式');

@@ -235,6 +235,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> runStage3ProfilePersistenceSmoke() async {
+    await initialize();
+    return '';
+  }
+
   Future<String> syncRegisteredProviderCapabilities() async {
     await initialize();
     return '';

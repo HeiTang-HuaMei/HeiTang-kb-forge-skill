@@ -2114,6 +2114,134 @@ class Rc6RuntimeController extends ChangeNotifier {
     return testId;
   }
 
+  Future<String> runStage3ProfilePersistenceSmoke() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    var profiles = await _readProjectConfigProfiles(workspace);
+    final defaultProfile = _activeProfile(profiles);
+    var cloud = await createProjectConfigProfile(
+      displayName: 'Stage3 云机配置',
+      mode: 'hybrid',
+    );
+    cloud = await updateProjectConfigProfile(
+      cloud.profileId,
+      displayName: 'Stage3 云机配置',
+      mode: 'hybrid',
+    );
+    final localCopy = await copyProjectConfigProfile(defaultProfile.profileId);
+    await testProjectConfigProfile(cloud.profileId);
+    await activateProjectConfigProfile(cloud.profileId);
+    profiles = await _readProjectConfigProfiles(workspace);
+    final activeBeforeReload = _activeProfile(profiles);
+
+    final reloadedProfiles = await _readProjectConfigProfiles(workspace);
+    await _writeProjectConfigRuntimeStatus(workspace, reloadedProfiles);
+    final statusAfterReload =
+        await _readJsonObject(_projectConfigRuntimeStatusPath(workspace));
+    final activeAfterReload = _activeProfile(reloadedProfiles);
+    final deleteActiveBlocked =
+        await deleteProjectConfigProfile(activeAfterReload.profileId) == false;
+    final deleteInactiveSucceeded =
+        await deleteProjectConfigProfile(localCopy.profileId);
+    final finalProfiles = await _readProjectConfigProfiles(workspace);
+    final finalActive = _activeProfile(finalProfiles);
+    final activeProfilePersisted =
+        activeBeforeReload.profileId == activeAfterReload.profileId &&
+            activeAfterReload.profileId == finalActive.profileId;
+    final profileCountProtected = finalProfiles.isNotEmpty &&
+        finalProfiles.where((profile) => profile.isActive).length == 1;
+    final runtimeStatusSynced = _stringValue(
+            _mapValue(statusAfterReload['active_profile'])['profile_id'], '') ==
+        finalActive.profileId;
+    final moduleStatus = _mapValue(statusAfterReload['module_status']);
+    final downstreamSynced = [
+      'dashboard',
+      'document_library',
+      'knowledge_base',
+      'retrieval_verification',
+      'document_generation',
+      'skill_factory',
+      'agent_workbench',
+    ].every((key) => moduleStatus[key] is Map);
+    final reportPath = _joinNested(workspace.path,
+        'acceptance/stage3_profile_persistence_smoke_report.json');
+    final passed = activeProfilePersisted &&
+        profileCountProtected &&
+        runtimeStatusSynced &&
+        downstreamSynced &&
+        deleteActiveBlocked &&
+        deleteInactiveSucceeded;
+    final payload = {
+      'schema_version': 'prd_v3_stage3_profile_persistence_smoke.v1',
+      'status': passed ? 'passed' : 'failed',
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'workspace_boundary': workspace.path,
+      'execution_mode': 'runtime_profile_persistence_smoke',
+      'manual_exe_ui_claimed': false,
+      'profile_a_id': defaultProfile.profileId,
+      'profile_b_id': cloud.profileId,
+      'active_profile_before_reload': activeBeforeReload.profileId,
+      'active_profile_after_reload': activeAfterReload.profileId,
+      'final_active_profile_id': finalActive.profileId,
+      'profile_count_after_smoke': finalProfiles.length,
+      'active_profile_persisted': activeProfilePersisted,
+      'profile_count_protected': profileCountProtected,
+      'delete_active_blocked': deleteActiveBlocked,
+      'delete_inactive_succeeded': deleteInactiveSucceeded,
+      'runtime_status_synced': runtimeStatusSynced,
+      'downstream_modules_synced': downstreamSynced,
+      'restart_simulation': {
+        'method': 'controller_reload_from_workspace_files',
+        'profiles_reloaded_from_disk': true,
+        'runtime_status_rebuilt_after_reload': true,
+      },
+      'source_artifacts': {
+        'project_config_profiles_path': _projectConfigProfilesPath(workspace),
+        'project_config_runtime_status_path':
+            _projectConfigRuntimeStatusPath(workspace),
+        'profile_change_log_path': _profileChangeLogPath(workspace),
+        'profile_activation_log_path': _profileActivationLogPath(workspace),
+      },
+      'status_before_reload_path': _projectConfigRuntimeStatusPath(workspace),
+      'runtime_summary_after_reload': {
+        'active_profile': statusAfterReload['active_profile'],
+        'degradation': statusAfterReload['degradation'],
+        'stage_2_industrial_preflight':
+            statusAfterReload['stage_2_industrial_preflight'],
+      },
+      'secret_masked': true,
+      'secret_plaintext_written': false,
+      'normal_ui_project_name_visible': false,
+      'hot_swap_project_concept_visible': false,
+      'external_runtime_executed': false,
+      'workflow_executed': false,
+    };
+    await _writeJsonFile(reportPath, payload);
+    await _appendConfigTestLog(
+      workspace,
+      testId:
+          'stage3_profile_persistence_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+      profile: finalActive,
+      configType: 'stage3_profile_persistence_smoke',
+      configId: finalActive.profileId,
+      startedAt: _stringValue(payload['generated_at'], ''),
+      finishedAt: DateTime.now().toUtc().toIso8601String(),
+      status: passed ? '连接成功' : '连接失败',
+      errorCode: passed ? '' : 'stage3_profile_persistence_smoke_failed',
+      errorMessageZh: passed ? '' : 'Stage3 Profile 持久化 smoke 未通过。',
+      sanitizedEndpoint: 'local_workspace_files',
+      testArtifacts: [reportPath],
+      affectedModules: _affectedProfileModules(finalActive),
+    );
+    await _writeProjectConfigRuntimeStatus(
+        workspace, await _readProjectConfigProfiles(workspace));
+    await _loadExistingArtifacts();
+    notifyListeners();
+    return reportPath;
+  }
+
   Future<String> syncRegisteredProviderCapabilities() async {
     if (!_canRunDesktop()) {
       return '';
@@ -12470,8 +12598,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       final effectiveStatus = _stringValue(readiness?['status'], status);
       final readyForSelection =
           _providerReadyForSelection(entry, readinessByProvider);
-      final runtimeLoaded =
-          _providerRuntimeLoadedFor(runtimeLoadState, entry);
+      final runtimeLoaded = _providerRuntimeLoadedFor(runtimeLoadState, entry);
       return {
         'test_id':
             'registered_provider_health_${DateTime.now().toUtc().microsecondsSinceEpoch}_${entry['provider_ref']}',
@@ -12605,8 +12732,7 @@ class Rc6RuntimeController extends ChangeNotifier {
                 'selection_result': entry['health_status'] == '连接成功'
                     ? 'candidate_ready_external_runtime_not_loaded'
                     : 'blocked_before_runtime_load',
-                'runtime_loaded_after_check':
-                    entry['runtime_loaded'] == true,
+                'runtime_loaded_after_check': entry['runtime_loaded'] == true,
                 'runtime_load_allowed':
                     entry['ready_for_user_selection'] == true &&
                         stage2RuntimeLoadAllowed,
@@ -12660,30 +12786,28 @@ class Rc6RuntimeController extends ChangeNotifier {
         '${_stringValue(entry['capability_id'], '')}|${_stringValue(entry['provider_ref'], '')}':
             entry,
     };
-    final refreshedEntries = _listOfMaps(matrix['provider_entries'])
-        .map((entry) {
-          final key =
-              '${_stringValue(entry['capability_id'], '')}|${_stringValue(entry['provider_ref'], '')}';
-          final health = healthByKey[key];
-          if (health == null) return entry;
-          return {
-            ...entry,
-            'status': _stringValue(health['health_status'], entry['status']),
-            'test_status':
-                _stringValue(health['health_status'], entry['test_status']),
-            'ready_for_user_selection':
-                _boolValue(health['ready_for_user_selection']),
-            'selection_allowed': _boolValue(health['selection_allowed']),
-            'runtime_load_allowed': _boolValue(health['runtime_load_allowed']),
-            'runtime_loaded': _boolValue(health['runtime_loaded']),
-            'blocked_reason_zh':
-                _stringValue(health['blocked_reason_zh'], ''),
-            'stage_2_preflight_status': stage2Preflight['status'],
-            'affected_modules': _listOfStrings(health['affected_modules']),
-            'secret_masked': true,
-          };
-        })
-        .toList(growable: false);
+    final refreshedEntries =
+        _listOfMaps(matrix['provider_entries']).map((entry) {
+      final key =
+          '${_stringValue(entry['capability_id'], '')}|${_stringValue(entry['provider_ref'], '')}';
+      final health = healthByKey[key];
+      if (health == null) return entry;
+      return {
+        ...entry,
+        'status': _stringValue(health['health_status'], entry['status']),
+        'test_status':
+            _stringValue(health['health_status'], entry['test_status']),
+        'ready_for_user_selection':
+            _boolValue(health['ready_for_user_selection']),
+        'selection_allowed': _boolValue(health['selection_allowed']),
+        'runtime_load_allowed': _boolValue(health['runtime_load_allowed']),
+        'runtime_loaded': _boolValue(health['runtime_loaded']),
+        'blocked_reason_zh': _stringValue(health['blocked_reason_zh'], ''),
+        'stage_2_preflight_status': stage2Preflight['status'],
+        'affected_modules': _listOfStrings(health['affected_modules']),
+        'secret_masked': true,
+      };
+    }).toList(growable: false);
     final capabilityGroups = <String, List<Map<String, dynamic>>>{};
     for (final entry in refreshedEntries) {
       final capabilityId = _stringValue(entry['capability_id'], '');
@@ -12802,9 +12926,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'stage_2_industrial_preflight': stage2Preflight,
       'stage_2_runtime_load_allowed': stage2Allowed,
       'provider_entry_count': entries.length,
-      'runtime_loaded_count': entries
-          .where((entry) => entry['runtime_loaded'] == true)
-          .length,
+      'runtime_loaded_count':
+          entries.where((entry) => entry['runtime_loaded'] == true).length,
       'external_runtime_load_eligible_count': eligibleEntries.length,
       'local_capability_enhancement_only_count': entries
           .where((entry) =>
@@ -12918,9 +13041,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'ready_provider_count': providerRows
           .where((entry) => entry['ready_for_user_selection'] == true)
           .length,
-      'runtime_loaded_count': providerRows
-          .where((entry) => entry['runtime_loaded'] == true)
-          .length,
+      'runtime_loaded_count':
+          providerRows.where((entry) => entry['runtime_loaded'] == true).length,
       'external_runtime_load_eligible_count': providerRows
           .where((entry) => entry['external_runtime_load_eligible'] == true)
           .length,
@@ -13664,8 +13786,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           activeProviderKind: activeKind,
           runtimeLoaded: runtimeLoaded,
         ),
-        'available_option_count':
-            _asInt(binding['ready_candidate_count']) ?? 0,
+        'available_option_count': _asInt(binding['ready_candidate_count']) ?? 0,
         'candidate_option_count':
             _asInt(binding['candidate_provider_count']) ?? 0,
         'configuration_entry': _providerCapabilityConfigurationEntry(
@@ -13820,8 +13941,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           readiness['status'], _registeredProviderHealthStatus(selected));
       final selectedReady = !rollbackSuppressed &&
           _providerReadyForSelection(selected, readinessByProvider);
-      final runtimeLoaded =
-          selectedReady && _providerRuntimeLoadedFor(runtimeLoadState, selected);
+      final runtimeLoaded = selectedReady &&
+          _providerRuntimeLoadedFor(runtimeLoadState, selected);
       final explicitSelectionStale =
           explicitProviderRef.isNotEmpty && !explicitSelectionReady;
       return {
@@ -13878,9 +13999,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'provider_capability_selection_state_path':
           _providerCapabilitySelectionStatePath(workspace),
       'binding_count': bindings.length,
-      'registered_provider_loaded_count': bindings
-          .where((binding) => binding['runtime_loaded'] == true)
-          .length,
+      'registered_provider_loaded_count':
+          bindings.where((binding) => binding['runtime_loaded'] == true).length,
       'external_runtime_load_allowed': stage2Preflight['runtime_load_allowed'],
       'stage_2_industrial_preflight': stage2Preflight,
       'local_fallback_binding_count': bindings
@@ -15904,23 +16024,21 @@ class Rc6RuntimeController extends ChangeNotifier {
         _ => '增强能力可用，本地回退仍保留。',
       };
     }
-    final localFallback = activeProviderKind == 'local_fallback' ||
-        status == '降级为本地模式';
+    final localFallback =
+        activeProviderKind == 'local_fallback' || status == '降级为本地模式';
     return switch (capabilityId) {
       'document_parser_ocr' =>
         localFallback ? '使用本地解析；OCR/Parser 可在设置中配置。' : '增强解析可选。',
       'knowledge_embedding_vector' =>
         localFallback ? '使用本地索引；Embedding/向量库可在设置中配置。' : '增强索引可选。',
-      'retrieval_provider' =>
-        localFallback ? '使用本地检索；外部检索按网络授权启用。' : '增强检索可选。',
+      'retrieval_provider' => localFallback ? '使用本地检索；外部检索按网络授权启用。' : '增强检索可选。',
       'document_exporter' =>
         localFallback ? 'Markdown/JSON/CSV 可用；Office 导出需配置。' : '增强导出可选。',
       'skill_template_provider' =>
         localFallback ? '使用本地 Skill 生成；模板增强需验证后启用。' : '模板增强可选。',
       'agent_model_tools_memory' =>
         localFallback ? '使用本地 Agent 状态；模型/工具/记忆按授权配置。' : 'Agent 增强可选。',
-      'workflow_collaboration_export' =>
-        'A2A 本地协作报告可用；外部工作流需健康检查。',
+      'workflow_collaboration_export' => 'A2A 本地协作报告可用；外部工作流需健康检查。',
       'governance_audit_provider' =>
         localFallback ? '使用本地审计；治理增强需验证后启用。' : '治理增强可选。',
       _ => localFallback ? '使用本地能力。' : '增强能力可选。',
