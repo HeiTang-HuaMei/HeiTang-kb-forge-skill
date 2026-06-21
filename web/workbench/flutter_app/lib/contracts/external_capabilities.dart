@@ -187,8 +187,7 @@ class ProviderCapabilityStatus {
       futureReferenceResolutionCount:
           _int(json['future_reference_resolution_count']),
       futureReferenceClassCounts: _map(json['future_reference_class_counts']),
-      futureReferenceStatusCounts:
-          _map(json['future_reference_status_counts']),
+      futureReferenceStatusCounts: _map(json['future_reference_status_counts']),
       futureReferenceResolutions: _list(json['future_reference_resolutions'])
           .map((item) => FutureReferenceResolution.fromJson(_map(item)))
           .toList(growable: false),
@@ -213,6 +212,7 @@ class FutureReferenceResolution {
     required this.architectureReferenceStatus,
     required this.runtimeLoadClass,
     required this.worthAbsorbing,
+    required this.architectureGainAssessment,
     required this.architectureDeliveryRequired,
     required this.learningNoteOnly,
     required this.indefiniteReferenceAllowed,
@@ -232,6 +232,7 @@ class FutureReferenceResolution {
   final String architectureReferenceStatus;
   final String runtimeLoadClass;
   final bool worthAbsorbing;
+  final Map<String, dynamic> architectureGainAssessment;
   final bool architectureDeliveryRequired;
   final bool learningNoteOnly;
   final bool indefiniteReferenceAllowed;
@@ -254,11 +255,11 @@ class FutureReferenceResolution {
           _string(json['architecture_reference_status']),
       runtimeLoadClass: _string(json['runtime_load_class']),
       worthAbsorbing: _bool(json['worth_absorbing']),
+      architectureGainAssessment: _map(json['architecture_gain_assessment']),
       architectureDeliveryRequired:
           _bool(json['architecture_delivery_required']),
       learningNoteOnly: _bool(json['learning_note_only']),
-      indefiniteReferenceAllowed:
-          _bool(json['indefinite_reference_allowed']),
+      indefiniteReferenceAllowed: _bool(json['indefinite_reference_allowed']),
       absorbedTargets: _strings(json['absorbed_targets']),
       blocker: _string(json['blocker']),
       rejectionReason: _string(json['rejection_reason']),
@@ -462,6 +463,13 @@ final sampleProviderCapabilityStatus = ProviderCapabilityStatus.fromJson({
     'candidate_reference_allowed': false,
     'learning_note_only_allowed': false,
     'indefinite_reference_allowed': false,
+    'architecture_gain_criteria': [
+      'fills_current_architecture_gap',
+      'reduces_complexity',
+      'improves_extensibility',
+      'improves_stability_audit_or_rollback',
+      'improves_core_abstraction',
+    ],
     'absorbed_requires_parallel_architecture_delivery': true,
     'deferred_requires_named_blocker': true,
     'rejected_requires_rejection_reason': true,
@@ -488,6 +496,13 @@ final sampleProviderCapabilityStatus = ProviderCapabilityStatus.fromJson({
       'architecture_reference_status': 'absorbed_into_architecture',
       'runtime_load_class': 'template_asset_manifest_only',
       'worth_absorbing': true,
+      'architecture_gain_assessment': {
+        'fills_current_architecture_gap': true,
+        'reduces_complexity': false,
+        'improves_extensibility': true,
+        'improves_stability_audit_or_rollback': true,
+        'improves_core_abstraction': false,
+      },
       'architecture_delivery_required': true,
       'learning_note_only': false,
       'indefinite_reference_allowed': false,

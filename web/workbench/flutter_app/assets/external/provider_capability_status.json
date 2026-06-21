@@ -34,6 +34,13 @@
     "candidate_reference_allowed": false,
     "learning_note_only_allowed": false,
     "indefinite_reference_allowed": false,
+    "architecture_gain_criteria": [
+      "fills_current_architecture_gap",
+      "reduces_complexity",
+      "improves_extensibility",
+      "improves_stability_audit_or_rollback",
+      "improves_core_abstraction"
+    ],
     "absorbed_requires_parallel_architecture_delivery": true,
     "deferred_requires_named_blocker": true,
     "rejected_requires_rejection_reason": true
@@ -60,6 +67,13 @@
       "architecture_reference_status": "absorbed_into_architecture",
       "runtime_load_class": "template_asset_manifest_only",
       "worth_absorbing": true,
+      "architecture_gain_assessment": {
+        "fills_current_architecture_gap": true,
+        "reduces_complexity": false,
+        "improves_extensibility": true,
+        "improves_stability_audit_or_rollback": true,
+        "improves_core_abstraction": false
+      },
       "architecture_delivery_required": true,
       "learning_note_only": false,
       "indefinite_reference_allowed": false,
@@ -88,6 +102,13 @@
       "architecture_reference_status": "rejected_no_architecture_gain",
       "runtime_load_class": "architecture_reference_no_runtime",
       "worth_absorbing": false,
+      "architecture_gain_assessment": {
+        "fills_current_architecture_gap": false,
+        "reduces_complexity": false,
+        "improves_extensibility": false,
+        "improves_stability_audit_or_rollback": false,
+        "improves_core_abstraction": false
+      },
       "architecture_delivery_required": false,
       "learning_note_only": false,
       "indefinite_reference_allowed": false,
@@ -107,6 +128,13 @@
       "architecture_reference_status": "rejected_no_architecture_gain",
       "runtime_load_class": "architecture_reference_no_runtime",
       "worth_absorbing": false,
+      "architecture_gain_assessment": {
+        "fills_current_architecture_gap": false,
+        "reduces_complexity": false,
+        "improves_extensibility": false,
+        "improves_stability_audit_or_rollback": false,
+        "improves_core_abstraction": false
+      },
       "architecture_delivery_required": false,
       "learning_note_only": false,
       "indefinite_reference_allowed": false,
@@ -126,6 +154,13 @@
       "architecture_reference_status": "rejected_no_architecture_gain",
       "runtime_load_class": "architecture_reference_no_runtime",
       "worth_absorbing": false,
+      "architecture_gain_assessment": {
+        "fills_current_architecture_gap": false,
+        "reduces_complexity": false,
+        "improves_extensibility": false,
+        "improves_stability_audit_or_rollback": false,
+        "improves_core_abstraction": false
+      },
       "architecture_delivery_required": false,
       "learning_note_only": false,
       "indefinite_reference_allowed": false,
@@ -145,6 +180,13 @@
       "architecture_reference_status": "deferred_with_blocker",
       "runtime_load_class": "architecture_reference_no_runtime",
       "worth_absorbing": true,
+      "architecture_gain_assessment": {
+        "fills_current_architecture_gap": true,
+        "reduces_complexity": true,
+        "improves_extensibility": true,
+        "improves_stability_audit_or_rollback": true,
+        "improves_core_abstraction": true
+      },
       "architecture_delivery_required": false,
       "learning_note_only": false,
       "indefinite_reference_allowed": false,
@@ -164,6 +206,13 @@
       "architecture_reference_status": "deferred_with_blocker",
       "runtime_load_class": "architecture_reference_no_runtime",
       "worth_absorbing": true,
+      "architecture_gain_assessment": {
+        "fills_current_architecture_gap": true,
+        "reduces_complexity": true,
+        "improves_extensibility": true,
+        "improves_stability_audit_or_rollback": true,
+        "improves_core_abstraction": true
+      },
       "architecture_delivery_required": false,
       "learning_note_only": false,
       "indefinite_reference_allowed": false,
@@ -183,6 +232,13 @@
       "architecture_reference_status": "rejected_no_architecture_gain",
       "runtime_load_class": "architecture_reference_no_runtime",
       "worth_absorbing": false,
+      "architecture_gain_assessment": {
+        "fills_current_architecture_gap": false,
+        "reduces_complexity": false,
+        "improves_extensibility": false,
+        "improves_stability_audit_or_rollback": false,
+        "improves_core_abstraction": false
+      },
       "architecture_delivery_required": false,
       "learning_note_only": false,
       "indefinite_reference_allowed": false,
@@ -244,6 +300,20 @@
               "planned_adapter",
               "optional_runtime_adapter"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -298,6 +368,20 @@
               "planned_adapter",
               "optional_runtime_adapter"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -352,6 +436,20 @@
               "planned_adapter",
               "optional_runtime_adapter"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -404,6 +502,20 @@
             "legacy_contract_status": [
               "planned_adapter"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -456,6 +568,20 @@
             "legacy_contract_status": [
               "planned_adapter"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -508,6 +634,20 @@
             "legacy_contract_status": [
               "planned_adapter"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -560,6 +700,20 @@
             "legacy_contract_status": [
               "planned_adapter"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -649,6 +803,20 @@
               "reference_only",
               "runtime_not_bundled"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -701,6 +869,20 @@
             "legacy_contract_status": [
               "benchmark_only"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": true,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -757,6 +939,20 @@
               "real_integration",
               "runtime_not_bundled"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -846,6 +1042,20 @@
               "real_smoke_passed",
               "needs_strengthening"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -900,6 +1110,20 @@
               "provider_required",
               "future_adapter"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -960,6 +1184,20 @@
               "embedding_free",
               "vector_db_not_required"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -1014,6 +1252,20 @@
               "benchmark_only",
               "future_adapter"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -1068,6 +1320,20 @@
               "benchmark_only",
               "future_adapter"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -1157,6 +1423,20 @@
               "export_validation_passed",
               "runtime_not_bundled"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -1213,6 +1493,20 @@
               "reference_only",
               "runtime_not_bundled"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -1269,6 +1563,20 @@
               "reference_only",
               "runtime_not_bundled"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -1356,6 +1664,20 @@
               "benchmark_only",
               "capability_anchor"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": false
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -1414,6 +1736,20 @@
               "runtime_not_bundled",
               "license_gate_pending"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": false
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -1470,6 +1806,20 @@
               "reference_only",
               "runtime_not_bundled"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": false
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -1526,6 +1876,20 @@
               "real_integration",
               "runtime_not_bundled"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": false
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -1582,6 +1946,20 @@
               "real_integration",
               "runtime_not_bundled"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": false
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -1642,6 +2020,20 @@
               "provider_not_integrated",
               "runtime_not_bundled"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": false
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -1731,6 +2123,20 @@
               "real_integration",
               "runtime_not_bundled"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -1783,6 +2189,20 @@
             "legacy_contract_status": [
               "benchmark_only"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -1872,6 +2292,20 @@
               "export_validation_passed",
               "runtime_not_bundled"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -1961,6 +2395,20 @@
               "real_integration",
               "runtime_not_bundled"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": false
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -2015,6 +2463,20 @@
               "benchmark_only",
               "future_adapter"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
@@ -2069,6 +2531,20 @@
               "benchmark_only",
               "future_adapter"
             ],
+            "architecture_gain_criteria": [
+              "fills_current_architecture_gap",
+              "reduces_complexity",
+              "improves_extensibility",
+              "improves_stability_audit_or_rollback",
+              "improves_core_abstraction"
+            ],
+            "architecture_gain_assessment": {
+              "fills_current_architecture_gap": true,
+              "reduces_complexity": false,
+              "improves_extensibility": true,
+              "improves_stability_audit_or_rollback": true,
+              "improves_core_abstraction": true
+            },
             "worth_absorbing": true,
             "absorption_required_now": true,
             "learning_note_only": false,
