@@ -49,7 +49,8 @@ void main() {
       if (entry.key == const Key('sidebar-document-library')) {
         expect(find.byKey(const Key('import-intake-surface')), findsOneWidget,
             reason: '${entry.key}');
-        await tester.tap(find.text('来源文档'), warnIfMissed: false);
+        await tester.tap(find.byKey(const Key('document-library-tab-1')),
+            warnIfMissed: false);
         await tester.pumpAndSettle();
       }
       expect(find.byKey(entry.value), findsOneWidget, reason: '${entry.key}');
@@ -62,7 +63,7 @@ void main() {
         warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.text('导入与解析'), findsWidgets);
-    expect(find.text('来源文档'), findsOneWidget);
+    expect(find.byKey(const Key('document-library-tab-1')), findsOneWidget);
     expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

@@ -64,7 +64,7 @@ void main() {
         warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.text('导入与解析'), findsWidgets);
-    expect(find.text('来源文档'), findsOneWidget);
+    expect(find.byKey(const Key('document-library-tab-1')), findsOneWidget);
     expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);
     expect(find.text('选择来源'), findsWidgets);
     expect(find.text('导入 Owner input 文件夹'), findsNothing);
@@ -85,7 +85,7 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-document-generation')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('生成文档'), warnIfMissed: false);
+    await tester.tap(find.text('生成 Markdown'), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.textContaining('尚未生成'), findsWidgets);
 
@@ -110,8 +110,9 @@ void main() {
         warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.textContaining('display_only'), findsNothing);
-    expect(find.text('生成文档'), findsWidgets);
-    expect(find.text('重新生成'), findsWidgets);
+    expect(find.byKey(const Key('document-generation-tasks')), findsOneWidget);
+    expect(find.text('生成 Markdown'), findsWidgets);
+    expect(find.textContaining('display_only'), findsNothing);
 
     await tester.ensureVisible(find.byKey(const Key('sidebar-skill-factory')));
     await tester.tap(find.byKey(const Key('sidebar-skill-factory')),

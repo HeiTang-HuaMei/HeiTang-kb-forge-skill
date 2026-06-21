@@ -256,12 +256,12 @@ void main() {
     });
     expect(providerHealth['architecture_reference_status_counts'], {
       'candidate_reference': 0,
-      'absorbed_into_architecture': 28,
+      'absorbed_into_architecture': 29,
       'rejected_no_architecture_gain': 0,
-      'deferred_with_blocker': 1,
+      'deferred_with_blocker': 0,
     });
-    expect(providerHealth['ready_mapping_count'], 24);
-    expect(providerHealth['ready_unique_provider_count'], 21);
+    expect(providerHealth['ready_mapping_count'], 25);
+    expect(providerHealth['ready_unique_provider_count'], 22);
     expect(integrationMatrix['provider_adapter_readiness_report_path'],
         '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}provider_adapter_readiness_report.json');
     expect(integrationMatrix['provider_registry_readiness_summary_path'],
@@ -275,10 +275,40 @@ void main() {
     });
     expect(integrationMatrix['architecture_reference_status_counts'], {
       'candidate_reference': 0,
-      'absorbed_into_architecture': 28,
+      'absorbed_into_architecture': 29,
       'rejected_no_architecture_gain': 0,
-      'deferred_with_blocker': 1,
+      'deferred_with_blocker': 0,
     });
+    final fullLoadingMatrixPath =
+        providerHealth['stage3_full_provider_loading_matrix_path'] as String;
+    final fullLoadingMatrix = _readJson(fullLoadingMatrixPath);
+    expect(fullLoadingMatrix['schema_version'],
+        'prd_v3_stage3_full_provider_loading_matrix.v1');
+    expect(fullLoadingMatrix['provider_count'], 26);
+    expect(fullLoadingMatrix['actual_counts'], {
+      'capability_provider': 19,
+      'template_asset': 6,
+      'architecture_reference': 1,
+    });
+    final fullLoadingRows =
+        (fullLoadingMatrix['rows'] as List).cast<Map<String, dynamic>>();
+    expect(fullLoadingRows, hasLength(26));
+    expect(
+        fullLoadingRows
+            .map((entry) => entry['provider_ref'])
+            .toSet()
+            .length,
+        26);
+    expect(
+        fullLoadingRows.every((entry) =>
+            entry.containsKey('loaded_configured') &&
+            entry.containsKey('runtime_ready') &&
+            entry.containsKey('downstream_bound') &&
+            entry.containsKey('fallback_verified') &&
+            entry.containsKey('audit_verified') &&
+            entry.containsKey('rollback_verified') &&
+            entry.containsKey('exe_verified')),
+        isTrue);
     final templateEntries = integrationEntries
         .where((entry) => entry['registry_entry_class'] == 'template_asset')
         .toList(growable: false);
@@ -431,8 +461,8 @@ void main() {
         runtimeStatus['stage_2_industrial_preflight'] as Map<String, dynamic>;
     final registeredSummary =
         runtimeStatus['registered_provider_summary'] as Map<String, dynamic>;
-    expect(registeredSummary['ready_mapping_count'], 24);
-    expect(registeredSummary['ready_unique_provider_count'], 21);
+    expect(registeredSummary['ready_mapping_count'], 25);
+    expect(registeredSummary['ready_unique_provider_count'], 22);
     expect(registeredSummary['registry_class_counts'], {
       'capability_provider': 21,
       'template_asset': 7,
@@ -440,11 +470,11 @@ void main() {
     });
     expect(registeredSummary['architecture_reference_status_counts'], {
       'candidate_reference': 0,
-      'absorbed_into_architecture': 28,
+      'absorbed_into_architecture': 29,
       'rejected_no_architecture_gain': 0,
-      'deferred_with_blocker': 1,
+      'deferred_with_blocker': 0,
     });
-    expect(registeredSummary['runtime_ready_for_user_selection_count'], 21);
+    expect(registeredSummary['runtime_ready_for_user_selection_count'], 22);
     expect(
       registeredSummary['runtime_ready_for_user_selection_count'],
       registeredSummary['adapter_ready_for_user_selection_count'],

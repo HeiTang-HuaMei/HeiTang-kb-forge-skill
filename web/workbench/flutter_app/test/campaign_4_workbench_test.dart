@@ -119,7 +119,7 @@ void main() {
     expect(find.text('导入与解析'), findsWidgets);
     expect(find.text('来源文档'), findsWidgets);
     expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('page-tab-1')));
+    await tester.tap(find.byKey(const Key('document-library-tab-1')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('document-library')), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -204,7 +204,7 @@ void main() {
 
     expect(find.byKey(const Key('dense-page-workbench-document-library')),
         findsOneWidget);
-    await tester.tap(find.byKey(const Key('page-tab-1')));
+    await tester.tap(find.byKey(const Key('document-library-tab-1')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('document-library')), findsOneWidget);
     expect(find.text('等待导入真实文档'), findsOneWidget);
@@ -656,7 +656,7 @@ void main() {
     expect(find.byKey(const Key('agent-workspace-setup')), findsOneWidget);
     expect(find.text('Agent 总览'), findsOneWidget);
     expect(find.text('单 Agent'), findsOneWidget);
-    expect(find.text('多 Agent / A2A'), findsOneWidget);
+    expect(find.text('多 Agent / A2A'), findsWidgets);
     expect(find.text('运行审计'), findsOneWidget);
     expect(find.text('Agent 工作区'), findsOneWidget);
     expect(find.text('创建 Agent 工作区并进入对话'), findsOneWidget);
@@ -689,7 +689,7 @@ void main() {
     expect(find.text('等待真实 Agent 产物'), findsNothing);
     expect(find.text('等待可预览 Agent'), findsNothing);
     expect(find.text('单 Agent'), findsOneWidget);
-    expect(find.text('多 Agent / A2A'), findsOneWidget);
+    expect(find.text('多 Agent / A2A'), findsWidgets);
     expect(find.text('运行审计'), findsOneWidget);
     expect(find.text('选择文件夹'), findsNothing);
     expect(find.text('构建知识库'), findsNothing);
