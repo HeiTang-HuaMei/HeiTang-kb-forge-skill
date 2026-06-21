@@ -1,0 +1,33 @@
+name: Capability Gap
+description: Track a PRD or acceptance matrix gap.
+title: "[Capability Gap]: "
+labels: ["capability-gap"]
+body:
+  - type: textarea
+    id: baseline
+    attributes:
+      label: Baseline Requirement
+      description: Link or quote the v3 baseline section.
+    validations:
+      required: true
+  - type: textarea
+    id: current_state
+    attributes:
+      label: Current State
+      description: What exists now and what evidence is missing?
+    validations:
+      required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Stage
+      options:
+        - Stage2 runtime capability
+        - Stage3 Provider configuration
+        - rc11 code cleanup
+        - rc12 governance
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Evidence
+      description: Runtime artifacts, audit, tests, EXE smoke, or Owner retest required.

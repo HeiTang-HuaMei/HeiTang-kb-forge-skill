@@ -1,0 +1,25 @@
+name: Security Scan
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  secret-boundary:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: High-confidence secret scan
+        shell: pwsh
+        run: |
+          $patterns = @(
+            'sk-[A-Za-z0-9_-]{20,}',
+            'api[_-]?key\s*[:=]\s*["''][^"'']{8,}',
+            'password\s*[:=]\s*["''][^"'']{8,}',
+            'token\s*[:=]\s*["''][^"'']{8,}'
+          )
+          $content = git grep -n -I -E ($patterns -join '|') -- ':!web/workbench/flutter_app/output/**' ':!**/*.lock' ':!docs/audits/**' || $null
+          if ($content) {
+            Write-Output $content
+            exit 1
+          }

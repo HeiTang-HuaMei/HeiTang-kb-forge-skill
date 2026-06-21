@@ -1,0 +1,29 @@
+name: External Project Verification
+description: Verify a registered Provider, template asset, or architecture reference.
+title: "[External Project]: "
+labels: ["external-project"]
+body:
+  - type: input
+    id: project_ref
+    attributes:
+      label: Project Reference
+    validations:
+      required: true
+  - type: dropdown
+    id: class
+    attributes:
+      label: Registry Class
+      options:
+        - capability_provider
+        - template_asset
+        - architecture_reference
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence Required
+      description: Config, health, fallback, audit, rollback, manifest, or architecture absorption evidence.
+  - type: textarea
+    id: decision
+    attributes:
+      label: Decision
+      description: Absorb, reject, or defer with blocker.

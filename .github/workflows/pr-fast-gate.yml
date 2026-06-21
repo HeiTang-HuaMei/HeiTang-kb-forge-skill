@@ -1,0 +1,24 @@
+name: PR Fast Gate
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  python-fast:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Python tests
+        run: |
+          python -m pytest
+      - name: Diff whitespace
+        run: |
+          git diff --check

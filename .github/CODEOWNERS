@@ -1,0 +1,13 @@
+# Repository governance
+/.github/ @HeiTang-HuaMei
+/docs/current/ @HeiTang-HuaMei
+/docs/product/ @HeiTang-HuaMei
+/docs/governance/ @HeiTang-HuaMei
+
+# Workbench product code
+/web/workbench/flutter_app/lib/ @HeiTang-HuaMei
+/web/workbench/flutter_app/test/ @HeiTang-HuaMei
+
+# Core package and tests
+/heitang_kb_forge/ @HeiTang-HuaMei
+/tests/ @HeiTang-HuaMei

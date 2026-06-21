@@ -1,0 +1,29 @@
+name: Bug Report
+description: Report a product or engineering defect.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: What user path or runtime behavior is affected?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Steps, input files, profile, and expected vs actual result.
+    validations:
+      required: true
+  - type: input
+    id: baseline
+    attributes:
+      label: Baseline Reference
+      description: Product Architecture / PRD / Feature Acceptance Matrix section, if known.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Logs or screenshots with secrets removed.

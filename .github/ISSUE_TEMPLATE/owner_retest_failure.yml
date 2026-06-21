@@ -1,0 +1,33 @@
+name: Owner Retest Failure
+description: Record failed Owner verification.
+title: "[Owner Retest Failure]: "
+labels: ["owner-retest", "release-blocker"]
+body:
+  - type: input
+    id: commit
+    attributes:
+      label: Commit SHA
+    validations:
+      required: true
+  - type: input
+    id: ci
+    attributes:
+      label: CI Run URL
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Scenario
+      description: Exact EXE or user-path steps.
+    validations:
+      required: true
+  - type: textarea
+    id: failure
+    attributes:
+      label: Failure
+      description: Actual result and expected result.
+    validations:
+      required: true
+  - type: textarea
+    id: rollback
+    attributes:
+      label: Rollback / Blocker Decision
