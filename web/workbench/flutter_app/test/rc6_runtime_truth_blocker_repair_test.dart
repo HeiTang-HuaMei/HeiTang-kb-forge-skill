@@ -251,6 +251,10 @@ void main() {
       'secondary_fusion_runtime_available': true,
       'multi_version_runtime_available': true,
       'version_count': 2,
+      'versions': [
+        {'version_id': 'v1', 'snapshot_path': snapshot1},
+        {'version_id': 'v2', 'snapshot_path': snapshot2},
+      ],
       'fused_skill_path': fusedSkillPath,
       'fused_manifest_path': fusedManifestPath,
       'operation_manifest_path': operationManifestPath,
@@ -259,6 +263,9 @@ void main() {
       'version_diff_report_path': diffPath,
       'rollback_manifest_path': rollbackPath,
       'runtime_audit_path': auditPath,
+      'model_route_evidence': {
+        'route_scopes': ['skill_generation', 'external_skill_localization'],
+      },
       'secret_plaintext_written': false,
     }));
   }
@@ -458,6 +465,432 @@ void main() {
       'conflict_report_path': conflictPath,
       'consensus_report_path': consensusPath,
     }));
+  }
+
+  void writeStage3FullProviderEvidenceFixture(Directory workspace) {
+    writeStage2PreflightFixture(workspace);
+    writeStage2SkillRuntimeFixture(workspace);
+    writeStage2AgentPermissionFixture(workspace);
+    writeStage2IndustrialSmokeFixture(workspace);
+    writeStage2ExeLaunchSmokeFixture(workspace);
+    writeN8nReadinessFixture(workspace);
+
+    final duDir = Directory('${workspace.path}${Platform.pathSeparator}du')
+      ..createSync(recursive: true);
+    final normalizedDir =
+        Directory('${duDir.path}${Platform.pathSeparator}normalized_sources')
+          ..createSync(recursive: true);
+    final normalizedAlpha =
+        '${normalizedDir.path}${Platform.pathSeparator}alpha.md';
+    final normalizedImage =
+        '${normalizedDir.path}${Platform.pathSeparator}image.md';
+    File(normalizedAlpha).writeAsStringSync('normalized parser evidence');
+    File(normalizedImage).writeAsStringSync('normalized OCR evidence');
+    File('${duDir.path}${Platform.pathSeparator}document_understanding_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_document_understanding_manifest.v1',
+      'status': 'completed',
+      'success_count': 2,
+      'failed_count': 0,
+      'normalized_source_count': 2,
+    }));
+    File('${duDir.path}${Platform.pathSeparator}document_understanding_records.jsonl')
+        .writeAsStringSync(jsonl([
+      {
+        'relative_path': 'alpha.pdf',
+        'normalized_path': normalizedAlpha,
+      },
+      {
+        'relative_path': 'scan.png',
+        'normalized_path': normalizedImage,
+        'ocr_text': 'normalized OCR evidence',
+        'ocr_provider': 'local_fixture_ocr',
+      },
+    ]));
+    File('${workspace.path}${Platform.pathSeparator}source_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'rc10_source_manifest.v1',
+      'status': 'imported',
+      'source_count': 2,
+      'sources': [
+        {
+          'document_id': 'doc_alpha',
+          'source_name': 'alpha.pdf',
+          'relative_path': 'alpha.pdf',
+          'extension': '.pdf',
+          'image_count': 0,
+        },
+        {
+          'document_id': 'doc_scan',
+          'source_name': 'scan.png',
+          'relative_path': 'scan.png',
+          'extension': '.png',
+          'image_count': 1,
+        },
+      ],
+    }));
+
+    final kbDir = Directory('${workspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    File('${kbDir.path}${Platform.pathSeparator}chunks.jsonl')
+        .writeAsStringSync(jsonl([
+      {
+        'chunk_id': 'c_stage3_1',
+        'source_path': 'input/stage3.md',
+        'text': 'stage3 full provider matrix evidence',
+      },
+    ]));
+    File('${kbDir.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'status': 'searchable',
+      'source_count': 1,
+      'chunk_count': 1,
+    }));
+    File('${kbDir.path}${Platform.pathSeparator}index_profile.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_index_profile.v1',
+      'status': 'ready',
+      'vector_index_enabled': true,
+      'vector_store': 'local_vector_reference',
+    }));
+    File('${kbDir.path}${Platform.pathSeparator}vector_index_reference.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_vector_index_reference.v1',
+      'vector_store': 'local_vector_reference',
+      'chunk_count': 1,
+      'external_vector_db_required': false,
+      'secret_plaintext_written': false,
+    }));
+    File('${kbDir.path}${Platform.pathSeparator}index_build_report.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_index_build_report.v1',
+      'status': 'pass',
+      'chunk_count': 1,
+    }));
+    File('${kbDir.path}${Platform.pathSeparator}index_metadata.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_index_metadata.v1',
+      'index_type': 'hybrid_local',
+      'chunk_count': 1,
+    }));
+    File('${kbDir.path}${Platform.pathSeparator}memory_index_reference.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_memory_index_reference.v1',
+      'memory_scope': 'agent_long_term_memory',
+      'memory_store': 'separate_from_kb_index',
+    }));
+
+    final kbRoot =
+        Directory('${workspace.path}${Platform.pathSeparator}knowledge_bases')
+          ..createSync(recursive: true);
+    for (final id in ['K1', 'K2']) {
+      final dir = Directory('${kbRoot.path}${Platform.pathSeparator}$id')
+        ..createSync(recursive: true);
+      File('${dir.path}${Platform.pathSeparator}manifest.json')
+          .writeAsStringSync('{"status":"searchable"}');
+      File('${dir.path}${Platform.pathSeparator}chunks.jsonl')
+          .writeAsStringSync('{"chunk_id":"$id-c1"}\n');
+    }
+    File('${kbRoot.path}${Platform.pathSeparator}kb_catalog.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
+      'knowledge_bases': [
+        {
+          'kb_id': 'K1',
+          'kb_name': 'Stage3 Alpha KB',
+          'status': 'searchable',
+          'operation': 'build',
+          'chunk_count': 1,
+        },
+        {
+          'kb_id': 'K2',
+          'kb_name': 'Stage3 Beta KB',
+          'status': 'searchable',
+          'operation': 'build',
+          'chunk_count': 1,
+        },
+      ],
+    }));
+
+    final queryDir = Directory('${workspace.path}${Platform.pathSeparator}query')
+      ..createSync(recursive: true);
+    File('${queryDir.path}${Platform.pathSeparator}multi_kb_query_result.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_multi_kb_query_result.v1',
+      'query': 'stage3 authorized full matrix',
+      'selected_kb_ids': ['K1', 'K2'],
+      'result_count': 2,
+      'selected_count': 2,
+      'external_validation_status': 'not_enabled_local_only',
+      'results': [
+        {
+          'chunk_id': 'K1-c1',
+          'kb_id': 'K1',
+          'title': 'Stage3 K1 evidence',
+          'source_path': 'K1-source.md',
+          'text': 'anysearchskill authorized query evidence',
+          'score': 0.91,
+          'citation': 'K1#chunk=1',
+          'published_at': '2026-06-10',
+          'time_window': 'last_30_days',
+        },
+        {
+          'chunk_id': 'K2-c1',
+          'kb_id': 'K2',
+          'title': 'Stage3 K2 evidence',
+          'source_path': 'K2-source.md',
+          'text': 'last30days authorized time window evidence',
+          'score': 0.9,
+          'citation': 'K2#chunk=1',
+          'metadata': {'time_window': 'last_30_days'},
+        },
+      ],
+    }));
+    File('${queryDir.path}${Platform.pathSeparator}retrieval_plan.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_retrieval_plan.v1',
+      'selected_kb_count': 2,
+    }));
+    File('${queryDir.path}${Platform.pathSeparator}rerank_report.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_retrieval_rerank_report.v1',
+      'result_count': 2,
+    }));
+    File('${queryDir.path}${Platform.pathSeparator}citation_coverage_report.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_retrieval_citation_coverage.v1',
+      'result_count': 2,
+      'citation_coverage': 1.0,
+    }));
+    File('${queryDir.path}${Platform.pathSeparator}conflict_report.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_retrieval_conflict_report.v1',
+      'conflict_count': 0,
+    }));
+    File('${queryDir.path}${Platform.pathSeparator}external_validation_boundary.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_external_validation_boundary.v1',
+      'external_calls_made': false,
+      'secret_plaintext_written': false,
+    }));
+
+    final skillRoot =
+        Directory('${workspace.path}${Platform.pathSeparator}skill')
+          ..createSync(recursive: true);
+    final primaryDir = Directory(
+        '${skillRoot.path}${Platform.pathSeparator}knowledge_qa_skill')
+      ..createSync(recursive: true);
+    final localizedDir = Directory(
+        '${skillRoot.path}${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2')
+      ..createSync(recursive: true);
+    final fusedDir = Directory(
+        '${skillRoot.path}${Platform.pathSeparator}fused_product_ops_skill')
+      ..createSync(recursive: true);
+    final operationsDir =
+        Directory('${skillRoot.path}${Platform.pathSeparator}operations')
+          ..createSync(recursive: true);
+    final versionsDir =
+        Directory('${skillRoot.path}${Platform.pathSeparator}versions')
+          ..createSync(recursive: true);
+    final v1 = Directory('${versionsDir.path}${Platform.pathSeparator}v1')
+      ..createSync(recursive: true);
+    final v2 = Directory('${versionsDir.path}${Platform.pathSeparator}v2')
+      ..createSync(recursive: true);
+    final v1Snapshot = '${v1.path}${Platform.pathSeparator}SKILL.md';
+    final v2Snapshot = '${v2.path}${Platform.pathSeparator}SKILL.md';
+    File(v1Snapshot).writeAsStringSync('# Skill v1\n');
+    File(v2Snapshot).writeAsStringSync('# Skill v2\n');
+    File('${primaryDir.path}${Platform.pathSeparator}SKILL.md')
+        .writeAsStringSync('# Knowledge QA Skill\n');
+    File('${primaryDir.path}${Platform.pathSeparator}skill_config.json')
+        .writeAsStringSync(jsonEncode({
+      'skill_config_id': 'S1',
+      'source_mode': 'from_kb',
+      'target_platform': 'codex',
+      'status': 'validated',
+    }));
+    File('${localizedDir.path}${Platform.pathSeparator}localized_skill_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'skill_config_id': 'S2',
+      'source_mode': 'external_skill_fusion',
+      'status': 'validated',
+    }));
+    File('${localizedDir.path}${Platform.pathSeparator}diff_summary.md')
+        .writeAsStringSync('# localized diff\n');
+    File('${fusedDir.path}${Platform.pathSeparator}SKILL.md')
+        .writeAsStringSync('# Fused product ops Skill\n');
+    File('${fusedDir.path}${Platform.pathSeparator}skill_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'skill_id': 'S3',
+      'source_mode': 'skill_plus_kb_fusion',
+      'status': 'validated',
+    }));
+    File('${skillRoot.path}${Platform.pathSeparator}skill_generation_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'rc10_real_input_skill_generation.v1',
+      'source_modes': ['from_kb', 'external_skill_fusion'],
+      'selected_generation_config': {
+        'skill_type': 'product',
+        'target_platform': 'codex',
+      },
+      'model_route_evidence': {
+        'route_scopes': ['skill_generation', 'skill_validation'],
+      },
+      'secret_plaintext_written': false,
+    }));
+    File('${skillRoot.path}${Platform.pathSeparator}skill_package_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_skill_package_manifest.v1',
+      'status': 'ready',
+      'skill_packages': [
+        {'skill_id': 'S1', 'schema_id': 'mmskills_local_schema.v1'}
+      ],
+      'model_route_evidence': {
+        'route_scopes': ['skill_generation', 'skill_validation'],
+      },
+      'secret_plaintext_written': false,
+    }));
+    File('${skillRoot.path}${Platform.pathSeparator}skill_validation_report.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_skill_factory_validation.v1',
+      'status': 'pass',
+      'ready_for_agent_binding': true,
+      'secret_plaintext_written': false,
+    }));
+    File('${operationsDir.path}${Platform.pathSeparator}agent_binding_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_skill_agent_binding_manifest.v1',
+      'status': 'bound',
+      'agent_id': 'knowledge_qa_agent',
+    }));
+    File('${operationsDir.path}${Platform.pathSeparator}skill_version_diff_report.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_skill_version_diff_report.v1',
+      'status': 'pass',
+    }));
+    File('${operationsDir.path}${Platform.pathSeparator}skill_runtime_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_skill_runtime_manifest.v1',
+      'runtime_loaded': true,
+      'external_runtime': false,
+      'secondary_fusion_runtime_available': true,
+      'multi_version_runtime_available': true,
+      'version_count': 2,
+      'versions': [
+        {'version_id': 'v1', 'snapshot_path': v1Snapshot},
+        {'version_id': 'v2', 'snapshot_path': v2Snapshot},
+      ],
+      'model_route_evidence': {
+        'route_scopes': ['skill_generation', 'external_skill_localization'],
+      },
+      'secret_plaintext_written': false,
+    }));
+
+    final agentRoot =
+        Directory('${workspace.path}${Platform.pathSeparator}agent')
+          ..createSync(recursive: true);
+    final auditRoot =
+        Directory('${agentRoot.path}${Platform.pathSeparator}audit')
+          ..createSync(recursive: true);
+    File('${agentRoot.path}${Platform.pathSeparator}agent_generation_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_agent_generation_manifest.v1',
+      'agent_id': 'agent_memory_probe',
+      'memory': {'long_term': 'memory_index_reference'},
+    }));
+    File('${auditRoot.path}${Platform.pathSeparator}permission_audit.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v2_agent_permission_audit.v1',
+      'agent_id': 'agent_memory_probe',
+      'permission_checks': ['memory_permission_boundary'],
+    }));
+    File('${auditRoot.path}${Platform.pathSeparator}agent_validation_report.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_agent_validation_report.v1',
+      'status': 'pass',
+      'agent_id': 'agent_memory_probe',
+      'checks': [
+        {'check_id': 'memory_separated_from_kb_index', 'status': 'pass'},
+      ],
+    }));
+
+    final structuredDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}export${Platform.pathSeparator}structured')
+      ..createSync(recursive: true);
+    final jsonPath =
+        '${structuredDir.path}${Platform.pathSeparator}knowledge_export.json';
+    final csvPath =
+        '${structuredDir.path}${Platform.pathSeparator}knowledge_export.csv';
+    File(jsonPath).writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v2_structured_document_export_payload.v1',
+      'status': 'pass',
+      'sources': [
+        {'source_name': 'source.md', 'relative_path': 'input/source.md'}
+      ],
+      'retrieval': {
+        'results': [
+          {'title': 'real export evidence', 'citation': 'source.md#chunk=1'}
+        ],
+      },
+      'retrieval_results': [
+        {'title': 'real export evidence', 'citation': 'source.md#chunk=1'}
+      ],
+      'redaction': {'secret_plaintext_written': false},
+    }));
+    File(csvPath).writeAsStringSync(
+        'record_type,title,citation\nretrieval_result,real export evidence,source.md#chunk=1\n');
+    File('${structuredDir.path}${Platform.pathSeparator}structured_export_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v2_structured_document_export.v1',
+      'status': 'pass',
+      'json_output': jsonPath,
+      'csv_output': csvPath,
+    }));
+
+    final videoDir = Directory(
+        '${agentRoot.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}video')
+      ..createSync(recursive: true);
+    final toolDir =
+        Directory('${agentRoot.path}${Platform.pathSeparator}tool')
+          ..createSync(recursive: true);
+    final externalSkillDir = Directory(
+        '${agentRoot.path}${Platform.pathSeparator}external_skills${Platform.pathSeparator}video_generation_skill')
+      ..createSync(recursive: true);
+    File('${videoDir.path}${Platform.pathSeparator}prompt.txt')
+        .writeAsStringSync('video handoff prompt');
+    File('${videoDir.path}${Platform.pathSeparator}cost_report.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_tool_cost_report.v1',
+      'tool_id': 'video.generate',
+      'api_call_count': 0,
+    }));
+    File('${videoDir.path}${Platform.pathSeparator}video_task_manifest.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_video_task_manifest.v1',
+      'tool_id': 'video.generate',
+      'fake_video_generated': false,
+      'api_called': false,
+    }));
+    File('${toolDir.path}${Platform.pathSeparator}tool_call_log.jsonl')
+        .writeAsStringSync(jsonl([
+      {
+        'schema_version': 'prd_v3_tool_call_log_record.v1',
+        'tool_id': 'video.generate',
+        'api_called': false,
+      }
+    ]));
+    File('${externalSkillDir.path}${Platform.pathSeparator}skill_dependency_report.json')
+        .writeAsStringSync(jsonEncode({
+      'schema_version': 'prd_v3_skill_dependency_report.v1',
+      'missing_provider_configs': ['video_custom_http_stub'],
+    }));
+
+    writeStage2PreflightFixture(workspace);
+    writeStage2SkillRuntimeFixture(workspace);
+    writeStage2AgentPermissionFixture(workspace);
+    writeStage2IndustrialSmokeFixture(workspace);
+    writeStage2ExeLaunchSmokeFixture(workspace);
+    writeN8nReadinessFixture(workspace);
   }
 
   void expectIndustrialIndexArtifacts(String kbRoot,
@@ -2550,6 +2983,243 @@ void main() {
         endsWith('task_isolation_matrix.json'));
     expect(reloaded.state.taskRecoveryReportPath,
         endsWith('task_recovery_report.json'));
+  });
+
+  test('stage3 authorized profile proves full provider loading matrix evidence',
+      () async {
+    final workspace = await createWorkspace();
+    writeStage3FullProviderEvidenceFixture(workspace);
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    const secret = 'stage3-full-matrix-secret';
+    await controller.saveProviderRuntimeSettings(
+      llmProvider: 'official_openai',
+      modelId: 'gpt-stage3-full-matrix',
+      embeddingProvider: 'local_keyword_embedding',
+      searchProvider: 'web_authorized_search',
+      parserProvider: 'local_parser',
+      ocrProvider: 'optional_ocr',
+      apiKey: secret,
+    );
+    final profile = await controller.createProjectConfigProfile(
+      displayName: 'Stage3 授权能力增强配置',
+      mode: 'hybrid',
+    );
+    await controller.activateProjectConfigProfile(profile.profileId);
+    final healthPath = await controller.testAllRegisteredProviderCapabilities();
+
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final runtimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final preflight =
+        runtimeStatus['stage_2_industrial_preflight'] as Map<String, dynamic>;
+    expect(preflight['status'], 'passed');
+    expect(preflight['runtime_load_allowed'], isTrue);
+    expect(preflight['failed_checks'], isEmpty);
+
+    final readiness = jsonDecode(File(
+            runtimeStatus['provider_adapter_readiness_report_path'] as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(readiness['contract_count'], 26);
+    expect(readiness['readiness_entry_count'], 26);
+    expect(readiness['ready_for_user_selection_count'], 25);
+    expect(readiness['external_runtime_load_allowed'], isTrue);
+    expect(readiness['normal_ui_project_names_visible'], isFalse);
+    expect(readiness['secret_plaintext_written'], isFalse);
+    expect(File(readiness['readiness_log_path'] as String).readAsStringSync(),
+        isNot(contains(secret)));
+
+    final readinessEntries =
+        (readiness['readiness_entries'] as List).cast<Map<String, dynamic>>();
+    const expectedProviderRefs = {
+      'ai_marketing_skills',
+      'andrej_karpathy_skills',
+      'anysearchskill',
+      'deepeval',
+      'docling',
+      'jellyfish',
+      'last30days_skill',
+      'llamaindex',
+      'llm_wiki_v2',
+      'marker',
+      'mattpocock_skills',
+      'mineru',
+      'mmskills',
+      'n8n',
+      'opendataloader',
+      'paddleocr',
+      'rag_anything',
+      'ragas',
+      'rtk',
+      'seedance2_skill',
+      'sirchmunk',
+      'skill_prompt_generator',
+      'story_flicks',
+      'surya',
+      'unstructured',
+      'weknora',
+    };
+    expect(readinessEntries.map((entry) => entry['provider_ref']).toSet(),
+        expectedProviderRefs);
+    expect(
+        readinessEntries
+            .where((entry) => entry['provider_ref'] != 'llamaindex')
+            .every((entry) =>
+            entry['status'] == '连接成功' &&
+            entry['ready_for_user_selection'] == true &&
+            entry['secret_masked'] == true &&
+            (entry['test_artifacts'] as List).isNotEmpty),
+        isTrue);
+    final llamaindexReadiness = readinessEntries
+        .firstWhere((entry) => entry['provider_ref'] == 'llamaindex');
+    expect(llamaindexReadiness['status'], '配置缺失');
+    expect(llamaindexReadiness['ready_for_user_selection'], isFalse);
+    expect(llamaindexReadiness['runtime_loaded'], isFalse);
+    for (final providerRef in [
+      'anysearchskill',
+      'last30days_skill',
+      'seedance2_skill',
+      'rtk',
+    ]) {
+      final entry = readinessEntries
+          .firstWhere((item) => item['provider_ref'] == providerRef);
+      expect(entry['gate_kind'], isNotEmpty);
+      final probeRaw =
+          File((entry['test_artifacts'] as List).cast<String>().single)
+              .readAsStringSync();
+      expect(probeRaw, isNot(contains(secret)));
+      final probe = jsonDecode(probeRaw) as Map<String, dynamic>;
+      expect(probe['passed'], isTrue);
+      expect(probe['network_call_attempted'], isFalse);
+      expect(probe['external_runtime_executed'], isFalse);
+      expect(probe['vendor_runtime_loaded'], isFalse);
+      expect(probe['secret_plaintext_written'], isFalse);
+    }
+
+    final health =
+        jsonDecode(File(healthPath).readAsStringSync()) as Map<String, dynamic>;
+    expect(health['unique_provider_ref_count'], 26);
+    expect(health['ready_unique_provider_count'], 25);
+    expect(health['ready_for_user_selection_count'], 28);
+    expect(health['runtime_loaded_count'], 0);
+    expect(health['external_runtime_load_allowed'], isTrue);
+    expect(health['normal_ui_project_names_visible'], isFalse);
+    expect(health['secret_plaintext_written'], isFalse);
+
+    final registrySummary = jsonDecode(File(
+            health['provider_registry_readiness_summary_path'] as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(registrySummary['provider_count'], 26);
+    expect(registrySummary['provider_mapping_count'], 29);
+    expect(registrySummary['ready_provider_count'], 25);
+    expect(registrySummary['runtime_loaded_count'], 0);
+    expect(registrySummary['external_runtime_load_eligible_count'], 2);
+    expect(
+        (registrySummary['user_concept_boundary']
+            as Map)['external_project_names_visible_in_normal_ui'],
+        isFalse);
+    expect(
+        (registrySummary['failure_isolation']
+            as Map)['unavailable_provider_blocks_main_chain'],
+        isFalse);
+
+    final fullMatrix = jsonDecode(File(
+            runtimeStatus['stage3_full_provider_loading_matrix_path'] as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(fullMatrix['schema_version'],
+        'prd_v3_stage3_full_provider_loading_matrix.v1');
+    expect(fullMatrix['status'], 'matrix_ready');
+    expect(fullMatrix['provider_count'], 26);
+    expect(fullMatrix['target_counts'], {
+      'capability_provider': 19,
+      'template_asset': 6,
+      'architecture_reference': 1,
+    });
+    expect(fullMatrix['actual_counts'], {
+      'capability_provider': 19,
+      'template_asset': 6,
+      'architecture_reference': 1,
+    });
+    expect(fullMatrix['loaded_configured_count'], 26);
+    expect(fullMatrix['runtime_ready_count'], 26);
+    expect(fullMatrix['downstream_bound_count'], 26);
+    expect(fullMatrix['fallback_verified_count'], 26);
+    expect(fullMatrix['audit_verified_count'], 26);
+    expect(fullMatrix['rollback_verified_count'], 26);
+    expect(fullMatrix['exe_verified_count'], 26);
+    expect(fullMatrix['normal_ui_project_names_visible'], isFalse);
+    expect(fullMatrix['hot_swap_project_concept_visible'], isFalse);
+    expect(fullMatrix['secret_plaintext_written'], isFalse);
+
+    final rows = (fullMatrix['rows'] as List).cast<Map<String, dynamic>>();
+    expect(rows, hasLength(26));
+    expect(rows.map((row) => row['provider_ref']).toSet(),
+        expectedProviderRefs);
+    expect(
+        rows.every((row) =>
+            row['loaded_configured'] == true &&
+            row['runtime_ready'] == true &&
+            row['downstream_bound'] == true &&
+            row['fallback_verified'] == true &&
+            row['audit_verified'] == true &&
+            row['rollback_verified'] == true &&
+            row['exe_verified'] == true &&
+            row['external_runtime_executed'] == false &&
+            row['workflow_executed'] == false &&
+            row['normal_ui_project_name_visible'] == false &&
+            row['hot_swap_project_concept_visible'] == false &&
+            row['secret_plaintext_written'] == false),
+        isTrue);
+    expect(
+        rows
+            .where((row) => row['registry_entry_class'] == 'capability_provider'),
+        hasLength(19));
+    expect(
+        rows.where((row) => row['registry_entry_class'] == 'template_asset'),
+        hasLength(6));
+    expect(
+        rows.where(
+            (row) => row['registry_entry_class'] == 'architecture_reference'),
+        hasLength(1));
+
+    final llamaindex =
+        rows.firstWhere((row) => row['provider_ref'] == 'llamaindex');
+    expect(llamaindex['registry_entry_class'], 'architecture_reference');
+    expect(llamaindex['architecture_reference_status'],
+        'absorbed_into_architecture');
+    expect(llamaindex['runtime_loaded'], isFalse);
+    expect(llamaindex['runtime_load_class'],
+        'architecture_reference_no_runtime');
+    expect((llamaindex['acceptance_notes'] as String),
+        contains('index/RAG contract'));
+
+    final templateRows = rows
+        .where((row) => row['registry_entry_class'] == 'template_asset')
+        .toList(growable: false);
+    expect(
+        templateRows.every((row) =>
+            row['runtime_loaded'] == false &&
+            row['runtime_load_class'] == 'template_manifest_only'),
+        isTrue);
+    final n8n = rows.firstWhere((row) => row['provider_ref'] == 'n8n');
+    final rtk = rows.firstWhere((row) => row['provider_ref'] == 'rtk');
+    expect(n8n['requires_external_runtime'], isTrue);
+    expect(rtk['requires_external_runtime'], isTrue);
+    expect(n8n['runtime_loaded'], isFalse);
+    expect(rtk['runtime_loaded'], isFalse);
+    expect(n8n['runtime_ready'], isTrue);
+    expect(rtk['runtime_ready'], isTrue);
   });
 
   test('sirchmunk local retrieval adapter becomes selectable after real chunks',
