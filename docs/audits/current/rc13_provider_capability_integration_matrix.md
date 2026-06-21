@@ -109,6 +109,10 @@ Architecture reference statuses are now explicit:
   result counts, citation coverage, conflict evidence, and the no-external-call
   boundary; `ragas` and `deepeval` remain `runtime_loaded=false` and do not
   execute vendor runtimes.
+- `anysearchskill` remains blocked in the default local Profile, but now has a
+  tested authorized-network path: non-local Profile, network authorization,
+  Provider domain allowlist, local query evidence, and a clean external boundary
+  can make it selectable while still avoiding live vendor calls during readiness.
 - RTK is an Agent tool/runtime capability Provider. It remains blocked until a user-owned external runtime and permission boundary health gate pass.
 - LlamaIndex remains an architecture reference with `deferred_with_blocker`;
   current benchmark-only evidence does not yet prove a net architecture gain

@@ -14463,10 +14463,22 @@ class Rc6RuntimeController extends ChangeNotifier {
     final storage = await loadStorageProviderSettings();
     final provider = await loadProviderRuntimeSettings();
     final exporter = await loadExporterSettings();
+    final networkAllowed = active.networkPolicyId != 'network_local_only';
+    final search = _mapValue(provider['search']);
     final config = {
       'storage': storage,
       'provider': provider,
       'exporter': exporter,
+      'network_authorization': {
+        'web_import_allowed': networkAllowed,
+        'external_verification_allowed': networkAllowed,
+        'provider_domain_allowlist':
+            networkAllowed ? ['按 Provider 配置'] : <String>[],
+      },
+      'search_provider': {
+        'network_authorization': networkAllowed ? '已配置未测试' : '已禁用',
+        'query_test': _userStatus(search['status']),
+      },
     };
     final stage2RuntimeLoadAllowed =
         _boolValue(stage2Preflight['runtime_load_allowed']);
@@ -17090,7 +17102,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'gate_kind': highRiskGate['gate_kind'],
         'gate_audit': highRiskGate['gate_audit'],
         'test_artifacts': [highRiskGate['probe_path']],
-        'ready_for_user_selection': false,
+        'ready_for_user_selection':
+            _boolValue(highRiskGate['ready_for_user_selection']),
         'runtime_loaded': false,
       };
     }
@@ -17591,6 +17604,22 @@ class Rc6RuntimeController extends ChangeNotifier {
     if (missingRefs.any((ref) => ref != 'secret_ref')) {
       blockedReasons.add('需要补齐 Provider 配置引用。');
     }
+    if (providerRef == 'anysearchskill' &&
+        requiresNetwork &&
+        profile.networkPolicyId != 'network_local_only' &&
+        blockedReasons.isEmpty) {
+      final probe = _probeAnySearchSkillAuthorizedAdapter(
+        workspace,
+        contract,
+        profile,
+        config,
+        probePath,
+      );
+      return {
+        ...probe,
+        'probe_path': probePath,
+      };
+    }
     final status = requiresSecretRef && missingRefs.contains('secret_ref')
         ? '配置缺失'
         : requiresExternalRuntime
@@ -17696,6 +17725,123 @@ class Rc6RuntimeController extends ChangeNotifier {
       ...payload,
       'probe_path': probePath,
     };
+  }
+
+  static Map<String, dynamic> _probeAnySearchSkillAuthorizedAdapter(
+    Directory workspace,
+    Map<String, dynamic> contract,
+    ProjectConfigProfile profile,
+    Map<String, dynamic> config,
+    String probePath,
+  ) {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final network = _mapValue(config['network_authorization']);
+    final searchProvider = _mapValue(config['search_provider']);
+    final queryResultPath =
+        _join(workspace.path, 'query', 'multi_kb_query_result.json');
+    final externalBoundaryPath =
+        _join(workspace.path, 'query', 'external_validation_boundary.json');
+    final queryResult = _readJsonObjectSync(queryResultPath);
+    final externalBoundary = _readJsonObjectSync(externalBoundaryPath);
+    final resultCount = _asInt(queryResult['result_count']) ??
+        _asInt(queryResult['selected_count']) ??
+        _listOfMaps(queryResult['results']).length;
+    final allowlist = _listOfStrings(network['provider_domain_allowlist']);
+    final networkAuthorized = _boolValue(network['web_import_allowed']) &&
+        _boolValue(network['external_verification_allowed']) &&
+        allowlist.isNotEmpty &&
+        profile.networkPolicyId != 'network_local_only';
+    final queryProbePassed = _stringValue(queryResult['schema_version'], '') ==
+            'prd_v3_multi_kb_query_result.v1' &&
+        resultCount > 0 &&
+        _listOfMaps(queryResult['results']).isNotEmpty;
+    final boundaryValid =
+        _stringValue(externalBoundary['schema_version'], '') ==
+                'prd_v3_external_validation_boundary.v1' &&
+            _boolValue(externalBoundary['external_calls_made']) == false &&
+            _boolValue(externalBoundary['secret_plaintext_written']) == false;
+    final searchConfigured =
+        _stringValue(searchProvider['network_authorization'], '') != '已禁用' &&
+            _stringValue(searchProvider['query_test'], '') != '已禁用';
+    final passed = networkAuthorized &&
+        queryProbePassed &&
+        boundaryValid &&
+        searchConfigured;
+    final blockedReasons = <String>[
+      if (!networkAuthorized) '网络授权或 Provider domain allowlist 未配置。',
+      if (!searchConfigured) 'Search Provider 尚未配置为网络授权模式。',
+      if (!queryProbePassed) '需要先完成一次真实检索查询测试。',
+      if (!boundaryValid) '外部验证边界缺失或包含不允许的外部调用/secret 记录。',
+    ];
+    final gateAudit = {
+      'gate_kind': 'network_search_provider_gate',
+      'provider_ref': 'anysearchskill',
+      'requires_network': true,
+      'requires_secret_ref': false,
+      'requires_external_runtime': false,
+      'requires_dependency_install': false,
+      'network_authorization': networkAuthorized ? '连接成功' : '已配置未测试',
+      'secret_ref_status': '不需要',
+      'external_runtime_status': '不需要',
+      'missing_config_refs': const <String>[],
+      'blocked_reasons': blockedReasons,
+      'provider_domain_allowlist_count': allowlist.length,
+      'query_probe_result_count': resultCount,
+      'fallback_preserves_local_chain': true,
+      'network_call_attempted': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
+      'normal_ui_project_name_visible': false,
+      'secret_plaintext_written': false,
+    };
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_probe_high_risk_gate.v1',
+      'provider_ref': 'anysearchskill',
+      'gate_kind': 'network_search_provider_gate',
+      'gate_audit': gateAudit,
+      'status': passed ? '连接成功' : '已配置未测试',
+      'error_code': passed ? '' : 'network_query_probe_required',
+      'error_message_zh':
+          passed ? '' : '需要网络授权、Provider domain allowlist 和本地检索查询测试证据后才能启用。',
+      'capability_ids': _listOfStrings(contract['capability_ids']),
+      'affected_modules': _listOfStrings(contract['affected_modules']),
+      'runtime_execution_mode':
+          _stringValue(contract['runtime_execution_mode'], 'provider_adapter'),
+      'requires_network': true,
+      'requires_secret_ref': false,
+      'requires_external_runtime': false,
+      'requires_dependency_install': false,
+      'network_authorization': gateAudit['network_authorization'],
+      'secret_ref_status': '不需要',
+      'external_runtime_status': '不需要',
+      'missing_config_refs': const <String>[],
+      'blocked_reasons': blockedReasons,
+      'degradation_target':
+          _stringValue(contract['fallback_provider'], 'local_rag_retrieval'),
+      'ready_for_user_selection': passed,
+      'runtime_loaded': false,
+      'runtime_load_allowed': false,
+      'selection_allowed': passed,
+      'fallback_preserves_local_chain': true,
+      'rollback_supported': _boolValue(contract['rollback_supported']),
+      'normal_ui_project_name_visible': false,
+      'network_call_attempted': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
+      'secret_masked': true,
+      'secret_plaintext_written': false,
+      'query_result_path': queryResultPath,
+      'external_validation_boundary_path': externalBoundaryPath,
+      'passed': passed,
+      'evaluated_at': now,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return payload;
   }
 
   static Map<String, dynamic> _stage2IndustrialPreflight(Directory workspace) {

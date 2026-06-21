@@ -2499,6 +2499,118 @@ void main() {
     expect(health['ready_for_user_selection_count'], 4);
   });
 
+  test('anysearchskill requires explicit network profile and query evidence',
+      () async {
+    final workspace = await createWorkspace();
+    final kbRoot =
+        Directory('${workspace.path}${Platform.pathSeparator}knowledge_bases')
+          ..createSync(recursive: true);
+    for (final id in ['K1']) {
+      final dir = Directory('${kbRoot.path}${Platform.pathSeparator}$id')
+        ..createSync(recursive: true);
+      File('${dir.path}${Platform.pathSeparator}manifest.json')
+          .writeAsStringSync('{"status":"searchable"}');
+      File('${dir.path}${Platform.pathSeparator}chunks.jsonl')
+          .writeAsStringSync('{"chunk_id":"$id-c1"}\n');
+    }
+    File('${kbRoot.path}${Platform.pathSeparator}kb_catalog.json')
+        .writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
+      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
+      'knowledge_bases': [
+        {
+          'kb_id': 'K1',
+          'kb_name': 'Network Authorized KB',
+          'kb_type': '基础知识库',
+          'status': 'searchable',
+          'operation': 'build',
+          'source_documents': [
+            {'source_name': 'network.md'}
+          ],
+          'chunk_count': 1,
+        }
+      ],
+    }));
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          File('${output.path}${Platform.pathSeparator}kb_query_result.json')
+              .writeAsStringSync(
+            const JsonEncoder.withIndent('  ').convert({
+              'selected_count': 1,
+              'selected': [
+                {
+                  'chunk_id': 'K1-network-c1',
+                  'source_path': 'network-authorized.md',
+                  'text': 'anysearchskill authorized query evidence',
+                  'score': 0.9,
+                }
+              ],
+            }),
+          );
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.searchKnowledgeBases('anysearchskill authorized', ['K1']);
+    final cloud = await controller.createProjectConfigProfile(
+      displayName: '网络授权检索配置',
+      mode: 'hybrid',
+    );
+    await controller.activateProjectConfigProfile(cloud.profileId);
+    await controller.testAllRegisteredProviderCapabilities();
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final runtimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    final readiness = jsonDecode(
+        File(runtimeStatus['provider_adapter_readiness_report_path'] as String)
+            .readAsStringSync()) as Map;
+    final anySearchReadiness = (readiness['readiness_entries'] as List)
+        .cast<Map>()
+        .firstWhere((entry) => entry['provider_ref'] == 'anysearchskill');
+    expect(anySearchReadiness['status'], '连接成功');
+    expect(anySearchReadiness['ready_for_user_selection'], isTrue);
+    expect(anySearchReadiness['runtime_loaded'], isFalse);
+    expect(anySearchReadiness['runtime_load_allowed'], isFalse);
+    expect(anySearchReadiness['gate_kind'], 'network_search_provider_gate');
+    final probe = jsonDecode(File((anySearchReadiness['test_artifacts'] as List)
+            .cast<String>()
+            .single)
+        .readAsStringSync()) as Map;
+    expect(probe['passed'], isTrue);
+    expect(probe['network_authorization'], '连接成功');
+    expect(probe['network_call_attempted'], isFalse);
+    expect(probe['external_runtime_executed'], isFalse);
+    expect(probe['vendor_runtime_loaded'], isFalse);
+    expect(probe['secret_plaintext_written'], isFalse);
+    expect((probe['gate_audit'] as Map)['provider_domain_allowlist_count'],
+        greaterThan(0));
+    expect((probe['gate_audit'] as Map)['query_probe_result_count'], 1);
+
+    final activated =
+        await controller.activateRegisteredProviderCapability('anysearchskill');
+    expect(activated, isTrue);
+    final binding = jsonDecode(File(
+            runtimeStatus['provider_capability_binding_manifest_path']
+                as String)
+        .readAsStringSync()) as Map;
+    final retrievalBinding = (binding['bindings'] as List)
+        .cast<Map>()
+        .firstWhere((entry) => entry['capability_id'] == 'retrieval_provider');
+    expect(retrievalBinding['active_provider_ref'], 'anysearchskill');
+    expect(retrievalBinding['runtime_loaded'], isFalse);
+    expect(retrievalBinding['selection_allowed'], isTrue);
+  });
+
   test('rag evaluation adapters become selectable from retrieval validation',
       () async {
     final workspace = await createWorkspace();

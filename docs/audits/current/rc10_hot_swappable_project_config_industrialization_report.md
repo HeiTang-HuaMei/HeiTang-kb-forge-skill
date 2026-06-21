@@ -612,6 +612,12 @@ Latest Stage 3 high-risk Provider gate slice:
   `runtime_loaded=false`, `runtime_load_allowed=false`,
   `network_call_attempted=false`, `external_runtime_executed=false`,
   `vendor_runtime_loaded=false`, and `secret_plaintext_written=false`.
+- `anysearchskill` now has an explicit authorized-network proof path: only a
+  non-local Profile with network authorization, Provider domain allowlist, a
+  real local retrieval query result, and a clean external-validation boundary
+  can mark it `连接成功`. The probe still records `network_call_attempted=false`
+  because readiness proves authorization and query evidence, not a live vendor
+  network call.
 - Activation audit now uses the Provider readiness status and blocked reasons
   instead of a generic blocked state, so Settings, readiness, binding, and
   selection logs stay consistent.
