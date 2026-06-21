@@ -32,8 +32,8 @@ Registered projects are split before they can affect product behavior:
 
 Architecture reference statuses are now explicit:
 
-- `absorbed_into_architecture`: reference has been converted into Provider contracts, schema, UI information architecture boundary, test gate, audit model, fallback/degradation rule, or loading rule.
-- `deferred_with_blocker`: reference may be valuable but lacks a concrete blocker such as external runtime proof, retrieval evaluation evidence, network authorization, or permission boundary proof.
+- `absorbed_into_architecture`: reference has been converted into Provider contracts, schema, UI information architecture boundary, test gate, audit model, fallback/degradation rule, or loading rule. It is not accepted as a learning note only.
+- `deferred_with_blocker`: reference may be valuable but cannot yet be absorbed because a named blocker remains, such as external runtime proof, retrieval evaluation evidence, network authorization, or permission boundary proof.
 - `rejected_no_architecture_gain`: reference is not retained when it does not improve the v3 main chain or is covered by existing abstractions.
 - `candidate_reference`: must remain `0` in current Stage3 runtime reports. It is not a long-term holding state.
 
@@ -103,6 +103,12 @@ Architecture reference statuses are now explicit:
   disabled, and verifies rollback returns the count to `0`.
 - RAG evaluation entries are capability Providers for governance/evaluation gates. They remain blocked until retrieval validation is explicitly reviewed, not merely saved as pending manual review.
 - RTK is an Agent tool/runtime capability Provider. It remains blocked until a user-owned external runtime and permission boundary health gate pass.
+- High-risk gates for network search, time-window retrieval, video Skill
+  template, and Agent tool/runtime Providers now publish `gate_kind` and
+  `gate_audit` through readiness, health, integration, eligibility, coverage,
+  and selection logs. A blocked gate explicitly proves local fallback,
+  rollback support, secret masking, no normal-UI project name, no network call,
+  no vendor runtime load, and no external runtime execution.
 - Benchmark-only, network, secret, dependency, and external-runtime Providers remain blocked until their required config/evidence exists.
 
 ## Owner Verification Focus

@@ -168,6 +168,13 @@ Health and stability validation:
 - `testAllRegisteredProviderCapabilities()` checks all registered Provider mappings before they can be selected.
 - Current evidence covers 29 provider-to-capability mappings and 26 unique registered Provider references.
 - Every entry writes a user-readable health state such as `需安装外部服务`, `需启动外部服务`, `配置缺失`, `已禁用`, or `已配置未测试`.
+- High-risk Provider gates now propagate `gate_kind` and `gate_audit` from
+  adapter probe to readiness report, health report, integration matrix,
+  runtime-load eligibility manifest, coverage audit, and selection log. The
+  gate audit records required network/secret/external-runtime conditions,
+  missing config refs, fallback preservation, and proves no network call,
+  vendor runtime load, external runtime execution, normal-UI project name, or
+  plaintext secret was produced while blocked.
 - No unverified entry is marked runtime-loaded or selectable.
 - `registered_provider_hot_swap_stability_report.json` records failure isolation, local fallback availability, rollback coverage, and downstream binding behavior.
 - Downstream binding checks cover Document Library, Knowledge Base, Retrieval Verification, Document Generation, Skill Factory, Agent Workbench, and Audit Center.

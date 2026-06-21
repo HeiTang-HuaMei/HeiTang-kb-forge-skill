@@ -310,6 +310,14 @@ void main() {
     expect(integrationN8n['runtime_loaded'], isFalse);
     expect(integrationN8n['affected_modules'],
         containsAll(['agent_workbench', 'artifact_center']));
+    final rtkIntegration = integrationEntries
+        .firstWhere((entry) => entry['provider_ref'] == 'rtk');
+    expect(rtkIntegration['gate_kind'], 'external_runtime_agent_tool_gate');
+    expect((rtkIntegration['gate_audit'] as Map)['external_runtime_executed'],
+        isFalse);
+    expect(
+        (rtkIntegration['gate_audit'] as Map)['fallback_preserves_local_chain'],
+        isTrue);
     final jellyfish = readinessEntry('jellyfish');
     expect(jellyfish['status'], '连接成功');
     expect(jellyfish['ready_for_user_selection'], isTrue);
@@ -489,6 +497,11 @@ void main() {
     expect(jellyfishEligibility['external_runtime_load_eligible'], isFalse);
     expect(jellyfishEligibility['execution_mode'],
         'local_capability_enhancement_only');
+    final rtkEligibility = eligibilityEntries
+        .firstWhere((entry) => entry['provider_ref'] == 'rtk');
+    expect(rtkEligibility['gate_kind'], 'external_runtime_agent_tool_gate');
+    expect((rtkEligibility['gate_audit'] as Map)['external_runtime_executed'],
+        isFalse);
     expect(
         eligibilityEntries
             .where((entry) => entry['registry_entry_class'] == 'template_asset')

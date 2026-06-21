@@ -12651,6 +12651,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'architecture_reference_status': entry['architecture_reference_status'],
         'architecture_absorption': entry['architecture_absorption'],
         'template_asset_contract': entry['template_asset_contract'],
+        'gate_kind': _stringValue(entry['gate_kind'], ''),
+        'gate_audit': _mapValue(entry['gate_audit']),
         'user_visible_entry': entry['user_visible_entry'],
         'started_at': now,
         'finished_at': now,
@@ -12893,6 +12895,10 @@ class Rc6RuntimeController extends ChangeNotifier {
             _mapValue(health['template_asset_contract']).isNotEmpty
                 ? _mapValue(health['template_asset_contract'])
                 : _mapValue(entry['template_asset_contract']),
+        'gate_kind': _stringValue(health['gate_kind'], entry['gate_kind']),
+        'gate_audit': _mapValue(health['gate_audit']).isNotEmpty
+            ? _mapValue(health['gate_audit'])
+            : _mapValue(entry['gate_audit']),
         'blocked_reason_zh': _stringValue(health['blocked_reason_zh'], ''),
         'stage_2_preflight_status': stage2Preflight['status'],
         'affected_modules': _listOfStrings(health['affected_modules']),
@@ -13031,6 +13037,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'architecture_reference_status': entry['architecture_reference_status'],
         'architecture_absorption': entry['architecture_absorption'],
         'template_asset_contract': entry['template_asset_contract'],
+        'gate_kind': entry['gate_kind'],
+        'gate_audit': entry['gate_audit'],
         'affected_modules': entry['affected_modules'],
         'ready_for_user_selection': ready,
         'runtime_load_allowed': stage2Allowed && ready,
@@ -13882,6 +13890,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'runtime_loaded': _boolValue(entry['runtime_loaded']),
         'ready_for_user_selection':
             _boolValue(entry['ready_for_user_selection']),
+        'gate_kind': entry['gate_kind'],
+        'gate_audit': entry['gate_audit'],
         'coverage_status': missing.isEmpty ? 'passed' : 'blocked',
         'missing_evidence': missing,
         'checks': checks,
@@ -14339,6 +14349,16 @@ class Rc6RuntimeController extends ChangeNotifier {
             .toSet()
             .toList(growable: false)
           ..sort(),
+        'gate_kinds': providerEntries
+            .map((entry) => _stringValue(entry['gate_kind'], ''))
+            .where((value) => value.isNotEmpty)
+            .toSet()
+            .toList(growable: false)
+          ..sort(),
+        'gate_audits': providerEntries
+            .map((entry) => _mapValue(entry['gate_audit']))
+            .where((entry) => entry.isNotEmpty)
+            .toList(growable: false),
         'architecture_absorption': providerEntries
             .map((entry) => _mapValue(entry['architecture_absorption']))
             .where((entry) => entry.isNotEmpty)
@@ -14437,6 +14457,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'error_message_zh': result['error_message_zh'],
         'missing_config_refs': result['missing_config_refs'],
         'blocked_reasons': result['blocked_reasons'],
+        'gate_kind': _stringValue(result['gate_kind'], ''),
+        'gate_audit': _mapValue(result['gate_audit']),
         'degradation_target': contract['fallback_provider'],
         'test_artifacts': result['test_artifacts'],
         'ready_for_user_selection': result['ready_for_user_selection'],
@@ -14523,6 +14545,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'user_visible_entry': entry['user_visible_entry'],
       'status': status,
       'blocked_reason': blockedReason,
+      'gate_kind': _stringValue(entry['gate_kind'], ''),
+      'gate_audit': _mapValue(entry['gate_audit']),
       'runtime_loaded_after_event': false,
       'fallback_provider': entry['fallback_provider'],
       'rollback_supported': true,
@@ -16162,6 +16186,12 @@ class Rc6RuntimeController extends ChangeNotifier {
             providerRef,
             entryClass,
           ),
+          'gate_kind': _registeredProviderGateKind(providerRef),
+          'gate_audit': _registeredProviderGateAudit(
+            capabilityId,
+            providerRef,
+            provider,
+          ),
           'runtime_load_class': _providerRuntimeLoadClass(
             entryClass,
             provider,
@@ -16298,6 +16328,41 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
   }
 
+  static String _registeredProviderGateKind(String providerRef) {
+    return switch (providerRef) {
+      'anysearchskill' => 'network_search_provider_gate',
+      'last30days_skill' => 'network_time_window_adapter_gate',
+      'seedance2_skill' => 'secret_masked_video_skill_gate',
+      'rtk' => 'external_runtime_agent_tool_gate',
+      _ => '',
+    };
+  }
+
+  static Map<String, dynamic> _registeredProviderGateAudit(
+    String capabilityId,
+    String providerRef,
+    Map<String, dynamic> provider,
+  ) {
+    final gateKind = _registeredProviderGateKind(providerRef);
+    if (gateKind.isEmpty) {
+      return const <String, dynamic>{};
+    }
+    return {
+      'gate_kind': gateKind,
+      'capability_id': capabilityId,
+      'requires_network': _boolValue(provider['requires_network']),
+      'requires_secret_ref': _boolValue(provider['requires_secret']),
+      'requires_external_runtime':
+          _boolValue(provider['requires_external_runtime']),
+      'network_call_attempted': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
+      'fallback_preserves_local_chain': true,
+      'normal_ui_project_name_visible': false,
+      'secret_plaintext_written': false,
+    };
+  }
+
   static Map<String, dynamic> _architectureAbsorptionRecord(
     String capabilityId,
     String providerRef,
@@ -16319,6 +16384,9 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
     return {
       'status': status,
+      'decision_source': 'stage3_architecture_absorption_gate',
+      'learning_note_only': false,
+      'indefinite_reference_allowed': false,
       'absorbed_targets': absorbedTargets,
       'blocker': status == 'deferred_with_blocker'
           ? _architectureReferenceBlocker(providerRef, provider)
@@ -16326,6 +16394,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'rejection_reason': status == 'rejected_no_architecture_gain'
           ? '对 v3 主链路无明确增益或被现有能力覆盖。'
           : '',
+      'architecture_delivery_required': status == 'absorbed_into_architecture',
       'must_not_surface_to_normal_ui': true,
     };
   }
@@ -16947,6 +17016,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'error_message_zh': highRiskGate['error_message_zh'],
         'missing_config_refs': highRiskGate['missing_config_refs'],
         'blocked_reasons': highRiskGate['blocked_reasons'],
+        'gate_kind': highRiskGate['gate_kind'],
+        'gate_audit': highRiskGate['gate_audit'],
         'test_artifacts': [highRiskGate['probe_path']],
         'ready_for_user_selection': false,
         'runtime_loaded': false,
@@ -17481,17 +17552,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'rtk' => '需要外部服务启动、配置引用完整并通过健康检查后才能启用 Agent 工具能力增强。',
       _ => '需要完成 Provider gate 后才能启用。',
     };
-    final payload = {
-      'schema_version': 'prd_v3_provider_adapter_probe_high_risk_gate.v1',
-      'provider_ref': providerRef,
+    final gateAudit = {
       'gate_kind': gateKind,
-      'status': status,
-      'error_code': errorCode,
-      'error_message_zh': errorMessageZh,
-      'capability_ids': _listOfStrings(contract['capability_ids']),
-      'affected_modules': _listOfStrings(contract['affected_modules']),
-      'runtime_execution_mode':
-          _stringValue(contract['runtime_execution_mode'], 'provider_adapter'),
+      'provider_ref': providerRef,
       'requires_network': requiresNetwork,
       'requires_secret_ref': requiresSecretRef,
       'requires_external_runtime': requiresExternalRuntime,
@@ -17503,6 +17566,35 @@ class Rc6RuntimeController extends ChangeNotifier {
           ? (missingRefs.contains('secret_ref') ? '配置缺失' : '已配置')
           : '不需要',
       'external_runtime_status': requiresExternalRuntime ? '需启动外部服务' : '不需要',
+      'missing_config_refs': missingRefs,
+      'blocked_reasons':
+          blockedReasons.isEmpty ? ['需要完成真实健康检查后才能启用。'] : blockedReasons,
+      'fallback_preserves_local_chain': true,
+      'network_call_attempted': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
+      'normal_ui_project_name_visible': false,
+      'secret_plaintext_written': false,
+    };
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_probe_high_risk_gate.v1',
+      'provider_ref': providerRef,
+      'gate_kind': gateKind,
+      'gate_audit': gateAudit,
+      'status': status,
+      'error_code': errorCode,
+      'error_message_zh': errorMessageZh,
+      'capability_ids': _listOfStrings(contract['capability_ids']),
+      'affected_modules': _listOfStrings(contract['affected_modules']),
+      'runtime_execution_mode':
+          _stringValue(contract['runtime_execution_mode'], 'provider_adapter'),
+      'requires_network': requiresNetwork,
+      'requires_secret_ref': requiresSecretRef,
+      'requires_external_runtime': requiresExternalRuntime,
+      'requires_dependency_install': requiresDependencyInstall,
+      'network_authorization': gateAudit['network_authorization'],
+      'secret_ref_status': gateAudit['secret_ref_status'],
+      'external_runtime_status': gateAudit['external_runtime_status'],
       'missing_config_refs': missingRefs,
       'blocked_reasons':
           blockedReasons.isEmpty ? ['需要完成真实健康检查后才能启用。'] : blockedReasons,

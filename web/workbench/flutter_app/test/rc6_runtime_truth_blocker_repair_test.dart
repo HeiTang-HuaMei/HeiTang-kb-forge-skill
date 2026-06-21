@@ -1752,6 +1752,11 @@ void main() {
       expect(entry['runtime_loaded'], isFalse);
       expect(entry['runtime_load_allowed'], isFalse);
       expect((entry['blocked_reasons'] as List), isNotEmpty);
+      expect(entry['gate_kind'], expectation.value['gate_kind']);
+      expect((entry['gate_audit'] as Map)['gate_kind'],
+          expectation.value['gate_kind']);
+      expect((entry['gate_audit'] as Map)['fallback_preserves_local_chain'],
+          isTrue);
       final probe = jsonDecode(
           File((entry['test_artifacts'] as List).cast<String>().single)
               .readAsStringSync()) as Map<String, dynamic>;
@@ -1759,6 +1764,13 @@ void main() {
           'prd_v3_provider_adapter_probe_high_risk_gate.v1');
       expect(probe['provider_ref'], expectation.key);
       expect(probe['gate_kind'], expectation.value['gate_kind']);
+      expect((probe['gate_audit'] as Map)['gate_kind'],
+          expectation.value['gate_kind']);
+      expect((probe['gate_audit'] as Map)['network_call_attempted'], isFalse);
+      expect(
+          (probe['gate_audit'] as Map)['external_runtime_executed'], isFalse);
+      expect((probe['gate_audit'] as Map)['fallback_preserves_local_chain'],
+          isTrue);
       expect(probe['passed'], isFalse);
       expect(probe['ready_for_user_selection'], isFalse);
       expect(probe['runtime_loaded'], isFalse);
@@ -2014,6 +2026,29 @@ void main() {
             row['coverage_status'] == 'passed' &&
             (row['missing_evidence'] as List).isEmpty),
         isTrue);
+    for (final row in coverageRows) {
+      final absorption = row['architecture_absorption'] as Map;
+      final status = absorption['status'] as String;
+      expect(
+          absorption['decision_source'], 'stage3_architecture_absorption_gate');
+      expect(absorption['learning_note_only'], isFalse);
+      expect(absorption['indefinite_reference_allowed'], isFalse);
+      expect(status, isNot(anyOf('reference_only', 'needs_verification')));
+      if (status == 'absorbed_into_architecture') {
+        expect(absorption['architecture_delivery_required'], isTrue);
+        expect(absorption['absorbed_targets'] as List, isNotEmpty);
+        expect(absorption['blocker'], '');
+        expect(absorption['rejection_reason'], '');
+      } else if (status == 'deferred_with_blocker') {
+        expect(absorption['blocker'] as String, isNotEmpty);
+        expect(absorption['absorbed_targets'] as List, isEmpty);
+      } else if (status == 'rejected_no_architecture_gain') {
+        expect(absorption['rejection_reason'] as String, isNotEmpty);
+        expect(absorption['absorbed_targets'] as List, isEmpty);
+      } else {
+        fail('Unexpected architecture reference status: $status');
+      }
+    }
     final n8nCoverage = coverageRows.firstWhere((row) =>
         row['provider_ref'] == 'n8n' &&
         row['capability_id'] == 'workflow_collaboration_export');
@@ -2071,6 +2106,12 @@ void main() {
         'external_health_check_required');
     expect(rtkProviderRows.single['architecture_reference_status'],
         'absorbed_into_architecture');
+    expect(rtkProviderRows.single['gate_kind'],
+        'external_runtime_agent_tool_gate');
+    expect(
+        (rtkProviderRows.single['gate_audit']
+            as Map)['external_runtime_executed'],
+        isFalse);
     final userCatalogPath =
         runtimeStatus['provider_capability_user_catalog_path'] as String;
     final userCatalog =
@@ -2170,7 +2211,10 @@ void main() {
               entry['health_status'] == expectation.value['status'] &&
               entry['selection_allowed'] == false &&
               entry['runtime_loaded'] == false &&
-              entry['runtime_load_allowed'] == false),
+              entry['runtime_load_allowed'] == false &&
+              entry['gate_kind'] == expectation.value['gate_kind'] &&
+              (entry['gate_audit'] as Map)['fallback_preserves_local_chain'] ==
+                  true),
           isTrue);
     }
     expect(
@@ -2240,6 +2284,20 @@ void main() {
                 entry['execution_mode'] == 'architecture_reference' &&
                 entry['runtime_load_class'] != 'reference_only'),
         isTrue);
+    for (final expectation in highRiskProviderExpectations.entries) {
+      final rows = eligibilityEntries
+          .where((entry) => entry['provider_ref'] == expectation.key)
+          .toList(growable: false);
+      expect(rows, isNotEmpty);
+      expect(
+          rows.every((entry) =>
+              entry['gate_kind'] == expectation.value['gate_kind'] &&
+              (entry['gate_audit'] as Map)['fallback_preserves_local_chain'] ==
+                  true &&
+              (entry['gate_audit'] as Map)['external_runtime_executed'] ==
+                  false),
+          isTrue);
+    }
 
     final activated =
         await controller.activateRegisteredProviderCapability('docling');
@@ -2286,6 +2344,12 @@ void main() {
     expect(highRiskSelectionEvent['action'], 'activate');
     expect(highRiskSelectionEvent['status'], '已禁用');
     expect(highRiskSelectionEvent['blocked_reason'], contains('网络授权'));
+    expect(
+        highRiskSelectionEvent['gate_kind'], 'secret_masked_video_skill_gate');
+    expect(
+        (highRiskSelectionEvent['gate_audit']
+            as Map)['secret_plaintext_written'],
+        isFalse);
     expect(
         selectionLog.every((event) => event['secret_masked'] == true), isTrue);
     final configTestLog =
