@@ -120,14 +120,16 @@ Coverage:
 - 21 capability-provider mappings
 - 7 template-asset mappings
 - 1 architecture-reference mapping
-- Architecture reference status counts are `absorbed_into_architecture=29`,
-  `deferred_with_blocker=0`, `candidate_reference=0`, and
+- Architecture reference status counts are `absorbed_into_architecture=28`,
+  `deferred_with_blocker=1`, `candidate_reference=0`, and
   `rejected_no_architecture_gain=0`.
 - Generated runtime reports do not use `reference_only` as a final
   classification. Worthwhile references must be absorbed into architecture
   contracts/schema/gates/audit/fallback/loading rules; blocked references must
   carry a blocker; non-useful references must be rejected instead of retained as
-  indefinite notes.
+  indefinite notes. `llamaindex` is currently deferred because benchmark-only
+  evidence does not yet prove a net architecture gain over the existing
+  Provider contract, index schema, fallback, and audit gates.
 - 8 product capability areas
 - 0 entries marked runtime-loaded by default
 - 0 entries marked ready for user selection without config/test evidence

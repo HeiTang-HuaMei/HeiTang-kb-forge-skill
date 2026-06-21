@@ -13,7 +13,7 @@ This report is generated from the current runtime evidence workspace. It treats 
 - Ready provider-to-capability mappings: `20`
 - Ready unique Provider refs: `19`
 - Registry class counts: `capability_provider=21`, `template_asset=7`, `architecture_reference=1`
-- Architecture reference status counts: `absorbed_into_architecture=29`, `deferred_with_blocker=0`, `candidate_reference=0`, `rejected_no_architecture_gain=0`
+- Architecture reference status counts: `absorbed_into_architecture=28`, `deferred_with_blocker=1`, `candidate_reference=0`, `rejected_no_architecture_gain=0`
 - Runtime loaded by default: `0`
 - Stage2 preflight: `passed`
 - Runtime load allowed: `true`
@@ -106,6 +106,9 @@ Architecture reference statuses are now explicit:
   disabled, and verifies rollback returns the count to `0`.
 - RAG evaluation entries are capability Providers for governance/evaluation gates. They remain blocked until retrieval validation is explicitly reviewed, not merely saved as pending manual review.
 - RTK is an Agent tool/runtime capability Provider. It remains blocked until a user-owned external runtime and permission boundary health gate pass.
+- LlamaIndex remains an architecture reference with `deferred_with_blocker`;
+  current benchmark-only evidence does not yet prove a net architecture gain
+  over the existing Provider contract, index schema, fallback, and audit gates.
 - High-risk gates for network search, time-window retrieval, video Skill
   template, and Agent tool/runtime Providers now publish `gate_kind` and
   `gate_audit` through readiness, health, integration, eligibility, coverage,

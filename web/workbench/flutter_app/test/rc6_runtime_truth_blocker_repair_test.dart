@@ -1849,8 +1849,8 @@ void main() {
     expect(bindings, hasLength(8));
     final skillTemplateBinding = bindings.firstWhere(
         (binding) => binding['capability_id'] == 'skill_template_provider');
-    expect(skillTemplateBinding['active_provider_ref'],
-        'andrej_karpathy_skills');
+    expect(
+        skillTemplateBinding['active_provider_ref'], 'andrej_karpathy_skills');
     expect(skillTemplateBinding['active_provider_kind'], 'registered_provider');
     expect(skillTemplateBinding['selection_allowed'], isTrue);
     final governanceBinding = bindings.firstWhere(
@@ -1910,9 +1910,9 @@ void main() {
     });
     expect(providerHealth['architecture_reference_status_counts'], {
       'candidate_reference': 0,
-      'absorbed_into_architecture': 29,
+      'absorbed_into_architecture': 28,
       'rejected_no_architecture_gain': 0,
-      'deferred_with_blocker': 0,
+      'deferred_with_blocker': 1,
     });
     expect(providerHealth['capability_area_count'], 8);
     expect(providerHealth['all_entries_checked'], isTrue);
@@ -2083,7 +2083,12 @@ void main() {
     final llamaindexCoverage = architectureReferenceRows
         .firstWhere((row) => row['provider_ref'] == 'llamaindex');
     expect(llamaindexCoverage['architecture_reference_status'],
-        'absorbed_into_architecture');
+        'deferred_with_blocker');
+    expect(
+        ((llamaindexCoverage['architecture_absorption'] as Map)['blocker']
+                as String)
+            .isNotEmpty,
+        isTrue);
     expect(architectureReferenceRows.any((row) => row['provider_ref'] == 'rtk'),
         isFalse);
     final evaluationProviderRows = coverageRows

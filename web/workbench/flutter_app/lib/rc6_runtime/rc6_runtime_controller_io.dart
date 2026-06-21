@@ -13872,6 +13872,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'normal_ui_project_name_hidden':
             _boolValue(entry['visible_in_normal_ui']) == false,
         'secret_masked': _boolValue(entry['secret_masked']),
+        'architecture_absorption_decision_valid':
+            _architectureAbsorptionDecisionValid(entry),
       };
       final missing = checks.entries
           .where((check) => check.value != true)
@@ -16314,7 +16316,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       return 'absorbed_into_architecture';
     }
     if (providerRef == 'llamaindex') {
-      return 'absorbed_into_architecture';
+      return 'deferred_with_blocker';
     }
     if (contractStatus.contains('future_adapter')) {
       return 'deferred_with_blocker';
@@ -16396,6 +16398,43 @@ class Rc6RuntimeController extends ChangeNotifier {
           : '',
       'architecture_delivery_required': status == 'absorbed_into_architecture',
       'must_not_surface_to_normal_ui': true,
+    };
+  }
+
+  static bool _architectureAbsorptionDecisionValid(
+    Map<String, dynamic> entry,
+  ) {
+    final absorption = _mapValue(entry['architecture_absorption']);
+    final status = _stringValue(
+      absorption['status'],
+      _stringValue(entry['architecture_reference_status'], ''),
+    );
+    if (_stringValue(absorption['decision_source'], '').isEmpty) {
+      return false;
+    }
+    if (_boolValue(absorption['learning_note_only']) ||
+        _boolValue(absorption['indefinite_reference_allowed'])) {
+      return false;
+    }
+    final absorbedTargets = _listOfStrings(absorption['absorbed_targets']);
+    final blocker = _stringValue(absorption['blocker'], '');
+    final rejectionReason = _stringValue(absorption['rejection_reason'], '');
+    return switch (status) {
+      'absorbed_into_architecture' =>
+        _boolValue(absorption['architecture_delivery_required']) &&
+            absorbedTargets.isNotEmpty &&
+            blocker.isEmpty &&
+            rejectionReason.isEmpty,
+      'deferred_with_blocker' =>
+        !_boolValue(absorption['architecture_delivery_required']) &&
+            absorbedTargets.isEmpty &&
+            blocker.isNotEmpty &&
+            rejectionReason.isEmpty,
+      'rejected_no_architecture_gain' =>
+        !_boolValue(absorption['architecture_delivery_required']) &&
+            absorbedTargets.isEmpty &&
+            rejectionReason.isNotEmpty,
+      _ => false,
     };
   }
 

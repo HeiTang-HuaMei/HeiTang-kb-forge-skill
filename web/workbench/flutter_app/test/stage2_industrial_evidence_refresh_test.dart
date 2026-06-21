@@ -256,9 +256,9 @@ void main() {
     });
     expect(providerHealth['architecture_reference_status_counts'], {
       'candidate_reference': 0,
-      'absorbed_into_architecture': 29,
+      'absorbed_into_architecture': 28,
       'rejected_no_architecture_gain': 0,
-      'deferred_with_blocker': 0,
+      'deferred_with_blocker': 1,
     });
     expect(providerHealth['ready_mapping_count'], 20);
     expect(providerHealth['ready_unique_provider_count'], 19);
@@ -275,9 +275,9 @@ void main() {
     });
     expect(integrationMatrix['architecture_reference_status_counts'], {
       'candidate_reference': 0,
-      'absorbed_into_architecture': 29,
+      'absorbed_into_architecture': 28,
       'rejected_no_architecture_gain': 0,
-      'deferred_with_blocker': 0,
+      'deferred_with_blocker': 1,
     });
     final templateEntries = integrationEntries
         .where((entry) => entry['registry_entry_class'] == 'template_asset')
@@ -440,9 +440,9 @@ void main() {
     });
     expect(registeredSummary['architecture_reference_status_counts'], {
       'candidate_reference': 0,
-      'absorbed_into_architecture': 29,
+      'absorbed_into_architecture': 28,
       'rejected_no_architecture_gain': 0,
-      'deferred_with_blocker': 0,
+      'deferred_with_blocker': 1,
     });
     expect(registeredSummary['runtime_ready_for_user_selection_count'], 19);
     expect(
