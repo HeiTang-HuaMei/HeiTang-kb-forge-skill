@@ -3031,6 +3031,43 @@ void main() {
         (selectionState['selected_providers_by_capability'] as Map)[
             'governance_audit_provider'],
         'ragas');
+    final rolledBack =
+        await controller.rollbackRegisteredProviderCapability('ragas');
+    expect(rolledBack, isTrue);
+    final rollbackStatus = runtimeStatus();
+    final rollbackBinding = jsonDecode(File(
+            rollbackStatus['provider_capability_binding_manifest_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    final rollbackRetrievalBinding = (rollbackBinding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) => entry['capability_id'] == 'retrieval_provider');
+    expect(rollbackRetrievalBinding['active_provider_kind'], 'local_fallback');
+    expect(rollbackRetrievalBinding['active_provider_ref'],
+        rollbackRetrievalBinding['fallback_provider']);
+    expect(rollbackRetrievalBinding['rollback_suppressed'], isTrue);
+    final rollbackGovernanceBinding = (rollbackBinding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere(
+            (entry) => entry['capability_id'] == 'governance_audit_provider');
+    expect(rollbackGovernanceBinding['active_provider_kind'], 'local_fallback');
+    expect(rollbackGovernanceBinding['active_provider_ref'],
+        rollbackGovernanceBinding['fallback_provider']);
+    expect(rollbackGovernanceBinding['rollback_suppressed'], isTrue);
+    expect(rollbackGovernanceBinding['runtime_loaded'], isFalse);
+    final rollbackSelectionState = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}provider_capability_selection_state.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(rollbackSelectionState['rollback_suppressed_capability_ids'],
+        containsAll(['retrieval_provider', 'governance_audit_provider']));
+    expect(
+        (rollbackSelectionState['selected_providers_by_capability'] as Map)
+            .containsKey('retrieval_provider'),
+        isFalse);
+    expect(
+        (rollbackSelectionState['selected_providers_by_capability'] as Map)
+            .containsKey('governance_audit_provider'),
+        isFalse);
 
     final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
     final ragasHealth = (health['health_entries'] as List)
