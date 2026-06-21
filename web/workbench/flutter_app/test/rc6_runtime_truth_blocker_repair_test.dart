@@ -4208,6 +4208,43 @@ void main() {
     expect(agentStatus['a2a_workflow_fallback'], '');
     expect((runtimeStatus['degradation'] as Map)['n8n_runtime_failure'],
         contains('未执行外部 workflow'));
+    final integrationMatrix = jsonDecode(File(
+            runtimeStatus['registered_provider_integration_matrix_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    final n8nMatrixEntry = (integrationMatrix['provider_entries'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) =>
+            entry['provider_ref'] == 'n8n' &&
+            entry['capability_id'] == 'workflow_collaboration_export');
+    expect(n8nMatrixEntry['runtime_loaded'], isTrue);
+    expect(
+        (integrationMatrix['registered_project_boundary']
+            as Map)['loaded_project_count'],
+        1);
+    final eligibility = jsonDecode(File(
+            runtimeStatus['provider_runtime_load_eligibility_manifest_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(eligibility['runtime_loaded_count'], 1);
+    final n8nEligibility = (eligibility['entries'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) => entry['provider_ref'] == 'n8n');
+    expect(n8nEligibility['runtime_loaded'], isTrue);
+    expect(n8nEligibility['load_state'], 'loaded_health_check_only');
+    final binding = jsonDecode(File(
+            runtimeStatus['provider_capability_binding_manifest_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(binding['registered_provider_loaded_count'], 1);
+    final workflowBinding = (binding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) =>
+            entry['capability_id'] == 'workflow_collaboration_export');
+    expect(workflowBinding['active_provider_ref'], 'n8n');
+    expect(workflowBinding['runtime_loaded'], isTrue);
+    expect(workflowBinding['external_runtime_executed'], isFalse);
+    expect(workflowBinding['workflow_executed'], isFalse);
     final lifecycleAuditPath =
         runtimeStatus['provider_lifecycle_audit_summary_path'] as String;
     final lifecycleAudit =
@@ -4238,6 +4275,15 @@ void main() {
         (lifecycleAudit['industrial_boundaries']
             as Map)['secret_plaintext_written'],
         isFalse);
+    final downstreamBindingAudit =
+        (lifecycleAudit['downstream_binding_audit'] as List)
+            .cast<Map<String, dynamic>>();
+    final workflowAudit = downstreamBindingAudit.firstWhere(
+        (entry) => entry['capability_id'] == 'workflow_collaboration_export');
+    expect(workflowAudit['active_provider_ref'], 'n8n');
+    expect(workflowAudit['runtime_loaded'], isTrue);
+    expect(workflowAudit['external_runtime_executed'], isFalse);
+    expect(workflowAudit['workflow_executed'], isFalse);
 
     final rolledBack = await controller.rollbackN8nProviderRuntime();
     expect(rolledBack, isTrue);
@@ -4269,6 +4315,36 @@ void main() {
         (rollbackRuntimeStatus['registered_provider_summary']
             as Map)['external_runtime_loaded_count'],
         0);
+    final rollbackMatrix = jsonDecode(File(rollbackRuntimeStatus[
+                'registered_provider_integration_matrix_path']
+            as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    final rollbackN8nMatrixEntry =
+        (rollbackMatrix['provider_entries'] as List)
+            .cast<Map<String, dynamic>>()
+            .firstWhere((entry) =>
+                entry['provider_ref'] == 'n8n' &&
+                entry['capability_id'] == 'workflow_collaboration_export');
+    expect(rollbackN8nMatrixEntry['runtime_loaded'], isFalse);
+    expect(
+        (rollbackMatrix['registered_project_boundary']
+            as Map)['loaded_project_count'],
+        0);
+    final rollbackEligibility = jsonDecode(File(rollbackRuntimeStatus[
+                'provider_runtime_load_eligibility_manifest_path']
+            as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(rollbackEligibility['runtime_loaded_count'], 0);
+    final rollbackBinding = jsonDecode(File(rollbackRuntimeStatus[
+                'provider_capability_binding_manifest_path']
+            as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(rollbackBinding['registered_provider_loaded_count'], 0);
+    final rollbackWorkflowBinding = (rollbackBinding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) =>
+            entry['capability_id'] == 'workflow_collaboration_export');
+    expect(rollbackWorkflowBinding['runtime_loaded'], isFalse);
     final rollbackAgentStatus = (rollbackRuntimeStatus['module_status']
         as Map)['agent_workbench'] as Map;
     expect(rollbackAgentStatus['a2a_workflow_runtime_status'], '降级为本地模式');

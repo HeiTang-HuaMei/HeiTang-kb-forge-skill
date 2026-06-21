@@ -12447,6 +12447,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final stage2Preflight = _stage2IndustrialPreflight(workspace);
     final stage2RuntimeLoadAllowed =
         _boolValue(stage2Preflight['runtime_load_allowed']);
+    final runtimeLoadState = await _providerRuntimeLoadState(workspace);
     final now = DateTime.now().toUtc().toIso8601String();
     final healthEntries = entries.map((entry) {
       final status = _registeredProviderHealthStatus(entry);
@@ -12455,6 +12456,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       final effectiveStatus = _stringValue(readiness?['status'], status);
       final readyForSelection =
           _providerReadyForSelection(entry, readinessByProvider);
+      final runtimeLoaded =
+          _providerRuntimeLoadedFor(runtimeLoadState, entry);
       return {
         'test_id':
             'registered_provider_health_${DateTime.now().toUtc().microsecondsSinceEpoch}_${entry['provider_ref']}',
@@ -12475,7 +12478,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'requires_secret': _boolValue(entry['requires_secret']),
         'requires_external_runtime':
             _boolValue(entry['requires_external_runtime']),
-        'runtime_loaded': false,
+        'runtime_loaded': runtimeLoaded,
         'ready_for_user_selection': readyForSelection,
         'selection_allowed': readyForSelection,
         'runtime_load_allowed': readyForSelection && stage2RuntimeLoadAllowed,
@@ -12540,7 +12543,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'unique_provider_ref_count': providerRefs.length,
       'capability_area_count': capabilityIds.length,
       'all_entries_checked': healthEntries.length == entries.length,
-      'runtime_loaded_count': 0,
+      'runtime_loaded_count': healthEntries
+          .where((entry) => entry['runtime_loaded'] == true)
+          .length,
       'ready_for_user_selection_count': healthEntries
           .where((entry) => entry['ready_for_user_selection'] == true)
           .length,
@@ -12559,7 +12564,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'workspace_boundary': workspace.path,
       'health_report_path': healthReportPath,
       'provider_entry_count': healthEntries.length,
-      'runtime_loaded_count': 0,
+      'runtime_loaded_count': healthEntries
+          .where((entry) => entry['runtime_loaded'] == true)
+          .length,
       'external_runtime_load_allowed': stage2Preflight['runtime_load_allowed'],
       'stage_2_industrial_preflight': stage2Preflight,
       'ready_for_user_selection_count':
@@ -12584,7 +12591,8 @@ class Rc6RuntimeController extends ChangeNotifier {
                 'selection_result': entry['health_status'] == '连接成功'
                     ? 'candidate_ready_external_runtime_not_loaded'
                     : 'blocked_before_runtime_load',
-                'runtime_loaded_after_check': false,
+                'runtime_loaded_after_check':
+                    entry['runtime_loaded'] == true,
                 'runtime_load_allowed':
                     entry['ready_for_user_selection'] == true &&
                         stage2RuntimeLoadAllowed,
@@ -12736,6 +12744,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       final requiresExternalRuntime =
           _boolValue(entry['requires_external_runtime']);
       final loadEligible = stage2Allowed && ready && requiresExternalRuntime;
+      final runtimeLoaded = _boolValue(entry['runtime_loaded']);
       final executionMode = requiresExternalRuntime
           ? 'user_owned_external_runtime_required'
           : 'local_capability_enhancement_only';
@@ -12751,11 +12760,14 @@ class Rc6RuntimeController extends ChangeNotifier {
         'ready_for_user_selection': ready,
         'runtime_load_allowed': stage2Allowed && ready,
         'external_runtime_load_eligible': loadEligible,
-        'runtime_loaded': false,
+        'runtime_loaded': runtimeLoaded,
         'requires_external_runtime': requiresExternalRuntime,
         'execution_mode': executionMode,
-        'load_state':
-            loadEligible ? 'eligible_not_loaded' : 'not_runtime_load_target',
+        'load_state': runtimeLoaded
+            ? 'loaded_health_check_only'
+            : loadEligible
+                ? 'eligible_not_loaded'
+                : 'not_runtime_load_target',
         'blocked_reasons': blockedReasons,
         'readiness_status':
             _stringValue(readiness['status'], entry['health_status']),
@@ -12776,7 +12788,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'stage_2_industrial_preflight': stage2Preflight,
       'stage_2_runtime_load_allowed': stage2Allowed,
       'provider_entry_count': entries.length,
-      'runtime_loaded_count': 0,
+      'runtime_loaded_count': entries
+          .where((entry) => entry['runtime_loaded'] == true)
+          .length,
       'external_runtime_load_eligible_count': eligibleEntries.length,
       'local_capability_enhancement_only_count': entries
           .where((entry) =>
@@ -12824,6 +12838,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           related.any((entry) => entry['ready_for_user_selection'] == true);
       final requiresExternalRuntime = related
           .any((entry) => _boolValue(entry['requires_external_runtime']));
+      final runtimeLoaded =
+          related.any((entry) => _boolValue(entry['runtime_loaded']));
       final runtimeLoadEligible =
           stage2Allowed && ready && requiresExternalRuntime;
       final statuses = related
@@ -12851,7 +12867,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'requires_external_runtime': requiresExternalRuntime,
         'runtime_load_allowed': ready && stage2Allowed,
         'external_runtime_load_eligible': runtimeLoadEligible,
-        'runtime_loaded': false,
+        'runtime_loaded': runtimeLoaded,
         'fallback_providers': related
             .map((entry) => _stringValue(entry['fallback_provider'], ''))
             .where((value) => value.isNotEmpty)
@@ -12888,7 +12904,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'ready_provider_count': providerRows
           .where((entry) => entry['ready_for_user_selection'] == true)
           .length,
-      'runtime_loaded_count': 0,
+      'runtime_loaded_count': providerRows
+          .where((entry) => entry['runtime_loaded'] == true)
+          .length,
       'external_runtime_load_eligible_count': providerRows
           .where((entry) => entry['external_runtime_load_eligible'] == true)
           .length,
@@ -13254,6 +13272,44 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
   }
 
+  Future<Map<String, dynamic>> _providerRuntimeLoadState(
+    Directory workspace,
+  ) async {
+    final manifest =
+        await _readJsonObject(_providerRuntimeLoadManifestPath(workspace));
+    if (manifest.isEmpty) {
+      return const <String, dynamic>{};
+    }
+    return manifest;
+  }
+
+  static bool _providerRuntimeLoadedFor(
+    Map<String, dynamic> runtimeLoadState,
+    Map<String, dynamic> entry,
+  ) {
+    if (!_boolValue(runtimeLoadState['runtime_loaded'])) {
+      return false;
+    }
+    if (_stringValue(runtimeLoadState['provider_ref'], '') !=
+        _stringValue(entry['provider_ref'], '')) {
+      return false;
+    }
+    if (_stringValue(runtimeLoadState['capability_id'], '') !=
+        _stringValue(entry['capability_id'], '')) {
+      return false;
+    }
+    if (_boolValue(runtimeLoadState['external_runtime_executed'])) {
+      return false;
+    }
+    if (_boolValue(runtimeLoadState['workflow_executed'])) {
+      return false;
+    }
+    if (_boolValue(runtimeLoadState['secret_plaintext_written'])) {
+      return false;
+    }
+    return true;
+  }
+
   Future<String> _writeProviderLifecycleAuditSummary(
     Directory workspace, {
     required Map<String, dynamic> stage2Preflight,
@@ -13293,6 +13349,9 @@ class Rc6RuntimeController extends ChangeNotifier {
               'selection_allowed': _boolValue(entry['selection_allowed']),
               'runtime_load_allowed': _boolValue(entry['runtime_load_allowed']),
               'runtime_loaded': _boolValue(entry['runtime_loaded']),
+              'external_runtime_executed':
+                  _boolValue(entry['external_runtime_executed']),
+              'workflow_executed': _boolValue(entry['workflow_executed']),
               'local_fallback_active':
                   _stringValue(entry['active_provider_kind'], '') ==
                       'local_fallback',
@@ -13440,6 +13499,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final stage2Preflight = _stage2IndustrialPreflight(workspace);
     final stage2RuntimeLoadAllowed =
         _boolValue(stage2Preflight['runtime_load_allowed']);
+    final runtimeLoadState = await _providerRuntimeLoadState(workspace);
     final selectionState =
         await _readProviderCapabilitySelectionState(workspace);
     final selectedProviders =
@@ -13486,6 +13546,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           readiness['status'], _registeredProviderHealthStatus(selected));
       final selectedReady = !rollbackSuppressed &&
           _providerReadyForSelection(selected, readinessByProvider);
+      final runtimeLoaded =
+          selectedReady && _providerRuntimeLoadedFor(runtimeLoadState, selected);
       final explicitSelectionStale =
           explicitProviderRef.isNotEmpty && !explicitSelectionReady;
       return {
@@ -13505,8 +13567,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         'explicit_selection_stale': explicitSelectionStale,
         'rollback_suppressed': rollbackSuppressed,
         'selection_allowed': selectedReady,
-        'runtime_loaded': false,
+        'runtime_loaded': runtimeLoaded,
         'runtime_load_allowed': selectedReady && stage2RuntimeLoadAllowed,
+        'external_runtime_executed': false,
+        'workflow_executed': false,
         'stage_2_preflight_status': stage2Preflight['status'],
         'blocked_reason_zh':
             selectedReady ? '' : _registeredProviderBlockedReason(selected),
@@ -13534,11 +13598,15 @@ class Rc6RuntimeController extends ChangeNotifier {
       'selected_provider_ref': selectedEntry == null
           ? ''
           : _stringValue(selectedEntry['provider_ref'], ''),
-      'selected_provider_runtime_loaded': false,
+      'selected_provider_runtime_loaded': selectedEntry == null
+          ? false
+          : _providerRuntimeLoadedFor(runtimeLoadState, selectedEntry),
       'provider_capability_selection_state_path':
           _providerCapabilitySelectionStatePath(workspace),
       'binding_count': bindings.length,
-      'registered_provider_loaded_count': 0,
+      'registered_provider_loaded_count': bindings
+          .where((binding) => binding['runtime_loaded'] == true)
+          .length,
       'external_runtime_load_allowed': stage2Preflight['runtime_load_allowed'],
       'stage_2_industrial_preflight': stage2Preflight,
       'local_fallback_binding_count': bindings

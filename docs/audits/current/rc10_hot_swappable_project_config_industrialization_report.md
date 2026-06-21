@@ -145,7 +145,7 @@ Provider enhancement operations:
 - Test enhancement attempts activation for one registered Provider enhancement.
 - If dependency, network, secret, runtime, or verification conditions are missing, activation is denied and audited.
 - Rollback enhancement writes a rollback event to the local fallback Provider.
-- Selection logs keep `runtime_loaded_after_event=false` until a future external-runtime loading gate proves real runtime execution.
+- Selection logs keep `runtime_loaded_after_event=false` for local capability enhancement activation. The controlled n8n runtime-load log can record `runtime_loaded_after_event=true` only after the Stage 2 preflight, Provider readiness, and safe health-check gate all pass.
 
 Health and stability validation:
 
@@ -295,7 +295,7 @@ Controlled n8n runtime load boundary:
 - Missing, invalid, unreachable, unauthorized, or timed-out endpoints keep `runtime_loaded=false` and degrade to local A2A collaboration report export.
 - Endpoint query strings and credentials are sanitized. Logs and manifests keep `secret_masked=true` and `secret_plaintext_written=false`.
 - `project_config_runtime_status.json` now reads the runtime-load manifest and publishes a separate `provider_runtime_load_summary`.
-- The runtime-load summary syncs into dashboard health, registered Provider summary, Agent Workbench A2A workflow status, and degradation messaging.
+- The runtime-load summary syncs into dashboard health, registered Provider summary, Agent Workbench A2A workflow status, degradation messaging, `registered_provider_integration_matrix.json`, `provider_runtime_load_eligibility_manifest.json`, `provider_capability_binding_manifest.json`, and `provider_lifecycle_audit_summary.json`.
 - `rollbackN8nProviderRuntime` records a controlled rollback to local A2A export, snapshots the previous load manifest under `config/provider_runtime_load_history/`, appends a rollback event, and refreshes runtime status.
 - Normal UI boundary remains unchanged: users see workflow collaboration capability status, not an external project-loading product module.
 
@@ -305,8 +305,8 @@ Adapter readiness:
 - It records missing config refs, blocked reasons, Chinese error messages, degradation targets, affected modules, and masked status for each Provider.
 - `provider_registry_readiness_summary.json` consolidates the 29 Provider mappings into 26 Provider rows with capability IDs, affected modules, readiness, runtime-load eligibility, rollback support, local fallback, user-boundary, and secret-boundary fields.
 - The readiness report feeds audit/runtime status without exposing external project names in normal UI.
-- Current default readiness evidence keeps `runtime_loaded_count=0`. After Stage 2 preflight passes, locally proven Provider enhancements may record `runtime_load_allowed=true`, but they still remain `runtime_loaded=false` until the separate Stage 3 runtime-load health gate succeeds for a user-owned external endpoint.
-- `provider_runtime_load_eligibility_manifest.json` separates local capability enhancements from Provider refs that require user-owned external runtime loading. In the current evidence workspace, Stage 2 preflight allows runtime loading, `n8n` is the only external-runtime eligible Provider, and `runtime_loaded_count` remains `0`.
+- Current default readiness evidence keeps `runtime_loaded_count=0`. After Stage 2 preflight passes, locally proven Provider enhancements may record `runtime_load_allowed=true`, but they still remain `runtime_loaded=false` unless the separate Stage 3 runtime-load health gate succeeds for a user-owned external endpoint.
+- `provider_runtime_load_eligibility_manifest.json` separates local capability enhancements from Provider refs that require user-owned external runtime loading. In the current evidence workspace, Stage 2 preflight allows runtime loading and `n8n` is the only external-runtime eligible Provider. Its default `runtime_loaded_count` is `0`; a successful controlled n8n health load syncs the count to `1`, and rollback returns it to `0`.
 
 ## Profile Schema
 
@@ -517,9 +517,15 @@ Latest Stage 3 controlled n8n runtime-load slice:
   `provider_runtime_load_summary`, `registered_provider_summary.external_runtime_loaded_count`,
   dashboard external runtime health, Agent Workbench A2A workflow status, and
   `degradation.n8n_runtime_failure`.
+- Runtime-loaded state sync is also verified across:
+  `registered_provider_integration_matrix.json`,
+  `provider_runtime_load_eligibility_manifest.json`,
+  `provider_capability_binding_manifest.json`, and
+  `provider_lifecycle_audit_summary.json`.
 - The same test verifies rollback from a health-connected state back to local
   A2A export: rollback manifest action, history snapshot, load log event order,
-  `runtime_loaded=false`, and Agent Workbench fallback sync.
+  `runtime_loaded=false`, matrix/eligibility/binding loaded counts returning
+  to `0`, and Agent Workbench fallback sync.
 - This is the first Stage 3 external runtime load proof, limited to controlled
   health connection. It is not workflow execution and does not expose n8n as a
   normal product module.
