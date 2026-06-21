@@ -2598,10 +2598,18 @@ void main() {
       'K1',
       'K2',
     ]);
-    await controller.saveRetrievalValidationReport({
-      0: 'keep',
-      1: 'contradiction',
-    });
+    final validationPath =
+        await controller.saveRetrievalValidationReport(const {});
+    final validation =
+        jsonDecode(File(validationPath).readAsStringSync()) as Map;
+    expect(validation['correction_status'], 'reviewed');
+    expect(validation['review_mode'], 'local_evaluation_gate');
+    expect(
+        (validation['review_evidence'] as Map)['auto_review_passed'], isTrue);
+    expect(
+        (validation['review_evidence'] as Map)['external_calls_made'], isFalse);
+    expect((validation['review_evidence'] as Map)['secret_plaintext_written'],
+        isFalse);
     final healthPath = await controller.testAllRegisteredProviderCapabilities();
     readiness = readinessReport(runtimeStatus());
 
@@ -2620,7 +2628,7 @@ void main() {
       expect(probe['provider_ref'], providerRef);
       expect(probe['passed'], isTrue);
       expect(probe['result_count'], 2);
-      expect(probe['conflict_count'], 1);
+      expect(probe['conflict_count'], 0);
       expect(probe['network_used'], isFalse);
       expect(probe['secret_plaintext_written'], isFalse);
       expect(probe['external_runtime_executed'], isFalse);
@@ -5292,6 +5300,14 @@ void main() {
     expect(validation['result_count'], 2);
     expect(validation['conflict_count'], 1);
     expect(validation['correction_status'], 'reviewed');
+    expect(validation['review_mode'], 'manual_correction');
+    expect(
+        (validation['review_evidence'] as Map)['manual_correction_count'], 2);
+    expect((validation['review_evidence'] as Map)['reviewed_result_count'], 2);
+    expect(
+        (validation['review_evidence'] as Map)['external_calls_made'], isFalse);
+    expect((validation['review_evidence'] as Map)['secret_plaintext_written'],
+        isFalse);
     expect(
         validation['retrieval_plan_path'], controller.state.retrievalPlanPath);
     expect(validation['rerank_report_path'],

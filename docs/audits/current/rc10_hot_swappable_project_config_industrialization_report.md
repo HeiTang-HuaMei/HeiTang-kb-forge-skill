@@ -134,7 +134,7 @@ Coverage:
 - 0 entries marked runtime-loaded by default
 - 0 entries marked ready for user selection without config/test evidence
 - 1 local retrieval adapter can become selectable after real KB chunks are present
-- 2 local RAG evaluation Provider refs can become selectable after retrieval validation, citation, conflict, and review evidence exists
+- 2 local RAG evaluation Provider refs are selectable after local retrieval validation verifies result-count consistency, citation coverage, conflict evidence, and the no-external-call boundary
 - 1 local governance rule-pack adapter can become selectable from repository-owned governance/test assets
 - 1 local Agent memory lifecycle adapter can become selectable after Agent and memory-index evidence exists
 - 1 external Agent tool/runtime Provider remains blocked until a user-owned runtime health gate and permission boundary proof exist
@@ -234,7 +234,8 @@ Local RAG evaluation adapter proof:
 
 - `ragas` and `deepeval` have workspace-owned RAG evaluation probes at `config/provider_adapter_probe_ragas.json` and `config/provider_adapter_probe_deepeval.json`.
 - The probes require real retrieval validation evidence: `query/multi_kb_query_result.json`, retrieval plan, rerank report, citation coverage report, conflict report, external validation boundary, validation report, validation history, and validation markdown.
-- Passing readiness requires nonempty retrieval results, selected KB evidence, rerank count consistency, citation coverage, conflict schema evidence, reviewed validation status, validation history, and `external_calls_made=false`.
+- Passing readiness requires nonempty retrieval results, selected KB evidence, rerank count consistency, full citation coverage, conflict schema evidence, reviewed validation status, validation history, and `external_calls_made=false`.
+- If no manual corrections are supplied and local retrieval evidence has full citation coverage, zero conflicts, no external calls, and no plaintext secret, the runtime writes `review_mode=local_evaluation_gate` with `review_evidence` instead of leaving the report at `pending_manual_review`.
 - When a probe succeeds, `provider_adapter_readiness_report.json` marks that Provider as `连接成功` and `ready_for_user_selection=true`; explicit activation can bind `retrieval_provider` to `ragas` or `deepeval`.
 - `runtime_loaded` remains `false`; no RAGAS or DeepEval package, evaluator runtime, network call, or vendor code is bundled or executed.
 - The probes record `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, `vendor_runtime_loaded=false`, and `normal_ui_project_name_visible=false`.

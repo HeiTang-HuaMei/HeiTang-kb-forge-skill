@@ -994,6 +994,32 @@ class Rc6RuntimeController extends ChangeNotifier {
                   _isConflictDecision(entry.value) ? 'conflict' : entry.value,
             })
         .toList(growable: false);
+    final citationCoverage = queryReport['citation_coverage'] ??
+        _citationCoverage(rows
+            .map((row) => {
+                  'citation': row.citation,
+                  'source_path': row.citation,
+                })
+            .toList(growable: false));
+    final correctionConflictCount = correctionRows
+        .where((row) => row['normalized_decision'] == 'conflict')
+        .length;
+    final conflictCount = correctionRows.isEmpty
+        ? (_asInt(queryReport['conflict_count']) ?? 0)
+        : correctionConflictCount;
+    final externalValidationStatus =
+        _stringValue(queryReport['external_validation_status'], '');
+    final autoReviewPassed = correctionRows.isEmpty &&
+        rows.isNotEmpty &&
+        (_asDouble(citationCoverage) ?? 0) >= 1 &&
+        conflictCount == 0 &&
+        externalValidationStatus == 'not_enabled_local_only';
+    final reviewed = correctionRows.isNotEmpty || autoReviewPassed;
+    final reviewMode = correctionRows.isNotEmpty
+        ? 'manual_correction'
+        : autoReviewPassed
+            ? 'local_evaluation_gate'
+            : 'pending_manual_review';
     final queryDir = Directory(_join(workspace.path, 'query'));
     await queryDir.create(recursive: true);
     final reportPath = _join(queryDir.path, 'validation_report.json');
@@ -1010,21 +1036,25 @@ class Rc6RuntimeController extends ChangeNotifier {
       'citation_coverage_report_path': state.retrievalCitationCoveragePath,
       'conflict_report_path': state.retrievalConflictReportPath,
       'external_validation_boundary_path': state.externalValidationBoundaryPath,
-      'citation_coverage': queryReport['citation_coverage'] ??
-          _citationCoverage(rows
-              .map((row) => {
-                    'citation': row.citation,
-                    'source_path': row.citation,
-                  })
-              .toList(growable: false)),
-      'conflict_count': correctionRows
-          .where((row) => row['normalized_decision'] == 'conflict')
-          .length,
-      'correction_status':
-          correctionRows.isEmpty ? 'pending_manual_review' : 'reviewed',
+      'citation_coverage': citationCoverage,
+      'conflict_count': conflictCount,
+      'correction_status': reviewed ? 'reviewed' : 'pending_manual_review',
+      'review_mode': reviewMode,
+      'review_evidence': {
+        'review_source': reviewMode,
+        'auto_review_passed': autoReviewPassed,
+        'manual_correction_count': correctionRows.length,
+        'reviewed_result_count': rows.length,
+        'citation_coverage': citationCoverage,
+        'conflict_count': conflictCount,
+        'external_validation_status': externalValidationStatus,
+        'external_calls_made': false,
+        'secret_plaintext_written': false,
+      },
       'manual_corrections': correctionRows,
-      'external_validation_status':
-          queryReport['external_validation_status'] ?? 'not_enabled_local_only',
+      'external_validation_status': externalValidationStatus.isEmpty
+          ? 'not_enabled_local_only'
+          : externalValidationStatus,
       'query_result_path': state.queryResultPath,
       'markdown_report_path': markdownPath,
       'history_path': historyPath,
@@ -1055,6 +1085,8 @@ class Rc6RuntimeController extends ChangeNotifier {
             'result_count': payload['result_count'],
             'conflict_count': payload['conflict_count'],
             'correction_status': payload['correction_status'],
+            'review_mode': payload['review_mode'],
+            'review_evidence': payload['review_evidence'],
             'retrieval_plan_path': payload['retrieval_plan_path'],
             'rerank_report_path': payload['rerank_report_path'],
             'citation_coverage_report_path':
@@ -18468,6 +18500,138 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
   }
 
+  static Map<String, dynamic> _ensureLocalRetrievalEvaluationReview({
+    required String queryResultPath,
+    required String retrievalPlanPath,
+    required String rerankReportPath,
+    required String citationCoveragePath,
+    required String conflictReportPath,
+    required String externalBoundaryPath,
+    required String validationReportPath,
+    required String validationHistoryPath,
+    required String markdownReportPath,
+    required Map<String, dynamic> queryResult,
+    required Map<String, dynamic> citationCoverage,
+    required Map<String, dynamic> conflictReport,
+    required Map<String, dynamic> externalBoundary,
+  }) {
+    final existing = _readJsonObjectSync(validationReportPath);
+    final existingEvidence = _mapValue(existing['review_evidence']);
+    final existingReviewed =
+        _stringValue(existing['correction_status'], '') == 'reviewed' &&
+            const {'manual_correction', 'local_evaluation_gate'}
+                .contains(_stringValue(existing['review_mode'], '')) &&
+            _boolValue(existingEvidence['secret_plaintext_written']) == false &&
+            _boolValue(existingEvidence['external_calls_made']) == false;
+    if (existingReviewed) {
+      return existing;
+    }
+
+    final results = _listOfMaps(queryResult['results']);
+    final resultCount = results.length;
+    final coverage = _asDouble(citationCoverage['citation_coverage']) ?? -1;
+    final conflictCount = _asInt(conflictReport['conflict_count']) ?? 0;
+    final canAutoReview = File(queryResultPath).existsSync() &&
+        File(retrievalPlanPath).existsSync() &&
+        File(rerankReportPath).existsSync() &&
+        File(citationCoveragePath).existsSync() &&
+        File(conflictReportPath).existsSync() &&
+        File(externalBoundaryPath).existsSync() &&
+        resultCount > 0 &&
+        coverage >= 1 &&
+        conflictCount == 0 &&
+        _boolValue(externalBoundary['external_calls_made']) == false &&
+        _boolValue(externalBoundary['secret_plaintext_written']) == false;
+    if (!canAutoReview) {
+      return existing;
+    }
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    final payload = {
+      'schema_version': 'prd_v3_retrieval_validation_report.v1',
+      'created_at': now,
+      'query': _stringValue(queryResult['query'], ''),
+      'selected_kb_ids': _listOfStrings(queryResult['selected_kb_ids']),
+      'result_count': resultCount,
+      'retrieval_plan_path': retrievalPlanPath,
+      'rerank_report_path': rerankReportPath,
+      'citation_coverage_report_path': citationCoveragePath,
+      'conflict_report_path': conflictReportPath,
+      'external_validation_boundary_path': externalBoundaryPath,
+      'citation_coverage': coverage,
+      'conflict_count': conflictCount,
+      'correction_status': 'reviewed',
+      'review_mode': 'local_evaluation_gate',
+      'review_evidence': {
+        'review_source': 'local_evaluation_gate',
+        'auto_review_passed': true,
+        'manual_correction_count': 0,
+        'reviewed_result_count': resultCount,
+        'citation_coverage': coverage,
+        'conflict_count': conflictCount,
+        'external_validation_status': _stringValue(
+            queryResult['external_validation_status'],
+            'not_enabled_local_only'),
+        'external_calls_made': false,
+        'secret_plaintext_written': false,
+      },
+      'manual_corrections': const <Object>[],
+      'external_validation_status': _stringValue(
+          queryResult['external_validation_status'], 'not_enabled_local_only'),
+      'query_result_path': queryResultPath,
+      'markdown_report_path': markdownReportPath,
+      'history_path': validationHistoryPath,
+      'results': results
+          .map((row) => {
+                'title': _stringValue(row['title'], row['chunk_id']),
+                'excerpt': _stringValue(row['text'], ''),
+                'citation': _stringValue(row['citation'], row['source_path']),
+                'score': row['score'],
+                'kb_id': _stringValue(row['kb_id'], ''),
+                'kb_name': _stringValue(row['kb_name'], ''),
+              })
+          .toList(growable: false),
+    };
+    File(validationReportPath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    File(markdownReportPath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        _retrievalValidationMarkdown(payload),
+        encoding: utf8,
+      );
+    File(validationHistoryPath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        '${jsonEncode({
+              'created_at': payload['created_at'],
+              'query': payload['query'],
+              'selected_kb_ids': payload['selected_kb_ids'],
+              'result_count': payload['result_count'],
+              'conflict_count': payload['conflict_count'],
+              'correction_status': payload['correction_status'],
+              'review_mode': payload['review_mode'],
+              'review_evidence': payload['review_evidence'],
+              'retrieval_plan_path': payload['retrieval_plan_path'],
+              'rerank_report_path': payload['rerank_report_path'],
+              'citation_coverage_report_path':
+                  payload['citation_coverage_report_path'],
+              'conflict_report_path': payload['conflict_report_path'],
+              'external_validation_boundary_path':
+                  payload['external_validation_boundary_path'],
+              'report_path': validationReportPath,
+              'markdown_report_path': markdownReportPath,
+            })}\n',
+        mode: FileMode.append,
+        encoding: utf8,
+      );
+    return payload;
+  }
+
   static Map<String, dynamic> _probeRagEvaluationAdapter(
     Directory workspace,
     String providerRef,
@@ -18495,7 +18659,21 @@ class Rc6RuntimeController extends ChangeNotifier {
     final citationCoverage = _readJsonObjectSync(citationCoveragePath);
     final conflictReport = _readJsonObjectSync(conflictReportPath);
     final externalBoundary = _readJsonObjectSync(externalBoundaryPath);
-    final validationReport = _readJsonObjectSync(validationReportPath);
+    final validationReport = _ensureLocalRetrievalEvaluationReview(
+      queryResultPath: queryResultPath,
+      retrievalPlanPath: retrievalPlanPath,
+      rerankReportPath: rerankReportPath,
+      citationCoveragePath: citationCoveragePath,
+      conflictReportPath: conflictReportPath,
+      externalBoundaryPath: externalBoundaryPath,
+      validationReportPath: validationReportPath,
+      validationHistoryPath: validationHistoryPath,
+      markdownReportPath: markdownReportPath,
+      queryResult: queryResult,
+      citationCoverage: citationCoverage,
+      conflictReport: conflictReport,
+      externalBoundary: externalBoundary,
+    );
     final resultCount = _asInt(queryResult['result_count']) ??
         _listOfMaps(queryResult['results']).length;
     final validationResultCount = _asInt(validationReport['result_count']) ?? 0;
@@ -18504,6 +18682,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final conflictCount = _asInt(validationReport['conflict_count']) ??
         _asInt(conflictReport['conflict_count']) ??
         0;
+    final reviewEvidence = _mapValue(validationReport['review_evidence']);
+    final reviewMode = _stringValue(validationReport['review_mode'], '');
     final historyCount = _jsonlRecordCount(validationHistoryPath);
     final markdownBytes = File(markdownReportPath).existsSync()
         ? File(markdownReportPath).readAsBytesSync().length
@@ -18554,6 +18734,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         'result_count': validationResultCount,
         'correction_status':
             _stringValue(validationReport['correction_status'], ''),
+        'review_mode': reviewMode,
       },
       {
         'path': validationHistoryPath,
@@ -18599,6 +18780,11 @@ class Rc6RuntimeController extends ChangeNotifier {
             'prd_v3_retrieval_validation_report.v1' &&
         validationResultCount == resultCount &&
         _stringValue(validationReport['correction_status'], '') == 'reviewed' &&
+        const {'manual_correction', 'local_evaluation_gate'}
+            .contains(reviewMode) &&
+        _asInt(reviewEvidence['reviewed_result_count']) == resultCount &&
+        _boolValue(reviewEvidence['secret_plaintext_written']) == false &&
+        _boolValue(reviewEvidence['external_calls_made']) == false &&
         _stringValue(validationReport['retrieval_plan_path'], '') ==
             retrievalPlanPath &&
         _stringValue(validationReport['rerank_report_path'], '') ==
@@ -18643,7 +18829,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'history_count': historyCount,
       'passed': passed,
       'status': passed ? '连接成功' : '已配置未测试',
-      'error_message_zh': passed ? '' : 'RAG 评测需要真实检索验证、引用覆盖、冲突检测和人工校验产物后才能启用。',
+      'error_message_zh': passed ? '' : 'RAG 评测需要真实检索验证、引用覆盖、冲突检测和验证校验产物后才能启用。',
       'network_used': false,
       'secret_plaintext_written': false,
       'normal_ui_project_name_visible': false,

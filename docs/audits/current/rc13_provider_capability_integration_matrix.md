@@ -10,8 +10,8 @@ This report is generated from the current runtime evidence workspace. It treats 
 
 - Provider refs evaluated: `26`
 - Provider-to-capability mappings evaluated: `29`
-- Ready provider-to-capability mappings: `20`
-- Ready unique Provider refs: `19`
+- Ready provider-to-capability mappings: `24`
+- Ready unique Provider refs: `21`
 - Registry class counts: `capability_provider=21`, `template_asset=7`, `architecture_reference=1`
 - Architecture reference status counts: `absorbed_into_architecture=28`, `deferred_with_blocker=1`, `candidate_reference=0`, `rejected_no_architecture_gain=0`
 - Runtime loaded by default: `0`
@@ -89,8 +89,8 @@ Architecture reference statuses are now explicit:
 ## Current Industrial Boundary
 
 - Ready local capability enhancements may be selected in Settings and reflected downstream in capability status.
-- Readiness counts are split intentionally: `ready_mapping_count=20` counts
-  provider-to-capability rows, while `ready_unique_provider_count=19` counts
+- Readiness counts are split intentionally: `ready_mapping_count=24` counts
+  provider-to-capability rows, while `ready_unique_provider_count=21` counts
   unique Provider refs. `mattpocock_skills` is ready for both Skill templates
   and governance/audit, so it appears in two mappings but one unique Provider
   ref.
@@ -104,7 +104,11 @@ Architecture reference statuses are now explicit:
   endpoint at `http://127.0.0.1:5678`. The proof records
   `runtime_loaded_count=1` only after a health check, keeps workflow execution
   disabled, and verifies rollback returns the count to `0`.
-- RAG evaluation entries are capability Providers for governance/evaluation gates. They remain blocked until retrieval validation is explicitly reviewed, not merely saved as pending manual review.
+- RAG evaluation entries are capability Providers for governance/evaluation
+  gates. They are ready only after local retrieval validation has reviewed
+  result counts, citation coverage, conflict evidence, and the no-external-call
+  boundary; `ragas` and `deepeval` remain `runtime_loaded=false` and do not
+  execute vendor runtimes.
 - RTK is an Agent tool/runtime capability Provider. It remains blocked until a user-owned external runtime and permission boundary health gate pass.
 - LlamaIndex remains an architecture reference with `deferred_with_blocker`;
   current benchmark-only evidence does not yet prove a net architecture gain
