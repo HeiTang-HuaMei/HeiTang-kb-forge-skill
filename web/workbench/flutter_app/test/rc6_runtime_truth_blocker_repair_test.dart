@@ -2447,6 +2447,24 @@ void main() {
     expect(selectionLog.last['status'], '连接成功');
     expect(selectionLog.last['runtime_loaded_after_event'], isFalse);
     expect(selectionLog.last['secret_masked'], isTrue);
+    final activatedRuntimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    final lifecycleAudit = jsonDecode(File(
+            activatedRuntimeStatus['provider_lifecycle_audit_summary_path']
+                as String)
+        .readAsStringSync()) as Map;
+    final downstreamBindingAudit =
+        (lifecycleAudit['downstream_binding_audit'] as List).cast<Map>();
+    final governanceAudit = downstreamBindingAudit.firstWhere(
+        (entry) => entry['capability_id'] == 'governance_audit_provider');
+    expect(governanceAudit['active_provider_ref'], 'mattpocock_skills');
+    expect(governanceAudit['active_provider_kind'], 'registered_provider');
+    expect(
+        (governanceAudit['affected_modules'] as List), contains('audit_center'));
+    expect(governanceAudit['runtime_loaded'], isFalse);
+    expect(governanceAudit['unauthorized_resources_selectable'], isFalse);
+    expect(governanceAudit['secret_masked'], isTrue);
 
     final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
     expect(health['ready_for_user_selection_count'], 3);
@@ -2686,6 +2704,23 @@ void main() {
     expect(selectionLog.last['status'], '连接成功');
     expect(selectionLog.last['runtime_loaded_after_event'], isFalse);
     expect(selectionLog.last['secret_masked'], isTrue);
+    final activatedRuntimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    final lifecycleAudit = jsonDecode(File(
+            activatedRuntimeStatus['provider_lifecycle_audit_summary_path']
+                as String)
+        .readAsStringSync()) as Map;
+    final downstreamBindingAudit =
+        (lifecycleAudit['downstream_binding_audit'] as List).cast<Map>();
+    final skillAudit = downstreamBindingAudit.firstWhere(
+        (entry) => entry['capability_id'] == 'skill_template_provider');
+    expect(skillAudit['active_provider_ref'], 'ai_marketing_skills');
+    expect(skillAudit['active_provider_kind'], 'registered_provider');
+    expect((skillAudit['affected_modules'] as List), contains('skill_factory'));
+    expect(skillAudit['runtime_loaded'], isFalse);
+    expect(skillAudit['unauthorized_resources_selectable'], isFalse);
+    expect(skillAudit['secret_masked'], isTrue);
 
     final health = jsonDecode(File(healthPath).readAsStringSync()) as Map;
     expect(health['ready_for_user_selection_count'], 3);

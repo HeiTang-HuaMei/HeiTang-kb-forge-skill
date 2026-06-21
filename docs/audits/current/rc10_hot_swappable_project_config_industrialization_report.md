@@ -595,6 +595,12 @@ Latest Stage 3 Provider downstream binding audit slice:
   Knowledge Base embedding/vector capability status while keeping
   `runtime_loaded=false`, unauthorized resources unavailable, and secrets
   masked.
+- The Skill Template slice verifies that activating `ai_marketing_skills` binds
+  it to Skill Factory capability status while keeping `runtime_loaded=false`,
+  unauthorized resources unavailable, and secrets masked.
+- The Governance/Audit slice verifies that activating `mattpocock_skills` binds
+  it to Audit Center capability status while keeping `runtime_loaded=false`,
+  unauthorized resources unavailable, and secrets masked.
 - The Document Exporter slice verifies that activating `story_flicks` binds it
   to Document Generation and Artifact Center surfaces while keeping
   `runtime_loaded=false`, unauthorized resources unavailable, and secrets
@@ -610,9 +616,16 @@ Latest Stage 3 Provider downstream binding audit slice:
   `sirchmunk local retrieval adapter becomes selectable after real chunks`,
   `parser ocr adapters become selectable from real parse artifacts`,
   `embedding vector adapters become selectable from real index artifacts`,
+  `ai marketing skill adapter becomes selectable from local patterns`,
+  `mattpocock governance adapter becomes selectable from local rule assets`,
   `exporter adapters become selectable from real export artifacts`, and
   `llm wiki agent memory adapter requires local agent lifecycle evidence`, and
   `workflow collaboration adapter becomes selectable from real A2A exports`.
+- With this slice, all 8 Provider capability bindings have lifecycle downstream
+  audit assertions: Document Library Parser/OCR, Knowledge Base
+  Embedding/Vector, Retrieval Validation, Document Generation/Artifact Center
+  Exporter, Skill Factory, Agent Workbench model/tool/memory, Agent Workbench
+  A2A workflow export, and Audit Center governance.
 
 Latest validation for controlled n8n runtime-load slice:
 
