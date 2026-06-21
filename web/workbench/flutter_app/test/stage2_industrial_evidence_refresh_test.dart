@@ -430,7 +430,7 @@ void main() {
       host: '127.0.0.1',
       port: 6379,
       keyPrefix: 'heitang:stage2:',
-      password: '',
+      password: redisPassword,
     );
     expect(redis.status, 'connected', reason: redis.detail);
     final qdrant = await controller.testQdrantConnection(
