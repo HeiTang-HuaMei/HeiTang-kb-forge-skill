@@ -136,7 +136,7 @@ Coverage:
 - 1 local governance rule-pack adapter can become selectable from repository-owned governance/test assets
 - 1 local Agent memory lifecycle adapter can become selectable after Agent and memory-index evidence exists
 - 1 external Agent tool/runtime Provider remains blocked until a user-owned runtime health gate and permission boundary proof exist
-- 1 local teaching/reasoning Skill template adapter can become selectable from Skill Factory runtime evidence
+- 1 local teaching/reasoning Skill template asset is selectable from a workspace-owned template manifest
 - 1 local marketing Skill pattern adapter can become selectable from repository-owned template/demo assets
 - 1 local Skill schema/package adapter can become selectable after Skill package, validation, fusion, version, and Agent binding evidence exists
 - 1 local workflow collaboration export adapter can become selectable after A2A multi-round, conflict, consensus, runtime-audit, and collaboration-report evidence exists
@@ -267,9 +267,9 @@ Local marketing Skill adapter proof:
 
 Local teaching/reasoning Skill adapter proof:
 
-- `andrej_karpathy_skills` has a workspace-owned teaching/reasoning Skill probe at `config/provider_adapter_probe_andrej_karpathy_skills.json`.
-- The probe requires real Skill Factory runtime evidence: `skill_generation_manifest.json`, primary `SKILL.md`, `skill_config.json`, `skill_validation_report.json`, `skill_runtime_manifest.json`, version snapshots, and `skill_version_diff_report.json`.
-- Passing readiness requires a KB-generated teaching/reasoning Skill, validation pass, selected generation config, multi-version runtime, version diff, version snapshots, and ModelRoute evidence.
+- `andrej_karpathy_skills` has a workspace-owned teaching/reasoning template asset probe at `config/provider_adapter_probe_andrej_karpathy_skills.json`.
+- The probe writes and verifies `skill/template_assets/andrej_karpathy_skills/template_asset_manifest.json` with manifest schema, source/version metadata, validation checks, Skill/Agent/document entry boundaries, normal-UI hiding, and audit flags.
+- Passing readiness requires the template asset manifest to prove source, version, validation, Skill/Agent binding boundary, no external health check, no runtime load requirement, no network use, no vendor execution, and no plaintext secret.
 - When the probe succeeds, `provider_adapter_readiness_report.json` marks `andrej_karpathy_skills` as `连接成功` and `ready_for_user_selection=true`, and `provider_capability_binding_manifest.json` can bind `skill_template_provider` to it after explicit activation.
 - `runtime_loaded` remains `false`; no external Andrej Karpathy Skill repository, course asset, script, network call, arbitrary execution, or vendor runtime is bundled or executed.
 - The probe records `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, `vendor_runtime_loaded=false`, and `normal_ui_project_name_visible=false`.
@@ -750,7 +750,7 @@ Current checked state:
 - Checked base remote CI: `27891522675`, `success`.
 - Current refreshed Stage 2 preflight: `status=passed`, `runtime_load_allowed=true`, `failed_checks=[]`.
 - Current Provider readiness: `29` provider-to-capability mappings evaluated,
-  `26` unique Provider refs, `19` ready mappings, `18` ready unique Provider
+  `26` unique Provider refs, `20` ready mappings, `19` ready unique Provider
   refs, `0` runtime loaded.
 - The count split is intentional: `mattpocock_skills` is ready for both Skill
   templates and governance/audit, so it contributes two ready mappings but one

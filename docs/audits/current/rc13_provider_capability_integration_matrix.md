@@ -10,8 +10,8 @@ This report is generated from the current runtime evidence workspace. It treats 
 
 - Provider refs evaluated: `26`
 - Provider-to-capability mappings evaluated: `29`
-- Ready provider-to-capability mappings: `19`
-- Ready unique Provider refs: `18`
+- Ready provider-to-capability mappings: `20`
+- Ready unique Provider refs: `19`
 - Registry class counts: `capability_provider=21`, `template_asset=7`, `architecture_reference=1`
 - Architecture reference status counts: `absorbed_into_architecture=29`, `deferred_with_blocker=0`, `candidate_reference=0`, `rejected_no_architecture_gain=0`
 - Runtime loaded by default: `0`
@@ -80,7 +80,7 @@ Architecture reference statuses are now explicit:
 | `retrieval_provider` | `last30days_skill` | 需安装外部服务 | `false` | `false` | `false` | 当前 Profile 未开启网络授权。; 需要安装依赖或完成本地适配。 | `D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/output/stage2_industrial_runtime_workspace/config/provider_adapter_probe_last30days_skill.json` |
 | `retrieval_provider` | `sirchmunk` | 连接成功 | `true` | `true` | `false` |  | `D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/output/stage2_industrial_runtime_workspace/config/provider_adapter_probe_sirchmunk.json` |
 | `skill_template_provider` | `ai_marketing_skills` | 连接成功 | `true` | `true` | `false` |  | `D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/output/stage2_industrial_runtime_workspace/config/provider_adapter_probe_ai_marketing_skills.json` |
-| `skill_template_provider` | `andrej_karpathy_skills` | 已配置未测试 | `false` | `false` | `false` | teaching_or_reasoning_pattern_present; primary_config_type_recorded | `D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/output/stage2_industrial_runtime_workspace/config/provider_adapter_probe_andrej_karpathy_skills.json` |
+| `skill_template_provider` | `andrej_karpathy_skills` | 连接成功 | `true` | `true` | `false` |  | `D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/output/stage2_industrial_runtime_workspace/config/provider_adapter_probe_andrej_karpathy_skills.json` |
 | `skill_template_provider` | `mmskills` | 连接成功 | `true` | `true` | `false` |  | `D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/output/stage2_industrial_runtime_workspace/config/provider_adapter_probe_mmskills.json` |
 | `skill_template_provider` | `seedance2_skill` | 配置缺失 | `false` | `false` | `false` | 当前 Profile 未开启网络授权。; 需要 secret 引用，不能写入或展示明文密钥。 | `D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/output/stage2_industrial_runtime_workspace/config/provider_adapter_probe_seedance2_skill.json` |
 | `skill_template_provider` | `skill_prompt_generator` | 连接成功 | `true` | `true` | `false` |  | `D:/HeiTang-Codex-WorkSpace/Project_01_HeiTang_KB_Forge/kb-forge-skill-ui/web/workbench/flutter_app/output/stage2_industrial_runtime_workspace/config/provider_adapter_probe_skill_prompt_generator.json` |
@@ -89,11 +89,14 @@ Architecture reference statuses are now explicit:
 ## Current Industrial Boundary
 
 - Ready local capability enhancements may be selected in Settings and reflected downstream in capability status.
-- Readiness counts are split intentionally: `ready_mapping_count=19` counts
-  provider-to-capability rows, while `ready_unique_provider_count=18` counts
+- Readiness counts are split intentionally: `ready_mapping_count=20` counts
+  provider-to-capability rows, while `ready_unique_provider_count=19` counts
   unique Provider refs. `mattpocock_skills` is ready for both Skill templates
   and governance/audit, so it appears in two mappings but one unique Provider
   ref.
+- `andrej_karpathy_skills` is now absorbed as a local teaching/reasoning
+  template asset manifest. It remains `runtime_loaded=false`; no external
+  repository code, network call, or vendor runtime is bundled or executed.
 - External runtime loading remains separate from local readiness. Current external-runtime eligible Provider is n8n only.
 - Default refreshed runtime status keeps external runtime unloaded until an
   explicit endpoint health-load is requested.

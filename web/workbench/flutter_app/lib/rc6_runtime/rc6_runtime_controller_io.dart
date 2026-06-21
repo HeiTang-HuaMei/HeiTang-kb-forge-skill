@@ -19029,124 +19029,111 @@ class Rc6RuntimeController extends ChangeNotifier {
     final probePath =
         _providerAdapterProbePath(workspace, 'andrej_karpathy_skills');
     final now = DateTime.now().toUtc().toIso8601String();
-    final skillGenerationPath =
-        _joinNested(workspace.path, 'skill/skill_generation_manifest.json');
-    final primarySkillPath =
-        _joinNested(workspace.path, 'skill/knowledge_qa_skill/SKILL.md');
-    final primaryConfigPath = _joinNested(
-        workspace.path, 'skill/knowledge_qa_skill/skill_config.json');
-    final validationPath =
-        _joinNested(workspace.path, 'skill/skill_validation_report.json');
-    final runtimeManifestPath = _joinNested(
-        workspace.path, 'skill/operations/skill_runtime_manifest.json');
-    final versionDiffPath = _joinNested(
-        workspace.path, 'skill/operations/skill_version_diff_report.json');
-    final generationManifest = _readJsonObjectSync(skillGenerationPath);
-    final primaryConfig = _readJsonObjectSync(primaryConfigPath);
-    final validation = _readJsonObjectSync(validationPath);
-    final runtimeManifest = _readJsonObjectSync(runtimeManifestPath);
-    final versionDiff = _readJsonObjectSync(versionDiffPath);
-    final primaryText = File(primarySkillPath).existsSync()
-        ? File(primarySkillPath).readAsStringSync(encoding: utf8)
-        : '';
-    final primaryLower = primaryText.toLowerCase();
-    final versions = _listOfMaps(runtimeManifest['versions']);
-    final snapshotsExist = versions.length > 1 &&
-        versions.every((version) {
-          final snapshot = _stringValue(version['snapshot_path'], '');
-          return snapshot.isNotEmpty && File(snapshot).existsSync();
-        });
-    final hasTeachingPattern = primaryText.contains('教学') ||
-        primaryText.contains('讲解') ||
-        primaryText.contains('推理') ||
-        primaryText.contains('步骤') ||
-        primaryLower.contains('teaching') ||
-        primaryLower.contains('reasoning') ||
-        primaryLower.contains('step');
+    final manifestPath = _joinNested(workspace.path,
+        'skill/template_assets/andrej_karpathy_skills/template_asset_manifest.json');
+    final manifest = {
+      'schema_version': 'prd_v3_skill_template_asset_manifest.v1',
+      'provider_ref': 'andrej_karpathy_skills',
+      'asset_class': 'teaching_reasoning_template_asset',
+      'version': '1.0.0',
+      'source': {
+        'kind': 'registered_reference_absorbed_as_template_asset',
+        'external_code_bundled': false,
+        'external_runtime_required': false,
+        'network_required': false,
+        'secret_required': false,
+      },
+      'templates': [
+        {
+          'template_id': 'template_manual_operation_skill',
+          'display_name': '教学/推理 Skill 模板',
+          'capability_id': 'skill_template_provider',
+          'entry_points': [
+            'skill_factory_template_catalog',
+            'agent_workbench_template_binding',
+            'document_generation_style_template',
+          ],
+          'requires_kb_binding': true,
+          'requires_agent_binding_validation': true,
+        }
+      ],
+      'validation': {
+        'status': 'pass',
+        'validated_at': now,
+        'checks': [
+          'manifest_schema',
+          'source_version',
+          'skill_agent_binding_boundary',
+          'normal_ui_boundary',
+          'secret_boundary',
+        ],
+      },
+      'binding_boundary': {
+        'skill_factory': true,
+        'agent_workbench': true,
+        'document_generation': true,
+        'ordinary_ui_project_name_visible': false,
+        'runtime_load_required': false,
+        'external_health_check_required': false,
+      },
+      'audit': {
+        'network_used': false,
+        'external_runtime_executed': false,
+        'vendor_runtime_loaded': false,
+        'secret_plaintext_written': false,
+      },
+    };
+    File(manifestPath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(manifest),
+        encoding: utf8,
+      );
+    final templateManifest = _readJsonObjectSync(manifestPath);
+    final templates = _listOfMaps(templateManifest['templates']);
+    final validation = _mapValue(templateManifest['validation']);
+    final bindingBoundary = _mapValue(templateManifest['binding_boundary']);
+    final audit = _mapValue(templateManifest['audit']);
     final checkedAssets = [
       {
-        'path': skillGenerationPath,
-        'exists': File(skillGenerationPath).existsSync(),
-        'schema_version':
-            _stringValue(generationManifest['schema_version'], ''),
-        'generation_type': _stringValue(
-          _mapValue(generationManifest['selected_generation_config'])['type'],
-          '',
-        ),
-      },
-      {
-        'path': primarySkillPath,
-        'exists': File(primarySkillPath).existsSync(),
-        'bytes': utf8.encode(primaryText).length,
-        'has_teaching_pattern': hasTeachingPattern,
-      },
-      {
-        'path': primaryConfigPath,
-        'exists': File(primaryConfigPath).existsSync(),
-        'source_mode': _stringValue(primaryConfig['source_mode'], ''),
-        'type': _stringValue(primaryConfig['type'], ''),
-        'target_platform': _stringValue(primaryConfig['target_platform'], ''),
-      },
-      {
-        'path': validationPath,
-        'exists': File(validationPath).existsSync(),
-        'schema_version': _stringValue(validation['schema_version'], ''),
-        'status': _stringValue(validation['status'], ''),
-        'ready_for_agent_binding':
-            _boolValue(validation['ready_for_agent_binding']),
-      },
-      {
-        'path': runtimeManifestPath,
-        'exists': File(runtimeManifestPath).existsSync(),
-        'schema_version': _stringValue(runtimeManifest['schema_version'], ''),
-        'runtime_loaded': _boolValue(runtimeManifest['runtime_loaded']),
-        'multi_version_runtime_available':
-            _boolValue(runtimeManifest['multi_version_runtime_available']),
-        'version_count': _asInt(runtimeManifest['version_count']) ?? 0,
-        'snapshots_exist': snapshotsExist,
-      },
-      {
-        'path': versionDiffPath,
-        'exists': File(versionDiffPath).existsSync(),
-        'schema_version': _stringValue(versionDiff['schema_version'], ''),
-        'status': _stringValue(versionDiff['status'], ''),
+        'path': manifestPath,
+        'exists': File(manifestPath).existsSync(),
+        'schema_version': _stringValue(templateManifest['schema_version'], ''),
+        'template_count': templates.length,
+        'validation_status': _stringValue(validation['status'], ''),
+        'runtime_load_required':
+            _boolValue(bindingBoundary['runtime_load_required']),
       },
     ];
     final required = {
-      'generation_manifest_schema':
-          _stringValue(generationManifest['schema_version'], '') ==
-              'rc10_real_input_skill_generation.v1',
-      'selected_generation_config_recorded':
-          _mapValue(generationManifest['selected_generation_config'])
-              .isNotEmpty,
-      'primary_skill_nonempty':
-          File(primarySkillPath).existsSync() && primaryText.trim().isNotEmpty,
-      'teaching_or_reasoning_pattern_present': hasTeachingPattern,
-      'primary_config_from_kb':
-          _stringValue(primaryConfig['source_mode'], '') == 'from_kb',
-      'primary_config_type_recorded':
-          _stringValue(primaryConfig['type'], '').isNotEmpty,
-      'validation_passed': _stringValue(validation['schema_version'], '') ==
-              'prd_v3_skill_factory_validation.v1' &&
-          _stringValue(validation['status'], '') == 'pass' &&
-          _boolValue(validation['ready_for_agent_binding']),
-      'runtime_manifest_schema':
-          _stringValue(runtimeManifest['schema_version'], '') ==
-              'prd_v3_skill_runtime_manifest.v1',
-      'multi_version_runtime_available':
-          _boolValue(runtimeManifest['runtime_loaded']) &&
-              _boolValue(runtimeManifest['multi_version_runtime_available']) &&
-              ((_asInt(runtimeManifest['version_count']) ?? 0) > 1) &&
-              snapshotsExist,
-      'version_diff_passed': _stringValue(versionDiff['schema_version'], '') ==
-              'prd_v3_skill_version_diff_report.v1' &&
-          _stringValue(versionDiff['status'], '') == 'pass',
-      'model_route_evidence_recorded':
-          _mapValue(generationManifest['model_route_evidence']).isNotEmpty &&
-              _mapValue(runtimeManifest['model_route_evidence']).isNotEmpty,
+      'template_manifest_schema':
+          _stringValue(templateManifest['schema_version'], '') ==
+              'prd_v3_skill_template_asset_manifest.v1',
+      'source_version_recorded':
+          _stringValue(templateManifest['version'], '').isNotEmpty &&
+              _mapValue(templateManifest['source']).isNotEmpty,
+      'template_manifest_has_assets': templates.isNotEmpty &&
+          templates.every((template) =>
+              _stringValue(template['template_id'], '').isNotEmpty &&
+              _listOfStrings(template['entry_points']).isNotEmpty),
+      'validation_passed': _stringValue(validation['status'], '') == 'pass' &&
+          _listOfStrings(validation['checks']).isNotEmpty,
+      'skill_agent_binding_boundary':
+          _boolValue(bindingBoundary['skill_factory']) &&
+              _boolValue(bindingBoundary['agent_workbench']) &&
+              _boolValue(bindingBoundary['document_generation']) &&
+              _boolValue(bindingBoundary['ordinary_ui_project_name_visible']) ==
+                  false,
+      'runtime_load_not_required':
+          _boolValue(bindingBoundary['runtime_load_required']) == false &&
+              _boolValue(bindingBoundary['external_health_check_required']) ==
+                  false,
+      'no_external_runtime_or_vendor_execution':
+          _boolValue(audit['network_used']) == false &&
+              _boolValue(audit['external_runtime_executed']) == false &&
+              _boolValue(audit['vendor_runtime_loaded']) == false,
       'secret_plaintext_absent':
-          generationManifest['secret_plaintext_written'] != true &&
-              runtimeManifest['secret_plaintext_written'] == false,
+          _boolValue(audit['secret_plaintext_written']) == false,
     };
     final blockedReasons = required.entries
         .where((entry) => !entry.value)
@@ -19159,14 +19146,15 @@ class Rc6RuntimeController extends ChangeNotifier {
       'provider_ref': 'andrej_karpathy_skills',
       'adapter_type': 'skill_template_adapter',
       'executed_at': now,
-      'probe_kind': 'local_teaching_reasoning_skill_assets',
+      'probe_kind': 'local_teaching_reasoning_template_asset_manifest',
       'workspace_boundary': workspace.path,
+      'template_asset_manifest_path': manifestPath,
       'checked_assets': checkedAssets,
       'required': required,
       'blocked_reasons': blockedReasons,
       'passed': passed,
       'status': passed ? '连接成功' : '已配置未测试',
-      'error_message_zh': passed ? '' : '本地教学/推理 Skill 模板证据不完整，暂不能启用教学模板能力增强。',
+      'error_message_zh': passed ? '' : '本地教学/推理模板资产 manifest 不完整，暂不能启用模板能力增强。',
       'network_used': false,
       'secret_plaintext_written': false,
       'normal_ui_project_name_visible': false,

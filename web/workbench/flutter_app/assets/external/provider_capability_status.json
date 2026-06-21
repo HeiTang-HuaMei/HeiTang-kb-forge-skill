@@ -366,10 +366,11 @@
       "related_provider_states": [
         {
           "provider_ref": "andrej_karpathy_skills",
-          "status": "needs_provider_config",
+          "status": "configured_not_tested",
           "contract_status": [
-            "benchmark_only",
-            "capability_anchor"
+            "teaching_reasoning_template_asset",
+            "capability_anchor",
+            "runtime_not_bundled"
           ],
           "requires_network": false,
           "requires_secret": false,

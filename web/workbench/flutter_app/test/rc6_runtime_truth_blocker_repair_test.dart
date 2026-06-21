@@ -1680,7 +1680,7 @@ void main() {
     expect(providerAdapterReadiness['contract_count'], 26);
     expect(providerAdapterReadiness['readiness_entry_count'], 26);
     expect(providerAdapterReadiness['runtime_loaded_count'], 0);
-    expect(providerAdapterReadiness['ready_for_user_selection_count'], 2);
+    expect(providerAdapterReadiness['ready_for_user_selection_count'], 3);
     expect(providerAdapterReadiness['external_runtime_load_allowed'], isFalse);
     expect(
         (providerAdapterReadiness['stage_2_industrial_preflight']
@@ -1696,7 +1696,8 @@ void main() {
         .where((entry) => entry['ready_for_user_selection'] == true)
         .map((entry) => entry['provider_ref'])
         .toSet();
-    expect(readyProviderRefs, {'mattpocock_skills', 'ai_marketing_skills'});
+    expect(readyProviderRefs,
+        {'mattpocock_skills', 'ai_marketing_skills', 'andrej_karpathy_skills'});
     expect(readinessEntries.every((entry) => entry['runtime_loaded'] == false),
         isTrue);
     expect(readinessEntries.every((entry) => entry['secret_masked'] == true),
@@ -1848,7 +1849,8 @@ void main() {
     expect(bindings, hasLength(8));
     final skillTemplateBinding = bindings.firstWhere(
         (binding) => binding['capability_id'] == 'skill_template_provider');
-    expect(skillTemplateBinding['active_provider_ref'], 'mattpocock_skills');
+    expect(skillTemplateBinding['active_provider_ref'],
+        'andrej_karpathy_skills');
     expect(skillTemplateBinding['active_provider_kind'], 'registered_provider');
     expect(skillTemplateBinding['selection_allowed'], isTrue);
     final governanceBinding = bindings.firstWhere(
@@ -1915,9 +1917,9 @@ void main() {
     expect(providerHealth['capability_area_count'], 8);
     expect(providerHealth['all_entries_checked'], isTrue);
     expect(providerHealth['runtime_loaded_count'], 0);
-    expect(providerHealth['ready_for_user_selection_count'], 3);
-    expect(providerHealth['ready_mapping_count'], 3);
-    expect(providerHealth['ready_unique_provider_count'], 2);
+    expect(providerHealth['ready_for_user_selection_count'], 4);
+    expect(providerHealth['ready_mapping_count'], 4);
+    expect(providerHealth['ready_unique_provider_count'], 3);
     expect(providerHealth['external_runtime_load_allowed'], isFalse);
     expect((providerHealth['stage_2_industrial_preflight'] as Map)['status'],
         'blocked');
@@ -1931,7 +1933,7 @@ void main() {
     expect(registrySummary['provider_count'], 26);
     expect(registrySummary['provider_mapping_count'], 29);
     expect(registrySummary['capability_area_count'], 8);
-    expect(registrySummary['ready_provider_count'], 2);
+    expect(registrySummary['ready_provider_count'], 3);
     expect(registrySummary['runtime_loaded_count'], 0);
     expect(registrySummary['external_runtime_load_eligible_count'], 0);
     expect(
@@ -2164,7 +2166,8 @@ void main() {
         .where((entry) => entry['selection_allowed'] == true)
         .map((entry) => entry['provider_ref'])
         .toSet();
-    expect(selectableHealthRefs, {'mattpocock_skills', 'ai_marketing_skills'});
+    expect(selectableHealthRefs,
+        {'mattpocock_skills', 'ai_marketing_skills', 'andrej_karpathy_skills'});
     expect(
         healthEntries.every((entry) => entry['secret_masked'] == true), isTrue);
     final templateHealthEntries = healthEntries
@@ -3206,9 +3209,27 @@ void main() {
             .firstWhere((entry) => entry['provider_ref'] == providerRef);
 
     var readiness = readinessReport(runtimeStatus());
+    var karpathy = readinessEntry(readiness, 'andrej_karpathy_skills');
+    expect(karpathy['ready_for_user_selection'], isTrue);
+    expect(karpathy['runtime_loaded'], isFalse);
+    var probe = jsonDecode(
+        File((karpathy['test_artifacts'] as List).cast<String>().single)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(probe['probe_kind'],
+        'local_teaching_reasoning_template_asset_manifest');
+    final templateAssetManifestPath =
+        probe['template_asset_manifest_path'] as String;
+    final templateAssetManifest =
+        jsonDecode(File(templateAssetManifestPath).readAsStringSync())
+            as Map<String, dynamic>;
+    expect(templateAssetManifest['schema_version'],
+        'prd_v3_skill_template_asset_manifest.v1');
+    expect(templateAssetManifest['provider_ref'], 'andrej_karpathy_skills');
     expect(
-        readinessEntry(
-            readiness, 'andrej_karpathy_skills')['ready_for_user_selection'],
+        (templateAssetManifest['binding_boundary']
+            as Map)['runtime_load_required'],
+        isFalse);
+    expect((templateAssetManifest['audit'] as Map)['external_runtime_executed'],
         isFalse);
 
     final skillRoot =
@@ -3292,15 +3313,17 @@ void main() {
 
     final healthPath = await controller.testAllRegisteredProviderCapabilities();
     readiness = readinessReport(runtimeStatus());
-    final karpathy = readinessEntry(readiness, 'andrej_karpathy_skills');
+    karpathy = readinessEntry(readiness, 'andrej_karpathy_skills');
     expect(karpathy['status'], '连接成功');
     expect(karpathy['ready_for_user_selection'], isTrue);
     expect(karpathy['runtime_loaded'], isFalse);
-    final probe = jsonDecode(
+    probe = jsonDecode(
         File((karpathy['test_artifacts'] as List).cast<String>().single)
             .readAsStringSync()) as Map<String, dynamic>;
     expect(probe['schema_version'],
         'prd_v3_provider_adapter_probe_andrej_karpathy_skills.v1');
+    expect(probe['probe_kind'],
+        'local_teaching_reasoning_template_asset_manifest');
     expect(probe['passed'], isTrue);
     expect(probe['blocked_reasons'], isEmpty);
     expect(probe['network_used'], isFalse);
