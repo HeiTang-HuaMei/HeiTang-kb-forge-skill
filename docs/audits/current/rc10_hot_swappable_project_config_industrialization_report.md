@@ -687,11 +687,49 @@ Latest validation for controlled n8n runtime-load slice:
 - `git diff --check`
 - diff-only no-secret / overclaim review completed; findings are expected test sentinel text and the new Stage 3 `runtime_loaded_count=1` assertion for the controlled health-success path, not default readiness overclaim.
 
+Latest Stage 3 default runtime-load manifest slice:
+
+- Runtime status refresh now persists
+  `config/provider_runtime_load_manifest.json` even before an external runtime
+  health-load is attempted.
+- The default manifest records `action=status_refresh`, `status=未配置`,
+  `runtime_loaded=false`, `runtime_loaded_count=0`,
+  `external_runtime_executed=false`, `workflow_executed=false`, and
+  `secret_plaintext_written=false`.
+- After the independent EXE smoke refresh, the current workspace records
+  `eligible_before_load=true` for n8n because Stage 2 preflight is green and
+  n8n readiness is proven, but it keeps `error_code=n8n_endpoint_missing_or_invalid`
+  because the Owner machine has no n8n endpoint configured.
+- This closes the audit gap where runtime status pointed at a runtime-load
+  manifest path before the manifest existed.
+
+Latest Stage 3 ordinary business-page status slice:
+
+- Document Library import/parsing now shows natural Parser, OCR, and web import
+  capability status.
+- Knowledge Base now shows index backend, Embedding, and vector database
+  capability status.
+- Document Generation now shows Markdown, JSON/CSV, and DOCX/PDF/PPTX exporter
+  status, preserving the rule that Office exports require exporter
+  configuration.
+- Agent Workbench now shows model, short-term memory, long-term memory, and
+  collaboration export status.
+- The ordinary UI contract verifies these statuses while blocking external
+  project names, n8n, provider refs, hot-swap wording, Gate/Campaign/Core
+  terms, and backend-matrix language from ordinary business pages.
+
 Current checked state:
 
-- Latest pushed commit: `7bf4f11 Support live Redis provider proof`.
-- Remote CI: `27889818122`, `success`.
+- Latest pushed commit: `92d15d1 Surface provider capability status on business pages`.
+- Remote CI: `27890906519`, `success`.
 - Current refreshed Stage 2 preflight: `status=passed`, `runtime_load_allowed=true`, `failed_checks=[]`.
+- Current Provider readiness: `26` refs evaluated, `18` ready for user
+  selection, `0` runtime loaded.
+- Current capability catalog: `8` capability areas, `8` available capability
+  rows, `0` runtime-loaded capability rows.
+- Current runtime-load manifest: `action=status_refresh`,
+  `eligible_before_load=true`, `status=未配置`,
+  `error_code=n8n_endpoint_missing_or_invalid`, `runtime_loaded=false`.
 - Current local environment has no `HEITANG_N8N_ENDPOINT` / `N8N_ENDPOINT` and no n8n container, so live n8n external runtime health-load is not asserted from the Owner machine in this report. The automated safe-health success path remains covered by the local HTTP health-server test.
 
 ## Unfinished Items
@@ -709,3 +747,5 @@ Current checked state:
 - DOCX/PDF/PPTX are not executable when exporter is unconfigured.
 - Redis/Qdrant failures degrade safely and do not crash.
 - Normal UI does not expose hot-swap project loading, Gate, Campaign, Core operation, backend matrix, or plaintext secret values.
+- Business pages show capability status as Parser/OCR, index/vector, exporter,
+  and Agent memory/collaboration capabilities, not as external project loading.
