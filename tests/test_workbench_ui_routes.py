@@ -52,8 +52,21 @@ def load_contracts():
 
 
 def flutter_pages_block() -> str:
-    flutter_main = (WORKBENCH / "flutter_app" / "lib" / "main.dart").read_text(encoding="utf-8")
-    return flutter_main.split("const pages = <WorkbenchPage>[", 1)[1].split("class WorkbenchPage", 1)[0]
+    flutter_pages = (
+        WORKBENCH / "flutter_app" / "lib" / "app" / "workbench_pages.dart"
+    ).read_text(encoding="utf-8")
+    return flutter_pages.split("const pages = <WorkbenchPage>[", 1)[1].split("class WorkbenchPage", 1)[0]
+
+
+def flutter_sources() -> str:
+    return "\n".join(
+        [
+            (WORKBENCH / "flutter_app" / "lib" / "main.dart").read_text(encoding="utf-8"),
+            (
+                WORKBENCH / "flutter_app" / "lib" / "app" / "workbench_pages.dart"
+            ).read_text(encoding="utf-8"),
+        ]
+    )
 
 
 def test_workbench_declares_required_pages_in_order():
@@ -64,7 +77,7 @@ def test_workbench_declares_required_pages_in_order():
 def test_workbench_app_contains_page_routes_and_navigation_hosts():
     app = (WORKBENCH / "src" / "app.js").read_text(encoding="utf-8")
     index = (WORKBENCH / "index.html").read_text(encoding="utf-8")
-    flutter_main = (WORKBENCH / "flutter_app" / "lib" / "main.dart").read_text(encoding="utf-8")
+    flutter_main = flutter_sources()
 
     for page_id in FLUTTER_COVERED_ROUTE_IDS:
         assert f'id: "{page_id}"' in app or f'"{page_id}":' in app
@@ -93,7 +106,7 @@ def test_flutter_scaffold_declares_product_pages_and_covers_required_routes():
 
 def test_workbench_specs_cover_required_pages():
     app = (WORKBENCH / "src" / "app.js").read_text(encoding="utf-8")
-    flutter_main = (WORKBENCH / "flutter_app" / "lib" / "main.dart").read_text(encoding="utf-8")
+    flutter_main = flutter_sources()
 
     for heading in [
         "Dashboard",

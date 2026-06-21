@@ -40,8 +40,10 @@ def load_fixture():
 
 
 def flutter_pages_block() -> str:
-    flutter_main = (WORKBENCH / "flutter_app" / "lib" / "main.dart").read_text(encoding="utf-8")
-    return flutter_main.split("const pages = <WorkbenchPage>[", 1)[1].split("class WorkbenchPage", 1)[0]
+    flutter_pages = (
+        WORKBENCH / "flutter_app" / "lib" / "app" / "workbench_pages.dart"
+    ).read_text(encoding="utf-8")
+    return flutter_pages.split("const pages = <WorkbenchPage>[", 1)[1].split("class WorkbenchPage", 1)[0]
 
 
 def test_p1_core_contract_fixture_declares_source_and_counts():

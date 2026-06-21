@@ -17,6 +17,7 @@ def _flutter_shell_sources() -> str:
     return "\n".join(
         [
             (FLUTTER_LIB / "main.dart").read_text(encoding="utf-8"),
+            (FLUTTER_LIB / "app" / "workbench_pages.dart").read_text(encoding="utf-8"),
             (FLUTTER_LIB / "app" / "workbench_sidebar.dart").read_text(encoding="utf-8"),
             (FLUTTER_LIB / "shared" / "product_components.dart").read_text(encoding="utf-8"),
         ]
