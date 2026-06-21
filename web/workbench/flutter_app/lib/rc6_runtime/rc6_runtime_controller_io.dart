@@ -17666,6 +17666,21 @@ class Rc6RuntimeController extends ChangeNotifier {
         'probe_path': probePath,
       };
     }
+    if (providerRef == 'last30days_skill' &&
+        requiresNetwork &&
+        profile.networkPolicyId != 'network_local_only') {
+      final probe = _probeLast30DaysAuthorizedRetrievalAdapter(
+        workspace,
+        contract,
+        profile,
+        config,
+        probePath,
+      );
+      return {
+        ...probe,
+        'probe_path': probePath,
+      };
+    }
     if (providerRef == 'seedance2_skill' &&
         requiresNetwork &&
         requiresSecretRef &&
@@ -17788,6 +17803,149 @@ class Rc6RuntimeController extends ChangeNotifier {
       ...payload,
       'probe_path': probePath,
     };
+  }
+
+  static Map<String, dynamic> _probeLast30DaysAuthorizedRetrievalAdapter(
+    Directory workspace,
+    Map<String, dynamic> contract,
+    ProjectConfigProfile profile,
+    Map<String, dynamic> config,
+    String probePath,
+  ) {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final network = _mapValue(config['network_authorization']);
+    final searchProvider = _mapValue(config['search_provider']);
+    final queryResultPath =
+        _join(workspace.path, 'query', 'multi_kb_query_result.json');
+    final externalBoundaryPath =
+        _join(workspace.path, 'query', 'external_validation_boundary.json');
+    final queryResult = _readJsonObjectSync(queryResultPath);
+    final externalBoundary = _readJsonObjectSync(externalBoundaryPath);
+    final results = _listOfMaps(queryResult['results']);
+    final allowlist = _listOfStrings(network['provider_domain_allowlist']);
+    final networkAuthorized = _boolValue(network['web_import_allowed']) &&
+        _boolValue(network['external_verification_allowed']) &&
+        allowlist.isNotEmpty &&
+        profile.networkPolicyId != 'network_local_only';
+    final searchConfigured =
+        _stringValue(searchProvider['network_authorization'], '') != '已禁用' &&
+            _stringValue(searchProvider['query_test'], '') != '已禁用';
+    final queryProbePassed = _stringValue(queryResult['schema_version'], '') ==
+            'prd_v3_multi_kb_query_result.v1' &&
+        results.isNotEmpty;
+    final boundaryValid =
+        _stringValue(externalBoundary['schema_version'], '') ==
+                'prd_v3_external_validation_boundary.v1' &&
+            _boolValue(externalBoundary['external_calls_made']) == false &&
+            _boolValue(externalBoundary['secret_plaintext_written']) == false;
+    final timeWindowEvidence = results.where((row) {
+      final metadata = _mapValue(row['metadata']);
+      final values = [
+        row['published_at'],
+        row['created_at'],
+        row['updated_at'],
+        row['source_date'],
+        row['time_window'],
+        row['window'],
+        metadata['published_at'],
+        metadata['created_at'],
+        metadata['updated_at'],
+        metadata['source_date'],
+        metadata['time_window'],
+        metadata['window'],
+      ]
+          .map((value) => _stringValue(value, '').toLowerCase())
+          .where((value) => value.isNotEmpty)
+          .toList(growable: false);
+      return values.any((value) =>
+          value.contains('last_30') ||
+          value.contains('last30') ||
+          value.contains('30d') ||
+          RegExp(r'20\d{2}-\d{2}-\d{2}').hasMatch(value));
+    }).toList(growable: false);
+    final passed = networkAuthorized &&
+        searchConfigured &&
+        queryProbePassed &&
+        boundaryValid &&
+        timeWindowEvidence.isNotEmpty;
+    final blockedReasons = <String>[
+      if (!networkAuthorized) '网络授权或 Provider domain allowlist 未配置。',
+      if (!searchConfigured) 'Search Provider 尚未配置为网络授权模式。',
+      if (!queryProbePassed) '需要先完成一次真实检索查询测试。',
+      if (!timeWindowEvidence.isNotEmpty) '检索结果缺少最近 30 天时间窗口证据。',
+      if (!boundaryValid) '外部验证边界缺失或包含不允许的外部调用/secret 记录。',
+    ];
+    final gateAudit = {
+      'gate_kind': 'network_time_window_adapter_gate',
+      'provider_ref': 'last30days_skill',
+      'requires_network': true,
+      'requires_secret_ref': false,
+      'requires_external_runtime': false,
+      'requires_dependency_install': false,
+      'network_authorization': networkAuthorized ? '连接成功' : '已配置未测试',
+      'secret_ref_status': '不需要',
+      'external_runtime_status': '不需要',
+      'missing_config_refs': const <String>[],
+      'blocked_reasons': blockedReasons,
+      'provider_domain_allowlist_count': allowlist.length,
+      'query_probe_result_count': results.length,
+      'time_window_evidence_count': timeWindowEvidence.length,
+      'fallback_preserves_local_chain': true,
+      'network_call_attempted': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
+      'normal_ui_project_name_visible': false,
+      'secret_plaintext_written': false,
+    };
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_probe_high_risk_gate.v1',
+      'provider_ref': 'last30days_skill',
+      'gate_kind': 'network_time_window_adapter_gate',
+      'gate_audit': gateAudit,
+      'status': passed ? '连接成功' : '已配置未测试',
+      'error_code': passed ? '' : 'time_window_query_probe_required',
+      'error_message_zh':
+          passed ? '' : '需要网络授权、检索查询测试和最近 30 天时间窗口证据后才能启用。',
+      'capability_ids': _listOfStrings(contract['capability_ids']),
+      'affected_modules': _listOfStrings(contract['affected_modules']),
+      'runtime_execution_mode':
+          _stringValue(contract['runtime_execution_mode'], 'provider_adapter'),
+      'requires_network': true,
+      'requires_secret_ref': false,
+      'requires_external_runtime': false,
+      'requires_dependency_install': false,
+      'network_authorization': gateAudit['network_authorization'],
+      'secret_ref_status': '不需要',
+      'external_runtime_status': '不需要',
+      'missing_config_refs': const <String>[],
+      'blocked_reasons': blockedReasons,
+      'degradation_target':
+          _stringValue(contract['fallback_provider'], 'local_rag_retrieval'),
+      'ready_for_user_selection': passed,
+      'runtime_loaded': false,
+      'runtime_load_allowed': false,
+      'selection_allowed': passed,
+      'fallback_preserves_local_chain': true,
+      'rollback_supported': _boolValue(contract['rollback_supported']),
+      'normal_ui_project_name_visible': false,
+      'network_call_attempted': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
+      'secret_masked': true,
+      'secret_plaintext_written': false,
+      'query_result_path': queryResultPath,
+      'external_validation_boundary_path': externalBoundaryPath,
+      'time_window_evidence_count': timeWindowEvidence.length,
+      'passed': passed,
+      'evaluated_at': now,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return payload;
   }
 
   static Map<String, dynamic> _probeSeedance2SkillAuthorizedTemplateAsset(

@@ -135,6 +135,10 @@ Coverage:
 - 0 entries marked runtime-loaded by default
 - 0 entries marked ready for user selection without config/test evidence
 - 1 local retrieval adapter can become selectable after real KB chunks are present
+- 1 network-gated time-window retrieval adapter can become selectable only
+  after a non-local Profile, network authorization, local query evidence with
+  recent-date/time-window metadata, and a clean external validation boundary
+  pass; it does not make live vendor calls during readiness
 - 2 local RAG evaluation Provider refs are selectable after local retrieval validation verifies result-count consistency, citation coverage, conflict evidence, and the no-external-call boundary
 - 1 local governance rule-pack adapter can become selectable from repository-owned governance/test assets
 - 1 local Agent memory lifecycle adapter can become selectable after Agent and memory-index evidence exists

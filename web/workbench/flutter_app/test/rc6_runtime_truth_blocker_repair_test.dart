@@ -2630,6 +2630,118 @@ void main() {
     expect(retrievalBinding['selection_allowed'], isTrue);
   });
 
+  test('last30days skill requires authorized time window retrieval evidence',
+      () async {
+    final workspace = await createWorkspace();
+    final kbRoot =
+        Directory('${workspace.path}${Platform.pathSeparator}knowledge_bases')
+          ..createSync(recursive: true);
+    final dir = Directory('${kbRoot.path}${Platform.pathSeparator}K1')
+      ..createSync(recursive: true);
+    File('${dir.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{"status":"searchable"}');
+    File('${dir.path}${Platform.pathSeparator}chunks.jsonl')
+        .writeAsStringSync('{"chunk_id":"K1-c1"}\n');
+    File('${kbRoot.path}${Platform.pathSeparator}kb_catalog.json')
+        .writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
+      'schema_version': 'prd_v2_knowledge_base_catalog.v1',
+      'knowledge_bases': [
+        {
+          'kb_id': 'K1',
+          'kb_name': 'Recent KB',
+          'kb_type': '基础知识库',
+          'status': 'searchable',
+          'operation': 'build',
+          'source_documents': [
+            {'source_name': 'recent.md'}
+          ],
+          'chunk_count': 1,
+        }
+      ],
+    }));
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (request) async {
+          final output = Directory(request.outputPath!)
+            ..createSync(recursive: true);
+          File('${output.path}${Platform.pathSeparator}kb_query_result.json')
+              .writeAsStringSync(
+            const JsonEncoder.withIndent('  ').convert({
+              'selected_count': 1,
+              'selected': [
+                {
+                  'chunk_id': 'K1-recent-c1',
+                  'source_path': 'recent.md',
+                  'text': 'last30days authorized time window evidence',
+                  'score': 0.91,
+                  'published_at': '2026-06-10',
+                  'time_window': 'last_30_days',
+                }
+              ],
+            }),
+          );
+          return const CoreBridgeProcessResult(
+              exitCode: 0, stdout: 'ok', stderr: '');
+        },
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.searchKnowledgeBases('last30days authorized', ['K1']);
+    final cloud = await controller.createProjectConfigProfile(
+      displayName: '时间窗口检索授权配置',
+      mode: 'hybrid',
+    );
+    await controller.activateProjectConfigProfile(cloud.profileId);
+    await controller.testAllRegisteredProviderCapabilities();
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final runtimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map;
+    final readiness = jsonDecode(
+        File(runtimeStatus['provider_adapter_readiness_report_path'] as String)
+            .readAsStringSync()) as Map;
+    final last30daysReadiness = (readiness['readiness_entries'] as List)
+        .cast<Map>()
+        .firstWhere((entry) => entry['provider_ref'] == 'last30days_skill');
+    expect(last30daysReadiness['status'], '连接成功');
+    expect(last30daysReadiness['ready_for_user_selection'], isTrue);
+    expect(last30daysReadiness['runtime_loaded'], isFalse);
+    expect(last30daysReadiness['runtime_load_allowed'], isFalse);
+    expect(
+        last30daysReadiness['gate_kind'], 'network_time_window_adapter_gate');
+    final probe = jsonDecode(File((last30daysReadiness['test_artifacts']
+                as List)
+            .cast<String>()
+            .single)
+        .readAsStringSync()) as Map;
+    expect(probe['passed'], isTrue);
+    expect(probe['network_authorization'], '连接成功');
+    expect(probe['time_window_evidence_count'], 1);
+    expect(probe['network_call_attempted'], isFalse);
+    expect(probe['external_runtime_executed'], isFalse);
+    expect(probe['vendor_runtime_loaded'], isFalse);
+    expect(probe['secret_plaintext_written'], isFalse);
+
+    final activated =
+        await controller.activateRegisteredProviderCapability('last30days_skill');
+    expect(activated, isTrue);
+    final binding = jsonDecode(File(
+            runtimeStatus['provider_capability_binding_manifest_path']
+                as String)
+        .readAsStringSync()) as Map;
+    final retrievalBinding = (binding['bindings'] as List)
+        .cast<Map>()
+        .firstWhere((entry) => entry['capability_id'] == 'retrieval_provider');
+    expect(retrievalBinding['active_provider_ref'], 'last30days_skill');
+    expect(retrievalBinding['runtime_loaded'], isFalse);
+    expect(retrievalBinding['selection_allowed'], isTrue);
+  });
+
   test('seedance2 skill remains template asset with masked authorized config',
       () async {
     final workspace = await createWorkspace();

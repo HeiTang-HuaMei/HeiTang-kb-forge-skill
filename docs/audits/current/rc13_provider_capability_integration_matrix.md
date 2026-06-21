@@ -113,6 +113,11 @@ Architecture reference statuses are now explicit:
   tested authorized-network path: non-local Profile, network authorization,
   Provider domain allowlist, local query evidence, and a clean external boundary
   can make it selectable while still avoiding live vendor calls during readiness.
+- `last30days_skill` remains blocked in the default local Profile, but now has a
+  tested authorized time-window retrieval path: non-local Profile, network
+  authorization, local query evidence with recent-date/time-window metadata,
+  and a clean external boundary can make it selectable while keeping
+  `runtime_loaded=false` and avoiding live vendor calls during readiness.
 - `seedance2_skill` remains blocked in the default local Profile, but now has a
   tested authorized template-asset path: non-local Profile, network
   authorization, masked secret ref, and validated template manifest can make it
