@@ -730,7 +730,17 @@ Current checked state:
 - Current runtime-load manifest: `action=status_refresh`,
   `eligible_before_load=true`, `status=未配置`,
   `error_code=n8n_endpoint_missing_or_invalid`, `runtime_loaded=false`.
-- Current local environment has no `HEITANG_N8N_ENDPOINT` / `N8N_ENDPOINT` and no n8n container, so live n8n external runtime health-load is not asserted from the Owner machine in this report. The automated safe-health success path remains covered by the local HTTP health-server test.
+- Current default workspace remains conservative: the refreshed
+  `stage2_industrial_runtime_workspace` keeps `runtime_loaded=false` until an
+  explicit endpoint health-load is requested.
+- Live Stage 3 n8n health-load was additionally verified against a local Docker
+  n8n endpoint at `http://127.0.0.1:5678` with:
+  `STAGE3_VERIFY_LIVE_N8N=1 HEITANG_N8N_ENDPOINT=http://127.0.0.1:5678 flutter test test\rc6_runtime_truth_blocker_repair_test.dart --plain-name "stage3 live n8n endpoint runtime load uses health check only" --concurrency=1`.
+- That opt-in live test proves `runtime_loaded=true` and
+  `runtime_loaded_count=1` only after a safe health check, while keeping
+  `external_runtime_executed=false`, `workflow_executed=false`, secret plaintext
+  absent, ordinary user catalog free of `n8n`, and rollback returning
+  `runtime_loaded_count=0`.
 
 ## Unfinished Items
 

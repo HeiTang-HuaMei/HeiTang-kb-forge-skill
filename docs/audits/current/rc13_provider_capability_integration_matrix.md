@@ -67,7 +67,12 @@ This report is generated from the current runtime evidence workspace. It treats 
 
 - Ready local capability enhancements may be selected in Settings and reflected downstream in capability status.
 - External runtime loading remains separate from local readiness. Current external-runtime eligible Provider is n8n only.
-- Current Owner machine has no configured `HEITANG_N8N_ENDPOINT` / `N8N_ENDPOINT`; live n8n external health-load is therefore not asserted here.
+- Default refreshed runtime status keeps external runtime unloaded until an
+  explicit endpoint health-load is requested.
+- Live n8n external health-load has an opt-in proof against a local Docker
+  endpoint at `http://127.0.0.1:5678`. The proof records
+  `runtime_loaded_count=1` only after a health check, keeps workflow execution
+  disabled, and verifies rollback returns the count to `0`.
 - RAG evaluation Providers remain blocked until retrieval validation is explicitly reviewed, not merely saved as pending manual review.
 - Benchmark-only, network, secret, dependency, and external-runtime Providers remain blocked until their required config/evidence exists.
 
@@ -77,3 +82,5 @@ This report is generated from the current runtime evidence workspace. It treats 
 - Ready capability enhancements should be selectable only where real local evidence exists.
 - Blocked Providers should show user-understandable status such as configuration missing, disabled, external service required, or local fallback.
 - Runtime-loaded count should remain zero unless the controlled external health-load gate succeeds.
+- For live n8n recheck, run
+  `STAGE3_VERIFY_LIVE_N8N=1 HEITANG_N8N_ENDPOINT=http://127.0.0.1:5678 flutter test test\rc6_runtime_truth_blocker_repair_test.dart --plain-name "stage3 live n8n endpoint runtime load uses health check only" --concurrency=1`.

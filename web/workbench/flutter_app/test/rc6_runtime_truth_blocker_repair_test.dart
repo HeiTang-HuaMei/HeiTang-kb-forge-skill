@@ -4537,6 +4537,95 @@ void main() {
         1);
   });
 
+  test('stage3 live n8n endpoint runtime load uses health check only', () async {
+    final endpoint = (Platform.environment['HEITANG_N8N_ENDPOINT'] ??
+            Platform.environment['N8N_ENDPOINT'] ??
+            '')
+        .trim();
+    expect(endpoint, isNotEmpty,
+        reason:
+            'Set HEITANG_N8N_ENDPOINT or N8N_ENDPOINT for live n8n proof.');
+
+    final workspace = await createWorkspace();
+    writeStage2PreflightFixture(workspace);
+    writeStage2SkillRuntimeFixture(workspace);
+    writeStage2AgentPermissionFixture(workspace);
+    writeStage2IndustrialSmokeFixture(workspace);
+    writeStage2ExeLaunchSmokeFixture(workspace);
+    writeN8nReadinessFixture(workspace);
+
+    final previousHttpOverride = HttpOverrides.current;
+    HttpOverrides.global = null;
+    addTearDown(() {
+      HttpOverrides.global = previousHttpOverride;
+    });
+
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.testAllRegisteredProviderCapabilities();
+    final loaded = await controller.loadN8nProviderRuntime(endpoint: endpoint);
+    expect(loaded, isTrue);
+
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final manifestPath =
+        '$configDir${Platform.pathSeparator}provider_runtime_load_manifest.json';
+    final manifest = jsonDecode(File(manifestPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(manifest['runtime_loaded'], isTrue);
+    expect(manifest['runtime_loaded_count'], 1);
+    expect(manifest['external_runtime_connected'], isTrue);
+    expect(manifest['external_runtime_executed'], isFalse);
+    expect(manifest['workflow_executed'], isFalse);
+    expect(manifest['secret_plaintext_written'], isFalse);
+
+    final probe =
+        jsonDecode(File(manifest['probe_path'] as String).readAsStringSync())
+            as Map<String, dynamic>;
+    expect(probe['probe_kind'], 'safe_health_check_only');
+    expect(probe['runtime_loaded'], isTrue);
+    expect(probe['workflow_executed'], isFalse);
+    expect(probe['secret_plaintext_written'], isFalse);
+    expect(['/healthz', '/health', '/rest/settings'],
+        contains(probe['health_path']));
+
+    final runtimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final summary =
+        runtimeStatus['provider_runtime_load_summary'] as Map<String, dynamic>;
+    expect(summary['runtime_loaded'], isTrue);
+    expect(summary['runtime_loaded_count'], 1);
+    expect(summary['external_runtime_executed'], isFalse);
+    expect(summary['workflow_executed'], isFalse);
+    expect(
+        (runtimeStatus['registered_provider_summary']
+            as Map)['external_runtime_loaded_count'],
+        1);
+    final userCatalog = jsonDecode(
+        File(runtimeStatus['provider_capability_user_catalog_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(userCatalog['runtime_loaded_capability_count'], 1);
+    expect(jsonEncode(userCatalog), isNot(contains('n8n')));
+
+    final rolledBack = await controller.rollbackN8nProviderRuntime();
+    expect(rolledBack, isTrue);
+    final rollbackManifest = jsonDecode(File(manifestPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(rollbackManifest['runtime_loaded'], isFalse);
+    expect(rollbackManifest['runtime_loaded_count'], 0);
+    expect(rollbackManifest['workflow_executed'], isFalse);
+  }, skip: Platform.environment['STAGE3_VERIFY_LIVE_N8N'] != '1');
+
   test('prd multi knowledge base catalog supports copy merge split delete',
       () async {
     final workspace = await createWorkspace();
