@@ -368,7 +368,7 @@ Lifecycle behavior implemented:
 | Workflow/A2A export adapter probes | `provider_adapter_probe_n8n.json` | Verifies real A2A session, rounds, runtime audit, conflict, consensus, and collaboration report artifacts before allowing workflow export enhancements to be selected |
 | Controlled n8n runtime load | `loadN8nProviderRuntime`, `provider_runtime_load_manifest.json`, `provider_runtime_load_log.jsonl` | Performs safe health-check-only connection to a user-owned n8n endpoint after Stage 2 preflight and readiness pass; success records runtime loaded, failure records local A2A fallback |
 
-The CI-safe tests cover failure and config-state paths without requiring external services. Real Redis/Qdrant success checks remain part of EXE smoke when Docker services are available.
+The CI-safe tests cover failure and config-state paths without requiring external services. Local Docker Redis/Qdrant success checks have also been run on the Owner machine with `heitang-redis` and `heitang-qdrant`.
 
 ## Failure Degradation Matrix
 
@@ -682,6 +682,7 @@ Latest validation for controlled n8n runtime-load slice:
 - `flutter test test\rc6_runtime_truth_blocker_repair_test.dart --plain-name "stage3 n8n runtime load" --concurrency=1`
 - `flutter test test\rc6_runtime_truth_blocker_repair_test.dart --concurrency=1`
 - `STAGE2_VERIFY_EXE_SMOKE=1 flutter test test\stage2_industrial_evidence_refresh_test.dart --plain-name "refreshes Stage2 preflight after independent EXE smoke" --concurrency=1`
+- `STAGE2_VERIFY_LIVE_PROVIDERS=1 flutter test test\stage2_industrial_evidence_refresh_test.dart --plain-name "proves live Redis and Qdrant provider runtime when configured" --concurrency=1`
 - `git diff --check`
 - diff-only no-secret / overclaim review completed; findings are expected test sentinel text and the new Stage 3 `runtime_loaded_count=1` assertion for the controlled health-success path, not default readiness overclaim.
 
@@ -691,7 +692,7 @@ Pending after push:
 
 ## Unfinished Items
 
-- Real Redis/Qdrant success probe depends on running external services and valid environment configuration; failure/degradation paths are automated.
+- Real Redis/Qdrant success probe passed on the local Docker services. It remains environment-dependent and is not required in CI.
 - Full EXE smoke requires manual Owner verification after EXE launch.
 - Registered projects are still not loaded as product modules. Stage 3 now validates them as Provider capability enhancements with health status, controlled runtime-load audit, blocked activation/fallback, and rollback audit.
 - n8n external runtime loading is health-check-only. Workflow execution through n8n remains intentionally not implemented in this slice.

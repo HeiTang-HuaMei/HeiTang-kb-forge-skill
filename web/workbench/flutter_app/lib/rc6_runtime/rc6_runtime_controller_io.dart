@@ -1561,13 +1561,6 @@ class Rc6RuntimeController extends ChangeNotifier {
       return result;
     }
 
-    if (effectivePassword.isEmpty) {
-      return persist(const Rc6StorageTestResult(
-        passed: false,
-        status: 'missing_password',
-        detail: '缺少 Redis 密码；请设置 HEITANG_REDIS_PASSWORD 或输入掩码字段。',
-      ));
-    }
     final probeKey = '${safePrefix}settings_probe';
     Socket? socket;
     StreamIterator<List<int>>? iterator;
@@ -1590,13 +1583,15 @@ class Rc6RuntimeController extends ChangeNotifier {
         return utf8.decode(iterator.current, allowMalformed: true);
       }
 
-      final auth = await send(['AUTH', effectivePassword]);
-      if (!auth.startsWith('+OK')) {
-        return persist(Rc6StorageTestResult(
-          passed: false,
-          status: 'auth_failed',
-          detail: _redisStatus(auth),
-        ));
+      if (effectivePassword.isNotEmpty) {
+        final auth = await send(['AUTH', effectivePassword]);
+        if (!auth.startsWith('+OK')) {
+          return persist(Rc6StorageTestResult(
+            passed: false,
+            status: 'auth_failed',
+            detail: _redisStatus(auth),
+          ));
+        }
       }
       final ping = await send(['PING']);
       if (!ping.startsWith('+PONG')) {

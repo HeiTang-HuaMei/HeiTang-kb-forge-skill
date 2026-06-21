@@ -245,10 +245,9 @@ void main() {
         '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}provider_registry_readiness_summary.json');
     final integrationEntries =
         (integrationMatrix['provider_entries'] as List).cast<Map>();
-    final integrationN8n = integrationEntries.firstWhere(
-        (entry) =>
-            entry['provider_ref'] == 'n8n' &&
-            entry['capability_id'] == 'workflow_collaboration_export');
+    final integrationN8n = integrationEntries.firstWhere((entry) =>
+        entry['provider_ref'] == 'n8n' &&
+        entry['capability_id'] == 'workflow_collaboration_export');
     expect(integrationN8n['status'], '连接成功');
     expect(integrationN8n['ready_for_user_selection'], isTrue);
     expect(integrationN8n['runtime_load_allowed'], isFalse);
@@ -393,9 +392,6 @@ void main() {
       () async {
     final redisPassword =
         Platform.environment['HEITANG_REDIS_PASSWORD']?.trim() ?? '';
-    expect(redisPassword, isNotEmpty,
-        reason:
-            'Set HEITANG_REDIS_PASSWORD to run live Redis industrial evidence.');
 
     final appRoot = Directory.current;
     final outputRoot =
@@ -451,8 +447,13 @@ void main() {
     final redisSettings = storage['redis'] as Map<String, dynamic>;
     final qdrantSettings = storage['qdrant'] as Map<String, dynamic>;
     expect(redisSettings['status'], 'connected');
-    expect(redisSettings['password_secret_ref'], 'env:HEITANG_REDIS_PASSWORD');
-    expect(jsonEncode(storage), isNot(contains(redisPassword)));
+    if (redisPassword.isEmpty) {
+      expect(redisSettings['password_secret_ref'], 'none');
+    } else {
+      expect(
+          redisSettings['password_secret_ref'], 'env:HEITANG_REDIS_PASSWORD');
+      expect(jsonEncode(storage), isNot(contains(redisPassword)));
+    }
     expect(qdrantSettings['status'], 'connected');
 
     final runtimeStatus = _readJson(

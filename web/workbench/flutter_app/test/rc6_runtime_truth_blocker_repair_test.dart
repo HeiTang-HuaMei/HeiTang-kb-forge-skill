@@ -1166,13 +1166,21 @@ void main() {
 
     final controller = buildController();
     await controller.initialize();
-    final redisMissing = await controller.testRedisConnection(
+    final redisFailure = await controller.testRedisConnection(
       host: '127.0.0.1',
       port: 6379,
       keyPrefix: 'heitang:',
       password: '',
     );
-    expect(redisMissing.status, 'missing_password');
+    expect(
+        redisFailure.status,
+        anyOf(
+          'missing_password',
+          'auth_failed',
+          'connection_failed',
+          'ping_failed',
+        ));
+    expect(redisFailure.status, isNot('connected'));
     final vectorInvalid = await controller.testQdrantConnection(
       endpoint: 'not-a-url',
       collection: 'heitang_kb',
