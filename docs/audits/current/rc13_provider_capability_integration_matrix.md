@@ -136,7 +136,9 @@ Architecture reference statuses are now explicit:
   controlled runtime-load proof is health-check-only: it may record
   `runtime_loaded=true` after `/health` succeeds, but keeps
   `agent_tool_executed=false`, `external_runtime_executed=false`,
-  `workflow_executed=false`, and `secret_plaintext_written=false`.
+  `workflow_executed=false`, and `secret_plaintext_written=false`. Controlled
+  rollback snapshots the RTK load manifest and returns Agent capability status
+  to local fallback with `runtime_loaded=false`.
 - LlamaIndex remains an architecture reference with no runtime loading or
   normal-UI project visibility, but its useful abstraction has now been
   absorbed into the index/RAG Provider architecture: provider contract,

@@ -629,6 +629,10 @@ Latest Stage 3 controlled RTK runtime-load slice:
   binding, integration coverage, and config test log artifacts. RTK is exposed
   only as an Agent capability enhancement; ordinary UI must not show external
   project loading language.
+- `rollbackRtkProviderRuntime` records a controlled rollback to local Agent
+  workspace capability, snapshots the previous RTK health-load manifest,
+  appends a rollback event, and refreshes runtime status, binding, coverage,
+  lifecycle audit, and user catalog state back to `runtime_loaded=false`.
 
 Latest Stage 3 high-risk Provider gate slice:
 

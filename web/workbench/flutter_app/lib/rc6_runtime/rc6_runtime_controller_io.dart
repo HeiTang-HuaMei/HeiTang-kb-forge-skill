@@ -2680,6 +2680,68 @@ class Rc6RuntimeController extends ChangeNotifier {
     return loaded;
   }
 
+  Future<bool> rollbackRtkProviderRuntime() async {
+    if (!_canRunDesktop()) {
+      return false;
+    }
+    final workspace = _requireWorkspace();
+    final startedAt = DateTime.now().toUtc().toIso8601String();
+    final manifest = await _readJsonObject(
+      _providerRuntimeLoadManifestPath(workspace),
+    );
+    final wasLoaded = _boolValue(manifest['runtime_loaded']);
+    final rollbackFromManifestPath =
+        await _snapshotProviderRuntimeLoadManifest(workspace, manifest);
+    final probe = {
+      'status': '降级为本地模式',
+      'error_code': '',
+      'error_message_zh': '',
+      'sanitized_endpoint': _stringValue(manifest['sanitized_endpoint'], ''),
+      'runtime_loaded': false,
+      'external_runtime_connected': false,
+      'external_runtime_executed': false,
+      'agent_tool_executed': false,
+      'workflow_executed': false,
+      'local_fallback': '本地 Agent 工作区和本地记忆继续可用。',
+      'secret_masked': true,
+      'secret_plaintext_written': false,
+    };
+    final finishedAt = DateTime.now().toUtc().toIso8601String();
+    final manifestPath = await _writeProviderRuntimeLoadManifest(
+      workspace,
+      providerRef: 'rtk',
+      capabilityId: 'agent_model_tools_memory',
+      startedAt: startedAt,
+      finishedAt: finishedAt,
+      eligible: wasLoaded,
+      probe: probe,
+      action: 'rollback',
+      rollbackFromManifestPath: rollbackFromManifestPath,
+    );
+    await _appendProviderRuntimeLoadLog(
+      workspace,
+      providerRef: 'rtk',
+      capabilityId: 'agent_model_tools_memory',
+      startedAt: startedAt,
+      finishedAt: finishedAt,
+      eligible: wasLoaded,
+      probe: probe,
+      manifestPath: manifestPath,
+      action: 'rollback',
+    );
+    await _writeProjectConfigRuntimeStatus(
+      workspace,
+      await _readProjectConfigProfiles(workspace),
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: 'Agent 工具 Provider 已回滚到本地 Agent 能力。',
+      lastError: '',
+    );
+    notifyListeners();
+    return true;
+  }
+
   Future<String> saveStorageProviderSettings({
     required String redisHost,
     required int redisPort,
@@ -13789,6 +13851,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'external_runtime_connected':
           _boolValue(probe['external_runtime_connected']),
       'external_runtime_executed': false,
+      'agent_tool_executed': _boolValue(probe['agent_tool_executed']),
       'workflow_executed': false,
       'downstream_binding': {
         'agent_workbench_a2a_workflow_export': agentBinding,
@@ -13834,6 +13897,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'manifest_path': manifestPath,
       'probe_path': _stringValue(probe['probe_path'], ''),
       'external_runtime_executed': false,
+      'agent_tool_executed': _boolValue(probe['agent_tool_executed']),
       'workflow_executed': false,
       'fallback': _stringValue(probe['local_fallback'], ''),
       'secret_masked': true,

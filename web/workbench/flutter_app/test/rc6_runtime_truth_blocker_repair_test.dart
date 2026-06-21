@@ -5272,6 +5272,68 @@ void main() {
         .firstWhere((entry) => entry['provider_ref'] == 'rtk');
     expect(rtkCoverage['runtime_loaded'], isTrue);
     expect(rtkCoverage['coverage_status'], 'passed');
+
+    final rolledBack = await controller.rollbackRtkProviderRuntime();
+    expect(rolledBack, isTrue);
+    final rollbackManifest = jsonDecode(File(manifestPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(rollbackManifest['provider_ref'], 'rtk');
+    expect(rollbackManifest['action'], 'rollback');
+    expect(rollbackManifest['runtime_loaded'], isFalse);
+    expect(rollbackManifest['runtime_loaded_count'], 0);
+    expect(rollbackManifest['external_runtime_executed'], isFalse);
+    expect(rollbackManifest['agent_tool_executed'], isFalse);
+    final rollbackFromManifestPath =
+        rollbackManifest['rollback_from_manifest_path'] as String;
+    expect(File(rollbackFromManifestPath).existsSync(), isTrue);
+    final runtimeLoadLog =
+        readJsonlFile('$configDir${Platform.pathSeparator}provider_runtime_load_log.jsonl');
+    expect(runtimeLoadLog.map((row) => row['action']).toList(),
+        containsAllInOrder(['load', 'rollback']));
+    expect(runtimeLoadLog.last['runtime_loaded_after_event'], isFalse);
+    expect(runtimeLoadLog.last['external_runtime_executed'], isFalse);
+    expect(runtimeLoadLog.last['workflow_executed'], isFalse);
+
+    final rollbackRuntimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final rollbackSummary =
+        rollbackRuntimeStatus['provider_runtime_load_summary']
+            as Map<String, dynamic>;
+    expect(rollbackSummary['provider_ref'], 'rtk');
+    expect(rollbackSummary['runtime_loaded'], isFalse);
+    expect(rollbackSummary['runtime_loaded_count'], 0);
+    final rollbackBinding = jsonDecode(File(
+            rollbackRuntimeStatus['provider_capability_binding_manifest_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    final rollbackAgentBinding = (rollbackBinding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere(
+            (entry) => entry['capability_id'] == 'agent_model_tools_memory');
+    expect(rollbackAgentBinding['runtime_loaded'], isFalse);
+    expect(rollbackAgentBinding['external_runtime_executed'], isFalse);
+    expect(rollbackAgentBinding['workflow_executed'], isFalse);
+    final rollbackCoverage = jsonDecode(File(
+            rollbackRuntimeStatus['provider_integration_coverage_audit_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    final rollbackRtkCoverage = (rollbackCoverage['coverage_rows'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) => entry['provider_ref'] == 'rtk');
+    expect(rollbackRtkCoverage['runtime_loaded'], isFalse);
+    final rollbackLifecycleAudit = jsonDecode(File(
+            rollbackRuntimeStatus['provider_lifecycle_audit_summary_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(
+        (rollbackLifecycleAudit['provider_counts']
+            as Map)['runtime_loaded_count'],
+        0);
+    expect(
+        ((rollbackLifecycleAudit['event_counts'] as Map)['runtime_load_actions']
+            as Map)['rollback'],
+        1);
   });
 
   test('stage3 live n8n endpoint runtime load uses health check only',
