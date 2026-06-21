@@ -382,6 +382,17 @@ PROVIDER_CAPABILITY_AREAS = [
     },
 ]
 
+ARCHITECTURE_REFERENCE_ABSORB_TARGETS = [
+    "contract",
+    "schema",
+    "runtime_boundary",
+    "ui_information_architecture",
+    "test_gate",
+    "audit_model",
+    "fallback_strategy",
+    "provider_loading_rule",
+]
+
 
 def load_external_project_registry(repo_root: Path | None = None) -> dict[str, Any]:
     root = repo_root or Path.cwd()
@@ -673,6 +684,12 @@ def _project_entry(project: dict[str, Any], page_titles: dict[str, str], page_ac
     statuses = CONTRACT_STATUS_BY_PROJECT[project["project_id"]]
     page_ids = PROJECT_PAGE_MAPPING[project["project_id"]]
     integrated = INTEGRATED_PROJECT_STATE.get(project["project_id"])
+    entry_class = _stage3_registry_entry_class(project["project_id"], statuses)
+    architecture_status = _stage3_architecture_reference_status(
+        project["project_id"],
+        statuses,
+        entry_class,
+    )
     blocked_reasons = (
         list(integrated["blocked_reasons"])
         if integrated
@@ -686,6 +703,16 @@ def _project_entry(project: dict[str, Any], page_titles: dict[str, str], page_ac
         "rating": project["rating"],
         "github_url": project["github_url"],
         "contract_status": statuses,
+        "stage3_current_classification": entry_class,
+        "registry_entry_class": entry_class,
+        "architecture_reference_status": architecture_status,
+        "architecture_absorption": _stage3_architecture_absorption(
+            project["project_id"],
+            statuses,
+            entry_class,
+            architecture_status,
+        ),
+        "runtime_load_class": _stage3_runtime_load_class(entry_class),
         "implemented": integrated is not None,
         "ready": False,
         "local_ready": bool(integrated and integrated["local_ready"]),
@@ -769,6 +796,96 @@ def _blocked_reasons(project: dict[str, Any], statuses: list[str]) -> list[str]:
     return _unique(reasons)
 
 
+def _stage3_registry_entry_class(project_id: str, statuses: list[str]) -> str:
+    status_set = set(statuses)
+    if project_id in {
+        "andrej_karpathy_skills",
+        "skill_prompt_generator",
+        "mmskills",
+        "mattpocock_skills",
+        "ai_marketing_skills",
+        "seedance2_skill",
+    }:
+        return "template_asset"
+    if project_id == "llamaindex":
+        return "architecture_reference"
+    if "benchmark_only" in status_set and project_id not in {"ragas", "deepeval", "rtk"}:
+        return "architecture_reference"
+    return "capability_provider"
+
+
+def _stage3_architecture_reference_status(
+    project_id: str,
+    statuses: list[str],
+    entry_class: str,
+) -> str:
+    if entry_class in {"capability_provider", "template_asset"}:
+        return "absorbed_into_architecture"
+    if project_id == "llamaindex":
+        return "absorbed_into_architecture"
+    if "future_adapter" in statuses:
+        return "deferred_with_blocker"
+    return "rejected_no_architecture_gain"
+
+
+def _stage3_architecture_absorption(
+    project_id: str,
+    statuses: list[str],
+    entry_class: str,
+    architecture_status: str,
+) -> dict[str, Any]:
+    worth_absorbing = architecture_status in {
+        "absorbed_into_architecture",
+        "deferred_with_blocker",
+    }
+    return {
+        "decision_source": "stage3_provider_registry_classification_gate",
+        "legacy_contract_status": statuses,
+        "worth_absorbing": worth_absorbing,
+        "absorption_required_now": architecture_status == "absorbed_into_architecture",
+        "absorbed_targets": (
+            ARCHITECTURE_REFERENCE_ABSORB_TARGETS
+            if architecture_status == "absorbed_into_architecture"
+            else []
+        ),
+        "parallel_architecture_delivery": (
+            {
+                "provider_ref": project_id,
+                "provider_classification": entry_class,
+                "contract": True,
+                "schema": True,
+                "runtime_boundary": True,
+                "ui_information_architecture": True,
+                "test_gate": True,
+                "audit_model": True,
+                "fallback_strategy": True,
+                "provider_loading_rule": True,
+            }
+            if architecture_status == "absorbed_into_architecture"
+            else {}
+        ),
+        "blocker": (
+            "requires verified runtime proof before architecture absorption"
+            if architecture_status == "deferred_with_blocker"
+            else ""
+        ),
+        "rejection_reason": (
+            "no additional v3 architecture gain over existing Provider abstractions"
+            if architecture_status == "rejected_no_architecture_gain"
+            else ""
+        ),
+        "architecture_delivery_required": architecture_status == "absorbed_into_architecture",
+    }
+
+
+def _stage3_runtime_load_class(entry_class: str) -> str:
+    return {
+        "capability_provider": "provider_capability_config_gated",
+        "template_asset": "template_asset_manifest_only",
+        "architecture_reference": "architecture_reference_no_runtime",
+    }[entry_class]
+
+
 def _related_error_codes(project: dict[str, Any], statuses: list[str]) -> list[str]:
     codes = ["contract_drift"]
     for status in statuses:
@@ -804,6 +921,9 @@ def _matrix_payload(registry_payload: dict[str, Any], projects: list[dict[str, A
                 "project_name": project["project_name"],
                 "rating": project["rating"],
                 "contract_status": project["contract_status"],
+                "stage3_current_classification": project["stage3_current_classification"],
+                "architecture_reference_status": project["architecture_reference_status"],
+                "runtime_load_class": project["runtime_load_class"],
                 "mapped_capabilities": project["mapped_capabilities"],
                 "workbench_page_ids": [page["page_id"] for page in project["related_workbench_pages"]],
                 "workbench_pages": [page_titles[page["page_id"]] for page in project["related_workbench_pages"]],
@@ -1038,6 +1158,8 @@ def _provider_capability_status(projects: list[dict[str, Any]]) -> dict[str, Any
                 "user_visible_name": spec["user_visible_name"],
                 "zh_user_visible_name": spec["zh_user_visible_name"],
                 "provider_type": spec["provider_type"],
+                "registry_entry_class_counts": _stage3_registry_counts(related),
+                "architecture_reference_status_counts": _stage3_architecture_counts(related),
                 "status": status,
                 "ready_for_user_selection": ready_for_user_selection,
                 "default_fallback": spec["fallback"],
@@ -1066,10 +1188,12 @@ def _provider_capability_status(projects: list[dict[str, Any]]) -> dict[str, Any
             }
         )
     ready_count = sum(1 for entry in capabilities if entry["ready_for_user_selection"])
+    registry_class_counts = _stage3_registry_counts(projects)
+    architecture_status_counts = _stage3_architecture_counts(projects)
     return {
         "status_id": "provider_capability_status",
         "version": S_A_CONTRACT_INCLUSION_VERSION,
-        "schema_version": "prd_v3_provider_capability_status.v1",
+        "schema_version": "prd_v3_provider_capability_status.v2",
         "product_baseline_chain": "文档库 -> 知识库 -> 索引层 -> RAG -> 编排层 -> 文档/Skill/Agent/A2A",
         "scope": (
             "Maps registered capability evidence to product-facing Provider statuses. "
@@ -1085,6 +1209,15 @@ def _provider_capability_status(projects: list[dict[str, Any]]) -> dict[str, Any
         "capability_count": len(capabilities),
         "ready_for_user_selection_count": ready_count,
         "provider_network_api_ready": False,
+        "stage3_classification_model": {
+            "capability_provider": "Configurable/testable/auditable/rollbackable capability enhancement.",
+            "template_asset": "Manifest-backed Skill/Agent/document template asset without runtime load.",
+            "architecture_reference": "Reference that must be absorbed, rejected, or deferred with a blocker.",
+        },
+        "registry_entry_class_counts": registry_class_counts,
+        "architecture_reference_status_counts": architecture_status_counts,
+        "indefinite_reference_state_allowed": False,
+        "legacy_reference_only_contracts_are_trace_only": True,
         "capabilities": capabilities,
     }
 
@@ -1094,6 +1227,11 @@ def _provider_project_state(project: dict[str, Any]) -> dict[str, Any]:
         "provider_ref": project["project_id"],
         "status": _provider_capability_state([project], project["blocked_reasons"]),
         "contract_status": project["contract_status"],
+        "stage3_current_classification": project["stage3_current_classification"],
+        "registry_entry_class": project["registry_entry_class"],
+        "architecture_reference_status": project["architecture_reference_status"],
+        "architecture_absorption": project["architecture_absorption"],
+        "runtime_load_class": project["runtime_load_class"],
         "requires_network": project["requires_network"],
         "requires_secret": project["requires_api_key"],
         "requires_external_runtime": project["requires_external_runtime"],
@@ -1101,6 +1239,31 @@ def _provider_project_state(project: dict[str, Any]) -> dict[str, Any]:
         "audit_event_required": True,
         "rollback_supported": True,
     }
+
+
+def _stage3_registry_counts(projects: list[dict[str, Any]]) -> dict[str, int]:
+    counts = {
+        "capability_provider": 0,
+        "template_asset": 0,
+        "architecture_reference": 0,
+    }
+    for project in projects:
+        entry_class = project["registry_entry_class"]
+        counts[entry_class] = counts.get(entry_class, 0) + 1
+    return counts
+
+
+def _stage3_architecture_counts(projects: list[dict[str, Any]]) -> dict[str, int]:
+    counts = {
+        "candidate_reference": 0,
+        "absorbed_into_architecture": 0,
+        "rejected_no_architecture_gain": 0,
+        "deferred_with_blocker": 0,
+    }
+    for project in projects:
+        status = project["architecture_reference_status"]
+        counts[status] = counts.get(status, 0) + 1
+    return counts
 
 
 def _provider_capability_state(projects: list[dict[str, Any]], blocked_reasons: list[str]) -> str:
@@ -1156,6 +1319,9 @@ def _compact_project(project: dict[str, Any]) -> dict[str, Any]:
         "rating": project["rating"],
         "github_url": project["github_url"],
         "contract_status": project["contract_status"],
+        "stage3_current_classification": project["stage3_current_classification"],
+        "architecture_reference_status": project["architecture_reference_status"],
+        "runtime_load_class": project["runtime_load_class"],
         "blocked_reason": project["blocked_reason"],
         "blocked_reasons": project["blocked_reasons"],
         "requires_api_key": project["requires_api_key"],
@@ -1287,6 +1453,9 @@ def _render_provider_capability_status_md(payload: dict[str, Any]) -> str:
         f"- Capability count: {payload['capability_count']}",
         f"- Ready for user selection: {payload['ready_for_user_selection_count']}",
         f"- Provider network API ready: {str(payload['provider_network_api_ready']).lower()}",
+        f"- Indefinite reference state allowed: {str(payload['indefinite_reference_state_allowed']).lower()}",
+        f"- Registry classes: {payload['registry_entry_class_counts']}",
+        f"- Architecture reference statuses: {payload['architecture_reference_status_counts']}",
         "",
         "| Capability | Area | Status | User behavior | Ready |",
         "| --- | --- | --- | --- | --- |",

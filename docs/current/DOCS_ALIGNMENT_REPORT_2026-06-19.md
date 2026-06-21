@@ -58,7 +58,10 @@ Historical docs are for traceability only and cannot override the v3 baseline.
 
 - OKF is described only as a Standard Knowledge Package candidate layer.
 - No OKF runtime, page, or current user-flow implementation was added.
-- External/reference projects must remain `reference_only`, `needs_verification`, or separately verified candidates.
+- Registered projects must resolve to Provider capability, template asset,
+  absorbed architecture reference, rejected reference, or deferred reference
+  with a named blocker. Legacy `reference_only` words are historical trace
+  labels only, not a current delivery state.
 - Release flow now includes the PRD / architecture / acceptance baseline consistency gate.
 
 ## Intentionally Skipped

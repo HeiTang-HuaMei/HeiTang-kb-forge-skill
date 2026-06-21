@@ -15,6 +15,11 @@ REQUIRED_FIELDS = {
     "rating",
     "github_url",
     "contract_status",
+    "stage3_current_classification",
+    "registry_entry_class",
+    "architecture_reference_status",
+    "architecture_absorption",
+    "runtime_load_class",
     "mapped_capabilities",
     "related_workbench_pages",
     "related_core_actions",
@@ -78,6 +83,28 @@ def test_external_capability_registry_entries_preserve_runtime_and_ui_boundaries
     for project in payload["projects"]:
         assert REQUIRED_FIELDS <= set(project)
         assert project["contract_status"]
+        assert project["stage3_current_classification"] in {
+            "capability_provider",
+            "template_asset",
+            "architecture_reference",
+        }
+        assert project["registry_entry_class"] == project["stage3_current_classification"]
+        assert project["architecture_reference_status"] in {
+            "absorbed_into_architecture",
+            "rejected_no_architecture_gain",
+            "deferred_with_blocker",
+        }
+        assert project["architecture_reference_status"] != "candidate_reference"
+        absorption = project["architecture_absorption"]
+        assert absorption["decision_source"] == "stage3_provider_registry_classification_gate"
+        assert absorption["architecture_delivery_required"] is (
+            project["architecture_reference_status"] == "absorbed_into_architecture"
+        )
+        assert project["runtime_load_class"] in {
+            "provider_capability_config_gated",
+            "template_asset_manifest_only",
+            "architecture_reference_no_runtime",
+        }
         assert project["post_v4_target"]
         assert project["blocked_reason"] in project["blocked_reasons"]
         assert project["implemented"] is (project["project_id"] in integrated)
@@ -136,6 +163,8 @@ def test_mandatory_external_capability_urls_are_exact():
         "reference_only",
         "runtime_not_bundled",
     ]
+    assert projects["story_flicks"]["stage3_current_classification"] == "capability_provider"
+    assert projects["story_flicks"]["architecture_reference_status"] == "absorbed_into_architecture"
     assert projects["story_flicks"]["implemented"] is True
     assert projects["story_flicks"]["ready"] is False
     assert projects["story_flicks"]["local_ready"] is True
@@ -149,6 +178,8 @@ def test_mandatory_external_capability_urls_are_exact():
         "provider_not_integrated",
         "runtime_not_bundled",
     ]
+    assert projects["seedance2_skill"]["stage3_current_classification"] == "template_asset"
+    assert projects["seedance2_skill"]["runtime_load_class"] == "template_asset_manifest_only"
     assert projects["seedance2_skill"]["implemented"] is True
     assert projects["seedance2_skill"]["ready"] is False
     assert projects["seedance2_skill"]["local_ready"] is True
@@ -162,6 +193,8 @@ def test_mandatory_external_capability_urls_are_exact():
         "reference_only",
         "runtime_not_bundled",
     ]
+    assert projects["rag_anything"]["stage3_current_classification"] == "capability_provider"
+    assert projects["rag_anything"]["architecture_reference_status"] == "absorbed_into_architecture"
     assert projects["rag_anything"]["implemented"] is True
     assert projects["rag_anything"]["ready"] is False
     assert projects["rag_anything"]["local_ready"] is True

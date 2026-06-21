@@ -32,7 +32,9 @@
 ## 边界锁定
 
 - OKF 只作为标准知识包候选层，不作为当前 runtime、一级导航或用户主链路。
-- 登记项目只能写成 `reference_only`、`needs_verification` 或经单独核验后的候选状态，不得写成已接入。
+- 登记项目必须分流为能力 Provider、模板资产、已吸收架构参考、
+  无架构增益拒绝项，或带明确 blocker 的延期项；不得长期保留为
+  模糊参考，也不得写成未验证已接入。
 - 旧 rc、旧 campaign、旧验收报告、旧能力矩阵和旧 UI 调整计划只作历史追溯。
 - 当前 docs gate 不改 Core、UI、runtime，不新增功能，不 tag，不 release。
 

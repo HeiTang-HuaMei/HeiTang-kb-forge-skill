@@ -71,7 +71,7 @@ def test_verified_closure_entries_are_not_executable():
 def test_provider_capability_status_is_user_facing_and_not_project_loading():
     payload = _json("provider_capability_status.json")
 
-    assert payload["schema_version"] == "prd_v3_provider_capability_status.v1"
+    assert payload["schema_version"] == "prd_v3_provider_capability_status.v2"
     assert payload["product_baseline_chain"] == "文档库 -> 知识库 -> 索引层 -> RAG -> 编排层 -> 文档/Skill/Agent/A2A"
     assert payload["user_concept_boundary"] == {
         "external_project_names_visible_in_normal_ui": False,
@@ -79,6 +79,19 @@ def test_provider_capability_status_is_user_facing_and_not_project_loading():
         "unverified_entries_marked_ready": False,
         "planned_adapters_marked_ready": False,
         "okf_runtime_added": False,
+    }
+    assert payload["indefinite_reference_state_allowed"] is False
+    assert payload["legacy_reference_only_contracts_are_trace_only"] is True
+    assert payload["registry_entry_class_counts"] == {
+        "capability_provider": 19,
+        "template_asset": 6,
+        "architecture_reference": 1,
+    }
+    assert payload["architecture_reference_status_counts"] == {
+        "candidate_reference": 0,
+        "absorbed_into_architecture": 26,
+        "rejected_no_architecture_gain": 0,
+        "deferred_with_blocker": 0,
     }
     assert payload["capability_count"] >= 8
     assert payload["ready_for_user_selection_count"] == 0
@@ -130,6 +143,22 @@ def test_provider_capability_status_preserves_dependency_and_audit_boundaries():
         assert entry["rollback_supported"] is True
         assert entry["boundary"].startswith("User-facing capability status only.")
         for provider_state in entry["related_provider_states"]:
+            assert provider_state["stage3_current_classification"] in {
+                "capability_provider",
+                "template_asset",
+                "architecture_reference",
+            }
+            assert provider_state["registry_entry_class"] == provider_state["stage3_current_classification"]
+            assert provider_state["architecture_reference_status"] in {
+                "absorbed_into_architecture",
+                "rejected_no_architecture_gain",
+                "deferred_with_blocker",
+            }
+            assert provider_state["runtime_load_class"] in {
+                "provider_capability_config_gated",
+                "template_asset_manifest_only",
+                "architecture_reference_no_runtime",
+            }
             assert provider_state["ready_for_user_selection"] is False
             assert provider_state["audit_event_required"] is True
             assert provider_state["rollback_supported"] is True
