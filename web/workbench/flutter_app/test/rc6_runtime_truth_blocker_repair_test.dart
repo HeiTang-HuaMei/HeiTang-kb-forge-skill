@@ -1890,15 +1890,15 @@ void main() {
     expect(providerHealth['provider_mapping_count'], 29);
     expect(providerHealth['unique_provider_ref_count'], 26);
     expect(providerHealth['registry_class_counts'], {
-      'capability_provider': 20,
+      'capability_provider': 21,
       'template_asset': 7,
-      'architecture_reference': 2,
+      'architecture_reference': 1,
     });
     expect(providerHealth['architecture_reference_status_counts'], {
       'candidate_reference': 0,
-      'absorbed_into_architecture': 28,
+      'absorbed_into_architecture': 29,
       'rejected_no_architecture_gain': 0,
-      'deferred_with_blocker': 1,
+      'deferred_with_blocker': 0,
     });
     expect(providerHealth['capability_area_count'], 8);
     expect(providerHealth['all_entries_checked'], isTrue);
@@ -2034,7 +2034,7 @@ void main() {
     final architectureReferenceRows = coverageRows
         .where((row) => row['registry_entry_class'] == 'architecture_reference')
         .toList(growable: false);
-    expect(architectureReferenceRows, hasLength(2));
+    expect(architectureReferenceRows, hasLength(1));
     expect(
         architectureReferenceRows
             .every((row) => row['runtime_load_class'] != 'reference_only'),
@@ -2047,18 +2047,8 @@ void main() {
         .firstWhere((row) => row['provider_ref'] == 'llamaindex');
     expect(llamaindexCoverage['architecture_reference_status'],
         'absorbed_into_architecture');
-    for (final providerRef in ['rtk']) {
-      final rows = architectureReferenceRows
-          .where((row) => row['provider_ref'] == providerRef)
-          .toList(growable: false);
-      expect(rows, isNotEmpty);
-      expect(
-          rows.every((row) =>
-              row['architecture_reference_status'] == 'deferred_with_blocker' &&
-              ((row['architecture_absorption'] as Map)['blocker'] as String)
-                  .isNotEmpty),
-          isTrue);
-    }
+    expect(architectureReferenceRows.any((row) => row['provider_ref'] == 'rtk'),
+        isFalse);
     final evaluationProviderRows = coverageRows
         .where((row) =>
             ['ragas', 'deepeval'].contains(row['provider_ref']) &&
@@ -2071,6 +2061,16 @@ void main() {
                 'absorbed_into_architecture' &&
             row['runtime_load_class'] == 'local_capability_enhancement'),
         isTrue);
+    final rtkProviderRows = coverageRows
+        .where((row) =>
+            row['provider_ref'] == 'rtk' &&
+            row['registry_entry_class'] == 'capability_provider')
+        .toList(growable: false);
+    expect(rtkProviderRows, hasLength(1));
+    expect(rtkProviderRows.single['runtime_load_class'],
+        'external_health_check_required');
+    expect(rtkProviderRows.single['architecture_reference_status'],
+        'absorbed_into_architecture');
     final userCatalogPath =
         runtimeStatus['provider_capability_user_catalog_path'] as String;
     final userCatalog =

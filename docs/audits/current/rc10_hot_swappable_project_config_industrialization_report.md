@@ -117,11 +117,11 @@ Coverage:
 
 - 26 unique registered provider references
 - 29 provider-to-capability mappings
-- 20 capability-provider mappings
+- 21 capability-provider mappings
 - 7 template-asset mappings
-- 2 architecture-reference mappings
-- Architecture reference status counts are `absorbed_into_architecture=28`,
-  `deferred_with_blocker=1`, `candidate_reference=0`, and
+- 1 architecture-reference mapping
+- Architecture reference status counts are `absorbed_into_architecture=29`,
+  `deferred_with_blocker=0`, `candidate_reference=0`, and
   `rejected_no_architecture_gain=0`.
 - Generated runtime reports do not use `reference_only` as a final
   classification. Worthwhile references must be absorbed into architecture
@@ -135,6 +135,7 @@ Coverage:
 - 2 local RAG evaluation Provider refs can become selectable after retrieval validation, citation, conflict, and review evidence exists
 - 1 local governance rule-pack adapter can become selectable from repository-owned governance/test assets
 - 1 local Agent memory lifecycle adapter can become selectable after Agent and memory-index evidence exists
+- 1 external Agent tool/runtime Provider remains blocked until a user-owned runtime health gate and permission boundary proof exist
 - 1 local teaching/reasoning Skill template adapter can become selectable from Skill Factory runtime evidence
 - 1 local marketing Skill pattern adapter can become selectable from repository-owned template/demo assets
 - 1 local Skill schema/package adapter can become selectable after Skill package, validation, fusion, version, and Agent binding evidence exists

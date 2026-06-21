@@ -16252,7 +16252,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         providerRef == 'mattpocock_skills') {
       return 'template_asset';
     }
-    if (providerRef == 'ragas' || providerRef == 'deepeval') {
+    if (providerRef == 'ragas' ||
+        providerRef == 'deepeval' ||
+        providerRef == 'rtk') {
       return 'capability_provider';
     }
     if (contractStatus.contains('benchmark_only')) {
@@ -16284,7 +16286,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     if (providerRef == 'llamaindex') {
       return 'absorbed_into_architecture';
     }
-    if (providerRef == 'rtk' || contractStatus.contains('future_adapter')) {
+    if (contractStatus.contains('future_adapter')) {
       return 'deferred_with_blocker';
     }
     return switch (capabilityId) {
