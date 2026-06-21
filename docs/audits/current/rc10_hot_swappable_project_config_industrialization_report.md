@@ -120,17 +120,18 @@ Coverage:
 - 21 capability-provider mappings
 - 7 template-asset mappings
 - 1 architecture-reference mapping
-- Architecture reference status counts are `absorbed_into_architecture=28`,
-  `deferred_with_blocker=1`, `candidate_reference=0`, and
+- Architecture reference status counts are `absorbed_into_architecture=29`,
+  `deferred_with_blocker=0`, `candidate_reference=0`, and
   `rejected_no_architecture_gain=0`.
 - Source registry and generated runtime reports do not use `reference_only` as
   a current classification. Worthwhile references must be absorbed into
   architecture contracts/schema/gates/audit/fallback/loading rules and carry a
   `parallel_architecture_delivery` record; blocked references must carry a
   named blocker; non-useful references must be rejected instead of retained as
-  indefinite notes. `llamaindex` is currently deferred because benchmark-only
-  evidence does not yet prove a net architecture gain over the existing
-  Provider contract, index schema, fallback, and audit gates.
+  indefinite notes. `llamaindex` is now absorbed into the index/RAG Provider
+  architecture as contract/schema/orchestration/test-gate/fallback/audit
+  guidance while remaining non-selectable, non-runtime-loaded, and hidden from
+  normal UI as a project name.
 - 8 product capability areas
 - 0 entries marked runtime-loaded by default
 - 0 entries marked ready for user selection without config/test evidence
@@ -320,7 +321,7 @@ Local Embedding / Vector adapter proof:
 - `rag_anything` and `weknora` require real local KB index evidence: `kb/chunks.jsonl`, `kb/index_profile.json`, `kb/vector_index_reference.json`, `kb/index_build_report.json`, and `kb/index_metadata.json`.
 - The probe requires PRD v3 schema versions, consistent chunk counts across chunks/vector/build/metadata, `vector_index_enabled=true`, and a nonempty vector-store reference.
 - When the probe succeeds, `provider_adapter_readiness_report.json` marks the Provider as `连接成功` and `ready_for_user_selection=true`, and `provider_capability_binding_manifest.json` can bind `knowledge_embedding_vector` to the selected Provider.
-- `llamaindex` remains benchmark/config gated and is not selectable from local KB artifacts alone.
+- `llamaindex` remains benchmark/config gated and is not selectable from local KB artifacts alone, but its useful architecture is absorbed into the index/RAG Provider contract: index/vector schema, RAG orchestration schema, retrieval planning gate, fallback policy, and audit model.
 - `runtime_loaded` remains `false`; no external embedding/vector runtime, vendor code, network call, vector service mutation, or arbitrary execution is bundled or executed.
 - The probe records `network_used=false`, `secret_plaintext_written=false`, `external_runtime_executed=false`, `vendor_runtime_loaded=false`, and `normal_ui_project_name_visible=false`.
 

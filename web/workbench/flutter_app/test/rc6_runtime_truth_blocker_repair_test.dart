@@ -1916,9 +1916,9 @@ void main() {
     });
     expect(providerHealth['architecture_reference_status_counts'], {
       'candidate_reference': 0,
-      'absorbed_into_architecture': 28,
+      'absorbed_into_architecture': 29,
       'rejected_no_architecture_gain': 0,
-      'deferred_with_blocker': 1,
+      'deferred_with_blocker': 0,
     });
     expect(providerHealth['capability_area_count'], 8);
     expect(providerHealth['all_entries_checked'], isTrue);
@@ -2108,12 +2108,26 @@ void main() {
     final llamaindexCoverage = architectureReferenceRows
         .firstWhere((row) => row['provider_ref'] == 'llamaindex');
     expect(llamaindexCoverage['architecture_reference_status'],
-        'deferred_with_blocker');
+        'absorbed_into_architecture');
+    final llamaindexAbsorption =
+        llamaindexCoverage['architecture_absorption'] as Map;
+    expect(llamaindexAbsorption['architecture_delivery_required'], isTrue);
+    expect(llamaindexAbsorption['blocker'], '');
     expect(
-        ((llamaindexCoverage['architecture_absorption'] as Map)['blocker']
-                as String)
-            .isNotEmpty,
+        llamaindexAbsorption['absorbed_targets'] as List,
+        containsAll([
+          'provider_contract',
+          'index_vector_schema',
+          'rag_orchestration_schema',
+          'retrieval_planning_gate',
+          'fallback_policy',
+          'audit_model',
+        ]));
+    expect(
+        (llamaindexAbsorption['parallel_architecture_delivery']
+            as Map)['runtime_boundary'],
         isTrue);
+    expect(llamaindexCoverage['runtime_loaded'], isFalse);
     expect(architectureReferenceRows.any((row) => row['provider_ref'] == 'rtk'),
         isFalse);
     final evaluationProviderRows = coverageRows

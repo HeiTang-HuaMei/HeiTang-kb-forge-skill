@@ -13,7 +13,7 @@ This report is generated from the current runtime evidence workspace. It treats 
 - Ready provider-to-capability mappings: `24`
 - Ready unique Provider refs: `21`
 - Registry class counts: `capability_provider=21`, `template_asset=7`, `architecture_reference=1`
-- Architecture reference status counts: `absorbed_into_architecture=28`, `deferred_with_blocker=1`, `candidate_reference=0`, `rejected_no_architecture_gain=0`
+- Architecture reference status counts: `absorbed_into_architecture=29`, `deferred_with_blocker=0`, `candidate_reference=0`, `rejected_no_architecture_gain=0`
 - Runtime loaded by default: `0`
 - Stage2 preflight: `passed`
 - Runtime load allowed: `true`
@@ -134,9 +134,12 @@ Architecture reference statuses are now explicit:
   `runtime_loaded=true` after `/health` succeeds, but keeps
   `agent_tool_executed=false`, `external_runtime_executed=false`,
   `workflow_executed=false`, and `secret_plaintext_written=false`.
-- LlamaIndex remains an architecture reference with `deferred_with_blocker`;
-  current benchmark-only evidence does not yet prove a net architecture gain
-  over the existing Provider contract, index schema, fallback, and audit gates.
+- LlamaIndex remains an architecture reference with no runtime loading or
+  normal-UI project visibility, but its useful abstraction has now been
+  absorbed into the index/RAG Provider architecture: provider contract,
+  index/vector schema, RAG orchestration schema, retrieval planning gate,
+  fallback policy, and audit model. It is still not selectable from local KB
+  artifacts alone and cannot load vendor runtime code.
 - Architecture references are not accepted as learning notes. Each registered
   reference must resolve to `absorbed_into_architecture`,
   `rejected_no_architecture_gain`, or `deferred_with_blocker`; deferred entries

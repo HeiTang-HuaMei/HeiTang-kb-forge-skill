@@ -16662,7 +16662,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       return 'absorbed_into_architecture';
     }
     if (providerRef == 'llamaindex') {
-      return 'deferred_with_blocker';
+      return 'absorbed_into_architecture';
     }
     if (contractStatus.contains('future_adapter')) {
       return 'deferred_with_blocker';
@@ -16850,7 +16850,16 @@ class Rc6RuntimeController extends ChangeNotifier {
           'fallback_policy',
           'audit_model',
         ],
-      'knowledge_embedding_vector' => const [
+      'knowledge_embedding_vector' => entryClass == 'architecture_reference'
+          ? const [
+              'provider_contract',
+              'index_vector_schema',
+              'rag_orchestration_schema',
+              'retrieval_planning_gate',
+              'fallback_policy',
+              'audit_model',
+            ]
+          : const [
           'provider_contract',
           'index_vector_schema',
           'dimension_check_gate',
