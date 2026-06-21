@@ -281,6 +281,50 @@ void main() {
     expect(
         status.architectureReferenceStatusCounts['absorbed_into_architecture'],
         26);
+    expect(status.architectureReferenceResolutionPolicy, <String, dynamic>{
+      'candidate_reference_allowed': false,
+      'learning_note_only_allowed': false,
+      'indefinite_reference_allowed': false,
+      'absorbed_requires_parallel_architecture_delivery': true,
+      'deferred_requires_named_blocker': true,
+      'rejected_requires_rejection_reason': true,
+    });
+    expect(status.futureReferenceResolutionCount, 7);
+    expect(status.futureReferenceClassCounts['template_asset'], 1);
+    expect(status.futureReferenceClassCounts['architecture_reference'], 6);
+    expect(
+        status.futureReferenceStatusCounts['absorbed_into_architecture'], 1);
+    expect(
+        status.futureReferenceStatusCounts['rejected_no_architecture_gain'], 4);
+    expect(status.futureReferenceStatusCounts['deferred_with_blocker'], 2);
+    final referenceRows = {
+      for (final row in status.futureReferenceResolutions) row.projectId: row
+    };
+    expect(
+        referenceRows['andrej_karpathy_skills']!
+            .architectureReferenceStatus,
+        'absorbed_into_architecture');
+    expect(referenceRows['andrej_karpathy_skills']!.absorbedTargets,
+        containsAll(<String>['contract', 'schema', 'test_gate']));
+    expect(referenceRows['presenton']!.architectureReferenceStatus,
+        'deferred_with_blocker');
+    expect(referenceRows['presenton']!.blocker, isNotEmpty);
+    expect(referenceRows['pi_mono']!.blocker, isNotEmpty);
+    expect(referenceRows['codegraph']!.architectureReferenceStatus,
+        'rejected_no_architecture_gain');
+    expect(referenceRows['codegraph']!.rejectionReason, isNotEmpty);
+    expect(
+        status.futureReferenceResolutions
+            .every((row) => !row.learningNoteOnly),
+        isTrue);
+    expect(
+        status.futureReferenceResolutions
+            .every((row) => !row.indefiniteReferenceAllowed),
+        isTrue);
+    expect(
+        status.futureReferenceResolutions
+            .every((row) => !row.normalUiVisible),
+        isTrue);
     expect(
         status.capabilities
             .fold<int>(0, (sum, entry) => sum + entry.providerStateCount),

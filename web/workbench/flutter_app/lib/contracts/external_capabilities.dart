@@ -135,6 +135,11 @@ class ProviderCapabilityStatus {
     required this.userConceptBoundary,
     required this.registryEntryClassCounts,
     required this.architectureReferenceStatusCounts,
+    required this.architectureReferenceResolutionPolicy,
+    required this.futureReferenceResolutionCount,
+    required this.futureReferenceClassCounts,
+    required this.futureReferenceStatusCounts,
+    required this.futureReferenceResolutions,
     required this.indefiniteReferenceStateAllowed,
     required this.legacyReferenceOnlyContractsAreTraceOnly,
     required this.capabilities,
@@ -148,6 +153,11 @@ class ProviderCapabilityStatus {
   final Map<String, dynamic> userConceptBoundary;
   final Map<String, dynamic> registryEntryClassCounts;
   final Map<String, dynamic> architectureReferenceStatusCounts;
+  final Map<String, dynamic> architectureReferenceResolutionPolicy;
+  final int futureReferenceResolutionCount;
+  final Map<String, dynamic> futureReferenceClassCounts;
+  final Map<String, dynamic> futureReferenceStatusCounts;
+  final List<FutureReferenceResolution> futureReferenceResolutions;
   final bool indefiniteReferenceStateAllowed;
   final bool legacyReferenceOnlyContractsAreTraceOnly;
   final List<ProviderCapabilityEntry> capabilities;
@@ -172,6 +182,16 @@ class ProviderCapabilityStatus {
       registryEntryClassCounts: _map(json['registry_entry_class_counts']),
       architectureReferenceStatusCounts:
           _map(json['architecture_reference_status_counts']),
+      architectureReferenceResolutionPolicy:
+          _map(json['architecture_reference_resolution_policy']),
+      futureReferenceResolutionCount:
+          _int(json['future_reference_resolution_count']),
+      futureReferenceClassCounts: _map(json['future_reference_class_counts']),
+      futureReferenceStatusCounts:
+          _map(json['future_reference_status_counts']),
+      futureReferenceResolutions: _list(json['future_reference_resolutions'])
+          .map((item) => FutureReferenceResolution.fromJson(_map(item)))
+          .toList(growable: false),
       indefiniteReferenceStateAllowed:
           _bool(json['indefinite_reference_state_allowed']),
       legacyReferenceOnlyContractsAreTraceOnly:
@@ -179,6 +199,72 @@ class ProviderCapabilityStatus {
       capabilities: _list(json['capabilities'])
           .map((item) => ProviderCapabilityEntry.fromJson(_map(item)))
           .toList(growable: false),
+    );
+  }
+}
+
+class FutureReferenceResolution {
+  const FutureReferenceResolution({
+    required this.projectId,
+    required this.projectName,
+    required this.legacyStatus,
+    required this.stage3CurrentClassification,
+    required this.registryEntryClass,
+    required this.architectureReferenceStatus,
+    required this.runtimeLoadClass,
+    required this.worthAbsorbing,
+    required this.architectureDeliveryRequired,
+    required this.learningNoteOnly,
+    required this.indefiniteReferenceAllowed,
+    required this.absorbedTargets,
+    required this.blocker,
+    required this.rejectionReason,
+    required this.runtimeDependencyAdded,
+    required this.normalUiVisible,
+    required this.productBehavior,
+  });
+
+  final String projectId;
+  final String projectName;
+  final String legacyStatus;
+  final String stage3CurrentClassification;
+  final String registryEntryClass;
+  final String architectureReferenceStatus;
+  final String runtimeLoadClass;
+  final bool worthAbsorbing;
+  final bool architectureDeliveryRequired;
+  final bool learningNoteOnly;
+  final bool indefiniteReferenceAllowed;
+  final List<String> absorbedTargets;
+  final String blocker;
+  final String rejectionReason;
+  final bool runtimeDependencyAdded;
+  final bool normalUiVisible;
+  final String productBehavior;
+
+  factory FutureReferenceResolution.fromJson(Map<String, dynamic> json) {
+    return FutureReferenceResolution(
+      projectId: _string(json['project_id']),
+      projectName: _string(json['project_name']),
+      legacyStatus: _string(json['legacy_status']),
+      stage3CurrentClassification:
+          _string(json['stage3_current_classification']),
+      registryEntryClass: _string(json['registry_entry_class']),
+      architectureReferenceStatus:
+          _string(json['architecture_reference_status']),
+      runtimeLoadClass: _string(json['runtime_load_class']),
+      worthAbsorbing: _bool(json['worth_absorbing']),
+      architectureDeliveryRequired:
+          _bool(json['architecture_delivery_required']),
+      learningNoteOnly: _bool(json['learning_note_only']),
+      indefiniteReferenceAllowed:
+          _bool(json['indefinite_reference_allowed']),
+      absorbedTargets: _strings(json['absorbed_targets']),
+      blocker: _string(json['blocker']),
+      rejectionReason: _string(json['rejection_reason']),
+      runtimeDependencyAdded: _bool(json['runtime_dependency_added']),
+      normalUiVisible: _bool(json['normal_ui_visible']),
+      productBehavior: _string(json['product_behavior']),
     );
   }
 }
@@ -372,6 +458,47 @@ final sampleProviderCapabilityStatus = ProviderCapabilityStatus.fromJson({
     'rejected_no_architecture_gain': 0,
     'deferred_with_blocker': 0,
   },
+  'architecture_reference_resolution_policy': {
+    'candidate_reference_allowed': false,
+    'learning_note_only_allowed': false,
+    'indefinite_reference_allowed': false,
+    'absorbed_requires_parallel_architecture_delivery': true,
+    'deferred_requires_named_blocker': true,
+    'rejected_requires_rejection_reason': true,
+  },
+  'future_reference_resolution_count': 1,
+  'future_reference_class_counts': {
+    'capability_provider': 0,
+    'template_asset': 1,
+    'architecture_reference': 0,
+  },
+  'future_reference_status_counts': {
+    'candidate_reference': 0,
+    'absorbed_into_architecture': 1,
+    'rejected_no_architecture_gain': 0,
+    'deferred_with_blocker': 0,
+  },
+  'future_reference_resolutions': [
+    {
+      'project_id': 'andrej_karpathy_skills',
+      'project_name': 'andrej-karpathy-skills',
+      'legacy_status': 'reference_only',
+      'stage3_current_classification': 'template_asset',
+      'registry_entry_class': 'template_asset',
+      'architecture_reference_status': 'absorbed_into_architecture',
+      'runtime_load_class': 'template_asset_manifest_only',
+      'worth_absorbing': true,
+      'architecture_delivery_required': true,
+      'learning_note_only': false,
+      'indefinite_reference_allowed': false,
+      'absorbed_targets': ['contract', 'schema'],
+      'blocker': '',
+      'rejection_reason': '',
+      'runtime_dependency_added': false,
+      'normal_ui_visible': false,
+      'product_behavior': 'architecture_rule_absorbed_no_runtime',
+    },
+  ],
   'indefinite_reference_state_allowed': false,
   'legacy_reference_only_contracts_are_trace_only': true,
   'user_concept_boundary': {
