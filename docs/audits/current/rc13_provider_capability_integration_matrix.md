@@ -97,7 +97,10 @@ Architecture reference statuses are now explicit:
 - `andrej_karpathy_skills` is now absorbed as a local teaching/reasoning
   template asset manifest. It remains `runtime_loaded=false`; no external
   repository code, network call, or vendor runtime is bundled or executed.
-- External runtime loading remains separate from local readiness. Current external-runtime eligible Provider is n8n only.
+- External runtime loading remains separate from local readiness. Controlled
+  external-runtime gates are limited to health checks for n8n and RTK after
+  Stage2 preflight evidence passes; they do not execute workflows, Agent tools,
+  vendor jobs, or arbitrary project code.
 - Default refreshed runtime status keeps external runtime unloaded until an
   explicit endpoint health-load is requested.
 - Live n8n external health-load has an opt-in proof against a local Docker
@@ -124,10 +127,22 @@ Architecture reference statuses are now explicit:
   selectable as a Skill template asset. It remains `runtime_loaded=false`, does
   not execute video generation, does not perform network calls during readiness,
   and does not write plaintext secrets.
-- RTK is an Agent tool/runtime capability Provider. It remains blocked until a user-owned external runtime and permission boundary health gate pass.
+- RTK is an Agent tool/runtime capability Provider. Its default readiness stays
+  blocked with `external_runtime_required` until Stage2 Agent permission
+  boundary evidence, a user-owned endpoint, and the RTK health gate pass. The
+  controlled runtime-load proof is health-check-only: it may record
+  `runtime_loaded=true` after `/health` succeeds, but keeps
+  `agent_tool_executed=false`, `external_runtime_executed=false`,
+  `workflow_executed=false`, and `secret_plaintext_written=false`.
 - LlamaIndex remains an architecture reference with `deferred_with_blocker`;
   current benchmark-only evidence does not yet prove a net architecture gain
   over the existing Provider contract, index schema, fallback, and audit gates.
+- Architecture references are not accepted as learning notes. Each registered
+  reference must resolve to `absorbed_into_architecture`,
+  `rejected_no_architecture_gain`, or `deferred_with_blocker`; deferred entries
+  must name the blocker, and absorbed entries must deliver contract, schema,
+  runtime boundary, UI information boundary, test gate, audit model, fallback
+  rule, or Provider loading rule changes in parallel.
 - High-risk gates for network search, time-window retrieval, video Skill
   template, and Agent tool/runtime Providers now publish `gate_kind` and
   `gate_audit` through readiness, health, integration, eligibility, coverage,
@@ -144,3 +159,5 @@ Architecture reference statuses are now explicit:
 - Runtime-loaded count should remain zero unless the controlled external health-load gate succeeds.
 - For live n8n recheck, run
   `STAGE3_VERIFY_LIVE_N8N=1 HEITANG_N8N_ENDPOINT=http://127.0.0.1:5678 flutter test test\rc6_runtime_truth_blocker_repair_test.dart --plain-name "stage3 live n8n endpoint runtime load uses health check only" --concurrency=1`.
+- For RTK recheck, use the targeted test
+  `flutter test test\rc6_runtime_truth_blocker_repair_test.dart --plain-name "stage3 rtk runtime load uses agent health check only" --concurrency=1`.

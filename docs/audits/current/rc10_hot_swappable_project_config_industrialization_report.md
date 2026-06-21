@@ -607,6 +607,28 @@ Latest Stage 3 controlled n8n runtime-load slice:
   health connection. It is not workflow execution and does not expose n8n as a
   normal product module.
 
+Latest Stage 3 controlled RTK runtime-load slice:
+
+- `loadRtkProviderRuntime` writes:
+  `config/provider_runtime_load_manifest.json`,
+  `config/provider_runtime_load_probe_rtk.json`, and
+  `config/provider_runtime_load_log.jsonl`.
+- Default RTK readiness remains blocked with user-facing status
+  `需启动外部服务` and error code `external_runtime_required` until Stage2
+  Agent permission boundary evidence and the user-owned RTK health endpoint are
+  both present.
+- The safe health-success path is covered by:
+  `stage3 rtk runtime load uses agent health check only`.
+- The success test uses a local HTTP health endpoint and verifies
+  `runtime_loaded=true`, `runtime_loaded_count=1`,
+  `external_runtime_connected=true`, `agent_tool_executed=false`,
+  `external_runtime_executed=false`, `workflow_executed=false`, sanitized
+  endpoint output, and absence of sensitive values in logs/manifests.
+- Runtime status sync is verified through provider runtime summary, capability
+  binding, integration coverage, and config test log artifacts. RTK is exposed
+  only as an Agent capability enhancement; ordinary UI must not show external
+  project loading language.
+
 Latest Stage 3 high-risk Provider gate slice:
 
 - High-risk registered Provider refs now write explicit readiness probes before
@@ -631,6 +653,10 @@ Latest Stage 3 high-risk Provider gate slice:
 - Activation audit now uses the Provider readiness status and blocked reasons
   instead of a generic blocked state, so Settings, readiness, binding, and
   selection logs stay consistent.
+- RTK high-risk readiness also records `permission_boundary_status` and keeps
+  permission failure in `blocked_reasons`; this preserves the default
+  `external_runtime_required` state while making the missing Agent permission
+  boundary auditable.
 - Targeted test:
   `prd settings and parallel task validation produce industrial audit artifacts`.
 

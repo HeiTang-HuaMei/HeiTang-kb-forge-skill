@@ -2594,6 +2594,92 @@ class Rc6RuntimeController extends ChangeNotifier {
     return true;
   }
 
+  Future<bool> loadRtkProviderRuntime({
+    String endpoint = '',
+    String apiKey = '',
+  }) async {
+    if (!_canRunDesktop()) {
+      return false;
+    }
+    final workspace = _requireWorkspace();
+    final startedAt = DateTime.now().toUtc().toIso8601String();
+    final active = _activeProfile(await _readProjectConfigProfiles(workspace));
+    final artifacts =
+        await _writeRegisteredProviderIntegrationArtifacts(workspace);
+    final matrix = await _readJsonObject(artifacts['matrix_path'].toString());
+    final entry = _registeredProviderEntry(matrix, 'rtk');
+    final readinessByProvider = await _providerReadinessByProvider(workspace);
+    final readiness = readinessByProvider['rtk'] ?? const <String, dynamic>{};
+    final eligible = _boolValue(
+            _stage2IndustrialPreflight(workspace)['runtime_load_allowed']) &&
+        entry.isNotEmpty &&
+        _boolValue(entry['requires_external_runtime']);
+    final effectiveEndpoint =
+        endpoint.trim().isEmpty ? _rtkEndpointFromEnvironment() : endpoint;
+    final probe = eligible
+        ? await _probeRtkRuntimeConnection(
+            workspace,
+            endpoint: effectiveEndpoint,
+            apiKey: apiKey,
+          )
+        : _blockedRtkRuntimeLoadProbe(
+            workspace,
+            readiness: readiness,
+            endpoint: effectiveEndpoint,
+          );
+    final loaded = _boolValue(probe['runtime_loaded']);
+    final finishedAt = DateTime.now().toUtc().toIso8601String();
+    final manifestPath = await _writeProviderRuntimeLoadManifest(
+      workspace,
+      providerRef: 'rtk',
+      capabilityId: 'agent_model_tools_memory',
+      startedAt: startedAt,
+      finishedAt: finishedAt,
+      eligible: eligible,
+      probe: probe,
+    );
+    await _appendProviderRuntimeLoadLog(
+      workspace,
+      providerRef: 'rtk',
+      capabilityId: 'agent_model_tools_memory',
+      startedAt: startedAt,
+      finishedAt: finishedAt,
+      eligible: eligible,
+      probe: probe,
+      manifestPath: manifestPath,
+    );
+    await _appendConfigTestLog(
+      workspace,
+      testId:
+          'provider_runtime_load_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+      profile: active,
+      configType: 'provider_runtime_load',
+      configId: 'rtk',
+      startedAt: startedAt,
+      finishedAt: finishedAt,
+      status: _stringValue(probe['status'], loaded ? '连接成功' : '连接失败'),
+      errorCode: _stringValue(probe['error_code'], ''),
+      errorMessageZh: _stringValue(probe['error_message_zh'], ''),
+      sanitizedEndpoint: _stringValue(
+          probe['sanitized_endpoint'], _sanitizeEndpoint(endpoint)),
+      testArtifacts: [manifestPath, _stringValue(probe['probe_path'], '')]
+          .where((path) => path.isNotEmpty)
+          .toList(growable: false),
+      affectedModules: ['agent_workbench', 'audit_center'],
+    );
+    await _writeProjectConfigRuntimeStatus(
+      workspace,
+      await _readProjectConfigProfiles(workspace),
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: loaded ? 'Agent 工具 Provider 连接已通过。' : '',
+      lastError: loaded ? '' : 'Agent 工具 Provider 未完成连接，已保持本地 Agent 能力。',
+    );
+    notifyListeners();
+    return loaded;
+  }
+
   Future<String> saveStorageProviderSettings({
     required String redisHost,
     required int redisPort,
@@ -13453,6 +13539,213 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
   }
 
+  Future<Map<String, dynamic>> _probeRtkRuntimeConnection(
+    Directory workspace, {
+    required String endpoint,
+    required String apiKey,
+  }) async {
+    final probePath = _providerRuntimeLoadProbePath(workspace, 'rtk');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final base = Uri.tryParse(endpoint.trim());
+    final sanitizedEndpoint = _sanitizeEndpoint(endpoint);
+    if (base == null || !base.hasScheme || base.host.isEmpty) {
+      final payload = {
+        'schema_version': 'prd_v3_provider_runtime_load_probe_rtk.v1',
+        'provider_ref': 'rtk',
+        'capability_id': 'agent_model_tools_memory',
+        'executed_at': now,
+        'probe_kind': 'safe_agent_runtime_health_check_only',
+        'workspace_boundary': workspace.path,
+        'status': '配置缺失',
+        'error_code': 'rtk_endpoint_missing_or_invalid',
+        'error_message_zh': '需要配置 RTK endpoint 后才能连接 Agent 工具 Provider。',
+        'sanitized_endpoint': sanitizedEndpoint,
+        'runtime_loaded': false,
+        'external_runtime_connected': false,
+        'external_runtime_executed': false,
+        'agent_tool_executed': false,
+        'workflow_executed': false,
+        'local_fallback': '本地 Agent 工作区和本地记忆继续可用。',
+        'secret_masked': true,
+        'secret_plaintext_written': false,
+      };
+      await _writeJsonFile(probePath, payload);
+      return {
+        ...payload,
+        'probe_path': probePath,
+      };
+    }
+
+    final effectiveKey = _effectiveSecret(
+      provided: apiKey,
+      environmentKey: 'HEITANG_RTK_API_KEY',
+    );
+    final client = HttpClient()..connectionTimeout = const Duration(seconds: 5);
+    try {
+      final candidates = _rtkHealthUris(base);
+      Map<String, dynamic>? lastFailure;
+      for (final candidate in candidates) {
+        final request =
+            await client.getUrl(candidate).timeout(const Duration(seconds: 5));
+        request.headers.set(HttpHeaders.acceptHeader, 'application/json');
+        if (effectiveKey.isNotEmpty) {
+          request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $effectiveKey');
+        }
+        final response =
+            await request.close().timeout(const Duration(seconds: 5));
+        final body = await response.transform(utf8.decoder).join();
+        final ok = response.statusCode < 400;
+        if (ok) {
+          final payload = {
+            'schema_version': 'prd_v3_provider_runtime_load_probe_rtk.v1',
+            'provider_ref': 'rtk',
+            'capability_id': 'agent_model_tools_memory',
+            'executed_at': now,
+            'probe_kind': 'safe_agent_runtime_health_check_only',
+            'workspace_boundary': workspace.path,
+            'status': '连接成功',
+            'error_code': '',
+            'error_message_zh': '',
+            'sanitized_endpoint': sanitizedEndpoint,
+            'health_path': candidate.path,
+            'http_status': response.statusCode,
+            'response_bytes': body.length,
+            'runtime_loaded': true,
+            'external_runtime_connected': true,
+            'external_runtime_executed': false,
+            'agent_tool_executed': false,
+            'workflow_executed': false,
+            'local_fallback': '',
+            'secret_masked': true,
+            'secret_plaintext_written': false,
+          };
+          await _writeJsonFile(probePath, payload);
+          return {
+            ...payload,
+            'probe_path': probePath,
+          };
+        }
+        lastFailure = {
+          'status': response.statusCode == 401 || response.statusCode == 403
+              ? '鉴权失败'
+              : '连接失败',
+          'error_code': response.statusCode == 401 || response.statusCode == 403
+              ? 'rtk_auth_failed'
+              : 'rtk_health_check_failed',
+          'error_message_zh':
+              'RTK 健康检查返回 HTTP ${response.statusCode}，已保持本地 Agent 能力。',
+          'health_path': candidate.path,
+          'http_status': response.statusCode,
+        };
+      }
+      final failure = lastFailure ??
+          const {
+            'status': '连接失败',
+            'error_code': 'rtk_health_check_failed',
+            'error_message_zh': 'RTK 健康检查失败，已保持本地 Agent 能力。',
+            'health_path': '',
+            'http_status': 0,
+          };
+      final payload = {
+        'schema_version': 'prd_v3_provider_runtime_load_probe_rtk.v1',
+        'provider_ref': 'rtk',
+        'capability_id': 'agent_model_tools_memory',
+        'executed_at': now,
+        'probe_kind': 'safe_agent_runtime_health_check_only',
+        'workspace_boundary': workspace.path,
+        ...failure,
+        'sanitized_endpoint': sanitizedEndpoint,
+        'runtime_loaded': false,
+        'external_runtime_connected': false,
+        'external_runtime_executed': false,
+        'agent_tool_executed': false,
+        'workflow_executed': false,
+        'local_fallback': '本地 Agent 工作区和本地记忆继续可用。',
+        'secret_masked': true,
+        'secret_plaintext_written': false,
+      };
+      await _writeJsonFile(probePath, payload);
+      return {
+        ...payload,
+        'probe_path': probePath,
+      };
+    } on TimeoutException catch (error) {
+      final payload = _rtkRuntimeProbeFailure(
+        workspace,
+        now: now,
+        sanitizedEndpoint: sanitizedEndpoint,
+        status: '超时',
+        errorCode: 'rtk_health_check_timeout',
+        errorMessageZh: 'RTK 健康检查超时，已保持本地 Agent 能力。',
+        detail: error.toString(),
+      );
+      await _writeJsonFile(probePath, payload);
+      return {
+        ...payload,
+        'probe_path': probePath,
+      };
+    } on Object catch (error) {
+      final payload = _rtkRuntimeProbeFailure(
+        workspace,
+        now: now,
+        sanitizedEndpoint: sanitizedEndpoint,
+        status: '连接失败',
+        errorCode: 'rtk_connection_failed',
+        errorMessageZh: 'RTK 连接失败，已保持本地 Agent 能力。',
+        detail: _redactSecret(error.toString(), effectiveKey),
+      );
+      await _writeJsonFile(probePath, payload);
+      return {
+        ...payload,
+        'probe_path': probePath,
+      };
+    } finally {
+      client.close(force: true);
+    }
+  }
+
+  Map<String, dynamic> _blockedRtkRuntimeLoadProbe(
+    Directory workspace, {
+    required Map<String, dynamic> readiness,
+    required String endpoint,
+  }) {
+    final probePath = _providerRuntimeLoadProbePath(workspace, 'rtk');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final blockedReasons = _listOfStrings(readiness['blocked_reasons']);
+    final payload = {
+      'schema_version': 'prd_v3_provider_runtime_load_probe_rtk.v1',
+      'provider_ref': 'rtk',
+      'capability_id': 'agent_model_tools_memory',
+      'executed_at': now,
+      'probe_kind': 'blocked_before_external_connection',
+      'workspace_boundary': workspace.path,
+      'status': '配置缺失',
+      'error_code': 'rtk_runtime_load_not_eligible',
+      'error_message_zh': blockedReasons.isEmpty
+          ? 'Stage2 工业级预检未通过，禁止加载外部 Agent 工具 runtime。'
+          : blockedReasons.join(' '),
+      'sanitized_endpoint': _sanitizeEndpoint(endpoint),
+      'runtime_loaded': false,
+      'external_runtime_connected': false,
+      'external_runtime_executed': false,
+      'agent_tool_executed': false,
+      'workflow_executed': false,
+      'local_fallback': '本地 Agent 工作区和本地记忆继续可用。',
+      'secret_masked': true,
+      'secret_plaintext_written': false,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return {
+      ...payload,
+      'probe_path': probePath,
+    };
+  }
+
   Future<String> _writeProviderRuntimeLoadManifest(
     Directory workspace, {
     required String providerRef,
@@ -13466,6 +13759,16 @@ class Rc6RuntimeController extends ChangeNotifier {
   }) async {
     final loaded = _boolValue(probe['runtime_loaded']);
     final manifestPath = _providerRuntimeLoadManifestPath(workspace);
+    final isAgentRuntime = capabilityId == 'agent_model_tools_memory';
+    final loadedBehavior = isAgentRuntime
+        ? '外部 Agent 工具 Provider 健康检查通过。'
+        : '外部工作流协作 Provider 可用。';
+    final fallbackBehavior = isAgentRuntime
+        ? '本地 Agent 工作区和本地记忆继续可用。'
+        : 'A2A 本地协作报告导出继续可用。';
+    final agentBinding = isAgentRuntime
+        ? (loaded ? loadedBehavior : fallbackBehavior)
+        : (loaded ? '外部工作流协作 Provider 可用。' : '降级为本地 A2A 导出。');
     final payload = {
       'schema_version': 'prd_v3_provider_runtime_load_manifest.v1',
       'provider_ref': providerRef,
@@ -13488,13 +13791,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       'external_runtime_executed': false,
       'workflow_executed': false,
       'downstream_binding': {
-        'agent_workbench_a2a_workflow_export':
-            loaded ? '外部工作流协作 Provider 可用。' : '降级为本地 A2A 导出。',
+        'agent_workbench_a2a_workflow_export': agentBinding,
         'document_library': '不受影响',
         'knowledge_base': '不受影响',
         'document_generation': '不受影响',
       },
-      'fallback': loaded ? '' : 'A2A 本地协作报告导出继续可用。',
+      'fallback': loaded ? '' : fallbackBehavior,
       'normal_ui_project_name_visible': false,
       'secret_masked': true,
       'secret_plaintext_written': false,
@@ -17698,6 +18000,17 @@ class Rc6RuntimeController extends ChangeNotifier {
         'probe_path': probePath,
       };
     }
+    if (providerRef == 'rtk') {
+      final probe = _probeRtkAgentRuntimeReadiness(
+        workspace,
+        contract,
+        probePath,
+      );
+      return {
+        ...probe,
+        'probe_path': probePath,
+      };
+    }
     final status = requiresSecretRef && missingRefs.contains('secret_ref')
         ? '配置缺失'
         : requiresExternalRuntime
@@ -17803,6 +18116,98 @@ class Rc6RuntimeController extends ChangeNotifier {
       ...payload,
       'probe_path': probePath,
     };
+  }
+
+  static Map<String, dynamic> _probeRtkAgentRuntimeReadiness(
+    Directory workspace,
+    Map<String, dynamic> contract,
+    String probePath,
+  ) {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final permissionCheck = _stage2AgentPermissionRuntimeCheck(workspace);
+    final permissionPassed =
+        _stringValue(permissionCheck['status'], '') == 'passed';
+    final required = {
+      'agent_permission_runtime_passed': permissionPassed,
+      'external_runtime_required': _boolValue(contract['requires_external_runtime']),
+      'tool_policy_boundary_required': true,
+      'health_load_separate': true,
+      'no_agent_tool_execution_during_readiness': true,
+    };
+    final blockedReasons = required.entries
+        .where((entry) => !entry.value)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final passed = blockedReasons.isEmpty;
+    final gateAudit = {
+      'gate_kind': 'external_runtime_agent_tool_gate',
+      'provider_ref': 'rtk',
+      'requires_network': false,
+      'requires_secret_ref': false,
+      'requires_external_runtime': true,
+      'requires_dependency_install': false,
+      'network_authorization': '不需要',
+      'secret_ref_status': '不需要',
+      'external_runtime_status': passed ? '已配置未测试' : '需启动外部服务',
+      'permission_boundary_status': permissionPassed ? '连接成功' : '配置缺失',
+      'missing_config_refs': const <String>[],
+      'blocked_reasons': blockedReasons,
+      'fallback_preserves_local_chain': true,
+      'network_call_attempted': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
+      'agent_tool_executed': false,
+      'normal_ui_project_name_visible': false,
+      'secret_plaintext_written': false,
+    };
+    final payload = {
+      'schema_version': 'prd_v3_provider_adapter_probe_high_risk_gate.v1',
+      'provider_ref': 'rtk',
+      'gate_kind': 'external_runtime_agent_tool_gate',
+      'gate_audit': gateAudit,
+      'status': passed ? '连接成功' : '需启动外部服务',
+      'error_code': passed ? '' : 'external_runtime_required',
+      'error_message_zh':
+          passed ? '' : '需要外部服务启动、Agent 权限边界 runtime 证据和健康检查后才能启用 Agent 工具能力增强。',
+      'capability_ids': _listOfStrings(contract['capability_ids']),
+      'affected_modules': _listOfStrings(contract['affected_modules']),
+      'runtime_execution_mode': 'external_runtime_health_check_required',
+      'requires_network': false,
+      'requires_secret_ref': false,
+      'requires_external_runtime': true,
+      'requires_dependency_install': false,
+      'network_authorization': '不需要',
+      'secret_ref_status': '不需要',
+      'external_runtime_status': gateAudit['external_runtime_status'],
+      'permission_boundary_check': permissionCheck,
+      'missing_config_refs': const <String>[],
+      'blocked_reasons': blockedReasons,
+      'degradation_target':
+          _stringValue(contract['fallback_provider'], 'local_agent_workspace'),
+      'ready_for_user_selection': passed,
+      'runtime_loaded': false,
+      'runtime_load_allowed': false,
+      'selection_allowed': passed,
+      'fallback_preserves_local_chain': true,
+      'rollback_supported': _boolValue(contract['rollback_supported']),
+      'normal_ui_project_name_visible': false,
+      'network_call_attempted': false,
+      'external_runtime_executed': false,
+      'vendor_runtime_loaded': false,
+      'agent_tool_executed': false,
+      'secret_masked': true,
+      'secret_plaintext_written': false,
+      'required': required,
+      'passed': passed,
+      'evaluated_at': now,
+    };
+    File(probePath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(payload),
+        encoding: utf8,
+      );
+    return payload;
   }
 
   static Map<String, dynamic> _probeLast30DaysAuthorizedRetrievalAdapter(
@@ -21061,6 +21466,26 @@ class Rc6RuntimeController extends ChangeNotifier {
         .toList(growable: false);
   }
 
+  static String _rtkEndpointFromEnvironment() {
+    return Platform.environment['HEITANG_RTK_ENDPOINT']?.trim() ??
+        Platform.environment['RTK_ENDPOINT']?.trim() ??
+        '';
+  }
+
+  static List<Uri> _rtkHealthUris(Uri baseUri) {
+    final normalizedBase = baseUri.path.endsWith('/')
+        ? baseUri.path.substring(0, baseUri.path.length - 1)
+        : baseUri.path;
+    final paths = <String>[
+      '/health',
+      '/healthz',
+      '/status',
+    ];
+    return paths
+        .map((path) => baseUri.replace(path: '$normalizedBase$path', query: ''))
+        .toList(growable: false);
+  }
+
   static Map<String, dynamic> _n8nRuntimeProbeFailure(
     Directory workspace, {
     required String now,
@@ -21087,6 +21512,38 @@ class Rc6RuntimeController extends ChangeNotifier {
       'external_runtime_executed': false,
       'workflow_executed': false,
       'local_fallback': 'A2A 本地协作报告导出继续可用。',
+      'secret_masked': true,
+      'secret_plaintext_written': false,
+    };
+  }
+
+  static Map<String, dynamic> _rtkRuntimeProbeFailure(
+    Directory workspace, {
+    required String now,
+    required String sanitizedEndpoint,
+    required String status,
+    required String errorCode,
+    required String errorMessageZh,
+    required String detail,
+  }) {
+    return {
+      'schema_version': 'prd_v3_provider_runtime_load_probe_rtk.v1',
+      'provider_ref': 'rtk',
+      'capability_id': 'agent_model_tools_memory',
+      'executed_at': now,
+      'probe_kind': 'safe_agent_runtime_health_check_only',
+      'workspace_boundary': workspace.path,
+      'status': status,
+      'error_code': errorCode,
+      'error_message_zh': errorMessageZh,
+      'sanitized_endpoint': sanitizedEndpoint,
+      'detail': detail,
+      'runtime_loaded': false,
+      'external_runtime_connected': false,
+      'external_runtime_executed': false,
+      'agent_tool_executed': false,
+      'workflow_executed': false,
+      'local_fallback': '本地 Agent 工作区和本地记忆继续可用。',
       'secret_masked': true,
       'secret_plaintext_written': false,
     };

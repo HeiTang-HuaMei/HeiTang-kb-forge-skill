@@ -1768,6 +1768,12 @@ void main() {
       expect((probe['gate_audit'] as Map)['gate_kind'],
           expectation.value['gate_kind']);
       expect((probe['gate_audit'] as Map)['network_call_attempted'], isFalse);
+      if (expectation.key == 'rtk') {
+        expect((probe['gate_audit'] as Map)['permission_boundary_status'],
+            '配置缺失');
+        expect(probe['blocked_reasons'],
+            contains('agent_permission_runtime_passed'));
+      }
       expect(
           (probe['gate_audit'] as Map)['external_runtime_executed'], isFalse);
       expect((probe['gate_audit'] as Map)['fallback_preserves_local_chain'],
@@ -5075,6 +5081,124 @@ void main() {
         ((rollbackLifecycleAudit['event_counts'] as Map)['runtime_load_actions']
             as Map)['rollback'],
         1);
+  });
+
+  test('stage3 rtk runtime load uses agent health check only', () async {
+    final workspace = await createWorkspace();
+    writeStage2PreflightFixture(workspace);
+    writeStage2SkillRuntimeFixture(workspace);
+    writeStage2AgentPermissionFixture(workspace);
+    writeStage2IndustrialSmokeFixture(workspace);
+    writeStage2ExeLaunchSmokeFixture(workspace);
+    writeN8nReadinessFixture(workspace);
+    final previousHttpOverride = HttpOverrides.current;
+    HttpOverrides.global = null;
+    addTearDown(() {
+      HttpOverrides.global = previousHttpOverride;
+    });
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    addTearDown(() async {
+      await server.close(force: true);
+    });
+    final requests = <String>[];
+    unawaited(() async {
+      await for (final request in server) {
+        requests.add(request.uri.path);
+        request.response
+          ..statusCode = 200
+          ..headers.contentType = ContentType.json
+          ..write('{"status":"ok"}');
+        await request.response.close();
+      }
+    }());
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.testAllRegisteredProviderCapabilities();
+    const sensitiveValue = 'rtk-sensitive-value';
+    final loaded = await controller.loadRtkProviderRuntime(
+      endpoint: 'http://${server.address.host}:${server.port}?secret=redacted',
+      apiKey: sensitiveValue,
+    );
+    final configDir = '${workspace.path}${Platform.pathSeparator}config';
+    final manifestPath =
+        '$configDir${Platform.pathSeparator}provider_runtime_load_manifest.json';
+    final manifestRaw = File(manifestPath).readAsStringSync();
+    expect(loaded, isTrue, reason: manifestRaw);
+    final manifest = jsonDecode(File(manifestPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(manifest['provider_ref'], 'rtk');
+    expect(manifest['capability_id'], 'agent_model_tools_memory');
+    expect(manifest['runtime_loaded'], isTrue);
+    expect(manifest['runtime_loaded_count'], 1);
+    expect(manifest['external_runtime_connected'], isTrue);
+    expect(manifest['external_runtime_executed'], isFalse);
+    expect(manifest['workflow_executed'], isFalse);
+    expect(manifest['secret_plaintext_written'], isFalse);
+    expect(manifest['sanitized_endpoint'],
+        'http://${server.address.host}:${server.port}');
+    expect(File(manifestPath).readAsStringSync(), isNot(contains(sensitiveValue)));
+    final probe =
+        jsonDecode(File(manifest['probe_path'] as String).readAsStringSync())
+            as Map<String, dynamic>;
+    expect(
+        probe['schema_version'], 'prd_v3_provider_runtime_load_probe_rtk.v1');
+    expect(probe['probe_kind'], 'safe_agent_runtime_health_check_only');
+    expect(probe['health_path'], '/health');
+    expect(probe['runtime_loaded'], isTrue);
+    expect(probe['agent_tool_executed'], isFalse);
+    expect(probe['external_runtime_executed'], isFalse);
+    expect(probe['secret_plaintext_written'], isFalse);
+    expect(requests, ['/health']);
+
+    final configLog =
+        File('$configDir${Platform.pathSeparator}config_test_log.jsonl')
+            .readAsStringSync();
+    expect(configLog, contains('"config_id":"rtk"'));
+    expect(configLog, isNot(contains(sensitiveValue)));
+    expect(configLog, isNot(contains('secret=redacted')));
+
+    final runtimeStatus = jsonDecode(File(
+            '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final loadSummary =
+        runtimeStatus['provider_runtime_load_summary'] as Map<String, dynamic>;
+    expect(loadSummary['provider_ref'], 'rtk');
+    expect(loadSummary['runtime_loaded'], isTrue);
+    expect(loadSummary['runtime_loaded_count'], 1);
+    expect(loadSummary['external_runtime_executed'], isFalse);
+    expect(loadSummary['workflow_executed'], isFalse);
+    final binding = jsonDecode(File(
+            runtimeStatus['provider_capability_binding_manifest_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    final agentBinding = (binding['bindings'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere(
+            (entry) => entry['capability_id'] == 'agent_model_tools_memory');
+    expect(agentBinding['active_provider_ref'], 'rtk');
+    expect(agentBinding['runtime_loaded'], isTrue);
+    expect(agentBinding['external_runtime_executed'], isFalse);
+    expect(agentBinding['workflow_executed'], isFalse);
+    final coverageAudit = jsonDecode(File(
+            runtimeStatus['provider_integration_coverage_audit_path'] as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(coverageAudit['external_runtime_executed'], isFalse);
+    expect(coverageAudit['workflow_executed'], isFalse);
+    final rtkCoverage = (coverageAudit['coverage_rows'] as List)
+        .cast<Map<String, dynamic>>()
+        .firstWhere((entry) => entry['provider_ref'] == 'rtk');
+    expect(rtkCoverage['runtime_loaded'], isTrue);
+    expect(rtkCoverage['coverage_status'], 'passed');
   });
 
   test('stage3 live n8n endpoint runtime load uses health check only',
