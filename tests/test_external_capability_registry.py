@@ -99,9 +99,67 @@ def test_external_capability_registry_entries_preserve_runtime_and_ui_boundaries
         assert absorption["decision_source"] == "stage3_provider_registry_classification_gate"
         assert absorption["learning_note_only"] is False
         assert absorption["indefinite_reference_allowed"] is False
+        assert set(absorption["architecture_gain_criteria"]) == {
+            "fills_current_architecture_gap",
+            "reduces_complexity",
+            "improves_extensibility",
+            "improves_stability_audit_or_rollback",
+            "improves_core_abstraction",
+        }
+        gain_assessment = absorption["architecture_gain_assessment"]
+        assert set(gain_assessment) == set(absorption["architecture_gain_criteria"])
         assert absorption["architecture_delivery_required"] is (
             project["architecture_reference_status"] == "absorbed_into_architecture"
         )
+        if project["architecture_reference_status"] == "absorbed_into_architecture":
+            assert absorption["worth_absorbing"] is True
+            assert absorption["absorption_required_now"] is True
+            assert any(gain_assessment.values())
+            assert set(absorption["absorbed_targets"]) == {
+                "contract",
+                "schema",
+                "runtime_boundary",
+                "ui_information_architecture",
+                "test_gate",
+                "audit_model",
+                "fallback_strategy",
+                "provider_loading_rule",
+            }
+            delivery = absorption["parallel_architecture_delivery"]
+            assert delivery["provider_ref"] == project["project_id"]
+            assert delivery["provider_classification"] == project["registry_entry_class"]
+            assert all(
+                delivery[target]
+                for target in [
+                    "contract",
+                    "schema",
+                    "runtime_boundary",
+                    "ui_information_architecture",
+                    "test_gate",
+                    "audit_model",
+                    "fallback_strategy",
+                    "provider_loading_rule",
+                ]
+            )
+            assert absorption["blocker"] == ""
+            assert absorption["rejection_reason"] == ""
+        elif project["architecture_reference_status"] == "deferred_with_blocker":
+            assert absorption["worth_absorbing"] is True
+            assert absorption["absorption_required_now"] is False
+            assert any(gain_assessment.values())
+            assert absorption["absorbed_targets"] == []
+            assert absorption["parallel_architecture_delivery"] == {}
+            assert absorption["blocker"]
+            assert absorption["rejection_reason"] == ""
+        else:
+            assert project["architecture_reference_status"] == "rejected_no_architecture_gain"
+            assert absorption["worth_absorbing"] is False
+            assert absorption["absorption_required_now"] is False
+            assert not any(gain_assessment.values())
+            assert absorption["absorbed_targets"] == []
+            assert absorption["parallel_architecture_delivery"] == {}
+            assert absorption["blocker"] == ""
+            assert absorption["rejection_reason"]
         assert project["runtime_load_class"] in {
             "provider_capability_config_gated",
             "template_asset_manifest_only",

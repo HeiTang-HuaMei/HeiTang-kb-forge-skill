@@ -393,6 +393,14 @@ ARCHITECTURE_REFERENCE_ABSORB_TARGETS = [
     "provider_loading_rule",
 ]
 
+ARCHITECTURE_GAIN_CRITERIA = [
+    "fills_current_architecture_gap",
+    "reduces_complexity",
+    "improves_extensibility",
+    "improves_stability_audit_or_rollback",
+    "improves_core_abstraction",
+]
+
 
 def load_external_project_registry(repo_root: Path | None = None) -> dict[str, Any]:
     root = repo_root or Path.cwd()
@@ -1033,6 +1041,11 @@ def _stage3_architecture_absorption(
     return {
         "decision_source": "stage3_provider_registry_classification_gate",
         "legacy_contract_status": statuses,
+        "architecture_gain_criteria": ARCHITECTURE_GAIN_CRITERIA,
+        "architecture_gain_assessment": _stage3_architecture_gain_assessment(
+            entry_class,
+            architecture_status,
+        ),
         "worth_absorbing": worth_absorbing,
         "absorption_required_now": architecture_status == "absorbed_into_architecture",
         "learning_note_only": False,
@@ -1069,6 +1082,37 @@ def _stage3_architecture_absorption(
             else ""
         ),
         "architecture_delivery_required": architecture_status == "absorbed_into_architecture",
+    }
+
+
+def _stage3_architecture_gain_assessment(
+    entry_class: str,
+    architecture_status: str,
+) -> dict[str, bool]:
+    if architecture_status == "rejected_no_architecture_gain":
+        return {criterion: False for criterion in ARCHITECTURE_GAIN_CRITERIA}
+    if entry_class == "template_asset":
+        return {
+            "fills_current_architecture_gap": True,
+            "reduces_complexity": False,
+            "improves_extensibility": True,
+            "improves_stability_audit_or_rollback": True,
+            "improves_core_abstraction": False,
+        }
+    if entry_class == "architecture_reference":
+        return {
+            "fills_current_architecture_gap": True,
+            "reduces_complexity": True,
+            "improves_extensibility": True,
+            "improves_stability_audit_or_rollback": True,
+            "improves_core_abstraction": True,
+        }
+    return {
+        "fills_current_architecture_gap": True,
+        "reduces_complexity": False,
+        "improves_extensibility": True,
+        "improves_stability_audit_or_rollback": True,
+        "improves_core_abstraction": True,
     }
 
 
@@ -1441,6 +1485,7 @@ def _provider_capability_status(
             "candidate_reference_allowed": False,
             "learning_note_only_allowed": False,
             "indefinite_reference_allowed": False,
+            "architecture_gain_criteria": ARCHITECTURE_GAIN_CRITERIA,
             "absorbed_requires_parallel_architecture_delivery": True,
             "deferred_requires_named_blocker": True,
             "rejected_requires_rejection_reason": True,
@@ -1476,6 +1521,9 @@ def _future_reference_resolutions(queue: list[dict[str, Any]]) -> list[dict[str,
                 "architecture_reference_status": status,
                 "runtime_load_class": item.get("runtime_load_class", ""),
                 "worth_absorbing": bool(absorption.get("worth_absorbing")),
+                "architecture_gain_assessment": dict(
+                    absorption.get("architecture_gain_assessment", {})
+                ),
                 "architecture_delivery_required": bool(
                     absorption.get("architecture_delivery_required")
                 ),

@@ -97,6 +97,13 @@ def test_provider_capability_status_is_user_facing_and_not_project_loading():
         "candidate_reference_allowed": False,
         "learning_note_only_allowed": False,
         "indefinite_reference_allowed": False,
+        "architecture_gain_criteria": [
+            "fills_current_architecture_gap",
+            "reduces_complexity",
+            "improves_extensibility",
+            "improves_stability_audit_or_rollback",
+            "improves_core_abstraction",
+        ],
         "absorbed_requires_parallel_architecture_delivery": True,
         "deferred_requires_named_blocker": True,
         "rejected_requires_rejection_reason": True,
@@ -194,6 +201,7 @@ def test_future_references_are_resolved_not_kept_as_notes():
     assert rows["andrej_karpathy_skills"]["architecture_reference_status"] == "absorbed_into_architecture"
     assert rows["andrej_karpathy_skills"]["registry_entry_class"] == "template_asset"
     assert rows["andrej_karpathy_skills"]["architecture_delivery_required"] is True
+    assert any(rows["andrej_karpathy_skills"]["architecture_gain_assessment"].values())
     assert set(rows["andrej_karpathy_skills"]["absorbed_targets"]) == {
         "contract",
         "schema",
@@ -208,6 +216,8 @@ def test_future_references_are_resolved_not_kept_as_notes():
     for project_id in ["presenton", "pi_mono"]:
         row = rows[project_id]
         assert row["architecture_reference_status"] == "deferred_with_blocker"
+        assert row["worth_absorbing"] is True
+        assert any(row["architecture_gain_assessment"].values())
         assert row["blocker"]
         assert row["rejection_reason"] == ""
         assert row["runtime_dependency_added"] is False
@@ -221,6 +231,8 @@ def test_future_references_are_resolved_not_kept_as_notes():
     ]:
         row = rows[project_id]
         assert row["architecture_reference_status"] == "rejected_no_architecture_gain"
+        assert row["worth_absorbing"] is False
+        assert not any(row["architecture_gain_assessment"].values())
         assert row["rejection_reason"]
         assert row["blocker"] == ""
         assert row["runtime_dependency_added"] is False
