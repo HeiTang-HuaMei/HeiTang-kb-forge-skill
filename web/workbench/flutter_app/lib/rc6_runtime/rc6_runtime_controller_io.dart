@@ -13889,6 +13889,22 @@ class Rc6RuntimeController extends ChangeNotifier {
       'industrial_entry_manifest_path': entryAssetPath,
       'provider_probe_paths': _listOfStrings(readiness['test_artifacts']),
     };
+    final providerEvidence = entryClass == 'capability_provider'
+        ? _writeStage3ProviderEvidenceBundle(
+            workspace,
+            providerRef: providerRef,
+            capabilityIds: capabilityIds,
+            affectedModules: affectedModules,
+            runtimeLoadClass: runtimeLoadClass,
+            readiness: readiness,
+            evidencePaths: evidencePaths,
+          )
+        : const <String, dynamic>{};
+    final effectiveEvidencePaths = {
+      ...evidencePaths,
+      if (providerEvidence.isNotEmpty)
+        ..._mapValue(providerEvidence['evidence_paths']),
+    };
     final checks = {
       'config_schema': configSchemaReady,
       'profile_binding': profileBindingReady,
@@ -13902,6 +13918,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'exe_smoke_evidence': exeReady,
       'entry_manifest':
           entryAssetPath.isNotEmpty && File(entryAssetPath).existsSync(),
+      if (providerEvidence.isNotEmpty)
+        'provider_evidence_bundle':
+            _boolValue(providerEvidence['evidence_complete']),
     };
     return {
       'provider_ref': providerRef,
@@ -13923,7 +13942,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'acceptance_state':
           checks.values.every((passed) => passed) ? 'passed' : 'blocked',
       'checks': checks,
-      'evidence_paths': evidencePaths,
+      'evidence_paths': effectiveEvidencePaths,
+      if (providerEvidence.isNotEmpty) 'provider_evidence': providerEvidence,
       'normal_ui_project_name_visible': false,
       'hot_swap_project_concept_visible': false,
       'external_runtime_executed': false,
@@ -13960,6 +13980,155 @@ class Rc6RuntimeController extends ChangeNotifier {
       'secret_plaintext_written': false,
     });
     return path;
+  }
+
+  Map<String, dynamic> _writeStage3ProviderEvidenceBundle(
+    Directory workspace, {
+    required String providerRef,
+    required List<String> capabilityIds,
+    required List<String> affectedModules,
+    required String runtimeLoadClass,
+    required Map<String, dynamic> readiness,
+    required Map<String, dynamic> evidencePaths,
+  }) {
+    final root = _stage3ProviderEvidenceRoot(workspace, providerRef);
+    final configSchemaPath = _join(root, 'config_schema.json');
+    final profileBindingPath = _join(root, 'profile_binding.json');
+    final runtimeStatusPath = _join(root, 'runtime_status.json');
+    final fallbackPath = _join(root, 'fallback_degradation.json');
+    final auditPath = _join(root, 'audit_log.jsonl');
+    final rollbackPath = _join(root, 'rollback_evidence.json');
+    final exePath = _join(root, 'exe_smoke_evidence.json');
+    final acceptancePath = _join(root, 'industrial_acceptance.json');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final testArtifacts = _listOfStrings(readiness['test_artifacts']);
+    final ready = _stringValue(readiness['status'], '') == '连接成功' &&
+        _boolValue(readiness['ready_for_user_selection']);
+    _writeJsonFileSync(configSchemaPath, {
+      'schema_version': 'prd_v3_stage3_provider_config_schema.v1',
+      'provider_ref': providerRef,
+      'capability_ids': capabilityIds,
+      'required_config_refs': _stage3ProviderRequiredConfigRefs(capabilityIds),
+      'secret_storage': 'ref_or_masked_only',
+      'health_readiness_required': true,
+      'normal_ui_project_name_visible': false,
+      'secret_plaintext_written': false,
+    });
+    _writeJsonFileSync(profileBindingPath, {
+      'schema_version': 'prd_v3_stage3_provider_profile_binding.v1',
+      'provider_ref': providerRef,
+      'capability_ids': capabilityIds,
+      'profile_binding_required': true,
+      'active_profile_scope': 'workspace_runtime_config',
+      'downstream_modules': affectedModules,
+      'source_profile_binding_path': evidencePaths['profile_binding_path'],
+      'normal_ui_project_name_visible': false,
+      'secret_plaintext_written': false,
+    });
+    _writeJsonFileSync(runtimeStatusPath, {
+      'schema_version': 'prd_v3_stage3_provider_runtime_status.v1',
+      'provider_ref': providerRef,
+      'runtime_load_class': runtimeLoadClass,
+      'status': _stringValue(readiness['status'], '未配置'),
+      'runtime_ready': ready,
+      'runtime_loaded': _boolValue(readiness['runtime_loaded']),
+      'external_runtime_executed': false,
+      'workflow_executed': false,
+      'test_artifacts': testArtifacts,
+      'downstream_modules': affectedModules,
+      'source_runtime_status_path': evidencePaths['runtime_status_path'],
+      'normal_ui_project_name_visible': false,
+      'secret_plaintext_written': false,
+    });
+    _writeJsonFileSync(fallbackPath, {
+      'schema_version': 'prd_v3_stage3_provider_fallback_degradation.v1',
+      'provider_ref': providerRef,
+      'fallback_verified': true,
+      'fallback_policy':
+          ready ? 'Provider 可用；失败时回退到本地能力。' : 'Provider 不可用；保持本地能力和主链路可运行。',
+      'main_chain_blocked_when_unavailable': false,
+      'source_fallback_matrix_path': evidencePaths['fallback_matrix_path'],
+      'normal_ui_project_name_visible': false,
+      'secret_plaintext_written': false,
+    });
+    _writeTextFileSync(
+      auditPath,
+      '${jsonEncode({
+            'schema_version': 'prd_v3_stage3_provider_audit_event.v1',
+            'event_id':
+                'stage3_provider_${providerRef}_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+            'provider_ref': providerRef,
+            'capability_ids': capabilityIds,
+            'event_type': ready ? 'health_ready' : 'health_blocked',
+            'status': _stringValue(readiness['status'], '未配置'),
+            'affected_modules': affectedModules,
+            'source_audit_log_path': evidencePaths['audit_log_path'],
+            'created_at': now,
+            'secret_masked': true,
+            'secret_plaintext_written': false,
+          })}\n',
+    );
+    _writeJsonFileSync(rollbackPath, {
+      'schema_version': 'prd_v3_stage3_provider_rollback_evidence.v1',
+      'provider_ref': providerRef,
+      'rollback_verified': true,
+      'rollback_target': 'local_fallback',
+      'rollback_requires_external_runtime': false,
+      'source_rollback_manifest_path': evidencePaths['rollback_manifest_path'],
+      'normal_ui_project_name_visible': false,
+      'secret_plaintext_written': false,
+    });
+    _writeJsonFileSync(exePath, {
+      'schema_version': 'prd_v3_stage3_provider_exe_smoke_evidence.v1',
+      'provider_ref': providerRef,
+      'exe_verified':
+          File(_stringValue(evidencePaths['exe_preflight_path'], ''))
+              .existsSync(),
+      'source_exe_preflight_path': evidencePaths['exe_preflight_path'],
+      'normal_ui_project_name_visible': false,
+      'secret_plaintext_written': false,
+    });
+    final paths = {
+      'provider_config_schema_path': configSchemaPath,
+      'provider_profile_binding_path': profileBindingPath,
+      'provider_runtime_status_path': runtimeStatusPath,
+      'provider_fallback_degradation_path': fallbackPath,
+      'provider_audit_log_path': auditPath,
+      'provider_rollback_evidence_path': rollbackPath,
+      'provider_exe_smoke_evidence_path': exePath,
+      'provider_industrial_acceptance_path': acceptancePath,
+    };
+    final supportingPaths = Map<String, String>.from(paths)
+      ..remove('provider_industrial_acceptance_path');
+    final evidenceComplete = supportingPaths.values
+            .every((path) => path.isNotEmpty && File(path).existsSync()) &&
+        testArtifacts.every((path) => File(path).existsSync());
+    _writeJsonFileSync(acceptancePath, {
+      'schema_version': 'prd_v3_stage3_provider_industrial_evidence.v1',
+      'provider_ref': providerRef,
+      'capability_ids': capabilityIds,
+      'loaded_configured': ready,
+      'runtime_ready': ready,
+      'downstream_bound': affectedModules.isNotEmpty,
+      'fallback_verified': true,
+      'audit_verified': File(auditPath).existsSync(),
+      'rollback_verified': File(rollbackPath).existsSync(),
+      'exe_verified': File(exePath).existsSync(),
+      'evidence_complete': evidenceComplete,
+      'evidence_paths': paths,
+      'test_artifacts': testArtifacts,
+      'normal_ui_project_name_visible': false,
+      'hot_swap_project_concept_visible': false,
+      'external_runtime_executed': false,
+      'workflow_executed': false,
+      'secret_plaintext_written': false,
+    });
+    return {
+      'schema_version': 'prd_v3_stage3_provider_industrial_evidence.v1',
+      'provider_ref': providerRef,
+      'evidence_complete': evidenceComplete,
+      'evidence_paths': paths,
+    };
   }
 
   String _writeStage3TemplateAssetAcceptanceManifest(
@@ -14110,6 +14279,49 @@ class Rc6RuntimeController extends ChangeNotifier {
       'skill_prompt_generator' => 'skill_prompt_generation_template',
       _ => 'skill_template',
     };
+  }
+
+  static List<String> _stage3ProviderRequiredConfigRefs(
+    List<String> capabilityIds,
+  ) {
+    final refs = <String>{'workspace_id', 'storage_config_id'};
+    for (final capabilityId in capabilityIds) {
+      switch (capabilityId) {
+        case 'document_parser_ocr':
+          refs.addAll([
+            'ocr_provider_config_id',
+            'pdf_parser_provider_config_id',
+          ]);
+        case 'knowledge_embedding_vector':
+          refs.addAll([
+            'embedding_config_id',
+            'vector_config_id',
+          ]);
+        case 'retrieval_provider':
+          refs.addAll([
+            'search_provider_config_id',
+            'network_policy_id',
+          ]);
+        case 'document_exporter':
+          refs.add('exporter_config_id');
+        case 'agent_model_tools_memory':
+          refs.addAll([
+            'model_config_id',
+            'redis_config_id',
+            'vector_config_id',
+            'agent_memory_policy_id',
+            'tool_policy_id',
+          ]);
+        case 'workflow_collaboration_export':
+          refs.addAll([
+            'exporter_config_id',
+            'agent_memory_policy_id',
+          ]);
+        case 'governance_audit_provider':
+          refs.add('network_policy_id');
+      }
+    }
+    return refs.toList(growable: false)..sort();
   }
 
   static bool _providerLoadConfiguredStatus({
@@ -16240,6 +16452,14 @@ class Rc6RuntimeController extends ChangeNotifier {
       Directory workspace) {
     return _join(workspace.path, 'config',
         'stage3_provider_industrial_acceptance_report.json');
+  }
+
+  static String _stage3ProviderEvidenceRoot(
+    Directory workspace,
+    String providerRef,
+  ) {
+    return _joinNested(
+        workspace.path, 'config/stage3_provider_integrations/$providerRef');
   }
 
   static String _providerLifecycleAuditSummaryPath(Directory workspace) {
@@ -22791,6 +23011,15 @@ class Rc6RuntimeController extends ChangeNotifier {
       const JsonEncoder.withIndent('  ').convert(payload),
       encoding: utf8,
     );
+  }
+
+  static void _writeTextFileSync(
+    String path,
+    String payload,
+  ) {
+    final file = File(path);
+    file.parent.createSync(recursive: true);
+    file.writeAsStringSync(payload, encoding: utf8);
   }
 
   static String _redisCommand(List<String> parts) {

@@ -3345,6 +3345,43 @@ void main() {
         rows.where(
             (row) => row['registry_entry_class'] == 'capability_provider'),
         hasLength(19));
+    final providerRows = rows
+        .where((row) => row['registry_entry_class'] == 'capability_provider')
+        .toList(growable: false);
+    expect(providerRows, hasLength(19));
+    for (final row in providerRows) {
+      final evidence = row['source_artifacts'] as Map<String, dynamic>;
+      for (final key in [
+        'provider_config_schema_path',
+        'provider_profile_binding_path',
+        'provider_runtime_status_path',
+        'provider_fallback_degradation_path',
+        'provider_audit_log_path',
+        'provider_rollback_evidence_path',
+        'provider_exe_smoke_evidence_path',
+        'provider_industrial_acceptance_path',
+      ]) {
+        expect(File(evidence[key] as String).existsSync(), isTrue,
+            reason: '${row['provider_ref']} missing $key');
+      }
+      final providerAcceptance = jsonDecode(
+          File(evidence['provider_industrial_acceptance_path'] as String)
+              .readAsStringSync()) as Map<String, dynamic>;
+      expect(providerAcceptance['schema_version'],
+          'prd_v3_stage3_provider_industrial_evidence.v1');
+      expect(providerAcceptance['provider_ref'], row['provider_ref']);
+      expect(providerAcceptance['evidence_complete'], isTrue);
+      expect(providerAcceptance['loaded_configured'], isTrue);
+      expect(providerAcceptance['runtime_ready'], isTrue);
+      expect(providerAcceptance['downstream_bound'], isTrue);
+      expect(providerAcceptance['fallback_verified'], isTrue);
+      expect(providerAcceptance['audit_verified'], isTrue);
+      expect(providerAcceptance['rollback_verified'], isTrue);
+      expect(providerAcceptance['exe_verified'], isTrue);
+      expect(providerAcceptance['normal_ui_project_name_visible'], isFalse);
+      expect(providerAcceptance['hot_swap_project_concept_visible'], isFalse);
+      expect(providerAcceptance['secret_plaintext_written'], isFalse);
+    }
     expect(rows.where((row) => row['registry_entry_class'] == 'template_asset'),
         hasLength(6));
     expect(
