@@ -13359,7 +13359,45 @@ class Rc6RuntimeController extends ChangeNotifier {
     Directory workspace,
   ) async {
     final manifestPath = _providerRuntimeLoadManifestPath(workspace);
-    final manifest = await _readJsonObject(manifestPath);
+    var manifest = await _readJsonObject(manifestPath);
+    final shouldWriteDefaultManifest = manifest.isEmpty ||
+        (_stringValue(manifest['action'], '') == 'status_refresh' &&
+            !_boolValue(manifest['runtime_loaded']));
+    if (shouldWriteDefaultManifest) {
+      final now = DateTime.now().toUtc().toIso8601String();
+      final stage2Preflight = _stage2IndustrialPreflight(workspace);
+      final readinessByProvider = await _providerReadinessByProvider(workspace);
+      final n8nReadiness =
+          readinessByProvider['n8n'] ?? const <String, dynamic>{};
+      final eligible =
+          _boolValue(stage2Preflight['runtime_load_allowed']) &&
+              _boolValue(n8nReadiness['ready_for_user_selection']);
+      await _writeProviderRuntimeLoadManifest(
+        workspace,
+        providerRef: 'n8n',
+        capabilityId: 'workflow_collaboration_export',
+        startedAt: now,
+        finishedAt: now,
+        eligible: eligible,
+        action: 'status_refresh',
+        probe: {
+          'status': '未配置',
+          'error_code': eligible
+              ? 'n8n_endpoint_missing_or_invalid'
+              : 'n8n_runtime_load_not_eligible',
+          'error_message_zh': eligible
+              ? '工作流协作 Provider 未配置 endpoint，A2A 导出降级为本地协作报告。'
+              : 'Stage2 工业级预检或 n8n readiness 未通过，A2A 导出降级为本地协作报告。',
+          'sanitized_endpoint': '',
+          'runtime_loaded': false,
+          'external_runtime_connected': false,
+          'external_runtime_executed': false,
+          'workflow_executed': false,
+          'local_fallback': 'A2A 本地协作报告导出继续可用。',
+        },
+      );
+      manifest = await _readJsonObject(manifestPath);
+    }
     if (manifest.isEmpty) {
       return {
         'schema_version': 'prd_v3_provider_runtime_load_summary.v1',

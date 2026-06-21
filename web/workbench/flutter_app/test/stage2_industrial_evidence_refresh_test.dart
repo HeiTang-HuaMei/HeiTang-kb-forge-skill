@@ -290,6 +290,7 @@ void main() {
       'config${Platform.pathSeparator}storage_provider_settings.json',
       'config${Platform.pathSeparator}exporter_settings.json',
       'config${Platform.pathSeparator}config_test_log.jsonl',
+      'config${Platform.pathSeparator}provider_runtime_load_manifest.json',
       'config${Platform.pathSeparator}profile_change_log.jsonl',
       'workbooks${Platform.pathSeparator}workbook_manifest.json',
     ]) {
@@ -300,6 +301,14 @@ void main() {
     }
     final runtimeStatus = _readJson(
         '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}project_config_runtime_status.json');
+    final defaultRuntimeLoadManifest = _readJson(
+        '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}provider_runtime_load_manifest.json');
+    expect(defaultRuntimeLoadManifest['action'], 'status_refresh');
+    expect(defaultRuntimeLoadManifest['status'], '未配置');
+    expect(defaultRuntimeLoadManifest['runtime_loaded'], isFalse);
+    expect(defaultRuntimeLoadManifest['external_runtime_executed'], isFalse);
+    expect(defaultRuntimeLoadManifest['workflow_executed'], isFalse);
+    expect(defaultRuntimeLoadManifest['secret_plaintext_written'], isFalse);
     final preflight =
         runtimeStatus['stage_2_industrial_preflight'] as Map<String, dynamic>;
     final failedChecks =
@@ -336,6 +345,18 @@ void main() {
 
     final runtimeStatus = _readJson(
         '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}project_config_runtime_status.json');
+    final runtimeLoadManifest = _readJson(
+        '${workspace.path}${Platform.pathSeparator}config${Platform.pathSeparator}provider_runtime_load_manifest.json');
+    expect(runtimeLoadManifest['action'], 'status_refresh');
+    expect(runtimeLoadManifest['eligible_before_load'], isTrue);
+    expect(runtimeLoadManifest['runtime_loaded'], isFalse);
+    expect(runtimeLoadManifest['runtime_loaded_count'], 0);
+    expect(runtimeLoadManifest['status'], '未配置');
+    expect(runtimeLoadManifest['error_code'],
+        'n8n_endpoint_missing_or_invalid');
+    expect(runtimeLoadManifest['external_runtime_executed'], isFalse);
+    expect(runtimeLoadManifest['workflow_executed'], isFalse);
+    expect(runtimeLoadManifest['secret_plaintext_written'], isFalse);
     final preflight =
         runtimeStatus['stage_2_industrial_preflight'] as Map<String, dynamic>;
     expect(preflight['status'], 'passed');
