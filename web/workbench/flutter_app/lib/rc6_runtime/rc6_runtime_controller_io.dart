@@ -15037,6 +15037,8 @@ class Rc6RuntimeController extends ChangeNotifier {
             registeredProviderArtifacts['ready_for_user_selection_count'],
         'adapter_ready_for_user_selection_count':
             providerAdapterReadiness['ready_for_user_selection_count'],
+        'runtime_ready_for_user_selection_count':
+            providerAdapterReadiness['ready_for_user_selection_count'],
         'adapter_runtime_loaded_count':
             providerAdapterReadiness['runtime_loaded_count'],
         'external_runtime_loaded_count':

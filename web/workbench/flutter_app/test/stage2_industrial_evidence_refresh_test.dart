@@ -311,6 +311,12 @@ void main() {
     expect(defaultRuntimeLoadManifest['secret_plaintext_written'], isFalse);
     final preflight =
         runtimeStatus['stage_2_industrial_preflight'] as Map<String, dynamic>;
+    final registeredSummary =
+        runtimeStatus['registered_provider_summary'] as Map<String, dynamic>;
+    expect(
+      registeredSummary['runtime_ready_for_user_selection_count'],
+      registeredSummary['adapter_ready_for_user_selection_count'],
+    );
     final failedChecks =
         (preflight['failed_checks'] as List).cast<String>().toList();
     expect(failedChecks, ['industrial_exe_launch_smoke']);
@@ -359,6 +365,13 @@ void main() {
     expect(runtimeLoadManifest['secret_plaintext_written'], isFalse);
     final preflight =
         runtimeStatus['stage_2_industrial_preflight'] as Map<String, dynamic>;
+    final registeredSummary =
+        runtimeStatus['registered_provider_summary'] as Map<String, dynamic>;
+    expect(registeredSummary['runtime_ready_for_user_selection_count'], 18);
+    expect(
+      registeredSummary['runtime_ready_for_user_selection_count'],
+      registeredSummary['adapter_ready_for_user_selection_count'],
+    );
     expect(preflight['status'], 'passed');
     expect(preflight['runtime_load_allowed'], isTrue);
     expect(preflight['failed_checks'], isEmpty);
