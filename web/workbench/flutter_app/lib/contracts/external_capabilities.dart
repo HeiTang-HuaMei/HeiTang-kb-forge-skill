@@ -133,6 +133,10 @@ class ProviderCapabilityStatus {
     required this.readyForUserSelectionCount,
     required this.providerNetworkApiReady,
     required this.userConceptBoundary,
+    required this.registryEntryClassCounts,
+    required this.architectureReferenceStatusCounts,
+    required this.indefiniteReferenceStateAllowed,
+    required this.legacyReferenceOnlyContractsAreTraceOnly,
     required this.capabilities,
   });
 
@@ -142,6 +146,10 @@ class ProviderCapabilityStatus {
   final int readyForUserSelectionCount;
   final bool providerNetworkApiReady;
   final Map<String, dynamic> userConceptBoundary;
+  final Map<String, dynamic> registryEntryClassCounts;
+  final Map<String, dynamic> architectureReferenceStatusCounts;
+  final bool indefiniteReferenceStateAllowed;
+  final bool legacyReferenceOnlyContractsAreTraceOnly;
   final List<ProviderCapabilityEntry> capabilities;
 
   factory ProviderCapabilityStatus.fromJsonString(String source) {
@@ -161,6 +169,13 @@ class ProviderCapabilityStatus {
       readyForUserSelectionCount: _int(json['ready_for_user_selection_count']),
       providerNetworkApiReady: _bool(json['provider_network_api_ready']),
       userConceptBoundary: _map(json['user_concept_boundary']),
+      registryEntryClassCounts: _map(json['registry_entry_class_counts']),
+      architectureReferenceStatusCounts:
+          _map(json['architecture_reference_status_counts']),
+      indefiniteReferenceStateAllowed:
+          _bool(json['indefinite_reference_state_allowed']),
+      legacyReferenceOnlyContractsAreTraceOnly:
+          _bool(json['legacy_reference_only_contracts_are_trace_only']),
       capabilities: _list(json['capabilities'])
           .map((item) => ProviderCapabilityEntry.fromJson(_map(item)))
           .toList(growable: false),
@@ -190,6 +205,9 @@ class ProviderCapabilityEntry {
     required this.providerStateCount,
     required this.readyProviderStateCount,
     required this.providerRefs,
+    required this.registryEntryClassCounts,
+    required this.architectureReferenceStatusCounts,
+    required this.providerRuntimeLoadClasses,
   });
 
   final String capabilityId;
@@ -212,6 +230,9 @@ class ProviderCapabilityEntry {
   final int providerStateCount;
   final int readyProviderStateCount;
   final List<String> providerRefs;
+  final Map<String, dynamic> registryEntryClassCounts;
+  final Map<String, dynamic> architectureReferenceStatusCounts;
+  final List<String> providerRuntimeLoadClasses;
 
   factory ProviderCapabilityEntry.fromJson(Map<String, dynamic> json) {
     return ProviderCapabilityEntry(
@@ -239,6 +260,14 @@ class ProviderCapabilityEntry {
       providerRefs: _list(json['related_provider_states'])
           .map((item) => _string(_map(item)['provider_ref']))
           .where((value) => value.isNotEmpty)
+          .toList(growable: false),
+      registryEntryClassCounts: _map(json['registry_entry_class_counts']),
+      architectureReferenceStatusCounts:
+          _map(json['architecture_reference_status_counts']),
+      providerRuntimeLoadClasses: _list(json['related_provider_states'])
+          .map((item) => _string(_map(item)['runtime_load_class']))
+          .where((value) => value.isNotEmpty)
+          .toSet()
           .toList(growable: false),
     );
   }
@@ -326,12 +355,25 @@ final sampleExternalCapabilityRegistry = ExternalCapabilityRegistry.fromJson({
 });
 
 final sampleProviderCapabilityStatus = ProviderCapabilityStatus.fromJson({
-  'schema_version': 'prd_v3_provider_capability_status.v1',
+  'schema_version': 'prd_v3_provider_capability_status.v2',
   'product_baseline_chain':
       '文档库 -> 知识库 -> 索引层 -> RAG -> 编排层 -> 文档/Skill/Agent/A2A',
   'capability_count': 2,
   'ready_for_user_selection_count': 0,
   'provider_network_api_ready': false,
+  'registry_entry_class_counts': {
+    'capability_provider': 2,
+    'template_asset': 0,
+    'architecture_reference': 0,
+  },
+  'architecture_reference_status_counts': {
+    'candidate_reference': 0,
+    'absorbed_into_architecture': 2,
+    'rejected_no_architecture_gain': 0,
+    'deferred_with_blocker': 0,
+  },
+  'indefinite_reference_state_allowed': false,
+  'legacy_reference_only_contracts_are_trace_only': true,
   'user_concept_boundary': {
     'external_project_names_visible_in_normal_ui': false,
     'hot_swap_project_concept_visible': false,
@@ -356,11 +398,26 @@ final sampleProviderCapabilityStatus = ProviderCapabilityStatus.fromJson({
       'needs_verification': false,
       'audit_event_required': true,
       'rollback_supported': true,
+      'registry_entry_class_counts': {
+        'capability_provider': 1,
+        'template_asset': 0,
+        'architecture_reference': 0,
+      },
+      'architecture_reference_status_counts': {
+        'candidate_reference': 0,
+        'absorbed_into_architecture': 1,
+        'rejected_no_architecture_gain': 0,
+        'deferred_with_blocker': 0,
+      },
       'user_visible_behavior':
           'Requires dependency install or adapter completion',
       'zh_user_visible_behavior': '需要安装或完成适配后启用',
       'related_provider_states': [
-        {'provider_ref': 'docling', 'ready_for_user_selection': false},
+        {
+          'provider_ref': 'docling',
+          'ready_for_user_selection': false,
+          'runtime_load_class': 'provider_capability_config_gated',
+        },
       ],
     },
     {
@@ -379,10 +436,25 @@ final sampleProviderCapabilityStatus = ProviderCapabilityStatus.fromJson({
       'needs_verification': false,
       'audit_event_required': true,
       'rollback_supported': true,
+      'registry_entry_class_counts': {
+        'capability_provider': 1,
+        'template_asset': 0,
+        'architecture_reference': 0,
+      },
+      'architecture_reference_status_counts': {
+        'candidate_reference': 0,
+        'absorbed_into_architecture': 1,
+        'rejected_no_architecture_gain': 0,
+        'deferred_with_blocker': 0,
+      },
       'user_visible_behavior': 'Requires network authorization and validation',
       'zh_user_visible_behavior': '需要网络授权与验证',
       'related_provider_states': [
-        {'provider_ref': 'anysearchskill', 'ready_for_user_selection': false},
+        {
+          'provider_ref': 'anysearchskill',
+          'ready_for_user_selection': false,
+          'runtime_load_class': 'provider_capability_config_gated',
+        },
       ],
     },
   ],

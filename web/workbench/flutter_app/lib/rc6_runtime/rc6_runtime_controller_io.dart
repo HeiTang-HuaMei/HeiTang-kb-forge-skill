@@ -13651,7 +13651,8 @@ class Rc6RuntimeController extends ChangeNotifier {
             await client.getUrl(candidate).timeout(const Duration(seconds: 5));
         request.headers.set(HttpHeaders.acceptHeader, 'application/json');
         if (effectiveKey.isNotEmpty) {
-          request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $effectiveKey');
+          request.headers
+              .set(HttpHeaders.authorizationHeader, 'Bearer $effectiveKey');
         }
         final response =
             await request.close().timeout(const Duration(seconds: 5));
@@ -13825,9 +13826,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     final loadedBehavior = isAgentRuntime
         ? '外部 Agent 工具 Provider 健康检查通过。'
         : '外部工作流协作 Provider 可用。';
-    final fallbackBehavior = isAgentRuntime
-        ? '本地 Agent 工作区和本地记忆继续可用。'
-        : 'A2A 本地协作报告导出继续可用。';
+    final fallbackBehavior =
+        isAgentRuntime ? '本地 Agent 工作区和本地记忆继续可用。' : 'A2A 本地协作报告导出继续可用。';
     final agentBinding = isAgentRuntime
         ? (loaded ? loadedBehavior : fallbackBehavior)
         : (loaded ? '外部工作流协作 Provider 可用。' : '降级为本地 A2A 导出。');
@@ -14270,6 +14270,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'normal_ui_project_name_hidden':
             _boolValue(entry['visible_in_normal_ui']) == false,
         'secret_masked': _boolValue(entry['secret_masked']),
+        'source_classification_consumed':
+            _boolValue(entry['source_classification_consumed']),
         'architecture_absorption_decision_valid':
             _architectureAbsorptionDecisionValid(entry),
       };
@@ -14281,6 +14283,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         'capability_id': capabilityId,
         'provider_ref': providerRef,
         'registry_entry_class': entry['registry_entry_class'],
+        'source_stage3_classification': entry['source_stage3_classification'],
+        'source_classification_consumed':
+            entry['source_classification_consumed'],
         'runtime_load_class': entry['runtime_load_class'],
         'architecture_reference_status': entry['architecture_reference_status'],
         'architecture_absorption': entry['architecture_absorption'],
@@ -16586,23 +16591,37 @@ class Rc6RuntimeController extends ChangeNotifier {
           providerRef,
           provider,
         );
+        final architectureStatus = _architectureReferenceStatus(
+          capabilityId,
+          providerRef,
+          provider,
+          entryClass,
+        );
+        final architectureAbsorption = _architectureAbsorptionRecord(
+          capabilityId,
+          providerRef,
+          provider,
+          entryClass,
+          architectureStatus,
+        );
+        final runtimeLoadClass = _providerRuntimeLoadClass(
+          entryClass,
+          provider,
+        );
         entries.add({
           'capability_id': capabilityId,
           'capability_area': capabilityArea,
           'provider_ref': providerRef,
           'registry_entry_class': entryClass,
-          'architecture_reference_status': _architectureReferenceStatus(
-            capabilityId,
-            providerRef,
-            provider,
-            entryClass,
+          'source_stage3_classification': _stringValue(
+            provider['stage3_current_classification'],
+            '',
           ),
-          'architecture_absorption': _architectureAbsorptionRecord(
-            capabilityId,
-            providerRef,
-            provider,
-            entryClass,
-          ),
+          'source_classification_consumed':
+              _stringValue(provider['stage3_current_classification'], '')
+                  .isNotEmpty,
+          'architecture_reference_status': architectureStatus,
+          'architecture_absorption': architectureAbsorption,
           'template_asset_contract': _templateAssetContract(
             capabilityId,
             providerRef,
@@ -16614,10 +16633,7 @@ class Rc6RuntimeController extends ChangeNotifier {
             providerRef,
             provider,
           ),
-          'runtime_load_class': _providerRuntimeLoadClass(
-            entryClass,
-            provider,
-          ),
+          'runtime_load_class': runtimeLoadClass,
           'user_visible_entry':
               _providerUserEntry(capabilityId, userVisibleName),
           'status': _providerStatusLabel(status),
@@ -16696,6 +16712,15 @@ class Rc6RuntimeController extends ChangeNotifier {
     String providerRef,
     Map<String, dynamic> provider,
   ) {
+    final sourceClass = _stringValue(
+      provider['registry_entry_class'],
+      _stringValue(provider['stage3_current_classification'], ''),
+    );
+    if (sourceClass == 'capability_provider' ||
+        sourceClass == 'template_asset' ||
+        sourceClass == 'architecture_reference') {
+      return sourceClass;
+    }
     final contractStatus = _listOfStrings(provider['contract_status']).toSet();
     if (capabilityId == 'skill_template_provider') {
       return 'template_asset';
@@ -16731,6 +16756,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     Map<String, dynamic> provider,
     String entryClass,
   ) {
+    final sourceStatus =
+        _stringValue(provider['architecture_reference_status'], '');
+    if (sourceStatus == 'absorbed_into_architecture' ||
+        sourceStatus == 'deferred_with_blocker' ||
+        sourceStatus == 'rejected_no_architecture_gain') {
+      return sourceStatus;
+    }
     final contractStatus = _listOfStrings(provider['contract_status']).toSet();
     if (entryClass == 'capability_provider' || entryClass == 'template_asset') {
       return 'absorbed_into_architecture';
@@ -16789,14 +16821,47 @@ class Rc6RuntimeController extends ChangeNotifier {
     String capabilityId,
     String providerRef,
     Map<String, dynamic> provider,
-    String entryClass,
-  ) {
-    final status = _architectureReferenceStatus(
-      capabilityId,
-      providerRef,
-      provider,
-      entryClass,
-    );
+    String entryClass, [
+    String? resolvedStatus,
+  ]) {
+    final sourceAbsorption = _mapValue(provider['architecture_absorption']);
+    if (sourceAbsorption.isNotEmpty &&
+        _architectureAbsorptionDecisionValid({
+          'architecture_absorption': sourceAbsorption,
+          'architecture_reference_status':
+              _stringValue(provider['architecture_reference_status'], ''),
+        })) {
+      final status = _stringValue(
+        provider['architecture_reference_status'],
+        _stringValue(sourceAbsorption['status'], ''),
+      );
+      final delivery = Map<String, dynamic>.from(
+          _mapValue(sourceAbsorption['parallel_architecture_delivery']));
+      if (delivery.isNotEmpty) {
+        delivery['capability_id'] =
+            _stringValue(delivery['capability_id'], capabilityId);
+        delivery['provider_classification'] = _stringValue(
+          delivery['provider_classification'],
+          entryClass,
+        );
+      }
+      return {
+        ...sourceAbsorption,
+        'status': status,
+        'learning_note_only': false,
+        'indefinite_reference_allowed': false,
+        'parallel_architecture_delivery': delivery,
+        'must_not_surface_to_normal_ui': true,
+        'source_consumed': true,
+      };
+    }
+    final status = resolvedStatus ??
+        _architectureReferenceStatus(
+          capabilityId,
+          providerRef,
+          provider,
+          entryClass,
+        );
     final absorbedTargets = switch (status) {
       'absorbed_into_architecture' => _architectureAbsorptionTargets(
           capabilityId,
@@ -16804,8 +16869,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         ),
       _ => <String>[],
     };
-    final worthAbsorbing =
-        status == 'absorbed_into_architecture' ||
+    final worthAbsorbing = status == 'absorbed_into_architecture' ||
         status == 'deferred_with_blocker';
     return {
       'status': status,
@@ -16830,6 +16894,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           : '',
       'architecture_delivery_required': status == 'absorbed_into_architecture',
       'must_not_surface_to_normal_ui': true,
+      'source_consumed': false,
     };
   }
 
@@ -16934,12 +16999,12 @@ class Rc6RuntimeController extends ChangeNotifier {
               'audit_model',
             ]
           : const [
-          'provider_contract',
-          'index_vector_schema',
-          'dimension_check_gate',
-          'fallback_policy',
-          'audit_model',
-        ],
+              'provider_contract',
+              'index_vector_schema',
+              'dimension_check_gate',
+              'fallback_policy',
+              'audit_model',
+            ],
       'retrieval_provider' => const [
           'provider_contract',
           'rag_retrieval_schema',
@@ -17003,6 +17068,19 @@ class Rc6RuntimeController extends ChangeNotifier {
     String entryClass,
     Map<String, dynamic> provider,
   ) {
+    final sourceClass = _stringValue(provider['runtime_load_class'], '');
+    if (sourceClass == 'provider_capability_config_gated' ||
+        sourceClass == 'template_asset_manifest_only' ||
+        sourceClass == 'architecture_reference_no_runtime') {
+      return switch (sourceClass) {
+        'provider_capability_config_gated' =>
+          _boolValue(provider['requires_external_runtime'])
+              ? 'external_health_check_required'
+              : 'local_capability_enhancement',
+        'template_asset_manifest_only' => 'template_manifest_only',
+        _ => sourceClass,
+      };
+    }
     if (entryClass == 'template_asset') {
       return 'template_manifest_only';
     }
@@ -18212,7 +18290,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         _stringValue(permissionCheck['status'], '') == 'passed';
     final required = {
       'agent_permission_runtime_passed': permissionPassed,
-      'external_runtime_required': _boolValue(contract['requires_external_runtime']),
+      'external_runtime_required':
+          _boolValue(contract['requires_external_runtime']),
       'tool_policy_boundary_required': true,
       'health_load_separate': true,
       'no_agent_tool_execution_during_readiness': true,
@@ -18250,8 +18329,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'gate_audit': gateAudit,
       'status': passed ? '连接成功' : '需启动外部服务',
       'error_code': passed ? '' : 'external_runtime_required',
-      'error_message_zh':
-          passed ? '' : '需要外部服务启动、Agent 权限边界 runtime 证据和健康检查后才能启用 Agent 工具能力增强。',
+      'error_message_zh': passed
+          ? ''
+          : '需要外部服务启动、Agent 权限边界 runtime 证据和健康检查后才能启用 Agent 工具能力增强。',
       'capability_ids': _listOfStrings(contract['capability_ids']),
       'affected_modules': _listOfStrings(contract['affected_modules']),
       'runtime_execution_mode': 'external_runtime_health_check_required',
@@ -18392,8 +18472,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'gate_audit': gateAudit,
       'status': passed ? '连接成功' : '已配置未测试',
       'error_code': passed ? '' : 'time_window_query_probe_required',
-      'error_message_zh':
-          passed ? '' : '需要网络授权、检索查询测试和最近 30 天时间窗口证据后才能启用。',
+      'error_message_zh': passed ? '' : '需要网络授权、检索查询测试和最近 30 天时间窗口证据后才能启用。',
       'capability_ids': _listOfStrings(contract['capability_ids']),
       'affected_modules': _listOfStrings(contract['affected_modules']),
       'runtime_execution_mode':

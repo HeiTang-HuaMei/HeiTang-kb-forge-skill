@@ -1,7 +1,7 @@
 {
   "status_id": "provider_capability_status",
   "version": "s_a_contract_inclusion.1",
-  "schema_version": "prd_v3_provider_capability_status.v1",
+  "schema_version": "prd_v3_provider_capability_status.v2",
   "product_baseline_chain": "文档库 -> 知识库 -> 索引层 -> RAG -> 编排层 -> 文档/Skill/Agent/A2A",
   "scope": "Maps registered capability evidence to product-facing Provider statuses. This does not load external projects, bundle external runtimes, or add top-level pages.",
   "user_concept_boundary": {
@@ -14,6 +14,24 @@
   "capability_count": 8,
   "ready_for_user_selection_count": 0,
   "provider_network_api_ready": false,
+  "stage3_classification_model": {
+    "capability_provider": "Configurable/testable/auditable/rollbackable capability enhancement.",
+    "template_asset": "Manifest-backed Skill/Agent/document template asset without runtime load.",
+    "architecture_reference": "Reference that must be absorbed, rejected, or deferred with a blocker."
+  },
+  "registry_entry_class_counts": {
+    "capability_provider": 19,
+    "template_asset": 6,
+    "architecture_reference": 1
+  },
+  "architecture_reference_status_counts": {
+    "candidate_reference": 0,
+    "absorbed_into_architecture": 26,
+    "rejected_no_architecture_gain": 0,
+    "deferred_with_blocker": 0
+  },
+  "indefinite_reference_state_allowed": false,
+  "legacy_reference_only_contracts_are_trace_only": true,
   "capabilities": [
     {
       "capability_id": "document_parser_ocr",
@@ -21,6 +39,17 @@
       "user_visible_name": "Parser / OCR",
       "zh_user_visible_name": "解析 / OCR",
       "provider_type": "parser_ocr",
+      "registry_entry_class_counts": {
+        "capability_provider": 7,
+        "template_asset": 0,
+        "architecture_reference": 0
+      },
+      "architecture_reference_status_counts": {
+        "candidate_reference": 0,
+        "absorbed_into_architecture": 7,
+        "rejected_no_architecture_gain": 0,
+        "deferred_with_blocker": 0
+      },
       "status": "dependency_gated",
       "ready_for_user_selection": false,
       "default_fallback": "local_parser",
@@ -42,6 +71,46 @@
             "planned_adapter",
             "optional_runtime_adapter"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "planned_adapter",
+              "optional_runtime_adapter"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "docling",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -56,6 +125,46 @@
             "planned_adapter",
             "optional_runtime_adapter"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "planned_adapter",
+              "optional_runtime_adapter"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "paddleocr",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -70,6 +179,46 @@
             "planned_adapter",
             "optional_runtime_adapter"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "planned_adapter",
+              "optional_runtime_adapter"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "unstructured",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -83,6 +232,45 @@
           "contract_status": [
             "planned_adapter"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "planned_adapter"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "opendataloader",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -96,6 +284,45 @@
           "contract_status": [
             "planned_adapter"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "planned_adapter"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "mineru",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -109,6 +336,45 @@
           "contract_status": [
             "planned_adapter"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "planned_adapter"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "marker",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -122,6 +388,45 @@
           "contract_status": [
             "planned_adapter"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "planned_adapter"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "surya",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -137,6 +442,17 @@
       "user_visible_name": "Embedding / Vector DB",
       "zh_user_visible_name": "Embedding / 向量库",
       "provider_type": "embedding_vector",
+      "registry_entry_class_counts": {
+        "capability_provider": 2,
+        "template_asset": 0,
+        "architecture_reference": 1
+      },
+      "architecture_reference_status_counts": {
+        "candidate_reference": 0,
+        "absorbed_into_architecture": 3,
+        "rejected_no_architecture_gain": 0,
+        "deferred_with_blocker": 0
+      },
       "status": "configured_not_tested",
       "ready_for_user_selection": false,
       "default_fallback": "local_keyword_index",
@@ -156,9 +472,50 @@
           "status": "configured_not_tested",
           "contract_status": [
             "cross_modal_rag_schema_reference",
-            "absorbed_architecture_reference",
+            "reference_only",
             "runtime_not_bundled"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "cross_modal_rag_schema_reference",
+              "reference_only",
+              "runtime_not_bundled"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "rag_anything",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -172,6 +529,45 @@
           "contract_status": [
             "benchmark_only"
           ],
+          "stage3_current_classification": "architecture_reference",
+          "registry_entry_class": "architecture_reference",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "benchmark_only"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "llamaindex",
+              "provider_classification": "architecture_reference",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "architecture_reference_no_runtime",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -187,6 +583,47 @@
             "real_integration",
             "runtime_not_bundled"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "capability_fusion",
+              "real_integration",
+              "runtime_not_bundled"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "weknora",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -202,6 +639,17 @@
       "user_visible_name": "Search / Retrieval",
       "zh_user_visible_name": "检索 / 召回",
       "provider_type": "search_retrieval",
+      "registry_entry_class_counts": {
+        "capability_provider": 5,
+        "template_asset": 0,
+        "architecture_reference": 0
+      },
+      "architecture_reference_status_counts": {
+        "candidate_reference": 0,
+        "absorbed_into_architecture": 5,
+        "rejected_no_architecture_gain": 0,
+        "deferred_with_blocker": 0
+      },
       "status": "dependency_gated",
       "ready_for_user_selection": false,
       "default_fallback": "local_rag_retrieval",
@@ -224,6 +672,47 @@
             "real_smoke_passed",
             "needs_strengthening"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "provider_adapter",
+              "real_smoke_passed",
+              "needs_strengthening"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "anysearchskill",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": true,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -238,6 +727,46 @@
             "provider_required",
             "future_adapter"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "provider_required",
+              "future_adapter"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "last30days_skill",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": true,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -255,6 +784,49 @@
             "embedding_free",
             "vector_db_not_required"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "bounded_direct_file_search_provider",
+              "real_integration",
+              "runtime_not_bundled",
+              "embedding_free",
+              "vector_db_not_required"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "sirchmunk",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -269,6 +841,46 @@
             "benchmark_only",
             "future_adapter"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "benchmark_only",
+              "future_adapter"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "ragas",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -283,6 +895,46 @@
             "benchmark_only",
             "future_adapter"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "benchmark_only",
+              "future_adapter"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "deepeval",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -298,6 +950,17 @@
       "user_visible_name": "Document Exporter",
       "zh_user_visible_name": "文档导出器",
       "provider_type": "exporter",
+      "registry_entry_class_counts": {
+        "capability_provider": 3,
+        "template_asset": 0,
+        "architecture_reference": 0
+      },
+      "architecture_reference_status_counts": {
+        "candidate_reference": 0,
+        "absorbed_into_architecture": 3,
+        "rejected_no_architecture_gain": 0,
+        "deferred_with_blocker": 0
+      },
       "status": "external_runtime_required",
       "ready_for_user_selection": false,
       "default_fallback": "local_markdown_json_csv_export",
@@ -313,13 +976,110 @@
       "boundary": "User-facing capability status only. Registered project names and external runtimes are not exposed as normal product modules.",
       "related_provider_states": [
         {
+          "provider_ref": "n8n",
+          "status": "external_runtime_required",
+          "contract_status": [
+            "workflow_export_adapter",
+            "export_validation_passed",
+            "runtime_not_bundled"
+          ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "workflow_export_adapter",
+              "export_validation_passed",
+              "runtime_not_bundled"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "n8n",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
+          "requires_network": false,
+          "requires_secret": false,
+          "requires_external_runtime": true,
+          "ready_for_user_selection": false,
+          "audit_event_required": true,
+          "rollback_supported": true
+        },
+        {
           "provider_ref": "jellyfish",
           "status": "configured_not_tested",
           "contract_status": [
             "content_asset_schema_reference",
-            "absorbed_architecture_reference",
+            "reference_only",
             "runtime_not_bundled"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "content_asset_schema_reference",
+              "reference_only",
+              "runtime_not_bundled"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "jellyfish",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -332,9 +1092,50 @@
           "status": "configured_not_tested",
           "contract_status": [
             "aigc_video_pipeline_schema_reference",
-            "absorbed_architecture_reference",
+            "reference_only",
             "runtime_not_bundled"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "aigc_video_pipeline_schema_reference",
+              "reference_only",
+              "runtime_not_bundled"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "story_flicks",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -350,6 +1151,17 @@
       "user_visible_name": "Skill Template / Governance",
       "zh_user_visible_name": "Skill 模板 / 治理",
       "provider_type": "skill_template",
+      "registry_entry_class_counts": {
+        "capability_provider": 0,
+        "template_asset": 6,
+        "architecture_reference": 0
+      },
+      "architecture_reference_status_counts": {
+        "candidate_reference": 0,
+        "absorbed_into_architecture": 6,
+        "rejected_no_architecture_gain": 0,
+        "deferred_with_blocker": 0
+      },
       "status": "needs_secret_config",
       "ready_for_user_selection": false,
       "default_fallback": "local_skill_factory",
@@ -366,12 +1178,51 @@
       "related_provider_states": [
         {
           "provider_ref": "andrej_karpathy_skills",
-          "status": "configured_not_tested",
+          "status": "needs_provider_config",
           "contract_status": [
-            "teaching_reasoning_template_asset",
-            "capability_anchor",
-            "runtime_not_bundled"
+            "benchmark_only",
+            "capability_anchor"
           ],
+          "stage3_current_classification": "template_asset",
+          "registry_entry_class": "template_asset",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "benchmark_only",
+              "capability_anchor"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "andrej_karpathy_skills",
+              "provider_classification": "template_asset",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "template_asset_manifest_only",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -388,6 +1239,48 @@
             "runtime_not_bundled",
             "license_gate_pending"
           ],
+          "stage3_current_classification": "template_asset",
+          "registry_entry_class": "template_asset",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "prompt_asset_library_enhancer",
+              "real_integration",
+              "runtime_not_bundled",
+              "license_gate_pending"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "skill_prompt_generator",
+              "provider_classification": "template_asset",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "template_asset_manifest_only",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -400,9 +1293,50 @@
           "status": "configured_not_tested",
           "contract_status": [
             "schema_package_reference",
-            "template_asset_reference",
+            "reference_only",
             "runtime_not_bundled"
           ],
+          "stage3_current_classification": "template_asset",
+          "registry_entry_class": "template_asset",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "schema_package_reference",
+              "reference_only",
+              "runtime_not_bundled"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "mmskills",
+              "provider_classification": "template_asset",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "template_asset_manifest_only",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -418,6 +1352,47 @@
             "real_integration",
             "runtime_not_bundled"
           ],
+          "stage3_current_classification": "template_asset",
+          "registry_entry_class": "template_asset",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "engineering_governance_rule_pack",
+              "real_integration",
+              "runtime_not_bundled"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "mattpocock_skills",
+              "provider_classification": "template_asset",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "template_asset_manifest_only",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -433,6 +1408,47 @@
             "real_integration",
             "runtime_not_bundled"
           ],
+          "stage3_current_classification": "template_asset",
+          "registry_entry_class": "template_asset",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "marketing_skill_pattern_library",
+              "real_integration",
+              "runtime_not_bundled"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "ai_marketing_skills",
+              "provider_classification": "template_asset",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "template_asset_manifest_only",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -445,11 +1461,54 @@
           "status": "needs_secret_config",
           "contract_status": [
             "verified_video_skill_template_metadata",
-            "template_asset_reference",
+            "reference_only",
             "template_reference",
             "provider_not_integrated",
             "runtime_not_bundled"
           ],
+          "stage3_current_classification": "template_asset",
+          "registry_entry_class": "template_asset",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "verified_video_skill_template_metadata",
+              "reference_only",
+              "template_reference",
+              "provider_not_integrated",
+              "runtime_not_bundled"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "seedance2_skill",
+              "provider_classification": "template_asset",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "template_asset_manifest_only",
           "requires_network": true,
           "requires_secret": true,
           "requires_external_runtime": false,
@@ -465,6 +1524,17 @@
       "user_visible_name": "Agent Model / Tools / Memory",
       "zh_user_visible_name": "Agent 模型 / 工具 / 记忆",
       "provider_type": "agent_capability",
+      "registry_entry_class_counts": {
+        "capability_provider": 2,
+        "template_asset": 0,
+        "architecture_reference": 0
+      },
+      "architecture_reference_status_counts": {
+        "candidate_reference": 0,
+        "absorbed_into_architecture": 2,
+        "rejected_no_architecture_gain": 0,
+        "deferred_with_blocker": 0
+      },
       "status": "external_runtime_required",
       "ready_for_user_selection": false,
       "default_fallback": "local_agent_workspace",
@@ -487,6 +1557,47 @@
             "real_integration",
             "runtime_not_bundled"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "capability_fusion",
+              "real_integration",
+              "runtime_not_bundled"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "llm_wiki_v2",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -500,6 +1611,45 @@
           "contract_status": [
             "benchmark_only"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "benchmark_only"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "rtk",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": true,
@@ -515,6 +1665,17 @@
       "user_visible_name": "Workflow / Collaboration Export",
       "zh_user_visible_name": "工作流 / 协作导出",
       "provider_type": "workflow_collaboration",
+      "registry_entry_class_counts": {
+        "capability_provider": 1,
+        "template_asset": 0,
+        "architecture_reference": 0
+      },
+      "architecture_reference_status_counts": {
+        "candidate_reference": 0,
+        "absorbed_into_architecture": 1,
+        "rejected_no_architecture_gain": 0,
+        "deferred_with_blocker": 0
+      },
       "status": "external_runtime_required",
       "ready_for_user_selection": false,
       "default_fallback": "local_orchestration_audit",
@@ -537,6 +1698,47 @@
             "export_validation_passed",
             "runtime_not_bundled"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "workflow_export_adapter",
+              "export_validation_passed",
+              "runtime_not_bundled"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "n8n",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": true,
@@ -552,6 +1754,17 @@
       "user_visible_name": "Governance / Audit",
       "zh_user_visible_name": "治理 / 审计",
       "provider_type": "governance_audit",
+      "registry_entry_class_counts": {
+        "capability_provider": 2,
+        "template_asset": 1,
+        "architecture_reference": 0
+      },
+      "architecture_reference_status_counts": {
+        "candidate_reference": 0,
+        "absorbed_into_architecture": 3,
+        "rejected_no_architecture_gain": 0,
+        "deferred_with_blocker": 0
+      },
       "status": "dependency_gated",
       "ready_for_user_selection": false,
       "default_fallback": "local_audit_history",
@@ -574,6 +1787,47 @@
             "real_integration",
             "runtime_not_bundled"
           ],
+          "stage3_current_classification": "template_asset",
+          "registry_entry_class": "template_asset",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "engineering_governance_rule_pack",
+              "real_integration",
+              "runtime_not_bundled"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "mattpocock_skills",
+              "provider_classification": "template_asset",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "template_asset_manifest_only",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -588,6 +1842,46 @@
             "benchmark_only",
             "future_adapter"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "benchmark_only",
+              "future_adapter"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "ragas",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,
@@ -602,6 +1896,46 @@
             "benchmark_only",
             "future_adapter"
           ],
+          "stage3_current_classification": "capability_provider",
+          "registry_entry_class": "capability_provider",
+          "architecture_reference_status": "absorbed_into_architecture",
+          "architecture_absorption": {
+            "decision_source": "stage3_provider_registry_classification_gate",
+            "legacy_contract_status": [
+              "benchmark_only",
+              "future_adapter"
+            ],
+            "worth_absorbing": true,
+            "absorption_required_now": true,
+            "learning_note_only": false,
+            "indefinite_reference_allowed": false,
+            "absorbed_targets": [
+              "contract",
+              "schema",
+              "runtime_boundary",
+              "ui_information_architecture",
+              "test_gate",
+              "audit_model",
+              "fallback_strategy",
+              "provider_loading_rule"
+            ],
+            "parallel_architecture_delivery": {
+              "provider_ref": "deepeval",
+              "provider_classification": "capability_provider",
+              "contract": true,
+              "schema": true,
+              "runtime_boundary": true,
+              "ui_information_architecture": true,
+              "test_gate": true,
+              "audit_model": true,
+              "fallback_strategy": true,
+              "provider_loading_rule": true
+            },
+            "blocker": "",
+            "rejection_reason": "",
+            "architecture_delivery_required": true
+          },
+          "runtime_load_class": "provider_capability_config_gated",
           "requires_network": false,
           "requires_secret": false,
           "requires_external_runtime": false,

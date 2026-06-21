@@ -268,11 +268,19 @@ void main() {
       for (final entry in status.capabilities) entry.capabilityId: entry
     };
 
-    expect(status.schemaVersion, 'prd_v3_provider_capability_status.v1');
+    expect(status.schemaVersion, 'prd_v3_provider_capability_status.v2');
     expect(status.productBaselineChain,
         '文档库 -> 知识库 -> 索引层 -> RAG -> 编排层 -> 文档/Skill/Agent/A2A');
     expect(status.providerNetworkApiReady, isFalse);
     expect(status.readyForUserSelectionCount, 0);
+    expect(status.indefiniteReferenceStateAllowed, isFalse);
+    expect(status.legacyReferenceOnlyContractsAreTraceOnly, isTrue);
+    expect(status.registryEntryClassCounts['capability_provider'], 19);
+    expect(status.registryEntryClassCounts['template_asset'], 6);
+    expect(status.registryEntryClassCounts['architecture_reference'], 1);
+    expect(
+        status.architectureReferenceStatusCounts['absorbed_into_architecture'],
+        26);
     expect(
         status.capabilities
             .fold<int>(0, (sum, entry) => sum + entry.providerStateCount),
@@ -289,6 +297,8 @@ void main() {
         isFalse);
     expect(entries['document_parser_ocr']!.status, 'dependency_gated');
     expect(entries['document_parser_ocr']!.providerStateCount, 7);
+    expect(entries['document_parser_ocr']!.providerRuntimeLoadClasses,
+        contains('provider_capability_config_gated'));
     expect(entries['document_parser_ocr']!.requiresDependencyInstall, isTrue);
     expect(entries['retrieval_provider']!.requiresNetwork, isTrue);
     expect(

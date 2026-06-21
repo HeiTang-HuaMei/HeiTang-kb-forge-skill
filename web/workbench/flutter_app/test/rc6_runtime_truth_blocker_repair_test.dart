@@ -1769,8 +1769,8 @@ void main() {
           expectation.value['gate_kind']);
       expect((probe['gate_audit'] as Map)['network_call_attempted'], isFalse);
       if (expectation.key == 'rtk') {
-        expect((probe['gate_audit'] as Map)['permission_boundary_status'],
-            '配置缺失');
+        expect(
+            (probe['gate_audit'] as Map)['permission_boundary_status'], '配置缺失');
         expect(probe['blocked_reasons'],
             contains('agent_permission_runtime_passed'));
       }
@@ -2038,7 +2038,10 @@ void main() {
       final absorption = row['architecture_absorption'] as Map;
       final status = absorption['status'] as String;
       expect(
-          absorption['decision_source'], 'stage3_architecture_absorption_gate');
+          absorption['decision_source'],
+          anyOf('stage3_architecture_absorption_gate',
+              'stage3_provider_registry_classification_gate'));
+      expect(absorption['source_consumed'], isTrue);
       expect(absorption['learning_note_only'], isFalse);
       expect(absorption['indefinite_reference_allowed'], isFalse);
       expect(status, isNot(anyOf('reference_only', 'needs_verification')));
@@ -2047,13 +2050,12 @@ void main() {
         expect(absorption['absorption_required_now'], isTrue);
         expect(absorption['architecture_delivery_required'], isTrue);
         expect(absorption['absorbed_targets'] as List, isNotEmpty);
-        final delivery =
-            absorption['parallel_architecture_delivery'] as Map;
+        final delivery = absorption['parallel_architecture_delivery'] as Map;
         expect(delivery['runtime_boundary'], isTrue);
         expect(delivery['ui_information_architecture'], isTrue);
         expect(delivery['capability_id'], row['capability_id']);
-        expect(delivery['provider_classification'],
-            row['registry_entry_class']);
+        expect(
+            delivery['provider_classification'], row['registry_entry_class']);
         expect(absorption['blocker'], '');
         expect(absorption['rejection_reason'], '');
       } else if (status == 'deferred_with_blocker') {
@@ -2075,7 +2077,35 @@ void main() {
     final sourceRegistryPath =
         '${Directory.current.path}${Platform.pathSeparator}assets${Platform.pathSeparator}external${Platform.pathSeparator}provider_capability_status.json';
     final sourceRegistryRaw = File(sourceRegistryPath).readAsStringSync();
-    expect(sourceRegistryRaw, isNot(contains('"reference_only"')));
+    expect(sourceRegistryRaw,
+        isNot(contains('"stage3_current_classification": "reference_only"')));
+    expect(sourceRegistryRaw,
+        isNot(contains('"runtime_load_class": "reference_only"')));
+    expect(sourceRegistryRaw,
+        isNot(contains('"architecture_reference_status": "reference_only"')));
+    final sourceRegistry =
+        jsonDecode(sourceRegistryRaw) as Map<String, dynamic>;
+    expect(sourceRegistry['schema_version'],
+        'prd_v3_provider_capability_status.v2');
+    expect(sourceRegistry['indefinite_reference_state_allowed'], isFalse);
+    expect(sourceRegistry['legacy_reference_only_contracts_are_trace_only'],
+        isTrue);
+    expect(
+        (sourceRegistry['registry_entry_class_counts']
+            as Map)['capability_provider'],
+        19);
+    expect(
+        (sourceRegistry['architecture_reference_status_counts']
+            as Map)['absorbed_into_architecture'],
+        26);
+    expect(
+        coverageRows
+            .every((row) => row['source_classification_consumed'] == true),
+        isTrue);
+    expect(
+        coverageRows.every((row) =>
+            (row['architecture_absorption'] as Map)['source_consumed'] == true),
+        isTrue);
     final n8nCoverage = coverageRows.firstWhere((row) =>
         row['provider_ref'] == 'n8n' &&
         row['capability_id'] == 'workflow_collaboration_export');
@@ -2116,12 +2146,14 @@ void main() {
     expect(
         llamaindexAbsorption['absorbed_targets'] as List,
         containsAll([
-          'provider_contract',
-          'index_vector_schema',
-          'rag_orchestration_schema',
-          'retrieval_planning_gate',
-          'fallback_policy',
+          'contract',
+          'schema',
+          'runtime_boundary',
+          'ui_information_architecture',
+          'test_gate',
           'audit_model',
+          'fallback_strategy',
+          'provider_loading_rule',
         ]));
     expect(
         (llamaindexAbsorption['parallel_architecture_delivery']
@@ -3115,12 +3147,12 @@ void main() {
     expect(selectionState['selected_capability_ids'],
         containsAll(['retrieval_provider', 'governance_audit_provider']));
     expect(
-        (selectionState['selected_providers_by_capability'] as Map)[
-            'retrieval_provider'],
+        (selectionState['selected_providers_by_capability']
+            as Map)['retrieval_provider'],
         'ragas');
     expect(
-        (selectionState['selected_providers_by_capability'] as Map)[
-            'governance_audit_provider'],
+        (selectionState['selected_providers_by_capability']
+            as Map)['governance_audit_provider'],
         'ragas');
     final rolledBack =
         await controller.rollbackRegisteredProviderCapability('ragas');
@@ -5005,7 +5037,8 @@ void main() {
     expect(configLog, contains('"config_type":"provider_runtime_load"'));
     expect(configLog, isNot(contains(sensitiveValue)));
     expect(configLog, isNot(contains('credential=redacted')));
-    expect(File(manifestPath).readAsStringSync(), isNot(contains(sensitiveValue)));
+    expect(
+        File(manifestPath).readAsStringSync(), isNot(contains(sensitiveValue)));
 
     final runtimeStatus = jsonDecode(File(
             '$configDir${Platform.pathSeparator}project_config_runtime_status.json')
@@ -5149,8 +5182,8 @@ void main() {
     final rollbackFromManifestPath =
         rollbackManifest['rollback_from_manifest_path'] as String;
     expect(File(rollbackFromManifestPath).existsSync(), isTrue);
-    final runtimeLoadLog =
-        readJsonlFile('$configDir${Platform.pathSeparator}provider_runtime_load_log.jsonl');
+    final runtimeLoadLog = readJsonlFile(
+        '$configDir${Platform.pathSeparator}provider_runtime_load_log.jsonl');
     expect(runtimeLoadLog.map((row) => row['action']).toList(),
         containsAllInOrder(['load', 'rollback']));
     expect(runtimeLoadLog.last['runtime_loaded_after_event'], isFalse);
