@@ -12915,6 +12915,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       contractsPath: contractsPath,
       fullLoadingMatrixPath: fullLoadingMatrixPath,
     );
+    final finalAcceptanceReportPath =
+        _stage3FinalProviderAcceptanceReportPath(workspace);
     final refreshedMatrixPath =
         await _refreshRegisteredProviderIntegrationMatrix(
       workspace,
@@ -12941,6 +12943,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'stage3_full_provider_loading_matrix_path': fullLoadingMatrixPath,
       'stage3_industrial_provider_loading_report_path':
           industrialProviderLoadingReportPath,
+      'stage3_final_provider_acceptance_report_path': finalAcceptanceReportPath,
       'health_log_path': healthLogPath,
       'stability_report_path': stabilityReportPath,
       'provider_entry_count': healthEntries.length,
@@ -13033,6 +13036,16 @@ class Rc6RuntimeController extends ChangeNotifier {
       healthEntries,
       readinessByProvider,
     );
+    final writtenFinalAcceptanceReportPath =
+        await _writeStage3FinalProviderAcceptanceReport(
+      workspace,
+      healthReportPath: healthReportPath,
+      fullLoadingMatrixPath: fullLoadingMatrixPath,
+      industrialProviderLoadingReportPath: industrialProviderLoadingReportPath,
+      providerAcceptanceReportPath:
+          _stage3ProviderIndustrialAcceptanceReportPath(workspace),
+      stage2Preflight: stage2Preflight,
+    );
     return {
       'health_report_path': healthReportPath,
       'health_log_path': healthLogPath,
@@ -13043,6 +13056,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       'stage3_full_provider_loading_matrix_path': fullLoadingMatrixPath,
       'stage3_industrial_provider_loading_report_path':
           industrialProviderLoadingReportPath,
+      'stage3_final_provider_acceptance_report_path':
+          writtenFinalAcceptanceReportPath,
       'provider_entry_count': healthEntries.length,
       'provider_mapping_count': healthEntries.length,
       'unique_provider_ref_count': providerRefs.length,
@@ -13788,6 +13803,229 @@ class Rc6RuntimeController extends ChangeNotifier {
       'secret_plaintext_written': false,
     };
     await _writeJsonFile(path, payload);
+    return path;
+  }
+
+  Future<String> _writeStage3FinalProviderAcceptanceReport(
+    Directory workspace, {
+    required String healthReportPath,
+    required String fullLoadingMatrixPath,
+    required String industrialProviderLoadingReportPath,
+    required String providerAcceptanceReportPath,
+    required Map<String, dynamic> stage2Preflight,
+  }) async {
+    final fullMatrix = await _readJsonObject(fullLoadingMatrixPath);
+    final industrialReport =
+        await _readJsonObject(industrialProviderLoadingReportPath);
+    final providerAcceptance =
+        await _readJsonObject(providerAcceptanceReportPath);
+    final rows = _listOfMaps(fullMatrix['rows']);
+    final acceptanceRows =
+        _listOfMaps(fullMatrix['industrial_acceptance_rows']);
+    final providerRows = rows
+        .where((row) =>
+            _stringValue(row['registry_entry_class'], '') ==
+            'capability_provider')
+        .toList(growable: false);
+    final templateRows = rows
+        .where((row) =>
+            _stringValue(row['registry_entry_class'], '') == 'template_asset')
+        .toList(growable: false);
+    final architectureRows = rows
+        .where((row) =>
+            _stringValue(row['registry_entry_class'], '') ==
+            'architecture_reference')
+        .toList(growable: false);
+    final exeSmoke = _stage2ExeLaunchSmokeCheck(workspace);
+    final industrialExeSmoke = _readJsonObjectSync(
+      _joinNested(
+          workspace.path, 'acceptance/industrial_exe_smoke_report.json'),
+    );
+    bool rowAccepted(Map<String, dynamic> row) =>
+        _boolValue(row['loaded_configured']) &&
+        _boolValue(row['runtime_ready']) &&
+        _boolValue(row['downstream_bound']) &&
+        _boolValue(row['fallback_verified']) &&
+        _boolValue(row['audit_verified']) &&
+        _boolValue(row['rollback_verified']) &&
+        _boolValue(row['exe_verified']);
+    bool evidencePathsExist(Map<String, dynamic> row, List<String> keys) {
+      final evidence = _mapValue(row['source_artifacts']);
+      return keys.every((key) {
+        final value = _stringValue(evidence[key], '');
+        return value.isNotEmpty && File(value).existsSync();
+      });
+    }
+
+    final providerAccepted = providerRows.every((row) =>
+        rowAccepted(row) &&
+        evidencePathsExist(row, const [
+          'provider_config_schema_path',
+          'provider_profile_binding_path',
+          'provider_runtime_status_path',
+          'provider_fallback_degradation_path',
+          'provider_audit_log_path',
+          'provider_rollback_evidence_path',
+          'provider_exe_smoke_evidence_path',
+          'provider_industrial_acceptance_path',
+        ]));
+    final templateAccepted = templateRows.every((row) {
+      final matchingAcceptance = acceptanceRows.firstWhere(
+        (entry) =>
+            _stringValue(entry['provider_ref'], '') ==
+            _stringValue(row['provider_ref'], ''),
+        orElse: () => const <String, dynamic>{},
+      );
+      final evidence = _mapValue(matchingAcceptance['evidence_paths']);
+      final manifestPath =
+          _stringValue(evidence['industrial_entry_manifest_path'], '');
+      final manifest = _readJsonObjectSync(manifestPath);
+      final manifestEvidence = _mapValue(manifest['evidence_paths']);
+      return rowAccepted(row) &&
+          manifestPath.isNotEmpty &&
+          File(manifestPath).existsSync() &&
+          _boolValue(manifest['asset_library_ready']) &&
+          _boolValue(manifest['selectable_in_skill_factory']) &&
+          _boolValue(manifest['selectable_in_agent_workbench']) &&
+          _boolValue(manifest['not_external_service']) &&
+          !_boolValue(manifest['external_runtime_executed']) &&
+          const [
+            'skill_factory_entry_path',
+            'agent_binding_boundary_path',
+            'document_template_entry_path',
+            'version_snapshot_path',
+            'rollback_disable_path',
+            'template_asset_audit_log_path',
+          ].every((key) {
+            final value = _stringValue(manifestEvidence[key], '');
+            return value.isNotEmpty && File(value).existsSync();
+          });
+    });
+    final architectureAccepted = architectureRows.length == 1 &&
+        architectureRows.every((row) {
+          final matchingAcceptance = acceptanceRows.firstWhere(
+            (entry) =>
+                _stringValue(entry['provider_ref'], '') ==
+                _stringValue(row['provider_ref'], ''),
+            orElse: () => const <String, dynamic>{},
+          );
+          final evidence = _mapValue(matchingAcceptance['evidence_paths']);
+          final manifestPath =
+              _stringValue(evidence['industrial_entry_manifest_path'], '');
+          final manifest = _readJsonObjectSync(manifestPath);
+          final architectureEvidence =
+              _mapValue(manifest['architecture_evidence_paths']);
+          return rowAccepted(row) &&
+              _stringValue(row['provider_ref'], '') == 'llamaindex' &&
+              _stringValue(row['runtime_load_class'], '') ==
+                  'architecture_reference_no_runtime' &&
+              !_boolValue(row['runtime_loaded']) &&
+              _boolValue(manifest['architecture_evidence_complete']) &&
+              !_boolValue(manifest['runtime_load_required']) &&
+              !_boolValue(manifest['learning_note_only']) &&
+              const [
+                'index_schema_path',
+                'retrieval_pipeline_contract_path',
+                'rag_orchestration_boundary_path',
+                'chunk_node_metadata_model_path',
+                'retrieval_trace_schema_path',
+                'fallback_strategy_path',
+                'test_gate_path',
+                'audit_model_path',
+                'architecture_audit_log_path',
+              ].every((key) {
+                final value = _stringValue(architectureEvidence[key], '');
+                return value.isNotEmpty && File(value).existsSync();
+              });
+        });
+    final exeAccepted = _stringValue(exeSmoke['status'], '') == 'passed' &&
+        _stringValue(industrialExeSmoke['status'], '') == 'passed';
+    final countsAccepted = providerRows.length == 19 &&
+        templateRows.length == 6 &&
+        architectureRows.length == 1 &&
+        acceptanceRows.length == 26 &&
+        _mapValue(fullMatrix['actual_counts'])['capability_provider'] == 19 &&
+        _mapValue(fullMatrix['actual_counts'])['template_asset'] == 6 &&
+        _mapValue(fullMatrix['actual_counts'])['architecture_reference'] == 1;
+    final boundariesAccepted =
+        !_boolValue(fullMatrix['normal_ui_project_names_visible']) &&
+            !_boolValue(fullMatrix['hot_swap_project_concept_visible']) &&
+            !_boolValue(fullMatrix['secret_plaintext_written']) &&
+            !_boolValue(industrialReport['normal_ui_project_names_visible']) &&
+            !_boolValue(industrialReport['hot_swap_project_concept_visible']) &&
+            !_boolValue(industrialReport['secret_plaintext_written']);
+    final failedRequirements = <String>[
+      if (!countsAccepted) 'stage3_26_item_counts',
+      if (!providerAccepted) 'stage3_19_provider_evidence',
+      if (!templateAccepted) 'stage3_6_template_asset_library',
+      if (!architectureAccepted) 'stage3_llamaindex_architecture_absorption',
+      if (!exeAccepted) 'stage3_exe_smoke_evidence',
+      if (!boundariesAccepted) 'stage3_ui_secret_boundary',
+    ];
+    final path = _stage3FinalProviderAcceptanceReportPath(workspace);
+    await _writeJsonFile(path, {
+      'schema_version': 'prd_v3_stage3_final_provider_acceptance_report.v1',
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'workspace_boundary': workspace.path,
+      'status': failedRequirements.isEmpty ? 'passed' : 'blocked',
+      'failed_requirements': failedRequirements,
+      'final_conclusion': failedRequirements.isEmpty
+          ? '19 个 Provider 配件已完成可配置、可测试、可审计、可回滚的工业级接入；6 个模板资产已进入真实资产库并可绑定；1 个架构参考已吸收到产品架构实现。'
+          : 'Stage3 Provider 工业级接入仍有证据缺口。',
+      'counts': {
+        'capability_provider': providerRows.length,
+        'template_asset': templateRows.length,
+        'architecture_reference': architectureRows.length,
+        'total': rows.length,
+      },
+      'requirement_results': {
+        'full_provider_profile_matrix': countsAccepted,
+        'providers_config_health_fallback_audit': providerAccepted,
+        'template_assets_selectable_and_audited': templateAccepted,
+        'llamaindex_absorbed_into_rag_index_contract': architectureAccepted,
+        'full_chain_exe_acceptance': exeAccepted,
+        'ordinary_ui_and_secret_boundary': boundariesAccepted,
+      },
+      'stage_2_industrial_preflight': stage2Preflight,
+      'exe_smoke': {
+        'industrial_38_step_status':
+            _stringValue(industrialExeSmoke['status'], ''),
+        'industrial_38_step_count':
+            _asInt(industrialExeSmoke['step_count']) ?? 0,
+        'launch_status': _stringValue(exeSmoke['status'], ''),
+        'launch_report_path': _joinNested(
+            workspace.path, 'acceptance/exe_launch_smoke_report.json'),
+      },
+      'source_artifacts': {
+        'health_report_path': healthReportPath,
+        'full_loading_matrix_path': fullLoadingMatrixPath,
+        'industrial_provider_loading_report_path':
+            industrialProviderLoadingReportPath,
+        'provider_acceptance_report_path': providerAcceptanceReportPath,
+        'industrial_exe_smoke_report_path': _joinNested(
+            workspace.path, 'acceptance/industrial_exe_smoke_report.json'),
+        'exe_launch_smoke_report_path': _joinNested(
+            workspace.path, 'acceptance/exe_launch_smoke_report.json'),
+      },
+      'provider_refs': providerRows
+          .map((row) => _stringValue(row['provider_ref'], ''))
+          .toList(growable: false)
+        ..sort(),
+      'template_asset_refs': templateRows
+          .map((row) => _stringValue(row['provider_ref'], ''))
+          .toList(growable: false)
+        ..sort(),
+      'architecture_reference_refs': architectureRows
+          .map((row) => _stringValue(row['provider_ref'], ''))
+          .toList(growable: false)
+        ..sort(),
+      'normal_ui_project_names_visible': false,
+      'hot_swap_project_concept_visible': false,
+      'secret_plaintext_written': false,
+      'provider_acceptance_status':
+          _stringValue(providerAcceptance['status'], ''),
+      'industrial_report_status': _stringValue(industrialReport['status'], ''),
+    });
     return path;
   }
 
@@ -16720,6 +16958,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         'stage3_provider_industrial_acceptance_report.json');
   }
 
+  static String _stage3FinalProviderAcceptanceReportPath(Directory workspace) {
+    return _join(workspace.path, 'acceptance',
+        'stage3_final_provider_acceptance_report.json');
+  }
+
   static String _stage3ProviderEvidenceRoot(
     Directory workspace,
     String providerRef,
@@ -17216,6 +17459,9 @@ class Rc6RuntimeController extends ChangeNotifier {
       'stage3_industrial_provider_loading_report_path':
           registeredProviderHealthArtifacts[
               'stage3_industrial_provider_loading_report_path'],
+      'stage3_final_provider_acceptance_report_path':
+          registeredProviderHealthArtifacts[
+              'stage3_final_provider_acceptance_report_path'],
       'provider_runtime_load_eligibility_manifest_path':
           registeredProviderHealthArtifacts[
               'runtime_load_eligibility_manifest_path'],

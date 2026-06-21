@@ -3111,6 +3111,8 @@ void main() {
     expect(health['external_runtime_load_allowed'], isTrue);
     expect(health['normal_ui_project_names_visible'], isFalse);
     expect(health['secret_plaintext_written'], isFalse);
+    expect(
+        health['stage3_final_provider_acceptance_report_path'], isA<String>());
 
     final registrySummary = jsonDecode(
         File(health['provider_registry_readiness_summary_path'] as String)
@@ -3253,6 +3255,57 @@ void main() {
     expect(industrialReport['secret_plaintext_written'], isFalse);
     expect(industrialReport['failed_decisions'], isEmpty);
     expect(industrialReport['failed_future_reference_decisions'], isEmpty);
+    final finalAcceptanceReport = jsonDecode(File(
+            runtimeStatus['stage3_final_provider_acceptance_report_path']
+                as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(finalAcceptanceReport['schema_version'],
+        'prd_v3_stage3_final_provider_acceptance_report.v1');
+    expect(finalAcceptanceReport['status'], 'passed');
+    expect(finalAcceptanceReport['failed_requirements'], isEmpty);
+    expect(finalAcceptanceReport['counts'], {
+      'capability_provider': 19,
+      'template_asset': 6,
+      'architecture_reference': 1,
+      'total': 26,
+    });
+    expect(finalAcceptanceReport['final_conclusion'],
+        contains('19 个 Provider 配件已完成可配置、可测试、可审计、可回滚的工业级接入'));
+    expect(finalAcceptanceReport['final_conclusion'],
+        contains('6 个模板资产已进入真实资产库并可绑定'));
+    expect(finalAcceptanceReport['final_conclusion'],
+        contains('1 个架构参考已吸收到产品架构实现'));
+    final finalRequirementResults =
+        finalAcceptanceReport['requirement_results'] as Map<String, dynamic>;
+    expect(
+        finalRequirementResults.values.every((value) => value == true), isTrue);
+    expect((finalAcceptanceReport['provider_refs'] as List), hasLength(19));
+    expect(
+        (finalAcceptanceReport['template_asset_refs'] as List), hasLength(6));
+    expect(
+        finalAcceptanceReport['architecture_reference_refs'], ['llamaindex']);
+    expect(
+        (finalAcceptanceReport['exe_smoke']
+            as Map)['industrial_38_step_status'],
+        'passed');
+    expect(
+        (finalAcceptanceReport['exe_smoke'] as Map)['launch_status'], 'passed');
+    expect(finalAcceptanceReport['normal_ui_project_names_visible'], isFalse);
+    expect(finalAcceptanceReport['hot_swap_project_concept_visible'], isFalse);
+    expect(finalAcceptanceReport['secret_plaintext_written'], isFalse);
+    final finalSources =
+        finalAcceptanceReport['source_artifacts'] as Map<String, dynamic>;
+    for (final key in [
+      'health_report_path',
+      'full_loading_matrix_path',
+      'industrial_provider_loading_report_path',
+      'provider_acceptance_report_path',
+      'industrial_exe_smoke_report_path',
+      'exe_launch_smoke_report_path',
+    ]) {
+      expect(File(finalSources[key] as String).existsSync(), isTrue,
+          reason: 'final acceptance missing $key');
+    }
     final futureReferenceIntake =
         industrialReport['future_reference_intake'] as Map<String, dynamic>;
     expect(futureReferenceIntake['schema_version'],
