@@ -16252,6 +16252,9 @@ class Rc6RuntimeController extends ChangeNotifier {
         providerRef == 'mattpocock_skills') {
       return 'template_asset';
     }
+    if (providerRef == 'ragas' || providerRef == 'deepeval') {
+      return 'capability_provider';
+    }
     if (contractStatus.contains('benchmark_only')) {
       return 'architecture_reference';
     }
@@ -16281,10 +16284,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     if (providerRef == 'llamaindex') {
       return 'absorbed_into_architecture';
     }
-    if (providerRef == 'rtk' ||
-        providerRef == 'ragas' ||
-        providerRef == 'deepeval' ||
-        contractStatus.contains('future_adapter')) {
+    if (providerRef == 'rtk' || contractStatus.contains('future_adapter')) {
       return 'deferred_with_blocker';
     }
     return switch (capabilityId) {
@@ -16398,9 +16398,6 @@ class Rc6RuntimeController extends ChangeNotifier {
   ) {
     if (_boolValue(provider['requires_external_runtime'])) {
       return '需要用户自有外部服务健康检查通过。';
-    }
-    if (providerRef == 'ragas' || providerRef == 'deepeval') {
-      return '需要真实检索验证、引用覆盖、冲突检测、人工复验记录和评测 gate 证明。';
     }
     if (providerRef == 'llamaindex') {
       return '需要证明其 pipeline 抽象能降低当前 RAG/索引复杂度且不替代既有 Provider 合同。';

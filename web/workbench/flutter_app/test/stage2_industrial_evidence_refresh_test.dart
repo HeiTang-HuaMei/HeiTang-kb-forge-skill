@@ -250,15 +250,15 @@ void main() {
     expect(providerHealth['provider_mapping_count'], 29);
     expect(providerHealth['unique_provider_ref_count'], 26);
     expect(providerHealth['registry_class_counts'], {
-      'capability_provider': 16,
+      'capability_provider': 20,
       'template_asset': 7,
-      'architecture_reference': 6,
+      'architecture_reference': 2,
     });
     expect(providerHealth['architecture_reference_status_counts'], {
       'candidate_reference': 0,
-      'absorbed_into_architecture': 24,
+      'absorbed_into_architecture': 28,
       'rejected_no_architecture_gain': 0,
-      'deferred_with_blocker': 5,
+      'deferred_with_blocker': 1,
     });
     expect(providerHealth['ready_mapping_count'], 19);
     expect(providerHealth['ready_unique_provider_count'], 18);
@@ -269,15 +269,15 @@ void main() {
     final integrationEntries =
         (integrationMatrix['provider_entries'] as List).cast<Map>();
     expect(integrationMatrix['registry_class_counts'], {
-      'capability_provider': 16,
+      'capability_provider': 20,
       'template_asset': 7,
-      'architecture_reference': 6,
+      'architecture_reference': 2,
     });
     expect(integrationMatrix['architecture_reference_status_counts'], {
       'candidate_reference': 0,
-      'absorbed_into_architecture': 24,
+      'absorbed_into_architecture': 28,
       'rejected_no_architecture_gain': 0,
-      'deferred_with_blocker': 5,
+      'deferred_with_blocker': 1,
     });
     final templateEntries = integrationEntries
         .where((entry) => entry['registry_entry_class'] == 'template_asset')
@@ -296,7 +296,7 @@ void main() {
         .where((entry) =>
             entry['registry_entry_class'] == 'architecture_reference')
         .toList(growable: false);
-    expect(architectureReferenceEntries, hasLength(6));
+    expect(architectureReferenceEntries, hasLength(2));
     expect(
         architectureReferenceEntries.every((entry) =>
             entry['runtime_load_class'] == 'architecture_reference_no_runtime'),
@@ -426,15 +426,15 @@ void main() {
     expect(registeredSummary['ready_mapping_count'], 19);
     expect(registeredSummary['ready_unique_provider_count'], 18);
     expect(registeredSummary['registry_class_counts'], {
-      'capability_provider': 16,
+      'capability_provider': 20,
       'template_asset': 7,
-      'architecture_reference': 6,
+      'architecture_reference': 2,
     });
     expect(registeredSummary['architecture_reference_status_counts'], {
       'candidate_reference': 0,
-      'absorbed_into_architecture': 24,
+      'absorbed_into_architecture': 28,
       'rejected_no_architecture_gain': 0,
-      'deferred_with_blocker': 5,
+      'deferred_with_blocker': 1,
     });
     expect(registeredSummary['runtime_ready_for_user_selection_count'], 18);
     expect(

@@ -12,8 +12,8 @@ This report is generated from the current runtime evidence workspace. It treats 
 - Provider-to-capability mappings evaluated: `29`
 - Ready provider-to-capability mappings: `19`
 - Ready unique Provider refs: `18`
-- Registry class counts: `capability_provider=16`, `template_asset=7`, `architecture_reference=6`
-- Architecture reference status counts: `absorbed_into_architecture=24`, `deferred_with_blocker=5`, `candidate_reference=0`, `rejected_no_architecture_gain=0`
+- Registry class counts: `capability_provider=20`, `template_asset=7`, `architecture_reference=2`
+- Architecture reference status counts: `absorbed_into_architecture=28`, `deferred_with_blocker=1`, `candidate_reference=0`, `rejected_no_architecture_gain=0`
 - Runtime loaded by default: `0`
 - Stage2 preflight: `passed`
 - Runtime load allowed: `true`
@@ -26,9 +26,9 @@ Registered projects are split before they can affect product behavior:
 
 | Lane | Runtime behavior | User-facing behavior | Current count |
 | --- | --- | --- | --- |
-| Capability Provider | Can become a configurable Provider only after config, health/readiness, fallback, audit, and rollback evidence exists. | Users see capability options such as Parser/OCR, index backend, exporter, Agent memory, or A2A export. | `16` mappings |
+| Capability Provider | Can become a configurable Provider only after config, health/readiness, fallback, audit, and rollback evidence exists. | Users see capability options such as Parser/OCR, index backend, exporter, Agent memory, evaluation gate, or A2A export. | `20` mappings |
 | Template Asset | Never requires external runtime load. Must provide template manifest, source, version, validation, and Skill/Agent binding boundary. | Users see template/style/method options inside Skill Factory, document generation, or Agent binding surfaces. | `7` mappings |
-| Architecture Reference | Does not enter normal UI or runtime loading. It must be absorbed into architecture, explicitly rejected, or deferred with a blocker. | Users do not see project names. Only improved contracts, schema, gates, audit, or fallback behavior may surface indirectly. | `6` mappings |
+| Architecture Reference | Does not enter normal UI or runtime loading. It must be absorbed into architecture, explicitly rejected, or deferred with a blocker. | Users do not see project names. Only improved contracts, schema, gates, audit, or fallback behavior may surface indirectly. | `2` mappings |
 
 Architecture reference statuses are now explicit:
 
@@ -101,7 +101,7 @@ Architecture reference statuses are now explicit:
   endpoint at `http://127.0.0.1:5678`. The proof records
   `runtime_loaded_count=1` only after a health check, keeps workflow execution
   disabled, and verifies rollback returns the count to `0`.
-- RAG evaluation Providers remain blocked until retrieval validation is explicitly reviewed, not merely saved as pending manual review.
+- RAG evaluation entries are capability Providers for governance/evaluation gates. They remain blocked until retrieval validation is explicitly reviewed, not merely saved as pending manual review.
 - Benchmark-only, network, secret, dependency, and external-runtime Providers remain blocked until their required config/evidence exists.
 
 ## Owner Verification Focus

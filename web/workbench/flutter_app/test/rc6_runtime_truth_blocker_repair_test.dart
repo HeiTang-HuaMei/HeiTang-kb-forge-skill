@@ -1890,15 +1890,15 @@ void main() {
     expect(providerHealth['provider_mapping_count'], 29);
     expect(providerHealth['unique_provider_ref_count'], 26);
     expect(providerHealth['registry_class_counts'], {
-      'capability_provider': 16,
+      'capability_provider': 20,
       'template_asset': 7,
-      'architecture_reference': 6,
+      'architecture_reference': 2,
     });
     expect(providerHealth['architecture_reference_status_counts'], {
       'candidate_reference': 0,
-      'absorbed_into_architecture': 24,
+      'absorbed_into_architecture': 28,
       'rejected_no_architecture_gain': 0,
-      'deferred_with_blocker': 5,
+      'deferred_with_blocker': 1,
     });
     expect(providerHealth['capability_area_count'], 8);
     expect(providerHealth['all_entries_checked'], isTrue);
@@ -2034,7 +2034,7 @@ void main() {
     final architectureReferenceRows = coverageRows
         .where((row) => row['registry_entry_class'] == 'architecture_reference')
         .toList(growable: false);
-    expect(architectureReferenceRows, hasLength(6));
+    expect(architectureReferenceRows, hasLength(2));
     expect(
         architectureReferenceRows
             .every((row) => row['runtime_load_class'] != 'reference_only'),
@@ -2047,7 +2047,7 @@ void main() {
         .firstWhere((row) => row['provider_ref'] == 'llamaindex');
     expect(llamaindexCoverage['architecture_reference_status'],
         'absorbed_into_architecture');
-    for (final providerRef in ['rtk', 'ragas', 'deepeval']) {
+    for (final providerRef in ['rtk']) {
       final rows = architectureReferenceRows
           .where((row) => row['provider_ref'] == providerRef)
           .toList(growable: false);
@@ -2059,6 +2059,18 @@ void main() {
                   .isNotEmpty),
           isTrue);
     }
+    final evaluationProviderRows = coverageRows
+        .where((row) =>
+            ['ragas', 'deepeval'].contains(row['provider_ref']) &&
+            row['registry_entry_class'] == 'capability_provider')
+        .toList(growable: false);
+    expect(evaluationProviderRows, hasLength(4));
+    expect(
+        evaluationProviderRows.every((row) =>
+            row['architecture_reference_status'] ==
+                'absorbed_into_architecture' &&
+            row['runtime_load_class'] == 'local_capability_enhancement'),
+        isTrue);
     final userCatalogPath =
         runtimeStatus['provider_capability_user_catalog_path'] as String;
     final userCatalog =
