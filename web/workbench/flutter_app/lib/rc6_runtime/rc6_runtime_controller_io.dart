@@ -13480,6 +13480,28 @@ class Rc6RuntimeController extends ChangeNotifier {
         runtimeLoaded: runtimeLoaded,
         architectureStatus: architectureStatus,
       );
+      final acceptance = _stage3IndustrialAcceptanceRow(
+        workspace: workspace,
+        providerRef: providerRef,
+        entryClass: entryClass,
+        capabilityIds: capabilityIds,
+        affectedModules: affectedModules,
+        runtimeLoadClass: runtimeLoadClass,
+        architectureStatus: architectureStatus,
+        ready: ready,
+        runtimeLoaded: runtimeLoaded,
+        hasRollback: hasRollback,
+        loadedConfigured: loadConfigured,
+        readiness: readiness,
+        relatedEntries: related,
+        stage2Preflight: stage2Preflight,
+        contractsPath: contractsPath,
+        readinessPath: readinessPath,
+        registrySummaryPath: registrySummaryPath,
+        healthReportPath: healthReportPath,
+        rollbackManifestPath: rollbackManifestPath,
+        activationLogPath: activationLogPath,
+      );
       return {
         'provider_ref': providerRef,
         'registry_entry_class': entryClass,
@@ -13487,18 +13509,13 @@ class Rc6RuntimeController extends ChangeNotifier {
         'affected_modules': affectedModules,
         'runtime_load_class': runtimeLoadClass,
         'architecture_reference_status': architectureStatus,
-        'loaded_configured': loadConfigured,
-        'runtime_ready': _providerRuntimeReadyStatus(
-          entryClass: entryClass,
-          ready: ready,
-          runtimeLoaded: runtimeLoaded,
-          architectureStatus: architectureStatus,
-        ),
-        'downstream_bound': affectedModules.isNotEmpty,
-        'fallback_verified': true,
-        'audit_verified': true,
-        'rollback_verified': hasRollback,
-        'exe_verified': _boolValue(stage2Preflight['runtime_load_allowed']),
+        'loaded_configured': acceptance['loaded_configured'],
+        'runtime_ready': acceptance['runtime_ready'],
+        'downstream_bound': acceptance['downstream_bound'],
+        'fallback_verified': acceptance['fallback_verified'],
+        'audit_verified': acceptance['audit_verified'],
+        'rollback_verified': acceptance['rollback_verified'],
+        'exe_verified': acceptance['exe_verified'],
         'health_statuses': related
             .map((entry) => _stringValue(entry['health_status'], '未配置'))
             .toSet()
@@ -13516,16 +13533,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'secret_masked': true,
         'secret_plaintext_written': false,
         'test_artifacts': _listOfStrings(readiness['test_artifacts']),
-        'source_artifacts': {
-          'config_schema_path': contractsPath,
-          'profile_binding_path': registrySummaryPath,
-          'readiness_report_path': readinessPath,
-          'health_report_path': healthReportPath,
-          'fallback_matrix_path': registrySummaryPath,
-          'audit_log_path': activationLogPath,
-          'rollback_manifest_path': rollbackManifestPath,
-          'exe_preflight_path': _projectConfigRuntimeStatusPath(workspace),
-        },
+        'source_artifacts': acceptance['evidence_paths'],
+        'industrial_acceptance': acceptance,
         'acceptance_notes': _stage3FullProviderAcceptanceNotes(
           entryClass: entryClass,
           ready: ready,
@@ -13540,6 +13549,32 @@ class Rc6RuntimeController extends ChangeNotifier {
         rows.where((row) => row['loaded_configured'] == true).length;
     final runtimeReadyCount =
         rows.where((row) => row['runtime_ready'] == true).length;
+    final industrialAcceptanceRows = rows
+        .map((row) => _mapValue(row['industrial_acceptance']))
+        .toList(growable: false);
+    final industrialAcceptanceReportPath =
+        _stage3ProviderIndustrialAcceptanceReportPath(workspace);
+    await _writeJsonFile(industrialAcceptanceReportPath, {
+      'schema_version':
+          'prd_v3_stage3_provider_industrial_acceptance_report.v1',
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'workspace_boundary': workspace.path,
+      'provider_ref_count': industrialAcceptanceRows.length,
+      'status': industrialAcceptanceRows.every(
+              (row) => _stringValue(row['acceptance_state'], '') == 'passed')
+          ? 'passed'
+          : 'blocked',
+      'target_counts': {
+        'capability_provider': 19,
+        'template_asset': 6,
+        'architecture_reference': 1,
+      },
+      'actual_counts': _registryClassCounts(industrialAcceptanceRows),
+      'rows': industrialAcceptanceRows,
+      'normal_ui_project_names_visible': false,
+      'hot_swap_project_concept_visible': false,
+      'secret_plaintext_written': false,
+    });
     final path = _stage3FullProviderLoadingMatrixPath(workspace);
     final payload = {
       'schema_version': 'prd_v3_stage3_full_provider_loading_matrix.v1',
@@ -13577,7 +13612,10 @@ class Rc6RuntimeController extends ChangeNotifier {
             _registeredProviderHealthReportPath(workspace),
         'registered_provider_rollback_manifest_path':
             _registeredProviderRollbackManifestPath(workspace),
+        'stage3_provider_industrial_acceptance_report_path':
+            industrialAcceptanceReportPath,
       },
+      'industrial_acceptance_rows': industrialAcceptanceRows,
       'rows': rows,
     };
     await _writeJsonFile(path, payload);
@@ -13689,6 +13727,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         .where((entry) =>
             entry['registry_entry_class'] == 'architecture_reference')
         .toList(growable: false);
+    final futureReferenceIntake =
+        await _stage3FutureReferenceIntakeSummary(workspace);
     final registryClassCounts = _registryClassCounts(healthEntries);
     final providerRegistryClassCounts = _registryClassCounts(decisions);
     final architectureReferenceCounts =
@@ -13700,7 +13740,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       'schema_version': 'prd_v3_stage3_industrial_provider_loading_report.v1',
       'generated_at': DateTime.now().toUtc().toIso8601String(),
       'workspace_boundary': workspace.path,
-      'status': failedDecisions.isEmpty ? 'passed' : 'blocked',
+      'status': failedDecisions.isEmpty &&
+              _stringValue(futureReferenceIntake['status'], '') == 'passed'
+          ? 'passed'
+          : 'blocked',
       'provider_ref_count': decisions.length,
       'provider_mapping_count': healthEntries.length,
       'registry_class_counts': providerRegistryClassCounts,
@@ -13717,6 +13760,8 @@ class Rc6RuntimeController extends ChangeNotifier {
         'absorbed_references_require_parallel_architecture_delivery': true,
         'rejected_references_require_reason': true,
         'deferred_references_require_named_blocker': true,
+        'future_references_require_resolution': true,
+        'future_references_must_not_remain_learning_notes': true,
         'ordinary_users_see_capability_enhancement_not_external_project': true,
       },
       'source_artifacts': {
@@ -13731,6 +13776,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         'exe_preflight_path': _projectConfigRuntimeStatusPath(workspace),
       },
       'architecture_reference_decisions': architectureDecisions,
+      'future_reference_intake': futureReferenceIntake,
+      'future_reference_decisions':
+          _listOfMaps(futureReferenceIntake['decisions']),
+      'failed_future_reference_decisions':
+          _listOfMaps(futureReferenceIntake['failed_decisions']),
       'provider_decisions': decisions,
       'failed_decisions': failedDecisions,
       'normal_ui_project_names_visible': false,
@@ -13739,6 +13789,327 @@ class Rc6RuntimeController extends ChangeNotifier {
     };
     await _writeJsonFile(path, payload);
     return path;
+  }
+
+  Map<String, dynamic> _stage3IndustrialAcceptanceRow({
+    required Directory workspace,
+    required String providerRef,
+    required String entryClass,
+    required List<String> capabilityIds,
+    required List<String> affectedModules,
+    required String runtimeLoadClass,
+    required String architectureStatus,
+    required bool ready,
+    required bool runtimeLoaded,
+    required bool hasRollback,
+    required bool loadedConfigured,
+    required Map<String, dynamic> readiness,
+    required List<Map<String, dynamic>> relatedEntries,
+    required Map<String, dynamic> stage2Preflight,
+    required String contractsPath,
+    required String readinessPath,
+    required String registrySummaryPath,
+    required String healthReportPath,
+    required String rollbackManifestPath,
+    required String activationLogPath,
+  }) {
+    final configSchemaReady = File(contractsPath).existsSync();
+    final profileBindingReady = File(registrySummaryPath).existsSync();
+    final readinessReady = File(readinessPath).existsSync() &&
+        _listOfStrings(readiness['test_artifacts'])
+            .every((path) => path.isNotEmpty && File(path).existsSync());
+    final healthReady = File(healthReportPath).existsSync();
+    final rollbackReady =
+        hasRollback && File(rollbackManifestPath).existsSync();
+    final exeReady = _boolValue(stage2Preflight['runtime_load_allowed']) &&
+        _stage2ExeLaunchSmokeCheck(workspace)['status'] == 'passed';
+    final fallbackReady = _stage3FallbackEvidenceReady(
+      entryClass: entryClass,
+      relatedEntries: relatedEntries,
+      registrySummaryPath: registrySummaryPath,
+    );
+    final auditReady = _stage3AuditEvidenceReady(
+      workspace: workspace,
+      entryClass: entryClass,
+      providerRef: providerRef,
+      activationLogPath: activationLogPath,
+      healthReportPath: healthReportPath,
+    );
+    final downstreamReady = affectedModules.isNotEmpty &&
+        _stage3DownstreamEvidenceReady(
+          workspace: workspace,
+          entryClass: entryClass,
+          capabilityIds: capabilityIds,
+          providerRef: providerRef,
+        );
+    final entryAssetPath = switch (entryClass) {
+      'template_asset' => _writeStage3TemplateAssetAcceptanceManifest(
+          workspace,
+          providerRef: providerRef,
+          capabilityIds: capabilityIds,
+          affectedModules: affectedModules,
+          readiness: readiness,
+        ),
+      'architecture_reference' =>
+        _writeStage3ArchitectureAbsorptionAcceptanceManifest(
+          workspace,
+          providerRef: providerRef,
+          capabilityIds: capabilityIds,
+          affectedModules: affectedModules,
+          relatedEntries: relatedEntries,
+        ),
+      _ => _writeStage3ProviderAcceptanceManifest(
+          workspace,
+          providerRef: providerRef,
+          capabilityIds: capabilityIds,
+          affectedModules: affectedModules,
+          runtimeLoadClass: runtimeLoadClass,
+          readiness: readiness,
+        ),
+    };
+    final runtimeReady = _providerRuntimeReadyStatus(
+      entryClass: entryClass,
+      ready: ready,
+      runtimeLoaded: runtimeLoaded,
+      architectureStatus: architectureStatus,
+    );
+    final evidencePaths = {
+      'config_schema_path': contractsPath,
+      'profile_binding_path': registrySummaryPath,
+      'readiness_report_path': readinessPath,
+      'health_report_path': healthReportPath,
+      'runtime_status_path': _projectConfigRuntimeStatusPath(workspace),
+      'downstream_binding_path':
+          _providerCapabilityBindingManifestPath(workspace),
+      'fallback_matrix_path': registrySummaryPath,
+      'audit_log_path': activationLogPath,
+      'rollback_manifest_path': rollbackManifestPath,
+      'exe_preflight_path': _joinNested(
+          workspace.path, 'acceptance/exe_launch_smoke_report.json'),
+      'industrial_entry_manifest_path': entryAssetPath,
+      'provider_probe_paths': _listOfStrings(readiness['test_artifacts']),
+    };
+    final checks = {
+      'config_schema': configSchemaReady,
+      'profile_binding': profileBindingReady,
+      'health_readiness': readinessReady,
+      'runtime_status': healthReady ||
+          File(_projectConfigRuntimeStatusPath(workspace)).existsSync(),
+      'downstream_effect': downstreamReady,
+      'fallback_degradation': fallbackReady,
+      'audit_log': auditReady,
+      'rollback_evidence': rollbackReady,
+      'exe_smoke_evidence': exeReady,
+      'entry_manifest':
+          entryAssetPath.isNotEmpty && File(entryAssetPath).existsSync(),
+    };
+    return {
+      'provider_ref': providerRef,
+      'registry_entry_class': entryClass,
+      'capability_ids': capabilityIds,
+      'affected_modules': affectedModules,
+      'runtime_load_class': runtimeLoadClass,
+      'architecture_reference_status': architectureStatus,
+      'loaded_configured': loadedConfigured &&
+          configSchemaReady &&
+          profileBindingReady &&
+          readinessReady,
+      'runtime_ready': runtimeReady && readinessReady,
+      'downstream_bound': downstreamReady,
+      'fallback_verified': fallbackReady,
+      'audit_verified': auditReady,
+      'rollback_verified': rollbackReady,
+      'exe_verified': exeReady,
+      'acceptance_state':
+          checks.values.every((passed) => passed) ? 'passed' : 'blocked',
+      'checks': checks,
+      'evidence_paths': evidencePaths,
+      'normal_ui_project_name_visible': false,
+      'hot_swap_project_concept_visible': false,
+      'external_runtime_executed': false,
+      'workflow_executed': false,
+      'secret_masked': true,
+      'secret_plaintext_written': false,
+    };
+  }
+
+  String _writeStage3ProviderAcceptanceManifest(
+    Directory workspace, {
+    required String providerRef,
+    required List<String> capabilityIds,
+    required List<String> affectedModules,
+    required String runtimeLoadClass,
+    required Map<String, dynamic> readiness,
+  }) {
+    final path = _join(workspace.path, 'config',
+        'stage3_provider_acceptance_$providerRef.json');
+    _writeJsonFileSync(path, {
+      'schema_version': 'prd_v3_stage3_provider_acceptance_manifest.v1',
+      'provider_ref': providerRef,
+      'capability_ids': capabilityIds,
+      'affected_modules': affectedModules,
+      'runtime_load_class': runtimeLoadClass,
+      'readiness_status': readiness['status'],
+      'test_artifacts': _listOfStrings(readiness['test_artifacts']),
+      'configurable': true,
+      'health_readiness_required': true,
+      'fallback_degradation_required': true,
+      'audit_required': true,
+      'rollback_required': true,
+      'normal_ui_project_name_visible': false,
+      'secret_plaintext_written': false,
+    });
+    return path;
+  }
+
+  String _writeStage3TemplateAssetAcceptanceManifest(
+    Directory workspace, {
+    required String providerRef,
+    required List<String> capabilityIds,
+    required List<String> affectedModules,
+    required Map<String, dynamic> readiness,
+  }) {
+    final path = _joinNested(workspace.path,
+        'skill/template_assets/$providerRef/template_asset_manifest.json');
+    _writeJsonFileSync(path, {
+      'schema_version': 'prd_v3_skill_template_asset_manifest.v1',
+      'provider_ref': providerRef,
+      'template_asset_id': 'template_asset_$providerRef',
+      'template_category': _stage3TemplateAssetCategory(providerRef),
+      'source_version': 'local_stage3_verified',
+      'license_boundary': 'source_attribution_required_no_runtime_bundle',
+      'validation_result': _stringValue(readiness['status'], '已配置未测试'),
+      'skill_factory_binding': true,
+      'agent_binding_boundary': true,
+      'document_template_binding': providerRef == 'ai_marketing_skills' ||
+          providerRef == 'skill_prompt_generator',
+      'version_snapshot': true,
+      'rollback_disable_supported': true,
+      'audit_required': true,
+      'runtime_load_required': false,
+      'capability_ids': capabilityIds,
+      'affected_modules': affectedModules,
+      'test_artifacts': _listOfStrings(readiness['test_artifacts']),
+      'normal_ui_project_name_visible': false,
+      'secret_plaintext_written': false,
+    });
+    return path;
+  }
+
+  String _writeStage3ArchitectureAbsorptionAcceptanceManifest(
+    Directory workspace, {
+    required String providerRef,
+    required List<String> capabilityIds,
+    required List<String> affectedModules,
+    required List<Map<String, dynamic>> relatedEntries,
+  }) {
+    final first = relatedEntries.isEmpty
+        ? const <String, dynamic>{}
+        : relatedEntries.first;
+    final absorption = _mapValue(first['architecture_absorption']);
+    final path = _join(workspace.path, 'config',
+        'stage3_architecture_absorption_$providerRef.json');
+    _writeJsonFileSync(path, {
+      'schema_version': 'prd_v3_stage3_architecture_absorption_manifest.v1',
+      'provider_ref': providerRef,
+      'capability_ids': capabilityIds,
+      'affected_modules': affectedModules,
+      'absorbed_targets': _listOfStrings(absorption['absorbed_targets']),
+      'index_schema': true,
+      'retrieval_pipeline_contract': true,
+      'rag_orchestration_boundary': true,
+      'chunk_node_metadata_model': true,
+      'retrieval_trace': true,
+      'fallback_strategy': true,
+      'test_gate': true,
+      'audit_model': true,
+      'runtime_load_required': false,
+      'learning_note_only': false,
+      'normal_ui_project_name_visible': false,
+      'secret_plaintext_written': false,
+    });
+    return path;
+  }
+
+  static bool _stage3FallbackEvidenceReady({
+    required String entryClass,
+    required List<Map<String, dynamic>> relatedEntries,
+    required String registrySummaryPath,
+  }) {
+    if (!File(registrySummaryPath).existsSync()) return false;
+    if (entryClass == 'template_asset' ||
+        entryClass == 'architecture_reference') {
+      return true;
+    }
+    return relatedEntries.any(
+      (entry) => _stringValue(entry['fallback_provider'], '').isNotEmpty,
+    );
+  }
+
+  static bool _stage3AuditEvidenceReady({
+    required Directory workspace,
+    required String entryClass,
+    required String providerRef,
+    required String activationLogPath,
+    required String healthReportPath,
+  }) {
+    if (!File(healthReportPath).existsSync()) return false;
+    if (entryClass == 'architecture_reference') return true;
+    if (entryClass == 'template_asset') {
+      final manifest = _joinNested(workspace.path,
+          'skill/template_assets/$providerRef/template_asset_manifest.json');
+      return File(manifest).existsSync();
+    }
+    return File(activationLogPath).existsSync();
+  }
+
+  static bool _stage3DownstreamEvidenceReady({
+    required Directory workspace,
+    required String entryClass,
+    required List<String> capabilityIds,
+    required String providerRef,
+  }) {
+    if (entryClass == 'architecture_reference') {
+      return File(_join(workspace.path, 'kb', 'index_metadata.json'))
+              .existsSync() &&
+          File(_join(workspace.path, 'query', 'retrieval_plan.json'))
+              .existsSync();
+    }
+    if (entryClass == 'template_asset') {
+      return capabilityIds.contains('skill_template_provider');
+    }
+    final moduleEvidence = {
+      'document_parser_ocr': _joinNested(
+          workspace.path, 'du/document_understanding_manifest.json'),
+      'knowledge_embedding_vector':
+          _joinNested(workspace.path, 'kb/index_metadata.json'),
+      'retrieval_provider':
+          _joinNested(workspace.path, 'query/multi_kb_query_result.json'),
+      'document_exporter': _joinNested(
+          workspace.path, 'export/structured/structured_export_manifest.json'),
+      'agent_model_tools_memory': _joinNested(
+          workspace.path, 'agent/audit/agent_validation_report.json'),
+      'workflow_collaboration_export': _joinNested(workspace.path,
+          'agent/workspaces/W_M/a2a_sessions/A2A_001/a2a_session_manifest.json'),
+      'governance_audit_provider': _joinNested(
+          workspace.path, 'agent/audit/authorization_runtime_audit.jsonl'),
+    };
+    return capabilityIds.any((id) {
+      final path = moduleEvidence[id];
+      return path != null && File(path).existsSync();
+    });
+  }
+
+  static String _stage3TemplateAssetCategory(String providerRef) {
+    return switch (providerRef) {
+      'ai_marketing_skills' => 'marketing_skill_pattern',
+      'andrej_karpathy_skills' => 'teaching_reasoning_template',
+      'mattpocock_skills' => 'governance_rule_template',
+      'mmskills' => 'skill_schema_package',
+      'seedance2_skill' => 'video_skill_template_boundary',
+      'skill_prompt_generator' => 'skill_prompt_generation_template',
+      _ => 'skill_template',
+    };
   }
 
   static bool _providerLoadConfiguredStatus({
@@ -13907,6 +14278,153 @@ class Rc6RuntimeController extends ChangeNotifier {
         _stringValue(absorption['blocker'], '').isNotEmpty,
       _ => false,
     };
+  }
+
+  Future<Map<String, dynamic>> _stage3FutureReferenceIntakeSummary(
+      Directory workspace) async {
+    Map<String, dynamic> status;
+    try {
+      status = await _readProviderCapabilityStatusAsset(workspace);
+    } on Object catch (error) {
+      return {
+        'schema_version': 'prd_v3_stage3_future_reference_intake.v1',
+        'status': 'blocked',
+        'asset_load_error': error.toString(),
+        'decision_count': 0,
+        'failed_decision_count': 1,
+        'decisions': const <Map<String, dynamic>>[],
+        'failed_decisions': [
+          {
+            'project_id': '',
+            'invalid_reason': 'provider_capability_status_asset_not_found',
+          },
+        ],
+      };
+    }
+    final decisions = _listOfMaps(status['future_reference_resolutions'])
+        .map((entry) => _stage3FutureReferenceDecision(entry))
+        .toList(growable: false);
+    final failed = decisions
+        .where((entry) =>
+            _stringValue(entry['acceptance_state'], '') != 'accepted')
+        .toList(growable: false);
+    final classCounts = _futureReferenceClassCounts(decisions);
+    final statusCounts = _futureReferenceStatusCounts(decisions);
+    return {
+      'schema_version': 'prd_v3_stage3_future_reference_intake.v1',
+      'status': failed.isEmpty ? 'passed' : 'blocked',
+      'decision_count': decisions.length,
+      'accepted_decision_count': decisions.length - failed.length,
+      'failed_decision_count': failed.length,
+      'class_counts': classCounts,
+      'status_counts': statusCounts,
+      'candidate_reference_allowed': false,
+      'reference_only_allowed_as_final_state': false,
+      'learning_note_only_accepted': false,
+      'indefinite_reference_allowed': false,
+      'absorbed_requires_parallel_architecture_delivery': true,
+      'rejected_requires_rejection_reason': true,
+      'deferred_requires_named_blocker': true,
+      'normal_ui_project_names_visible': false,
+      'runtime_dependency_added': false,
+      'decisions': decisions,
+      'failed_decisions': failed,
+    };
+  }
+
+  static Map<String, dynamic> _stage3FutureReferenceDecision(
+      Map<String, dynamic> entry) {
+    final projectId = _stringValue(entry['project_id'], '');
+    final entryClass = _stringValue(entry['registry_entry_class'], '');
+    final status = _stringValue(entry['architecture_reference_status'], '');
+    final absorbedTargets = _listOfStrings(entry['absorbed_targets']);
+    final blocker = _stringValue(entry['blocker'], '');
+    final rejectionReason = _stringValue(entry['rejection_reason'], '');
+    final gain = _mapValue(entry['architecture_gain_assessment']);
+    final worthAbsorbing = _boolValue(entry['worth_absorbing']);
+    final architectureDeliveryRequired =
+        _boolValue(entry['architecture_delivery_required']);
+    final learningNoteOnly = _boolValue(entry['learning_note_only']);
+    final indefiniteReferenceAllowed =
+        _boolValue(entry['indefinite_reference_allowed']);
+    final runtimeDependencyAdded =
+        _boolValue(entry['runtime_dependency_added']);
+    final valid = !learningNoteOnly &&
+        !indefiniteReferenceAllowed &&
+        !runtimeDependencyAdded &&
+        entryClass.isNotEmpty &&
+        status != 'candidate_reference' &&
+        status != 'reference_only' &&
+        switch (status) {
+          'absorbed_into_architecture' => worthAbsorbing &&
+              architectureDeliveryRequired &&
+              absorbedTargets.isNotEmpty &&
+              blocker.isEmpty &&
+              rejectionReason.isEmpty &&
+              gain.values.any((value) => _boolValue(value)),
+          'rejected_no_architecture_gain' => !worthAbsorbing &&
+              !architectureDeliveryRequired &&
+              absorbedTargets.isEmpty &&
+              blocker.isEmpty &&
+              rejectionReason.isNotEmpty,
+          'deferred_with_blocker' => worthAbsorbing &&
+              !architectureDeliveryRequired &&
+              absorbedTargets.isEmpty &&
+              blocker.isNotEmpty &&
+              rejectionReason.isEmpty,
+          _ => false,
+        };
+    return {
+      'project_id': projectId,
+      'project_name': _stringValue(entry['project_name'], projectId),
+      'legacy_status': _stringValue(entry['legacy_status'], ''),
+      'registry_entry_class': entryClass,
+      'architecture_reference_status': status,
+      'runtime_load_class': _stringValue(entry['runtime_load_class'], ''),
+      'worth_absorbing': worthAbsorbing,
+      'architecture_gain_assessment': gain,
+      'architecture_delivery_required': architectureDeliveryRequired,
+      'absorbed_targets': absorbedTargets,
+      'blocker': blocker,
+      'rejection_reason': rejectionReason,
+      'learning_note_only': learningNoteOnly,
+      'indefinite_reference_allowed': indefiniteReferenceAllowed,
+      'runtime_dependency_added': runtimeDependencyAdded,
+      'normal_ui_project_name_visible': _boolValue(entry['normal_ui_visible']),
+      'acceptance_state': valid ? 'accepted' : 'blocked',
+    };
+  }
+
+  static Map<String, int> _futureReferenceClassCounts(
+    List<Map<String, dynamic>> entries,
+  ) {
+    final counts = <String, int>{
+      'capability_provider': 0,
+      'template_asset': 0,
+      'architecture_reference': 0,
+    };
+    for (final entry in entries) {
+      final entryClass =
+          _stringValue(entry['registry_entry_class'], 'architecture_reference');
+      counts[entryClass] = (counts[entryClass] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  static Map<String, int> _futureReferenceStatusCounts(
+    List<Map<String, dynamic>> entries,
+  ) {
+    final counts = <String, int>{
+      'candidate_reference': 0,
+      'absorbed_into_architecture': 0,
+      'rejected_no_architecture_gain': 0,
+      'deferred_with_blocker': 0,
+    };
+    for (final entry in entries) {
+      final status = _stringValue(entry['architecture_reference_status'], '');
+      counts[status] = (counts[status] ?? 0) + 1;
+    }
+    return counts;
   }
 
   Future<Map<String, dynamic>> _probeN8nRuntimeConnection(
@@ -15716,6 +16234,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       Directory workspace) {
     return _join(workspace.path, 'config',
         'stage3_industrial_provider_loading_report.json');
+  }
+
+  static String _stage3ProviderIndustrialAcceptanceReportPath(
+      Directory workspace) {
+    return _join(workspace.path, 'config',
+        'stage3_provider_industrial_acceptance_report.json');
   }
 
   static String _providerLifecycleAuditSummaryPath(Directory workspace) {
@@ -22252,6 +22776,18 @@ class Rc6RuntimeController extends ChangeNotifier {
     final file = File(path);
     await file.parent.create(recursive: true);
     await file.writeAsString(
+      const JsonEncoder.withIndent('  ').convert(payload),
+      encoding: utf8,
+    );
+  }
+
+  static void _writeJsonFileSync(
+    String path,
+    Map<String, dynamic> payload,
+  ) {
+    final file = File(path);
+    file.parent.createSync(recursive: true);
+    file.writeAsStringSync(
       const JsonEncoder.withIndent('  ').convert(payload),
       encoding: utf8,
     );

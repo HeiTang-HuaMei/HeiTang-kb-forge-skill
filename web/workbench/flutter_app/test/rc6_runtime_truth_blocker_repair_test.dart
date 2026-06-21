@@ -612,8 +612,9 @@ void main() {
       ],
     }));
 
-    final queryDir = Directory('${workspace.path}${Platform.pathSeparator}query')
-      ..createSync(recursive: true);
+    final queryDir =
+        Directory('${workspace.path}${Platform.pathSeparator}query')
+          ..createSync(recursive: true);
     File('${queryDir.path}${Platform.pathSeparator}multi_kb_query_result.json')
         .writeAsStringSync(jsonEncode({
       'schema_version': 'prd_v3_multi_kb_query_result.v1',
@@ -850,9 +851,8 @@ void main() {
     final videoDir = Directory(
         '${agentRoot.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}video')
       ..createSync(recursive: true);
-    final toolDir =
-        Directory('${agentRoot.path}${Platform.pathSeparator}tool')
-          ..createSync(recursive: true);
+    final toolDir = Directory('${agentRoot.path}${Platform.pathSeparator}tool')
+      ..createSync(recursive: true);
     final externalSkillDir = Directory(
         '${agentRoot.path}${Platform.pathSeparator}external_skills${Platform.pathSeparator}video_generation_skill')
       ..createSync(recursive: true);
@@ -2389,8 +2389,7 @@ void main() {
         isFalse);
     final fullLoadingMatrixPath =
         runtimeStatus['stage3_full_provider_loading_matrix_path'] as String;
-    expect(
-        providerHealth['stage3_full_provider_loading_matrix_path'],
+    expect(providerHealth['stage3_full_provider_loading_matrix_path'],
         fullLoadingMatrixPath);
     final fullLoadingMatrix =
         jsonDecode(File(fullLoadingMatrixPath).readAsStringSync()) as Map;
@@ -2415,11 +2414,7 @@ void main() {
         (fullLoadingMatrix['rows'] as List).cast<Map<String, dynamic>>();
     expect(fullLoadingRows, hasLength(26));
     expect(
-        fullLoadingRows
-            .map((row) => row['provider_ref'])
-            .toSet()
-            .length,
-        26);
+        fullLoadingRows.map((row) => row['provider_ref']).toSet().length, 26);
     expect(
         fullLoadingRows.every((row) =>
             row.containsKey('loaded_configured') &&
@@ -2444,20 +2439,20 @@ void main() {
       expect(artifacts['exe_preflight_path'], isA<String>());
     }
     expect(
-        fullLoadingRows.every(
-            (row) => row['normal_ui_project_name_visible'] == false),
+        fullLoadingRows
+            .every((row) => row['normal_ui_project_name_visible'] == false),
         isTrue);
     expect(
-        fullLoadingRows.every(
-            (row) => row['hot_swap_project_concept_visible'] == false),
+        fullLoadingRows
+            .every((row) => row['hot_swap_project_concept_visible'] == false),
         isTrue);
     expect(
         fullLoadingRows
             .every((row) => row['secret_plaintext_written'] == false),
         isTrue);
     expect(
-        fullLoadingRows
-            .where((row) => row['registry_entry_class'] == 'capability_provider'),
+        fullLoadingRows.where(
+            (row) => row['registry_entry_class'] == 'capability_provider'),
         hasLength(19));
     expect(
         fullLoadingRows
@@ -3028,9 +3023,9 @@ void main() {
     expect(preflight['runtime_load_allowed'], isTrue);
     expect(preflight['failed_checks'], isEmpty);
 
-    final readiness = jsonDecode(File(
-            runtimeStatus['provider_adapter_readiness_report_path'] as String)
-        .readAsStringSync()) as Map<String, dynamic>;
+    final readiness = jsonDecode(
+        File(runtimeStatus['provider_adapter_readiness_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(readiness['contract_count'], 26);
     expect(readiness['readiness_entry_count'], 26);
     expect(readiness['ready_for_user_selection_count'], 25);
@@ -3117,9 +3112,9 @@ void main() {
     expect(health['normal_ui_project_names_visible'], isFalse);
     expect(health['secret_plaintext_written'], isFalse);
 
-    final registrySummary = jsonDecode(File(
-            health['provider_registry_readiness_summary_path'] as String)
-        .readAsStringSync()) as Map<String, dynamic>;
+    final registrySummary = jsonDecode(
+        File(health['provider_registry_readiness_summary_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
     expect(registrySummary['provider_count'], 26);
     expect(registrySummary['provider_mapping_count'], 29);
     expect(registrySummary['ready_provider_count'], 25);
@@ -3161,6 +3156,65 @@ void main() {
     expect(fullMatrix['normal_ui_project_names_visible'], isFalse);
     expect(fullMatrix['hot_swap_project_concept_visible'], isFalse);
     expect(fullMatrix['secret_plaintext_written'], isFalse);
+    final industrialAcceptanceRows =
+        (fullMatrix['industrial_acceptance_rows'] as List)
+            .cast<Map<String, dynamic>>();
+    expect(industrialAcceptanceRows, hasLength(26));
+    expect(industrialAcceptanceRows.map((row) => row['provider_ref']).toSet(),
+        expectedProviderRefs);
+    expect(
+        industrialAcceptanceRows.every((row) =>
+            row['loaded_configured'] == true &&
+            row['runtime_ready'] == true &&
+            row['downstream_bound'] == true &&
+            row['fallback_verified'] == true &&
+            row['audit_verified'] == true &&
+            row['rollback_verified'] == true &&
+            row['exe_verified'] == true &&
+            row['acceptance_state'] == 'passed' &&
+            row['normal_ui_project_name_visible'] == false &&
+            row['hot_swap_project_concept_visible'] == false &&
+            row['external_runtime_executed'] == false &&
+            row['workflow_executed'] == false &&
+            row['secret_plaintext_written'] == false),
+        isTrue);
+    final acceptanceReportPath = (fullMatrix['source_artifacts']
+        as Map)['stage3_provider_industrial_acceptance_report_path'] as String;
+    final acceptanceReport =
+        jsonDecode(File(acceptanceReportPath).readAsStringSync())
+            as Map<String, dynamic>;
+    expect(acceptanceReport['schema_version'],
+        'prd_v3_stage3_provider_industrial_acceptance_report.v1');
+    expect(acceptanceReport['status'], 'passed');
+    expect(acceptanceReport['provider_ref_count'], 26);
+    expect(acceptanceReport['actual_counts'], {
+      'capability_provider': 19,
+      'template_asset': 6,
+      'architecture_reference': 1,
+    });
+    for (final row in industrialAcceptanceRows) {
+      final evidence = row['evidence_paths'] as Map<String, dynamic>;
+      for (final key in [
+        'config_schema_path',
+        'profile_binding_path',
+        'readiness_report_path',
+        'health_report_path',
+        'runtime_status_path',
+        'downstream_binding_path',
+        'fallback_matrix_path',
+        'rollback_manifest_path',
+        'exe_preflight_path',
+        'industrial_entry_manifest_path',
+      ]) {
+        expect(File(evidence[key] as String).existsSync(), isTrue,
+            reason: '${row['provider_ref']} missing $key');
+      }
+      expect(
+          (evidence['provider_probe_paths'] as List)
+              .cast<String>()
+              .every((path) => File(path).existsSync()),
+          isTrue);
+    }
 
     final industrialReport = jsonDecode(File(
             runtimeStatus['stage3_industrial_provider_loading_report_path']
@@ -3188,15 +3242,90 @@ void main() {
     expect(classificationPolicy['rejected_references_require_reason'], isTrue);
     expect(classificationPolicy['deferred_references_require_named_blocker'],
         isTrue);
+    expect(
+        classificationPolicy['future_references_require_resolution'], isTrue);
+    expect(
+        classificationPolicy[
+            'future_references_must_not_remain_learning_notes'],
+        isTrue);
     expect(industrialReport['normal_ui_project_names_visible'], isFalse);
     expect(industrialReport['hot_swap_project_concept_visible'], isFalse);
     expect(industrialReport['secret_plaintext_written'], isFalse);
     expect(industrialReport['failed_decisions'], isEmpty);
+    expect(industrialReport['failed_future_reference_decisions'], isEmpty);
+    final futureReferenceIntake =
+        industrialReport['future_reference_intake'] as Map<String, dynamic>;
+    expect(futureReferenceIntake['schema_version'],
+        'prd_v3_stage3_future_reference_intake.v1');
+    expect(futureReferenceIntake['status'], 'passed');
+    expect(futureReferenceIntake['decision_count'], 7);
+    expect(futureReferenceIntake['class_counts'], {
+      'capability_provider': 0,
+      'template_asset': 1,
+      'architecture_reference': 6,
+    });
+    expect(futureReferenceIntake['status_counts'], {
+      'candidate_reference': 0,
+      'absorbed_into_architecture': 1,
+      'rejected_no_architecture_gain': 4,
+      'deferred_with_blocker': 2,
+    });
+    expect(futureReferenceIntake['reference_only_allowed_as_final_state'],
+        isFalse);
+    expect(futureReferenceIntake['learning_note_only_accepted'], isFalse);
+    expect(futureReferenceIntake['indefinite_reference_allowed'], isFalse);
+    final futureReferenceDecisions =
+        (industrialReport['future_reference_decisions'] as List)
+            .cast<Map<String, dynamic>>();
+    expect(futureReferenceDecisions, hasLength(7));
+    expect(
+        futureReferenceDecisions.every((row) =>
+            row['acceptance_state'] == 'accepted' &&
+            row['learning_note_only'] == false &&
+            row['indefinite_reference_allowed'] == false &&
+            row['runtime_dependency_added'] == false &&
+            row['normal_ui_project_name_visible'] == false),
+        isTrue);
+    final absorbedFutureReferences = futureReferenceDecisions
+        .where((row) =>
+            row['architecture_reference_status'] ==
+            'absorbed_into_architecture')
+        .toList(growable: false);
+    expect(absorbedFutureReferences, hasLength(1));
+    expect(absorbedFutureReferences.single['architecture_delivery_required'],
+        isTrue);
+    expect(absorbedFutureReferences.single['absorbed_targets'] as List,
+        isNotEmpty);
+    final rejectedFutureReferences = futureReferenceDecisions
+        .where((row) =>
+            row['architecture_reference_status'] ==
+            'rejected_no_architecture_gain')
+        .toList(growable: false);
+    expect(rejectedFutureReferences, hasLength(4));
+    expect(
+        rejectedFutureReferences.every((row) =>
+            row['worth_absorbing'] == false &&
+            row['rejection_reason'] is String &&
+            (row['rejection_reason'] as String).isNotEmpty &&
+            (row['absorbed_targets'] as List).isEmpty),
+        isTrue);
+    final deferredFutureReferences = futureReferenceDecisions
+        .where((row) =>
+            row['architecture_reference_status'] == 'deferred_with_blocker')
+        .toList(growable: false);
+    expect(deferredFutureReferences, hasLength(2));
+    expect(
+        deferredFutureReferences.every((row) =>
+            row['worth_absorbing'] == true &&
+            row['blocker'] is String &&
+            (row['blocker'] as String).isNotEmpty &&
+            (row['absorbed_targets'] as List).isEmpty),
+        isTrue);
 
     final rows = (fullMatrix['rows'] as List).cast<Map<String, dynamic>>();
     expect(rows, hasLength(26));
-    expect(rows.map((row) => row['provider_ref']).toSet(),
-        expectedProviderRefs);
+    expect(
+        rows.map((row) => row['provider_ref']).toSet(), expectedProviderRefs);
     expect(
         rows.every((row) =>
             row['loaded_configured'] == true &&
@@ -3213,11 +3342,10 @@ void main() {
             row['secret_plaintext_written'] == false),
         isTrue);
     expect(
-        rows
-            .where((row) => row['registry_entry_class'] == 'capability_provider'),
+        rows.where(
+            (row) => row['registry_entry_class'] == 'capability_provider'),
         hasLength(19));
-    expect(
-        rows.where((row) => row['registry_entry_class'] == 'template_asset'),
+    expect(rows.where((row) => row['registry_entry_class'] == 'template_asset'),
         hasLength(6));
     expect(
         rows.where(
@@ -3230,10 +3358,27 @@ void main() {
     expect(llamaindex['architecture_reference_status'],
         'absorbed_into_architecture');
     expect(llamaindex['runtime_loaded'], isFalse);
-    expect(llamaindex['runtime_load_class'],
-        'architecture_reference_no_runtime');
+    expect(
+        llamaindex['runtime_load_class'], 'architecture_reference_no_runtime');
     expect((llamaindex['acceptance_notes'] as String),
         contains('index/RAG contract'));
+    final llamaindexAcceptance = industrialAcceptanceRows
+        .firstWhere((row) => row['provider_ref'] == 'llamaindex');
+    final llamaindexManifest = jsonDecode(File(
+            (llamaindexAcceptance['evidence_paths']
+                as Map)['industrial_entry_manifest_path'] as String)
+        .readAsStringSync()) as Map<String, dynamic>;
+    expect(llamaindexManifest['schema_version'],
+        'prd_v3_stage3_architecture_absorption_manifest.v1');
+    expect(llamaindexManifest['runtime_load_required'], isFalse);
+    expect(llamaindexManifest['index_schema'], isTrue);
+    expect(llamaindexManifest['retrieval_pipeline_contract'], isTrue);
+    expect(llamaindexManifest['rag_orchestration_boundary'], isTrue);
+    expect(llamaindexManifest['chunk_node_metadata_model'], isTrue);
+    expect(llamaindexManifest['retrieval_trace'], isTrue);
+    expect(llamaindexManifest['fallback_strategy'], isTrue);
+    expect(llamaindexManifest['test_gate'], isTrue);
+    expect(llamaindexManifest['audit_model'], isTrue);
     final industrialDecisions = (industrialReport['provider_decisions'] as List)
         .cast<Map<String, dynamic>>();
     expect(industrialDecisions, hasLength(26));
@@ -3283,6 +3428,24 @@ void main() {
             row['runtime_loaded'] == false &&
             row['runtime_load_class'] == 'template_manifest_only'),
         isTrue);
+    final templateAcceptanceRows = industrialAcceptanceRows
+        .where((row) => row['registry_entry_class'] == 'template_asset')
+        .toList(growable: false);
+    expect(templateAcceptanceRows, hasLength(6));
+    for (final row in templateAcceptanceRows) {
+      final manifest = jsonDecode(File((row['evidence_paths']
+              as Map)['industrial_entry_manifest_path'] as String)
+          .readAsStringSync()) as Map<String, dynamic>;
+      expect(manifest['schema_version'],
+          'prd_v3_skill_template_asset_manifest.v1');
+      expect(manifest['runtime_load_required'], isFalse);
+      expect(manifest['skill_factory_binding'], isTrue);
+      expect(manifest['agent_binding_boundary'], isTrue);
+      expect(manifest['source_version'], isNotEmpty);
+      expect(manifest['license_boundary'], isNotEmpty);
+      expect(manifest['validation_result'], '连接成功');
+      expect(manifest['rollback_disable_supported'], isTrue);
+    }
     final n8n = rows.firstWhere((row) => row['provider_ref'] == 'n8n');
     final rtk = rows.firstWhere((row) => row['provider_ref'] == 'rtk');
     expect(n8n['requires_external_runtime'], isTrue);
