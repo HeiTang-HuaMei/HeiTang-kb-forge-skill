@@ -97,6 +97,8 @@ def test_external_capability_registry_entries_preserve_runtime_and_ui_boundaries
         assert project["architecture_reference_status"] != "candidate_reference"
         absorption = project["architecture_absorption"]
         assert absorption["decision_source"] == "stage3_provider_registry_classification_gate"
+        assert absorption["learning_note_only"] is False
+        assert absorption["indefinite_reference_allowed"] is False
         assert absorption["architecture_delivery_required"] is (
             project["architecture_reference_status"] == "absorbed_into_architecture"
         )

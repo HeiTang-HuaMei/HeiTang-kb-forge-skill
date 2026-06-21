@@ -398,8 +398,112 @@ def load_external_project_registry(repo_root: Path | None = None) -> dict[str, A
     root = repo_root or Path.cwd()
     registry_path = root / SOURCE_REGISTRY_RELATIVE_PATH
     if registry_path.exists():
-        return json.loads(registry_path.read_text(encoding="utf-8"))
-    return _default_external_project_registry()
+        return _normalize_stage3_future_reference_queue(
+            json.loads(registry_path.read_text(encoding="utf-8"))
+        )
+    return _normalize_stage3_future_reference_queue(
+        _default_external_project_registry()
+    )
+
+
+STAGE3_FUTURE_REFERENCE_DECISIONS = {
+    "andrej_karpathy_skills": {
+        "entry_class": "template_asset",
+        "architecture_status": "absorbed_into_architecture",
+        "blocker": "",
+        "rejection_reason": "",
+    },
+    "presenton": {
+        "entry_class": "architecture_reference",
+        "architecture_status": "deferred_with_blocker",
+        "blocker": (
+            "Requires an Exporter Provider contract, local PPTX export proof, "
+            "health/readiness evidence, and rollback audit before absorption."
+        ),
+        "rejection_reason": "",
+    },
+    "codegraph": {
+        "entry_class": "architecture_reference",
+        "architecture_status": "rejected_no_architecture_gain",
+        "blocker": "",
+        "rejection_reason": (
+            "Developer code graph tooling does not improve the ordinary v3 "
+            "document-to-KB-to-Agent user chain beyond existing audit/governance boundaries."
+        ),
+    },
+    "understand_anything": {
+        "entry_class": "architecture_reference",
+        "architecture_status": "rejected_no_architecture_gain",
+        "blocker": "",
+        "rejection_reason": (
+            "Interactive code/navigation visualization is outside the ordinary "
+            "knowledge workbench main chain and overlaps existing UI architecture work."
+        ),
+    },
+    "nvlabs_longlive": {
+        "entry_class": "architecture_reference",
+        "architecture_status": "rejected_no_architecture_gain",
+        "blocker": "",
+        "rejection_reason": (
+            "Long-video model engineering requires GPU/vendor runtime scope that "
+            "conflicts with the current Provider boundary and offers no near-term v3 main-chain gain."
+        ),
+    },
+    "claude_plugins_official": {
+        "entry_class": "architecture_reference",
+        "architecture_status": "rejected_no_architecture_gain",
+        "blocker": "",
+        "rejection_reason": (
+            "Plugin marketplace compatibility is not an authorized product surface "
+            "and is covered by the existing Provider loading rule boundary."
+        ),
+    },
+    "pi_mono": {
+        "entry_class": "architecture_reference",
+        "architecture_status": "deferred_with_blocker",
+        "blocker": (
+            "Requires Agent runtime contract, permission allow/deny evidence, "
+            "memory/tool sandbox proof, and rollback audit before absorption."
+        ),
+        "rejection_reason": "",
+    },
+}
+
+
+def _normalize_stage3_future_reference_queue(
+    registry: dict[str, Any],
+) -> dict[str, Any]:
+    normalized = dict(registry)
+    queue = []
+    for item in registry.get("future_reference_queue", []):
+        project_id = item.get("project_id", "")
+        decision = STAGE3_FUTURE_REFERENCE_DECISIONS.get(project_id)
+        if not decision:
+            queue.append(dict(item))
+            continue
+        legacy_status = item.get("legacy_status", item.get("status", "needs_verification"))
+        entry_class = decision["entry_class"]
+        architecture_status = decision["architecture_status"]
+        current = {
+            **item,
+            "status": architecture_status,
+            "legacy_status": legacy_status,
+            "stage3_current_classification": entry_class,
+            "registry_entry_class": entry_class,
+            "architecture_reference_status": architecture_status,
+            "architecture_absorption": _future_reference_architecture_absorption(
+                project_id,
+                legacy_status,
+                entry_class,
+                architecture_status,
+                decision["blocker"],
+                decision["rejection_reason"],
+            ),
+            "runtime_load_class": _stage3_runtime_load_class(entry_class),
+        }
+        queue.append(current)
+    normalized["future_reference_queue"] = queue
+    return normalized
 
 
 def _default_external_project_registry() -> dict[str, Any]:
@@ -447,13 +551,76 @@ def _default_external_project_registry() -> dict[str, Any]:
         ("workflow_automation_export", "Workflow Automation / Export", "implemented export baseline", "P2.2 / P3", ["n8n"]),
     ]
     future_queue = [
-        ("andrej_karpathy_skills", "andrej-karpathy-skills", "reference_only", True),
-        ("presenton", "Presenton", "needs_verification", False),
-        ("codegraph", "CodeGraph", "needs_verification", False),
-        ("understand_anything", "Understand Anything", "needs_verification", False),
-        ("nvlabs_longlive", "NVlabs/LongLive", "needs_verification", False),
-        ("claude_plugins_official", "claude-plugins-official", "needs_verification", False),
-        ("pi_mono", "pi-mono", "needs_verification", False),
+        (
+            "andrej_karpathy_skills",
+            "andrej-karpathy-skills",
+            "reference_only",
+            "template_asset",
+            "absorbed_into_architecture",
+            "",
+            "",
+            True,
+        ),
+        (
+            "presenton",
+            "Presenton",
+            "needs_verification",
+            "architecture_reference",
+            "deferred_with_blocker",
+            "Requires an Exporter Provider contract, local PPTX export proof, health/readiness evidence, and rollback audit before absorption.",
+            "",
+            False,
+        ),
+        (
+            "codegraph",
+            "CodeGraph",
+            "needs_verification",
+            "architecture_reference",
+            "rejected_no_architecture_gain",
+            "",
+            "Developer code graph tooling does not improve the ordinary v3 document-to-KB-to-Agent user chain beyond existing audit/governance boundaries.",
+            False,
+        ),
+        (
+            "understand_anything",
+            "Understand Anything",
+            "needs_verification",
+            "architecture_reference",
+            "rejected_no_architecture_gain",
+            "",
+            "Interactive code/navigation visualization is outside the ordinary knowledge workbench main chain and overlaps existing UI architecture work.",
+            False,
+        ),
+        (
+            "nvlabs_longlive",
+            "NVlabs/LongLive",
+            "needs_verification",
+            "architecture_reference",
+            "rejected_no_architecture_gain",
+            "",
+            "Long-video model engineering requires GPU/vendor runtime scope that conflicts with the current Provider boundary and offers no near-term v3 main-chain gain.",
+            False,
+        ),
+        (
+            "claude_plugins_official",
+            "claude-plugins-official",
+            "needs_verification",
+            "architecture_reference",
+            "rejected_no_architecture_gain",
+            "",
+            "Plugin marketplace compatibility is not an authorized product surface and is covered by the existing Provider loading rule boundary.",
+            False,
+        ),
+        (
+            "pi_mono",
+            "pi-mono",
+            "needs_verification",
+            "architecture_reference",
+            "deferred_with_blocker",
+            "Requires Agent runtime contract, permission allow/deny evidence, memory/tool sandbox proof, and rollback audit before absorption.",
+            "",
+            False,
+        ),
     ]
     roadmap = [
         ("P2.1", "External Project Verification Baseline + Parser/OCR Multi-Backend Integration", ["registry and contract inclusion", "parser/OCR backend adapter"]),
@@ -550,7 +717,20 @@ def _default_external_project_registry() -> dict[str, Any]:
                 "project_id": project_id,
                 "project_name": project_name,
                 "reference_role": "future/reference queue",
-                "status": status,
+                "status": architecture_status,
+                "legacy_status": legacy_status,
+                "stage3_current_classification": entry_class,
+                "registry_entry_class": entry_class,
+                "architecture_reference_status": architecture_status,
+                "architecture_absorption": _future_reference_architecture_absorption(
+                    project_id,
+                    legacy_status,
+                    entry_class,
+                    architecture_status,
+                    blocker,
+                    rejection_reason,
+                ),
+                "runtime_load_class": _stage3_runtime_load_class(entry_class),
                 "implementation_mode": "not_integrated",
                 "current_version_required": current_version_required,
                 "runtime_dependency_added": False,
@@ -563,7 +743,16 @@ def _default_external_project_registry() -> dict[str, Any]:
                 "no_mcp_plugin_execution": True,
                 "boundary": "Reference queue only; no runtime dependency or plugin execution is active.",
             }
-            for project_id, project_name, status, current_version_required in future_queue
+            for (
+                project_id,
+                project_name,
+                legacy_status,
+                entry_class,
+                architecture_status,
+                blocker,
+                rejection_reason,
+                current_version_required,
+            ) in future_queue
         ],
         "projects": projects,
         "internal_capability_anchors": internal_anchors,
@@ -843,6 +1032,8 @@ def _stage3_architecture_absorption(
         "legacy_contract_status": statuses,
         "worth_absorbing": worth_absorbing,
         "absorption_required_now": architecture_status == "absorbed_into_architecture",
+        "learning_note_only": False,
+        "indefinite_reference_allowed": False,
         "absorbed_targets": (
             ARCHITECTURE_REFERENCE_ABSORB_TARGETS
             if architecture_status == "absorbed_into_architecture"
@@ -884,6 +1075,27 @@ def _stage3_runtime_load_class(entry_class: str) -> str:
         "template_asset": "template_asset_manifest_only",
         "architecture_reference": "architecture_reference_no_runtime",
     }[entry_class]
+
+
+def _future_reference_architecture_absorption(
+    project_id: str,
+    legacy_status: str,
+    entry_class: str,
+    architecture_status: str,
+    blocker: str,
+    rejection_reason: str,
+) -> dict[str, Any]:
+    absorption = _stage3_architecture_absorption(
+        project_id,
+        [legacy_status],
+        entry_class,
+        architecture_status,
+    )
+    if blocker:
+        absorption["blocker"] = blocker
+    if rejection_reason:
+        absorption["rejection_reason"] = rejection_reason
+    return absorption
 
 
 def _related_error_codes(project: dict[str, Any], statuses: list[str]) -> list[str]:

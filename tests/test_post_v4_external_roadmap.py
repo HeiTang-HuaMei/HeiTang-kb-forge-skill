@@ -50,6 +50,35 @@ def test_post_v4_roadmap_keeps_registry_as_pre_v4_only():
     assert payload["tag_created"] is False
     assert payload["release_written"] is False
     for item in payload["future_reference_queue"]:
+        assert item["status"] in {
+            "absorbed_into_architecture",
+            "rejected_no_architecture_gain",
+            "deferred_with_blocker",
+        }
+        assert item["status"] != "candidate_reference"
+        assert item["legacy_status"] in {"reference_only", "needs_verification"}
+        assert item["stage3_current_classification"] in {
+            "template_asset",
+            "architecture_reference",
+        }
+        assert item["registry_entry_class"] == item["stage3_current_classification"]
+        assert item["architecture_reference_status"] == item["status"]
+        assert item["runtime_load_class"] in {
+            "template_asset_manifest_only",
+            "architecture_reference_no_runtime",
+        }
+        absorption = item["architecture_absorption"]
+        assert absorption["learning_note_only"] is False
+        assert absorption["indefinite_reference_allowed"] is False
+        assert absorption["architecture_delivery_required"] is (
+            item["status"] == "absorbed_into_architecture"
+        )
+        if item["status"] == "deferred_with_blocker":
+            assert absorption["blocker"]
+            assert absorption["rejection_reason"] == ""
+        if item["status"] == "rejected_no_architecture_gain":
+            assert absorption["rejection_reason"]
+            assert absorption["blocker"] == ""
         assert item["implementation_mode"] == "not_integrated"
         assert item["runtime_dependency_added"] is False
         assert item["no_runtime_dependency_added"] is True

@@ -392,8 +392,20 @@ def _external_reference_boundary_matrix(repo_root: Path) -> dict[str, Any]:
     for project_id in sorted(required):
         item = queue.get(project_id, {})
         row_errors: list[str] = []
-        if item.get("status") not in {"needs_verification", "reference_only"}:
+        legacy_status = item.get("legacy_status", item.get("status"))
+        stage3_status = item.get("architecture_reference_status", item.get("status"))
+        if legacy_status not in {"needs_verification", "reference_only"}:
             row_errors.append(f"{project_id}_status_overclaim")
+        if stage3_status not in {
+            "absorbed_into_architecture",
+            "rejected_no_architecture_gain",
+            "deferred_with_blocker",
+        }:
+            row_errors.append(f"{project_id}_stage3_status_unresolved")
+        if stage3_status == "deferred_with_blocker" and not item.get("architecture_absorption", {}).get("blocker"):
+            row_errors.append(f"{project_id}_stage3_deferred_blocker_missing")
+        if stage3_status == "rejected_no_architecture_gain" and not item.get("architecture_absorption", {}).get("rejection_reason"):
+            row_errors.append(f"{project_id}_stage3_rejection_reason_missing")
         if item.get("implementation_mode") != "not_integrated":
             row_errors.append(f"{project_id}_implementation_mode_overclaim")
         for key in [
@@ -408,7 +420,9 @@ def _external_reference_boundary_matrix(repo_root: Path) -> dict[str, Any]:
             {
                 "project_id": project_id,
                 "status": "passed" if not row_errors else "failed",
-                "integration_status": item.get("status"),
+                "integration_status": legacy_status,
+                "stage3_current_status": stage3_status,
+                "stage3_current_classification": item.get("stage3_current_classification"),
                 "implementation_mode": item.get("implementation_mode"),
                 "errors": row_errors,
             }
