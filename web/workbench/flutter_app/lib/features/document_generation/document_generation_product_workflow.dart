@@ -20,28 +20,34 @@ class _DocumentProductWorkflow extends StatelessWidget {
     final tabs = _zh
         ? ['生成任务', '文档模板', '导出预览']
         : ['Generation Tasks', 'Document Templates', 'Export Preview'];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _ProductHeader(
+    return _FigmaPageCanvas(children: [
+      SizedBox(
+        height: 82,
+        child: _FigmaHighlightCard(
+          keyName: 'document-generation-hero',
           icon: Icons.description_outlined,
           title: _zh ? '文档生成' : 'Document Generation',
           description: _zh
-              ? '从知识库生成文档草稿，保存编辑，并导出已配置格式。'
-              : 'Generate document drafts from Knowledge Bases, save edits, and export configured formats.',
+              ? '从知识库生成 Markdown 草稿，编辑后导出；未配置格式保持需要设置。'
+              : 'Generate Markdown drafts from knowledge bases, edit, then export configured formats.',
         ),
-        const SizedBox(height: _DesktopGrid.gutter),
-        _PageTabs(
-            tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
-        const SizedBox(height: _DesktopGrid.gutter),
-        if (selectedTab == 1)
-          _DocumentTemplateView(zh: _zh)
-        else if (selectedTab == 2)
-          _DocumentExportPreviewView(zh: _zh, workspace: workspace)
-        else
-          _DocumentGenerationView(zh: _zh),
-      ],
-    );
+      ),
+      _PageTabs(
+        tabs: tabs,
+        selectedIndex: selectedTab,
+        onSelected: onTabSelected,
+      ),
+      SizedBox(
+        height: 620,
+        child: _LocalScrollBox(
+          child: selectedTab == 1
+              ? _DocumentTemplateView(zh: _zh)
+              : selectedTab == 2
+                  ? _DocumentExportPreviewView(zh: _zh, workspace: workspace)
+                  : _DocumentGenerationView(zh: _zh),
+        ),
+      ),
+    ]);
   }
 }
 

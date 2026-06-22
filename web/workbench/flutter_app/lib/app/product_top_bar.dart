@@ -5,7 +5,6 @@ class _ProductTopBar extends StatelessWidget {
     required this.localeCode,
     required this.page,
     required this.contracts,
-    required this.showTitleBlock,
     required this.isDark,
     required this.windowState,
     required this.onWindowStateChanged,
@@ -17,7 +16,6 @@ class _ProductTopBar extends StatelessWidget {
   final String localeCode;
   final WorkbenchPage page;
   final WorkbenchContracts contracts;
-  final bool showTitleBlock;
   final bool? isDark;
   final _DesktopWindowPreviewState windowState;
   final ValueChanged<_DesktopWindowPreviewState> onWindowStateChanged;
@@ -30,24 +28,43 @@ class _ProductTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final compact = constraints.maxWidth < 900;
-        final showTitle = showTitleBlock && constraints.maxWidth >= 1180;
-        final showUtilityChips = constraints.maxWidth >= 1240;
-        final showWorkspaceChip = constraints.maxWidth >= 1320;
-        final showLanguageToggle = constraints.maxWidth >= 680;
-        return Row(
-          key: const Key('desktop-topbar-single-row'),
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            if (showTitle) ...[
+    return Container(
+      key: const Key('desktop-topbar-single-row'),
+      height: 78,
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        border: Border(
+          bottom:
+              BorderSide(color: colors.outlineVariant.withValues(alpha: 0.72)),
+        ),
+      ),
+      child: LayoutBuilder(builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final compact = width < 360;
+        final searchWidth = width >= 900
+            ? 420.0
+            : width >= 760
+                ? 360.0
+                : 0.0;
+        return Padding(
+          padding:
+              EdgeInsets.fromLTRB(compact ? 10 : 32, 14, compact ? 10 : 28, 14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
               SizedBox(
-                width: compact ? 220 : 312,
+                width: compact
+                    ? width.clamp(96.0, 150.0)
+                    : width >= 1100
+                        ? 260
+                        : 210,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(page.title(localeCode, contracts),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style:
                             Theme.of(context).textTheme.headlineLarge?.copyWith(
                                   fontSize: 26,
@@ -55,75 +72,70 @@ class _ProductTopBar extends StatelessWidget {
                                   letterSpacing: 0,
                                   height: 1.05,
                                 )),
-                    const SizedBox(height: 3),
-                    Text(page.description(localeCode),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              fontSize: 14,
-                              color: colors.onSurfaceVariant,
-                              fontWeight: FontWeight.w600,
-                              height: 1.16,
-                            )),
+                    if (!compact) ...[
+                      const SizedBox(height: 4),
+                      Text(page.description(localeCode),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    fontSize: 13,
+                                    color: colors.onSurfaceVariant,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.12,
+                                  )),
+                    ],
                   ],
                 ),
               ),
-              const SizedBox(width: 10),
+              if (!compact) const SizedBox(width: 28),
+              if (searchWidth > 0)
+                SizedBox(
+                  width: searchWidth,
+                  child: _TopBarSearchField(
+                    label: _zh
+                        ? '搜索资料、知识库、技能、助手'
+                        : 'Search materials, knowledge bases, skills, assistants',
+                    onPageChanged: onPageChanged,
+                  ),
+                ),
+              const Spacer(),
+              if (!compact) ...[
+                _TopBarIconButton(
+                  icon: Icons.refresh_outlined,
+                  label: _zh ? '刷新' : 'Refresh',
+                  onPressed: () {},
+                ),
+                const SizedBox(width: 8),
+              ],
+              if (onLocaleChanged != null && !compact)
+                _TopBarLanguageToggle(
+                  localeCode: localeCode,
+                  onLocaleChanged: onLocaleChanged!,
+                ),
+              if (onLocaleChanged != null && !compact) const SizedBox(width: 8),
+              if (isDark != null && onThemeChanged != null && !compact)
+                _TopBarIconButton(
+                  icon: isDark!
+                      ? Icons.light_mode_outlined
+                      : Icons.dark_mode_outlined,
+                  label:
+                      isDark! ? (_zh ? '浅色' : 'Light') : (_zh ? '深色' : 'Dark'),
+                  onPressed: () => onThemeChanged!(
+                      isDark! ? ThemeMode.light : ThemeMode.dark),
+                ),
+              if (isDark != null && onThemeChanged != null && !compact)
+                const SizedBox(width: 8),
+              if (!compact)
+                _TopBarIconButton(
+                  icon: Icons.settings_outlined,
+                  label: _zh ? '设置' : 'Settings',
+                  onPressed: () => onPageChanged(_pageIndexById('workspace')),
+                ),
             ],
-            Expanded(
-              child: _TopBarSearchField(
-                label: _zh
-                    ? '搜索资料、知识库、技能、助手'
-                    : 'Search materials, KBs, skills, assistants',
-                compact: constraints.maxWidth < 900,
-                onPageChanged: onPageChanged,
-              ),
-            ),
-            if (showUtilityChips) ...[
-              const SizedBox(width: 6),
-              _TopBarChip(
-                icon: Icons.receipt_long_outlined,
-                label: _zh ? '本地日志' : 'Local logs',
-              ),
-              const SizedBox(width: 6),
-              _TopBarChip(
-                icon: Icons.notifications_none_outlined,
-                label: _zh ? '通知' : 'Notifications',
-              ),
-            ],
-            const SizedBox(width: 6),
-            _TopBarIconButton(
-              icon: Icons.refresh_outlined,
-              label: _zh ? '刷新' : 'Refresh',
-              onPressed: () {},
-            ),
-            if (showWorkspaceChip) ...[
-              const SizedBox(width: 6),
-              _TopBarChip(
-                icon: Icons.space_dashboard_outlined,
-                label: _zh ? '桌面工作区' : 'Desktop workspace',
-                compact: true,
-              ),
-            ],
-            if (showLanguageToggle) const SizedBox(width: 6),
-            if (showLanguageToggle && onLocaleChanged != null)
-              _TopBarLanguageToggle(
-                localeCode: localeCode,
-                onLocaleChanged: onLocaleChanged!,
-              ),
-            if (!compact) const SizedBox(width: 6),
-            if (!compact && isDark != null && onThemeChanged != null)
-              _TopBarIconButton(
-                icon: isDark!
-                    ? Icons.light_mode_outlined
-                    : Icons.dark_mode_outlined,
-                label: isDark! ? (_zh ? '浅色' : 'Light') : (_zh ? '深色' : 'Dark'),
-                onPressed: () =>
-                    onThemeChanged!(isDark! ? ThemeMode.light : ThemeMode.dark),
-              ),
-          ],
+          ),
         );
-      },
+      }),
     );
   }
 }
@@ -132,12 +144,10 @@ class _TopBarSearchField extends StatefulWidget {
   const _TopBarSearchField({
     required this.label,
     required this.onPageChanged,
-    this.compact = false,
   });
 
   final String label;
   final ValueChanged<int> onPageChanged;
-  final bool compact;
 
   @override
   State<_TopBarSearchField> createState() => _TopBarSearchFieldState();
@@ -198,8 +208,8 @@ class _TopBarSearchFieldState extends State<_TopBarSearchField> {
             elevation: 8,
             borderRadius: BorderRadius.circular(8),
             child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: widget.compact ? 340 : 560,
+              constraints: const BoxConstraints(
+                maxWidth: 560,
                 maxHeight: 360,
               ),
               child: ListView.builder(
@@ -231,11 +241,18 @@ class _TopBarSearchFieldState extends State<_TopBarSearchField> {
             key: const Key('topbar-search-field'),
             constraints: const BoxConstraints(minWidth: 120),
             height: 40,
-            padding: const EdgeInsets.only(left: 12, right: 6),
+            padding: const EdgeInsets.only(left: 14, right: 6),
             decoration: BoxDecoration(
               color: colors.surface,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius),
               border: Border.all(color: borderColor, width: focused ? 1.4 : 1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.025),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Row(
               children: [
@@ -270,7 +287,7 @@ class _TopBarSearchFieldState extends State<_TopBarSearchField> {
                         ),
                   ),
                 ),
-                if (!widget.compact || focused) ...[
+                if (focused) ...[
                   const SizedBox(width: 6),
                   TextButton(
                     key: const Key('topbar-real-search-submit'),
@@ -588,10 +605,10 @@ class _TopBarIconButton extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: colors.surface,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius),
             border: Border.all(color: colors.outlineVariant),
           ),
-          child: Icon(icon, size: 18),
+          child: Icon(icon, size: 18, color: colors.onSurfaceVariant),
         ),
       ),
     );
@@ -615,7 +632,7 @@ class _TopBarLanguageToggle extends StatelessWidget {
       height: 40,
       decoration: BoxDecoration(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius),
         border: Border.all(color: colors.outlineVariant),
       ),
       child: Row(
@@ -660,7 +677,7 @@ class _TopBarLanguageButton extends StatelessWidget {
         margin: const EdgeInsets.all(1),
         decoration: BoxDecoration(
           color: selected ? colors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(7),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Text(
           label,
@@ -668,50 +685,6 @@ class _TopBarLanguageButton extends StatelessWidget {
                 color: selected ? colors.onPrimary : colors.onSurfaceVariant,
                 fontWeight: FontWeight.w900,
               ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TopBarChip extends StatelessWidget {
-  const _TopBarChip({
-    required this.icon,
-    required this.label,
-    this.compact = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: compact ? 104 : 86),
-      child: Container(
-        height: 40,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: colors.outlineVariant),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 17),
-            const SizedBox(width: 7),
-            Flexible(
-              child: Text(label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      )),
-            ),
-          ],
         ),
       ),
     );

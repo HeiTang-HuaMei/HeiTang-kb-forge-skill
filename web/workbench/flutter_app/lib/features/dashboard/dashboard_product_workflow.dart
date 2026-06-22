@@ -23,297 +23,474 @@ class _DesktopDashboardSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      key: const Key('desktop-dashboard-surface'),
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return _FigmaPageCanvas(
+      spacing: 22,
       children: [
-        _DashboardMetricGrid(
-          localeCode: localeCode,
-          contracts: contracts,
-          workflowV2Evidence: workflowV2Evidence,
-          parserBackends: parserBackends,
-          onPageChanged: onPageChanged,
+        _FigmaFixedRow(
+          height: 190,
+          widths: const [540, 542],
+          children: [
+            _DashboardHeroCard(
+              localeCode: localeCode,
+              runtime: _Rc6RuntimeScope.of(context)?.state ??
+                  Rc6RuntimeState.initial(),
+              onPageChanged: onPageChanged,
+            ),
+            _DashboardAssetOverviewCard(
+              localeCode: localeCode,
+              workspace: workspace,
+              runtime: _Rc6RuntimeScope.of(context)?.state ??
+                  Rc6RuntimeState.initial(),
+            ),
+          ],
         ),
-        const SizedBox(height: _DesktopGrid.gutter),
-        LayoutBuilder(builder: (context, constraints) {
-          final threeColumns = constraints.maxWidth >= 1320;
-          final main = _ProductColumn(
-            children: [
-              _EqualHeightRow(
-                height: 316,
-                children: [
-                  _DashboardRecentTasks(
-                    localeCode: localeCode,
-                    onPageChanged: onPageChanged,
-                  ),
-                  _DashboardNextActions(
-                      localeCode: localeCode, onPageChanged: onPageChanged),
-                ],
-              ),
-              const SizedBox(height: _DesktopGrid.gutter),
-              _DashboardReportSummary(
-                localeCode: localeCode,
-                workflowV2Evidence: workflowV2Evidence,
-                parserBackends: parserBackends,
-              ),
-            ],
-          );
-          final side = _ProductColumn(
-            children: [
-              _DashboardArtifactOverview(
-                localeCode: localeCode,
-                onPageChanged: onPageChanged,
-              ),
-              const SizedBox(height: _DesktopGrid.gutter),
-              _DashboardAuthorizationCard(
-                localeCode: localeCode,
-                onPageChanged: onPageChanged,
-              ),
-            ],
-          );
-          if (!threeColumns) {
-            return Column(children: [
-              main,
-              const SizedBox(height: _DesktopGrid.gutter),
-              side,
-            ]);
-          }
-          return _Grid12Row(cells: [
-            _Grid12Cell(span: 9, child: main),
-            _Grid12Cell(span: 3, child: side),
-          ]);
-        }),
+        SizedBox(
+          height: 178,
+          child: _DashboardMainFlowCard(
+            localeCode: localeCode,
+            onPageChanged: onPageChanged,
+          ),
+        ),
+        _FigmaFixedRow(
+          height: 230,
+          widths: const [520, 260, 268],
+          spacing: 32,
+          children: [
+            _DashboardRecentTasks(
+              localeCode: localeCode,
+              onPageChanged: onPageChanged,
+            ),
+            _DashboardRecentActivity(
+              localeCode: localeCode,
+              workflowV2Evidence: workflowV2Evidence,
+              parserBackends: parserBackends,
+            ),
+            _DashboardArtifactOverview(
+              localeCode: localeCode,
+              onPageChanged: onPageChanged,
+            ),
+          ],
+        ),
+        SizedBox(
+          height: 48,
+          child: _DashboardIsolationNotice(localeCode: localeCode),
+        ),
       ],
     );
   }
 }
 
-class _DashboardMetricGrid extends StatelessWidget {
-  const _DashboardMetricGrid({
+class _DashboardHeroCard extends StatelessWidget {
+  const _DashboardHeroCard({
     required this.localeCode,
-    required this.contracts,
-    required this.workflowV2Evidence,
-    required this.parserBackends,
+    required this.runtime,
     required this.onPageChanged,
   });
 
   final String localeCode;
-  final WorkbenchContracts contracts;
-  final P1WorkflowEvidence workflowV2Evidence;
-  final ParserBackendMatrix parserBackends;
+  final Rc6RuntimeState runtime;
   final ValueChanged<int> onPageChanged;
 
   bool get _zh => localeCode == 'zh-CN';
 
   @override
   Widget build(BuildContext context) {
-    final rc6 = _Rc6RuntimeScope.of(context);
-    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
-    final metrics = [
-      _DashboardMetricData(
-        icon: Icons.inventory_2_outlined,
-        label: _zh ? '来源文档' : 'Source Docs',
-        value: runtime.sourceCount.toString(),
-        detail: runtime.hasImportedFile
-            ? (_zh ? '已进入文档库' : 'in library')
-            : (_zh ? '等待导入' : 'waiting import'),
-        pageId: 'document-library',
-      ),
-      _DashboardMetricData(
-        icon: Icons.storage_outlined,
-        label: _zh ? '知识库' : 'Knowledge Base',
-        value: runtime.hasKnowledgeBase ? '1' : '0',
-        detail: runtime.hasKnowledgeBase
-            ? (_zh ? '已生成' : 'generated')
-            : (_zh ? '等待构建' : 'waiting build'),
-        pageId: 'knowledge-package-management',
-      ),
-      _DashboardMetricData(
-        icon: Icons.manage_search_outlined,
-        label: _zh ? '测试结果' : 'Test Results',
-        value: runtime.searchResults.length.toString(),
-        detail: runtime.searchStatus == Rc6SearchStatus.success
-            ? (_zh ? '来自所选知识库' : 'from selected KB')
-            : (_zh ? '等待查询' : 'waiting query'),
-        pageId: 'retrieval-verification',
-      ),
-      _DashboardMetricData(
-        icon: Icons.description_outlined,
-        label: _zh ? '生成文档' : 'Generated Docs',
-        value: runtime.hasMarkdown ? '1' : '0',
-        detail: runtime.hasExportedDocument
-            ? (_zh ? '已导出' : 'exported')
-            : runtime.hasMarkdown
-                ? (_zh ? '已生成，待导出' : 'generated, export next')
-                : (_zh ? '尚未生成' : 'not generated'),
-        pageId: 'document-generation',
-      ),
-      _DashboardMetricData(
-        icon: Icons.route_outlined,
-        label: _zh ? '工作状态' : 'Work Status',
-        value: _dashboardCurrentStage(runtime, _zh),
-        detail: _dashboardCurrentStageDetail(runtime, _zh),
-        pageId: _dashboardNextPageId(runtime),
-      ),
-    ];
+    final action = _dashboardNextAction(runtime, _zh);
+    final colors = Theme.of(context).colorScheme;
+    final decoration = BoxDecoration(
+      color: colors.surface,
+      borderRadius: BorderRadius.circular(24),
+      border: Border.all(color: colors.outlineVariant),
+      boxShadow: _HTKWTokens.cardShadow,
+    );
     return LayoutBuilder(builder: (context, constraints) {
-      final width = constraints.maxWidth;
-      final columns = width >= 1180
-          ? 5
-          : width >= 900
-              ? 3
-              : width >= 620
-                  ? 2
-                  : 1;
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: metrics.length,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: columns,
-          mainAxisSpacing: _DesktopGrid.gutter,
-          crossAxisSpacing: _DesktopGrid.gutter,
-          mainAxisExtent: 150,
-        ),
-        itemBuilder: (context, index) => _DashboardMetricCard(
-          metrics[index],
-          onTap: () => onPageChanged(_pageIndexById(metrics[index].pageId)),
+      final narrow = constraints.maxWidth < 280;
+      if (narrow) {
+        return Container(
+          key: const Key('dashboard-hero-card'),
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          decoration: decoration,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                _zh ? '知识资产' : 'Knowledge assets',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              _PrimaryProductAction(
+                label: action.title,
+                icon: action.icon,
+                onPressed: () => onPageChanged(_pageIndexById(action.pageId)),
+              ),
+            ],
+          ),
+        );
+      }
+      return Container(
+        key: const Key('dashboard-hero-card'),
+        padding: const EdgeInsets.fromLTRB(26, 16, 24, 16),
+        decoration: decoration,
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _zh
+                        ? '把资料变成可用的知识资产'
+                        : 'Turn materials into usable knowledge assets',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                          fontSize: 25,
+                          fontWeight: FontWeight.w900,
+                          height: 1.12,
+                        ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _zh
+                        ? '先整理文档库，再构建知识库，最后生成文档、技能与助手。'
+                        : 'Organize the library, build a knowledge base, then generate documents, skills, and assistants.',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          height: 1.24,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 10,
+                    children: [
+                      SizedBox(
+                        width: 150,
+                        child: _PrimaryProductAction(
+                          label: action.title,
+                          icon: action.icon,
+                          onPressed: () =>
+                              onPageChanged(_pageIndexById(action.pageId)),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 124,
+                        child: _DisplayAction(
+                          label: _zh ? '查看流程' : 'View flow',
+                          icon: Icons.route_outlined,
+                          onPressed: () =>
+                              onPageChanged(_pageIndexById('document-library')),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 22),
+            Container(
+              width: 52,
+              height: 52,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: _HTKWTokens.goldSoft,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(
+                Icons.dashboard_customize_outlined,
+                color: _HTKWTokens.gold,
+                size: 28,
+              ),
+            ),
+          ],
         ),
       );
     });
   }
 }
 
-String _dashboardNextPageId(Rc6RuntimeState runtime) {
-  if (!runtime.hasImportedFile || runtime.parseReportPath.isEmpty) {
-    return 'document-library';
-  }
-  if (!runtime.hasKnowledgeBase) return 'knowledge-package-management';
-  if (runtime.searchStatus != Rc6SearchStatus.success) {
-    return 'retrieval-verification';
-  }
-  return 'document-generation';
-}
-
-String _dashboardCurrentStage(Rc6RuntimeState runtime, bool zh) {
-  if (!runtime.hasImportedFile) return zh ? '文档库' : 'Library';
-  if (runtime.parseReportPath.isEmpty) return zh ? '整理资料' : 'Organizing';
-  if (!runtime.hasKnowledgeBase) return zh ? '知识库' : 'Knowledge';
-  if (runtime.searchStatus != Rc6SearchStatus.success) {
-    return zh ? '测试' : 'Test';
-  }
-  if (!runtime.hasMarkdown) return zh ? '文档' : 'Docs';
-  if (!runtime.hasExportedDocument) return zh ? '待导出' : 'Export';
-  return zh ? '可交付' : 'Ready';
-}
-
-String _dashboardCurrentStageDetail(Rc6RuntimeState runtime, bool zh) {
-  if (!runtime.hasImportedFile) return zh ? '等待来源文档' : 'waiting source docs';
-  if (runtime.parseReportPath.isEmpty) {
-    return zh ? '等待资料整理' : 'waiting organization';
-  }
-  if (!runtime.hasKnowledgeBase) return zh ? '等待知识库' : 'waiting knowledge base';
-  if (runtime.searchStatus != Rc6SearchStatus.success) {
-    return zh ? '等待证据记录' : 'waiting evidence record';
-  }
-  if (!runtime.hasMarkdown) return zh ? '等待文档产物' : 'waiting document artifact';
-  if (!runtime.hasExportedDocument) {
-    return zh ? 'Markdown 已生成' : 'Markdown generated';
-  }
-  return zh ? '导出文件已生成' : 'exported file ready';
-}
-
-class _DashboardMetricData {
-  const _DashboardMetricData({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.detail,
-    required this.pageId,
+class _DashboardAssetOverviewCard extends StatelessWidget {
+  const _DashboardAssetOverviewCard({
+    required this.localeCode,
+    required this.workspace,
+    required this.runtime,
   });
 
-  final IconData icon;
-  final String label;
-  final String value;
-  final String detail;
+  final String localeCode;
+  final String workspace;
+  final Rc6RuntimeState runtime;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final generatedCount = [
+      runtime.hasMarkdown,
+      runtime.hasExportedDocument,
+      runtime.hasSkill,
+      runtime.hasAgent,
+      runtime.hasAgentDialogue,
+      runtime.hasMultiAgentDiscussion,
+    ].where((value) => value).length;
+    return _FigmaCard(
+      keyName: 'dashboard-asset-overview',
+      padding: const EdgeInsets.fromLTRB(24, 22, 24, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _FigmaSectionHeader(
+            icon: Icons.space_dashboard_outlined,
+            title: _zh ? '工作区资产概览' : 'Workspace Asset Overview',
+            subtitle: _zh
+                ? '当前工作区：${_displayNameForPath(workspace)}'
+                : 'Current workspace: ${_displayNameForPath(workspace)}',
+          ),
+          const SizedBox(height: 18),
+          Expanded(
+            child: _MetricStrip(items: [
+              _MetricDatum(
+                label: _zh ? '配置状态' : 'Configuration',
+                value: runtime.sourceCount.toString(),
+                detail: runtime.parseReportPath.isEmpty
+                    ? (_zh ? '等待整理' : 'Waiting organize')
+                    : (_zh ? '已整理' : 'Organized'),
+                icon: Icons.library_books_outlined,
+              ),
+              _MetricDatum(
+                label: _zh ? '知识库' : 'Knowledge Bases',
+                value: runtime.hasKnowledgeBase ? '1' : '0',
+                detail: runtime.hasKnowledgeBase
+                    ? (_zh ? '可测试' : 'Ready to test')
+                    : (_zh ? '等待生成' : 'Waiting build'),
+                icon: Icons.account_tree_outlined,
+              ),
+              _MetricDatum(
+                label: _zh ? '成果' : 'Outputs',
+                value: generatedCount.toString(),
+                detail: generatedCount == 0
+                    ? (_zh ? '等待生成' : 'Waiting output')
+                    : (_zh ? '可查看' : 'Available'),
+                icon: Icons.folder_copy_outlined,
+              ),
+            ]),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DashboardMainFlowCard extends StatelessWidget {
+  const _DashboardMainFlowCard({
+    required this.localeCode,
+    required this.onPageChanged,
+  });
+
+  final String localeCode;
+  final ValueChanged<int> onPageChanged;
+
+  bool get _zh => localeCode == 'zh-CN';
+
+  @override
+  Widget build(BuildContext context) {
+    final steps = _zh
+        ? const [
+            _DashboardFlowStep('1', '添加资料', 'document-library'),
+            _DashboardFlowStep('2', '整理资料', 'document-library'),
+            _DashboardFlowStep('3', '生成知识库', 'knowledge-package-management'),
+            _DashboardFlowStep('4', '生成文档 / 技能', 'document-generation'),
+            _DashboardFlowStep('5', '创建助手', 'agent-factory-runtime'),
+          ]
+        : const [
+            _DashboardFlowStep('1', 'Add materials', 'document-library'),
+            _DashboardFlowStep('2', 'Organize', 'document-library'),
+            _DashboardFlowStep('3', 'Build KB', 'knowledge-package-management'),
+            _DashboardFlowStep('4', 'Docs / Skills', 'document-generation'),
+            _DashboardFlowStep(
+                '5', 'Create assistant', 'agent-factory-runtime'),
+          ];
+    return _FigmaCard(
+      keyName: 'dashboard-main-flow',
+      padding: const EdgeInsets.fromLTRB(30, 24, 30, 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _FigmaSectionHeader(
+            icon: Icons.route_outlined,
+            title: _zh ? '知识供应链进度' : 'Knowledge Workflow Progress',
+          ),
+          const SizedBox(height: 20),
+          Expanded(
+            child: LayoutBuilder(builder: (context, constraints) {
+              final compact = constraints.maxWidth < 980;
+              if (compact) {
+                return _LocalScrollBox(
+                  child: Column(
+                    children: [
+                      for (var index = 0; index < steps.length; index++) ...[
+                        _DashboardFlowStepCard(
+                          step: steps[index],
+                          active: index == 1,
+                          onTap: () => onPageChanged(
+                              _pageIndexById(steps[index].pageId)),
+                        ),
+                        if (index < steps.length - 1)
+                          const SizedBox(height: _DesktopGrid.gutter),
+                      ],
+                    ],
+                  ),
+                );
+              }
+              return Row(
+                children: [
+                  for (var index = 0; index < steps.length; index++) ...[
+                    Expanded(
+                      child: _DashboardFlowStepCard(
+                        step: steps[index],
+                        active: index == 1,
+                        onTap: () =>
+                            onPageChanged(_pageIndexById(steps[index].pageId)),
+                      ),
+                    ),
+                    if (index < steps.length - 1) ...[
+                      const SizedBox(width: 10),
+                      const Icon(
+                        Icons.arrow_forward_outlined,
+                        color: _HTKWTokens.textTertiary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                  ],
+                ],
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DashboardFlowStep {
+  const _DashboardFlowStep(this.number, this.title, this.pageId);
+
+  final String number;
+  final String title;
   final String pageId;
 }
 
-class _DashboardMetricCard extends StatelessWidget {
-  const _DashboardMetricCard(this.metric, {required this.onTap});
+class _DashboardFlowStepCard extends StatelessWidget {
+  const _DashboardFlowStepCard({
+    required this.step,
+    required this.active,
+    required this.onTap,
+  });
 
-  final _DashboardMetricData metric;
+  final _DashboardFlowStep step;
+  final bool active;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Material(
-      color: colors.surfaceContainerLowest,
-      borderRadius: BorderRadius.circular(_DesktopGrid.panelRadius),
+      color: active ? _HTKWTokens.goldSoft : colors.surface,
+      borderRadius: BorderRadius.circular(18),
       child: InkWell(
-        borderRadius: BorderRadius.circular(_DesktopGrid.panelRadius),
+        borderRadius: BorderRadius.circular(18),
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(_DesktopGrid.panelPadding),
+          height: 70,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(_DesktopGrid.panelRadius),
-            border: Border.all(color: colors.outlineVariant),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: active ? _HTKWTokens.gold : colors.outlineVariant,
+            ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Icon(metric.icon, size: 18, color: colors.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(metric.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                              height: 1.12,
-                            )),
-                  ),
-                ],
-              ),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(metric.value,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w900,
-                                height: 1.08,
-                              )),
-                      const SizedBox(height: 5),
-                      Text(metric.detail,
-                          maxLines: 1,
-                          softWrap: true,
-                          textAlign: TextAlign.center,
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: colors.onSurfaceVariant,
-                                    fontWeight: FontWeight.w700,
-                                  )),
-                    ],
-                  ),
+              Container(
+                width: 30,
+                height: 30,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: active ? _HTKWTokens.gold : colors.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  step.number,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color:
+                            active ? colors.surface : colors.onSurfaceVariant,
+                        fontWeight: FontWeight.w900,
+                      ),
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  step.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        height: 1.15,
+                      ),
+                ),
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _DashboardIsolationNotice extends StatelessWidget {
+  const _DashboardIsolationNotice({required this.localeCode});
+
+  final String localeCode;
+
+  @override
+  Widget build(BuildContext context) {
+    final zh = localeCode == 'zh-CN';
+    return Container(
+      key: const Key('dashboard-isolation-notice'),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      decoration: BoxDecoration(
+        color: _HTKWTokens.goldSoft,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _HTKWTokens.gold.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.lock_outline, color: _HTKWTokens.gold, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              zh
+                  ? '默认隔离：当前工作区的资料、知识库、技能、助手与记忆不会和其他工作区串联。'
+                  : 'Default isolation: materials, knowledge bases, skills, assistants, and memory stay inside the current workspace.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: _HTKWTokens.textSecondary,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -334,20 +511,6 @@ class _DashboardRecentTasks extends StatefulWidget {
 
 class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
   bool get _zh => widget.localeCode == 'zh-CN';
-
-  Future<void> _deleteTask(
-      Rc6RuntimeController? rc6, _DashboardTaskRow row) async {
-    if (rc6 == null || rc6.state.running) return;
-    final confirmed = await _confirmDestructiveAction(
-      context,
-      title: _zh ? '删除任务记录？' : 'Delete task record?',
-      body: _zh
-          ? '这会删除“${row.title}”对应的真实工作区记录和下游产物；原始输入文件夹不会被删除。'
-          : 'This deletes the real workspace records and downstream artifacts for "${row.title}"; original source folders are not deleted.',
-    );
-    if (!confirmed) return;
-    await rc6.clearRecentTaskArtifacts(row.id);
-  }
 
   Future<void> _clearTasks(
       Rc6RuntimeController? rc6, List<_DashboardTaskRow> rows) async {
@@ -445,35 +608,66 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
         ),
     ];
     final visibleRows = rows;
-    return _FillProductPanel(
-      keyName: 'dashboard-recent-tasks',
-      icon: Icons.list_alt_outlined,
-      title: _zh ? '最近任务' : 'Recent Tasks',
+    return _FigmaCard(
+      keyName: 'dashboard-next-actions',
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Container(
+            height: 42,
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            alignment: Alignment.centerLeft,
+            decoration: BoxDecoration(
+              color: _HTKWTokens.softSurface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: _HTKWTokens.border),
+            ),
+            child: Text(
+              _zh ? '继续任务' : 'Continue Tasks',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+          ),
+          const SizedBox(height: 10),
           Expanded(
             child: visibleRows.isEmpty
                 ? Center(
-                    child: Text(
-                      _zh
-                          ? '暂无真实任务。请从“文档库导入资料”开始。'
-                          : 'No real tasks yet. Start from the Document Library import.',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
+                    child: SizedBox(
+                      width: 180,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _zh ? '下一步' : 'Next Step',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.copyWith(fontWeight: FontWeight.w900),
                           ),
+                          const SizedBox(height: 10),
+                          _PrimaryProductAction(
+                            label: _zh ? '添加资料' : 'Add materials',
+                            icon: Icons.upload_file_outlined,
+                            onPressed: () => widget.onPageChanged(
+                                _pageIndexById('document-library')),
+                          ),
+                        ],
+                      ),
                     ),
                   )
                 : _LocalScrollBox(
                     child: Column(
                       children: [
                         for (final row in visibleRows) ...[
-                          _DashboardTaskTile(
-                            row: row,
-                            onOpen: () => widget
+                          _DashboardCompactRow(
+                            title: row.title,
+                            detail: row.status,
+                            onTap: () => widget
                                 .onPageChanged(_pageIndexById(row.pageId)),
-                            onDelete: () => _deleteTask(rc6, row),
                           ),
                           if (row != visibleRows.last)
                             const SizedBox(height: 8),
@@ -482,19 +676,15 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
                     ),
                   ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: visibleRows.isEmpty
-                      ? null
-                      : () => _clearTasks(rc6, visibleRows),
-                  icon: const Icon(Icons.delete_sweep_outlined),
-                  label: Text(_zh ? '清空最近任务' : 'Clear recent tasks'),
-                ),
-              ),
-            ],
+          SizedBox(
+            height: 34,
+            child: _DisplayAction(
+              label: _zh ? '清空最近任务' : 'Clear recent tasks',
+              icon: Icons.delete_sweep_outlined,
+              onPressed: visibleRows.isEmpty
+                  ? null
+                  : () => _clearTasks(rc6, visibleRows),
+            ),
           ),
         ],
       ),
@@ -502,98 +692,182 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
   }
 }
 
-class _DashboardNextActions extends StatelessWidget {
-  const _DashboardNextActions({
+class _DashboardRecentActivity extends StatelessWidget {
+  const _DashboardRecentActivity({
     required this.localeCode,
-    required this.onPageChanged,
+    required this.workflowV2Evidence,
+    required this.parserBackends,
   });
 
   final String localeCode;
-  final ValueChanged<int> onPageChanged;
+  final P1WorkflowEvidence workflowV2Evidence;
+  final ParserBackendMatrix parserBackends;
 
   bool get _zh => localeCode == 'zh-CN';
 
   @override
   Widget build(BuildContext context) {
-    final rc6 = _Rc6RuntimeScope.of(context);
-    final runtime = rc6?.state ?? Rc6RuntimeState.initial();
-    final action = _dashboardNextAction(runtime, _zh);
-    return _FillProductPanel(
-      keyName: 'dashboard-next-actions',
-      icon: Icons.route_outlined,
-      title: _zh ? '下一步' : 'Next Step',
-      child: Padding(
-        padding: const EdgeInsets.only(top: 2),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _PrimaryProductAction(
-              label: action.title,
-              icon: action.icon,
-              onPressed: () => onPageChanged(_pageIndexById(action.pageId)),
+    final runtime =
+        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
+    final rows = [
+      if (runtime.hasImportedFile)
+        _DashboardActivityRow(
+          _zh ? '新增资料' : 'Materials added',
+          _zh ? '${runtime.sourceCount} 个来源' : '${runtime.sourceCount} sources',
+        ),
+      if (runtime.parseReportPath.isNotEmpty)
+        _DashboardActivityRow(
+          _zh ? '资料已整理' : 'Materials organized',
+          _zh ? '${runtime.chunkCount} 个片段' : '${runtime.chunkCount} chunks',
+        ),
+      if (runtime.hasKnowledgeBase)
+        _DashboardActivityRow(
+          _zh ? '知识库已更新' : 'Knowledge base updated',
+          _zh ? '本地可测试' : 'local test ready',
+        ),
+      if (runtime.hasMarkdown)
+        _DashboardActivityRow(
+          _zh ? '文档已生成' : 'Document generated',
+          _displayNameForPath(runtime.generatedMarkdownPath),
+        ),
+      if (runtime.hasAgent || runtime.hasMultiAgentDiscussion)
+        _DashboardActivityRow(
+          _zh ? '助手有新记录' : 'Assistant activity',
+          runtime.hasMultiAgentDiscussion
+              ? (_zh ? '讨论报告' : 'discussion report')
+              : (_zh ? '对话记录' : 'dialogue record'),
+        ),
+    ];
+    final fallback = [
+      _DashboardActivityRow(
+        _zh ? '配置状态' : 'Configuration',
+        _zh ? '本地模式' : 'local mode',
+      ),
+      _DashboardActivityRow(
+        _zh ? '技能' : 'Skills',
+        runtime.hasSkill
+            ? (_zh ? '已生成' : 'generated')
+            : (_zh ? '等待生成' : 'waiting'),
+      ),
+      _DashboardActivityRow(
+        _zh ? '助手' : 'Assistants',
+        runtime.hasAgent
+            ? (_zh ? '已创建' : 'created')
+            : (_zh ? '等待创建' : 'waiting'),
+      ),
+      _DashboardActivityRow(
+        _zh ? '助手对话' : 'Assistant dialogue',
+        runtime.hasAgentDialogue
+            ? (_zh ? '已保存' : 'saved')
+            : (_zh ? '等待对话' : 'waiting'),
+      ),
+      _DashboardActivityRow(
+        _zh ? '多个助手讨论' : 'Assistant discussion',
+        runtime.hasMultiAgentDiscussion
+            ? (_zh ? '已生成' : 'generated')
+            : (_zh ? '等待讨论' : 'waiting'),
+      ),
+    ];
+    return _FigmaCard(
+      keyName: 'dashboard-recent-activity',
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 42,
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            alignment: Alignment.centerLeft,
+            decoration: BoxDecoration(
+              color: _HTKWTokens.softSurface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: _HTKWTokens.border),
             ),
-            const SizedBox(height: 8),
-            _RuntimeFeedbackBanner(
-              title: _zh ? '当前状态' : 'Current status',
-              detail: action.detail,
-              tone: action.done ? _StatusTone.success : _StatusTone.neutral,
-              icon:
-                  action.done ? Icons.check_circle_outline : Icons.info_outline,
+            child: Text(
+              _zh ? '最近动态' : 'Recent Activity',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
             ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: _LocalScrollBox(
-                child: _ProductTable(
-                  columns: _zh ? ['环节', '状态'] : ['Step', 'Status'],
-                  rows: _zh
-                      ? [
-                          ['资料', runtime.hasImportedFile ? '已添加' : '需要先添加资料'],
-                          [
-                            '整理',
-                            runtime.parseReportPath.isNotEmpty ? '已整理' : '待整理'
-                          ],
-                          ['知识库', runtime.hasKnowledgeBase ? '已生成' : '未生成'],
-                          [
-                            '文档',
-                            runtime.hasMarkdown
-                                ? (runtime.hasExportedDocument ? '可导出' : '已生成')
-                                : '未生成'
-                          ],
-                        ]
-                      : [
-                          [
-                            'Materials',
-                            runtime.hasImportedFile
-                                ? 'Added'
-                                : 'Add materials first'
-                          ],
-                          [
-                            'Organizing',
-                            runtime.parseReportPath.isNotEmpty
-                                ? 'Organized'
-                                : 'Waiting'
-                          ],
-                          [
-                            'Knowledge Base',
-                            runtime.hasKnowledgeBase
-                                ? 'Generated'
-                                : 'Not generated'
-                          ],
-                          [
-                            'Document',
-                            runtime.hasMarkdown
-                                ? (runtime.hasExportedDocument
-                                    ? 'Exportable'
-                                    : 'Generated')
-                                : 'Not generated'
-                          ],
-                        ],
-                ),
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: _LocalScrollBox(
+              child: Column(
+                children: [
+                  for (final row in (rows.isEmpty ? fallback : rows).take(5))
+                    _DashboardCompactRow(title: row.title, detail: row.detail),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+class _DashboardActivityRow {
+  const _DashboardActivityRow(this.title, this.detail);
+
+  final String title;
+  final String detail;
+}
+
+class _DashboardCompactRow extends StatelessWidget {
+  const _DashboardCompactRow({
+    required this.title,
+    required this.detail,
+    this.onTap,
+  });
+
+  final String title;
+  final String detail;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final child = Container(
+      height: 46,
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    )),
+          ),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Text(detail,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.right,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    )),
+          ),
+        ],
+      ),
+    );
+    if (onTap == null) return child;
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: child,
     );
   }
 }
@@ -697,205 +971,6 @@ class _DashboardTaskRow {
   final String pageId;
 }
 
-class _DashboardTaskTile extends StatelessWidget {
-  const _DashboardTaskTile({
-    required this.row,
-    required this.onOpen,
-    required this.onDelete,
-  });
-
-  final _DashboardTaskRow row;
-  final VoidCallback onOpen;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Material(
-      color: colors.surface,
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: onOpen,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: colors.outlineVariant),
-          ),
-          child: Row(
-            children: [
-              Icon(row.icon, size: 18, color: colors.primary),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(row.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              fontWeight: FontWeight.w900,
-                            )),
-                    const SizedBox(height: 2),
-                    Text('${row.type} · ${row.status}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colors.onSurfaceVariant,
-                              fontWeight: FontWeight.w700,
-                            )),
-                  ],
-                ),
-              ),
-              IconButton(
-                tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
-                onPressed: onDelete,
-                icon: const Icon(Icons.delete_outline, size: 18),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DashboardReportSummary extends StatelessWidget {
-  const _DashboardReportSummary({
-    required this.localeCode,
-    required this.workflowV2Evidence,
-    required this.parserBackends,
-  });
-
-  final String localeCode;
-  final P1WorkflowEvidence workflowV2Evidence;
-  final ParserBackendMatrix parserBackends;
-
-  bool get _zh => localeCode == 'zh-CN';
-
-  @override
-  Widget build(BuildContext context) {
-    return _ProductPanel(
-      keyName: 'dashboard-report-summary',
-      icon: Icons.analytics_outlined,
-      title: _zh ? '知识供应链进度' : 'Knowledge Supply Chain',
-      children: [
-        _ProductTable(
-          columns: _zh
-              ? ['环节', '状态', '用户可见结果', '入口']
-              : ['Step', 'Status', 'User result', 'Entry'],
-          rows: _zh
-              ? [
-                  ['添加与整理资料', '可操作', '来源文档 / 整理结果', '进入文档库'],
-                  ['生成知识库', '可操作', '知识库 / 质量记录', '测试知识库'],
-                  ['测试知识库', '可操作', '证据片段 / 引用 / 测试记录', '生成文档'],
-                  ['文档生成', '可操作', '文档草稿与导出文件', '生成技能'],
-                  ['技能生成', '可操作', '技能草稿 / 检查记录 / 绑定清单', '进入我的助手'],
-                  ['我的助手', '可操作', '助手对话 / 多助手讨论记录', '进入成果中心'],
-                ]
-              : [
-                  [
-                    'Import and parsing',
-                    'Actionable',
-                    'Source documents / parse results',
-                    'Open library'
-                  ],
-                  [
-                    'Knowledge build',
-                    'Actionable',
-                    'Knowledge Base / index / quality records',
-                    'Search'
-                  ],
-                  [
-                    'Retrieval and verification',
-                    'Actionable',
-                    'Evidence snippets / citations / validation report',
-                    'Generate documents'
-                  ],
-                  [
-                    'Document generation',
-                    'Actionable',
-                    'Markdown draft and export file',
-                    'Generate Skill'
-                  ],
-                  [
-                    'Skill Builder',
-                    'Actionable',
-                    'SKILL.md / validation report / binding manifest',
-                    'Open My Assistants'
-                  ],
-                  [
-                    'My Assistants',
-                    'Actionable',
-                    'Assistant dialogue / discussion records',
-                    'Open outputs'
-                  ],
-                ],
-        ),
-      ],
-    );
-  }
-}
-
-class _DashboardAuthorizationCard extends StatelessWidget {
-  const _DashboardAuthorizationCard({
-    required this.localeCode,
-    required this.onPageChanged,
-  });
-
-  final String localeCode;
-  final ValueChanged<int> onPageChanged;
-
-  bool get _zh => localeCode == 'zh-CN';
-
-  @override
-  Widget build(BuildContext context) {
-    return _ProductPanel(
-      keyName: 'dashboard-authorization',
-      icon: Icons.admin_panel_settings_outlined,
-      title: _zh ? '配置状态' : 'Configuration Status',
-      gap: true,
-      children: [
-        _ProductTable(
-          columns: _zh
-              ? ['能力', '当前处理', '用户动作']
-              : ['Capability', 'Handling', 'User action'],
-          rows: _zh
-              ? [
-                  ['外部来源核对', '需要设置', '在设置中开启网络权限'],
-                  ['专业记忆服务', '可选设置', '保存配置并测试连接'],
-                  ['专业检索服务', '可选设置', '保存配置并测试连接'],
-                ]
-              : [
-                  [
-                    'External fact checking',
-                    'Needs configuration',
-                    'Configure network authorization in Settings'
-                  ],
-                  [
-                    'Professional memory service',
-                    'Optional configuration',
-                    'Save config and test connection'
-                  ],
-                  [
-                    'Professional retrieval service',
-                    'Optional configuration',
-                    'Save config and test connection'
-                  ],
-                ],
-        ),
-        const SizedBox(height: _DesktopGrid.gutter),
-        _PrimaryProductAction(
-          label: _zh ? '打开设置' : 'Open Settings',
-          icon: Icons.settings_outlined,
-          onPressed: () => onPageChanged(_pageIndexById('workspace')),
-        ),
-      ],
-    );
-  }
-}
-
 class _DashboardArtifactOverview extends StatelessWidget {
   const _DashboardArtifactOverview({
     required this.localeCode,
@@ -911,151 +986,90 @@ class _DashboardArtifactOverview extends StatelessWidget {
   Widget build(BuildContext context) {
     final runtime =
         _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
-    return _ProductPanel(
-      keyName: 'dashboard-artifact-overview',
-      icon: Icons.folder_copy_outlined,
-      title: _zh ? '生成产物' : 'Generated Artifacts',
-      gap: true,
-      children: [
-        _ProductTable(
-          columns:
-              _zh ? ['产物', '状态', '位置'] : ['Artifact', 'Status', 'Location'],
-          rows: _zh
-              ? [
-                  [
-                    '来源文档',
-                    runtime.sourceManifestPath.isEmpty ? '未生成' : '已生成',
-                    runtime.sourceCount == 0
-                        ? '等待导入'
-                        : '${runtime.sourceCount} 个来源'
-                  ],
-                  [
-                    '解析结果',
-                    runtime.parseReportPath.isEmpty ? '未生成' : '已生成',
-                    runtime.chunkCount == 0
-                        ? '等待整理'
-                        : '${runtime.chunkCount} 个片段'
-                  ],
-                  [
-                    '知识库',
-                    runtime.kbManifestPath.isEmpty ? '未生成' : '已生成',
-                    runtime.hasKnowledgeBase ? '可检索' : '等待构建'
-                  ],
-                  [
-                    '导出文档',
-                    runtime.exportedDocumentPath.isEmpty ? '未导出' : '已导出',
-                    _displayNameForPath(runtime.exportedDocumentPath)
-                  ],
-                  [
-                    '技能',
-                    runtime.hasSkill ? '已生成' : '未生成',
-                    _displayNameForPath(runtime.primarySkillPath)
-                  ],
-                  [
-                    '助手',
-                    runtime.hasAgent ? '已生成' : '未生成',
-                    runtime.hasAgent ? '可对话' : '等待创建'
-                  ],
-                  [
-                    '助手对话',
-                    runtime.hasAgentDialogue ? '已保存' : '未生成',
-                    runtime.hasAgentDialogue ? '可查看' : '等待运行'
-                  ],
-                  [
-                    '多个助手讨论',
-                    runtime.hasMultiAgentDiscussion ? '已生成' : '未生成',
-                    runtime.hasMultiAgentDiscussion ? '可查看' : '等待运行'
-                  ],
-                  [
-                    '知识生产链路',
-                    runtime.hasPrdP0Evidence ? '已生成' : '未生成',
-                    _displayNameForPath(runtime.prdP0EvidencePath)
-                  ],
-                ]
-              : [
-                  [
-                    'Source documents',
-                    runtime.sourceManifestPath.isEmpty
-                        ? 'Not generated'
-                        : 'Generated',
-                    runtime.sourceCount == 0
-                        ? 'Waiting import'
-                        : '${runtime.sourceCount} sources'
-                  ],
-                  [
-                    'Parse results',
-                    runtime.parseReportPath.isEmpty
-                        ? 'Not generated'
-                        : 'Generated',
-                    runtime.chunkCount == 0
-                        ? 'Waiting parse'
-                        : '${runtime.chunkCount} segments'
-                  ],
-                  [
-                    'Knowledge Base',
-                    runtime.kbManifestPath.isEmpty
-                        ? 'Not generated'
-                        : 'Generated',
-                    runtime.hasKnowledgeBase ? 'Searchable' : 'Waiting build'
-                  ],
-                  [
-                    'Exported document',
-                    runtime.exportedDocumentPath.isEmpty
-                        ? 'Not exported'
-                        : 'Exported',
-                    _displayNameForPath(runtime.exportedDocumentPath)
-                  ],
-                  [
-                    'Skill',
-                    runtime.hasSkill ? 'Generated' : 'Not generated',
-                    _displayNameForPath(runtime.primarySkillPath)
-                  ],
-                  [
-                    'Agent',
-                    runtime.hasAgent ? 'Generated' : 'Not generated',
-                    runtime.hasAgent ? 'Chat ready' : 'Waiting creation'
-                  ],
-                  [
-                    'Agent dialogue',
-                    runtime.hasAgentDialogue ? 'Saved' : 'Not generated',
-                    runtime.hasAgentDialogue ? 'Viewable' : 'Waiting run'
-                  ],
-                  [
-                    'Multi-Agent discussion',
-                    runtime.hasMultiAgentDiscussion
-                        ? 'Generated'
-                        : 'Not generated',
-                    runtime.hasMultiAgentDiscussion ? 'Viewable' : 'Waiting run'
-                  ],
-                  [
-                    'Knowledge production flow',
-                    runtime.hasPrdP0Evidence ? 'Generated' : 'Not generated',
-                    _displayNameForPath(runtime.prdP0EvidencePath)
-                  ],
-                ],
+    final rows = [
+      if (runtime.hasMarkdown)
+        _DashboardActivityRow(
+          _zh ? '生成文档' : 'Generated document',
+          _zh ? '文档' : 'Doc',
         ),
-        const SizedBox(height: _DesktopGrid.gutter),
-        _EqualActionRow(children: [
-          _DisplayAction(
-            label: _zh ? '查看文档库' : 'Open document library',
-            icon: Icons.library_books_outlined,
-            onPressed: () => onPageChanged(_pageIndexById('document-library')),
+      if (runtime.hasExportedDocument)
+        _DashboardActivityRow(
+          _zh ? '导出文档' : 'Exported document',
+          _zh ? '导出' : 'Export',
+        ),
+      if (runtime.hasSkill)
+        _DashboardActivityRow(
+          _zh ? '知识技能' : 'Knowledge skill',
+          'Skill',
+        ),
+      if (runtime.hasAgent)
+        _DashboardActivityRow(
+          _zh ? '知识助手' : 'Knowledge assistant',
+          _zh ? '助手' : 'Assistant',
+        ),
+      if (runtime.hasMultiAgentDiscussion)
+        _DashboardActivityRow(
+          _zh ? '助手讨论报告' : 'Assistant discussion',
+          _zh ? '讨论' : 'Discussion',
+        ),
+    ];
+    return _FigmaCard(
+      keyName: 'dashboard-artifact-overview',
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 42,
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            alignment: Alignment.centerLeft,
+            decoration: BoxDecoration(
+              color: _HTKWTokens.softSurface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: _HTKWTokens.border),
+            ),
+            child: Text(
+              _zh ? '最近成果' : 'Recent Outputs',
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
           ),
-          _DisplayAction(
-            label: _zh ? '查看导出文件' : 'Open generated documents',
-            icon: Icons.file_download_outlined,
-            onPressed: () =>
-                onPageChanged(_pageIndexById('document-generation')),
+          const SizedBox(height: 10),
+          Expanded(
+            child: _LocalScrollBox(
+              child: Column(
+                children: [
+                  for (final row in (rows.isEmpty
+                          ? [
+                              _DashboardActivityRow(
+                                _zh ? '等待生成成果' : 'Waiting output',
+                                _zh ? '先生成文档' : 'generate doc',
+                              )
+                            ]
+                          : rows)
+                      .take(3))
+                    _DashboardCompactRow(
+                      title: row.title,
+                      detail: row.detail,
+                      onTap: () =>
+                          onPageChanged(_pageIndexById('artifact-center')),
+                    ),
+                ],
+              ),
+            ),
           ),
-          _DisplayAction(
-            label: _zh ? '打开我的助手' : 'Open My Assistants',
-            icon: Icons.groups_2_outlined,
-            onPressed: runtime.hasAgent || runtime.hasSkill
-                ? () => onPageChanged(_pageIndexById('agent-factory-runtime'))
-                : null,
+          SizedBox(
+            height: 34,
+            child: _DisplayAction(
+              label: _zh ? '查看成果' : 'View outputs',
+              icon: Icons.folder_copy_outlined,
+              onPressed: () => onPageChanged(_pageIndexById('artifact-center')),
+            ),
           ),
-        ]),
-      ],
+        ],
+      ),
     );
   }
 }

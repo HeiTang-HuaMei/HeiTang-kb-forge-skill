@@ -5,25 +5,23 @@ class _ProductHeader extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.description,
-    this.trailing,
   });
 
   final IconData icon;
   final String title;
   final String description;
-  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final iconBox = Container(
-      width: 42,
-      height: 42,
+      width: 48,
+      height: 48,
       decoration: BoxDecoration(
-        color: colors.primary,
-        borderRadius: BorderRadius.circular(8),
+        color: _HTKWTokens.goldSoft,
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: Icon(icon, color: colors.onPrimary, size: 23),
+      child: Icon(icon, color: _HTKWTokens.gold, size: 24),
     );
     final copy = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,8 +30,8 @@ class _ProductHeader extends StatelessWidget {
             style: Theme.of(context)
                 .textTheme
                 .titleLarge
-                ?.copyWith(fontWeight: FontWeight.w900)),
-        const SizedBox(height: 4),
+                ?.copyWith(fontSize: 28, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 6),
         Text(description,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colors.onSurfaceVariant,
@@ -52,10 +50,6 @@ class _ProductHeader extends StatelessWidget {
               const SizedBox(width: _DesktopGrid.gutter),
               Expanded(child: copy),
             ]),
-            if (trailing != null) ...[
-              const SizedBox(height: _DesktopGrid.gutter),
-              trailing!,
-            ],
           ],
         );
       }
@@ -65,10 +59,6 @@ class _ProductHeader extends StatelessWidget {
           iconBox,
           const SizedBox(width: _DesktopGrid.gutter),
           Expanded(child: copy),
-          if (trailing != null) ...[
-            const SizedBox(width: _DesktopGrid.gutter),
-            trailing!,
-          ],
         ],
       );
     });
@@ -128,8 +118,7 @@ class _PageTabButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final foreground = selected ? colors.onPrimary : colors.onSurface;
-    final background =
-        selected ? colors.primary : colors.surfaceContainerLowest;
+    final background = selected ? colors.primary : colors.surface;
     return SizedBox(
       width: width,
       child: Semantics(
@@ -139,16 +128,16 @@ class _PageTabButton extends StatelessWidget {
         child: Material(
           color: background,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(_DesktopGrid.chipRadius),
             side: BorderSide(
               color: selected ? colors.primary : colors.outlineVariant,
             ),
           ),
           child: InkWell(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(_DesktopGrid.chipRadius),
             onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
               child: Row(
                 mainAxisSize:
                     width == null ? MainAxisSize.min : MainAxisSize.max,
@@ -215,16 +204,17 @@ class _ProductPanel extends StatelessWidget {
         color: gap
             ? colors.surfaceContainerLow
             : accent
-                ? colors.primary.withValues(alpha: 0.05)
-                : colors.surfaceContainerLowest,
+                ? _HTKWTokens.goldSoft
+                : colors.surface,
         borderRadius: BorderRadius.circular(_DesktopGrid.panelRadius),
         border: Border.all(
           color: gap
               ? colors.outlineVariant
               : accent
-                  ? colors.primary.withValues(alpha: 0.24)
+                  ? _HTKWTokens.gold.withValues(alpha: 0.28)
                   : colors.outlineVariant,
         ),
+        boxShadow: gap ? const [] : _HTKWTokens.cardShadow,
       ),
       child: LayoutBuilder(builder: (context, constraints) {
         final header = Column(
@@ -233,8 +223,18 @@ class _ProductPanel extends StatelessWidget {
             Row(
               children: [
                 if (icon != null) ...[
-                  Icon(icon, size: 18, color: colors.primary),
-                  const SizedBox(width: 8),
+                  Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: accent
+                          ? colors.surface.withValues(alpha: 0.72)
+                          : _HTKWTokens.goldSoft,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon, size: 17, color: _HTKWTokens.gold),
+                  ),
+                  const SizedBox(width: 10),
                 ],
                 Expanded(
                   child: Text(title,
@@ -242,7 +242,7 @@ class _ProductPanel extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style:
                           Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontSize: 20,
+                                fontSize: 21,
                                 fontWeight: FontWeight.w900,
                                 height: 1.12,
                               )),
@@ -250,7 +250,7 @@ class _ProductPanel extends StatelessWidget {
               ],
             ),
             if (subtitle != null) ...[
-              const SizedBox(height: 3),
+              const SizedBox(height: 6),
               Text(subtitle!,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -274,8 +274,7 @@ class _ProductPanel extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               header,
-              if (children.isNotEmpty)
-                const SizedBox(height: _DesktopGrid.gutter),
+              if (children.isNotEmpty) const SizedBox(height: 18),
               ...children,
             ],
           );
@@ -285,7 +284,7 @@ class _ProductPanel extends StatelessWidget {
           children: [
             header,
             if (children.isNotEmpty) ...[
-              const SizedBox(height: _DesktopGrid.gutter),
+              const SizedBox(height: 18),
               Expanded(
                 child: Scrollbar(
                   thumbVisibility: false,
@@ -299,6 +298,188 @@ class _ProductPanel extends StatelessWidget {
           ],
         );
       }),
+    );
+  }
+}
+
+class _FigmaCard extends StatelessWidget {
+  const _FigmaCard({
+    required this.child,
+    this.keyName,
+    this.padding = const EdgeInsets.all(30),
+    this.background,
+    this.borderColor,
+  });
+
+  final Widget child;
+  final String? keyName;
+  final EdgeInsetsGeometry padding;
+  final Color? background;
+  final Color? borderColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      key: keyName == null ? null : Key(keyName!),
+      width: double.infinity,
+      height: double.infinity,
+      padding: padding,
+      decoration: BoxDecoration(
+        color: background ?? colors.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: borderColor ?? colors.outlineVariant),
+        boxShadow: _HTKWTokens.cardShadow,
+      ),
+      child: child,
+    );
+  }
+}
+
+class _FigmaHighlightCard extends StatelessWidget {
+  const _FigmaHighlightCard({
+    required this.title,
+    required this.description,
+    this.icon = Icons.lightbulb_outline,
+    this.actions = const [],
+    this.keyName,
+  });
+
+  final String title;
+  final String description;
+  final IconData icon;
+  final List<Widget> actions;
+  final String? keyName;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      final compact =
+          constraints.maxHeight.isFinite && constraints.maxHeight <= 96;
+      final iconSize = compact ? 46.0 : 58.0;
+      return _FigmaCard(
+        keyName: keyName,
+        background: _HTKWTokens.goldSoft,
+        borderColor: _HTKWTokens.gold.withValues(alpha: 0.24),
+        padding: EdgeInsets.symmetric(
+          horizontal: compact ? 24 : 30,
+          vertical: compact ? 12 : 20,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontSize: compact ? 20 : 22,
+                                fontWeight: FontWeight.w900,
+                                height: 1.08,
+                              )),
+                  SizedBox(height: compact ? 4 : 6),
+                  Text(description,
+                      maxLines: compact ? 1 : 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontSize: compact ? 13 : null,
+                            color: _HTKWTokens.textSecondary,
+                            fontWeight: FontWeight.w700,
+                            height: compact ? 1.12 : 1.25,
+                          )),
+                ],
+              ),
+            ),
+            if (actions.isNotEmpty) ...[
+              const SizedBox(width: 22),
+              SizedBox(
+                width: compact ? 220 : 260,
+                child: Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  alignment: WrapAlignment.end,
+                  children: actions,
+                ),
+              ),
+            ] else ...[
+              const SizedBox(width: 22),
+              Container(
+                width: iconSize,
+                height: iconSize,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: _HTKWTokens.surface.withValues(alpha: 0.62),
+                  borderRadius: BorderRadius.circular(compact ? 15 : 18),
+                ),
+                child: Icon(icon,
+                    color: _HTKWTokens.gold, size: compact ? 24 : 28),
+              ),
+            ],
+          ],
+        ),
+      );
+    });
+  }
+}
+
+class _FigmaSectionHeader extends StatelessWidget {
+  const _FigmaSectionHeader({
+    required this.title,
+    this.subtitle,
+    this.icon,
+  });
+
+  final String title;
+  final String? subtitle;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        if (icon != null) ...[
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: _HTKWTokens.goldSoft,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 17, color: _HTKWTokens.gold),
+          ),
+          const SizedBox(width: 10),
+        ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        height: 1.1,
+                      )),
+              if (subtitle != null) ...[
+                const SizedBox(height: 4),
+                Text(subtitle!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        )),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -326,9 +507,10 @@ class _FillProductPanel extends StatelessWidget {
         height: constraints.maxHeight.isFinite ? double.infinity : null,
         padding: const EdgeInsets.all(_DesktopGrid.panelPadding),
         decoration: BoxDecoration(
-          color: colors.surfaceContainerLowest,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(_DesktopGrid.panelRadius),
           border: Border.all(color: colors.outlineVariant),
+          boxShadow: _HTKWTokens.cardShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,8 +518,16 @@ class _FillProductPanel extends StatelessWidget {
             Row(
               children: [
                 if (icon != null) ...[
-                  Icon(icon, size: 18, color: colors.primary),
-                  const SizedBox(width: 8),
+                  Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: _HTKWTokens.goldSoft,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon, size: 17, color: _HTKWTokens.gold),
+                  ),
+                  const SizedBox(width: 10),
                 ],
                 Expanded(
                   child: Text(title,
@@ -345,14 +535,14 @@ class _FillProductPanel extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style:
                           Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontSize: 20,
+                                fontSize: 21,
                                 fontWeight: FontWeight.w900,
                                 height: 1.12,
                               )),
                 ),
               ],
             ),
-            const SizedBox(height: _DesktopGrid.gutter),
+            const SizedBox(height: 18),
             if (constraints.maxHeight.isFinite)
               Expanded(child: child)
             else
@@ -384,10 +574,10 @@ class _ProductTable extends StatelessWidget {
               if (rowIndex > 0) const SizedBox(height: 8),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: colors.surface,
-                  borderRadius: BorderRadius.circular(8),
+                  color: colors.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: colors.outlineVariant),
                 ),
                 child: Column(
@@ -428,74 +618,83 @@ class _ProductTable extends StatelessWidget {
       final minCellWidth = columns.length >= 6 ? 136.0 : 116.0;
       final tableWidth =
           (columns.length * minCellWidth).clamp(constraints.maxWidth, 1200.0);
-      final borderColor = colors.outlineVariant.withValues(alpha: 0.7);
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minWidth: tableWidth.toDouble()),
-          child: Table(
-            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-            columnWidths: {
-              for (var index = 0; index < columns.length; index++)
-                index: const FlexColumnWidth(),
-            },
-            children: [
-              TableRow(
-                decoration: BoxDecoration(
-                  color: colors.surfaceContainerHighest.withValues(alpha: 0.38),
-                  border: Border(bottom: BorderSide(color: borderColor)),
-                ),
-                children: [
-                  for (final column in columns)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 9),
-                      child: Text(
-                        column,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        softWrap: true,
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              fontSize: 13,
-                              color: colors.onSurfaceVariant,
-                              fontWeight: FontWeight.w900,
-                              height: 1.15,
-                            ),
-                      ),
-                    ),
-                ],
-              ),
-              for (var rowIndex = 0; rowIndex < rows.length; rowIndex++)
+      final borderColor = colors.outlineVariant.withValues(alpha: 0.68);
+      return Container(
+        decoration: BoxDecoration(
+          color: colors.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(18),
+          border:
+              Border.all(color: colors.outlineVariant.withValues(alpha: 0.7)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: tableWidth.toDouble()),
+            child: Table(
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              columnWidths: {
+                for (var index = 0; index < columns.length; index++)
+                  index: const FlexColumnWidth(),
+              },
+              children: [
                 TableRow(
                   decoration: BoxDecoration(
-                    color: rowIndex.isEven
-                        ? colors.surface
-                        : colors.surfaceContainerHighest
-                            .withValues(alpha: 0.18),
+                    color: _HTKWTokens.goldSoft.withValues(alpha: 0.62),
                     border: Border(bottom: BorderSide(color: borderColor)),
                   ),
                   children: [
-                    for (var index = 0; index < columns.length; index++)
+                    for (final column in columns)
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10),
-                        child: DefaultTextStyle.merge(
+                            horizontal: 14, vertical: 12),
+                        child: Text(
+                          column,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
                           style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    height: 1.22,
+                              Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    fontSize: 13,
+                                    color: colors.onSurfaceVariant,
+                                    fontWeight: FontWeight.w900,
+                                    height: 1.15,
                                   ),
-                          child: _CapabilityTableCell(
-                            value: index < rows[rowIndex].length
-                                ? rows[rowIndex][index]
-                                : '',
-                          ),
                         ),
                       ),
                   ],
                 ),
-            ],
+                for (var rowIndex = 0; rowIndex < rows.length; rowIndex++)
+                  TableRow(
+                    decoration: BoxDecoration(
+                      color: rowIndex.isEven
+                          ? colors.surface
+                          : colors.surfaceContainerLow.withValues(alpha: 0.72),
+                      border: Border(bottom: BorderSide(color: borderColor)),
+                    ),
+                    children: [
+                      for (var index = 0; index < columns.length; index++)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
+                          child: DefaultTextStyle.merge(
+                            style:
+                                Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      height: 1.22,
+                                    ),
+                            child: _CapabilityTableCell(
+                              value: index < rows[rowIndex].length
+                                  ? rows[rowIndex][index]
+                                  : '',
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+              ],
+            ),
           ),
         ),
       );
@@ -536,11 +735,11 @@ class _FieldRow extends StatelessWidget {
             ));
     return Container(
       width: double.infinity,
-      constraints: const BoxConstraints(minHeight: 72),
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+      constraints: const BoxConstraints(minHeight: 78),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(6),
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: colors.outlineVariant),
       ),
       child: LayoutBuilder(builder: (context, constraints) {
@@ -619,11 +818,15 @@ class _CapabilityStatusMarker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final resolvedKind = kind ?? _capabilityStatusKind(label ?? '');
-    final colors = Theme.of(context).colorScheme;
     final color = switch (resolvedKind) {
-      _CapabilityStatusKind.displayOnly => colors.onSurfaceVariant,
-      _CapabilityStatusKind.disabledBoundary => colors.onSurfaceVariant,
-      _CapabilityStatusKind.available => Colors.green.shade700,
+      _CapabilityStatusKind.displayOnly => _HTKWTokens.blue,
+      _CapabilityStatusKind.disabledBoundary => _HTKWTokens.gold,
+      _CapabilityStatusKind.available => _HTKWTokens.sage,
+    };
+    final background = switch (resolvedKind) {
+      _CapabilityStatusKind.displayOnly => _HTKWTokens.blueSoft,
+      _CapabilityStatusKind.disabledBoundary => _HTKWTokens.goldSoft,
+      _CapabilityStatusKind.available => _HTKWTokens.sageSoft,
     };
     final icon = switch (resolvedKind) {
       _CapabilityStatusKind.displayOnly => Icons.visibility_outlined,
@@ -635,11 +838,11 @@ class _CapabilityStatusMarker extends StatelessWidget {
       Localizations.localeOf(context).languageCode == 'zh',
     );
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.42)),
+        color: background,
+        borderRadius: BorderRadius.circular(_DesktopGrid.chipRadius),
+        border: Border.all(color: color.withValues(alpha: 0.28)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -747,30 +950,23 @@ String _capabilityStatusLabel(String? value, bool zh) {
 class _StatePill extends StatelessWidget {
   const _StatePill({
     required this.label,
-    this.icon,
   });
 
   final String label;
-  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final color = colors.primary;
+    const color = _HTKWTokens.gold;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.32)),
+        color: _HTKWTokens.goldSoft,
+        borderRadius: BorderRadius.circular(_DesktopGrid.chipRadius),
+        border: Border.all(color: color.withValues(alpha: 0.24)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[
-            Icon(icon, size: 15, color: color),
-            const SizedBox(width: 5),
-          ],
           Text(label,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: color,
@@ -927,6 +1123,12 @@ class _PrimaryProductAction extends StatelessWidget {
         onPressed: onPressed,
         icon: Icon(icon),
         label: Text(label, overflow: TextOverflow.ellipsis),
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(0, 46),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius),
+          ),
+        ),
       ),
     );
   }

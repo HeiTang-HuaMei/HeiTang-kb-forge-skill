@@ -132,43 +132,68 @@ class _SkillBuilderProductWorkflowState
             'Version Operations',
             'Validate & Export'
           ];
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      _ProductHeader(
-        icon: Icons.extension_outlined,
-        title: _zh ? '技能生成' : 'Skill Builder',
-        description: _zh
-            ? '选择知识库，配置生成方式和元数据，检查后生成技能草稿，用于助手创建、绑定和导出。'
-            : 'Select a Knowledge Base, configure generation and metadata, validate, then use the Skill draft for Agent creation, binding, and export.',
+    return _FigmaPageCanvas(children: [
+      _FigmaFixedRow(
+        height: 150,
+        widths: const [540, 542],
+        children: [
+          _FigmaHighlightCard(
+            keyName: 'skill-generate-from-kb-card',
+            icon: Icons.extension_outlined,
+            title: _zh ? '从知识库生成 Skill' : 'Generate Skill from KB',
+            description: _zh
+                ? '选择当前知识库，生成可检查、可导出的技能草稿。'
+                : 'Use the current knowledge base to create a validated, exportable Skill draft.',
+            actions: [
+              SizedBox(
+                width: 136,
+                child: _PrimaryProductAction(
+                  label: _zh ? '生成技能' : 'Generate Skill',
+                  icon: Icons.extension_outlined,
+                  onPressed: runtime.running || rc6 == null
+                      ? null
+                      : () {
+                          setState(() {
+                            selectedTab = 0;
+                            configReady = true;
+                            outputPreviewReady = true;
+                          });
+                          rc6.generateSkill(config: _skillConfig);
+                        },
+                ),
+              ),
+            ],
+          ),
+          _FigmaHighlightCard(
+            keyName: 'skill-import-template-card',
+            icon: Icons.merge_type_outlined,
+            title: _zh ? '导入外部 Skill 并专属化' : 'Import and localize a Skill',
+            description: _zh
+                ? '外部 Skill 只作为模板技能导入，再结合当前知识库本土化。'
+                : 'External Skills are imported as templates, then localized with the current knowledge base.',
+            actions: [
+              SizedBox(
+                width: 136,
+                child: _DisplayAction(
+                  label: _zh ? '导入模板' : 'Import template',
+                  icon: Icons.upload_file_outlined,
+                  onPressed: runtime.running || rc6 == null
+                      ? null
+                      : () {
+                          setState(() => selectedTab = 1);
+                          rc6.pickAndImportExternalSkill();
+                        },
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
-      const SizedBox(height: _DesktopGrid.gutter),
       _PageTabs(
         tabs: tabs,
         selectedIndex: selectedTab,
         onSelected: (index) => setState(() => selectedTab = index),
       ),
-      const SizedBox(height: _DesktopGrid.gutter),
-      _MetricStrip(
-        items: [
-          _MetricDatum(
-              label: _zh ? '生成模式' : 'Generation modes',
-              value: '2',
-              detail: _zh ? '知识库 / 模板导入' : 'KB / external fusion',
-              icon: Icons.alt_route_outlined),
-          _MetricDatum(
-              label: _zh ? '目标平台' : 'Target platforms',
-              value: '5',
-              detail: _zh ? 'Codex 等' : 'Codex and more',
-              icon: Icons.dashboard_customize_outlined),
-          _MetricDatum(
-              label: _zh ? '检查记录' : 'Governance',
-              value: runtime.hasSkill ? 'pass' : 'ready',
-              detail: runtime.hasSkill
-                  ? (_zh ? '已生成' : 'Generated')
-                  : (_zh ? '等待知识库' : 'Waiting KB'),
-              icon: Icons.rule_folder_outlined),
-        ],
-      ),
-      const SizedBox(height: _DesktopGrid.gutter),
       if (configReady || outputPreviewReady || validationReady) ...[
         _RuntimeFeedbackBanner(
           title: validationReady
@@ -186,7 +211,9 @@ class _SkillBuilderProductWorkflowState
         ),
         const SizedBox(height: _DesktopGrid.gutter),
       ],
-      LayoutBuilder(builder: (context, constraints) {
+      SizedBox(
+        height: 500,
+        child: LayoutBuilder(builder: (context, constraints) {
         final wide = constraints.maxWidth >= 920;
         final config = _ProductPanel(
           keyName: 'skill-metadata-source-config',
@@ -997,7 +1024,8 @@ class _SkillBuilderProductWorkflowState
           3 => validation,
           _ => config,
         };
-      }),
+        }),
+      ),
     ]);
   }
 }

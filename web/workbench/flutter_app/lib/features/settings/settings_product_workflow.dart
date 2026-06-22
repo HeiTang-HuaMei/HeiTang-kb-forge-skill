@@ -24,50 +24,274 @@ class _SettingsProductWorkflow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['工作区', '模型服务', '记忆与存储', '导出工具', '网络与安全']
+        ? ['工作区', '模型服务', '记忆与存储', '导出', '网络与安全']
         : [
             'Workspace',
             'Model Service',
             'Memory and Storage',
-            'Export Tools',
+            'Export',
             'Network and Security',
           ];
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      _ProductHeader(
-        icon: Icons.settings_outlined,
-        title: _zh ? '设置' : 'Settings',
-        description: _zh
-            ? '管理工作区、模型服务、记忆服务、导出工具、网络授权与安全。'
-            : 'Manage workspace, model services, memory services, export tools, network authorization, and security.',
-      ),
-      const SizedBox(height: _DesktopGrid.gutter),
+    return _FigmaPageCanvas(children: [
       _PageTabs(
           tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
-      const SizedBox(height: _DesktopGrid.gutter),
-      if (selectedTab == 0)
-        _SettingsWorkspaceView(
+      SizedBox(
+        height: 434,
+        child: _SettingsOverviewCards(
           zh: _zh,
-          workspace: workspace,
-          isWebRuntime: isWebRuntime,
-        )
-      else if (selectedTab == 1)
-        _SettingsProviderModelView(
-          zh: _zh,
-          runtimeController: runtimeController,
-          providerCapabilityStatus: providerCapabilityStatus,
-        )
-      else if (selectedTab == 2)
-        _SettingsProvidersStorageView(
-            zh: _zh, workspace: workspace, runtimeController: runtimeController)
-      else if (selectedTab == 3)
-        _SettingsExporterView(
-          zh: _zh,
-          runtimeController: runtimeController,
-          workspace: workspace,
-        )
-      else
-        _SettingsNetworkSecurityView(zh: _zh, isWebRuntime: isWebRuntime),
+          selectedTab: selectedTab,
+          onTabSelected: onTabSelected,
+        ),
+      ),
+      SizedBox(
+        height: 190,
+        child: _LocalScrollBox(
+          child: selectedTab == 0
+              ? _SettingsWorkspaceView(
+                  zh: _zh,
+                  workspace: workspace,
+                  isWebRuntime: isWebRuntime,
+                )
+              : selectedTab == 1
+                  ? _SettingsProviderModelView(
+                      zh: _zh,
+                      runtimeController: runtimeController,
+                      providerCapabilityStatus: providerCapabilityStatus,
+                    )
+                  : selectedTab == 2
+                      ? _SettingsProvidersStorageView(
+                          zh: _zh,
+                          workspace: workspace,
+                          runtimeController: runtimeController,
+                        )
+                      : selectedTab == 3
+                          ? _SettingsExporterView(
+                              zh: _zh,
+                              runtimeController: runtimeController,
+                              workspace: workspace,
+                            )
+                          : _SettingsNetworkSecurityView(
+                              zh: _zh,
+                              isWebRuntime: isWebRuntime,
+                            ),
+        ),
+      ),
     ]);
+  }
+}
+
+class _SettingsOverviewCards extends StatelessWidget {
+  const _SettingsOverviewCards({
+    required this.zh,
+    required this.selectedTab,
+    required this.onTabSelected,
+  });
+
+  final bool zh;
+  final int selectedTab;
+  final ValueChanged<int> onTabSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final cards = zh
+        ? const [
+            _SettingsOverviewCardData(
+              '语言与外观',
+              '中文 / English，浅色 / 深色',
+              Icons.palette_outlined,
+              0,
+            ),
+            _SettingsOverviewCardData(
+              '模型服务连接',
+              '配置服务并测试连接',
+              Icons.hub_outlined,
+              1,
+            ),
+            _SettingsOverviewCardData(
+              '本地存储',
+              '工作区路径与本地缓存',
+              Icons.folder_open_outlined,
+              0,
+            ),
+            _SettingsOverviewCardData(
+              '导出工具',
+              'Markdown、Word、PDF、PPT、表格',
+              Icons.file_download_outlined,
+              3,
+            ),
+            _SettingsOverviewCardData(
+              '内存与缓存',
+              '本地模式与专业记忆服务',
+              Icons.memory_outlined,
+              2,
+            ),
+            _SettingsOverviewCardData(
+              '安全与合规',
+              '网络权限、密钥和保留策略',
+              Icons.verified_user_outlined,
+              4,
+            ),
+          ]
+        : const [
+            _SettingsOverviewCardData(
+              'Language and appearance',
+              'Chinese / English, light / dark',
+              Icons.palette_outlined,
+              0,
+            ),
+            _SettingsOverviewCardData(
+              'Model service',
+              'Configure and test service connection',
+              Icons.hub_outlined,
+              1,
+            ),
+            _SettingsOverviewCardData(
+              'Local storage',
+              'Workspace path and local cache',
+              Icons.folder_open_outlined,
+              0,
+            ),
+            _SettingsOverviewCardData(
+              'Export tools',
+              'Markdown, Word, PDF, PPT, tables',
+              Icons.file_download_outlined,
+              3,
+            ),
+            _SettingsOverviewCardData(
+              'Memory and cache',
+              'Local mode and professional memory service',
+              Icons.memory_outlined,
+              2,
+            ),
+            _SettingsOverviewCardData(
+              'Security and compliance',
+              'Network permission, keys, retention',
+              Icons.verified_user_outlined,
+              4,
+            ),
+          ];
+    return LayoutBuilder(builder: (context, constraints) {
+      final columns = constraints.maxWidth >= 1050
+          ? 3
+          : constraints.maxWidth >= 680
+              ? 2
+              : 1;
+      return GridView.builder(
+        key: const Key('settings-overview-cards'),
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: cards.length,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns,
+          crossAxisSpacing: _DesktopGrid.gutter,
+          mainAxisSpacing: _DesktopGrid.gutter,
+          mainAxisExtent: 164,
+        ),
+        itemBuilder: (context, index) {
+          final card = cards[index];
+          return _SettingsOverviewCard(
+            data: card,
+            active: card.tabIndex == selectedTab,
+            onTap: () => onTabSelected(card.tabIndex),
+          );
+        },
+      );
+    });
+  }
+}
+
+class _SettingsOverviewCardData {
+  const _SettingsOverviewCardData(
+    this.title,
+    this.description,
+    this.icon,
+    this.tabIndex,
+  );
+
+  final String title;
+  final String description;
+  final IconData icon;
+  final int tabIndex;
+}
+
+class _SettingsOverviewCard extends StatelessWidget {
+  const _SettingsOverviewCard({
+    required this.data,
+    required this.active,
+    required this.onTap,
+  });
+
+  final _SettingsOverviewCardData data;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      color: active ? _HTKWTokens.goldSoft : colors.surface,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: active ? _HTKWTokens.gold : colors.outlineVariant,
+            ),
+            boxShadow: active ? const [] : _HTKWTokens.cardShadow,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: active ? colors.surface : _HTKWTokens.goldSoft,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(data.icon, color: _HTKWTokens.gold, size: 24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      data.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                          ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      data.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: colors.onSurfaceVariant,
+                            fontWeight: FontWeight.w700,
+                            height: 1.24,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    _StatePill(
+                        label:
+                            active ? (data.tabIndex == 0 ? '当前' : '已选') : '配置'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -524,28 +748,32 @@ class _SettingsProviderModelEditorState
         onRollbackCapability: _rollbackCapabilityEnhancement,
       );
       if (!wide) {
-        return Column(children: [
-          profilePanel,
-          const SizedBox(height: _DesktopGrid.gutter),
-          provider,
-          const SizedBox(height: _DesktopGrid.gutter),
-          model,
-          const SizedBox(height: _DesktopGrid.gutter),
-          capabilityStatus,
-        ]);
+        return _LocalScrollBox(
+          child: Column(children: [
+            profilePanel,
+            const SizedBox(height: _DesktopGrid.gutter),
+            provider,
+            const SizedBox(height: _DesktopGrid.gutter),
+            model,
+            const SizedBox(height: _DesktopGrid.gutter),
+            capabilityStatus,
+          ]),
+        );
       }
-      return Column(
-        children: [
-          profilePanel,
-          const SizedBox(height: _DesktopGrid.gutter),
-          _EqualHeightRow(
-            height: 310,
-            flexes: const [7, 5],
-            children: [provider, model],
-          ),
-          const SizedBox(height: _DesktopGrid.gutter),
-          capabilityStatus,
-        ],
+      return _LocalScrollBox(
+        child: Column(
+          children: [
+            profilePanel,
+            const SizedBox(height: _DesktopGrid.gutter),
+            _EqualHeightRow(
+              height: 310,
+              flexes: const [7, 5],
+              children: [provider, model],
+            ),
+            const SizedBox(height: _DesktopGrid.gutter),
+            capabilityStatus,
+          ],
+        ),
       );
     });
   }

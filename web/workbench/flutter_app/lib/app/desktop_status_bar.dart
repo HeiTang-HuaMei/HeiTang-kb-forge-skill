@@ -18,8 +18,9 @@ class _DesktopStatusBar extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return LayoutBuilder(builder: (context, constraints) {
       final compact = constraints.maxWidth < 720;
-      final showVersion = constraints.maxWidth >= 760;
-      final showUpdates = constraints.maxWidth >= 900;
+      final narrow = constraints.maxWidth < 360;
+      final showVersion = !narrow && constraints.maxWidth >= 760;
+      final showUpdates = !narrow && constraints.maxWidth >= 900;
       final gap = compact ? 10.0 : 24.0;
       return Container(
         key: const Key('desktop-status-bar'),
@@ -31,31 +32,36 @@ class _DesktopStatusBar extends StatelessWidget {
         ),
         child: Row(
           children: [
-            _StatusBarItem(
-              icon: Icons.circle,
-              iconColor: Colors.green,
-              label: _zh ? '系统状态' : 'System',
-              value: _zh ? '正常运行' : 'Running',
-            ),
-            SizedBox(width: gap),
             Expanded(
               child: _StatusBarItem(
-                icon: Icons.folder_open_outlined,
-                label: _zh ? '位置' : 'Location',
-                value: workspace,
+                icon: Icons.circle,
+                iconColor: _HTKWTokens.sage,
+                label: _zh ? '系统状态' : 'System',
+                value: _zh ? '正常运行' : 'Running',
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            SizedBox(width: gap),
-            _StatusBarItem(
-              icon: isWebRuntime
-                  ? Icons.public_outlined
-                  : Icons.desktop_windows_outlined,
-              label: _zh ? '模式' : 'Mode',
-              value: isWebRuntime
-                  ? (_zh ? '预览模式' : 'Preview mode')
-                  : (_zh ? '桌面本地执行' : 'Desktop local'),
-            ),
+            if (!narrow) ...[
+              SizedBox(width: gap),
+              Expanded(
+                child: _StatusBarItem(
+                  icon: Icons.folder_open_outlined,
+                  label: _zh ? '位置' : 'Location',
+                  value: workspace,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              SizedBox(width: gap),
+              _StatusBarItem(
+                icon: isWebRuntime
+                    ? Icons.public_outlined
+                    : Icons.desktop_windows_outlined,
+                label: _zh ? '模式' : 'Mode',
+                value: isWebRuntime
+                    ? (_zh ? '预览模式' : 'Preview mode')
+                    : (_zh ? '桌面本地执行' : 'Desktop local'),
+              ),
+            ],
             if (showVersion) ...[
               SizedBox(width: gap),
               _StatusBarItem(

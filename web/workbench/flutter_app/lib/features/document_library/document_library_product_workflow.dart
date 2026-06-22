@@ -488,34 +488,78 @@ class _DocumentLibraryProductWorkflowState
   @override
   Widget build(BuildContext context) {
     final tabs = _zh ? ['添加资料', '来源文档'] : ['Add Materials', 'Source Documents'];
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      _ProductHeader(
-        icon: Icons.library_books_outlined,
-        title: _zh ? '文档库' : 'Document Library',
-        description: _zh
-            ? '添加资料、整理资料，并管理进入当前工作区的来源文档。'
-            : 'Add and organize materials, then manage source documents in the workspace.',
+    return _FigmaPageCanvas(children: [
+      SizedBox(
+        height: 120,
+        child: _FigmaHighlightCard(
+          keyName: 'document-library-hero',
+          icon: Icons.library_books_outlined,
+          title: _zh ? '文档库是知识库建设的基础' : 'The library is the base for knowledge',
+          description: _zh
+              ? '先把分散资料整理成可复用文档，再从文档库选择内容构建知识库。'
+              : 'Organize scattered materials into reusable documents before building a knowledge base.',
+          actions: [
+            SizedBox(
+              width: 130,
+              child: _PrimaryProductAction(
+                label: _zh ? '添加资料' : 'Add materials',
+                icon: Icons.upload_file_outlined,
+                onPressed: () => setState(() => selectedTab = 0),
+              ),
+            ),
+            SizedBox(
+              width: 110,
+              child: _DisplayAction(
+                label: _zh ? '查看资料' : 'View docs',
+                icon: Icons.article_outlined,
+                onPressed: () => setState(() => selectedTab = 1),
+              ),
+            ),
+          ],
+        ),
       ),
-      const SizedBox(height: _DesktopGrid.gutter),
       _PageTabs(
         tabs: tabs,
         selectedIndex: selectedTab,
         keyPrefix: 'document-library-tab',
         onSelected: (index) => setState(() => selectedTab = index),
       ),
-      const SizedBox(height: _DesktopGrid.gutter),
-      if (selectedTab == 0)
-        _ImportProductWorkflow(
-          localeCode: widget.localeCode,
-          workspace: widget.workspace,
-          isWebRuntime: widget.isWebRuntime,
-        )
-      else
-        _DocumentLibraryView(
-          zh: _zh,
-          onBuildKnowledgeBase: () => widget
-              .onPageChanged(_pageIndexById('knowledge-package-management')),
+      SizedBox(
+        height: 510,
+        child: _LocalScrollBox(
+          child: selectedTab == 0
+              ? _ImportProductWorkflow(
+                  localeCode: widget.localeCode,
+                  workspace: widget.workspace,
+                  isWebRuntime: widget.isWebRuntime,
+                )
+              : _DocumentLibraryView(
+                  zh: _zh,
+                  onBuildKnowledgeBase: () => widget.onPageChanged(
+                      _pageIndexById('knowledge-package-management')),
+                ),
         ),
+      ),
+      SizedBox(
+        height: 74,
+        child: _FigmaCard(
+          keyName: 'document-library-bottom-note',
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+          background: _HTKWTokens.goldSoft,
+          borderColor: _HTKWTokens.gold.withValues(alpha: 0.22),
+          child: Text(
+            _zh
+                ? '内置整理和基础索引在后台完成；用户只需要关注资料是否已整理、来源是否可追溯。'
+                : 'Built-in organization and basic indexing run behind the scenes; users only track whether sources are organized and traceable.',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: _HTKWTokens.textSecondary,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+        ),
+      ),
     ]);
   }
 }

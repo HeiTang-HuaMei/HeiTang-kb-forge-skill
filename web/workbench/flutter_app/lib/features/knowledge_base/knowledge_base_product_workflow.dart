@@ -25,30 +25,70 @@ class _KnowledgeProductWorkflow extends StatelessWidget {
             'Quality Records',
             'Advanced Boundary'
           ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _ProductHeader(
-          icon: Icons.inventory_2_outlined,
-          title: _zh ? '知识库' : 'Knowledge Base',
-          description: _zh
-              ? '从已整理资料生成知识库，管理质量、版本和测试记录。'
-              : 'Generate knowledge bases from organized materials and manage quality, versions, and test records.',
+    return _FigmaPageCanvas(children: [
+      SizedBox(
+        height: 78,
+        child: _FigmaCard(
+          keyName: 'knowledge-boundary-note',
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+          background: _HTKWTokens.goldSoft,
+          borderColor: _HTKWTokens.gold.withValues(alpha: 0.22),
+          child: Row(
+            children: [
+              const Icon(Icons.account_tree_outlined,
+                  color: _HTKWTokens.gold, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  _zh
+                      ? '从文档库选择已整理资料生成知识库；测试、来源和版本操作都绑定真实本地产物。'
+                      : 'Build knowledge bases from organized library materials; tests, sources, and versions bind to real local artifacts.',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: _HTKWTokens.textSecondary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: _DesktopGrid.gutter),
-        _PageTabs(
-            tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
-        const SizedBox(height: _DesktopGrid.gutter),
-        if (selectedTab == 1)
-          _KnowledgeVectorIndexView(zh: _zh)
-        else if (selectedTab == 2)
-          _KnowledgeQualityRecordsView(zh: _zh)
-        else if (selectedTab == 3)
-          _KnowledgeStorageBoundaryView(zh: _zh)
-        else
-          _KnowledgePackageListView(zh: _zh, workspace: workspace),
-      ],
-    );
+      ),
+      _PageTabs(
+        tabs: tabs,
+        selectedIndex: selectedTab,
+        onSelected: onTabSelected,
+      ),
+      SizedBox(
+        height: 560,
+        child: selectedTab == 1
+            ? _KnowledgeVectorIndexView(zh: _zh)
+            : selectedTab == 2
+                ? _KnowledgeQualityRecordsView(zh: _zh)
+                : selectedTab == 3
+                    ? _KnowledgeStorageBoundaryView(zh: _zh)
+                    : _KnowledgePackageListView(zh: _zh, workspace: workspace),
+      ),
+      SizedBox(
+        height: 48,
+        child: _FigmaCard(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+          background: _HTKWTokens.softSurface,
+          child: Text(
+            _zh
+                ? '知识库只承接当前工作区文档库来源；外部来源核对未配置时显示需要设置。'
+                : 'Knowledge bases use only current workspace sources; external checking stays gated until configured.',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: _HTKWTokens.textSecondary,
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+        ),
+      ),
+    ]);
   }
 }
 

@@ -73,15 +73,7 @@ class _ArtifactCenterProductWorkflowState
         artifacts.where((artifact) => artifact.path.trim().isNotEmpty).length;
     final categories =
         artifacts.map((artifact) => artifact.category).toSet().length;
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      _ProductHeader(
-        icon: Icons.folder_copy_outlined,
-        title: _zh ? '成果中心' : 'Artifact Center',
-        description: _zh
-            ? '集中查看真实工作区中已经生成的文档、知识库、检索、技能、助手和对话成果。'
-            : 'Browse generated document, KB, retrieval, skill, assistant, and dialogue artifacts from the real workspace.',
-      ),
-      const SizedBox(height: _DesktopGrid.gutter),
+    return _FigmaPageCanvas(children: [
       _MetricStrip(
         items: [
           _MetricDatum(
@@ -114,8 +106,9 @@ class _ArtifactCenterProductWorkflowState
           ),
         ],
       ),
-      const SizedBox(height: _DesktopGrid.gutter),
-      LayoutBuilder(builder: (context, constraints) {
+      SizedBox(
+        height: 540,
+        child: LayoutBuilder(builder: (context, constraints) {
         final wide = constraints.maxWidth >= 900;
         final catalog = _ProductPanel(
           keyName: 'artifact-center-catalog',
@@ -244,7 +237,8 @@ class _ArtifactCenterProductWorkflowState
           flexes: const [7, 4],
           children: [catalog, detail],
         );
-      }),
+        }),
+      ),
     ]);
   }
 }

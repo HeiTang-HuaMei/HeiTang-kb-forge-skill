@@ -75,294 +75,341 @@ class _WorkbookProductWorkflowState extends State<_WorkbookProductWorkflow> {
       if (runtime.hasSkill) _zh ? '技能' : 'Skill',
       if (runtime.hasAgent) _zh ? '助手' : 'Assistant',
     ];
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      _ProductHeader(
-        icon: Icons.workspaces_outline,
-        title: _zh ? '工作区' : 'Workspace',
-        description: _zh
-            ? '工作区隔离文档、知识库、技能、助手和使用记录。'
-            : 'The workbook isolates documents, knowledge bases, application artifacts, and audit records.',
-      ),
-      const SizedBox(height: _DesktopGrid.gutter),
-      _MetricStrip(
-        items: [
-          _MetricDatum(
-            label: _zh ? '来源文档' : 'Source Docs',
-            value: runtime.sourceCount.toString(),
-            detail: runtime.hasImportedFile
-                ? (_zh ? '已持久化' : 'persisted')
-                : (_zh ? '等待导入' : 'waiting'),
-            icon: Icons.article_outlined,
-          ),
-          _MetricDatum(
-            label: _zh ? '知识库' : 'Knowledge Bases',
-            value: runtime.knowledgeBases.isNotEmpty
-                ? runtime.knowledgeBases.length.toString()
-                : runtime.hasKnowledgeBase
-                    ? '1'
-                    : '0',
-            detail: runtime.hasKnowledgeBase
-                ? '${runtime.chunkCount} chunks'
-                : (_zh ? '等待构建' : 'waiting build'),
-            icon: Icons.account_tree_outlined,
-          ),
-          _MetricDatum(
-            label: _zh ? '应用产物' : 'App Artifacts',
-            value: [
-              runtime.hasMarkdown,
-              runtime.hasSkill,
-              runtime.hasAgent,
-              runtime.hasAgentDialogue,
-              runtime.hasAgentDialogueExport,
-              runtime.hasMultiAgentDiscussion,
-            ].where((value) => value).length.toString(),
-            detail: latestArtifact,
-            icon: Icons.folder_copy_outlined,
-          ),
-          _MetricDatum(
-            label: _zh ? '最近结果' : 'Latest Result',
-            value: runtime.lastError.isEmpty
-                ? (_zh ? '正常' : 'OK')
-                : (_zh ? '失败' : 'Failed'),
-            detail: runtime.lastError.isEmpty
-                ? (runtime.lastMessage.isEmpty
-                    ? (_zh ? '等待任务' : 'idle')
-                    : runtime.lastMessage)
-                : runtime.lastError,
-            icon: runtime.lastError.isEmpty
-                ? Icons.verified_outlined
-                : Icons.error_outline,
-          ),
-        ],
-      ),
-      const SizedBox(height: _DesktopGrid.gutter),
-      LayoutBuilder(builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 980;
-        final overview = _ProductPanel(
-          keyName: 'workbook-overview',
-          icon: Icons.space_dashboard_outlined,
-          title: _zh ? '当前工作本' : 'Current Workbook',
-          minHeight: 320,
-          children: [
-            _ProductTable(
-              columns: _zh ? ['项目', '状态', '说明'] : ['Item', 'Status', 'Note'],
-              rows: _zh
-                  ? [
-                      ['位置', '用户工作区', _displayNameForPath(widget.workspace)],
-                      [
-                        '已就绪资产',
-                        readySummary.isEmpty ? '暂无' : readySummary.join(' / '),
-                        '来自真实工作区状态'
-                      ],
-                      [
-                        '持久化',
-                        runtime.hasImportedFile ? '已有记录' : '等待首个任务',
-                        runtime.hasImportedFile ? '重启后可继续' : '导入资料后写入工作本'
-                      ],
-                      [
-                        '当前工作本',
-                        runtime.currentWorkbookName,
-                        runtime.hasWorkbookManifest ? '已保存' : '等待保存'
-                      ],
-                      [
-                        '工作本数量',
-                        '${runtime.workbookNames.length}',
-                        runtime.workbookNames.join(' / ')
-                      ],
-                      [
-                        '当前阶段',
-                        _dashboardCurrentStage(runtime, true),
-                        _dashboardCurrentStageDetail(runtime, true)
-                      ],
-                    ]
-                  : [
-                      [
-                        'Location',
-                        'User workspace',
-                        _displayNameForPath(widget.workspace)
-                      ],
-                      [
-                        'Ready assets',
-                        readySummary.isEmpty
-                            ? 'None'
-                            : readySummary.join(' / '),
-                        'From real workspace state'
-                      ],
-                      [
-                        'Persistence',
-                        runtime.hasImportedFile ? 'Recorded' : 'Waiting',
-                        runtime.hasImportedFile
-                            ? 'Can continue after restart'
-                            : 'Import sources to persist'
-                      ],
-                      [
-                        'Current workbook',
-                        runtime.currentWorkbookName,
-                        runtime.hasWorkbookManifest ? 'Saved' : 'Waiting save'
-                      ],
-                      [
-                        'Workbook count',
-                        '${runtime.workbookNames.length}',
-                        runtime.workbookNames.join(' / ')
-                      ],
-                      [
-                        'Current stage',
-                        _dashboardCurrentStage(runtime, false),
-                        _dashboardCurrentStageDetail(runtime, false)
-                      ],
-                    ],
-            ),
-            const SizedBox(height: _DesktopGrid.gutter),
-            TextField(
-              key: const Key('workbook-name-input'),
-              controller: _workbookNameController,
-              decoration: InputDecoration(
-                labelText: _zh ? '工作本名称' : 'Workbook name',
-                border: const OutlineInputBorder(),
-                isDense: true,
-              ),
-              onSubmitted: (_) => _createOrSwitchWorkbook(rc6),
-            ),
-            const SizedBox(height: 8),
-            _EqualActionRow(children: [
-              _PrimaryProductAction(
-                label: _zh ? '创建 / 切换工作本' : 'Create / switch workbook',
+    return _FigmaPageCanvas(children: [
+      SizedBox(
+        height: 120,
+        child: _FigmaHighlightCard(
+          keyName: 'workbook-hero',
+          icon: Icons.workspaces_outline,
+          title: _zh ? '工作区' : 'Workspace',
+          description: _zh
+              ? '每个工作区独立保存资料、知识库、技能、助手和成果。'
+              : 'Each workspace keeps materials, knowledge bases, skills, assistants, and outputs isolated.',
+          actions: [
+            SizedBox(
+              width: 150,
+              child: _PrimaryProductAction(
+                label: _zh ? '创建工作区' : 'Create workspace',
                 icon: Icons.add_to_photos_outlined,
                 onPressed: rc6 == null || runtime.running
                     ? null
                     : () => _createOrSwitchWorkbook(rc6),
               ),
-              for (final name in runtime.workbookNames.take(3))
-                _DisplayAction(
-                  label: name == runtime.currentWorkbookName
-                      ? (_zh ? '当前：$name' : 'Current: $name')
-                      : (_zh ? '切换到 $name' : 'Switch to $name'),
-                  icon: Icons.workspaces_outline,
-                  onPressed: rc6 == null ||
-                          runtime.running ||
-                          name == runtime.currentWorkbookName
-                      ? null
-                      : () => _createOrSwitchWorkbook(rc6, name: name),
+            ),
+          ],
+        ),
+      ),
+      SizedBox(
+        height: 116,
+        child: _FigmaCard(
+          keyName: 'workbook-boundary',
+          padding: const EdgeInsets.fromLTRB(30, 22, 30, 22),
+          child: Row(
+            children: [
+              Container(
+                width: 54,
+                height: 54,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: _HTKWTokens.sageSoft,
+                  borderRadius: BorderRadius.circular(18),
                 ),
-              for (final name in runtime.workbookNames.take(3))
-                _DisplayAction(
-                  label: _zh ? '删除 $name' : 'Delete $name',
-                  icon: Icons.delete_outline,
-                  onPressed: rc6 == null ||
-                          runtime.running ||
-                          runtime.workbookNames.length <= 1
-                      ? null
-                      : () => _confirmAndDeleteWorkbook(rc6, name),
+                child: const Icon(Icons.lock_outline,
+                    color: _HTKWTokens.sage, size: 26),
+              ),
+              const SizedBox(width: 18),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _zh ? '隔离边界真实生效' : 'Isolation boundary is enforced',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      _zh
+                          ? '工作区之间默认不共享文档库、知识库、技能、助手记忆和多助手协作记录。'
+                          : 'Workspaces do not share document libraries, knowledge bases, skills, assistant memory, or discussion records by default.',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: _HTKWTokens.textSecondary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                  ],
                 ),
-            ]),
-          ],
-        );
-        final actions = _ProductPanel(
-          keyName: 'workbook-next-actions',
-          icon: Icons.route_outlined,
-          title: _zh ? '继续任务' : 'Continue Work',
-          minHeight: 320,
-          children: [
-            _PrimaryProductAction(
-              label: _zh ? '进入文档库导入资料' : 'Open Document Library',
-              icon: Icons.library_books_outlined,
-              onPressed: () =>
-                  widget.onPageChanged(_pageIndexById('document-library')),
-            ),
-            const SizedBox(height: 8),
-            _DisplayAction(
-              label: _zh ? '创建或更新知识库' : 'Create or update KB',
-              icon: Icons.account_tree_outlined,
-              onPressed: runtime.hasImportedFile
-                  ? () => widget.onPageChanged(
-                      _pageIndexById('knowledge-package-management'))
-                  : null,
-            ),
-            const SizedBox(height: 8),
-            _DisplayAction(
-              label: _zh ? '检索验证证据' : 'Search and verify evidence',
-              icon: Icons.manage_search_outlined,
-              onPressed: runtime.hasKnowledgeBase
-                  ? () => widget
-                      .onPageChanged(_pageIndexById('retrieval-verification'))
-                  : null,
-            ),
-            const SizedBox(height: 8),
-            _DisplayAction(
-              label: _zh ? '生成交付文档' : 'Generate deliverable document',
-              icon: Icons.edit_document,
-              onPressed: runtime.hasKnowledgeBase
-                  ? () => widget
-                      .onPageChanged(_pageIndexById('document-generation'))
-                  : null,
-            ),
-          ],
-        );
-        final handoff = _ProductPanel(
-          keyName: 'workbook-handoff',
-          icon: Icons.inventory_2_outlined,
-          title: _zh ? '资产承接' : 'Asset Handoff',
-          minHeight: 260,
-          children: [
-            _ProductTable(
-              columns: _zh
-                  ? ['资产层', '输入', '输出', '应用入口']
-                  : ['Asset Layer', 'Input', 'Output', 'Entry'],
-              rows: _zh
-                  ? [
-                      ['文档库', '本地资料', '来源文档 / 解析报告', '知识库'],
-                      ['知识库', '来源文档', '片段 / 质量报告', '测试知识库'],
-                      ['测试知识库', '知识库', '证据片段 / 验证记录', '文档生成'],
-                      ['知识应用', '可信证据', '文档 / 技能 / 助手', '使用记录'],
-                    ]
-                  : [
-                      [
-                        'Document Library',
-                        'Local sources',
-                        'Documents / parse report',
-                        'Knowledge Base'
-                      ],
-                      [
-                        'Knowledge Base',
-                        'Source documents',
-                        'chunks / manifest / quality',
-                        'Retrieval'
-                      ],
-                      [
-                        'Retrieval',
-                        'Knowledge bases',
-                        'Evidence / validation record',
-                        'Document Generation'
-                      ],
-                      [
-                        'Knowledge Apps',
-                        'Trusted evidence',
-                        'Docs / Skills / Agents',
-                        'Governance'
-                      ],
-                    ],
-            ),
-          ],
-        );
-        if (!wide) {
-          return Column(children: [
-            overview,
-            const SizedBox(height: _DesktopGrid.gutter),
-            actions,
-            const SizedBox(height: _DesktopGrid.gutter),
-            handoff,
-          ]);
-        }
-        return Column(children: [
-          _EqualHeightRow(
-            height: 320,
-            flexes: const [7, 5],
-            children: [overview, actions],
+              ),
+            ],
           ),
-          const SizedBox(height: _DesktopGrid.gutter),
-          handoff,
-        ]);
-      }),
+        ),
+      ),
+      _FigmaFixedRow(
+        height: 360,
+        widths: const [540, 542],
+        children: [
+          _FigmaCard(
+            keyName: 'workbook-overview',
+            padding: const EdgeInsets.fromLTRB(24, 22, 24, 24),
+            child: _LocalScrollBox(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _FigmaSectionHeader(
+                    icon: Icons.space_dashboard_outlined,
+                    title: _zh ? '工作区资产' : 'Workspace Assets',
+                  ),
+                  const SizedBox(height: 18),
+                  _MetricStrip(
+                    items: [
+                      _MetricDatum(
+                        label: _zh ? '来源文档' : 'Source Docs',
+                        value: runtime.sourceCount.toString(),
+                        detail: runtime.hasImportedFile
+                            ? (_zh ? '已持久化' : 'persisted')
+                            : (_zh ? '等待导入' : 'waiting'),
+                        icon: Icons.article_outlined,
+                      ),
+                      _MetricDatum(
+                        label: _zh ? '知识库' : 'Knowledge Bases',
+                        value: runtime.knowledgeBases.isNotEmpty
+                            ? runtime.knowledgeBases.length.toString()
+                            : runtime.hasKnowledgeBase
+                                ? '1'
+                                : '0',
+                        detail: runtime.hasKnowledgeBase
+                            ? '${runtime.chunkCount} chunks'
+                            : (_zh ? '等待构建' : 'waiting build'),
+                        icon: Icons.account_tree_outlined,
+                      ),
+                      _MetricDatum(
+                        label: _zh ? '应用产物' : 'App Artifacts',
+                        value: [
+                          runtime.hasMarkdown,
+                          runtime.hasSkill,
+                          runtime.hasAgent,
+                          runtime.hasAgentDialogue,
+                          runtime.hasAgentDialogueExport,
+                          runtime.hasMultiAgentDiscussion,
+                        ].where((value) => value).length.toString(),
+                        detail: latestArtifact,
+                        icon: Icons.folder_copy_outlined,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  _ProductTable(
+                    columns:
+                        _zh ? ['项目', '状态', '说明'] : ['Item', 'Status', 'Note'],
+                    rows: _zh
+                        ? [
+                            [
+                              '位置',
+                              '用户工作区',
+                              _displayNameForPath(widget.workspace)
+                            ],
+                            [
+                              '已就绪资产',
+                              readySummary.isEmpty
+                                  ? '暂无'
+                                  : readySummary.join(' / '),
+                              '来自真实工作区状态'
+                            ],
+                            [
+                              '当前工作本',
+                              runtime.currentWorkbookName,
+                              runtime.hasWorkbookManifest ? '已保存' : '等待保存'
+                            ],
+                          ]
+                        : [
+                            [
+                              'Location',
+                              'User workspace',
+                              _displayNameForPath(widget.workspace)
+                            ],
+                            [
+                              'Ready assets',
+                              readySummary.isEmpty
+                                  ? 'None'
+                                  : readySummary.join(' / '),
+                              'From real workspace state'
+                            ],
+                            [
+                              'Current workbook',
+                              runtime.currentWorkbookName,
+                              runtime.hasWorkbookManifest
+                                  ? 'Saved'
+                                  : 'Waiting save'
+                            ],
+                          ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          _FigmaCard(
+            keyName: 'workbook-boundary-detail',
+            padding: const EdgeInsets.fromLTRB(24, 22, 24, 24),
+            child: _LocalScrollBox(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _FigmaSectionHeader(
+                    icon: Icons.rule_folder_outlined,
+                    title: _zh ? '边界说明' : 'Boundary Detail',
+                  ),
+                  const SizedBox(height: 18),
+                  _ProductTable(
+                    columns: _zh
+                        ? ['资产层', '隔离方式', '默认行为']
+                        : ['Layer', 'Boundary', 'Default'],
+                    rows: _zh
+                        ? [
+                            ['文档库', '按工作区保存', '不跨工作区串联'],
+                            ['知识库', '按来源文档生成', '不共享索引'],
+                            ['技能', '按工作区产物保存', '可手动复用'],
+                            ['助手记忆', '按助手与任务保存', '协作记忆不跨区'],
+                          ]
+                        : [
+                            [
+                              'Document library',
+                              'workspace scoped',
+                              'not shared'
+                            ],
+                            [
+                              'Knowledge base',
+                              'source scoped',
+                              'index isolated'
+                            ],
+                            [
+                              'Skills',
+                              'workspace artifacts',
+                              'manual reuse only'
+                            ],
+                            [
+                              'Assistant memory',
+                              'assistant/task scoped',
+                              'not cross-workspace'
+                            ],
+                          ],
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    _zh ? '创建 / 切换工作本' : 'Create / switch workbook',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: _HTKWTokens.textSecondary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    key: const Key('workbook-name-input'),
+                    controller: _workbookNameController,
+                    decoration: InputDecoration(
+                      labelText: _zh ? '工作区名称' : 'Workspace name',
+                      border: const OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    onSubmitted: (_) => _createOrSwitchWorkbook(rc6),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: OutlinedButton(
+                      onPressed: runtime.workbookNames.length > 1 &&
+                              rc6 != null &&
+                              !runtime.running
+                          ? () => _confirmAndDeleteWorkbook(
+                              rc6, runtime.currentWorkbookName)
+                          : null,
+                      child: Text(_zh
+                          ? '删除 ${runtime.currentWorkbookName}'
+                          : 'Delete ${runtime.currentWorkbookName}'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      SizedBox(
+        height: 80,
+        child: _FigmaCard(
+          keyName: 'workbook-next-actions',
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _zh ? '继续任务' : 'Continue Work',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                ),
+              ),
+              SizedBox(
+                width: 190,
+                child: _PrimaryProductAction(
+                  label: _zh ? '进入文档库' : 'Open Library',
+                  icon: Icons.library_books_outlined,
+                  onPressed: () =>
+                      widget.onPageChanged(_pageIndexById('document-library')),
+                ),
+              ),
+              const SizedBox(width: 12),
+              SizedBox(
+                width: 190,
+                child: _DisplayAction(
+                  label: _zh ? '生成知识库' : 'Create KB',
+                  icon: Icons.account_tree_outlined,
+                  onPressed: runtime.hasImportedFile
+                      ? () => widget.onPageChanged(
+                          _pageIndexById('knowledge-package-management'))
+                      : null,
+                ),
+              ),
+              const SizedBox(width: 12),
+              SizedBox(
+                width: 190,
+                child: _MoreActionsButton(
+                  label: _zh ? '更多工作区操作' : 'More workspace actions',
+                  actions: [
+                    for (final name in runtime.workbookNames.take(3))
+                      _MoreMenuAction(
+                        label: name == runtime.currentWorkbookName
+                            ? (_zh ? '当前：$name' : 'Current: $name')
+                            : (_zh ? '切换到 $name' : 'Switch to $name'),
+                        icon: Icons.workspaces_outline,
+                        enabled: rc6 != null &&
+                            !runtime.running &&
+                            name != runtime.currentWorkbookName,
+                        onSelected: () =>
+                            _createOrSwitchWorkbook(rc6, name: name),
+                      ),
+                    for (final name in runtime.workbookNames.take(3))
+                      _MoreMenuAction(
+                        label: _zh ? '删除 $name' : 'Delete $name',
+                        icon: Icons.delete_outline,
+                        destructive: true,
+                        enabled: rc6 != null &&
+                            !runtime.running &&
+                            runtime.workbookNames.length > 1,
+                        onSelected: () => _confirmAndDeleteWorkbook(rc6, name),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     ]);
   }
 }

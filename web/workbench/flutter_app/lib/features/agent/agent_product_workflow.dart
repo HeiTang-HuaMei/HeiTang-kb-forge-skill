@@ -31,15 +31,7 @@ class _AgentProductWorkflow extends StatelessWidget {
         selectedTab >= tabs.length ? tabs.length - 1 : selectedTab;
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      _ProductHeader(
-        icon: Icons.smart_toy_outlined,
-        title: _zh ? '我的助手' : 'My Assistants',
-        description: _zh
-            ? '创建助手、绑定知识库与技能，并在本页让多个助手一起讨论。'
-            : 'Create assistants, bind knowledge bases and skills, and run assistant discussions here.',
-      ),
-      const SizedBox(height: _DesktopGrid.gutter),
+    return _FigmaPageCanvas(children: [
       _MetricStrip(
         items: [
           _MetricDatum(
@@ -72,20 +64,23 @@ class _AgentProductWorkflow extends StatelessWidget {
               icon: Icons.groups_2_outlined),
         ],
       ),
-      const SizedBox(height: _DesktopGrid.gutter),
       _PageTabs(
           tabs: tabs, selectedIndex: activeTab, onSelected: onTabSelected),
-      const SizedBox(height: _DesktopGrid.gutter),
-      switch (activeTab) {
-        1 => _SingleAgentWorkspaceView(
-            zh: _zh,
-            workspace: workspace,
-            onAgentCreated: () => onTabSelected(1),
-          ),
-        2 => _AgentDiscussionProductView(zh: _zh),
-        3 => _AgentRunAuditView(zh: _zh),
-        _ => _AgentWorkspaceProductView(zh: _zh, workspace: workspace),
-      },
+      SizedBox(
+        height: 555,
+        child: _LocalScrollBox(
+          child: switch (activeTab) {
+            1 => _SingleAgentWorkspaceView(
+                zh: _zh,
+                workspace: workspace,
+                onAgentCreated: () => onTabSelected(1),
+              ),
+            2 => _AgentDiscussionProductView(zh: _zh),
+            3 => _AgentRunAuditView(zh: _zh),
+            _ => _AgentWorkspaceProductView(zh: _zh, workspace: workspace),
+          },
+        ),
+      ),
     ]);
   }
 }

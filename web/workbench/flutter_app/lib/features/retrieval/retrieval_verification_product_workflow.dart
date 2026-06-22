@@ -596,16 +596,24 @@ class _RetrievalVerificationProductWorkflowState
 
   @override
   Widget build(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      _ProductHeader(
-        icon: Icons.manage_search_outlined,
-        title: _zh ? '测试知识库' : 'Test Knowledge Base',
-        description: _zh
-            ? '先选择知识库，再用问题测试；证据片段、引用、评分、纠偏和授权外部核对都在同一页面完成。'
-            : 'Select a KB first, then test with a question; evidence, citations, scoring, correction, and authorized external checking stay on one page.',
+    return _FigmaPageCanvas(children: [
+      SizedBox(
+        height: 88,
+        child: _FigmaHighlightCard(
+          keyName: 'retrieval-hero',
+          icon: Icons.manage_search_outlined,
+          title: _zh ? '测试知识库' : 'Test Knowledge Base',
+          description: _zh
+              ? '用真实问题验证证据、引用和来源；外部核对未配置时保持需要设置。'
+              : 'Validate evidence, citations, and sources with real questions; external checking remains gated until configured.',
+        ),
       ),
-      const SizedBox(height: _DesktopGrid.gutter),
-      _RetrievalVerificationView(zh: _zh),
+      SizedBox(
+        height: 610,
+        child: _LocalScrollBox(
+          child: _RetrievalVerificationView(zh: _zh),
+        ),
+      ),
     ]);
   }
 }

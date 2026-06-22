@@ -19,92 +19,6 @@ class _MiniProgressBar extends StatelessWidget {
   }
 }
 
-class _ImportHistoryList extends StatelessWidget {
-  const _ImportHistoryList({
-    required this.zh,
-    required this.rows,
-    required this.selectedRows,
-    required this.onToggle,
-    required this.onDelete,
-    required this.onDeleteSelected,
-    required this.onClear,
-  });
-
-  final bool zh;
-  final List<List<String>> rows;
-  final Set<int> selectedRows;
-  final ValueChanged<int> onToggle;
-  final ValueChanged<int> onDelete;
-  final VoidCallback? onDeleteSelected;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    final visible = [
-      for (var index = 0; index < rows.length; index++)
-        MapEntry(index, rows[index])
-    ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (visible.isEmpty)
-          _RuntimeFeedbackBanner(
-            title: zh ? '历史记录已清空' : 'History cleared',
-            detail: zh
-                ? '导入清单和下游产物已从当前工作区删除。'
-                : 'Import manifest and downstream artifacts were deleted from this workspace.',
-            tone: _StatusTone.neutral,
-            icon: Icons.delete_sweep_outlined,
-          )
-        else ...[
-          for (final entry in visible) ...[
-            Material(
-              type: MaterialType.transparency,
-              child: CheckboxListTile(
-                dense: true,
-                value: selectedRows.contains(entry.key),
-                onChanged: (_) => onToggle(entry.key),
-                controlAffinity: ListTileControlAffinity.leading,
-                title: Text(entry.value[0],
-                    maxLines: 1, overflow: TextOverflow.ellipsis),
-                subtitle: Text('${entry.value[1]} · ${entry.value[2]}',
-                    maxLines: 1, overflow: TextOverflow.ellipsis),
-                secondary: IconButton(
-                  tooltip:
-                      MaterialLocalizations.of(context).deleteButtonTooltip,
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: () => onDelete(entry.key),
-                ),
-              ),
-            ),
-            if (entry != visible.last) const Divider(height: 8),
-          ],
-        ],
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: onDeleteSelected,
-                icon: const Icon(Icons.delete_outline),
-                label: Text(zh ? '删除选中' : 'Delete selected'),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: visible.isEmpty ? null : onClear,
-                icon: const Icon(Icons.delete_sweep_outlined),
-                label: Text(zh ? '全部删除' : 'Delete all'),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
 class _ImportProductWorkflow extends StatefulWidget {
   const _ImportProductWorkflow({
     required this.localeCode,
@@ -127,59 +41,21 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
 
   bool get _zh => widget.localeCode == 'zh-CN';
 
-  Future<void> _chooseSource(Rc6RuntimeController? rc6) async {
+  Future<void> _importFile(Rc6RuntimeController? rc6) async {
     if (rc6 == null || rc6.state.running) return;
-    final choice = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(_zh ? '选择来源' : 'Choose source'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Material(
-              type: MaterialType.transparency,
-              child: ListTile(
-                leading: const Icon(Icons.insert_drive_file_outlined),
-                title: Text(_zh ? '选择文件' : 'Choose file'),
-                subtitle: Text(_zh ? '导入单个真实文档' : 'Import one real document'),
-                onTap: () => Navigator.of(context).pop('file'),
-              ),
-            ),
-            Material(
-              type: MaterialType.transparency,
-              child: ListTile(
-                leading: const Icon(Icons.drive_folder_upload_outlined),
-                title: Text(_zh ? '选择文件夹' : 'Choose folder'),
-                subtitle: Text(_zh
-                    ? '批量导入文件夹内全部支持文件'
-                    : 'Import supported files in a folder'),
-                onTap: () => Navigator.of(context).pop('folder'),
-              ),
-            ),
-            Material(
-              type: MaterialType.transparency,
-              child: ListTile(
-                leading: const Icon(Icons.link_outlined),
-                title: Text(_zh ? '输入网页链接' : 'Enter web link'),
-                subtitle: Text(_zh
-                    ? '保存为文档库来源记录，授权后可联网抓取'
-                    : 'Save as a library source record; fetching needs authorization'),
-                onTap: () => Navigator.of(context).pop('web'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (choice == 'file') {
-      await rc6.pickAndImportFile();
-    } else if (choice == 'folder') {
-      await rc6.pickAndImportFolder();
-    } else if (choice == 'web') {
-      final url = await _promptWebLink();
-      if (url != null && url.trim().isNotEmpty) {
-        await rc6.importWebLink(url);
-      }
+    await rc6.pickAndImportFile();
+  }
+
+  Future<void> _importFolder(Rc6RuntimeController? rc6) async {
+    if (rc6 == null || rc6.state.running) return;
+    await rc6.pickAndImportFolder();
+  }
+
+  Future<void> _importWebLink(Rc6RuntimeController? rc6) async {
+    if (rc6 == null || rc6.state.running) return;
+    final url = await _promptWebLink();
+    if (url != null && url.trim().isNotEmpty) {
+      await rc6.importWebLink(url);
     }
   }
 
@@ -234,293 +110,463 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
-    final hasSources = stagedSources > 0 || runtime.sourceCount > 0;
     final hasManifest = preparedManifests > 0 || runtime.hasImportedFile;
     final hasRealImport = runtime.hasImportedFile;
     final capabilityAuditReady = runtime.hasProviderCapabilityUserCatalog;
-    final parserCapabilityStatus = runtime.parseReportPath.isNotEmpty
-        ? (_zh ? '已整理' : 'Organized')
-        : capabilityAuditReady
-            ? (_zh ? '已配置，等待整理' : 'Configured, waiting organization')
-            : (_zh ? '使用本地模式' : 'Using local mode');
     final ocrCapabilityStatus = capabilityAuditReady
         ? (_zh ? '按当前配置可用' : 'Available in current profile')
         : (_zh ? '未配置，使用本地模式' : 'Not configured, local mode');
     final webImportStatus = capabilityAuditReady
         ? (_zh ? '按网络授权显示' : 'Controlled by network authorization')
         : (_zh ? '本地资料可用' : 'Local sources available');
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _ProductHeader(
-          icon: Icons.upload_file_outlined,
-          title: _zh ? '添加与整理资料' : 'Add and Organize Materials',
-          description: _zh
-              ? '文件、文件夹与网页链接进入同一队列；整理资料和失败恢复在本页完成。'
-              : 'Files, folders, and web links enter one queue; organization and recovery are handled here.',
-          trailing: _StatePill(
-            label: widget.isWebRuntime
-                ? (_zh ? 'Web 预览模式' : 'Web preview mode')
-                : (_zh ? '桌面输入' : 'Desktop input'),
-            icon: Icons.shield_outlined,
+    Widget statCard({
+      required String label,
+      required String value,
+      required String detail,
+      required IconData icon,
+    }) {
+      final colors = Theme.of(context).colorScheme;
+      return Expanded(
+        child: Container(
+          height: 66,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: colors.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: colors.outlineVariant),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: _HTKWTokens.goldSoft,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: _HTKWTokens.gold, size: 19),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: colors.onSurfaceVariant,
+                              fontWeight: FontWeight.w800,
+                              height: 1.08,
+                            )),
+                    RichText(
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      text: TextSpan(
+                        style: Theme.of(context).textTheme.labelMedium,
+                        children: [
+                          TextSpan(
+                            text: value,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  color: _HTKWTokens.textPrimary,
+                                  fontWeight: FontWeight.w900,
+                                  height: 1.05,
+                                ),
+                          ),
+                          TextSpan(
+                            text: '  $detail',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(
+                                  color: _HTKWTokens.textTertiary,
+                                  fontWeight: FontWeight.w700,
+                                  height: 1.05,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: _DesktopGrid.gutter),
-        _MetricStrip(
-          items: [
-            _MetricDatum(
-                label: _zh ? '来源文档' : 'Sources',
-                value: runtime.sourceCount.toString(),
-                detail: hasRealImport
-                    ? (_zh ? '已导入' : 'imported')
-                    : (_zh ? '等待导入' : 'waiting'),
-                icon: Icons.file_present_outlined),
-            _MetricDatum(
-                label: _zh ? '整理状态' : 'Organization status',
-                value: runtime.parseReportPath.isNotEmpty
-                    ? (_zh ? '已完成' : 'Done')
-                    : (_zh ? '待整理' : 'Waiting'),
-                detail: runtime.chunkCount > 0
-                    ? (_zh
-                        ? '${runtime.chunkCount} 个片段'
-                        : '${runtime.chunkCount} segments')
-                    : (_zh ? '等待整理' : 'waiting'),
-                icon: Icons.document_scanner_outlined),
+      );
+    }
+
+    Widget actionTile({
+      required String label,
+      required IconData icon,
+      required VoidCallback? onPressed,
+      bool primary = false,
+    }) {
+      final child = primary
+          ? FilledButton.icon(
+              onPressed: onPressed,
+              icon: Icon(icon, size: 18),
+              label: Text(label, overflow: TextOverflow.ellipsis),
+            )
+          : OutlinedButton.icon(
+              onPressed: onPressed,
+              icon: Icon(icon, size: 18),
+              label: Text(label, overflow: TextOverflow.ellipsis),
+            );
+      return Expanded(child: SizedBox(height: 42, child: child));
+    }
+
+    Widget queueRow({
+      required String name,
+      required String status,
+      required String result,
+      required _StatusTone tone,
+    }) {
+      final color = _HTKWTokens.toneColor(tone);
+      return Container(
+        height: 39,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(14),
+          border:
+              Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 4,
+              child: Text(name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      )),
+            ),
+            Expanded(
+              flex: 3,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _HTKWTokens.toneSurface(tone),
+                    borderRadius:
+                        BorderRadius.circular(_DesktopGrid.chipRadius),
+                    border: Border.all(color: color.withValues(alpha: 0.24)),
+                  ),
+                  child: Text(status,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: color,
+                            fontWeight: FontWeight.w900,
+                            height: 1.05,
+                          )),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 4,
+              child: Text(result,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.right,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: _HTKWTokens.textSecondary,
+                        fontWeight: FontWeight.w800,
+                      )),
+            ),
           ],
         ),
-        const SizedBox(height: _DesktopGrid.gutter),
-        if (hasSources || hasManifest) ...[
-          _RuntimeFeedbackBanner(
-            title: hasRealImport
-                ? (_zh ? '来源已导入' : 'Sources imported')
-                : hasManifest
-                    ? (_zh ? '来源已准备' : 'Sources prepared')
-                    : (_zh ? '等待真实来源' : 'Waiting for real source'),
-            detail: hasRealImport
-                ? '${runtime.sourceCount} ${_zh ? '个来源文档' : 'source documents'}'
-                : (_zh ? '暂无来源文档' : 'No source documents'),
-            tone: hasRealImport ? _StatusTone.success : _StatusTone.warning,
-            icon: hasRealImport ? Icons.verified_outlined : Icons.info_outline,
-          ),
-          const SizedBox(height: _DesktopGrid.gutter),
-        ],
-        LayoutBuilder(builder: (context, constraints) {
-          final wide = constraints.maxWidth >= 920;
-          final intake = _ProductPanel(
-            keyName: 'import-intake-surface',
-            accent: true,
-            icon: Icons.folder_open_outlined,
-            title: _zh ? '资料入口' : 'Material Intake',
-            minHeight: 410,
-            children: [
-              _PrimaryProductAction(
-                label: _zh ? '添加资料' : 'Add materials',
+      );
+    }
+
+    Widget historyCell(String label, String value) {
+      return Expanded(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: _HTKWTokens.textTertiary,
+                      fontWeight: FontWeight.w900,
+                    )),
+            const SizedBox(height: 4),
+            Text(value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    )),
+          ],
+        ),
+      );
+    }
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final wide = constraints.maxWidth >= 920;
+      final localCount = runtime.sourceRecords
+          .where((source) => source.sourceType != 'web')
+          .length;
+      final webCount = runtime.sourceRecords
+          .where((source) => source.sourceType == 'web')
+          .length;
+      final importedCount = runtime.sourceRecords.isEmpty
+          ? runtime.sourceCount
+          : runtime.sourceRecords.length;
+      final organizedStatus = runtime.parseReportPath.isNotEmpty
+          ? (_zh ? '已整理' : 'Organized')
+          : hasRealImport
+              ? (_zh ? '待整理' : 'Waiting')
+              : (_zh ? '需要先添加资料' : 'Add materials first');
+      final left = _ProductPanel(
+        keyName: 'import-intake-surface',
+        accent: true,
+        icon: Icons.folder_open_outlined,
+        title: _zh ? '添加与整理资料' : 'Add and Organize Materials',
+        minHeight: 360,
+        children: [
+          Row(children: [
+            statCard(
+              label: _zh ? '本地资料' : 'Local materials',
+              value: localCount.toString(),
+              detail: hasRealImport
+                  ? (_zh ? '已导入' : 'Imported')
+                  : (_zh ? '等待添加' : 'Waiting'),
+              icon: Icons.insert_drive_file_outlined,
+            ),
+            const SizedBox(width: 12),
+            statCard(
+              label: _zh ? '外部链接' : 'External links',
+              value: webCount.toString(),
+              detail: capabilityAuditReady
+                  ? (_zh ? '按授权处理' : 'By authorization')
+                  : (_zh ? '本地模式' : 'Local mode'),
+              icon: Icons.link_outlined,
+            ),
+          ]),
+          const SizedBox(height: 14),
+          _SectionCaption(_zh ? '资料入口' : 'Material Intake'),
+          const SizedBox(height: 8),
+          Column(children: [
+            Row(children: [
+              actionTile(
+                label: _zh ? '添加文件' : 'Add file',
+                icon: Icons.upload_file_outlined,
                 onPressed: runtime.running || rc6 == null
                     ? null
-                    : () => _chooseSource(rc6),
-                icon: Icons.folder_open_outlined,
+                    : () => _importFile(rc6),
+                primary: true,
               ),
-              const SizedBox(height: _DesktopGrid.gutter),
-              _MiniProgressBar(
-                  value: runtime.parseReportPath.isNotEmpty
-                      ? 1
-                      : hasManifest
-                          ? 0.68
-                          : 0.12),
-              const SizedBox(height: 8),
-              _PrimaryProductAction(
-                label: _zh ? '整理资料' : 'Organize materials',
+              const SizedBox(width: 10),
+              actionTile(
+                label: _zh ? '添加文件夹' : 'Add folder',
+                icon: Icons.drive_folder_upload_outlined,
+                onPressed: runtime.running || rc6 == null
+                    ? null
+                    : () => _importFolder(rc6),
+              ),
+            ]),
+            const SizedBox(height: 10),
+            Row(children: [
+              actionTile(
+                label: _zh ? '添加链接' : 'Add link',
+                icon: Icons.link_outlined,
+                onPressed: runtime.running || rc6 == null
+                    ? null
+                    : () => _importWebLink(rc6),
+              ),
+              const SizedBox(width: 10),
+              actionTile(
+                label: _zh ? '整理资料' : 'Organize',
+                icon: Icons.document_scanner_outlined,
                 onPressed:
                     runtime.running || rc6 == null || !runtime.hasImportedFile
                         ? null
                         : () => rc6.parseAndChunkSources(),
-                icon: Icons.document_scanner_outlined,
+                primary: true,
               ),
-            ],
-          );
-          final queue = _ProductPanel(
-            keyName: 'import-queue',
-            icon: Icons.list_alt_outlined,
-            title: _zh ? '资料队列与进度' : 'Material Queue and Progress',
-            minHeight: 326,
-            children: [
-              _ProductTable(
-                columns: _zh
-                    ? ['资料', '来源类型', '处理状态', '状态', '失败恢复', '输出结果']
-                    : [
-                        'File',
-                        'Source type',
-                        'Processing',
-                        'Status',
-                        'Recovery',
-                        'Output artifact'
-                      ],
-                rows: _zh
-                    ? [
-                        [
-                          hasRealImport
-                              ? _displayNameForPath(runtime.selectedFilePath)
-                              : '等待本地文件',
-                          '文件',
-                          hasManifest ? '已完成' : '未完成',
-                          hasRealImport ? '已导入' : '待输入',
-                          hasManifest ? '无需恢复' : '待生成清单',
-                          '来源文档'
-                        ],
-                        if (hasManifest)
-                          [
-                            '整理资料',
-                            '本地模式',
-                            runtime.parseReportPath.isNotEmpty ? '已完成' : '处理中',
-                            runtime.parseReportPath.isNotEmpty ? '已整理' : '排队',
-                            '失败可重试',
-                            '整理结果'
-                          ],
-                      ]
-                    : [
-                        [
-                          hasRealImport
-                              ? _displayNameForPath(runtime.selectedFilePath)
-                              : 'Waiting for local files',
-                          'File',
-                          hasManifest ? 'Done' : 'Not done',
-                          hasRealImport ? 'Imported' : 'Pending',
-                          hasManifest ? 'No recovery' : 'Prepare manifest',
-                          'Source documents'
-                        ],
-                        if (hasManifest)
-                          [
-                            'Organize materials',
-                            'Local mode',
-                            runtime.parseReportPath.isNotEmpty
-                                ? 'Done'
-                                : 'Running',
-                            runtime.parseReportPath.isNotEmpty
-                                ? 'Organized'
-                                : 'Queued',
-                            'Retryable on failure',
-                            'Organized results'
-                          ],
-                      ],
-              ),
-              const SizedBox(height: _DesktopGrid.gutter),
-              _ProductTable(
-                columns: _zh
-                    ? ['能力', '当前状态', '用户可见结果']
-                    : ['Capability', 'Current status', 'User result'],
-                rows: _zh
-                    ? [
-                        ['资料整理', parserCapabilityStatus, '整理后进入文档库'],
-                        ['图片文字识别', ocrCapabilityStatus, '图片文本随整理记录留痕'],
-                        ['网页导入', webImportStatus, '关闭时本地导入不受影响'],
-                      ]
-                    : [
-                        [
-                          'Material organization',
-                          parserCapabilityStatus,
-                          'Organized content enters the library'
-                        ],
-                        [
-                          'Image text recognition',
-                          ocrCapabilityStatus,
-                          'Image text is recorded with organization'
-                        ],
-                        [
-                          'Web import',
-                          webImportStatus,
-                          'Local import remains available when disabled'
-                        ],
-                      ],
-              ),
-            ],
-          );
-          final manifest = _ProductPanel(
-            keyName: 'manifest-preview',
-            icon: Icons.description_outlined,
-            title: _zh ? '导入历史' : 'Import History',
-            minHeight: 326,
-            children: [
-              _ImportHistoryList(
-                zh: _zh,
-                rows: _zh
-                    ? [
-                        [
-                          '来源文档',
-                          hasRealImport ? '已生成' : '等待',
-                          '${runtime.sourceCount} 个来源'
-                        ],
-                        [
-                          '解析结果',
-                          runtime.parseReportPath.isNotEmpty ? '已生成' : '等待',
-                          runtime.chunkCount > 0
-                              ? '${runtime.chunkCount} 个片段'
-                              : '等待整理'
-                        ],
-                        [
-                          '失败恢复',
-                          hasManifest ? '可重试 / 可跳过 / 可查看错误' : '等待整理',
-                          '恢复操作'
-                        ],
-                        ['下一阶段', '文档库', '来源文档管理'],
-                      ]
-                    : [
-                        [
-                          'Source documents',
-                          hasRealImport ? 'Written' : 'Waiting',
-                          '${runtime.sourceCount} sources'
-                        ],
-                        [
-                          'Parse results',
-                          runtime.parseReportPath.isNotEmpty
-                              ? 'Written'
-                              : 'Waiting',
-                          runtime.chunkCount > 0
-                              ? '${runtime.chunkCount} segments'
-                              : 'Waiting organization'
-                        ],
-                        [
-                          'Failure recovery',
-                          hasManifest
-                              ? 'Retry / skip / view error'
-                              : 'Waiting parse',
-                          'Recovery actions'
-                        ],
-                        ['Next stage', 'Document Library', 'Source management'],
-                      ],
-                selectedRows: selectedHistoryRows,
-                onToggle: (index) => setState(() {
-                  if (!selectedHistoryRows.add(index)) {
-                    selectedHistoryRows.remove(index);
-                  }
-                }),
-                onDelete: (_) => _confirmAndDeleteImport(rc6),
-                onDeleteSelected: selectedHistoryRows.isEmpty
-                    ? null
-                    : () => _confirmAndDeleteImport(rc6),
-                onClear: () => _confirmAndDeleteImport(rc6),
-              ),
-            ],
-          );
-          if (!wide) {
-            return Column(children: [
-              intake,
-              const SizedBox(height: _DesktopGrid.gutter),
-              queue,
-              const SizedBox(height: _DesktopGrid.gutter),
-              manifest,
-            ]);
-          }
-          return Column(children: [
-            _EqualHeightRow(
-              height: 410,
-              flexes: const [7, 5],
-              children: [intake, queue],
+            ]),
+          ]),
+          const SizedBox(height: 14),
+          _MiniProgressBar(
+              value: runtime.parseReportPath.isNotEmpty
+                  ? 1
+                  : hasManifest
+                      ? 0.68
+                      : 0.12),
+          const SizedBox(height: 8),
+          _RuntimeFeedbackBanner(
+            title: hasRealImport
+                ? (_zh ? '来源已进入文档库' : 'Sources are in the library')
+                : (_zh ? '需要先添加资料' : 'Add materials first'),
+            detail: _zh
+                ? '资料整理后可用于生成知识库、测试知识库和生成文档。'
+                : 'Organized materials can be used to build KBs, test KBs, and generate documents.',
+            tone: hasRealImport ? _StatusTone.success : _StatusTone.warning,
+            icon: hasRealImport ? Icons.verified_outlined : Icons.info_outline,
+          ),
+        ],
+      );
+      final right = _ProductPanel(
+        keyName: 'import-queue',
+        icon: Icons.list_alt_outlined,
+        title: _zh ? '资料队列与进度' : 'Material Queue and Progress',
+        minHeight: 360,
+        children: [
+          Row(children: [
+            statCard(
+              label: _zh ? '已整理' : 'Organized',
+              value: runtime.parseReportPath.isNotEmpty
+                  ? importedCount.toString()
+                  : '0',
+              detail: runtime.chunkCount > 0
+                  ? (_zh
+                      ? '${runtime.chunkCount} 片段'
+                      : '${runtime.chunkCount} chunks')
+                  : (_zh ? '等待整理' : 'Waiting'),
+              icon: Icons.task_alt_outlined,
             ),
-            const SizedBox(height: _DesktopGrid.gutter),
-            manifest,
-          ]);
-        }),
-      ],
-    );
+            const SizedBox(width: 10),
+            statCard(
+              label: _zh ? '待整理' : 'Pending',
+              value: runtime.parseReportPath.isNotEmpty
+                  ? '0'
+                  : importedCount.toString(),
+              detail: hasRealImport
+                  ? (_zh ? '可整理' : 'Ready')
+                  : (_zh ? '无资料' : 'No source'),
+              icon: Icons.pending_actions_outlined,
+            ),
+            const SizedBox(width: 10),
+            statCard(
+              label: _zh ? '需要设置' : 'Needs setup',
+              value: capabilityAuditReady ? '0' : '1',
+              detail: capabilityAuditReady
+                  ? (_zh ? '已配置' : 'Configured')
+                  : (_zh ? '本地模式' : 'Local mode'),
+              icon: Icons.tune_outlined,
+            ),
+          ]),
+          const SizedBox(height: 14),
+          _SectionCaption(_zh ? '处理队列' : 'Processing queue'),
+          const SizedBox(height: 8),
+          queueRow(
+            name: _zh ? '来源文档' : 'Source documents',
+            status: hasRealImport
+                ? (_zh ? '已导入' : 'Imported')
+                : (_zh ? '待添加' : 'Pending'),
+            result: hasRealImport
+                ? '${runtime.sourceCount} ${_zh ? '个来源' : 'sources'}'
+                : (_zh ? '添加后出现' : 'Shown after import'),
+            tone: hasRealImport ? _StatusTone.success : _StatusTone.warning,
+          ),
+          const SizedBox(height: 8),
+          queueRow(
+            name: _zh ? '资料整理' : 'Organization',
+            status: organizedStatus,
+            result: runtime.chunkCount > 0
+                ? (_zh
+                    ? '${runtime.chunkCount} 个片段'
+                    : '${runtime.chunkCount} chunks')
+                : (_zh ? '等待整理结果' : 'Waiting result'),
+            tone: runtime.parseReportPath.isNotEmpty
+                ? _StatusTone.success
+                : _StatusTone.warning,
+          ),
+          const SizedBox(height: 8),
+          queueRow(
+            name: _zh ? '图片文字识别' : 'Image text',
+            status: ocrCapabilityStatus,
+            result: _zh ? '随整理记录' : 'With organization',
+            tone: capabilityAuditReady
+                ? _StatusTone.success
+                : _StatusTone.neutral,
+          ),
+          const SizedBox(height: 8),
+          queueRow(
+            name: _zh ? '网页导入' : 'Web import',
+            status: webImportStatus,
+            result: _zh ? '未授权时只保存来源' : 'Source-only if unauthorized',
+            tone: capabilityAuditReady
+                ? _StatusTone.success
+                : _StatusTone.neutral,
+          ),
+        ],
+      );
+      final history = SizedBox(
+        height: 118,
+        child: _FigmaCard(
+          keyName: 'manifest-preview',
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 190,
+                child: _FigmaSectionHeader(
+                  icon: Icons.history_outlined,
+                  title: _zh ? '导入历史' : 'Import History',
+                  subtitle: _zh ? '最近记录' : 'Recent records',
+                ),
+              ),
+              const SizedBox(width: 18),
+              historyCell(
+                  _zh ? '最近导入' : 'Latest import',
+                  hasRealImport
+                      ? _displayNameForPath(runtime.selectedFilePath)
+                      : (_zh ? '等待资料' : 'Waiting')),
+              historyCell(
+                  _zh ? '来源' : 'Source',
+                  hasRealImport
+                      ? (_zh ? '本地文件' : 'Local file')
+                      : (_zh ? '未添加' : 'Not added')),
+              historyCell(_zh ? '状态' : 'Status', organizedStatus),
+              historyCell(_zh ? '使用去向' : 'Used by',
+                  _zh ? '知识库 / 文档' : 'KB / documents'),
+              const SizedBox(width: 16),
+              SizedBox(
+                width: 126,
+                child: OutlinedButton.icon(
+                  onPressed: rc6 == null || runtime.running || !hasManifest
+                      ? null
+                      : () => _confirmAndDeleteImport(rc6),
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  label: Text(_zh ? '清空记录' : 'Clear'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      if (!wide) {
+        return Column(children: [
+          left,
+          const SizedBox(height: _DesktopGrid.gutter),
+          right,
+          const SizedBox(height: _DesktopGrid.gutter),
+          history,
+        ]);
+      }
+      return Column(children: [
+        _EqualHeightRow(
+          height: 388,
+          flexes: const [1, 1],
+          children: [left, right],
+        ),
+        const SizedBox(height: _DesktopGrid.gutter),
+        history,
+      ]);
+    });
   }
 }

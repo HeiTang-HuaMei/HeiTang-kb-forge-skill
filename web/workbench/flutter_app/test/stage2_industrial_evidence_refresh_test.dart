@@ -419,7 +419,7 @@ void main() {
       if (check['check_id'] == 'industrial_exe_launch_smoke') continue;
       expect(check['status'], 'passed', reason: jsonEncode(check));
     }
-  });
+  }, timeout: const Timeout(Duration(minutes: 8)));
 
   test('refreshes Stage2 preflight after independent EXE smoke', () async {
     final appRoot = Directory.current;

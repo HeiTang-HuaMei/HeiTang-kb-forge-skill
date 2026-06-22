@@ -25,45 +25,46 @@ class _ProductColumn extends StatelessWidget {
   }
 }
 
-class _Grid12Cell {
-  const _Grid12Cell({
-    required this.span,
-    required this.child,
+class _FigmaPageCanvas extends StatelessWidget {
+  const _FigmaPageCanvas({
+    required this.children,
+    this.spacing = 22,
   });
 
-  final int span;
-  final Widget child;
-}
-
-class _Grid12Row extends StatelessWidget {
-  const _Grid12Row({
-    required this.cells,
-  });
-
-  final List<_Grid12Cell> cells;
+  final List<Widget> children;
+  final double spacing;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      if (constraints.maxWidth < _DesktopGrid.rowBreakpoint) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var index = 0; index < cells.length; index++) ...[
-              if (index > 0) const SizedBox(height: _DesktopGrid.gutter),
-              cells[index].child,
-            ],
-          ],
-        );
-      }
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (var index = 0; index < cells.length; index++) ...[
-            if (index > 0) const SizedBox(width: _DesktopGrid.gutter),
-            Expanded(flex: cells[index].span, child: cells[index].child),
-          ],
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var index = 0; index < children.length; index++) ...[
+          if (index > 0) SizedBox(height: spacing),
+          children[index],
         ],
+      ],
+    );
+    return LayoutBuilder(builder: (context, constraints) {
+      final canvas = Center(
+        child: SizedBox(
+          width: constraints.maxWidth >= _DesktopGrid.figmaContentWidth + 24
+              ? _DesktopGrid.figmaContentWidth
+              : constraints.maxWidth,
+          child: content,
+        ),
+      );
+      if (!constraints.maxHeight.isFinite) {
+        return canvas;
+      }
+      return SizedBox(
+        height: constraints.maxHeight < _DesktopGrid.figmaContentHeight
+            ? constraints.maxHeight
+            : _DesktopGrid.figmaContentHeight,
+        child: SingleChildScrollView(
+          primary: false,
+          child: _ScrollSafePadding(child: canvas),
+        ),
       );
     });
   }
@@ -104,6 +105,51 @@ class _EqualHeightRow extends StatelessWidget {
                 flex: flexes == null ? 1 : flexes![index],
                 child: children[index],
               ),
+            ],
+          ],
+        ),
+      );
+    });
+  }
+}
+
+class _FigmaFixedRow extends StatelessWidget {
+  const _FigmaFixedRow({
+    required this.height,
+    required this.children,
+    required this.widths,
+    this.spacing = 30,
+  });
+
+  final double height;
+  final List<Widget> children;
+  final List<double> widths;
+  final double spacing;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      final canUseFixed =
+          constraints.maxWidth >= _DesktopGrid.figmaContentWidth;
+      if (!canUseFixed) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var index = 0; index < children.length; index++) ...[
+              if (index > 0) const SizedBox(height: _DesktopGrid.gutter),
+              SizedBox(height: height, child: children[index]),
+            ],
+          ],
+        );
+      }
+      return SizedBox(
+        height: height,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var index = 0; index < children.length; index++) ...[
+              if (index > 0) SizedBox(width: spacing),
+              SizedBox(width: widths[index], child: children[index]),
             ],
           ],
         ),

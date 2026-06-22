@@ -37,17 +37,69 @@ void main() {
 abstract final class _DesktopGrid {
   static const double initialWindowWidth = 1440;
   static const double initialWindowHeight = 900;
-  static const double minWindowWidth = 820;
-  static const double compactSidebarWidth = 168;
-  static const double gutter = 8;
-  static const double sectionGap = 10;
-  static const double panelPadding = 10;
-  static const double panelRadius = 8;
-  static const double maxPageWidth = 1720;
-  static const double panelMinHeight = 126;
-  static const double metricHeight = 114;
-  static const double rowBreakpoint = 1120;
+  static const double figmaContentWidth = 1112;
+  static const double figmaContentHeight = 730;
+  static const double gutter = 16;
+  static const double panelPadding = 22;
+  static const double panelRadius = 20;
+  static const double pageRadius = 28;
+  static const double buttonRadius = 12;
+  static const double chipRadius = 999;
+  static const double panelMinHeight = 156;
+  static const double metricHeight = 122;
+  static const double rowBreakpoint = 960;
   static const double footerSafeArea = 84;
+}
+
+abstract final class _HTKWTokens {
+  static const Color background = Color(0xffefe9df);
+  static const Color mainPanel = Color(0xfff6f0e7);
+  static const Color surface = Color(0xfffffdf8);
+  static const Color softSurface = Color(0xfff8f2e9);
+  static const Color border = Color(0xffe3d8c8);
+  static const Color textPrimary = Color(0xff151311);
+  static const Color textSecondary = Color(0xff71695e);
+  static const Color textTertiary = Color(0xff9b9183);
+  static const Color sidebar = Color(0xff111518);
+  static const Color gold = Color(0xffb98542);
+  static const Color goldSoft = Color(0xfff5e4c7);
+  static const Color sage = Color(0xff71836d);
+  static const Color sageSoft = Color(0xffe9f0e7);
+  static const Color blue = Color(0xff6f899c);
+  static const Color blueSoft = Color(0xffe8f0f4);
+  static const Color plum = Color(0xff7c728d);
+  static const Color plumSoft = Color(0xffece8f2);
+  static const Color red = Color(0xffb75d53);
+  static const Color redSoft = Color(0xfff3e4de);
+  static const Color sidebarSelected = Color(0xff1d2328);
+  static const Color sidebarBorder = Color(0xff2c3338);
+
+  static List<BoxShadow> get cardShadow => [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.055),
+          blurRadius: 22,
+          offset: const Offset(0, 12),
+        ),
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.025),
+          blurRadius: 4,
+          offset: const Offset(0, 1),
+        ),
+      ];
+
+  static Color toneColor(_StatusTone tone) => switch (tone) {
+        _StatusTone.success => sage,
+        _StatusTone.warning => gold,
+        _StatusTone.danger => red,
+        _StatusTone.neutral => blue,
+      };
+
+  static Color toneSurface(_StatusTone tone) => switch (tone) {
+        _StatusTone.success => sageSoft,
+        _StatusTone.warning => goldSoft,
+        _StatusTone.danger => redSoft,
+        _StatusTone.neutral => blueSoft,
+      };
 }
 
 enum _DesktopWindowPreviewState { restored, maximized }
@@ -152,8 +204,7 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
   late final Future<ProviderCapabilityStatus> _providerCapabilityStatusFuture =
       widget.providerCapabilityStatus == null
           ? const ProviderCapabilityStatusLoader()
-              .loadFromAsset(
-                  'assets/external/provider_capability_status.json')
+              .loadFromAsset('assets/external/provider_capability_status.json')
               .catchError((_) => sampleProviderCapabilityStatus)
           : Future<ProviderCapabilityStatus>.value(
               widget.providerCapabilityStatus);
@@ -286,73 +337,74 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
                       widget.parserBackends ?? sampleParserBackendMatrix,
                   builder: (context, parserSnapshot) =>
                       FutureBuilder<Map<String, dynamic>>(
-                  future: _campaign6AgentRuntimeStatusFuture,
-                  initialData: widget.campaign6AgentRuntimeStatus ??
-                      sampleCampaign6AgentRuntimeStatus,
-                  builder: (context, campaign6Snapshot) =>
-                      FutureBuilder<Map<String, dynamic>>(
-                    future: _campaign7ConfigurationStatusFuture,
-                    initialData: widget.campaign7ConfigurationStatus ??
-                        sampleCampaign7ConfigurationStatus,
-                    builder: (context, campaign7Snapshot) =>
+                    future: _campaign6AgentRuntimeStatusFuture,
+                    initialData: widget.campaign6AgentRuntimeStatus ??
+                        sampleCampaign6AgentRuntimeStatus,
+                    builder: (context, campaign6Snapshot) =>
                         FutureBuilder<Map<String, dynamic>>(
-                      future: _campaign9DesktopDeliveryStatusFuture,
-                      initialData: widget.campaign9DesktopDeliveryStatus ??
-                          sampleCampaign9DesktopDeliveryStatus,
-                      builder: (context, campaign9Snapshot) =>
+                      future: _campaign7ConfigurationStatusFuture,
+                      initialData: widget.campaign7ConfigurationStatus ??
+                          sampleCampaign7ConfigurationStatus,
+                      builder: (context, campaign7Snapshot) =>
                           FutureBuilder<Map<String, dynamic>>(
-                        future: _skillGovernanceReportFuture,
-                        initialData: widget.skillGovernanceReport ??
-                            sampleSkillGovernanceReport,
-                        builder: (context, skillGovernanceSnapshot) =>
-                            _Rc6RuntimeScope(
-                          controller: _rc6RuntimeController,
-                          child: _WorkbenchScaffold(
-                            contracts: contractsSnapshot.data ??
-                                sampleWorkbenchContracts,
-                            workflowEvidence: evidenceSnapshot.data ??
-                                sampleP1WorkflowEvidence,
-                            workflowV2Evidence:
-                                v2Snapshot.data ?? sampleP1WorkflowV2Evidence,
-                            externalCapabilities: externalSnapshot.data ??
-                                sampleExternalCapabilityRegistry,
-                            providerCapabilityStatus:
-                                providerStatusSnapshot.data ??
-                                    sampleProviderCapabilityStatus,
-                            parserBackends: parserSnapshot.data ??
-                                sampleParserBackendMatrix,
-                            campaign6AgentRuntimeStatus:
-                                campaign6Snapshot.data ??
-                                    sampleCampaign6AgentRuntimeStatus,
-                            campaign7ConfigurationStatus:
-                                campaign7Snapshot.data ??
-                                    sampleCampaign7ConfigurationStatus,
-                            campaign9DesktopDeliveryStatus:
-                                campaign9Snapshot.data ??
-                                    sampleCampaign9DesktopDeliveryStatus,
-                            skillGovernanceReport:
-                                skillGovernanceSnapshot.data ??
-                                    sampleSkillGovernanceReport,
-                            methodologyMap:
-                                widget.methodologyMap ?? sampleMethodologyMap,
-                            skillSuiteWorkflow: widget.skillSuiteWorkflow,
-                            localeCode: localeCode,
-                            themeMode: themeMode,
-                            selectedIndex: selectedIndex,
-                            isDark: isDark,
-                            coreBridge: widget.coreBridge,
-                            coreCli: widget.coreCli,
-                            coreWorkingDirectory: widget.coreWorkingDirectory,
-                            coreWorkspace: widget.coreWorkspace,
-                            enableLocalCoreActions:
-                                widget.enableLocalCoreActions,
-                            isWebRuntime: widget.isWebRuntime,
-                            onThemeChanged: (value) =>
-                                setState(() => themeMode = value),
-                            onLocaleChanged: (value) =>
-                                setState(() => localeCode = value),
-                            onPageChanged: (index) =>
-                                setState(() => selectedIndex = index),
+                        future: _campaign9DesktopDeliveryStatusFuture,
+                        initialData: widget.campaign9DesktopDeliveryStatus ??
+                            sampleCampaign9DesktopDeliveryStatus,
+                        builder: (context, campaign9Snapshot) =>
+                            FutureBuilder<Map<String, dynamic>>(
+                          future: _skillGovernanceReportFuture,
+                          initialData: widget.skillGovernanceReport ??
+                              sampleSkillGovernanceReport,
+                          builder: (context, skillGovernanceSnapshot) =>
+                              _Rc6RuntimeScope(
+                            controller: _rc6RuntimeController,
+                            child: _WorkbenchScaffold(
+                              contracts: contractsSnapshot.data ??
+                                  sampleWorkbenchContracts,
+                              workflowEvidence: evidenceSnapshot.data ??
+                                  sampleP1WorkflowEvidence,
+                              workflowV2Evidence:
+                                  v2Snapshot.data ?? sampleP1WorkflowV2Evidence,
+                              externalCapabilities: externalSnapshot.data ??
+                                  sampleExternalCapabilityRegistry,
+                              providerCapabilityStatus:
+                                  providerStatusSnapshot.data ??
+                                      sampleProviderCapabilityStatus,
+                              parserBackends: parserSnapshot.data ??
+                                  sampleParserBackendMatrix,
+                              campaign6AgentRuntimeStatus:
+                                  campaign6Snapshot.data ??
+                                      sampleCampaign6AgentRuntimeStatus,
+                              campaign7ConfigurationStatus:
+                                  campaign7Snapshot.data ??
+                                      sampleCampaign7ConfigurationStatus,
+                              campaign9DesktopDeliveryStatus:
+                                  campaign9Snapshot.data ??
+                                      sampleCampaign9DesktopDeliveryStatus,
+                              skillGovernanceReport:
+                                  skillGovernanceSnapshot.data ??
+                                      sampleSkillGovernanceReport,
+                              methodologyMap:
+                                  widget.methodologyMap ?? sampleMethodologyMap,
+                              skillSuiteWorkflow: widget.skillSuiteWorkflow,
+                              localeCode: localeCode,
+                              themeMode: themeMode,
+                              selectedIndex: selectedIndex,
+                              isDark: isDark,
+                              coreBridge: widget.coreBridge,
+                              coreCli: widget.coreCli,
+                              coreWorkingDirectory: widget.coreWorkingDirectory,
+                              coreWorkspace: widget.coreWorkspace,
+                              enableLocalCoreActions:
+                                  widget.enableLocalCoreActions,
+                              isWebRuntime: widget.isWebRuntime,
+                              onThemeChanged: (value) =>
+                                  setState(() => themeMode = value),
+                              onLocaleChanged: (value) =>
+                                  setState(() => localeCode = value),
+                              onPageChanged: (index) =>
+                                  setState(() => selectedIndex = index),
+                            ),
                           ),
                         ),
                       ),
@@ -364,55 +416,131 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
           ),
         ),
       ),
-      ),
     );
   }
 
   ThemeData _theme(Brightness brightness) {
     final isDarkTheme = brightness == Brightness.dark;
     final colors = ColorScheme.fromSeed(
-      seedColor:
-          isDarkTheme ? const Color(0xfff7f7f5) : const Color(0xff111111),
+      seedColor: isDarkTheme ? _HTKWTokens.goldSoft : _HTKWTokens.gold,
       brightness: brightness,
     );
+    final lightScheme = colors.copyWith(
+      primary: _HTKWTokens.textPrimary,
+      onPrimary: _HTKWTokens.surface,
+      secondary: _HTKWTokens.gold,
+      onSecondary: _HTKWTokens.textPrimary,
+      surface: _HTKWTokens.surface,
+      surfaceContainerLowest: _HTKWTokens.surface,
+      surfaceContainerLow: _HTKWTokens.softSurface,
+      surfaceContainer: _HTKWTokens.mainPanel,
+      surfaceContainerHigh: _HTKWTokens.mainPanel,
+      surfaceContainerHighest: _HTKWTokens.background,
+      onSurface: _HTKWTokens.textPrimary,
+      onSurfaceVariant: _HTKWTokens.textSecondary,
+      outline: _HTKWTokens.border,
+      outlineVariant: _HTKWTokens.border,
+      error: _HTKWTokens.red,
+    );
+    final darkScheme = colors.copyWith(
+      primary: _HTKWTokens.goldSoft,
+      onPrimary: _HTKWTokens.sidebar,
+      secondary: _HTKWTokens.gold,
+      surface: const Color(0xff191817),
+      surfaceContainerLowest: const Color(0xff201f1d),
+      surfaceContainerLow: const Color(0xff24211e),
+      surfaceContainer: const Color(0xff211f1d),
+      surfaceContainerHigh: const Color(0xff2a2723),
+      surfaceContainerHighest: const Color(0xff151311),
+      onSurface: const Color(0xfff4ede4),
+      onSurfaceVariant: const Color(0xffc8bbac),
+      outline: const Color(0xff4c443b),
+      outlineVariant: const Color(0xff4c443b),
+      error: const Color(0xffffb4aa),
+    );
+    final scheme = isDarkTheme ? darkScheme : lightScheme;
 
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
-      colorScheme: colors.copyWith(
-        primary:
-            isDarkTheme ? const Color(0xfff7f7f5) : const Color(0xff111111),
-        surface:
-            isDarkTheme ? const Color(0xff181818) : const Color(0xffffffff),
-      ),
+      colorScheme: scheme,
       scaffoldBackgroundColor:
-          isDarkTheme ? const Color(0xff0f0f0f) : const Color(0xfff4f4f2),
+          isDarkTheme ? const Color(0xff0f0e0d) : _HTKWTokens.background,
+      dividerTheme: DividerThemeData(
+        color: scheme.outlineVariant,
+        thickness: 1,
+        space: 1,
+      ),
       cardTheme: const CardThemeData(
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(8))),
+          borderRadius: BorderRadius.all(
+            Radius.circular(_DesktopGrid.panelRadius),
+          ),
+        ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
+          backgroundColor: scheme.primary,
+          foregroundColor: scheme.onPrimary,
           textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-          minimumSize: const Size(0, 40),
-          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          minimumSize: const Size(0, 42),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius)),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
+          foregroundColor: scheme.onSurface,
+          side: BorderSide(color: scheme.outlineVariant),
           textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-          minimumSize: const Size(0, 40),
-          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          minimumSize: const Size(0, 42),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius)),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
+          foregroundColor: scheme.primary,
           textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius)),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: scheme.surfaceContainerLow,
+        selectedColor: _HTKWTokens.goldSoft,
+        disabledColor: scheme.surfaceContainerLow.withValues(alpha: 0.62),
+        labelStyle: TextStyle(
+          color: scheme.onSurfaceVariant,
+          fontWeight: FontWeight.w800,
+        ),
+        secondaryLabelStyle: const TextStyle(
+          color: _HTKWTokens.textPrimary,
+          fontWeight: FontWeight.w900,
+        ),
+        side: BorderSide(color: scheme.outlineVariant),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_DesktopGrid.chipRadius),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: scheme.surface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius),
+          borderSide: BorderSide(color: scheme.outlineVariant),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius),
+          borderSide: BorderSide(color: scheme.outlineVariant),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius),
+          borderSide: BorderSide(color: scheme.primary, width: 1.4),
         ),
       ),
     );
@@ -479,11 +607,11 @@ class _DesktopWorkbench extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      final sidebarWidth = constraints.maxWidth < 1366
-          ? _DesktopGrid.compactSidebarWidth
-          : constraints.maxWidth < 1440
-              ? 184.0
-              : 248.0;
+      final sidebarWidth = constraints.maxWidth >= 1400
+          ? 248.0
+          : constraints.maxWidth < 600
+              ? 72.0
+              : 184.0;
 
       return Row(
         children: [
@@ -496,11 +624,37 @@ class _DesktopWorkbench extends StatelessWidget {
               onPageChanged: onPageChanged,
             ),
           ),
-          const VerticalDivider(width: 1),
           Expanded(
-            child: Column(
+            child: Stack(
               children: [
-                Expanded(
+                Positioned.fill(
+                  child: ColoredBox(
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                  ),
+                ),
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  right: 0,
+                  height: 78,
+                  child: _ProductTopBar(
+                    localeCode: localeCode,
+                    page: pages[selectedIndex],
+                    contracts: contracts,
+                    isDark: isDark,
+                    windowState: windowState,
+                    onWindowStateChanged: onWindowStateChanged,
+                    onThemeChanged: onThemeChanged,
+                    onLocaleChanged: onLocaleChanged,
+                    onPageChanged: onPageChanged,
+                  ),
+                ),
+                Positioned(
+                  left: 10,
+                  top: 88,
+                  right: 10,
+                  bottom: 10,
                   child: _PageSurface(
                     key: ValueKey('page-surface-$selectedIndex'),
                     page: pages[selectedIndex],
@@ -533,10 +687,16 @@ class _DesktopWorkbench extends StatelessWidget {
                     onPageChanged: onPageChanged,
                   ),
                 ),
-                _DesktopStatusBar(
-                  localeCode: localeCode,
-                  workspace: coreWorkspace,
-                  isWebRuntime: isWebRuntime,
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: 28,
+                  child: _DesktopStatusBar(
+                    localeCode: localeCode,
+                    workspace: coreWorkspace,
+                    isWebRuntime: isWebRuntime,
+                  ),
                 ),
               ],
             ),
@@ -652,78 +812,49 @@ class _PageSurfaceState extends State<_PageSurface> {
     final campaign6AgentRuntimeStatus = widget.campaign6AgentRuntimeStatus;
     final coreWorkspace = widget.coreWorkspace;
     final isWebRuntime = widget.isWebRuntime;
-    final isDark = widget.isDark;
-    final windowState = widget.windowState;
-    final onWindowStateChanged = widget.onWindowStateChanged;
-    final onThemeChanged = widget.onThemeChanged;
-    final onLocaleChanged = widget.onLocaleChanged;
     final onPageChanged = widget.onPageChanged;
     final isDashboard = page.id == 'dashboard';
     return LayoutBuilder(builder: (context, constraints) {
-      const horizontalPadding = 16.0;
-      final availableWidth = constraints.maxWidth - horizontalPadding * 2;
-      final contentWidth = availableWidth > _DesktopGrid.maxPageWidth
-          ? _DesktopGrid.maxPageWidth
-          : availableWidth < 0
-              ? 0.0
-              : availableWidth;
-      return Scrollbar(
-        controller: _scrollController,
-        child: SingleChildScrollView(
-          controller: _scrollController,
+      final content = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (isDashboard) ...[
+            _DesktopDashboardSurface(
+              localeCode: localeCode,
+              contracts: contracts,
+              workflowV2Evidence: workflowV2Evidence,
+              parserBackends: parserBackends,
+              externalCapabilities: externalCapabilities,
+              workspace: coreWorkspace,
+              isWebRuntime: isWebRuntime,
+              onPageChanged: onPageChanged,
+            ),
+          ],
+          if (!isDashboard) ...[
+            _ProductPageOverview(
+              localeCode: localeCode,
+              page: page,
+              workspace: coreWorkspace,
+              providerCapabilityStatus: providerCapabilityStatus,
+              campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
+              isWebRuntime: isWebRuntime,
+              onPageChanged: onPageChanged,
+            ),
+          ],
+        ],
+      );
+      return SizedBox.expand(
+        child: _ProductWorkspaceFrame(
           key: ValueKey('page-scroll-${page.id}'),
-          primary: false,
-          padding: const EdgeInsets.all(horizontalPadding),
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minWidth: 0,
-                maxWidth: contentWidth,
-                minHeight: constraints.maxHeight - horizontalPadding * 2,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _ProductTopBar(
-                    localeCode: localeCode,
-                    page: page,
-                    contracts: contracts,
-                    showTitleBlock: isDashboard,
-                    isDark: isDark,
-                    windowState: windowState,
-                    onWindowStateChanged: onWindowStateChanged,
-                    onThemeChanged: onThemeChanged,
-                    onLocaleChanged: onLocaleChanged,
-                    onPageChanged: onPageChanged,
-                  ),
-                  const SizedBox(height: _DesktopGrid.sectionGap),
-                  if (isDashboard) ...[
-                    _DesktopDashboardSurface(
-                      localeCode: localeCode,
-                      contracts: contracts,
-                      workflowV2Evidence: workflowV2Evidence,
-                      parserBackends: parserBackends,
-                      externalCapabilities: externalCapabilities,
-                      workspace: coreWorkspace,
-                      isWebRuntime: isWebRuntime,
-                      onPageChanged: onPageChanged,
-                    ),
-                    const SizedBox(height: _DesktopGrid.sectionGap),
-                  ],
-                  if (!isDashboard) ...[
-                    _ProductPageOverview(
-                      localeCode: localeCode,
-                      page: page,
-                      workspace: coreWorkspace,
-                      providerCapabilityStatus: providerCapabilityStatus,
-                      campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
-                      isWebRuntime: isWebRuntime,
-                      onPageChanged: onPageChanged,
-                    ),
-                    const SizedBox(height: _DesktopGrid.sectionGap),
-                  ],
-                ],
+          child: Scrollbar(
+            controller: _scrollController,
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              primary: false,
+              child: ConstrainedBox(
+                constraints:
+                    BoxConstraints(minHeight: constraints.maxHeight - 44),
+                child: content,
               ),
             ),
           ),
@@ -731,7 +862,6 @@ class _PageSurfaceState extends State<_PageSurface> {
       );
     });
   }
-
 }
 
 class _ProductPageOverview extends StatefulWidget {
@@ -784,7 +914,7 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
     final maxTab = (tabCounts[page] ?? 1) - 1;
     if (selectedTab > maxTab) selectedTab = 0;
     final rc6 = _Rc6RuntimeScope.of(context);
-    return _ProductWorkspaceFrame(
+    return KeyedSubtree(
       key: Key('dense-page-workbench-${widget.page.id}'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -868,8 +998,17 @@ class _ProductWorkspaceFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(color: colors.surface),
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      padding: const EdgeInsets.fromLTRB(22, 20, 22, 20),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(_DesktopGrid.pageRadius),
+        border:
+            Border.all(color: colors.outlineVariant.withValues(alpha: 0.72)),
+        boxShadow: _HTKWTokens.cardShadow,
+      ),
       child: child,
     );
   }
@@ -1051,10 +1190,10 @@ class _OutputFormatCard extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: colors.primary.withValues(alpha: 0.07),
-                      borderRadius: BorderRadius.circular(9),
+                      color: _HTKWTokens.plumSoft,
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Icon(item.icon, size: 24, color: colors.primary),
+                    child: Icon(item.icon, size: 24, color: _HTKWTokens.plum),
                   ),
                   const SizedBox(height: 10),
                   Text(item.label,
@@ -1085,7 +1224,7 @@ class _OutputFormatCard extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                             fontSize: 12.5,
-                            color: colors.onSurfaceVariant,
+                            color: _HTKWTokens.textTertiary,
                             fontWeight: FontWeight.w700,
                             height: 1.14,
                           )),
@@ -1115,20 +1254,16 @@ class _RuntimeFeedbackBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final color = switch (tone) {
-      _StatusTone.success => Colors.green.shade700,
-      _StatusTone.warning => colors.onSurfaceVariant,
-      _StatusTone.danger => colors.error,
-      _StatusTone.neutral => colors.primary,
-    };
+    final color = _HTKWTokens.toneColor(tone);
+    final background = _HTKWTokens.toneSurface(tone);
     return Container(
       key: const Key('runtime-feedback-banner'),
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.34)),
+        color: background,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.28)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1172,9 +1307,16 @@ class _MiniMetricCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: colors.surfaceContainerLowest,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(_DesktopGrid.panelRadius),
         border: Border.all(color: colors.outlineVariant),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.028),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -1182,10 +1324,10 @@ class _MiniMetricCard extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: colors.primary.withValues(alpha: 0.07),
-              borderRadius: BorderRadius.circular(8),
+              color: _HTKWTokens.goldSoft,
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(item.icon, size: 21, color: colors.primary),
+            child: Icon(item.icon, size: 21, color: _HTKWTokens.gold),
           ),
           const SizedBox(width: _DesktopGrid.gutter),
           Expanded(
@@ -1219,7 +1361,7 @@ class _MiniMetricCard extends StatelessWidget {
                     softWrap: false,
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
                           fontSize: 12.5,
-                          color: colors.onSurfaceVariant,
+                          color: _HTKWTokens.textTertiary,
                           fontWeight: FontWeight.w700,
                           height: 1.14,
                         )),
@@ -1245,18 +1387,12 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final color = switch (tone) {
-      _StatusTone.success => Colors.green.shade700,
-      _StatusTone.warning => colors.onSurfaceVariant,
-      _StatusTone.danger => colors.error,
-      _StatusTone.neutral => colors.onSurfaceVariant,
-    };
+    final color = _HTKWTokens.toneColor(tone);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(6),
+        color: _HTKWTokens.toneSurface(tone),
+        borderRadius: BorderRadius.circular(_DesktopGrid.chipRadius),
         border: Border.all(color: color.withValues(alpha: 0.24)),
       ),
       child: Row(

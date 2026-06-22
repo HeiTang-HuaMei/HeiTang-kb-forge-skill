@@ -120,9 +120,7 @@ class _DesktopWindowPreviewShellState
       final viewportHeight = constraints.maxHeight.isFinite
           ? constraints.maxHeight
           : _DesktopGrid.initialWindowHeight;
-      final width = viewportWidth < _DesktopGrid.minWindowWidth
-          ? _DesktopGrid.minWindowWidth
-          : viewportWidth;
+      final width = viewportWidth;
       final height = viewportHeight < 560 ? 560.0 : viewportHeight;
       final frame = widget.childBuilder(
         windowState,
@@ -130,35 +128,33 @@ class _DesktopWindowPreviewShellState
       );
       return Container(
         color: colors.surfaceContainerHighest,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SizedBox(
+        child: SizedBox(
+          width: width,
+          height: height,
+          child: AnimatedContainer(
+            key: const Key('desktop-window-preview-frame'),
+            duration: const Duration(milliseconds: 160),
+            curve: Curves.easeOutCubic,
             width: width,
             height: height,
-            child: AnimatedContainer(
-              key: const Key('desktop-window-preview-frame'),
-              duration: const Duration(milliseconds: 160),
-              curve: Curves.easeOutCubic,
-              width: width,
-              height: height,
-              constraints: const BoxConstraints(
-                minWidth: _DesktopGrid.minWindowWidth,
-                minHeight: 560,
-              ),
-              decoration: BoxDecoration(
-                color: colors.surface,
-                border: Border.all(color: colors.outlineVariant),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: maximized ? 0 : 0.08),
-                    blurRadius: maximized ? 0 : 16,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              clipBehavior: Clip.hardEdge,
-              child: frame,
+            constraints: const BoxConstraints(
+              minHeight: 560,
             ),
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerHighest,
+              border: Border.all(
+                color: colors.outlineVariant.withValues(alpha: 0.62),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: maximized ? 0 : 0.1),
+                  blurRadius: maximized ? 0 : 28,
+                  offset: const Offset(0, 16),
+                ),
+              ],
+            ),
+            clipBehavior: Clip.hardEdge,
+            child: frame,
           ),
         ),
       );

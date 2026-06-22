@@ -3,7 +3,7 @@ part of '../main.dart';
 const pages = <WorkbenchPage>[
   WorkbenchPage(
       'dashboard',
-      'Dashboard',
+      'Home',
       '首页',
       'Current workspace, recent work, recent outputs, and the next real action.',
       '查看当前工作区、最近任务、最近成果和下一步真实动作。',
@@ -58,7 +58,7 @@ const pages = <WorkbenchPage>[
       memberPageIds: ['skill-factory']),
   WorkbenchPage(
       'agent-factory-runtime',
-      'Assistant Workbench',
+      'My Assistants',
       '我的助手',
       'Create assistants, start conversations, and let multiple assistants discuss together.',
       '创建助手、开始对话，并让多个助手一起讨论。',
