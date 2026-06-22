@@ -124,13 +124,13 @@ class _DashboardMetricGrid extends StatelessWidget {
         label: _zh ? '知识库' : 'Knowledge Base',
         value: runtime.hasKnowledgeBase ? '1' : '0',
         detail: runtime.hasKnowledgeBase
-            ? '${runtime.chunkCount} chunks'
+            ? (_zh ? '已生成' : 'generated')
             : (_zh ? '等待构建' : 'waiting build'),
         pageId: 'knowledge-package-management',
       ),
       _DashboardMetricData(
         icon: Icons.manage_search_outlined,
-        label: _zh ? '检索结果' : 'Search Results',
+        label: _zh ? '测试结果' : 'Test Results',
         value: runtime.searchResults.length.toString(),
         detail: runtime.searchStatus == Rc6SearchStatus.success
             ? (_zh ? '来自所选知识库' : 'from selected KB')
@@ -197,10 +197,10 @@ String _dashboardNextPageId(Rc6RuntimeState runtime) {
 
 String _dashboardCurrentStage(Rc6RuntimeState runtime, bool zh) {
   if (!runtime.hasImportedFile) return zh ? '文档库' : 'Library';
-  if (runtime.parseReportPath.isEmpty) return zh ? '解析中' : 'Parsing';
+  if (runtime.parseReportPath.isEmpty) return zh ? '整理资料' : 'Organizing';
   if (!runtime.hasKnowledgeBase) return zh ? '知识库' : 'Knowledge';
   if (runtime.searchStatus != Rc6SearchStatus.success) {
-    return zh ? '检索' : 'Retrieval';
+    return zh ? '测试' : 'Test';
   }
   if (!runtime.hasMarkdown) return zh ? '文档' : 'Docs';
   if (!runtime.hasExportedDocument) return zh ? '待导出' : 'Export';
@@ -210,9 +210,9 @@ String _dashboardCurrentStage(Rc6RuntimeState runtime, bool zh) {
 String _dashboardCurrentStageDetail(Rc6RuntimeState runtime, bool zh) {
   if (!runtime.hasImportedFile) return zh ? '等待来源文档' : 'waiting source docs';
   if (runtime.parseReportPath.isEmpty) {
-    return zh ? '等待解析记录' : 'waiting parse record';
+    return zh ? '等待资料整理' : 'waiting organization';
   }
-  if (!runtime.hasKnowledgeBase) return zh ? '等待索引记录' : 'waiting index record';
+  if (!runtime.hasKnowledgeBase) return zh ? '等待知识库' : 'waiting knowledge base';
   if (runtime.searchStatus != Rc6SearchStatus.success) {
     return zh ? '等待证据记录' : 'waiting evidence record';
   }
@@ -382,26 +382,26 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
       if (runtime.parseReportPath.isNotEmpty)
         _DashboardTaskRow(
           'parse',
-          _zh ? '解析 / OCR / Chunking' : 'Parse / OCR / Chunking',
+          _zh ? '整理资料' : 'Organize materials',
           _zh ? '文档库' : 'Document Library',
-          _zh ? '解析报告已生成' : 'parse report ready',
+          _zh ? '整理结果已生成' : 'organized result ready',
           Icons.document_scanner_outlined,
           'document-library',
         ),
       if (runtime.hasKnowledgeBase)
         _DashboardTaskRow(
           'kb',
-          _zh ? '构建知识库' : 'Build knowledge base',
+          _zh ? '生成知识库' : 'Generate knowledge base',
           _zh ? '知识库' : 'Knowledge',
-          '${runtime.chunkCount} chunks',
+          _zh ? '可测试' : 'ready to test',
           Icons.storage_outlined,
           'knowledge-package-management',
         ),
       if (runtime.searchStatus == Rc6SearchStatus.success)
         _DashboardTaskRow(
           'search',
-          _zh ? '检索验证' : 'Search and verify',
-          _zh ? '检索' : 'Retrieval',
+          _zh ? '测试知识库' : 'Test knowledge base',
+          _zh ? '测试知识库' : 'Knowledge Test',
           _zh
               ? '${runtime.searchResults.length} 条结果'
               : '${runtime.searchResults.length} results',
@@ -411,7 +411,7 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
       if (runtime.hasMarkdown)
         _DashboardTaskRow(
           'doc',
-          _zh ? '生成 Markdown 文档' : 'Generate Markdown document',
+          _zh ? '生成文档' : 'Generate document',
           _zh ? '文档生成' : 'Generation',
           runtime.hasExportedDocument
               ? (_zh ? '已导出' : 'exported')
@@ -422,8 +422,8 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
       if (runtime.hasSkill)
         _DashboardTaskRow(
           'skill',
-          _zh ? '生成 Skill' : 'Generate Skill',
-          _zh ? 'Skill 工厂' : 'Skill Factory',
+          _zh ? '生成技能' : 'Generate skill',
+          _zh ? '技能生成' : 'Skill Builder',
           _displayNameForPath(runtime.skillPath),
           Icons.extension_outlined,
           'skill-factory',
@@ -431,8 +431,8 @@ class _DashboardRecentTasksState extends State<_DashboardRecentTasks> {
       if (runtime.hasAgent)
         _DashboardTaskRow(
           'agent',
-          _zh ? '创建 Agent' : 'Create Agent',
-          _zh ? 'Agent 工作台' : 'Agent Workbench',
+          _zh ? '创建助手' : 'Create assistant',
+          _zh ? '我的助手' : 'My Assistants',
           runtime.hasAgentDialogueExport
               ? (_zh ? '已导出对话' : 'dialogue exported')
               : runtime.hasAgentDialogue
@@ -517,82 +517,80 @@ class _DashboardNextActions extends StatelessWidget {
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
-    final actions = <_DashboardActionRow>[
-      _DashboardActionRow(
-        _zh ? '文档库导入资料' : 'Import sources to document library',
-        _dashboardImportActionLabel(runtime, _zh),
-        Icons.file_upload_outlined,
-        'document-library',
-        runtime.hasImportedFile && runtime.parseReportPath.isNotEmpty,
-      ),
-      _DashboardActionRow(
-        _zh ? '构建知识库' : 'Build knowledge base',
-        runtime.hasKnowledgeBase
-            ? (_zh
-                ? '${runtime.chunkCount} chunks 已生成'
-                : '${runtime.chunkCount} chunks ready')
-            : (_zh ? '从文档库选择来源后构建' : 'Select sources from library and build'),
-        Icons.storage_outlined,
-        'knowledge-package-management',
-        runtime.hasKnowledgeBase,
-      ),
-      _DashboardActionRow(
-        _zh ? '检索验证' : 'Search and verify',
-        runtime.searchStatus == Rc6SearchStatus.success
-            ? (_zh
-                ? '${runtime.searchResults.length} 条真实结果'
-                : '${runtime.searchResults.length} real results')
-            : (_zh ? '选择知识库并查询证据' : 'Choose KB and query evidence'),
-        Icons.manage_search_outlined,
-        'retrieval-verification',
-        runtime.searchStatus == Rc6SearchStatus.success,
-      ),
-      _DashboardActionRow(
-        _zh ? '生成并导出文档' : 'Generate and export documents',
-        runtime.hasExportedDocument
-            ? (_zh ? '导出文件可追踪' : 'Exported file is traceable')
-            : (_zh ? '选择类型、格式和引用策略' : 'Choose type, format, and citations'),
-        Icons.edit_document,
-        'document-generation',
-        runtime.hasExportedDocument,
-      ),
-      _DashboardActionRow(
-        _zh ? '生成 Skill' : 'Generate Skill',
-        runtime.hasSkill
-            ? (_zh ? 'Skill 产物可复用' : 'Skill artifact is reusable')
-            : (_zh ? '基于知识库生成并验证' : 'Generate and validate from KB'),
-        Icons.extension_outlined,
-        'skill-factory',
-        runtime.hasSkill,
-      ),
-      _DashboardActionRow(
-        _zh ? '创建 Agent 并协作' : 'Create Agent and collaborate',
-        runtime.hasMultiAgentDiscussion
-            ? (_zh ? '多 Agent 讨论已保存' : 'Multi-agent discussion saved')
-            : runtime.hasAgentDialogue
-                ? (_zh ? '单 Agent 对话已保存' : 'Single-Agent dialogue saved')
-                : (_zh
-                    ? '在 Agent 工作台完成单 Agent 与多 Agent'
-                    : 'Use Agent Workbench for single and multi-agent work'),
-        Icons.groups_2_outlined,
-        'agent-factory-runtime',
-        runtime.hasAgentDialogue || runtime.hasMultiAgentDiscussion,
-      ),
-    ];
+    final action = _dashboardNextAction(runtime, _zh);
     return _FillProductPanel(
       keyName: 'dashboard-next-actions',
       icon: Icons.route_outlined,
-      title: _zh ? '工作入口' : 'Work Entrypoints',
-      child: _LocalScrollBox(
+      title: _zh ? '下一步' : 'Next Step',
+      child: Padding(
+        padding: const EdgeInsets.only(top: 2),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            for (final action in actions) ...[
-              _DashboardActionTile(
-                action: action,
-                onTap: () => onPageChanged(_pageIndexById(action.pageId)),
+            _PrimaryProductAction(
+              label: action.title,
+              icon: action.icon,
+              onPressed: () => onPageChanged(_pageIndexById(action.pageId)),
+            ),
+            const SizedBox(height: 8),
+            _RuntimeFeedbackBanner(
+              title: _zh ? '当前状态' : 'Current status',
+              detail: action.detail,
+              tone: action.done ? _StatusTone.success : _StatusTone.neutral,
+              icon:
+                  action.done ? Icons.check_circle_outline : Icons.info_outline,
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: _LocalScrollBox(
+                child: _ProductTable(
+                  columns: _zh ? ['环节', '状态'] : ['Step', 'Status'],
+                  rows: _zh
+                      ? [
+                          ['资料', runtime.hasImportedFile ? '已添加' : '需要先添加资料'],
+                          [
+                            '整理',
+                            runtime.parseReportPath.isNotEmpty ? '已整理' : '待整理'
+                          ],
+                          ['知识库', runtime.hasKnowledgeBase ? '已生成' : '未生成'],
+                          [
+                            '文档',
+                            runtime.hasMarkdown
+                                ? (runtime.hasExportedDocument ? '可导出' : '已生成')
+                                : '未生成'
+                          ],
+                        ]
+                      : [
+                          [
+                            'Materials',
+                            runtime.hasImportedFile
+                                ? 'Added'
+                                : 'Add materials first'
+                          ],
+                          [
+                            'Organizing',
+                            runtime.parseReportPath.isNotEmpty
+                                ? 'Organized'
+                                : 'Waiting'
+                          ],
+                          [
+                            'Knowledge Base',
+                            runtime.hasKnowledgeBase
+                                ? 'Generated'
+                                : 'Not generated'
+                          ],
+                          [
+                            'Document',
+                            runtime.hasMarkdown
+                                ? (runtime.hasExportedDocument
+                                    ? 'Exportable'
+                                    : 'Generated')
+                                : 'Not generated'
+                          ],
+                        ],
+                ),
               ),
-              if (action != actions.last) const SizedBox(height: 8),
-            ],
+            ),
           ],
         ),
       ),
@@ -600,14 +598,80 @@ class _DashboardNextActions extends StatelessWidget {
   }
 }
 
-String _dashboardImportActionLabel(Rc6RuntimeState runtime, bool zh) {
+_DashboardActionRow _dashboardNextAction(Rc6RuntimeState runtime, bool zh) {
   if (!runtime.hasImportedFile) {
-    return zh ? '选择来源并导入队列' : 'Choose source and import queue';
+    return _DashboardActionRow(
+      zh ? '添加资料' : 'Add materials',
+      zh ? '当前工作区还没有资料。' : 'The current workspace has no materials yet.',
+      Icons.file_upload_outlined,
+      'document-library',
+      false,
+    );
   }
   if (runtime.parseReportPath.isEmpty) {
-    return zh ? '继续解析 / OCR / 分块' : 'Continue parse / OCR / chunk';
+    return _DashboardActionRow(
+      zh ? '整理资料' : 'Organize materials',
+      zh
+          ? '已有资料，下一步需要整理后才能生成知识库。'
+          : 'Materials exist; organize them before building a knowledge base.',
+      Icons.document_scanner_outlined,
+      'document-library',
+      false,
+    );
   }
-  return zh ? '解析报告已生成' : 'Parse report ready';
+  if (!runtime.hasKnowledgeBase) {
+    return _DashboardActionRow(
+      zh ? '生成知识库' : 'Generate knowledge base',
+      zh
+          ? '资料已整理，可以从文档库生成知识库。'
+          : 'Materials are organized and ready for a knowledge base.',
+      Icons.account_tree_outlined,
+      'knowledge-package-management',
+      false,
+    );
+  }
+  if (runtime.searchStatus != Rc6SearchStatus.success) {
+    return _DashboardActionRow(
+      zh ? '测试知识库' : 'Test knowledge base',
+      zh
+          ? '知识库已生成，建议先用问题验证证据和引用。'
+          : 'Knowledge base exists; test evidence and citations next.',
+      Icons.manage_search_outlined,
+      'retrieval-verification',
+      false,
+    );
+  }
+  if (!runtime.hasMarkdown) {
+    return _DashboardActionRow(
+      zh ? '生成文档' : 'Generate document',
+      zh
+          ? '知识库已通过测试，可以生成文档草稿。'
+          : 'The knowledge base has test results; generate a document draft.',
+      Icons.edit_document,
+      'document-generation',
+      false,
+    );
+  }
+  if (runtime.hasExportedDocument || runtime.hasSkill || runtime.hasAgent) {
+    return _DashboardActionRow(
+      zh ? '查看成果' : 'View outputs',
+      zh
+          ? '已有可查看成果，可以进入成果中心导出或追溯。'
+          : 'Outputs are available for preview, export, or trace.',
+      Icons.folder_copy_outlined,
+      'artifact-center',
+      true,
+    );
+  }
+  return _DashboardActionRow(
+    zh ? '生成技能' : 'Generate skill',
+    zh
+        ? '已有文档草稿，可以继续生成技能或创建助手。'
+        : 'A document draft exists; continue with skills or assistants.',
+    Icons.extension_outlined,
+    'skill-factory',
+    false,
+  );
 }
 
 class _DashboardActionRow {
@@ -619,68 +683,6 @@ class _DashboardActionRow {
   final IconData icon;
   final String pageId;
   final bool done;
-}
-
-class _DashboardActionTile extends StatelessWidget {
-  const _DashboardActionTile({required this.action, required this.onTap});
-
-  final _DashboardActionRow action;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final tone = action.done ? _StatusTone.success : _StatusTone.neutral;
-    return Material(
-      color: colors.surface,
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: colors.outlineVariant),
-          ),
-          child: Row(
-            children: [
-              Icon(action.icon, size: 18, color: colors.primary),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(action.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              fontWeight: FontWeight.w900,
-                            )),
-                    const SizedBox(height: 2),
-                    Text(action.detail,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colors.onSurfaceVariant,
-                              fontWeight: FontWeight.w700,
-                            )),
-                  ],
-                ),
-              ),
-              _StatusBadge(
-                label: action.done ? 'OK' : 'Open',
-                tone: tone,
-                icon: action.done
-                    ? Icons.check_circle_outline
-                    : Icons.open_in_new_outlined,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _DashboardTaskRow {
@@ -782,15 +784,15 @@ class _DashboardReportSummary extends StatelessWidget {
         _ProductTable(
           columns: _zh
               ? ['环节', '状态', '用户可见结果', '入口']
-              : ['Stage', 'Status', 'User result', 'Entry'],
+              : ['Step', 'Status', 'User result', 'Entry'],
           rows: _zh
               ? [
-                  ['文档库导入与解析', '可操作', '来源文档 / 解析结果', '进入文档库'],
-                  ['知识库构建', '可操作', '知识库 / 索引 / 质量记录', '检索验证'],
-                  ['检索与验证', '可操作', '证据片段 / 引用 / 验证报告', '生成文档'],
-                  ['文档生成', '可操作', 'Markdown 草稿与导出文件', '生成 Skill'],
-                  ['Skill 工厂', '可操作', 'SKILL.md / 验证报告 / 绑定清单', '进入 Agent 工作台'],
-                  ['Agent 工作台', '可操作', '单 Agent 对话 / 多 Agent 协作记录', '进入产物中心'],
+                  ['添加与整理资料', '可操作', '来源文档 / 整理结果', '进入文档库'],
+                  ['生成知识库', '可操作', '知识库 / 质量记录', '测试知识库'],
+                  ['测试知识库', '可操作', '证据片段 / 引用 / 测试记录', '生成文档'],
+                  ['文档生成', '可操作', '文档草稿与导出文件', '生成技能'],
+                  ['技能生成', '可操作', '技能草稿 / 检查记录 / 绑定清单', '进入我的助手'],
+                  ['我的助手', '可操作', '助手对话 / 多助手讨论记录', '进入成果中心'],
                 ]
               : [
                   [
@@ -818,16 +820,16 @@ class _DashboardReportSummary extends StatelessWidget {
                     'Generate Skill'
                   ],
                   [
-                    'Skill Factory',
+                    'Skill Builder',
                     'Actionable',
                     'SKILL.md / validation report / binding manifest',
-                    'Open Agent Workbench'
+                    'Open My Assistants'
                   ],
                   [
-                    'Agent Workbench',
+                    'My Assistants',
                     'Actionable',
-                    'Single-Agent dialogue / multi-agent records',
-                    'Open artifacts'
+                    'Assistant dialogue / discussion records',
+                    'Open outputs'
                   ],
                 ],
         ),
@@ -861,23 +863,23 @@ class _DashboardAuthorizationCard extends StatelessWidget {
               : ['Capability', 'Handling', 'User action'],
           rows: _zh
               ? [
-                  ['外部事实验证', '需要配置', '在设置中配置联网 Provider'],
-                  ['Redis 记忆缓存', '可选配置', '保存配置并测试连接'],
-                  ['Qdrant 向量库', '可选配置', '保存配置并测试连接'],
+                  ['外部来源核对', '需要设置', '在设置中开启网络权限'],
+                  ['专业记忆服务', '可选设置', '保存配置并测试连接'],
+                  ['专业检索服务', '可选设置', '保存配置并测试连接'],
                 ]
               : [
                   [
                     'External fact checking',
                     'Needs configuration',
-                    'Configure network Provider in Settings'
+                    'Configure network authorization in Settings'
                   ],
                   [
-                    'Redis memory cache',
+                    'Professional memory service',
                     'Optional configuration',
                     'Save config and test connection'
                   ],
                   [
-                    'Qdrant vector DB',
+                    'Professional retrieval service',
                     'Optional configuration',
                     'Save config and test connection'
                   ],
@@ -885,9 +887,7 @@ class _DashboardAuthorizationCard extends StatelessWidget {
         ),
         const SizedBox(height: _DesktopGrid.gutter),
         _PrimaryProductAction(
-          label: _zh
-              ? '打开设置配置 Provider / Redis / Qdrant'
-              : 'Open Settings for Provider / Redis / Qdrant',
+          label: _zh ? '打开设置' : 'Open Settings',
           icon: Icons.settings_outlined,
           onPressed: () => onPageChanged(_pageIndexById('workspace')),
         ),
@@ -933,8 +933,8 @@ class _DashboardArtifactOverview extends StatelessWidget {
                     '解析结果',
                     runtime.parseReportPath.isEmpty ? '未生成' : '已生成',
                     runtime.chunkCount == 0
-                        ? '等待解析'
-                        : '${runtime.chunkCount} chunks'
+                        ? '等待整理'
+                        : '${runtime.chunkCount} 个片段'
                   ],
                   [
                     '知识库',
@@ -947,22 +947,22 @@ class _DashboardArtifactOverview extends StatelessWidget {
                     _displayNameForPath(runtime.exportedDocumentPath)
                   ],
                   [
-                    'Skill',
+                    '技能',
                     runtime.hasSkill ? '已生成' : '未生成',
                     _displayNameForPath(runtime.primarySkillPath)
                   ],
                   [
-                    'Agent',
+                    '助手',
                     runtime.hasAgent ? '已生成' : '未生成',
                     runtime.hasAgent ? '可对话' : '等待创建'
                   ],
                   [
-                    'Agent 对话',
+                    '助手对话',
                     runtime.hasAgentDialogue ? '已保存' : '未生成',
                     runtime.hasAgentDialogue ? '可查看' : '等待运行'
                   ],
                   [
-                    '多 Agent 讨论',
+                    '多个助手讨论',
                     runtime.hasMultiAgentDiscussion ? '已生成' : '未生成',
                     runtime.hasMultiAgentDiscussion ? '可查看' : '等待运行'
                   ],
@@ -989,7 +989,7 @@ class _DashboardArtifactOverview extends StatelessWidget {
                         : 'Generated',
                     runtime.chunkCount == 0
                         ? 'Waiting parse'
-                        : '${runtime.chunkCount} chunks'
+                        : '${runtime.chunkCount} segments'
                   ],
                   [
                     'Knowledge Base',
@@ -1048,7 +1048,7 @@ class _DashboardArtifactOverview extends StatelessWidget {
                 onPageChanged(_pageIndexById('document-generation')),
           ),
           _DisplayAction(
-            label: _zh ? '打开 Agent 工作台' : 'Open Agent Workbench',
+            label: _zh ? '打开我的助手' : 'Open My Assistants',
             icon: Icons.groups_2_outlined,
             onPressed: runtime.hasAgent || runtime.hasSkill
                 ? () => onPageChanged(_pageIndexById('agent-factory-runtime'))

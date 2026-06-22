@@ -18,8 +18,13 @@ class _KnowledgeProductWorkflow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['知识库', '向量索引', '质量记录', '存储边界']
-        : ['Packages', 'Vector Index', 'Quality Records', 'Storage Boundary'];
+        ? ['知识库', '检索设置', '质量记录', '高级边界']
+        : [
+            'Knowledge Bases',
+            'Search Settings',
+            'Quality Records',
+            'Advanced Boundary'
+          ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -27,8 +32,8 @@ class _KnowledgeProductWorkflow extends StatelessWidget {
           icon: Icons.inventory_2_outlined,
           title: _zh ? '知识库' : 'Knowledge Base',
           description: _zh
-              ? '管理知识库列表、向量索引、质量、版本、构建和验证记录。'
-              : 'Manage knowledge bases, vector indexes, quality, versions, builds, and validation records.',
+              ? '从已整理资料生成知识库，管理质量、版本和测试记录。'
+              : 'Generate knowledge bases from organized materials and manage quality, versions, and test records.',
         ),
         const SizedBox(height: _DesktopGrid.gutter),
         _PageTabs(
@@ -57,19 +62,19 @@ class _KnowledgeStorageBoundaryView extends StatelessWidget {
     return _ProductPanel(
       keyName: 'knowledge-storage-boundary',
       icon: Icons.storage_outlined,
-      title: zh ? '存储与 Provider 边界' : 'Storage and Provider Boundary',
+      title: zh ? '高级边界' : 'Advanced Boundary',
       gap: true,
       subtitle: zh
-          ? 'Provider、存储和应用工作区归设置；这里仅展示知识库侧引用边界。'
-          : 'Providers, storage, and workspace live in Settings; this shows the Knowledge Base side boundary only.',
+          ? '外部服务、存储和工作区归设置管理；这里仅展示知识库侧引用边界。'
+          : 'External services, storage, and workspace live in Settings; this only shows KB-side boundaries.',
       children: [
         _ProductTable(
           columns: zh ? ['能力', '当前分类', '说明'] : ['Capability', 'Class', 'Note'],
           rows: zh
               ? [
                   ['本地知识库', '可用', '依赖已有本地产物'],
-                  ['向量库 Provider', '未配置外部向量库', '本地索引可用，可在 Settings 配置'],
-                  ['外部事实验证', '授权后可用', '联网 Provider 配置后执行'],
+                  ['专业检索服务', '未配置', '本地检索可用，可在设置配置'],
+                  ['外部来源核对', '授权后可用', '网络权限开启后执行'],
                 ]
               : [
                   [
@@ -78,14 +83,14 @@ class _KnowledgeStorageBoundaryView extends StatelessWidget {
                     'Depends on existing local artifacts'
                   ],
                   [
-                    'Vector DB provider',
-                    'External vector DB not configured',
+                    'Professional retrieval service',
+                    'Not configured',
                     'Local index available; configure in Settings'
                   ],
                   [
                     'External fact verification',
                     'Available after authorization',
-                    'Runs after network Provider is configured'
+                    'Runs after network authorization is configured'
                   ],
                 ],
         ),
@@ -181,18 +186,18 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
     final knowledgeBases = runtime.knowledgeBases;
     final capabilityAuditReady = runtime.hasProviderCapabilityUserCatalog;
     final indexBackendStatus = runtime.vectorIndexReferencePath.isNotEmpty
-        ? (zh ? '索引已生成' : 'Index generated')
+        ? (zh ? '检索数据已生成' : 'Search data generated')
         : capabilityAuditReady
-            ? (zh ? '当前配置可用，等待构建' : 'Configured, waiting build')
-            : (zh ? '本地索引可用' : 'Local index available');
+            ? (zh ? '当前配置可用，等待生成' : 'Configured, waiting build')
+            : (zh ? '本地模式可用' : 'Local mode available');
     final embeddingStatus = capabilityAuditReady
-        ? (zh ? '按当前配置写入审计' : 'Audited by current profile')
-        : (zh ? '本地关键词向量降级' : 'Local keyword fallback');
+        ? (zh ? '按当前配置记录' : 'Recorded by current profile')
+        : (zh ? '使用本地模式' : 'Using local mode');
     final vectorStatus = runtime.vectorIndexReferencePath.isNotEmpty
-        ? (zh ? '已绑定知识库索引' : 'Bound to KB index')
+        ? (zh ? '已绑定知识库检索数据' : 'Bound to KB search data')
         : capabilityAuditReady
-            ? (zh ? '未连接时回退本地索引' : 'Falls back to local index')
-            : (zh ? '未配置外部向量库' : 'External vector DB not configured');
+            ? (zh ? '未连接时使用本地模式' : 'Falls back to local mode')
+            : (zh ? '未配置专业检索服务' : 'Professional retrieval not configured');
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 900;
       final builder = _FillProductPanel(
@@ -238,8 +243,8 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                           ],
                           ['知识库类型', _knowledgeTypeLabel(kbType, zh), '已选择'],
                           [
-                            'LLM 增强',
-                            llmEnhance ? '启用，使用已配置 Provider' : '关闭，使用本地构建',
+                            '模型服务增强',
+                            llmEnhance ? '启用，使用已配置模型服务' : '关闭，使用本地构建',
                             llmEnhance ? '需要授权配置' : '本地可用'
                           ],
                           [
@@ -275,7 +280,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                           [
                             'LLM enhance',
                             llmEnhance
-                                ? 'Enabled with configured Provider'
+                                ? 'Enabled with configured model service'
                                 : 'Off, local build',
                             llmEnhance
                                 ? 'Authorization config required'
@@ -297,23 +302,23 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                       : ['Capability', 'Current status', 'User result'],
                   rows: zh
                       ? [
-                          ['索引后端', indexBackendStatus, '知识库可构建和更新'],
-                          ['Embedding', embeddingStatus, '维度变化时需要重建知识库'],
-                          ['向量库', vectorStatus, '连接失败不影响本地检索'],
+                          ['当前检索', indexBackendStatus, '知识库可生成和更新'],
+                          ['文本理解', embeddingStatus, '配置变化时可能需要重建知识库'],
+                          ['专业检索', vectorStatus, '连接失败不影响本地检索'],
                         ]
                       : [
                           [
-                            'Index backend',
+                            'Current search',
                             indexBackendStatus,
                             'KB can be built and updated'
                           ],
                           [
-                            'Embedding',
+                            'Text understanding',
                             embeddingStatus,
                             'Dimension changes require KB rebuild'
                           ],
                           [
-                            'Vector DB',
+                            'Professional retrieval',
                             vectorStatus,
                             'Local retrieval remains available on failure'
                           ],
@@ -325,7 +330,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                   const SizedBox(height: 8),
                   _ProductTable(
                     columns: zh
-                        ? ['选择', '文档', 'Document ID', '类型']
+                        ? ['选择', '文档', '资料编号', '类型']
                         : ['Selected', 'Document', 'Document ID', 'Type'],
                     rows: sourceRecords
                         .map((source) => [
@@ -377,7 +382,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                     onSelected: (_) => setState(() => kbType = 'structured'),
                   ),
                   ChoiceChip(
-                    label: Text(zh ? '向量索引知识库' : 'Vector index KB'),
+                    label: Text(zh ? '专业检索知识库' : 'Professional search KB'),
                     selected: kbType == 'vector',
                     onSelected: (_) => setState(() => kbType = 'vector'),
                   ),
@@ -387,10 +392,11 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                   type: MaterialType.transparency,
                   child: SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: Text(zh ? '使用 LLM 增强构建' : 'Use LLM enhancement'),
+                    title: Text(
+                        zh ? '使用模型服务增强构建' : 'Use model service enhancement'),
                     subtitle: Text(zh
-                        ? '默认关闭；开启后使用已授权 Provider，不写入明文 secret。'
-                        : 'Off by default; when enabled it uses authorized Provider without plaintext secrets.'),
+                        ? '默认关闭；开启后使用已授权模型服务，不写入明文密钥。'
+                        : 'Off by default; when enabled it uses authorized model service without plaintext secrets.'),
                     value: llmEnhance,
                     onChanged: (value) => setState(() => llmEnhance = value),
                   ),
@@ -414,7 +420,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
             _PrimaryProductAction(
               label: runtime.hasKnowledgeBase
                   ? (zh ? '更新知识库' : 'Update Knowledge Base')
-                  : (zh ? '构建知识库' : 'Build Knowledge Base'),
+                  : (zh ? '生成知识库' : 'Generate Knowledge Base'),
               icon: Icons.build_outlined,
               onPressed: runtime.running || rc6 == null || !buildReady
                   ? null
@@ -448,7 +454,8 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                   enabled: !runtime.running &&
                       rc6 != null &&
                       runtime.hasStandardKnowledgePackage,
-                  onSelected: () => rc6?.buildKnowledgeBaseFromStandardPackage(),
+                  onSelected: () =>
+                      rc6?.buildKnowledgeBaseFromStandardPackage(),
                 ),
                 _MoreMenuAction(
                   label: zh ? '删除知识库' : 'Delete KB',
@@ -477,9 +484,9 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                       detail: zh ? '已选文档' : 'selected docs',
                       icon: Icons.article_outlined),
                   _MetricDatum(
-                      label: 'chunks',
+                      label: zh ? '片段' : 'Segments',
                       value: runtime.chunkCount.toString(),
-                      detail: zh ? '本地索引' : 'local index',
+                      detail: zh ? '本地模式' : 'local mode',
                       icon: Icons.segment_outlined),
                   _MetricDatum(
                       label: zh ? '质量报告' : 'Quality',
@@ -495,13 +502,13 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                 const SizedBox(height: 8),
                 _ProductTable(
                   columns: zh
-                      ? ['ID', '名称', '版本', '来源', 'chunks', '状态']
+                      ? ['ID', '名称', '版本', '来源', '片段', '状态']
                       : [
                           'ID',
                           'Name',
                           'Version',
                           'Sources',
-                          'Chunks',
+                          'Segments',
                           'Status'
                         ],
                   rows: knowledgeBases
@@ -554,8 +561,8 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                       label: zh ? '全量重建' : 'Full rebuild',
                       icon: Icons.refresh_outlined,
                       enabled: rc6 != null && knowledgeBases.isNotEmpty,
-                      onSelected: () =>
-                          rc6?.rebuildKnowledgeBaseFull(knowledgeBases.first.id),
+                      onSelected: () => rc6
+                          ?.rebuildKnowledgeBaseFull(knowledgeBases.first.id),
                     ),
                     _MoreMenuAction(
                       label: zh ? '版本对比' : 'Compare versions',
@@ -585,8 +592,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                 const SizedBox(height: _DesktopGrid.gutter),
               ],
               _ProductTable(
-                columns:
-                    zh ? ['项目', '状态', '说明'] : ['Item', 'Status', 'Note'],
+                columns: zh ? ['项目', '状态', '说明'] : ['Item', 'Status', 'Note'],
                 rows: _knowledgeArtifactRows(runtime, zh),
               ),
             ],
@@ -613,15 +619,15 @@ String _knowledgeTypeLabel(String value, bool zh) {
   return switch (value) {
     'qa' => zh ? '问答知识库' : 'QA KB',
     'structured' => zh ? '结构化知识库' : 'Structured KB',
-    'vector' => zh ? '向量索引知识库' : 'Vector index KB',
+    'vector' => zh ? '专业检索知识库' : 'Professional search KB',
     _ => zh ? '基础知识库' : 'Basic KB',
   };
 }
 
 String _knowledgeStorageLabel(String value, bool zh) {
   return switch (value) {
-    'qdrant' => zh ? 'Qdrant 本机向量库' : 'Local Qdrant vector DB',
-    _ => zh ? '本地文件索引' : 'Local file index',
+    'qdrant' => zh ? '专业检索服务' : 'Professional retrieval service',
+    _ => zh ? '本地模式' : 'Local mode',
   };
 }
 
@@ -639,9 +645,7 @@ List<List<String>> _knowledgeArtifactRows(Rc6RuntimeState runtime, bool zh) {
     row(
       zh ? '来源文档' : 'Source documents',
       runtime.sourceManifestPath.isNotEmpty,
-      zh
-          ? '${runtime.sourceCount} 个来源'
-          : '${runtime.sourceCount} sources',
+      zh ? '${runtime.sourceCount} 个来源' : '${runtime.sourceCount} sources',
     ),
     row(
       zh ? '标准知识包' : 'Standard package',
@@ -656,11 +660,13 @@ List<List<String>> _knowledgeArtifactRows(Rc6RuntimeState runtime, bool zh) {
           : (zh ? '等待构建' : 'Waiting build'),
     ),
     row(
-      zh ? '索引' : 'Index',
+      zh ? '检索数据' : 'Search data',
       runtime.indexMetadataPath.isNotEmpty || runtime.chunksPath.isNotEmpty,
       runtime.chunkCount > 0
-          ? '${runtime.chunkCount} chunks'
-          : (zh ? '等待切分' : 'Waiting chunks'),
+          ? (zh
+              ? '${runtime.chunkCount} 个片段'
+              : '${runtime.chunkCount} segments')
+          : (zh ? '等待整理' : 'Waiting organization'),
     ),
     row(zh ? '质量记录' : 'Quality records', runtime.qualityReportPath.isNotEmpty,
         zh ? '质量报告' : 'Quality report',
@@ -682,12 +688,19 @@ class _KnowledgeVectorIndexView extends StatelessWidget {
       final indexPanel = _ProductPanel(
         keyName: 'knowledge-vector-index',
         icon: Icons.hub_outlined,
-        title: zh ? '向量索引中心' : 'Vector Index Center',
+        title: zh ? '检索服务状态' : 'Search Service Status',
         children: [
           _ProductTable(
             columns: zh
-                ? ['索引', '知识库', '模型', '维度', '状态', '分类']
-                : ['Index', 'Base', 'Model', 'Dims', 'Status', 'Class'],
+                ? ['检索方式', '知识库', '服务', '规模', '状态', '分类']
+                : [
+                    'Search mode',
+                    'Base',
+                    'Service',
+                    'Scale',
+                    'Status',
+                    'Class'
+                  ],
             rows: zh
                 ? [
                     [
@@ -700,22 +713,13 @@ class _KnowledgeVectorIndexView extends StatelessWidget {
                     ],
                     [
                       '知识卡片与问答',
-                      runtime.cardsPath.isNotEmpty
-                          ? '已生成'
-                          : '等待产物',
+                      runtime.cardsPath.isNotEmpty ? '已生成' : '等待产物',
                       '本地索引',
                       runtime.cardsPath.isNotEmpty ? 'ready' : '-',
                       runtime.cardsPath.isNotEmpty ? '已生成' : '等待构建',
                       runtime.cardsPath.isNotEmpty ? '可用' : '请先构建'
                     ],
-                    [
-                      '外部向量库',
-                      '外部向量库',
-                      '未配置',
-                      '-',
-                      '使用本地索引',
-                      '设置中可配置'
-                    ],
+                    ['专业检索服务', '专业模式', '未配置', '-', '使用本地索引', '设置中可配置'],
                   ]
                 : [
                     [
@@ -732,9 +736,7 @@ class _KnowledgeVectorIndexView extends StatelessWidget {
                     ],
                     [
                       'Knowledge cards and QA',
-                      runtime.cardsPath.isNotEmpty
-                          ? 'Generated'
-                          : 'Waiting',
+                      runtime.cardsPath.isNotEmpty ? 'Generated' : 'Waiting',
                       'Local index',
                       runtime.cardsPath.isNotEmpty ? 'ready' : '-',
                       runtime.cardsPath.isNotEmpty
@@ -743,8 +745,8 @@ class _KnowledgeVectorIndexView extends StatelessWidget {
                       runtime.cardsPath.isNotEmpty ? 'Available' : 'Build first'
                     ],
                     [
-                      'External vector DB',
-                      'External Vector DB',
+                      'Professional search service',
+                      'Professional mode',
                       'Not configured',
                       '-',
                       'Using local index',
@@ -756,7 +758,7 @@ class _KnowledgeVectorIndexView extends StatelessWidget {
       );
       final detail = _ProductPanel(
         icon: Icons.tune_outlined,
-        title: zh ? '索引配置与边界' : 'Index Config and Boundary',
+        title: zh ? '检索配置与边界' : 'Search Config and Boundary',
         gap: true,
         children: [
           _FieldRow(
@@ -772,7 +774,9 @@ class _KnowledgeVectorIndexView extends StatelessWidget {
                   : 'Rebuild, validate, archive require local evidence'),
           const SizedBox(height: 8),
           _DisplayAction(
-            label: zh ? '去设置中配置向量库连接' : 'Configure vector DB in Settings',
+            label: zh
+                ? '去设置中配置专业检索服务'
+                : 'Configure professional search in Settings',
             icon: Icons.settings_outlined,
           ),
         ],
@@ -839,9 +843,7 @@ class _KnowledgeQualityRecordsView extends StatelessWidget {
                     [
                       '解析完整性',
                       runtime.parseReportPath.isNotEmpty ? '通过' : '等待解析',
-                      runtime.parseReportPath.isNotEmpty
-                          ? '已生成'
-                          : '等待解析结果',
+                      runtime.parseReportPath.isNotEmpty ? '已生成' : '等待解析结果',
                       runtime.parseReportPath.isNotEmpty ? '保持' : '先解析来源'
                     ],
                     [
@@ -856,7 +858,7 @@ class _KnowledgeQualityRecordsView extends StatelessWidget {
                       runtime.cardsPath.isNotEmpty ? '已生成' : '等待知识库构建',
                       runtime.qaPairsPath.isNotEmpty ? '可检索' : '先构建知识库'
                     ],
-                    ['外部新鲜度', '授权后启用', '设置联网 Provider 后执行', '不影响本地知识库'],
+                    ['外部新鲜度', '授权后启用', '设置外部来源核对服务后执行', '不影响本地知识库'],
                   ]
                 : [
                     [
@@ -878,7 +880,9 @@ class _KnowledgeQualityRecordsView extends StatelessWidget {
                     [
                       'Knowledge cards and QA',
                       runtime.cardsPath.isNotEmpty ? 'Generated' : 'Waiting',
-                      runtime.cardsPath.isNotEmpty ? 'Generated' : 'Waiting KB build',
+                      runtime.cardsPath.isNotEmpty
+                          ? 'Generated'
+                          : 'Waiting KB build',
                       runtime.qaPairsPath.isNotEmpty
                           ? 'Searchable'
                           : 'Build KB first'
@@ -886,7 +890,7 @@ class _KnowledgeQualityRecordsView extends StatelessWidget {
                     [
                       'External freshness',
                       'Enable after authorization',
-                      'Configure network Provider first',
+                      'Configure external source checking first',
                       'Does not block local KB'
                     ],
                   ],

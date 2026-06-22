@@ -19,15 +19,15 @@ class _ValidateExportProductWorkflow extends StatelessWidget {
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
     final tabs = _zh
-        ? ['执行记录', '失败记录', '审计导出']
-        : ['Execution Records', 'Failure Records', 'Audit Export'];
+        ? ['执行记录', '失败记录', '记录导出']
+        : ['Execution Records', 'Failure Records', 'Record Export'];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.fact_check_outlined,
-        title: _zh ? '治理与审计' : 'Governance & Audit',
+        title: _zh ? '使用记录' : 'Usage Records',
         description: _zh
-            ? '统一查看真实执行记录、失败记录和产物记录，并导出当前工作区审计报告。'
-            : 'Review real execution, failure, and artifact records, then export the current workspace audit report.',
+            ? '统一查看真实执行记录、失败记录和成果记录，并导出当前工作区使用记录报告。'
+            : 'Review real execution, failure, and artifact records, then export the current workspace usage report.',
       ),
       const SizedBox(height: _DesktopGrid.gutter),
       _PageTabs(
@@ -254,7 +254,7 @@ class _ReportsEvidenceViewState extends State<_ReportsEvidenceView> {
                   : () => _showWorkspaceArtifactPreview(
                         context,
                         rc6: widget.runtimeController,
-                        title: zh ? '审计产物预览' : 'Audit artifact preview',
+                        title: zh ? '成果记录预览' : 'Audit artifact preview',
                         path: previewPath,
                         unavailableMessage:
                             zh ? '尚未生成可预览产物。' : 'No previewable artifact.',
@@ -352,7 +352,7 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
     return _ProductPanel(
       keyName: 'controlled-export-summary',
       icon: Icons.outbox_outlined,
-      title: zh ? '审计导出' : 'Audit Export',
+      title: zh ? '记录导出' : 'Audit Export',
       subtitle: widget.workspace,
       children: [
         _ProductTable(
@@ -372,10 +372,10 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
                   [
                     '产物记录',
                     '${_auditArtifactRows(runtime, zh).length} 条',
-                    '可在产物中心继续查看'
+                    '可在成果中心继续查看'
                   ],
                   [
-                    '审计报告',
+                    '使用记录报告',
                     auditReportPath.isEmpty ? '未导出' : '已导出',
                     auditReportPath.isEmpty
                         ? '点击下方按钮生成'
@@ -433,8 +433,8 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
         _EqualActionRow(children: [
           _PrimaryProductAction(
             label: exporting
-                ? (zh ? '正在导出审计报告' : 'Exporting audit report')
-                : (zh ? '导出审计报告' : 'Export audit report'),
+                ? (zh ? '正在导出使用记录报告' : 'Exporting audit report')
+                : (zh ? '导出使用记录报告' : 'Export audit report'),
             onPressed: widget.runtimeController == null || exporting
                 ? null
                 : _exportAuditReport,
@@ -443,17 +443,17 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
           _DisplayAction(
             label: auditReportPath.isEmpty
                 ? (zh ? '等待可预览报告' : 'Waiting for previewable report')
-                : (zh ? '预览审计报告' : 'Preview audit report'),
+                : (zh ? '预览使用记录报告' : 'Preview audit report'),
             icon: Icons.visibility_outlined,
             onPressed: auditReportPath.isEmpty
                 ? null
                 : () => _showWorkspaceArtifactPreview(
                       context,
                       rc6: widget.runtimeController,
-                      title: zh ? '审计报告预览' : 'Audit report preview',
+                      title: zh ? '使用记录报告预览' : 'Audit report preview',
                       path: auditReportPath,
                       unavailableMessage:
-                          zh ? '尚未生成审计报告。' : 'No audit report generated.',
+                          zh ? '尚未生成使用记录报告。' : 'No audit report generated.',
                       closeLabel: zh ? '关闭' : 'Close',
                     ),
           ),
@@ -511,25 +511,25 @@ List<List<String>> _auditRecordRows(Rc6RuntimeState runtime, bool zh) {
   return [
     row('文档库', 'Document Library', '导入来源', 'Import sources',
         runtime.hasImportedFile, runtime.sourceManifestPath),
-    row('文档库', 'Document Library', '解析与分块', 'Parse and chunk',
+    row('文档库', 'Document Library', '整理资料', 'Organize materials',
         runtime.parseReportPath.isNotEmpty, runtime.parseReportPath),
-    row('知识库', 'Knowledge Base', '构建知识库', 'Build Knowledge Base',
+    row('知识库', 'Knowledge Base', '生成知识库', 'Build Knowledge Base',
         runtime.hasKnowledgeBase, runtime.kbManifestPath),
-    row('检索验证', 'Retrieval', '检索证据', 'Retrieve evidence',
+    row('测试知识库', 'Retrieval', '检索证据', 'Retrieve evidence',
         runtime.queryResultPath.isNotEmpty, runtime.queryResultPath),
     row('文档生成', 'Document Generation', '导出文档', 'Export document',
         runtime.exportedDocumentPath.isNotEmpty, runtime.exportedDocumentPath),
-    row('Skill 工厂', 'Skill Factory', '生成 Skill', 'Generate Skill',
+    row('技能生成', 'Skill Builder', '生成技能', 'Generate skill',
         runtime.hasPrimarySkill, runtime.primarySkillPath),
-    row('Agent 工作台', 'Agent Workbench', '生成 Agent', 'Generate Agent',
-        runtime.hasAgent, runtime.agentPath),
-    row('Agent 工作台', 'Agent Workbench', 'Agent 对话', 'Agent dialogue',
+    row('我的助手', 'My Assistants', '创建助手', 'Create assistant', runtime.hasAgent,
+        runtime.agentPath),
+    row('我的助手', 'My Assistants', '助手对话', 'Assistant dialogue',
         runtime.hasAgentDialogue, runtime.agentDialoguePath),
     row(
-        'Agent 工作台',
-        'Agent Workbench',
-        '多 Agent / A2A',
-        'Multi-Agent / A2A',
+        '我的助手',
+        'My Assistants',
+        '多个助手讨论',
+        'Assistant discussion',
         runtime.hasMultiAgentDiscussion || runtime.hasA2aSessionManifest,
         runtime.a2aWorkspaceReportPath.isNotEmpty
             ? runtime.a2aWorkspaceReportPath
@@ -537,26 +537,26 @@ List<List<String>> _auditRecordRows(Rc6RuntimeState runtime, bool zh) {
     row(
         '设置',
         'Settings',
-        'Provider 配置验证',
-        'Provider validation',
+        '模型服务配置验证',
+        'Model service validation',
         runtime.providerValidationReportPath.isNotEmpty,
         runtime.providerValidationReportPath),
     row(
         '设置',
         'Settings',
-        '能力审计汇总',
-        'Capability audit summary',
+        '能力使用记录汇总',
+        'Capability usage summary',
         runtime.providerLifecycleAuditSummaryPath.isNotEmpty,
         runtime.providerLifecycleAuditSummaryPath),
     row(
         '设置',
         'Settings',
-        '导出器验证',
-        'Exporter validation',
+        '导出工具测试',
+        'Export tool test',
         runtime.exporterValidationReportPath.isNotEmpty,
         runtime.exporterValidationReportPath),
     row(
-        '治理',
+        '使用记录',
         'Governance',
         '并行任务验证',
         'Parallel task validation',

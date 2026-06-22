@@ -45,7 +45,8 @@ class _WorkbenchSidebar extends StatelessWidget {
             onTap: () => onPageChanged(0),
           ),
           const SizedBox(height: _DesktopGrid.gutter),
-          _SidebarGroupLabel(label: localeCode == 'zh-CN' ? '工作本' : 'Workbook'),
+          _SidebarGroupLabel(
+              label: localeCode == 'zh-CN' ? '工作区' : 'Workspace'),
           _SidebarItem(
             keyName: 'sidebar-workbook',
             page: pages[1],
@@ -60,7 +61,7 @@ class _WorkbenchSidebar extends StatelessWidget {
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _SidebarGroupLabel(
-              label: localeCode == 'zh-CN' ? '知识资产' : 'Knowledge Assets'),
+              label: localeCode == 'zh-CN' ? '知识流程' : 'Knowledge Flow'),
           for (final index in [2, 3, 4])
             _SidebarItem(
               keyName: 'sidebar-${pages[index].id}',
@@ -76,7 +77,7 @@ class _WorkbenchSidebar extends StatelessWidget {
             ),
           const SizedBox(height: _DesktopGrid.gutter),
           _SidebarGroupLabel(
-              label: localeCode == 'zh-CN' ? '知识应用' : 'Knowledge Apps'),
+              label: localeCode == 'zh-CN' ? '生成与助手' : 'Create and Assist'),
           for (final index in [5, 6, 7])
             _SidebarItem(
               keyName: 'sidebar-${pages[index].id}',
@@ -92,7 +93,7 @@ class _WorkbenchSidebar extends StatelessWidget {
             ),
           const SizedBox(height: _DesktopGrid.gutter),
           _SidebarGroupLabel(
-              label: localeCode == 'zh-CN' ? '治理' : 'Governance'),
+              label: localeCode == 'zh-CN' ? '成果与记录' : 'Outputs and Records'),
           for (final index in [8, 9])
             _SidebarItem(
               keyName: 'sidebar-${pages[index].id}',

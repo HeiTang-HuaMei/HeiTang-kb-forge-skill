@@ -96,21 +96,21 @@ void main() {
     expect(find.text('Knowledge-to-Skill Suite 工作流'), findsNothing);
     expect(find.textContaining('release_candidate'), findsNothing);
     expect(find.textContaining('Core 证据快照'), findsNothing);
-    expect(find.text('Skill 工厂'), findsWidgets);
+    expect(find.text('技能生成'), findsWidgets);
     expect(
         find.byKey(const Key('skill-metadata-source-config')), findsOneWidget);
     expect(find.text('从知识库生成'), findsOneWidget);
-    expect(find.text('外部本地化'), findsOneWidget);
+    expect(find.text('导入模板技能'), findsWidgets);
     expect(find.text('版本操作'), findsOneWidget);
-    expect(find.text('验证导出'), findsOneWidget);
-    await tester.tap(find.text('外部本地化').first, warnIfMissed: false);
+    expect(find.text('检查导出'), findsOneWidget);
+    await tester.tap(find.text('导入模板技能').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(
         find.byKey(const Key('skill-external-localization')), findsOneWidget);
     await tester.tap(find.text('版本操作').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('skill-output-preview')), findsOneWidget);
-    await tester.tap(find.text('验证导出').first, warnIfMissed: false);
+    await tester.tap(find.text('检查导出').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('skill-validation-summary')), findsOneWidget);
     expect(find.textContaining('Execute local runtime'), findsNothing);

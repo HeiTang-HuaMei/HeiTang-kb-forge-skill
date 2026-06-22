@@ -72,15 +72,15 @@ class _WorkbookProductWorkflowState extends State<_WorkbookProductWorkflow> {
       if (runtime.searchStatus == Rc6SearchStatus.success)
         _zh ? '检索报告' : 'Retrieval Report',
       if (runtime.hasMarkdown) _zh ? '生成文档' : 'Generated Document',
-      if (runtime.hasSkill) 'Skill',
-      if (runtime.hasAgent) 'Agent',
+      if (runtime.hasSkill) _zh ? '技能' : 'Skill',
+      if (runtime.hasAgent) _zh ? '助手' : 'Assistant',
     ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.workspaces_outline,
-        title: _zh ? '工作本管理' : 'Workbook',
+        title: _zh ? '工作区' : 'Workspace',
         description: _zh
-            ? '工作本隔离文档、知识库、应用产物和审计记录。'
+            ? '工作区隔离文档、知识库、技能、助手和使用记录。'
             : 'The workbook isolates documents, knowledge bases, application artifacts, and audit records.',
       ),
       const SizedBox(height: _DesktopGrid.gutter),
@@ -311,9 +311,9 @@ class _WorkbookProductWorkflowState extends State<_WorkbookProductWorkflow> {
               rows: _zh
                   ? [
                       ['文档库', '本地资料', '来源文档 / 解析报告', '知识库'],
-                      ['知识库', '来源文档', 'chunks / manifest / 质量报告', '检索验证'],
-                      ['检索验证', '知识库', '证据片段 / 验证记录', '文档生成'],
-                      ['知识应用', '可信证据', '文档 / Skill / Agent', '治理审计'],
+                      ['知识库', '来源文档', '片段 / 质量报告', '测试知识库'],
+                      ['测试知识库', '知识库', '证据片段 / 验证记录', '文档生成'],
+                      ['知识应用', '可信证据', '文档 / 技能 / 助手', '使用记录'],
                     ]
                   : [
                       [

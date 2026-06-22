@@ -24,12 +24,12 @@ class _SettingsProductWorkflow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['工作区', 'Provider / 模型', 'Redis / 向量库', '导出器', '网络与安全']
+        ? ['工作区', '模型服务', '记忆与存储', '导出工具', '网络与安全']
         : [
             'Workspace',
-            'Provider / Model',
-            'Redis / Vector DB',
-            'Exporter',
+            'Model Service',
+            'Memory and Storage',
+            'Export Tools',
             'Network and Security',
           ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -37,8 +37,8 @@ class _SettingsProductWorkflow extends StatelessWidget {
         icon: Icons.settings_outlined,
         title: _zh ? '设置' : 'Settings',
         description: _zh
-            ? '管理工作区、Provider、模型、Redis、向量库、导出器、网络授权与安全。'
-            : 'Manage workspace, providers, models, Redis, vector DB, exporters, network authorization, and security.',
+            ? '管理工作区、模型服务、记忆服务、导出工具、网络授权与安全。'
+            : 'Manage workspace, model services, memory services, export tools, network authorization, and security.',
       ),
       const SizedBox(height: _DesktopGrid.gutter),
       _PageTabs(
@@ -220,7 +220,7 @@ class _SettingsProviderModelEditorState
       mode: 'hybrid',
     );
     if (!mounted) return;
-    setState(() => profileMessage = zh ? 'Profile 已创建' : 'Profile created');
+    setState(() => profileMessage = zh ? '配置档已创建' : 'Profile created');
     await _loadProfiles();
   }
 
@@ -230,7 +230,7 @@ class _SettingsProviderModelEditorState
     if (rc6 == null || active == null) return;
     await rc6.copyProjectConfigProfile(active.profileId);
     if (!mounted) return;
-    setState(() => profileMessage = zh ? 'Profile 已复制' : 'Profile copied');
+    setState(() => profileMessage = zh ? '配置档已复制' : 'Profile copied');
     await _loadProfiles();
   }
 
@@ -241,7 +241,7 @@ class _SettingsProviderModelEditorState
     final testId = await rc6.testProjectConfigProfile(active.profileId);
     if (!mounted) return;
     setState(() => profileMessage =
-        testId.isEmpty ? '' : (zh ? 'Profile 测试已记录' : 'Profile test logged'));
+        testId.isEmpty ? '' : (zh ? '配置档测试已记录' : 'Profile test logged'));
     await _loadProfiles();
   }
 
@@ -254,7 +254,7 @@ class _SettingsProviderModelEditorState
     final next = profiles[(currentIndex + 1) % profiles.length];
     await rc6.activateProjectConfigProfile(next.profileId);
     if (!mounted) return;
-    setState(() => profileMessage = zh ? 'Profile 已切换' : 'Profile activated');
+    setState(() => profileMessage = zh ? '配置档已切换' : 'Profile activated');
     await _loadProfiles();
   }
 
@@ -263,7 +263,7 @@ class _SettingsProviderModelEditorState
     if (rc6 == null) return;
     await rc6.rollbackProjectConfigProfile();
     if (!mounted) return;
-    setState(() => profileMessage = zh ? 'Profile 已回滚' : 'Profile rolled back');
+    setState(() => profileMessage = zh ? '配置档已回滚' : 'Profile rolled back');
     await _loadProfiles();
   }
 
@@ -272,16 +272,15 @@ class _SettingsProviderModelEditorState
     if (rc6 == null) return;
     final inactive = profiles.where((profile) => !profile.isActive).toList();
     if (inactive.isEmpty) {
-      setState(() => profileMessage = zh
-          ? '当前 Profile 或最后一个 Profile 不能删除'
-          : 'No inactive profile to delete');
+      setState(() => profileMessage =
+          zh ? '当前配置档或最后一个配置档不能删除' : 'No inactive profile to delete');
       return;
     }
     final deleted =
         await rc6.deleteProjectConfigProfile(inactive.last.profileId);
     if (!mounted) return;
     setState(() => profileMessage = deleted
-        ? (zh ? '非 active Profile 已删除' : 'Inactive profile deleted')
+        ? (zh ? '未启用配置档已删除' : 'Inactive profile deleted')
         : (zh ? '删除被阻止' : 'Delete blocked'));
     await _loadProfiles();
   }
@@ -333,7 +332,7 @@ class _SettingsProviderModelEditorState
     setState(() {
       capabilityMessage = activated
           ? (zh ? '能力增强项已启用' : 'Capability enhancement enabled')
-          : (zh ? '未满足启用条件，已写入审计' : 'Blocked; audit log written');
+          : (zh ? '未满足启用条件，已写入使用记录' : 'Blocked; audit log written');
     });
   }
 
@@ -400,7 +399,7 @@ class _SettingsProviderModelEditorState
       final provider = _ProductPanel(
         keyName: 'settings-provider-model',
         icon: Icons.memory_outlined,
-        title: zh ? 'Provider 与模型' : 'Provider and Model',
+        title: zh ? '模型服务' : 'Model Service',
         gap: true,
         children: [
           _ProductTable(
@@ -409,29 +408,25 @@ class _SettingsProviderModelEditorState
                 : ['Setting', 'Value', 'User status'],
             rows: zh
                 ? [
-                    ['LLM Provider', '环境变量 / 设置引用', '可配置'],
-                    ['Embedding Provider', '环境变量 / 设置引用', '可配置'],
-                    ['Search Provider', '本地检索优先，可选外部检索', '可配置'],
-                    ['Parser / OCR Provider', '本地解析优先，可选增强解析', '可配置'],
+                    ['大模型服务', '环境变量 / 设置引用', '可配置'],
+                    ['文本理解服务', '本地模式 / 设置引用', '可配置'],
+                    ['检索服务', '本地检索优先，可选外部检索', '可配置'],
+                    ['资料整理服务', '本地整理优先，可选增强解析', '可配置'],
                   ]
                 : [
+                    ['LLM service', 'Env / settings reference', 'Configurable'],
                     [
-                      'LLM Provider',
+                      'Text understanding service',
                       'Env / settings reference',
                       'Configurable'
                     ],
                     [
-                      'Embedding Provider',
-                      'Env / settings reference',
-                      'Configurable'
-                    ],
-                    [
-                      'Search Provider',
+                      'Search service',
                       'Local search first, optional external search',
                       'Configurable'
                     ],
                     [
-                      'Parser / OCR Provider',
+                      'Material organizing service',
                       'Local parser first, optional enhanced parser',
                       'Configurable'
                     ],
@@ -439,36 +434,40 @@ class _SettingsProviderModelEditorState
           ),
           const SizedBox(height: 8),
           _FieldRow(
-              label: zh ? 'Secret 展示' : 'Secret display',
+              label: zh ? '密钥展示' : 'Secret display',
               value: zh ? '只显示掩码，不展示明文' : 'Masked only, never plaintext'),
           const SizedBox(height: 8),
-          _SectionCaption(zh ? 'Provider CRUD 配置' : 'Provider CRUD config'),
+          _SectionCaption(zh ? '连接配置' : 'Connection config'),
           const SizedBox(height: 6),
           _SettingsConnectionForm(
             zh: zh,
             fields: [
-              _SettingsTextFieldSpec('LLM Provider', _llmProviderController),
+              _SettingsTextFieldSpec(
+                  zh ? '大模型服务' : 'LLM service', _llmProviderController),
               _SettingsTextFieldSpec(
                   zh ? '模型 ID' : 'Model ID', _modelController),
               _SettingsTextFieldSpec(
-                  'Embedding Provider', _embeddingProviderController),
+                  zh ? '文本理解服务' : 'Text understanding service',
+                  _embeddingProviderController),
               _SettingsTextFieldSpec(
-                  'Search Provider', _searchProviderController),
+                  zh ? '检索服务' : 'Search service', _searchProviderController),
               _SettingsTextFieldSpec(
-                  'Parser Provider', _parserProviderController),
-              _SettingsTextFieldSpec('OCR Provider', _ocrProviderController),
+                  zh ? '资料整理服务' : 'Material organizing service',
+                  _parserProviderController),
+              _SettingsTextFieldSpec(zh ? '图片文字识别服务' : 'Image text service',
+                  _ocrProviderController),
               _SettingsTextFieldSpec('API Key', _apiKeyController),
             ],
           ),
           const SizedBox(height: 8),
           _EqualActionRow(children: [
             _PrimaryProductAction(
-              label: zh ? '保存 Provider 配置' : 'Save Provider config',
+              label: zh ? '保存模型服务配置' : 'Save model service config',
               icon: Icons.save_outlined,
               onPressed: _saveSettings,
             ),
             _PrimaryProductAction(
-              label: zh ? '验证 Provider 配置' : 'Validate Provider config',
+              label: zh ? '测试模型服务' : 'Test model service',
               icon: Icons.fact_check_outlined,
               onPressed: _validateSettings,
             ),
@@ -477,11 +476,9 @@ class _SettingsProviderModelEditorState
             const SizedBox(height: 8),
             _RuntimeFeedbackBanner(
               title: validated
-                  ? (zh
-                      ? 'Provider 验证报告已生成'
-                      : 'Provider validation report generated')
+                  ? (zh ? '模型服务测试报告已生成' : 'Model service test report generated')
                   : saved
-                      ? (zh ? 'Provider 配置已保存' : 'Provider config saved')
+                      ? (zh ? '模型服务配置已保存' : 'Model service config saved')
                       : (zh ? '正在加载配置' : 'Loading config'),
               detail: [
                 if (savedPath.isNotEmpty) savedPath,
@@ -597,7 +594,8 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
               _settingsText(entry, 'display_name', ''),
               _settingsText(entry, 'status', zh ? '未配置' : 'Not configured'),
               _settingsText(entry, 'current_behavior', ''),
-              _settingsText(entry, 'configuration_entry', zh ? '设置' : 'Settings'),
+              _settingsText(
+                  entry, 'configuration_entry', zh ? '设置' : 'Settings'),
             ])
         .where((row) => row.every((value) => value.isNotEmpty))
         .toList(growable: false);
@@ -615,7 +613,7 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _FieldRow(
-          label: zh ? '审计汇总' : 'Audit summary',
+          label: zh ? '使用记录汇总' : 'Usage record summary',
           value: lifecycleAuditReady
               ? (zh ? '已生成' : 'Generated')
               : (zh ? '未生成' : 'Not generated'),
@@ -668,7 +666,7 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
           _RuntimeFeedbackBanner(
             title: message,
             detail: zh
-                ? '能力增强项启用、阻止和回滚都会写入配置审计资产。'
+                ? '能力增强项启用、阻止和回滚都会写入配置使用记录。'
                 : 'Enhancement activation, blocking, and rollback write config audit assets.',
             tone: _StatusTone.neutral,
             icon: Icons.rule_folder_outlined,
@@ -717,7 +715,7 @@ class _SettingsProjectProfilePanel extends StatelessWidget {
     final rows = profiles.isEmpty
         ? [
             [
-              zh ? '暂无 Profile' : 'No profile',
+              zh ? '暂无配置档' : 'No profile',
               zh ? '未配置' : 'Not configured',
               zh ? '需要 Windows EXE' : 'Windows EXE required',
               '',
@@ -728,7 +726,7 @@ class _SettingsProjectProfilePanel extends StatelessWidget {
                   profile.displayName,
                   _profileModeLabel(profile.mode, zh),
                   profile.isActive
-                      ? (zh ? '当前 active' : 'Active')
+                      ? (zh ? '当前启用' : 'Active')
                       : (zh ? '未启用' : 'Inactive'),
                   profile.lastTestStatus,
                 ])
@@ -736,18 +734,18 @@ class _SettingsProjectProfilePanel extends StatelessWidget {
     return _ProductPanel(
       keyName: 'settings-project-config-profile',
       icon: Icons.account_tree_outlined,
-      title: zh ? '配置 Profile' : 'Config Profile',
+      title: zh ? '配置档' : 'Configuration',
       gap: true,
       children: [
         _ProductTable(
           columns: zh
-              ? ['Profile', '模式', '启用状态', '最近测试']
-              : ['Profile', 'Mode', 'Active', 'Last test'],
+              ? ['配置档', '模式', '启用状态', '最近测试']
+              : ['Configuration', 'Mode', 'Active', 'Last test'],
           rows: rows,
         ),
         const SizedBox(height: 8),
         _FieldRow(
-          label: zh ? '当前 Profile' : 'Active profile',
+          label: zh ? '当前配置档' : 'Active configuration',
           value: loading
               ? (zh ? '正在加载' : 'Loading')
               : activeProfile?.displayName ?? (zh ? '未配置' : 'Not configured'),
@@ -765,18 +763,18 @@ class _SettingsProjectProfilePanel extends StatelessWidget {
           value: activeProfile?.lastError.isNotEmpty == true
               ? activeProfile!.lastError
               : (zh
-                  ? '无明文 secret；失败进入审计日志'
+                  ? '无明文密钥；失败进入使用记录'
                   : 'No plaintext secrets; failures go to audit logs'),
         ),
         const SizedBox(height: 8),
         _EqualActionRow(children: [
           _PrimaryProductAction(
-            label: zh ? '创建 Profile' : 'Create profile',
+            label: zh ? '创建配置档' : 'Create profile',
             icon: Icons.add_circle_outline,
             onPressed: onCreate,
           ),
           _PrimaryProductAction(
-            label: zh ? '复制 Profile' : 'Copy profile',
+            label: zh ? '复制配置档' : 'Copy profile',
             icon: Icons.copy_outlined,
             onPressed: activeProfile == null ? null : onCopy,
           ),
@@ -784,12 +782,12 @@ class _SettingsProjectProfilePanel extends StatelessWidget {
         const SizedBox(height: 8),
         _EqualActionRow(children: [
           _PrimaryProductAction(
-            label: zh ? '测试 Profile' : 'Test profile',
+            label: zh ? '测试配置档' : 'Test profile',
             icon: Icons.fact_check_outlined,
             onPressed: activeProfile == null ? null : onTest,
           ),
           _PrimaryProductAction(
-            label: zh ? '切换 Profile' : 'Switch profile',
+            label: zh ? '切换配置档' : 'Switch profile',
             icon: Icons.swap_horiz_outlined,
             onPressed: profiles.length < 2 ? null : onActivateNext,
           ),
@@ -797,12 +795,12 @@ class _SettingsProjectProfilePanel extends StatelessWidget {
         const SizedBox(height: 8),
         _EqualActionRow(children: [
           _PrimaryProductAction(
-            label: zh ? '回滚 Profile' : 'Rollback profile',
+            label: zh ? '回滚配置档' : 'Rollback profile',
             icon: Icons.restore_outlined,
             onPressed: activeProfile == null ? null : onRollback,
           ),
           _PrimaryProductAction(
-            label: zh ? '删除非 active' : 'Delete inactive',
+            label: zh ? '删除未启用配置档' : 'Delete inactive',
             icon: Icons.delete_outline,
             onPressed: profiles.where((profile) => !profile.isActive).isEmpty
                 ? null
@@ -814,8 +812,8 @@ class _SettingsProjectProfilePanel extends StatelessWidget {
           _RuntimeFeedbackBanner(
             title: message,
             detail: zh
-                ? 'Profile、测试、切换、回滚会写入 config 资产和审计日志。'
-                : 'Profile changes, tests, activation, and rollback write config assets and audit logs.',
+                ? '配置档测试、切换、回滚会写入配置资产和使用记录。'
+                : 'Configuration changes, tests, activation, and rollback write config assets and usage records.',
             tone: _StatusTone.success,
             icon: Icons.verified_outlined,
           ),
@@ -853,7 +851,7 @@ String _providerCapabilityStatusLabel(String status, bool zh) {
       'needs_secret_config' => 'Secret config required',
       'needs_network_authorization' => 'Network authorization required',
       'needs_verification' => 'Verification required',
-      'needs_provider_config' => 'Provider config required',
+      'needs_provider_config' => 'Connection config required',
       _ => status,
     };
   }
@@ -866,7 +864,7 @@ String _providerCapabilityStatusLabel(String status, bool zh) {
     'needs_secret_config' => '需要安全密钥',
     'needs_network_authorization' => '需要网络授权',
     'needs_verification' => '需要核验',
-    'needs_provider_config' => '需要 Provider 配置',
+    'needs_provider_config' => '需要连接配置',
     _ => status,
   };
 }
@@ -996,7 +994,7 @@ class _SettingsExporterEditorState extends State<_SettingsExporterEditor> {
     return _ProductPanel(
       keyName: 'settings-exporter',
       icon: Icons.file_download_outlined,
-      title: zh ? '导出器配置' : 'Exporter Config',
+      title: zh ? '导出工具设置' : 'Export Tool Settings',
       gap: true,
       children: [
         _ProductTable(
@@ -1005,8 +1003,8 @@ class _SettingsExporterEditorState extends State<_SettingsExporterEditor> {
               : ['Format', 'Current status', 'Config entry'],
           rows: zh
               ? [
-                  ['Markdown', '本地可用', '无需外部导出器'],
-                  ['JSON / CSV', '本地可用', '无需外部导出器'],
+                  ['Markdown', '本地可用', '无需外部导出工具'],
+                  ['JSON / CSV', '本地可用', '无需外部导出工具'],
                   ['DOCX', _docxController.text, '配置后启用'],
                   ['PDF', _pdfController.text, '配置后启用'],
                   ['PPTX', _pptxController.text, '配置后启用'],
@@ -1020,7 +1018,7 @@ class _SettingsExporterEditorState extends State<_SettingsExporterEditor> {
                 ],
         ),
         const SizedBox(height: 8),
-        _SectionCaption(zh ? '导出器 CRUD 配置' : 'Exporter CRUD config'),
+        _SectionCaption(zh ? '导出工具配置' : 'Export tool config'),
         const SizedBox(height: 6),
         _SettingsConnectionForm(
           zh: zh,
@@ -1035,12 +1033,12 @@ class _SettingsExporterEditorState extends State<_SettingsExporterEditor> {
         const SizedBox(height: 8),
         _EqualActionRow(children: [
           _PrimaryProductAction(
-            label: zh ? '保存导出器配置' : 'Save exporter config',
+            label: zh ? '保存导出工具配置' : 'Save export tool config',
             icon: Icons.save_outlined,
             onPressed: _saveSettings,
           ),
           _PrimaryProductAction(
-            label: zh ? '验证导出器配置' : 'Validate exporter config',
+            label: zh ? '测试导出工具配置' : 'Test export tool config',
             icon: Icons.fact_check_outlined,
             onPressed: _validateSettings,
           ),
@@ -1049,8 +1047,8 @@ class _SettingsExporterEditorState extends State<_SettingsExporterEditor> {
           const SizedBox(height: 8),
           _RuntimeFeedbackBanner(
             title: validated
-                ? (zh ? '导出器验证报告已生成' : 'Exporter validation report generated')
-                : (zh ? '导出器配置已保存' : 'Exporter config saved'),
+                ? (zh ? '导出工具测试报告已生成' : 'Export tool test report generated')
+                : (zh ? '导出工具配置已保存' : 'Export tool config saved'),
             detail: [
               if (savedPath.isNotEmpty) savedPath,
               if (validationPath.isNotEmpty) validationPath,
@@ -1114,7 +1112,7 @@ class _SettingsNetworkSecurityView extends StatelessWidget {
         gap: true,
         children: [
           _FieldRow(
-              label: zh ? 'Secret' : 'Secret',
+              label: zh ? '密钥' : 'Secret',
               value: zh
                   ? '只保存或读取掩码引用，不展示明文'
                   : 'Store/read masked references only; never show plaintext'),
@@ -1126,9 +1124,9 @@ class _SettingsNetworkSecurityView extends StatelessWidget {
                   : 'Arbitrary system commands are not exposed in ordinary UI'),
           const SizedBox(height: 8),
           _FieldRow(
-              label: zh ? '审计' : 'Audit',
+              label: zh ? '使用记录' : 'Audit',
               value: zh
-                  ? '运行记录、失败、权限和恢复进入治理与审计'
+                  ? '运行记录、失败、权限和恢复进入使用记录'
                   : 'Runs, failures, permissions, and recovery go to Governance & Audit'),
         ],
       );
@@ -1262,8 +1260,8 @@ class _SettingsProvidersStorageViewState
         redisTested = false;
         redisStatus = 'desktop_runtime_required';
         redisDetail = zh
-            ? '真实 Redis 连接测试需要 Windows EXE 桌面端。'
-            : 'Real Redis test requires the Windows desktop runtime.';
+            ? '真实专业记忆连接测试需要 Windows EXE 桌面端。'
+            : 'Real professional memory test requires the Windows desktop runtime.';
       });
       return;
     }
@@ -1273,7 +1271,9 @@ class _SettingsProvidersStorageViewState
         storageTested = true;
         redisTested = false;
         redisStatus = 'invalid_port';
-        redisDetail = zh ? 'Redis 端口必须是正整数。' : 'Redis port must be positive.';
+        redisDetail = zh
+            ? '专业短期记忆端口必须是正整数。'
+            : 'Professional short-term memory port must be positive.';
       });
       return;
     }
@@ -1305,8 +1305,8 @@ class _SettingsProvidersStorageViewState
         qdrantTested = false;
         qdrantStatus = 'desktop_runtime_required';
         qdrantDetail = zh
-            ? '真实 Qdrant 连接测试需要 Windows EXE 桌面端。'
-            : 'Real Qdrant test requires the Windows desktop runtime.';
+            ? '真实知识记忆连接测试需要 Windows EXE 桌面端。'
+            : 'Real knowledge memory test requires the Windows desktop runtime.';
       });
       return;
     }
@@ -1316,8 +1316,9 @@ class _SettingsProvidersStorageViewState
         storageTested = true;
         qdrantTested = false;
         qdrantStatus = 'invalid_dimension';
-        qdrantDetail =
-            zh ? 'Qdrant 向量维度必须是正整数。' : 'Qdrant dimension must be positive.';
+        qdrantDetail = zh
+            ? '知识记忆维度必须是正整数。'
+            : 'Knowledge memory dimension must be positive.';
       });
       return;
     }
@@ -1369,7 +1370,9 @@ class _SettingsProvidersStorageViewState
         configSaved = false;
         storageTested = true;
         redisStatus = 'invalid_port';
-        redisDetail = zh ? 'Redis 端口必须是正整数。' : 'Redis port must be positive.';
+        redisDetail = zh
+            ? '专业短期记忆端口必须是正整数。'
+            : 'Professional short-term memory port must be positive.';
       });
       return;
     }
@@ -1378,8 +1381,9 @@ class _SettingsProvidersStorageViewState
         configSaved = false;
         storageTested = true;
         qdrantStatus = 'invalid_dimension';
-        qdrantDetail =
-            zh ? 'Qdrant 向量维度必须是正整数。' : 'Qdrant dimension must be positive.';
+        qdrantDetail = zh
+            ? '知识记忆维度必须是正整数。'
+            : 'Knowledge memory dimension must be positive.';
       });
       return;
     }
@@ -1412,13 +1416,15 @@ class _SettingsProvidersStorageViewState
     final details = <String>[
       if (savedConfigPath.isNotEmpty)
         zh ? '配置文件：$savedConfigPath' : 'Config file: $savedConfigPath',
-      if (redisDetail.isNotEmpty) 'Redis: $redisDetail',
-      if (qdrantDetail.isNotEmpty) 'Qdrant: $qdrantDetail',
+      if (redisDetail.isNotEmpty)
+        '${zh ? '专业短期记忆' : 'Short-term memory'}: $redisDetail',
+      if (qdrantDetail.isNotEmpty)
+        '${zh ? '知识记忆' : 'Knowledge memory'}: $qdrantDetail',
     ];
     if (details.isEmpty) {
       return zh
-          ? 'Redis 密码和 Qdrant API Key 只以掩码输入；测试失败不会展示明文 secret。'
-          : 'Redis password and Qdrant API key remain masked; failed tests never show plaintext secrets.';
+          ? '记忆服务密钥只以掩码输入；测试失败不会展示明文密钥。'
+          : 'Memory service secrets remain masked; failed tests never show plaintext secrets.';
     }
     return details.join('\n');
   }
@@ -1430,7 +1436,7 @@ class _SettingsProvidersStorageViewState
       final providers = _ProductPanel(
         keyName: 'settings-provider-storage',
         icon: Icons.storage_outlined,
-        title: zh ? 'Provider 与存储配置' : 'Providers and Storage Config',
+        title: zh ? '记忆与存储配置' : 'Memory and Storage Config',
         gap: true,
         children: [
           _ProductTable(
@@ -1442,7 +1448,7 @@ class _SettingsProvidersStorageViewState
                     ['应用工作区', widget.workspace, '本地可用', '可用'],
                     ['对象存储', '本地文件系统', '本地可用', '可用'],
                     [
-                      'Redis',
+                      '专业短期记忆',
                       '${_redisHostController.text}:${_redisPortController.text} / ${_redisPrefixController.text}',
                       redisTested
                           ? 'PING / 写读删通过'
@@ -1450,15 +1456,15 @@ class _SettingsProvidersStorageViewState
                       redisTested ? '可用' : '已配置'
                     ],
                     [
-                      'Qdrant',
+                      '知识记忆',
                       '${_qdrantEndpointController.text} / ${_qdrantCollectionController.text}',
                       qdrantTested
                           ? '健康检查 / collection / 向量探针通过'
                           : _storageStatusLabel(qdrantStatus, zh),
                       qdrantTested ? '可用' : '已配置'
                     ],
-                    ['向量数据库', '本地文件索引 + Qdrant 可选', '本地索引可用', '可用'],
-                    ['LLM Provider', '环境变量', 'live smoke 通过', '可用'],
+                    ['知识库索引', '本地文件索引 + 专业服务可选', '本地索引可用', '可用'],
+                    ['模型服务', '环境变量', '连接复验通过', '可用'],
                     ['API Key', '************', '掩码展示', '已保护'],
                   ]
                 : [
@@ -1475,7 +1481,7 @@ class _SettingsProvidersStorageViewState
                       'Available'
                     ],
                     [
-                      'Redis',
+                      'Professional short-term memory',
                       '${_redisHostController.text}:${_redisPortController.text} / ${_redisPrefixController.text}',
                       redisTested
                           ? 'PING / write-read-delete passed'
@@ -1483,7 +1489,7 @@ class _SettingsProvidersStorageViewState
                       redisTested ? 'Available' : 'Configured'
                     ],
                     [
-                      'Qdrant',
+                      'Knowledge memory',
                       '${_qdrantEndpointController.text} / ${_qdrantCollectionController.text}',
                       qdrantTested
                           ? 'Health / collection / vector probe passed'
@@ -1491,13 +1497,13 @@ class _SettingsProvidersStorageViewState
                       qdrantTested ? 'Available' : 'Configured'
                     ],
                     [
-                      'Vector DB',
-                      'Local file index + optional Qdrant',
+                      'Knowledge base index',
+                      'Local file index + optional professional service',
                       'Local index available',
                       'Available'
                     ],
                     [
-                      'LLM Provider',
+                      'Model service',
                       'Environment variables',
                       'Live smoke passed',
                       'Available'
@@ -1506,7 +1512,7 @@ class _SettingsProvidersStorageViewState
                   ],
           ),
           const SizedBox(height: 8),
-          _SectionCaption(zh ? 'Redis 记忆缓存' : 'Redis memory cache'),
+          _SectionCaption(zh ? '专业短期记忆' : 'Professional short-term memory'),
           const SizedBox(height: 6),
           _SettingsConnectionForm(
             zh: zh,
@@ -1522,7 +1528,7 @@ class _SettingsProvidersStorageViewState
             ],
           ),
           const SizedBox(height: 8),
-          _SectionCaption(zh ? 'Qdrant 知识库检索' : 'Qdrant KB retrieval'),
+          _SectionCaption(zh ? '知识记忆服务' : 'Knowledge memory service'),
           const SizedBox(height: 6),
           _SettingsConnectionForm(
             zh: zh,
@@ -1548,8 +1554,8 @@ class _SettingsProvidersStorageViewState
             ),
             _PrimaryProductAction(
               label: redisTesting
-                  ? (zh ? '正在测试 Redis' : 'Testing Redis')
-                  : (zh ? '测试 Redis 连接' : 'Test Redis connection'),
+                  ? (zh ? '正在测试短期记忆' : 'Testing short-term memory')
+                  : (zh ? '测试短期记忆连接' : 'Test short-term memory connection'),
               icon: Icons.cable_outlined,
               onPressed: redisTesting ? null : _testRedisConnection,
             ),
@@ -1558,8 +1564,8 @@ class _SettingsProvidersStorageViewState
           _EqualActionRow(children: [
             _PrimaryProductAction(
               label: qdrantTesting
-                  ? (zh ? '正在测试 Qdrant' : 'Testing Qdrant')
-                  : (zh ? '测试 Qdrant 连接' : 'Test Qdrant connection'),
+                  ? (zh ? '正在测试知识记忆' : 'Testing knowledge memory')
+                  : (zh ? '测试知识记忆连接' : 'Test knowledge memory connection'),
               icon: Icons.hub_outlined,
               onPressed: qdrantTesting ? null : _testQdrantConnection,
             ),
@@ -1594,17 +1600,15 @@ class _SettingsProvidersStorageViewState
       final detail = _ProductPanel(
         keyName: 'settings-provider-detail',
         icon: Icons.tune_outlined,
-        title: zh ? '导出器与授权状态' : 'Exporter and Authorization Status',
+        title: zh ? '导出工具与授权状态' : 'Export Tool and Authorization Status',
         gap: true,
         children: [
           _FieldRow(
-              label: zh ? 'Provider 状态' : 'Provider status',
-              value: zh
-                  ? '真实 live smoke 复验已通过'
-                  : 'Real live-smoke reacceptance passed'),
+              label: zh ? '连接状态' : 'Connection status',
+              value: zh ? '真实连接复验已通过' : 'Real connection reacceptance passed'),
           const SizedBox(height: 8),
           _FieldRow(
-              label: zh ? 'Secret 展示' : 'Secret display',
+              label: zh ? '密钥展示' : 'Secret display',
               value: zh ? '只显示掩码，不直接展示明文' : 'Masked only, plaintext hidden'),
           const SizedBox(height: 8),
           _FieldRow(
@@ -1617,7 +1621,7 @@ class _SettingsProvidersStorageViewState
                       ? 'Loading workspace config'
                       : 'When Docker is not running, show configured-not-tested; never connected'),
           const SizedBox(height: 8),
-          _SectionCaption(zh ? '文档导出器' : 'Document exporters'),
+          _SectionCaption(zh ? '文档导出工具' : 'Document export tools'),
           const SizedBox(height: 6),
           _ProductTable(
             columns: zh
@@ -1625,11 +1629,11 @@ class _SettingsProvidersStorageViewState
                 : ['Format', 'Status', 'Config entry'],
             rows: zh
                 ? [
-                    ['Markdown', '本地可用', '无需外部导出器'],
-                    ['JSON / CSV', '本地可用', '无需外部导出器'],
-                    ['DOCX', '需要导出器配置', '配置导出器后启用'],
-                    ['PDF', '需要导出器配置', '配置导出器后启用'],
-                    ['PPTX', '需要导出器配置', '配置导出器后启用'],
+                    ['Markdown', '本地可用', '无需外部导出工具'],
+                    ['JSON / CSV', '本地可用', '无需外部导出工具'],
+                    ['DOCX', '需要设置导出工具', '配置后启用'],
+                    ['PDF', '需要设置导出工具', '配置后启用'],
+                    ['PPTX', '需要设置导出工具', '配置后启用'],
                   ]
                 : [
                     ['Markdown', 'Local available', 'No external exporter'],
@@ -1670,7 +1674,7 @@ String _storageStatusLabel(String status, bool zh) {
     'configured_not_tested' => zh ? '已配置未测试' : 'Configured, not tested',
     'desktop_runtime_required' =>
       zh ? '需要 Windows EXE 测试' : 'Desktop runtime required',
-    'missing_password' => zh ? '缺少 Redis 密码' : 'Redis password missing',
+    'missing_password' => zh ? '缺少记忆服务密码' : 'Memory service password missing',
     'auth_failed' => zh ? '鉴权失败' : 'Authentication failed',
     'invalid_endpoint' => zh ? 'Endpoint 无效' : 'Invalid endpoint',
     'invalid_dimension' => zh ? '维度无效' : 'Invalid dimension',
@@ -1800,7 +1804,7 @@ class _SettingsWorkspaceView extends StatelessWidget {
                     ['工作区根目录', workspace, '可用'],
                     ['输出目录', '当前用户工作区', '可用'],
                     ['文档缓存', './data/documents', '本地路径'],
-                    ['向量索引目录', './data/vector', '本地索引'],
+                    ['检索数据目录', './data/vector', '本地检索'],
                   ]
                 : [
                     ['Workspace root', workspace, 'Available'],
@@ -1822,15 +1826,10 @@ class _SettingsWorkspaceView extends StatelessWidget {
                 : ['Asset', 'Type', 'Status', 'Note'],
             rows: zh
                 ? [
-                    ['来源文档', 'Document', '已登记', '文档库管理'],
-                    ['知识库', 'Knowledge Base', '已登记', '知识库管理'],
-                    ['Skill 草稿', 'Skill', '已登记', 'Skill 工厂管理'],
-                    [
-                      'Agent Creation Package',
-                      'Agent Package',
-                      '已登记',
-                      'Agent 工作台管理'
-                    ],
+                    ['来源文档', '文档', '已登记', '文档库管理'],
+                    ['知识库', '知识库', '已登记', '知识库管理'],
+                    ['技能草稿', '技能', '已登记', '技能生成管理'],
+                    ['助手创建包', '助手包', '已登记', '我的助手管理'],
                   ]
                 : [
                     [
@@ -1845,12 +1844,12 @@ class _SettingsWorkspaceView extends StatelessWidget {
                       'Registered',
                       'Knowledge module'
                     ],
-                    ['Skill draft', 'Skill', 'Registered', 'Skill Factory'],
+                    ['Skill draft', 'Skill', 'Registered', 'Skill Builder'],
                     [
-                      'Agent Creation Package',
-                      'Agent Package',
+                      'Assistant package',
+                      'Assistant package',
                       'Registered',
-                      'Agent Workbench'
+                      'My Assistants'
                     ],
                   ],
           ),
@@ -1899,7 +1898,7 @@ class _SettingsWorkspaceView extends StatelessWidget {
               value: zh ? '不访问外网' : 'No external network by default'),
           const SizedBox(height: 8),
           _FieldRow(
-              label: zh ? 'Secret' : 'Secret',
+              label: zh ? '密钥' : 'Secret',
               value: zh ? '不直接展示明文' : 'Plaintext is never shown'),
         ],
       );

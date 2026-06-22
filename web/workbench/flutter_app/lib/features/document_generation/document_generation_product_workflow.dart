@@ -27,8 +27,8 @@ class _DocumentProductWorkflow extends StatelessWidget {
           icon: Icons.description_outlined,
           title: _zh ? '文档生成' : 'Document Generation',
           description: _zh
-              ? '从知识库生成报告、手册、教案、PPTX 教学材料和自定义模板草稿。'
-              : 'Generate reports, manuals, teaching material, PPTX lessons, and custom template drafts from Knowledge Bases.',
+              ? '从知识库生成文档草稿，保存编辑，并导出已配置格式。'
+              : 'Generate document drafts from Knowledge Bases, save edits, and export configured formats.',
         ),
         const SizedBox(height: _DesktopGrid.gutter),
         _PageTabs(
@@ -82,10 +82,11 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
         : runtime.hasKnowledgeBase
             ? (zh ? '可生成' : 'Ready')
             : (zh ? '需要知识库' : 'Needs KB');
-    final officeExporterStatus = zh ? '需要导出器配置' : 'Exporter config required';
+    final officeExporterStatus = zh ? '需要设置导出工具' : 'Export tool setup required';
     final officeExporterDetail = zh ? '在设置启用后可导出' : 'Enable in Settings';
-    final exporterAuditReady = runtime.exporterValidationReportPath.isNotEmpty ||
-        runtime.hasProviderCapabilityUserCatalog;
+    final exporterAuditReady =
+        runtime.exporterValidationReportPath.isNotEmpty ||
+            runtime.hasProviderCapabilityUserCatalog;
     final markdownCapabilityStatus = runtime.hasKnowledgeBase
         ? (zh ? 'Markdown 可生成' : 'Markdown available')
         : (zh ? '需要知识库' : 'Needs KB');
@@ -226,7 +227,7 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                               [
                                 '模板模式',
                                 _templateModeLabel(templateMode, zh),
-                                templateMode == 'agent' ? '使用内置 Agent 题材' : '可用'
+                                templateMode == 'agent' ? '使用内置助手题材' : '可用'
                               ],
                               [
                                 '输出格式',
@@ -235,7 +236,11 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                               ],
                               ['Markdown', '默认输出', markdownCapabilityStatus],
                               ['JSON / CSV', '结构化导出', structuredExportStatus],
-                              ['DOCX / PDF / PPTX', 'Office 导出器', officeCapabilityStatus],
+                              [
+                                'DOCX / PDF / PPTX',
+                                'Office 导出工具',
+                                officeCapabilityStatus
+                              ],
                               [
                                 '引用策略',
                                 _citationStrategyLabel(citationStrategy, zh),
@@ -348,7 +353,7 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
               ),
               bottom: _EqualActionRow(children: [
                 _PrimaryProductAction(
-                  label: zh ? '生成 Markdown' : 'Generate Markdown',
+                  label: zh ? '生成文档' : 'Generate Document',
                   icon: Icons.notes_outlined,
                   onPressed: runtime.running || rc6 == null
                       ? null
@@ -370,8 +375,9 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                     _MoreMenuAction(
                       label: zh ? '导出 Markdown' : 'Export Markdown',
                       icon: Icons.download_outlined,
-                      enabled:
-                          rc6 != null && !runtime.running && runtime.hasMarkdown,
+                      enabled: rc6 != null &&
+                          !runtime.running &&
+                          runtime.hasMarkdown,
                       onSelected: () => rc6?.exportMarkdownDocument(),
                     ),
                     _MoreMenuAction(
@@ -510,9 +516,7 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                     ],
                     [
                       '大纲',
-                      runtime.documentOutlinePath.isNotEmpty
-                          ? '已生成'
-                          : '等待生成',
+                      runtime.documentOutlinePath.isNotEmpty ? '已生成' : '等待生成',
                       '文档结构'
                     ],
                     [
@@ -613,8 +617,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
           _FieldRow(
             label: zh ? '导出边界' : 'Export boundary',
             value: zh
-                ? 'Markdown、JSON、CSV 为本地导出；DOCX/PDF/PPTX 需要导出器配置。'
-                : 'Markdown, JSON, and CSV export locally; DOCX/PDF/PPTX require exporter config.',
+                ? 'Markdown、JSON、CSV 为本地导出；DOCX/PDF/PPTX 需要先设置导出工具。'
+                : 'Markdown, JSON, and CSV export locally; DOCX/PDF/PPTX require export tool setup.',
           ),
         ],
       );
@@ -839,7 +843,7 @@ String _documentGenerationTypeLabel(String value, bool zh) {
 String _templateModeLabel(String value, bool zh) {
   return switch (value) {
     'custom' => zh ? '自定义模板' : 'Custom template',
-    'agent' => zh ? '内置 Agent 题材' : 'Built-in agent genre',
+    'agent' => zh ? '内置助手题材' : 'Built-in assistant genre',
     _ => zh ? '通用内置模板' : 'Built-in template',
   };
 }
@@ -847,7 +851,7 @@ String _templateModeLabel(String value, bool zh) {
 String _citationStrategyLabel(String value, bool zh) {
   return switch (value) {
     'strict_citation' => zh ? '严格引用' : 'Strict citation',
-    'filename_and_chunk' => zh ? '文件名 + Chunk' : 'Filename + chunk',
+    'filename_and_chunk' => zh ? '文件名 + 片段' : 'Filename + segment',
     _ => zh ? '来源文件名' : 'Source filename',
   };
 }
@@ -1032,10 +1036,10 @@ class _DocumentExportPreviewViewState
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
-    final officeExporterStatus = zh ? '需要导出器配置' : 'Exporter config required';
+    final officeExporterStatus = zh ? '需要设置导出工具' : 'Export tool setup required';
     final officeExporterValidation = zh ? '未启用' : 'Not enabled';
     final officeExporterArtifact =
-        zh ? '在设置启用导出器' : 'Enable exporter in Settings';
+        zh ? '在设置启用导出工具' : 'Enable export tools in Settings';
 
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= _DesktopGrid.rowBreakpoint;
@@ -1045,8 +1049,8 @@ class _DocumentExportPreviewViewState
         title: zh ? '文档导出' : 'Document Export',
         children: [
           _SectionCaption(zh
-              ? 'Markdown、JSON、CSV 通过本地工作区真实导出；DOCX/PDF/PPTX 需要在设置启用导出器。'
-              : 'Markdown, JSON, and CSV export through the local workspace; DOCX/PDF/PPTX require exporters in Settings.'),
+              ? 'Markdown、JSON、CSV 通过本地工作区真实导出；DOCX/PDF/PPTX 需要在设置启用导出工具。'
+              : 'Markdown, JSON, and CSV export through the local workspace; DOCX/PDF/PPTX require export tools in Settings.'),
           const SizedBox(height: 8),
           _ProductTable(
             columns: zh

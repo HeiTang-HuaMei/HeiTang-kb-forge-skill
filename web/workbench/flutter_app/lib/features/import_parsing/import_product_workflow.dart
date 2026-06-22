@@ -239,13 +239,13 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
     final hasRealImport = runtime.hasImportedFile;
     final capabilityAuditReady = runtime.hasProviderCapabilityUserCatalog;
     final parserCapabilityStatus = runtime.parseReportPath.isNotEmpty
-        ? (_zh ? '已连接当前解析能力' : 'Current parser connected')
+        ? (_zh ? '已整理' : 'Organized')
         : capabilityAuditReady
-            ? (_zh ? '已配置，等待解析' : 'Configured, waiting parse')
-            : (_zh ? '使用本地解析' : 'Using local parser');
+            ? (_zh ? '已配置，等待整理' : 'Configured, waiting organization')
+            : (_zh ? '使用本地模式' : 'Using local mode');
     final ocrCapabilityStatus = capabilityAuditReady
-        ? (_zh ? '按当前配置可切换' : 'Configurable in current profile')
-        : (_zh ? '未配置，图片走本地降级' : 'Not configured, local fallback');
+        ? (_zh ? '按当前配置可用' : 'Available in current profile')
+        : (_zh ? '未配置，使用本地模式' : 'Not configured, local mode');
     final webImportStatus = capabilityAuditReady
         ? (_zh ? '按网络授权显示' : 'Controlled by network authorization')
         : (_zh ? '本地资料可用' : 'Local sources available');
@@ -254,10 +254,10 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
       children: [
         _ProductHeader(
           icon: Icons.upload_file_outlined,
-          title: _zh ? '导入与解析' : 'Import and Parsing',
+          title: _zh ? '添加与整理资料' : 'Add and Organize Materials',
           description: _zh
-              ? '文件、文件夹与网页链接进入同一队列；解析器、OCR、分块和失败恢复在本页完成。'
-              : 'Files, folders, and web links enter one queue; parser, OCR, chunking, and recovery are handled here.',
+              ? '文件、文件夹与网页链接进入同一队列；整理资料和失败恢复在本页完成。'
+              : 'Files, folders, and web links enter one queue; organization and recovery are handled here.',
           trailing: _StatePill(
             label: widget.isWebRuntime
                 ? (_zh ? 'Web 预览模式' : 'Web preview mode')
@@ -276,13 +276,15 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                     : (_zh ? '等待导入' : 'waiting'),
                 icon: Icons.file_present_outlined),
             _MetricDatum(
-                label: _zh ? '解析状态' : 'Parse status',
+                label: _zh ? '整理状态' : 'Organization status',
                 value: runtime.parseReportPath.isNotEmpty
                     ? (_zh ? '已完成' : 'Done')
-                    : (_zh ? '未解析' : 'Pending'),
+                    : (_zh ? '待整理' : 'Waiting'),
                 detail: runtime.chunkCount > 0
-                    ? '${runtime.chunkCount} chunks'
-                    : (_zh ? '等待解析' : 'waiting'),
+                    ? (_zh
+                        ? '${runtime.chunkCount} 个片段'
+                        : '${runtime.chunkCount} segments')
+                    : (_zh ? '等待整理' : 'waiting'),
                 icon: Icons.document_scanner_outlined),
           ],
         ),
@@ -308,11 +310,11 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
             keyName: 'import-intake-surface',
             accent: true,
             icon: Icons.folder_open_outlined,
-            title: _zh ? '来源入口' : 'Source Intake',
+            title: _zh ? '资料入口' : 'Material Intake',
             minHeight: 410,
             children: [
               _PrimaryProductAction(
-                label: _zh ? '选择来源' : 'Choose source',
+                label: _zh ? '添加资料' : 'Add materials',
                 onPressed: runtime.running || rc6 == null
                     ? null
                     : () => _chooseSource(rc6),
@@ -327,11 +329,11 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                           : 0.12),
               const SizedBox(height: 8),
               _PrimaryProductAction(
-                label: _zh ? '解析 / OCR / Chunking' : 'Parse / OCR / Chunking',
-                onPressed: runtime.running || rc6 == null
-                        || !runtime.hasImportedFile
-                    ? null
-                    : () => rc6.parseAndChunkSources(),
+                label: _zh ? '整理资料' : 'Organize materials',
+                onPressed:
+                    runtime.running || rc6 == null || !runtime.hasImportedFile
+                        ? null
+                        : () => rc6.parseAndChunkSources(),
                 icon: Icons.document_scanner_outlined,
               ),
             ],
@@ -339,12 +341,12 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
           final queue = _ProductPanel(
             keyName: 'import-queue',
             icon: Icons.list_alt_outlined,
-            title: _zh ? '文件队列与进度' : 'File Queue and Progress',
+            title: _zh ? '资料队列与进度' : 'Material Queue and Progress',
             minHeight: 326,
             children: [
               _ProductTable(
                 columns: _zh
-                    ? ['文件', '来源类型', '处理状态', '状态', '失败恢复', '输出产物']
+                    ? ['资料', '来源类型', '处理状态', '状态', '失败恢复', '输出结果']
                     : [
                         'File',
                         'Source type',
@@ -367,12 +369,12 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                         ],
                         if (hasManifest)
                           [
-                            '解析 / OCR / Chunking',
-                            '本地解析',
+                            '整理资料',
+                            '本地模式',
                             runtime.parseReportPath.isNotEmpty ? '已完成' : '处理中',
-                            runtime.parseReportPath.isNotEmpty ? '已解析' : '排队',
+                            runtime.parseReportPath.isNotEmpty ? '已整理' : '排队',
                             '失败可重试',
-                            '解析结果'
+                            '整理结果'
                           ],
                       ]
                     : [
@@ -388,18 +390,18 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                         ],
                         if (hasManifest)
                           [
-                            'Parse / OCR / Chunking',
-                            'Local parser',
+                            'Organize materials',
+                            'Local mode',
                             runtime.parseReportPath.isNotEmpty
                                 ? 'Done'
                                 : 'Running',
                             runtime.parseReportPath.isNotEmpty
-                                ? 'Parsed'
+                                ? 'Organized'
                                 : 'Queued',
                             'Retryable on failure',
-                            'Parse results'
+                            'Organized results'
                           ],
-                    ],
+                      ],
               ),
               const SizedBox(height: _DesktopGrid.gutter),
               _ProductTable(
@@ -408,20 +410,20 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                     : ['Capability', 'Current status', 'User result'],
                 rows: _zh
                     ? [
-                        ['Parser', parserCapabilityStatus, '解析后进入文档库'],
-                        ['OCR', ocrCapabilityStatus, '图片文本随解析记录留痕'],
+                        ['资料整理', parserCapabilityStatus, '整理后进入文档库'],
+                        ['图片文字识别', ocrCapabilityStatus, '图片文本随整理记录留痕'],
                         ['网页导入', webImportStatus, '关闭时本地导入不受影响'],
                       ]
                     : [
                         [
-                          'Parser',
+                          'Material organization',
                           parserCapabilityStatus,
-                          'Parsed content enters the library'
+                          'Organized content enters the library'
                         ],
                         [
-                          'OCR',
+                          'Image text recognition',
                           ocrCapabilityStatus,
-                          'Image text is recorded with parsing'
+                          'Image text is recorded with organization'
                         ],
                         [
                           'Web import',
@@ -450,11 +452,13 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                         [
                           '解析结果',
                           runtime.parseReportPath.isNotEmpty ? '已生成' : '等待',
-                          runtime.chunkCount > 0 ? '${runtime.chunkCount} chunks' : '等待解析'
+                          runtime.chunkCount > 0
+                              ? '${runtime.chunkCount} 个片段'
+                              : '等待整理'
                         ],
                         [
                           '失败恢复',
-                          hasManifest ? '可重试 / 可跳过 / 可查看错误' : '等待解析',
+                          hasManifest ? '可重试 / 可跳过 / 可查看错误' : '等待整理',
                           '恢复操作'
                         ],
                         ['下一阶段', '文档库', '来源文档管理'],
@@ -471,8 +475,8 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                               ? 'Written'
                               : 'Waiting',
                           runtime.chunkCount > 0
-                              ? '${runtime.chunkCount} chunks'
-                              : 'Waiting parse'
+                              ? '${runtime.chunkCount} segments'
+                              : 'Waiting organization'
                         ],
                         [
                           'Failure recovery',

@@ -62,7 +62,7 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-document-library')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.text('导入与解析'), findsWidgets);
+    expect(find.text('添加资料'), findsWidgets);
     expect(find.byKey(const Key('document-library-tab-1')), findsOneWidget);
     expect(find.byKey(const Key('import-intake-surface')), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -78,9 +78,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('设置'), findsWidgets);
-    expect(find.text('Provider / 模型'), findsOneWidget);
-    expect(find.text('Redis / 向量库'), findsOneWidget);
-    expect(find.text('导出器'), findsOneWidget);
+    expect(find.text('模型服务'), findsOneWidget);
+    expect(find.text('记忆与存储'), findsOneWidget);
+    expect(find.text('导出工具'), findsOneWidget);
     expect(find.text('网络与安全'), findsOneWidget);
     expect(find.text('配置系统'), findsNothing);
     expect(find.text('桌面交付'), findsNothing);
@@ -115,7 +115,7 @@ void main() {
     await tester.tap(find.byKey(const Key('sidebar-workspace')),
         warnIfMissed: false);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Redis / 向量库').first, warnIfMissed: false);
+    await tester.tap(find.text('记忆与存储').first, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('settings-provider-storage')), findsOneWidget);
     expect(
@@ -145,7 +145,7 @@ void main() {
     await tester.tap(find.byKey(const Key('page-tab-1')), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
-    expect(find.text('单 Agent'), findsOneWidget);
+    expect(find.text('单个助手'), findsOneWidget);
     expect(find.textContaining('安全边界'), findsNothing);
     expect(find.textContaining('disabled_boundary'), findsNothing);
     expect(find.textContaining('arbitrary shell'), findsNothing);

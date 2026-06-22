@@ -27,7 +27,7 @@ class _ArtifactCenterProductWorkflowState
     if (!mounted || manifestPath.trim().isEmpty) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_zh ? '产物已导出' : 'Artifact exported'),
+        content: Text(_zh ? '成果已导出' : 'Output exported'),
       ),
     );
   }
@@ -37,7 +37,7 @@ class _ArtifactCenterProductWorkflowState
     if (rc6 == null || rc6.state.running || item.path.trim().isEmpty) return;
     final confirmed = await _confirmDestructiveAction(
       context,
-      title: _zh ? '删除产物记录？' : 'Delete artifact record?',
+      title: _zh ? '删除成果记录？' : 'Delete output record?',
       body: _zh
           ? '这会删除“${item.label}”所属业务阶段的真实产物记录；不会按任意文件路径删除工作区外内容。'
           : 'This deletes the real artifacts for the business stage that owns "${item.label}"; it never deletes arbitrary paths outside the workspace.',
@@ -76,22 +76,22 @@ class _ArtifactCenterProductWorkflowState
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.folder_copy_outlined,
-        title: _zh ? '产物中心' : 'Artifact Center',
+        title: _zh ? '成果中心' : 'Artifact Center',
         description: _zh
-            ? '集中查看真实工作区中已经生成的文档、知识库、检索、Skill、Agent 和对话产物。'
-            : 'Browse generated document, KB, retrieval, Skill, Agent, and dialogue artifacts from the real workspace.',
+            ? '集中查看真实工作区中已经生成的文档、知识库、检索、技能、助手和对话成果。'
+            : 'Browse generated document, KB, retrieval, skill, assistant, and dialogue artifacts from the real workspace.',
       ),
       const SizedBox(height: _DesktopGrid.gutter),
       _MetricStrip(
         items: [
           _MetricDatum(
-            label: _zh ? '已生成产物' : 'Generated',
+            label: _zh ? '已生成成果' : 'Generated',
             value: '$generatedCount',
             detail: _zh ? '来自真实运行状态' : 'From runtime state',
             icon: Icons.task_alt_outlined,
           ),
           _MetricDatum(
-            label: _zh ? '产物分类' : 'Categories',
+            label: _zh ? '成果分类' : 'Categories',
             value: '$categories',
             detail: _zh ? '文档 / 知识库 / 应用' : 'Docs / KB / apps',
             icon: Icons.category_outlined,
@@ -105,7 +105,7 @@ class _ArtifactCenterProductWorkflowState
             icon: Icons.article_outlined,
           ),
           _MetricDatum(
-            label: _zh ? '知识库 chunks' : 'KB chunks',
+            label: _zh ? '知识库片段' : 'KB segments',
             value: '${runtime.chunkCount}',
             detail: runtime.hasKnowledgeBase
                 ? (_zh ? '可检索' : 'Searchable')
@@ -120,7 +120,7 @@ class _ArtifactCenterProductWorkflowState
         final catalog = _ProductPanel(
           keyName: 'artifact-center-catalog',
           icon: Icons.inventory_2_outlined,
-          title: _zh ? '产物清单' : 'Artifact Catalog',
+          title: _zh ? '成果清单' : 'Output Catalog',
           subtitle: runtime.workspacePath.isEmpty
               ? (_zh ? '等待工作区初始化' : 'Waiting for workspace')
               : (_zh ? '用户工作区' : 'User workspace'),
@@ -156,7 +156,7 @@ class _ArtifactCenterProductWorkflowState
         final detail = _ProductPanel(
           keyName: 'artifact-center-detail',
           icon: Icons.article_outlined,
-          title: _zh ? '产物详情' : 'Artifact Detail',
+          title: _zh ? '成果详情' : 'Output Detail',
           children: [
             _FieldRow(
               label: _zh ? '分类' : 'Category',
@@ -164,7 +164,7 @@ class _ArtifactCenterProductWorkflowState
             ),
             const SizedBox(height: 8),
             _FieldRow(
-              label: _zh ? '产物' : 'Artifact',
+              label: _zh ? '成果' : 'Output',
               value: selected?.label ?? '-',
             ),
             const SizedBox(height: 8),
@@ -188,7 +188,7 @@ class _ArtifactCenterProductWorkflowState
                     ? (_zh ? '打开产物' : 'Open artifact')
                     : selected != null && selected.path.trim().isNotEmpty
                         ? (_zh ? '目录产物' : 'Folder artifact')
-                        : (_zh ? '等待产物' : 'Waiting for artifact'),
+                        : (_zh ? '等待成果' : 'Waiting for output'),
                 icon: Icons.visibility_outlined,
                 onPressed: canPreview
                     ? () => _showWorkspaceArtifactPreview(
@@ -206,8 +206,8 @@ class _ArtifactCenterProductWorkflowState
                 key: const Key('artifact-center-export-selected'),
                 child: _DisplayAction(
                   label: selected != null && selected.path.trim().isNotEmpty
-                      ? (_zh ? '导出选中产物' : 'Export selected artifact')
-                      : (_zh ? '等待可导出产物' : 'Waiting for exportable artifact'),
+                      ? (_zh ? '导出选中成果' : 'Export selected output')
+                      : (_zh ? '等待可导出成果' : 'Waiting for exportable output'),
                   icon: Icons.file_download_outlined,
                   onPressed: selected != null &&
                           selected.path.trim().isNotEmpty &&
@@ -219,8 +219,8 @@ class _ArtifactCenterProductWorkflowState
               ),
               _DisplayAction(
                 label: selected != null && selected.path.trim().isNotEmpty
-                    ? (_zh ? '删除产物记录' : 'Delete artifact record')
-                    : (_zh ? '等待可删除产物' : 'Waiting for deletable artifact'),
+                    ? (_zh ? '删除成果记录' : 'Delete output record')
+                    : (_zh ? '等待可删除成果' : 'Waiting for deletable output'),
                 icon: Icons.delete_outline,
                 onPressed: selected != null &&
                         selected.path.trim().isNotEmpty &&
@@ -283,7 +283,7 @@ List<_ArtifactCenterItem> _artifactCenterItems(
   return [
     item('文档库', 'Document Library', '来源文档', 'Source documents', 'source',
         runtime.sourceManifestPath, 'import'),
-    item('文档库', 'Document Library', '解析结果', 'Parse results', 'parse',
+    item('文档库', 'Document Library', '整理结果', 'Organized results', 'organized',
         runtime.parseReportPath, 'parse'),
     item('标准知识包', 'Standard Package', '标准知识包', 'Standard package', 'package',
         runtime.standardKnowledgePackageManifestPath, 'standard-package'),
@@ -291,10 +291,10 @@ List<_ArtifactCenterItem> _artifactCenterItems(
         runtime.kbManifestPath, 'kb'),
     item('知识库', 'Knowledge Base', '索引与质量记录', 'Index and quality records',
         'quality', runtime.qualityReportPath, 'kb'),
-    item('检索验证', 'Retrieval', '检索结果', 'Retrieval result', 'retrieval',
+    item('测试知识库', 'Retrieval', '检索结果', 'Retrieval result', 'retrieval',
         runtime.queryResultPath, 'search'),
     item(
-        '检索验证',
+        '测试知识库',
         'Retrieval',
         '验证报告',
         'Validation report',
@@ -309,35 +309,29 @@ List<_ArtifactCenterItem> _artifactCenterItems(
         runtime.readingNotesPath, 'doc'),
     item('文档生成', 'Document Generation', '导出文档', 'Exported document', 'export',
         runtime.exportedDocumentPath, 'doc'),
-    item('Skill 工厂', 'Skill Factory', 'Skill 草稿', 'Skill draft', 'skill',
+    item('技能生成', 'Skill Builder', '技能草稿', 'Skill draft', 'skill',
         runtime.primarySkillPath, 'skill'),
-    item('Skill 工厂', 'Skill Factory', 'Skill 验证报告', 'Skill validation report',
+    item('技能生成', 'Skill Builder', '技能验证报告', 'Skill validation report',
         'validation', runtime.skillVerificationReportPath, 'skill'),
-    item('Skill 工厂', 'Skill Factory', 'Skill 导出包', 'Skill export package',
+    item('技能生成', 'Skill Builder', '技能导出包', 'Skill export package',
         'skill export', runtime.skillExportPath, 'skill'),
-    item('Agent 工作台', 'Agent Workbench', 'Agent', 'Agent', 'agent',
+    item('我的助手', 'My Assistants', '助手', 'Assistant', 'assistant',
         runtime.primaryAgentManifestPath, 'agent'),
-    item('Agent 工作台', 'Agent Workbench', 'Agent 对话记录', 'Agent dialogue', 'chat',
+    item('我的助手', 'My Assistants', '助手对话记录', 'Assistant dialogue', 'chat',
         runtime.agentDialoguePath, 'agent'),
-    item('Agent 工作台', 'Agent Workbench', 'Agent 对话导出', 'Agent dialogue export',
+    item('我的助手', 'My Assistants', '助手对话导出', 'Assistant dialogue export',
         'chat export', runtime.agentDialogueExportPath, 'agent'),
-    item(
-        'Agent 工作台',
-        'Agent Workbench',
-        '多 Agent 讨论纪要',
-        'Multi-agent discussion',
-        'a2a',
-        runtime.multiAgentDiscussionPath,
-        'agent'),
-    item('Agent 工作台', 'Agent Workbench', 'A2A 协作报告', 'A2A collaboration report',
-        'a2a report', runtime.a2aWorkspaceReportPath, 'agent'),
+    item('我的助手', 'My Assistants', '多个助手讨论纪要', 'Assistant discussion notes',
+        'discussion', runtime.multiAgentDiscussionPath, 'agent'),
+    item('我的助手', 'My Assistants', '协作报告', 'Assistant discussion report',
+        'discussion report', runtime.a2aWorkspaceReportPath, 'agent'),
     item('治理', 'Governance', '产品链路记录', 'Product-flow record', 'flow',
         runtime.prdP0EvidencePath, 'doc'),
-    item('设置', 'Settings', 'Provider 配置', 'Provider settings', 'provider',
+    item('设置', 'Settings', '模型服务配置', 'Model service settings', 'model',
         runtime.providerRuntimeSettingsPath, 'settings'),
     item('设置', 'Settings', '存储配置', 'Storage settings', 'storage',
         runtime.storageProviderSettingsPath, 'settings'),
-    item('设置', 'Settings', '能力审计汇总', 'Capability audit summary', 'audit',
+    item('设置', 'Settings', '能力使用记录汇总', 'Capability usage summary', 'usage',
         runtime.providerLifecycleAuditSummaryPath, 'settings'),
     item('治理', 'Governance', '并行任务报告', 'Parallel task report', 'parallel',
         runtime.parallelTaskCapacityReportPath, 'parallel-tasks'),

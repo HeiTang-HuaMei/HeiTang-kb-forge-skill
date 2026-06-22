@@ -80,12 +80,12 @@ class _RetrievalVerificationViewState
       final feedback = runtime.searchStatus != Rc6SearchStatus.idle
           ? _RuntimeFeedbackBanner(
               title: runtime.searchStatus == Rc6SearchStatus.success
-                  ? (zh ? '真实检索已返回结果' : 'Real retrieval returned results')
+                  ? (zh ? '知识库测试已返回结果' : 'Knowledge test returned results')
                   : runtime.searchStatus == Rc6SearchStatus.empty
-                      ? (zh ? '真实检索无结果' : 'Real retrieval returned no results')
+                      ? (zh ? '知识库测试无结果' : 'Knowledge test returned no results')
                       : runtime.searchStatus == Rc6SearchStatus.error
-                          ? (zh ? '检索失败' : 'Search failed')
-                          : (zh ? '检索中' : 'Searching'),
+                          ? (zh ? '测试失败' : 'Test failed')
+                          : (zh ? '测试中' : 'Testing'),
               detail: runtime.queryResultPath.isEmpty
                   ? runtime.lastMessage
                   : runtime.queryResultPath,
@@ -100,11 +100,11 @@ class _RetrievalVerificationViewState
       final query = _ProductPanel(
         keyName: 'retrieval-workflow',
         icon: Icons.manage_search_outlined,
-        title: zh ? '查询控制台' : 'Query Console',
+        title: zh ? '测试知识库' : 'Test Knowledge Base',
         minHeight: 430,
         subtitle: zh
-            ? '本页查询只检索所选知识库；顶部全局搜索用于快速定位文档、知识库、Skill 和 Agent。'
-            : 'This page searches the selected KB only; top search locates docs, KBs, Skills, and Agents.',
+            ? '本页只测试所选知识库；顶部全局搜索用于快速定位资料、知识库、技能和助手。'
+            : 'This page tests the selected KB only; top search locates materials, KBs, skills, and assistants.',
         children: [
           _SectionCaption(zh ? '所选知识库' : 'Selected knowledge bases'),
           const SizedBox(height: 6),
@@ -132,10 +132,10 @@ class _RetrievalVerificationViewState
             onSubmitted: (value) =>
                 rc6?.searchKnowledgeBases(value, selectedKbIds.toList()),
             decoration: InputDecoration(
-              labelText: zh ? '真实搜索关键词' : 'Real search keyword',
+              labelText: zh ? '测试问题' : 'Test question',
               helperText: zh
-                  ? '输入关键词后返回知识库证据片段、引用来源和评分。'
-                  : 'Enter keywords to return KB evidence, citations, and score.',
+                  ? '输入问题后返回知识库证据片段、引用来源和评分。'
+                  : 'Enter a question to return KB evidence, citations, and score.',
               border: const OutlineInputBorder(),
               isDense: true,
             ),
@@ -260,13 +260,13 @@ class _RetrievalVerificationViewState
           _FieldRow(
             label: zh ? '评分公式' : 'Scoring rule',
             value: zh
-                ? '相关性 = 关键词命中 50% + chunk 分数 35% + 来源覆盖 15%'
+                ? '相关性 = 关键词命中 50% + 片段匹配 35% + 来源覆盖 15%'
                 : 'Relevance = keyword match 50% + chunk score 35% + source coverage 15%',
           ),
           const SizedBox(height: 8),
           _EqualActionRow(children: [
             _PrimaryProductAction(
-              label: zh ? '运行真实检索' : 'Run real retrieval',
+              label: zh ? '测试知识库' : 'Test Knowledge Base',
               onPressed: runtime.running || rc6 == null
                   ? null
                   : () {
@@ -293,10 +293,11 @@ class _RetrievalVerificationViewState
           const SizedBox(height: 8),
           _EqualActionRow(children: [
             _RuntimeFeedbackBanner(
-              title: zh ? '外部事实验证未启用' : 'External fact checking is not enabled',
+              title:
+                  zh ? '外部来源核对未启用' : 'External source checking is not enabled',
               detail: zh
-                  ? '需要在设置中配置联网 Provider、Tool Adapter 和显式 opt-in；当前检索只使用本地知识库证据。'
-                  : 'Requires network Provider, Tool Adapter, and explicit opt-in in Settings; current retrieval uses local KB evidence only.',
+                  ? '需要在设置中开启网络权限并完成配置；当前测试只使用本地知识库证据。'
+                  : 'Requires network authorization and completed settings; current test uses local KB evidence only.',
               tone: _StatusTone.neutral,
               icon: Icons.public_off_outlined,
             ),
@@ -312,36 +313,36 @@ class _RetrievalVerificationViewState
           ],
           const SizedBox(height: 8),
           _FieldRow(
-            label: zh ? '外部验证边界' : 'External verification boundary',
+            label: zh ? '外部核对边界' : 'External checking boundary',
             value: zh
-                ? '联网 Provider、Tool Adapter 和显式 opt-in 配齐后启用'
-                : 'Enabled only after network Provider, Tool Adapter, and explicit opt-in are configured',
+                ? '网络权限和外部来源配置齐全后启用'
+                : 'Enabled only after network authorization and external source settings are configured',
           ),
         ],
       );
       final reasoning = _ProductPanel(
         keyName: 'retrieval-reasoning-panel',
         icon: Icons.account_tree_outlined,
-        title: zh ? '证据选择与推理' : 'Evidence Selection and Reasoning',
+        title: zh ? '证据选择' : 'Evidence Selection',
         children: [
           _ProductTable(
-            columns: zh ? ['阶段', '结果', '说明'] : ['Stage', 'Result', 'Note'],
+            columns: zh ? ['环节', '结果', '说明'] : ['Step', 'Result', 'Note'],
             rows: zh
                 ? [
                     [
-                      '查询改写',
+                      '问题理解',
                       runtime.retrievalPlanPath.isNotEmpty ? '完成' : '等待',
                       runtime.retrievalPlanPath.isNotEmpty
                           ? _displayNameForPath(runtime.retrievalPlanPath)
                           : '保留原问题边界'
                     ],
                     [
-                      '检索规划',
+                      '测试范围',
                       runtime.retrievalPlanPath.isNotEmpty ? '混合检索' : '等待',
-                      '向量 + 关键词'
+                      '本地关键词与已整理片段'
                     ],
                     [
-                      '重排',
+                      '结果排序',
                       runtime.retrievalRerankReportPath.isNotEmpty
                           ? '完成'
                           : '等待',
@@ -356,7 +357,7 @@ class _RetrievalVerificationViewState
                       '只引用本地证据'
                     ],
                     [
-                      '交叉验证',
+                      '外部核对',
                       runtime.externalValidationBoundaryPath.isNotEmpty
                           ? '本地边界已记录'
                           : '等待',
@@ -368,21 +369,21 @@ class _RetrievalVerificationViewState
                   ]
                 : [
                     [
-                      'Query rewrite',
+                      'Question understanding',
                       runtime.retrievalPlanPath.isNotEmpty ? 'Done' : 'Waiting',
                       runtime.retrievalPlanPath.isNotEmpty
                           ? _displayNameForPath(runtime.retrievalPlanPath)
                           : 'Keeps original scope'
                     ],
                     [
-                      'Retrieval planning',
+                      'Test scope',
                       runtime.retrievalPlanPath.isNotEmpty
                           ? 'Hybrid'
                           : 'Waiting',
-                      'Vector + keyword'
+                      'Local keyword and organized segments'
                     ],
                     [
-                      'Rerank',
+                      'Result ordering',
                       runtime.retrievalRerankReportPath.isNotEmpty
                           ? 'Done'
                           : 'Waiting',
@@ -399,7 +400,7 @@ class _RetrievalVerificationViewState
                       'Local evidence only'
                     ],
                     [
-                      'Cross validation',
+                      'External checking',
                       runtime.externalValidationBoundaryPath.isNotEmpty
                           ? 'Boundary recorded'
                           : 'Waiting',
@@ -511,7 +512,7 @@ String _retrievalStageDetail(String stage, bool zh) {
         ? '选择知识库范围、关键词策略和返回数量。'
         : 'Choose KB scope, keyword strategy, and result count.',
     'hybrid' => zh
-        ? '结合本地关键词和 chunks/cards 索引。'
+        ? '结合本地关键词和已整理资料片段。'
         : 'Combine local keywords with chunks/cards indexes.',
     'rerank' => zh
         ? '按相关性、来源覆盖和引用完整性排序。'
@@ -598,10 +599,10 @@ class _RetrievalVerificationProductWorkflowState
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.manage_search_outlined,
-        title: _zh ? '检索与验证' : 'Retrieval & Verification',
+        title: _zh ? '测试知识库' : 'Test Knowledge Base',
         description: _zh
-            ? '先选择知识库，再查询；证据片段、引用、评分、纠偏和授权外部验证都在同一查询台完成。'
-            : 'Select a KB first, then query; evidence, citations, scoring, correction, and authorized external checking stay in one console.',
+            ? '先选择知识库，再用问题测试；证据片段、引用、评分、纠偏和授权外部核对都在同一页面完成。'
+            : 'Select a KB first, then test with a question; evidence, citations, scoring, correction, and authorized external checking stay on one page.',
       ),
       const SizedBox(height: _DesktopGrid.gutter),
       _RetrievalVerificationView(zh: _zh),

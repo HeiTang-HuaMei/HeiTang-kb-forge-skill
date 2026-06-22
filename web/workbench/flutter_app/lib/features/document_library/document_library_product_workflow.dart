@@ -98,8 +98,8 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
         context,
         title: zh ? '删除来源文档？' : 'Delete source document?',
         body: zh
-            ? '这会从当前工作区删除“$selectedName”，并清理解析、知识库、检索和文档产物。'
-            : 'This removes "$selectedName" from the current workspace and clears parsing, KB, retrieval, and document artifacts.',
+            ? '这会从当前工作区删除“$selectedName”，并清理整理结果、知识库、检索和文档产物。'
+            : 'This removes "$selectedName" from the current workspace and clears organization, KB, retrieval, and document artifacts.',
       );
       if (!confirmed) return;
       await rc6.deleteImportedSource(selectedSource.relativePath);
@@ -115,8 +115,8 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
         context,
         title: zh ? '批量删除来源文档？' : 'Delete selected source documents?',
         body: zh
-            ? '这会删除 $count 个已选来源文档，并清理解析、知识库、检索和文档产物。'
-            : 'This removes $count selected source documents and clears parsing, KB, retrieval, and document artifacts.',
+            ? '这会删除 $count 个已选来源文档，并清理整理结果、知识库、检索和文档产物。'
+            : 'This removes $count selected source documents and clears organization, KB, retrieval, and document artifacts.',
       );
       if (!confirmed) return;
       final byKey = {
@@ -156,7 +156,9 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                   source.documentId.isEmpty ? '-' : source.documentId,
                   _documentTypeLabel(_documentTypeForSource(source), zh),
                   _structureStatusLabel(source.structureStatus, zh),
-                  parsed ? (zh ? '已解析' : 'Parsed') : (zh ? '已导入' : 'Imported'),
+                  parsed
+                      ? (zh ? '已整理' : 'Organized')
+                      : (zh ? '已导入' : 'Imported'),
                   source.wordCount.toString(),
                 ])
             .toList(growable: false);
@@ -233,8 +235,8 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                 detail: hasRealDocument
                     ? _displayNameForPath(runtime.sourceManifestPath)
                     : (zh
-                        ? '请在导入与解析页签选择真实文件或文件夹。'
-                        : 'Choose real files or a folder from the Import and Parsing tab.'),
+                        ? '请在添加资料页签选择真实文件或文件夹。'
+                        : 'Choose real files or a folder from the Add Materials tab.'),
                 tone:
                     hasRealDocument ? _StatusTone.success : _StatusTone.warning,
                 icon: hasRealDocument
@@ -247,13 +249,13 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                   child: _LocalScrollBox(
                     child: _ProductTable(
                       columns: zh
-                          ? ['文档', 'Document ID', '类型', '结构', '解析', '字数']
+                          ? ['文档', 'Document ID', '类型', '结构', '整理', '字数']
                           : [
                               'Document',
                               'Document ID',
                               'Type',
                               'Structure',
-                              'Parsing',
+                              'Organized',
                               'Words'
                             ],
                       rows: documentRows,
@@ -264,7 +266,7 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
             ],
           ),
           bottom: _PrimaryProductAction(
-            label: zh ? '用文档构建知识库' : 'Build KB from documents',
+            label: zh ? '生成知识库' : 'Generate knowledge base',
             icon: Icons.account_tree_outlined,
             onPressed: hasRealDocument ? widget.onBuildKnowledgeBase : null,
           ),
@@ -328,16 +330,18 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                                 ? (selectedSource?.relativePath ?? selectedName)
                                 : (zh ? '等待真实文件' : 'Waiting for real file')),
                         _FieldRow(
-                            label: zh ? '解析摘要' : 'Parse summary',
+                            label: zh ? '整理摘要' : 'Organization summary',
                             value: parsed
                                 ? (zh
-                                    ? '$chunkCount 个 chunks，解析报告已生成'
-                                    : '$chunkCount chunks, parse report generated')
-                                : (zh ? '尚无解析结果' : 'No parse result yet')),
+                                    ? '$chunkCount 个片段，整理结果已生成'
+                                    : '$chunkCount segments, organization result generated')
+                                : (zh
+                                    ? '尚无整理结果'
+                                    : 'No organization result yet')),
                         _FieldRow(
                             label: zh ? '下游使用' : 'Downstream use',
                             value: zh
-                                ? '知识库构建 / 文档生成 / 检索验证'
+                                ? '生成知识库 / 生成文档 / 测试知识库'
                                 : 'Knowledge Base build / document generation / retrieval verification'),
                       ],
                     ),
@@ -350,7 +354,7 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
             label: zh ? '更多文档操作' : 'More document actions',
             actions: [
               _MoreMenuAction(
-                label: zh ? '重新解析当前文档' : 'Re-parse selected document',
+                label: zh ? '重新整理当前文档' : 'Re-organize selected document',
                 icon: Icons.restart_alt_outlined,
                 enabled: hasRealDocument && rc6 != null && !runtime.running,
                 onSelected: () => rc6?.parseAndChunkSources(),
@@ -373,7 +377,10 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
               _MoreMenuAction(
                 label: zh ? '生成标准知识包' : 'Create standard package',
                 icon: Icons.inventory_2_outlined,
-                enabled: hasRealDocument && parsed && rc6 != null && !runtime.running,
+                enabled: hasRealDocument &&
+                    parsed &&
+                    rc6 != null &&
+                    !runtime.running,
                 onSelected: () => rc6?.exportStandardKnowledgePackage(),
               ),
             ],
@@ -480,15 +487,14 @@ class _DocumentLibraryProductWorkflowState
 
   @override
   Widget build(BuildContext context) {
-    final tabs =
-        _zh ? ['导入与解析', '来源文档'] : ['Import and Parsing', 'Source Documents'];
+    final tabs = _zh ? ['添加资料', '来源文档'] : ['Add Materials', 'Source Documents'];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.library_books_outlined,
         title: _zh ? '文档库' : 'Document Library',
         description: _zh
-            ? '导入资料、解析/OCR/分块，并管理进入工作本的来源文档。'
-            : 'Import sources, parse/OCR/chunk them, and manage source documents in the workbook.',
+            ? '添加资料、整理资料，并管理进入当前工作区的来源文档。'
+            : 'Add and organize materials, then manage source documents in the workspace.',
       ),
       const SizedBox(height: _DesktopGrid.gutter),
       _PageTabs(

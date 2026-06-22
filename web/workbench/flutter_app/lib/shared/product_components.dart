@@ -681,6 +681,8 @@ _CapabilityStatusKind _capabilityStatusKind(String value) {
     return _CapabilityStatusKind.disabledBoundary;
   }
   if (lower.contains('disabled_boundary') ||
+      lower.contains('desktop_runtime_required') ||
+      lower.contains('runtime_required') ||
       lower.contains('omitted') ||
       lower.contains('provider runtime gate') ||
       lower.contains('external source verification gate') ||
@@ -723,6 +725,12 @@ String _capabilityStatusLabel(String? value, bool zh) {
   }
   if (lower.contains('owner_authorization_required')) {
     return zh ? '需要 Owner 授权' : 'Owner authorization required';
+  }
+  if (lower.contains('desktop_runtime_required') ||
+      lower.contains('runtime_required')) {
+    return zh
+        ? '暂不可用，需要桌面运行环境'
+        : 'Temporarily unavailable; desktop runtime required';
   }
   if (lower.contains('disabled_boundary') ||
       lower.contains('provider runtime gate') ||

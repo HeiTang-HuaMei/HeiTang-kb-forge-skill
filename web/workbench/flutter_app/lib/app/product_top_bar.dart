@@ -73,8 +73,8 @@ class _ProductTopBar extends StatelessWidget {
             Expanded(
               child: _TopBarSearchField(
                 label: _zh
-                    ? '搜索文档、知识库、Skill、Agent'
-                    : 'Search docs, KBs, Skills, Agents',
+                    ? '搜索资料、知识库、技能、助手'
+                    : 'Search materials, KBs, skills, assistants',
                 compact: constraints.maxWidth < 900,
                 onPageChanged: onPageChanged,
               ),
@@ -328,9 +328,9 @@ class _TopBarSearchSuggestion {
 
 _TopBarSearchSuggestion _noMatchSearchSuggestion(bool zh) {
   return _TopBarSearchSuggestion(
-    title: zh ? '无匹配，前往查询控制台' : 'No match, open Query Console',
+    title: zh ? '无匹配，前往测试知识库' : 'No match, test a knowledge base',
     subtitle: zh ? '用当前输入查询知识库内容' : 'Use this query against KB content',
-    category: zh ? '查询控制台' : 'Query Console',
+    category: zh ? '测试知识库' : 'Knowledge Test',
     pageId: 'retrieval-verification',
     icon: Icons.manage_search_outlined,
     isNoMatch: true,
@@ -341,8 +341,10 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
     Rc6RuntimeState? runtime, bool zh) {
   final suggestions = <_TopBarSearchSuggestion>[
     _TopBarSearchSuggestion(
-      title: zh ? '文档库导入资料' : 'Import into Document Library',
-      subtitle: zh ? '选择文件、解析、OCR、分块' : 'Choose files, parse, OCR, chunk',
+      title: zh ? '添加资料' : 'Add materials',
+      subtitle: zh
+          ? '选择文件、文件夹或保存网页来源'
+          : 'Choose files, folders, or save a web source',
       category: zh ? '文档库' : 'Document Library',
       pageId: 'document-library',
       icon: Icons.file_upload_outlined,
@@ -358,14 +360,14 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
     ),
     _TopBarSearchSuggestion(
       title: zh ? '知识库' : 'Knowledge Base',
-      subtitle: zh ? '构建本地知识库和向量索引' : 'Build local KB and vector index',
+      subtitle: zh ? '从已整理资料生成知识库' : 'Build from organized materials',
       category: zh ? '页面' : 'Page',
       pageId: 'knowledge-package-management',
       icon: Icons.storage_outlined,
       keywords: const ['kb', 'knowledge', 'vector', 'manifest', '知识库', '向量'],
     ),
     _TopBarSearchSuggestion(
-      title: zh ? '查询控制台' : 'Query Console',
+      title: zh ? '测试知识库' : 'Test Knowledge Base',
       subtitle: zh ? '检索知识库内容和证据片段' : 'Search KB content and evidence',
       category: zh ? '页面' : 'Page',
       pageId: 'retrieval-verification',
@@ -381,31 +383,29 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
       keywords: const ['generate', 'export', 'markdown', 'docx', 'pdf', '文档生成'],
     ),
     _TopBarSearchSuggestion(
-      title: zh ? 'Skill 工厂' : 'Skill Factory',
-      subtitle: zh
-          ? '从知识库生成 Skill，并绑定给 Agent'
-          : 'Generate Skills from KBs and bind them to Agents',
+      title: zh ? '技能生成' : 'Skill Builder',
+      subtitle: zh ? '从知识库生成可复用技能' : 'Generate reusable skills from KBs',
       category: zh ? '页面' : 'Page',
       pageId: 'skill-factory',
       icon: Icons.extension_outlined,
       keywords: const ['skill', 'SKILL.md', '技能', '工厂'],
     ),
     _TopBarSearchSuggestion(
-      title: zh ? 'Agent 工作台' : 'Agent Workbench',
+      title: zh ? '我的助手' : 'My Assistants',
       subtitle: zh
-          ? 'Agent 总览、单 Agent、多 Agent / A2A 和运行审计'
-          : 'Agent overview, single Agent, Multi-Agent / A2A, and run audit',
+          ? '创建助手、开始对话、让多个助手一起讨论'
+          : 'Create assistants, chat, and run group discussions',
       category: zh ? '页面' : 'Page',
       pageId: 'agent-factory-runtime',
       icon: Icons.smart_toy_outlined,
       keywords: const ['agent', 'chat', 'a2a', 'discussion', '智能体', '对话'],
     ),
     _TopBarSearchSuggestion(
-      title: zh ? '产物中心' : 'Artifact Center',
+      title: zh ? '成果中心' : 'Output Center',
       subtitle: zh
-          ? '查看生成文档、知识库、Skill、Agent 和对话产物'
-          : 'Browse generated documents, KB, Skill, Agent, and dialogue artifacts',
-      category: zh ? '治理' : 'Governance',
+          ? '查看生成文档、知识库、技能、助手和讨论报告'
+          : 'Browse documents, KBs, skills, assistants, and discussion reports',
+      category: zh ? '成果' : 'Outputs',
       pageId: 'artifact-center',
       icon: Icons.folder_copy_outlined,
       keywords: const ['artifact', 'output', '产物', '导出', '清单'],
@@ -426,8 +426,8 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
       suggestions.add(_TopBarSearchSuggestion(
         title: kb.name,
         subtitle: zh
-            ? '${kb.type} · ${kb.chunkCount} chunks · ${kb.sourceCount} 来源'
-            : '${kb.type} · ${kb.chunkCount} chunks · ${kb.sourceCount} sources',
+            ? '${kb.type} · ${kb.chunkCount} 个片段 · ${kb.sourceCount} 来源'
+            : '${kb.type} · ${kb.chunkCount} segments · ${kb.sourceCount} sources',
         category: zh ? '知识库' : 'Knowledge Base',
         pageId: 'knowledge-package-management',
         icon: Icons.account_tree_outlined,
@@ -437,7 +437,8 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
     if (runtime.hasKnowledgeBase) {
       suggestions.add(_TopBarSearchSuggestion(
         title: zh ? '真实输入知识库' : 'Real input Knowledge Base',
-        subtitle: '${runtime.chunkCount} chunks',
+        subtitle:
+            zh ? '${runtime.chunkCount} 个片段' : '${runtime.chunkCount} segments',
         category: zh ? '知识库' : 'Knowledge Base',
         pageId: 'knowledge-package-management',
         icon: Icons.account_tree_outlined,
@@ -478,9 +479,9 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
     }
     if (runtime.hasSkill) {
       suggestions.add(_TopBarSearchSuggestion(
-        title: zh ? '已生成 Skill' : 'Generated Skill',
+        title: zh ? '已生成技能' : 'Generated skill',
         subtitle: _displayNameForPath(runtime.skillPath),
-        category: 'Skill',
+        category: zh ? '技能' : 'Skill',
         pageId: 'skill-factory',
         icon: Icons.extension_outlined,
         keywords: [
@@ -493,9 +494,9 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
     }
     if (runtime.hasAgent) {
       suggestions.add(_TopBarSearchSuggestion(
-        title: zh ? '已生成 Agent' : 'Generated Agent',
+        title: zh ? '已创建助手' : 'Generated assistant',
         subtitle: _displayNameForPath(runtime.agentPath),
-        category: 'Agent',
+        category: zh ? '助手' : 'Assistant',
         pageId: 'agent-factory-runtime',
         icon: Icons.smart_toy_outlined,
         keywords: [
@@ -508,9 +509,9 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
     }
     if (runtime.hasAgentDialogue) {
       suggestions.add(_TopBarSearchSuggestion(
-        title: zh ? 'Agent 对话记录' : 'Agent dialogue',
+        title: zh ? '助手对话记录' : 'Assistant dialogue',
         subtitle: _displayNameForPath(runtime.agentDialoguePath),
-        category: 'Agent',
+        category: zh ? '助手' : 'Assistant',
         pageId: 'agent-factory-runtime',
         icon: Icons.chat_bubble_outline,
         keywords: [runtime.agentDialoguePath, runtime.agentDialogueHistoryPath],
@@ -518,9 +519,9 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
     }
     if (runtime.hasAgentDialogueExport) {
       suggestions.add(_TopBarSearchSuggestion(
-        title: zh ? 'Agent 对话导出' : 'Agent dialogue export',
+        title: zh ? '助手对话导出' : 'Assistant dialogue export',
         subtitle: _displayNameForPath(runtime.agentDialogueExportPath),
-        category: 'Agent',
+        category: zh ? '助手' : 'Assistant',
         pageId: 'agent-factory-runtime',
         icon: Icons.file_download_done_outlined,
         keywords: [
@@ -533,12 +534,12 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
     }
     if (runtime.hasMultiAgentDiscussion) {
       suggestions.add(_TopBarSearchSuggestion(
-        title: zh ? '多 Agent 联合讨论' : 'Multi-agent discussion',
+        title: zh ? '多个助手讨论' : 'Assistant group discussion',
         subtitle: _displayNameForPath(runtime.multiAgentDiscussionPath),
-        category: 'Agent',
+        category: zh ? '助手' : 'Assistant',
         pageId: 'agent-factory-runtime',
         icon: Icons.groups_2_outlined,
-        keywords: [runtime.multiAgentDiscussionPath, 'A2A', 'discussion'],
+        keywords: [runtime.multiAgentDiscussionPath, 'discussion', '讨论'],
       ));
     }
   }

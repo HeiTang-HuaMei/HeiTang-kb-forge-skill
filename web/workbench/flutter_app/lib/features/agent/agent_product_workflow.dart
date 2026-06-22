@@ -20,8 +20,13 @@ class _AgentProductWorkflow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['Agent 总览', '单 Agent', '多 Agent / A2A', '运行审计']
-        : ['Agent Overview', 'Single Agent', 'Multi-Agent / A2A', 'Run Audit'];
+        ? ['助手总览', '单个助手', '多个助手讨论', '使用记录']
+        : [
+            'Assistant Overview',
+            'Single Assistant',
+            'Assistant Discussion',
+            'Usage Records'
+          ];
     final activeTab =
         selectedTab >= tabs.length ? tabs.length - 1 : selectedTab;
     final rc6 = _Rc6RuntimeScope.of(context);
@@ -29,23 +34,23 @@ class _AgentProductWorkflow extends StatelessWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.smart_toy_outlined,
-        title: _zh ? 'Agent 工作台' : 'Agent Workbench',
+        title: _zh ? '我的助手' : 'My Assistants',
         description: _zh
-            ? '创建 Agent、绑定知识库与 Skill，并在本页启动多 Agent 联合讨论。'
-            : 'Create Agents, bind Knowledge Base and Skill, and run multi-agent discussion here.',
+            ? '创建助手、绑定知识库与技能，并在本页让多个助手一起讨论。'
+            : 'Create assistants, bind knowledge bases and skills, and run assistant discussions here.',
       ),
       const SizedBox(height: _DesktopGrid.gutter),
       _MetricStrip(
         items: [
           _MetricDatum(
-              label: _zh ? 'Agent 模板' : 'Agent templates',
+              label: _zh ? '助手模板' : 'Assistant templates',
               value: '5',
               detail: _zh
                   ? '问答 / 总结 / 质检 / 运营 / 产品'
                   : 'QA / summary / QA / ops / product',
               icon: Icons.psychology_alt_outlined),
           _MetricDatum(
-              label: _zh ? 'Agent 产物' : 'Agent package',
+              label: _zh ? '助手产物' : 'Assistant package',
               value: runtime.hasAgent ? 'real' : '0',
               detail: runtime.hasAgent
                   ? (_zh ? '已生成' : 'generated')
@@ -105,47 +110,47 @@ class _AgentRunAuditView extends StatelessWidget {
         : (zh ? '未运行' : 'Not run');
     final permissionStatus = runtime.hasAgentWorkspacePermissionMatrix
         ? (zh ? '已校验' : 'Checked')
-        : (zh ? '等待 Agent 工作区' : 'Waiting Agent workspace');
+        : (zh ? '等待助手工作区' : 'Waiting assistant workspace');
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 900;
       final runRecords = _ProductPanel(
         keyName: 'agent-run-history',
         icon: Icons.fact_check_outlined,
-        title: zh ? '运行审计' : 'Run Audit',
+        title: zh ? '使用记录' : 'Usage Records',
         subtitle: zh
-            ? '查看 Agent 对话、导出、A2A 和权限审计状态。'
-            : 'Review Agent chat, export, A2A, and permission audit status.',
+            ? '查看助手对话、导出、协作讨论和权限校验状态。'
+            : 'Review assistant chat, export, discussion, and permission status.',
         children: [
           _ProductTable(
             columns: zh ? ['对象', '状态', '用户可见结果'] : ['Item', 'Status', 'Result'],
             rows: zh
                 ? [
                     [
-                      '单 Agent 对话',
+                      '单个助手对话',
                       dialogueStatus,
                       '${runtime.agentDialogueTurnCount} 轮'
                     ],
                     [
                       '对话导出',
                       exportStatus,
-                      runtime.hasAgentDialogueExport ? '可在产物中心查看' : '等待导出'
+                      runtime.hasAgentDialogueExport ? '可在成果中心查看' : '等待导出'
                     ],
                     [
-                      '多 Agent / A2A',
+                      '多个助手讨论',
                       a2aStatus,
                       runtime.a2aTopic.isEmpty ? '等待协作议题' : runtime.a2aTopic
                     ],
                     [
-                      '权限审计',
+                      '权限校验',
                       permissionStatus,
                       runtime.hasAgentWorkspacePermissionMatrix
                           ? '工作区权限已留痕'
-                          : '创建 Agent 后生成'
+                          : '创建助手后生成'
                     ],
                   ]
                 : [
                     [
-                      'Single-Agent dialogue',
+                      'Single assistant dialogue',
                       dialogueStatus,
                       '${runtime.agentDialogueTurnCount} turns'
                     ],
@@ -157,7 +162,7 @@ class _AgentRunAuditView extends StatelessWidget {
                           : 'Waiting export'
                     ],
                     [
-                      'Multi-Agent / A2A',
+                      'Assistant discussion',
                       a2aStatus,
                       runtime.a2aTopic.isEmpty
                           ? 'Waiting topic'
@@ -168,7 +173,7 @@ class _AgentRunAuditView extends StatelessWidget {
                       permissionStatus,
                       runtime.hasAgentWorkspacePermissionMatrix
                           ? 'Workspace permissions recorded'
-                          : 'Generated after Agent creation'
+                          : 'Generated after assistant creation'
                     ],
                   ],
           ),
@@ -177,7 +182,7 @@ class _AgentRunAuditView extends StatelessWidget {
       final recovery = _ProductPanel(
         keyName: 'agent-audit-recovery',
         icon: Icons.restore_outlined,
-        title: zh ? '异常审计' : 'Exception Audit',
+        title: zh ? '异常记录' : 'Exception Records',
         children: [
           _ProductTable(
             columns: zh ? ['检查项', '状态'] : ['Check', 'Status'],
@@ -188,13 +193,10 @@ class _AgentRunAuditView extends StatelessWidget {
                       '对话失败',
                       runtime.hasAgentDialogueHistory ? '有运行记录' : '无运行记录'
                     ],
-                    [
-                      'A2A 冲突',
-                      runtime.hasA2aSessionManifest ? '有协作记录' : '无协作记录'
-                    ],
+                    ['协作分歧', runtime.hasA2aSessionManifest ? '有协作记录' : '无协作记录'],
                     [
                       '权限异常',
-                      runtime.hasAgentWorkspacePermissionMatrix ? '已审计' : '等待审计'
+                      runtime.hasAgentWorkspacePermissionMatrix ? '已记录' : '等待记录'
                     ],
                   ]
                 : [
@@ -209,7 +211,7 @@ class _AgentRunAuditView extends StatelessWidget {
                           : 'No run record'
                     ],
                     [
-                      'A2A conflict',
+                      'Discussion conflict',
                       runtime.hasA2aSessionManifest
                           ? 'Collaboration recorded'
                           : 'No collaboration record'
@@ -290,22 +292,26 @@ class _AgentWorkspaceProductView extends StatelessWidget {
     final vectorMemoryStatus = runtime.memoryIndexReferencePath.isNotEmpty
         ? (zh ? '长期记忆索引已生成' : 'Long-term memory index generated')
         : capabilityAuditReady
-            ? (zh ? '未连接时不影响单 Agent 对话' : 'Dialogue continues without vector memory')
-            : (zh ? '未配置外部向量记忆' : 'External vector memory not configured');
+            ? (zh
+                ? '未连接时不影响单个助手对话'
+                : 'Dialogue continues without professional memory')
+            : (zh
+                ? '未配置专业长期记忆'
+                : 'Professional long-term memory not configured');
     final collaborationStatus = runtime.hasA2aSessionManifest
         ? (zh ? '协作记录已生成' : 'Collaboration recorded')
         : capabilityAuditReady
-            ? (zh ? '本地 A2A 报告可用' : 'Local A2A report available')
-            : (zh ? '等待创建 Agent' : 'Waiting for Agent');
+            ? (zh ? '本地协作报告可用' : 'Local discussion report available')
+            : (zh ? '等待创建助手' : 'Waiting for assistant');
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 900;
       final setup = _ProductPanel(
         keyName: 'agent-workspace-setup',
         icon: Icons.account_tree_outlined,
-        title: zh ? 'Agent 工作区' : 'Agent Workspace',
+        title: zh ? '助手工作区' : 'Assistant Workspace',
         subtitle: runtime.hasAgent
             ? _displayNameForPath(runtime.agentPath)
-            : '$workspace/workbench_runs/agent/workspaces',
+            : (zh ? '当前工作区' : '$workspace/workbench_runs/agent/workspaces'),
         children: [
           _ProductTable(
             columns: zh
@@ -313,57 +319,61 @@ class _AgentWorkspaceProductView extends StatelessWidget {
                 : ['List', 'Purpose', 'Current state'],
             rows: zh
                 ? [
-                    ['模型', '单 Agent / A2A 推理', modelStatus],
+                    ['模型', '助手问答与协作', modelStatus],
                     ['短期记忆', '对话上下文', memoryStatus],
-                    ['长期记忆', '向量记忆', vectorMemoryStatus],
-                    ['协作导出', '多 Agent / A2A', collaborationStatus],
+                    ['长期记忆', '知识记忆', vectorMemoryStatus],
+                    ['协作导出', '多个助手讨论', collaborationStatus],
                     [
-                      'Agent 列表',
+                      '助手列表',
                       '知识应用统一管理',
-                      runtime.hasAgent ? 'K1 + S1' : '生成 Agent 后写入'
+                      runtime.hasAgent ? 'K1 + S1' : '生成助手后写入'
                     ],
                     [
                       '会话列表',
-                      '单 Agent 对话历史',
+                      '单个助手对话历史',
                       runtime.hasAgentDialogue ? '已有会话' : '创建后立即对话'
                     ],
                     [
-                      '多 Agent 工作区',
+                      '多个助手讨论区',
                       '协作会话管理',
-                      runtime.hasAgent ? '各自 KB / Skill' : '等待 Agent'
+                      runtime.hasAgent ? '各自知识库 / 技能' : '等待助手'
                     ],
                   ]
                 : [
-                    ['Model', 'Single Agent / A2A reasoning', modelStatus],
+                    ['Model', 'Assistant chat and discussion', modelStatus],
                     ['Short-term memory', 'Dialogue context', memoryStatus],
-                    ['Long-term memory', 'Vector memory', vectorMemoryStatus],
+                    [
+                      'Long-term memory',
+                      'Knowledge memory',
+                      vectorMemoryStatus
+                    ],
                     [
                       'Collaboration export',
-                      'Multi-Agent / A2A',
+                      'Assistant discussion',
                       collaborationStatus
                     ],
                     [
-                      'Agent list',
+                      'Assistant list',
                       'Knowledge apps managed together',
                       runtime.hasAgent ? 'K1 + S1' : 'Written after generate'
                     ],
                     [
                       'Session list',
-                      'Single-Agent dialogue history',
+                      'Single assistant dialogue history',
                       runtime.hasAgentDialogue
                           ? 'Has session'
                           : 'Chat after creation'
                     ],
                     [
-                      'Multi-Agent workspace',
+                      'Assistant discussion workspace',
                       'Collaboration session management',
-                      runtime.hasAgent ? 'Own KB / Skill' : 'Waiting Agent'
+                      runtime.hasAgent ? 'Own KB / Skill' : 'Waiting assistant'
                     ],
                   ],
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _PrimaryProductAction(
-            label: zh ? '创建 Agent 工作区并进入对话' : 'Create Agent workspace and chat',
+            label: zh ? '创建助手并进入对话' : 'Create assistant and chat',
             icon: Icons.account_tree_outlined,
             onPressed: runtime.running || rc6 == null
                 ? null
@@ -381,10 +391,10 @@ class _AgentWorkspaceProductView extends StatelessWidget {
             rows: zh
                 ? [
                     ['绑定知识库', runtime.hasKnowledgeBase ? '已绑定' : '等待知识库'],
-                    ['绑定 Skill', runtime.hasSkill ? '已绑定' : '等待 Skill'],
-                    ['单 Agent 对话', runtime.hasAgentDialogue ? '已有记录' : '未运行'],
+                    ['绑定技能', runtime.hasSkill ? '已绑定' : '等待技能'],
+                    ['单个助手对话', runtime.hasAgentDialogue ? '已有记录' : '未运行'],
                     [
-                      '多 Agent 协作',
+                      '多个助手讨论',
                       runtime.hasMultiAgentDiscussion ? '已有纪要' : '未运行'
                     ],
                   ]
@@ -395,11 +405,11 @@ class _AgentWorkspaceProductView extends StatelessWidget {
                     ],
                     ['Skill', runtime.hasSkill ? 'Bound' : 'Waiting Skill'],
                     [
-                      'Single-Agent chat',
+                      'Single assistant chat',
                       runtime.hasAgentDialogue ? 'Has record' : 'Not run'
                     ],
                     [
-                      'Multi-Agent collaboration',
+                      'Assistant discussion',
                       runtime.hasMultiAgentDiscussion ? 'Has notes' : 'Not run'
                     ],
                   ],
@@ -443,11 +453,11 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
   String agentType = 'knowledge_qa';
   String outputFormat = 'markdown';
   final TextEditingController _agentNameController =
-      TextEditingController(text: '知识问答 Agent');
+      TextEditingController(text: '知识问答助手');
   final TextEditingController _modelConfigController =
       TextEditingController(text: 'local-default-or-configured-provider');
   final TextEditingController _roleGoalController =
-      TextEditingController(text: '只基于绑定知识库和 Skill 回答，输出必须带引用。');
+      TextEditingController(text: '只基于绑定知识库和技能回答，输出必须带引用。');
 
   bool get zh => widget.zh;
   String get workspace => widget.workspace;
@@ -476,11 +486,11 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
       : (zh ? '简单构造' : 'Simple build');
 
   String _agentTypeLabel(String value) => switch (value) {
-        'reading_summary' => zh ? '阅读总结 Agent' : 'Reading Summary Agent',
-        'quality_qa' => zh ? '质检 Agent' : 'Quality Agent',
-        'operation_conversion' => zh ? '运营转化 Agent' : 'Ops Conversion Agent',
-        'product_analysis' => zh ? '产品分析 Agent' : 'Product Analysis Agent',
-        _ => zh ? '知识问答 Agent' : 'Knowledge QA Agent',
+        'reading_summary' => zh ? '阅读总结助手' : 'Reading Summary Assistant',
+        'quality_qa' => zh ? '质检助手' : 'Quality Assistant',
+        'operation_conversion' => zh ? '运营转化助手' : 'Ops Conversion Assistant',
+        'product_analysis' => zh ? '产品分析助手' : 'Product Analysis Assistant',
+        _ => zh ? '知识问答助手' : 'Knowledge QA Assistant',
       };
 
   Future<void> _confirmAndDeleteAgent(
@@ -488,10 +498,10 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
     if (rc6 == null || rc6.state.running || !rc6.state.hasAgent) return;
     final confirmed = await _confirmDestructiveAction(
       context,
-      title: zh ? '删除 Agent 产物？' : 'Delete Agent artifacts?',
+      title: zh ? '删除助手产物？' : 'Delete assistant artifacts?',
       body: zh
-          ? '这会删除当前工作区里的 Agent、最小对话和联合讨论产物；知识库和 Skill 保留。'
-          : 'This deletes Agent, minimal chat, and team discussion artifacts in this workspace; KB and Skill are kept.',
+          ? '这会删除当前工作区里的助手、对话和联合讨论产物；知识库和技能保留。'
+          : 'This deletes assistant, chat, and team discussion artifacts in this workspace; KB and Skill are kept.',
     );
     if (!confirmed) return;
     await rc6.clearAgentArtifacts();
@@ -507,10 +517,10 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
       final create = _ProductPanel(
         keyName: 'agent-create-product-flow',
         icon: Icons.smart_toy_outlined,
-        title: zh ? '创建 Agent' : 'Create Agent',
+        title: zh ? '创建助手' : 'Create Assistant',
         subtitle: runtime.hasAgent
             ? _displayNameForPath(runtime.agentPath)
-            : '$workspace/workbench_runs/agent',
+            : (zh ? '当前工作区' : '$workspace/workbench_runs/agent'),
         children: [
           _FieldRow(
               label: zh ? '当前构造模式' : 'Current build mode',
@@ -530,17 +540,17 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
             controller: _agentNameController,
             enabled: rc6 != null && !runtime.running,
             decoration: InputDecoration(
-              labelText: zh ? 'Agent 名称' : 'Agent name',
+              labelText: zh ? '助手名称' : 'Assistant name',
               helperText: zh
-                  ? '创建后保存到当前 Agent 工作区。'
-                  : 'Saved to the current Agent workspace after creation.',
+                  ? '创建后保存到当前助手工作区。'
+                  : 'Saved to the current assistant workspace after creation.',
               border: const OutlineInputBorder(),
               isDense: true,
             ),
           ),
           const SizedBox(height: 8),
           _FieldRow(
-              label: zh ? 'Agent 类型' : 'Agent type',
+              label: zh ? '助手类型' : 'Assistant type',
               value: _agentTypeLabel(agentType)),
           const SizedBox(height: 8),
           Wrap(spacing: 8, runSpacing: 8, children: [
@@ -578,8 +588,8 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
             decoration: InputDecoration(
               labelText: zh ? '模型配置' : 'Model config',
               helperText: zh
-                  ? '引用设置页已保存的 Provider/模型配置；密钥仍只掩码显示。'
-                  : 'References saved Provider/model settings; secrets stay masked.',
+                  ? '引用设置页已保存的模型服务；密钥仍只掩码显示。'
+                  : 'References saved model service settings; secrets stay masked.',
               border: const OutlineInputBorder(),
               isDense: true,
             ),
@@ -594,8 +604,8 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
             decoration: InputDecoration(
               labelText: zh ? '角色说明' : 'Role instructions',
               helperText: zh
-                  ? '用于生成 Agent profile、对话上下文和审计记录。'
-                  : 'Used in Agent profile, chat context, and audit records.',
+                  ? '用于生成助手配置、对话上下文和使用记录。'
+                  : 'Used in assistant configuration, chat context, and usage records.',
               border: const OutlineInputBorder(),
               isDense: true,
             ),
@@ -603,50 +613,50 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
           const SizedBox(height: _DesktopGrid.gutter),
           _ProductTable(
             columns: zh
-                ? ['Agent', '构造模式', '知识库', 'Skill', '创建后动作']
-                : ['Agent', 'Build mode', 'KB', 'Skill', 'After creation'],
+                ? ['助手', '构造模式', '知识库', '技能', '创建后动作']
+                : ['Assistant', 'Build mode', 'KB', 'Skill', 'After creation'],
             rows: zh
                 ? [
                     [
-                      '知识问答 Agent',
-                      '简单 Agent',
+                      '知识问答助手',
+                      '简单助手',
                       runtime.hasKnowledgeBase ? '已绑定' : '请先构建知识库',
-                      runtime.hasSkill ? '已绑定' : '请先生成 Skill',
-                      '立即进入单 Agent 对话'
+                      runtime.hasSkill ? '已绑定' : '请先生成技能',
+                      '立即进入单个助手对话'
                     ],
                     [
-                      '阅读总结 Agent',
-                      '简单 Agent',
+                      '阅读总结助手',
+                      '简单助手',
                       runtime.hasKnowledgeBase ? '已绑定' : '请先构建知识库',
-                      runtime.hasSkill ? '已绑定' : '请先生成 Skill',
-                      '立即进入单 Agent 对话'
+                      runtime.hasSkill ? '已绑定' : '请先生成技能',
+                      '立即进入单个助手对话'
                     ],
                     [
-                      '质检 / 运营 / 产品分析 Agent',
-                      '复杂 Agent',
+                      '质检 / 运营 / 产品分析助手',
+                      '复杂助手',
                       runtime.hasKnowledgeBase ? '已绑定' : '请先构建知识库',
-                      runtime.hasSkill ? '已绑定' : '请先生成 Skill',
-                      '写入记忆 / Tool / 审计配置'
+                      runtime.hasSkill ? '已绑定' : '请先生成技能',
+                      '写入记忆 / 工具设置 / 使用记录'
                     ],
                   ]
                 : [
                     [
-                      'Knowledge QA Agent',
-                      'Simple Agent',
+                      'Knowledge QA Assistant',
+                      'Simple Assistant',
                       runtime.hasKnowledgeBase ? 'Bound' : 'Build KB first',
                       runtime.hasSkill ? 'Bound' : 'Generate Skill first',
-                      'Enter single-Agent chat'
+                      'Enter single assistant chat'
                     ],
                     [
-                      'Reading Summary Agent',
-                      'Simple Agent',
+                      'Reading Summary Assistant',
+                      'Simple Assistant',
                       runtime.hasKnowledgeBase ? 'Bound' : 'Build KB first',
                       runtime.hasSkill ? 'Bound' : 'Generate Skill first',
-                      'Enter single-Agent chat'
+                      'Enter single assistant chat'
                     ],
                     [
-                      'QA / Ops / Product Analysis Agents',
-                      'Advanced Agent',
+                      'QA / Ops / Product Analysis Assistants',
+                      'Advanced Assistant',
                       runtime.hasKnowledgeBase ? 'Bound' : 'Build KB first',
                       runtime.hasSkill ? 'Bound' : 'Generate Skill first',
                       'Write memory / tool / audit config'
@@ -655,7 +665,7 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _PrimaryProductAction(
-            label: zh ? '创建 Agent 并进入对话' : 'Create Agent and open chat',
+            label: zh ? '创建助手并进入对话' : 'Create assistant and open chat',
             icon: Icons.smart_toy_outlined,
             onPressed: runtime.running || rc6 == null
                 ? null
@@ -668,10 +678,10 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _MoreActionsButton(
-            label: zh ? '更多 Agent 操作' : 'More Agent actions',
+            label: zh ? '更多助手操作' : 'More assistant actions',
             actions: [
               _MoreMenuAction(
-                label: zh ? '删除 Agent 产物' : 'Delete Agent artifacts',
+                label: zh ? '删除助手产物' : 'Delete assistant artifacts',
                 icon: Icons.delete_outline,
                 destructive: true,
                 enabled: runtime.hasAgent,
@@ -685,8 +695,8 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
         keyName: 'agent-binding-detail',
         icon: Icons.link_outlined,
         title: simpleMode
-            ? (zh ? '简单 Agent 对话配置' : 'Simple Agent Chat Config')
-            : (zh ? '复杂 Agent 运行配置' : 'Advanced Agent Runtime Config'),
+            ? (zh ? '简单助手对话配置' : 'Simple Assistant Chat Config')
+            : (zh ? '复杂助手运行配置' : 'Advanced Assistant Runtime Config'),
         children: [
           _FieldRow(
             label: zh ? '知识库' : 'Knowledge Base',
@@ -696,17 +706,17 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
           ),
           const SizedBox(height: 8),
           _FieldRow(
-            label: 'Skill',
+            label: zh ? '技能' : 'Skill',
             value: runtime.hasSkill
                 ? _displayNameForPath(runtime.skillPath)
-                : (zh ? '等待 Skill' : 'Waiting Skill'),
+                : (zh ? '等待技能' : 'Waiting Skill'),
           ),
           const SizedBox(height: 8),
           _FieldRow(
             label: zh ? '创建后动作' : 'After creation',
             value: zh
-                ? '创建后立即进入单 Agent 对话'
-                : 'Open single-Agent chat immediately after creation',
+                ? '创建后立即进入单个助手对话'
+                : 'Open single assistant chat immediately after creation',
           ),
           if (simpleMode) ...[
             const SizedBox(height: 8),
@@ -719,17 +729,17 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
           ] else ...[
             const SizedBox(height: 8),
             _FieldRow(
-              label: zh ? 'Redis 短期记忆' : 'Redis short-term memory',
+              label: zh ? '专业短期记忆' : 'Professional short-term memory',
               value: zh
-                  ? '使用设置中的 Redis 配置；未通过连接测试时回退本地会话'
-                  : 'Uses Settings Redis; falls back to local session if untested',
+                  ? '使用设置中的专业记忆服务；未通过连接测试时回退本地会话'
+                  : 'Uses configured memory service; falls back to local session if untested',
             ),
             const SizedBox(height: 8),
             _FieldRow(
-              label: zh ? '向量长期记忆' : 'Vector long-term memory',
+              label: zh ? '专业长期记忆' : 'Professional long-term memory',
               value: zh
-                  ? '绑定设置中的 Qdrant / 本地索引配置'
-                  : 'Binds Qdrant / local index from Settings',
+                  ? '绑定设置中的知识记忆服务；未配置时使用本地模式'
+                  : 'Uses configured knowledge memory service; local mode when unconfigured',
             ),
             const SizedBox(height: 8),
             _FieldRow(
@@ -786,11 +796,11 @@ class _AgentDiscussionProductViewState
   }
 
   String _agentLabel(String id) => switch (id) {
-        'reading_summary_agent' => zh ? '阅读总结 Agent' : 'Reading Summary',
-        'knowledge_qa_agent' => zh ? '知识问答 Agent' : 'Knowledge QA',
-        'quality_qa_agent' => zh ? '质检 Agent' : 'Quality',
-        'operation_conversion_agent' => zh ? '运营转化 Agent' : 'Ops Conversion',
-        'product_analysis_agent' => zh ? '产品分析 Agent' : 'Product Analysis',
+        'reading_summary_agent' => zh ? '阅读总结助手' : 'Reading Summary',
+        'knowledge_qa_agent' => zh ? '知识问答助手' : 'Knowledge QA',
+        'quality_qa_agent' => zh ? '质检助手' : 'Quality',
+        'operation_conversion_agent' => zh ? '运营转化助手' : 'Ops Conversion',
+        'product_analysis_agent' => zh ? '产品分析助手' : 'Product Analysis',
         _ => id,
       };
 
@@ -815,21 +825,21 @@ class _AgentDiscussionProductViewState
     return _ProductPanel(
       keyName: 'multi-agent-discussion-product-flow',
       icon: Icons.groups_2_outlined,
-      title: zh ? '多 Agent / A2A' : 'Multi-Agent / A2A',
+      title: zh ? '多个助手一起讨论' : 'Assistant Discussion',
       subtitle: runtime.hasMultiAgentDiscussion
           ? _displayNameForPath(runtime.multiAgentDiscussionPath)
-          : (zh ? '等待 Agent 产物' : 'Waiting for Agent package'),
+          : (zh ? '等待助手产物' : 'Waiting for assistant package'),
       children: [
         _ProductTable(
           columns: zh
-              ? ['工作区 / Agent', '输入', '输出']
-              : ['Workspace / Agent', 'Input', 'Output'],
+              ? ['工作区 / 助手', '输入', '输出']
+              : ['Workspace / Assistant', 'Input', 'Output'],
           rows: zh
               ? [
                   ['W_M 总工作区', '协作议题', '共识 / 冲突 / 行动建议'],
-                  ['W_B 运营 Agent', 'K2 + S2', '运营转化观点'],
-                  ['W_C 产品分析 Agent', 'K3 + 产品分析 Skill', '产品判断'],
-                  ['质检 Agent', '解析与 Chunk', '风险与复核点'],
+                  ['W_B 运营助手', 'K2 + S2', '运营转化观点'],
+                  ['W_C 产品分析助手', 'K3 + 产品分析技能', '产品判断'],
+                  ['质检助手', '已整理资料', '风险与复核点'],
                 ]
               : [
                   [
@@ -837,13 +847,13 @@ class _AgentDiscussionProductViewState
                     'Collaboration topic',
                     'Consensus / conflict / actions'
                   ],
-                  ['W_B Ops Agent', 'K2 + S2', 'Ops conversion view'],
+                  ['W_B Ops Assistant', 'K2 + S2', 'Ops conversion view'],
                   [
-                    'W_C Product Agent',
+                    'W_C Product Assistant',
                     'K3 + product Skill',
                     'Product judgement'
                   ],
-                  ['Quality Agent', 'Parse and chunks', 'Review risks'],
+                  ['Quality Assistant', 'Organized materials', 'Review risks'],
                 ],
         ),
         const SizedBox(height: _DesktopGrid.gutter),
@@ -854,8 +864,8 @@ class _AgentDiscussionProductViewState
           decoration: InputDecoration(
             labelText: zh ? '协作议题' : 'Collaboration topic',
             helperText: zh
-                ? '写入 A2A 会话、讨论纪要和审计清单。'
-                : 'Written to A2A session, discussion notes, and audit manifests.',
+                ? '写入协作会话、讨论纪要和使用记录。'
+                : 'Written to discussion session, notes, and usage records.',
             border: const OutlineInputBorder(),
             isDense: true,
           ),
@@ -863,7 +873,7 @@ class _AgentDiscussionProductViewState
           maxLines: 3,
         ),
         const SizedBox(height: 8),
-        _SectionCaption(zh ? '选择参与 Agent' : 'Select participant Agents'),
+        _SectionCaption(zh ? '选择参与助手' : 'Select participant assistants'),
         const SizedBox(height: 8),
         Wrap(spacing: 8, runSpacing: 8, children: [
           for (final id in const [
@@ -890,7 +900,7 @@ class _AgentDiscussionProductViewState
         ]),
         const SizedBox(height: _DesktopGrid.gutter),
         _FieldRow(
-          label: zh ? 'A2A Session' : 'A2A Session',
+          label: zh ? '协作会话' : 'Discussion session',
           value: sessionId,
         ),
         const SizedBox(height: 8),
@@ -910,7 +920,7 @@ class _AgentDiscussionProductViewState
           columns: zh ? ['项目', '状态'] : ['Item', 'Status'],
           rows: zh
               ? [
-                  ['参与 Agent', participants],
+                  ['参与助手', participants],
                   [
                     '证据引用',
                     runtime.hasMultiAgentDiscussion
@@ -918,12 +928,12 @@ class _AgentDiscussionProductViewState
                         : '启动后统计'
                   ],
                   ['会话状态', a2aStatus],
-                  ['运行前置', runtime.hasSkill ? 'Skill 已生成' : '请先生成 Skill'],
+                  ['运行前置', runtime.hasSkill ? '技能已生成' : '请先生成技能'],
                   ['冲突报告', runtime.hasA2aConflictReport ? '已生成' : '启动后生成'],
                   ['共识报告', runtime.hasA2aConsensusReport ? '已生成' : '启动后生成'],
                 ]
               : [
-                  ['Participant Agents', participants],
+                  ['Participant assistants', participants],
                   [
                     'Evidence citations',
                     runtime.hasMultiAgentDiscussion
@@ -949,7 +959,7 @@ class _AgentDiscussionProductViewState
         ),
         const SizedBox(height: _DesktopGrid.gutter),
         _PrimaryProductAction(
-          label: zh ? '启动联合讨论' : 'Start discussion',
+          label: zh ? '让多个助手一起讨论' : 'Start assistant discussion',
           icon: Icons.forum_outlined,
           onPressed: runtime.running ||
                   rc6 == null ||
@@ -1014,10 +1024,10 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
     }
     final confirmed = await _confirmDestructiveAction(
       context,
-      title: zh ? '清空单 Agent 对话？' : 'Clear single-Agent dialogue?',
+      title: zh ? '清空单个助手对话？' : 'Clear single assistant dialogue?',
       body: zh
-          ? '这会删除当前 Agent 的对话内容、会话历史和对话导出；Agent 配置、Skill、知识库和 A2A 产物不会被删除。'
-          : 'This deletes the current Agent dialogue, chat history, and dialogue export; Agent config, Skill, KB, and A2A artifacts are kept.',
+          ? '这会删除当前助手的对话内容、会话历史和对话导出；助手配置、技能、知识库和协作产物不会被删除。'
+          : 'This deletes the current assistant dialogue, chat history, and dialogue export; assistant config, Skill, KB, and discussion artifacts are kept.',
     );
     if (!confirmed) return;
     await rc6.clearAgentDialogueHistory();
@@ -1049,7 +1059,7 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
       final chat = _ProductPanel(
         keyName: 'agent-minimal-chat',
         icon: Icons.chat_bubble_outline,
-        title: zh ? 'Agent 对话' : 'Agent Chat',
+        title: zh ? '助手对话' : 'Assistant Chat',
         gap: true,
         children: [
           TextField(
@@ -1058,8 +1068,8 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
             decoration: InputDecoration(
               labelText: zh ? '对话问题' : 'Prompt',
               helperText: zh
-                  ? '基于已生成 Agent、知识库和 Skill 生成本地可追踪对话记录；创建后可立即运行。'
-                  : 'Creates a local traceable dialogue from the generated Agent, KB, and Skill; runnable immediately after creation.',
+                  ? '基于已生成助手、知识库和技能生成本地可追踪对话记录；创建后可立即运行。'
+                  : 'Creates a local traceable dialogue from the generated assistant, KB, and Skill; runnable immediately after creation.',
               border: const OutlineInputBorder(),
               isDense: true,
             ),
@@ -1068,7 +1078,7 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           _PrimaryProductAction(
-            label: zh ? '运行对话' : 'Run chat',
+            label: zh ? '开始对话' : 'Start chat',
             icon: Icons.play_arrow_outlined,
             onPressed: runtime.running ||
                     rc6 == null ||
@@ -1106,7 +1116,7 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
             rows: zh
                 ? [
                     ['绑定知识库', kbIds],
-                    ['绑定 Skill', skillIds],
+                    ['绑定技能', skillIds],
                     [
                       '引用证据',
                       runtime.hasAgentDialogue
@@ -1219,12 +1229,12 @@ class _AgentMinimalChatViewState extends State<_AgentMinimalChatView> {
                       runtime.hasKnowledgeBase ? '已绑定' : '请先构建知识库',
                     ],
                     [
-                      'Skill',
-                      runtime.hasSkill ? '已绑定' : '请先生成 Skill',
+                      '技能',
+                      runtime.hasSkill ? '已绑定' : '请先生成技能',
                     ],
                     [
-                      'Agent',
-                      runtime.hasAgent ? '已生成' : '请先生成 Agent',
+                      '助手',
+                      runtime.hasAgent ? '已生成' : '请先生成助手',
                     ],
                     ['模型', modelConfig],
                     ['对话记录', runtime.hasAgentDialogue ? '已保存' : '未运行'],

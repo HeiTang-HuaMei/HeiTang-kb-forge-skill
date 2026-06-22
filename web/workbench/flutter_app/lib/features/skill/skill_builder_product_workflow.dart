@@ -24,7 +24,7 @@ class _SkillBuilderProductWorkflowState
   String targetPlatform = 'codex';
   String personalizationGoal = '';
   final TextEditingController _skillNameController =
-      TextEditingController(text: '真实输入知识问答 Skill');
+      TextEditingController(text: '真实输入知识问答技能');
   final TextEditingController _skillEditorController = TextEditingController();
   String savedSkillEditPath = '';
 
@@ -45,20 +45,20 @@ class _SkillBuilderProductWorkflowState
       );
 
   String _skillTypeLabel(String value) => switch (value) {
-        'writing' => _zh ? '写作 Skill' : 'Writing',
-        'teaching' => _zh ? '教学 Skill' : 'Teaching',
-        'product' => _zh ? '产品 Skill' : 'Product',
-        'ops' => _zh ? '运营 Skill' : 'Operations',
-        'legal' => _zh ? '法规 Skill' : 'Legal',
-        'custom' => _zh ? '自定义 Skill' : 'Custom',
-        _ => _zh ? '分析 Skill' : 'Analysis',
+        'writing' => _zh ? '写作技能' : 'Writing',
+        'teaching' => _zh ? '教学技能' : 'Teaching',
+        'product' => _zh ? '产品技能' : 'Product',
+        'ops' => _zh ? '运营技能' : 'Operations',
+        'legal' => _zh ? '法规技能' : 'Legal',
+        'custom' => _zh ? '自定义技能' : 'Custom',
+        _ => _zh ? '分析技能' : 'Analysis',
       };
 
   String _targetPlatformLabel(String value) => switch (value) {
         'claude_code' => 'Claude Code',
         'openclaw' => 'OpenClaw',
         'markdown' => 'Markdown',
-        'internal_agent' => _zh ? '内置 Agent' : 'Internal Agent',
+        'internal_agent' => _zh ? '内置助手' : 'Internal Agent',
         _ => 'Codex',
       };
 
@@ -68,7 +68,7 @@ class _SkillBuilderProductWorkflowState
         'platform_adaptation' => _zh ? '平台适配' : 'Platform adaptation',
         'task_customization' => _zh ? '任务定制' : 'Task customization',
         'enterprise_constraints' => _zh ? '企业知识约束' : 'Enterprise constraints',
-        'agent_specific' => _zh ? 'Agent 专属化' : 'Agent-specific',
+        'agent_specific' => _zh ? '助手专属化' : 'Agent-specific',
         _ => _zh ? '未选择' : 'Not selected',
       };
 
@@ -76,9 +76,9 @@ class _SkillBuilderProductWorkflowState
     if (rc6 == null || rc6.state.running || !rc6.state.hasSkill) return;
     final confirmed = await _confirmDestructiveAction(
       context,
-      title: _zh ? '删除 Skill 产物？' : 'Delete Skill artifacts?',
+      title: _zh ? '删除技能产物？' : 'Delete Skill artifacts?',
       body: _zh
-          ? '这会删除当前工作区里的 Skill，并清理依赖该 Skill 的对话和联合讨论输出；Agent 配置、知识库和文档不会被删除。'
+          ? '这会删除当前工作区里的技能，并清理依赖该技能的对话和联合讨论输出；助手配置、知识库和文档不会被删除。'
           : 'This deletes Skill artifacts and clears dialogue/discussion outputs that depend on that Skill; Agent config, KB, and documents are kept.',
     );
     if (!confirmed) return;
@@ -125,19 +125,19 @@ class _SkillBuilderProductWorkflowState
     }
 
     final tabs = _zh
-        ? ['从知识库生成', '外部本地化', '版本操作', '验证导出']
+        ? ['从知识库生成', '导入模板技能', '版本操作', '检查导出']
         : [
             'Generate from KB',
-            'External Localization',
+            'Import Template Skill',
             'Version Operations',
             'Validate & Export'
           ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _ProductHeader(
         icon: Icons.extension_outlined,
-        title: _zh ? 'Skill 工厂' : 'Skill Factory',
+        title: _zh ? '技能生成' : 'Skill Builder',
         description: _zh
-            ? '选择知识库，配置生成方式和元数据，验证后生成 Skill 草稿，用于 Agent 创建、绑定和导出。'
+            ? '选择知识库，配置生成方式和元数据，检查后生成技能草稿，用于助手创建、绑定和导出。'
             : 'Select a Knowledge Base, configure generation and metadata, validate, then use the Skill draft for Agent creation, binding, and export.',
       ),
       const SizedBox(height: _DesktopGrid.gutter),
@@ -152,7 +152,7 @@ class _SkillBuilderProductWorkflowState
           _MetricDatum(
               label: _zh ? '生成模式' : 'Generation modes',
               value: '2',
-              detail: _zh ? '知识库 / 外部本地化' : 'KB / external fusion',
+              detail: _zh ? '知识库 / 模板导入' : 'KB / external fusion',
               icon: Icons.alt_route_outlined),
           _MetricDatum(
               label: _zh ? '目标平台' : 'Target platforms',
@@ -160,7 +160,7 @@ class _SkillBuilderProductWorkflowState
               detail: _zh ? 'Codex 等' : 'Codex and more',
               icon: Icons.dashboard_customize_outlined),
           _MetricDatum(
-              label: _zh ? '治理报告' : 'Governance',
+              label: _zh ? '检查记录' : 'Governance',
               value: runtime.hasSkill ? 'pass' : 'ready',
               detail: runtime.hasSkill
                   ? (_zh ? '已生成' : 'Generated')
@@ -172,14 +172,14 @@ class _SkillBuilderProductWorkflowState
       if (configReady || outputPreviewReady || validationReady) ...[
         _RuntimeFeedbackBanner(
           title: validationReady
-              ? (_zh ? 'Skill 草稿已生成' : 'Skill draft generated')
+              ? (_zh ? '技能草稿已生成' : 'Skill draft generated')
               : outputPreviewReady
-                  ? (_zh ? 'Skill 包结构已刷新' : 'Skill package structure refreshed')
-                  : (_zh ? 'Skill 配置已准备' : 'Skill config prepared'),
+                  ? (_zh ? '技能包结构已刷新' : 'Skill package structure refreshed')
+                  : (_zh ? '技能配置已准备' : 'Skill config prepared'),
           detail: runtime.hasSkill
               ? runtime.skillPath
               : (_zh
-                  ? '请先构建知识库，再生成真实 Skill package。'
+                  ? '请先生成知识库，再生成真实技能包。'
                   : 'Build a KB first, then generate a real Skill package.'),
           tone: runtime.hasSkill ? _StatusTone.success : _StatusTone.warning,
           icon: Icons.extension_outlined,
@@ -191,7 +191,7 @@ class _SkillBuilderProductWorkflowState
         final config = _ProductPanel(
           keyName: 'skill-metadata-source-config',
           icon: Icons.edit_note_outlined,
-          title: _zh ? '从知识库生成 Skill' : 'Generate Skill from KB',
+          title: _zh ? '从知识库生成技能' : 'Generate Skill from KB',
           children: [
             _ProductTable(
               columns:
@@ -199,7 +199,7 @@ class _SkillBuilderProductWorkflowState
               rows: _zh
                   ? [
                       [
-                        '从知识库生成 Skill',
+                        '从知识库生成技能',
                         '当前知识库',
                         runtime.hasSkill
                             ? '已生成'
@@ -208,7 +208,7 @@ class _SkillBuilderProductWorkflowState
                                 : '请先构建知识库'
                       ],
                       [
-                        '外部 Skill 本地化',
+                        '导入模板技能',
                         'S0 + 当前知识库',
                         runtime.hasSkill
                             ? '已生成 S2'
@@ -217,7 +217,7 @@ class _SkillBuilderProductWorkflowState
                                 : '请先构建知识库'
                       ],
                       [
-                        '多知识库 Skill',
+                        '多知识库技能',
                         '当前 KB Catalog',
                         runtime.hasSkill
                             ? '已生成'
@@ -237,7 +237,7 @@ class _SkillBuilderProductWorkflowState
                                 : 'Build KB first'
                       ],
                       [
-                        'External Skill localization',
+                        'Import template skill',
                         'S0 + current KB',
                         runtime.hasSkill
                             ? 'S2 generated'
@@ -268,9 +268,9 @@ class _SkillBuilderProductWorkflowState
               controller: _skillNameController,
               enabled: rc6 != null && !runtime.running,
               decoration: InputDecoration(
-                labelText: _zh ? 'Skill 名称' : 'Skill name',
+                labelText: _zh ? '技能名称' : 'Skill name',
                 helperText: _zh
-                    ? '写入 SKILL.md、配置、验证和导出清单。'
+                    ? '写入技能草稿、配置、检查和导出清单。'
                     : 'Written to SKILL.md, config, validation, and export manifests.',
                 border: const OutlineInputBorder(),
                 isDense: true,
@@ -278,7 +278,7 @@ class _SkillBuilderProductWorkflowState
             ),
             const SizedBox(height: 8),
             _FieldRow(
-                label: _zh ? 'Skill 类型' : 'Skill type',
+                label: _zh ? '技能类型' : 'Skill type',
                 value: _skillTypeLabel(skillType)),
             const SizedBox(height: 8),
             Wrap(spacing: 8, runSpacing: 8, children: [
@@ -360,11 +360,9 @@ class _SkillBuilderProductWorkflowState
                 decoration: InputDecoration(
                   hintText: runtime.hasSkill
                       ? (_zh
-                          ? '加载 SKILL.md 后可编辑草稿。'
+                          ? '加载技能草稿后可编辑。'
                           : 'Load SKILL.md, then edit the draft.')
-                      : (_zh
-                          ? '请先生成 Skill 草稿。'
-                          : 'Generate a Skill draft first.'),
+                      : (_zh ? '请先生成技能草稿。' : 'Generate a Skill draft first.'),
                   border: const OutlineInputBorder(),
                   isDense: true,
                 ),
@@ -378,7 +376,7 @@ class _SkillBuilderProductWorkflowState
             const SizedBox(height: 8),
             _EqualActionRow(children: [
               _PrimaryProductAction(
-                label: _zh ? '生成 Skill' : 'Generate Skill',
+                label: _zh ? '生成技能' : 'Generate Skill',
                 icon: Icons.extension_outlined,
                 onPressed: runtime.running || rc6 == null
                     ? null
@@ -423,7 +421,7 @@ class _SkillBuilderProductWorkflowState
         final localization = _ProductPanel(
           keyName: 'skill-external-localization',
           icon: Icons.merge_type_outlined,
-          title: _zh ? '外部 Skill 本地化' : 'External Skill Localization',
+          title: _zh ? '导入模板技能' : 'Import Template Skill',
           subtitle: runtime.hasSkill
               ? _displayNameForPath(runtime.skillPath)
               : '${widget.workspace}/workbench_runs/skill/external_imported_skill',
@@ -434,18 +432,18 @@ class _SkillBuilderProductWorkflowState
               rows: _zh
                   ? [
                       [
-                        'S0 外部 Skill',
-                        '导入外部写作方法论',
+                        '模板技能',
+                        '导入外部写作方法论模板',
                         runtime.hasSkillGenerationManifest ? '已导入' : '等待导入'
                       ],
                       [
-                        'S2 本地化 Skill',
-                        'S0 + 当前知识库融合',
+                        '本地化技能',
+                        '模板 + 当前知识库融合',
                         runtime.hasLocalizedSkillManifest ? '已验证' : '等待知识库'
                       ],
                       [
                         '差异说明',
-                        '记录本地化和 Agent 绑定变化',
+                        '记录本地化和助手绑定变化',
                         runtime.hasLocalizedSkillDiff ? '已生成' : '等待生成'
                       ],
                     ]
@@ -479,13 +477,13 @@ class _SkillBuilderProductWorkflowState
               rows: _zh
                   ? [
                       [
-                        '外部 Skill',
-                        'S0 / SKILL.md',
+                        '模板技能',
+                        '模板技能草稿',
                         runtime.hasSkillGenerationManifest ? '已导入' : '等待选择文件'
                       ],
                       [
                         '结构解析',
-                        '外部 Skill 结构',
+                        '模板技能结构',
                         runtime.hasSkillGenerationManifest ? '可查看' : '等待导入'
                       ],
                       [
@@ -502,7 +500,7 @@ class _SkillBuilderProductWorkflowState
                       ],
                       [
                         '本地化草稿',
-                        '本地化 Skill 草稿',
+                        '本地化技能草稿',
                         runtime.hasLocalizedSkillManifest ? '已生成' : '等待融合'
                       ],
                       [
@@ -511,26 +509,26 @@ class _SkillBuilderProductWorkflowState
                         runtime.hasLocalizedSkillDiff ? '可查看' : '等待生成'
                       ],
                       [
-                        '验证导出绑定',
-                        '验证 / 导出 / 绑定',
+                        '检查导出绑定',
+                        '检查 / 导出 / 绑定',
                         runtime.hasSkillAgentBindingManifest
                             ? '已生成绑定清单'
                             : runtime.hasSkillExport
-                                ? '已导出，等待 Agent'
+                                ? '已导出，等待助手'
                                 : '等待验证导出'
                       ],
                     ]
                   : [
                       [
-                        'External Skill',
-                        'S0 / SKILL.md',
+                        'Template skill',
+                        '模板技能草稿',
                         runtime.hasSkillGenerationManifest
                             ? 'Imported'
                             : 'Choose file'
                       ],
                       [
                         'Structure parsing',
-                        'External Skill structure',
+                        'Template skill structure',
                         runtime.hasSkillGenerationManifest
                             ? 'Viewable'
                             : 'Waiting import'
@@ -599,7 +597,7 @@ class _SkillBuilderProductWorkflowState
             const SizedBox(height: _DesktopGrid.gutter),
             _EqualActionRow(children: [
               _PrimaryProductAction(
-                label: _zh ? '导入并本地化 Skill' : 'Import and localize Skill',
+                label: _zh ? '导入模板技能' : 'Import template skill',
                 icon: Icons.merge_type_outlined,
                 onPressed: runtime.running || rc6 == null
                     ? null
@@ -614,36 +612,35 @@ class _SkillBuilderProductWorkflowState
               ),
               _DisplayAction(
                 label: runtime.hasSkillGenerationManifest
-                    ? (_zh ? '查看外部 Skill 结构' : 'View external Skill structure')
-                    : (_zh ? '等待导入外部 Skill' : 'Waiting external Skill'),
+                    ? (_zh ? '查看模板技能结构' : 'View template skill structure')
+                    : (_zh ? '等待导入模板技能' : 'Waiting template skill'),
                 icon: Icons.account_tree_outlined,
                 onPressed: runtime.hasSkillGenerationManifest
                     ? () => _showWorkspaceArtifactPreview(
                           context,
                           rc6: rc6,
-                          title:
-                              _zh ? '外部 Skill 结构' : 'External Skill structure',
+                          title: _zh ? '模板技能结构' : 'Template skill structure',
                           path: externalManifestPath,
                           unavailableMessage: _zh
-                              ? '尚未生成外部 Skill 结构清单。'
-                              : 'No external Skill manifest has been generated.',
+                              ? '尚未生成模板技能 结构清单。'
+                              : 'No template skill structure has been generated.',
                           closeLabel: _zh ? '关闭' : 'Close',
                         )
                     : null,
               ),
               _DisplayAction(
                 label: runtime.hasLocalizedSkillManifest
-                    ? (_zh ? '查看本地化 Skill 草稿' : 'View localized Skill draft')
+                    ? (_zh ? '查看本地化技能草稿' : 'View localized skill draft')
                     : (_zh ? '等待本地化草稿' : 'Waiting localized draft'),
                 icon: Icons.article_outlined,
                 onPressed: runtime.hasLocalizedSkillManifest
                     ? () => _showWorkspaceArtifactPreview(
                           context,
                           rc6: rc6,
-                          title: _zh ? '本地化 Skill 草稿' : 'Localized Skill draft',
+                          title: _zh ? '本地化技能草稿' : 'Localized skill draft',
                           path: localizedSkillDraftPath,
                           unavailableMessage: _zh
-                              ? '尚未生成本地化 Skill 草稿。'
+                              ? '尚未生成本地化技能草稿。'
                               : 'No localized Skill draft has been generated.',
                           closeLabel: _zh ? '关闭' : 'Close',
                         )
@@ -673,7 +670,7 @@ class _SkillBuilderProductWorkflowState
         final output = _ProductPanel(
           keyName: 'skill-output-preview',
           icon: Icons.folder_zip_outlined,
-          title: _zh ? 'Skill 版本操作' : 'Skill Version Operations',
+          title: _zh ? '技能版本操作' : 'Skill Version Operations',
           subtitle: runtime.hasSkill
               ? _displayNameForPath(runtime.skillPath)
               : '${widget.workspace}/workbench_runs/skill',
@@ -682,14 +679,14 @@ class _SkillBuilderProductWorkflowState
               zh: _zh,
               rows: _zh
                   ? [
-                      ['Skill 草稿', runtime.hasPrimarySkill ? '已生成' : '-'],
-                      ['Skill 配置', runtime.hasSkillConfig ? '已生成' : '-'],
+                      ['技能草稿', runtime.hasPrimarySkill ? '已生成' : '-'],
+                      ['技能配置', runtime.hasSkillConfig ? '已生成' : '-'],
                       [
                         '验证报告',
                         runtime.hasSkillVerificationReport ? '已生成' : '-'
                       ],
                       [
-                        '外部 Skill',
+                        '模板技能',
                         runtime.hasSkillGenerationManifest ? '已导入' : '-'
                       ],
                       [
@@ -714,7 +711,7 @@ class _SkillBuilderProductWorkflowState
                         runtime.hasSkillVerificationReport ? 'written' : '-'
                       ],
                       [
-                        'External Skill',
+                        'Template skill',
                         runtime.hasSkillGenerationManifest ? 'imported' : '-'
                       ],
                       [
@@ -742,26 +739,16 @@ class _SkillBuilderProductWorkflowState
                   : ['Operation', 'Artifact', 'Status'],
               rows: _zh
                   ? [
+                      ['查看', '技能草稿', runtime.hasPrimarySkill ? '可查看' : '等待生成'],
+                      ['复制', '技能副本', runtime.hasSkill ? '已生成副本' : '等待生成'],
+                      ['融合', '融合技能', runtime.hasSkill ? '已融合' : '等待生成'],
+                      ['导出', '技能导出包', runtime.hasSkillExport ? '可打开' : '等待生成'],
                       [
-                        '查看',
-                        'Skill 草稿',
-                        runtime.hasPrimarySkill ? '可查看' : '等待生成'
-                      ],
-                      ['复制', 'Skill 副本', runtime.hasSkill ? '已生成副本' : '等待生成'],
-                      ['融合', '融合 Skill', runtime.hasSkill ? '已融合' : '等待生成'],
-                      [
-                        '导出',
-                        'Skill 导出包',
-                        runtime.hasSkillExport ? '可打开' : '等待生成'
-                      ],
-                      [
-                        '绑定 Agent',
-                        'Agent 绑定',
+                        '绑定助手',
+                        '助手绑定',
                         runtime.hasSkillAgentBindingManifest
-                            ? (skillBindingStatus == 'bound'
-                                ? '已绑定'
-                                : '等待 Agent')
-                            : '创建 Agent 后绑定'
+                            ? (skillBindingStatus == 'bound' ? '已绑定' : '等待助手')
+                            : '创建助手后绑定'
                       ],
                     ]
                   : [
@@ -798,7 +785,7 @@ class _SkillBuilderProductWorkflowState
             ),
             const SizedBox(height: _DesktopGrid.gutter),
             _PrimaryProductAction(
-              label: _zh ? '生成 Skill' : 'Generate Skill',
+              label: _zh ? '生成技能' : 'Generate Skill',
               icon: Icons.folder_zip_outlined,
               onPressed: runtime.running || rc6 == null
                   ? null
@@ -838,7 +825,7 @@ class _SkillBuilderProductWorkflowState
                     ? (runtime.hasSkillVerificationReport
                         ? _displayNameForPath(
                             runtime.skillVerificationReportPath)
-                        : '等待真实 Skill 产物')
+                        : '等待真实技能产物')
                     : (_zh ? '等待报告' : 'Waiting for report')),
             const SizedBox(height: 8),
             _FieldRow(
@@ -851,7 +838,7 @@ class _SkillBuilderProductWorkflowState
                 label: _zh ? '包清单' : 'Package manifest',
                 value: runtime.hasSkillPackageManifest
                     ? _displayNameForPath(runtime.skillPackageManifestPath)
-                    : (_zh ? '等待 Skill 包清单' : 'Waiting Skill package')),
+                    : (_zh ? '等待技能包清单' : 'Waiting Skill package')),
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? '工厂验证' : 'Factory validation',
@@ -871,13 +858,13 @@ class _SkillBuilderProductWorkflowState
                     ? (_zh
                         ? '${runtime.skillVersionCount} 个版本'
                         : '${runtime.skillVersionCount} versions')
-                    : (_zh ? '等待生成 Skill' : 'Waiting Skill generation')),
+                    : (_zh ? '等待生成技能' : 'Waiting Skill generation')),
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? '工厂审计' : 'Factory audit',
                 value: runtime.skillFactoryAuditPath.isNotEmpty
                     ? _displayNameForPath(runtime.skillFactoryAuditPath)
-                    : (_zh ? '等待 Skill 操作' : 'Waiting Skill operation')),
+                    : (_zh ? '等待技能操作' : 'Waiting Skill operation')),
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? '导出包' : 'Export package',
@@ -885,27 +872,25 @@ class _SkillBuilderProductWorkflowState
                     ? (runtime.hasSkillExport
                         ? _displayNameForPath(runtime.skillExportPath)
                         : (_zh
-                            ? '等待真实 Skill 产物'
+                            ? '等待真实技能产物'
                             : 'Waiting for real Skill artifact'))
                     : (_zh ? '等待报告' : 'Waiting for report')),
             const SizedBox(height: 8),
             _FieldRow(
-                label: _zh ? 'Agent 绑定' : 'Agent binding',
+                label: _zh ? '助手绑定' : 'Agent binding',
                 value: runtime.hasSkillAgentBindingManifest
-                    ? '${skillBindingStatus == 'bound' ? (_zh ? '已绑定' : 'bound') : (_zh ? '等待 Agent' : 'waiting Agent')} · ${_displayNameForPath(runtime.skillAgentBindingManifestPath)}'
-                    : (_zh
-                        ? '创建 Agent 后生成绑定清单'
-                        : 'Generated after Agent creation')),
+                    ? '${skillBindingStatus == 'bound' ? (_zh ? '已绑定' : 'bound') : (_zh ? '等待助手' : 'waiting Agent')} · ${_displayNameForPath(runtime.skillAgentBindingManifestPath)}'
+                    : (_zh ? '创建助手后生成绑定清单' : 'Generated after Agent creation')),
             const SizedBox(height: 8),
             _FieldRow(
                 label: _zh ? '下一阶段' : 'Next stage',
                 value: _zh
-                    ? 'Agent 创建 / 绑定 / 导出'
+                    ? '助手创建 / 绑定 / 导出'
                     : 'Agent creation / binding / export'),
             const SizedBox(height: 8),
             _EqualActionRow(children: [
               _PrimaryProductAction(
-                label: _zh ? '校验 Skill' : 'Validate Skill',
+                label: _zh ? '检查技能' : 'Validate Skill',
                 onPressed: runtime.running || rc6 == null
                     ? null
                     : () {
@@ -919,7 +904,7 @@ class _SkillBuilderProductWorkflowState
                 icon: Icons.verified_outlined,
               ),
               _PrimaryProductAction(
-                label: _zh ? '导出 Skill' : 'Export Skill',
+                label: _zh ? '导出技能' : 'Export Skill',
                 icon: Icons.file_download_outlined,
                 onPressed: runtime.running || rc6 == null
                     ? null
@@ -932,10 +917,10 @@ class _SkillBuilderProductWorkflowState
                       },
               ),
               _MoreActionsButton(
-                label: _zh ? '更多 Skill 操作' : 'More Skill actions',
+                label: _zh ? '更多技能操作' : 'More Skill actions',
                 actions: [
                   _MoreMenuAction(
-                    label: _zh ? '复制 Skill' : 'Copy Skill',
+                    label: _zh ? '复制技能' : 'Copy Skill',
                     icon: Icons.content_copy_outlined,
                     enabled: !runtime.running && rc6 != null,
                     onSelected: () {
@@ -947,7 +932,7 @@ class _SkillBuilderProductWorkflowState
                     },
                   ),
                   _MoreMenuAction(
-                    label: _zh ? '融合 Skill' : 'Fuse Skill',
+                    label: _zh ? '融合技能' : 'Fuse Skill',
                     icon: Icons.merge_type_outlined,
                     enabled: !runtime.running && rc6 != null,
                     onSelected: () {
@@ -959,7 +944,7 @@ class _SkillBuilderProductWorkflowState
                     },
                   ),
                   _MoreMenuAction(
-                    label: _zh ? '绑定 Agent' : 'Bind Agent',
+                    label: _zh ? '绑定助手' : 'Bind Agent',
                     icon: Icons.link_outlined,
                     enabled: !runtime.running && rc6 != null,
                     onSelected: () {
@@ -971,16 +956,16 @@ class _SkillBuilderProductWorkflowState
                     },
                   ),
                   _MoreMenuAction(
-                    label: _zh ? '查看 Skill 内容' : 'View Skill content',
+                    label: _zh ? '查看技能内容' : 'View Skill content',
                     icon: Icons.article_outlined,
                     enabled: skillDraftPath.isNotEmpty,
                     onSelected: () => _showWorkspaceArtifactPreview(
                       context,
                       rc6: rc6,
-                      title: _zh ? 'Skill 内容预览' : 'Skill content preview',
+                      title: _zh ? '技能内容预览' : 'Skill content preview',
                       path: skillDraftPath,
                       unavailableMessage: _zh
-                          ? '尚未生成可预览 Skill。'
+                          ? '尚未生成可预览技能。'
                           : 'No previewable Skill has been generated.',
                       closeLabel: _zh ? '关闭' : 'Close',
                     ),

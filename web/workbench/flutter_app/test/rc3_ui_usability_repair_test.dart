@@ -52,24 +52,25 @@ void main() {
     expect(find.byKey(const Key('desktop-status-bar')), findsOneWidget);
     expect(tester.takeException(), isNull);
 
-    for (final label in <String>[
-      '首页',
-      '检索与验证',
-      '文档库',
-      '知识库',
-      '文档生成',
-      'Skill 工厂',
-      'Agent 工作台',
-      '产物中心',
-      '治理与审计',
-      '设置',
+    for (final entry in <MapEntry<Key, String>>[
+      const MapEntry(Key('sidebar-dashboard'), '首页'),
+      const MapEntry(Key('sidebar-workbook'), '工作区'),
+      const MapEntry(Key('sidebar-document-library'), '文档库'),
+      const MapEntry(Key('sidebar-knowledge-package-management'), '知识库'),
+      const MapEntry(Key('sidebar-retrieval-verification'), '测试知识库'),
+      const MapEntry(Key('sidebar-document-generation'), '文档生成'),
+      const MapEntry(Key('sidebar-skill-factory'), '技能生成'),
+      const MapEntry(Key('sidebar-agent-factory-runtime'), '我的助手'),
+      const MapEntry(Key('sidebar-artifact-center'), '成果中心'),
+      const MapEntry(Key('sidebar-reports-audit'), '使用记录'),
+      const MapEntry(Key('sidebar-workspace'), '设置'),
     ]) {
-      final target = find.text(label).first;
+      final target = find.byKey(entry.key).first;
       await tester.ensureVisible(target);
       await tester.tap(target, warnIfMissed: false);
       await tester.pumpAndSettle();
-      expect(find.text(label), findsWidgets, reason: label);
-      expect(tester.takeException(), isNull, reason: label);
+      expect(find.text(entry.value), findsWidgets, reason: entry.value);
+      expect(tester.takeException(), isNull, reason: entry.value);
     }
   });
 
@@ -77,24 +78,27 @@ void main() {
       (tester) async {
     await pumpWorkbench(tester, const Size(1366, 768));
 
-    await tester.ensureVisible(find.text('Agent 工作台').first);
-    await tester.tap(find.text('Agent 工作台').first, warnIfMissed: false);
+    await tester
+        .ensureVisible(find.byKey(const Key('sidebar-agent-factory-runtime')));
+    await tester.tap(find.byKey(const Key('sidebar-agent-factory-runtime')),
+        warnIfMissed: false);
     await tester.pumpAndSettle();
-    expect(find.text('Agent 工作台'), findsWidgets);
+    expect(find.text('我的助手'), findsWidgets);
     expect(find.byKey(const Key('agent-workspace-setup')), findsOneWidget);
     await tester.tap(find.byKey(const Key('page-tab-1')), warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('agent-create-product-flow')), findsOneWidget);
-    expect(find.text('单 Agent'), findsOneWidget);
+    expect(find.text('单个助手'), findsOneWidget);
     expect(find.text('enabled_real'), findsNothing);
     expect(find.text('disabled_boundary'), findsNothing);
     expect(find.textContaining('安全边界'), findsNothing);
     expect(find.textContaining('arbitrary shell'), findsNothing);
 
-    await tester.ensureVisible(find.text('设置').first);
-    await tester.tap(find.text('设置').first, warnIfMissed: false);
+    await tester.ensureVisible(find.byKey(const Key('sidebar-workspace')));
+    await tester.tap(find.byKey(const Key('sidebar-workspace')),
+        warnIfMissed: false);
     await tester.pumpAndSettle();
-    final providerTab = find.text('Redis / 向量库').first;
+    final providerTab = find.text('记忆与存储').first;
     await tester.ensureVisible(providerTab);
     await tester.tap(providerTab, warnIfMissed: false);
     await tester.pumpAndSettle();
@@ -108,20 +112,20 @@ void main() {
       (tester) async {
     await pumpWorkbench(tester, const Size(1366, 768));
 
-    for (final label in <String>[
-      '首页',
-      '文档库',
-      '知识库',
-      '检索与验证',
-      '文档生成',
-      'Skill 工厂',
-      'Agent 工作台',
-      '产物中心',
-      '治理与审计',
-      '设置',
+    for (final entry in <MapEntry<Key, String>>[
+      const MapEntry(Key('sidebar-dashboard'), '首页'),
+      const MapEntry(Key('sidebar-document-library'), '文档库'),
+      const MapEntry(Key('sidebar-knowledge-package-management'), '知识库'),
+      const MapEntry(Key('sidebar-retrieval-verification'), '测试知识库'),
+      const MapEntry(Key('sidebar-document-generation'), '文档生成'),
+      const MapEntry(Key('sidebar-skill-factory'), '技能生成'),
+      const MapEntry(Key('sidebar-agent-factory-runtime'), '我的助手'),
+      const MapEntry(Key('sidebar-artifact-center'), '成果中心'),
+      const MapEntry(Key('sidebar-reports-audit'), '使用记录'),
+      const MapEntry(Key('sidebar-workspace'), '设置'),
     ]) {
-      await tester.ensureVisible(find.text(label).first);
-      await tester.tap(find.text(label).first, warnIfMissed: false);
+      await tester.ensureVisible(find.byKey(entry.key).first);
+      await tester.tap(find.byKey(entry.key).first, warnIfMissed: false);
       await tester.pumpAndSettle();
 
       for (final forbidden in <String>[
@@ -137,9 +141,9 @@ void main() {
         'Parser/OCR 后端证据面板',
       ]) {
         expect(find.textContaining(forbidden), findsNothing,
-            reason: '$label exposes $forbidden');
+            reason: '${entry.value} exposes $forbidden');
       }
-      expect(tester.takeException(), isNull, reason: label);
+      expect(tester.takeException(), isNull, reason: entry.value);
     }
   });
 
@@ -147,16 +151,20 @@ void main() {
       (tester) async {
     await pumpWorkbench(tester, const Size(1366, 768));
 
-    final expectations = <String, List<String>>{
-      '文档库': ['Parser', 'OCR', '网页导入'],
-      '知识库': ['索引后端', 'Embedding', '向量库'],
-      '文档生成': ['Markdown', 'JSON / CSV', 'DOCX / PDF / PPTX'],
-      'Agent 工作台': ['模型', '短期记忆', '长期记忆', '协作导出'],
-    };
+    final expectations = <MapEntry<Key, List<String>>>[
+      const MapEntry(
+          Key('sidebar-document-library'), ['资料整理', '图片文字识别', '网页导入']),
+      const MapEntry(Key('sidebar-knowledge-package-management'),
+          ['本地模式', '来源文档', '生成知识库']),
+      const MapEntry(Key('sidebar-document-generation'),
+          ['Markdown', 'JSON / CSV', 'DOCX / PDF / PPTX']),
+      const MapEntry(
+          Key('sidebar-agent-factory-runtime'), ['模型', '短期记忆', '长期记忆', '协作导出']),
+    ];
 
-    for (final entry in expectations.entries) {
-      await tester.ensureVisible(find.text(entry.key).first);
-      await tester.tap(find.text(entry.key).first, warnIfMissed: false);
+    for (final entry in expectations) {
+      await tester.ensureVisible(find.byKey(entry.key).first);
+      await tester.tap(find.byKey(entry.key).first, warnIfMissed: false);
       await tester.pumpAndSettle();
 
       for (final expected in entry.value) {
@@ -175,7 +183,7 @@ void main() {
         expect(find.textContaining(forbidden), findsNothing,
             reason: '${entry.key} exposes $forbidden');
       }
-      expect(tester.takeException(), isNull, reason: entry.key);
+      expect(tester.takeException(), isNull, reason: '${entry.key}');
     }
   });
 }
