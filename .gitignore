@@ -15,3 +15,8 @@ node_modules/
 desktop/tauri/.npm-cache/
 desktop/tauri/dist/
 desktop/tauri/src-tauri/target/
+
+# Local gate validation logs and generated Workbench evidence.
+*.log
+web/workbench/flutter_app/output/
+web/workbench/flutter_app/build/
