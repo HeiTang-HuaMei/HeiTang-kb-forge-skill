@@ -4,7 +4,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter/services.dart' show LogicalKeyboardKey, rootBundle;
+import 'package:flutter/services.dart'
+    show Clipboard, LogicalKeyboardKey, rootBundle;
 
 import 'core_bridge/local_core_bridge.dart';
 import 'contracts/workbench_contracts.dart';
@@ -318,6 +319,14 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
       }());
     }
 
+    void runClipboardPathImport() {
+      if (_rc6RuntimeController.state.running) return;
+      unawaited(() async {
+        final text = (await Clipboard.getData('text/plain'))?.text ?? '';
+        await _rc6RuntimeController.importLocalPath(text);
+      }());
+    }
+
     SingleActivator combo(LogicalKeyboardKey key) =>
         SingleActivator(key, control: true, alt: true);
 
@@ -363,6 +372,16 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
               r'D:\HeiTang-Codex-WorkSpace\input',
             ),
           ),
+      combo(LogicalKeyboardKey.keyU): () => run(
+            (rc6) => rc6.exportAuditReport(),
+          ),
+      combo(LogicalKeyboardKey.keyP): () => run(
+            (rc6) => rc6.runStage3ProfilePersistenceSmoke(),
+          ),
+      combo(LogicalKeyboardKey.keyN): () => run(
+            (rc6) => rc6.runParallelTaskCapacityValidation(taskCount: 8),
+          ),
+      combo(LogicalKeyboardKey.keyB): runClipboardPathImport,
       combo(LogicalKeyboardKey.keyQ): () => confirmAndRun(
             title: zh ? '清空对话历史？' : 'Clear dialogue history?',
             body: zh
@@ -388,6 +407,16 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
             (rc6) => rc6.runRealInputFolderE2E(
               r'D:\HeiTang-Codex-WorkSpace\input',
             ),
+          ),
+      const SingleActivator(LogicalKeyboardKey.f5): runClipboardPathImport,
+      const SingleActivator(LogicalKeyboardKey.f10): () => run(
+            (rc6) => rc6.runStage3ProfilePersistenceSmoke(),
+          ),
+      const SingleActivator(LogicalKeyboardKey.f11): () => run(
+            (rc6) => rc6.exportAuditReport(),
+          ),
+      const SingleActivator(LogicalKeyboardKey.f12): () => run(
+            (rc6) => rc6.runParallelTaskCapacityValidation(taskCount: 8),
           ),
       const SingleActivator(LogicalKeyboardKey.f6): () => confirmAndRun(
             title: zh ? '清空对话历史？' : 'Clear dialogue history?',

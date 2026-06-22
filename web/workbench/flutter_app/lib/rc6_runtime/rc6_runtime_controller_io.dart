@@ -213,6 +213,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       _fail('选择的文件不存在：$filePath');
       return;
     }
+    if (!_supportedSourceExtension(source.path)) {
+      _fail(
+          '暂不支持该文件格式：${_extension(source.path).toLowerCase()}。请导入 .md/.txt/.pdf/.docx 文件。');
+      return;
+    }
     final workspace = _requireWorkspace();
     final inputDir = Directory(_join(workspace.path, 'input'));
     await _clearGeneratedArtifacts(includeImport: false);
@@ -3453,6 +3458,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     await auditDir.create(recursive: true);
     final reportPath = _join(auditDir.path, 'audit_report.json');
     final last = state.lastResult;
+    final generatedAt = DateTime.now().toUtc().toIso8601String();
     final records = <Map<String, Object?>>[
       {
         'module': 'document_library',
@@ -3560,9 +3566,17 @@ class Rc6RuntimeController extends ChangeNotifier {
             state.lastError.isEmpty ? state.lastMessage : state.lastError, ''),
       },
     ];
+    for (final record in records) {
+      final artifact = record['artifact']?.toString() ?? '';
+      record['action_type'] = record['event'];
+      record['time'] = generatedAt;
+      record['object'] = artifact.isEmpty ? record['module'] : artifact;
+      record['result'] = record['status'];
+    }
     final report = {
       'schema_version': 'heitang_workbench_audit_report.v1',
       'workspace': workspace.path,
+      'generated_at': generatedAt,
       'runtime_phase': state.phase.name,
       'running': state.running,
       'records': records,
@@ -5233,7 +5247,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     if (state.lastResult?.passed != true) return;
     await generateAgent();
     if (state.lastResult?.passed != true) return;
-    await runAgentDialogue();
+    await completeAgentProductOperations();
     await _writePrdP0ProductArtifacts(query: query);
     await _writeIndustrialExeSmokeReport(query: query);
     await _writeProjectConfigRuntimeStatus(
@@ -17060,29 +17074,25 @@ class Rc6RuntimeController extends ChangeNotifier {
     final path = _projectConfigProfilesPath(workspace);
     final file = File(path);
     if (!await file.exists()) {
-      final now = DateTime.now().toUtc().toIso8601String();
-      final defaultProfile = ProjectConfigProfile.localDefault(
-        workspaceId: workspace.path,
-        createdAt: now,
-      );
-      final profiles = [defaultProfile];
-      await _writeProjectConfigProfiles(workspace, profiles);
-      await _appendProfileChangeLog(
+      return _recreateDefaultProjectConfigProfile(
         workspace,
         action: 'create_default',
-        profile: defaultProfile,
-        status: '已配置未测试',
         summary: '默认本地 Profile 已创建。',
       );
-      await _appendProfileActivationLog(
-        workspace,
-        previousProfileId: '',
-        nextProfileId: defaultProfile.profileId,
-        warnings: const [],
-      );
-      return profiles;
     }
-    final payload = await _readJsonObject(path);
+    late final Map<String, dynamic> payload;
+    try {
+      payload = await _readJsonObject(path);
+    } on FormatException {
+      final backupPath =
+          '$path.corrupt.${DateTime.now().toUtc().microsecondsSinceEpoch}.bak';
+      await file.rename(backupPath);
+      return _recreateDefaultProjectConfigProfile(
+        workspace,
+        action: 'fallback_corrupt_profile',
+        summary: '配置档损坏，已备份并回退到默认本地 Profile。',
+      );
+    }
     final rawProfiles = payload['profiles'];
     final profiles = rawProfiles is List
         ? rawProfiles
@@ -17101,6 +17111,34 @@ class Rc6RuntimeController extends ChangeNotifier {
       await _writeProjectConfigProfiles(workspace, updated);
       return updated;
     }
+    return profiles;
+  }
+
+  Future<List<ProjectConfigProfile>> _recreateDefaultProjectConfigProfile(
+    Directory workspace, {
+    required String action,
+    required String summary,
+  }) async {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final defaultProfile = ProjectConfigProfile.localDefault(
+      workspaceId: workspace.path,
+      createdAt: now,
+    );
+    final profiles = [defaultProfile];
+    await _writeProjectConfigProfiles(workspace, profiles);
+    await _appendProfileChangeLog(
+      workspace,
+      action: action,
+      profile: defaultProfile,
+      status: '已配置未测试',
+      summary: summary,
+    );
+    await _appendProfileActivationLog(
+      workspace,
+      previousProfileId: '',
+      nextProfileId: defaultProfile.profileId,
+      warnings: const [],
+    );
     return profiles;
   }
 
@@ -23887,14 +23925,15 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   static Stream<File> _supportedSourceFiles(Directory root) async* {
-    final supported = {'.md', '.txt', '.pdf', '.docx'};
     await for (final entity in root.list(recursive: true, followLinks: false)) {
-      if (entity is File &&
-          supported.contains(_extension(entity.path).toLowerCase())) {
+      if (entity is File && _supportedSourceExtension(entity.path)) {
         yield entity;
       }
     }
   }
+
+  static bool _supportedSourceExtension(String path) =>
+      {'.md', '.txt', '.pdf', '.docx'}.contains(_extension(path).toLowerCase());
 
   static String _extension(String path) {
     final fileName = path.split(RegExp(r'[\\/]')).last;

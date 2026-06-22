@@ -500,6 +500,14 @@ class _SettingsProviderModelEditorState
           zh ? '当前配置档或最后一个配置档不能删除' : 'No inactive profile to delete');
       return;
     }
+    final confirmed = await _confirmDestructiveAction(
+      context,
+      title: zh ? '删除未启用配置档？' : 'Delete inactive profile?',
+      body: zh
+          ? '这会删除一个未启用的配置档；当前启用配置、输入原文件和工作区产物不会被删除。'
+          : 'This deletes one inactive profile; the active config, source files, and workspace artifacts are not deleted.',
+    );
+    if (!confirmed) return;
     final deleted =
         await rc6.deleteProjectConfigProfile(inactive.last.profileId);
     if (!mounted) return;
