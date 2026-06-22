@@ -1,15 +1,84 @@
 param(
-  [Parameter(Mandatory = $true)]
-  [string]$ExePath,
+  [string]$ExePath = "",
 
-  [Parameter(Mandatory = $true)]
-  [string]$InputDir,
+  [string]$InputDir = "",
 
-  [Parameter(Mandatory = $true)]
-  [string]$OutputRoot
+  [string]$OutputRoot = "",
+
+  [ValidateSet("smoke", "full", "single_instance", "button_matrix", "edge_input", "hotplug", "usage_mapping", "workspace_isolation", "memory_isolation")]
+  [string]$Mode = "smoke"
 )
 
 $ErrorActionPreference = "Stop"
+
+. "$PSScriptRoot\windows_native_product_verifier_common.ps1"
+
+if ([string]::IsNullOrWhiteSpace($ExePath)) {
+  $ExePath = Get-DefaultExePath
+}
+if ([string]::IsNullOrWhiteSpace($InputDir)) {
+  $InputDir = "D:\HeiTang-Codex-WorkSpace\input"
+}
+if ([string]::IsNullOrWhiteSpace($OutputRoot)) {
+  $OutputRoot = if ($Mode -eq "smoke") { Get-DefaultSmokeOutputRoot } else { Get-DefaultIndustrialOutputRoot }
+}
+
+if ($Mode -ne "smoke") {
+  $runs = if ($Mode -eq "full") {
+    @(
+      @{ mode = "smoke"; script = $PSCommandPath },
+      @{ mode = "single_instance"; script = Join-Path $PSScriptRoot "run_single_instance_check.ps1" },
+      @{ mode = "button_matrix"; script = Join-Path $PSScriptRoot "run_button_matrix.ps1" },
+      @{ mode = "edge_input"; script = Join-Path $PSScriptRoot "run_edge_input_matrix.ps1" },
+      @{ mode = "hotplug"; script = Join-Path $PSScriptRoot "run_hotplug_config_matrix.ps1" },
+      @{ mode = "usage_mapping"; script = Join-Path $PSScriptRoot "run_usage_mapping_matrix.ps1" },
+      @{ mode = "workspace_isolation"; script = Join-Path $PSScriptRoot "run_workspace_isolation_matrix.ps1" },
+      @{ mode = "memory_isolation"; script = Join-Path $PSScriptRoot "run_agent_memory_isolation_matrix.ps1" }
+    )
+  } else {
+    $scriptName = switch ($Mode) {
+      "button_matrix" { "run_button_matrix.ps1" }
+      "edge_input" { "run_edge_input_matrix.ps1" }
+      "hotplug" { "run_hotplug_config_matrix.ps1" }
+      "usage_mapping" { "run_usage_mapping_matrix.ps1" }
+      "workspace_isolation" { "run_workspace_isolation_matrix.ps1" }
+      "memory_isolation" { "run_agent_memory_isolation_matrix.ps1" }
+      "single_instance" { "run_single_instance_check.ps1" }
+    }
+    @(@{ mode = $Mode; script = Join-Path $PSScriptRoot $scriptName })
+  }
+  $results = @()
+  foreach ($run in $runs) {
+    if (-not (Test-Path -LiteralPath $run.script)) {
+      throw "Verifier script missing for mode $($run.mode): $($run.script)"
+    }
+    if ($run.mode -eq "smoke") {
+      $json = & $run.script -ExePath $ExePath -InputDir $InputDir -OutputRoot (Get-DefaultSmokeOutputRoot) -Mode smoke
+    } else {
+      $json = & $run.script -ExePath $ExePath -InputDir $InputDir -OutputRoot $OutputRoot
+    }
+    $parsed = ($json -join "`n") | ConvertFrom-Json
+    $results += [ordered]@{
+      mode = $run.mode
+      status = $parsed.status
+      final_status = $parsed.final_status
+      output_dir = $parsed.output_dir
+    }
+  }
+  $blocked = @($results | Where-Object {
+    ($_.status -and $_.status -notin @("passed", "passed_with_gated_optional_capabilities")) -or
+    ($_.final_status -and $_.final_status -notin @("windows_exe_smoke_passed"))
+  })
+  $final = [ordered]@{
+    mode = $Mode
+    status = if ($blocked.Count -eq 0) { "passed_with_gated_optional_capabilities" } else { "blocked" }
+    output_root = $OutputRoot
+    results = $results
+  }
+  $final | ConvertTo-Json -Depth 10
+  if ($blocked.Count -gt 0) { exit 1 }
+  exit 0
+}
 
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
