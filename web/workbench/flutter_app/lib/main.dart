@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show LogicalKeyboardKey, rootBundle;
 
 import 'core_bridge/local_core_bridge.dart';
 import 'contracts/workbench_contracts.dart';
@@ -287,6 +287,132 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
     );
   }
 
+  Map<ShortcutActivator, VoidCallback> _automationShortcuts(
+    BuildContext context,
+  ) {
+    void go(int index) {
+      if (index >= 0 && index < pages.length) {
+        setState(() => selectedIndex = index);
+      }
+    }
+
+    void run(Future<void> Function(Rc6RuntimeController rc6) action) {
+      if (_rc6RuntimeController.state.running) return;
+      unawaited(action(_rc6RuntimeController));
+    }
+
+    void confirmAndRun({
+      required String title,
+      required String body,
+      required Future<void> Function(Rc6RuntimeController rc6) action,
+    }) {
+      if (_rc6RuntimeController.state.running) return;
+      unawaited(() async {
+        final confirmed = await _confirmDestructiveAction(
+          context,
+          title: title,
+          body: body,
+        );
+        if (!confirmed) return;
+        await action(_rc6RuntimeController);
+      }());
+    }
+
+    SingleActivator combo(LogicalKeyboardKey key) =>
+        SingleActivator(key, control: true, alt: true);
+
+    final zh = localeCode == 'zh-CN';
+    return <ShortcutActivator, VoidCallback>{
+      combo(LogicalKeyboardKey.digit1): () => go(0),
+      combo(LogicalKeyboardKey.digit2): () => go(1),
+      combo(LogicalKeyboardKey.digit3): () => go(2),
+      combo(LogicalKeyboardKey.digit4): () => go(3),
+      combo(LogicalKeyboardKey.digit5): () => go(4),
+      combo(LogicalKeyboardKey.digit6): () => go(5),
+      combo(LogicalKeyboardKey.digit7): () => go(6),
+      combo(LogicalKeyboardKey.digit8): () => go(7),
+      combo(LogicalKeyboardKey.digit9): () => go(8),
+      combo(LogicalKeyboardKey.digit0): () => go(9),
+      combo(LogicalKeyboardKey.keyS): () => go(10),
+      combo(LogicalKeyboardKey.keyI): () => run(
+            (rc6) => rc6.importLocalPath(r'D:\HeiTang-Codex-WorkSpace\input'),
+          ),
+      combo(LogicalKeyboardKey.keyO): () => run(
+            (rc6) => rc6.parseAndChunkSources(),
+          ),
+      combo(LogicalKeyboardKey.keyK): () => run(
+            (rc6) => rc6.buildKnowledgeBase(),
+          ),
+      combo(LogicalKeyboardKey.keyT): () => run(
+            (rc6) => rc6.search('赚钱 小生意'),
+          ),
+      combo(LogicalKeyboardKey.keyM): () => run(
+            (rc6) => rc6.generateMarkdown(),
+          ),
+      combo(LogicalKeyboardKey.keyD): () => run(
+            (rc6) => rc6.exportMarkdownDocument(),
+          ),
+      combo(LogicalKeyboardKey.keyG): () => run(
+            (rc6) => rc6.generateSkill(),
+          ),
+      combo(LogicalKeyboardKey.keyA): () => run(
+            (rc6) => rc6.completeAgentProductOperations(),
+          ),
+      combo(LogicalKeyboardKey.keyR): () => run(
+            (rc6) => rc6.runRealInputFolderE2E(
+              r'D:\HeiTang-Codex-WorkSpace\input',
+            ),
+          ),
+      combo(LogicalKeyboardKey.keyQ): () => confirmAndRun(
+            title: zh ? '清空对话历史？' : 'Clear dialogue history?',
+            body: zh
+                ? '这会删除当前助手的对话内容、会话历史和对话导出；助手配置、技能、知识库和协作产物不会被删除。'
+                : 'This deletes the current assistant dialogue, chat history, and dialogue export; assistant config, Skill, KB, and discussion artifacts are kept.',
+            action: (rc6) => rc6.clearAgentDialogueHistory(),
+          ),
+      combo(LogicalKeyboardKey.keyE): () => confirmAndRun(
+            title: zh ? '删除成果记录？' : 'Delete output record?',
+            body: zh
+                ? '这会删除当前工作区里的文档生成和导出产物；原始输入文件夹不会被删除。'
+                : 'This deletes document generation and export artifacts in the current workspace; the original input folder is not touched.',
+            action: (rc6) => rc6.clearDocumentArtifacts(),
+          ),
+      combo(LogicalKeyboardKey.keyL): () => confirmAndRun(
+            title: zh ? '删除导入记录？' : 'Delete import records?',
+            body: zh
+                ? '这会删除当前工作区内的导入清单、解析、知识库、检索和文档导出产物；不会删除原始输入文件夹。'
+                : 'This deletes imported manifest, parsing, KB, retrieval, and document export artifacts in this workspace; the original source folder is not touched.',
+            action: (rc6) => rc6.clearImportedSources(),
+          ),
+      const SingleActivator(LogicalKeyboardKey.f9): () => run(
+            (rc6) => rc6.runRealInputFolderE2E(
+              r'D:\HeiTang-Codex-WorkSpace\input',
+            ),
+          ),
+      const SingleActivator(LogicalKeyboardKey.f6): () => confirmAndRun(
+            title: zh ? '清空对话历史？' : 'Clear dialogue history?',
+            body: zh
+                ? '这会删除当前助手的对话内容、会话历史和对话导出；助手配置、技能、知识库和协作产物不会被删除。'
+                : 'This deletes the current assistant dialogue, chat history, and dialogue export; assistant config, Skill, KB, and discussion artifacts are kept.',
+            action: (rc6) => rc6.clearAgentDialogueHistory(),
+          ),
+      const SingleActivator(LogicalKeyboardKey.f7): () => confirmAndRun(
+            title: zh ? '删除成果记录？' : 'Delete output record?',
+            body: zh
+                ? '这会删除当前工作区里的文档生成和导出产物；原始输入文件夹不会被删除。'
+                : 'This deletes document generation and export artifacts in the current workspace; the original input folder is not touched.',
+            action: (rc6) => rc6.clearDocumentArtifacts(),
+          ),
+      const SingleActivator(LogicalKeyboardKey.f8): () => confirmAndRun(
+            title: zh ? '删除导入记录？' : 'Delete import records?',
+            body: zh
+                ? '这会删除当前工作区内的导入清单、解析、知识库、检索和文档导出产物；不会删除原始输入文件夹。'
+                : 'This deletes imported manifest, parsing, KB, retrieval, and document export artifacts in this workspace; the original source folder is not touched.',
+            action: (rc6) => rc6.clearImportedSources(),
+          ),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentPage = pages[selectedIndex];
@@ -308,102 +434,115 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
       themeMode: themeMode,
       theme: _theme(Brightness.light),
       darkTheme: _theme(Brightness.dark),
-      home: FutureBuilder<WorkbenchContracts>(
-        future: _contractsFuture,
-        initialData: widget.contracts ?? sampleWorkbenchContracts,
-        builder: (context, contractsSnapshot) =>
-            FutureBuilder<P1WorkflowEvidence>(
-          future: _workflowEvidenceFuture,
-          initialData: widget.workflowEvidence ?? sampleP1WorkflowEvidence,
-          builder: (context, evidenceSnapshot) =>
-              FutureBuilder<P1WorkflowEvidence>(
-            future: _workflowV2EvidenceFuture,
-            initialData:
-                widget.workflowV2Evidence ?? sampleP1WorkflowV2Evidence,
-            builder: (context, v2Snapshot) =>
-                FutureBuilder<ExternalCapabilityRegistry>(
-              future: _externalCapabilitiesFuture,
-              initialData: widget.externalCapabilities ??
-                  sampleExternalCapabilityRegistry,
-              builder: (context, externalSnapshot) =>
-                  FutureBuilder<ProviderCapabilityStatus>(
-                future: _providerCapabilityStatusFuture,
-                initialData: widget.providerCapabilityStatus ??
-                    sampleProviderCapabilityStatus,
-                builder: (context, providerStatusSnapshot) =>
-                    FutureBuilder<ParserBackendMatrix>(
-                  future: _parserBackendsFuture,
+      home: Builder(
+        builder: (context) => CallbackShortcuts(
+          bindings: _automationShortcuts(context),
+          child: Focus(
+            autofocus: true,
+            child: FutureBuilder<WorkbenchContracts>(
+              future: _contractsFuture,
+              initialData: widget.contracts ?? sampleWorkbenchContracts,
+              builder: (context, contractsSnapshot) =>
+                  FutureBuilder<P1WorkflowEvidence>(
+                future: _workflowEvidenceFuture,
+                initialData:
+                    widget.workflowEvidence ?? sampleP1WorkflowEvidence,
+                builder: (context, evidenceSnapshot) =>
+                    FutureBuilder<P1WorkflowEvidence>(
+                  future: _workflowV2EvidenceFuture,
                   initialData:
-                      widget.parserBackends ?? sampleParserBackendMatrix,
-                  builder: (context, parserSnapshot) =>
-                      FutureBuilder<Map<String, dynamic>>(
-                    future: _campaign6AgentRuntimeStatusFuture,
-                    initialData: widget.campaign6AgentRuntimeStatus ??
-                        sampleCampaign6AgentRuntimeStatus,
-                    builder: (context, campaign6Snapshot) =>
-                        FutureBuilder<Map<String, dynamic>>(
-                      future: _campaign7ConfigurationStatusFuture,
-                      initialData: widget.campaign7ConfigurationStatus ??
-                          sampleCampaign7ConfigurationStatus,
-                      builder: (context, campaign7Snapshot) =>
-                          FutureBuilder<Map<String, dynamic>>(
-                        future: _campaign9DesktopDeliveryStatusFuture,
-                        initialData: widget.campaign9DesktopDeliveryStatus ??
-                            sampleCampaign9DesktopDeliveryStatus,
-                        builder: (context, campaign9Snapshot) =>
+                      widget.workflowV2Evidence ?? sampleP1WorkflowV2Evidence,
+                  builder: (context, v2Snapshot) =>
+                      FutureBuilder<ExternalCapabilityRegistry>(
+                    future: _externalCapabilitiesFuture,
+                    initialData: widget.externalCapabilities ??
+                        sampleExternalCapabilityRegistry,
+                    builder: (context, externalSnapshot) =>
+                        FutureBuilder<ProviderCapabilityStatus>(
+                      future: _providerCapabilityStatusFuture,
+                      initialData: widget.providerCapabilityStatus ??
+                          sampleProviderCapabilityStatus,
+                      builder: (context, providerStatusSnapshot) =>
+                          FutureBuilder<ParserBackendMatrix>(
+                        future: _parserBackendsFuture,
+                        initialData:
+                            widget.parserBackends ?? sampleParserBackendMatrix,
+                        builder: (context, parserSnapshot) =>
                             FutureBuilder<Map<String, dynamic>>(
-                          future: _skillGovernanceReportFuture,
-                          initialData: widget.skillGovernanceReport ??
-                              sampleSkillGovernanceReport,
-                          builder: (context, skillGovernanceSnapshot) =>
-                              _Rc6RuntimeScope(
-                            controller: _rc6RuntimeController,
-                            child: _WorkbenchScaffold(
-                              contracts: contractsSnapshot.data ??
-                                  sampleWorkbenchContracts,
-                              workflowEvidence: evidenceSnapshot.data ??
-                                  sampleP1WorkflowEvidence,
-                              workflowV2Evidence:
-                                  v2Snapshot.data ?? sampleP1WorkflowV2Evidence,
-                              externalCapabilities: externalSnapshot.data ??
-                                  sampleExternalCapabilityRegistry,
-                              providerCapabilityStatus:
-                                  providerStatusSnapshot.data ??
-                                      sampleProviderCapabilityStatus,
-                              parserBackends: parserSnapshot.data ??
-                                  sampleParserBackendMatrix,
-                              campaign6AgentRuntimeStatus:
-                                  campaign6Snapshot.data ??
-                                      sampleCampaign6AgentRuntimeStatus,
-                              campaign7ConfigurationStatus:
-                                  campaign7Snapshot.data ??
-                                      sampleCampaign7ConfigurationStatus,
-                              campaign9DesktopDeliveryStatus:
-                                  campaign9Snapshot.data ??
+                          future: _campaign6AgentRuntimeStatusFuture,
+                          initialData: widget.campaign6AgentRuntimeStatus ??
+                              sampleCampaign6AgentRuntimeStatus,
+                          builder: (context, campaign6Snapshot) =>
+                              FutureBuilder<Map<String, dynamic>>(
+                            future: _campaign7ConfigurationStatusFuture,
+                            initialData: widget.campaign7ConfigurationStatus ??
+                                sampleCampaign7ConfigurationStatus,
+                            builder: (context, campaign7Snapshot) =>
+                                FutureBuilder<Map<String, dynamic>>(
+                              future: _campaign9DesktopDeliveryStatusFuture,
+                              initialData:
+                                  widget.campaign9DesktopDeliveryStatus ??
                                       sampleCampaign9DesktopDeliveryStatus,
-                              skillGovernanceReport:
-                                  skillGovernanceSnapshot.data ??
-                                      sampleSkillGovernanceReport,
-                              methodologyMap:
-                                  widget.methodologyMap ?? sampleMethodologyMap,
-                              skillSuiteWorkflow: widget.skillSuiteWorkflow,
-                              localeCode: localeCode,
-                              themeMode: themeMode,
-                              selectedIndex: selectedIndex,
-                              isDark: isDark,
-                              coreBridge: widget.coreBridge,
-                              coreCli: widget.coreCli,
-                              coreWorkingDirectory: widget.coreWorkingDirectory,
-                              coreWorkspace: widget.coreWorkspace,
-                              enableLocalCoreActions:
-                                  widget.enableLocalCoreActions,
-                              isWebRuntime: widget.isWebRuntime,
-                              onThemeChanged: (value) =>
-                                  setState(() => themeMode = value),
-                              onLocaleChanged: (value) =>
-                                  setState(() => localeCode = value),
-                              onPageChanged: (index) =>
-                                  setState(() => selectedIndex = index),
+                              builder: (context, campaign9Snapshot) =>
+                                  FutureBuilder<Map<String, dynamic>>(
+                                future: _skillGovernanceReportFuture,
+                                initialData: widget.skillGovernanceReport ??
+                                    sampleSkillGovernanceReport,
+                                builder: (context, skillGovernanceSnapshot) =>
+                                    _Rc6RuntimeScope(
+                                  controller: _rc6RuntimeController,
+                                  child: _WorkbenchScaffold(
+                                    contracts: contractsSnapshot.data ??
+                                        sampleWorkbenchContracts,
+                                    workflowEvidence: evidenceSnapshot.data ??
+                                        sampleP1WorkflowEvidence,
+                                    workflowV2Evidence: v2Snapshot.data ??
+                                        sampleP1WorkflowV2Evidence,
+                                    externalCapabilities:
+                                        externalSnapshot.data ??
+                                            sampleExternalCapabilityRegistry,
+                                    providerCapabilityStatus:
+                                        providerStatusSnapshot.data ??
+                                            sampleProviderCapabilityStatus,
+                                    parserBackends: parserSnapshot.data ??
+                                        sampleParserBackendMatrix,
+                                    campaign6AgentRuntimeStatus:
+                                        campaign6Snapshot.data ??
+                                            sampleCampaign6AgentRuntimeStatus,
+                                    campaign7ConfigurationStatus:
+                                        campaign7Snapshot.data ??
+                                            sampleCampaign7ConfigurationStatus,
+                                    campaign9DesktopDeliveryStatus:
+                                        campaign9Snapshot.data ??
+                                            sampleCampaign9DesktopDeliveryStatus,
+                                    skillGovernanceReport:
+                                        skillGovernanceSnapshot.data ??
+                                            sampleSkillGovernanceReport,
+                                    methodologyMap: widget.methodologyMap ??
+                                        sampleMethodologyMap,
+                                    skillSuiteWorkflow:
+                                        widget.skillSuiteWorkflow,
+                                    localeCode: localeCode,
+                                    themeMode: themeMode,
+                                    selectedIndex: selectedIndex,
+                                    isDark: isDark,
+                                    coreBridge: widget.coreBridge,
+                                    coreCli: widget.coreCli,
+                                    coreWorkingDirectory:
+                                        widget.coreWorkingDirectory,
+                                    coreWorkspace: widget.coreWorkspace,
+                                    enableLocalCoreActions:
+                                        widget.enableLocalCoreActions,
+                                    isWebRuntime: widget.isWebRuntime,
+                                    onThemeChanged: (value) =>
+                                        setState(() => themeMode = value),
+                                    onLocaleChanged: (value) =>
+                                        setState(() => localeCode = value),
+                                    onPageChanged: (index) =>
+                                        setState(() => selectedIndex = index),
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -1424,20 +1563,34 @@ Future<bool> _confirmDestructiveAction(
 }) async {
   final result = await showDialog<bool>(
     context: context,
-    builder: (context) => AlertDialog(
-      title: Text(title),
-      content: Text(body),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+    builder: (context) => CallbackShortcuts(
+      bindings: <ShortcutActivator, VoidCallback>{
+        const SingleActivator(LogicalKeyboardKey.escape): () =>
+            Navigator.of(context).pop(false),
+        const SingleActivator(LogicalKeyboardKey.enter): () =>
+            Navigator.of(context).pop(true),
+        const SingleActivator(LogicalKeyboardKey.enter, control: true): () =>
+            Navigator.of(context).pop(true),
+      },
+      child: Focus(
+        autofocus: true,
+        child: AlertDialog(
+          title: Text(title),
+          content: Text(body),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+            ),
+            FilledButton.icon(
+              onPressed: () => Navigator.of(context).pop(true),
+              icon: const Icon(Icons.delete_outline),
+              label:
+                  Text(MaterialLocalizations.of(context).deleteButtonTooltip),
+            ),
+          ],
         ),
-        FilledButton.icon(
-          onPressed: () => Navigator.of(context).pop(true),
-          icon: const Icon(Icons.delete_outline),
-          label: Text(MaterialLocalizations.of(context).deleteButtonTooltip),
-        ),
-      ],
+      ),
     ),
   );
   return result ?? false;

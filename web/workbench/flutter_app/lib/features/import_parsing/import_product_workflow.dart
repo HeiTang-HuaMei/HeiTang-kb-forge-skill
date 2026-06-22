@@ -38,8 +38,16 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
   int stagedSources = 0;
   int preparedManifests = 0;
   final Set<int> selectedHistoryRows = <int>{};
+  final TextEditingController _localPathController =
+      TextEditingController(text: r'D:\HeiTang-Codex-WorkSpace\input');
 
   bool get _zh => widget.localeCode == 'zh-CN';
+
+  @override
+  void dispose() {
+    _localPathController.dispose();
+    super.dispose();
+  }
 
   Future<void> _importFile(Rc6RuntimeController? rc6) async {
     if (rc6 == null || rc6.state.running) return;
@@ -49,6 +57,11 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
   Future<void> _importFolder(Rc6RuntimeController? rc6) async {
     if (rc6 == null || rc6.state.running) return;
     await rc6.pickAndImportFolder();
+  }
+
+  Future<void> _importLocalPath(Rc6RuntimeController? rc6) async {
+    if (rc6 == null || rc6.state.running) return;
+    await rc6.importLocalPath(_localPathController.text);
   }
 
   Future<void> _importWebLink(Rc6RuntimeController? rc6) async {
@@ -206,19 +219,35 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
       required IconData icon,
       required VoidCallback? onPressed,
       bool primary = false,
+      String? automationKey,
     }) {
       final child = primary
           ? FilledButton.icon(
+              key: automationKey == null
+                  ? null
+                  : ValueKey<String>(automationKey),
               onPressed: onPressed,
               icon: Icon(icon, size: 18),
               label: Text(label, overflow: TextOverflow.ellipsis),
             )
           : OutlinedButton.icon(
+              key: automationKey == null
+                  ? null
+                  : ValueKey<String>(automationKey),
               onPressed: onPressed,
               icon: Icon(icon, size: 18),
               label: Text(label, overflow: TextOverflow.ellipsis),
             );
-      return Expanded(child: SizedBox(height: 42, child: child));
+      return Expanded(
+        child: Semantics(
+          button: true,
+          label: automationKey ?? label,
+          child: Tooltip(
+            message: label,
+            child: SizedBox(height: 42, child: child),
+          ),
+        ),
+      );
     }
 
     Widget queueRow({
@@ -366,6 +395,7 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                 onPressed: runtime.running || rc6 == null
                     ? null
                     : () => _importFile(rc6),
+                automationKey: 'workbench.import.add_file',
                 primary: true,
               ),
               const SizedBox(width: 10),
@@ -375,6 +405,50 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                 onPressed: runtime.running || rc6 == null
                     ? null
                     : () => _importFolder(rc6),
+                automationKey: 'workbench.import.add_folder',
+              ),
+            ]),
+            const SizedBox(height: 10),
+            Semantics(
+              textField: true,
+              label: 'workbench.import.local_path_input',
+              child: TextField(
+                key:
+                    const ValueKey<String>('workbench.import.local_path_input'),
+                controller: _localPathController,
+                enabled: !runtime.running && rc6 != null,
+                onSubmitted: (_) => _importLocalPath(rc6),
+                decoration: InputDecoration(
+                  labelText: _zh ? '导入本地路径' : 'Import local path',
+                  hintText: _zh
+                      ? r'粘贴文件或文件夹路径，例如 D:\HeiTang-Codex-WorkSpace\input'
+                      : r'Paste a file or folder path, e.g. D:\HeiTang-Codex-WorkSpace\input',
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(children: [
+              actionTile(
+                label: _zh ? '导入路径' : 'Import path',
+                icon: Icons.input_outlined,
+                onPressed: runtime.running || rc6 == null
+                    ? null
+                    : () => _importLocalPath(rc6),
+                automationKey: 'workbench.import.local_path_button',
+                primary: true,
+              ),
+              const SizedBox(width: 10),
+              actionTile(
+                label: _zh ? '运行主链路' : 'Run main chain',
+                icon: Icons.play_circle_outline,
+                onPressed: runtime.running || rc6 == null
+                    ? null
+                    : () => rc6.runRealInputFolderE2E(
+                          _localPathController.text,
+                        ),
+                automationKey: 'workbench.import.run_main_chain_button',
               ),
             ]),
             const SizedBox(height: 10),
@@ -385,6 +459,7 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                 onPressed: runtime.running || rc6 == null
                     ? null
                     : () => _importWebLink(rc6),
+                automationKey: 'workbench.import.add_link',
               ),
               const SizedBox(width: 10),
               actionTile(
@@ -394,6 +469,7 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                     runtime.running || rc6 == null || !runtime.hasImportedFile
                         ? null
                         : () => rc6.parseAndChunkSources(),
+                automationKey: 'workbench.import.organize_button',
                 primary: true,
               ),
             ]),

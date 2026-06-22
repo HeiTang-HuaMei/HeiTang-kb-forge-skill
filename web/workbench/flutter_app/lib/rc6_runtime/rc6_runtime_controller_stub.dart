@@ -34,6 +34,7 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> importOwnerInputFolder() async => initialize();
   Future<void> pickAndRunRealInputFolderE2E({String query = '赚钱 小生意'}) async =>
       initialize();
+  Future<void> importLocalPath(String path) async => initialize();
   Future<void> importFilePath(String filePath) async => initialize();
   Future<void> importFolderPath(String folderPath) async => initialize();
   Future<void> importWebLink(String url) async => initialize();

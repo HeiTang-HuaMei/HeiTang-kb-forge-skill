@@ -1109,24 +1109,35 @@ class _PrimaryProductAction extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.icon = Icons.play_arrow_outlined,
+    this.automationKey,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final IconData icon;
+  final String? automationKey;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      child: FilledButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon),
-        label: Text(label, overflow: TextOverflow.ellipsis),
-        style: FilledButton.styleFrom(
-          minimumSize: const Size(0, 46),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius),
+      child: Semantics(
+        button: true,
+        label: automationKey ?? label,
+        child: Tooltip(
+          message: label,
+          child: FilledButton.icon(
+            key:
+                automationKey == null ? null : ValueKey<String>(automationKey!),
+            onPressed: onPressed,
+            icon: Icon(icon),
+            label: Text(label, overflow: TextOverflow.ellipsis),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(0, 46),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius),
+              ),
+            ),
           ),
         ),
       ),

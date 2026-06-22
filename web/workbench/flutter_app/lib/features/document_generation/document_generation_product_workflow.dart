@@ -361,6 +361,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                 _PrimaryProductAction(
                   label: zh ? '生成文档' : 'Generate Document',
                   icon: Icons.notes_outlined,
+                  automationKey:
+                      'workbench.document_generation.generate_markdown_button',
                   onPressed: runtime.running || rc6 == null
                       ? null
                       : runtime.hasKnowledgeBase

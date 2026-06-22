@@ -267,6 +267,7 @@ class _RetrievalVerificationViewState
           _EqualActionRow(children: [
             _PrimaryProductAction(
               label: zh ? '测试知识库' : 'Test Knowledge Base',
+              automationKey: 'workbench.retrieval.test_kb_button',
               onPressed: runtime.running || rc6 == null
                   ? null
                   : () {
@@ -278,6 +279,7 @@ class _RetrievalVerificationViewState
             ),
             _PrimaryProductAction(
               label: zh ? '保存验证报告' : 'Save validation report',
+              automationKey: 'workbench.retrieval.save_report_button',
               onPressed: runtime.queryResultPath.isEmpty || rc6 == null
                   ? null
                   : () async {

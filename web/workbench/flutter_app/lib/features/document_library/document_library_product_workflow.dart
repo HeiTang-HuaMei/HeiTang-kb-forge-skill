@@ -268,6 +268,7 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
           bottom: _PrimaryProductAction(
             label: zh ? '生成知识库' : 'Generate knowledge base',
             icon: Icons.account_tree_outlined,
+            automationKey: 'workbench.document_library.generate_kb_button',
             onPressed: hasRealDocument ? widget.onBuildKnowledgeBase : null,
           ),
         ),

@@ -462,6 +462,7 @@ class _KnowledgePackageListViewState extends State<_KnowledgePackageListView> {
                   ? (zh ? '更新知识库' : 'Update Knowledge Base')
                   : (zh ? '生成知识库' : 'Generate Knowledge Base'),
               icon: Icons.build_outlined,
+              automationKey: 'workbench.knowledge_base.generate_button',
               onPressed: runtime.running || rc6 == null || !buildReady
                   ? null
                   : () {

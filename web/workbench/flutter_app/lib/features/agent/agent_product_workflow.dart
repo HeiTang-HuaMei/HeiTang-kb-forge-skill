@@ -662,6 +662,7 @@ class _AgentCreationProductViewState extends State<_AgentCreationProductView> {
           _PrimaryProductAction(
             label: zh ? '创建助手并进入对话' : 'Create assistant and open chat',
             icon: Icons.smart_toy_outlined,
+            automationKey: 'workbench.agent.create_and_chat_button',
             onPressed: runtime.running || rc6 == null
                 ? null
                 : () async {

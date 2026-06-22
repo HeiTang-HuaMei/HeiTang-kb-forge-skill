@@ -167,6 +167,27 @@ class Rc6RuntimeController extends ChangeNotifier {
     await importFolderPath(r'D:\HeiTang-Codex-WorkSpace\input');
   }
 
+  Future<void> importLocalPath(String path) async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final normalized = path.trim().replaceAll('"', '');
+    if (normalized.isEmpty) {
+      _fail('请输入要导入的本地文件或文件夹路径。');
+      return;
+    }
+    final type = await FileSystemEntity.type(normalized);
+    if (type == FileSystemEntityType.directory) {
+      await importFolderPath(normalized);
+      return;
+    }
+    if (type == FileSystemEntityType.file) {
+      await importFilePath(normalized);
+      return;
+    }
+    _fail('未找到本地路径：$normalized');
+  }
+
   Future<void> pickAndRunRealInputFolderE2E({String query = '赚钱 小生意'}) async {
     if (!_canRunDesktop()) {
       return;
