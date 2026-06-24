@@ -1,0 +1,14 @@
+{
+  "plan_execute_version": "1.0.0",
+  "status": "missing_dependencies",
+  "execution_order": [],
+  "completed_step_ids": [],
+  "remaining_step_ids": [
+    "commit"
+  ],
+  "blocked_step_ids": [],
+  "missing_dependency_step_ids": [
+    "commit"
+  ],
+  "summary": "0 executable step(s), 1 remaining, 0 blocked."
+}

@@ -1,0 +1,9 @@
+﻿{
+    "schema_version":  "heitang_plan_execute_runtime_basic_failure_template.v1",
+    "status":  "no_current_failure",
+    "affected_phase":  "P1",
+    "affected_capability_id":  "plan_execute_runtime",
+    "failed_acceptance_type":  "core_only",
+    "resume_prompt_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_plan_execute_runtime_basic\\plan_execute_runtime_basic_resume_prompt.md",
+    "created_at":  "2026-06-24T19:51:49.3559325Z"
+}

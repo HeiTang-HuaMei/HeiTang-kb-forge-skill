@@ -1,0 +1,16 @@
+{
+  "plan_execute_version": "1.0.0",
+  "status": "blocked",
+  "execution_order": [],
+  "completed_step_ids": [
+    "read"
+  ],
+  "remaining_step_ids": [
+    "retest"
+  ],
+  "blocked_step_ids": [
+    "repair"
+  ],
+  "missing_dependency_step_ids": [],
+  "summary": "0 executable step(s), 1 remaining, 1 blocked."
+}

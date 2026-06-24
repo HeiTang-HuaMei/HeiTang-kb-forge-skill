@@ -1,0 +1,92 @@
+﻿{
+    "schema_version":  "heitang_p1_plan_execute_runtime_basic_matrix.v1",
+    "status":  "plan_execute_runtime_completed_needs_owner_review",
+    "generated_at":  "2026-06-24T19:51:49.3582039Z",
+    "repo_root":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui",
+    "current_phase":  "P1",
+    "current_gate":  "P1-16 Long Document Reading Strategy Basic",
+    "next_gate":  "P1-16 Long Document Reading Strategy Basic",
+    "remaining_gates_count":  76,
+    "global_goal_complete":  false,
+    "contract_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_plan_execute_runtime_basic\\plan_execute_runtime_basic_contract.json",
+    "executed_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_plan_execute_runtime_basic\\plan_execute_executed_report.json",
+    "blocked_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_plan_execute_runtime_basic\\plan_execute_blocked_report.json",
+    "missing_dependency_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_plan_execute_runtime_basic\\plan_execute_missing_dependency_report.json",
+    "checkpoint_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_plan_execute_runtime_basic\\plan_execute_runtime_basic_checkpoint.json",
+    "failure_template_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_plan_execute_runtime_basic\\plan_execute_runtime_basic_failure_template.json",
+    "resume_prompt_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_plan_execute_runtime_basic\\plan_execute_runtime_basic_resume_prompt.md",
+    "rows":  [
+                 {
+                     "check":  "required plan execute runtime source and prior evidence files exist",
+                     "status":  "passed",
+                     "actual":  "missing=0",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "status machine is at or just past P1-15 with global guard",
+                     "status":  "passed",
+                     "actual":  "phase=P1; gate=P1-16 Long Document Reading Strategy Basic; first_remaining=P1-16 Long Document Reading Strategy Basic; remaining=76; global_goal_complete=False",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 release and P1-14 precede plan execute runtime",
+                     "status":  "passed",
+                     "actual":  "p0_release=True; p1_task_mode=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "remaining chain preserves release gates and next gate",
+                     "status":  "passed",
+                     "actual":  "next_gate=P1-16 Long Document Reading Strategy Basic; p1_release=True; p2_release=True; final=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "plan_execute_runtime registry row follows core-only contract",
+                     "status":  "passed",
+                     "actual":  "row_count=1; type=core_only; core=passed; ui=not_required; blackbox=not_required; close_allowed=true",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "plan, queue, rubric and P1 grouping reference plan execute runtime",
+                     "status":  "passed",
+                     "actual":  "plan=True; queue_p1_15=True; queue_p1_16=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "source implements structured plan execute input and report schema",
+                     "status":  "passed",
+                     "actual":  "runtime=True; input_schema=True; report_schema=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "plan execute runtime handles executable, blocked and missing dependency paths",
+                     "status":  "passed",
+                     "actual":  "exit_code=0; executed=executed; blocked=blocked; missing=missing_dependencies",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "narrow plan execute and related planning tests pass",
+                     "status":  "passed",
+                     "actual":  "exit_code=0; stdout=........                                                                 [100%]\r\n8 passed in 1.85s; stderr=",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P1 task mode router contract is available",
+                     "status":  "passed",
+                     "actual":  "task_mode_status=task_mode_router_completed_needs_owner_review",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "plan execute runtime basic contract artifact is generated",
+                     "status":  "passed",
+                     "actual":  "contract=D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_plan_execute_runtime_basic\\plan_execute_runtime_basic_contract.json; statuses=executed,blocked,missing_dependencies; next_gate=P1-16 Long Document Reading Strategy Basic",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "new P1-15 evidence has no forbidden positive-state tokens",
+                     "status":  "passed",
+                     "actual":  "scanned=contract,executed,blocked,missing; hits=0",
+                     "blocker":  ""
+                 }
+             ]
+}

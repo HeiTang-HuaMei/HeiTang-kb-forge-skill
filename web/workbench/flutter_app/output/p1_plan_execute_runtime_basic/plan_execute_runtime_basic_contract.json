@@ -1,0 +1,29 @@
+﻿{
+    "schema_version":  "heitang_plan_execute_runtime_basic_contract.v1",
+    "status":  "plan_execute_runtime_completed_needs_owner_review",
+    "capability_id":  "plan_execute_runtime",
+    "phase":  "P1",
+    "acceptance_type":  "core_only",
+    "required_inputs":  [
+                            "steps"
+                        ],
+    "required_outputs":  [
+                             "status",
+                             "execution_order",
+                             "completed_step_ids",
+                             "remaining_step_ids",
+                             "blocked_step_ids",
+                             "missing_dependency_step_ids"
+                         ],
+    "executed_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_plan_execute_runtime_basic\\plan_execute_executed_report.json",
+    "blocked_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_plan_execute_runtime_basic\\plan_execute_blocked_report.json",
+    "missing_dependency_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_plan_execute_runtime_basic\\plan_execute_missing_dependency_report.json",
+    "sample_statuses":  [
+                            "executed",
+                            "blocked",
+                            "missing_dependencies"
+                        ],
+    "next_gate":  "P1-16 Long Document Reading Strategy Basic",
+    "global_goal_complete":  false,
+    "generated_at":  "2026-06-24T19:51:49.2604468Z"
+}
