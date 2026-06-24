@@ -1,0 +1,13 @@
+{
+  "task_mode_router_version": "1.0.0",
+  "mode": "task_gate_lite",
+  "auto_execute_allowed": true,
+  "owner_review_required": false,
+  "reason_codes": [
+    "small_change"
+  ],
+  "validation_focus": [
+    "narrow_check"
+  ],
+  "summary": "route to task_gate_lite because small_change"
+}

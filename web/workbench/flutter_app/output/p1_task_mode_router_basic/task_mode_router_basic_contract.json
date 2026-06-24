@@ -1,0 +1,38 @@
+﻿{
+    "schema_version":  "heitang_task_mode_router_basic_contract.v1",
+    "status":  "task_mode_router_completed_needs_owner_review",
+    "capability_id":  "task_mode_router",
+    "phase":  "P1",
+    "acceptance_type":  "core_only",
+    "required_inputs":  [
+                            "task_text",
+                            "changed_file_count",
+                            "estimated_minutes",
+                            "affects_ui",
+                            "affects_runtime",
+                            "user_blackbox_required",
+                            "review_requested",
+                            "stage_gate_requested",
+                            "hard_blocker_risk"
+                        ],
+    "required_outputs":  [
+                             "mode",
+                             "auto_execute_allowed",
+                             "owner_review_required",
+                             "reason_codes",
+                             "validation_focus"
+                         ],
+    "lite_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_task_mode_router_basic\\task_mode_router_lite_report.json",
+    "long_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_task_mode_router_basic\\task_mode_router_long_report.json",
+    "stage_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_task_mode_router_basic\\task_mode_router_stage_report.json",
+    "hard_risk_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_task_mode_router_basic\\task_mode_router_hard_risk_report.json",
+    "sample_modes":  [
+                         "task_gate_lite",
+                         "night_long_build",
+                         "stage_gate_review",
+                         "owner_review_gate"
+                     ],
+    "next_gate":  "P1-15 Plan-and-Execute Runtime Basic",
+    "global_goal_complete":  false,
+    "generated_at":  "2026-06-24T19:42:46.4956431Z"
+}

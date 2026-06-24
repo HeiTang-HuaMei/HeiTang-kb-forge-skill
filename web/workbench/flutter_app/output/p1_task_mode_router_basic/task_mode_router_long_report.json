@@ -1,0 +1,16 @@
+{
+  "task_mode_router_version": "1.0.0",
+  "mode": "night_long_build",
+  "auto_execute_allowed": true,
+  "owner_review_required": false,
+  "reason_codes": [
+    "runtime_path_affected",
+    "blackbox_required"
+  ],
+  "validation_focus": [
+    "tests",
+    "matrix",
+    "checkpoint"
+  ],
+  "summary": "route to night_long_build because runtime_path_affected, blackbox_required"
+}

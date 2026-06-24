@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P1",
-  "current_gate": "P1-14 Task Mode Router Basic",
+  "current_gate": "P1-15 Plan-and-Execute Runtime Basic",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -38,11 +38,11 @@
     "P1-10 Rule Extraction Basic",
     "P1-11 Classification Reasoning Basic",
     "P1-12 Conflict and Exception Detection Basic",
-    "P1-13 AI Config Governance Basic"
+    "P1-13 AI Config Governance Basic",
+    "P1-14 Task Mode Router Basic"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P1-14 Task Mode Router Basic",
     "P1-15 Plan-and-Execute Runtime Basic",
     "P1-16 Long Document Reading Strategy Basic",
     "P1-17 External Skill Import Basic",
@@ -124,7 +124,7 @@
   "last_commit": "pending_current_gate_commit",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-24T19:43:18.0000000Z",
+  "updated_at": "2026-06-24T19:52:27.0000000Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -173,7 +173,9 @@
     "P1-12 Conflict and Exception Detection Basic has core-only conflict and exception detection evidence and remains subject to P1 Release Gate.",
     "P1 queue now continues with P1-13 AI Config Governance Basic.",
     "P1-13 AI Config Governance Basic has core-only AI config reservation governance evidence and remains subject to P1 Release Gate.",
-    "P1 queue now continues with P1-14 Task Mode Router Basic."
+    "P1 queue now continues with P1-14 Task Mode Router Basic.",
+    "P1-14 Task Mode Router Basic has core-only task mode routing evidence and remains subject to P1 Release Gate.",
+    "P1 queue now continues with P1-15 Plan-and-Execute Runtime Basic."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",

@@ -1,0 +1,15 @@
+{
+  "task_mode_router_version": "1.0.0",
+  "mode": "owner_review_gate",
+  "auto_execute_allowed": false,
+  "owner_review_required": true,
+  "reason_codes": [
+    "hard_blocker_risk"
+  ],
+  "validation_focus": [
+    "owner_decision",
+    "checkpoint",
+    "failure_report"
+  ],
+  "summary": "route to owner_review_gate because hard_blocker_risk"
+}

@@ -1,0 +1,15 @@
+{
+  "task_mode_router_version": "1.0.0",
+  "mode": "stage_gate_review",
+  "auto_execute_allowed": false,
+  "owner_review_required": true,
+  "reason_codes": [
+    "stage_gate_requested"
+  ],
+  "validation_focus": [
+    "status_consistency",
+    "regression",
+    "boundary_scan"
+  ],
+  "summary": "route to stage_gate_review because stage_gate_requested"
+}

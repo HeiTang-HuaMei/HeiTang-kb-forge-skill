@@ -1,0 +1,93 @@
+﻿{
+    "schema_version":  "heitang_p1_task_mode_router_basic_matrix.v1",
+    "status":  "task_mode_router_completed_needs_owner_review",
+    "generated_at":  "2026-06-24T19:42:46.5827900Z",
+    "repo_root":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui",
+    "current_phase":  "P1",
+    "current_gate":  "P1-15 Plan-and-Execute Runtime Basic",
+    "next_gate":  "P1-15 Plan-and-Execute Runtime Basic",
+    "remaining_gates_count":  77,
+    "global_goal_complete":  false,
+    "contract_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_task_mode_router_basic\\task_mode_router_basic_contract.json",
+    "lite_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_task_mode_router_basic\\task_mode_router_lite_report.json",
+    "long_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_task_mode_router_basic\\task_mode_router_long_report.json",
+    "stage_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_task_mode_router_basic\\task_mode_router_stage_report.json",
+    "hard_risk_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_task_mode_router_basic\\task_mode_router_hard_risk_report.json",
+    "checkpoint_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_task_mode_router_basic\\task_mode_router_basic_checkpoint.json",
+    "failure_template_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_task_mode_router_basic\\task_mode_router_basic_failure_template.json",
+    "resume_prompt_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_task_mode_router_basic\\task_mode_router_basic_resume_prompt.md",
+    "rows":  [
+                 {
+                     "check":  "required task mode router source and prior evidence files exist",
+                     "status":  "passed",
+                     "actual":  "missing=0",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "status machine is at or just past P1-14 with global guard",
+                     "status":  "passed",
+                     "actual":  "phase=P1; gate=P1-15 Plan-and-Execute Runtime Basic; first_remaining=P1-15 Plan-and-Execute Runtime Basic; remaining=77; global_goal_complete=False",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 release and P1-13 precede task mode router",
+                     "status":  "passed",
+                     "actual":  "p0_release=True; p1_ai_config=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "remaining chain preserves release gates and next gate",
+                     "status":  "passed",
+                     "actual":  "next_gate=P1-15 Plan-and-Execute Runtime Basic; p1_release=True; p2_release=True; final=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "task_mode_router registry row follows core-only contract",
+                     "status":  "passed",
+                     "actual":  "row_count=1; type=core_only; core=passed; ui=not_required; blackbox=not_required; close_allowed=true",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "plan, queue, rubric and P1 grouping reference task mode router",
+                     "status":  "passed",
+                     "actual":  "plan=True; queue_p1_14=True; queue_p1_15=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "source implements structured task mode router input and decision schema",
+                     "status":  "passed",
+                     "actual":  "router=True; input_schema=True; decision_schema=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "task mode router handles lite, long build, stage gate and hard risk paths",
+                     "status":  "passed",
+                     "actual":  "exit_code=0; lite=task_gate_lite; long=night_long_build; stage=stage_gate_review; hard=owner_review_gate",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "narrow task mode router and related planning tests pass",
+                     "status":  "passed",
+                     "actual":  "exit_code=0; stdout=......                                                                   [100%]\r\n6 passed in 1.02s; stderr=",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P1 AI config governance contract is available",
+                     "status":  "passed",
+                     "actual":  "ai_config_status=ai_config_governance_completed_needs_owner_review",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "task mode router basic contract artifact is generated",
+                     "status":  "passed",
+                     "actual":  "contract=D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_task_mode_router_basic\\task_mode_router_basic_contract.json; modes=task_gate_lite,night_long_build,stage_gate_review,owner_review_gate; next_gate=P1-15 Plan-and-Execute Runtime Basic",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "new P1-14 evidence has no forbidden positive-state tokens",
+                     "status":  "passed",
+                     "actual":  "scanned=contract,lite,long,stage,hard; hits=0",
+                     "blocker":  ""
+                 }
+             ]
+}
