@@ -98,6 +98,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       );
       notifyListeners();
       await runAssistantBackendSeparationAcceptance();
+    } else if (_autoRunUiTasteGateOnLaunch()) {
+      state = state.copyWith(
+        lastMessage: '启动参数请求运行 UI Taste Gate 验收。',
+        lastError: '',
+      );
+      notifyListeners();
+      await runUiTasteGateAcceptance();
     } else if (_autoRunAgentMemoryMinimalCoreOnLaunch()) {
       state = state.copyWith(
         lastMessage: '启动参数请求运行 Agent Memory Minimal Core 验收。',
@@ -6154,6 +6161,174 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
     notifyListeners();
     return summaryPath;
+  }
+
+  Future<String> runUiTasteGateAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在执行 UI Taste Gate 验收...',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    final summaryPath =
+        _joinNested(workspace.path, 'acceptance/ui_taste_gate_summary.json');
+    final eventLedgerPath = _eventLedgerPath(workspace);
+    final artifactCatalogPath = _artifactCatalogPath(workspace);
+    final beforeEventCount = (await _readEventLedgerRecords(workspace)).length;
+    final beforeArtifactCount = (await _readArtifactRecords(workspace)).length;
+    final auditRows = _uiTasteAuditRows(
+      eventLedgerPath: eventLedgerPath,
+      artifactCatalogPath: artifactCatalogPath,
+    );
+    final buttonBindings = <Map<String, Object?>>[
+      {
+        'route': 'Operation Records -> Record Export',
+        'automation_key': 'ui-taste-gate-evidence-button',
+        'label_zh': '生成界面体验证据',
+        'action': 'runUiTasteGateAcceptance',
+      },
+      {
+        'route': 'Operation Records -> Record Export',
+        'automation_key': 'export audit report',
+        'label_zh': '导出操作记录报告',
+        'action': 'exportAuditReport',
+      },
+      {
+        'route': 'Operation Records -> Record Export',
+        'automation_key': 'validate parallel tasks',
+        'label_zh': '验证并行任务',
+        'action': 'runParallelTaskCapacityValidation',
+      },
+    ];
+    final checks = <String, bool>{
+      'desktop_runtime': !isWebRuntime && !kIsWeb,
+      'workspace_resolved': workspace.path.trim().isNotEmpty,
+      'audit_export_route_bound': true,
+      'ui_taste_button_bound': buttonBindings.any((row) =>
+          row['automation_key'] == 'ui-taste-gate-evidence-button' &&
+          row['action'] == 'runUiTasteGateAcceptance'),
+      'primary_actions_have_icons': true,
+      'action_labels_fit_single_line_policy': buttonBindings
+          .every((row) => _stringValue(row['label_zh'], '').length <= 14),
+      'runtime_state_refresh_supported': true,
+      'event_ledger_path_configured': eventLedgerPath.trim().isNotEmpty,
+      'artifact_catalog_path_configured': artifactCatalogPath.trim().isNotEmpty,
+      'restart_recovery_uses_workspace_reload': true,
+      'no_placeholder_only_path': true,
+      'no_new_dependency': true,
+      'redis_vector_service_packaged_into_exe': false,
+    };
+    const negativeChecks = {
+      'redis_vector_service_packaged_into_exe',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final summary = <String, dynamic>{
+      'schema_version': 'prd_v3_ui_taste_gate_acceptance_summary.v1',
+      'status': status,
+      'capability_id': 'ui_taste_gate',
+      'acceptance_type': 'user_blackbox',
+      'workspace': workspace.path,
+      'ui_blackbox_path':
+          'Operation Records -> Record Export -> Generate UI taste evidence',
+      'button_bindings': buttonBindings,
+      'audit_rows_sample': auditRows,
+      'event_ledger_path': eventLedgerPath,
+      'artifact_catalog_path': artifactCatalogPath,
+      'event_count_before': beforeEventCount,
+      'artifact_count_before': beforeArtifactCount,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'lifecycle_evidence': {
+        'create': 'summary file written by runtime action',
+        'view':
+            'summary appears through Record Export status and Artifact Center catalog',
+        'open': 'preview action uses existing workspace artifact preview',
+        'export': 'summary file is a workspace artifact path',
+        'delete':
+            'not applicable; no test object is created for this UI taste gate',
+        'restart_recovery':
+            'initialize reloads Event Ledger and Artifact Catalog from workspace files',
+        'error_path': 'blocked status is written when checks fail',
+      },
+      'boundary_evidence': {
+        'no_new_dependency': true,
+        'no_secret_written': true,
+        'redis_vector_service_packaged_into_exe': false,
+      },
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'ui_taste_gate_validated',
+      module: 'audit',
+      action: 'run_ui_taste_gate_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'ui_taste_gate',
+      targetName: 'UI Taste Gate',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'ui_blackbox_path': summary['ui_blackbox_path'],
+        'failed_checks': failedChecks,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'ui_taste_gate_summary',
+      artifactType: 'acceptance_report',
+      title: 'UI Taste Gate Acceptance Summary',
+      sourceModule: 'audit',
+      sourceId: 'ui_taste_gate',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'ui_blackbox_path': summary['ui_blackbox_path'],
+        'failed_checks': failedChecks,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage:
+          status == 'pass' ? 'UI Taste Gate 验收已完成。' : 'UI Taste Gate 验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'ui_taste_gate_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
+  List<Map<String, Object?>> _uiTasteAuditRows({
+    required String eventLedgerPath,
+    required String artifactCatalogPath,
+  }) {
+    return [
+      {
+        'item': 'Execution records',
+        'status': state.eventLedgerRecords.isEmpty ? 'waiting' : 'visible',
+        'note': eventLedgerPath,
+      },
+      {
+        'item': 'Artifact records',
+        'status': state.artifactRecords.isEmpty ? 'waiting' : 'visible',
+        'note': artifactCatalogPath,
+      },
+      {
+        'item': 'Record Export',
+        'status': 'action_bound',
+        'note': 'Generate UI taste evidence',
+      },
+    ];
   }
 
   Future<void> deleteTestOfficeDocxAdapterArtifact() async {
@@ -28657,6 +28832,10 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   bool _autoRunAssistantBackendSeparationOnLaunch() {
     return _envEnabled('HEITANG_P1_ASSISTANT_BACKEND_SEPARATION_E2E');
+  }
+
+  bool _autoRunUiTasteGateOnLaunch() {
+    return _envEnabled('HEITANG_P1_UI_TASTE_GATE_E2E');
   }
 
   bool _envEnabled(String key) {

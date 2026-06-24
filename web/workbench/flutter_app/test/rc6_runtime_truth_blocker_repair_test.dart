@@ -8951,6 +8951,83 @@ void main() {
         isTrue);
   });
 
+  test('ui taste gate writes audit evidence and reloads catalog', () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final summaryPath = await controller.runUiTasteGateAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_ui_taste_gate_acceptance_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'ui_taste_gate');
+    expect(summary['acceptance_type'], 'user_blackbox');
+    expect(summary['failed_checks'], isEmpty);
+    expect(summary['ui_blackbox_path'],
+        contains('Operation Records -> Record Export'));
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'redis_vector_service_packaged_into_exe') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final buttonBindings =
+        (summary['button_bindings'] as List).cast<Map<String, dynamic>>();
+    expect(
+        buttonBindings.any((row) =>
+            row['automation_key'] == 'ui-taste-gate-evidence-button' &&
+            row['action'] == 'runUiTasteGateAcceptance'),
+        isTrue);
+
+    final eventRows = File(
+            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    expect(
+        eventRows.any((row) => row['event_type'] == 'ui_taste_gate_validated'),
+        isTrue);
+
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'ui_taste_gate_summary' &&
+            row['status'] == 'completed'),
+        isTrue);
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(
+        reloaded.state.eventLedgerRecords
+            .any((record) => record.eventType == 'ui_taste_gate_validated'),
+        isTrue);
+    expect(
+        reloaded.state.artifactRecords.any((record) =>
+            record.artifactId == 'ui_taste_gate_summary' &&
+            record.status == 'completed'),
+        isTrue);
+  });
+
   test('skill generation persists type platform and personalization config',
       () async {
     final workspace = await createWorkspace();

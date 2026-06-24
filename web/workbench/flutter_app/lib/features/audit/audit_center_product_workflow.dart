@@ -316,8 +316,10 @@ class _ControlledExportView extends StatefulWidget {
 class _ControlledExportViewState extends State<_ControlledExportView> {
   String auditReportPath = '';
   String parallelReportPath = '';
+  String uiTasteReportPath = '';
   bool exporting = false;
   bool validatingParallelTasks = false;
+  bool validatingUiTaste = false;
 
   bool get zh => widget.zh;
 
@@ -342,6 +344,18 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
     setState(() {
       parallelReportPath = path;
       validatingParallelTasks = false;
+    });
+  }
+
+  Future<void> _runUiTasteGate() async {
+    final rc6 = widget.runtimeController;
+    if (rc6 == null || rc6.state.running || validatingUiTaste) return;
+    setState(() => validatingUiTaste = true);
+    final path = await rc6.runUiTasteGateAcceptance();
+    if (!mounted) return;
+    setState(() {
+      uiTasteReportPath = path;
+      validatingUiTaste = false;
     });
   }
 
@@ -391,6 +405,13 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
                         : _displayNameForPath(
                             runtime.parallelTaskCapacityReportPath)
                   ],
+                  [
+                    '界面体验证据',
+                    uiTasteReportPath.isEmpty ? '未运行' : '已生成',
+                    uiTasteReportPath.isEmpty
+                        ? '验证入口、按钮、状态刷新'
+                        : _displayNameForPath(uiTasteReportPath)
+                  ],
                 ]
               : [
                   [
@@ -427,6 +448,13 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
                         : _displayNameForPath(
                             runtime.parallelTaskCapacityReportPath)
                   ],
+                  [
+                    'UI taste evidence',
+                    uiTasteReportPath.isEmpty ? 'Not run' : 'Generated',
+                    uiTasteReportPath.isEmpty
+                        ? 'Validate entry, buttons, refresh'
+                        : _displayNameForPath(uiTasteReportPath)
+                  ],
                 ],
         ),
         const SizedBox(height: _DesktopGrid.gutter),
@@ -454,6 +482,36 @@ class _ControlledExportViewState extends State<_ControlledExportView> {
                       path: auditReportPath,
                       unavailableMessage:
                           zh ? '尚未生成操作记录报告。' : 'No audit report generated.',
+                      closeLabel: zh ? '关闭' : 'Close',
+                    ),
+          ),
+        ]),
+        const SizedBox(height: 8),
+        _EqualActionRow(children: [
+          _PrimaryProductAction(
+            automationKey: 'ui-taste-gate-evidence-button',
+            label: validatingUiTaste
+                ? (zh ? '正在生成界面体验证据' : 'Generating UI taste evidence')
+                : (zh ? '生成界面体验证据' : 'Generate UI taste evidence'),
+            icon: Icons.palette_outlined,
+            onPressed: widget.runtimeController == null || validatingUiTaste
+                ? null
+                : _runUiTasteGate,
+          ),
+          _DisplayAction(
+            label: uiTasteReportPath.isEmpty
+                ? (zh ? '等待界面体验报告' : 'Waiting for UI taste report')
+                : (zh ? '预览界面体验报告' : 'Preview UI taste report'),
+            icon: Icons.visibility_outlined,
+            onPressed: uiTasteReportPath.isEmpty
+                ? null
+                : () => _showWorkspaceArtifactPreview(
+                      context,
+                      rc6: widget.runtimeController,
+                      title: zh ? '界面体验报告预览' : 'UI taste report preview',
+                      path: uiTasteReportPath,
+                      unavailableMessage:
+                          zh ? '尚未生成界面体验报告。' : 'No UI taste report generated.',
                       closeLabel: zh ? '关闭' : 'Close',
                     ),
           ),
