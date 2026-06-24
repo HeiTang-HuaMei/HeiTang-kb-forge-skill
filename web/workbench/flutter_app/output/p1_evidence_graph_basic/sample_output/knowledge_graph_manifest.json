@@ -1,0 +1,10 @@
+{
+  "knowledge_graph_version": "1.1.0",
+  "entity_count": 3,
+  "relation_count": 2,
+  "entity_type_counts": {
+    "author": 2,
+    "product": 1
+  },
+  "warnings": []
+}

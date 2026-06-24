@@ -1,0 +1,35 @@
+﻿{
+    "schema_version":  "heitang_evidence_graph_basic_contract.v1",
+    "status":  "evidence_graph_basic_completed_needs_owner_review",
+    "capability_id":  "evidence_graph_basic",
+    "phase":  "P1",
+    "acceptance_type":  "core_only",
+    "graph_files":  [
+                        "entities.jsonl",
+                        "relations.jsonl",
+                        "knowledge_graph_manifest.json"
+                    ],
+    "entity_schema_fields":  [
+                                 "entity_id",
+                                 "name",
+                                 "entity_type",
+                                 "source_path",
+                                 "chunk_id",
+                                 "citation"
+                             ],
+    "relation_schema_fields":  [
+                                   "relation_id",
+                                   "source_entity_id",
+                                   "target_entity_id",
+                                   "relation_type",
+                                   "source_path",
+                                   "chunk_id",
+                                   "citation"
+                               ],
+    "sample_output":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_evidence_graph_basic\\sample_output",
+    "entity_count":  3,
+    "relation_count":  2,
+    "next_gate":  "P1-5 Gap Analysis Basic Plus",
+    "global_goal_complete":  false,
+    "generated_at":  "2026-06-24T18:25:05.3101712Z"
+}

@@ -1,0 +1,102 @@
+﻿{
+    "schema_version":  "heitang_p1_evidence_graph_basic_matrix.v1",
+    "status":  "evidence_graph_basic_completed_needs_owner_review",
+    "generated_at":  "2026-06-24T18:25:05.3702662Z",
+    "repo_root":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui",
+    "current_phase":  "P1",
+    "current_gate":  "P1-5 Gap Analysis Basic Plus",
+    "next_gate":  "P1-5 Gap Analysis Basic Plus",
+    "remaining_gates_count":  87,
+    "global_goal_complete":  false,
+    "contract_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_evidence_graph_basic\\evidence_graph_basic_contract.json",
+    "sample_output":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_evidence_graph_basic\\sample_output",
+    "checkpoint_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_evidence_graph_basic\\evidence_graph_basic_checkpoint.json",
+    "failure_template_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_evidence_graph_basic\\evidence_graph_basic_failure_template.json",
+    "resume_prompt_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_evidence_graph_basic\\evidence_graph_basic_resume_prompt.md",
+    "rows":  [
+                 {
+                     "check":  "required evidence graph source and prior evidence files exist",
+                     "status":  "passed",
+                     "actual":  "missing=0",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "status machine is at or just past P1-4 with global guard",
+                     "status":  "passed",
+                     "actual":  "phase=P1; gate=P1-5 Gap Analysis Basic Plus; first_remaining=P1-5 Gap Analysis Basic Plus; remaining=87; global_goal_complete=False",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 release and P1-1 through P1-3 precede evidence graph gate",
+                     "status":  "passed",
+                     "actual":  "p0_release=True; p1_runner=True; p1_registry=True; p1_memory=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "remaining chain preserves release gates and next gate",
+                     "status":  "passed",
+                     "actual":  "next_gate=P1-5 Gap Analysis Basic Plus; p1_release=True; p2_release=True; final=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "evidence_graph_basic registry row follows core-only contract",
+                     "status":  "passed",
+                     "actual":  "row_count=1; type=core_only; core=passed; ui=not_required; blackbox=not_required; close_allowed=true",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "plan, queue, rubric and P1 grouping reference evidence graph gate",
+                     "status":  "passed",
+                     "actual":  "plan=True; queue_p1_4=True; queue_p1_5=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "source implements evidence graph entities, relations and manifest writes",
+                     "status":  "passed",
+                     "actual":  "exporter=True; entity_schema=True; relation_schema=True; cli_manifest=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "CLI can build evidence graph export from sample input",
+                     "status":  "passed",
+                     "actual":  "exit_code=0; stdout=Built knowledge package at D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_evidence_graph_basic\\sample_output\r\nSources: 1 | Chunks: 1 | Warnings: 0; stderr=",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "generated graph files have stable entity and manifest shape",
+                     "status":  "passed",
+                     "actual":  "entities=3; relations=2; manifest_entities=3; version=1.1.0",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "entity and relation records expose required schema fields",
+                     "status":  "passed",
+                     "actual":  "entity_id=author_author; entity_type=author; relation_count=2",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "narrow graph regression tests pass",
+                     "status":  "passed",
+                     "actual":  "exit_code=0; stdout=..                                                                       [100%]\r\n2 passed in 1.16s; stderr=",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "memory layer and P0 evidence reservations are available for graph gate",
+                     "status":  "passed",
+                     "actual":  "memory_layer_status=memory_layer_separation_completed_needs_owner_review; p0_reservation_status=memory_evidence_metadata_reserved_needs_review",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "evidence graph basic contract artifact is generated",
+                     "status":  "passed",
+                     "actual":  "contract=D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_evidence_graph_basic\\evidence_graph_basic_contract.json; entity_count=3; relation_count=2; next_gate=P1-5 Gap Analysis Basic Plus",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "new P1-4 evidence has no forbidden positive-state tokens",
+                     "status":  "passed",
+                     "actual":  "scanned=contract; hits=0",
+                     "blocker":  ""
+                 }
+             ]
+}
