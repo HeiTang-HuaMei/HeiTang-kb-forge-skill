@@ -1,0 +1,16 @@
+{
+  "scope_resolver_version": "1.0.0",
+  "status": "resolved",
+  "selected_scope_id": "kb-finance",
+  "selection_reason": "query_label_match",
+  "allowed_scope_ids": [
+    "kb-finance",
+    "kb-default"
+  ],
+  "candidate_scope_ids": [
+    "kb-default",
+    "kb-finance"
+  ],
+  "blocked_reason": "",
+  "summary": "scope resolved by query_label_match: kb-finance"
+}

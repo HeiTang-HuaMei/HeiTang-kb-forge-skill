@@ -1,0 +1,14 @@
+{
+  "scope_resolver_version": "1.0.0",
+  "status": "blocked",
+  "selected_scope_id": "",
+  "selection_reason": "blocked",
+  "allowed_scope_ids": [
+    "kb-public"
+  ],
+  "candidate_scope_ids": [
+    "kb-secret"
+  ],
+  "blocked_reason": "explicit_scope_not_allowed",
+  "summary": "scope resolution blocked: explicit_scope_not_allowed"
+}

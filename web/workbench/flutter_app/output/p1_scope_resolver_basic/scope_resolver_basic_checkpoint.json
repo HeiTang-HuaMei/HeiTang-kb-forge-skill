@@ -1,0 +1,10 @@
+﻿{
+    "schema_version":  "heitang_scope_resolver_basic_checkpoint.v1",
+    "status":  "scope_resolver_completed_needs_owner_review",
+    "current_phase":  "P1",
+    "current_gate":  "P1-10 Rule Extraction Basic",
+    "next_gate":  "P1-10 Rule Extraction Basic",
+    "remaining_gates_count":  82,
+    "global_goal_complete":  false,
+    "created_at":  "2026-06-24T19:07:53.7718394Z"
+}

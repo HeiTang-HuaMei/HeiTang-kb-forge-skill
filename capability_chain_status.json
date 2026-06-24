@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P1",
-  "current_gate": "P1-9 Scope Resolver Basic",
+  "current_gate": "P1-10 Rule Extraction Basic",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -33,11 +33,11 @@
     "P1-5 Gap Analysis Basic Plus",
     "P1-6 Citation Verification Basic Plus",
     "P1-7 Knowledge Reliability Eval Suite Basic",
-    "P1-8 Retrieval Regression Basic"
+    "P1-8 Retrieval Regression Basic",
+    "P1-9 Scope Resolver Basic"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P1-9 Scope Resolver Basic",
     "P1-10 Rule Extraction Basic",
     "P1-11 Classification Reasoning Basic",
     "P1-12 Conflict and Exception Detection Basic",
@@ -124,7 +124,7 @@
   "last_commit": "pending_current_gate_commit",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-24T18:58:30.0000000Z",
+  "updated_at": "2026-06-24T19:10:19.5032557Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -163,7 +163,9 @@
     "P1-7 Knowledge Reliability Eval Suite Basic has core-only basic eval evidence over evidence graph, gap analysis and citation verification and remains subject to P1 Release Gate.",
     "P1 queue now continues with P1-8 Retrieval Regression Basic.",
     "P1-8 Retrieval Regression Basic has core-only retrieval top-record, citation and trace regression evidence and remains subject to P1 Release Gate.",
-    "P1 queue now continues with P1-9 Scope Resolver Basic."
+    "P1 queue now continues with P1-9 Scope Resolver Basic.",
+    "P1-9 Scope Resolver Basic has core-only deterministic scope selection evidence and remains subject to P1 Release Gate.",
+    "P1 queue now continues with P1-10 Rule Extraction Basic."
   ],
   "acceptance_model": {
     "priority": "blackbox_first_for_user_operable_capabilities",

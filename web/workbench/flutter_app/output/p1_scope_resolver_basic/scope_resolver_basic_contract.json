@@ -1,0 +1,28 @@
+﻿{
+    "schema_version":  "heitang_scope_resolver_basic_contract.v1",
+    "status":  "scope_resolver_completed_needs_owner_review",
+    "capability_id":  "scope_resolver_basic",
+    "phase":  "P1",
+    "acceptance_type":  "core_only",
+    "required_inputs":  [
+                            "query",
+                            "explicit_scope_id",
+                            "allowed_scope_ids",
+                            "candidates"
+                        ],
+    "required_outputs":  [
+                             "status",
+                             "selected_scope_id",
+                             "selection_reason",
+                             "blocked_reason",
+                             "candidate_scope_ids"
+                         ],
+    "explicit_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_scope_resolver_basic\\scope_resolver_explicit_report.json",
+    "label_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_scope_resolver_basic\\scope_resolver_label_report.json",
+    "blocked_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_scope_resolver_basic\\scope_resolver_blocked_report.json",
+    "sample_selected_scope_id":  "kb-finance",
+    "blocked_reason":  "explicit_scope_not_allowed",
+    "next_gate":  "P1-10 Rule Extraction Basic",
+    "global_goal_complete":  false,
+    "generated_at":  "2026-06-24T19:07:53.7030585Z"
+}
