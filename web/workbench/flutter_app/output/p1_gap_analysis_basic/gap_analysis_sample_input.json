@@ -1,0 +1,22 @@
+﻿{
+    "required_claims":  [
+                            "claim a",
+                            "claim b"
+                        ],
+    "evidence_claims":  [
+                            "claim a"
+                        ],
+    "required_rules":  [
+                           "rule a"
+                       ],
+    "evidence_rules":  [
+
+                       ],
+    "required_sources":  [
+                             "source a",
+                             "source b"
+                         ],
+    "evidence_sources":  [
+                             "source b"
+                         ]
+}

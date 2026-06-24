@@ -1,0 +1,22 @@
+{
+  "gap_analysis_version": "1.0.0",
+  "status": "gaps_found",
+  "missing_claims": [
+    "claim b"
+  ],
+  "missing_rules": [
+    "rule a"
+  ],
+  "missing_sources": [
+    "source a"
+  ],
+  "covered_claims": [
+    "claim a"
+  ],
+  "covered_rules": [],
+  "covered_sources": [
+    "source b"
+  ],
+  "gap_count": 3,
+  "summary": "3 gap(s) found across claims, rules and sources."
+}

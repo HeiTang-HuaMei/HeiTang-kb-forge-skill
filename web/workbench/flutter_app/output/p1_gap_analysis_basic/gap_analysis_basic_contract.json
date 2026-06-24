@@ -1,0 +1,30 @@
+﻿{
+    "schema_version":  "heitang_gap_analysis_basic_contract.v1",
+    "status":  "gap_analysis_completed_needs_owner_review",
+    "capability_id":  "gap_analysis",
+    "phase":  "P1",
+    "acceptance_type":  "core_only",
+    "required_inputs":  [
+                            "required_claims",
+                            "evidence_claims",
+                            "required_rules",
+                            "evidence_rules",
+                            "required_sources",
+                            "evidence_sources"
+                        ],
+    "required_outputs":  [
+                             "missing_claims",
+                             "missing_rules",
+                             "missing_sources",
+                             "covered_claims",
+                             "covered_rules",
+                             "covered_sources",
+                             "gap_count"
+                         ],
+    "sample_input_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_gap_analysis_basic\\gap_analysis_sample_input.json",
+    "sample_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_gap_analysis_basic\\gap_analysis_sample_report.json",
+    "sample_gap_count":  3,
+    "next_gate":  "P1-6 Citation Verification Basic Plus",
+    "global_goal_complete":  false,
+    "generated_at":  "2026-06-24T18:37:15.6949522Z"
+}

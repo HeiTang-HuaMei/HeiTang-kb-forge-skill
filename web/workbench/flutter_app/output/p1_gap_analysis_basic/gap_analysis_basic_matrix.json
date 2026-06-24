@@ -1,0 +1,90 @@
+﻿{
+    "schema_version":  "heitang_p1_gap_analysis_basic_matrix.v1",
+    "status":  "gap_analysis_completed_needs_owner_review",
+    "generated_at":  "2026-06-24T18:37:15.7539588Z",
+    "repo_root":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui",
+    "current_phase":  "P1",
+    "current_gate":  "P1-6 Citation Verification Basic Plus",
+    "next_gate":  "P1-6 Citation Verification Basic Plus",
+    "remaining_gates_count":  86,
+    "global_goal_complete":  false,
+    "contract_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_gap_analysis_basic\\gap_analysis_basic_contract.json",
+    "sample_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_gap_analysis_basic\\gap_analysis_sample_report.json",
+    "checkpoint_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_gap_analysis_basic\\gap_analysis_basic_checkpoint.json",
+    "failure_template_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_gap_analysis_basic\\gap_analysis_basic_failure_template.json",
+    "resume_prompt_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_gap_analysis_basic\\gap_analysis_basic_resume_prompt.md",
+    "rows":  [
+                 {
+                     "check":  "required gap-analysis source and prior evidence files exist",
+                     "status":  "passed",
+                     "actual":  "missing=0",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "status machine is at or just past P1-5 with global guard",
+                     "status":  "passed",
+                     "actual":  "phase=P1; gate=P1-6 Citation Verification Basic Plus; first_remaining=P1-6 Citation Verification Basic Plus; remaining=86; global_goal_complete=False",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 release and P1-1 through P1-4 precede gap analysis gate",
+                     "status":  "passed",
+                     "actual":  "p0_release=True; p1_runner=True; p1_registry=True; p1_memory=True; p1_graph=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "remaining chain preserves release gates and next gate",
+                     "status":  "passed",
+                     "actual":  "next_gate=P1-6 Citation Verification Basic Plus; p1_release=True; p2_release=True; final=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "gap_analysis registry row follows core-only contract",
+                     "status":  "passed",
+                     "actual":  "row_count=1; type=core_only; core=passed; ui=not_required; blackbox=not_required; close_allowed=true",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "plan, queue, rubric and P1 grouping reference gap analysis gate",
+                     "status":  "passed",
+                     "actual":  "plan=True; queue_p1_5=True; queue_p1_6=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "source implements structured gap input and report schema",
+                     "status":  "passed",
+                     "actual":  "analyzer=True; input_schema=True; report_schema=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "gap analyzer produces missing claims, rules and sources",
+                     "status":  "passed",
+                     "actual":  "exit_code=0; status=gaps_found; gap_count=3; claims=1; rules=1; sources=1",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "narrow gap and evidence boundary regression tests pass",
+                     "status":  "passed",
+                     "actual":  "exit_code=0; stdout=....                                                                     [100%]\r\n4 passed in 0.60s; stderr=",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 gap reservation and P1 graph evidence are available",
+                     "status":  "passed",
+                     "actual":  "p0_reservation_status=memory_evidence_metadata_reserved_needs_review; graph_status=evidence_graph_basic_completed_needs_owner_review",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "gap analysis basic contract artifact is generated",
+                     "status":  "passed",
+                     "actual":  "contract=D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_gap_analysis_basic\\gap_analysis_basic_contract.json; sample_gap_count=3; next_gate=P1-6 Citation Verification Basic Plus",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "new P1-5 evidence has no forbidden positive-state tokens",
+                     "status":  "passed",
+                     "actual":  "scanned=contract,sample_report; hits=0",
+                     "blocker":  ""
+                 }
+             ]
+}
