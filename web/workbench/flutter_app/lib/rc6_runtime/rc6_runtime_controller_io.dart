@@ -84,6 +84,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       );
       notifyListeners();
       await runDocumentTemplateRegistryAcceptance();
+    } else if (_autoRunOfficeArtifactAdapterOnLaunch()) {
+      state = state.copyWith(
+        lastMessage: '启动参数请求运行 Office Artifact Adapter DOCX Basic 验收。',
+        lastError: '',
+      );
+      notifyListeners();
+      await runOfficeArtifactAdapterAcceptance();
     } else if (_autoRunAgentMemoryMinimalCoreOnLaunch()) {
       state = state.copyWith(
         lastMessage: '启动参数请求运行 Agent Memory Minimal Core 验收。',
@@ -5709,6 +5716,293 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runOfficeArtifactAdapterAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在执行 Office Artifact Adapter DOCX Basic 验收...',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final adapterRoot =
+        Directory(_joinNested(workspace.path, 'export/office_docx_adapter'));
+    await _clearWorkspacePath(adapterRoot.path);
+    await adapterRoot.create(recursive: true);
+    final sourceMarkdownPath =
+        await _ensureOfficeDocxAdapterSourceMarkdown(workspace);
+    final sourceMarkdown =
+        await File(sourceMarkdownPath).readAsString(encoding: utf8);
+    final docxOutput = File(_join(adapterRoot.path, 'generated.docx'));
+    await _writeDocxFile(docxOutput, sourceMarkdown);
+    final adapterManifestPath =
+        _join(adapterRoot.path, 'generated_file_report.json');
+    final validationReportPath =
+        _join(adapterRoot.path, 'office_docx_adapter_validation_report.json');
+    final summaryPath = _joinNested(
+      workspace.path,
+      'acceptance/office_artifact_adapter_docx_basic_acceptance_summary.json',
+    );
+    final testArtifact =
+        File(_join(adapterRoot.path, 'test_office_docx_adapter_artifact.docx'));
+    await docxOutput.copy(testArtifact.path);
+    await _upsertArtifactRecord(
+      artifactId: 'test_office_docx_adapter_artifact',
+      artifactType: 'office_docx_test_artifact',
+      title: 'test_office_docx_adapter_artifact',
+      sourceModule: 'document_generation',
+      sourceId: 'office_artifact_adapter_docx_basic',
+      filePath: testArtifact.path,
+      status: 'completed',
+      metadata: {
+        'format': 'docx',
+        'test_marker': true,
+        'adapter': 'builtin_local_docx_adapter',
+      },
+    );
+
+    final missingDocxParts = await _missingDocxRequiredParts(docxOutput);
+    final adapterManifest = <String, dynamic>{
+      'schema_version': 'prd_v3_office_docx_basic_adapter_manifest.v1',
+      'status': missingDocxParts.isEmpty ? 'pass' : 'blocked',
+      'format': 'docx',
+      'adapter': 'builtin_local_docx_adapter',
+      'source_markdown': sourceMarkdownPath,
+      'output': docxOutput.path,
+      'size_bytes': await docxOutput.length(),
+      'workspace': workspace.path,
+      'validation_report_path': validationReportPath,
+      'external_office_adapter_executed': false,
+      'officecli_integrated': false,
+      'redis_vector_service_packaged': false,
+      'secret_plaintext_written': false,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await _writeJsonFile(adapterManifestPath, adapterManifest);
+    await _appendEventLedgerRecord(
+      eventType: 'office_docx_adapter_exported',
+      module: 'document_generation',
+      action: 'run_office_artifact_adapter_docx_basic',
+      status: missingDocxParts.isEmpty ? 'completed' : 'blocked',
+      targetId: 'office_artifact_adapter_docx_basic',
+      targetName: 'Office Artifact Adapter DOCX Basic',
+      artifactPath: docxOutput.path,
+      source: 'runtime_acceptance',
+      metadata: {
+        'adapter_manifest_path': adapterManifestPath,
+        'validation_report_path': validationReportPath,
+        'missing_docx_parts': missingDocxParts,
+        'external_office_adapter_executed': false,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'office_docx_basic_export',
+      artifactType: 'office_document_export',
+      title: 'Office DOCX Basic Export',
+      sourceModule: 'document_generation',
+      sourceId: 'office_artifact_adapter_docx_basic',
+      filePath: docxOutput.path,
+      status: missingDocxParts.isEmpty ? 'completed' : 'blocked',
+      metadata: {
+        'format': 'docx',
+        'adapter_manifest_path': adapterManifestPath,
+        'validation_report_path': validationReportPath,
+        'adapter': 'builtin_local_docx_adapter',
+      },
+    );
+
+    final testArtifactExistsBeforeDelete = await testArtifact.exists();
+    await deleteTestOfficeDocxAdapterArtifact();
+    final testArtifactExistsAfterDelete = await testArtifact.exists();
+    final eventRows = await _readJsonl(File(_eventLedgerPath(workspace)));
+    final artifactCatalog =
+        await _readJsonObject(_artifactCatalogPath(workspace));
+    final artifactRows = _listOfMaps(artifactCatalog['artifacts']);
+    final checks = <String, bool>{
+      'source_markdown_exists': await File(sourceMarkdownPath).exists(),
+      'docx_output_exists': await docxOutput.exists(),
+      'docx_output_non_empty': await docxOutput.length() > 0,
+      'docx_zip_header': await _hasZipHeader(docxOutput),
+      'docx_content_types_present':
+          !missingDocxParts.contains('[Content_Types].xml'),
+      'docx_root_relationship_present':
+          !missingDocxParts.contains('_rels/.rels'),
+      'docx_word_document_present':
+          !missingDocxParts.contains('word/document.xml'),
+      'docx_word_content_type_present':
+          !missingDocxParts.contains('word_content_type'),
+      'adapter_manifest_exists': await File(adapterManifestPath).exists(),
+      'test_artifact_created_before_delete': testArtifactExistsBeforeDelete,
+      'test_artifact_removed_after_delete': !testArtifactExistsAfterDelete,
+      'event_export_recorded': eventRows.any((row) =>
+          _stringValue(row['event_type'], '') ==
+          'office_docx_adapter_exported'),
+      'event_delete_recorded': eventRows.any((row) =>
+          _stringValue(row['action'], '') ==
+          'delete_test_office_docx_adapter_artifact'),
+      'artifact_export_recorded': artifactRows.any((row) =>
+          _stringValue(row['artifact_id'], '') == 'office_docx_basic_export' &&
+          _stringValue(row['status'], '') == 'completed'),
+      'artifact_test_delete_recorded': artifactRows.any((row) =>
+          _stringValue(row['artifact_id'], '') ==
+              'test_office_docx_adapter_artifact' &&
+          _stringValue(row['status'], '') == 'deleted'),
+      'real_user_data_deleted': false,
+      'external_office_adapter_executed': false,
+      'redis_vector_service_packaged': false,
+      'secret_plaintext_written': false,
+    };
+    final negativeChecks = {
+      'real_user_data_deleted',
+      'external_office_adapter_executed',
+      'redis_vector_service_packaged',
+      'secret_plaintext_written',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final validationReport = <String, dynamic>{
+      'schema_version': 'prd_v3_office_docx_basic_adapter_validation_report.v1',
+      'status': status,
+      'format': 'docx',
+      'adapter': 'builtin_local_docx_adapter',
+      'source_markdown': sourceMarkdownPath,
+      'docx_output_path': docxOutput.path,
+      'adapter_manifest_path': adapterManifestPath,
+      'test_artifact_path': testArtifact.path,
+      'checks': checks,
+      'missing_docx_parts': missingDocxParts,
+      'failed_checks': failedChecks,
+      'delete_scope': 'test_marker_only',
+      'external_office_adapter_executed': false,
+      'officecli_integrated': false,
+      'redis_vector_service_packaged': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+    final summary = <String, dynamic>{
+      'schema_version':
+          'prd_v3_office_artifact_adapter_docx_basic_acceptance_summary.v1',
+      'status': status,
+      'capability_id': 'office_artifact_adapter',
+      'workspace': workspace.path,
+      'source_markdown': sourceMarkdownPath,
+      'docx_output_path': docxOutput.path,
+      'adapter_manifest_path': adapterManifestPath,
+      'validation_report_path': validationReportPath,
+      'test_artifact_path': testArtifact.path,
+      'checks': checks,
+      'missing_docx_parts': missingDocxParts,
+      'failed_checks': failedChecks,
+      'delete_scope': 'test_marker_only',
+      'restart_recovery_evidence': 'docx_output_and_reports_are_durable_files',
+      'external_office_adapter_executed': false,
+      'officecli_integrated': false,
+      'redis_vector_service_packaged': false,
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'office_artifact_adapter_acceptance',
+      module: 'document_generation',
+      action: 'run_office_artifact_adapter_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'office_artifact_adapter',
+      targetName: 'Office Artifact Adapter DOCX Basic Acceptance',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'docx_output_path': docxOutput.path,
+        'validation_report_path': validationReportPath,
+        'failed_checks': failedChecks,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'office_artifact_adapter_acceptance_summary',
+      artifactType: 'acceptance_report',
+      title: 'Office Artifact Adapter DOCX Basic Acceptance Summary',
+      sourceModule: 'document_generation',
+      sourceId: 'office_artifact_adapter_acceptance',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'docx_output_path': docxOutput.path,
+        'validation_report_path': validationReportPath,
+        'failed_checks': failedChecks,
+      },
+    );
+    state = state.copyWith(
+      running: false,
+      phase: Rc6RuntimePhase.documentGenerated,
+      exportedDocumentPath: docxOutput.path,
+      exportManifestPath: adapterManifestPath,
+      lastMessage: status == 'pass'
+          ? 'Office Artifact Adapter DOCX Basic 验收已完成。'
+          : 'Office Artifact Adapter DOCX Basic 验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'office_artifact_adapter_blocked',
+    );
+    await _loadExistingArtifacts();
+    notifyListeners();
+    return summaryPath;
+  }
+
+  Future<void> deleteTestOfficeDocxAdapterArtifact() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    final adapterRoot =
+        Directory(_joinNested(workspace.path, 'export/office_docx_adapter'));
+    final target =
+        File(_join(adapterRoot.path, 'test_office_docx_adapter_artifact.docx'));
+    final targetName = target.path.split(Platform.pathSeparator).last;
+    if (!targetName.startsWith('test_') ||
+        !_isInsideDirectory(target.absolute.path, adapterRoot.absolute.path)) {
+      _fail('只能删除本次验收创建的 test_ DOCX 适配器临时文件。');
+      return;
+    }
+    final existedBeforeDelete = await target.exists();
+    if (existedBeforeDelete) {
+      await target.delete();
+    }
+    await _markArtifactRecordDeleted(
+      artifactId: 'test_office_docx_adapter_artifact',
+      status: 'deleted',
+      metadata: {
+        'delete_scope': 'test_marker_only',
+        'file_existed_before_delete': existedBeforeDelete,
+        'real_user_data_deleted': false,
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'office_docx_adapter_test_artifact_deleted',
+      module: 'document_generation',
+      action: 'delete_test_office_docx_adapter_artifact',
+      status: 'completed',
+      targetId: 'test_office_docx_adapter_artifact',
+      targetName: 'test_office_docx_adapter_artifact',
+      artifactPath: target.path,
+      source: 'runtime_acceptance',
+      metadata: {
+        'delete_scope': 'test_marker_only',
+        'file_existed_before_delete': existedBeforeDelete,
+        'real_user_data_deleted': false,
+      },
+    );
+    await _loadExistingArtifacts();
+  }
+
   Future<String> runParallelTaskCapacityValidation({int taskCount = 8}) async {
     if (!_canRunDesktop()) {
       return '';
@@ -6907,6 +7201,12 @@ class Rc6RuntimeController extends ChangeNotifier {
       (
         _joinNested(workspace.path, 'export/docx/generated.docx'),
         _joinNested(workspace.path, 'export/docx/generated_file_report.json')
+      ),
+      (
+        _joinNested(
+            workspace.path, 'export/office_docx_adapter/generated.docx'),
+        _joinNested(workspace.path,
+            'export/office_docx_adapter/generated_file_report.json')
       ),
       (
         _joinNested(workspace.path, 'export/pdf/generated.pdf'),
@@ -11436,6 +11736,80 @@ class Rc6RuntimeController extends ChangeNotifier {
       return generated.readAsString(encoding: utf8);
     }
     return '';
+  }
+
+  Future<String> _ensureOfficeDocxAdapterSourceMarkdown(
+      Directory workspace) async {
+    final docDir = Directory(_join(workspace.path, 'doc'));
+    final edited = File(_join(docDir.path, 'edited_document.md'));
+    final notes = File(_join(docDir.path, 'reading_notes.md'));
+    final generated = File(_join(docDir.path, 'generated.md'));
+    if (await edited.exists()) return edited.path;
+    if (await notes.exists()) return notes.path;
+    if (await generated.exists()) return generated.path;
+    await docDir.create(recursive: true);
+    final source = File(_join(docDir.path, 'generated.md'));
+    await source.writeAsString(
+      [
+        '# Office DOCX Basic Adapter Smoke',
+        '',
+        'This test-marked source verifies the built-in local DOCX adapter.',
+        '',
+        '- source_trace: local_workspace',
+        '- validation_report: office_docx_adapter_validation_report.json',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    return source.path;
+  }
+
+  static Future<bool> _hasZipHeader(File file) async {
+    if (!await file.exists()) return false;
+    final bytes = await file.openRead(0, 4).fold<List<int>>(
+      <int>[],
+      (buffer, chunk) => buffer..addAll(chunk),
+    );
+    return bytes.length >= 4 &&
+        bytes[0] == 0x50 &&
+        bytes[1] == 0x4b &&
+        bytes[2] == 0x03 &&
+        bytes[3] == 0x04;
+  }
+
+  static Future<List<String>> _missingDocxRequiredParts(File file) async {
+    if (!await file.exists()) {
+      return const [
+        'docx_file',
+        '[Content_Types].xml',
+        '_rels/.rels',
+        'word/document.xml',
+        'word_content_type',
+      ];
+    }
+    final bytes = await file.readAsBytes();
+    final payload = latin1.decode(bytes, allowInvalid: true);
+    final missing = <String>[];
+    if (bytes.length < 4 ||
+        bytes[0] != 0x50 ||
+        bytes[1] != 0x4b ||
+        bytes[2] != 0x03 ||
+        bytes[3] != 0x04) {
+      missing.add('zip_header');
+    }
+    for (final part in const [
+      '[Content_Types].xml',
+      '_rels/.rels',
+      'word/document.xml',
+    ]) {
+      if (!payload.contains(part)) {
+        missing.add(part);
+      }
+    }
+    if (!payload.contains(
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml')) {
+      missing.add('word_content_type');
+    }
+    return missing;
   }
 
   static String _markdownToPlainText(String markdown) {
@@ -28013,6 +28387,10 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   bool _autoRunDocumentTemplateRegistryOnLaunch() {
     return _envEnabled('HEITANG_P1_DOCUMENT_TEMPLATE_REGISTRY_E2E');
+  }
+
+  bool _autoRunOfficeArtifactAdapterOnLaunch() {
+    return _envEnabled('HEITANG_P1_OFFICE_ARTIFACT_ADAPTER_E2E');
   }
 
   bool _envEnabled(String key) {

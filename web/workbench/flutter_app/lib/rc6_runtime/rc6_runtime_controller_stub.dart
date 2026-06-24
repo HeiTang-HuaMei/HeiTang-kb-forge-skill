@@ -110,6 +110,13 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> runOfficeArtifactAdapterAcceptance() async {
+    await initialize();
+    return '';
+  }
+
+  Future<void> deleteTestOfficeDocxAdapterArtifact() async => initialize();
+
   Future<String> readLatestDocumentGenerationHistoryMarkdown({
     int maxCharacters = 6000,
   }) async {

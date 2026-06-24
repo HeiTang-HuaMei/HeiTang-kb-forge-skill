@@ -8728,6 +8728,133 @@ void main() {
         isTrue);
   });
 
+  test('office artifact adapter docx basic has lifecycle evidence', () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final summaryPath = await controller.runOfficeArtifactAdapterAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_office_artifact_adapter_docx_basic_acceptance_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['external_office_adapter_executed'], isFalse);
+    expect(summary['officecli_integrated'], isFalse);
+    expect(summary['redis_vector_service_packaged'], isFalse);
+    expect(summary['real_user_data_deleted'], isFalse);
+    expect(summary['secret_plaintext_written'], isFalse);
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'real_user_data_deleted' ||
+          entry.key == 'external_office_adapter_executed' ||
+          entry.key == 'redis_vector_service_packaged' ||
+          entry.key == 'secret_plaintext_written') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final docxPath = summary['docx_output_path'] as String;
+    final docx = File(docxPath);
+    expect(docx.existsSync(), isTrue);
+    final docxBytes = docx.readAsBytesSync();
+    expect(docxBytes.take(4).toList(), [0x50, 0x4b, 0x03, 0x04]);
+    final docxPayload = latin1.decode(docxBytes, allowInvalid: true);
+    expect(docxPayload, contains('[Content_Types].xml'));
+    expect(docxPayload, contains('_rels/.rels'));
+    expect(docxPayload, contains('word/document.xml'));
+    expect(
+        docxPayload,
+        contains(
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml'));
+
+    final manifest = jsonDecode(
+            File(summary['adapter_manifest_path'] as String).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(manifest['schema_version'],
+        'prd_v3_office_docx_basic_adapter_manifest.v1');
+    expect(manifest['status'], 'pass');
+    expect(manifest['adapter'], 'builtin_local_docx_adapter');
+
+    final validation = jsonDecode(
+        File(summary['validation_report_path'] as String)
+            .readAsStringSync()) as Map<String, dynamic>;
+    expect(validation['schema_version'],
+        'prd_v3_office_docx_basic_adapter_validation_report.v1');
+    expect(validation['status'], 'pass');
+    expect(validation['missing_docx_parts'], isEmpty);
+
+    final testArtifact = File(summary['test_artifact_path'] as String);
+    expect(testArtifact.existsSync(), isFalse);
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    expect(File(docxPath).existsSync(), isTrue);
+    expect(reloadedController.state.hasExportedDocument, isTrue);
+    expect(reloadedController.state.exportedDocumentPath, docxPath);
+
+    final eventRows = File(
+            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    expect(
+        eventRows
+            .any((row) => row['event_type'] == 'office_docx_adapter_exported'),
+        isTrue);
+    expect(
+        eventRows.any((row) =>
+            row['action'] == 'delete_test_office_docx_adapter_artifact'),
+        isTrue);
+    expect(
+        eventRows.any(
+            (row) => row['event_type'] == 'office_artifact_adapter_acceptance'),
+        isTrue);
+
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'office_docx_basic_export' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'test_office_docx_adapter_artifact' &&
+            row['status'] == 'deleted'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] ==
+                'office_artifact_adapter_acceptance_summary' &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('skill generation persists type platform and personalization config',
       () async {
     final workspace = await createWorkspace();
