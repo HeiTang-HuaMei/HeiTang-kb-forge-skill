@@ -1,0 +1,32 @@
+﻿{
+    "schema_version":  "heitang_long_document_strategy_basic_contract.v1",
+    "status":  "long_document_strategy_completed_needs_owner_review",
+    "capability_id":  "long_document_strategy",
+    "phase":  "P1",
+    "acceptance_type":  "core_only",
+    "required_inputs":  [
+                            "sections",
+                            "max_chars_per_pass",
+                            "max_sections_per_pass",
+                            "required_section_ids"
+                        ],
+    "required_outputs":  [
+                             "status",
+                             "reading_order",
+                             "remaining_section_ids",
+                             "already_read_section_ids",
+                             "missing_required_section_ids",
+                             "selected_char_count"
+                         ],
+    "ready_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_long_document_strategy_basic\\long_document_ready_report.json",
+    "partial_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_long_document_strategy_basic\\long_document_partial_report.json",
+    "missing_required_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_long_document_strategy_basic\\long_document_missing_required_report.json",
+    "sample_statuses":  [
+                            "ready",
+                            "partial",
+                            "missing_required_sections"
+                        ],
+    "next_gate":  "P1-17 External Skill Import Basic",
+    "global_goal_complete":  false,
+    "generated_at":  "2026-06-24T20:01:12.7072614Z"
+}

@@ -1,0 +1,92 @@
+﻿{
+    "schema_version":  "heitang_p1_long_document_strategy_basic_matrix.v1",
+    "status":  "long_document_strategy_completed_needs_owner_review",
+    "generated_at":  "2026-06-24T20:01:12.8041420Z",
+    "repo_root":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui",
+    "current_phase":  "P1",
+    "current_gate":  "P1-17 External Skill Import Basic",
+    "next_gate":  "P1-17 External Skill Import Basic",
+    "remaining_gates_count":  75,
+    "global_goal_complete":  false,
+    "contract_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_long_document_strategy_basic\\long_document_strategy_basic_contract.json",
+    "ready_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_long_document_strategy_basic\\long_document_ready_report.json",
+    "partial_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_long_document_strategy_basic\\long_document_partial_report.json",
+    "missing_required_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_long_document_strategy_basic\\long_document_missing_required_report.json",
+    "checkpoint_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_long_document_strategy_basic\\long_document_strategy_basic_checkpoint.json",
+    "failure_template_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_long_document_strategy_basic\\long_document_strategy_basic_failure_template.json",
+    "resume_prompt_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_long_document_strategy_basic\\long_document_strategy_basic_resume_prompt.md",
+    "rows":  [
+                 {
+                     "check":  "required long document strategy source and prior evidence files exist",
+                     "status":  "passed",
+                     "actual":  "missing=0",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "status machine is at or just past P1-16 with global guard",
+                     "status":  "passed",
+                     "actual":  "phase=P1; gate=P1-17 External Skill Import Basic; first_remaining=P1-17 External Skill Import Basic; remaining=75; global_goal_complete=False",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 release and P1-15 precede long document strategy",
+                     "status":  "passed",
+                     "actual":  "p0_release=True; p1_plan_execute=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "remaining chain preserves release gates and next gate",
+                     "status":  "passed",
+                     "actual":  "next_gate=P1-17 External Skill Import Basic; p1_release=True; p2_release=True; final=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "long_document_strategy registry row follows core-only contract",
+                     "status":  "passed",
+                     "actual":  "row_count=1; type=core_only; core=passed; ui=not_required; blackbox=not_required; close_allowed=true",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "plan, queue, rubric and P1 grouping reference long document strategy",
+                     "status":  "passed",
+                     "actual":  "plan=True; queue_p1_16=True; queue_p1_17=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "source implements structured long document strategy input and report schema",
+                     "status":  "passed",
+                     "actual":  "strategy=True; input_schema=True; report_schema=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "long document strategy handles ready, partial and missing-required paths",
+                     "status":  "passed",
+                     "actual":  "exit_code=0; ready=ready; partial=partial; missing=missing_required_sections",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "narrow long document and related planning tests pass",
+                     "status":  "passed",
+                     "actual":  "exit_code=0; stdout=.......                                                                  [100%]\r\n7 passed in 1.74s; stderr=",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P1 plan execute runtime contract is available",
+                     "status":  "passed",
+                     "actual":  "plan_execute_status=plan_execute_runtime_completed_needs_owner_review",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "long document strategy basic contract artifact is generated",
+                     "status":  "passed",
+                     "actual":  "contract=D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_long_document_strategy_basic\\long_document_strategy_basic_contract.json; statuses=ready,partial,missing_required_sections; next_gate=P1-17 External Skill Import Basic",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "new P1-16 evidence has no forbidden positive-state tokens",
+                     "status":  "passed",
+                     "actual":  "scanned=contract,ready,partial,missing; hits=0",
+                     "blocker":  ""
+                 }
+             ]
+}

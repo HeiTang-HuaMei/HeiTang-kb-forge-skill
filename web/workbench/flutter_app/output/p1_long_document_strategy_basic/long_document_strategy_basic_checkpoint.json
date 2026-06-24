@@ -1,0 +1,10 @@
+﻿{
+    "schema_version":  "heitang_long_document_strategy_basic_checkpoint.v1",
+    "status":  "long_document_strategy_completed_needs_owner_review",
+    "current_phase":  "P1",
+    "current_gate":  "P1-17 External Skill Import Basic",
+    "next_gate":  "P1-17 External Skill Import Basic",
+    "remaining_gates_count":  75,
+    "global_goal_complete":  false,
+    "created_at":  "2026-06-24T20:01:12.7968824Z"
+}

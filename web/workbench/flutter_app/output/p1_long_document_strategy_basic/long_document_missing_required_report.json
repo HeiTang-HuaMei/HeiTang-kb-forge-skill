@@ -1,0 +1,14 @@
+{
+  "long_document_strategy_version": "1.0.0",
+  "status": "missing_required_sections",
+  "reading_order": [],
+  "remaining_section_ids": [
+    "intro"
+  ],
+  "already_read_section_ids": [],
+  "missing_required_section_ids": [
+    "appendix"
+  ],
+  "selected_char_count": 0,
+  "summary": "1 required section(s) are missing."
+}
