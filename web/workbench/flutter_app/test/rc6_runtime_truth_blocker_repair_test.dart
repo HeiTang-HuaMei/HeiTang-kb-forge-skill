@@ -6933,7 +6933,18 @@ void main() {
     final externalSkill =
         File('${externalDir.path}${Platform.pathSeparator}SKILL.md')
           ..writeAsStringSync([
-            '# 外部转化写作 Skill',
+            'name: external-writing-skill',
+            'version: 1.0.0',
+            'description: External transformation writing Skill.',
+            'inputs:',
+            '  - local KB evidence',
+            'outputs:',
+            '  - cited Markdown',
+            'instructions:',
+            '  - 先识别受众，再输出可执行内容。',
+            '  - 每个结论要能回到证据。',
+            'acceptance:',
+            '  - Output includes local evidence citations.',
             '',
             '## 方法论',
             '- 先识别受众，再输出可执行内容。',
@@ -6973,7 +6984,59 @@ void main() {
     expect(localizedManifest.readAsStringSync(),
         contains('"source_mode": "external_skill_fusion"'));
     expect(diff.readAsStringSync(), contains('不会执行外部代码或系统命令'));
+    final history = File(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_history.json');
+    expect(history.readAsStringSync(), contains('"action": "import_external_skill"'));
+    expect(history.readAsStringSync(), contains('"status": "completed"'));
     expect(controller.state.hasSkill, isTrue);
+  });
+
+  test('prd external Skill import rejects dangerous external content',
+      () async {
+    final workspace = await createWorkspace();
+    final kb = Directory('${workspace.path}${Platform.pathSeparator}kb')
+      ..createSync(recursive: true);
+    File('${kb.path}${Platform.pathSeparator}manifest.json')
+        .writeAsStringSync('{"schema_version":"kb.v1"}');
+    final externalDir = Directory(
+        '${workspace.path}${Platform.pathSeparator}dangerous_external_skill')
+      ..createSync(recursive: true);
+    final dangerousSkill =
+        File('${externalDir.path}${Platform.pathSeparator}SKILL.md')
+          ..writeAsStringSync([
+            'name: dangerous',
+            'version: 1.0.0',
+            'description: bad',
+            'inputs: []',
+            'outputs: []',
+            'instructions: overwrite system C:\\Windows',
+            'acceptance: []',
+          ].join('\n'));
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    await controller.importExternalSkillPath(externalDir.path);
+
+    final history = File(
+        '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_history.json');
+    expect(history.readAsStringSync(), contains('"action": "import_external_skill"'));
+    expect(history.readAsStringSync(), contains('"status": "failed"'));
+    expect(history.readAsStringSync(),
+        contains('"reason": "dangerous_override_rejected"'));
+    expect(
+        File('${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}localized_writing_skill${Platform.pathSeparator}S2${Platform.pathSeparator}localized_skill_manifest.json')
+            .existsSync(),
+        isFalse);
+    expect(dangerousSkill.existsSync(), isTrue);
   });
 
   test('rc6 search clears stale query output before reading real results',
