@@ -56,7 +56,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _ensureRuntimeConfigAssets(workspace);
     await _loadExistingArtifacts();
     notifyListeners();
-    if (_autoRunKnowledgeReliabilityMinimalCoreOnLaunch()) {
+    if (_autoRunOkfMinimalCoreOnLaunch()) {
+      state = state.copyWith(
+        lastMessage: '启动参数请求运行 OKF Minimal Core 验收。',
+        lastError: '',
+      );
+      notifyListeners();
+      await runOkfMinimalCoreAcceptance();
+    } else if (_autoRunKnowledgeReliabilityMinimalCoreOnLaunch()) {
       state = state.copyWith(
         lastMessage: '启动参数请求运行 Knowledge Reliability Minimal Core 验收。',
         lastError: '',
@@ -3969,6 +3976,258 @@ class Rc6RuntimeController extends ChangeNotifier {
       running: false,
       lastMessage: 'Memory / Evidence 元数据预留验收已完成。',
       lastError: passed ? '' : 'memory_evidence_metadata_reservation_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
+  Future<String> runOkfMinimalCoreAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在执行 OKF Minimal Core 验收...',
+      lastError: '',
+    );
+    notifyListeners();
+    final now = DateTime.now().toUtc().toIso8601String();
+    await _clearWorkspacePath(_join(workspace.path, 'input'));
+    await _clearWorkspacePath(_join(workspace.path, 'import'));
+    await _clearWorkspacePath(_join(workspace.path, 'source_manifest.json'));
+    await _clearWorkspacePath(_join(workspace.path, 'parse_report.json'));
+    await _clearWorkspacePath(_join(workspace.path, 'du'));
+    await _clearWorkspacePath(_join(workspace.path, 'kb'));
+    await _clearWorkspacePath(_join(workspace.path, 'standard_packages'));
+    await _clearWorkspacePath(_join(workspace.path, 'knowledge_bases'));
+    final inputDir = Directory(_join(workspace.path, 'input'));
+    await inputDir.create(recursive: true);
+    final sourcePath = _join(inputDir.path, 'test_okf_source.md');
+    await File(sourcePath).writeAsString(
+      [
+        '# Test OKF Source',
+        '',
+        'test_okf_minimal_core_needle proves that the standard knowledge package can carry source evidence into a KB.',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    await _writeJsonFile(_join(workspace.path, 'source_manifest.json'), {
+      'schema_version': 'rc10_source_manifest.v1',
+      'workspace': workspace.path,
+      'sources': [
+        {
+          'document_id': 'test_okf_document_001',
+          'source_id': 'test_okf_document_001',
+          'source_name': 'test_okf_source.md',
+          'relative_path': 'test_okf_source.md',
+          'source_type': 'markdown',
+          'normalized_path': sourcePath,
+          'word_count': 14,
+          'image_count': 0,
+          'table_count': 0,
+          'link_count': 0,
+        },
+      ],
+      'created_at': now,
+    });
+    await _writeJsonFile(_join(workspace.path, 'parse_report.json'), {
+      'schema_version': 'rc10_parse_report_alias.v1',
+      'status': 'pass',
+      'source_count': 1,
+      'created_at': now,
+    });
+    final packageDir = await _writeStandardKnowledgePackage(
+      workspace: workspace,
+      operation: 'okf_minimal_core_acceptance',
+    );
+    final manifestPath = _join(packageDir.path, 'standard_package_manifest.json');
+    final contentPath = _join(packageDir.path, 'content_package.jsonl');
+    await _appendOrchestrationPlanRecord(
+      layer: 'standard_knowledge_package',
+      action: 'export_standard_knowledge_package',
+      artifact: manifestPath,
+      status: 'completed',
+      okfRuntimeEnabled: true,
+      resources: {
+        'source_manifest': _join(workspace.path, 'source_manifest.json'),
+        'package_path': packageDir.path,
+        'okf_candidate': true,
+      },
+    );
+    await _appendStandardPackageAuditRecord(
+      action: 'export_standard_knowledge_package',
+      artifact: manifestPath,
+      status: 'completed',
+      details: {
+        'package_path': packageDir.path,
+        'okf_runtime_enabled': true,
+      },
+    );
+    await _materializeKnowledgeBaseFromStandardPackage(packageDir);
+    final kbManifestPath = _join(workspace.path, 'kb', 'manifest.json');
+    await _appendOrchestrationPlanRecord(
+      layer: 'knowledge_base',
+      action: 'build_kb_from_standard_package',
+      artifact: kbManifestPath,
+      status: 'completed',
+      okfRuntimeEnabled: true,
+      resources: {
+        'standard_package_manifest': manifestPath,
+        'content_package': contentPath,
+        'okf_runtime_enabled': true,
+      },
+    );
+    await _appendStandardPackageAuditRecord(
+      action: 'build_kb_from_standard_package',
+      artifact: kbManifestPath,
+      status: 'completed',
+      details: {
+        'standard_package_manifest': manifestPath,
+        'kb_manifest': kbManifestPath,
+        'okf_runtime_enabled': true,
+      },
+    );
+    await _writeOkfRuntimeManifest(
+      workspace,
+      action: 'build_kb_from_standard_package',
+      packageManifestPath: manifestPath,
+      contentPackagePath: contentPath,
+      kbManifestPath: kbManifestPath,
+    );
+    final summaryPath =
+        _joinNested(workspace.path, 'acceptance/okf_minimal_core_summary.json');
+    final manifest = await _readJsonObject(manifestPath);
+    final runtime = await _readJsonObject(
+        _join(workspace.path, 'standard_packages', 'okf_runtime_manifest.json'));
+    final kbManifest = await _readJsonObject(kbManifestPath);
+    final catalog =
+        await _readJsonObject(_joinNested(workspace.path, 'knowledge_bases/kb_catalog.json'));
+    final records = _listOfMaps(catalog['knowledge_bases']);
+    final okfRecord = records.cast<Map<String, dynamic>?>().firstWhere(
+          (record) => record?['kb_id'] == 'K_OKF1',
+          orElse: () => null,
+        );
+    final contentRows = await _readJsonl(File(contentPath));
+    final auditRows = await _readJsonl(
+        File(_join(workspace.path, 'standard_packages', 'audit_history.jsonl')));
+    final orchestrationRows = await _readJsonl(
+        File(_join(workspace.path, 'orchestration', 'orchestration_plan.jsonl')));
+    final pathChecks = <String, bool>{
+      'standard_package_manifest': await File(manifestPath).exists(),
+      'source_references':
+          await File(_join(packageDir.path, 'source_references.json')).exists(),
+      'content_package': await File(contentPath).exists(),
+      'okf_runtime_manifest':
+          await File(_join(workspace.path, 'standard_packages', 'okf_runtime_manifest.json')).exists(),
+      'audit_history':
+          await File(_join(workspace.path, 'standard_packages', 'audit_history.jsonl')).exists(),
+      'orchestration_plan':
+          await File(_join(workspace.path, 'orchestration', 'orchestration_plan.jsonl')).exists(),
+      'kb_manifest': await File(kbManifestPath).exists(),
+      'kb_chunks': await File(_join(workspace.path, 'kb', 'chunks.jsonl')).exists(),
+      'kb_catalog':
+          await File(_joinNested(workspace.path, 'knowledge_bases/kb_catalog.json')).exists(),
+    };
+    final auditExportRows = auditRows
+        .where((row) => row['action'] == 'export_standard_knowledge_package')
+        .length;
+    final auditBuildRows = auditRows
+        .where((row) => row['action'] == 'build_kb_from_standard_package')
+        .length;
+    final orchestrationExportRows = orchestrationRows
+        .where((row) => row['action'] == 'export_standard_knowledge_package')
+        .length;
+    final orchestrationBuildRows = orchestrationRows
+        .where((row) => row['action'] == 'build_kb_from_standard_package')
+        .length;
+    final passed = pathChecks.values.every((ok) => ok) &&
+        _stringValue(manifest['schema_version'], '') ==
+            'prd_v3_standard_knowledge_package_manifest.v1' &&
+        _stringValue(manifest['standard'], '') == 'okf_candidate' &&
+        manifest['okf_runtime_enabled'] == true &&
+        manifest['independent_agent_runtime'] == false &&
+        contentRows.isNotEmpty &&
+        _stringValue(runtime['schema_version'], '') ==
+            'prd_v3_okf_runtime_manifest.v1' &&
+        runtime['runtime_loaded'] == true &&
+        runtime['external_runtime'] == false &&
+        runtime['user_visible_top_level_page'] == false &&
+        runtime['export_import_runtime_available'] == true &&
+        runtime['kb_build_runtime_available'] == true &&
+        _stringValue(kbManifest['schema_version'], '') ==
+            'prd_v3_kb_from_standard_package.v1' &&
+        _stringValue(kbManifest['status'], '') == 'pass' &&
+        okfRecord != null &&
+        okfRecord['okf_runtime_enabled'] == true &&
+        auditExportRows > 0 &&
+        auditBuildRows > 0 &&
+        orchestrationExportRows > 0 &&
+        orchestrationBuildRows > 0;
+    final status = passed
+        ? 'okf_minimal_core_completed_needs_owner_review'
+        : 'okf_minimal_core_blocked';
+    await _writeJsonFile(summaryPath, {
+      'schema_version': 'heitang_p0_okf_minimal_core_summary.v1',
+      'status': status,
+      'generated_at': now,
+      'workspace': workspace.path,
+      'path_checks': pathChecks,
+      'content_rows': contentRows.length,
+      'audit_export_rows': auditExportRows,
+      'audit_build_rows': auditBuildRows,
+      'orchestration_export_rows': orchestrationExportRows,
+      'orchestration_build_rows': orchestrationBuildRows,
+      'external_okf_service_connected': false,
+      'user_visible_top_level_okf_page': false,
+      'shipping_claim_absent': true,
+      'stage_exit_claim_absent': true,
+      'final_acceptance_claim_absent': true,
+    });
+    await _upsertArtifactRecord(
+      artifactId: 'okf_minimal_core_summary',
+      artifactType: 'okf_minimal_core_summary',
+      title: 'OKF Minimal Core 验收摘要',
+      sourceModule: 'okf',
+      sourceId: 'p0_4b_okf_minimal_core',
+      filePath: summaryPath,
+      status: status,
+      metadata: {
+        'standard_package_manifest': manifestPath,
+        'okf_runtime_manifest':
+            _join(workspace.path, 'standard_packages', 'okf_runtime_manifest.json'),
+        'kb_manifest': kbManifestPath,
+        'content_rows': contentRows.length,
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'okf_minimal_core_validated',
+      module: 'okf',
+      action: 'run_okf_minimal_core_acceptance',
+      status: status,
+      targetId: 'okf_minimal_core_summary',
+      targetName: 'OKF Minimal Core Gate',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'standard_package_manifest': manifestPath,
+        'okf_runtime_manifest':
+            _join(workspace.path, 'standard_packages', 'okf_runtime_manifest.json'),
+        'kb_manifest': kbManifestPath,
+        'content_rows': contentRows.length,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      phase: Rc6RuntimePhase.knowledgeBuilt,
+      standardKnowledgePackagePath: packageDir.path,
+      standardKnowledgePackageManifestPath: manifestPath,
+      standardKnowledgePackageContentPath: contentPath,
+      standardKnowledgePackageAuditPath:
+          _join(workspace.path, 'standard_packages', 'audit_history.jsonl'),
+      lastMessage: 'OKF Minimal Core 验收已完成。',
+      lastError: passed ? '' : 'okf_minimal_core_blocked',
     );
     notifyListeners();
     return summaryPath;
@@ -26775,6 +27034,10 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   bool _autoRunMemoryEvidenceMetadataReservationOnLaunch() {
     return _envEnabled('HEITANG_P0_MEMORY_EVIDENCE_E2E');
+  }
+
+  bool _autoRunOkfMinimalCoreOnLaunch() {
+    return _envEnabled('HEITANG_P0_OKF_MINIMAL_CORE_E2E');
   }
 
   bool _autoRunAgentMemoryMinimalCoreOnLaunch() {

@@ -1,0 +1,77 @@
+﻿{
+    "schema_version":  "heitang_p0_okf_minimal_core_matrix.v1",
+    "status":  "okf_minimal_core_completed_needs_owner_review",
+    "workspace":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace",
+    "matrix":  [
+                   {
+                       "path":  "P0-4B OKF Minimal Core",
+                       "step":  "standard package manifest and content",
+                       "expected":  "标准知识包必须有 manifest、source references、content_package，且只标记为 okf_candidate 内部标准包。",
+                       "actual":  "schema=prd_v3_standard_knowledge_package_manifest.v1; standard=okf_candidate; content_rows=1; independent_agent_runtime=False",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\standard_packages\\current\\standard_package_manifest.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "okf_minimal_core_completed_needs_owner_review",
+                       "blocker":  ""
+                   },
+                   {
+                       "path":  "P0-4B OKF Minimal Core",
+                       "step":  "runtime boundary manifest",
+                       "expected":  "okf_runtime_manifest.json 必须证明内部标准包 runtime 可用，同时不得接外部 runtime 或一级 OKF 页面。",
+                       "actual":  "schema=prd_v3_okf_runtime_manifest.v1; loaded=True; external=False; top_level=False; kb_build=True",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\standard_packages\\okf_runtime_manifest.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "okf_minimal_core_completed_needs_owner_review",
+                       "blocker":  ""
+                   },
+                   {
+                       "path":  "P0-4B OKF Minimal Core",
+                       "step":  "KB materialized from standard package",
+                       "expected":  "标准包必须能构建真实 KB，并在 kb_catalog 中绑定 K_OKF1 与 source_standard_package_manifest。",
+                       "actual":  "kb_schema=prd_v3_kb_from_standard_package.v1; kb_status=pass; catalog_has_kokf1=True",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\kb\\manifest.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "okf_minimal_core_completed_needs_owner_review",
+                       "blocker":  ""
+                   },
+                   {
+                       "path":  "P0-4B OKF Minimal Core",
+                       "step":  "audit and orchestration records",
+                       "expected":  "标准包导出和从标准包构建 KB 必须写入 audit_history 与 orchestration_plan。",
+                       "actual":  "audit_rows=2; orchestration_rows=2; audit_export=1; audit_build=1; orch_export=1; orch_build=1",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\standard_packages\\audit_history.jsonl",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "okf_minimal_core_completed_needs_owner_review",
+                       "blocker":  ""
+                   },
+                   {
+                       "path":  "P0-4B OKF Minimal Core",
+                       "step":  "summary boundary",
+                       "expected":  "summary 必须写 needs_owner_review，且不得声明外部 OKF、一级页面或越界完成状态。",
+                       "actual":  "status=okf_minimal_core_completed_needs_owner_review; external=False; top_level=False",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\acceptance\\okf_minimal_core_summary.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "okf_minimal_core_completed_needs_owner_review",
+                       "blocker":  ""
+                   },
+                   {
+                       "path":  "P0-4B OKF Minimal Core",
+                       "step":  "Event Ledger and Artifact Lifecycle",
+                       "expected":  "P0-4B 验收本身必须写入 Event Ledger 并登记为 Artifact。",
+                       "actual":  "event_found=True; artifact_found=True",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\artifacts\\catalog.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "okf_minimal_core_completed_needs_owner_review",
+                       "blocker":  ""
+                   }
+               ],
+    "run_dir":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\okf_minimal_core\\okf_minimal_core\\okf_minimal_core_20260625_013534",
+    "paths_ready":  true,
+    "restart_verified":  true,
+    "generated_at":  "2026-06-24T17:35:44.3393945Z"
+}

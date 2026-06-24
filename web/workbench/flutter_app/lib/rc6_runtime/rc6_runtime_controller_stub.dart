@@ -154,6 +154,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> runOkfMinimalCoreAcceptance() async {
+    await initialize();
+    return '';
+  }
+
   Future<String> runAgentMemoryMinimalCoreAcceptance() async {
     await initialize();
     return '';
