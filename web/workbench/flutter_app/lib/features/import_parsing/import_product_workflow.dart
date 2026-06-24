@@ -487,7 +487,7 @@ class _ImportProductWorkflowState extends State<_ImportProductWorkflow> {
                 ? (_zh ? '来源已进入文档库' : 'Sources are in the library')
                 : (_zh ? '需要先添加资料' : 'Add materials first'),
             detail: _zh
-                ? '资料整理后可用于生成知识库、测试知识库和生成文档。'
+                ? '资料整理后可用于生成知识库、验证知识库和生成文档。'
                 : 'Organized materials can be used to build KBs, test KBs, and generate documents.',
             tone: hasRealImport ? _StatusTone.success : _StatusTone.warning,
             icon: hasRealImport ? Icons.verified_outlined : Icons.info_outline,

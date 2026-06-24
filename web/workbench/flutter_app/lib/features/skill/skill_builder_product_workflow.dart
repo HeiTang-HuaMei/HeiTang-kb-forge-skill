@@ -26,6 +26,8 @@ class _SkillBuilderProductWorkflowState
   final TextEditingController _skillNameController =
       TextEditingController(text: '真实输入知识问答技能');
   final TextEditingController _skillEditorController = TextEditingController();
+  final TextEditingController _externalSkillPathController =
+      TextEditingController();
   String savedSkillEditPath = '';
 
   bool get _zh => widget.localeCode == 'zh-CN';
@@ -34,6 +36,7 @@ class _SkillBuilderProductWorkflowState
   void dispose() {
     _skillNameController.dispose();
     _skillEditorController.dispose();
+    _externalSkillPathController.dispose();
     super.dispose();
   }
 
@@ -348,6 +351,23 @@ class _SkillBuilderProductWorkflowState
                   label: _zh ? '个性化目标' : 'Personalization goal',
                   value: _personalizationGoalLabel(personalizationGoal)),
               const SizedBox(height: 8),
+              TextField(
+                key: const Key('external-skill-path-input'),
+                controller: _externalSkillPathController,
+                enabled: rc6 != null && !runtime.running,
+                decoration: InputDecoration(
+                  labelText: _zh ? '外部 Skill 路径' : 'External Skill path',
+                  hintText: _zh
+                      ? r'粘贴 SKILL.md 或 Skill 文件夹路径'
+                      : r'Paste a SKILL.md file or Skill folder path',
+                  helperText: _zh
+                      ? '用于自动化真实导入；不会修改原始 Skill 文件。'
+                      : 'Used for automated real import; original Skill files are not modified.',
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                ),
+              ),
+              const SizedBox(height: 8),
               Wrap(spacing: 8, runSpacing: 8, children: [
                 for (final item in const [
                   '',
@@ -630,8 +650,27 @@ class _SkillBuilderProductWorkflowState
               const SizedBox(height: _DesktopGrid.gutter),
               _EqualActionRow(children: [
                 _PrimaryProductAction(
-                  label: _zh ? '导入模板技能' : 'Import template skill',
+                  label: _zh ? '导入路径 Skill' : 'Import Skill path',
                   icon: Icons.merge_type_outlined,
+                  automationKey: 'workbench.skill.import_path_button',
+                  onPressed: runtime.running ||
+                          rc6 == null ||
+                          _externalSkillPathController.text.trim().isEmpty
+                      ? null
+                      : () {
+                          setState(() {
+                            configReady = true;
+                            outputPreviewReady = true;
+                            validationReady = true;
+                          });
+                          rc6.importExternalSkillPath(
+                            _externalSkillPathController.text.trim(),
+                          );
+                        },
+                ),
+                _DisplayAction(
+                  label: _zh ? '选择文件导入' : 'Choose file import',
+                  icon: Icons.upload_file_outlined,
                   onPressed: runtime.running || rc6 == null
                       ? null
                       : () {
@@ -865,12 +904,13 @@ class _SkillBuilderProductWorkflowState
               const SizedBox(height: 8),
               _FieldRow(
                   label: _zh ? '验证结果' : 'Validation result',
-                  value: validationReady
-                      ? (runtime.hasSkillVerificationReport
-                          ? _displayNameForPath(
-                              runtime.skillVerificationReportPath)
-                          : '等待真实技能产物')
-                      : (_zh ? '等待报告' : 'Waiting for report')),
+                  value: runtime.hasSkillVerificationReport
+                      ? _displayNameForPath(runtime.skillVerificationReportPath)
+                      : validationReady
+                          ? (_zh
+                              ? '等待真实技能产物'
+                              : 'Waiting for real Skill artifact')
+                          : (_zh ? '等待报告' : 'Waiting for report')),
               const SizedBox(height: 8),
               _FieldRow(
                   label: _zh ? '操作清单' : 'Operation manifest',
@@ -912,13 +952,13 @@ class _SkillBuilderProductWorkflowState
               const SizedBox(height: 8),
               _FieldRow(
                   label: _zh ? '导出包' : 'Export package',
-                  value: validationReady
-                      ? (runtime.hasSkillExport
-                          ? _displayNameForPath(runtime.skillExportPath)
-                          : (_zh
+                  value: runtime.hasSkillExport
+                      ? _displayNameForPath(runtime.skillExportPath)
+                      : validationReady
+                          ? (_zh
                               ? '等待真实技能产物'
-                              : 'Waiting for real Skill artifact'))
-                      : (_zh ? '等待报告' : 'Waiting for report')),
+                              : 'Waiting for real Skill artifact')
+                          : (_zh ? '等待报告' : 'Waiting for report')),
               const SizedBox(height: 8),
               _FieldRow(
                   label: _zh ? '助手绑定' : 'Agent binding',

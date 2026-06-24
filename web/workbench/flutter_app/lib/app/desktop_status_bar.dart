@@ -15,20 +15,24 @@ class _DesktopStatusBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final visual = _HTKWTokens.visualTokens(Theme.of(context).brightness);
     final colors = Theme.of(context).colorScheme;
     return LayoutBuilder(builder: (context, constraints) {
       final compact = constraints.maxWidth < 720;
       final narrow = constraints.maxWidth < 360;
       final showVersion = !narrow && constraints.maxWidth >= 760;
       final showUpdates = !narrow && constraints.maxWidth >= 900;
-      final gap = compact ? 10.0 : 24.0;
+      final gap = compact ? 12.0 : 30.0;
       return Container(
         key: const Key('desktop-status-bar'),
-        height: 44,
-        padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 22),
+        height: 28,
+        padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 20),
         decoration: BoxDecoration(
-          color: colors.surface,
-          border: Border(top: BorderSide(color: colors.outlineVariant)),
+          color: Color.alphaBlend(
+            colors.surfaceContainerLow.withValues(alpha: 0.08),
+            visual.topBarBackground.withValues(alpha: 0.82),
+          ),
+          border: Border(top: BorderSide(color: visual.borderSubtle)),
         ),
         child: Row(
           children: [
@@ -107,16 +111,21 @@ class _StatusBarItem extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 15, color: iconColor ?? colors.onSurfaceVariant),
-        const SizedBox(width: 6),
+        Icon(icon,
+            size: icon == Icons.circle ? 8 : 12,
+            color:
+                (iconColor ?? colors.onSurfaceVariant).withValues(alpha: 0.66)),
+        const SizedBox(width: 7),
         Flexible(
           child: Text(
             text,
             maxLines: 1,
             overflow: overflow,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: colors.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
+                  color: colors.onSurfaceVariant.withValues(alpha: 0.82),
+                  letterSpacing: 0,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 11,
                 ),
           ),
         ),

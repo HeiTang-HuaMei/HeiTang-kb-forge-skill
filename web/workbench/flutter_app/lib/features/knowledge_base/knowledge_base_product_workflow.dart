@@ -18,13 +18,8 @@ class _KnowledgeProductWorkflow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tabs = _zh
-        ? ['知识库', '检索设置', '质量记录', '高级边界']
-        : [
-            'Knowledge Bases',
-            'Search Settings',
-            'Quality Records',
-            'Advanced Boundary'
-          ];
+        ? ['概览', '来源', '验证', '引用', '缺口']
+        : ['Overview', 'Sources', 'Verification', 'Citations', 'Gaps'];
     return _FigmaPageCanvas(children: [
       SizedBox(
         height: 78,
@@ -63,12 +58,17 @@ class _KnowledgeProductWorkflow extends StatelessWidget {
       SizedBox(
         height: 560,
         child: selectedTab == 1
-            ? _KnowledgeVectorIndexView(zh: _zh)
+            ? _KnowledgeSourceRecordsView(zh: _zh)
             : selectedTab == 2
-                ? _KnowledgeQualityRecordsView(zh: _zh)
+                ? _RetrievalVerificationProductWorkflow(localeCode: localeCode)
                 : selectedTab == 3
-                    ? _KnowledgeStorageBoundaryView(zh: _zh)
-                    : _KnowledgePackageListView(zh: _zh, workspace: workspace),
+                    ? _KnowledgeCitationRecordsView(zh: _zh)
+                    : selectedTab == 4
+                        ? _KnowledgeGapRecordsView(zh: _zh)
+                        : _KnowledgePackageListView(
+                            zh: _zh,
+                            workspace: workspace,
+                          ),
       ),
       SizedBox(
         height: 48,
@@ -92,47 +92,195 @@ class _KnowledgeProductWorkflow extends StatelessWidget {
   }
 }
 
-class _KnowledgeStorageBoundaryView extends StatelessWidget {
-  const _KnowledgeStorageBoundaryView({required this.zh});
+class _KnowledgeSourceRecordsView extends StatelessWidget {
+  const _KnowledgeSourceRecordsView({required this.zh});
 
   final bool zh;
 
   @override
   Widget build(BuildContext context) {
+    final runtime =
+        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
+    final rows = runtime.sourceRecords
+        .map((source) => [
+              source.sourceName,
+              source.documentId.isEmpty
+                  ? (zh ? '等待编号' : 'Waiting ID')
+                  : source.documentId,
+              source.relativePath.isEmpty
+                  ? (zh ? '当前工作区' : 'Current workspace')
+                  : source.relativePath,
+              _documentTypeLabel(_documentTypeForSource(source), zh),
+            ])
+        .toList(growable: false);
     return _ProductPanel(
-      keyName: 'knowledge-storage-boundary',
-      icon: Icons.storage_outlined,
-      title: zh ? '高级边界' : 'Advanced Boundary',
-      gap: true,
+      keyName: 'knowledge-source-records',
+      icon: Icons.article_outlined,
+      title: zh ? '来源' : 'Sources',
       subtitle: zh
-          ? '外部服务、存储和工作区归设置管理；这里仅展示知识库侧引用边界。'
-          : 'External services, storage, and workspace live in Settings; this only shows KB-side boundaries.',
+          ? '知识库只使用当前工作区已整理来源。'
+          : 'The knowledge base only uses organized sources in this workspace.',
+      children: [
+        _MetricStrip(items: [
+          _MetricDatum(
+            label: zh ? '来源' : 'Sources',
+            value: runtime.sourceCount.toString(),
+            detail: zh ? '当前工作区' : 'current workspace',
+            icon: Icons.library_books_outlined,
+          ),
+          _MetricDatum(
+            label: zh ? '片段' : 'Segments',
+            value: runtime.chunkCount.toString(),
+            detail: zh ? '已整理' : 'organized',
+            icon: Icons.segment_outlined,
+          ),
+          _MetricDatum(
+            label: zh ? '知识库' : 'KB',
+            value: runtime.hasKnowledgeBase ? (zh ? '可用' : 'Ready') : '-',
+            detail: zh ? '生成后可验证' : 'verify after build',
+            icon: Icons.account_tree_outlined,
+          ),
+        ]),
+        const SizedBox(height: _DesktopGrid.gutter),
+        _ProductTable(
+          columns: zh
+              ? ['来源', '资料编号', '路径', '类型']
+              : ['Source', 'Document ID', 'Path', 'Type'],
+          rows: rows.isEmpty
+              ? [
+                  [
+                    zh ? '暂无来源' : 'No source',
+                    zh ? '先添加资料' : 'Add materials first',
+                    zh ? '文档库' : 'Document Library',
+                    zh ? '等待' : 'Waiting',
+                  ]
+                ]
+              : rows,
+        ),
+      ],
+    );
+  }
+}
+
+class _KnowledgeCitationRecordsView extends StatelessWidget {
+  const _KnowledgeCitationRecordsView({required this.zh});
+
+  final bool zh;
+
+  @override
+  Widget build(BuildContext context) {
+    final runtime =
+        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
+    final rows = runtime.searchResults
+        .take(8)
+        .map((result) => [
+              result.title,
+              result.citation.isEmpty
+                  ? (zh ? '等待引用' : 'Waiting citation')
+                  : result.citation,
+              result.score,
+              result.excerpt,
+            ])
+        .toList(growable: false);
+    return _ProductPanel(
+      keyName: 'knowledge-citation-records',
+      icon: Icons.format_quote_outlined,
+      title: zh ? '引用' : 'Citations',
+      subtitle: zh
+          ? '展示验证时产生的来源引用和证据片段。'
+          : 'Shows citations and evidence snippets produced during verification.',
       children: [
         _ProductTable(
-          columns: zh ? ['能力', '当前分类', '说明'] : ['Capability', 'Class', 'Note'],
-          rows: zh
+          columns: zh
+              ? ['结果', '引用', '分数', '证据片段']
+              : ['Result', 'Citation', 'Score', 'Evidence'],
+          rows: rows.isEmpty
               ? [
-                  ['本地知识库', '可用', '依赖已有本地产物'],
-                  ['专业检索服务', '未配置', '本地检索可用，可在设置配置'],
-                  ['外部来源核对', '授权后可用', '网络权限开启后执行'],
+                  [
+                    zh ? '暂无引用' : 'No citation',
+                    zh ? '先在验证页检索' : 'Run verification first',
+                    '-',
+                    zh ? '验证结果会显示在这里' : 'Verification results appear here',
+                  ]
                 ]
-              : [
-                  [
-                    'Local package',
-                    'Available',
-                    'Depends on existing local artifacts'
-                  ],
-                  [
-                    'Professional retrieval service',
-                    'Not configured',
-                    'Local index available; configure in Settings'
-                  ],
-                  [
-                    'External fact verification',
-                    'Available after authorization',
-                    'Runs after network authorization is configured'
-                  ],
-                ],
+              : rows,
+        ),
+      ],
+    );
+  }
+}
+
+class _KnowledgeGapRecordsView extends StatelessWidget {
+  const _KnowledgeGapRecordsView({required this.zh});
+
+  final bool zh;
+
+  @override
+  Widget build(BuildContext context) {
+    final runtime =
+        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
+    final validationReady = runtime.retrievalValidationReportPath.isNotEmpty ||
+        runtime.retrievalValidationMarkdownPath.isNotEmpty;
+    final rows = zh
+        ? [
+            [
+              '验证报告',
+              validationReady ? '已生成' : '未生成',
+              validationReady ? '可查看验证记录' : '先运行知识库验证',
+            ],
+            [
+              '引用覆盖',
+              runtime.retrievalCitationCoveragePath.isNotEmpty ? '已生成' : '等待',
+              runtime.retrievalCitationCoveragePath.isNotEmpty
+                  ? _displayNameForPath(runtime.retrievalCitationCoveragePath)
+                  : '验证后生成覆盖记录',
+            ],
+            [
+              '冲突记录',
+              runtime.retrievalConflictReportPath.isNotEmpty ? '已生成' : '无记录',
+              runtime.retrievalConflictReportPath.isNotEmpty
+                  ? _displayNameForPath(runtime.retrievalConflictReportPath)
+                  : '当前未发现冲突产物',
+            ],
+          ]
+        : [
+            [
+              'Validation report',
+              validationReady ? 'Generated' : 'Not generated',
+              validationReady
+                  ? 'Verification record available'
+                  : 'Run KB verification first',
+            ],
+            [
+              'Citation coverage',
+              runtime.retrievalCitationCoveragePath.isNotEmpty
+                  ? 'Generated'
+                  : 'Waiting',
+              runtime.retrievalCitationCoveragePath.isNotEmpty
+                  ? _displayNameForPath(runtime.retrievalCitationCoveragePath)
+                  : 'Generated after verification',
+            ],
+            [
+              'Conflict record',
+              runtime.retrievalConflictReportPath.isNotEmpty
+                  ? 'Generated'
+                  : 'No record',
+              runtime.retrievalConflictReportPath.isNotEmpty
+                  ? _displayNameForPath(runtime.retrievalConflictReportPath)
+                  : 'No current conflict artifact',
+            ],
+          ];
+    return _ProductPanel(
+      keyName: 'knowledge-gap-records',
+      icon: Icons.rule_folder_outlined,
+      title: zh ? '缺口' : 'Gaps',
+      subtitle: zh
+          ? '缺口来自真实验证产物，不写入静态假数据。'
+          : 'Gaps come from real verification artifacts, not static mock data.',
+      children: [
+        _ProductTable(
+          columns: zh ? ['检查项', '状态', '说明'] : ['Check', 'Status', 'Note'],
+          rows: rows,
         ),
       ],
     );
@@ -713,264 +861,4 @@ List<List<String>> _knowledgeArtifactRows(Rc6RuntimeState runtime, bool zh) {
         zh ? '质量报告' : 'Quality report',
         readyStatus: zh ? '通过' : 'Passed'),
   ];
-}
-
-class _KnowledgeVectorIndexView extends StatelessWidget {
-  const _KnowledgeVectorIndexView({required this.zh});
-
-  final bool zh;
-
-  @override
-  Widget build(BuildContext context) {
-    final runtime =
-        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
-    return LayoutBuilder(builder: (context, constraints) {
-      final wide = constraints.maxWidth >= 900;
-      final indexPanel = _ProductPanel(
-        keyName: 'knowledge-vector-index',
-        icon: Icons.hub_outlined,
-        title: zh ? '检索服务状态' : 'Search Service Status',
-        children: [
-          _ProductTable(
-            columns: zh
-                ? ['检索方式', '知识库', '服务', '规模', '状态', '分类']
-                : [
-                    'Search mode',
-                    'Base',
-                    'Service',
-                    'Scale',
-                    'Status',
-                    'Class'
-                  ],
-            rows: zh
-                ? [
-                    [
-                      '本地知识库索引',
-                      runtime.hasKnowledgeBase ? '真实输入知识库' : '等待知识库',
-                      '本地索引',
-                      runtime.chunkCount.toString(),
-                      runtime.hasKnowledgeBase ? '本地索引可用' : '等待构建',
-                      runtime.hasKnowledgeBase ? '可用' : '请先构建'
-                    ],
-                    [
-                      '知识卡片与问答',
-                      runtime.cardsPath.isNotEmpty ? '已生成' : '等待产物',
-                      '本地索引',
-                      runtime.cardsPath.isNotEmpty ? 'ready' : '-',
-                      runtime.cardsPath.isNotEmpty ? '已生成' : '等待构建',
-                      runtime.cardsPath.isNotEmpty ? '可用' : '请先构建'
-                    ],
-                    ['专业检索服务', '专业模式', '未配置', '-', '使用本地索引', '设置中可配置'],
-                  ]
-                : [
-                    [
-                      'Local KB index',
-                      runtime.hasKnowledgeBase
-                          ? 'Real input Knowledge Base'
-                          : 'Waiting for KB',
-                      'Local index',
-                      runtime.chunkCount.toString(),
-                      runtime.hasKnowledgeBase
-                          ? 'Local index ready'
-                          : 'Build first',
-                      runtime.hasKnowledgeBase ? 'Available' : 'Build first'
-                    ],
-                    [
-                      'Knowledge cards and QA',
-                      runtime.cardsPath.isNotEmpty ? 'Generated' : 'Waiting',
-                      'Local index',
-                      runtime.cardsPath.isNotEmpty ? 'ready' : '-',
-                      runtime.cardsPath.isNotEmpty
-                          ? 'Generated'
-                          : 'Build first',
-                      runtime.cardsPath.isNotEmpty ? 'Available' : 'Build first'
-                    ],
-                    [
-                      'Professional search service',
-                      'Professional mode',
-                      'Not configured',
-                      '-',
-                      'Using local index',
-                      'Configurable in Settings'
-                    ],
-                  ],
-          ),
-        ],
-      );
-      final detail = _ProductPanel(
-        icon: Icons.tune_outlined,
-        title: zh ? '检索配置与边界' : 'Search Config and Boundary',
-        gap: true,
-        children: [
-          _FieldRow(
-              label: zh ? '排序' : 'Sort',
-              value: zh
-                  ? '质量分 / 更新时间 / 片段数'
-                  : 'Quality / updated time / chunk count'),
-          const SizedBox(height: 8),
-          _FieldRow(
-              label: zh ? '批量操作' : 'Bulk actions',
-              value: zh
-                  ? '重建、验证、归档均需本地证据'
-                  : 'Rebuild, validate, archive require local evidence'),
-          const SizedBox(height: 8),
-          _DisplayAction(
-            label: zh
-                ? '去设置中配置专业检索服务'
-                : 'Configure professional search in Settings',
-            icon: Icons.settings_outlined,
-          ),
-        ],
-      );
-      if (!wide) {
-        return Column(children: [
-          indexPanel,
-          const SizedBox(height: _DesktopGrid.gutter),
-          detail
-        ]);
-      }
-      return _EqualHeightRow(
-        height: 326,
-        flexes: const [7, 4],
-        children: [indexPanel, detail],
-      );
-    });
-  }
-}
-
-class _KnowledgeQualityRecordsView extends StatelessWidget {
-  const _KnowledgeQualityRecordsView({required this.zh});
-
-  final bool zh;
-
-  @override
-  Widget build(BuildContext context) {
-    final runtime =
-        _Rc6RuntimeScope.of(context)?.state ?? Rc6RuntimeState.initial();
-    final qualityReady = runtime.qualityReportPath.isNotEmpty;
-    return LayoutBuilder(builder: (context, constraints) {
-      final wide = constraints.maxWidth >= 900;
-      final records = _ProductPanel(
-        keyName: 'knowledge-quality-records',
-        icon: Icons.rule_outlined,
-        title: zh ? '质量与验证记录' : 'Quality and Validation Records',
-        children: [
-          _MetricStrip(
-            items: [
-              _MetricDatum(
-                  label: zh ? '准确性' : 'Accuracy',
-                  value: qualityReady ? 'pass' : '-',
-                  detail: zh ? '质量报告' : 'quality report',
-                  icon: Icons.track_changes_outlined),
-              _MetricDatum(
-                  label: zh ? '覆盖率' : 'Coverage',
-                  value: runtime.sourceCount.toString(),
-                  detail: zh ? '来源文档' : 'sources',
-                  icon: Icons.pie_chart_outline),
-              _MetricDatum(
-                  label: zh ? '冲突' : 'Conflicts',
-                  value: qualityReady ? '0' : '-',
-                  detail: zh ? '本地质量门禁' : 'local quality gate',
-                  icon: Icons.warning_amber_outlined),
-            ],
-          ),
-          const SizedBox(height: _DesktopGrid.gutter),
-          _ProductTable(
-            columns: zh
-                ? ['检查项', '状态', '证据', '建议']
-                : ['Check', 'Status', 'Evidence', 'Suggestion'],
-            rows: zh
-                ? [
-                    [
-                      '解析完整性',
-                      runtime.parseReportPath.isNotEmpty ? '通过' : '等待解析',
-                      runtime.parseReportPath.isNotEmpty ? '已生成' : '等待解析结果',
-                      runtime.parseReportPath.isNotEmpty ? '保持' : '先解析来源'
-                    ],
-                    [
-                      '重复片段',
-                      qualityReady ? '通过' : '等待构建',
-                      qualityReady ? '已生成' : '等待质量记录',
-                      qualityReady ? '已生成建议' : '先构建知识库'
-                    ],
-                    [
-                      '知识卡片与问答',
-                      runtime.cardsPath.isNotEmpty ? '已生成' : '等待构建',
-                      runtime.cardsPath.isNotEmpty ? '已生成' : '等待知识库构建',
-                      runtime.qaPairsPath.isNotEmpty ? '可检索' : '先构建知识库'
-                    ],
-                    ['外部新鲜度', '授权后启用', '设置外部来源核对服务后执行', '不影响本地知识库'],
-                  ]
-                : [
-                    [
-                      'Parse integrity',
-                      runtime.parseReportPath.isNotEmpty ? 'Passed' : 'Waiting',
-                      runtime.parseReportPath.isNotEmpty
-                          ? 'Generated'
-                          : 'Waiting parse results',
-                      runtime.parseReportPath.isNotEmpty
-                          ? 'Keep'
-                          : 'Parse sources first'
-                    ],
-                    [
-                      'Duplicate chunks',
-                      qualityReady ? 'Passed' : 'Waiting',
-                      qualityReady ? 'Generated' : 'Waiting quality records',
-                      qualityReady ? 'Suggestions generated' : 'Build KB first'
-                    ],
-                    [
-                      'Knowledge cards and QA',
-                      runtime.cardsPath.isNotEmpty ? 'Generated' : 'Waiting',
-                      runtime.cardsPath.isNotEmpty
-                          ? 'Generated'
-                          : 'Waiting KB build',
-                      runtime.qaPairsPath.isNotEmpty
-                          ? 'Searchable'
-                          : 'Build KB first'
-                    ],
-                    [
-                      'External freshness',
-                      'Enable after authorization',
-                      'Configure external source checking first',
-                      'Does not block local KB'
-                    ],
-                  ],
-          ),
-        ],
-      );
-      final detail = _ProductPanel(
-        icon: Icons.assignment_turned_in_outlined,
-        title: zh ? '验证记录详情' : 'Validation Record Detail',
-        gap: true,
-        children: [
-          _FieldRow(
-              label: zh ? '验证范围' : 'Scope',
-              value: zh ? '仅针对已有本地证据' : 'Existing local evidence only'),
-          const SizedBox(height: 8),
-          _FieldRow(
-              label: zh ? '外部比对' : 'External comparison',
-              value: zh
-                  ? '本地/手动证据与实时外部比对均已验收；联网执行需 opt-in'
-                  : 'Local/manual evidence and live external comparison are accepted; network execution requires opt-in'),
-          const SizedBox(height: 8),
-          _DisplayAction(
-            label: zh ? '查看质量报告证据' : 'View quality report evidence',
-            icon: Icons.receipt_long_outlined,
-          ),
-        ],
-      );
-      if (!wide) {
-        return Column(children: [
-          records,
-          const SizedBox(height: _DesktopGrid.gutter),
-          detail
-        ]);
-      }
-      return _EqualHeightRow(
-        height: 408,
-        flexes: const [7, 4],
-        children: [records, detail],
-      );
-    });
-  }
 }

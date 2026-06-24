@@ -100,7 +100,7 @@ class _RetrievalVerificationViewState
       final query = _ProductPanel(
         keyName: 'retrieval-workflow',
         icon: Icons.manage_search_outlined,
-        title: zh ? '测试知识库' : 'Test Knowledge Base',
+        title: zh ? '知识库验证' : 'Knowledge Base Verification',
         minHeight: 430,
         subtitle: zh
             ? '本页只测试所选知识库；顶部全局搜索用于快速定位资料、知识库、技能和助手。'
@@ -266,7 +266,7 @@ class _RetrievalVerificationViewState
           const SizedBox(height: 8),
           _EqualActionRow(children: [
             _PrimaryProductAction(
-              label: zh ? '测试知识库' : 'Test Knowledge Base',
+              label: zh ? '验证知识库' : 'Verify Knowledge Base',
               automationKey: 'workbench.retrieval.test_kb_button',
               onPressed: runtime.running || rc6 == null
                   ? null
@@ -604,7 +604,7 @@ class _RetrievalVerificationProductWorkflowState
         child: _FigmaHighlightCard(
           keyName: 'retrieval-hero',
           icon: Icons.manage_search_outlined,
-          title: _zh ? '测试知识库' : 'Test Knowledge Base',
+          title: _zh ? '知识库验证' : 'Knowledge Base Verification',
           description: _zh
               ? '用真实问题验证证据、引用和来源；外部核对未配置时保持需要设置。'
               : 'Validate evidence, citations, and sources with real questions; external checking remains gated until configured.',

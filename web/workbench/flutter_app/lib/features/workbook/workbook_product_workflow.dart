@@ -132,7 +132,7 @@ class _WorkbookProductWorkflowState extends State<_WorkbookProductWorkflow> {
                     const SizedBox(height: 6),
                     Text(
                       _zh
-                          ? '工作区之间默认不共享文档库、知识库、技能、助手记忆和多助手协作记录。'
+                          ? '工作区之间默认不共享文档库、知识库、技能、助手记忆和工作小组记录。'
                           : 'Workspaces do not share document libraries, knowledge bases, skills, assistant memory, or discussion records by default.',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

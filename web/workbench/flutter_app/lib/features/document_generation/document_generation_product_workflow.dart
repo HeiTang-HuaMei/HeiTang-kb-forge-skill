@@ -876,6 +876,16 @@ String _documentOutputFormatLabel(String value, bool zh) {
   return upper;
 }
 
+String _exportedDocumentFormat(String path) {
+  final normalized = path.trim().toLowerCase();
+  if (normalized.endsWith('.json')) return 'json';
+  if (normalized.endsWith('.csv')) return 'csv';
+  if (normalized.endsWith('.docx')) return 'docx';
+  if (normalized.endsWith('.pdf')) return 'pdf';
+  if (normalized.endsWith('.pptx')) return 'pptx';
+  return 'md';
+}
+
 class _DocumentGenerationConfig {
   const _DocumentGenerationConfig({
     required this.generationType,
@@ -1048,6 +1058,14 @@ class _DocumentExportPreviewViewState
     final officeExporterValidation = zh ? '未启用' : 'Not enabled';
     final officeExporterArtifact =
         zh ? '在设置启用导出工具' : 'Enable export tools in Settings';
+    final exportedFormat =
+        _exportedDocumentFormat(runtime.exportedDocumentPath);
+    final exportedFormatLabel =
+        _documentOutputFormatLabel(exportedFormat, zh).replaceAll('（需配置）', '');
+    final exportedCurrentFormat =
+        runtime.hasExportedDocument && exportedFormat == selectedExportFormat;
+    final exportedMarkdown = runtime.hasExportedDocument &&
+        (exportedFormat == 'md' || exportedFormat == 'markdown');
 
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= _DesktopGrid.rowBreakpoint;
@@ -1068,13 +1086,13 @@ class _DocumentExportPreviewViewState
                 ? [
                     [
                       'Markdown',
-                      runtime.hasExportedDocument
+                      exportedMarkdown
                           ? '已导出'
                           : runtime.hasMarkdown
                               ? '可导出'
                               : '需要 Markdown',
-                      runtime.hasExportedDocument ? '通过' : '尚未导出',
-                      runtime.hasExportedDocument
+                      exportedMarkdown ? '通过' : '尚未导出',
+                      exportedMarkdown
                           ? _displayNameForPath(runtime.exportedDocumentPath)
                           : '尚未生成导出文件'
                     ],
@@ -1112,13 +1130,13 @@ class _DocumentExportPreviewViewState
                 : [
                     [
                       'Markdown',
-                      runtime.hasExportedDocument
+                      exportedMarkdown
                           ? 'Exported'
                           : runtime.hasMarkdown
                               ? 'Ready'
                               : 'Needs Markdown',
-                      runtime.hasExportedDocument ? 'Passed' : 'Not exported',
-                      runtime.hasExportedDocument
+                      exportedMarkdown ? 'Passed' : 'Not exported',
+                      exportedMarkdown
                           ? _displayNameForPath(runtime.exportedDocumentPath)
                           : 'No export file yet'
                     ],
@@ -1223,12 +1241,16 @@ class _DocumentExportPreviewViewState
           if (exportPreviewReady || runtime.hasExportedDocument) ...[
             _RuntimeFeedbackBanner(
               title: runtime.hasExportedDocument
-                  ? (zh ? 'Markdown 文件已导出' : 'Markdown file exported')
-                  : (zh ? '正在导出 Markdown' : 'Exporting Markdown'),
+                  ? (zh
+                      ? '$exportedFormatLabel 文件已导出'
+                      : '$exportedFormatLabel file exported')
+                  : (zh
+                      ? '正在导出 ${_documentOutputFormatLabel(selectedExportFormat, zh)}'
+                      : 'Exporting ${_documentOutputFormatLabel(selectedExportFormat, zh)}'),
               detail: runtime.hasExportedDocument
                   ? _displayNameForPath(runtime.exportedDocumentPath)
                   : (zh ? '正在写入用户工作区。' : 'Writing to user workspace.'),
-              tone: runtime.hasExportedDocument
+              tone: exportedCurrentFormat
                   ? _StatusTone.success
                   : _StatusTone.neutral,
               icon: Icons.file_download_outlined,
@@ -1244,12 +1266,16 @@ class _DocumentExportPreviewViewState
         if (exportPreviewReady || runtime.hasExportedDocument) ...[
           _RuntimeFeedbackBanner(
             title: runtime.hasExportedDocument
-                ? (zh ? 'Markdown 文件已导出' : 'Markdown file exported')
-                : (zh ? '正在导出 Markdown' : 'Exporting Markdown'),
+                ? (zh
+                    ? '$exportedFormatLabel 文件已导出'
+                    : '$exportedFormatLabel file exported')
+                : (zh
+                    ? '正在导出 ${_documentOutputFormatLabel(selectedExportFormat, zh)}'
+                    : 'Exporting ${_documentOutputFormatLabel(selectedExportFormat, zh)}'),
             detail: runtime.hasExportedDocument
                 ? _displayNameForPath(runtime.exportedDocumentPath)
                 : (zh ? '正在写入用户工作区。' : 'Writing to user workspace.'),
-            tone: runtime.hasExportedDocument
+            tone: exportedCurrentFormat
                 ? _StatusTone.success
                 : _StatusTone.neutral,
             icon: Icons.file_download_outlined,

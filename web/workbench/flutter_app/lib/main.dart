@@ -39,12 +39,19 @@ abstract final class _DesktopGrid {
   static const double initialWindowWidth = 1440;
   static const double initialWindowHeight = 900;
   static const double figmaContentWidth = 1112;
-  static const double figmaContentHeight = 730;
+  static const double compactDesktopMax = 1440;
+  static const double standardDesktopMax = 1920;
+  static const double standardContentWidth = 1680;
+  static const double wideContentWidth = 1840;
   static const double gutter = 16;
-  static const double panelPadding = 22;
-  static const double panelRadius = 20;
-  static const double pageRadius = 28;
-  static const double buttonRadius = 12;
+  static const double panelPadding = 18;
+  static const double radiusSmall = 8;
+  static const double radiusMedium = 12;
+  static const double radiusLarge = 16;
+  static const double radiusPanel = 18;
+  static const double panelRadius = radiusLarge;
+  static const double pageRadius = radiusMedium;
+  static const double buttonRadius = radiusSmall;
   static const double chipRadius = 999;
   static const double panelMinHeight = 156;
   static const double metricHeight = 122;
@@ -52,55 +59,218 @@ abstract final class _DesktopGrid {
   static const double footerSafeArea = 84;
 }
 
+class _AppVisualTokens {
+  const _AppVisualTokens({
+    required this.appBackground,
+    required this.sidebarBackground,
+    required this.topBarBackground,
+    required this.surfaceBase,
+    required this.surfaceSubtle,
+    required this.surfaceMuted,
+    required this.surfaceRaised,
+    required this.surfaceHighlight,
+    required this.borderSubtle,
+    required this.borderNormal,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.textTertiary,
+    required this.accent,
+    required this.accentMacBlue,
+    required this.success,
+    required this.warning,
+    required this.danger,
+    required this.shadow,
+  });
+
+  final Color appBackground;
+  final Color sidebarBackground;
+  final Color topBarBackground;
+  final Color surfaceBase;
+  final Color surfaceSubtle;
+  final Color surfaceMuted;
+  final Color surfaceRaised;
+  final Color surfaceHighlight;
+  final Color borderSubtle;
+  final Color borderNormal;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textTertiary;
+  final Color accent;
+  final Color accentMacBlue;
+  final Color success;
+  final Color warning;
+  final Color danger;
+  final List<BoxShadow> shadow;
+}
+
 abstract final class _HTKWTokens {
-  static const Color background = Color(0xffefe9df);
-  static const Color mainPanel = Color(0xfff6f0e7);
-  static const Color surface = Color(0xfffffdf8);
-  static const Color softSurface = Color(0xfff8f2e9);
-  static const Color border = Color(0xffe3d8c8);
-  static const Color textPrimary = Color(0xff151311);
-  static const Color textSecondary = Color(0xff71695e);
-  static const Color textTertiary = Color(0xff9b9183);
-  static const Color sidebar = Color(0xff111518);
-  static const Color gold = Color(0xffb98542);
-  static const Color goldSoft = Color(0xfff5e4c7);
-  static const Color sage = Color(0xff71836d);
-  static const Color sageSoft = Color(0xffe9f0e7);
-  static const Color blue = Color(0xff6f899c);
-  static const Color blueSoft = Color(0xffe8f0f4);
-  static const Color plum = Color(0xff7c728d);
-  static const Color plumSoft = Color(0xffece8f2);
-  static const Color red = Color(0xffb75d53);
-  static const Color redSoft = Color(0xfff3e4de);
-  static const Color sidebarSelected = Color(0xff1d2328);
-  static const Color sidebarBorder = Color(0xff2c3338);
+  static const Color background = Color(0xfff5f7fb);
+  static const Color surface = Color(0xffffffff);
+  static const Color softSurface = Color(0xfff8fafc);
+  static const Color mutedSurface = Color(0xfff1f5f9);
+  static const Color borderSubtle = Color(0x140f172a);
+  static const Color border = Color(0x1f0f172a);
+  static const Color textPrimary = Color(0xff111827);
+  static const Color textSecondary = Color(0xff475569);
+  static const Color textTertiary = Color(0xff94a3b8);
+  static const Color sidebar = Color(0xc7ffffff);
+  static const Color topBar = Color(0xd1ffffff);
+  static const Color accent = Color(0xff6366f1);
+  static const Color accentSoft = Color(0xffeef2ff);
+  static const Color accentBlue = Color(0xff0a84ff);
+  static const Color gold = accent;
+  static const Color goldSoft = accentSoft;
+  static const Color amber = Color(0xfff59e0b);
+  static const Color amberSoft = Color(0xfffff7ed);
+  static const Color sage = Color(0xff10b981);
+  static const Color sageSoft = Color(0xffecfdf5);
+  static const Color blue = accentBlue;
+  static const Color blueSoft = Color(0xffe8f3ff);
+  static const Color plum = accent;
+  static const Color plumSoft = accentSoft;
+  static const Color red = Color(0xffef4444);
+  static const Color redSoft = Color(0xfffff1e8);
+
+  static const Color moduleDocument = Color(0xff6366f1);
+  static const Color moduleKnowledge = Color(0xff0a84ff);
+  static const Color moduleRetrieval = Color(0xff14b8a6);
+  static const Color moduleGeneration = Color(0xfff59e0b);
+  static const Color moduleSkill = Color(0xff8b5cf6);
+  static const Color moduleAssistant = Color(0xffec4899);
+  static const Color moduleArtifact = Color(0xff10b981);
+  static const Color moduleAudit = Color(0xff64748b);
+  static const Color moduleSettings = Color(0xff6b7280);
+
+  static const Color darkBackground = Color(0xff1c1c1e);
+  static const Color darkWindowSurface = Color(0xff242426);
+  static const Color darkSurface = Color(0xff2c2c2e);
+  static const Color darkSurfaceRaised = Color(0xff343436);
+  static const Color darkSurfaceHighlight = Color(0xff3a3a3c);
+  static const Color darkSidebar = Color(0xd11c1c1e);
+  static const Color darkTopBar = Color(0xdb1c1c1e);
+  static const Color darkBorderSubtle = Color(0x14ffffff);
+  static const Color darkBorderNormal = Color(0x1fffffff);
+  static const Color darkTextPrimary = Color(0xebffffff);
+  static const Color darkTextSecondary = Color(0xa3ffffff);
+  static const Color darkTextTertiary = Color(0x66ffffff);
 
   static List<BoxShadow> get cardShadow => [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.055),
-          blurRadius: 22,
-          offset: const Offset(0, 12),
-        ),
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.025),
-          blurRadius: 4,
-          offset: const Offset(0, 1),
+          color: const Color(0xff0f172a).withValues(alpha: 0.028),
+          blurRadius: 12,
+          offset: const Offset(0, 6),
         ),
       ];
 
+  static _AppVisualTokens visualTokens(Brightness brightness) {
+    final dark = brightness == Brightness.dark;
+    if (dark) {
+      return const _AppVisualTokens(
+        appBackground: darkBackground,
+        sidebarBackground: darkSidebar,
+        topBarBackground: darkTopBar,
+        surfaceBase: darkWindowSurface,
+        surfaceSubtle: darkSurface,
+        surfaceMuted: darkSurface,
+        surfaceRaised: darkSurfaceRaised,
+        surfaceHighlight: darkSurfaceHighlight,
+        borderSubtle: darkBorderSubtle,
+        borderNormal: darkBorderNormal,
+        textPrimary: darkTextPrimary,
+        textSecondary: darkTextSecondary,
+        textTertiary: darkTextTertiary,
+        accent: accentBlue,
+        accentMacBlue: accentBlue,
+        success: Color(0xff30d158),
+        warning: Color(0xffff9f0a),
+        danger: Color(0xffff453a),
+        shadow: [],
+      );
+    }
+    return _AppVisualTokens(
+      appBackground: background,
+      sidebarBackground: sidebar,
+      topBarBackground: topBar,
+      surfaceBase: surface,
+      surfaceSubtle: softSurface,
+      surfaceMuted: mutedSurface,
+      surfaceRaised: surface,
+      surfaceHighlight: softSurface,
+      borderSubtle: borderSubtle,
+      borderNormal: border,
+      textPrimary: textPrimary,
+      textSecondary: textSecondary,
+      textTertiary: textTertiary,
+      accent: accent,
+      accentMacBlue: accentBlue,
+      success: sage,
+      warning: amber,
+      danger: red,
+      shadow: cardShadow,
+    );
+  }
+
+  static Color panelSurface(Brightness brightness) =>
+      brightness == Brightness.dark ? darkSurface : surface;
+
+  static Color recessedSurface(Brightness brightness) =>
+      brightness == Brightness.dark ? darkWindowSurface : softSurface;
+
+  static Color glassSurface(Brightness brightness) =>
+      brightness == Brightness.dark
+          ? darkSurfaceHighlight.withValues(alpha: 0.62)
+          : surface.withValues(alpha: 0.72);
+
   static Color toneColor(_StatusTone tone) => switch (tone) {
         _StatusTone.success => sage,
-        _StatusTone.warning => gold,
+        _StatusTone.warning => amber,
         _StatusTone.danger => red,
         _StatusTone.neutral => blue,
       };
 
   static Color toneSurface(_StatusTone tone) => switch (tone) {
         _StatusTone.success => sageSoft,
-        _StatusTone.warning => goldSoft,
+        _StatusTone.warning => amberSoft,
         _StatusTone.danger => redSoft,
         _StatusTone.neutral => blueSoft,
       };
+
+  static Color moduleColor(String pageId) => switch (pageId) {
+        'dashboard' => accent,
+        'import-parsing' || 'document-library' => moduleDocument,
+        'knowledge-package-management' => moduleKnowledge,
+        'retrieval-verification' => moduleRetrieval,
+        'document-generation' => moduleGeneration,
+        'skill-factory' => moduleSkill,
+        'agent-factory-runtime' => moduleAssistant,
+        'artifact-center' => moduleArtifact,
+        'reports-audit' => moduleAudit,
+        'workspace' => moduleSettings,
+        'workbook' => moduleAudit,
+        _ => accent,
+      };
+
+  static Color moduleTint(
+    String pageId,
+    Brightness brightness, {
+    double lightAlpha = 0.1,
+    double darkAlpha = 0.14,
+  }) {
+    return moduleColor(pageId).withValues(
+      alpha: brightness == Brightness.dark ? darkAlpha : lightAlpha,
+    );
+  }
+
+  static Color moduleBorderTint(
+    String pageId,
+    Brightness brightness, {
+    double lightAlpha = 0.18,
+    double darkAlpha = 0.2,
+  }) {
+    return moduleColor(pageId).withValues(
+      alpha: brightness == Brightness.dark ? darkAlpha : lightAlpha,
+    );
+  }
 }
 
 enum _DesktopWindowPreviewState { restored, maximized }
@@ -255,6 +425,9 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
   void initState() {
     super.initState();
     _rc6RuntimeController = _createRc6RuntimeController();
+    if (_rc6RuntimeController.prefersAgentConsoleInitialPage) {
+      selectedIndex = _pageIndexById('agent-factory-runtime');
+    }
     unawaited(_rc6RuntimeController.initialize());
   }
 
@@ -336,10 +509,10 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
       combo(LogicalKeyboardKey.digit2): () => go(1),
       combo(LogicalKeyboardKey.digit3): () => go(2),
       combo(LogicalKeyboardKey.digit4): () => go(3),
-      combo(LogicalKeyboardKey.digit5): () => go(4),
-      combo(LogicalKeyboardKey.digit6): () => go(5),
-      combo(LogicalKeyboardKey.digit7): () => go(6),
-      combo(LogicalKeyboardKey.digit8): () => go(7),
+      combo(LogicalKeyboardKey.digit5): () => go(5),
+      combo(LogicalKeyboardKey.digit6): () => go(6),
+      combo(LogicalKeyboardKey.digit7): () => go(7),
+      combo(LogicalKeyboardKey.digit8): () => go(10),
       combo(LogicalKeyboardKey.digit9): () => go(8),
       combo(LogicalKeyboardKey.digit0): () => go(9),
       combo(LogicalKeyboardKey.keyS): () => go(10),
@@ -382,10 +555,17 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
             (rc6) => rc6.runParallelTaskCapacityValidation(taskCount: 8),
           ),
       combo(LogicalKeyboardKey.keyB): runClipboardPathImport,
+      combo(LogicalKeyboardKey.keyX): () => run((rc6) async {
+            final text = (await Clipboard.getData('text/plain'))?.text ?? '';
+            await rc6.importExternalSkillPath(text);
+          }),
+      combo(LogicalKeyboardKey.keyY): () => run(
+            (rc6) => rc6.runStorageConnectionAcceptance(),
+          ),
       combo(LogicalKeyboardKey.keyQ): () => confirmAndRun(
             title: zh ? '清空对话历史？' : 'Clear dialogue history?',
             body: zh
-                ? '这会删除当前助手的对话内容、会话历史和对话导出；助手配置、技能、知识库和协作产物不会被删除。'
+                ? '这会删除当前助手的对话内容、会话历史和对话导出；助手配置、技能、知识库和工作小组成果不会被删除。'
                 : 'This deletes the current assistant dialogue, chat history, and dialogue export; assistant config, Skill, KB, and discussion artifacts are kept.',
             action: (rc6) => rc6.clearAgentDialogueHistory(),
           ),
@@ -421,7 +601,7 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
       const SingleActivator(LogicalKeyboardKey.f6): () => confirmAndRun(
             title: zh ? '清空对话历史？' : 'Clear dialogue history?',
             body: zh
-                ? '这会删除当前助手的对话内容、会话历史和对话导出；助手配置、技能、知识库和协作产物不会被删除。'
+                ? '这会删除当前助手的对话内容、会话历史和对话导出；助手配置、技能、知识库和工作小组成果不会被删除。'
                 : 'This deletes the current assistant dialogue, chat history, and dialogue export; assistant config, Skill, KB, and discussion artifacts are kept.',
             action: (rc6) => rc6.clearAgentDialogueHistory(),
           ),
@@ -589,51 +769,85 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
 
   ThemeData _theme(Brightness brightness) {
     final isDarkTheme = brightness == Brightness.dark;
+    final visual = _HTKWTokens.visualTokens(brightness);
     final colors = ColorScheme.fromSeed(
-      seedColor: isDarkTheme ? _HTKWTokens.goldSoft : _HTKWTokens.gold,
+      seedColor: visual.accent,
       brightness: brightness,
     );
     final lightScheme = colors.copyWith(
-      primary: _HTKWTokens.textPrimary,
+      primary: visual.accent,
       onPrimary: _HTKWTokens.surface,
-      secondary: _HTKWTokens.gold,
-      onSecondary: _HTKWTokens.textPrimary,
-      surface: _HTKWTokens.surface,
-      surfaceContainerLowest: _HTKWTokens.surface,
-      surfaceContainerLow: _HTKWTokens.softSurface,
-      surfaceContainer: _HTKWTokens.mainPanel,
-      surfaceContainerHigh: _HTKWTokens.mainPanel,
-      surfaceContainerHighest: _HTKWTokens.background,
-      onSurface: _HTKWTokens.textPrimary,
-      onSurfaceVariant: _HTKWTokens.textSecondary,
-      outline: _HTKWTokens.border,
-      outlineVariant: _HTKWTokens.border,
-      error: _HTKWTokens.red,
+      primaryContainer: _HTKWTokens.accentSoft,
+      onPrimaryContainer: visual.textPrimary,
+      secondary: visual.success,
+      onSecondary: visual.textPrimary,
+      surface: visual.surfaceBase,
+      surfaceContainerLowest: visual.surfaceBase,
+      surfaceContainerLow: visual.surfaceSubtle,
+      surfaceContainer: visual.surfaceMuted,
+      surfaceContainerHigh: visual.surfaceSubtle,
+      surfaceContainerHighest: visual.appBackground,
+      onSurface: visual.textPrimary,
+      onSurfaceVariant: visual.textSecondary,
+      outline: visual.borderNormal,
+      outlineVariant: visual.borderSubtle,
+      error: visual.danger,
     );
     final darkScheme = colors.copyWith(
-      primary: _HTKWTokens.goldSoft,
-      onPrimary: _HTKWTokens.sidebar,
-      secondary: _HTKWTokens.gold,
-      surface: const Color(0xff191817),
-      surfaceContainerLowest: const Color(0xff201f1d),
-      surfaceContainerLow: const Color(0xff24211e),
-      surfaceContainer: const Color(0xff211f1d),
-      surfaceContainerHigh: const Color(0xff2a2723),
-      surfaceContainerHighest: const Color(0xff151311),
-      onSurface: const Color(0xfff4ede4),
-      onSurfaceVariant: const Color(0xffc8bbac),
-      outline: const Color(0xff4c443b),
-      outlineVariant: const Color(0xff4c443b),
-      error: const Color(0xffffb4aa),
+      primary: visual.accent,
+      onPrimary: const Color(0xffffffff),
+      primaryContainer: visual.accent.withValues(alpha: 0.16),
+      onPrimaryContainer: visual.textPrimary,
+      secondary: visual.success,
+      onSecondary: const Color(0xff07150e),
+      surface: visual.surfaceBase,
+      surfaceContainerLowest: visual.appBackground,
+      surfaceContainerLow: visual.surfaceBase,
+      surfaceContainer: visual.surfaceRaised,
+      surfaceContainerHigh: visual.surfaceHighlight,
+      surfaceContainerHighest: visual.appBackground,
+      onSurface: visual.textPrimary,
+      onSurfaceVariant: visual.textSecondary,
+      outline: visual.borderNormal,
+      outlineVariant: visual.borderSubtle,
+      error: visual.danger,
     );
     final scheme = isDarkTheme ? darkScheme : lightScheme;
+    TextStyle? shrinkText(TextStyle? style) {
+      final fontSize = style?.fontSize;
+      if (style == null || fontSize == null) return style;
+      return style.copyWith(fontSize: (fontSize - 1).clamp(10.0, 80.0));
+    }
+
+    TextTheme compactTextTheme(TextTheme theme) => theme.copyWith(
+          displayLarge: shrinkText(theme.displayLarge),
+          displayMedium: shrinkText(theme.displayMedium),
+          displaySmall: shrinkText(theme.displaySmall),
+          headlineLarge: shrinkText(theme.headlineLarge),
+          headlineMedium: shrinkText(theme.headlineMedium),
+          headlineSmall: shrinkText(theme.headlineSmall),
+          titleLarge: shrinkText(theme.titleLarge),
+          titleMedium: shrinkText(theme.titleMedium),
+          titleSmall: shrinkText(theme.titleSmall),
+          bodyLarge: shrinkText(theme.bodyLarge),
+          bodyMedium: shrinkText(theme.bodyMedium),
+          bodySmall: shrinkText(theme.bodySmall),
+          labelLarge: shrinkText(theme.labelLarge),
+          labelMedium: shrinkText(theme.labelMedium),
+          labelSmall: shrinkText(theme.labelSmall),
+        );
+    final baseTypography = Typography.material2021();
+    final textTheme = compactTextTheme(
+      isDarkTheme ? baseTypography.white : baseTypography.black,
+    );
 
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
       colorScheme: scheme,
-      scaffoldBackgroundColor:
-          isDarkTheme ? const Color(0xff0f0e0d) : _HTKWTokens.background,
+      textTheme: textTheme,
+      primaryTextTheme: textTheme,
+      scaffoldBackgroundColor: visual.appBackground,
       dividerTheme: DividerThemeData(
         color: scheme.outlineVariant,
         thickness: 1,
@@ -652,9 +866,15 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
         style: FilledButton.styleFrom(
           backgroundColor: scheme.primary,
           foregroundColor: scheme.onPrimary,
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-          minimumSize: const Size(0, 42),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+          textStyle:
+              const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+          minimumSize: const Size(0, 36),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          elevation: 0,
+          disabledBackgroundColor:
+              scheme.surfaceContainerHigh.withValues(alpha: 0.72),
+          disabledForegroundColor:
+              scheme.onSurfaceVariant.withValues(alpha: 0.52),
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius)),
         ),
@@ -663,9 +883,11 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
         style: OutlinedButton.styleFrom(
           foregroundColor: scheme.onSurface,
           side: BorderSide(color: scheme.outlineVariant),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-          minimumSize: const Size(0, 42),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+          textStyle:
+              const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+          minimumSize: const Size(0, 36),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          backgroundColor: Colors.transparent,
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius)),
         ),
@@ -673,22 +895,26 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: scheme.primary,
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+          textStyle:
+              const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius)),
         ),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: scheme.surfaceContainerLow,
-        selectedColor: _HTKWTokens.goldSoft,
+        selectedColor: isDarkTheme
+            ? visual.accent.withValues(alpha: 0.16)
+            : _HTKWTokens.accentSoft,
         disabledColor: scheme.surfaceContainerLow.withValues(alpha: 0.62),
         labelStyle: TextStyle(
           color: scheme.onSurfaceVariant,
-          fontWeight: FontWeight.w800,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
         ),
         secondaryLabelStyle: const TextStyle(
-          color: _HTKWTokens.textPrimary,
-          fontWeight: FontWeight.w900,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
         ),
         side: BorderSide(color: scheme.outlineVariant),
         shape: RoundedRectangleBorder(
@@ -697,7 +923,12 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: scheme.surface,
+        fillColor: isDarkTheme
+            ? scheme.surfaceContainer.withValues(alpha: 0.72)
+            : scheme.surfaceContainerLow,
+        labelStyle: const TextStyle(fontSize: 12),
+        helperStyle: const TextStyle(fontSize: 11),
+        hintStyle: const TextStyle(fontSize: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius),
           borderSide: BorderSide(color: scheme.outlineVariant),
@@ -708,7 +939,7 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius),
-          borderSide: BorderSide(color: scheme.primary, width: 1.4),
+          borderSide: BorderSide(color: scheme.primary, width: 1),
         ),
       ),
     );
@@ -780,6 +1011,10 @@ class _DesktopWorkbench extends StatelessWidget {
           : constraints.maxWidth < 600
               ? 72.0
               : 184.0;
+      const compactTopBar = false;
+      const topBarHeight = 72.0;
+      const contentTop = topBarHeight + 8.0;
+      const statusBarSafeBottom = 30.0;
 
       return Row(
         children: [
@@ -801,28 +1036,30 @@ class _DesktopWorkbench extends StatelessWidget {
                         Theme.of(context).colorScheme.surfaceContainerHighest,
                   ),
                 ),
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  right: 0,
-                  height: 78,
-                  child: _ProductTopBar(
-                    localeCode: localeCode,
-                    page: pages[selectedIndex],
-                    contracts: contracts,
-                    isDark: isDark,
-                    windowState: windowState,
-                    onWindowStateChanged: onWindowStateChanged,
-                    onThemeChanged: onThemeChanged,
-                    onLocaleChanged: onLocaleChanged,
-                    onPageChanged: onPageChanged,
+                if (topBarHeight > 0)
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    right: 0,
+                    height: topBarHeight,
+                    child: _ProductTopBar(
+                      localeCode: localeCode,
+                      page: pages[selectedIndex],
+                      contracts: contracts,
+                      compactForPage: compactTopBar,
+                      isDark: isDark,
+                      windowState: windowState,
+                      onWindowStateChanged: onWindowStateChanged,
+                      onThemeChanged: onThemeChanged,
+                      onLocaleChanged: onLocaleChanged,
+                      onPageChanged: onPageChanged,
+                    ),
                   ),
-                ),
                 Positioned(
                   left: 10,
-                  top: 88,
+                  top: contentTop,
                   right: 10,
-                  bottom: 10,
+                  bottom: statusBarSafeBottom,
                   child: _PageSurface(
                     key: ValueKey('page-surface-$selectedIndex'),
                     page: pages[selectedIndex],
@@ -878,8 +1115,11 @@ class _DesktopWorkbench extends StatelessWidget {
 int _pageIndexById(String pageId) {
   final normalizedPageId =
       pageId == 'import-parsing' ? 'document-library' : pageId;
-  final index = pages.indexWhere((page) => page.id == normalizedPageId);
-  return index < 0 ? 0 : index;
+  final exactIndex = pages.indexWhere((page) => page.id == normalizedPageId);
+  if (exactIndex >= 0) return exactIndex;
+  final memberIndex =
+      pages.indexWhere((page) => page.pageIds.contains(normalizedPageId));
+  return memberIndex < 0 ? 0 : memberIndex;
 }
 
 class _PageSurface extends StatefulWidget {
@@ -982,6 +1222,7 @@ class _PageSurfaceState extends State<_PageSurface> {
     final isWebRuntime = widget.isWebRuntime;
     final onPageChanged = widget.onPageChanged;
     final isDashboard = page.id == 'dashboard';
+    final isAgentConsole = page.id == 'agent-factory-runtime';
     return LayoutBuilder(builder: (context, constraints) {
       final content = Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1011,6 +1252,23 @@ class _PageSurfaceState extends State<_PageSurface> {
           ],
         ],
       );
+      if (isAgentConsole) {
+        return SizedBox.expand(
+          child: _ProductWorkspaceFrame(
+            key: ValueKey('page-scroll-${page.id}'),
+            compact: true,
+            child: _ProductPageOverview(
+              localeCode: localeCode,
+              page: page,
+              workspace: coreWorkspace,
+              providerCapabilityStatus: providerCapabilityStatus,
+              campaign6AgentRuntimeStatus: campaign6AgentRuntimeStatus,
+              isWebRuntime: isWebRuntime,
+              onPageChanged: onPageChanged,
+            ),
+          ),
+        );
+      }
       return SizedBox.expand(
         child: _ProductWorkspaceFrame(
           key: ValueKey('page-scroll-${page.id}'),
@@ -1059,7 +1317,7 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
   late int selectedTab = _defaultTabFor(widget.page.id);
 
   static int _defaultTabFor(String pageId) =>
-      pageId == 'knowledge-package-management' ? 0 : 0;
+      pageId == 'agent-factory-runtime' ? 1 : 0;
 
   @override
   void didUpdateWidget(covariant _ProductPageOverview oldWidget) {
@@ -1073,7 +1331,7 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
   Widget build(BuildContext context) {
     final page = widget.page.id;
     final tabCounts = <String, int>{
-      'knowledge-package-management': 4,
+      'knowledge-package-management': 5,
       'document-generation': 3,
       'agent-factory-runtime': 4,
       'reports-audit': 3,
@@ -1082,74 +1340,79 @@ class _ProductPageOverviewState extends State<_ProductPageOverview> {
     final maxTab = (tabCounts[page] ?? 1) - 1;
     if (selectedTab > maxTab) selectedTab = 0;
     final rc6 = _Rc6RuntimeScope.of(context);
+    final body = switch (page) {
+      'import-parsing' => _ImportProductWorkflow(
+          localeCode: widget.localeCode,
+          workspace: widget.workspace,
+          isWebRuntime: widget.isWebRuntime,
+        ),
+      'document-library' => _DocumentLibraryProductWorkflow(
+          localeCode: widget.localeCode,
+          workspace: widget.workspace,
+          isWebRuntime: widget.isWebRuntime,
+          onPageChanged: widget.onPageChanged,
+        ),
+      'knowledge-package-management' => _KnowledgeProductWorkflow(
+          localeCode: widget.localeCode,
+          workspace: widget.workspace,
+          selectedTab: selectedTab,
+          onTabSelected: (index) => setState(() => selectedTab = index),
+        ),
+      'retrieval-verification' => _RetrievalVerificationProductWorkflow(
+          localeCode: widget.localeCode,
+        ),
+      'document-generation' => _DocumentProductWorkflow(
+          localeCode: widget.localeCode,
+          workspace: widget.workspace,
+          selectedTab: selectedTab,
+          onTabSelected: (index) => setState(() => selectedTab = index),
+        ),
+      'skill-factory' => _SkillBuilderProductWorkflow(
+          localeCode: widget.localeCode,
+          workspace: widget.workspace,
+        ),
+      'agent-factory-runtime' => _AgentProductWorkflow(
+          localeCode: widget.localeCode,
+          workspace: widget.workspace,
+          campaign6AgentRuntimeStatus: widget.campaign6AgentRuntimeStatus,
+          selectedTab: selectedTab,
+          onTabSelected: (index) => setState(() => selectedTab = index),
+        ),
+      'workbook' => _WorkbookProductWorkflow(
+          localeCode: widget.localeCode,
+          workspace: widget.workspace,
+          onPageChanged: widget.onPageChanged,
+        ),
+      'reports-audit' => _ValidateExportProductWorkflow(
+          localeCode: widget.localeCode,
+          workspace: widget.workspace,
+          selectedTab: selectedTab,
+          onTabSelected: (index) => setState(() => selectedTab = index),
+        ),
+      'artifact-center' => _ArtifactCenterProductWorkflow(
+          localeCode: widget.localeCode,
+        ),
+      _ => _SettingsProductWorkflow(
+          localeCode: widget.localeCode,
+          workspace: widget.workspace,
+          runtimeController: rc6,
+          providerCapabilityStatus: widget.providerCapabilityStatus,
+          selectedTab: selectedTab,
+          onTabSelected: (index) => setState(() => selectedTab = index),
+          isWebRuntime: widget.isWebRuntime,
+        ),
+    };
+    if (page == 'agent-factory-runtime') {
+      return KeyedSubtree(
+        key: Key('dense-page-workbench-${widget.page.id}'),
+        child: SizedBox.expand(child: body),
+      );
+    }
     return KeyedSubtree(
       key: Key('dense-page-workbench-${widget.page.id}'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          switch (page) {
-            'import-parsing' => _ImportProductWorkflow(
-                localeCode: widget.localeCode,
-                workspace: widget.workspace,
-                isWebRuntime: widget.isWebRuntime,
-              ),
-            'document-library' => _DocumentLibraryProductWorkflow(
-                localeCode: widget.localeCode,
-                workspace: widget.workspace,
-                isWebRuntime: widget.isWebRuntime,
-                onPageChanged: widget.onPageChanged,
-              ),
-            'knowledge-package-management' => _KnowledgeProductWorkflow(
-                localeCode: widget.localeCode,
-                workspace: widget.workspace,
-                selectedTab: selectedTab,
-                onTabSelected: (index) => setState(() => selectedTab = index),
-              ),
-            'retrieval-verification' => _RetrievalVerificationProductWorkflow(
-                localeCode: widget.localeCode,
-              ),
-            'document-generation' => _DocumentProductWorkflow(
-                localeCode: widget.localeCode,
-                workspace: widget.workspace,
-                selectedTab: selectedTab,
-                onTabSelected: (index) => setState(() => selectedTab = index),
-              ),
-            'skill-factory' => _SkillBuilderProductWorkflow(
-                localeCode: widget.localeCode,
-                workspace: widget.workspace,
-              ),
-            'agent-factory-runtime' => _AgentProductWorkflow(
-                localeCode: widget.localeCode,
-                workspace: widget.workspace,
-                campaign6AgentRuntimeStatus: widget.campaign6AgentRuntimeStatus,
-                selectedTab: selectedTab,
-                onTabSelected: (index) => setState(() => selectedTab = index),
-              ),
-            'workbook' => _WorkbookProductWorkflow(
-                localeCode: widget.localeCode,
-                workspace: widget.workspace,
-                onPageChanged: widget.onPageChanged,
-              ),
-            'reports-audit' => _ValidateExportProductWorkflow(
-                localeCode: widget.localeCode,
-                workspace: widget.workspace,
-                selectedTab: selectedTab,
-                onTabSelected: (index) => setState(() => selectedTab = index),
-              ),
-            'artifact-center' => _ArtifactCenterProductWorkflow(
-                localeCode: widget.localeCode,
-              ),
-            _ => _SettingsProductWorkflow(
-                localeCode: widget.localeCode,
-                workspace: widget.workspace,
-                runtimeController: rc6,
-                providerCapabilityStatus: widget.providerCapabilityStatus,
-                selectedTab: selectedTab,
-                onTabSelected: (index) => setState(() => selectedTab = index),
-                isWebRuntime: widget.isWebRuntime,
-              ),
-          },
-        ],
+        children: [body],
       ),
     );
   }
@@ -1159,9 +1422,11 @@ class _ProductWorkspaceFrame extends StatelessWidget {
   const _ProductWorkspaceFrame({
     super.key,
     required this.child,
+    this.compact = false,
   });
 
   final Widget child;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -1169,13 +1434,12 @@ class _ProductWorkspaceFrame extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: double.infinity,
-      padding: const EdgeInsets.fromLTRB(22, 20, 22, 20),
+      padding: compact
+          ? const EdgeInsets.fromLTRB(12, 10, 12, 10)
+          : const EdgeInsets.fromLTRB(18, 16, 18, 16),
       decoration: BoxDecoration(
-        color: colors.surfaceContainerLow,
+        color: colors.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(_DesktopGrid.pageRadius),
-        border:
-            Border.all(color: colors.outlineVariant.withValues(alpha: 0.72)),
-        boxShadow: _HTKWTokens.cardShadow,
       ),
       child: child,
     );
@@ -1492,10 +1756,10 @@ class _MiniMetricCard extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: _HTKWTokens.goldSoft,
+              color: _HTKWTokens.blueSoft,
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(item.icon, size: 21, color: _HTKWTokens.gold),
+            child: Icon(item.icon, size: 21, color: _HTKWTokens.blue),
           ),
           const SizedBox(width: _DesktopGrid.gutter),
           Expanded(

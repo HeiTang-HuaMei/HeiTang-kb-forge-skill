@@ -111,7 +111,7 @@ class _DesktopWindowPreviewShellState
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final visual = _HTKWTokens.visualTokens(Theme.of(context).brightness);
     return LayoutBuilder(builder: (context, constraints) {
       final maximized = windowState == _DesktopWindowPreviewState.maximized;
       final viewportWidth = constraints.maxWidth.isFinite
@@ -127,7 +127,7 @@ class _DesktopWindowPreviewShellState
         (state) => setState(() => windowState = state),
       );
       return Container(
-        color: colors.surfaceContainerHighest,
+        color: visual.appBackground,
         child: SizedBox(
           width: width,
           height: height,
@@ -141,15 +141,17 @@ class _DesktopWindowPreviewShellState
               minHeight: 560,
             ),
             decoration: BoxDecoration(
-              color: colors.surfaceContainerHighest,
-              border: Border.all(
-                color: colors.outlineVariant.withValues(alpha: 0.62),
-              ),
+              color: visual.appBackground,
+              border: maximized
+                  ? null
+                  : Border.all(
+                      color: visual.borderSubtle,
+                    ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: maximized ? 0 : 0.1),
-                  blurRadius: maximized ? 0 : 28,
-                  offset: const Offset(0, 16),
+                  color: Colors.black.withValues(alpha: maximized ? 0 : 0.08),
+                  blurRadius: maximized ? 0 : 34,
+                  offset: const Offset(0, 18),
                 ),
               ],
             ),

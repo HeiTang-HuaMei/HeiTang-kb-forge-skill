@@ -18,10 +18,10 @@ class _ProductHeader extends StatelessWidget {
       width: 48,
       height: 48,
       decoration: BoxDecoration(
-        color: _HTKWTokens.goldSoft,
+        color: colors.primaryContainer.withValues(alpha: 0.82),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Icon(icon, color: _HTKWTokens.gold, size: 24),
+      child: Icon(icon, color: colors.primary, size: 24),
     );
     final copy = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -30,7 +30,7 @@ class _ProductHeader extends StatelessWidget {
             style: Theme.of(context)
                 .textTheme
                 .titleLarge
-                ?.copyWith(fontSize: 28, fontWeight: FontWeight.w900)),
+                ?.copyWith(fontSize: 26, fontWeight: FontWeight.w900)),
         const SizedBox(height: 6),
         Text(description,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -82,6 +82,7 @@ class _PageTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       final compact = constraints.maxWidth < 620;
+      final veryCompact = constraints.maxWidth < 420;
       return Wrap(
         spacing: 6,
         runSpacing: 6,
@@ -91,7 +92,11 @@ class _PageTabs extends StatelessWidget {
               key: Key('$keyPrefix-$index'),
               label: tabs[index],
               selected: selectedIndex == index,
-              width: compact ? (constraints.maxWidth - 6) / 2 : null,
+              width: compact
+                  ? veryCompact
+                      ? constraints.maxWidth
+                      : (constraints.maxWidth - 6) / 2
+                  : null,
               onTap: () => onSelected(index),
             ),
         ],
@@ -118,9 +123,9 @@ class _PageTabButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final foreground = selected ? colors.onPrimary : colors.onSurface;
-    final background = selected ? colors.primary : colors.surface;
-    return SizedBox(
-      width: width,
+    final background = selected ? colors.primary : colors.surfaceContainerLow;
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: 40, minWidth: width ?? 0),
       child: Semantics(
         button: true,
         selected: selected,
@@ -137,7 +142,7 @@ class _PageTabButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(_DesktopGrid.chipRadius),
             onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Row(
                 mainAxisSize:
                     width == null ? MainAxisSize.min : MainAxisSize.max,
@@ -150,13 +155,14 @@ class _PageTabButton extends StatelessWidget {
                   Flexible(
                     child: Text(
                       label,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: TextOverflow.visible,
                       maxLines: 1,
+                      softWrap: false,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             color: foreground,
                             fontWeight:
                                 selected ? FontWeight.w800 : FontWeight.w600,
-                            height: 1.05,
+                            height: 1.16,
                           ),
                     ),
                   ),
@@ -194,6 +200,20 @@ class _ProductPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final brightness = Theme.of(context).brightness;
+    final visual = _HTKWTokens.visualTokens(brightness);
+    final panelColor = gap
+        ? colors.surfaceContainerLow.withValues(
+            alpha: brightness == Brightness.dark ? 0.72 : 0.9,
+          )
+        : accent
+            ? _HTKWTokens.moduleTint(
+                'dashboard',
+                brightness,
+                lightAlpha: 0.08,
+                darkAlpha: 0.14,
+              )
+            : _HTKWTokens.panelSurface(brightness);
     return Container(
       key: keyName == null ? null : Key(keyName!),
       width: double.infinity,
@@ -201,20 +221,16 @@ class _ProductPanel extends StatelessWidget {
           BoxConstraints(minHeight: minHeight ?? _DesktopGrid.panelMinHeight),
       padding: const EdgeInsets.all(_DesktopGrid.panelPadding),
       decoration: BoxDecoration(
-        color: gap
-            ? colors.surfaceContainerLow
-            : accent
-                ? _HTKWTokens.goldSoft
-                : colors.surface,
+        color: panelColor,
         borderRadius: BorderRadius.circular(_DesktopGrid.panelRadius),
         border: Border.all(
-          color: gap
-              ? colors.outlineVariant
-              : accent
-                  ? _HTKWTokens.gold.withValues(alpha: 0.28)
-                  : colors.outlineVariant,
+          color: accent
+              ? colors.primary.withValues(
+                  alpha: brightness == Brightness.dark ? 0.2 : 0.14,
+                )
+              : visual.borderSubtle,
         ),
-        boxShadow: gap ? const [] : _HTKWTokens.cardShadow,
+        boxShadow: gap ? const [] : visual.shadow,
       ),
       child: LayoutBuilder(builder: (context, constraints) {
         final header = Column(
@@ -229,10 +245,18 @@ class _ProductPanel extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: accent
                           ? colors.surface.withValues(alpha: 0.72)
-                          : _HTKWTokens.goldSoft,
+                          : colors.primary.withValues(
+                              alpha:
+                                  brightness == Brightness.dark ? 0.13 : 0.09,
+                            ),
                       borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: colors.primary.withValues(
+                          alpha: brightness == Brightness.dark ? 0.18 : 0.11,
+                        ),
+                      ),
                     ),
-                    child: Icon(icon, size: 17, color: _HTKWTokens.gold),
+                    child: Icon(icon, size: 17, color: colors.primary),
                   ),
                   const SizedBox(width: 10),
                 ],
@@ -242,8 +266,8 @@ class _ProductPanel extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style:
                           Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontSize: 21,
-                                fontWeight: FontWeight.w900,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
                                 height: 1.12,
                               )),
                 ),
@@ -257,7 +281,7 @@ class _ProductPanel extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontSize: 13,
                         color: colors.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
                         height: 1.16,
                       )),
             ],
@@ -319,17 +343,18 @@ class _FigmaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final brightness = Theme.of(context).brightness;
+    final visual = _HTKWTokens.visualTokens(brightness);
     return Container(
       key: keyName == null ? null : Key(keyName!),
       width: double.infinity,
       height: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        color: background ?? colors.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: borderColor ?? colors.outlineVariant),
-        boxShadow: _HTKWTokens.cardShadow,
+        color: background ?? _HTKWTokens.panelSurface(brightness),
+        borderRadius: BorderRadius.circular(_DesktopGrid.panelRadius),
+        border: Border.all(color: borderColor ?? visual.borderSubtle),
+        boxShadow: visual.shadow,
       ),
       child: child,
     );
@@ -357,70 +382,91 @@ class _FigmaHighlightCard extends StatelessWidget {
       final compact =
           constraints.maxHeight.isFinite && constraints.maxHeight <= 96;
       final iconSize = compact ? 46.0 : 58.0;
+      final stackActions =
+          actions.isNotEmpty && (compact || constraints.maxWidth < 640);
+      final copy = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontSize: compact ? 18 : 19,
+                    fontWeight: FontWeight.w700,
+                    height: 1.08,
+                  )),
+          SizedBox(height: compact ? 4 : 6),
+          Text(description,
+              maxLines: compact ? 1 : 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: compact ? 13 : null,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                    height: compact ? 1.12 : 1.25,
+                  )),
+        ],
+      );
+      final actionWrap = Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        alignment: stackActions ? WrapAlignment.start : WrapAlignment.end,
+        children: actions,
+      );
       return _FigmaCard(
         keyName: keyName,
-        background: _HTKWTokens.goldSoft,
-        borderColor: _HTKWTokens.gold.withValues(alpha: 0.24),
+        background: Theme.of(context)
+            .colorScheme
+            .primaryContainer
+            .withValues(alpha: 0.42),
+        borderColor:
+            Theme.of(context).colorScheme.primary.withValues(alpha: 0.14),
         padding: EdgeInsets.symmetric(
           horizontal: compact ? 24 : 30,
           vertical: compact ? 12 : 20,
         ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
+        child: stackActions
+            ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontSize: compact ? 20 : 22,
-                                fontWeight: FontWeight.w900,
-                                height: 1.08,
-                              )),
-                  SizedBox(height: compact ? 4 : 6),
-                  Text(description,
-                      maxLines: compact ? 1 : 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontSize: compact ? 13 : null,
-                            color: _HTKWTokens.textSecondary,
-                            fontWeight: FontWeight.w700,
-                            height: compact ? 1.12 : 1.25,
-                          )),
+                  Flexible(child: copy),
+                  if (actions.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    actionWrap,
+                  ],
+                ],
+              )
+            : Row(
+                children: [
+                  Expanded(child: copy),
+                  if (actions.isNotEmpty) ...[
+                    const SizedBox(width: 22),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 320),
+                      child: actionWrap,
+                    ),
+                  ] else ...[
+                    const SizedBox(width: 22),
+                    Container(
+                      width: iconSize,
+                      height: iconSize,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surface
+                            .withValues(alpha: 0.62),
+                        borderRadius: BorderRadius.circular(compact ? 15 : 18),
+                      ),
+                      child: Icon(icon,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: compact ? 24 : 28),
+                    ),
+                  ],
                 ],
               ),
-            ),
-            if (actions.isNotEmpty) ...[
-              const SizedBox(width: 22),
-              SizedBox(
-                width: compact ? 220 : 260,
-                child: Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  alignment: WrapAlignment.end,
-                  children: actions,
-                ),
-              ),
-            ] else ...[
-              const SizedBox(width: 22),
-              Container(
-                width: iconSize,
-                height: iconSize,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: _HTKWTokens.surface.withValues(alpha: 0.62),
-                  borderRadius: BorderRadius.circular(compact ? 15 : 18),
-                ),
-                child: Icon(icon,
-                    color: _HTKWTokens.gold, size: compact ? 24 : 28),
-              ),
-            ],
-          ],
-        ),
       );
     });
   }
@@ -431,26 +477,33 @@ class _FigmaSectionHeader extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.icon,
+    this.accentColor,
   });
 
   final String title;
   final String? subtitle;
   final IconData? icon;
+  final Color? accentColor;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final accent = accentColor ?? colors.primary;
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
         if (icon != null) ...[
           Container(
-            width: 30,
-            height: 30,
+            width: 28,
+            height: 28,
             decoration: BoxDecoration(
-              color: _HTKWTokens.goldSoft,
+              color: accent.withValues(alpha: dark ? 0.14 : 0.1),
               borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: accent.withValues(alpha: dark ? 0.18 : 0.12),
+              ),
             ),
-            child: Icon(icon, size: 17, color: _HTKWTokens.gold),
+            child: Icon(icon, size: 16, color: accent),
           ),
           const SizedBox(width: 10),
         ],
@@ -463,7 +516,7 @@ class _FigmaSectionHeader extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontSize: 18,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w700,
                         height: 1.1,
                       )),
               if (subtitle != null) ...[
@@ -473,7 +526,7 @@ class _FigmaSectionHeader extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colors.onSurfaceVariant,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                         )),
               ],
             ],
@@ -500,6 +553,7 @@ class _FillProductPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final visual = _HTKWTokens.visualTokens(Theme.of(context).brightness);
     return LayoutBuilder(builder: (context, constraints) {
       return Container(
         key: keyName == null ? null : Key(keyName!),
@@ -509,8 +563,8 @@ class _FillProductPanel extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.surface,
           borderRadius: BorderRadius.circular(_DesktopGrid.panelRadius),
-          border: Border.all(color: colors.outlineVariant),
-          boxShadow: _HTKWTokens.cardShadow,
+          border: Border.all(color: visual.borderSubtle),
+          boxShadow: visual.shadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -522,10 +576,10 @@ class _FillProductPanel extends StatelessWidget {
                     width: 30,
                     height: 30,
                     decoration: BoxDecoration(
-                      color: _HTKWTokens.goldSoft,
+                      color: _HTKWTokens.blueSoft,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(icon, size: 17, color: _HTKWTokens.gold),
+                    child: Icon(icon, size: 17, color: _HTKWTokens.blue),
                   ),
                   const SizedBox(width: 10),
                 ],
@@ -535,8 +589,8 @@ class _FillProductPanel extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style:
                           Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontSize: 21,
-                                fontWeight: FontWeight.w900,
+                                fontSize: 19,
+                                fontWeight: FontWeight.w700,
                                 height: 1.12,
                               )),
                 ),
@@ -566,6 +620,7 @@ class _ProductTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final brightness = Theme.of(context).brightness;
     return LayoutBuilder(builder: (context, constraints) {
       if (constraints.maxWidth < 360) {
         final narrowTable = Column(
@@ -576,9 +631,12 @@ class _ProductTable extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: colors.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: colors.outlineVariant),
+                  color: _HTKWTokens.recessedSurface(brightness),
+                  borderRadius:
+                      BorderRadius.circular(_DesktopGrid.radiusMedium),
+                  border: Border.all(
+                    color: _HTKWTokens.visualTokens(brightness).borderSubtle,
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -616,21 +674,25 @@ class _ProductTable extends StatelessWidget {
         );
       }
       final minCellWidth = columns.length >= 6 ? 136.0 : 116.0;
-      final tableWidth =
-          (columns.length * minCellWidth).clamp(constraints.maxWidth, 1200.0);
-      final borderColor = colors.outlineVariant.withValues(alpha: 0.68);
+      final minContentWidth = columns.length * minCellWidth;
+      final tableWidth = constraints.maxWidth > minContentWidth
+          ? constraints.maxWidth
+          : minContentWidth;
+      final visual = _HTKWTokens.visualTokens(brightness);
+      final borderColor = visual.borderSubtle;
       return Container(
         decoration: BoxDecoration(
-          color: colors.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(18),
-          border:
-              Border.all(color: colors.outlineVariant.withValues(alpha: 0.7)),
+          color: _HTKWTokens.recessedSurface(brightness),
+          borderRadius: BorderRadius.circular(_DesktopGrid.radiusLarge),
+          border: Border.all(
+            color: visual.borderSubtle,
+          ),
         ),
         clipBehavior: Clip.antiAlias,
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minWidth: tableWidth.toDouble()),
+          child: SizedBox(
+            width: tableWidth.toDouble(),
             child: Table(
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
               columnWidths: {
@@ -640,7 +702,12 @@ class _ProductTable extends StatelessWidget {
               children: [
                 TableRow(
                   decoration: BoxDecoration(
-                    color: _HTKWTokens.goldSoft.withValues(alpha: 0.62),
+                    color: _HTKWTokens.moduleTint(
+                      'knowledge-package-management',
+                      brightness,
+                      lightAlpha: 0.08,
+                      darkAlpha: 0.12,
+                    ),
                     border: Border(bottom: BorderSide(color: borderColor)),
                   ),
                   children: [
@@ -668,8 +735,9 @@ class _ProductTable extends StatelessWidget {
                   TableRow(
                     decoration: BoxDecoration(
                       color: rowIndex.isEven
-                          ? colors.surface
-                          : colors.surfaceContainerLow.withValues(alpha: 0.72),
+                          ? _HTKWTokens.panelSurface(brightness)
+                          : _HTKWTokens.recessedSurface(brightness)
+                              .withValues(alpha: 0.72),
                       border: Border(bottom: BorderSide(color: borderColor)),
                     ),
                     children: [
@@ -714,6 +782,7 @@ class _FieldRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final brightness = Theme.of(context).brightness;
     final labelText = Text(label,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
@@ -738,9 +807,11 @@ class _FieldRow extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 78),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: colors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colors.outlineVariant),
+        color: _HTKWTokens.recessedSurface(brightness),
+        borderRadius: BorderRadius.circular(_DesktopGrid.radiusMedium),
+        border: Border.all(
+          color: _HTKWTokens.visualTokens(brightness).borderSubtle,
+        ),
       ),
       child: LayoutBuilder(builder: (context, constraints) {
         return Column(
@@ -820,12 +891,12 @@ class _CapabilityStatusMarker extends StatelessWidget {
     final resolvedKind = kind ?? _capabilityStatusKind(label ?? '');
     final color = switch (resolvedKind) {
       _CapabilityStatusKind.displayOnly => _HTKWTokens.blue,
-      _CapabilityStatusKind.disabledBoundary => _HTKWTokens.gold,
+      _CapabilityStatusKind.disabledBoundary => _HTKWTokens.amber,
       _CapabilityStatusKind.available => _HTKWTokens.sage,
     };
     final background = switch (resolvedKind) {
       _CapabilityStatusKind.displayOnly => _HTKWTokens.blueSoft,
-      _CapabilityStatusKind.disabledBoundary => _HTKWTokens.goldSoft,
+      _CapabilityStatusKind.disabledBoundary => _HTKWTokens.amberSoft,
       _CapabilityStatusKind.available => _HTKWTokens.sageSoft,
     };
     final icon = switch (resolvedKind) {
@@ -956,13 +1027,20 @@ class _StatePill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const color = _HTKWTokens.gold;
+    final brightness = Theme.of(context).brightness;
+    const color = _HTKWTokens.moduleKnowledge;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: _HTKWTokens.goldSoft,
+        color: color.withValues(
+          alpha: brightness == Brightness.dark ? 0.13 : 0.08,
+        ),
         borderRadius: BorderRadius.circular(_DesktopGrid.chipRadius),
-        border: Border.all(color: color.withValues(alpha: 0.24)),
+        border: Border.all(
+          color: color.withValues(
+            alpha: brightness == Brightness.dark ? 0.2 : 0.14,
+          ),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -983,20 +1061,34 @@ class _DisplayAction extends StatelessWidget {
     required this.label,
     this.icon = Icons.visibility_outlined,
     this.onPressed,
+    this.fullWidth = true,
   });
 
   final String label;
   final IconData icon;
   final VoidCallback? onPressed;
+  final bool fullWidth;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 40),
       child: OutlinedButton.icon(
         onPressed: onPressed,
         icon: Icon(icon),
-        label: Text(label, overflow: TextOverflow.ellipsis),
+        label: Text(
+          label,
+          maxLines: 1,
+          softWrap: false,
+          overflow: fullWidth ? TextOverflow.ellipsis : TextOverflow.visible,
+        ),
+        style: OutlinedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          side: BorderSide(
+            color: _HTKWTokens.visualTokens(Theme.of(context).brightness)
+                .borderSubtle,
+          ),
+        ),
       ),
     );
   }
@@ -1031,72 +1123,78 @@ class _MoreActionsButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final enabled = actions.any((action) => action.enabled);
-    return SizedBox(
-      width: double.infinity,
-      child: PopupMenuButton<int>(
-        enabled: enabled,
-        tooltip: label,
-        onSelected: (index) => actions[index].onSelected(),
-        itemBuilder: (context) => [
-          for (var index = 0; index < actions.length; index++)
-            PopupMenuItem<int>(
-              value: index,
-              enabled: actions[index].enabled,
-              child: Row(
-                children: [
-                  Icon(
-                    actions[index].icon,
-                    size: 18,
-                    color: actions[index].destructive
-                        ? colors.error
-                        : colors.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      actions[index].label,
-                      overflow: TextOverflow.ellipsis,
-                      style: actions[index].destructive
-                          ? TextStyle(
-                              color: colors.error,
-                              fontWeight: FontWeight.w800,
-                            )
-                          : null,
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: label,
+      child: SizedBox(
+        width: double.infinity,
+        child: PopupMenuButton<int>(
+          enabled: enabled,
+          tooltip: label,
+          onSelected: (index) => actions[index].onSelected(),
+          itemBuilder: (context) => [
+            for (var index = 0; index < actions.length; index++)
+              PopupMenuItem<int>(
+                value: index,
+                enabled: actions[index].enabled,
+                child: Row(
+                  children: [
+                    Icon(
+                      actions[index].icon,
+                      size: 18,
+                      color: actions[index].destructive
+                          ? colors.error
+                          : colors.onSurfaceVariant,
                     ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-        child: InputDecorator(
-          decoration: InputDecoration(
-            enabled: enabled,
-            isDense: true,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            border: const OutlineInputBorder(),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.more_horiz_outlined,
-                size: 18,
-                color: enabled ? colors.primary : colors.onSurfaceVariant,
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  label,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color:
-                            enabled ? colors.primary : colors.onSurfaceVariant,
-                        fontWeight: FontWeight.w800,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        actions[index].label,
+                        overflow: TextOverflow.ellipsis,
+                        style: actions[index].destructive
+                            ? TextStyle(
+                                color: colors.error,
+                                fontWeight: FontWeight.w800,
+                              )
+                            : null,
                       ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+          ],
+          child: InputDecorator(
+            decoration: InputDecoration(
+              enabled: enabled,
+              isDense: true,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              border: const OutlineInputBorder(),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.more_horiz_outlined,
+                  size: 18,
+                  color: enabled ? colors.primary : colors.onSurfaceVariant,
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: enabled
+                              ? colors.primary
+                              : colors.onSurfaceVariant,
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1110,17 +1208,19 @@ class _PrimaryProductAction extends StatelessWidget {
     required this.onPressed,
     this.icon = Icons.play_arrow_outlined,
     this.automationKey,
+    this.fullWidth = true,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final IconData icon;
   final String? automationKey;
+  final bool fullWidth;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 40),
       child: Semantics(
         button: true,
         label: automationKey ?? label,
@@ -1130,10 +1230,19 @@ class _PrimaryProductAction extends StatelessWidget {
             key:
                 automationKey == null ? null : ValueKey<String>(automationKey!),
             onPressed: onPressed,
-            icon: Icon(icon),
-            label: Text(label, overflow: TextOverflow.ellipsis),
+            icon: Icon(icon, size: 18),
+            label: Text(
+              label,
+              maxLines: 1,
+              softWrap: false,
+              overflow:
+                  fullWidth ? TextOverflow.ellipsis : TextOverflow.visible,
+              style: const TextStyle(height: 1.15),
+            ),
             style: FilledButton.styleFrom(
-              minimumSize: const Size(0, 46),
+              minimumSize: const Size(0, 40),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius),
               ),

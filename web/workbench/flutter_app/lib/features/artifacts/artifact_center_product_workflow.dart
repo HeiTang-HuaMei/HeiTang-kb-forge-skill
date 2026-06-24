@@ -109,134 +109,135 @@ class _ArtifactCenterProductWorkflowState
       SizedBox(
         height: 540,
         child: LayoutBuilder(builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 900;
-        final catalog = _ProductPanel(
-          keyName: 'artifact-center-catalog',
-          icon: Icons.inventory_2_outlined,
-          title: _zh ? '成果清单' : 'Output Catalog',
-          subtitle: runtime.workspacePath.isEmpty
-              ? (_zh ? '等待工作区初始化' : 'Waiting for workspace')
-              : (_zh ? '用户工作区' : 'User workspace'),
-          children: [
-            _ProductTable(
-              columns:
-                  _zh ? ['分类', '产物', '状态'] : ['Category', 'Artifact', 'Status'],
-              rows: artifacts
-                  .map((artifact) => [
-                        artifact.category,
-                        artifact.label,
-                        artifact.path.trim().isEmpty
-                            ? (_zh ? '未生成' : 'Not generated')
-                            : (_zh ? '已生成' : 'Generated'),
-                      ])
-                  .toList(growable: false),
-            ),
-            const SizedBox(height: _DesktopGrid.gutter),
-            _PageTabs(
-              tabs: [
-                for (final artifact in artifacts)
-                  '${artifact.shortLabel} ${artifact.path.trim().isEmpty ? "○" : "✓"}',
-              ],
-              selectedIndex: selectedIndex,
-              keyPrefix: 'artifact-center-tab',
-              onSelected: (index) => setState(() => selectedIndex = index),
-            ),
-          ],
-        );
-        final canPreview = selected != null &&
-            selected.path.trim().isNotEmpty &&
-            selected.previewable;
-        final detail = _ProductPanel(
-          keyName: 'artifact-center-detail',
-          icon: Icons.article_outlined,
-          title: _zh ? '成果详情' : 'Output Detail',
-          children: [
-            _FieldRow(
-              label: _zh ? '分类' : 'Category',
-              value: selected?.category ?? '-',
-            ),
-            const SizedBox(height: 8),
-            _FieldRow(
-              label: _zh ? '成果' : 'Output',
-              value: selected?.label ?? '-',
-            ),
-            const SizedBox(height: 8),
-            _FieldRow(
-              label: _zh ? '状态' : 'Status',
-              value: selected == null || selected.path.trim().isEmpty
-                  ? (_zh ? '未生成' : 'Not generated')
-                  : (_zh ? '已生成' : 'Generated'),
-            ),
-            const SizedBox(height: 8),
-            _FieldRow(
-              label: _zh ? '位置' : 'Location',
-              value: selected == null || selected.path.trim().isEmpty
-                  ? (_zh ? '对应页面完成后出现' : 'Appears after workflow run')
-                  : _displayNameForPath(selected.path),
-            ),
-            const SizedBox(height: _DesktopGrid.gutter),
-            _EqualActionRow(children: [
-              _DisplayAction(
-                label: canPreview
-                    ? (_zh ? '打开产物' : 'Open artifact')
-                    : selected != null && selected.path.trim().isNotEmpty
-                        ? (_zh ? '目录产物' : 'Folder artifact')
-                        : (_zh ? '等待成果' : 'Waiting for output'),
-                icon: Icons.visibility_outlined,
-                onPressed: canPreview
-                    ? () => _showWorkspaceArtifactPreview(
-                          context,
-                          rc6: rc6,
-                          title: selected.label,
-                          path: selected.path,
-                          unavailableMessage:
-                              _zh ? '尚未生成可预览产物。' : 'No artifact generated.',
-                          closeLabel: _zh ? '关闭' : 'Close',
-                        )
-                    : null,
+          final wide = constraints.maxWidth >= 900;
+          final catalog = _ProductPanel(
+            keyName: 'artifact-center-catalog',
+            icon: Icons.inventory_2_outlined,
+            title: _zh ? '成果清单' : 'Output Catalog',
+            subtitle: runtime.workspacePath.isEmpty
+                ? (_zh ? '等待工作区初始化' : 'Waiting for workspace')
+                : (_zh ? '用户工作区' : 'User workspace'),
+            children: [
+              _ProductTable(
+                columns: _zh
+                    ? ['分类', '产物', '状态']
+                    : ['Category', 'Artifact', 'Status'],
+                rows: artifacts
+                    .map((artifact) => [
+                          artifact.category,
+                          artifact.label,
+                          artifact.path.trim().isEmpty
+                              ? (_zh ? '未生成' : 'Not generated')
+                              : (_zh ? '已生成' : 'Generated'),
+                        ])
+                    .toList(growable: false),
               ),
-              KeyedSubtree(
-                key: const Key('artifact-center-export-selected'),
-                child: _DisplayAction(
+              const SizedBox(height: _DesktopGrid.gutter),
+              _PageTabs(
+                tabs: [
+                  for (final artifact in artifacts)
+                    '${artifact.shortLabel} ${artifact.path.trim().isEmpty ? "○" : "✓"}',
+                ],
+                selectedIndex: selectedIndex,
+                keyPrefix: 'artifact-center-tab',
+                onSelected: (index) => setState(() => selectedIndex = index),
+              ),
+            ],
+          );
+          final canPreview = selected != null &&
+              selected.path.trim().isNotEmpty &&
+              selected.previewable;
+          final detail = _ProductPanel(
+            keyName: 'artifact-center-detail',
+            icon: Icons.article_outlined,
+            title: _zh ? '成果详情' : 'Output Detail',
+            children: [
+              _FieldRow(
+                label: _zh ? '分类' : 'Category',
+                value: selected?.category ?? '-',
+              ),
+              const SizedBox(height: 8),
+              _FieldRow(
+                label: _zh ? '成果' : 'Output',
+                value: selected?.label ?? '-',
+              ),
+              const SizedBox(height: 8),
+              _FieldRow(
+                label: _zh ? '状态' : 'Status',
+                value: selected == null || selected.path.trim().isEmpty
+                    ? (_zh ? '未生成' : 'Not generated')
+                    : (_zh ? '已生成' : 'Generated'),
+              ),
+              const SizedBox(height: 8),
+              _FieldRow(
+                label: _zh ? '位置' : 'Location',
+                value: selected == null || selected.path.trim().isEmpty
+                    ? (_zh ? '对应页面完成后出现' : 'Appears after workflow run')
+                    : _displayNameForPath(selected.path),
+              ),
+              const SizedBox(height: _DesktopGrid.gutter),
+              _EqualActionRow(children: [
+                _DisplayAction(
+                  label: canPreview
+                      ? (_zh ? '打开产物' : 'Open artifact')
+                      : selected != null && selected.path.trim().isNotEmpty
+                          ? (_zh ? '目录产物' : 'Folder artifact')
+                          : (_zh ? '等待成果' : 'Waiting for output'),
+                  icon: Icons.visibility_outlined,
+                  onPressed: canPreview
+                      ? () => _showWorkspaceArtifactPreview(
+                            context,
+                            rc6: rc6,
+                            title: selected.label,
+                            path: selected.path,
+                            unavailableMessage:
+                                _zh ? '尚未生成可预览产物。' : 'No artifact generated.',
+                            closeLabel: _zh ? '关闭' : 'Close',
+                          )
+                      : null,
+                ),
+                KeyedSubtree(
+                  key: const Key('artifact-center-export-selected'),
+                  child: _DisplayAction(
+                    label: selected != null && selected.path.trim().isNotEmpty
+                        ? (_zh ? '导出选中成果' : 'Export selected output')
+                        : (_zh ? '等待可导出成果' : 'Waiting for exportable output'),
+                    icon: Icons.file_download_outlined,
+                    onPressed: selected != null &&
+                            selected.path.trim().isNotEmpty &&
+                            rc6 != null &&
+                            !runtime.running
+                        ? () => _exportSelectedArtifact(rc6, selected)
+                        : null,
+                  ),
+                ),
+                _DisplayAction(
                   label: selected != null && selected.path.trim().isNotEmpty
-                      ? (_zh ? '导出选中成果' : 'Export selected output')
-                      : (_zh ? '等待可导出成果' : 'Waiting for exportable output'),
-                  icon: Icons.file_download_outlined,
+                      ? (_zh ? '删除成果记录' : 'Delete output record')
+                      : (_zh ? '等待可删除成果' : 'Waiting for deletable output'),
+                  icon: Icons.delete_outline,
                   onPressed: selected != null &&
                           selected.path.trim().isNotEmpty &&
                           rc6 != null &&
                           !runtime.running
-                      ? () => _exportSelectedArtifact(rc6, selected)
+                      ? () => _deleteSelectedArtifact(rc6, selected)
                       : null,
                 ),
-              ),
-              _DisplayAction(
-                label: selected != null && selected.path.trim().isNotEmpty
-                    ? (_zh ? '删除成果记录' : 'Delete output record')
-                    : (_zh ? '等待可删除成果' : 'Waiting for deletable output'),
-                icon: Icons.delete_outline,
-                onPressed: selected != null &&
-                        selected.path.trim().isNotEmpty &&
-                        rc6 != null &&
-                        !runtime.running
-                    ? () => _deleteSelectedArtifact(rc6, selected)
-                    : null,
-              ),
-            ]),
-          ],
-        );
-        if (!wide) {
-          return Column(children: [
-            catalog,
-            const SizedBox(height: _DesktopGrid.gutter),
-            detail
-          ]);
-        }
-        return _EqualHeightRow(
-          height: 540,
-          flexes: const [7, 4],
-          children: [catalog, detail],
-        );
+              ]),
+            ],
+          );
+          if (!wide) {
+            return Column(children: [
+              catalog,
+              const SizedBox(height: _DesktopGrid.gutter),
+              detail
+            ]);
+          }
+          return _EqualHeightRow(
+            height: 540,
+            flexes: const [7, 4],
+            children: [catalog, detail],
+          );
         }),
       ),
     ]);
@@ -261,6 +262,18 @@ class _ArtifactCenterItem {
   final bool previewable;
 }
 
+String _artifactRecordCategory(Rc6ArtifactRecord artifact, bool zh) {
+  return switch (artifact.sourceModule) {
+    'agent' => zh ? '我的助手' : 'My Assistants',
+    'artifact_center' => zh ? '成果' : 'Outputs',
+    'document_generation' => zh ? '文档生成' : 'Document Generation',
+    'skill' => zh ? '技能生成' : 'Skill Builder',
+    'knowledge_base' => zh ? '知识库' : 'Knowledge Base',
+    'document_library' => zh ? '文档库' : 'Document Library',
+    _ => zh ? '成果' : 'Outputs',
+  };
+}
+
 List<_ArtifactCenterItem> _artifactCenterItems(
     Rc6RuntimeState runtime, bool zh) {
   _ArtifactCenterItem item(String zhCategory, String enCategory, String zhLabel,
@@ -274,7 +287,26 @@ List<_ArtifactCenterItem> _artifactCenterItems(
         taskId: taskId,
         previewable: previewable,
       );
+  final catalogItems = runtime.artifactRecords
+      .where((artifact) => artifact.isActive)
+      .map(
+        (artifact) => _ArtifactCenterItem(
+          category: _artifactRecordCategory(artifact, zh),
+          label: artifact.title.trim().isEmpty
+              ? (zh ? '成果' : 'Output')
+              : artifact.title.trim(),
+          shortLabel: artifact.artifactType.trim().isEmpty
+              ? 'artifact'
+              : artifact.artifactType.trim(),
+          path: artifact.filePath,
+          taskId: artifact.artifactType == 'agent_reply'
+              ? 'agent_reply:${artifact.artifactId}'
+              : 'artifact_record:${artifact.artifactId}',
+        ),
+      )
+      .toList(growable: false);
   return [
+    ...catalogItems,
     item('文档库', 'Document Library', '来源文档', 'Source documents', 'source',
         runtime.sourceManifestPath, 'import'),
     item('文档库', 'Document Library', '整理结果', 'Organized results', 'organized',
@@ -285,11 +317,11 @@ List<_ArtifactCenterItem> _artifactCenterItems(
         runtime.kbManifestPath, 'kb'),
     item('知识库', 'Knowledge Base', '索引与质量记录', 'Index and quality records',
         'quality', runtime.qualityReportPath, 'kb'),
-    item('测试知识库', 'Retrieval', '检索结果', 'Retrieval result', 'retrieval',
+    item('知识库', 'Knowledge Base', '验证结果', 'Verification result', 'retrieval',
         runtime.queryResultPath, 'search'),
     item(
-        '测试知识库',
-        'Retrieval',
+        '知识库',
+        'Knowledge Base',
         '验证报告',
         'Validation report',
         'validation',
@@ -315,9 +347,23 @@ List<_ArtifactCenterItem> _artifactCenterItems(
         runtime.agentDialoguePath, 'agent'),
     item('我的助手', 'My Assistants', '助手对话导出', 'Assistant dialogue export',
         'chat export', runtime.agentDialogueExportPath, 'agent'),
-    item('我的助手', 'My Assistants', '多个助手讨论纪要', 'Assistant discussion notes',
-        'discussion', runtime.multiAgentDiscussionPath, 'agent'),
-    item('我的助手', 'My Assistants', '协作报告', 'Assistant discussion report',
+    for (var index = 0; index < runtime.agentArtifacts.length; index++)
+      item(
+        '我的助手',
+        'My Assistants',
+        runtime.agentArtifacts[index].agentName.isEmpty
+            ? '助手回复成果'
+            : '${runtime.agentArtifacts[index].agentName}回复成果',
+        runtime.agentArtifacts[index].agentName.isEmpty
+            ? 'Assistant reply output'
+            : '${runtime.agentArtifacts[index].agentName} reply output',
+        'reply ${index + 1}',
+        runtime.agentArtifacts[index].path,
+        'agent_reply:${runtime.agentArtifacts[index].artifactId}',
+      ),
+    item('我的助手', 'My Assistants', '工作小组纪要', 'Work group notes', 'discussion',
+        runtime.multiAgentDiscussionPath, 'agent'),
+    item('我的助手', 'My Assistants', '工作小组报告', 'Work group report',
         'discussion report', runtime.a2aWorkspaceReportPath, 'agent'),
     item('治理', 'Governance', '产品链路记录', 'Product-flow record', 'flow',
         runtime.prdP0EvidencePath, 'doc'),
@@ -325,7 +371,7 @@ List<_ArtifactCenterItem> _artifactCenterItems(
         runtime.providerRuntimeSettingsPath, 'settings'),
     item('设置', 'Settings', '存储配置', 'Storage settings', 'storage',
         runtime.storageProviderSettingsPath, 'settings'),
-    item('设置', 'Settings', '能力使用记录汇总', 'Capability usage summary', 'usage',
+    item('设置', 'Settings', '操作记录汇总', 'Operation record summary', 'usage',
         runtime.providerLifecycleAuditSummaryPath, 'settings'),
     item('治理', 'Governance', '并行任务报告', 'Parallel task report', 'parallel',
         runtime.parallelTaskCapacityReportPath, 'parallel-tasks'),

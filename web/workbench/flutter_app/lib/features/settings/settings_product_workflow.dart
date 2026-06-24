@@ -32,50 +32,52 @@ class _SettingsProductWorkflow extends StatelessWidget {
             'Export',
             'Network and Security',
           ];
+    final body = selectedTab == 0
+        ? SizedBox(
+            height: 190,
+            child: _LocalScrollBox(
+              child: _SettingsWorkspaceView(
+                zh: _zh,
+                workspace: workspace,
+                isWebRuntime: isWebRuntime,
+              ),
+            ),
+          )
+        : selectedTab == 1
+            ? _SettingsProviderModelView(
+                zh: _zh,
+                runtimeController: runtimeController,
+                providerCapabilityStatus: providerCapabilityStatus,
+              )
+            : selectedTab == 2
+                ? _SettingsProvidersStorageView(
+                    zh: _zh,
+                    workspace: workspace,
+                    runtimeController: runtimeController,
+                  )
+                : selectedTab == 3
+                    ? _SettingsExporterView(
+                        zh: _zh,
+                        runtimeController: runtimeController,
+                        workspace: workspace,
+                      )
+                    : _SettingsNetworkSecurityView(
+                        zh: _zh,
+                        isWebRuntime: isWebRuntime,
+                      );
     return _FigmaPageCanvas(children: [
       _PageTabs(
           tabs: tabs, selectedIndex: selectedTab, onSelected: onTabSelected),
-      SizedBox(
-        height: 434,
-        child: _SettingsOverviewCards(
-          zh: _zh,
-          selectedTab: selectedTab,
-          onTabSelected: onTabSelected,
+      if (selectedTab == 0)
+        SizedBox(
+          height: 434,
+          child: _SettingsOverviewCards(
+            zh: _zh,
+            selectedTab: selectedTab,
+            onTabSelected: onTabSelected,
+          ),
         ),
-      ),
-      SizedBox(
-        height: 190,
-        child: _LocalScrollBox(
-          child: selectedTab == 0
-              ? _SettingsWorkspaceView(
-                  zh: _zh,
-                  workspace: workspace,
-                  isWebRuntime: isWebRuntime,
-                )
-              : selectedTab == 1
-                  ? _SettingsProviderModelView(
-                      zh: _zh,
-                      runtimeController: runtimeController,
-                      providerCapabilityStatus: providerCapabilityStatus,
-                    )
-                  : selectedTab == 2
-                      ? _SettingsProvidersStorageView(
-                          zh: _zh,
-                          workspace: workspace,
-                          runtimeController: runtimeController,
-                        )
-                      : selectedTab == 3
-                          ? _SettingsExporterView(
-                              zh: _zh,
-                              runtimeController: runtimeController,
-                              workspace: workspace,
-                            )
-                          : _SettingsNetworkSecurityView(
-                              zh: _zh,
-                              isWebRuntime: isWebRuntime,
-                            ),
-        ),
-      ),
+      body,
     ]);
   }
 }
@@ -564,7 +566,7 @@ class _SettingsProviderModelEditorState
     setState(() {
       capabilityMessage = activated
           ? (zh ? '能力增强项已启用' : 'Capability enhancement enabled')
-          : (zh ? '未满足启用条件，已写入使用记录' : 'Blocked; audit log written');
+          : (zh ? '未满足启用条件，已写入操作记录' : 'Blocked; audit log written');
     });
   }
 
@@ -615,7 +617,6 @@ class _SettingsProviderModelEditorState
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      final wide = constraints.maxWidth >= 900;
       final profilePanel = _SettingsProjectProfilePanel(
         zh: zh,
         profiles: profiles,
@@ -755,33 +756,16 @@ class _SettingsProviderModelEditorState
         onTestAllCapabilities: _testAllCapabilityEnhancements,
         onRollbackCapability: _rollbackCapabilityEnhancement,
       );
-      if (!wide) {
-        return _LocalScrollBox(
-          child: Column(children: [
-            profilePanel,
-            const SizedBox(height: _DesktopGrid.gutter),
-            provider,
-            const SizedBox(height: _DesktopGrid.gutter),
-            model,
-            const SizedBox(height: _DesktopGrid.gutter),
-            capabilityStatus,
-          ]),
-        );
-      }
-      return _LocalScrollBox(
-        child: Column(
-          children: [
-            profilePanel,
-            const SizedBox(height: _DesktopGrid.gutter),
-            _EqualHeightRow(
-              height: 310,
-              flexes: const [7, 5],
-              children: [provider, model],
-            ),
-            const SizedBox(height: _DesktopGrid.gutter),
-            capabilityStatus,
-          ],
-        ),
+      return Column(
+        children: [
+          profilePanel,
+          const SizedBox(height: _DesktopGrid.gutter),
+          provider,
+          const SizedBox(height: _DesktopGrid.gutter),
+          model,
+          const SizedBox(height: _DesktopGrid.gutter),
+          capabilityStatus,
+        ],
       );
     });
   }
@@ -849,7 +833,7 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _FieldRow(
-          label: zh ? '使用记录汇总' : 'Usage record summary',
+          label: zh ? '操作记录汇总' : 'Operation record summary',
           value: lifecycleAuditReady
               ? (zh ? '已生成' : 'Generated')
               : (zh ? '未生成' : 'Not generated'),
@@ -902,7 +886,7 @@ class _SettingsProviderCapabilityStatusPanel extends StatelessWidget {
           _RuntimeFeedbackBanner(
             title: message,
             detail: zh
-                ? '能力增强项启用、阻止和回滚都会写入配置使用记录。'
+                ? '能力增强项启用、阻止和回滚都会写入配置操作记录。'
                 : 'Enhancement activation, blocking, and rollback write config audit assets.',
             tone: _StatusTone.neutral,
             icon: Icons.rule_folder_outlined,
@@ -999,7 +983,7 @@ class _SettingsProjectProfilePanel extends StatelessWidget {
           value: activeProfile?.lastError.isNotEmpty == true
               ? activeProfile!.lastError
               : (zh
-                  ? '无明文密钥；失败进入使用记录'
+                  ? '无明文密钥；失败进入操作记录'
                   : 'No plaintext secrets; failures go to audit logs'),
         ),
         const SizedBox(height: 8),
@@ -1048,7 +1032,7 @@ class _SettingsProjectProfilePanel extends StatelessWidget {
           _RuntimeFeedbackBanner(
             title: message,
             detail: zh
-                ? '配置档测试、切换、回滚会写入配置资产和使用记录。'
+                ? '配置档测试、切换、回滚会写入配置资产和操作记录。'
                 : 'Configuration changes, tests, activation, and rollback write config assets and usage records.',
             tone: _StatusTone.success,
             icon: Icons.verified_outlined,
@@ -1360,9 +1344,9 @@ class _SettingsNetworkSecurityView extends StatelessWidget {
                   : 'Arbitrary system commands are not exposed in ordinary UI'),
           const SizedBox(height: 8),
           _FieldRow(
-              label: zh ? '使用记录' : 'Audit',
+              label: zh ? '操作记录' : 'Audit',
               value: zh
-                  ? '运行记录、失败、权限和恢复进入使用记录'
+                  ? '运行记录、失败、权限和恢复进入操作记录'
                   : 'Runs, failures, permissions, and recovery go to Governance & Audit'),
         ],
       );

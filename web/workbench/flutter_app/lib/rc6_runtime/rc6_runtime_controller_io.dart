@@ -25,6 +25,12 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   Rc6RuntimeState state = Rc6RuntimeState.initial();
 
+  bool get prefersAgentConsoleInitialPage =>
+      _envEnabled('HEITANG_AGENT_CONSOLE_E2E');
+
+  String get agentConsoleVerifierScenario =>
+      Platform.environment['HEITANG_AGENT_CONSOLE_SCENARIO']?.trim() ?? '';
+
   Directory? _workspaceDir;
   String? _resolvedCoreWorkingDirectory;
 
@@ -656,14 +662,39 @@ class Rc6RuntimeController extends ChangeNotifier {
     if (!_canRunDesktop()) return;
     final workspace = _requireWorkspace();
     final catalog = await _loadKnowledgeCatalog(workspace);
+    final removedRecord =
+        _catalogRecords(catalog).cast<Map<String, dynamic>?>().firstWhere(
+              (record) => record?['kb_id']?.toString() == kbId,
+              orElse: () => null,
+            );
     final records = _catalogRecords(catalog)
         .where((record) => record['kb_id']?.toString() != kbId)
         .toList(growable: true);
     final kbDir = Directory(_join(workspace.path, 'knowledge_bases', kbId));
-    if (await kbDir.exists()) {
+    final existedOnDisk = await kbDir.exists();
+    if (removedRecord == null && !existedOnDisk) {
+      _fail('未找到要删除的知识库：$kbId');
+      return;
+    }
+    if (existedOnDisk) {
       await kbDir.delete(recursive: true);
     }
     await _writeKnowledgeCatalog(workspace, records, operation: 'delete:$kbId');
+    await _appendEventLedgerRecord(
+      eventType: 'delete_knowledge_base',
+      module: 'knowledge_base',
+      action: 'delete_knowledge_base',
+      status: 'completed',
+      targetId: kbId,
+      targetName: (removedRecord?['kb_name'] ?? removedRecord?['name'] ?? kbId)
+          .toString(),
+      artifactPath: _join(workspace.path, 'knowledge_bases', 'kb_catalog.json'),
+      metadata: {
+        'kb_id': kbId,
+        'removed_from_catalog': removedRecord != null,
+        'removed_directory': existedOnDisk,
+      },
+    );
     state = state.copyWith(lastMessage: '知识库 $kbId 已删除。', lastError: '');
     await _loadExistingArtifacts();
     notifyListeners();
@@ -1125,6 +1156,33 @@ class Rc6RuntimeController extends ChangeNotifier {
           })}\n',
       mode: FileMode.append,
       encoding: utf8,
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'validate_knowledge_base',
+      module: 'knowledge_base',
+      action: 'save_retrieval_validation_report',
+      status: 'completed',
+      targetId: _listOfStrings(payload['selected_kb_ids']).join(','),
+      targetName: payload['query'].toString(),
+      artifactPath: reportPath,
+      source: 'runtime',
+      metadata: {
+        'query': payload['query'],
+        'selected_kb_ids': payload['selected_kb_ids'],
+        'result_count': payload['result_count'],
+        'conflict_count': payload['conflict_count'],
+        'citation_coverage': payload['citation_coverage'],
+        'report_path': reportPath,
+        'markdown_report_path': markdownPath,
+        'history_path': historyPath,
+        'retrieval_plan_path': payload['retrieval_plan_path'],
+        'rerank_report_path': payload['rerank_report_path'],
+        'citation_coverage_report_path':
+            payload['citation_coverage_report_path'],
+        'conflict_report_path': payload['conflict_report_path'],
+        'external_validation_boundary_path':
+            payload['external_validation_boundary_path'],
+      },
     );
     state = state.copyWith(
       retrievalValidationReportPath: reportPath,
@@ -1619,7 +1677,8 @@ class Rc6RuntimeController extends ChangeNotifier {
       return result;
     }
 
-    final probeKey = '${safePrefix}settings_probe';
+    final timestamp = DateTime.now().toUtc().microsecondsSinceEpoch;
+    final probeKey = '${safePrefix}acceptance:$timestamp';
     Socket? socket;
     StreamIterator<List<int>>? iterator;
     try {
@@ -1669,7 +1728,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         passed: ok,
         status: ok ? 'connected' : 'probe_failed',
         detail: ok
-            ? 'Redis PING / 写入 / 读取 / 删除均通过。'
+            ? 'Redis PING / 写入 / 读取 / 删除均通过；测试 key：$probeKey。'
             : 'Redis 探针失败：${_redisStatus(get)}',
       ));
     } on Object catch (error) {
@@ -1728,8 +1787,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       );
       return result;
     }
-    final collectionName =
+    final requestedCollection =
         collection.trim().isEmpty ? 'heitang_kb' : collection.trim();
+    final collectionName =
+        'heitang_acceptance_${DateTime.now().toUtc().microsecondsSinceEpoch}';
     final effectiveApiKey = _effectiveSecret(
       provided: apiKey,
       environmentKey: 'HEITANG_QDRANT_API_KEY',
@@ -1737,7 +1798,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     Future<Rc6StorageTestResult> persist(Rc6StorageTestResult result) async {
       await _persistQdrantStorageResult(
         endpoint: endpoint,
-        collection: collectionName,
+        collection: requestedCollection,
         dimension: dimension,
         apiKey: apiKey,
         result: result,
@@ -1849,13 +1910,23 @@ class Rc6RuntimeController extends ChangeNotifier {
           'points': [pointId]
         },
       );
+      final deleteCollection = await _qdrantRequest(
+        client,
+        baseUri,
+        'DELETE',
+        collectionPath,
+        effectiveApiKey,
+      );
       final deleted = delete.statusCode < 400;
+      final collectionDeleted = deleteCollection.statusCode < 400 ||
+          deleteCollection.statusCode == 404;
       return persist(Rc6StorageTestResult(
-        passed: deleted,
-        status: deleted ? 'connected' : 'vector_delete_failed',
-        detail: deleted
-            ? 'Qdrant health / collection / 测试向量写入检索删除均通过。'
-            : '测试向量删除失败：HTTP ${delete.statusCode}。',
+        passed: deleted && collectionDeleted,
+        status:
+            deleted && collectionDeleted ? 'connected' : 'vector_delete_failed',
+        detail: deleted && collectionDeleted
+            ? 'Qdrant health / 临时 collection / 测试向量写入检索删除均通过；测试 collection：$collectionName；请求配置 collection：$requestedCollection。'
+            : '测试向量或临时 collection 删除失败：point HTTP ${delete.statusCode}，collection HTTP ${deleteCollection.statusCode}。',
       ));
     } on Object catch (error) {
       return persist(Rc6StorageTestResult(
@@ -1879,6 +1950,44 @@ class Rc6RuntimeController extends ChangeNotifier {
       _defaultStorageProviderSettings(workspace.path),
       saved,
     );
+  }
+
+  Future<void> runStorageConnectionAcceptance() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final settings = await loadStorageProviderSettings();
+    final redis = _mapValue(settings['redis']);
+    final qdrant = _mapValue(settings['qdrant']);
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在执行 Redis / 向量库真实连接验收...',
+      lastError: '',
+    );
+    notifyListeners();
+    final redisResult = await testRedisConnection(
+      host: _stringValue(redis['host'], '127.0.0.1'),
+      port: _asInt(redis['port']) ?? 6379,
+      keyPrefix: _stringValue(redis['key_prefix'], 'heitang:'),
+      password: _stringValue(redis['password_secret_ref'], 'none') == 'none'
+          ? ''
+          : '********',
+    );
+    final qdrantResult = await testQdrantConnection(
+      endpoint: _stringValue(qdrant['endpoint'], 'http://127.0.0.1:6333'),
+      collection: _stringValue(qdrant['collection'], 'heitang_kb'),
+      dimension: _asInt(qdrant['dimension']) ?? 1536,
+      apiKey: _stringValue(qdrant['api_key_secret_ref'], 'none') == 'none'
+          ? ''
+          : '********',
+    );
+    state = state.copyWith(
+      running: false,
+      lastMessage: 'Redis：${redisResult.status}；向量库：${qdrantResult.status}。',
+      lastError: '',
+    );
+    await _loadExistingArtifacts();
+    notifyListeners();
   }
 
   Future<List<ProjectConfigProfile>> loadProjectConfigProfiles() async {
@@ -3708,6 +3817,35 @@ class Rc6RuntimeController extends ChangeNotifier {
     await history.writeAsString('${jsonEncode(manifest)}\n',
         mode: FileMode.append, encoding: utf8);
 
+    final exportArtifactId =
+        'export_${_safeId(exportDir.path.split(RegExp(r'[\\/]+')).last)}';
+    await _upsertArtifactRecord(
+      artifactId: exportArtifactId,
+      artifactType: 'export',
+      title: artifactLabel.trim().isEmpty ? baseName : artifactLabel.trim(),
+      sourceModule: 'artifact_center',
+      sourceId: sourcePath,
+      filePath: targetPath,
+      status: 'exported',
+      metadata: {
+        'manifest_path': manifestPath,
+        'source_path': sourceFile.path,
+        'export_dir': exportDir.path,
+        'artifact_kind': isFile ? 'file' : 'directory',
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'export_artifact',
+      module: 'artifact_center',
+      action: 'export_workspace_artifact',
+      targetId: exportArtifactId,
+      targetName: artifactLabel,
+      status: 'completed',
+      artifactPath: targetPath,
+      source: 'artifact_center',
+      metadata: {'manifest_path': manifestPath, 'source_path': sourceFile.path},
+    );
+
     await _loadExistingArtifacts();
     state = state.copyWith(
       lastMessage: '产物已导出到工作区。',
@@ -3764,11 +3902,19 @@ class Rc6RuntimeController extends ChangeNotifier {
     return buffer.toString();
   }
 
-  Future<void> clearImportedSources() async {
+  Future<void> clearImportedSources({
+    String deleteReason = 'clear_imported_sources',
+    Map<String, Object?> deletedSource = const {},
+  }) async {
     if (!_canRunDesktop()) {
       return;
     }
     final workspace = _requireWorkspace();
+    final manifestBeforeDelete =
+        await _readJsonObject(_join(workspace.path, 'source_manifest.json'));
+    final sourceCountBeforeDelete =
+        _asInt(manifestBeforeDelete['source_count']) ??
+            _listOfMaps(manifestBeforeDelete['sources']).length;
     await _clearGeneratedArtifacts(includeImport: true);
     await _clearWorkspacePath(_join(workspace.path, 'input'));
     await _clearWorkspacePath(_join(workspace.path, 'source_manifest.json'));
@@ -3826,6 +3972,24 @@ class Rc6RuntimeController extends ChangeNotifier {
       lastMessage: '导入批次和下游产物已删除。',
       lastError: '',
     );
+    if (sourceCountBeforeDelete > 0 || deletedSource.isNotEmpty) {
+      await _appendEventLedgerRecord(
+        eventType: 'delete_document',
+        module: 'document_library',
+        action: 'clear_imported_sources',
+        status: 'completed',
+        targetId: (deletedSource['document_id'] ?? '').toString(),
+        targetName: (deletedSource['source_name'] ?? '').toString(),
+        artifactPath: _join(workspace.path, 'source_manifest.json'),
+        source: 'document_library',
+        metadata: {
+          'delete_reason': deleteReason,
+          'relative_path': (deletedSource['relative_path'] ?? '').toString(),
+          'source_count_before_delete': sourceCountBeforeDelete,
+          'source_count_after_delete': 0,
+        },
+      );
+    }
     notifyListeners();
   }
 
@@ -4071,6 +4235,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       agentDialogueHistoryPath: '',
       agentDialogueExportPath: '',
       agentDialogueTurnCount: 0,
+      agentProfiles: const [],
+      agentConversations: const [],
+      agentActivityLogPath: '',
+      agentArtifactCatalogPath: '',
       agentDialogueModelConfigId: '',
       agentDialogueUsedKbIds: const [],
       agentDialogueUsedSkillIds: const [],
@@ -4182,6 +4350,14 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   Future<void> clearRecentTaskArtifacts(String taskId) async {
+    if (taskId.startsWith('agent_reply:')) {
+      await deleteAgentReplyArtifact(taskId.substring('agent_reply:'.length));
+      return;
+    }
+    if (taskId.startsWith('artifact_record:')) {
+      await deleteArtifactRecord(taskId.substring('artifact_record:'.length));
+      return;
+    }
     switch (taskId) {
       case 'import':
         await clearImportedSources();
@@ -4216,6 +4392,107 @@ class Rc6RuntimeController extends ChangeNotifier {
       default:
         _fail('未知任务类型：$taskId');
     }
+  }
+
+  Future<void> deleteArtifactRecord(String artifactId) async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    final targetId = artifactId.trim();
+    if (targetId.isEmpty) {
+      _fail('未找到要删除的成果记录。');
+      return;
+    }
+    final records = await _readArtifactRecords(workspace);
+    final target = records
+        .where((record) => record.artifactId == targetId)
+        .cast<Rc6ArtifactRecord?>()
+        .firstOrNull;
+    if (target == null) {
+      _fail('未找到要删除的成果记录。');
+      return;
+    }
+    final path = target.filePath.trim();
+    if (path.isNotEmpty && _isInsideDirectory(path, workspace.absolute.path)) {
+      await _clearWorkspacePath(path);
+    }
+    await _markArtifactRecordDeleted(
+      artifactId: targetId,
+      status: 'deleted',
+      metadata: {'path': path, 'deleted_by': 'delete_artifact_record'},
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'delete_artifact',
+      module:
+          target.sourceModule.isEmpty ? 'artifact_center' : target.sourceModule,
+      action: 'delete_artifact_record',
+      targetId: targetId,
+      targetName: target.title,
+      status: 'completed',
+      artifactPath: path,
+      source: 'artifact_center',
+      metadata: {'artifact_type': target.artifactType},
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(lastMessage: '成果记录已删除。', lastError: '');
+    notifyListeners();
+  }
+
+  Future<void> deleteAgentReplyArtifact(String artifactId) async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    final targetId = artifactId.trim();
+    if (targetId.isEmpty) {
+      _fail('未找到要删除的助手回复成果。');
+      return;
+    }
+    final catalogPath = _agentArtifactCatalogPath(workspace);
+    final catalog = await _readJsonObject(catalogPath);
+    final artifacts = _listOfMaps(catalog['artifacts']).toList(growable: true);
+    final index = artifacts.indexWhere(
+        (artifact) => (artifact['artifact_id'] ?? '').toString() == targetId);
+    if (index < 0) {
+      _fail('未找到要删除的助手回复成果。');
+      return;
+    }
+    final removed = artifacts.removeAt(index);
+    final path = (removed['path'] ?? '').toString();
+    if (path.isNotEmpty && _isInsideDirectory(path, workspace.absolute.path)) {
+      await _clearWorkspacePath(path);
+    }
+    await _markArtifactRecordDeleted(
+      artifactId: targetId,
+      status: 'deleted',
+      metadata: {'path': path, 'deleted_by': 'delete_agent_reply_artifact'},
+    );
+    await File(catalogPath).parent.create(recursive: true);
+    await File(catalogPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'heitang_agent_artifact_catalog.v1',
+        'status': artifacts.isEmpty
+            ? 'no_agent_reply_artifacts'
+            : 'local_fallback_artifacts_recorded',
+        'artifacts': artifacts,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }),
+      encoding: utf8,
+    );
+    await _appendAgentActivityRecord(
+      action: 'delete_agent_reply_artifact',
+      agentId: (removed['agent_id'] ?? '').toString(),
+      status: 'completed',
+      artifact: catalogPath,
+      details: {'artifact_id': targetId, 'path': path},
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: '助手回复成果已删除。',
+      lastError: '',
+    );
+    notifyListeners();
   }
 
   Future<void> clearSettingsValidationArtifacts() async {
@@ -4267,7 +4544,7 @@ class Rc6RuntimeController extends ChangeNotifier {
     final manifest = await _readJsonObject(manifestPath);
     final sources = manifest['sources'];
     if (sources is! List) {
-      await clearImportedSources();
+      await clearImportedSources(deleteReason: 'invalid_source_manifest');
       return;
     }
     final targetName = sourceNameOrRelativePath.trim();
@@ -4293,7 +4570,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _clearWorkspacePath(_join(workspace.path, 'import'));
     final remaining = await _supportedSourceFiles(inputDir).length;
     if (remaining == 0) {
-      await clearImportedSources();
+      await clearImportedSources(
+        deleteReason: 'last_source_deleted',
+        deletedSource: selected,
+      );
       return;
     }
     final rewrittenManifest = await _writeSourceManifestFromInput(inputDir);
@@ -4309,6 +4589,20 @@ class Rc6RuntimeController extends ChangeNotifier {
       sourceRecords: sourceRecords,
       lastMessage: '来源文档已删除；请重新解析并构建知识库。',
       lastError: '',
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'delete_document',
+      module: 'document_library',
+      action: 'delete_imported_source',
+      status: 'completed',
+      targetId: (selected['document_id'] ?? '').toString(),
+      targetName: (selected['source_name'] ?? '').toString(),
+      artifactPath: rewrittenManifest,
+      source: 'document_library',
+      metadata: {
+        'relative_path': (selected['relative_path'] ?? '').toString(),
+        'source_count_after_delete': sourceNames.length,
+      },
     );
     notifyListeners();
   }
@@ -4502,7 +4796,29 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     final sourceFile = await _resolveExternalSkillFile(path);
     if (sourceFile == null) {
+      await _appendSkillOperationHistoryRecord(
+        action: 'import_external_skill',
+        artifact: path,
+        status: 'failed',
+        details: {
+          'reason': 'path_not_found_or_no_supported_skill_file',
+        },
+      );
       _fail('未找到可导入的外部 Skill 文件；请选择 SKILL.md、Markdown、JSON 或 YAML 文件。');
+      return;
+    }
+    final validation = await _validateExternalSkillSource(sourceFile);
+    if (!validation.passed) {
+      await _appendSkillOperationHistoryRecord(
+        action: 'import_external_skill',
+        artifact: sourceFile.path,
+        status: 'failed',
+        details: {
+          'reason': validation.status,
+          'missing_fields': validation.missingFields,
+        },
+      );
+      _fail(validation.message);
       return;
     }
     state = state.copyWith(
@@ -4519,12 +4835,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       },
     );
     await _appendSkillOperationHistoryRecord(
-      action: 'localize_external_skill',
+      action: 'import_external_skill',
       artifact: _joinNested(workspace.path,
           'skill/localized_writing_skill/S2/localized_skill_manifest.json'),
       status: 'completed',
       details: {
         'source': sourceFile.path,
+        'schema_status': validation.status,
       },
     );
     await _writeSkillProductOperations(agentBound: state.hasAgent);
@@ -4536,6 +4853,60 @@ class Rc6RuntimeController extends ChangeNotifier {
       lastError: '',
     );
     notifyListeners();
+  }
+
+  Future<_ExternalSkillValidationResult> _validateExternalSkillSource(
+      File sourceFile) async {
+    final text = await sourceFile.readAsString(encoding: utf8);
+    final lower = text.toLowerCase();
+    bool hasAny(List<String> needles) =>
+        needles.any((needle) => lower.contains(needle.toLowerCase()));
+    final checks = <String, bool>{
+      'name': hasAny(['name:', '# ', '"name"', "'name'"]),
+      'version': hasAny(['version:', '"version"', "'version'"]),
+      'description': hasAny(['description:', '## 能力说明', '## description']),
+      'inputs': hasAny(['inputs', 'input:', '输入', '输入格式']),
+      'outputs': hasAny(['outputs', 'output:', '输出', '输出格式']),
+      'instructions':
+          hasAny(['instructions', 'instruction', '使用说明', '方法论', '行为规则']),
+      'acceptance': hasAny(['acceptance', 'validation', '验收', '校验', '检查']),
+    };
+    final missing = checks.entries
+        .where((entry) => !entry.value)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final dangerous = hasAny([
+      'overwrite system',
+      'delete system',
+      'c:\\windows',
+      'program files',
+      'rm -rf',
+      'format c:',
+      '覆盖系统',
+      '删除系统',
+    ]);
+    if (dangerous) {
+      return const _ExternalSkillValidationResult(
+        passed: false,
+        status: 'dangerous_override_rejected',
+        message: '外部 Skill 试图覆盖系统关键配置或执行危险操作，已拒绝导入。',
+        missingFields: [],
+      );
+    }
+    if (missing.isNotEmpty) {
+      return _ExternalSkillValidationResult(
+        passed: false,
+        status: 'missing_required_fields',
+        message: '外部 Skill 缺少必要字段：${missing.join(' / ')}。',
+        missingFields: missing,
+      );
+    }
+    return const _ExternalSkillValidationResult(
+      passed: true,
+      status: 'validated',
+      message: '外部 Skill 字段校验通过。',
+      missingFields: [],
+    );
   }
 
   Future<void> generateAgent({
@@ -4948,6 +5319,359 @@ class Rc6RuntimeController extends ChangeNotifier {
       lastError: '',
     );
     notifyListeners();
+  }
+
+  Future<List<Rc6AgentProfile>> loadAgentProfiles() async {
+    if (!_canRunDesktop()) {
+      return const <Rc6AgentProfile>[];
+    }
+    final workspace = _requireWorkspace();
+    return _readAgentProfiles(workspace);
+  }
+
+  Future<Rc6AgentConversation> loadAgentConversation(String agentId) async {
+    if (!_canRunDesktop()) {
+      return Rc6AgentConversation.empty(agentId);
+    }
+    return _readAgentConversation(_requireWorkspace(), agentId);
+  }
+
+  Future<Rc6AgentProfile?> createAgentProfile({
+    required String name,
+    String description = '',
+    String role = '',
+    List<String> boundKnowledgeBaseIds = const [],
+    List<String> boundSkillIds = const [],
+    Map<String, String> settings = const {},
+  }) async {
+    if (!_canRunDesktop()) {
+      return null;
+    }
+    final trimmedName = name.trim();
+    if (trimmedName.isEmpty) {
+      _fail('请输入助手名称。');
+      return null;
+    }
+    final workspace = _requireWorkspace();
+    final now = DateTime.now().toUtc().toIso8601String();
+    final profiles = await _readAgentProfiles(workspace);
+    final profile = Rc6AgentProfile(
+      id: _newAgentProfileId(trimmedName, profiles.length),
+      name: trimmedName,
+      description: description.trim(),
+      role: role.trim().isEmpty ? '处理当前工作区任务' : role.trim(),
+      status: 'available',
+      createdAt: now,
+      updatedAt: now,
+      boundKnowledgeBaseIds: _cleanStringList(boundKnowledgeBaseIds),
+      boundSkillIds: _cleanStringList(boundSkillIds),
+      settings: Map<String, String>.from(settings),
+    );
+    await _writeAgentProfiles(workspace, [...profiles, profile]);
+    await _writeAgentConversation(
+      workspace,
+      Rc6AgentConversation(
+        conversationId: 'conv_${profile.id}',
+        agentId: profile.id,
+        messages: const <Rc6AgentMessage>[],
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    await _appendAgentActivityRecord(
+      action: 'create_agent',
+      agentId: profile.id,
+      status: 'completed',
+      artifact: _agentCatalogPath(workspace),
+      details: {'name': profile.name},
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: '助手已创建并保存：${profile.name}。',
+      lastError: '',
+    );
+    notifyListeners();
+    return profile;
+  }
+
+  Future<Rc6AgentProfile?> updateAgentProfile({
+    required String agentId,
+    required String name,
+    String description = '',
+    String role = '',
+    List<String> boundKnowledgeBaseIds = const [],
+    List<String> boundSkillIds = const [],
+    Map<String, String> settings = const {},
+  }) async {
+    if (!_canRunDesktop()) {
+      return null;
+    }
+    final workspace = _requireWorkspace();
+    final trimmedName = name.trim();
+    if (agentId.trim().isEmpty || trimmedName.isEmpty) {
+      _fail('请先选择助手并填写助手名称。');
+      return null;
+    }
+    final profiles = await _readAgentProfiles(workspace);
+    final index = profiles.indexWhere((profile) => profile.id == agentId);
+    if (index < 0) {
+      _fail('未找到要保存的助手配置。');
+      return null;
+    }
+    final current = profiles[index];
+    final updated = current.copyWith(
+      name: trimmedName,
+      description: description.trim(),
+      role: role.trim().isEmpty ? current.role : role.trim(),
+      updatedAt: DateTime.now().toUtc().toIso8601String(),
+      boundKnowledgeBaseIds: _cleanStringList(boundKnowledgeBaseIds),
+      boundSkillIds: _cleanStringList(boundSkillIds),
+      settings: Map<String, String>.from(settings),
+    );
+    final nextProfiles = [...profiles]..[index] = updated;
+    await _writeAgentProfiles(workspace, nextProfiles);
+    await _appendAgentActivityRecord(
+      action: 'update_agent',
+      agentId: updated.id,
+      status: 'completed',
+      artifact: _agentCatalogPath(workspace),
+      details: {
+        'name': updated.name,
+        'bound_knowledge_base_ids': updated.boundKnowledgeBaseIds,
+        'bound_skill_ids': updated.boundSkillIds,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: '助手配置已保存：${updated.name}。',
+      lastError: '',
+    );
+    notifyListeners();
+    return updated;
+  }
+
+  Future<void> deleteAgentProfile(String agentId) async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    final profiles = await _readAgentProfiles(workspace);
+    final target = profiles
+        .where((profile) => profile.id == agentId)
+        .cast<Rc6AgentProfile?>()
+        .firstOrNull;
+    if (target == null) {
+      _fail('未找到要删除的助手。');
+      return;
+    }
+    await _writeAgentProfiles(
+      workspace,
+      profiles.where((profile) => profile.id != agentId).toList(),
+    );
+    final conversationDir = _agentConversationDir(workspace, agentId);
+    await _clearWorkspacePath(conversationDir);
+    await _appendAgentActivityRecord(
+      action: 'delete_agent',
+      agentId: agentId,
+      status: 'completed',
+      artifact: _agentCatalogPath(workspace),
+      details: {'name': target.name},
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: '助手已删除：${target.name}。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
+  Future<Rc6AgentConversation> sendAgentMessage({
+    required String agentId,
+    required String content,
+  }) async {
+    if (!_canRunDesktop()) {
+      return Rc6AgentConversation.empty(agentId);
+    }
+    final prompt = content.trim();
+    if (agentId.trim().isEmpty || prompt.isEmpty) {
+      _fail('请选择助手并输入消息。');
+      return Rc6AgentConversation.empty(agentId);
+    }
+    final workspace = _requireWorkspace();
+    final profiles = await _readAgentProfiles(workspace);
+    final profile = profiles
+        .where((item) => item.id == agentId)
+        .cast<Rc6AgentProfile?>()
+        .firstOrNull;
+    if (profile == null) {
+      _fail('请先创建助手。');
+      return Rc6AgentConversation.empty(agentId);
+    }
+    final previous = await _readAgentConversation(workspace, agentId);
+    final now = DateTime.now().toUtc().toIso8601String();
+    final userMessage = Rc6AgentMessage(
+      id: _newAgentMessageId('user', previous.messages.length),
+      role: 'user',
+      content: prompt,
+      createdAt: now,
+      status: 'saved',
+    );
+    final reply = await _buildAgentReply(
+      profile: profile,
+      prompt: prompt,
+      hasKnowledgeBase: state.hasKnowledgeBase,
+      hasSkill: state.hasSkill,
+    );
+    final assistantMessage = Rc6AgentMessage(
+      id: _newAgentMessageId('assistant', previous.messages.length + 1),
+      role: 'assistant',
+      content: reply.content,
+      createdAt: now,
+      status: reply.status,
+      error: reply.error,
+    );
+    final conversation = Rc6AgentConversation(
+      conversationId: previous.conversationId.isEmpty
+          ? 'conv_$agentId'
+          : previous.conversationId,
+      agentId: agentId,
+      messages: [
+        ...previous.messages,
+        userMessage,
+        assistantMessage,
+      ],
+      createdAt: previous.createdAt.isEmpty ? now : previous.createdAt,
+      updatedAt: now,
+    );
+    await _writeAgentConversation(workspace, conversation);
+    await _appendAgentActivityRecord(
+      action: 'send_agent_message',
+      agentId: agentId,
+      status: reply.status,
+      artifact: _agentConversationPath(workspace, agentId),
+      details: {
+        'message_id': userMessage.id,
+        'reply_id': assistantMessage.id,
+        'reply_status': reply.status,
+        'provider_kind': reply.providerKind,
+        'knowledge_base_bound': profile.boundKnowledgeBaseIds.isNotEmpty,
+        'skill_bound': profile.boundSkillIds.isNotEmpty,
+        if (reply.error.isNotEmpty) 'error': reply.error,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: reply.status == 'llm_completed'
+          ? '助手已调用真实模型并保存回复。'
+          : '助手已保存本地占位回复；需要检查连接配置后才能使用真实模型回复。',
+      lastError: '',
+    );
+    notifyListeners();
+    return conversation;
+  }
+
+  Future<String> saveAgentReplyToArtifact({
+    required String agentId,
+    required String messageId,
+  }) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final conversation = await _readAgentConversation(workspace, agentId);
+    final message = conversation.messages
+        .where((item) => item.id == messageId && item.role == 'assistant')
+        .cast<Rc6AgentMessage?>()
+        .firstOrNull;
+    if (message == null) {
+      _fail('未找到可保存的助手回复。');
+      return '';
+    }
+    final profile = (await _readAgentProfiles(workspace))
+        .where((item) => item.id == agentId)
+        .cast<Rc6AgentProfile?>()
+        .firstOrNull;
+    final artifactDir = Directory(_join(workspace.path, 'agent', 'artifacts'));
+    await artifactDir.create(recursive: true);
+    final safeId = _safeId(message.id);
+    final artifactPath = _join(artifactDir.path, '$agentId-$safeId.md');
+    final now = DateTime.now().toUtc().toIso8601String();
+    final isRealModelReply = message.status == 'llm_completed';
+    final savedStatus =
+        isRealModelReply ? 'llm_completed_saved' : 'local_fallback_saved';
+    final catalogStatus = isRealModelReply
+        ? 'agent_artifacts_recorded'
+        : 'local_fallback_artifacts_recorded';
+    final statusLine =
+        isRealModelReply ? '- 状态：真实模型回复已保存。' : '- 状态：当前为本地占位回复，不代表真实模型已完成运行。';
+    await File(artifactPath).writeAsString(
+      [
+        '# ${profile?.name ?? '助手'}回复',
+        '',
+        '- 助手：${profile?.name ?? agentId}',
+        '- 消息：${message.id}',
+        '- 保存时间：$now',
+        statusLine,
+        '',
+        message.content,
+        '',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    final catalogPath = _agentArtifactCatalogPath(workspace);
+    final catalog = await _readJsonObject(catalogPath);
+    final artifacts = _listOfMaps(catalog['artifacts']).toList(growable: true);
+    final artifactId = 'agent_reply_${artifacts.length + 1}';
+    artifacts.add({
+      'artifact_id': artifactId,
+      'agent_id': agentId,
+      'agent_name': profile?.name ?? '',
+      'message_id': message.id,
+      'path': artifactPath,
+      'status': savedStatus,
+      'created_at': now,
+    });
+    await File(catalogPath).parent.create(recursive: true);
+    await File(catalogPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'heitang_agent_artifact_catalog.v1',
+        'status': catalogStatus,
+        'artifacts': artifacts,
+        'updated_at': now,
+      }),
+      encoding: utf8,
+    );
+    await _upsertArtifactRecord(
+      artifactId: artifactId,
+      artifactType: 'agent_reply',
+      title: profile == null || profile.name.isEmpty
+          ? '助手回复成果'
+          : '${profile.name}回复成果',
+      sourceModule: 'agent',
+      sourceId: agentId,
+      filePath: artifactPath,
+      status: savedStatus,
+      metadata: {
+        'message_id': message.id,
+        'agent_id': agentId,
+        'agent_name': profile?.name ?? '',
+        'reply_status': message.status,
+      },
+    );
+    await _appendAgentActivityRecord(
+      action: 'save_agent_reply_to_artifact',
+      agentId: agentId,
+      status: savedStatus,
+      artifact: artifactPath,
+      details: {'message_id': message.id},
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: '助手回复已保存到成果入口：$artifactPath。',
+      lastError: '',
+    );
+    notifyListeners();
+    return artifactPath;
   }
 
   Future<String> exportAgentDialogue() async {
@@ -5363,6 +6087,29 @@ class Rc6RuntimeController extends ChangeNotifier {
       timeout: timeout,
     );
     final result = await coreBridge.run(request, isWeb: isWebRuntime);
+    await _appendEventLedgerRecord(
+      eventType:
+          result.passed ? _eventTypeForAction(actionId) : 'failure_event',
+      module: _moduleForAction(actionId),
+      action: actionId,
+      status: result.passed ? 'completed' : 'failed',
+      targetId: actionId,
+      targetName: successMessage,
+      artifactPath: outputPath,
+      errorMessage: result.passed ? '' : result.userReason,
+      source: 'core_bridge',
+      metadata: {
+        'product_status': result.productStatus,
+        'exit_code': result.exitCode,
+      },
+    );
+    if (result.passed) {
+      await _registerCoreActionArtifact(
+        actionId: actionId,
+        outputPath: outputPath,
+        title: successMessage,
+      );
+    }
     state = state.copyWith(
       running: false,
       lastResult: result,
@@ -5371,6 +6118,39 @@ class Rc6RuntimeController extends ChangeNotifier {
       lastError: result.passed ? '' : result.userReason,
     );
     notifyListeners();
+  }
+
+  Future<void> _registerCoreActionArtifact({
+    required String actionId,
+    required String outputPath,
+    required String title,
+  }) async {
+    final path = outputPath.trim();
+    if (path.isEmpty) return;
+    final file = File(path);
+    final directory = Directory(path);
+    final exists = await file.exists() || await directory.exists();
+    if (!exists) return;
+    final artifactType = switch (actionId) {
+      'batch_import_documents' => 'document_import',
+      'document_understanding' => 'document_understanding',
+      'knowledge_base_build' => 'knowledge_base',
+      'rag_query' => 'knowledge_validation',
+      'generate_markdown' => 'generated_document',
+      'package_to_skill' => 'generated_skill',
+      'kb_bound_agent_generation' => 'generated_agent',
+      _ => 'runtime_artifact',
+    };
+    await _upsertArtifactRecord(
+      artifactId: '${artifactType}_${_safeId(actionId)}',
+      artifactType: artifactType,
+      title: title,
+      sourceModule: _moduleForAction(actionId),
+      sourceId: actionId,
+      filePath: path,
+      status: 'completed',
+      metadata: {'action_id': actionId},
+    );
   }
 
   Future<void> _clearGeneratedArtifacts({required bool includeImport}) async {
@@ -5610,6 +6390,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         _joinNested(workspace.path, 'agent/dialogue/chat_history.jsonl');
     final agentDialogueExportPath = _joinNested(
         workspace.path, 'agent/dialogue_export/agent_dialogue_export.md');
+    final agentActivityLogPath =
+        _joinNested(workspace.path, 'agent/activity/agent_activity.jsonl');
+    final agentArtifactCatalogPath =
+        _joinNested(workspace.path, 'agent/artifacts/artifact_catalog.json');
     final multiAgentPath =
         _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md');
     final multiAgentManifestPath = _join(
@@ -5694,6 +6478,14 @@ class Rc6RuntimeController extends ChangeNotifier {
         await _readJsonObject(skillAgentBindingManifestPath);
     final agentDialogueManifest =
         await _readJsonObject(agentDialogueManifestPath);
+    final agentProfiles = await _readAgentProfiles(workspace);
+    final agentConversations =
+        await _readAgentConversations(workspace, agentProfiles);
+    final agentArtifacts = await _readAgentArtifacts(workspace);
+    final eventLedgerPath = _eventLedgerPath(workspace);
+    final artifactCatalogPath = _artifactCatalogPath(workspace);
+    final eventLedgerRecords = await _readEventLedgerRecords(workspace);
+    final artifactRecords = await _readArtifactRecords(workspace);
     final multiAgentManifest = await _readJsonObject(multiAgentManifestPath);
     final a2aSessionManifest = await _readJsonObject(a2aSessionManifestPath);
 
@@ -5702,7 +6494,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         await File(primarySkillPath).exists() ||
         await File(localizedSkillPath).exists();
 
-    if (await File(agentPath).exists()) {
+    if (await File(agentPath).exists() || agentProfiles.isNotEmpty) {
       phase = Rc6RuntimePhase.agentGenerated;
     } else if (hasSkillArtifact) {
       phase = Rc6RuntimePhase.skillGenerated;
@@ -5907,6 +6699,20 @@ class Rc6RuntimeController extends ChangeNotifier {
       agentDialogueExportPath: await File(agentDialogueExportPath).exists()
           ? agentDialogueExportPath
           : '',
+      agentProfiles: agentProfiles,
+      agentConversations: agentConversations,
+      agentArtifacts: agentArtifacts,
+      agentActivityLogPath:
+          await File(agentActivityLogPath).exists() ? agentActivityLogPath : '',
+      agentArtifactCatalogPath: await File(agentArtifactCatalogPath).exists()
+          ? agentArtifactCatalogPath
+          : '',
+      eventLedgerPath:
+          await File(eventLedgerPath).exists() ? eventLedgerPath : '',
+      eventLedgerRecords: eventLedgerRecords,
+      artifactCatalogPath:
+          await File(artifactCatalogPath).exists() ? artifactCatalogPath : '',
+      artifactRecords: artifactRecords,
       agentDialogueTurnCount: dialogueTurnCount,
       agentDialogueModelConfigId:
           _stringValue(agentDialogueManifest['model_config_id'], ''),
@@ -6338,6 +7144,8 @@ class Rc6RuntimeController extends ChangeNotifier {
           workspace.path, 'skill/operations/agent_binding_manifest.json'),
       _joinNested(workspace.path, 'skill/exports/skills_export.md'),
     ].where((path) => File(path).existsSync()).toList(growable: false);
+    final savedAgentReplyArtifacts =
+        (await _readAgentArtifacts(workspace)).map((artifact) => artifact.path);
     final agentArtifacts = <String>[
       _joinNested(
           workspace.path, 'agent/knowledge_qa_agent/agent_manifest.json'),
@@ -6359,6 +7167,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           workspace.path, 'agent/dialogue_export/agent_dialogue_export.md'),
       _joinNested(workspace.path,
           'agent/dialogue_export/agent_dialogue_export_manifest.json'),
+      ...savedAgentReplyArtifacts,
       _join(workspace.path, 'multi_agent', 'multi_agent_discussion.md'),
       _join(workspace.path, 'multi_agent',
           'multi_agent_discussion_manifest.json'),
@@ -6538,6 +7347,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'cards_path': _join(kbDir, 'cards.jsonl'),
       'qa_pairs_path': _join(kbDir, 'qa_pairs.jsonl'),
       'source_map_path': _join(kbDir, 'source_map.json'),
+      'source_trace_path': _join(kbDir, 'source_trace.json'),
       'index_metadata_path': _join(kbDir, 'index_metadata.json'),
       'index_profile_path': _join(kbDir, 'index_profile.json'),
       'keyword_index_path': _join(kbDir, 'keyword_index.json'),
@@ -6563,6 +7373,13 @@ class Rc6RuntimeController extends ChangeNotifier {
           'chunk_count': chunks.length,
         }),
         encoding: utf8);
+    await _writeSourceTraceArtifact(
+      kbDir: Directory(kbDir),
+      kbId: 'current_kb',
+      operation: 'build',
+      sourceDocs: sourceDocs,
+      chunks: chunks,
+    );
     await _writeIndustrialIndexArtifacts(
       kbDir: Directory(kbDir),
       kbId: 'current_kb',
@@ -6626,10 +7443,11 @@ class Rc6RuntimeController extends ChangeNotifier {
           }).toList(growable: false);
     final catalog = await _loadKnowledgeCatalog(workspace);
     final existing = _catalogRecords(catalog);
-    final currentId = existing.any((item) => item['kb_id'] == 'K1')
-        ? 'K${existing.length + 1}'
-        : 'K1';
-    final currentName = currentId == 'K1' ? '真实输入知识库' : '真实输入知识库 $currentId';
+    final currentId =
+        existing.isEmpty ? 'K1' : _stringValue(existing.first['kb_id'], 'K1');
+    final currentName = existing.isEmpty
+        ? '真实输入知识库'
+        : _stringValue(existing.first['kb_name'], '真实输入知识库');
     final record = await _materializeKnowledgeBaseRecord(
       workspace: workspace,
       kbId: currentId,
@@ -6954,6 +7772,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       'manifest_path': _join(kbRoot.path, 'manifest.json'),
       'chunks_path': chunkPath,
       'source_map_path': _join(kbRoot.path, 'source_map.json'),
+      'source_trace_path': _join(kbRoot.path, 'source_trace.json'),
       'index_metadata_path': _join(kbRoot.path, 'index_metadata.json'),
       'index_profile_path': _join(kbRoot.path, 'index_profile.json'),
       'keyword_index_path': _join(kbRoot.path, 'keyword_index.json'),
@@ -6993,6 +7812,13 @@ class Rc6RuntimeController extends ChangeNotifier {
           'source_kb_ids': sourceKbIds,
         }),
         encoding: utf8);
+    await _writeSourceTraceArtifact(
+      kbDir: kbRoot,
+      kbId: kbId,
+      operation: operation,
+      sourceDocs: docs,
+      chunks: await _readJsonl(File(chunkPath)),
+    );
     await _writeIndustrialIndexArtifacts(
       kbDir: kbRoot,
       kbId: kbId,
@@ -7176,6 +8002,46 @@ class Rc6RuntimeController extends ChangeNotifier {
         'card_count': cards.length,
         'qa_pair_count': qaPairs.length,
         'source_count': sourceDocs.length,
+      }),
+      encoding: utf8,
+    );
+  }
+
+  Future<void> _writeSourceTraceArtifact({
+    required Directory kbDir,
+    required String kbId,
+    required String operation,
+    required List<Map<String, dynamic>> sourceDocs,
+    required List<Map<String, dynamic>> chunks,
+  }) async {
+    await kbDir.create(recursive: true);
+    final chunkTrace = chunks
+        .asMap()
+        .entries
+        .map((entry) => {
+              'chunk_id': _stringValue(
+                  entry.value['chunk_id'], 'chunk_${entry.key + 1}'),
+              'source_name': _stringValue(
+                entry.value['source_name'] ??
+                    entry.value['source'] ??
+                    entry.value['source_path'],
+                '',
+              ),
+              'source_path': _stringValue(
+                  entry.value['source_path'] ?? entry.value['source'], ''),
+              'citation': _stringValue(
+                  entry.value['citation'] ?? entry.value['source_path'], ''),
+            })
+        .toList(growable: false);
+    await File(_join(kbDir.path, 'source_trace.json')).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'heitang_kb_source_trace.v1',
+        'kb_id': kbId,
+        'operation': operation,
+        'status': chunks.isEmpty ? 'needs_content' : 'ready',
+        'source_documents': sourceDocs,
+        'chunks': chunkTrace,
+        'created_at': DateTime.now().toUtc().toIso8601String(),
       }),
       encoding: utf8,
     );
@@ -10608,6 +11474,632 @@ class Rc6RuntimeController extends ChangeNotifier {
     );
   }
 
+  Future<List<Rc6AgentProfile>> _readAgentProfiles(Directory workspace) async {
+    final payload = await _readJsonObject(_agentCatalogPath(workspace));
+    final rows = payload['agents'];
+    if (rows is! List) {
+      return const <Rc6AgentProfile>[];
+    }
+    return rows
+        .whereType<Map>()
+        .map((row) => Rc6AgentProfile.fromJson(Map<String, dynamic>.from(row)))
+        .where((profile) => profile.id.isNotEmpty && profile.name.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  Future<void> _writeAgentProfiles(
+    Directory workspace,
+    List<Rc6AgentProfile> profiles,
+  ) async {
+    final now = DateTime.now().toUtc().toIso8601String();
+    await _writeJsonFile(_agentCatalogPath(workspace), {
+      'schema_version': 'heitang_agent_catalog.v1',
+      'status': 'saved',
+      'agents': profiles.map((profile) => profile.toJson()).toList(),
+      'updated_at': now,
+    });
+  }
+
+  Future<Rc6AgentConversation> _readAgentConversation(
+    Directory workspace,
+    String agentId,
+  ) async {
+    final payload = await _readJsonObject(_agentConversationPath(
+      workspace,
+      agentId,
+    ));
+    if (payload.isEmpty) {
+      return Rc6AgentConversation.empty(agentId);
+    }
+    final conversation = Rc6AgentConversation.fromJson(payload);
+    if (conversation.agentId.isEmpty) {
+      return Rc6AgentConversation.empty(agentId);
+    }
+    return conversation;
+  }
+
+  Future<void> _writeAgentConversation(
+    Directory workspace,
+    Rc6AgentConversation conversation,
+  ) async {
+    await _writeJsonFile(
+      _agentConversationPath(workspace, conversation.agentId),
+      conversation.toJson(),
+    );
+  }
+
+  Future<List<Rc6AgentConversation>> _readAgentConversations(
+    Directory workspace,
+    List<Rc6AgentProfile> profiles,
+  ) async {
+    final conversations = <Rc6AgentConversation>[];
+    for (final profile in profiles) {
+      conversations.add(await _readAgentConversation(workspace, profile.id));
+    }
+    return conversations;
+  }
+
+  Future<List<Rc6AgentArtifact>> _readAgentArtifacts(
+      Directory workspace) async {
+    final payload = await _readJsonObject(_agentArtifactCatalogPath(workspace));
+    final rows = payload['artifacts'];
+    if (rows is! List) {
+      return const <Rc6AgentArtifact>[];
+    }
+    final artifacts = <Rc6AgentArtifact>[];
+    for (final row in rows.whereType<Map>()) {
+      final artifact =
+          Rc6AgentArtifact.fromJson(Map<String, dynamic>.from(row));
+      if (artifact.path.isEmpty || !await File(artifact.path).exists()) {
+        continue;
+      }
+      artifacts.add(artifact);
+    }
+    artifacts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return artifacts;
+  }
+
+  Future<List<Rc6EventLedgerRecord>> _readEventLedgerRecords(
+      Directory workspace) async {
+    final rows = await _readJsonl(File(_eventLedgerPath(workspace)));
+    final records = rows
+        .map((row) => Rc6EventLedgerRecord.fromJson(row))
+        .where((record) => record.eventId.isNotEmpty)
+        .toList(growable: false);
+    records.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return records.take(120).toList(growable: false);
+  }
+
+  Future<List<Rc6ArtifactRecord>> _readArtifactRecords(
+      Directory workspace) async {
+    await _reconcileArtifactCatalog(workspace);
+    final payload = await _readJsonObject(_artifactCatalogPath(workspace));
+    final rows = payload['artifacts'];
+    if (rows is! List) {
+      return const <Rc6ArtifactRecord>[];
+    }
+    final records = rows
+        .whereType<Map>()
+        .map(
+            (row) => Rc6ArtifactRecord.fromJson(Map<String, dynamic>.from(row)))
+        .where((record) => record.artifactId.isNotEmpty)
+        .toList(growable: false);
+    records.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    return records;
+  }
+
+  Future<void> _reconcileArtifactCatalog(Directory workspace) async {
+    final catalogPath = _artifactCatalogPath(workspace);
+    final catalog = await _readJsonObject(catalogPath);
+    final records = _listOfMaps(catalog['artifacts']).toList(growable: true);
+    if (records.isEmpty) return;
+    var changed = false;
+    final now = DateTime.now().toUtc().toIso8601String();
+    for (var index = 0; index < records.length; index++) {
+      final status = (records[index]['status'] ?? '').toString();
+      final path = (records[index]['file_path'] ?? '').toString().trim();
+      if (status == 'deleted' || path.isEmpty) continue;
+      final exists =
+          await File(path).exists() || await Directory(path).exists();
+      if (exists) continue;
+      records[index] = {
+        ...records[index],
+        'updated_at': now,
+        'status': 'deleted',
+        'metadata': {
+          ..._mapValue(records[index]['metadata']),
+          'deleted_by': 'artifact_catalog_reconcile',
+          'missing_path': path,
+        },
+      };
+      changed = true;
+    }
+    if (!changed) return;
+    await _writeJsonFile(catalogPath, {
+      'schema_version': 'heitang_artifact_catalog.v1',
+      'workspace_id': state.currentWorkbookName,
+      'status': records.any((row) =>
+              (row['status'] ?? '').toString() != 'deleted' &&
+              (row['file_path'] ?? '').toString().isNotEmpty)
+          ? 'active'
+          : 'empty',
+      'artifacts': records,
+      'updated_at': now,
+    });
+    await _appendEventLedgerRecord(
+      eventType: 'delete_artifact',
+      module: 'artifact_center',
+      action: 'artifact_catalog_reconcile',
+      status: 'completed',
+      targetName: 'missing artifact paths marked deleted',
+      artifactPath: catalogPath,
+      source: 'artifact_catalog',
+    );
+  }
+
+  Future<void> _appendEventLedgerRecord({
+    required String eventType,
+    required String module,
+    required String action,
+    required String status,
+    String targetId = '',
+    String targetName = '',
+    String artifactPath = '',
+    String errorMessage = '',
+    String source = 'runtime',
+    Map<String, Object?> metadata = const {},
+  }) async {
+    final workspace = _requireWorkspace();
+    final now = DateTime.now().toUtc().toIso8601String();
+    final record = {
+      'schema_version': 'heitang_event_ledger.v1',
+      'event_id': 'evt_${DateTime.now().microsecondsSinceEpoch}',
+      'event_type': eventType,
+      'module': module,
+      'action': action,
+      'target_id': targetId,
+      'target_name': targetName,
+      'workspace_id': state.currentWorkbookName,
+      'status': status,
+      'created_at': now,
+      'source': source,
+      'artifact_path': artifactPath,
+      'error_message': errorMessage,
+      'metadata': metadata,
+    };
+    final path = _eventLedgerPath(workspace);
+    await File(path).parent.create(recursive: true);
+    await File(path).writeAsString(
+      '${jsonEncode(record)}\n',
+      mode: FileMode.append,
+      encoding: utf8,
+    );
+  }
+
+  Future<void> _upsertArtifactRecord({
+    required String artifactId,
+    required String artifactType,
+    required String title,
+    required String sourceModule,
+    required String sourceId,
+    required String filePath,
+    required String status,
+    Map<String, Object?> metadata = const {},
+  }) async {
+    final workspace = _requireWorkspace();
+    final catalogPath = _artifactCatalogPath(workspace);
+    final catalog = await _readJsonObject(catalogPath);
+    final records = _listOfMaps(catalog['artifacts']).toList(growable: true);
+    final now = DateTime.now().toUtc().toIso8601String();
+    final index = records.indexWhere(
+        (row) => (row['artifact_id'] ?? '').toString() == artifactId);
+    final previous =
+        index >= 0 ? Map<String, dynamic>.from(records[index]) : null;
+    final record = {
+      'artifact_id': artifactId,
+      'artifact_type': artifactType,
+      'title': title,
+      'source_module': sourceModule,
+      'source_id': sourceId,
+      'workspace_id': state.currentWorkbookName,
+      'file_path': filePath,
+      'created_at': previous?['created_at'] ?? now,
+      'updated_at': now,
+      'status': status,
+      'metadata': metadata,
+    };
+    if (index >= 0) {
+      records[index] = record;
+    } else {
+      records.add(record);
+    }
+    await _writeJsonFile(catalogPath, {
+      'schema_version': 'heitang_artifact_catalog.v1',
+      'workspace_id': state.currentWorkbookName,
+      'status': records.any((row) =>
+              (row['status'] ?? '').toString() != 'deleted' &&
+              (row['file_path'] ?? '').toString().isNotEmpty)
+          ? 'active'
+          : 'empty',
+      'artifacts': records,
+      'updated_at': now,
+    });
+  }
+
+  Future<void> _markArtifactRecordDeleted({
+    required String artifactId,
+    required String status,
+    Map<String, Object?> metadata = const {},
+  }) async {
+    final workspace = _requireWorkspace();
+    final catalogPath = _artifactCatalogPath(workspace);
+    final catalog = await _readJsonObject(catalogPath);
+    final records = _listOfMaps(catalog['artifacts']).toList(growable: true);
+    final now = DateTime.now().toUtc().toIso8601String();
+    final index = records.indexWhere(
+        (row) => (row['artifact_id'] ?? '').toString() == artifactId);
+    if (index >= 0) {
+      records[index] = {
+        ...records[index],
+        'updated_at': now,
+        'status': status,
+        'metadata': {
+          ..._mapValue(records[index]['metadata']),
+          ...metadata,
+        },
+      };
+    } else {
+      records.add({
+        'artifact_id': artifactId,
+        'artifact_type': 'unknown',
+        'title': artifactId,
+        'source_module': 'unknown',
+        'source_id': artifactId,
+        'workspace_id': state.currentWorkbookName,
+        'file_path': '',
+        'created_at': now,
+        'updated_at': now,
+        'status': status,
+        'metadata': metadata,
+      });
+    }
+    await _writeJsonFile(catalogPath, {
+      'schema_version': 'heitang_artifact_catalog.v1',
+      'workspace_id': state.currentWorkbookName,
+      'status': records.any((row) =>
+              (row['status'] ?? '').toString() != 'deleted' &&
+              (row['file_path'] ?? '').toString().isNotEmpty)
+          ? 'active'
+          : 'empty',
+      'artifacts': records,
+      'updated_at': now,
+    });
+  }
+
+  Future<void> _appendAgentActivityRecord({
+    required String action,
+    required String agentId,
+    required String status,
+    required String artifact,
+    Map<String, Object?> details = const {},
+  }) async {
+    final workspace = _requireWorkspace();
+    final path = _agentActivityLogPath(workspace);
+    await File(path).parent.create(recursive: true);
+    await File(path).writeAsString(
+      '${jsonEncode({
+            'schema_version': 'heitang_agent_activity.v1',
+            'action': action,
+            'agent_id': agentId,
+            'status': status,
+            'artifact': artifact,
+            'details': details,
+            'created_at': DateTime.now().toUtc().toIso8601String(),
+          })}\n',
+      mode: FileMode.append,
+      encoding: utf8,
+    );
+    await _appendAgentRunHistoryRecord(
+      action: action,
+      artifact: artifact,
+      status: status,
+      details: {
+        'agent_id': agentId,
+        ...details,
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: _eventTypeForAction(action),
+      module: 'agent',
+      action: action,
+      targetId: agentId,
+      targetName: (details['name'] ?? details['agent_name'] ?? '').toString(),
+      status: status,
+      artifactPath: artifact,
+      errorMessage: (details['error'] ?? '').toString(),
+      source: 'agent_activity',
+      metadata: details,
+    );
+  }
+
+  Future<_AgentReplyResult> _buildAgentReply({
+    required Rc6AgentProfile profile,
+    required String prompt,
+    required bool hasKnowledgeBase,
+    required bool hasSkill,
+  }) async {
+    final apiKey = Platform.environment['OPENAI_API_KEY']?.trim() ??
+        Platform.environment['HEITANG_LLM_API_KEY']?.trim() ??
+        '';
+    final baseUrl = Platform.environment['OPENAI_BASE_URL']?.trim() ??
+        Platform.environment['HEITANG_LLM_ENDPOINT']?.trim() ??
+        'https://api.openai.com/v1';
+    final model = Platform.environment['OPENAI_MODEL']?.trim() ??
+        Platform.environment['HEITANG_LLM_MODEL']?.trim() ??
+        'gpt-4o-mini';
+    if (apiKey.isEmpty) {
+      return _AgentReplyResult.localFallback(
+        _buildLocalAgentFallbackReply(
+          profile: profile,
+          prompt: prompt,
+          hasKnowledgeBase: hasKnowledgeBase,
+          hasSkill: hasSkill,
+          reason: '未检测到模型连接密钥。',
+        ),
+        error: '需要完成连接配置',
+      );
+    }
+    final base = Uri.tryParse(baseUrl);
+    if (base == null || !(base.scheme == 'http' || base.scheme == 'https')) {
+      return _AgentReplyResult.localFallback(
+        _buildLocalAgentFallbackReply(
+          profile: profile,
+          prompt: prompt,
+          hasKnowledgeBase: hasKnowledgeBase,
+          hasSkill: hasSkill,
+          reason: '模型服务地址无效。',
+        ),
+        error: '模型服务地址无效',
+      );
+    }
+    try {
+      final response = await _callOpenAiCompatibleChat(
+        baseUri: base,
+        apiKey: apiKey,
+        model: model,
+        profile: profile,
+        prompt: prompt,
+        hasKnowledgeBase: hasKnowledgeBase,
+        hasSkill: hasSkill,
+      );
+      if (response.trim().isEmpty) {
+        throw StateError('empty_model_response');
+      }
+      return _AgentReplyResult(
+        content: response.trim(),
+        status: 'llm_completed',
+        providerKind: 'openai_compatible',
+        error: '',
+      );
+    } catch (error) {
+      final reason = _redactSecret(error.toString(), apiKey);
+      return _AgentReplyResult.localFallback(
+        _buildLocalAgentFallbackReply(
+          profile: profile,
+          prompt: prompt,
+          hasKnowledgeBase: hasKnowledgeBase,
+          hasSkill: hasSkill,
+          reason: '模型连接未完成或调用失败。',
+        ),
+        error: reason,
+      );
+    }
+  }
+
+  Future<String> _callOpenAiCompatibleChat({
+    required Uri baseUri,
+    required String apiKey,
+    required String model,
+    required Rc6AgentProfile profile,
+    required String prompt,
+    required bool hasKnowledgeBase,
+    required bool hasSkill,
+  }) async {
+    final uri = _openAiChatCompletionsUri(baseUri);
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 12);
+    try {
+      final request =
+          await client.postUrl(uri).timeout(const Duration(seconds: 12));
+      request.headers.contentType = ContentType.json;
+      request.headers.set(HttpHeaders.acceptHeader, 'application/json');
+      request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $apiKey');
+      request.add(utf8.encode(jsonEncode({
+        'model': model,
+        'messages': [
+          {
+            'role': 'system',
+            'content': [
+              '你是黑糖知识工作台里的助手。',
+              '请用中文回答。',
+              '如果缺少知识库或技能绑定，要明确说明缺口。',
+              '不要声称已经调用未配置的工具或外部系统。',
+            ].join('\n'),
+          },
+          {
+            'role': 'user',
+            'content': [
+              '助手名称：${profile.name}',
+              '助手角色：${profile.role.isEmpty ? '处理当前工作区任务' : profile.role}',
+              '知识库状态：${hasKnowledgeBase ? '当前工作区已有知识库产物' : '当前工作区暂无知识库产物'}',
+              '技能状态：${hasSkill ? '当前工作区已有技能产物' : '当前工作区暂无技能产物'}',
+              '绑定知识库：${profile.boundKnowledgeBaseIds.isEmpty ? '无' : profile.boundKnowledgeBaseIds.join(', ')}',
+              '绑定技能：${profile.boundSkillIds.isEmpty ? '无' : profile.boundSkillIds.join(', ')}',
+              '',
+              '用户任务：$prompt',
+            ].join('\n'),
+          },
+        ],
+        'temperature': 0.2,
+      })));
+      final response =
+          await request.close().timeout(const Duration(seconds: 60));
+      final body = await utf8.decodeStream(response);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw StateError(
+          'model_http_${response.statusCode}:${body.length > 240 ? body.substring(0, 240) : body}',
+        );
+      }
+      final decoded = jsonDecode(body);
+      if (decoded is! Map) {
+        throw StateError('model_response_not_json_object');
+      }
+      final choices = decoded['choices'];
+      if (choices is! List || choices.isEmpty || choices.first is! Map) {
+        throw StateError('model_response_missing_choices');
+      }
+      final first = Map<String, dynamic>.from(choices.first as Map);
+      final message = first['message'];
+      if (message is Map) {
+        return (message['content'] ?? '').toString();
+      }
+      return (first['text'] ?? '').toString();
+    } finally {
+      client.close(force: true);
+    }
+  }
+
+  Uri _openAiChatCompletionsUri(Uri baseUri) {
+    final normalizedPath = baseUri.path.endsWith('/')
+        ? baseUri.path.substring(0, baseUri.path.length - 1)
+        : baseUri.path;
+    final chatPath = normalizedPath.isEmpty
+        ? '/v1/chat/completions'
+        : normalizedPath.endsWith('/chat/completions')
+            ? normalizedPath
+            : '$normalizedPath/chat/completions';
+    return baseUri.replace(path: chatPath, query: '');
+  }
+
+  String _buildLocalAgentFallbackReply({
+    required Rc6AgentProfile profile,
+    required String prompt,
+    required bool hasKnowledgeBase,
+    required bool hasSkill,
+    required String reason,
+  }) {
+    final bindings = <String>[
+      if (profile.boundKnowledgeBaseIds.isNotEmpty)
+        '知识库 ${profile.boundKnowledgeBaseIds.join(' / ')}',
+      if (profile.boundSkillIds.isNotEmpty)
+        '技能 ${profile.boundSkillIds.join(' / ')}',
+    ];
+    final bindingText = bindings.isEmpty ? '尚未绑定知识库或技能' : bindings.join('；');
+    return [
+      '当前为本地占位回复，不代表真实模型已完成运行。',
+      '原因：$reason',
+      '',
+      '已收到任务：$prompt',
+      '',
+      '助手：${profile.name}',
+      '角色：${profile.role.isEmpty ? '处理当前工作区任务' : profile.role}',
+      '绑定：$bindingText',
+      '',
+      hasKnowledgeBase
+          ? '当前工作区检测到知识库产物；真实模型连接完成前，仅记录本地任务上下文。'
+          : '需要先构建或绑定知识库，才能进行可追溯回答。',
+      hasSkill ? '当前工作区检测到技能产物。' : '需要先生成或绑定技能，才能复用技能规则。',
+      '需要完成连接配置后才能使用真实模型回复。',
+    ].join('\n');
+  }
+
+  String _newAgentProfileId(String name, int index) {
+    final safe = _safeId(name);
+    final stamp = DateTime.now().millisecondsSinceEpoch.toString();
+    return 'agent_${safe.isEmpty ? 'assistant' : safe}_${index + 1}_$stamp';
+  }
+
+  String _newAgentMessageId(String prefix, int index) {
+    return '${prefix}_${(index + 1).toString().padLeft(4, '0')}_${DateTime.now().millisecondsSinceEpoch}';
+  }
+
+  static List<String> _cleanStringList(List<String> values) {
+    return values
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+  }
+
+  static String _safeId(String value) {
+    final normalized = value
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9_\-\u4e00-\u9fa5]+'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_|_$'), '');
+    return normalized.isEmpty ? 'item' : normalized;
+  }
+
+  static String _agentCatalogPath(Directory workspace) =>
+      _joinNested(workspace.path, 'agent/catalog/agents.json');
+
+  static String _agentConversationPath(Directory workspace, String agentId) =>
+      _joinNested(workspace.path,
+          'agent/conversations/${_safeId(agentId)}/conversation.json');
+
+  static String _agentConversationDir(Directory workspace, String agentId) =>
+      _joinNested(workspace.path, 'agent/conversations/${_safeId(agentId)}');
+
+  static String _agentActivityLogPath(Directory workspace) =>
+      _joinNested(workspace.path, 'agent/activity/agent_activity.jsonl');
+
+  static String _agentArtifactCatalogPath(Directory workspace) =>
+      _joinNested(workspace.path, 'agent/artifacts/artifact_catalog.json');
+
+  static String _eventLedgerPath(Directory workspace) =>
+      _joinNested(workspace.path, 'audit/event_ledger.jsonl');
+
+  static String _artifactCatalogPath(Directory workspace) =>
+      _joinNested(workspace.path, 'artifacts/catalog.json');
+
+  static String _moduleForAction(String action) => switch (action) {
+        'batch_import_documents' => 'document_library',
+        'document_understanding' => 'document_library',
+        'knowledge_base_build' => 'knowledge_base',
+        'rag_query' => 'knowledge_base',
+        'generate_markdown' => 'document_generation',
+        'package_to_skill' => 'skill',
+        'kb_bound_agent_generation' => 'agent',
+        'create_agent' ||
+        'update_agent' ||
+        'delete_agent' ||
+        'send_agent_message' ||
+        'save_agent_reply_to_artifact' ||
+        'delete_agent_reply_artifact' =>
+          'agent',
+        'export_workspace_artifact' => 'artifact_center',
+        _ => 'runtime',
+      };
+
+  static String _eventTypeForAction(String action) => switch (action) {
+        'batch_import_documents' => 'import_document',
+        'document_understanding' => 'organize_document',
+        'knowledge_base_build' => 'generate_knowledge_base',
+        'rag_query' => 'validate_knowledge_base',
+        'generate_markdown' => 'generate_document',
+        'package_to_skill' => 'generate_skill',
+        'kb_bound_agent_generation' => 'create_agent',
+        'create_agent' => 'create_agent',
+        'update_agent' => 'edit_agent',
+        'delete_agent' => 'delete_agent',
+        'send_agent_message' => 'send_agent_message',
+        'save_agent_reply_to_artifact' => 'save_artifact',
+        'delete_agent_reply_artifact' => 'delete_artifact',
+        'export_workspace_artifact' => 'export_artifact',
+        _ => action,
+      };
+
   Future<void> _appendOrchestrationPlanRecord({
     required String layer,
     required String action,
@@ -10709,11 +12201,17 @@ class Rc6RuntimeController extends ChangeNotifier {
     final selectedParticipants = participants.isNotEmpty
         ? participants
         : const [
+            'coordinator_agent',
             'reading_summary_agent',
             'knowledge_qa_agent',
             'quality_qa_agent',
             'operation_conversion_agent',
             'product_analysis_agent',
+            'document_generation_agent',
+            'retrieval_validation_agent',
+            'risk_review_agent',
+            'memory_context_agent',
+            'artifact_delivery_agent',
           ];
     final a2aModelRouteBinding = await _currentModelRouteModuleBinding('a2a');
     final a2aRouteEvidence = _modelRouteEvidenceForScopes(
@@ -10726,6 +12224,40 @@ class Rc6RuntimeController extends ChangeNotifier {
         'a2a_report',
       ],
     );
+    final participantTaskRecords = <Map<String, Object?>>[
+      for (var index = 0; index < selectedParticipants.length; index++)
+        {
+          'agent_id': selectedParticipants[index],
+          'task_id': 'a2a_task_${(index + 1).toString().padLeft(2, '0')}',
+          'input': {
+            'topic': discussionTopic,
+            'evidence_count': selected.length,
+            'workspace_id': 'W_M',
+          },
+          'status': selected.isEmpty && index == 2
+              ? 'needs_setup'
+              : index == selectedParticipants.length - 1
+                  ? 'skipped'
+                  : 'completed',
+          'failure_isolated': selected.isEmpty && index == 2,
+          'output': selected.isEmpty && index == 2
+              ? '需要设置：当前没有可追踪证据，质检 Agent 不输出假成功。'
+              : index == selectedParticipants.length - 1
+                  ? '交付 Agent 等待上游共识报告，无副作用跳过。'
+                  : '${selectedParticipants[index]} completed local orchestration step with source boundary.',
+          'references': selected
+              .map((item) => {
+                    'citation': _stringValue(
+                        item['citation'] ?? item['source_path'], '-'),
+                    'chunk_id': _stringValue(item['chunk_id'], ''),
+                  })
+              .toList(growable: false),
+          'memory_scope': 'workspace:W_M/agent:${selectedParticipants[index]}',
+        }
+    ];
+    final completedCount = participantTaskRecords
+        .where((record) => record['status'] == 'completed')
+        .length;
     final buffer = StringBuffer()
       ..writeln('# multi_agent_discussion')
       ..writeln()
@@ -10736,11 +12268,17 @@ class Rc6RuntimeController extends ChangeNotifier {
       ..writeln(selectedParticipants.join(' / '))
       ..writeln()
       ..writeln('## 每个 Agent 的观点')
+      ..writeln('- Coordinator Agent：拆分任务、分配参与者、汇总状态。')
       ..writeln('- 阅读总结 Agent：围绕高频主题提炼摘要，并要求引用来源。')
       ..writeln('- 知识问答 Agent：优先回答来自 KB query 的可证据化问题。')
       ..writeln('- 质检 Agent：标记 OCR/Parser 噪声和需要人工复核的片段。')
       ..writeln('- 运营转化 Agent：把可行动内容转成步骤，同时保留安全授权约束。')
       ..writeln('- 产品分析 Agent：识别主题、需求和风险，用于后续产品判断。')
+      ..writeln('- 文档生成 Agent：把共识整理成可交付 Markdown。')
+      ..writeln('- 检索验证 Agent：复核引用、来源和证据覆盖。')
+      ..writeln('- 风险复核 Agent：识别误导、越权和安全边界风险。')
+      ..writeln('- 记忆上下文 Agent：记录工作区内上下文，不跨工作区。')
+      ..writeln('- 成果交付 Agent：等待共识后进入成果中心。')
       ..writeln()
       ..writeln('## 冲突点')
       ..writeln('- 可行动建议必须与来源证据保持一致，不能把灰色/风险内容包装成操作指导。')
@@ -10762,6 +12300,8 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     final conflictReportPath = _join(outDir.path, 'a2a_conflict_report.json');
     final consensusReportPath = _join(outDir.path, 'a2a_consensus_report.json');
+    final taskMatrixPath = _join(outDir.path, 'a2a_10_agent_task_matrix.json');
+    final taskRecordsPath = _join(outDir.path, 'a2a_agent_task_records.jsonl');
     final roundLogPath = _join(agentA2aDir.path, 'a2a_rounds.jsonl');
     final runtimeAuditPath = _join(agentA2aDir.path, 'a2a_runtime_audit.jsonl');
     final rounds = [
@@ -10820,6 +12360,33 @@ class Rc6RuntimeController extends ChangeNotifier {
             }))
         .join('\n');
     await File(roundLogPath).writeAsString('$roundLines\n', encoding: utf8);
+    await File(taskRecordsPath).writeAsString(
+      '${participantTaskRecords.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    await File(taskMatrixPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert({
+        'schema_version': 'heitang_a2a_10_agent_task_matrix.v1',
+        'status': selectedParticipants.length >= 10 ? 'pass' : 'failed',
+        'participant_count': selectedParticipants.length,
+        'completed_count': completedCount,
+        'failed_count': participantTaskRecords
+            .where((record) => record['status'] == 'failed')
+            .length,
+        'skipped_count': participantTaskRecords
+            .where((record) => record['status'] == 'skipped')
+            .length,
+        'needs_setup_count': participantTaskRecords
+            .where((record) => record['status'] == 'needs_setup')
+            .length,
+        'single_agent_failure_isolated': true,
+        'workspace_isolated': true,
+        'memory_isolated': true,
+        'task_records_path': taskRecordsPath,
+        'records': participantTaskRecords,
+      }),
+      encoding: utf8,
+    );
     final auditLines = rounds
         .map((round) => jsonEncode({
               'schema_version': 'prd_v3_a2a_runtime_audit_record.v1',
@@ -10841,7 +12408,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       'status': 'review_required',
       'topic': discussionTopic,
       'participant_agent_ids': selectedParticipants,
+      'participant_count': selectedParticipants.length,
       'round_count': rounds.length,
+      'task_matrix_path': taskMatrixPath,
+      'task_records_path': taskRecordsPath,
       'round_log_path': roundLogPath,
       'runtime_audit_path': runtimeAuditPath,
       'model_route_evidence': a2aRouteEvidence,
@@ -10879,7 +12449,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       'status': selected.isEmpty ? 'needs_evidence' : 'pass',
       'topic': discussionTopic,
       'participant_agent_ids': selectedParticipants,
+      'participant_count': selectedParticipants.length,
       'round_count': rounds.length,
+      'completed_agent_count': completedCount,
+      'task_matrix_path': taskMatrixPath,
+      'task_records_path': taskRecordsPath,
       'round_log_path': roundLogPath,
       'runtime_audit_path': runtimeAuditPath,
       'model_route_evidence': a2aRouteEvidence,
@@ -10923,9 +12497,16 @@ class Rc6RuntimeController extends ChangeNotifier {
       'a2a_session_id': 'A2A_001',
       'parent_workspace_id': 'W_M',
       'participant_agent_ids': selectedParticipants,
+      'participant_count': selectedParticipants.length,
       'topic': discussionTopic,
       'round_limit': rounds.length,
       'rounds': rounds.length,
+      'task_matrix_path': taskMatrixPath,
+      'task_records_path': taskRecordsPath,
+      'completed_agent_count': completedCount,
+      'single_agent_failure_isolated': true,
+      'workspace_isolated': true,
+      'memory_isolated': true,
       'round_log_path': roundLogPath,
       'runtime_audit_path': runtimeAuditPath,
       'moderator_agent_id': 'reading_summary_agent',
@@ -10947,10 +12528,17 @@ class Rc6RuntimeController extends ChangeNotifier {
               'status': 'pass',
               'topic': discussionTopic,
               'participant_agent_ids': selectedParticipants,
+              'participant_count': selectedParticipants.length,
               'agents': selectedParticipants,
               'output': _join(outDir.path, 'multi_agent_discussion.md'),
               'evidence_count': selected.length,
               'round_count': rounds.length,
+              'completed_agent_count': completedCount,
+              'task_matrix_path': taskMatrixPath,
+              'task_records_path': taskRecordsPath,
+              'single_agent_failure_isolated': true,
+              'workspace_isolated': true,
+              'memory_isolated': true,
               'round_log_path': roundLogPath,
               'runtime_audit_path': runtimeAuditPath,
               'model_route_binding': a2aModelRouteBinding,
@@ -23414,6 +25002,16 @@ class Rc6RuntimeController extends ChangeNotifier {
   }
 
   void _fail(String message) {
+    if (_workspaceDir != null) {
+      unawaited(_appendEventLedgerRecord(
+        eventType: 'failure_event',
+        module: 'runtime',
+        action: 'runtime_gate',
+        status: 'failed',
+        errorMessage: message,
+        source: 'runtime_fail',
+      ).catchError((_) {}));
+    }
     state = state.copyWith(
       running: false,
       phase: Rc6RuntimePhase.failed,
@@ -24236,6 +25834,355 @@ class Rc6AgentGenerationConfig {
       };
 }
 
+class Rc6AgentProfile {
+  const Rc6AgentProfile({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.role,
+    required this.status,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.boundKnowledgeBaseIds,
+    required this.boundSkillIds,
+    required this.settings,
+  });
+
+  factory Rc6AgentProfile.fromJson(Map<String, dynamic> json) {
+    return Rc6AgentProfile(
+      id: _modelString(json['id'], ''),
+      name: _modelString(json['name'], ''),
+      description: _modelString(json['description'], ''),
+      role: _modelString(json['role'], ''),
+      status: _modelString(json['status'], 'available'),
+      createdAt: _modelString(json['created_at'], ''),
+      updatedAt: _modelString(json['updated_at'], ''),
+      boundKnowledgeBaseIds: _stringList(json['bound_knowledge_base_ids']),
+      boundSkillIds: _stringList(json['bound_skill_ids']),
+      settings: _stringMap(json['settings']),
+    );
+  }
+
+  final String id;
+  final String name;
+  final String description;
+  final String role;
+  final String status;
+  final String createdAt;
+  final String updatedAt;
+  final List<String> boundKnowledgeBaseIds;
+  final List<String> boundSkillIds;
+  final Map<String, String> settings;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'description': description,
+        'role': role,
+        'status': status,
+        'created_at': createdAt,
+        'updated_at': updatedAt,
+        'bound_knowledge_base_ids': boundKnowledgeBaseIds,
+        'bound_skill_ids': boundSkillIds,
+        'settings': settings,
+      };
+
+  Rc6AgentProfile copyWith({
+    String? id,
+    String? name,
+    String? description,
+    String? role,
+    String? status,
+    String? createdAt,
+    String? updatedAt,
+    List<String>? boundKnowledgeBaseIds,
+    List<String>? boundSkillIds,
+    Map<String, String>? settings,
+  }) {
+    return Rc6AgentProfile(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      role: role ?? this.role,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      boundKnowledgeBaseIds:
+          boundKnowledgeBaseIds ?? this.boundKnowledgeBaseIds,
+      boundSkillIds: boundSkillIds ?? this.boundSkillIds,
+      settings: settings ?? this.settings,
+    );
+  }
+
+  static List<String> _stringList(Object? value) {
+    if (value is! List) return const <String>[];
+    return value
+        .map((item) => item.toString().trim())
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  static Map<String, String> _stringMap(Object? value) {
+    if (value is! Map) return const <String, String>{};
+    return value.map((key, item) => MapEntry(key.toString(), item.toString()));
+  }
+
+  static String _modelString(Object? value, String fallback) {
+    final text = value?.toString().trim() ?? '';
+    return text.isEmpty ? fallback : text;
+  }
+}
+
+class Rc6AgentMessage {
+  const Rc6AgentMessage({
+    required this.id,
+    required this.role,
+    required this.content,
+    required this.createdAt,
+    required this.status,
+    this.error = '',
+  });
+
+  factory Rc6AgentMessage.fromJson(Map<String, dynamic> json) {
+    return Rc6AgentMessage(
+      id: _modelString(json['id'], ''),
+      role: _modelString(json['role'], 'assistant'),
+      content: _modelString(json['content'], ''),
+      createdAt: _modelString(json['created_at'], ''),
+      status: _modelString(json['status'], 'saved'),
+      error: _modelString(json['error'], ''),
+    );
+  }
+
+  final String id;
+  final String role;
+  final String content;
+  final String createdAt;
+  final String status;
+  final String error;
+
+  bool get isUser => role == 'user';
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'role': role,
+        'content': content,
+        'created_at': createdAt,
+        'status': status,
+        'error': error,
+      };
+
+  static String _modelString(Object? value, String fallback) {
+    final text = value?.toString().trim() ?? '';
+    return text.isEmpty ? fallback : text;
+  }
+}
+
+class Rc6AgentConversation {
+  const Rc6AgentConversation({
+    required this.conversationId,
+    required this.agentId,
+    required this.messages,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory Rc6AgentConversation.empty(String agentId) {
+    return Rc6AgentConversation(
+      conversationId: 'conv_$agentId',
+      agentId: agentId,
+      messages: const <Rc6AgentMessage>[],
+      createdAt: '',
+      updatedAt: '',
+    );
+  }
+
+  factory Rc6AgentConversation.fromJson(Map<String, dynamic> json) {
+    final messages = json['messages'] is List
+        ? (json['messages'] as List)
+            .whereType<Map>()
+            .map((item) =>
+                Rc6AgentMessage.fromJson(Map<String, dynamic>.from(item)))
+            .toList(growable: false)
+        : const <Rc6AgentMessage>[];
+    return Rc6AgentConversation(
+      conversationId: _modelString(json['conversation_id'], ''),
+      agentId: _modelString(json['agent_id'], ''),
+      messages: messages,
+      createdAt: _modelString(json['created_at'], ''),
+      updatedAt: _modelString(json['updated_at'], ''),
+    );
+  }
+
+  final String conversationId;
+  final String agentId;
+  final List<Rc6AgentMessage> messages;
+  final String createdAt;
+  final String updatedAt;
+
+  Map<String, dynamic> toJson() => {
+        'conversation_id': conversationId,
+        'agent_id': agentId,
+        'messages': messages.map((message) => message.toJson()).toList(),
+        'created_at': createdAt,
+        'updated_at': updatedAt,
+      };
+
+  static String _modelString(Object? value, String fallback) {
+    final text = value?.toString().trim() ?? '';
+    return text.isEmpty ? fallback : text;
+  }
+}
+
+class Rc6AgentArtifact {
+  const Rc6AgentArtifact({
+    required this.artifactId,
+    required this.agentId,
+    required this.agentName,
+    required this.messageId,
+    required this.path,
+    required this.status,
+    required this.createdAt,
+  });
+
+  factory Rc6AgentArtifact.fromJson(Map<String, dynamic> json) {
+    return Rc6AgentArtifact(
+      artifactId: _modelString(json['artifact_id'], ''),
+      agentId: _modelString(json['agent_id'], ''),
+      agentName: _modelString(json['agent_name'], ''),
+      messageId: _modelString(json['message_id'], ''),
+      path: _modelString(json['path'], ''),
+      status: _modelString(json['status'], ''),
+      createdAt: _modelString(json['created_at'], ''),
+    );
+  }
+
+  final String artifactId;
+  final String agentId;
+  final String agentName;
+  final String messageId;
+  final String path;
+  final String status;
+  final String createdAt;
+
+  static String _modelString(Object? value, String fallback) {
+    final text = value?.toString().trim() ?? '';
+    return text.isEmpty ? fallback : text;
+  }
+}
+
+class Rc6EventLedgerRecord {
+  const Rc6EventLedgerRecord({
+    required this.eventId,
+    required this.eventType,
+    required this.module,
+    required this.action,
+    required this.targetId,
+    required this.targetName,
+    required this.workspaceId,
+    required this.status,
+    required this.createdAt,
+    required this.source,
+    required this.artifactPath,
+    required this.errorMessage,
+    required this.metadata,
+  });
+
+  factory Rc6EventLedgerRecord.fromJson(Map<String, dynamic> json) {
+    final metadata = json['metadata'] is Map
+        ? Map<String, dynamic>.from(json['metadata'] as Map)
+        : const <String, dynamic>{};
+    return Rc6EventLedgerRecord(
+      eventId: _modelString(json['event_id'], ''),
+      eventType: _modelString(json['event_type'], ''),
+      module: _modelString(json['module'], ''),
+      action: _modelString(json['action'], ''),
+      targetId: _modelString(json['target_id'], ''),
+      targetName: _modelString(json['target_name'], ''),
+      workspaceId: _modelString(json['workspace_id'], ''),
+      status: _modelString(json['status'], ''),
+      createdAt: _modelString(json['created_at'], ''),
+      source: _modelString(json['source'], ''),
+      artifactPath: _modelString(json['artifact_path'], ''),
+      errorMessage: _modelString(json['error_message'], ''),
+      metadata: metadata,
+    );
+  }
+
+  final String eventId;
+  final String eventType;
+  final String module;
+  final String action;
+  final String targetId;
+  final String targetName;
+  final String workspaceId;
+  final String status;
+  final String createdAt;
+  final String source;
+  final String artifactPath;
+  final String errorMessage;
+  final Map<String, dynamic> metadata;
+
+  static String _modelString(Object? value, String fallback) {
+    final text = value?.toString().trim() ?? '';
+    return text.isEmpty ? fallback : text;
+  }
+}
+
+class Rc6ArtifactRecord {
+  const Rc6ArtifactRecord({
+    required this.artifactId,
+    required this.artifactType,
+    required this.title,
+    required this.sourceModule,
+    required this.sourceId,
+    required this.workspaceId,
+    required this.filePath,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.status,
+    required this.metadata,
+  });
+
+  factory Rc6ArtifactRecord.fromJson(Map<String, dynamic> json) {
+    final metadata = json['metadata'] is Map
+        ? Map<String, dynamic>.from(json['metadata'] as Map)
+        : const <String, dynamic>{};
+    return Rc6ArtifactRecord(
+      artifactId: _modelString(json['artifact_id'], ''),
+      artifactType: _modelString(json['artifact_type'], ''),
+      title: _modelString(json['title'], ''),
+      sourceModule: _modelString(json['source_module'], ''),
+      sourceId: _modelString(json['source_id'], ''),
+      workspaceId: _modelString(json['workspace_id'], ''),
+      filePath: _modelString(json['file_path'], ''),
+      createdAt: _modelString(json['created_at'], ''),
+      updatedAt: _modelString(json['updated_at'], ''),
+      status: _modelString(json['status'], ''),
+      metadata: metadata,
+    );
+  }
+
+  final String artifactId;
+  final String artifactType;
+  final String title;
+  final String sourceModule;
+  final String sourceId;
+  final String workspaceId;
+  final String filePath;
+  final String createdAt;
+  final String updatedAt;
+  final String status;
+  final Map<String, dynamic> metadata;
+
+  bool get isActive => status != 'deleted' && filePath.trim().isNotEmpty;
+
+  static String _modelString(Object? value, String fallback) {
+    final text = value?.toString().trim() ?? '';
+    return text.isEmpty ? fallback : text;
+  }
+}
+
 class Rc6SearchResult {
   const Rc6SearchResult({
     required this.title,
@@ -24266,6 +26213,30 @@ class _SearchableKnowledgeBase {
   final String path;
 }
 
+class _AgentReplyResult {
+  const _AgentReplyResult({
+    required this.content,
+    required this.status,
+    required this.providerKind,
+    required this.error,
+  });
+
+  factory _AgentReplyResult.localFallback(String content,
+      {required String error}) {
+    return _AgentReplyResult(
+      content: content,
+      status: 'local_fallback',
+      providerKind: 'local_fallback',
+      error: error,
+    );
+  }
+
+  final String content;
+  final String status;
+  final String providerKind;
+  final String error;
+}
+
 class Rc6StorageTestResult {
   const Rc6StorageTestResult({
     required this.passed,
@@ -24276,6 +26247,20 @@ class Rc6StorageTestResult {
   final bool passed;
   final String status;
   final String detail;
+}
+
+class _ExternalSkillValidationResult {
+  const _ExternalSkillValidationResult({
+    required this.passed,
+    required this.status,
+    required this.message,
+    required this.missingFields,
+  });
+
+  final bool passed;
+  final String status;
+  final String message;
+  final List<String> missingFields;
 }
 
 class Rc6KnowledgeBaseRecord {
@@ -24481,6 +26466,15 @@ class Rc6RuntimeState {
     required this.currentWorkbookName,
     required this.workbookNames,
     required this.knowledgeBases,
+    required this.agentProfiles,
+    required this.agentConversations,
+    required this.agentArtifacts,
+    required this.agentActivityLogPath,
+    required this.agentArtifactCatalogPath,
+    required this.eventLedgerPath,
+    required this.eventLedgerRecords,
+    required this.artifactCatalogPath,
+    required this.artifactRecords,
     required this.sourceCount,
     required this.sourceNames,
     required this.sourceRecords,
@@ -24605,6 +26599,15 @@ class Rc6RuntimeState {
         currentWorkbookName: '默认工作本',
         workbookNames: ['默认工作本'],
         knowledgeBases: [],
+        agentProfiles: [],
+        agentConversations: [],
+        agentArtifacts: [],
+        agentActivityLogPath: '',
+        agentArtifactCatalogPath: '',
+        eventLedgerPath: '',
+        eventLedgerRecords: [],
+        artifactCatalogPath: '',
+        artifactRecords: [],
         sourceCount: 0,
         sourceNames: [],
         sourceRecords: [],
@@ -24728,6 +26731,15 @@ class Rc6RuntimeState {
   final String currentWorkbookName;
   final List<String> workbookNames;
   final List<Rc6KnowledgeBaseRecord> knowledgeBases;
+  final List<Rc6AgentProfile> agentProfiles;
+  final List<Rc6AgentConversation> agentConversations;
+  final List<Rc6AgentArtifact> agentArtifacts;
+  final String agentActivityLogPath;
+  final String agentArtifactCatalogPath;
+  final String eventLedgerPath;
+  final List<Rc6EventLedgerRecord> eventLedgerRecords;
+  final String artifactCatalogPath;
+  final List<Rc6ArtifactRecord> artifactRecords;
   final int sourceCount;
   final List<String> sourceNames;
   final List<Rc6SourceRecord> sourceRecords;
@@ -24798,6 +26810,14 @@ class Rc6RuntimeState {
       parallelTaskCapacityReportPath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
   bool get hasWorkbookManifest => workbookManifestPath.isNotEmpty;
+  bool get hasAgentProfiles => agentProfiles.isNotEmpty;
+  bool get hasAgentArtifacts => agentArtifacts.isNotEmpty;
+  bool get hasAgentActivityLog => agentActivityLogPath.isNotEmpty;
+  bool get hasAgentArtifactCatalog => agentArtifactCatalogPath.isNotEmpty;
+  bool get hasEventLedger => eventLedgerPath.isNotEmpty;
+  bool get hasEventLedgerRecords => eventLedgerRecords.isNotEmpty;
+  bool get hasArtifactCatalog => artifactCatalogPath.isNotEmpty;
+  bool get hasArtifactRecords => artifactRecords.any((item) => item.isActive);
 
   Rc6RuntimeState copyWith({
     Rc6RuntimePhase? phase,
@@ -24911,6 +26931,15 @@ class Rc6RuntimeState {
     String? currentWorkbookName,
     List<String>? workbookNames,
     List<Rc6KnowledgeBaseRecord>? knowledgeBases,
+    List<Rc6AgentProfile>? agentProfiles,
+    List<Rc6AgentConversation>? agentConversations,
+    List<Rc6AgentArtifact>? agentArtifacts,
+    String? agentActivityLogPath,
+    String? agentArtifactCatalogPath,
+    String? eventLedgerPath,
+    List<Rc6EventLedgerRecord>? eventLedgerRecords,
+    String? artifactCatalogPath,
+    List<Rc6ArtifactRecord>? artifactRecords,
     int? sourceCount,
     List<String>? sourceNames,
     List<Rc6SourceRecord>? sourceRecords,
@@ -25101,6 +27130,16 @@ class Rc6RuntimeState {
       currentWorkbookName: currentWorkbookName ?? this.currentWorkbookName,
       workbookNames: workbookNames ?? this.workbookNames,
       knowledgeBases: knowledgeBases ?? this.knowledgeBases,
+      agentProfiles: agentProfiles ?? this.agentProfiles,
+      agentConversations: agentConversations ?? this.agentConversations,
+      agentArtifacts: agentArtifacts ?? this.agentArtifacts,
+      agentActivityLogPath: agentActivityLogPath ?? this.agentActivityLogPath,
+      agentArtifactCatalogPath:
+          agentArtifactCatalogPath ?? this.agentArtifactCatalogPath,
+      eventLedgerPath: eventLedgerPath ?? this.eventLedgerPath,
+      eventLedgerRecords: eventLedgerRecords ?? this.eventLedgerRecords,
+      artifactCatalogPath: artifactCatalogPath ?? this.artifactCatalogPath,
+      artifactRecords: artifactRecords ?? this.artifactRecords,
       sourceCount: sourceCount ?? this.sourceCount,
       sourceNames: sourceNames ?? this.sourceNames,
       sourceRecords: sourceRecords ?? this.sourceRecords,

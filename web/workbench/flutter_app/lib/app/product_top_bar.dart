@@ -5,6 +5,7 @@ class _ProductTopBar extends StatelessWidget {
     required this.localeCode,
     required this.page,
     required this.contracts,
+    this.compactForPage = false,
     required this.isDark,
     required this.windowState,
     required this.onWindowStateChanged,
@@ -16,6 +17,7 @@ class _ProductTopBar extends StatelessWidget {
   final String localeCode;
   final WorkbenchPage page;
   final WorkbenchContracts contracts;
+  final bool compactForPage;
   final bool? isDark;
   final _DesktopWindowPreviewState windowState;
   final ValueChanged<_DesktopWindowPreviewState> onWindowStateChanged;
@@ -28,27 +30,41 @@ class _ProductTopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final visual = _HTKWTokens.visualTokens(Theme.of(context).brightness);
+    final barHeight = compactForPage ? 48.0 : 72.0;
     return Container(
       key: const Key('desktop-topbar-single-row'),
-      height: 78,
+      height: barHeight,
       decoration: BoxDecoration(
-        color: colors.surfaceContainerLow,
+        color: visual.topBarBackground,
         border: Border(
-          bottom:
-              BorderSide(color: colors.outlineVariant.withValues(alpha: 0.72)),
+          bottom: BorderSide(color: visual.borderSubtle),
         ),
+        boxShadow: dark
+            ? const []
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.018),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: LayoutBuilder(builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final compact = width < 360;
+        final compact = compactForPage || width < 360;
         final searchWidth = width >= 900
             ? 420.0
             : width >= 760
                 ? 360.0
                 : 0.0;
         return Padding(
-          padding:
-              EdgeInsets.fromLTRB(compact ? 10 : 32, 14, compact ? 10 : 28, 14),
+          padding: EdgeInsets.fromLTRB(
+              compactForPage ? 18 : (compact ? 10 : 32),
+              compactForPage ? 8 : 14,
+              compactForPage ? 18 : (compact ? 10 : 28),
+              compactForPage ? 8 : 14),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -56,8 +72,8 @@ class _ProductTopBar extends StatelessWidget {
                 width: compact
                     ? width.clamp(96.0, 150.0)
                     : width >= 1100
-                        ? 260
-                        : 210,
+                        ? 330
+                        : 240,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -67,23 +83,26 @@ class _ProductTopBar extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style:
                             Theme.of(context).textTheme.headlineLarge?.copyWith(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w900,
+                                  fontSize: compactForPage ? 17 : 22,
+                                  fontWeight: FontWeight.w700,
                                   letterSpacing: 0,
                                   height: 1.05,
                                 )),
                     if (!compact) ...[
                       const SizedBox(height: 4),
-                      Text(page.description(localeCode),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    fontSize: 13,
-                                    color: colors.onSurfaceVariant,
-                                    fontWeight: FontWeight.w600,
-                                    height: 1.12,
-                                  )),
+                      Tooltip(
+                        message: page.description(localeCode),
+                        child: Text(page.description(localeCode),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style:
+                                Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                      fontSize: 12.5,
+                                      color: colors.onSurfaceVariant,
+                                      fontWeight: FontWeight.w500,
+                                      height: 1.12,
+                                    )),
+                      ),
                     ],
                   ],
                 ),
@@ -168,6 +187,8 @@ class _TopBarSearchFieldState extends State<_TopBarSearchField> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final brightness = Theme.of(context).brightness;
+    final visual = _HTKWTokens.visualTokens(brightness);
     final zh = Localizations.localeOf(context).languageCode == 'zh';
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state;
@@ -240,25 +261,52 @@ class _TopBarSearchFieldState extends State<_TopBarSearchField> {
           child: Container(
             key: const Key('topbar-search-field'),
             constraints: const BoxConstraints(minWidth: 120),
-            height: 40,
-            padding: const EdgeInsets.only(left: 14, right: 6),
+            height: 38,
+            padding: const EdgeInsets.only(left: 10, right: 6),
             decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius),
-              border: Border.all(color: borderColor, width: focused ? 1.4 : 1),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.025),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+              color: Color.alphaBlend(
+                colors.primary.withValues(
+                  alpha: brightness == Brightness.dark ? 0.035 : 0.018,
                 ),
+                _HTKWTokens.glassSurface(brightness),
+              ),
+              borderRadius: BorderRadius.circular(_DesktopGrid.radiusMedium),
+              border: Border.all(
+                  color: focused
+                      ? borderColor.withValues(alpha: 0.72)
+                      : visual.borderSubtle,
+                  width: 1),
+              boxShadow: [
+                if (brightness == Brightness.light)
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.018),
+                    blurRadius: 12,
+                    offset: const Offset(0, 3),
+                  ),
               ],
             ),
             child: Row(
               children: [
-                Icon(Icons.search,
-                    size: 17,
-                    color: focused ? colors.primary : colors.onSurfaceVariant),
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: _HTKWTokens.moduleKnowledge.withValues(
+                      alpha: brightness == Brightness.dark ? 0.14 : 0.08,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: _HTKWTokens.moduleKnowledge.withValues(
+                        alpha: brightness == Brightness.dark ? 0.16 : 0.1,
+                      ),
+                    ),
+                  ),
+                  child: Icon(Icons.search,
+                      size: 15,
+                      color: focused
+                          ? _HTKWTokens.moduleKnowledge
+                          : colors.onSurfaceVariant),
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
@@ -272,7 +320,7 @@ class _TopBarSearchFieldState extends State<_TopBarSearchField> {
                       final matched = _bestSearchSuggestion(
                           suggestions, value.trim().toLowerCase());
                       widget.onPageChanged(_pageIndexById(
-                          matched?.pageId ?? 'retrieval-verification'));
+                          matched?.pageId ?? 'knowledge-package-management'));
                     },
                     decoration: InputDecoration(
                       hintText: widget.label,
@@ -282,7 +330,7 @@ class _TopBarSearchFieldState extends State<_TopBarSearchField> {
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           fontSize: 13,
                           color: colors.onSurface,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w500,
                           height: 1.16,
                         ),
                   ),
@@ -297,9 +345,37 @@ class _TopBarSearchFieldState extends State<_TopBarSearchField> {
                             final matched = _bestSearchSuggestion(suggestions,
                                 _controller.text.trim().toLowerCase());
                             widget.onPageChanged(_pageIndexById(
-                                matched?.pageId ?? 'retrieval-verification'));
+                                matched?.pageId ??
+                                    'knowledge-package-management'));
                           },
                     child: Text(statusText),
+                  ),
+                ],
+                if (!focused) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: colors.surface.withValues(
+                        alpha: brightness == Brightness.dark ? 0.08 : 0.66,
+                      ),
+                      borderRadius:
+                          BorderRadius.circular(_DesktopGrid.radiusSmall),
+                      border: Border.all(
+                        color: _HTKWTokens.visualTokens(
+                          Theme.of(context).brightness,
+                        ).borderSubtle,
+                      ),
+                    ),
+                    child: Text(
+                      zh ? '快速定位' : 'Quick',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: colors.onSurfaceVariant,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
                   ),
                 ],
               ],
@@ -345,9 +421,9 @@ class _TopBarSearchSuggestion {
 
 _TopBarSearchSuggestion _noMatchSearchSuggestion(bool zh) {
   return _TopBarSearchSuggestion(
-    title: zh ? '无匹配，前往测试知识库' : 'No match, test a knowledge base',
+    title: zh ? '无匹配，前往知识库验证' : 'No match, verify a knowledge base',
     subtitle: zh ? '用当前输入查询知识库内容' : 'Use this query against KB content',
-    category: zh ? '测试知识库' : 'Knowledge Test',
+    category: zh ? '知识库' : 'Knowledge Base',
     pageId: 'retrieval-verification',
     icon: Icons.manage_search_outlined,
     isNoMatch: true,
@@ -381,12 +457,12 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
       category: zh ? '页面' : 'Page',
       pageId: 'knowledge-package-management',
       icon: Icons.storage_outlined,
-      keywords: const ['kb', 'knowledge', 'vector', 'manifest', '知识库', '向量'],
+      keywords: const ['kb', 'knowledge', 'manifest', '知识库'],
     ),
     _TopBarSearchSuggestion(
-      title: zh ? '测试知识库' : 'Test Knowledge Base',
+      title: zh ? '知识库验证' : 'Knowledge Base Verification',
       subtitle: zh ? '检索知识库内容和证据片段' : 'Search KB content and evidence',
-      category: zh ? '页面' : 'Page',
+      category: zh ? '知识库' : 'Knowledge Base',
       pageId: 'retrieval-verification',
       icon: Icons.manage_search_outlined,
       keywords: const ['search', 'query', 'retrieval', 'evidence', '检索', '查询'],
@@ -410,15 +486,15 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
     _TopBarSearchSuggestion(
       title: zh ? '我的助手' : 'My Assistants',
       subtitle: zh
-          ? '创建助手、开始对话、让多个助手一起讨论'
-          : 'Create assistants, chat, and run group discussions',
+          ? '创建助手、发起对话，并通过工作小组处理复杂任务'
+          : 'Create assistants, chat, and run work groups',
       category: zh ? '页面' : 'Page',
       pageId: 'agent-factory-runtime',
       icon: Icons.smart_toy_outlined,
-      keywords: const ['agent', 'chat', 'a2a', 'discussion', '智能体', '对话'],
+      keywords: const ['assistant', 'chat', 'discussion', '助手', '对话'],
     ),
     _TopBarSearchSuggestion(
-      title: zh ? '成果中心' : 'Output Center',
+      title: zh ? '全部成果' : 'All Outputs',
       subtitle: zh
           ? '查看生成文档、知识库、技能、助手和讨论报告'
           : 'Browse documents, KBs, skills, assistants, and discussion reports',
@@ -551,7 +627,7 @@ List<_TopBarSearchSuggestion> _topBarSearchSuggestions(
     }
     if (runtime.hasMultiAgentDiscussion) {
       suggestions.add(_TopBarSearchSuggestion(
-        title: zh ? '多个助手讨论' : 'Assistant group discussion',
+        title: zh ? '工作小组' : 'Work group',
         subtitle: _displayNameForPath(runtime.multiAgentDiscussionPath),
         category: zh ? '助手' : 'Assistant',
         pageId: 'agent-factory-runtime',
@@ -594,21 +670,28 @@ class _TopBarIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final brightness = Theme.of(context).brightness;
     return Tooltip(
       message: label,
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
         onTap: onPressed,
         child: Container(
-          width: 40,
-          height: 40,
+          width: 38,
+          height: 36,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: colors.surface,
+            color: colors.surfaceContainerLow.withValues(
+              alpha: brightness == Brightness.dark ? 0.18 : 0.2,
+            ),
             borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius),
-            border: Border.all(color: colors.outlineVariant),
+            border: Border.all(
+              color: _HTKWTokens.visualTokens(Theme.of(context).brightness)
+                  .borderSubtle,
+            ),
           ),
-          child: Icon(icon, size: 18, color: colors.onSurfaceVariant),
+          child: Icon(icon,
+              size: 18, color: colors.onSurfaceVariant.withValues(alpha: 0.86)),
         ),
       ),
     );
@@ -627,13 +710,19 @@ class _TopBarLanguageToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final brightness = Theme.of(context).brightness;
     return Container(
       key: const Key('topbar-language-toggle'),
-      height: 40,
+      height: 36,
       decoration: BoxDecoration(
-        color: colors.surface,
+        color: colors.surfaceContainerLow.withValues(
+          alpha: brightness == Brightness.dark ? 0.18 : 0.22,
+        ),
         borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius),
-        border: Border.all(color: colors.outlineVariant),
+        border: Border.all(
+          color: _HTKWTokens.visualTokens(Theme.of(context).brightness)
+              .borderSubtle,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -668,22 +757,27 @@ class _TopBarLanguageButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final brightness = Theme.of(context).brightness;
     return InkWell(
       onTap: onTap,
       child: Container(
         width: 38,
-        height: 38,
+        height: 34,
         alignment: Alignment.center,
         margin: const EdgeInsets.all(1),
         decoration: BoxDecoration(
-          color: selected ? colors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
+          color: selected
+              ? _HTKWTokens.moduleKnowledge.withValues(
+                  alpha: brightness == Brightness.dark ? 0.92 : 0.88,
+                )
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(_DesktopGrid.radiusSmall),
         ),
         child: Text(
           label,
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
                 color: selected ? colors.onPrimary : colors.onSurfaceVariant,
-                fontWeight: FontWeight.w900,
+                fontWeight: FontWeight.w700,
               ),
         ),
       ),

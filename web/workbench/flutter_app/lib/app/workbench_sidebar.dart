@@ -15,94 +15,101 @@ class _WorkbenchSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const sidebarBackground = _HTKWTokens.sidebar;
-    const selectedBackground = _HTKWTokens.sidebarSelected;
-    const primaryText = _HTKWTokens.surface;
-    const secondaryText = Color(0xffb7b0a7);
-    final effectiveSelectedIndex = pages[selectedIndex].id == 'import-parsing'
-        ? _pageIndexById('document-library')
-        : selectedIndex;
+    final colors = Theme.of(context).colorScheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final visual = _HTKWTokens.visualTokens(Theme.of(context).brightness);
+    final sidebarBackground = visual.sidebarBackground;
+    final primaryText = colors.onSurface;
+    final secondaryText = colors.onSurfaceVariant;
+    final effectiveSelectedIndex = switch (pages[selectedIndex].id) {
+      'import-parsing' => _pageIndexById('document-library'),
+      'retrieval-verification' =>
+        _pageIndexById('knowledge-package-management'),
+      'artifact-center' || 'reports-audit' => _pageIndexById('dashboard'),
+      _ => selectedIndex,
+    };
 
     return LayoutBuilder(builder: (context, constraints) {
       final compact = constraints.maxWidth < 110;
-      return Material(
-        color: sidebarBackground,
-        child: ListView(
-          key: const Key('desktop-sidebar-scroll'),
-          padding:
-              EdgeInsets.fromLTRB(compact ? 10 : 18, 26, compact ? 10 : 18, 26),
-          children: [
-            compact
-                ? const _SidebarCompactBrand()
-                : _SidebarBrand(localeCode: localeCode),
-            SizedBox(height: compact ? 28 : 48),
-            _SidebarItem(
-              keyName: 'sidebar-dashboard',
-              page: pages[0],
-              icon: Icons.dashboard_customize_outlined,
-              localeCode: localeCode,
-              contracts: contracts,
-              selected: effectiveSelectedIndex == 0,
-              primaryText: primaryText,
-              secondaryText: secondaryText,
-              selectedBackground: selectedBackground,
-              onTap: () => onPageChanged(0),
-            ),
-            _SidebarItem(
-              keyName: 'sidebar-workbook',
-              page: pages[1],
-              icon: Icons.workspaces_outline,
-              localeCode: localeCode,
-              contracts: contracts,
-              selected: effectiveSelectedIndex == 1,
-              primaryText: primaryText,
-              secondaryText: secondaryText,
-              selectedBackground: selectedBackground,
-              onTap: () => onPageChanged(1),
-            ),
-            for (final index in [2, 3, 4, 5, 6, 7, 8])
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          color: sidebarBackground,
+          border: Border(
+            right: BorderSide(color: colors.outlineVariant),
+          ),
+          boxShadow: dark
+              ? const []
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.018),
+                    blurRadius: 12,
+                    offset: const Offset(4, 0),
+                  ),
+                ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: ListView(
+            key: const Key('desktop-sidebar-scroll'),
+            padding: EdgeInsets.fromLTRB(
+                compact ? 10 : 18, 26, compact ? 10 : 18, 26),
+            children: [
+              compact
+                  ? const _SidebarCompactBrand()
+                  : _SidebarBrand(localeCode: localeCode),
+              SizedBox(height: compact ? 24 : 34),
               _SidebarItem(
-                keyName: 'sidebar-${pages[index].id}',
-                page: pages[index],
-                icon: _sidebarIconFor(pages[index].id),
+                keyName: 'sidebar-dashboard',
+                page: pages[0],
+                icon: Icons.dashboard_customize_outlined,
                 localeCode: localeCode,
                 contracts: contracts,
-                selected: effectiveSelectedIndex == index,
+                selected: effectiveSelectedIndex == 0,
                 primaryText: primaryText,
                 secondaryText: secondaryText,
-                selectedBackground: selectedBackground,
-                onTap: () => onPageChanged(index),
+                onTap: () => onPageChanged(0),
               ),
-            _SidebarItem(
-              keyName: 'sidebar-reports-audit',
-              page: pages[9],
-              icon: Icons.history_outlined,
-              localeCode: localeCode,
-              contracts: contracts,
-              selected: effectiveSelectedIndex == 9,
-              primaryText: primaryText,
-              secondaryText: secondaryText,
-              selectedBackground: selectedBackground,
-              onTap: () => onPageChanged(9),
-            ),
-            const SizedBox(height: 8),
-            _SidebarItem(
-              keyName: 'sidebar-workspace',
-              page: pages[10],
-              icon: Icons.tune_outlined,
-              localeCode: localeCode,
-              contracts: contracts,
-              selected: effectiveSelectedIndex == 10,
-              primaryText: primaryText,
-              secondaryText: secondaryText,
-              selectedBackground: selectedBackground,
-              onTap: () => onPageChanged(10),
-            ),
-            if (!compact) ...[
-              const SizedBox(height: 120),
-              _LocalFirstCard(localeCode: localeCode),
+              _SidebarItem(
+                keyName: 'sidebar-workbook',
+                page: pages[1],
+                icon: Icons.workspaces_outline,
+                localeCode: localeCode,
+                contracts: contracts,
+                selected: effectiveSelectedIndex == 1,
+                primaryText: primaryText,
+                secondaryText: secondaryText,
+                onTap: () => onPageChanged(1),
+              ),
+              for (final index in [2, 3, 5, 6, 7])
+                _SidebarItem(
+                  keyName: 'sidebar-${pages[index].id}',
+                  page: pages[index],
+                  icon: _sidebarIconFor(pages[index].id),
+                  localeCode: localeCode,
+                  contracts: contracts,
+                  selected: effectiveSelectedIndex == index,
+                  primaryText: primaryText,
+                  secondaryText: secondaryText,
+                  onTap: () => onPageChanged(index),
+                ),
+              const SizedBox(height: 8),
+              _SidebarItem(
+                keyName: 'sidebar-workspace',
+                page: pages[10],
+                icon: Icons.tune_outlined,
+                localeCode: localeCode,
+                contracts: contracts,
+                selected: effectiveSelectedIndex == 10,
+                primaryText: primaryText,
+                secondaryText: secondaryText,
+                onTap: () => onPageChanged(10),
+              ),
+              if (!compact) ...[
+                const SizedBox(height: 72),
+                _LocalFirstCard(localeCode: localeCode),
+              ],
             ],
-          ],
+          ),
         ),
       );
     });
@@ -116,26 +123,35 @@ class _SidebarBrand extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primaryText = _HTKWTokens.surface;
-    const secondaryText = Color(0xffb7b0a7);
+    final colors = Theme.of(context).colorScheme;
+    final primaryText = colors.onSurface;
+    final secondaryText = colors.onSurfaceVariant;
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 42,
-            height: 42,
+            width: 38,
+            height: 38,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: _HTKWTokens.gold,
-              borderRadius: BorderRadius.circular(14),
+              color: _HTKWTokens.moduleKnowledge.withValues(
+                alpha: dark ? 0.18 : 0.12,
+              ),
+              borderRadius: BorderRadius.circular(_DesktopGrid.radiusMedium),
+              border: Border.all(
+                color: _HTKWTokens.moduleKnowledge.withValues(
+                  alpha: dark ? 0.22 : 0.16,
+                ),
+              ),
             ),
             child: Text(
               'H',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: _HTKWTokens.sidebar,
-                    fontWeight: FontWeight.w900,
+                    color: _HTKWTokens.moduleKnowledge,
+                    fontWeight: FontWeight.w700,
                     height: 1,
                   ),
             ),
@@ -146,15 +162,16 @@ class _SidebarBrand extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(localeCode == 'zh-CN' ? '黑糖' : 'HeiTang',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: primaryText,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0,
                         )),
                 const SizedBox(height: 2),
                 Text(localeCode == 'zh-CN' ? '知识工作台' : 'Knowledge Workbench',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: secondaryText,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                         )),
               ],
             ),
@@ -177,14 +194,14 @@ class _SidebarCompactBrand extends StatelessWidget {
           height: 34,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: _HTKWTokens.gold,
+            color: _HTKWTokens.blue,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
             'H',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: _HTKWTokens.sidebar,
-                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
                   height: 1,
                 ),
           ),
@@ -195,9 +212,9 @@ class _SidebarCompactBrand extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.clip,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: _HTKWTokens.surface,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 9,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
                 height: 1,
               ),
         ),
@@ -216,7 +233,6 @@ class _SidebarItem extends StatelessWidget {
     required this.selected,
     required this.primaryText,
     required this.secondaryText,
-    required this.selectedBackground,
     required this.onTap,
   });
 
@@ -228,49 +244,77 @@ class _SidebarItem extends StatelessWidget {
   final bool selected;
   final Color primaryText;
   final Color secondaryText;
-  final Color selectedBackground;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
+      final dark = Theme.of(context).brightness == Brightness.dark;
       final compact = constraints.maxWidth < 110;
+      final moduleColor = _HTKWTokens.moduleColor(page.id);
+      final selectedBackground = _HTKWTokens.moduleTint(
+        page.id,
+        Theme.of(context).brightness,
+        lightAlpha: 0.1,
+        darkAlpha: 0.16,
+      );
       return Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: InkWell(
           key: keyName == null ? null : Key(keyName!),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(_DesktopGrid.radiusMedium),
           onTap: onTap,
           child: Container(
-            height: 44,
-            padding: EdgeInsets.symmetric(
-              horizontal: compact ? 0 : 14,
-              vertical: compact ? 10 : 9,
+            height: 42,
+            padding: EdgeInsets.only(
+              left: compact ? 0 : 0,
+              right: compact ? 0 : 12,
+              top: compact ? 10 : 8,
+              bottom: compact ? 10 : 8,
             ),
             decoration: BoxDecoration(
               color: selected ? selectedBackground : Colors.transparent,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(_DesktopGrid.buttonRadius),
               border: selected
-                  ? Border.all(color: _HTKWTokens.gold.withValues(alpha: 0.42))
+                  ? Border.all(
+                      color: _HTKWTokens.moduleBorderTint(
+                        page.id,
+                        Theme.of(context).brightness,
+                      ),
+                    )
                   : Border.all(color: Colors.transparent),
             ),
             child: Row(
               mainAxisAlignment:
                   compact ? MainAxisAlignment.center : MainAxisAlignment.start,
               children: [
+                if (!compact)
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 160),
+                    width: 2,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: selected ? moduleColor : Colors.transparent,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                if (!compact) const SizedBox(width: 12),
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 160),
-                  width: compact ? 20 : 26,
-                  height: compact ? 20 : 26,
+                  width: compact ? 20 : 24,
+                  height: compact ? 20 : 24,
                   decoration: BoxDecoration(
                     color: selected
-                        ? _HTKWTokens.goldSoft
-                        : const Color(0xff1a1f24),
-                    borderRadius: BorderRadius.circular(999),
+                        ? moduleColor.withValues(alpha: dark ? 0.14 : 0.12)
+                        : Colors.transparent,
+                    borderRadius:
+                        BorderRadius.circular(_DesktopGrid.radiusSmall),
                   ),
                   child: Icon(icon,
-                      color: selected ? _HTKWTokens.sidebar : secondaryText,
-                      size: compact ? 13 : 16),
+                      color: selected
+                          ? moduleColor
+                          : moduleColor.withValues(alpha: dark ? 0.62 : 0.76),
+                      size: compact ? 15 : 18),
                 ),
                 if (!compact) const SizedBox(width: 10),
                 if (!compact)
@@ -281,7 +325,7 @@ class _SidebarItem extends StatelessWidget {
                         style: TextStyle(
                           color: selected ? primaryText : secondaryText,
                           fontWeight:
-                              selected ? FontWeight.w800 : FontWeight.w600,
+                              selected ? FontWeight.w600 : FontWeight.w500,
                         )),
                   ),
               ],
@@ -301,76 +345,47 @@ class _LocalFirstCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 108,
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+      height: 70,
+      padding: const EdgeInsets.fromLTRB(12, 9, 12, 9),
       decoration: BoxDecoration(
-        color: const Color(0xff1a1e20),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _HTKWTokens.sidebarBorder),
+        color: _HTKWTokens.moduleTint(
+          'document-library',
+          Theme.of(context).brightness,
+          lightAlpha: 0.045,
+          darkAlpha: 0.08,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _HTKWTokens.moduleBorderTint(
+            'document-library',
+            Theme.of(context).brightness,
+            lightAlpha: 0.1,
+            darkAlpha: 0.12,
+          ),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Icon(Icons.shield_outlined,
-                  color: _HTKWTokens.goldSoft, size: 22),
-              const SizedBox(width: _DesktopGrid.gutter),
+                  color: _HTKWTokens.moduleDocument, size: 17),
+              const SizedBox(width: 10),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(localeCode == 'zh-CN' ? '本地优先' : 'Local first',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              fontSize: 12,
-                              color: _HTKWTokens.surface,
-                              fontWeight: FontWeight.w900,
-                            )),
-                    const SizedBox(height: 1),
-                    Text(
-                        localeCode == 'zh-CN'
-                            ? '默认不连接云服务'
-                            : 'Cloud is off by default',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontSize: 10,
-                              color: const Color(0xffb7b0a7),
-                            )),
-                  ],
+                child: Text(
+                  localeCode == 'zh-CN' ? '本地优先 · 默认不连接云服务' : 'Local first',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                        height: 1.2,
+                      ),
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 5),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: _HTKWTokens.sidebar,
-              borderRadius: BorderRadius.circular(999),
-              border:
-                  Border.all(color: _HTKWTokens.gold.withValues(alpha: 0.3)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.lock_outline,
-                    color: _HTKWTokens.goldSoft, size: 14),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                      localeCode == 'zh-CN'
-                          ? '安全授权受保护'
-                          : 'Authorization protected',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            fontSize: 10,
-                            color: const Color(0xffd3c2aa),
-                            fontWeight: FontWeight.w800,
-                          )),
-                ),
-              ],
-            ),
           ),
         ],
       ),

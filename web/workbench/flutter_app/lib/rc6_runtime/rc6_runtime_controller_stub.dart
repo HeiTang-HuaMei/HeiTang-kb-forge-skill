@@ -20,6 +20,9 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   Rc6RuntimeState state = Rc6RuntimeState.initial();
 
+  bool get prefersAgentConsoleInitialPage => false;
+  String get agentConsoleVerifierScenario => '';
+
   Future<void> initialize() async {
     state = state.copyWith(
       phase: Rc6RuntimePhase.blocked,
@@ -109,6 +112,7 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> clearSettingsValidationArtifacts() async => initialize();
   Future<void> clearParallelTaskValidationArtifacts() async => initialize();
   Future<void> clearRecentTaskArtifacts(String taskId) async => initialize();
+  Future<void> deleteArtifactRecord(String artifactId) async => initialize();
   Future<void> deleteImportedSource(String sourceNameOrRelativePath) async =>
       initialize();
   Future<String> readWorkspaceTextArtifact(String path,
@@ -144,6 +148,7 @@ class Rc6RuntimeController extends ChangeNotifier {
         status: 'desktop_runtime_required',
         detail: '真实 Qdrant 连接测试需要 Windows EXE 桌面端。',
       );
+  Future<void> runStorageConnectionAcceptance() async => initialize();
   Future<Map<String, dynamic>> loadStorageProviderSettings() async => {
         'schema_version': 'heitang_storage_provider_settings.v1',
         'workspace': '',
@@ -447,6 +452,59 @@ class Rc6RuntimeController extends ChangeNotifier {
     List<String> participantAgentIds = const [],
   }) async =>
       initialize();
+  Future<List<Rc6AgentProfile>> loadAgentProfiles() async {
+    await initialize();
+    return const <Rc6AgentProfile>[];
+  }
+
+  Future<Rc6AgentConversation> loadAgentConversation(String agentId) async {
+    await initialize();
+    return Rc6AgentConversation.empty(agentId);
+  }
+
+  Future<Rc6AgentProfile?> createAgentProfile({
+    required String name,
+    String description = '',
+    String role = '',
+    List<String> boundKnowledgeBaseIds = const [],
+    List<String> boundSkillIds = const [],
+    Map<String, String> settings = const {},
+  }) async {
+    await initialize();
+    return null;
+  }
+
+  Future<Rc6AgentProfile?> updateAgentProfile({
+    required String agentId,
+    required String name,
+    String description = '',
+    String role = '',
+    List<String> boundKnowledgeBaseIds = const [],
+    List<String> boundSkillIds = const [],
+    Map<String, String> settings = const {},
+  }) async {
+    await initialize();
+    return null;
+  }
+
+  Future<void> deleteAgentProfile(String agentId) async => initialize();
+
+  Future<Rc6AgentConversation> sendAgentMessage({
+    required String agentId,
+    required String content,
+  }) async {
+    await initialize();
+    return Rc6AgentConversation.empty(agentId);
+  }
+
+  Future<String> saveAgentReplyToArtifact({
+    required String agentId,
+    required String messageId,
+  }) async {
+    await initialize();
+    return '';
+  }
+
   Future<void> runRealInputFolderE2E(String folderPath,
           {String query = '赚钱 小生意'}) async =>
       initialize();
@@ -544,6 +602,298 @@ class Rc6AgentGenerationConfig {
   final String modelConfigId;
   final String outputFormat;
   final String roleGoal;
+}
+
+class Rc6AgentProfile {
+  const Rc6AgentProfile({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.role,
+    required this.status,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.boundKnowledgeBaseIds,
+    required this.boundSkillIds,
+    required this.settings,
+  });
+
+  factory Rc6AgentProfile.fromJson(Map<String, dynamic> json) {
+    return Rc6AgentProfile(
+      id: (json['id'] ?? '').toString(),
+      name: (json['name'] ?? '').toString(),
+      description: (json['description'] ?? '').toString(),
+      role: (json['role'] ?? '').toString(),
+      status: (json['status'] ?? 'available').toString(),
+      createdAt: (json['created_at'] ?? '').toString(),
+      updatedAt: (json['updated_at'] ?? '').toString(),
+      boundKnowledgeBaseIds: _stringList(json['bound_knowledge_base_ids']),
+      boundSkillIds: _stringList(json['bound_skill_ids']),
+      settings: _stringMap(json['settings']),
+    );
+  }
+
+  final String id;
+  final String name;
+  final String description;
+  final String role;
+  final String status;
+  final String createdAt;
+  final String updatedAt;
+  final List<String> boundKnowledgeBaseIds;
+  final List<String> boundSkillIds;
+  final Map<String, String> settings;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'description': description,
+        'role': role,
+        'status': status,
+        'created_at': createdAt,
+        'updated_at': updatedAt,
+        'bound_knowledge_base_ids': boundKnowledgeBaseIds,
+        'bound_skill_ids': boundSkillIds,
+        'settings': settings,
+      };
+
+  static List<String> _stringList(Object? value) {
+    if (value is! List) return const <String>[];
+    return value
+        .map((item) => item.toString().trim())
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  static Map<String, String> _stringMap(Object? value) {
+    if (value is! Map) return const <String, String>{};
+    return value.map((key, item) => MapEntry(key.toString(), item.toString()));
+  }
+}
+
+class Rc6AgentMessage {
+  const Rc6AgentMessage({
+    required this.id,
+    required this.role,
+    required this.content,
+    required this.createdAt,
+    required this.status,
+    this.error = '',
+  });
+
+  factory Rc6AgentMessage.fromJson(Map<String, dynamic> json) {
+    return Rc6AgentMessage(
+      id: (json['id'] ?? '').toString(),
+      role: (json['role'] ?? 'assistant').toString(),
+      content: (json['content'] ?? '').toString(),
+      createdAt: (json['created_at'] ?? '').toString(),
+      status: (json['status'] ?? 'saved').toString(),
+      error: (json['error'] ?? '').toString(),
+    );
+  }
+
+  final String id;
+  final String role;
+  final String content;
+  final String createdAt;
+  final String status;
+  final String error;
+
+  bool get isUser => role == 'user';
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'role': role,
+        'content': content,
+        'created_at': createdAt,
+        'status': status,
+        'error': error,
+      };
+}
+
+class Rc6AgentConversation {
+  const Rc6AgentConversation({
+    required this.conversationId,
+    required this.agentId,
+    required this.messages,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory Rc6AgentConversation.empty(String agentId) {
+    return Rc6AgentConversation(
+      conversationId: 'conv_$agentId',
+      agentId: agentId,
+      messages: const <Rc6AgentMessage>[],
+      createdAt: '',
+      updatedAt: '',
+    );
+  }
+
+  factory Rc6AgentConversation.fromJson(Map<String, dynamic> json) {
+    final messages = json['messages'] is List
+        ? (json['messages'] as List)
+            .whereType<Map>()
+            .map((item) =>
+                Rc6AgentMessage.fromJson(Map<String, dynamic>.from(item)))
+            .toList(growable: false)
+        : const <Rc6AgentMessage>[];
+    return Rc6AgentConversation(
+      conversationId: (json['conversation_id'] ?? '').toString(),
+      agentId: (json['agent_id'] ?? '').toString(),
+      messages: messages,
+      createdAt: (json['created_at'] ?? '').toString(),
+      updatedAt: (json['updated_at'] ?? '').toString(),
+    );
+  }
+
+  final String conversationId;
+  final String agentId;
+  final List<Rc6AgentMessage> messages;
+  final String createdAt;
+  final String updatedAt;
+
+  Map<String, dynamic> toJson() => {
+        'conversation_id': conversationId,
+        'agent_id': agentId,
+        'messages': messages.map((message) => message.toJson()).toList(),
+        'created_at': createdAt,
+        'updated_at': updatedAt,
+      };
+}
+
+class Rc6AgentArtifact {
+  const Rc6AgentArtifact({
+    required this.artifactId,
+    required this.agentId,
+    required this.agentName,
+    required this.messageId,
+    required this.path,
+    required this.status,
+    required this.createdAt,
+  });
+
+  factory Rc6AgentArtifact.fromJson(Map<String, dynamic> json) {
+    return Rc6AgentArtifact(
+      artifactId: (json['artifact_id'] ?? '').toString(),
+      agentId: (json['agent_id'] ?? '').toString(),
+      agentName: (json['agent_name'] ?? '').toString(),
+      messageId: (json['message_id'] ?? '').toString(),
+      path: (json['path'] ?? '').toString(),
+      status: (json['status'] ?? '').toString(),
+      createdAt: (json['created_at'] ?? '').toString(),
+    );
+  }
+
+  final String artifactId;
+  final String agentId;
+  final String agentName;
+  final String messageId;
+  final String path;
+  final String status;
+  final String createdAt;
+}
+
+class Rc6EventLedgerRecord {
+  const Rc6EventLedgerRecord({
+    required this.eventId,
+    required this.eventType,
+    required this.module,
+    required this.action,
+    required this.targetId,
+    required this.targetName,
+    required this.workspaceId,
+    required this.status,
+    required this.createdAt,
+    required this.source,
+    required this.artifactPath,
+    required this.errorMessage,
+    required this.metadata,
+  });
+
+  factory Rc6EventLedgerRecord.fromJson(Map<String, dynamic> json) {
+    final metadata = json['metadata'] is Map
+        ? Map<String, dynamic>.from(json['metadata'] as Map)
+        : const <String, dynamic>{};
+    return Rc6EventLedgerRecord(
+      eventId: (json['event_id'] ?? '').toString(),
+      eventType: (json['event_type'] ?? '').toString(),
+      module: (json['module'] ?? '').toString(),
+      action: (json['action'] ?? '').toString(),
+      targetId: (json['target_id'] ?? '').toString(),
+      targetName: (json['target_name'] ?? '').toString(),
+      workspaceId: (json['workspace_id'] ?? '').toString(),
+      status: (json['status'] ?? '').toString(),
+      createdAt: (json['created_at'] ?? '').toString(),
+      source: (json['source'] ?? '').toString(),
+      artifactPath: (json['artifact_path'] ?? '').toString(),
+      errorMessage: (json['error_message'] ?? '').toString(),
+      metadata: metadata,
+    );
+  }
+
+  final String eventId;
+  final String eventType;
+  final String module;
+  final String action;
+  final String targetId;
+  final String targetName;
+  final String workspaceId;
+  final String status;
+  final String createdAt;
+  final String source;
+  final String artifactPath;
+  final String errorMessage;
+  final Map<String, dynamic> metadata;
+}
+
+class Rc6ArtifactRecord {
+  const Rc6ArtifactRecord({
+    required this.artifactId,
+    required this.artifactType,
+    required this.title,
+    required this.sourceModule,
+    required this.sourceId,
+    required this.workspaceId,
+    required this.filePath,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.status,
+    required this.metadata,
+  });
+
+  factory Rc6ArtifactRecord.fromJson(Map<String, dynamic> json) {
+    final metadata = json['metadata'] is Map
+        ? Map<String, dynamic>.from(json['metadata'] as Map)
+        : const <String, dynamic>{};
+    return Rc6ArtifactRecord(
+      artifactId: (json['artifact_id'] ?? '').toString(),
+      artifactType: (json['artifact_type'] ?? '').toString(),
+      title: (json['title'] ?? '').toString(),
+      sourceModule: (json['source_module'] ?? '').toString(),
+      sourceId: (json['source_id'] ?? '').toString(),
+      workspaceId: (json['workspace_id'] ?? '').toString(),
+      filePath: (json['file_path'] ?? '').toString(),
+      createdAt: (json['created_at'] ?? '').toString(),
+      updatedAt: (json['updated_at'] ?? '').toString(),
+      status: (json['status'] ?? '').toString(),
+      metadata: metadata,
+    );
+  }
+
+  final String artifactId;
+  final String artifactType;
+  final String title;
+  final String sourceModule;
+  final String sourceId;
+  final String workspaceId;
+  final String filePath;
+  final String createdAt;
+  final String updatedAt;
+  final String status;
+  final Map<String, dynamic> metadata;
+
+  bool get isActive => status != 'deleted' && filePath.trim().isNotEmpty;
 }
 
 class Rc6StorageTestResult {
@@ -729,6 +1079,15 @@ class Rc6RuntimeState {
     required this.currentWorkbookName,
     required this.workbookNames,
     required this.knowledgeBases,
+    required this.agentProfiles,
+    required this.agentConversations,
+    required this.agentArtifacts,
+    required this.agentActivityLogPath,
+    required this.agentArtifactCatalogPath,
+    required this.eventLedgerPath,
+    required this.eventLedgerRecords,
+    required this.artifactCatalogPath,
+    required this.artifactRecords,
     required this.sourceCount,
     required this.sourceNames,
     required this.sourceRecords,
@@ -853,6 +1212,15 @@ class Rc6RuntimeState {
         currentWorkbookName: '默认工作本',
         workbookNames: ['默认工作本'],
         knowledgeBases: [],
+        agentProfiles: [],
+        agentConversations: [],
+        agentArtifacts: [],
+        agentActivityLogPath: '',
+        agentArtifactCatalogPath: '',
+        eventLedgerPath: '',
+        eventLedgerRecords: [],
+        artifactCatalogPath: '',
+        artifactRecords: [],
         sourceCount: 0,
         sourceNames: [],
         sourceRecords: [],
@@ -976,6 +1344,15 @@ class Rc6RuntimeState {
   final String currentWorkbookName;
   final List<String> workbookNames;
   final List<Rc6KnowledgeBaseRecord> knowledgeBases;
+  final List<Rc6AgentProfile> agentProfiles;
+  final List<Rc6AgentConversation> agentConversations;
+  final List<Rc6AgentArtifact> agentArtifacts;
+  final String agentActivityLogPath;
+  final String agentArtifactCatalogPath;
+  final String eventLedgerPath;
+  final List<Rc6EventLedgerRecord> eventLedgerRecords;
+  final String artifactCatalogPath;
+  final List<Rc6ArtifactRecord> artifactRecords;
   final int sourceCount;
   final List<String> sourceNames;
   final List<Rc6SourceRecord> sourceRecords;
@@ -1046,6 +1423,14 @@ class Rc6RuntimeState {
       parallelTaskCapacityReportPath.isNotEmpty;
   bool get hasKnowledgeBaseCatalog => knowledgeBaseCatalogPath.isNotEmpty;
   bool get hasWorkbookManifest => workbookManifestPath.isNotEmpty;
+  bool get hasAgentProfiles => agentProfiles.isNotEmpty;
+  bool get hasAgentArtifacts => agentArtifacts.isNotEmpty;
+  bool get hasAgentActivityLog => agentActivityLogPath.isNotEmpty;
+  bool get hasAgentArtifactCatalog => agentArtifactCatalogPath.isNotEmpty;
+  bool get hasEventLedger => eventLedgerPath.isNotEmpty;
+  bool get hasEventLedgerRecords => eventLedgerRecords.isNotEmpty;
+  bool get hasArtifactCatalog => artifactCatalogPath.isNotEmpty;
+  bool get hasArtifactRecords => artifactRecords.any((item) => item.isActive);
 
   Rc6RuntimeState copyWith({
     Rc6RuntimePhase? phase,
@@ -1159,6 +1544,15 @@ class Rc6RuntimeState {
     String? currentWorkbookName,
     List<String>? workbookNames,
     List<Rc6KnowledgeBaseRecord>? knowledgeBases,
+    List<Rc6AgentProfile>? agentProfiles,
+    List<Rc6AgentConversation>? agentConversations,
+    List<Rc6AgentArtifact>? agentArtifacts,
+    String? agentActivityLogPath,
+    String? agentArtifactCatalogPath,
+    String? eventLedgerPath,
+    List<Rc6EventLedgerRecord>? eventLedgerRecords,
+    String? artifactCatalogPath,
+    List<Rc6ArtifactRecord>? artifactRecords,
     int? sourceCount,
     List<String>? sourceNames,
     List<Rc6SourceRecord>? sourceRecords,
@@ -1349,6 +1743,16 @@ class Rc6RuntimeState {
       currentWorkbookName: currentWorkbookName ?? this.currentWorkbookName,
       workbookNames: workbookNames ?? this.workbookNames,
       knowledgeBases: knowledgeBases ?? this.knowledgeBases,
+      agentProfiles: agentProfiles ?? this.agentProfiles,
+      agentConversations: agentConversations ?? this.agentConversations,
+      agentArtifacts: agentArtifacts ?? this.agentArtifacts,
+      agentActivityLogPath: agentActivityLogPath ?? this.agentActivityLogPath,
+      agentArtifactCatalogPath:
+          agentArtifactCatalogPath ?? this.agentArtifactCatalogPath,
+      eventLedgerPath: eventLedgerPath ?? this.eventLedgerPath,
+      eventLedgerRecords: eventLedgerRecords ?? this.eventLedgerRecords,
+      artifactCatalogPath: artifactCatalogPath ?? this.artifactCatalogPath,
+      artifactRecords: artifactRecords ?? this.artifactRecords,
       sourceCount: sourceCount ?? this.sourceCount,
       sourceNames: sourceNames ?? this.sourceNames,
       sourceRecords: sourceRecords ?? this.sourceRecords,

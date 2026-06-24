@@ -29,10 +29,14 @@ class _FigmaPageCanvas extends StatelessWidget {
   const _FigmaPageCanvas({
     required this.children,
     this.spacing = 22,
+    this.maxContentWidth,
+    this.constrainHeight = true,
   });
 
   final List<Widget> children;
   final double spacing;
+  final double? maxContentWidth;
+  final bool constrainHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -46,27 +50,40 @@ class _FigmaPageCanvas extends StatelessWidget {
       ],
     );
     return LayoutBuilder(builder: (context, constraints) {
+      final contentWidth =
+          maxContentWidth ?? _responsiveContentMaxWidth(constraints.maxWidth);
       final canvas = Center(
         child: SizedBox(
-          width: constraints.maxWidth >= _DesktopGrid.figmaContentWidth + 24
-              ? _DesktopGrid.figmaContentWidth
+          width: constraints.maxWidth >= contentWidth + 24
+              ? contentWidth
               : constraints.maxWidth,
           child: content,
         ),
       );
       if (!constraints.maxHeight.isFinite) {
-        return canvas;
+        return constrainHeight ? canvas : _ScrollSafePadding(child: canvas);
+      }
+      if (!constrainHeight) {
+        return _ScrollSafePadding(child: canvas);
       }
       return SizedBox(
-        height: constraints.maxHeight < _DesktopGrid.figmaContentHeight
-            ? constraints.maxHeight
-            : _DesktopGrid.figmaContentHeight,
+        height: constraints.maxHeight,
         child: SingleChildScrollView(
           primary: false,
           child: _ScrollSafePadding(child: canvas),
         ),
       );
     });
+  }
+
+  double _responsiveContentMaxWidth(double availableWidth) {
+    if (availableWidth > _DesktopGrid.standardDesktopMax) {
+      return _DesktopGrid.wideContentWidth;
+    }
+    if (availableWidth > _DesktopGrid.compactDesktopMax) {
+      return _DesktopGrid.standardContentWidth;
+    }
+    return _DesktopGrid.figmaContentWidth;
   }
 }
 
@@ -118,20 +135,16 @@ class _FigmaFixedRow extends StatelessWidget {
     required this.height,
     required this.children,
     required this.widths,
-    this.spacing = 30,
   });
 
   final double height;
   final List<Widget> children;
   final List<double> widths;
-  final double spacing;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      final canUseFixed =
-          constraints.maxWidth >= _DesktopGrid.figmaContentWidth;
-      if (!canUseFixed) {
+      if (constraints.maxWidth < _DesktopGrid.rowBreakpoint) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -148,8 +161,11 @@ class _FigmaFixedRow extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (var index = 0; index < children.length; index++) ...[
-              if (index > 0) SizedBox(width: spacing),
-              SizedBox(width: widths[index], child: children[index]),
+              if (index > 0) const SizedBox(width: _DesktopGrid.gutter),
+              Expanded(
+                flex: (widths[index] * 100).round(),
+                child: children[index],
+              ),
             ],
           ],
         ),
@@ -237,9 +253,11 @@ class _FillPanelColumn extends StatelessWidget {
 class _LocalScrollBox extends StatelessWidget {
   const _LocalScrollBox({
     required this.child,
+    this.bottomPadding = _DesktopGrid.footerSafeArea,
   });
 
   final Widget child;
+  final double bottomPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -247,7 +265,10 @@ class _LocalScrollBox extends StatelessWidget {
       thumbVisibility: false,
       child: SingleChildScrollView(
         primary: false,
-        child: _ScrollSafePadding(child: child),
+        child: Padding(
+          padding: EdgeInsets.only(bottom: bottomPadding),
+          child: child,
+        ),
       ),
     );
     return box;

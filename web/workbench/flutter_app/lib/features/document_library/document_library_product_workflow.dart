@@ -342,7 +342,7 @@ class _DocumentLibraryViewState extends State<_DocumentLibraryView> {
                         _FieldRow(
                             label: zh ? '下游使用' : 'Downstream use',
                             value: zh
-                                ? '生成知识库 / 生成文档 / 测试知识库'
+                                ? '生成知识库 / 生成文档 / 验证知识库'
                                 : 'Knowledge Base build / document generation / retrieval verification'),
                       ],
                     ),
