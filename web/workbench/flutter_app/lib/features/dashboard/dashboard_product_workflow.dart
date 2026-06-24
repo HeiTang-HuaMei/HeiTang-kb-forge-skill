@@ -1634,6 +1634,7 @@ String _dashboardEventTitle(Rc6EventLedgerRecord record, bool zh) {
     'send_agent_message' => zh ? '助手有新对话' : 'Assistant replied',
     'save_artifact' => zh ? '成果已保存' : 'Output saved',
     'delete_artifact' => zh ? '成果已删除' : 'Output deleted',
+    'export_document' => zh ? '文档已导出' : 'Document exported',
     'export_artifact' => zh ? '成果已导出' : 'Output exported',
     'failure_event' => zh ? '操作失败' : 'Action failed',
     _ => record.action.isEmpty ? (zh ? '操作记录' : 'Activity') : record.action,

@@ -88,8 +88,8 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
         : runtime.hasKnowledgeBase
             ? (zh ? '可生成' : 'Ready')
             : (zh ? '需要知识库' : 'Needs KB');
-    final officeExporterStatus = zh ? '需要设置导出工具' : 'Export tool setup required';
-    final officeExporterDetail = zh ? '在设置启用后可导出' : 'Enable in Settings';
+    final officeExporterStatus = zh ? '内置本地导出' : 'Built-in local export';
+    final officeExporterDetail = zh ? '无需外部导出工具' : 'No external exporter';
     final exporterAuditReady =
         runtime.exporterValidationReportPath.isNotEmpty ||
             runtime.hasProviderCapabilityUserCatalog;
@@ -101,7 +101,7 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
         : (zh ? '生成 Markdown 后可用' : 'Available after Markdown');
     final officeCapabilityStatus = exporterAuditReady
         ? officeExporterStatus
-        : (zh ? '未配置，按钮不可执行' : 'Not configured, disabled');
+        : (zh ? '内置适配器可用' : 'Built-in adapter ready');
     String statusForOutputFormat(String format) {
       if (format == 'md') return markdownStatus;
       if (format == 'json' || format == 'csv') {
@@ -119,20 +119,14 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
           zh: zh,
           initial: _DocumentGenerationConfig(
             generationType: generationType,
-            outputFormat:
-                _documentOutputFormatRequiresConfiguration(outputFormat)
-                    ? 'md'
-                    : outputFormat,
+            outputFormat: outputFormat,
             citationStrategy: citationStrategy,
             templateMode: templateMode,
           ),
         ),
       );
       if (result == null) return;
-      final output =
-          _documentOutputFormatRequiresConfiguration(result.outputFormat)
-              ? 'md'
-              : result.outputFormat;
+      final output = result.outputFormat;
       setState(() {
         generationType = result.generationType;
         outputFormat = output;
@@ -150,8 +144,7 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
           templateMode: result.templateMode,
         ),
       );
-      if ((output == 'json' || output == 'csv') &&
-          rc6.state.lastResult?.passed == true) {
+      if (output != 'md' && rc6.state.lastResult?.passed == true) {
         await rc6.exportDocumentFormat(output);
       }
     }
@@ -339,19 +332,19 @@ class _DocumentGenerationViewState extends State<_DocumentGenerationView> {
                     Wrap(spacing: 8, runSpacing: 8, children: [
                       for (final item in const [
                         'md',
+                        'txt',
                         'docx',
                         'pdf',
                         'pptx',
                         'json',
-                        'csv'
+                        'csv',
+                        'xlsx'
                       ])
                         ChoiceChip(
                           label: Text(_documentOutputFormatLabel(item, zh)),
                           selected: outputFormat == item,
-                          onSelected:
-                              _documentOutputFormatRequiresConfiguration(item)
-                                  ? null
-                                  : (_) => setState(() => outputFormat = item),
+                          onSelected: (_) =>
+                              setState(() => outputFormat = item),
                         ),
                     ]),
                   ],
@@ -864,16 +857,8 @@ String _citationStrategyLabel(String value, bool zh) {
   };
 }
 
-bool _documentOutputFormatRequiresConfiguration(String value) {
-  return const {'docx', 'pdf', 'pptx'}.contains(value);
-}
-
 String _documentOutputFormatLabel(String value, bool zh) {
-  final upper = value.toUpperCase();
-  if (_documentOutputFormatRequiresConfiguration(value)) {
-    return zh ? '$upper（需配置）' : '$upper (config required)';
-  }
-  return upper;
+  return value.toUpperCase();
 }
 
 String _exportedDocumentFormat(String path) {
@@ -883,6 +868,8 @@ String _exportedDocumentFormat(String path) {
   if (normalized.endsWith('.docx')) return 'docx';
   if (normalized.endsWith('.pdf')) return 'pdf';
   if (normalized.endsWith('.pptx')) return 'pptx';
+  if (normalized.endsWith('.xlsx')) return 'xlsx';
+  if (normalized.endsWith('.txt')) return 'txt';
   return 'md';
 }
 
@@ -923,11 +910,7 @@ class _DocumentGenerationDialogState extends State<_DocumentGenerationDialog> {
   bool get zh => widget.zh;
 
   String _outputChoiceLabel(String item) {
-    final upper = item.toUpperCase();
-    if (item == 'docx' || item == 'pdf' || item == 'pptx') {
-      return zh ? '$upper（需配置）' : '$upper (config required)';
-    }
-    return upper;
+    return item.toUpperCase();
   }
 
   @override
@@ -976,11 +959,13 @@ class _DocumentGenerationDialogState extends State<_DocumentGenerationDialog> {
               Wrap(spacing: 8, runSpacing: 8, children: [
                 for (final item in const [
                   'md',
+                  'txt',
                   'json',
                   'csv',
                   'docx',
                   'pdf',
-                  'pptx'
+                  'pptx',
+                  'xlsx'
                 ])
                   ChoiceChip(
                     label: Text(_outputChoiceLabel(item)),
@@ -1054,10 +1039,10 @@ class _DocumentExportPreviewViewState
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
     final runtime = rc6?.state ?? Rc6RuntimeState.initial();
-    final officeExporterStatus = zh ? '需要设置导出工具' : 'Export tool setup required';
-    final officeExporterValidation = zh ? '未启用' : 'Not enabled';
+    final officeExporterStatus = zh ? '内置本地导出' : 'Built-in local export';
+    final officeExporterValidation = zh ? '可执行' : 'Executable';
     final officeExporterArtifact =
-        zh ? '在设置启用导出工具' : 'Enable export tools in Settings';
+        zh ? '生成本地文件与导出清单' : 'Writes local file and manifest';
     final exportedFormat =
         _exportedDocumentFormat(runtime.exportedDocumentPath);
     final exportedFormatLabel =
@@ -1075,8 +1060,8 @@ class _DocumentExportPreviewViewState
         title: zh ? '文档导出' : 'Document Export',
         children: [
           _SectionCaption(zh
-              ? 'Markdown、JSON、CSV 通过本地工作区真实导出；DOCX/PDF/PPTX 需要在设置启用导出工具。'
-              : 'Markdown, JSON, and CSV export through the local workspace; DOCX/PDF/PPTX require export tools in Settings.'),
+              ? 'Markdown、TXT、JSON、CSV、DOCX、PDF、PPTX、XLSX 均通过本地工作区真实导出。'
+              : 'Markdown, TXT, JSON, CSV, DOCX, PDF, PPTX, and XLSX export through the local workspace.'),
           const SizedBox(height: 8),
           _ProductTable(
             columns: zh
@@ -1109,6 +1094,12 @@ class _DocumentExportPreviewViewState
                       'knowledge_export.csv'
                     ],
                     [
+                      'TXT',
+                      runtime.hasMarkdown ? '可导出' : '需要 Markdown',
+                      '本地纯文本',
+                      'generated.txt'
+                    ],
+                    [
                       'DOCX',
                       officeExporterStatus,
                       officeExporterValidation,
@@ -1125,6 +1116,12 @@ class _DocumentExportPreviewViewState
                       officeExporterStatus,
                       officeExporterValidation,
                       officeExporterArtifact
+                    ],
+                    [
+                      'XLSX',
+                      runtime.hasMarkdown ? '可导出' : '需要 Markdown',
+                      '本地表格',
+                      'generated.xlsx'
                     ],
                   ]
                 : [
@@ -1153,6 +1150,12 @@ class _DocumentExportPreviewViewState
                       'knowledge_export.csv'
                     ],
                     [
+                      'TXT',
+                      runtime.hasMarkdown ? 'Ready' : 'Needs Markdown',
+                      'Local plain text',
+                      'generated.txt'
+                    ],
+                    [
                       'DOCX',
                       officeExporterStatus,
                       officeExporterValidation,
@@ -1170,24 +1173,30 @@ class _DocumentExportPreviewViewState
                       officeExporterValidation,
                       officeExporterArtifact
                     ],
+                    [
+                      'XLSX',
+                      runtime.hasMarkdown ? 'Ready' : 'Needs Markdown',
+                      'Local table',
+                      'generated.xlsx'
+                    ],
                   ],
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           Wrap(spacing: 8, runSpacing: 8, children: [
             for (final item in const [
               'md',
+              'txt',
               'json',
               'csv',
               'docx',
               'pdf',
-              'pptx'
+              'pptx',
+              'xlsx'
             ])
               ChoiceChip(
                 label: Text(_documentOutputFormatLabel(item, zh)),
                 selected: selectedExportFormat == item,
-                onSelected: _documentOutputFormatRequiresConfiguration(item)
-                    ? null
-                    : (_) => setState(() => selectedExportFormat = item),
+                onSelected: (_) => setState(() => selectedExportFormat = item),
               ),
           ]),
           const SizedBox(height: _DesktopGrid.gutter),
@@ -1196,11 +1205,7 @@ class _DocumentExportPreviewViewState
                 ? '导出 ${selectedExportFormat.toUpperCase()} 文件'
                 : 'Export ${selectedExportFormat.toUpperCase()} file',
             icon: Icons.file_download_outlined,
-            onPressed: runtime.running ||
-                    rc6 == null ||
-                    !runtime.hasMarkdown ||
-                    _documentOutputFormatRequiresConfiguration(
-                        selectedExportFormat)
+            onPressed: runtime.running || rc6 == null || !runtime.hasMarkdown
                 ? null
                 : () {
                     setState(() => exportPreviewReady = true);

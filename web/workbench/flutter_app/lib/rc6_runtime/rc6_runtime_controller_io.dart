@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
@@ -1311,6 +1312,35 @@ class Rc6RuntimeController extends ChangeNotifier {
         'output': exported.path,
       },
     );
+    await _appendEventLedgerRecord(
+      eventType: 'export_document',
+      module: 'document_generation',
+      action: 'export_document_md',
+      status: 'completed',
+      targetId: 'document_export_md',
+      targetName: 'Markdown 文档导出',
+      artifactPath: exported.path,
+      source: 'document_generation',
+      metadata: {
+        'format': 'md',
+        'manifest_path': _join(exportDir.path, 'export_manifest.json'),
+        'adapter': 'local_markdown',
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'generated_document_export_md',
+      artifactType: 'generated_document',
+      title: 'Markdown 文档导出',
+      sourceModule: 'document_generation',
+      sourceId: 'export_document_md',
+      filePath: exported.path,
+      status: 'completed',
+      metadata: {
+        'format': 'md',
+        'manifest_path': _join(exportDir.path, 'export_manifest.json'),
+        'adapter': 'local_markdown',
+      },
+    );
     state = state.copyWith(
       running: false,
       phase: Rc6RuntimePhase.documentGenerated,
@@ -1502,58 +1532,133 @@ class Rc6RuntimeController extends ChangeNotifier {
       await _exportStructuredDocumentFormat(normalized);
       return;
     }
-    if (!const {'docx', 'pdf', 'pptx'}.contains(normalized)) {
-      _fail('暂不支持该导出格式：$format');
+    if (normalized == 'txt' ||
+        const {'docx', 'pdf', 'pptx', 'xlsx'}.contains(normalized)) {
+      await _exportLocalDocumentAdapterFormat(normalized);
       return;
     }
+    if (normalized == 'xls') {
+      await _exportLocalDocumentAdapterFormat('xlsx');
+      return;
+    }
+    _fail('暂不支持该导出格式：$format');
+    return;
+  }
+
+  Future<void> _exportLocalDocumentAdapterFormat(String format) async {
     if (!_canRunDesktop()) {
       return;
     }
     final workspace = _requireWorkspace();
-    final kbDir = Directory(_join(workspace.path, 'kb'));
-    if (!await kbDir.exists()) {
-      _fail('请先构建知识库，再导出 $normalized 文档。');
+    final normalized = format.trim().toLowerCase();
+    if (!const {'txt', 'docx', 'pdf', 'pptx', 'xlsx'}.contains(normalized)) {
+      _fail('暂不支持该导出格式：$format');
       return;
     }
+    final docDir = Directory(_join(workspace.path, 'doc'));
+    final markdown = await _currentDocumentMarkdown(workspace);
+    if (markdown.trim().isEmpty) {
+      _fail('请先生成文档，再导出 ${normalized.toUpperCase()}。');
+      return;
+    }
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在导出 ${normalized.toUpperCase()} 文件...',
+      lastError: '',
+    );
+    notifyListeners();
     final exportDir = Directory(_join(workspace.path, 'export', normalized));
     await _clearWorkspacePath(exportDir.path);
-    final command = 'generate-$normalized';
-    await _runCoreAction(
-      actionId: command.replaceAll('-', '_'),
-      arguments: [
-        command,
-        '--package',
-        kbDir.path,
-        '--output',
-        exportDir.path,
-        '--title',
-        '真实输入文档导出',
-      ],
-      outputPath: exportDir.path,
-      nextPhase: Rc6RuntimePhase.documentGenerated,
-      successMessage: '${normalized.toUpperCase()} 文档已导出。',
-      timeout: const Duration(minutes: 10),
-    );
-    if (state.lastResult?.passed == true) {
-      final generated = await _firstFileWithExtension(exportDir, normalized);
-      await _appendOrchestrationPlanRecord(
-        layer: 'document',
-        action: 'export_document',
-        artifact: _join(exportDir.path, 'generated_file_report.json'),
-        status: 'completed',
-        resources: {
-          'format': normalized,
-          'kb_package': kbDir.path,
-          'output': generated?.path ?? exportDir.path,
-        },
-      );
-      state = state.copyWith(
-        exportedDocumentPath: generated?.path ?? exportDir.path,
-        exportManifestPath: _join(exportDir.path, 'generated_file_report.json'),
-        lastMessage: '${normalized.toUpperCase()} 文档已导出。',
-        lastError: '',
-      );
+    await exportDir.create(recursive: true);
+    final output = File(_join(exportDir.path, 'generated.$normalized'));
+    final structured = normalized == 'xlsx'
+        ? await _structuredDocumentExportPayload(workspace)
+        : const <String, Object?>{};
+    switch (normalized) {
+      case 'txt':
+        await output.writeAsString(_markdownToPlainText(markdown),
+            encoding: utf8);
+      case 'docx':
+        await _writeDocxFile(output, markdown);
+      case 'pdf':
+        await _writePdfFile(output, markdown);
+      case 'pptx':
+        await _writePptxFile(output, markdown);
+      case 'xlsx':
+        await _writeXlsxFile(output, structured);
     }
+    final manifestPath = _join(exportDir.path, 'generated_file_report.json');
+    final manifest = {
+      'schema_version': 'prd_v3_builtin_document_export_adapter.v1',
+      'status': 'pass',
+      'format': normalized,
+      'adapter': 'builtin_local_${normalized}_adapter',
+      'source_markdown':
+          await File(_join(docDir.path, 'edited_document.md')).exists()
+              ? _join(docDir.path, 'edited_document.md')
+              : await File(_join(docDir.path, 'reading_notes.md')).exists()
+                  ? _join(docDir.path, 'reading_notes.md')
+                  : _join(docDir.path, 'generated.md'),
+      'output': output.path,
+      'size_bytes': await output.length(),
+      'workspace': workspace.path,
+      'generation_manifest': _join(docDir.path, 'generation_manifest.json'),
+      'generation_config': await _latestDocumentGenerationConfig(workspace),
+      'secret_plaintext_written': false,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    await File(manifestPath).writeAsString(
+      const JsonEncoder.withIndent('  ').convert(manifest),
+      encoding: utf8,
+    );
+    await _appendOrchestrationPlanRecord(
+      layer: 'document',
+      action: 'export_document',
+      artifact: manifestPath,
+      status: 'completed',
+      resources: {
+        'format': normalized,
+        'adapter': 'builtin_local_${normalized}_adapter',
+        'output': output.path,
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'export_document',
+      module: 'document_generation',
+      action: 'export_document_$normalized',
+      status: 'completed',
+      targetId: 'document_export_$normalized',
+      targetName: '${normalized.toUpperCase()} 文档导出',
+      artifactPath: output.path,
+      source: 'document_generation',
+      metadata: {
+        'format': normalized,
+        'manifest_path': manifestPath,
+        'adapter': 'builtin_local_${normalized}_adapter',
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'generated_document_export_$normalized',
+      artifactType: 'generated_document',
+      title: '${normalized.toUpperCase()} 文档导出',
+      sourceModule: 'document_generation',
+      sourceId: 'export_document_$normalized',
+      filePath: output.path,
+      status: 'completed',
+      metadata: {
+        'format': normalized,
+        'manifest_path': manifestPath,
+        'adapter': 'builtin_local_${normalized}_adapter',
+      },
+    );
+    state = state.copyWith(
+      running: false,
+      phase: Rc6RuntimePhase.documentGenerated,
+      exportedDocumentPath: output.path,
+      exportManifestPath: manifestPath,
+      lastMessage: '${normalized.toUpperCase()} 文档已导出。',
+      lastError: '',
+    );
     await _loadExistingArtifacts();
     notifyListeners();
   }
@@ -1624,6 +1729,37 @@ class Rc6RuntimeController extends ChangeNotifier {
         'json_output': jsonPath,
         'csv_output': csvPath,
         'selected_output': outputPath,
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'export_document',
+      module: 'document_generation',
+      action: 'export_document_$format',
+      status: 'completed',
+      targetId: 'document_export_$format',
+      targetName: '${format.toUpperCase()} 结构化文件导出',
+      artifactPath: outputPath,
+      source: 'document_generation',
+      metadata: {
+        'format': format,
+        'manifest_path': manifestPath,
+        'json_output': jsonPath,
+        'csv_output': csvPath,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'generated_document_export_$format',
+      artifactType: 'generated_document',
+      title: '${format.toUpperCase()} 结构化文件导出',
+      sourceModule: 'document_generation',
+      sourceId: 'export_document_$format',
+      filePath: outputPath,
+      status: 'completed',
+      metadata: {
+        'format': format,
+        'manifest_path': manifestPath,
+        'json_output': jsonPath,
+        'csv_output': csvPath,
       },
     );
     state = state.copyWith(
@@ -3357,31 +3493,33 @@ class Rc6RuntimeController extends ChangeNotifier {
       'export_root': root,
       'exporters': {
         'markdown': {'provider': 'local_markdown', 'status': 'connected'},
+        'txt': {'provider': 'builtin_local_txt', 'status': 'connected'},
         'json': {'provider': 'local_json', 'status': 'connected'},
         'csv': {'provider': 'local_csv', 'status': 'connected'},
+        'xlsx': {'provider': 'builtin_local_xlsx', 'status': 'connected'},
         'docx': {
           'provider': docxExporter.trim().isEmpty
-              ? 'requires_configuration'
+              ? 'builtin_local_docx'
               : docxExporter.trim(),
           'status': docxExporter.trim().isEmpty
-              ? 'requires_configuration'
-              : 'configured_not_tested',
+              ? 'connected'
+              : 'external_configured_not_tested',
         },
         'pdf': {
           'provider': pdfExporter.trim().isEmpty
-              ? 'requires_configuration'
+              ? 'builtin_local_pdf'
               : pdfExporter.trim(),
           'status': pdfExporter.trim().isEmpty
-              ? 'requires_configuration'
-              : 'configured_not_tested',
+              ? 'connected'
+              : 'external_configured_not_tested',
         },
         'pptx': {
           'provider': pptxExporter.trim().isEmpty
-              ? 'requires_configuration'
+              ? 'builtin_local_pptx'
               : pptxExporter.trim(),
           'status': pptxExporter.trim().isEmpty
-              ? 'requires_configuration'
-              : 'configured_not_tested',
+              ? 'connected'
+              : 'external_configured_not_tested',
         },
       },
     };
@@ -4607,19 +4745,6 @@ class Rc6RuntimeController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<File?> _firstFileWithExtension(
-      Directory directory, String extension) async {
-    if (!await directory.exists()) {
-      return null;
-    }
-    await for (final entity in directory.list(recursive: true)) {
-      if (entity is File && entity.path.toLowerCase().endsWith('.$extension')) {
-        return entity;
-      }
-    }
-    return null;
-  }
-
   Future<File?> _resolveExternalSkillFile(String path) async {
     final file = File(path);
     if (await file.exists()) {
@@ -4654,6 +4779,10 @@ class Rc6RuntimeController extends ChangeNotifier {
         _join(workspace.path, 'export', 'export_manifest.json')
       ),
       (
+        _joinNested(workspace.path, 'export/txt/generated.txt'),
+        _joinNested(workspace.path, 'export/txt/generated_file_report.json')
+      ),
+      (
         _joinNested(workspace.path, 'export/docx/generated.docx'),
         _joinNested(workspace.path, 'export/docx/generated_file_report.json')
       ),
@@ -4664,6 +4793,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       (
         _joinNested(workspace.path, 'export/pptx/generated.pptx'),
         _joinNested(workspace.path, 'export/pptx/generated_file_report.json')
+      ),
+      (
+        _joinNested(workspace.path, 'export/xlsx/generated.xlsx'),
+        _joinNested(workspace.path, 'export/xlsx/generated_file_report.json')
       ),
       (
         _joinNested(workspace.path, 'export/structured/knowledge_export.json'),
@@ -6022,9 +6155,18 @@ class Rc6RuntimeController extends ChangeNotifier {
     }
     await generateMarkdown();
     if (state.lastResult?.passed != true) return;
-    await exportMarkdownDocument();
-    await exportDocumentFormat('json');
-    await exportDocumentFormat('csv');
+    for (final format in const [
+      'md',
+      'txt',
+      'json',
+      'csv',
+      'docx',
+      'pdf',
+      'pptx',
+      'xlsx',
+    ]) {
+      await exportDocumentFormat(format);
+    }
   }
 
   Future<void> runOwnerInputDocumentFlowE2E({String query = '赚钱 小生意'}) async {
@@ -8960,6 +9102,230 @@ class Rc6RuntimeController extends ChangeNotifier {
       return '"$escaped"';
     }
     return escaped;
+  }
+
+  Future<String> _currentDocumentMarkdown(Directory workspace) async {
+    final docDir = Directory(_join(workspace.path, 'doc'));
+    final edited = File(_join(docDir.path, 'edited_document.md'));
+    final notes = File(_join(docDir.path, 'reading_notes.md'));
+    final generated = File(_join(docDir.path, 'generated.md'));
+    if (await edited.exists()) {
+      return edited.readAsString(encoding: utf8);
+    }
+    if (await notes.exists()) {
+      return notes.readAsString(encoding: utf8);
+    }
+    if (await generated.exists()) {
+      return generated.readAsString(encoding: utf8);
+    }
+    return '';
+  }
+
+  static String _markdownToPlainText(String markdown) {
+    return markdown
+        .replaceAll(RegExp(r'```[\s\S]*?```'), '')
+        .replaceAll(RegExp(r'`([^`]+)`'), r'$1')
+        .replaceAll(RegExp(r'!\[[^\]]*\]\([^)]+\)'), '')
+        .replaceAll(RegExp(r'\[([^\]]+)\]\([^)]+\)'), r'$1')
+        .replaceAll(RegExp(r'^\s{0,3}#{1,6}\s*', multiLine: true), '')
+        .replaceAll(RegExp(r'^\s*[-*+]\s+', multiLine: true), '- ')
+        .replaceAll(RegExp(r'\*\*([^*]+)\*\*'), r'$1')
+        .replaceAll(RegExp(r'\*([^*]+)\*'), r'$1')
+        .replaceAll(RegExp(r'\r?\n{3,}'), '\n\n')
+        .trim();
+  }
+
+  static Future<void> _writeDocxFile(File output, String markdown) async {
+    final paragraphs = _documentParagraphs(markdown, maxParagraphs: 120);
+    final documentXml = StringBuffer()
+      ..write('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>')
+      ..write(
+          '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>');
+    for (final paragraph in paragraphs) {
+      documentXml
+        ..write('<w:p><w:r><w:t xml:space="preserve">')
+        ..write(_xmlEscape(paragraph))
+        ..write('</w:t></w:r></w:p>');
+    }
+    documentXml.write(
+        '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr></w:body></w:document>');
+    await _writeZipFile(output, {
+      '[Content_Types].xml':
+          '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>',
+      '_rels/.rels':
+          '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>',
+      'word/document.xml': documentXml.toString(),
+    });
+  }
+
+  static Future<void> _writePptxFile(File output, String markdown) async {
+    final paragraphs = _documentParagraphs(markdown, maxParagraphs: 8);
+    final slideItems = paragraphs.skip(1).take(5).toList(growable: false);
+    final title = paragraphs.isEmpty ? 'HeiTang 文档导出' : paragraphs.first;
+    final body = slideItems.isEmpty ? paragraphs.take(5).toList() : slideItems;
+    final bodyRuns = StringBuffer();
+    for (final line in body) {
+      bodyRuns
+        ..write('<a:p><a:r><a:t>')
+        ..write(_xmlEscape(line))
+        ..write('</a:t></a:r></a:p>');
+    }
+    final slideXml = '''
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld><p:spTree>
+    <p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/>
+    <p:sp><p:nvSpPr><p:cNvPr id="2" name="Title"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="685800" y="457200"/><a:ext cx="7772400" cy="914400"/></a:xfrm></p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr sz="3200" b="1"/><a:t>${_xmlEscape(title)}</a:t></a:r></a:p></p:txBody></p:sp>
+    <p:sp><p:nvSpPr><p:cNvPr id="3" name="Body"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="685800" y="1600200"/><a:ext cx="7772400" cy="4200000"/></a:xfrm></p:spPr><p:txBody><a:bodyPr/><a:lstStyle/>$bodyRuns</p:txBody></p:sp>
+  </p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr>
+</p:sld>
+''';
+    await _writeZipFile(output, {
+      '[Content_Types].xml':
+          '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/></Types>',
+      '_rels/.rels':
+          '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/></Relationships>',
+      'ppt/presentation.xml':
+          '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:presentation xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:sldIdLst><p:sldId id="256" r:id="rId1"/></p:sldIdLst><p:sldSz cx="9144000" cy="6858000" type="screen4x3"/><p:notesSz cx="6858000" cy="9144000"/></p:presentation>',
+      'ppt/_rels/presentation.xml.rels':
+          '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide1.xml"/></Relationships>',
+      'ppt/slides/slide1.xml': slideXml,
+    });
+  }
+
+  static Future<void> _writeXlsxFile(
+      File output, Map<String, Object?> payload) async {
+    final rows = _structuredDocumentExportCsv(payload)
+        .split(RegExp(r'\r?\n'))
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => line.split(',').map((cell) => cell.replaceAll('"', '')))
+        .take(200)
+        .toList(growable: false);
+    final sheetRows = StringBuffer();
+    for (var rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+      sheetRows.write('<row r="${rowIndex + 1}">');
+      final row = rows[rowIndex].take(8).toList(growable: false);
+      for (var colIndex = 0; colIndex < row.length; colIndex += 1) {
+        sheetRows
+          ..write(
+              '<c r="${_excelColumnName(colIndex)}${rowIndex + 1}" t="inlineStr"><is><t>')
+          ..write(_xmlEscape(row[colIndex]))
+          ..write('</t></is></c>');
+      }
+      sheetRows.write('</row>');
+    }
+    await _writeZipFile(output, {
+      '[Content_Types].xml':
+          '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
+      '_rels/.rels':
+          '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+      'xl/workbook.xml':
+          '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Knowledge Export" sheetId="1" r:id="rId1"/></sheets></workbook>',
+      'xl/_rels/workbook.xml.rels':
+          '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
+      'xl/worksheets/sheet1.xml':
+          '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>$sheetRows</sheetData></worksheet>',
+    });
+  }
+
+  static Future<void> _writePdfFile(File output, String markdown) async {
+    final lines = _documentParagraphs(markdown, maxParagraphs: 28)
+        .expand((line) => _wrapPdfLine(line, 84))
+        .take(48)
+        .toList(growable: false);
+    final content = StringBuffer()..writeln('BT /F1 10 Tf 50 780 Td');
+    for (final line in lines) {
+      content
+        ..write('(')
+        ..write(_pdfEscape(line))
+        ..writeln(') Tj 0 -15 Td');
+    }
+    content.writeln('ET');
+    final stream = content.toString();
+    final objects = <String>[
+      '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n',
+      '2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n',
+      '3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>\nendobj\n',
+      '4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n',
+      '5 0 obj\n<< /Length ${ascii.encode(stream).length} >>\nstream\n$stream\nendstream\nendobj\n',
+    ];
+    final outputText = StringBuffer('%PDF-1.4\n');
+    final offsets = <int>[0];
+    var byteOffset = ascii.encode(outputText.toString()).length;
+    for (final object in objects) {
+      offsets.add(byteOffset);
+      outputText.write(object);
+      byteOffset += ascii.encode(object).length;
+    }
+    final xrefOffset = byteOffset;
+    outputText
+      ..write('xref\n0 ${objects.length + 1}\n')
+      ..write('0000000000 65535 f \n');
+    for (final offset in offsets.skip(1)) {
+      outputText
+        ..write(offset.toString().padLeft(10, '0'))
+        ..write(' 00000 n \n');
+    }
+    outputText
+      ..write('trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\n')
+      ..write('startxref\n$xrefOffset\n%%EOF\n');
+    await output.writeAsBytes(ascii.encode(outputText.toString()));
+  }
+
+  static List<String> _documentParagraphs(String markdown,
+      {required int maxParagraphs}) {
+    final plain = _markdownToPlainText(markdown);
+    final paragraphs = plain
+        .split(RegExp(r'\r?\n+'))
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .take(maxParagraphs)
+        .toList(growable: false);
+    return paragraphs.isEmpty ? const ['HeiTang 文档导出'] : paragraphs;
+  }
+
+  static Iterable<String> _wrapPdfLine(String text, int width) sync* {
+    var current = text.trim();
+    while (current.length > width) {
+      yield current.substring(0, width);
+      current = current.substring(width).trimLeft();
+    }
+    if (current.isNotEmpty) yield current;
+  }
+
+  static String _excelColumnName(int index) {
+    var value = index + 1;
+    final chars = <String>[];
+    while (value > 0) {
+      value -= 1;
+      chars.insert(0, String.fromCharCode(65 + value % 26));
+      value ~/= 26;
+    }
+    return chars.join();
+  }
+
+  static String _xmlEscape(Object? value) => (value ?? '')
+      .toString()
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&apos;');
+
+  static String _pdfEscape(String value) => value
+      .replaceAll(RegExp(r'[^\x09\x0A\x0D\x20-\x7E]'), '?')
+      .replaceAll('\\', r'\\')
+      .replaceAll('(', r'\(')
+      .replaceAll(')', r'\)');
+
+  static Future<void> _writeZipFile(
+      File output, Map<String, String> entries) async {
+    final encoder = _StoredZipEncoder();
+    for (final entry in entries.entries) {
+      encoder.addText(entry.key, entry.value);
+    }
+    await output.parent.create(recursive: true);
+    await output.writeAsBytes(encoder.finish(), flush: true);
   }
 
   Future<void> _writeAdditionalSkillPackages({
@@ -13605,9 +13971,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       },
       'exporters': {
         'markdown': {'status': 'connected', 'extension': 'md'},
-        'docx': {'status': 'requires_configuration', 'extension': 'docx'},
-        'pdf': {'status': 'requires_configuration', 'extension': 'pdf'},
-        'pptx': {'status': 'requires_configuration', 'extension': 'pptx'},
+        'txt': {'status': 'connected', 'extension': 'txt'},
+        'docx': {'status': 'connected', 'extension': 'docx'},
+        'pdf': {'status': 'connected', 'extension': 'pdf'},
+        'pptx': {'status': 'connected', 'extension': 'pptx'},
+        'xlsx': {'status': 'connected', 'extension': 'xlsx'},
         'json': {'status': 'connected', 'extension': 'json'},
         'csv': {'status': 'connected', 'extension': 'csv'},
       },
@@ -24759,9 +25127,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       },
       'exporters': {
         'markdown': {'status': 'connected', 'extension': 'md'},
-        'docx': {'status': 'requires_configuration', 'extension': 'docx'},
-        'pdf': {'status': 'requires_configuration', 'extension': 'pdf'},
-        'pptx': {'status': 'requires_configuration', 'extension': 'pptx'},
+        'txt': {'status': 'connected', 'extension': 'txt'},
+        'docx': {'status': 'connected', 'extension': 'docx'},
+        'pdf': {'status': 'connected', 'extension': 'pdf'},
+        'pptx': {'status': 'connected', 'extension': 'pptx'},
+        'xlsx': {'status': 'connected', 'extension': 'xlsx'},
         'json': {'status': 'connected', 'extension': 'json'},
         'csv': {'status': 'connected', 'extension': 'csv'},
       },
@@ -24833,18 +25203,20 @@ class Rc6RuntimeController extends ChangeNotifier {
         'markdown': {'provider': 'local_markdown', 'status': 'connected'},
         'json': {'provider': 'local_json', 'status': 'connected'},
         'csv': {'provider': 'local_csv', 'status': 'connected'},
+        'txt': {'provider': 'builtin_local_txt', 'status': 'connected'},
         'docx': {
-          'provider': 'requires_configuration',
-          'status': 'requires_configuration',
+          'provider': 'builtin_local_docx',
+          'status': 'connected',
         },
         'pdf': {
-          'provider': 'requires_configuration',
-          'status': 'requires_configuration',
+          'provider': 'builtin_local_pdf',
+          'status': 'connected',
         },
         'pptx': {
-          'provider': 'requires_configuration',
-          'status': 'requires_configuration',
+          'provider': 'builtin_local_pptx',
+          'status': 'connected',
         },
+        'xlsx': {'provider': 'builtin_local_xlsx', 'status': 'connected'},
       },
     };
   }
@@ -25630,6 +26002,112 @@ class Rc6RuntimeController extends ChangeNotifier {
         .map((part) => part.replaceAll(RegExp(r'[\\\/]+$'), ''))
         .join(separator);
   }
+}
+
+class _StoredZipEncoder {
+  final _output = BytesBuilder(copy: false);
+  final _centralDirectory = <_StoredZipEntry>[];
+
+  void addText(String path, String content) {
+    final nameBytes = utf8.encode(path.replaceAll('\\', '/'));
+    final data = utf8.encode(content);
+    final offset = _output.length;
+    final crc = _crc32(data);
+    _writeUint32(0x04034b50);
+    _writeUint16(20);
+    _writeUint16(0);
+    _writeUint16(0);
+    _writeUint16(0);
+    _writeUint16(0);
+    _writeUint32(crc);
+    _writeUint32(data.length);
+    _writeUint32(data.length);
+    _writeUint16(nameBytes.length);
+    _writeUint16(0);
+    _output.add(nameBytes);
+    _output.add(data);
+    _centralDirectory.add(_StoredZipEntry(
+      nameBytes: nameBytes,
+      crc32: crc,
+      size: data.length,
+      offset: offset,
+    ));
+  }
+
+  List<int> finish() {
+    final centralStart = _output.length;
+    for (final entry in _centralDirectory) {
+      _writeUint32(0x02014b50);
+      _writeUint16(20);
+      _writeUint16(20);
+      _writeUint16(0);
+      _writeUint16(0);
+      _writeUint16(0);
+      _writeUint16(0);
+      _writeUint32(entry.crc32);
+      _writeUint32(entry.size);
+      _writeUint32(entry.size);
+      _writeUint16(entry.nameBytes.length);
+      _writeUint16(0);
+      _writeUint16(0);
+      _writeUint16(0);
+      _writeUint16(0);
+      _writeUint32(0);
+      _writeUint32(entry.offset);
+      _output.add(entry.nameBytes);
+    }
+    final centralSize = _output.length - centralStart;
+    _writeUint32(0x06054b50);
+    _writeUint16(0);
+    _writeUint16(0);
+    _writeUint16(_centralDirectory.length);
+    _writeUint16(_centralDirectory.length);
+    _writeUint32(centralSize);
+    _writeUint32(centralStart);
+    _writeUint16(0);
+    return _output.takeBytes();
+  }
+
+  void _writeUint16(int value) {
+    _output.add([
+      value & 0xff,
+      (value >> 8) & 0xff,
+    ]);
+  }
+
+  void _writeUint32(int value) {
+    _output.add([
+      value & 0xff,
+      (value >> 8) & 0xff,
+      (value >> 16) & 0xff,
+      (value >> 24) & 0xff,
+    ]);
+  }
+
+  static int _crc32(List<int> bytes) {
+    var crc = 0xffffffff;
+    for (final byte in bytes) {
+      crc ^= byte;
+      for (var i = 0; i < 8; i += 1) {
+        crc = (crc & 1) == 1 ? (crc >> 1) ^ 0xedb88320 : crc >> 1;
+      }
+    }
+    return (crc ^ 0xffffffff) & 0xffffffff;
+  }
+}
+
+class _StoredZipEntry {
+  const _StoredZipEntry({
+    required this.nameBytes,
+    required this.crc32,
+    required this.size,
+    required this.offset,
+  });
+
+  final List<int> nameBytes;
+  final int crc32;
+  final int size;
+  final int offset;
 }
 
 enum Rc6RuntimePhase {

@@ -1132,11 +1132,11 @@ class _SettingsExporterEditorState extends State<_SettingsExporterEditor> {
   String savedPath = '';
   String validationPath = '';
   final TextEditingController _docxController =
-      TextEditingController(text: 'requires_configuration');
+      TextEditingController(text: 'builtin_local_docx');
   final TextEditingController _pdfController =
-      TextEditingController(text: 'requires_configuration');
+      TextEditingController(text: 'builtin_local_pdf');
   final TextEditingController _pptxController =
-      TextEditingController(text: 'requires_configuration');
+      TextEditingController(text: 'builtin_local_pptx');
   final TextEditingController _exportRootController = TextEditingController();
 
   bool get zh => widget.zh;
@@ -1164,12 +1164,12 @@ class _SettingsExporterEditorState extends State<_SettingsExporterEditor> {
     if (!mounted) return;
     final exporters = _settingsMap(settings['exporters']);
     setState(() {
-      _docxController.text = _settingsText(_settingsMap(exporters['docx']),
-          'provider', 'requires_configuration');
+      _docxController.text = _settingsText(
+          _settingsMap(exporters['docx']), 'provider', 'builtin_local_docx');
       _pdfController.text = _settingsText(
-          _settingsMap(exporters['pdf']), 'provider', 'requires_configuration');
-      _pptxController.text = _settingsText(_settingsMap(exporters['pptx']),
-          'provider', 'requires_configuration');
+          _settingsMap(exporters['pdf']), 'provider', 'builtin_local_pdf');
+      _pptxController.text = _settingsText(
+          _settingsMap(exporters['pptx']), 'provider', 'builtin_local_pptx');
       _exportRootController.text =
           _settingsText(settings, 'export_root', '${widget.workspace}\\export');
       validationPath = rc6.state.exporterValidationReportPath.isEmpty
@@ -1223,22 +1223,48 @@ class _SettingsExporterEditorState extends State<_SettingsExporterEditor> {
               : ['Format', 'Current status', 'Config entry'],
           rows: zh
               ? [
-                  ['Markdown', '本地可用', '无需外部导出工具'],
-                  ['JSON / CSV', '本地可用', '无需外部导出工具'],
-                  ['DOCX', _docxController.text, '配置后启用'],
-                  ['PDF', _pdfController.text, '配置后启用'],
-                  ['PPTX', _pptxController.text, '配置后启用'],
+                  [
+                    '内置生成器',
+                    '本地可用',
+                    'md / txt / json / csv / docx / pdf / pptx / xlsx'
+                  ],
+                  ['Markdown / TXT', '本地可用', '无需外部导出工具'],
+                  ['JSON / CSV / XLSX', '本地可用', '结构化和表格导出'],
+                  ['DOCX / PDF / PPTX', '本地可用', '内置轻量导出'],
+                  [
+                    '外部导出器',
+                    '高级增强',
+                    'LibreOffice / Pandoc / Office / 专业 PDF 引擎'
+                  ],
                 ]
               : [
-                  ['Markdown', 'Local available', 'No external exporter'],
-                  ['JSON / CSV', 'Local available', 'No external exporter'],
-                  ['DOCX', _docxController.text, 'Enable after config'],
-                  ['PDF', _pdfController.text, 'Enable after config'],
-                  ['PPTX', _pptxController.text, 'Enable after config'],
+                  [
+                    'Built-in generator',
+                    'Local available',
+                    'md / txt / json / csv / docx / pdf / pptx / xlsx'
+                  ],
+                  ['Markdown / TXT', 'Local available', 'No external exporter'],
+                  [
+                    'JSON / CSV / XLSX',
+                    'Local available',
+                    'Structured and table export'
+                  ],
+                  [
+                    'DOCX / PDF / PPTX',
+                    'Local available',
+                    'Built-in lightweight export'
+                  ],
+                  [
+                    'External exporter',
+                    'Advanced enhancement',
+                    'LibreOffice / Pandoc / Office / PDF engine'
+                  ],
                 ],
         ),
         const SizedBox(height: 8),
-        _SectionCaption(zh ? '导出工具配置' : 'Export tool config'),
+        _SectionCaption(zh
+            ? '高级外部导出器（高保真排版、复杂模板、企业格式）'
+            : 'Advanced external exporters for high-fidelity layout and enterprise formats'),
         const SizedBox(height: 6),
         _SettingsConnectionForm(
           zh: zh,

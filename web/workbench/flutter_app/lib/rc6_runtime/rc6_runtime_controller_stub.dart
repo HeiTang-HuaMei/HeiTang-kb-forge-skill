@@ -179,9 +179,11 @@ class Rc6RuntimeController extends ChangeNotifier {
         },
         'exporters': {
           'markdown': {'status': 'connected', 'extension': 'md'},
+          'txt': {'status': 'desktop_runtime_required', 'extension': 'txt'},
           'docx': {'status': 'desktop_runtime_required', 'extension': 'docx'},
           'pdf': {'status': 'desktop_runtime_required', 'extension': 'pdf'},
           'pptx': {'status': 'desktop_runtime_required', 'extension': 'pptx'},
+          'xlsx': {'status': 'desktop_runtime_required', 'extension': 'xlsx'},
           'json': {'status': 'desktop_runtime_required', 'extension': 'json'},
           'csv': {'status': 'desktop_runtime_required', 'extension': 'csv'},
         },
@@ -383,18 +385,20 @@ class Rc6RuntimeController extends ChangeNotifier {
           'markdown': {'provider': 'local_markdown', 'status': 'connected'},
           'json': {'provider': 'local_json', 'status': 'connected'},
           'csv': {'provider': 'local_csv', 'status': 'connected'},
+          'txt': {'provider': 'builtin_local_txt', 'status': 'connected'},
           'docx': {
-            'provider': 'requires_configuration',
+            'provider': 'builtin_local_docx',
             'status': 'desktop_runtime_required',
           },
           'pdf': {
-            'provider': 'requires_configuration',
+            'provider': 'builtin_local_pdf',
             'status': 'desktop_runtime_required',
           },
           'pptx': {
-            'provider': 'requires_configuration',
+            'provider': 'builtin_local_pptx',
             'status': 'desktop_runtime_required',
           },
+          'xlsx': {'provider': 'builtin_local_xlsx', 'status': 'connected'},
         },
       };
   Future<String> saveExporterSettings({
