@@ -548,6 +548,9 @@ class _HeiTangWorkbenchAppState extends State<HeiTangWorkbenchApp> {
       combo(LogicalKeyboardKey.keyU): () => run(
             (rc6) => rc6.exportAuditReport(),
           ),
+      combo(LogicalKeyboardKey.keyV): () => run(
+            (rc6) => rc6.runSettingsExportBasicAcceptance(),
+          ),
       combo(LogicalKeyboardKey.keyP): () => run(
             (rc6) => rc6.runStage3ProfilePersistenceSmoke(),
           ),

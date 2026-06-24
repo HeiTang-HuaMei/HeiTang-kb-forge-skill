@@ -416,6 +416,11 @@ class Rc6RuntimeController extends ChangeNotifier {
     return '';
   }
 
+  Future<String> runSettingsExportBasicAcceptance() async {
+    await initialize();
+    return '';
+  }
+
   Future<String> runParallelTaskCapacityValidation({int taskCount = 8}) async {
     await initialize();
     return '';

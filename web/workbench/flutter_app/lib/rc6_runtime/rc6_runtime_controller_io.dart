@@ -56,7 +56,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _ensureRuntimeConfigAssets(workspace);
     await _loadExistingArtifacts();
     notifyListeners();
-    if (_autoRunOwnerInputPrdP0OnLaunch()) {
+    if (_autoRunSettingsExportBasicOnLaunch()) {
+      state = state.copyWith(
+        lastMessage: '启动参数请求运行设置、路径与导出基础验收。',
+        lastError: '',
+      );
+      notifyListeners();
+      await runSettingsExportBasicAcceptance();
+    } else if (_autoRunOwnerInputPrdP0OnLaunch()) {
       state = state.copyWith(
         lastMessage: '启动参数请求运行 PRD P0 Owner input 产品闭环。',
         lastError: '',
@@ -3635,6 +3642,131 @@ class Rc6RuntimeController extends ChangeNotifier {
     return path;
   }
 
+  Future<String> runSettingsExportBasicAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在执行设置、路径与导出基础验收...',
+      lastError: '',
+    );
+    notifyListeners();
+    final providerSettingsPath = await saveProviderRuntimeSettings(
+      llmProvider: 'env_configured',
+      modelId: 'local-default-or-configured-provider',
+      embeddingProvider: 'local_keyword_embedding',
+      searchProvider: 'local_index',
+      parserProvider: 'local_parser',
+      ocrProvider: 'optional_ocr',
+      apiKey: '************',
+    );
+    final providerValidationPath = await validateProviderRuntimeSettings();
+    final exporterSettingsPath = await saveExporterSettings(
+      docxExporter: 'builtin_local_docx',
+      pdfExporter: 'builtin_local_pdf',
+      pptxExporter: 'builtin_local_pptx',
+      exportRoot: _join(workspace.path, 'export'),
+    );
+    final exporterValidationPath = await validateExporterSettings();
+    await runStorageConnectionAcceptance();
+    final profileSmokePath = await runStage3ProfilePersistenceSmoke();
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/settings_export_basic_summary.json');
+    final paths = {
+      'provider_runtime_settings_path': providerSettingsPath,
+      'provider_validation_report_path': providerValidationPath,
+      'exporter_settings_path': exporterSettingsPath,
+      'exporter_validation_report_path': exporterValidationPath,
+      'storage_provider_settings_path': _storageProviderSettingsPath(workspace),
+      'config_test_log_path': _configTestLogPath(workspace),
+      'project_config_profiles_path': _projectConfigProfilesPath(workspace),
+      'project_config_runtime_status_path':
+          _projectConfigRuntimeStatusPath(workspace),
+      'profile_smoke_report_path': profileSmokePath,
+      'summary_path': summaryPath,
+    };
+    final pathChecks = <String, bool>{};
+    for (final entry in paths.entries) {
+      if (entry.key == 'summary_path') {
+        continue;
+      }
+      final value = entry.value.trim();
+      pathChecks[entry.key] =
+          value.isNotEmpty && await File(value).exists();
+    }
+    final storageSettings =
+        await _readJsonObject(_storageProviderSettingsPath(workspace));
+    final configLog = await _readJsonl(File(_configTestLogPath(workspace)));
+    final providerSettings =
+        await _readJsonObject(_providerRuntimeSettingsPath(workspace));
+    final exporterSettings =
+        await _readJsonObject(_exporterSettingsPath(workspace));
+    final providerSecretOk =
+        providerSettings['secret_plaintext_written'] == false &&
+            _stringValue(
+                    _mapValue(providerSettings['llm'])['api_key_display'], '')
+                .contains('*');
+    final storageSecretOk =
+        _stringValue(_mapValue(storageSettings['redis'])['password_display'], '')
+            .contains('*');
+    final exporterRoot =
+        _stringValue(exporterSettings['export_root'], '');
+    final passed = pathChecks.values.every((ok) => ok) &&
+        providerSecretOk &&
+        storageSecretOk &&
+        exporterRoot.startsWith(workspace.path) &&
+        configLog.isNotEmpty;
+    await _writeJsonFile(summaryPath, {
+      'schema_version': 'heitang_p0_settings_export_basic_summary.v1',
+      'status': passed
+          ? 'settings_export_basic_completed_needs_owner_review'
+          : 'settings_export_basic_blocked',
+      'generated_at': DateTime.now().toUtc().toIso8601String(),
+      'workspace': workspace.path,
+      'paths': paths,
+      'path_checks': pathChecks,
+      'provider_secret_masked': providerSecretOk,
+      'storage_secret_masked': storageSecretOk,
+      'export_root': exporterRoot,
+      'export_root_inside_workspace': exporterRoot.startsWith(workspace.path),
+      'config_test_log_count': configLog.length,
+      'external_provider_executed': false,
+      'external_office_adapter_executed': false,
+      'ordinary_ui_secret_plaintext_visible': false,
+    });
+    await _appendConfigTestLog(
+      workspace,
+      testId:
+          'settings_export_basic_${DateTime.now().toUtc().microsecondsSinceEpoch}',
+      profile: _activeProfile(await _readProjectConfigProfiles(workspace)),
+      configType: 'settings_export_basic',
+      configId: 'settings_export_basic',
+      startedAt: DateTime.now().toUtc().toIso8601String(),
+      finishedAt: DateTime.now().toUtc().toIso8601String(),
+      status: passed ? '连接成功' : '连接失败',
+      errorCode: passed ? '' : 'settings_export_basic_blocked',
+      errorMessageZh: passed ? '' : '设置、路径或导出基础验收未通过。',
+      sanitizedEndpoint: 'local_workspace_files',
+      testArtifacts: [summaryPath],
+      affectedModules: [
+        'settings',
+        'document_generation',
+        'artifact_center',
+        'skill_factory',
+      ],
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: '设置、路径与导出基础验收已完成。',
+      lastError: passed ? '' : 'settings_export_basic_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<String> runParallelTaskCapacityValidation({int taskCount = 8}) async {
     if (!_canRunDesktop()) {
       return '';
@@ -4886,6 +5018,33 @@ class Rc6RuntimeController extends ChangeNotifier {
     final workspace = _requireWorkspace();
     final kbDir = Directory(_join(workspace.path, 'kb'));
     if (!await kbDir.exists()) {
+      await _appendEventLedgerRecord(
+        eventType: 'failure_event',
+        module: 'skill_factory',
+        action: 'generate_skill',
+        status: 'failed',
+        targetId: 'generate_skill',
+        targetName: config.skillName,
+        artifactPath: _join(workspace.path, 'skill'),
+        errorMessage: '请先构建知识库，再生成 Skill。',
+        source: 'skill_generation_gate',
+        metadata: {
+          'failure_code': 'missing_knowledge_base',
+          'required_artifact': _join(workspace.path, 'kb', 'manifest.json'),
+          'skill_type': config.skillType,
+          'target_platform': config.targetPlatform,
+        },
+      );
+      await _appendSkillOperationHistoryRecord(
+        action: 'generate_skill',
+        artifact:
+            _joinNested(workspace.path, 'skill/skill_generation_manifest.json'),
+        status: 'failed',
+        details: {
+          'reason': 'missing_knowledge_base',
+          'required_artifact': _join(workspace.path, 'kb', 'manifest.json'),
+        },
+      );
       _fail('请先构建知识库，再生成 Skill。');
       return;
     }
@@ -25788,6 +25947,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     return _envEnabled('HEITANG_RC10_DOCUMENT_FLOW_E2E') ||
         _envEnabled('HEITANG_RC9_DOCUMENT_FLOW_E2E') ||
         _envEnabled('HEITANG_RC8_DOCUMENT_FLOW_E2E');
+  }
+
+  bool _autoRunSettingsExportBasicOnLaunch() {
+    return _envEnabled('HEITANG_P0_SETTINGS_EXPORT_E2E');
   }
 
   bool _envEnabled(String key) {
