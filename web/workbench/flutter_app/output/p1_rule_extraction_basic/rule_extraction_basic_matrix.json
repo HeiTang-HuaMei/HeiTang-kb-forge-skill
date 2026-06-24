@@ -1,0 +1,92 @@
+﻿{
+    "schema_version":  "heitang_p1_rule_extraction_basic_matrix.v1",
+    "status":  "rule_extraction_completed_needs_owner_review",
+    "generated_at":  "2026-06-24T19:18:39.8447776Z",
+    "repo_root":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui",
+    "current_phase":  "P1",
+    "current_gate":  "P1-11 Classification Reasoning Basic",
+    "next_gate":  "P1-11 Classification Reasoning Basic",
+    "remaining_gates_count":  81,
+    "global_goal_complete":  false,
+    "contract_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_rule_extraction_basic\\rule_extraction_basic_contract.json",
+    "sample_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_rule_extraction_basic\\rule_extraction_sample_report.json",
+    "filtered_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_rule_extraction_basic\\rule_extraction_filtered_report.json",
+    "no_rule_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_rule_extraction_basic\\rule_extraction_no_rule_report.json",
+    "checkpoint_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_rule_extraction_basic\\rule_extraction_basic_checkpoint.json",
+    "failure_template_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_rule_extraction_basic\\rule_extraction_basic_failure_template.json",
+    "resume_prompt_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_rule_extraction_basic\\rule_extraction_basic_resume_prompt.md",
+    "rows":  [
+                 {
+                     "check":  "required rule extraction source and prior evidence files exist",
+                     "status":  "passed",
+                     "actual":  "missing=0",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "status machine is at or just past P1-10 with global guard",
+                     "status":  "passed",
+                     "actual":  "phase=P1; gate=P1-11 Classification Reasoning Basic; first_remaining=P1-11 Classification Reasoning Basic; remaining=81; global_goal_complete=False",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 release and P1-9 precede rule extraction",
+                     "status":  "passed",
+                     "actual":  "p0_release=True; p1_scope=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "remaining chain preserves release gates and next gate",
+                     "status":  "passed",
+                     "actual":  "next_gate=P1-11 Classification Reasoning Basic; p1_release=True; p2_release=True; final=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "rule_extraction_basic registry row follows core-only contract",
+                     "status":  "passed",
+                     "actual":  "row_count=1; type=core_only; core=passed; ui=not_required; blackbox=not_required; close_allowed=true",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "plan, queue, rubric and P1 grouping reference rule extraction",
+                     "status":  "passed",
+                     "actual":  "plan=True; queue_p1_10=True; queue_p1_11=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "source implements structured rule extraction input and report schema",
+                     "status":  "passed",
+                     "actual":  "extractor=True; input_schema=True; report_schema=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "rule extraction handles rule types, scope filtering and no-rule path",
+                     "status":  "passed",
+                     "actual":  "exit_code=0; sample_status=rules_extracted; sample_count=4; filtered_count=1; no_rule_status=no_rules_found",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "narrow rule extraction and related core tests pass",
+                     "status":  "passed",
+                     "actual":  "exit_code=0; stdout=.........                                                                [100%]\r\n9 passed in 0.69s; stderr=",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P1 scope resolver contract is available",
+                     "status":  "passed",
+                     "actual":  "scope_resolver_status=scope_resolver_completed_needs_owner_review",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "rule extraction basic contract artifact is generated",
+                     "status":  "passed",
+                     "actual":  "contract=D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_rule_extraction_basic\\rule_extraction_basic_contract.json; sample_rules=4; filtered_rules=1; next_gate=P1-11 Classification Reasoning Basic",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "new P1-10 evidence has no forbidden positive-state tokens",
+                     "status":  "passed",
+                     "actual":  "scanned=contract,sample,filtered,no_rule; hits=0",
+                     "blocker":  ""
+                 }
+             ]
+}

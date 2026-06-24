@@ -1,0 +1,48 @@
+{
+  "rule_extraction_version": "1.0.0",
+  "status": "rules_extracted",
+  "extracted_rule_count": 4,
+  "extracted_rules": [
+    {
+      "rule_id": "policy-a:rule-001",
+      "rule_type": "requirement",
+      "text": "Answers must cite package evidence.",
+      "source_id": "policy-a",
+      "source_path": "policy.md",
+      "scope_id": "kb-public",
+      "marker": "must"
+    },
+    {
+      "rule_id": "policy-a:rule-002",
+      "rule_type": "prohibition",
+      "text": "Do not invent citations.",
+      "source_id": "policy-a",
+      "source_path": "policy.md",
+      "scope_id": "kb-public",
+      "marker": "do not"
+    },
+    {
+      "rule_id": "policy-a:rule-003",
+      "rule_type": "boundary",
+      "text": "Stay within scope.",
+      "source_id": "policy-a",
+      "source_path": "policy.md",
+      "scope_id": "kb-public",
+      "marker": "within scope"
+    },
+    {
+      "rule_id": "policy-a:rule-004",
+      "rule_type": "citation",
+      "text": "Include source_path when making factual claims.",
+      "source_id": "policy-a",
+      "source_path": "policy.md",
+      "scope_id": "kb-public",
+      "marker": "source_path"
+    }
+  ],
+  "skipped_source_ids": [],
+  "source_ids": [
+    "policy-a"
+  ],
+  "summary": "4 rule(s) extracted from 1 source(s)."
+}

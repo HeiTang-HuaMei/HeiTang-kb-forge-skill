@@ -1,0 +1,11 @@
+{
+  "rule_extraction_version": "1.0.0",
+  "status": "no_rules_found",
+  "extracted_rule_count": 0,
+  "extracted_rules": [],
+  "skipped_source_ids": [],
+  "source_ids": [
+    "plain"
+  ],
+  "summary": "0 rule(s) extracted from 1 source(s)."
+}

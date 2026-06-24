@@ -1,0 +1,27 @@
+﻿{
+    "schema_version":  "heitang_rule_extraction_basic_contract.v1",
+    "status":  "rule_extraction_completed_needs_owner_review",
+    "capability_id":  "rule_extraction_basic",
+    "phase":  "P1",
+    "acceptance_type":  "core_only",
+    "required_inputs":  [
+                            "sources",
+                            "allowed_scope_ids"
+                        ],
+    "required_outputs":  [
+                             "status",
+                             "extracted_rule_count",
+                             "extracted_rules",
+                             "skipped_source_ids",
+                             "source_ids"
+                         ],
+    "sample_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_rule_extraction_basic\\rule_extraction_sample_report.json",
+    "filtered_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_rule_extraction_basic\\rule_extraction_filtered_report.json",
+    "no_rule_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_rule_extraction_basic\\rule_extraction_no_rule_report.json",
+    "sample_rule_count":  4,
+    "filtered_rule_count":  1,
+    "no_rule_status":  "no_rules_found",
+    "next_gate":  "P1-11 Classification Reasoning Basic",
+    "global_goal_complete":  false,
+    "generated_at":  "2026-06-24T19:18:39.7684014Z"
+}

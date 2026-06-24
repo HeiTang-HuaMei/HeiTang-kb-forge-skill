@@ -1,0 +1,24 @@
+{
+  "rule_extraction_version": "1.0.0",
+  "status": "rules_extracted",
+  "extracted_rule_count": 1,
+  "extracted_rules": [
+    {
+      "rule_id": "public:rule-001",
+      "rule_type": "requirement",
+      "text": "Rules must stay auditable.",
+      "source_id": "public",
+      "source_path": "",
+      "scope_id": "kb-public",
+      "marker": "must"
+    }
+  ],
+  "skipped_source_ids": [
+    "secret"
+  ],
+  "source_ids": [
+    "public",
+    "secret"
+  ],
+  "summary": "1 rule(s) extracted from 2 source(s)."
+}
