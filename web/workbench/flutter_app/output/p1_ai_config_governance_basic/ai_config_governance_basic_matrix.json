@@ -1,0 +1,78 @@
+﻿{
+    "schema_version":  "heitang_p1_ai_config_governance_basic_matrix.v1",
+    "status":  "ai_config_governance_completed_needs_owner_review",
+    "generated_at":  "2026-06-24T19:36:09.2387387Z",
+    "repo_root":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui",
+    "current_phase":  "P1",
+    "current_gate":  "P1-14 Task Mode Router Basic",
+    "next_gate":  "P1-14 Task Mode Router Basic",
+    "remaining_gates_count":  78,
+    "global_goal_complete":  false,
+    "contract_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_ai_config_governance_basic\\ai_config_governance_basic_contract.json",
+    "reservation_evidence_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_ai_config_governance_basic\\ai_config_governance_reservation_evidence.json",
+    "checkpoint_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_ai_config_governance_basic\\ai_config_governance_basic_checkpoint.json",
+    "failure_template_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_ai_config_governance_basic\\ai_config_governance_basic_failure_template.json",
+    "resume_prompt_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_ai_config_governance_basic\\ai_config_governance_basic_resume_prompt.md",
+    "rows":  [
+                 {
+                     "check":  "required AI config governance and prior evidence files exist",
+                     "status":  "passed",
+                     "actual":  "missing=0",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "status machine is at or just past P1-13 with global guard",
+                     "status":  "passed",
+                     "actual":  "phase=P1; gate=P1-14 Task Mode Router Basic; first_remaining=P1-14 Task Mode Router Basic; remaining=78; global_goal_complete=False",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 release and P1-12 precede AI config governance",
+                     "status":  "passed",
+                     "actual":  "p0_release=True; p1_conflict=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "remaining chain preserves release gates and next gate",
+                     "status":  "passed",
+                     "actual":  "next_gate=P1-14 Task Mode Router Basic; p1_release=True; p2_release=True; final=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "ai_config_governance registry row already follows core-only passed contract",
+                     "status":  "passed",
+                     "actual":  "row_count=1; type=core_only; core=passed; ui=not_required; blackbox=not_required; close_allowed=true",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "plan, queue, rubric and P1 grouping reference AI config governance",
+                     "status":  "passed",
+                     "actual":  "plan=True; queue_p1_13=True; queue_p1_14=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "industrial scope matrix contains AI config governance reservation evidence",
+                     "status":  "passed",
+                     "actual":  "rows=1; conclusion=ai_config_governance_reserved_needs_review; persisted=True; restart=True; blocker=",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P1 conflict exception detection contract is available",
+                     "status":  "passed",
+                     "actual":  "conflict_exception_status=conflict_exception_detection_completed_needs_owner_review",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "AI config governance basic contract artifact is generated",
+                     "status":  "passed",
+                     "actual":  "contract=D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_ai_config_governance_basic\\ai_config_governance_basic_contract.json; reservation_status=ai_config_governance_reserved_needs_review; next_gate=P1-14 Task Mode Router Basic",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "new P1-13 evidence has no forbidden positive-state tokens",
+                     "status":  "passed",
+                     "actual":  "scanned=contract,reservation_evidence; hits=0",
+                     "blocker":  ""
+                 }
+             ]
+}

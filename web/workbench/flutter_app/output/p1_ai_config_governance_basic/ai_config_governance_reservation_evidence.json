@@ -1,0 +1,16 @@
+﻿{
+    "schema_version":  "heitang_ai_config_governance_reservation_evidence.v1",
+    "status":  "ai_config_governance_reserved_needs_review",
+    "capability_id":  "ai_config_governance",
+    "source_matrix_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\industrial_scope\\industrial_scope_metadata_reservation_matrix.json",
+    "path":  "AI Config Governance",
+    "step":  "reserve AI profile governance fields",
+    "expected":  "project_config_assets.json 保留 task/kb/risk/answer/verifier profile，且状态只为 needs_review",
+    "actual":  "missing=; status=ai_config_governance_reserved_needs_review",
+    "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\config\\project_config_assets.json",
+    "persisted":  true,
+    "exe_restart_verified":  true,
+    "current_conclusion":  "ai_config_governance_reserved_needs_review",
+    "blocker":  "",
+    "generated_at":  "2026-06-24T19:36:09.1743375Z"
+}

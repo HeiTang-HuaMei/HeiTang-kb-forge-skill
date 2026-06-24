@@ -1,0 +1,17 @@
+﻿{
+    "schema_version":  "heitang_ai_config_governance_basic_contract.v1",
+    "status":  "ai_config_governance_completed_needs_owner_review",
+    "capability_id":  "ai_config_governance",
+    "phase":  "P1",
+    "acceptance_type":  "core_only",
+    "source_evidence":  [
+                            "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\industrial_scope\\industrial_scope_metadata_reservation_matrix.json",
+                            "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_ai_config_governance_basic\\ai_config_governance_reservation_evidence.json"
+                        ],
+    "reservation_status":  "ai_config_governance_reserved_needs_review",
+    "persisted":  true,
+    "exe_restart_verified":  true,
+    "next_gate":  "P1-14 Task Mode Router Basic",
+    "global_goal_complete":  false,
+    "generated_at":  "2026-06-24T19:36:09.2112479Z"
+}
