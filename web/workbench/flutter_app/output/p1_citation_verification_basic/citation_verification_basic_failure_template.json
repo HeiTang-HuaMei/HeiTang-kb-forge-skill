@@ -1,0 +1,9 @@
+﻿{
+    "schema_version":  "heitang_citation_verification_basic_failure_template.v1",
+    "status":  "no_current_failure",
+    "affected_phase":  "P1",
+    "affected_capability_id":  "citation_verification",
+    "failed_acceptance_type":  "core_only",
+    "resume_prompt_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_citation_verification_basic\\citation_verification_basic_resume_prompt.md",
+    "created_at":  "2026-06-24T18:45:44.9657138Z"
+}

@@ -1,0 +1,10 @@
+﻿{
+    "schema_version":  "heitang_citation_verification_basic_checkpoint.v1",
+    "status":  "citation_verification_completed_needs_owner_review",
+    "current_phase":  "P1",
+    "current_gate":  "P1-7 Knowledge Reliability Eval Suite Basic",
+    "next_gate":  "P1-7 Knowledge Reliability Eval Suite Basic",
+    "remaining_gates_count":  85,
+    "global_goal_complete":  false,
+    "created_at":  "2026-06-24T18:45:44.9637067Z"
+}

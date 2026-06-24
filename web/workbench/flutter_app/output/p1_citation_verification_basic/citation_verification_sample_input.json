@@ -1,0 +1,42 @@
+﻿{
+    "allowed_scope_ids":  [
+                              "kb-a"
+                          ],
+    "claims":  [
+                   {
+                       "claim_id":  "claim-1",
+                       "text":  "covered",
+                       "citation":  "source-a.md#chunk=chunk-1"
+                   },
+                   {
+                       "claim_id":  "claim-2",
+                       "text":  "missing citation"
+                   },
+                   {
+                       "claim_id":  "claim-3",
+                       "text":  "unresolved citation",
+                       "citation":  "source-z.md#chunk=chunk-z"
+                   },
+                   {
+                       "claim_id":  "claim-4",
+                       "text":  "out of scope",
+                       "citation":  "source-b.md#chunk=chunk-2"
+                   }
+               ],
+    "source_trace":  [
+                         {
+                             "source_id":  "source-a",
+                             "source_path":  "source-a.md",
+                             "chunk_id":  "chunk-1",
+                             "citation":  "source-a.md#chunk=chunk-1",
+                             "scope_id":  "kb-a"
+                         },
+                         {
+                             "source_id":  "source-b",
+                             "source_path":  "source-b.md",
+                             "chunk_id":  "chunk-2",
+                             "citation":  "source-b.md#chunk=chunk-2",
+                             "scope_id":  "kb-b"
+                         }
+                     ]
+}

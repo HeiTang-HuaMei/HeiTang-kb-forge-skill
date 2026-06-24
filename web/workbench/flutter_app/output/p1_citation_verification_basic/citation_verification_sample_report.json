@@ -1,0 +1,25 @@
+{
+  "citation_verification_version": "1.0.0",
+  "status": "citation_gaps_found",
+  "checked_claim_count": 4,
+  "cited_claim_count": 3,
+  "resolved_claim_count": 1,
+  "citation_coverage": 0.25,
+  "resolved_claim_ids": [
+    "claim-1"
+  ],
+  "missing_citation_claim_ids": [
+    "claim-2"
+  ],
+  "unresolved_citation_claim_ids": [
+    "claim-3"
+  ],
+  "out_of_scope_claim_ids": [
+    "claim-4"
+  ],
+  "source_trace_citations": [
+    "source-a.md#chunk=chunk-1",
+    "source-b.md#chunk=chunk-2"
+  ],
+  "summary": "3 citation gap(s) found across 4 claim(s)."
+}

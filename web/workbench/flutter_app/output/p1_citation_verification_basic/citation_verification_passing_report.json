@@ -1,0 +1,20 @@
+{
+  "citation_verification_version": "1.0.0",
+  "status": "pass",
+  "checked_claim_count": 2,
+  "cited_claim_count": 2,
+  "resolved_claim_count": 2,
+  "citation_coverage": 1.0,
+  "resolved_claim_ids": [
+    "claim-1",
+    "claim-2"
+  ],
+  "missing_citation_claim_ids": [],
+  "unresolved_citation_claim_ids": [],
+  "out_of_scope_claim_ids": [],
+  "source_trace_citations": [
+    "source-a.md#chunk=chunk-1",
+    "source-a.md#chunk=chunk-2"
+  ],
+  "summary": "0 citation gap(s) found across 2 claim(s)."
+}

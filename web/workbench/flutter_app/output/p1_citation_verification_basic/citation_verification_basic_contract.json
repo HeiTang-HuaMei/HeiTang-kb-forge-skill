@@ -1,0 +1,28 @@
+﻿{
+    "schema_version":  "heitang_citation_verification_basic_contract.v1",
+    "status":  "citation_verification_completed_needs_owner_review",
+    "capability_id":  "citation_verification",
+    "phase":  "P1",
+    "acceptance_type":  "core_only",
+    "required_inputs":  [
+                            "claims",
+                            "source_trace",
+                            "allowed_scope_ids"
+                        ],
+    "required_outputs":  [
+                             "missing_citation_claim_ids",
+                             "unresolved_citation_claim_ids",
+                             "out_of_scope_claim_ids",
+                             "resolved_claim_ids",
+                             "citation_coverage",
+                             "source_trace_citations"
+                         ],
+    "sample_input_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_citation_verification_basic\\citation_verification_sample_input.json",
+    "sample_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_citation_verification_basic\\citation_verification_sample_report.json",
+    "passing_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_citation_verification_basic\\citation_verification_passing_report.json",
+    "sample_gap_count":  3,
+    "passing_coverage":  1.0,
+    "next_gate":  "P1-7 Knowledge Reliability Eval Suite Basic",
+    "global_goal_complete":  false,
+    "generated_at":  "2026-06-24T18:45:44.9188060Z"
+}
