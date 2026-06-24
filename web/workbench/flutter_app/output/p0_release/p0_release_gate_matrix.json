@@ -1,0 +1,70 @@
+﻿{
+    "schema_version":  "heitang_p0_release_gate_matrix.v1",
+    "status":  "p0_release_gate_passed_needs_owner_review",
+    "generated_at":  "2026-06-24T17:56:57.7585989Z",
+    "repo_root":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui",
+    "current_gate":  "P1-1 Capability Chain Runner",
+    "current_phase":  "P1",
+    "phase_after_pass":  "P1",
+    "next_gate":  "P1-1 Capability Chain Runner",
+    "global_goal_complete":  false,
+    "p0_row_count":  18,
+    "p0_rows_before_gate":  17,
+    "p0_core_matrix_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p0_acceptance\\p0_core_lifecycle_matrix.json",
+    "rows":  [
+                 {
+                     "check":  "status machine is at P0 gate or P1 entry after pass",
+                     "status":  "passed",
+                     "actual":  "phase=P1; gate=P1-1 Capability Chain Runner; first_remaining=P1-1 Capability Chain Runner; global_goal_complete=False",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 core rerun matrix has no blockers",
+                     "status":  "passed",
+                     "actual":  "status=p0_core_lifecycle_backfill_rerun_completed_needs_owner_review; rows=14; blocked=0",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 rows have valid acceptance types",
+                     "status":  "passed",
+                     "actual":  "p0_rows=18",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 rows before release gate are close_allowed",
+                     "status":  "passed",
+                     "actual":  "not_closed=",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 acceptance-type status requirements pass",
+                     "status":  "passed",
+                     "actual":  "failed=",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 evidence paths and commit fields exist",
+                     "status":  "passed",
+                     "actual":  "missing=",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 composite linked cases are attached",
+                     "status":  "passed",
+                     "actual":  "missing=",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "no new forbidden positive claims in current diff",
+                     "status":  "passed",
+                     "actual":  "new_claim_matches=0",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "workspace clean or current-gate partitioned",
+                     "status":  "passed",
+                     "actual":  "dirty_count=4",
+                     "blocker":  ""
+                 }
+             ]
+}
