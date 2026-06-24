@@ -1,0 +1,29 @@
+{
+  "reliability_eval_version": "1.0.0",
+  "status": "pass",
+  "overall_score": 100,
+  "available_for_next_gate": true,
+  "dimensions": [
+    {
+      "dimension": "evidence_graph",
+      "status": "pass",
+      "score": 100,
+      "reason": "status=evidence_graph_basic_completed_needs_owner_review; entity_count=1"
+    },
+    {
+      "dimension": "gap_analysis",
+      "status": "pass",
+      "score": 100,
+      "reason": "status=gap_analysis_completed_needs_owner_review; gap_count=0"
+    },
+    {
+      "dimension": "citation_verification",
+      "status": "pass",
+      "score": 100,
+      "reason": "status=citation_verification_completed_needs_owner_review; coverage=1.0; threshold=0.8"
+    }
+  ],
+  "blockers": [],
+  "warnings": [],
+  "summary": "pass with overall_score=100."
+}

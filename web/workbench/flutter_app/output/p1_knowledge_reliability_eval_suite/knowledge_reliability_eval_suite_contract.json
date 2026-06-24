@@ -1,0 +1,31 @@
+﻿{
+    "schema_version":  "heitang_knowledge_reliability_eval_suite_basic_contract.v1",
+    "status":  "knowledge_reliability_eval_suite_completed_needs_owner_review",
+    "capability_id":  "knowledge_reliability_eval_suite",
+    "phase":  "P1",
+    "acceptance_type":  "core_only",
+    "required_inputs":  [
+                            "evidence_graph_status",
+                            "evidence_graph_entity_count",
+                            "gap_status",
+                            "gap_count",
+                            "citation_status",
+                            "citation_coverage"
+                        ],
+    "required_outputs":  [
+                             "status",
+                             "overall_score",
+                             "available_for_next_gate",
+                             "dimensions",
+                             "blockers",
+                             "warnings"
+                         ],
+    "sample_input_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_knowledge_reliability_eval_suite\\knowledge_reliability_eval_suite_sample_input.json",
+    "sample_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_knowledge_reliability_eval_suite\\knowledge_reliability_eval_suite_sample_report.json",
+    "failure_sample_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_knowledge_reliability_eval_suite\\knowledge_reliability_eval_suite_failure_sample_report.json",
+    "sample_status":  "pass",
+    "sample_overall_score":  100,
+    "next_gate":  "P1-8 Retrieval Regression Basic",
+    "global_goal_complete":  false,
+    "generated_at":  "2026-06-24T18:52:12.8234466Z"
+}

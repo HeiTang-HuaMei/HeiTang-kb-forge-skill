@@ -1,0 +1,9 @@
+﻿{
+    "evidence_graph_status":  "evidence_graph_basic_completed_needs_owner_review",
+    "evidence_graph_entity_count":  1,
+    "gap_status":  "gap_analysis_completed_needs_owner_review",
+    "gap_count":  0,
+    "citation_status":  "citation_verification_completed_needs_owner_review",
+    "citation_coverage":  1.0,
+    "minimum_citation_coverage":  0.8
+}
