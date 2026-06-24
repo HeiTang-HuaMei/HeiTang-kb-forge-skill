@@ -8855,6 +8855,102 @@ void main() {
         isTrue);
   });
 
+  test('assistant backend separation persists profile and provider refs',
+      () async {
+    final workspace = await createWorkspace();
+    Rc6RuntimeController buildController() => Rc6RuntimeController(
+          coreBridge: LocalCoreBridge(
+            runner: (_) async => const CoreBridgeProcessResult(
+                exitCode: 0, stdout: 'ok', stderr: ''),
+          ),
+          coreCli: 'heitang-kb-forge',
+          coreWorkingDirectory: Directory.current.path,
+          configuredWorkspace: workspace.path,
+          isWebRuntime: false,
+        );
+
+    final controller = buildController();
+    await controller.initialize();
+    final summaryPath =
+        await controller.runAssistantBackendSeparationAcceptance();
+    final summary = jsonDecode(File(summaryPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(summary['schema_version'],
+        'prd_v3_assistant_backend_separation_acceptance_summary.v1');
+    expect(summary['status'], 'pass');
+    expect(summary['capability_id'], 'assistant_backend_separation');
+    expect(summary['acceptance_type'], 'user_blackbox');
+    expect(summary['backend_executor_executed'], isFalse);
+    expect(summary['multi_model_orchestration_executed'], isFalse);
+    expect(summary['external_calls_made'], isFalse);
+    expect(summary['secret_plaintext_written'], isFalse);
+    expect(summary['redis_vector_service_packaged_into_exe'], isFalse);
+    expect(summary['failed_checks'], isEmpty);
+    final checks = (summary['checks'] as Map).cast<String, dynamic>();
+    for (final entry in checks.entries) {
+      if (entry.key == 'secret_plaintext_written' ||
+          entry.key == 'redis_vector_service_packaged_into_exe') {
+        expect(entry.value, isFalse, reason: entry.key);
+      } else {
+        expect(entry.value, isTrue, reason: entry.key);
+      }
+    }
+
+    final agentSettings =
+        (summary['agent_backend_binding'] as Map).cast<String, dynamic>();
+    expect(agentSettings['backend_binding_status'],
+        'separated_provider_profile_binding');
+    expect(agentSettings['active_profile_id'], summary['active_profile_id']);
+    expect(agentSettings['model_config_id'], summary['active_model_config_id']);
+    expect(agentSettings['model_gateway_config_id'],
+        summary['active_model_gateway_config_id']);
+    expect(agentSettings['secret_plaintext_written'], 'false');
+
+    final agentCatalogPath = summary['agent_catalog_path'] as String;
+    final providerPath = summary['provider_runtime_settings_path'] as String;
+    final profilesPath = summary['project_config_profiles_path'] as String;
+    expect(agentCatalogPath, isNot(providerPath));
+    expect(File(agentCatalogPath).existsSync(), isTrue);
+    expect(File(providerPath).existsSync(), isTrue);
+    expect(File(profilesPath).existsSync(), isTrue);
+    expect(File(agentCatalogPath).readAsStringSync(),
+        contains('test_assistant_backend_separation'));
+    expect(File(providerPath).readAsStringSync(),
+        isNot(contains('runtime-input-token')));
+
+    final reloaded = buildController();
+    await reloaded.initialize();
+    expect(
+        reloaded.state.agentProfiles.any((profile) =>
+            profile.id == summary['agent_id'] &&
+            profile.settings['backend_binding_status'] ==
+                'separated_provider_profile_binding'),
+        isTrue);
+    expect(reloaded.state.hasProviderRuntimeSettings, isTrue);
+
+    final eventRows = File(
+            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'assistant_backend_separation_validated'),
+        isTrue);
+
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'assistant_backend_separation_summary' &&
+            row['status'] == 'completed'),
+        isTrue);
+  });
+
   test('skill generation persists type platform and personalization config',
       () async {
     final workspace = await createWorkspace();

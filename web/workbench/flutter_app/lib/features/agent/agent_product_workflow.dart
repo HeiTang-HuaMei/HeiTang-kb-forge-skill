@@ -1642,6 +1642,13 @@ class _AgentProfileConfigPanelState extends State<_AgentProfileConfigPanel> {
     );
   }
 
+  Future<void> _runBackendSeparationEvidence(
+    Rc6RuntimeController? rc6,
+  ) async {
+    if (rc6 == null || _loadedAgentId.isEmpty) return;
+    await rc6.runAssistantBackendSeparationAcceptance();
+  }
+
   @override
   Widget build(BuildContext context) {
     final rc6 = _Rc6RuntimeScope.of(context);
@@ -1821,6 +1828,29 @@ class _AgentProfileConfigPanelState extends State<_AgentProfileConfigPanel> {
               ],
             ),
           const SizedBox(height: _DesktopGrid.gutter),
+          _ProductTable(
+            columns: zh
+                ? const ['后端项', '绑定值', '状态']
+                : const ['Backend item', 'Binding', 'Status'],
+            rows: [
+              [
+                zh ? '配置档' : 'Config profile',
+                profile.settings['active_profile_id'] ?? '-',
+                zh ? '与助手配置分离保存' : 'Saved separately'
+              ],
+              [
+                zh ? '模型配置' : 'Model config',
+                profile.settings['model_config_id'] ?? '-',
+                zh ? '只保存引用' : 'Reference only'
+              ],
+              [
+                zh ? '模型网关' : 'Model gateway',
+                profile.settings['model_gateway_config_id'] ?? '-',
+                zh ? '只保存引用' : 'Reference only'
+              ],
+            ],
+          ),
+          const SizedBox(height: _DesktopGrid.gutter),
           Row(
             children: [
               Expanded(
@@ -1841,6 +1871,14 @@ class _AgentProfileConfigPanelState extends State<_AgentProfileConfigPanel> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 8),
+          _PrimaryProductAction(
+            automationKey: 'agent-backend-separation-evidence-button',
+            label: zh ? '生成后端分离证据' : 'Generate backend separation evidence',
+            icon: Icons.hub_outlined,
+            onPressed:
+                canEdit ? () => _runBackendSeparationEvidence(rc6) : null,
           ),
           const SizedBox(height: _DesktopGrid.gutter),
           SizedBox(

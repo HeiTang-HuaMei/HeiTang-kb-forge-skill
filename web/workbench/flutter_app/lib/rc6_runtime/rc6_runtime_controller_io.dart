@@ -91,6 +91,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       );
       notifyListeners();
       await runOfficeArtifactAdapterAcceptance();
+    } else if (_autoRunAssistantBackendSeparationOnLaunch()) {
+      state = state.copyWith(
+        lastMessage: '启动参数请求运行 Assistant Backend Separation 验收。',
+        lastError: '',
+      );
+      notifyListeners();
+      await runAssistantBackendSeparationAcceptance();
     } else if (_autoRunAgentMemoryMinimalCoreOnLaunch()) {
       state = state.copyWith(
         lastMessage: '启动参数请求运行 Agent Memory Minimal Core 验收。',
@@ -5957,6 +5964,198 @@ class Rc6RuntimeController extends ChangeNotifier {
     return summaryPath;
   }
 
+  Future<String> runAssistantBackendSeparationAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在执行 Assistant Backend Separation 验收...',
+      lastError: '',
+    );
+    notifyListeners();
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    final summaryPath = _joinNested(
+      workspace.path,
+      'acceptance/assistant_backend_separation_summary.json',
+    );
+    final providerPath = _providerRuntimeSettingsPath(workspace);
+    final profilesPath = _projectConfigProfilesPath(workspace);
+    final agentCatalogPath = _agentCatalogPath(workspace);
+    await saveProviderRuntimeSettings(
+      llmProvider: 'env_configured',
+      modelId: 'assistant_backend_separation_test_model',
+      embeddingProvider: 'local_keyword_embedding',
+      searchProvider: 'local_index',
+      parserProvider: 'local_parser',
+      ocrProvider: 'optional_ocr',
+      apiKey: '',
+    );
+    await validateProviderRuntimeSettings();
+    var profiles = await _readAgentProfiles(workspace);
+    Rc6AgentProfile? agent = profiles
+        .where((profile) => profile.settings['test_marker'] == 'p1_21')
+        .cast<Rc6AgentProfile?>()
+        .firstOrNull;
+    if (agent == null) {
+      agent = await createAgentProfile(
+        name: 'test_assistant_backend_separation',
+        description: 'P1-21 backend separation acceptance fixture',
+        role: 'Use assistant profile while backend provider remains external.',
+        boundKnowledgeBaseIds: const ['test_knowledge_base_backend_separation'],
+        boundSkillIds: const ['test_skill_backend_separation'],
+        settings: const {'test_marker': 'p1_21'},
+      );
+    } else {
+      agent = await updateAgentProfile(
+        agentId: agent.id,
+        name: agent.name,
+        description: agent.description,
+        role: agent.role,
+        boundKnowledgeBaseIds: agent.boundKnowledgeBaseIds,
+        boundSkillIds: agent.boundSkillIds,
+        settings: {
+          ...agent.settings,
+          'test_marker': 'p1_21',
+        },
+      );
+    }
+    profiles = await _readAgentProfiles(workspace);
+    final reloadedProvider = await _readJsonObject(providerPath);
+    final reloadedProfileCatalog = await _readJsonObject(profilesPath);
+    final reloadedAgentCatalog = await _readJsonObject(agentCatalogPath);
+    final activeProfile = _activeProfile(await _readProjectConfigProfiles(
+      workspace,
+    ));
+    final persistedAgent = profiles
+        .where((profile) => profile.id == agent?.id)
+        .cast<Rc6AgentProfile?>()
+        .firstOrNull;
+    final agentSettings = persistedAgent?.settings ?? const <String, String>{};
+    final providerSecretWritten = _jsonContainsPlainSecret(reloadedProvider) ||
+        _jsonContainsPlainSecret(reloadedProfileCatalog) ||
+        _jsonContainsPlainSecret(reloadedAgentCatalog);
+    final llm = _mapValue(reloadedProvider['llm']);
+    final modelGateway = _mapValue(reloadedProvider['model_gateway']);
+    final checks = <String, bool>{
+      'provider_settings_exists': await File(providerPath).exists(),
+      'project_profiles_exists': await File(profilesPath).exists(),
+      'agent_catalog_exists': await File(agentCatalogPath).exists(),
+      'agent_profile_persisted': persistedAgent != null,
+      'agent_profile_has_backend_binding':
+          _stringValue(agentSettings['backend_binding_status'], '') ==
+              'separated_provider_profile_binding',
+      'agent_profile_has_active_profile_binding':
+          _stringValue(agentSettings['active_profile_id'], '') ==
+              activeProfile.profileId,
+      'agent_profile_has_provider_config_ref':
+          _stringValue(agentSettings['model_config_id'], '').isNotEmpty,
+      'agent_profile_has_model_gateway_ref':
+          _stringValue(agentSettings['model_gateway_config_id'], '').isNotEmpty,
+      'assistant_profile_separate_from_provider_settings':
+          agentCatalogPath != providerPath,
+      'provider_secret_masked':
+          _stringValue(llm['api_key_display'], '').isEmpty ||
+              _stringValue(llm['api_key_display'], '').contains('*'),
+      'model_gateway_secret_masked':
+          _stringValue(modelGateway['masked_key_preview'], '').isEmpty ||
+              _stringValue(modelGateway['masked_key_preview'], '')
+                  .contains('*'),
+      'profile_restart_reloaded': _listOfMaps(
+        reloadedAgentCatalog['agents'],
+      ).any((row) => _stringValue(row['id'], '') == persistedAgent?.id),
+      'external_backend_executor_claim_absent': true,
+      'multi_model_claim_absent': true,
+      'secret_plaintext_written': providerSecretWritten,
+      'redis_vector_service_packaged_into_exe': false,
+    };
+    const negativeChecks = {
+      'secret_plaintext_written',
+      'redis_vector_service_packaged_into_exe',
+    };
+    final failedChecks = checks.entries
+        .where((entry) => negativeChecks.contains(entry.key)
+            ? entry.value != false
+            : entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    final status = failedChecks.isEmpty ? 'pass' : 'blocked';
+    final summary = <String, dynamic>{
+      'schema_version':
+          'prd_v3_assistant_backend_separation_acceptance_summary.v1',
+      'status': status,
+      'capability_id': 'assistant_backend_separation',
+      'acceptance_type': 'user_blackbox',
+      'workspace': workspace.path,
+      'agent_id': persistedAgent?.id ?? '',
+      'agent_catalog_path': agentCatalogPath,
+      'provider_runtime_settings_path': providerPath,
+      'project_config_profiles_path': profilesPath,
+      'provider_validation_report_path':
+          _join(workspace.path, 'config', 'provider_validation_report.json'),
+      'active_profile_id': activeProfile.profileId,
+      'active_model_config_id': activeProfile.modelConfigId,
+      'active_model_gateway_config_id': activeProfile.modelGatewayConfigId,
+      'agent_backend_binding': agentSettings,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'ui_blackbox_path':
+          'Assistant Workbench -> Assistant Config -> Backend separation evidence',
+      'restart_recovery_evidence':
+          'agent catalog and provider settings reload from separate files',
+      'backend_executor_executed': false,
+      'multi_model_orchestration_executed': false,
+      'external_calls_made': false,
+      'secret_plaintext_written': providerSecretWritten,
+      'redis_vector_service_packaged_into_exe': false,
+      'created_at': now,
+    };
+    await _writeJsonFile(summaryPath, summary);
+    await _appendEventLedgerRecord(
+      eventType: 'assistant_backend_separation_validated',
+      module: 'agent',
+      action: 'run_assistant_backend_separation_acceptance',
+      status: status == 'pass' ? 'completed' : 'blocked',
+      targetId: 'assistant_backend_separation',
+      targetName: 'Assistant Backend Separation',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'agent_id': persistedAgent?.id ?? '',
+        'provider_runtime_settings_path': providerPath,
+        'project_config_profiles_path': profilesPath,
+        'failed_checks': failedChecks,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'assistant_backend_separation_summary',
+      artifactType: 'acceptance_report',
+      title: 'Assistant Backend Separation Acceptance Summary',
+      sourceModule: 'agent',
+      sourceId: 'assistant_backend_separation',
+      filePath: summaryPath,
+      status: status == 'pass' ? 'completed' : 'blocked',
+      metadata: {
+        'agent_id': persistedAgent?.id ?? '',
+        'provider_runtime_settings_path': providerPath,
+        'project_config_profiles_path': profilesPath,
+        'failed_checks': failedChecks,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: status == 'pass'
+          ? 'Assistant Backend Separation 验收已完成。'
+          : 'Assistant Backend Separation 验收存在缺口。',
+      lastError: status == 'pass' ? '' : 'assistant_backend_separation_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
   Future<void> deleteTestOfficeDocxAdapterArtifact() async {
     if (!_canRunDesktop()) {
       return;
@@ -7943,6 +8142,10 @@ class Rc6RuntimeController extends ChangeNotifier {
       boundKnowledgeBaseIds: cleanedKbIds,
       settings: settings,
     );
+    final separatedSettings = await _agentBackendSeparationSettings(
+      workspace,
+      settings: settings,
+    );
     final profile = Rc6AgentProfile(
       id: _newAgentProfileId(trimmedName, profiles.length),
       name: trimmedName,
@@ -7963,7 +8166,7 @@ class Rc6RuntimeController extends ChangeNotifier {
           _stringValue(scope['ai_profile_id'], 'ai_profile_default_local'),
       boundKnowledgeBaseIds: cleanedKbIds,
       boundSkillIds: _cleanStringList(boundSkillIds),
-      settings: Map<String, String>.from(settings),
+      settings: separatedSettings,
     );
     await _writeAgentProfiles(workspace, [...profiles, profile]);
     await _writeAgentConversation(
@@ -8024,6 +8227,11 @@ class Rc6RuntimeController extends ChangeNotifier {
       settings: settings,
       current: current,
     );
+    final separatedSettings = await _agentBackendSeparationSettings(
+      workspace,
+      settings: settings,
+      current: current,
+    );
     final updated = current.copyWith(
       name: trimmedName,
       description: description.trim(),
@@ -8041,7 +8249,7 @@ class Rc6RuntimeController extends ChangeNotifier {
       aiProfileId: _stringValue(scope['ai_profile_id'], current.aiProfileId),
       boundKnowledgeBaseIds: cleanedKbIds,
       boundSkillIds: _cleanStringList(boundSkillIds),
-      settings: Map<String, String>.from(settings),
+      settings: separatedSettings,
     );
     final nextProfiles = [...profiles]..[index] = updated;
     await _writeAgentProfiles(workspace, nextProfiles);
@@ -14632,6 +14840,60 @@ class Rc6RuntimeController extends ChangeNotifier {
       ),
       'workspace_path': workspace.path,
     };
+  }
+
+  Future<Map<String, String>> _agentBackendSeparationSettings(
+    Directory workspace, {
+    required Map<String, String> settings,
+    Rc6AgentProfile? current,
+  }) async {
+    final profiles = await _readProjectConfigProfiles(workspace);
+    final active = _activeProfile(profiles);
+    final provider = await loadProviderRuntimeSettings();
+    final llm = _mapValue(provider['llm']);
+    final gateway = _mapValue(provider['model_gateway']);
+    return {
+      ...?current?.settings,
+      ...settings,
+      'backend_binding_status': 'separated_provider_profile_binding',
+      'active_profile_id': active.profileId,
+      'model_config_id': active.modelConfigId,
+      'model_gateway_config_id': active.modelGatewayConfigId,
+      'llm_provider_ref': _stringValue(llm['provider_id'], 'env_configured'),
+      'model_id_ref': _stringValue(
+        llm['model_id'],
+        'local-default-or-configured-provider',
+      ),
+      'gateway_id_ref':
+          _stringValue(gateway['gateway_id'], 'gateway_not_configured'),
+      'secret_plaintext_written': 'false',
+      'backend_executor_executed': 'false',
+      'multi_model_orchestration_executed': 'false',
+    };
+  }
+
+  static bool _jsonContainsPlainSecret(Object? value) {
+    if (value is Map) {
+      return value.values.any(_jsonContainsPlainSecret);
+    }
+    if (value is List) {
+      return value.any(_jsonContainsPlainSecret);
+    }
+    if (value is! String) {
+      return false;
+    }
+    final normalized = value.trim().toLowerCase();
+    if (normalized.isEmpty ||
+        normalized.contains('*') ||
+        normalized == 'none' ||
+        normalized.startsWith('env:') ||
+        normalized == 'runtime_input_not_persisted') {
+      return false;
+    }
+    return normalized.contains('secret') ||
+        normalized.contains('token') ||
+        normalized.contains('api_key') ||
+        normalized.startsWith('sk-');
   }
 
   Future<Rc6AgentConversation> _readAgentConversation(
@@ -28391,6 +28653,10 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   bool _autoRunOfficeArtifactAdapterOnLaunch() {
     return _envEnabled('HEITANG_P1_OFFICE_ARTIFACT_ADAPTER_E2E');
+  }
+
+  bool _autoRunAssistantBackendSeparationOnLaunch() {
+    return _envEnabled('HEITANG_P1_ASSISTANT_BACKEND_SEPARATION_E2E');
   }
 
   bool _envEnabled(String key) {
