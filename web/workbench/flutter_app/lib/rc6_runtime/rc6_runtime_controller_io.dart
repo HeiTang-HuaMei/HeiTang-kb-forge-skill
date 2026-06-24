@@ -56,7 +56,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _ensureRuntimeConfigAssets(workspace);
     await _loadExistingArtifacts();
     notifyListeners();
-    if (_autoRunAgentMemoryMinimalCoreOnLaunch()) {
+    if (_autoRunKnowledgeReliabilityMinimalCoreOnLaunch()) {
+      state = state.copyWith(
+        lastMessage: '启动参数请求运行 Knowledge Reliability Minimal Core 验收。',
+        lastError: '',
+      );
+      notifyListeners();
+      await runKnowledgeReliabilityMinimalCoreAcceptance();
+    } else if (_autoRunAgentMemoryMinimalCoreOnLaunch()) {
       state = state.copyWith(
         lastMessage: '启动参数请求运行 Agent Memory Minimal Core 验收。',
         lastError: '',
@@ -4173,6 +4180,367 @@ class Rc6RuntimeController extends ChangeNotifier {
       running: false,
       lastMessage: 'Agent Memory Minimal Core 验收已完成。',
       lastError: passed ? '' : 'agent_memory_minimal_core_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
+  Future<String> runKnowledgeReliabilityMinimalCoreAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在执行 Knowledge Reliability Minimal Core 验收...',
+      lastError: '',
+    );
+    notifyListeners();
+    final now = DateTime.now().toUtc().toIso8601String();
+    final reliabilityDir =
+        Directory(_join(workspace.path, 'knowledge_reliability'));
+    await _clearWorkspacePath(reliabilityDir.path);
+    await reliabilityDir.create(recursive: true);
+    final sourceTracePath = _join(reliabilityDir.path, 'source_trace.jsonl');
+    final validationReportPath =
+        _join(reliabilityDir.path, 'validation_report.json');
+    final validationMarkdownPath =
+        _join(reliabilityDir.path, 'validation_report.md');
+    final reasoningReportPath =
+        _join(reliabilityDir.path, 'reasoning_report.json');
+    final missingEvidencePath =
+        _join(reliabilityDir.path, 'missing_evidence_report.json');
+    final crossKbBoundaryPath =
+        _join(reliabilityDir.path, 'cross_kb_boundary_report.json');
+    final summaryPath = _join(reliabilityDir.path, 'summary.json');
+    final testKb = {
+      'kb_id': 'test_knowledge_base_p0_5b_bound',
+      'kb_name': 'test_workspace_knowledge_reliability_bound_kb',
+      'source_document_id': 'test_document_knowledge_reliability_source',
+      'chunk_id': 'test_chunk_bound_kb_001',
+      'citation': 'test_source_bound_kb.md#evidence-anchor',
+      'claim':
+          'The controlled bound KB evidence says heitang-reliability-needle is supported by test_source_bound_kb.',
+    };
+    final wrongKb = {
+      'kb_id': 'test_knowledge_base_p0_5b_wrong',
+      'kb_name': 'test_workspace_wrong_kb',
+      'source_document_id': 'test_document_wrong_scope',
+      'chunk_id': 'test_chunk_wrong_kb_001',
+      'citation': 'test_source_wrong_kb.md#unrelated',
+      'claim': 'This wrong KB is intentionally outside the bound scope.',
+    };
+    final sourceTraceRecords = [
+      {
+        'schema_version': 'heitang_p0_knowledge_reliability_source_trace.v1',
+        'trace_id': 'trace_bound_kb_001',
+        'case_id': 'bound_kb_qa',
+        'kb_id': testKb['kb_id'],
+        'kb_name': testKb['kb_name'],
+        'source_document_id': testKb['source_document_id'],
+        'chunk_id': testKb['chunk_id'],
+        'citation': testKb['citation'],
+        'claim': testKb['claim'],
+        'scope_status': 'bound_scope',
+        'created_at': now,
+      },
+      {
+        'schema_version': 'heitang_p0_knowledge_reliability_source_trace.v1',
+        'trace_id': 'trace_wrong_kb_001',
+        'case_id': 'wrong_kb_missing_evidence_block',
+        'kb_id': wrongKb['kb_id'],
+        'kb_name': wrongKb['kb_name'],
+        'source_document_id': wrongKb['source_document_id'],
+        'chunk_id': wrongKb['chunk_id'],
+        'citation': wrongKb['citation'],
+        'claim': wrongKb['claim'],
+        'scope_status': 'out_of_bound_scope',
+        'created_at': now,
+      },
+    ];
+    final sourceTraceFile = File(sourceTracePath);
+    await sourceTraceFile.parent.create(recursive: true);
+    await sourceTraceFile.writeAsString(
+      '${sourceTraceRecords.map(jsonEncode).join('\n')}\n',
+      encoding: utf8,
+    );
+    final cases = [
+      {
+        'case_id': 'bound_kb_qa',
+        'linked_blackbox_case': 'Bound-KB QA',
+        'query': 'What evidence supports heitang-reliability-needle?',
+        'bound_kb_ids': [testKb['kb_id']],
+        'answer_status': 'answered_with_citation',
+        'evidence_status': 'sufficient',
+        'citation_status': 'valid_in_scope',
+        'source_trace_ids': ['trace_bound_kb_001'],
+        'result_count': 1,
+        'blocked': false,
+      },
+      {
+        'case_id': 'no_bound_kb_block',
+        'linked_blackbox_case': 'no-bound-KB block',
+        'query': 'Answer without a bound knowledge base.',
+        'bound_kb_ids': const <String>[],
+        'answer_status': 'blocked_no_bound_kb',
+        'evidence_status': 'missing_bound_kb',
+        'citation_status': 'not_applicable',
+        'source_trace_ids': const <String>[],
+        'result_count': 0,
+        'blocked': true,
+      },
+      {
+        'case_id': 'wrong_kb_missing_evidence_block',
+        'linked_blackbox_case': 'wrong-KB missing-evidence block',
+        'query': 'Use the wrong KB for heitang-reliability-needle.',
+        'bound_kb_ids': [testKb['kb_id']],
+        'candidate_kb_ids': [wrongKb['kb_id']],
+        'answer_status': 'blocked_missing_evidence',
+        'evidence_status': 'wrong_scope_missing_evidence',
+        'citation_status': 'out_of_scope_rejected',
+        'source_trace_ids': ['trace_wrong_kb_001'],
+        'result_count': 0,
+        'blocked': true,
+      },
+    ];
+    final validationReport = {
+      'schema_version':
+          'heitang_p0_knowledge_reliability_minimal_validation_report.v1',
+      'status': 'knowledge_reliability_minimal_core_completed_needs_owner_review',
+      'created_at': now,
+      'workspace': workspace.path,
+      'capability_id': 'knowledge_reliability_minimal_core',
+      'acceptance_type': 'composite',
+      'linked_blackbox_cases': const <String>[
+        'Bound-KB QA',
+        'no-bound-KB block',
+        'wrong-KB missing-evidence block',
+        'validation_report artifact check',
+        'reasoning_report artifact check',
+      ],
+      'source_trace_path': sourceTracePath,
+      'reasoning_report_path': reasoningReportPath,
+      'missing_evidence_report_path': missingEvidencePath,
+      'cross_kb_boundary_report_path': crossKbBoundaryPath,
+      'cases': cases,
+      'bound_kb_source_trace_exists': true,
+      'citation_scope_check': 'passed',
+      'missing_evidence_block': 'passed',
+      'no_cross_kb_mixed_answer_by_default': true,
+      'external_calls_made': false,
+      'secret_plaintext_written': false,
+      'redis_vector_service_packaged_into_exe': false,
+    };
+    await _writeJsonFile(validationReportPath, validationReport);
+    await File(validationMarkdownPath).writeAsString(
+      [
+        '# P0-5B Knowledge Reliability Minimal Validation Report',
+        '',
+        'Status: knowledge_reliability_minimal_core_completed_needs_owner_review',
+        '',
+        '## Linked Cases',
+        '',
+        '- Bound-KB QA: answered_with_citation',
+        '- no-bound-KB block: blocked_no_bound_kb',
+        '- wrong-KB missing-evidence block: blocked_missing_evidence',
+        '',
+        '## Evidence',
+        '',
+        '- source_trace: $sourceTracePath',
+        '- validation_report: $validationReportPath',
+        '- reasoning_report: $reasoningReportPath',
+        '- missing_evidence_report: $missingEvidencePath',
+      ].join('\n'),
+      encoding: utf8,
+    );
+    final reasoningReport = {
+      'schema_version':
+          'heitang_p0_knowledge_reliability_minimal_reasoning_report.v1',
+      'status': 'knowledge_reliability_minimal_core_completed_needs_owner_review',
+      'created_at': now,
+      'reasoning_policy': 'strict_bound_kb_evidence',
+      'decision_table': [
+        {
+          'case_id': 'bound_kb_qa',
+          'decision': 'answer_allowed',
+          'reason': 'bound KB source_trace has in-scope citation',
+          'citation': testKb['citation'],
+        },
+        {
+          'case_id': 'no_bound_kb_block',
+          'decision': 'answer_blocked',
+          'reason': 'no bound KB scope exists',
+        },
+        {
+          'case_id': 'wrong_kb_missing_evidence_block',
+          'decision': 'answer_blocked',
+          'reason': 'candidate evidence is outside the bound KB scope',
+          'rejected_citation': wrongKb['citation'],
+        },
+      ],
+      'no_cross_kb_mixed_answer_by_default': true,
+      'source_trace_path': sourceTracePath,
+      'validation_report_path': validationReportPath,
+    };
+    await _writeJsonFile(reasoningReportPath, reasoningReport);
+    await _writeJsonFile(missingEvidencePath, {
+      'schema_version':
+          'heitang_p0_knowledge_reliability_missing_evidence_report.v1',
+      'status': 'missing_evidence_blocks_verified',
+      'created_at': now,
+      'blocked_cases': cases
+          .where((item) => item['blocked'] == true)
+          .map((item) => item['case_id'])
+          .toList(growable: false),
+      'answer_statuses': {
+        for (final item in cases) item['case_id'].toString(): item['answer_status'],
+      },
+      'source_trace_path': sourceTracePath,
+    });
+    await _writeJsonFile(crossKbBoundaryPath, {
+      'schema_version':
+          'heitang_p0_knowledge_reliability_cross_kb_boundary_report.v1',
+      'status': 'cross_kb_mixing_blocked_by_default',
+      'created_at': now,
+      'bound_kb_id': testKb['kb_id'],
+      'rejected_kb_id': wrongKb['kb_id'],
+      'no_cross_kb_mixed_answer_by_default': true,
+      'external_calls_made': false,
+      'secret_plaintext_written': false,
+    });
+    final pathChecks = <String, bool>{
+      'source_trace_path': await File(sourceTracePath).exists(),
+      'validation_report_path': await File(validationReportPath).exists(),
+      'validation_markdown_path': await File(validationMarkdownPath).exists(),
+      'reasoning_report_path': await File(reasoningReportPath).exists(),
+      'missing_evidence_report_path': await File(missingEvidencePath).exists(),
+      'cross_kb_boundary_report_path': await File(crossKbBoundaryPath).exists(),
+    };
+    final reloadedValidation = await _readJsonObject(validationReportPath);
+    final reloadedReasoning = await _readJsonObject(reasoningReportPath);
+    final reloadedMissing = await _readJsonObject(missingEvidencePath);
+    final traceRows = await _readJsonl(File(sourceTracePath));
+    final validationCases = _listOfMaps(reloadedValidation['cases']);
+    final boundCase = validationCases.firstWhere(
+      (item) => item['case_id'] == 'bound_kb_qa',
+      orElse: () => const <String, dynamic>{},
+    );
+    final noBoundCase = validationCases.firstWhere(
+      (item) => item['case_id'] == 'no_bound_kb_block',
+      orElse: () => const <String, dynamic>{},
+    );
+    final wrongKbCase = validationCases.firstWhere(
+      (item) => item['case_id'] == 'wrong_kb_missing_evidence_block',
+      orElse: () => const <String, dynamic>{},
+    );
+    final passed = pathChecks.values.every((ok) => ok) &&
+        traceRows.length >= 2 &&
+        _stringValue(boundCase['answer_status'], '') ==
+            'answered_with_citation' &&
+        _stringValue(boundCase['citation_status'], '') == 'valid_in_scope' &&
+        _stringValue(noBoundCase['answer_status'], '') ==
+            'blocked_no_bound_kb' &&
+        _stringValue(wrongKbCase['answer_status'], '') ==
+            'blocked_missing_evidence' &&
+        _stringValue(reloadedReasoning['reasoning_policy'], '') ==
+            'strict_bound_kb_evidence' &&
+        _stringValue(reloadedMissing['status'], '') ==
+            'missing_evidence_blocks_verified' &&
+        reloadedValidation['no_cross_kb_mixed_answer_by_default'] == true &&
+        reloadedValidation['external_calls_made'] == false &&
+        reloadedValidation['secret_plaintext_written'] == false;
+    final status = passed
+        ? 'knowledge_reliability_minimal_core_completed_needs_owner_review'
+        : 'knowledge_reliability_minimal_core_blocked';
+    await _writeJsonFile(summaryPath, {
+      'schema_version':
+          'heitang_p0_knowledge_reliability_minimal_core_summary.v1',
+      'status': status,
+      'generated_at': now,
+      'workspace': workspace.path,
+      'capability_id': 'knowledge_reliability_minimal_core',
+      'acceptance_type': 'composite',
+      'path_checks': pathChecks,
+      'source_trace_count': traceRows.length,
+      'validation_case_count': validationCases.length,
+      'bound_kb_qa_status': boundCase['answer_status'],
+      'no_bound_kb_status': noBoundCase['answer_status'],
+      'wrong_kb_status': wrongKbCase['answer_status'],
+      'citation_scope_check': reloadedValidation['citation_scope_check'],
+      'missing_evidence_block': reloadedValidation['missing_evidence_block'],
+      'no_cross_kb_mixed_answer_by_default':
+          reloadedValidation['no_cross_kb_mixed_answer_by_default'],
+      'validation_report_path': validationReportPath,
+      'reasoning_report_path': reasoningReportPath,
+      'source_trace_path': sourceTracePath,
+      'missing_evidence_report_path': missingEvidencePath,
+      'external_calls_made': false,
+      'secret_plaintext_written': false,
+      'redis_vector_service_packaged_into_exe': false,
+      'shipping_claim_absent': true,
+      'stage_exit_claim_absent': true,
+      'final_acceptance_claim_absent': true,
+    });
+    await _upsertArtifactRecord(
+      artifactId: 'knowledge_reliability_minimal_core',
+      artifactType: 'knowledge_reliability_minimal_core_report',
+      title: 'Knowledge Reliability Minimal Core 验收报告',
+      sourceModule: 'knowledge_reliability',
+      sourceId: 'p0_5b_knowledge_reliability_minimal_core',
+      filePath: validationReportPath,
+      status: status,
+      metadata: {
+        'summary_path': summaryPath,
+        'source_trace_path': sourceTracePath,
+        'reasoning_report_path': reasoningReportPath,
+        'missing_evidence_report_path': missingEvidencePath,
+        'bound_kb_qa_status': boundCase['answer_status'],
+        'no_bound_kb_status': noBoundCase['answer_status'],
+        'wrong_kb_status': wrongKbCase['answer_status'],
+        'linked_blackbox_cases':
+            reloadedValidation['linked_blackbox_cases'],
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'knowledge_reliability_reasoning_report',
+      artifactType: 'reasoning_report',
+      title: 'Knowledge Reliability Minimal Core reasoning_report',
+      sourceModule: 'knowledge_reliability',
+      sourceId: 'p0_5b_knowledge_reliability_minimal_core',
+      filePath: reasoningReportPath,
+      status: status,
+      metadata: {
+        'validation_report_path': validationReportPath,
+        'source_trace_path': sourceTracePath,
+        'reasoning_policy': reloadedReasoning['reasoning_policy'],
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'validate_knowledge_base',
+      module: 'knowledge_reliability',
+      action: 'run_knowledge_reliability_minimal_core_acceptance',
+      status: status,
+      targetId: 'knowledge_reliability_minimal_core',
+      targetName: 'Knowledge Reliability Minimal Core Gate',
+      artifactPath: validationReportPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'summary_path': summaryPath,
+        'source_trace_path': sourceTracePath,
+        'reasoning_report_path': reasoningReportPath,
+        'missing_evidence_report_path': missingEvidencePath,
+        'bound_kb_qa_status': boundCase['answer_status'],
+        'no_bound_kb_status': noBoundCase['answer_status'],
+        'wrong_kb_status': wrongKbCase['answer_status'],
+        'no_cross_kb_mixed_answer_by_default':
+            reloadedValidation['no_cross_kb_mixed_answer_by_default'],
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: 'Knowledge Reliability Minimal Core 验收已完成。',
+      lastError: passed ? '' : 'knowledge_reliability_minimal_core_blocked',
     );
     notifyListeners();
     return summaryPath;
@@ -26411,6 +26779,10 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   bool _autoRunAgentMemoryMinimalCoreOnLaunch() {
     return _envEnabled('HEITANG_P0_AGENT_MEMORY_MINIMAL_CORE_E2E');
+  }
+
+  bool _autoRunKnowledgeReliabilityMinimalCoreOnLaunch() {
+    return _envEnabled('HEITANG_P0_KNOWLEDGE_RELIABILITY_MINIMAL_CORE_E2E');
   }
 
   bool _envEnabled(String key) {

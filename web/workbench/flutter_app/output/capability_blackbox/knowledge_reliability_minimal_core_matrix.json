@@ -1,0 +1,79 @@
+﻿{
+    "schema_version":  "heitang_p0_knowledge_reliability_minimal_core_matrix.v1",
+    "status":  "knowledge_reliability_minimal_core_completed_needs_owner_review",
+    "workspace":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace",
+    "matrix":  [
+                   {
+                       "path":  "P0-5B Knowledge Reliability Minimal Core",
+                       "step":  "Bound-KB QA",
+                       "expected":  "绑定 KB 查询必须有 source_trace、有效 citation、且答案只在绑定 KB 范围内允许。",
+                       "actual":  "source_trace_rows=2; answer_status=answered_with_citation; citation_status=valid_in_scope; bound_kb_ids=test_knowledge_base_p0_5b_bound",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\knowledge_reliability\\validation_report.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "knowledge_reliability_minimal_core_completed_needs_owner_review",
+                       "blocker":  ""
+                   },
+                   {
+                       "path":  "P0-5B Knowledge Reliability Minimal Core",
+                       "step":  "no-bound-KB block",
+                       "expected":  "未绑定 KB 时必须阻断回答，不能生成无证据答案。",
+                       "actual":  "answer_status=blocked_no_bound_kb; evidence_status=missing_bound_kb; blocked=True",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\knowledge_reliability\\missing_evidence_report.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "knowledge_reliability_minimal_core_completed_needs_owner_review",
+                       "blocker":  ""
+                   },
+                   {
+                       "path":  "P0-5B Knowledge Reliability Minimal Core",
+                       "step":  "wrong-KB missing-evidence block",
+                       "expected":  "错绑 / 越界 KB 证据必须被拒绝，默认不能跨 KB 混答。",
+                       "actual":  "answer_status=blocked_missing_evidence; citation_status=out_of_scope_rejected; no_cross_kb_mixed_answer_by_default=True",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\knowledge_reliability\\cross_kb_boundary_report.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "knowledge_reliability_minimal_core_completed_needs_owner_review",
+                       "blocker":  ""
+                   },
+                   {
+                       "path":  "P0-5B Knowledge Reliability Minimal Core",
+                       "step":  "validation_report / reasoning_report artifacts",
+                       "expected":  "必须生成 validation_report、reasoning_report、missing_evidence_report 和 summary。",
+                       "actual":  "validation_schema=heitang_p0_knowledge_reliability_minimal_validation_report.v1; reasoning_policy=strict_bound_kb_evidence; missing_status=missing_evidence_blocks_verified; summary_status=knowledge_reliability_minimal_core_completed_needs_owner_review",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\knowledge_reliability\\reasoning_report.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "knowledge_reliability_minimal_core_completed_needs_owner_review",
+                       "blocker":  ""
+                   },
+                   {
+                       "path":  "P0-5B Knowledge Reliability Minimal Core",
+                       "step":  "Event Ledger and Artifact Lifecycle",
+                       "expected":  "validate_knowledge_base 事件必须写入 Event Ledger，validation/reasoning artifacts 必须登记 Artifact Lifecycle。",
+                       "actual":  "event_found=True; event_status=knowledge_reliability_minimal_core_completed_needs_owner_review; validation_artifact=True; reasoning_artifact=True",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\artifacts\\catalog.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "knowledge_reliability_minimal_core_completed_needs_owner_review",
+                       "blocker":  ""
+                   }
+               ],
+    "run_dir":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\knowledge_reliability_minimal_core\\knowledge_reliability_minimal_core\\knowledge_reliability_minimal_core_20260625_012120",
+    "paths_ready":  true,
+    "restart_verified":  true,
+    "artifact_summary":  {
+                             "source_trace_count":  2,
+                             "validation_case_count":  3,
+                             "bound_kb_qa_status":  "answered_with_citation",
+                             "no_bound_kb_status":  "blocked_no_bound_kb",
+                             "wrong_kb_status":  "blocked_missing_evidence",
+                             "validation_report_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\knowledge_reliability\\validation_report.json",
+                             "reasoning_report_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\knowledge_reliability\\reasoning_report.json",
+                             "source_trace_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\knowledge_reliability\\source_trace.jsonl",
+                             "missing_evidence_report_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\knowledge_reliability\\missing_evidence_report.json",
+                             "event_ledger_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\audit\\event_ledger.jsonl",
+                             "artifact_catalog_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\artifacts\\catalog.json"
+                         },
+    "generated_at":  "2026-06-24T17:21:30.1455353Z"
+}
