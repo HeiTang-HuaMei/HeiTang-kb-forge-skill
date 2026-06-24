@@ -1,0 +1,55 @@
+﻿{
+    "schema_version":  "heitang_p0_agent_memory_minimal_core_matrix.v1",
+    "status":  "agent_memory_minimal_core_completed_needs_owner_review",
+    "workspace":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace",
+    "matrix":  [
+                   {
+                       "path":  "P0-4C Agent Memory Minimal Core",
+                       "step":  "task memory snapshot",
+                       "expected":  "task_memory_snapshot 必须持久化 current_gate、needs_owner_review、blocked、remaining，并在 remaining 非空时 global_goal_complete=false。",
+                       "actual":  "gate=P0-4C Agent Memory Minimal Core Gate; remaining=95; needs_owner_review=17; blocked=0; global_goal_complete=False",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\task_memory\\task_memory_snapshot.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "agent_memory_minimal_core_completed_needs_owner_review",
+                       "blocker":  ""
+                   },
+                   {
+                       "path":  "P0-4C Agent Memory Minimal Core",
+                       "step":  "checkpoint and resume pointer",
+                       "expected":  "checkpoint / resume 必须能从磁盘恢复当前 Gate，不能把单 Gate 当全局完成。",
+                       "actual":  "checkpoint_gate=P0-4C Agent Memory Minimal Core Gate; resume_gate=P0-4C Agent Memory Minimal Core Gate; resume_global_goal_complete=False",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\task_memory\\resume_pointer.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "agent_memory_minimal_core_completed_needs_owner_review",
+                       "blocker":  ""
+                   },
+                   {
+                       "path":  "P0-4C Agent Memory Minimal Core",
+                       "step":  "summary and forbidden boundaries",
+                       "expected":  "summary 必须写 needs_owner_review，证明重启恢复，同时不得接 TencentDB、Node 22、完整 L0-L3 或发布声明。",
+                       "actual":  "status=agent_memory_minimal_core_completed_needs_owner_review; guarded=True; restart=True; tencentdb=False; node22=False",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\acceptance\\agent_memory_minimal_core_summary.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "agent_memory_minimal_core_completed_needs_owner_review",
+                       "blocker":  ""
+                   },
+                   {
+                       "path":  "P0-4C Agent Memory Minimal Core",
+                       "step":  "Event Ledger and Artifact Lifecycle",
+                       "expected":  "memory_snapshot_created 必须写入 Event Ledger，task_memory_snapshot 必须登记 Artifact Lifecycle。",
+                       "actual":  "event_found=True; event_status=agent_memory_minimal_core_completed_needs_owner_review; artifact_found=True; artifact_type=task_memory_snapshot",
+                       "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\artifacts\\catalog.json",
+                       "persisted":  true,
+                       "exe_restart_verified":  true,
+                       "current_conclusion":  "agent_memory_minimal_core_completed_needs_owner_review",
+                       "blocker":  ""
+                   }
+               ],
+    "run_dir":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\agent_memory_minimal_core\\agent_memory_minimal_core\\agent_memory_minimal_core_20260625_004456",
+    "paths_ready":  true,
+    "restart_verified":  true,
+    "generated_at":  "2026-06-24T16:45:07.8554361Z"
+}

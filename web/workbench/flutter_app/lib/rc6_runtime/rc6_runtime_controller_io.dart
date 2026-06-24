@@ -56,7 +56,14 @@ class Rc6RuntimeController extends ChangeNotifier {
     await _ensureRuntimeConfigAssets(workspace);
     await _loadExistingArtifacts();
     notifyListeners();
-    if (_autoRunMemoryEvidenceMetadataReservationOnLaunch()) {
+    if (_autoRunAgentMemoryMinimalCoreOnLaunch()) {
+      state = state.copyWith(
+        lastMessage: '启动参数请求运行 Agent Memory Minimal Core 验收。',
+        lastError: '',
+      );
+      notifyListeners();
+      await runAgentMemoryMinimalCoreAcceptance();
+    } else if (_autoRunMemoryEvidenceMetadataReservationOnLaunch()) {
       state = state.copyWith(
         lastMessage: '启动参数请求运行 Memory / Evidence 元数据预留验收。',
         lastError: '',
@@ -3955,6 +3962,217 @@ class Rc6RuntimeController extends ChangeNotifier {
       running: false,
       lastMessage: 'Memory / Evidence 元数据预留验收已完成。',
       lastError: passed ? '' : 'memory_evidence_metadata_reservation_blocked',
+    );
+    notifyListeners();
+    return summaryPath;
+  }
+
+  Future<String> runAgentMemoryMinimalCoreAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在执行 Agent Memory Minimal Core 验收...',
+      lastError: '',
+    );
+    notifyListeners();
+    final now = DateTime.now().toUtc().toIso8601String();
+    final repoRoot = _resolveUiRepoRoot();
+    final chainStatusPath =
+        _join(repoRoot.path, 'capability_chain_status.json');
+    final chainStatus = await _readJsonObject(chainStatusPath);
+    final completedGates = _listOfStrings(chainStatus['completed_gates']);
+    final needsOwnerReview =
+        _listOfStrings(chainStatus['completed_with_owner_review_needed']);
+    final blockedGates = _listOfStrings(chainStatus['blocked_gates']);
+    final remainingGates = _listOfStrings(chainStatus['remaining_gates']);
+    final currentGate = _stringValue(
+      chainStatus['current_gate'],
+      'P0-4C Agent Memory Minimal Core Gate',
+    );
+    final currentPhase = _stringValue(chainStatus['current_phase'], 'P0');
+    final globalGoalComplete =
+        remainingGates.isEmpty && chainStatus['global_goal_complete'] == true;
+    final memoryDir = Directory(_join(workspace.path, 'task_memory'));
+    await memoryDir.create(recursive: true);
+    final snapshotPath = _join(memoryDir.path, 'task_memory_snapshot.json');
+    final checkpointPath = _join(memoryDir.path, 'task_checkpoint.json');
+    final failurePath = _join(memoryDir.path, 'failure_placeholder.json');
+    final resumePath = _join(memoryDir.path, 'resume_pointer.json');
+    final summaryPath = _joinNested(
+        workspace.path, 'acceptance/agent_memory_minimal_core_summary.json');
+    final snapshot = {
+      'schema_version': 'heitang_task_memory_snapshot.v1',
+      'snapshot_type': 'task_memory_snapshot',
+      'status': 'completed_needs_owner_review',
+      'created_at': now,
+      'updated_at': now,
+      'workspace': workspace.path,
+      'source_chain_status_path': chainStatusPath,
+      'current_phase': currentPhase,
+      'current_gate': currentGate,
+      'completed': completedGates,
+      'needs_owner_review': needsOwnerReview,
+      'blocked': blockedGates,
+      'remaining': remainingGates,
+      'completed_count': completedGates.length,
+      'needs_owner_review_count': needsOwnerReview.length,
+      'blocked_count': blockedGates.length,
+      'remaining_count': remainingGates.length,
+      'global_goal_complete': globalGoalComplete,
+      'global_goal_complete_guard':
+          remainingGates.isNotEmpty ? 'forced_false' : 'no_remaining_gates',
+      'next_gate': remainingGates.isEmpty ? '' : remainingGates.first,
+      'restore_contract': {
+        'restore_source': 'task_memory_snapshot',
+        'restore_current_gate': currentGate,
+        'restore_current_phase': currentPhase,
+        'restore_remaining_gates': remainingGates,
+        'resume_pointer_path': resumePath,
+      },
+      'boundaries': {
+        'tencentdb_agent_memory_integrated': false,
+        'node_22_dependency_added': false,
+        'full_l0_l3_memory_implemented': false,
+        'shipping_claim_absent': true,
+        'stage_exit_claim_absent': true,
+        'final_acceptance_claim_absent': true,
+      },
+      'linked_blackbox_cases': const <String>[
+        'P0-4C Agent Memory Minimal Core Gate',
+      ],
+      'evidence_paths': {
+        'snapshot_path': snapshotPath,
+        'checkpoint_path': checkpointPath,
+        'failure_placeholder_path': failurePath,
+        'resume_pointer_path': resumePath,
+        'summary_path': summaryPath,
+      },
+    };
+    await _writeJsonFile(snapshotPath, snapshot);
+    await _writeJsonFile(checkpointPath, {
+      'schema_version': 'heitang_task_memory_checkpoint.v1',
+      'status': 'completed_needs_owner_review',
+      'current_gate': currentGate,
+      'completed': completedGates,
+      'needs_owner_review': needsOwnerReview,
+      'blocked': blockedGates,
+      'remaining': remainingGates,
+      'created_at': now,
+    });
+    await _writeJsonFile(failurePath, {
+      'schema_version': 'heitang_task_memory_failure_placeholder.v1',
+      'status': 'no_current_failure',
+      'blocked': blockedGates,
+      'created_at': now,
+    });
+    await _writeJsonFile(resumePath, {
+      'schema_version': 'heitang_task_memory_resume_pointer.v1',
+      'status': 'resume_available',
+      'restore_from': snapshotPath,
+      'current_phase': currentPhase,
+      'current_gate': currentGate,
+      'next_gate': remainingGates.isEmpty ? '' : remainingGates.first,
+      'global_goal_complete': globalGoalComplete,
+      'created_at': now,
+    });
+    final reloadedSnapshot = await _readJsonObject(snapshotPath);
+    final reloadedResume = await _readJsonObject(resumePath);
+    final requiredPaths = {
+      'task_memory_snapshot_path': snapshotPath,
+      'checkpoint_path': checkpointPath,
+      'failure_placeholder_path': failurePath,
+      'resume_pointer_path': resumePath,
+    };
+    final pathChecks = <String, bool>{};
+    for (final entry in requiredPaths.entries) {
+      pathChecks[entry.key] = await File(entry.value).exists();
+    }
+    final restartRecoverable =
+        _stringValue(reloadedSnapshot['current_gate'], '') == currentGate &&
+            _stringValue(reloadedResume['current_gate'], '') == currentGate &&
+            _listOfStrings(reloadedSnapshot['remaining']).isNotEmpty &&
+            reloadedSnapshot['global_goal_complete'] == false;
+    final passed = pathChecks.values.every((ok) => ok) &&
+        _stringValue(reloadedSnapshot['snapshot_type'], '') ==
+            'task_memory_snapshot' &&
+        _listOfStrings(reloadedSnapshot['remaining']).isNotEmpty &&
+        _listOfStrings(reloadedSnapshot['needs_owner_review']).isNotEmpty &&
+        reloadedSnapshot['global_goal_complete'] == false &&
+        restartRecoverable;
+    final status = passed
+        ? 'agent_memory_minimal_core_completed_needs_owner_review'
+        : 'agent_memory_minimal_core_blocked';
+    await _writeJsonFile(summaryPath, {
+      'schema_version': 'heitang_p0_agent_memory_minimal_core_summary.v1',
+      'status': status,
+      'generated_at': now,
+      'workspace': workspace.path,
+      'required_paths': requiredPaths,
+      'path_checks': pathChecks,
+      'current_phase': currentPhase,
+      'current_gate': currentGate,
+      'completed_count': completedGates.length,
+      'needs_owner_review_count': needsOwnerReview.length,
+      'blocked_count': blockedGates.length,
+      'remaining_count': remainingGates.length,
+      'global_goal_complete': globalGoalComplete,
+      'remaining_gates_guarded': remainingGates.isNotEmpty,
+      'restart_recoverable_from_disk': restartRecoverable,
+      'task_memory_snapshot_created': true,
+      'event_ledger_event_type': 'memory_snapshot_created',
+      'artifact_lifecycle_artifact_id': 'task_memory_snapshot',
+      'tencentdb_agent_memory_integrated': false,
+      'node_22_dependency_added': false,
+      'full_l0_l3_memory_implemented': false,
+      'shipping_claim_absent': true,
+      'stage_exit_claim_absent': true,
+      'final_acceptance_claim_absent': true,
+    });
+    await _upsertArtifactRecord(
+      artifactId: 'task_memory_snapshot',
+      artifactType: 'task_memory_snapshot',
+      title: 'Agent Memory Minimal Core 任务记忆快照',
+      sourceModule: 'agent_memory',
+      sourceId: 'p0_4c_agent_memory_minimal_core',
+      filePath: snapshotPath,
+      status: status,
+      metadata: {
+        'current_phase': currentPhase,
+        'current_gate': currentGate,
+        'remaining_count': remainingGates.length,
+        'global_goal_complete': globalGoalComplete,
+        'restart_recoverable_from_disk': restartRecoverable,
+        'summary_path': summaryPath,
+        'checkpoint_path': checkpointPath,
+        'resume_pointer_path': resumePath,
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'memory_snapshot_created',
+      module: 'agent_memory',
+      action: 'run_agent_memory_minimal_core_acceptance',
+      status: status,
+      targetId: 'task_memory_snapshot',
+      targetName: 'Agent Memory Minimal Core Gate',
+      artifactPath: snapshotPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'current_phase': currentPhase,
+        'current_gate': currentGate,
+        'remaining_count': remainingGates.length,
+        'global_goal_complete': globalGoalComplete,
+        'restart_recoverable_from_disk': restartRecoverable,
+        'summary_path': summaryPath,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      running: false,
+      lastMessage: 'Agent Memory Minimal Core 验收已完成。',
+      lastError: passed ? '' : 'agent_memory_minimal_core_blocked',
     );
     notifyListeners();
     return summaryPath;
@@ -26191,6 +26409,10 @@ class Rc6RuntimeController extends ChangeNotifier {
     return _envEnabled('HEITANG_P0_MEMORY_EVIDENCE_E2E');
   }
 
+  bool _autoRunAgentMemoryMinimalCoreOnLaunch() {
+    return _envEnabled('HEITANG_P0_AGENT_MEMORY_MINIMAL_CORE_E2E');
+  }
+
   bool _envEnabled(String key) {
     final value = Platform.environment[key];
     return value == '1' || value?.toLowerCase() == 'true';
@@ -26431,6 +26653,23 @@ class Rc6RuntimeController extends ChangeNotifier {
     Directory cursor = Directory.current.absolute;
     while (true) {
       final marker = File(_join(cursor.path, 'heitang_kb_forge', 'cli.py'));
+      final appMarker = File(
+          _joinNested(cursor.path, 'web/workbench/flutter_app/pubspec.yaml'));
+      if (marker.existsSync() && appMarker.existsSync()) {
+        return cursor;
+      }
+      final parent = cursor.parent;
+      if (parent.path == cursor.path) {
+        return Directory.current.absolute;
+      }
+      cursor = parent;
+    }
+  }
+
+  static Directory _resolveUiRepoRoot() {
+    Directory cursor = Directory.current.absolute;
+    while (true) {
+      final marker = File(_join(cursor.path, 'capability_chain_status.json'));
       final appMarker = File(
           _joinNested(cursor.path, 'web/workbench/flutter_app/pubspec.yaml'));
       if (marker.existsSync() && appMarker.existsSync()) {

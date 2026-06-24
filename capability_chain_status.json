@@ -1,7 +1,7 @@
 {
   "global_goal": "p0_p1_p2_capability_chain",
   "current_phase": "P0",
-  "current_gate": "P0-4C Agent Memory Minimal Core Gate",
+  "current_gate": "P0-5B Knowledge Reliability Minimal Core Gate",
   "completed_gates": [],
   "completed_with_owner_review_needed": [
     "P0-0 Owner Review Gate for Event Ledger and Artifact Lifecycle Foundation",
@@ -20,11 +20,11 @@
     "P0-4B OKF Minimal Core Gate",
     "Correction Gate - Dual Track Acceptance Model",
     "Acceptance Type Correction Gate",
-    "Composite Linked Blackbox Correction Gate"
+    "Composite Linked Blackbox Correction Gate",
+    "P0-4C Agent Memory Minimal Core Gate"
   ],
   "blocked_gates": [],
   "remaining_gates": [
-    "P0-4C Agent Memory Minimal Core Gate",
     "P0-5B Knowledge Reliability Minimal Core Gate",
     "P0 Core Lifecycle Acceptance Gate (rerun after P0 backfill)",
     "P0 Release Gate",
@@ -120,10 +120,10 @@
     "P2 Release Gate",
     "Final Owner Review Gate"
   ],
-  "last_commit": "cb48bf5",
+  "last_commit": "pending_current_gate_commit",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-24T16:14:29.312025Z",
+  "updated_at": "2026-06-24T16:50:05.3365262Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -139,7 +139,8 @@
     "Acceptance type now decides whether Blackbox, Core, Artifact, Event, Governance or Composite evidence is mandatory.",
     "Composite capabilities do not need standalone UI blackbox, but must keep linked blackbox cases in the product paths they support.",
     "OKF, Knowledge Reliability and Agent Memory are composite capabilities for P0 routing.",
-    "P0 backfill queue remains P0-4C Agent Memory Minimal Core, P0-5B Knowledge Reliability Minimal Core, then P0 Core Lifecycle Acceptance rerun.",
+    "P0-4C Agent Memory Minimal Core has capability-level closure evidence and remains subject to P0 Release Gate.",
+    "P0 backfill queue now continues with P0-5B Knowledge Reliability Minimal Core, then P0 Core Lifecycle Acceptance rerun.",
     "Stage chain is P0 -> P0 Release Gate -> P1 -> P1 Release Gate -> P2 -> P2 Release Gate -> Final Owner Review.",
     "Release Gate means staged exit review, not production release or public release claim.",
     "P1 Release Gate regresses P0; P2 Release Gate regresses P0 plus P1 plus P2."
