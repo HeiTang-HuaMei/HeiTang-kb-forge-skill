@@ -1,0 +1,70 @@
+﻿{
+    "schema_version":  "heitang_p1_capability_registry_matrix.v1",
+    "status":  "capability_registry_completed_needs_owner_review",
+    "generated_at":  "2026-06-24T18:11:39.3591878Z",
+    "repo_root":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui",
+    "current_phase":  "P1",
+    "current_gate":  "P1-3 Memory Layer Separation Basic",
+    "next_gate":  "P1-3 Memory Layer Separation Basic",
+    "remaining_gates_count":  89,
+    "global_goal_complete":  false,
+    "checkpoint_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_capability_registry\\capability_registry_checkpoint.json",
+    "failure_template_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_capability_registry\\capability_registry_failure_template.json",
+    "resume_prompt_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_capability_registry\\capability_registry_resume_prompt.md",
+    "rows":  [
+                 {
+                     "check":  "required governance files exist",
+                     "status":  "passed",
+                     "actual":  "missing=0",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "status machine is at or just past P1-2 with global guard",
+                     "status":  "passed",
+                     "actual":  "phase=P1; gate=P1-3 Memory Layer Separation Basic; first_remaining=P1-3 Memory Layer Separation Basic; remaining=89; global_goal_complete=False",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "P0 release and P1-1 runner precede registry gate",
+                     "status":  "passed",
+                     "actual":  "p0_release=True; p1_runner=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "remaining chain preserves release gates and next gate",
+                     "status":  "passed",
+                     "actual":  "next_gate=P1-3 Memory Layer Separation Basic; p1_release=True; p2_release=True; final=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "capability registry vertical closure header is intact",
+                     "status":  "passed",
+                     "actual":  "header_present=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "capability and full plan row counts match without duplicate ids",
+                     "status":  "passed",
+                     "actual":  "registry_rows=108; plan_rows=108; duplicate_ids=0",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "capability_registry row matches governance acceptance contract",
+                     "status":  "passed",
+                     "actual":  "row_count=1; type=governance; core=passed; governance=passed; restart=passed; close_allowed=true",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "queue, rubric, backfill and release gate cross-references agree",
+                     "status":  "passed",
+                     "actual":  "queue_p1_2=True; queue_p1_3=True; rubric=True",
+                     "blocker":  ""
+                 },
+                 {
+                     "check":  "positive-claim boundary is clean outside prohibited-claim ledgers",
+                     "status":  "passed",
+                     "actual":  "files_scanned=6; claim_like_hits=0",
+                     "blocker":  ""
+                 }
+             ]
+}

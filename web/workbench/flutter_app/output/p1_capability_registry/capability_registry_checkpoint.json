@@ -1,0 +1,10 @@
+﻿{
+    "schema_version":  "heitang_capability_registry_checkpoint.v1",
+    "status":  "capability_registry_completed_needs_owner_review",
+    "current_phase":  "P1",
+    "current_gate":  "P1-3 Memory Layer Separation Basic",
+    "next_gate":  "P1-3 Memory Layer Separation Basic",
+    "remaining_gates_count":  89,
+    "global_goal_complete":  false,
+    "created_at":  "2026-06-24T18:11:39.3107206Z"
+}
