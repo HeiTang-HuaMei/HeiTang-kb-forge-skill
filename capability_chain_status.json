@@ -123,7 +123,7 @@
   "last_commit": "cb48bf5",
   "workspace_clean": false,
   "global_goal_complete": false,
-  "updated_at": "2026-06-24T15:00:18Z",
+  "updated_at": "2026-06-24T16:14:29.312025Z",
   "notes": [
     "Single Gate completion must not be treated as global completion.",
     "P0/P1/P2 remain incomplete while remaining_gates is non-empty.",
@@ -167,5 +167,15 @@
     "P2": "P2 Release Gate",
     "Release": "Final Owner Review Gate",
     "release_gate_meaning": "stage_exit_gate_not_production_release"
-  }
+  },
+  "full_target_mode_plan_status": "full_target_mode_plan_generated_needs_execution",
+  "full_target_mode_plan_generated_at": "2026-06-24T16:14:29.312025Z",
+  "full_target_mode_plan_files": [
+    "docs/capability_registry/Full_Target_Mode_Plan.md",
+    "docs/capability_registry/Full_Target_Mode_Execution_Queue.md",
+    "docs/capability_registry/Full_Target_Mode_Rubric.md",
+    "docs/capability_registry/Full_Target_Mode_Blocker_Policy.md"
+  ],
+  "environment_verification_status": "connection_verified",
+  "environment_available_for_target_mode": true
 }
