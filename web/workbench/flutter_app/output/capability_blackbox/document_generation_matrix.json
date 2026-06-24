@@ -1,0 +1,241 @@
+﻿{
+    "schema_version":  "heitang_p0_document_generation_blackbox_matrix.v1",
+    "status":  "document_generation_lifecycle_completed_needs_owner_review",
+    "workspace":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace",
+    "run_dir":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\document_generation\\document_generation_20260624_181315",
+    "generated_at":  "2026-06-24T10:18:55.4113104Z",
+    "rows":  [
+                 {
+                     "path":  "P0-6 Document Generation",
+                     "step":  "启动真实 EXE 文档链路",
+                     "expected_result":  "EXE 通过真实输入资料生成 doc/generation_manifest.json 并完成八种默认导出",
+                     "actual_result":  "generation_manifest and export outputs written",
+                     "screenshot_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\document_generation\\document_generation_20260624_181315\\screenshots\\document_generation_after_e2e.png",
+                     "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\doc\\generation_manifest.json",
+                     "is_persistent":  true,
+                     "reentry_verified":  true,
+                     "restart_exe_verified":  false,
+                     "conclusion":  "blackbox_lifecycle_verified",
+                     "blocker":  ""
+                 },
+                 {
+                     "path":  "P0-6 Document Generation",
+                     "step":  "导出 MD",
+                     "expected_result":  "md 文件真实落盘、非空、manifest 存在，二进制格式有正确文件头",
+                     "actual_result":  "exists=True; non_empty=True; header_ok=True; manifest=True",
+                     "screenshot_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\document_generation\\document_generation_20260624_181315\\screenshots\\document_generation_after_e2e.png",
+                     "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\export\\reading_notes_export.md",
+                     "is_persistent":  true,
+                     "reentry_verified":  true,
+                     "restart_exe_verified":  false,
+                     "conclusion":  "blackbox_lifecycle_verified",
+                     "blocker":  ""
+                 },
+                 {
+                     "path":  "P0-6 Document Generation",
+                     "step":  "导出 TXT",
+                     "expected_result":  "txt 文件真实落盘、非空、manifest 存在，二进制格式有正确文件头",
+                     "actual_result":  "exists=True; non_empty=True; header_ok=True; manifest=True",
+                     "screenshot_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\document_generation\\document_generation_20260624_181315\\screenshots\\document_generation_after_e2e.png",
+                     "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\export\\txt\\generated.txt",
+                     "is_persistent":  true,
+                     "reentry_verified":  true,
+                     "restart_exe_verified":  false,
+                     "conclusion":  "blackbox_lifecycle_verified",
+                     "blocker":  ""
+                 },
+                 {
+                     "path":  "P0-6 Document Generation",
+                     "step":  "导出 JSON",
+                     "expected_result":  "json 文件真实落盘、非空、manifest 存在，二进制格式有正确文件头",
+                     "actual_result":  "exists=True; non_empty=True; header_ok=True; manifest=True",
+                     "screenshot_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\document_generation\\document_generation_20260624_181315\\screenshots\\document_generation_after_e2e.png",
+                     "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\export\\structured\\knowledge_export.json",
+                     "is_persistent":  true,
+                     "reentry_verified":  true,
+                     "restart_exe_verified":  false,
+                     "conclusion":  "blackbox_lifecycle_verified",
+                     "blocker":  ""
+                 },
+                 {
+                     "path":  "P0-6 Document Generation",
+                     "step":  "导出 CSV",
+                     "expected_result":  "csv 文件真实落盘、非空、manifest 存在，二进制格式有正确文件头",
+                     "actual_result":  "exists=True; non_empty=True; header_ok=True; manifest=True",
+                     "screenshot_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\document_generation\\document_generation_20260624_181315\\screenshots\\document_generation_after_e2e.png",
+                     "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\export\\structured\\knowledge_export.csv",
+                     "is_persistent":  true,
+                     "reentry_verified":  true,
+                     "restart_exe_verified":  false,
+                     "conclusion":  "blackbox_lifecycle_verified",
+                     "blocker":  ""
+                 },
+                 {
+                     "path":  "P0-6 Document Generation",
+                     "step":  "导出 DOCX",
+                     "expected_result":  "docx 文件真实落盘、非空、manifest 存在，二进制格式有正确文件头",
+                     "actual_result":  "exists=True; non_empty=True; header_ok=True; manifest=True",
+                     "screenshot_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\document_generation\\document_generation_20260624_181315\\screenshots\\document_generation_after_e2e.png",
+                     "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\export\\docx\\generated.docx",
+                     "is_persistent":  true,
+                     "reentry_verified":  true,
+                     "restart_exe_verified":  false,
+                     "conclusion":  "blackbox_lifecycle_verified",
+                     "blocker":  ""
+                 },
+                 {
+                     "path":  "P0-6 Document Generation",
+                     "step":  "导出 PDF",
+                     "expected_result":  "pdf 文件真实落盘、非空、manifest 存在，二进制格式有正确文件头",
+                     "actual_result":  "exists=True; non_empty=True; header_ok=True; manifest=True",
+                     "screenshot_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\document_generation\\document_generation_20260624_181315\\screenshots\\document_generation_after_e2e.png",
+                     "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\export\\pdf\\generated.pdf",
+                     "is_persistent":  true,
+                     "reentry_verified":  true,
+                     "restart_exe_verified":  false,
+                     "conclusion":  "blackbox_lifecycle_verified",
+                     "blocker":  ""
+                 },
+                 {
+                     "path":  "P0-6 Document Generation",
+                     "step":  "导出 PPTX",
+                     "expected_result":  "pptx 文件真实落盘、非空、manifest 存在，二进制格式有正确文件头",
+                     "actual_result":  "exists=True; non_empty=True; header_ok=True; manifest=True",
+                     "screenshot_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\document_generation\\document_generation_20260624_181315\\screenshots\\document_generation_after_e2e.png",
+                     "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\export\\pptx\\generated.pptx",
+                     "is_persistent":  true,
+                     "reentry_verified":  true,
+                     "restart_exe_verified":  false,
+                     "conclusion":  "blackbox_lifecycle_verified",
+                     "blocker":  ""
+                 },
+                 {
+                     "path":  "P0-6 Document Generation",
+                     "step":  "导出 XLSX",
+                     "expected_result":  "xlsx 文件真实落盘、非空、manifest 存在，二进制格式有正确文件头",
+                     "actual_result":  "exists=True; non_empty=True; header_ok=True; manifest=True",
+                     "screenshot_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\document_generation\\document_generation_20260624_181315\\screenshots\\document_generation_after_e2e.png",
+                     "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\export\\xlsx\\generated.xlsx",
+                     "is_persistent":  true,
+                     "reentry_verified":  true,
+                     "restart_exe_verified":  false,
+                     "conclusion":  "blackbox_lifecycle_verified",
+                     "blocker":  ""
+                 },
+                 {
+                     "path":  "P0-6 Document Generation",
+                     "step":  "成果目录联动",
+                     "expected_result":  "artifact catalog 出现文档生成和导出成果",
+                     "actual_result":  "active_generated_document_artifacts=9",
+                     "screenshot_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\document_generation\\document_generation_20260624_181315\\screenshots\\document_generation_after_e2e.png",
+                     "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\artifacts\\catalog.json",
+                     "is_persistent":  true,
+                     "reentry_verified":  true,
+                     "restart_exe_verified":  false,
+                     "conclusion":  "blackbox_lifecycle_verified",
+                     "blocker":  ""
+                 },
+                 {
+                     "path":  "P0-6 Document Generation",
+                     "step":  "最近动态事件账本联动",
+                     "expected_result":  "event ledger 记录 generate_document 与 export_document 真实事件",
+                     "actual_result":  "generate_events=1; export_events=8",
+                     "screenshot_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\document_generation\\document_generation_20260624_181315\\screenshots\\document_generation_after_e2e.png",
+                     "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\audit\\event_ledger.jsonl",
+                     "is_persistent":  true,
+                     "reentry_verified":  true,
+                     "restart_exe_verified":  false,
+                     "conclusion":  "blackbox_lifecycle_verified",
+                     "blocker":  ""
+                 },
+                 {
+                     "path":  "P0-6 Document Generation",
+                     "step":  "重启 EXE 后导出产物仍存在",
+                     "expected_result":  "重启后八种导出文件仍可通过文件检查",
+                     "actual_result":  "restart_export_files_ok=True",
+                     "screenshot_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\capability_blackbox\\document_generation\\document_generation_20260624_181315\\screenshots\\document_generation_after_restart.png",
+                     "data_file_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace",
+                     "is_persistent":  true,
+                     "reentry_verified":  true,
+                     "restart_exe_verified":  true,
+                     "conclusion":  "blackbox_lifecycle_verified",
+                     "blocker":  ""
+                 }
+             ],
+    "export_checks":  [
+                          {
+                              "path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\export\\reading_notes_export.md",
+                              "exists":  true,
+                              "size_bytes":  4898,
+                              "header_hex":  "2320E79C9FE5AE9E",
+                              "expected_header_prefix":  "",
+                              "header_ok":  true,
+                              "non_empty":  true
+                          },
+                          {
+                              "path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\export\\txt\\generated.txt",
+                              "exists":  true,
+                              "size_bytes":  4834,
+                              "header_hex":  "E79C9FE5AE9EE8BE",
+                              "expected_header_prefix":  "",
+                              "header_ok":  true,
+                              "non_empty":  true
+                          },
+                          {
+                              "path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\export\\structured\\knowledge_export.json",
+                              "exists":  true,
+                              "size_bytes":  67497,
+                              "header_hex":  "7B0A202022736368",
+                              "expected_header_prefix":  "",
+                              "header_ok":  true,
+                              "non_empty":  true
+                          },
+                          {
+                              "path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\export\\structured\\knowledge_export.csv",
+                              "exists":  true,
+                              "size_bytes":  16340,
+                              "header_hex":  "73656374696F6E2C",
+                              "expected_header_prefix":  "",
+                              "header_ok":  true,
+                              "non_empty":  true
+                          },
+                          {
+                              "path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\export\\docx\\generated.docx",
+                              "exists":  true,
+                              "size_bytes":  8696,
+                              "header_hex":  "504B030414000000",
+                              "expected_header_prefix":  "504B0304",
+                              "header_ok":  true,
+                              "non_empty":  true
+                          },
+                          {
+                              "path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\export\\pdf\\generated.pdf",
+                              "exists":  true,
+                              "size_bytes":  1381,
+                              "header_hex":  "255044462D312E34",
+                              "expected_header_prefix":  "25504446",
+                              "header_ok":  true,
+                              "non_empty":  true
+                          },
+                          {
+                              "path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\export\\pptx\\generated.pptx",
+                              "exists":  true,
+                              "size_bytes":  3520,
+                              "header_hex":  "504B030414000000",
+                              "expected_header_prefix":  "504B0304",
+                              "header_ok":  true,
+                              "non_empty":  true
+                          },
+                          {
+                              "path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\export\\xlsx\\generated.xlsx",
+                              "exists":  true,
+                              "size_bytes":  21820,
+                              "header_hex":  "504B030414000000",
+                              "expected_header_prefix":  "504B0304",
+                              "header_ok":  true,
+                              "non_empty":  true
+                          }
+                      ],
+    "artifact_catalog_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\artifacts\\catalog.json",
+    "event_ledger_path":  "C:\\Users\\Administrator\\AppData\\Local\\HeiTangKBForge\\rc10_product_flow_workspace\\audit\\event_ledger.jsonl"
+}
