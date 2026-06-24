@@ -85,6 +85,31 @@ class Rc6RuntimeController extends ChangeNotifier {
   Future<void> exportDocumentFormat(String format) async => initialize();
   Future<void> clearDocumentGenerationHistory() async => initialize();
   Future<void> deleteLatestDocumentGenerationHistory() async => initialize();
+  Future<String> registerDocumentTemplateLibrary({
+    bool includeTestTemplate = false,
+  }) async {
+    await initialize();
+    return '';
+  }
+
+  Future<String> readDocumentTemplateRegistryPreview({
+    int maxCharacters = 6000,
+  }) async {
+    await initialize();
+    return '';
+  }
+
+  Future<String> exportDocumentTemplateRegistry() async {
+    await initialize();
+    return '';
+  }
+
+  Future<void> deleteTestDocumentTemplateRegistryEntry() async => initialize();
+  Future<String> runDocumentTemplateRegistryAcceptance() async {
+    await initialize();
+    return '';
+  }
+
   Future<String> readLatestDocumentGenerationHistoryMarkdown({
     int maxCharacters = 6000,
   }) async {

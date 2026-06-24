@@ -77,6 +77,13 @@ class Rc6RuntimeController extends ChangeNotifier {
       );
       notifyListeners();
       await runAssistantBoundKbIntegrationAcceptance();
+    } else if (_autoRunDocumentTemplateRegistryOnLaunch()) {
+      state = state.copyWith(
+        lastMessage: '启动参数请求运行 Document Template Registry 验收。',
+        lastError: '',
+      );
+      notifyListeners();
+      await runDocumentTemplateRegistryAcceptance();
     } else if (_autoRunAgentMemoryMinimalCoreOnLaunch()) {
       state = state.copyWith(
         lastMessage: '启动参数请求运行 Agent Memory Minimal Core 验收。',
@@ -1503,6 +1510,373 @@ class Rc6RuntimeController extends ChangeNotifier {
     state = state.copyWith(
       documentGenerationHistoryCount: history.length,
       lastMessage: '最近一条文档生成历史已删除；正文和导出产物已保留。',
+      lastError: '',
+    );
+    notifyListeners();
+  }
+
+  Future<String> registerDocumentTemplateLibrary({
+    bool includeTestTemplate = false,
+  }) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final templateRoot =
+        Directory(_joinNested(workspace.path, 'doc/templates'));
+    final entriesRoot = Directory(_join(templateRoot.path, 'entries'));
+    await entriesRoot.create(recursive: true);
+    final createdAt = DateTime.now().toUtc().toIso8601String();
+    final templates = _documentTemplateRegistryEntries(
+      includeTestTemplate: includeTestTemplate,
+    );
+    final entryRecords = <Map<String, Object?>>[];
+    for (final template in templates) {
+      final templateId = template['template_id']!.toString();
+      final entryPath = _join(entriesRoot.path, '$templateId.json');
+      final entry = {
+        'schema_version': 'prd_v3_document_template_registry_entry.v1',
+        ...template,
+        'entry_path': entryPath,
+        'created_at': createdAt,
+        'source_module': 'document_generation',
+        'secret_plaintext_written': false,
+      };
+      await _writeJsonFile(entryPath, entry);
+      entryRecords.add({
+        ...entry,
+        'entry_path': entryPath,
+      });
+    }
+    final manifestPath =
+        _join(templateRoot.path, 'document_template_registry_manifest.json');
+    final validationPath = _join(
+        templateRoot.path, 'document_template_registry_validation_report.json');
+    final auditPath =
+        _join(templateRoot.path, 'document_template_registry_audit.jsonl');
+    final manifest = {
+      'schema_version': 'prd_v3_document_template_registry.v1',
+      'status': 'pass',
+      'workspace': workspace.path,
+      'template_count': entryRecords.length,
+      'template_ids': entryRecords
+          .map((entry) => entry['template_id'].toString())
+          .toList(growable: false),
+      'templates': entryRecords,
+      'manifest_path': manifestPath,
+      'validation_report_path': validationPath,
+      'audit_log_path': auditPath,
+      'artifact_lifecycle': {
+        'open_supported': true,
+        'export_supported': true,
+        'delete_supported_for_test_marked_entries_only': true,
+        'restart_recovery_supported': true,
+      },
+      'created_at': createdAt,
+      'secret_plaintext_written': false,
+    };
+    await _writeJsonFile(manifestPath, manifest);
+    final missingEntries = <String>[
+      for (final entry in entryRecords)
+        if (!await File(entry['entry_path'].toString()).exists())
+          entry['template_id'].toString(),
+    ];
+    await _writeJsonFile(validationPath, {
+      'schema_version': 'prd_v3_document_template_registry_validation.v1',
+      'status': missingEntries.isEmpty ? 'pass' : 'blocked',
+      'manifest_path': manifestPath,
+      'entry_count': entryRecords.length,
+      'missing_entries': missingEntries,
+      'has_builtin_templates': entryRecords.any((entry) =>
+          entry['template_id'] == 'industry_analysis_report_template'),
+      'has_output_formats': entryRecords
+          .every((entry) => _listOfStrings(entry['output_formats']).isNotEmpty),
+      'has_required_variables': entryRecords
+          .every((entry) => _listOfStrings(entry['variables']).isNotEmpty),
+      'test_marked_entries': entryRecords
+          .where((entry) => entry['test_marker'] == true)
+          .map((entry) => entry['template_id'].toString())
+          .toList(growable: false),
+      'secret_plaintext_written': false,
+      'validated_at': createdAt,
+    });
+    await File(auditPath).parent.create(recursive: true);
+    await File(auditPath).writeAsString(
+      '${jsonEncode({
+            'schema_version':
+                'prd_v3_document_template_registry_audit_event.v1',
+            'event_type': 'document_template_registry_created',
+            'template_count': entryRecords.length,
+            'manifest_path': manifestPath,
+            'validation_report_path': validationPath,
+            'created_at': createdAt,
+            'secret_plaintext_written': false,
+          })}\n',
+      mode: FileMode.append,
+      encoding: utf8,
+    );
+    await _appendOrchestrationPlanRecord(
+      layer: 'document',
+      action: 'register_document_template_library',
+      artifact: manifestPath,
+      status: missingEntries.isEmpty ? 'completed' : 'blocked',
+      resources: {
+        'template_count': entryRecords.length,
+        'validation_report_path': validationPath,
+        'audit_log_path': auditPath,
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'document_template_registry_created',
+      module: 'document_generation',
+      action: 'register_document_template_library',
+      status: missingEntries.isEmpty ? 'completed' : 'blocked',
+      targetId: 'document_template_registry',
+      targetName: 'Document Template Registry',
+      artifactPath: manifestPath,
+      source: 'document_template_registry',
+      metadata: {
+        'template_count': entryRecords.length,
+        'validation_report_path': validationPath,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'document_template_registry_manifest',
+      artifactType: 'document_template_registry',
+      title: 'Document Template Registry',
+      sourceModule: 'document_generation',
+      sourceId: 'document_template_registry',
+      filePath: manifestPath,
+      status: missingEntries.isEmpty ? 'completed' : 'blocked',
+      metadata: {
+        'validation_report_path': validationPath,
+        'audit_log_path': auditPath,
+        'template_count': entryRecords.length,
+      },
+    );
+    for (final entry
+        in entryRecords.where((row) => row['test_marker'] == true)) {
+      await _upsertArtifactRecord(
+        artifactId: entry['template_id'].toString(),
+        artifactType: 'document_template_registry_entry',
+        title: entry['title'].toString(),
+        sourceModule: 'document_generation',
+        sourceId: 'document_template_registry',
+        filePath: entry['entry_path'].toString(),
+        status: 'completed',
+        metadata: {
+          'test_marker': true,
+          'registry_manifest_path': manifestPath,
+        },
+      );
+    }
+    state = state.copyWith(
+      lastMessage: '文档模板注册表已写入并完成校验。',
+      lastError: '',
+    );
+    await _loadExistingArtifacts();
+    notifyListeners();
+    return manifestPath;
+  }
+
+  Future<String> readDocumentTemplateRegistryPreview({
+    int maxCharacters = 6000,
+  }) async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final manifestPath = _joinNested(workspace.path,
+        'doc/templates/document_template_registry_manifest.json');
+    final file = File(manifestPath);
+    if (!await file.exists()) {
+      _fail('文档模板注册表不存在，请先创建模板注册表。');
+      return '';
+    }
+    final text = await file.readAsString(encoding: utf8);
+    state = state.copyWith(
+      lastMessage: '文档模板注册表已打开。',
+      lastError: '',
+    );
+    notifyListeners();
+    if (text.length <= maxCharacters) {
+      return text;
+    }
+    return '${text.substring(0, maxCharacters)}\n\n... 预览已截断，完整内容请打开注册表文件查看。';
+  }
+
+  Future<String> exportDocumentTemplateRegistry() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    final templateRoot =
+        Directory(_joinNested(workspace.path, 'doc/templates'));
+    final manifestPath =
+        _join(templateRoot.path, 'document_template_registry_manifest.json');
+    if (!await File(manifestPath).exists()) {
+      _fail('文档模板注册表不存在，请先创建模板注册表。');
+      return '';
+    }
+    final exportRoot =
+        Directory(_joinNested(workspace.path, 'export/templates'));
+    await _clearWorkspacePath(exportRoot.path);
+    await exportRoot.create(recursive: true);
+    final exportedManifest =
+        _join(exportRoot.path, 'document_template_registry_export.json');
+    await File(manifestPath).copy(exportedManifest);
+    final validationPath = _join(
+        templateRoot.path, 'document_template_registry_validation_report.json');
+    final exportedValidation = _join(
+        exportRoot.path, 'document_template_registry_validation_report.json');
+    if (await File(validationPath).exists()) {
+      await File(validationPath).copy(exportedValidation);
+    }
+    final exportManifestPath = _join(
+        exportRoot.path, 'document_template_registry_export_manifest.json');
+    final exportedAt = DateTime.now().toUtc().toIso8601String();
+    await _writeJsonFile(exportManifestPath, {
+      'schema_version': 'prd_v3_document_template_registry_export.v1',
+      'status': 'pass',
+      'workspace': workspace.path,
+      'source_manifest_path': manifestPath,
+      'exported_manifest_path': exportedManifest,
+      'exported_validation_path':
+          await File(exportedValidation).exists() ? exportedValidation : '',
+      'exported_at': exportedAt,
+      'secret_plaintext_written': false,
+    });
+    await _appendOrchestrationPlanRecord(
+      layer: 'document',
+      action: 'export_document_template_registry',
+      artifact: exportManifestPath,
+      status: 'completed',
+      resources: {
+        'source_manifest_path': manifestPath,
+        'exported_manifest_path': exportedManifest,
+      },
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'document_template_registry_exported',
+      module: 'document_generation',
+      action: 'export_document_template_registry',
+      status: 'completed',
+      targetId: 'document_template_registry_export',
+      targetName: 'Document Template Registry Export',
+      artifactPath: exportManifestPath,
+      source: 'document_template_registry',
+      metadata: {
+        'source_manifest_path': manifestPath,
+        'exported_manifest_path': exportedManifest,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'document_template_registry_export',
+      artifactType: 'document_template_registry_export',
+      title: 'Document Template Registry Export',
+      sourceModule: 'document_generation',
+      sourceId: 'document_template_registry',
+      filePath: exportManifestPath,
+      status: 'completed',
+      metadata: {
+        'source_manifest_path': manifestPath,
+        'exported_manifest_path': exportedManifest,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: '文档模板注册表已导出。',
+      lastError: '',
+    );
+    notifyListeners();
+    return exportManifestPath;
+  }
+
+  Future<void> deleteTestDocumentTemplateRegistryEntry() async {
+    if (!_canRunDesktop()) {
+      return;
+    }
+    final workspace = _requireWorkspace();
+    final manifestPath = _joinNested(workspace.path,
+        'doc/templates/document_template_registry_manifest.json');
+    final manifest = await _readJsonObject(manifestPath);
+    final entries = _listOfMaps(manifest['templates']).toList(growable: true);
+    final testEntries =
+        entries.where((entry) => entry['test_marker'] == true).toList();
+    if (testEntries.isEmpty) {
+      _fail('没有带 test 标记的文档模板注册项可删除。');
+      return;
+    }
+    final deleted = testEntries.first;
+    final deletedId = deleted['template_id'].toString();
+    final deletedPath = deleted['entry_path'].toString();
+    if (!deletedId.startsWith('test_')) {
+      _fail('拒绝删除未带 test 前缀的模板注册项。');
+      return;
+    }
+    final workspacePath = workspace.absolute.path;
+    if (deletedPath.isEmpty ||
+        !_isInsideDirectory(File(deletedPath).absolute.path, workspacePath)) {
+      _fail('拒绝删除工作区外的模板注册项。');
+      return;
+    }
+    if (await File(deletedPath).exists()) {
+      await File(deletedPath).delete();
+    }
+    final remaining = entries
+        .where((entry) => entry['template_id'].toString() != deletedId)
+        .toList(growable: false);
+    manifest['templates'] = remaining;
+    manifest['template_count'] = remaining.length;
+    manifest['template_ids'] = remaining
+        .map((entry) => entry['template_id'].toString())
+        .toList(growable: false);
+    manifest['last_deleted_test_template_id'] = deletedId;
+    manifest['last_deleted_test_template_at'] =
+        DateTime.now().toUtc().toIso8601String();
+    await _writeJsonFile(manifestPath, manifest);
+    final auditPath = _joinNested(
+        workspace.path, 'doc/templates/document_template_registry_audit.jsonl');
+    await File(auditPath).parent.create(recursive: true);
+    await File(auditPath).writeAsString(
+      '${jsonEncode({
+            'schema_version':
+                'prd_v3_document_template_registry_audit_event.v1',
+            'event_type': 'document_template_registry_test_entry_deleted',
+            'template_id': deletedId,
+            'entry_path': deletedPath,
+            'created_at': DateTime.now().toUtc().toIso8601String(),
+            'secret_plaintext_written': false,
+          })}\n',
+      mode: FileMode.append,
+      encoding: utf8,
+    );
+    await _appendEventLedgerRecord(
+      eventType: 'delete_artifact',
+      module: 'document_generation',
+      action: 'delete_test_document_template_registry_entry',
+      status: 'completed',
+      targetId: deletedId,
+      targetName: 'Test Document Template Registry Entry',
+      artifactPath: deletedPath,
+      source: 'document_template_registry',
+      metadata: {
+        'test_marker': true,
+        'registry_manifest_path': manifestPath,
+      },
+    );
+    await _markArtifactRecordDeleted(
+      artifactId: deletedId,
+      status: 'deleted',
+      metadata: {
+        'test_marker': true,
+        'deleted_entry_path': deletedPath,
+        'registry_manifest_path': manifestPath,
+      },
+    );
+    await _loadExistingArtifacts();
+    state = state.copyWith(
+      lastMessage: '测试文档模板注册项已删除，内置模板注册表已保留。',
       lastError: '',
     );
     notifyListeners();
@@ -5185,6 +5559,152 @@ class Rc6RuntimeController extends ChangeNotifier {
       lastMessage: 'Assistant Bound-KB Integration 验收已完成。',
       lastError: passed ? '' : 'assistant_bound_kb_integration_blocked',
     );
+    notifyListeners();
+    return summaryPath;
+  }
+
+  Future<String> runDocumentTemplateRegistryAcceptance() async {
+    if (!_canRunDesktop()) {
+      return '';
+    }
+    final workspace = _requireWorkspace();
+    state = state.copyWith(
+      running: true,
+      lastMessage: '正在执行 Document Template Registry 验收...',
+      lastError: '',
+    );
+    notifyListeners();
+    final summaryPath = _joinNested(
+      workspace.path,
+      'acceptance/document_template_registry_acceptance_summary.json',
+    );
+    final manifestPath = await registerDocumentTemplateLibrary(
+      includeTestTemplate: true,
+    );
+    final preview = await readDocumentTemplateRegistryPreview(
+      maxCharacters: 12000,
+    );
+    final exportManifestPath = await exportDocumentTemplateRegistry();
+    final testEntryPath = _joinNested(
+      workspace.path,
+      'doc/templates/entries/test_document_template_registry_entry.json',
+    );
+    final testEntryExistsBeforeDelete = await File(testEntryPath).exists();
+    await deleteTestDocumentTemplateRegistryEntry();
+    final testEntryExistsAfterDelete = await File(testEntryPath).exists();
+    final reloadedManifest = await _readJsonObject(manifestPath);
+    final exportManifest = await _readJsonObject(exportManifestPath);
+    final validationPath = _joinNested(workspace.path,
+        'doc/templates/document_template_registry_validation_report.json');
+    final validation = await _readJsonObject(validationPath);
+    final eventRows = await _readJsonl(File(_eventLedgerPath(workspace)));
+    final artifactCatalog =
+        await _readJsonObject(_artifactCatalogPath(workspace));
+    final artifactRows = _listOfMaps(artifactCatalog['artifacts']);
+    final checks = {
+      'manifest_exists': await File(manifestPath).exists(),
+      'manifest_schema': _stringValue(reloadedManifest['schema_version'], '') ==
+          'prd_v3_document_template_registry.v1',
+      'manifest_retains_builtin_templates':
+          _listOfStrings(reloadedManifest['template_ids'])
+              .contains('industry_analysis_report_template'),
+      'preview_opened':
+          preview.contains('prd_v3_document_template_registry.v1') &&
+              preview.contains('行业分析报告'),
+      'export_manifest_exists': await File(exportManifestPath).exists(),
+      'export_schema': _stringValue(exportManifest['schema_version'], '') ==
+          'prd_v3_document_template_registry_export.v1',
+      'exported_manifest_exists':
+          await File(_stringValue(exportManifest['exported_manifest_path'], ''))
+              .exists(),
+      'validation_passed': _stringValue(validation['status'], '') == 'pass',
+      'test_entry_created_before_delete': testEntryExistsBeforeDelete,
+      'test_entry_removed_after_delete': !testEntryExistsAfterDelete,
+      'manifest_removed_test_entry':
+          !_listOfStrings(reloadedManifest['template_ids'])
+              .contains('test_document_template_registry_entry'),
+      'event_create_recorded': eventRows.any((row) =>
+          _stringValue(row['event_type'], '') ==
+          'document_template_registry_created'),
+      'event_export_recorded': eventRows.any((row) =>
+          _stringValue(row['event_type'], '') ==
+          'document_template_registry_exported'),
+      'event_delete_recorded': eventRows.any((row) =>
+          _stringValue(row['action'], '') ==
+          'delete_test_document_template_registry_entry'),
+      'artifact_registry_recorded': artifactRows.any((row) =>
+          _stringValue(row['artifact_id'], '') ==
+              'document_template_registry_manifest' &&
+          _stringValue(row['status'], '') == 'completed'),
+      'artifact_export_recorded': artifactRows.any((row) =>
+          _stringValue(row['artifact_id'], '') ==
+              'document_template_registry_export' &&
+          _stringValue(row['status'], '') == 'completed'),
+      'artifact_test_delete_recorded': artifactRows.any((row) =>
+          _stringValue(row['artifact_id'], '') ==
+              'test_document_template_registry_entry' &&
+          _stringValue(row['status'], '') == 'deleted'),
+      'secret_plaintext_written': false,
+    };
+    final failedChecks = checks.entries
+        .where((entry) =>
+            entry.key != 'secret_plaintext_written' && entry.value != true)
+        .map((entry) => entry.key)
+        .toList(growable: false);
+    await _writeJsonFile(summaryPath, {
+      'schema_version':
+          'prd_v3_document_template_registry_acceptance_summary.v1',
+      'status': failedChecks.isEmpty ? 'pass' : 'blocked',
+      'workspace': workspace.path,
+      'manifest_path': manifestPath,
+      'validation_report_path': validationPath,
+      'export_manifest_path': exportManifestPath,
+      'test_entry_path': testEntryPath,
+      'checks': checks,
+      'failed_checks': failedChecks,
+      'delete_scope': 'test_marker_only',
+      'real_user_data_deleted': false,
+      'secret_plaintext_written': false,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+    });
+    await _appendEventLedgerRecord(
+      eventType: 'document_template_registry_acceptance',
+      module: 'document_generation',
+      action: 'run_document_template_registry_acceptance',
+      status: failedChecks.isEmpty ? 'completed' : 'blocked',
+      targetId: 'document_template_registry_acceptance',
+      targetName: 'Document Template Registry Acceptance',
+      artifactPath: summaryPath,
+      source: 'runtime_acceptance',
+      metadata: {
+        'manifest_path': manifestPath,
+        'export_manifest_path': exportManifestPath,
+        'failed_checks': failedChecks,
+      },
+    );
+    await _upsertArtifactRecord(
+      artifactId: 'document_template_registry_acceptance_summary',
+      artifactType: 'acceptance_report',
+      title: 'Document Template Registry Acceptance Summary',
+      sourceModule: 'document_generation',
+      sourceId: 'document_template_registry_acceptance',
+      filePath: summaryPath,
+      status: failedChecks.isEmpty ? 'completed' : 'blocked',
+      metadata: {
+        'manifest_path': manifestPath,
+        'export_manifest_path': exportManifestPath,
+        'failed_checks': failedChecks,
+      },
+    );
+    state = state.copyWith(
+      running: false,
+      lastMessage: failedChecks.isEmpty
+          ? 'Document Template Registry 验收已完成。'
+          : 'Document Template Registry 验收存在缺口。',
+      lastError:
+          failedChecks.isEmpty ? '' : 'document_template_registry_blocked',
+    );
+    await _loadExistingArtifacts();
     notifyListeners();
     return summaryPath;
   }
@@ -10694,6 +11214,61 @@ class Rc6RuntimeController extends ChangeNotifier {
       const JsonEncoder.withIndent('  ').convert(payload),
       encoding: utf8,
     );
+  }
+
+  static List<Map<String, Object?>> _documentTemplateRegistryEntries({
+    required bool includeTestTemplate,
+  }) {
+    final entries = <Map<String, Object?>>[
+      {
+        'template_id': 'industry_analysis_report_template',
+        'title': '行业分析报告',
+        'template_kind': 'industry_report',
+        'output_formats': ['md', 'docx', 'pdf'],
+        'variables': ['title', 'source', 'evidence', 'risk'],
+        'status': 'previewable',
+        'test_marker': false,
+      },
+      {
+        'template_id': 'product_manual_template',
+        'title': '产品手册',
+        'template_kind': 'product_manual',
+        'output_formats': ['md', 'docx'],
+        'variables': ['feature', 'citation', 'operation_step'],
+        'status': 'previewable',
+        'test_marker': false,
+      },
+      {
+        'template_id': 'teaching_material_template',
+        'title': '教学材料',
+        'template_kind': 'teaching_material',
+        'output_formats': ['md', 'pptx', 'pdf'],
+        'variables': ['lesson', 'quiz', 'source'],
+        'status': 'previewable',
+        'test_marker': false,
+      },
+      {
+        'template_id': 'custom_document_template_slot',
+        'title': '自定义模板',
+        'template_kind': 'custom_template_slot',
+        'output_formats': ['md', 'docx', 'pdf', 'pptx'],
+        'variables': ['user_variable', 'export_manifest'],
+        'status': 'needs_template_config',
+        'test_marker': false,
+      },
+    ];
+    if (includeTestTemplate) {
+      entries.add({
+        'template_id': 'test_document_template_registry_entry',
+        'title': 'test_document_template',
+        'template_kind': 'test_template',
+        'output_formats': ['md'],
+        'variables': ['test_title', 'test_source'],
+        'status': 'test_only',
+        'test_marker': true,
+      });
+    }
+    return entries;
   }
 
   Future<Map<String, dynamic>> _latestDocumentGenerationConfig(
@@ -27434,6 +28009,10 @@ class Rc6RuntimeController extends ChangeNotifier {
 
   bool _autoRunAssistantBoundKbIntegrationOnLaunch() {
     return _envEnabled('HEITANG_P0_ASSISTANT_BOUND_KB_E2E');
+  }
+
+  bool _autoRunDocumentTemplateRegistryOnLaunch() {
+    return _envEnabled('HEITANG_P1_DOCUMENT_TEMPLATE_REGISTRY_E2E');
   }
 
   bool _envEnabled(String key) {

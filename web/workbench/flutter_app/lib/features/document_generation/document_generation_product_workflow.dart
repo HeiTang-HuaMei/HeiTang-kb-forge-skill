@@ -735,6 +735,18 @@ class _DocumentTemplateViewState extends State<_DocumentTemplateView> {
 
   @override
   Widget build(BuildContext context) {
+    final rc6 = _Rc6RuntimeScope.of(context);
+    Future<void> selectTemplatePreview() async {
+      setState(() => templateSelected = true);
+      await rc6?.registerDocumentTemplateLibrary();
+    }
+
+    Future<void> exportTemplateRegistry() async {
+      if (rc6 == null) return;
+      await rc6.registerDocumentTemplateLibrary();
+      await rc6.exportDocumentTemplateRegistry();
+    }
+
     return LayoutBuilder(builder: (context, constraints) {
       final wide = constraints.maxWidth >= 1040;
       final templates = _ProductPanel(
@@ -784,7 +796,16 @@ class _DocumentTemplateViewState extends State<_DocumentTemplateView> {
           _PrimaryProductAction(
             label: zh ? '选择模板预览' : 'Select template preview',
             icon: Icons.visibility_outlined,
-            onPressed: () => setState(() => templateSelected = true),
+            onPressed: selectTemplatePreview,
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: exportTemplateRegistry,
+              icon: const Icon(Icons.file_download_outlined, size: 18),
+              label: Text(zh ? '导出模板注册表' : 'Export template registry'),
+            ),
           ),
         ],
       );

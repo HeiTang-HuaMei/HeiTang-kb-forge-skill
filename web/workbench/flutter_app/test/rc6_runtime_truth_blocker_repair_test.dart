@@ -6986,7 +6986,8 @@ void main() {
     expect(diff.readAsStringSync(), contains('不会执行外部代码或系统命令'));
     final history = File(
         '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_history.json');
-    expect(history.readAsStringSync(), contains('"action": "import_external_skill"'));
+    expect(history.readAsStringSync(),
+        contains('"action": "import_external_skill"'));
     expect(history.readAsStringSync(), contains('"status": "completed"'));
     expect(controller.state.hasSkill, isTrue);
   });
@@ -7028,7 +7029,8 @@ void main() {
 
     final history = File(
         '${workspace.path}${Platform.pathSeparator}skill${Platform.pathSeparator}operations${Platform.pathSeparator}skill_operation_history.json');
-    expect(history.readAsStringSync(), contains('"action": "import_external_skill"'));
+    expect(history.readAsStringSync(),
+        contains('"action": "import_external_skill"'));
     expect(history.readAsStringSync(), contains('"status": "failed"'));
     expect(history.readAsStringSync(),
         contains('"reason": "dangerous_override_rejected"'));
@@ -8595,6 +8597,135 @@ void main() {
         controller.state.documentCitationsPath);
     expect(reloadedController.state.documentValidationReportPath,
         controller.state.documentValidationReportPath);
+  });
+
+  test('document template registry has artifact lifecycle evidence', () async {
+    final workspace = await createWorkspace();
+    final controller = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+
+    await controller.initialize();
+    final manifestPath = await controller.registerDocumentTemplateLibrary(
+      includeTestTemplate: true,
+    );
+    final templateRoot =
+        '${workspace.path}${Platform.pathSeparator}doc${Platform.pathSeparator}templates';
+    final manifest = jsonDecode(File(manifestPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(manifest['schema_version'], 'prd_v3_document_template_registry.v1');
+    expect(manifest['status'], 'pass');
+    expect(manifest['template_count'], 5);
+    expect(manifest['template_ids'], contains('product_manual_template'));
+    expect(manifest['template_ids'],
+        contains('test_document_template_registry_entry'));
+    expect(manifest['secret_plaintext_written'], isFalse);
+
+    final validationPath =
+        '$templateRoot${Platform.pathSeparator}document_template_registry_validation_report.json';
+    final validation = jsonDecode(File(validationPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(validation['status'], 'pass');
+    expect(validation['has_builtin_templates'], isTrue);
+    expect(validation['has_output_formats'], isTrue);
+    expect(validation['has_required_variables'], isTrue);
+    expect(validation['test_marked_entries'],
+        contains('test_document_template_registry_entry'));
+
+    final preview = await controller.readDocumentTemplateRegistryPreview();
+    expect(preview, contains('prd_v3_document_template_registry.v1'));
+    expect(preview, contains('行业分析报告'));
+
+    final exportManifestPath =
+        await controller.exportDocumentTemplateRegistry();
+    final exportManifest =
+        jsonDecode(File(exportManifestPath).readAsStringSync())
+            as Map<String, dynamic>;
+    expect(exportManifest['schema_version'],
+        'prd_v3_document_template_registry_export.v1');
+    expect(
+        File(exportManifest['exported_manifest_path'] as String).existsSync(),
+        isTrue);
+    expect(
+        File(exportManifest['exported_validation_path'] as String).existsSync(),
+        isTrue);
+
+    final testEntryPath =
+        '$templateRoot${Platform.pathSeparator}entries${Platform.pathSeparator}test_document_template_registry_entry.json';
+    expect(File(testEntryPath).existsSync(), isTrue);
+    await controller.deleteTestDocumentTemplateRegistryEntry();
+    expect(File(testEntryPath).existsSync(), isFalse);
+    final deletedManifest = jsonDecode(File(manifestPath).readAsStringSync())
+        as Map<String, dynamic>;
+    expect(deletedManifest['template_count'], 4);
+    expect(deletedManifest['template_ids'],
+        isNot(contains('test_document_template_registry_entry')));
+    expect(deletedManifest['last_deleted_test_template_id'],
+        'test_document_template_registry_entry');
+
+    final reloadedController = Rc6RuntimeController(
+      coreBridge: LocalCoreBridge(
+        runner: (_) async => const CoreBridgeProcessResult(
+            exitCode: 0, stdout: 'ok', stderr: ''),
+      ),
+      coreCli: 'heitang-kb-forge',
+      coreWorkingDirectory: Directory.current.path,
+      configuredWorkspace: workspace.path,
+      isWebRuntime: false,
+    );
+    await reloadedController.initialize();
+    final reloadedPreview =
+        await reloadedController.readDocumentTemplateRegistryPreview();
+    expect(reloadedPreview, contains('product_manual_template'));
+    expect(reloadedPreview,
+        isNot(contains('test_document_template_registry_entry.json')));
+
+    final eventRows = File(
+            '${workspace.path}${Platform.pathSeparator}audit${Platform.pathSeparator}event_ledger.jsonl')
+        .readAsLinesSync()
+        .where((line) => line.trim().isNotEmpty)
+        .map((line) => jsonDecode(line) as Map<String, dynamic>)
+        .toList(growable: false);
+    expect(
+        eventRows.any(
+            (row) => row['event_type'] == 'document_template_registry_created'),
+        isTrue);
+    expect(
+        eventRows.any((row) =>
+            row['event_type'] == 'document_template_registry_exported'),
+        isTrue);
+    expect(
+        eventRows.any((row) =>
+            row['action'] == 'delete_test_document_template_registry_entry'),
+        isTrue);
+
+    final artifactCatalog = jsonDecode(File(
+            '${workspace.path}${Platform.pathSeparator}artifacts${Platform.pathSeparator}catalog.json')
+        .readAsStringSync()) as Map<String, dynamic>;
+    final artifacts =
+        (artifactCatalog['artifacts'] as List).cast<Map<String, dynamic>>();
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'document_template_registry_manifest' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'document_template_registry_export' &&
+            row['status'] == 'completed'),
+        isTrue);
+    expect(
+        artifacts.any((row) =>
+            row['artifact_id'] == 'test_document_template_registry_entry' &&
+            row['status'] == 'deleted'),
+        isTrue);
   });
 
   test('skill generation persists type platform and personalization config',
