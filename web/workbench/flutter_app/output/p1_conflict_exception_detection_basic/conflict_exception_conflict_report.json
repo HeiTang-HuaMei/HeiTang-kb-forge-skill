@@ -1,0 +1,33 @@
+{
+  "conflict_exception_version": "1.0.0",
+  "status": "conflicts_with_exceptions_found",
+  "conflict_count": 1,
+  "exception_count": 1,
+  "conflicts": [
+    {
+      "conflict_id": "conflict-001",
+      "topic": "external source validation",
+      "positive_statement_ids": [
+        "allow-1",
+        "exception-1"
+      ],
+      "negative_statement_ids": [
+        "deny-1"
+      ]
+    }
+  ],
+  "exceptions": [
+    {
+      "exception_id": "exception-001",
+      "statement_id": "exception-1",
+      "exception_of": "deny-1",
+      "topic": "external source validation"
+    }
+  ],
+  "checked_statement_ids": [
+    "allow-1",
+    "deny-1",
+    "exception-1"
+  ],
+  "summary": "1 conflict(s) and 1 exception(s) found."
+}

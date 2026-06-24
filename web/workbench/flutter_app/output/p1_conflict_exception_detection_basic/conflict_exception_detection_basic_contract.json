@@ -1,0 +1,26 @@
+﻿{
+    "schema_version":  "heitang_conflict_exception_detection_basic_contract.v1",
+    "status":  "conflict_exception_detection_completed_needs_owner_review",
+    "capability_id":  "conflict_exception_detection",
+    "phase":  "P1",
+    "acceptance_type":  "core_only",
+    "required_inputs":  [
+                            "statements"
+                        ],
+    "required_outputs":  [
+                             "status",
+                             "conflict_count",
+                             "exception_count",
+                             "conflicts",
+                             "exceptions"
+                         ],
+    "conflict_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_conflict_exception_detection_basic\\conflict_exception_conflict_report.json",
+    "pass_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_conflict_exception_detection_basic\\conflict_exception_pass_report.json",
+    "exception_report_path":  "D:\\HeiTang-Codex-WorkSpace\\Project_01_HeiTang_KB_Forge\\kb-forge-skill-ui\\web\\workbench\\flutter_app\\output\\p1_conflict_exception_detection_basic\\conflict_exception_exception_report.json",
+    "conflict_status":  "conflicts_with_exceptions_found",
+    "pass_status":  "pass",
+    "exception_status":  "exceptions_found",
+    "next_gate":  "P1-13 AI Config Governance Basic",
+    "global_goal_complete":  false,
+    "generated_at":  "2026-06-24T19:31:11.4394714Z"
+}

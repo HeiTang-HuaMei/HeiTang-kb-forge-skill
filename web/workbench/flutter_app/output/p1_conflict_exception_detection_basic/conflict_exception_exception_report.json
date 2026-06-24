@@ -1,0 +1,19 @@
+{
+  "conflict_exception_version": "1.0.0",
+  "status": "exceptions_found",
+  "conflict_count": 0,
+  "exception_count": 1,
+  "conflicts": [],
+  "exceptions": [
+    {
+      "exception_id": "exception-001",
+      "statement_id": "exception-1",
+      "exception_of": "general-delete-ban",
+      "topic": "delete test object"
+    }
+  ],
+  "checked_statement_ids": [
+    "exception-1"
+  ],
+  "summary": "0 conflict(s) and 1 exception(s) found."
+}

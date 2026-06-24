@@ -1,0 +1,13 @@
+{
+  "conflict_exception_version": "1.0.0",
+  "status": "pass",
+  "conflict_count": 0,
+  "exception_count": 0,
+  "conflicts": [],
+  "exceptions": [],
+  "checked_statement_ids": [
+    "allow-1",
+    "allow-2"
+  ],
+  "summary": "0 conflict(s) and 0 exception(s) found."
+}

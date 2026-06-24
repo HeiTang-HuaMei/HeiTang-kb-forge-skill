@@ -1,0 +1,10 @@
+﻿{
+    "schema_version":  "heitang_conflict_exception_detection_basic_checkpoint.v1",
+    "status":  "conflict_exception_detection_completed_needs_owner_review",
+    "current_phase":  "P1",
+    "current_gate":  "P1-13 AI Config Governance Basic",
+    "next_gate":  "P1-13 AI Config Governance Basic",
+    "remaining_gates_count":  79,
+    "global_goal_complete":  false,
+    "created_at":  "2026-06-24T19:31:11.5158032Z"
+}
