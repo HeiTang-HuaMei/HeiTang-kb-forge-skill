@@ -1,0 +1,180 @@
+{
+  "gate": "Pre-Target-Mode Environment Verification Gate",
+  "status": "connection_verified",
+  "available_for_target_mode": true,
+  "generated_at": "2026-06-24T16:04:34.247515Z",
+  "previous_governance_cleanup_commit": "16c8fd13c99bb6889bca90e96dab441163079645",
+  "capability_chain": {
+    "current_phase": "P0",
+    "current_gate": "P0-4C Agent Memory Minimal Core Gate",
+    "global_goal_complete": false,
+    "remaining_gates_count": 95,
+    "chain_state_changed_by_this_gate": false
+  },
+  "configuration_sources": {
+    "workbench_config_dir_exists": true,
+    "provider_runtime_settings_exists": true,
+    "storage_provider_settings_exists": true,
+    "llm_provider": "openai_compatible",
+    "llm_endpoint_present": true,
+    "llm_model_present": true,
+    "llm_api_key_ref": "env:OPENAI_API_KEY",
+    "redis_host": "127.0.0.1",
+    "redis_port": 6379,
+    "redis_password_ref": "docker:heitang-redis:env:redacted",
+    "qdrant_endpoint": "http://127.0.0.1:6333",
+    "qdrant_dimension": 1536,
+    "qdrant_api_key_ref": "none"
+  },
+  "smoke_results": [
+    {
+      "name": "llm_config_read",
+      "status": "connection_verified",
+      "available_for_target_mode": true,
+      "details": {
+        "workbench_config_dir_exists": true,
+        "provider_runtime_settings_exists": true,
+        "storage_provider_settings_exists": true,
+        "effective_provider": "openai_compatible",
+        "effective_endpoint_present": true,
+        "effective_endpoint": "https://ai-pixel.online",
+        "effective_model_present": true,
+        "effective_model": "gpt-5.5",
+        "api_key_ref": "env:OPENAI_API_KEY",
+        "api_key_present": true
+      },
+      "blocked_reason": null,
+      "failed_command": null,
+      "env_or_config_gap": null,
+      "resume_prompt": null
+    },
+    {
+      "name": "llm_minimal_request",
+      "status": "connection_verified",
+      "available_for_target_mode": true,
+      "details": {
+        "provider": "openai_compatible",
+        "model": "gpt-5.5",
+        "endpoint": "https://ai-pixel.online",
+        "models_endpoint_status": 200,
+        "configured_model_seen": true,
+        "model_count": 16,
+        "chat_completions_status": 200,
+        "chat_completions_latency_ms": 4862,
+        "non_empty_response": true,
+        "response_content_recorded": "no",
+        "retry_note": "initial chat completion read timed out once; controlled retry returned non-empty response"
+      },
+      "blocked_reason": null,
+      "failed_command": null,
+      "env_or_config_gap": null,
+      "resume_prompt": null
+    },
+    {
+      "name": "docker",
+      "status": "connection_verified",
+      "available_for_target_mode": true,
+      "details": {
+        "docker_cli": "Docker version 29.5.3, build d1c06ef",
+        "server_version": "29.5.3",
+        "running": true
+      },
+      "blocked_reason": null,
+      "failed_command": null,
+      "env_or_config_gap": null,
+      "resume_prompt": null
+    },
+    {
+      "name": "redis",
+      "status": "connection_verified",
+      "available_for_target_mode": true,
+      "details": {
+        "host": "127.0.0.1",
+        "port": 6379,
+        "db": 0,
+        "port_reachable": true,
+        "password_ref": "docker:heitang-redis:env:redacted",
+        "ping": "ok",
+        "set": "ok",
+        "get": "ok",
+        "delete": "ok",
+        "service_packaging": "external_service_or_optional_connector"
+      },
+      "blocked_reason": null,
+      "failed_command": null,
+      "env_or_config_gap": null,
+      "resume_prompt": null
+    },
+    {
+      "name": "vector_db",
+      "status": "connection_verified",
+      "available_for_target_mode": true,
+      "details": {
+        "provider": "qdrant",
+        "endpoint": "http://127.0.0.1:6333",
+        "api_key_ref": "none",
+        "dimension": 1536,
+        "temp_collection": "heitang_env_smoke_20260624160229_b1334a3b",
+        "connect": "ok",
+        "create_collection": "ok",
+        "upsert": "ok",
+        "query": "ok",
+        "cleanup": "ok",
+        "local_proxy_bypass_applied": true,
+        "http_proxy_present": true,
+        "service_packaging": "external_service_or_optional_connector"
+      },
+      "blocked_reason": null,
+      "failed_command": null,
+      "env_or_config_gap": null,
+      "resume_prompt": null
+    },
+    {
+      "name": "external_network",
+      "status": "connection_verified",
+      "available_for_target_mode": true,
+      "details": {
+        "url": "https://www.iana.org/domains/reserved",
+        "http_status": 200,
+        "title": "IANA-managed Reserved Domains",
+        "latency_ms": 1038,
+        "crawl_scope": "single_public_page"
+      },
+      "blocked_reason": null,
+      "failed_command": null,
+      "env_or_config_gap": null,
+      "resume_prompt": null
+    },
+    {
+      "name": "external_source_validation",
+      "status": "connection_verified",
+      "available_for_target_mode": true,
+      "details": {
+        "source_url": "https://www.iana.org/domains/reserved",
+        "title": "IANA-managed Reserved Domains",
+        "source_trace": "docs/audits/current/environment_source_trace.jsonl",
+        "validation_report": "docs/audits/current/environment_validation_report.json",
+        "linkback_verified": true,
+        "report_path_recorded": true
+      },
+      "blocked_reason": null,
+      "failed_command": null,
+      "env_or_config_gap": null,
+      "resume_prompt": null
+    }
+  ],
+  "failed_items": [],
+  "generated_reports": [
+    "docs/audits/current/environment_verification_report.md",
+    "docs/audits/current/environment_source_trace.jsonl",
+    "docs/audits/current/environment_validation_report.json"
+  ],
+  "boundaries": {
+    "p0_p1_p2_execution_run": false,
+    "p0_4c_execution_run": false,
+    "ui_or_runtime_modified": false,
+    "new_dependency_added": false,
+    "isolated_pollution_used_as_evidence": false,
+    "redis_vector_service_packaging": "external_service_or_optional_connector"
+  }
+}
